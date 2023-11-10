@@ -587,12 +587,17 @@ dependencies = [
  "pyo3",
  "pyo3-asyncio",
  "pyo3-build-config",
+ "ryo3",
  "serde",
  "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "ryo3"
+version = "0.1.0"
 
 [[package]]
 name = "ryu"

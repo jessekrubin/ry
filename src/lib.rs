@@ -1,6 +1,5 @@
 use pyo3::prelude::*;
 use tracing::debug;
-use tracing_subscriber::EnvFilter;
 mod fmts;
 mod lager;
 mod sleep;
@@ -15,11 +14,6 @@ fn subry(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sleep::sleep_async, m)?)?;
     m.add_function(wrap_pyfunction!(sleep::sleep, m)?)?;
     Ok(())
-}
-
-#[pyfunction]
-fn nbytes_str(nbytes: u64) -> PyResult<String> {
-    Ok(fmts::nbytes_str(nbytes, Option::from(1)).unwrap())
 }
 
 /// A Python module implemented in Rust.
@@ -40,7 +34,7 @@ fn ry(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add("__build_profile__", BUILD_PROFILE)?;
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
 
-    m.add_function(wrap_pyfunction!(nbytes_str, m)?)?;
+    m.add_function(wrap_pyfunction!(fmts::nbytes_str, m)?)?;
     m.add_function(wrap_pyfunction!(sleep::sleep_async, m)?)?;
     m.add_function(wrap_pyfunction!(sleep::sleep, m)?)?;
 
