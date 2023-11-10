@@ -14,21 +14,21 @@ def _ext_info() -> Dict[str, Union[str, int]]:
         "abspath": os.path.abspath(libry.__file__),
         "fsize": size,
         "fsize_str": libry.nbytes_str(size),
+        "build_profile": libry.__build_profile__,
+        "build_timestamp": libry.__build_timestamp__,
     }
 
-def main() -> None:
-    """Print package metadata"""
-
-    sys.stdout.write(
-        json.dumps(
-            {
+def _lib_info() -> Dict[str, Union[str, int]]:
+    return {
                 "package": __title__,
                 "version": __version__,
                 "pkgroot": __pkgroot__,
                 "ry": _ext_info(),
-            },
-            indent=2,
-        )
+            }
+def main() -> None:
+    """Print package metadata"""
+    sys.stdout.write(
+        json.dumps(_lib_info(), indent=2)
     )
 
 
