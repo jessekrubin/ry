@@ -1,18 +1,17 @@
 use pyo3::prelude::*;
 use std::{
-  fs::File,
-  io::{stderr, stdout, Read, Write},
-  process::{Command, Stdio},
-  thread,
+    fs::File,
+    io::{stderr, stdout, Read, Write},
+    process::{Command, Stdio},
+    thread,
 };
 
-
 pub struct Done {
-  pub command : String,
-  pub returncode: i32,
-  pub ok: bool,
-  pub stdout: String,
-  pub stderr: String,
+    pub command: String,
+    pub returncode: i32,
+    pub ok: bool,
+    pub stdout: String,
+    pub stderr: String,
 }
 
 // use std::io::{self, Read, Write};
@@ -30,15 +29,12 @@ pub fn run() -> std::io::Result<(Vec<u8>, Vec<u8>)> {
     // Create the Command object
     let mut cmd = Command::new("python");
     cmd.arg("--version")
-       .stdout(Stdio::piped())
-       .stderr(Stdio::piped());
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
 
     // Now, execute the command
-    let mut child = cmd.spawn()
-                      .expect("failed to execute child");
-    fn communicate(
-        mut stream: impl Read,
-    ) -> std::io::Result<Vec<u8>> {
+    let mut child = cmd.spawn().expect("failed to execute child");
+    fn communicate(mut stream: impl Read) -> std::io::Result<Vec<u8>> {
         let mut output_vector = Vec::new();
         let mut buf = [0u8; 1024];
 
@@ -58,12 +54,8 @@ pub fn run() -> std::io::Result<(Vec<u8>, Vec<u8>)> {
     let child_out = std::mem::take(&mut child.stdout).expect("cannot attach to child stdout");
     let child_err = std::mem::take(&mut child.stderr).expect("cannot attach to child stderr");
 
-    let thread_out = thread::spawn(move || {
-        communicate(child_out)
-    });
-    let thread_err = thread::spawn(move || {
-        communicate(child_err)
-    });
+    let thread_out = thread::spawn(move || communicate(child_out));
+    let thread_err = thread::spawn(move || communicate(child_err));
 
     let stdout_vector = thread_out.join().unwrap()?;
     let stderr_vector = thread_err.join().unwrap()?;
@@ -73,8 +65,14 @@ pub fn run() -> std::io::Result<(Vec<u8>, Vec<u8>)> {
 
     // Return the captured stdout and stderr vectors
     // print the output
-    println!("stdout: {}", String::from_utf8(stdout_vector.clone()).unwrap());
-    println!("stderr: {}", String::from_utf8(stderr_vector.clone()).unwrap());
+    println!(
+        "stdout: {}",
+        String::from_utf8(stdout_vector.clone()).unwrap()
+    );
+    println!(
+        "stderr: {}",
+        String::from_utf8(stderr_vector.clone()).unwrap()
+    );
     Ok((stdout_vector, stderr_vector))
 }
 
@@ -142,7 +140,6 @@ pub fn run1() {
         .stderr(Stdio::piped())
         .spawn()
         .expect("failed to execute child");
-
 
     fn communicate(
         mut stream: impl Read,

@@ -30,20 +30,56 @@ pub fn nbytes_str(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
 #[cfg(test)]
 mod tests {
 
-  #[test]
-  fn test_nbytes_str(){
-    assert_eq!(super::nbytes_str(100, Option::from(1)).unwrap(), "100.0 bytes");
-    assert_eq!(super::nbytes_str(1000, Option::from(1)).unwrap(), "1000.0 bytes");
-    assert_eq!(super::nbytes_str(10000, Option::from(1)).unwrap(), "9.8 KB");
-    assert_eq!(super::nbytes_str(100000, Option::from(1)).unwrap(), "97.7 KB");
-    assert_eq!(super::nbytes_str(1000000, Option::from(1)).unwrap(), "976.6 KB");
-    assert_eq!(super::nbytes_str(10_000_000, Option::from(1)).unwrap(), "9.5 MB");
-    assert_eq!(super::nbytes_str(100_000_000, Option::from(1)).unwrap(), "95.4 MB");
-    assert_eq!(super::nbytes_str(1000000000, Option::from(1)).unwrap(), "953.7 MB");
-    assert_eq!(super::nbytes_str(10000000000, Option::from(1)).unwrap(), "9.3 GB");
-    assert_eq!(super::nbytes_str(100000000000, Option::from(1)).unwrap(), "93.1 GB");
-    assert_eq!(super::nbytes_str(1000000000000, Option::from(1)).unwrap(), "931.3 GB");
-    assert_eq!(super::nbytes_str(10000000000000, Option::from(1)).unwrap(), "9.1 TB");
-    assert_eq!(super::nbytes_str(100000000000000, Option::from(1)).unwrap(), "90.9 TB");
-  }
+    #[test]
+    fn test_nbytes_str() {
+        assert_eq!(
+            super::nbytes_str(100, Option::from(1)).unwrap(),
+            "100.0 bytes"
+        );
+        assert_eq!(
+            super::nbytes_str(1000, Option::from(1)).unwrap(),
+            "1000.0 bytes"
+        );
+        assert_eq!(super::nbytes_str(10000, Option::from(1)).unwrap(), "9.8 KB");
+        assert_eq!(
+            super::nbytes_str(100000, Option::from(1)).unwrap(),
+            "97.7 KB"
+        );
+        assert_eq!(
+            super::nbytes_str(1000000, Option::from(1)).unwrap(),
+            "976.6 KB"
+        );
+        assert_eq!(
+            super::nbytes_str(10_000_000, Option::from(1)).unwrap(),
+            "9.5 MB"
+        );
+        assert_eq!(
+            super::nbytes_str(100_000_000, Option::from(1)).unwrap(),
+            "95.4 MB"
+        );
+        assert_eq!(
+            super::nbytes_str(1000000000, Option::from(1)).unwrap(),
+            "953.7 MB"
+        );
+        assert_eq!(
+            super::nbytes_str(10000000000, Option::from(1)).unwrap(),
+            "9.3 GB"
+        );
+        assert_eq!(
+            super::nbytes_str(100000000000, Option::from(1)).unwrap(),
+            "93.1 GB"
+        );
+        assert_eq!(
+            super::nbytes_str(1000000000000, Option::from(1)).unwrap(),
+            "931.3 GB"
+        );
+        assert_eq!(
+            super::nbytes_str(10000000000000, Option::from(1)).unwrap(),
+            "9.1 TB"
+        );
+        assert_eq!(
+            super::nbytes_str(100000000000000, Option::from(1)).unwrap(),
+            "90.9 TB"
+        );
+    }
 }
