@@ -7,6 +7,6 @@ __all__ = (
     "__version__",
     "__build_profile__",
 )
-__title__ = "utiles"
-__description__ = "utiles = utils + tiles + rust"
+__title__ = "ry"
+__description__ = "ry = rust + python - most of the letters"
 __pkgroot__ = __file__.replace("__about__.py", "").rstrip("/\\")
