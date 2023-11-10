@@ -9,4 +9,21 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.20.0"
+pyo3 = { version = "0.19.2", features = ["auto-initialize"] }
+pyo3-asyncio = { version = "0.19.0", features = ["attributes", "tokio-runtime"] }
+tokio = { version = "1.34.0", features = ["full"] }
+tracing = "0.1.40"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.96"
+### alternative to pyo3-asyncio that is notable and should be watched
+# pyo3-async = "0.3.1"
+
+[build-dependencies]
+pyo3-build-config = "0.19.2"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+strip = true

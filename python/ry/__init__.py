@@ -1,6 +1,6 @@
-from .ry import *
+from ._ry import *
 
 
-__doc__ = ry.__doc__
-if hasattr(ry, "__all__"):
-    __all__ = ry.__all__
+__doc__ = _ry.__doc__
+if hasattr(_ry, "__all__"):
+    __all__ = _ry.__all__
