@@ -1,11 +1,6 @@
 use pyo3::prelude::*;
 mod sleep;
 mod fmts;
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
 
 #[pymodule]
 fn subry(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -23,10 +18,11 @@ fn nbytes_str(nbytes: u64) -> PyResult<String> {
 #[pymodule]
 #[pyo3(name = "_ry")]
 fn ry(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add("__build_profile__", env!("PROFILE"))?;
+    m.add("__build_timestamp__", env!("BUILD_TIMESTAMP"))?;
 
     m.add_function(wrap_pyfunction!(nbytes_str, m)?)?;
-
     m.add_function(wrap_pyfunction!(sleep::sleep_async, m)?)?;
     m.add_function(wrap_pyfunction!(sleep::sleep, m)?)?;
 

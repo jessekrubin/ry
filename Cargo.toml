@@ -20,6 +20,7 @@ serde_json = "1.0.96"
 
 [build-dependencies]
 pyo3-build-config = "0.19.2"
+chrono = "0.4.31"
 
 [profile.dev]
 opt-level = 0
