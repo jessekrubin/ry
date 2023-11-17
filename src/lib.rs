@@ -27,9 +27,6 @@ fn ry(_py: Python, m: &PyModule) -> PyResult<()> {
     debug!("build_timestamp: {}", BUILD_TIMESTAMP);
     debug!("build_timestamp\n: {}", BUILD_TIMESTAMP);
 
-    // m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    // m.add("__build_profile__", env!("PROFILE"))?;
-    // m.add("__build_timestamp__", env!("BUILD_TIMESTAMP"))?;
     m.add("__version__", VERSION)?;
     m.add("__build_profile__", BUILD_PROFILE)?;
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;

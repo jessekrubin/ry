@@ -1,11 +1,12 @@
+use std::io::{self, stderr, stdout, Read, Write};
+use std::process::{Command, Stdio};
+use std::sync::mpsc;
+use std::thread::{self};
+
 use pyo3::prelude::*;
 use pyo3::pyfunction;
 use pyo3::types::PyTuple;
 use serde::{Deserialize, Serialize};
-use std::io::{self, stderr, stdout, Read, Write};
-use std::process::{Command, Stdio};
-use std::sync::mpsc;
-use std::thread::{self, JoinHandle};
 use tracing::instrument::WithSubscriber;
 
 use super::done::Done;
@@ -58,18 +59,7 @@ fn communicate(
             sender.send(buf[..num_read].to_vec()).unwrap();
         }
     }
-    //
-    // let mut buf = [0; 1024];
-    //
-    // loop {
-    //     let num_read = stream.read(&mut buf)?;
-    //     if num_read == 0 {
-    //         break;
-    //     }
-    //
-    //     // Send the data through the channel
-    //     sender.send(buf[..num_read].to_vec()).unwrap();
-    // }
+
     Ok(())
 }
 
@@ -100,15 +90,15 @@ pub fn run(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
-    // Now, execute the command
-    let mut child = cmd.spawn().expect("failed to execute child");
-
     let (tx_out, rx_out) = mpsc::channel();
     let (tx_err, rx_err) = mpsc::channel();
 
+    // Now, execute the command
+    let mut child = cmd.spawn().expect("failed to execute child");
+
+    // let timeout_duration = timeout.map(Duration::from_secs);
     let child_out = std::mem::take(&mut child.stdout).expect("cannot attach to child stdout");
     let child_err = std::mem::take(&mut child.stderr).expect("cannot attach to child stderr");
-
     let thread_out = if tee.unwrap_or(false) {
         thread::spawn(move || communicate_tee(child_out, tx_out, stdout(), 4096, collect).unwrap())
     } else {
