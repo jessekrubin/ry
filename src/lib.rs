@@ -38,7 +38,7 @@ fn ry(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sleep::sleep_async, m)?)?;
     m.add_function(wrap_pyfunction!(sleep::sleep, m)?)?;
 
-    m.add_function(wrap_pyfunction!(sp::run, m)?)?;
+    m.add_function(wrap_pyfunction!(sp::run::run, m)?)?;
 
     Ok(())
 }
