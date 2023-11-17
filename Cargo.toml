@@ -1,7 +1,7 @@
 [package]
 name = "ry"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
@@ -9,20 +9,21 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.19.2", features = ["auto-initialize"] }
-pyo3-asyncio = { version = "0.19.0", features = ["attributes", "tokio-runtime"] }
-tokio = { version = "1.34.0", features = ["full"] }
-tracing = "0.1.40"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.96"
-tracing-subscriber = { version = "0.3.17", features = ["env-filter", "json", "serde", "serde_json"] }
+pyo3 = {  workspace= true, features = ["auto-initialize"] }
+pyo3-asyncio = { version = "0.20.0", features = ["attributes", "tokio-runtime"] }
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 ryo3 = { path = "./crates/ryo3" }
+serde_bytes = "0.11.12"
 ### alternative to pyo3-asyncio that is notable and should be watched
 # pyo3-async = "0.3.1"
 
 [build-dependencies]
-pyo3-build-config = "0.19.2"
-chrono = "0.4.31"
+pyo3-build-config.workspace = true
+chrono.workspace = true
 
 [profile.dev]
 opt-level = 0
@@ -30,3 +31,30 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 strip = true
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/ryo3",
+]
+
+[workspace.package]
+edition = "2021"
+version = "0.0.2"
+homepage = "https://github.com/jessekrubin/ry-dev"
+documentation = "https://github.com/jessekrubin/ry-dev"
+repository = "https://github.com/jessekrubin/ry-dev"
+authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+anyhow = "1.0.75"
+chrono = "0.4.31"
+pyo3 = "0.20.0"
+pyo3-build-config = "0.20.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.96"
+thiserror = "1.0.50"
+tokio = { version = "1.33.0", features = ["full"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.17", features = ["serde", "serde_json", "env-filter"] }
