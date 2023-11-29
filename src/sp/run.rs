@@ -1,4 +1,4 @@
-use std::io::{self, Read, stderr, stdout, Write};
+use std::io::{self, stderr, stdout, Read, Write};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread::{self};
@@ -72,7 +72,6 @@ pub fn run(
     timeout: Option<u64>,
     check: Option<bool>,
 ) -> PyResult<PyDone> {
-
     // warn that timeout and check are not implemented
     if timeout.is_some() {
         eprintln!("Warning: timeout is not implemented");
@@ -80,7 +79,6 @@ pub fn run(
     if check.is_some() {
         eprintln!("Warning: check is not implemented");
     }
-
 
     let popenargs = popenargs.extract::<Vec<String>>()?;
     let collect = capture.unwrap_or(true);

@@ -1,10 +1,11 @@
 use pyo3::prelude::*;
 use tracing::debug;
 mod fmts;
+mod fs;
 mod lager;
+mod sh;
 mod sleep;
 mod sp;
-mod sh;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const BUILD_PROFILE: &'static str = env!("PROFILE");
@@ -41,5 +42,6 @@ fn ry(_py: Python, m: &PyModule) -> PyResult<()> {
     // m.add_function(wrap_pyfunction!(sh::pwd, m)?)?;
     sh::madd(m)?;
 
+    fs::pymod(m)?;
     Ok(())
 }
