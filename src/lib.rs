@@ -4,6 +4,7 @@ mod fmts;
 mod lager;
 mod sleep;
 mod sp;
+mod sh;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const BUILD_PROFILE: &'static str = env!("PROFILE");
@@ -36,6 +37,9 @@ fn ry(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sleep::sleep, m)?)?;
 
     m.add_function(wrap_pyfunction!(sp::run::run, m)?)?;
+
+    // m.add_function(wrap_pyfunction!(sh::pwd, m)?)?;
+    sh::madd(m)?;
 
     Ok(())
 }

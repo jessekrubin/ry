@@ -1,4 +1,4 @@
-use std::io::{self, stderr, stdout, Read, Write};
+use std::io::{self, Read, stderr, stdout, Write};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread::{self};
@@ -6,8 +6,8 @@ use std::thread::{self};
 use pyo3::prelude::*;
 use pyo3::pyfunction;
 use pyo3::types::PyTuple;
-use serde::{Deserialize, Serialize};
-use tracing::instrument::WithSubscriber;
+// use serde::{Deserialize, Serialize};
+// use tracing::instrument::WithSubscriber;
 
 use super::done::Done;
 use super::pydone::PyDone;
@@ -72,6 +72,16 @@ pub fn run(
     timeout: Option<u64>,
     check: Option<bool>,
 ) -> PyResult<PyDone> {
+
+    // warn that timeout and check are not implemented
+    if timeout.is_some() {
+        eprintln!("Warning: timeout is not implemented");
+    }
+    if check.is_some() {
+        eprintln!("Warning: check is not implemented");
+    }
+
+
     let popenargs = popenargs.extract::<Vec<String>>()?;
     let collect = capture.unwrap_or(true);
     // split the popenargs into the command and the args
@@ -85,7 +95,7 @@ pub fn run(
     };
     let cmd_args = popenargs[1..].to_vec();
     let mut binding = Command::new(cmd_str);
-    let mut cmd = binding
+    let cmd = binding
         .args(cmd_args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
