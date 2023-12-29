@@ -2,6 +2,7 @@ import pytest
 import ry
 import time
 
+
 def test_sleep():
     start = time.time()
     res = ry.sleep(0)
@@ -9,6 +10,7 @@ def test_sleep():
     assert res >= 0
     assert isinstance(res, float)
     assert end - start >= 0
+
 
 @pytest.mark.asyncio
 async def test_sleep_async():

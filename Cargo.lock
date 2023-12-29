@@ -673,6 +673,12 @@ dependencies = [
 [[package]]
 name = "ryo3"
 version = "0.0.2"
+dependencies = [
+ "pyo3",
+ "pyo3-asyncio",
+ "shlex",
+ "tokio",
+]
 
 [[package]]
 name = "ryu"
@@ -734,6 +740,12 @@ checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
 ]
+
+[[package]]
+name = "shlex"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7cee0529a6d40f580e7a5e6c495c8fbfe21b7b52795ed4bb5e62cdf92bc6380"
 
 [[package]]
 name = "signal-hook-registry"
