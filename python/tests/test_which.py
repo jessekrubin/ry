@@ -73,6 +73,7 @@ def _mk_test_bin_dirs(tmppath):
             str(tmppath_bin2),
         ]
 
+
 def test_which_python():
     py_which = shutil.which("python")
     print("py", py_which)
@@ -109,6 +110,7 @@ def test_which_all_path(tmpdir: Path):
     path_kwarg = os.pathsep.join(path_list)
     ry_which = ry.which_all("notavirus", path=path_kwarg)
     assert len(ry_which) >= 2
+
 
 def test_which_path_cwd(tmpdir: Path):
     # make exes
