@@ -6,6 +6,8 @@ import ry
 
 
 def _clean_path(path):
+    if path is None:
+        return None
     res = path
     for ext in (".EXE", ".BAT", ".CMD"):
         if res.endswith(ext):
@@ -48,6 +50,12 @@ def _mk_test_bin_dirs(tmppath):
             str(tmppath_bin2),
         ]
     else:
+        script_str = "\n".join(
+            [
+                "#!/usr/bin/env bash",
+                "echo $PATH",
+            ]
+        )
         # make exes
         for exe in exe_names:
             with open(tmppath / exe, "w") as f:
@@ -58,14 +66,14 @@ def _mk_test_bin_dirs(tmppath):
         tmppath_bin.mkdir()
         for exe in exe_names:
             with open(tmppath_bin / exe, "w") as f:
-                f.write("echo $PATH")
+                f.write(script_str)
             # make executable
             os.chmod(tmppath_bin / exe, 0o777)
         tmppath_bin2 = tmppath / "bin2"
         tmppath_bin2.mkdir()
         for exe in exe_names:
             with open(tmppath_bin2 / exe, "w") as f:
-                f.write("echo $PATH")
+                f.write(script_str)
             # make executable
             os.chmod(tmppath_bin2 / exe, 0o777)
         return [
@@ -79,6 +87,7 @@ def test_which_python():
     print("py", py_which)
     ry_which = ry.which("python")
     print("ry", ry_which)
+
     # clean path
     py_clean = _clean_path(py_which)
     ry_clean = _clean_path(ry_which)
@@ -127,8 +136,6 @@ def test_which_path_cwd(tmpdir: Path):
     print("py", py_clean)
     print("ry", ry_clean)
     assert py_clean == ry_clean
-
-    # assert False
 
 
 def test_which_nada():
