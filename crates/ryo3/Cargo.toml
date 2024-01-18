@@ -6,7 +6,7 @@ edition.workspace = true
 
 [dependencies]
 dirs.workspace = true
-pyo3 = { workspace = true, features = ["auto-initialize"] }
+pyo3 = { workspace = true }
 pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
 regex.workspace = true
 serde.workspace = true
