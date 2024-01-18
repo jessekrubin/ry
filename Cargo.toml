@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 ryo3 = { path = "./crates/ryo3" }
-pyo3 = {  workspace= true, features = ["auto-initialize"] }
+pyo3.workspace = true
 pyo3-asyncio = {workspace = true, features = ["attributes", "tokio-runtime"] }
 tokio.workspace = true
 tracing.workspace = true
