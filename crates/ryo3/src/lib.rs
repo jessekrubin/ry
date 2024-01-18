@@ -6,8 +6,8 @@ pub mod fs;
 pub mod sh;
 pub mod shlex;
 pub mod sleep;
-pub mod which;
 pub mod sp;
+pub mod which;
 
 pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     sleep::madd(py, m)?;

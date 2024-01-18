@@ -1,5 +1,5 @@
-use pyo3::{pyfunction, PyResult, Python, wrap_pyfunction};
 use pyo3::prelude::PyModule;
+use pyo3::{pyfunction, wrap_pyfunction, PyResult, Python};
 
 const KILOBYTE: f64 = 1024.0;
 const MEGABYTE: f64 = KILOBYTE * 1024.0;

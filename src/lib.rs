@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
-use tracing::debug;
 use ryo3;
+use tracing::debug;
 mod lager;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");

@@ -1,5 +1,5 @@
-use pyo3::{PyResult, Python, wrap_pyfunction};
 use pyo3::prelude::PyModule;
+use pyo3::{wrap_pyfunction, PyResult, Python};
 
 mod done;
 mod pydone;
