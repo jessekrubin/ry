@@ -1,3 +1,7 @@
+use pyo3::{pyfunction, PyResult, Python, wrap_pyfunction};
+use pyo3::prelude::PyModule;
+use crate::fmts;
+
 const KILOBYTE: f64 = 1024.0;
 const MEGABYTE: f64 = KILOBYTE * 1024.0;
 const GIGABYTE: f64 = MEGABYTE * 1024.0;
@@ -23,6 +27,17 @@ pub fn nbytes_str(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
     } else {
         Err(format!("Invalid number of bytes: {}", nbytes))
     }
+}
+
+#[pyfunction]
+#[pyo3(name = "nbytes_str")]
+pub fn nbytes_str_py(nbytes: u64) -> PyResult<String> {
+    Ok(nbytes_str(nbytes, Option::from(1)).unwrap())
+}
+
+pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(nbytes_str_py, m)?)?;
+    Ok(())
 }
 
 #[cfg(test)]

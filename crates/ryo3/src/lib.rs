@@ -7,12 +7,15 @@ pub mod sh;
 pub mod shlex;
 pub mod sleep;
 pub mod which;
+pub mod sp;
 
 pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     sleep::madd(py, m)?;
     shlex::madd(py, m)?;
     which::madd(py, m)?;
+    fmts::madd(py, m)?;
     sh::madd(m)?;
     fs::pymod(m)?;
+    sp::madd(py, m)?;
     Ok(())
 }

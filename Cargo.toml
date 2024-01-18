@@ -9,6 +9,7 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
+ryo3 = { path = "./crates/ryo3" }
 pyo3 = {  workspace= true, features = ["auto-initialize"] }
 pyo3-asyncio = {workspace = true, features = ["attributes", "tokio-runtime"] }
 tokio.workspace = true
@@ -16,9 +17,7 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-ryo3 = { path = "./crates/ryo3" }
-serde_bytes = "0.11.12"
-dirs = { version = "5.0.1", features = [] }
+dirs.workspace = true
 thiserror.workspace = true
 ### alternative to pyo3-asyncio that is notable and should be watched
 # pyo3-async = "0.3.1"
@@ -58,6 +57,7 @@ pyo3-asyncio = { version = "0.20.0", features = ["attributes", "tokio-runtime"] 
 pyo3-build-config = "0.20.0"
 regex = "1.10.2"
 serde = { version = "1.0", features = ["derive"] }
+serde_bytes = "0.11.12"
 serde_json = "1.0.96"
 shlex = "1.2.0"
 thiserror = "1.0.50"
