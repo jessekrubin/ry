@@ -9,3 +9,6 @@ pyo3 = { workspace = true, features = ["auto-initialize"] }
 pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
 shlex.workspace = true
 tokio.workspace = true
+which = { workspace = true, features = ["regex"] }
+regex.workspace = true
+dirs = { version = "5.0.1", features = [] }

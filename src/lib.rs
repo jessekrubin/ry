@@ -4,9 +4,9 @@ use tracing::debug;
 use ryo3;
 
 mod fmts;
-mod fs;
+// mod fs;
 mod lager;
-mod sh;
+// mod sh;
 mod sp;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -39,7 +39,7 @@ fn ry(py: Python, m: &PyModule) -> PyResult<()> {
 
     m.add_function(wrap_pyfunction!(fmts::nbytes_str, m)?)?;
     m.add_function(wrap_pyfunction!(sp::run::run, m)?)?;
-    sh::madd(m)?;
-    fs::pymod(m)?;
+    // sh::madd(m)?;
+    // fs::pymod(m)?;
     Ok(())
 }

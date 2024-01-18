@@ -1,11 +1,13 @@
 import ry
 import pytest
 
+
 def test_read_string(tmp_path):
     p = tmp_path / "test.txt"
     p.write_text("hello")
     ry.cd(tmp_path)
     assert ry.read_text("test.txt") == "hello"
+
 
 def test_read_string_invalid_utf8(tmp_path):
     p = tmp_path / "test.txt"
@@ -15,11 +17,11 @@ def test_read_string_invalid_utf8(tmp_path):
         assert f.read() == b"\x80"
     # with python open and get error type
     with pytest.raises(UnicodeDecodeError):
-        with open("test.txt", "r", encoding= "utf-8"
-                  ) as f:
+        with open("test.txt", "r", encoding="utf-8") as f:
             f.read()
     with pytest.raises(UnicodeDecodeError):
         ry.read_text("test.txt")
+
 
 def test_read_bytes(tmp_path):
     p = tmp_path / "test.txt"
@@ -27,30 +29,25 @@ def test_read_bytes(tmp_path):
     ry.cd(tmp_path)
     assert ry.read_bytes("test.txt") == b"hello"
 
+
 def test_read_file_missing(tmp_path):
     p = tmp_path / "test.txt"
     ry.cd(tmp_path)
     with pytest.raises(FileNotFoundError):
-        ry.read_bytes(
-            str(p)
-        )
+        ry.read_bytes(str(p))
     with pytest.raises(FileNotFoundError):
-        ry.read_text(
-            str(p)
-        )
+        ry.read_text(str(p))
+
 
 @pytest.mark.skip(reason="TODO: pathlike not implemented")
 def test_read_file_missing_pathlike(tmp_path):
     p = tmp_path / "test.txt"
     ry.cd(tmp_path)
     with pytest.raises(FileNotFoundError):
-        ry.read_bytes(
-            p
-        )
+        ry.read_bytes(p)
     with pytest.raises(FileNotFoundError):
-        ry.read_text(
-            p
-        )
+        ry.read_text(p)
+
 
 # use std::char::decode_utf16;
 # use std::path::Path;

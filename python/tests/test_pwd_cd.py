@@ -42,7 +42,6 @@ def test_cd_pathlib_nonexistent():
 
 
 def test_cd_nonexistent_ry():
-    old_pwd = ry.pwd()
     with pytest.raises(FileNotFoundError):
         ry.cd("nonexistent")
 
