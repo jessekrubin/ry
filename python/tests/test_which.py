@@ -1,11 +1,16 @@
+from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-
+from typing import TypeVar
 import ry
 
+T = TypeVar("T", str, None)
 
-def _clean_path(path):
+
+def _clean_path(path: T) -> T:
+    if path is None:
+        return None
     res = path
     for ext in (".EXE", ".BAT", ".CMD"):
         if res.endswith(ext):
@@ -13,7 +18,7 @@ def _clean_path(path):
     return res
 
 
-def _mk_test_bin_dirs(tmppath):
+def _mk_test_bin_dirs(tmppath: Path) -> list[str]:
     # exe names
     exe_names = ("notavirus", "uwot")
     if os.name == "nt":
@@ -48,6 +53,12 @@ def _mk_test_bin_dirs(tmppath):
             str(tmppath_bin2),
         ]
     else:
+        script_str = "\n".join(
+            [
+                "#!/usr/bin/env bash",
+                "echo $PATH",
+            ]
+        )
         # make exes
         for exe in exe_names:
             with open(tmppath / exe, "w") as f:
@@ -58,14 +69,14 @@ def _mk_test_bin_dirs(tmppath):
         tmppath_bin.mkdir()
         for exe in exe_names:
             with open(tmppath_bin / exe, "w") as f:
-                f.write("echo $PATH")
+                f.write(script_str)
             # make executable
             os.chmod(tmppath_bin / exe, 0o777)
         tmppath_bin2 = tmppath / "bin2"
         tmppath_bin2.mkdir()
         for exe in exe_names:
             with open(tmppath_bin2 / exe, "w") as f:
-                f.write("echo $PATH")
+                f.write(script_str)
             # make executable
             os.chmod(tmppath_bin2 / exe, 0o777)
         return [
@@ -74,11 +85,12 @@ def _mk_test_bin_dirs(tmppath):
         ]
 
 
-def test_which_python():
+def test_which_python() -> None:
     py_which = shutil.which("python")
     print("py", py_which)
     ry_which = ry.which("python")
     print("ry", ry_which)
+
     # clean path
     py_clean = _clean_path(py_which)
     ry_clean = _clean_path(ry_which)
@@ -87,7 +99,7 @@ def test_which_python():
     assert py_clean == ry_clean
 
 
-def test_which_path(tmpdir: Path):
+def test_which_path(tmpdir: Path) -> None:
     # make exes
     path_list = _mk_test_bin_dirs(tmpdir)
     path_kwarg = os.pathsep.join(path_list)
@@ -105,14 +117,14 @@ def test_which_path(tmpdir: Path):
     # assert False
 
 
-def test_which_all_path(tmpdir: Path):
+def test_which_all_path(tmpdir: Path) -> None:
     path_list = _mk_test_bin_dirs(tmpdir)
     path_kwarg = os.pathsep.join(path_list)
     ry_which = ry.which_all("notavirus", path=path_kwarg)
     assert len(ry_which) >= 2
 
 
-def test_which_path_cwd(tmpdir: Path):
+def test_which_path_cwd(tmpdir: Path) -> None:
     # make exes
     path_list = _mk_test_bin_dirs(tmpdir)
     path_kwarg = os.pathsep.join(path_list)
@@ -128,10 +140,8 @@ def test_which_path_cwd(tmpdir: Path):
     print("ry", ry_clean)
     assert py_clean == ry_clean
 
-    # assert False
 
-
-def test_which_nada():
+def test_which_nada() -> None:
     exe = "idontexist"
     py_which = shutil.which(exe)
     ry_which = ry.which(exe)
