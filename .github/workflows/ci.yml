@@ -14,8 +14,41 @@ permissions:
   contents: read
 
 jobs:
+  dev-test-linux-x86_64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        target: [ x86_64 ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist --find-interpreter
+          sccache: 'true'
+          manylinux: auto
+#      - name: Upload wheels
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: wheels-linux-${{ matrix.target }}
+#          path: dist
+      - name: pytest
+        if: ${{ startsWith(matrix.target, 'x86_64') }}
+        shell: bash
+        run: |
+          set -e
+          pip install ry --find-links dist --force-reinstall
+          pip install pytest
+          pytest
+
   linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         target: [ x86_64, x86, aarch64, armv7 ] #, s390x, ppc64le]
@@ -62,6 +95,7 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    timeout-minutes: 10
     if: |
       github.ref == 'refs/heads/main' ||
       github.ref == 'refs/heads/master' ||
@@ -97,6 +131,7 @@ jobs:
 
   macos:
     runs-on: macos-latest
+    timeout-minutes: 10
     # only run on tags/main and pull requests to main
     if: |
       github.ref == 'refs/heads/main' ||
@@ -132,6 +167,7 @@ jobs:
 
   sdist:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Build sdist
