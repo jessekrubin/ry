@@ -57,7 +57,6 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
         }
         Err(e) => {
             let p_string = String::from(p);
-            // let p_string = p.to_str().unwrap().to_string();
             let emsg = format!("{}: {:?}", e.to_string(), p_string);
             let pye = PyFileNotFoundError::new_err(format!("ls: {}", emsg));
             Err(pye)
