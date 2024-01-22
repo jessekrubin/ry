@@ -52,3 +52,14 @@ def test_walk_dir_dirpath_none_use_pwd(tmp_path):
         paths.append(f)
     print(paths)
     assert False
+
+
+def test_walk_dir_dirpath_string_files_only(tmp_path):
+    mk_dir_tree(tmp_path)
+
+    paths = []
+    for f in ry.walkdir(str(tmp_path), files=True, dirs=False):
+        print(f)
+        paths.append(f)
+    print(paths)
+    assert False

@@ -8,8 +8,8 @@ pub mod sh;
 pub mod shlex;
 pub mod sleep;
 pub mod sp;
-pub mod which;
 pub mod walkdir;
+pub mod which;
 
 pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     sleep::madd(py, m)?;
