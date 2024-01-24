@@ -12,11 +12,10 @@ pub fn read_vec_u8(s: &str) -> PyResult<Vec<u8>> {
     let b = std::fs::read(p);
     match b {
         Ok(b) => Ok(b),
-        Err(e) => Err(PyFileNotFoundError::new_err(format!(
-            "{}: {}",
-            p.to_str().unwrap(),
-            format!("{}: {:?}", e.to_string(), p.to_str().unwrap())
-        ))),
+        Err(e) => {
+            let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+            Err(PyFileNotFoundError::new_err(emsg))
+        }
     }
 }
 
@@ -29,12 +28,12 @@ pub fn read_bytes(py: Python<'_>, s: &str) -> PyResult<PyObject> {
 #[pyfunction]
 pub fn read_text(py: Python<'_>, s: &str) -> PyResult<String> {
     let bvec = read_vec_u8(s)?;
-    let r = std::str::from_utf8(&*bvec);
+    let r = std::str::from_utf8(&bvec);
 
     match r {
         Ok(s) => Ok(s.to_string()),
         Err(e) => {
-            let decode_err = PyUnicodeDecodeError::new_utf8(py, &*bvec, e).unwrap();
+            let decode_err = PyUnicodeDecodeError::new_utf8(py, &bvec, e).unwrap();
             Err(decode_err.into())
         }
     }

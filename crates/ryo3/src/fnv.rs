@@ -18,7 +18,7 @@ impl PyFnvHasher {
             Some(s) => {
                 let mut hasher = fnv_rs::FnvHasher::default();
                 hasher.write(s);
-                Self { hasher: hasher }
+                Self { hasher }
             }
             None => Self {
                 hasher: fnv_rs::FnvHasher::default(),

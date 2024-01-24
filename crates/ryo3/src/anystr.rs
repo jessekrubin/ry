@@ -4,8 +4,6 @@ use std::fmt::Debug;
 
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
-use pyo3::PyNativeType;
-use pyo3::PyTypeInfo;
 
 #[derive(Debug, FromPyObject)]
 pub enum AnyStr<'a> {
@@ -38,7 +36,7 @@ pub fn string_noop(s: String) -> PyResult<String> {
 }
 
 #[pyfunction]
-pub fn bytes_noop<'a>(py: Python<'a>, b: &'a PyBytes) -> PyResult<&'a PyBytes> {
+pub fn bytes_noop<'a>(_py: Python<'a>, b: &'a PyBytes) -> PyResult<&'a PyBytes> {
     Ok(b)
 }
 

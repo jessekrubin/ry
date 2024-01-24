@@ -29,7 +29,7 @@ pub fn cd(
         Ok(_) => Ok(()),
         Err(e) => {
             let p_string = p.to_string();
-            let emsg = format!("{}: {:?}", e.to_string(), p_string);
+            let emsg = format!("{}: {:?}", e, p_string);
             let pye = PyFileNotFoundError::new_err(format!("cd: {}", emsg));
             // pye.set_filename("cd");
             // pye.set_lineno(1);
@@ -57,7 +57,7 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
         }
         Err(e) => {
             let p_string = String::from(p);
-            let emsg = format!("{}: {:?}", e.to_string(), p_string);
+            let emsg = format!("{}: {:?}", e, p_string);
             let pye = PyFileNotFoundError::new_err(format!("ls: {}", emsg));
             Err(pye)
         }

@@ -1,3 +1,4 @@
+#![allow(clippy::too_many_arguments)]
 use std::path::Path;
 
 use ::walkdir as walkdir_rs;
@@ -40,7 +41,7 @@ impl PyWalkDirEntry {
 
 impl From<walkdir_rs::DirEntry> for PyWalkDirEntry {
     fn from(de: walkdir_rs::DirEntry) -> Self {
-        Self { de: de }
+        Self { de }
     }
 }
 
@@ -59,11 +60,14 @@ impl PyWalkdirGen {
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyWalkDirEntry> {
         while let Some(Ok(entry)) = slf.iter.next() {
-            if entry.file_type().is_file() && slf.files {
-                return Some(PyWalkDirEntry::from(entry));
-            } else if entry.file_type().is_dir() && slf.dirs {
+            if (entry.file_type().is_file() && slf.files)
+                || (entry.file_type().is_dir() && slf.dirs)
+            {
                 return Some(PyWalkDirEntry::from(entry));
             }
+            // else if entry.file_type().is_dir() && slf.dirs {
+            //     return Some(PyWalkDirEntry::from(entry));
+            // }
         }
         None
     }
@@ -83,15 +87,18 @@ impl PyFspathsGen {
     }
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<String> {
         while let Some(Ok(entry)) = slf.iter.next() {
-            if entry.file_type().is_file() && slf.files {
-                let path = entry.path();
-                let path = path.to_str().unwrap().to_string();
-                return Some(path);
-            } else if entry.file_type().is_dir() && slf.dirs {
+            if (entry.file_type().is_file() && slf.files)
+                || (entry.file_type().is_dir() && slf.dirs)
+            {
                 let path = entry.path();
                 let path = path.to_str().unwrap().to_string();
                 return Some(path);
             }
+            // else if entry.file_type().is_dir() && slf.dirs {
+            //   let path = entry.path();
+            //   let path = path.to_str().unwrap().to_string();
+            //   return Some(path);
+            // }
         }
         None
     }
