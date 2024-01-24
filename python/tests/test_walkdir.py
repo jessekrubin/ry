@@ -28,7 +28,7 @@ def test_walk_dir_dirpath_string(tmp_path):
         print(f)
         paths.append(f)
     print(paths)
-    assert False
+    # assert False
 
 
 def test_walk_dir_dirpath_pathlib_path(tmp_path):
@@ -39,7 +39,7 @@ def test_walk_dir_dirpath_pathlib_path(tmp_path):
         print(f)
         paths.append(f)
     print(paths)
-    assert False
+    # assert False
 
 
 def test_walk_dir_dirpath_none_use_pwd(tmp_path):
@@ -51,7 +51,7 @@ def test_walk_dir_dirpath_none_use_pwd(tmp_path):
         print(f)
         paths.append(f)
     print(paths)
-    assert False
+    # assert False
 
 
 def test_walk_dir_dirpath_string_files_only(tmp_path):
@@ -62,4 +62,4 @@ def test_walk_dir_dirpath_string_files_only(tmp_path):
         print(f)
         paths.append(f)
     print(paths)
-    assert False
+    # assert False

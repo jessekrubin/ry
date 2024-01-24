@@ -71,11 +71,9 @@ impl PyWalkdirGen {
 
 #[pyclass(name = "FspathsGen")]
 pub struct PyFspathsGen {
-    // wd: walkdir_rs::WalkDir,
     iter: walkdir_rs::IntoIter,
     files: bool,
     dirs: bool,
-    // iter: Box<dyn Iterator<Item=String> + Send>,
 }
 
 #[pymethods]
@@ -84,15 +82,18 @@ impl PyFspathsGen {
         slf
     }
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<String> {
-        let n = slf.iter.next();
-        match n {
-            Some(Ok(n)) => {
-                let path = n.path();
+        while let Some(Ok(entry)) = slf.iter.next() {
+            if entry.file_type().is_file() && slf.files {
+                let path = entry.path();
                 let path = path.to_str().unwrap().to_string();
-                Some(path)
+                return Some(path);
+            } else if entry.file_type().is_dir() && slf.dirs {
+                let path = entry.path();
+                let path = path.to_str().unwrap().to_string();
+                return Some(path);
             }
-            _ => None,
         }
+        None
     }
 }
 
@@ -100,7 +101,6 @@ impl From<walkdir_rs::WalkDir> for PyWalkdirGen {
     fn from(wd: walkdir_rs::WalkDir) -> Self {
         let wdit = wd.into_iter();
         Self {
-            // wd: wd,
             iter: wdit,
             files: true,
             dirs: true,
@@ -122,8 +122,6 @@ impl From<walkdir_rs::WalkDir> for PyFspathsGen {
 
 fn build_walkdir(
     path: &Path,
-    // files: Option<bool>, // true
-    // dirs: Option<bool>, // true
     contents_first: Option<bool>, // false
     min_depth: Option<usize>,     // default 0
     max_depth: Option<usize>,     // default None
@@ -145,13 +143,13 @@ fn build_walkdir(
 #[pyo3(signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false))]
 pub fn walkdir(
     path: Option<PathLike>,
-    files: Option<bool>,          // true
-    dirs: Option<bool>,           // true
-    contents_first: Option<bool>, // false
-    min_depth: Option<usize>,     // default 0
-    max_depth: Option<usize>,     // default None
-    follow_links: Option<bool>,   // default false
-    same_file_system: Option<bool>,
+    files: Option<bool>,            // true
+    dirs: Option<bool>,             // true
+    contents_first: Option<bool>,   // false
+    min_depth: Option<usize>,       // default 0
+    max_depth: Option<usize>,       // default None
+    follow_links: Option<bool>,     // default false
+    same_file_system: Option<bool>, // default false
 ) -> PyResult<PyWalkdirGen> {
     let wd = build_walkdir(
         path.unwrap_or(PathLike::Str(String::from("."))).as_ref(),
@@ -172,13 +170,13 @@ pub fn walkdir(
 #[pyo3(signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false))]
 pub fn fspaths(
     path: Option<PathLike>,
-    files: Option<bool>,          // true
-    dirs: Option<bool>,           // true
-    contents_first: Option<bool>, // false
-    min_depth: Option<usize>,     // default 0
-    max_depth: Option<usize>,     // default None
-    follow_links: Option<bool>,   // default false
-    same_file_system: Option<bool>,
+    files: Option<bool>,            // true
+    dirs: Option<bool>,             // true
+    contents_first: Option<bool>,   // false
+    min_depth: Option<usize>,       // default 0
+    max_depth: Option<usize>,       // default None
+    follow_links: Option<bool>,     // default false
+    same_file_system: Option<bool>, // default false
 ) -> PyResult<PyFspathsGen> {
     let wd = build_walkdir(
         path.unwrap_or(PathLike::Str(String::from("."))).as_ref(),
