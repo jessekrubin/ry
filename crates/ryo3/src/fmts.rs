@@ -8,17 +8,23 @@ const TERABYTE: f64 = GIGABYTE * 1024.0;
 const PETABYTE: f64 = TERABYTE * 1024.0;
 const EXABYTE: f64 = PETABYTE * 1024.0;
 
-pub fn nbytes_str(nbytes: u64, precision: Option<usize>) -> Result<String, String> {
+pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, String> {
     let nbytes = nbytes as f64;
     let precision = precision.unwrap_or(1);
     let formatted_size = match nbytes {
-        n if n < KILOBYTE => format!("{:.1$} bytes", n, precision),
-        n if n < MEGABYTE => format!("{:.1$} KB", n / KILOBYTE, precision),
-        n if n < GIGABYTE => format!("{:.1$} MB", n / MEGABYTE, precision),
-        n if n < TERABYTE => format!("{:.1$} GB", n / GIGABYTE, precision),
-        n if n < PETABYTE => format!("{:.1$} TB", n / TERABYTE, precision),
-        n if n < EXABYTE => format!("{:.1$} PB", n / PETABYTE, precision),
-        n => format!("{:.1$} EB", n / EXABYTE, precision),
+        n if n < KILOBYTE => {
+            if n == 1.0 {
+                "1 byte".to_string()
+            } else {
+                format!("{:.0} bytes", n)
+            }
+        }
+        n if n < MEGABYTE => format!("{:.1$} KiB", n / KILOBYTE, precision),
+        n if n < GIGABYTE => format!("{:.1$} MiB", n / MEGABYTE, precision),
+        n if n < TERABYTE => format!("{:.1$} GiB", n / GIGABYTE, precision),
+        n if n < PETABYTE => format!("{:.1$} TiB", n / TERABYTE, precision),
+        n if n < EXABYTE => format!("{:.1$} PiB", n / PETABYTE, precision),
+        n => format!("{:.1$} EiB", n / EXABYTE, precision),
     };
 
     if nbytes >= 0.0 {
@@ -28,10 +34,11 @@ pub fn nbytes_str(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
     }
 }
 
+// TODO: Fix to handle negative numbers
 #[pyfunction]
 #[pyo3(name = "nbytes_str")]
 pub fn nbytes_str_py(nbytes: u64) -> PyResult<String> {
-    Ok(nbytes_str(nbytes, Option::from(1)).unwrap())
+    Ok(nbytes_u64(nbytes, Option::from(1)).unwrap())
 }
 
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -41,57 +48,56 @@ pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     fn test_nbytes_str() {
         assert_eq!(
-            super::nbytes_str(100, Option::from(1)).unwrap(),
-            "100.0 bytes"
+            super::nbytes_u64(100, Option::from(1)).unwrap(),
+            "100 bytes"
         );
         assert_eq!(
-            super::nbytes_str(1000, Option::from(1)).unwrap(),
-            "1000.0 bytes"
+            super::nbytes_u64(1000, Option::from(1)).unwrap(),
+            "1000 bytes"
         );
-        assert_eq!(super::nbytes_str(10000, Option::from(1)).unwrap(), "9.8 KB");
+        assert_eq!(super::nbytes_u64(10000, Option::from(1)).unwrap(), "9.8 KB");
         assert_eq!(
-            super::nbytes_str(100000, Option::from(1)).unwrap(),
-            "97.7 KB"
-        );
-        assert_eq!(
-            super::nbytes_str(1000000, Option::from(1)).unwrap(),
-            "976.6 KB"
+            super::nbytes_u64(100000, Option::from(1)).unwrap(),
+            "97.7 KiB"
         );
         assert_eq!(
-            super::nbytes_str(10_000_000, Option::from(1)).unwrap(),
-            "9.5 MB"
+            super::nbytes_u64(1000000, Option::from(1)).unwrap(),
+            "976.6 KiB"
         );
         assert_eq!(
-            super::nbytes_str(100_000_000, Option::from(1)).unwrap(),
-            "95.4 MB"
+            super::nbytes_u64(10_000_000, Option::from(1)).unwrap(),
+            "9.5 MiB"
         );
         assert_eq!(
-            super::nbytes_str(1000000000, Option::from(1)).unwrap(),
-            "953.7 MB"
+            super::nbytes_u64(100_000_000, Option::from(1)).unwrap(),
+            "95.4 MiB"
         );
         assert_eq!(
-            super::nbytes_str(10000000000, Option::from(1)).unwrap(),
-            "9.3 GB"
+            super::nbytes_u64(1000000000, Option::from(1)).unwrap(),
+            "953.7 MiB"
         );
         assert_eq!(
-            super::nbytes_str(100000000000, Option::from(1)).unwrap(),
-            "93.1 GB"
+            super::nbytes_u64(10000000000, Option::from(1)).unwrap(),
+            "9.3 GiB"
         );
         assert_eq!(
-            super::nbytes_str(1000000000000, Option::from(1)).unwrap(),
-            "931.3 GB"
+            super::nbytes_u64(100000000000, Option::from(1)).unwrap(),
+            "93.1 GiB"
         );
         assert_eq!(
-            super::nbytes_str(10000000000000, Option::from(1)).unwrap(),
-            "9.1 TB"
+            super::nbytes_u64(1000000000000, Option::from(1)).unwrap(),
+            "931.3 GiB"
         );
         assert_eq!(
-            super::nbytes_str(100000000000000, Option::from(1)).unwrap(),
-            "90.9 TB"
+            super::nbytes_u64(10000000000000, Option::from(1)).unwrap(),
+            "9.1 TiB"
+        );
+        assert_eq!(
+            super::nbytes_u64(100000000000000, Option::from(1)).unwrap(),
+            "90.9 TiB"
         );
     }
 }

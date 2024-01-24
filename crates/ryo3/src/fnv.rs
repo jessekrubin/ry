@@ -44,6 +44,7 @@ impl PyFnvHasher {
     }
 
     fn hexdigest(&self) -> PyResult<String> {
+        // format hex string lowercase
         Ok(format!("{:x}", self.hasher.finish()))
     }
 
@@ -60,10 +61,8 @@ impl PyFnvHasher {
 }
 
 #[pyfunction]
-pub fn fnv1a(s: &[u8]) -> PyResult<u64> {
-    let mut h = fnv_rs::FnvHasher::default();
-    h.write(s);
-    Ok(h.finish())
+pub fn fnv1a(s: &[u8]) -> PyResult<PyFnvHasher> {
+    Ok(PyFnvHasher::new(Some(s)))
 }
 
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {

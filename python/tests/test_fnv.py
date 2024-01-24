@@ -128,12 +128,22 @@ FNV_TEST_DATA = [
 
 
 def test_fnv1a_empty():
-    assert ry.fnv1a(b"") == 0xCBF29CE484222325
+    assert ry.fnv1a(b"").digest() == 0xCBF29CE484222325
 
 
 @pytest.mark.parametrize("input,expected", FNV_TEST_DATA)
 def test_fnv1a(input, expected):
-    assert ry.fnv1a(input) == expected
+    fnvhash = ry.fnv1a(input)
+    int_digest = fnvhash.digest()
+    assert int_digest == expected
+    hex_str_expected = hex(expected)[2:]
+
+    hex_digest_str_og_hasher = fnvhash.hexdigest()
+    assert hex_digest_str_og_hasher == hex_str_expected
+
+    hex_digest_str = ry.fnv1a(input).hexdigest()
+    assert hex_digest_str == hex_str_expected
+    assert hex_digest_str == hex_digest_str.lower()
 
 
 @pytest.mark.parametrize("input,expected", FNV_TEST_DATA)
@@ -143,3 +153,17 @@ def test_fnv1a_hasher(input, expected):
     assert thingy.digest() == expected
     thingy_with_init = ry.FnvHasher(input)
     assert thingy_with_init.digest() == expected
+
+
+def test_copy_hasher():
+    thingy = ry.FnvHasher()
+    thingy.update(b"abc")
+    thingy_copy = thingy.copy()
+    thingy_copy.update(b"def")
+    assert thingy.digest() != thingy_copy.digest()
+    assert thingy_copy.digest() == ry.fnv1a(b"abcdef").digest()
+    r = thingy_copy.digest()
+    assert r is not None
+    fnhashing = ry.fnv1a(b"abc")
+    fnhashing.update(b"def")
+    assert fnhashing.digest() == ry.fnv1a(b"abcdef").digest()
