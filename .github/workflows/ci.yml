@@ -43,7 +43,7 @@ jobs:
         run: |
           set -e
           pip install ry --find-links dist --force-reinstall
-          pip install pytest
+          pip install -r requirements.dev.txt
           pytest
 
   linux:
@@ -75,6 +75,7 @@ jobs:
         run: |
           set -e
           pip install ry --find-links dist --force-reinstall
+          pip install -r requirements.dev.txt
           pip install pytest
           pytest
       - name: pytest
@@ -87,7 +88,7 @@ jobs:
           install: |
             apt-get update
             apt-get install -y --no-install-recommends python3 python3-pip
-            pip3 install -U pip pytest
+            pip3 install -U pip pytest pytest-asyncio pytest-benchmark
           run: |
             set -e
             pip3 install ry --find-links dist --force-reinstall
@@ -126,7 +127,7 @@ jobs:
         run: |
           set -e
           pip install ry --find-links dist --force-reinstall
-          pip install pytest
+          pip install -r requirements.dev.txt
           pytest
 
   macos:
@@ -162,6 +163,7 @@ jobs:
         run: |
           set -e
           pip install ry --find-links dist --force-reinstall
+          pip install -r requirements.dev.txt
           pip install pytest
           pytest
 
