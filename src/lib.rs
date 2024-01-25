@@ -1,11 +1,11 @@
 use pyo3::prelude::*;
-use ryo3;
+
 use tracing::debug;
 mod lager;
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-const BUILD_PROFILE: &'static str = env!("PROFILE");
-const BUILD_TIMESTAMP: &'static str = env!("BUILD_TIMESTAMP");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+const BUILD_PROFILE: &str = env!("PROFILE");
+const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 
 /// Python utils and common wrappers written in rust!
 #[pymodule]

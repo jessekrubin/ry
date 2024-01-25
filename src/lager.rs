@@ -3,10 +3,7 @@ use tracing_subscriber::EnvFilter;
 
 fn env_var_str_is_truthy(s: &str) -> bool {
     let s_lower = s.to_lowercase();
-    match s_lower.as_str() {
-        "1" | "true" | "on" | "yes" | "y" => return true,
-        _ => return false,
-    }
+    matches!(s_lower.as_str(), "1" | "true" | "on" | "yes" | "y")
 }
 
 /// Return the EnvFilter directive to use for initializing the tracing subscriber,
@@ -30,8 +27,7 @@ fn env_filter_directives() -> String {
         return ry_log_lower;
     }
 
-    let rust_log = std::env::var("RUST_LOG").unwrap_or("warn".to_string());
-    rust_log
+    std::env::var("RUST_LOG").unwrap_or("warn".to_string())
 }
 
 pub fn tracing_init() {
