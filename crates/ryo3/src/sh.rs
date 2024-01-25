@@ -19,6 +19,8 @@ pub fn pwd() -> String {
         .to_string()
 }
 
+
+/// Change the current working directory to the specified path
 #[pyfunction]
 pub fn cd(
     // py: Python<'_>,
