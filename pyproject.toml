@@ -4,18 +4,32 @@ build-backend = "maturin"
 
 [project]
 name = "ry"
+description = "ry = rust + python kitchen sink utils (WIP -- use at your own risk!)"
 requires-python = ">=3.8"
+authors = [
+  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
+]
+maintainers = [
+  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
+]
+keywords = [
+  "rust",
+  "python",
+  "utils",
+]
+license = "MIT OR Apache-2.0"
 classifiers = [
-    "Programming Language :: Rust",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Development Status :: 3 - Alpha",
 ]
 
 [project.optional-dependencies]
 tests = [
-    "pytest",
+  "pytest",
 ]
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 
 [tool.maturin]
 python-source = "python"

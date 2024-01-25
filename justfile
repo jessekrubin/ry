@@ -28,15 +28,15 @@ cargo-fmt:
     cargo fmt
 
 sort-all:
-    sort-all python/utiles/__init__.py
+    sort-all python/ry/__init__.py
 
 black:
-    black python tests
+    black python
 
 fmt: cargo-fmt black
 
 mypy:
-    mypy python/utiles tests
+    mypy python/ry
 
 ruff:
     ruff .
@@ -52,5 +52,5 @@ lintpy: ruff mypy
 lintrs: clippy
 
 lint: lintpy lintrs
-    
-    
+
+
