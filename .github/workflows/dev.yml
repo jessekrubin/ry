@@ -34,7 +34,7 @@ jobs:
           target: ${{ matrix.target }}
           args: --release --out dist --find-interpreter
           sccache: 'true'
-          manylinux: auto
+#          manylinux: auto
       - name: pytest
         if: ${{ startsWith(matrix.target, 'x86_64') }}
         shell: bash
