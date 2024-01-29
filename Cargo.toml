@@ -50,7 +50,7 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 anyhow = "1.0.75"
-chrono = "0.4.31"
+chrono = "0.4.33"
 dirs = { version = "5.0.1", features = [] }
 pyo3 = "0.20.0"
 pyo3-asyncio = { version = "0.20.0", features = ["attributes", "tokio-runtime"] }
