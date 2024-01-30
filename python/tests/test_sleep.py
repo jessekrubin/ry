@@ -1,6 +1,8 @@
-import pytest
-import ry
 import time
+
+import pytest
+
+import ry
 
 
 def test_sleep():
