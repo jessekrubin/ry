@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push:
@@ -32,11 +32,11 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: 'true'
           manylinux: auto
-#      - name: Upload wheels
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: wheels-linux-${{ matrix.target }}
-#          path: dist
+      #      - name: Upload wheels
+      #        uses: actions/upload-artifact@v4
+      #        with:
+      #          name: wheels-linux-${{ matrix.target }}
+      #          path: dist
       - name: pytest
         if: ${{ startsWith(matrix.target, 'x86_64') }}
         shell: bash
@@ -196,4 +196,4 @@ jobs:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         with:
           command: upload
-          args: --non-interactive --skip-existing *
+          args: --skip-existing --non-interactive wheels-*/*
