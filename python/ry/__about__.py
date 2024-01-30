@@ -1,4 +1,5 @@
 """Package metadata/info"""
+
 from ry._ry import __build_profile__, __version__
 
 __all__ = (
