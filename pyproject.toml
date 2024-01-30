@@ -4,20 +4,170 @@ build-backend = "maturin"
 
 [project]
 name = "ry"
+description = "ry = rust + python kitchen sink utils (WIP -- use at your own risk!)"
 requires-python = ">=3.8"
+authors = [
+  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
+]
+maintainers = [
+  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
+]
+keywords = [
+  "rust",
+  "python",
+  "utils",
+]
+license = "MIT OR Apache-2.0"
 classifiers = [
-    "Programming Language :: Rust",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Development Status :: 3 - Alpha",
 ]
 
 [project.optional-dependencies]
 tests = [
-    "pytest",
+  "pytest",
 ]
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 
 [tool.maturin]
 python-source = "python"
 features = ["pyo3/extension-module"]
 module-name = "ry._ry"
+
+[tool.pytest.ini_options]
+testpaths = [
+  "tests",
+]
+addopts = [
+  "--doctest-modules",
+  "--benchmark-disable",
+]
+norecursedirs = [
+  ".git",
+  ".nox",
+  ".pytest_cache",
+  ".venv",
+  "build",
+  "dist",
+  "scratch",
+  "node_modules",
+  "venv",
+  "*.bak",
+  "*.egg-info",
+  "*.egg",
+  ".*",
+  "target",
+]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "bench"
+]
+
+[tool.black]
+target-version = ["py38"]
+line-length = 88
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+  "A",
+  "ARG",
+  "B",
+  "C",
+  "DTZ",
+  "E",
+  "EM",
+  "F",
+  #  "FBT",
+  "I",
+  "ICN",
+  "ISC",
+  "N",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "Q",
+  "RUF",
+  "S",
+  "T",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
+]
+include = [
+  "python/**/*.{py,pyi}",
+]
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+ignore = [
+  "TID252",
+  "A003",
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT003",
+  # Ignore checks for possible passwords
+  "S105", "S106", "S107",
+  # Ignore complexity
+  "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+  #  shadowing builtins
+  "A002",
+  "E501", # line length
+  # type annotations union
+#  "UP007",
+  # todo figure out if this is needed
+#  "UP006",
+  # magic value cmp super annoying
+  "PLR2004",
+  "PLW0120",
+]
+unfixable = [
+  # Don't touch unused imports
+  "F401",
+]
+
+[tool.ruff.isort]
+known-first-party = ["ry"]
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+"**/test_*.py" = [
+  "PL",
+  "S101",
+  "S103",
+  "S603",
+  "T201",
+  "TID252",
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"

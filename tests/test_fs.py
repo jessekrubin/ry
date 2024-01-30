@@ -1,5 +1,6 @@
-import ry
 import pytest
+
+import ry
 
 
 def test_read_string(tmp_path):
@@ -17,7 +18,7 @@ def test_read_string_invalid_utf8(tmp_path):
         assert f.read() == b"\x80"
     # with python open and get error type
     with pytest.raises(UnicodeDecodeError):
-        with open("test.txt", "r", encoding="utf-8") as f:
+        with open("test.txt", encoding="utf-8") as f:
             f.read()
     with pytest.raises(UnicodeDecodeError):
         ry.read_text("test.txt")

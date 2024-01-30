@@ -6,7 +6,8 @@ edition.workspace = true
 
 [dependencies]
 dirs.workspace = true
-pyo3 = { workspace = true }
+fnv = "1.0.7"
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
 pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
 regex.workspace = true
 serde.workspace = true
@@ -14,4 +15,5 @@ serde_bytes.workspace = true
 serde_json.workspace = true
 shlex.workspace = true
 tokio.workspace = true
+walkdir.workspace = true
 which = { workspace = true, features = ["regex"] }

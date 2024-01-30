@@ -3,13 +3,12 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import Dict, Union
 
 from ry import _ry as libry
 from ry.__about__ import __pkgroot__, __title__, __version__
 
 
-def _ext_info() -> Dict[str, Union[str, int]]:
+def _ext_info() -> dict[str, str | int]:
     size = os.path.getsize(libry.__file__)
     return {
         "abspath": os.path.abspath(libry.__file__),
@@ -20,7 +19,7 @@ def _ext_info() -> Dict[str, Union[str, int]]:
     }
 
 
-def _lib_info() -> Dict[str, Union[str, int]]:
+def _lib_info() -> dict[str, str | int]:
     return {
         "package": __title__,
         "version": __version__,

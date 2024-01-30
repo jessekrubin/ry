@@ -1,6 +1,7 @@
+use std::path::{Path, PathBuf};
+
 use pyo3::types::PyType;
 use pyo3::{pyclass, pymethods, FromPyObject, PyResult};
-use std::path::{Path, PathBuf};
 
 #[pyclass(name = "Path")]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -96,9 +97,17 @@ impl PyPath {
 
 #[derive(Debug, FromPyObject, Clone)]
 pub enum PathLike {
-    PathBuf(std::path::PathBuf),
-    // Path(std::path::Path),
+    PathBuf(PathBuf),
     Str(String),
+}
+
+impl From<PathLike> for String {
+    fn from(p: PathLike) -> Self {
+        match p {
+            PathLike::PathBuf(p) => p.to_str().unwrap().to_string(),
+            PathLike::Str(s) => s,
+        }
+    }
 }
 
 impl AsRef<Path> for PathLike {

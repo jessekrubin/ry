@@ -2,32 +2,31 @@ use ::which as which_rs;
 use pyo3::prelude::*;
 use std::env;
 use std::ffi::OsString;
-use std::path::PathBuf;
 
 #[pyfunction]
 pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBuf>> {
     match path {
         Some(p) => {
             let which_res = which_rs::which_in(cmd, Some(p), env::current_dir().unwrap());
-            let res = match which_res {
-                Ok(p) => Ok(Some(PathBuf::from(p))),
+
+            match which_res {
+                Ok(p) => Ok(Some(p)),
                 Err(_e) => {
                     // println!("which_rs::which_in({:?}, {:?}) -> {:?}", cmd, p, e);
                     Ok(None)
                 }
-            };
-            res.into()
+            }
         }
         None => {
             let r = which_rs::which(cmd);
-            let res = match r {
+
+            match r {
                 Ok(p) => Ok(Some(p)),
                 Err(_e) => {
                     // println!("which_rs::which({:?}) -> {:?}", cmd, e);
                     Ok(None)
                 }
-            };
-            res.into()
+            }
         }
     }
 }
