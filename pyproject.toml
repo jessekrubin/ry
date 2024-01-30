@@ -36,6 +36,35 @@ python-source = "python"
 features = ["pyo3/extension-module"]
 module-name = "ry._ry"
 
+[tool.pytest.ini_options]
+testpaths = [
+  "tests",
+]
+addopts = [
+  "--doctest-modules",
+  "--benchmark-disable",
+]
+norecursedirs = [
+  ".git",
+  ".nox",
+  ".pytest_cache",
+  ".venv",
+  "build",
+  "dist",
+  "scratch",
+  "node_modules",
+  "venv",
+  "*.bak",
+  "*.egg-info",
+  "*.egg",
+  ".*",
+  "target",
+]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "bench"
+]
+
 [tool.black]
 target-version = ["py38"]
 line-length = 88
