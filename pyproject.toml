@@ -42,7 +42,6 @@ testpaths = [
 ]
 addopts = [
   "--doctest-modules",
-  "--benchmark-disable",
 ]
 norecursedirs = [
   ".git",

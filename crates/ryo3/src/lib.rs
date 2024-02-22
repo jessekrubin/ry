@@ -5,6 +5,7 @@ pub mod anystr;
 pub mod fmts;
 pub mod fnv;
 pub mod fs;
+pub mod libs;
 pub mod sh;
 pub mod shlex;
 pub mod sleep;
@@ -23,5 +24,6 @@ pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     anystr::madd(py, m)?;
     walkdir::madd(py, m)?;
     fnv::madd(py, m)?;
+    libs::madd(py, m)?;
     Ok(())
 }

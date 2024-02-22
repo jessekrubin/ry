@@ -33,16 +33,19 @@ pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
         Err(format!("Invalid number of bytes: {}", nbytes))
     }
 }
-
+fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
+    let nabs = if nbytes < 0 { nbytes * -1 } else { nbytes };
+    nbytes_u64(nabs as u64, precision)
+}
 // TODO: Fix to handle negative numbers
 #[pyfunction]
 #[pyo3(name = "nbytes_str")]
-pub fn nbytes_str_py(nbytes: u64) -> PyResult<String> {
-    Ok(nbytes_u64(nbytes, Option::from(1)).unwrap())
+pub fn nbytes(nbytes: i64) -> PyResult<String> {
+    Ok(nbytes_i64(nbytes, Option::from(1)).unwrap())
 }
 
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(nbytes_str_py, m)?)?;
+    m.add_function(wrap_pyfunction!(nbytes, m)?)?;
     Ok(())
 }
 

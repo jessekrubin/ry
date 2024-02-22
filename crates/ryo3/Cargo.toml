@@ -7,6 +7,7 @@ edition.workspace = true
 [dependencies]
 dirs.workspace = true
 fnv = "1.0.7"
+jiter = { version = "0.0.6", features = ["python"], optional = true }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
 regex.workspace = true
@@ -17,3 +18,6 @@ shlex.workspace = true
 tokio.workspace = true
 walkdir.workspace = true
 which = { workspace = true, features = ["regex"] }
+
+[features]
+jiter = ["dep:jiter"]

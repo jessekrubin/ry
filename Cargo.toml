@@ -9,7 +9,7 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
-ryo3 = { path = "./crates/ryo3" }
+ryo3 = { path = "./crates/ryo3", features = ["jiter"] }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 pyo3-asyncio = {workspace = true, features = ["attributes", "tokio-runtime"] }
 tokio.workspace = true
