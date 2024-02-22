@@ -1,9 +1,9 @@
 use pyo3::prelude::*;
 use shlex;
 
-#[pyfunction]
-pub fn shplit(in_str: &str) -> Option<Vec<String>> {
-    shlex::split(in_str)
+#[pyfunction(signature = (string), text_signature = "(string: str) -> list[str] | None")]
+pub fn shplit(string: &str) -> Option<Vec<String>> {
+    shlex::split(string)
 }
 
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {

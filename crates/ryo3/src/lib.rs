@@ -12,8 +12,10 @@ pub mod sleep;
 pub mod sp;
 pub mod walkdir;
 pub mod which;
+mod dev;
 
 pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
+    dev::madd(py, m)?;
     sleep::madd(py, m)?;
     shlex::madd(py, m)?;
     which::madd(py, m)?;
