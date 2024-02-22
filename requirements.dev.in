@@ -1,5 +1,7 @@
+black
 maturin
 pytest
 pytest-asyncio
 pytest-benchmark
+ruff
 tomli

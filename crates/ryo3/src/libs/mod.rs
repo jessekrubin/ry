@@ -1,9 +1,12 @@
+use pyo3::{PyResult, Python};
+use pyo3::types::PyModule;
+
+#[cfg(feature = "jiter")]
 mod jiter_ry;
 
-use pyo3::prelude::PyModule;
-use pyo3::{wrap_pyfunction, PyResult, Python};
-
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+    #[cfg(feature = "jiter")]
     jiter_ry::madd(_py, m)?;
+
     Ok(())
 }

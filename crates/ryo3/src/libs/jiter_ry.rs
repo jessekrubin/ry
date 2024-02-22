@@ -1,6 +1,5 @@
 use ::jiter::map_json_error;
 use ::jiter::python_parse;
-use pyo3::prelude::*;
 use std::fmt::Debug;
 
 use pyo3::prelude::*;
