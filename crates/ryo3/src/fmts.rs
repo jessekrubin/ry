@@ -61,7 +61,10 @@ mod tests {
             super::nbytes_u64(1000, Option::from(1)).unwrap(),
             "1000 bytes"
         );
-        assert_eq!(super::nbytes_u64(10000, Option::from(1)).unwrap(), "9.8 KB");
+        assert_eq!(
+            super::nbytes_u64(10000, Option::from(1)).unwrap(),
+            "9.8 KiB"
+        );
         assert_eq!(
             super::nbytes_u64(100000, Option::from(1)).unwrap(),
             "97.7 KiB"

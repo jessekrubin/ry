@@ -2,7 +2,7 @@ use pyo3::prelude::PyModule;
 use pyo3::{PyResult, Python};
 
 pub mod anystr;
-mod dev;
+pub mod dev;
 pub mod fmts;
 pub mod fnv;
 pub mod fs;
