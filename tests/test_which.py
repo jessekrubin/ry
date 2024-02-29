@@ -10,7 +10,7 @@ import ry
 T = TypeVar("T", str, None)
 
 
-def _clean_path(path: T) -> T:
+def _clean_path(path: str | None) -> str | None:
     if path is None:
         return None
     res = path
