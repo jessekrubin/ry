@@ -3,11 +3,28 @@ use std::path::{Path, PathBuf};
 
 use pyo3::types::PyType;
 use pyo3::{pyclass, pymethods, FromPyObject, PyResult};
+use tracing::{debug, info};
 
 #[pyclass(name = "FsPath")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: PathBuf,
+}
+
+#[cfg(target_os = "windows")]
+fn path2str<P: AsRef<Path>>(p: P) -> String {
+    // remove the `\\?\` prefix if it exists
+    let p = p.as_ref().display().to_string();
+    if p.starts_with(r"\\?\") {
+        p[4..].to_string()
+    } else {
+        p
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn path2str<P: AsRef<Path>>(p: P) -> String {
+    p.to_string_lossy().to_string()
 }
 
 #[pymethods]
@@ -27,21 +44,32 @@ impl PyFsPath {
         }
     }
 
-    fn __repr__(&self) -> PyResult<String> {
-        let s = self.pth.to_str();
-        match s {
-            Some(s) => Ok(s.to_string()),
-            None => Err(pyo3::exceptions::PyValueError::new_err("Invalid path")),
-        }
+    fn string(&self) -> String {
+        path2str(&self.pth)
     }
 
     fn __str__(&self) -> PyResult<String> {
-        self.__repr__()
+        let s = self.string();
+        Ok(s)
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        let s = path2str(&self.pth);
+        Ok(s)
+    }
+
+    fn equiv(&self, other: crate::fs::fspath::PathLike) -> bool {
+        let other = other.as_ref();
+        self.pth == other
     }
 
     fn __eq__(&self, other: PathLike) -> bool {
-        // let other = other.extract::<PyPath>().unwrap();
-        self.pth == other.as_ref()
+        // start by comparing as paths
+        if self.pth == other.as_ref() {
+            return true;
+        }
+        // if that fails, compare as strings
+        self.string() == path2str(other.as_ref())
     }
 
     fn __ne__(&self, other: PathLike) -> bool {
@@ -73,6 +101,12 @@ impl PyFsPath {
         self.pth.exists()
     }
 
+    fn absolute(&self) -> PyResult<Self> {
+        let p = self.pth.canonicalize().unwrap();
+        // return the canonicalized path
+        Ok(PyFsPath::from(p))
+    }
+
     fn extension(&self) -> PyResult<Option<String>> {
         let e = self.pth.extension();
         match e {
@@ -96,12 +130,24 @@ impl PyFsPath {
         Ok(s)
     }
 
+    fn clone(&self) -> Self {
+        Self {
+            pth: self.pth.clone(),
+        }
+    }
+
     #[getter]
     fn parent(&self) -> PyResult<PyFsPath> {
         let p = self.pth.parent();
         match p {
-            Some(p) => Ok(PyFsPath::from(p)),
-            None => Err(pyo3::exceptions::PyValueError::new_err("No parent")),
+            Some(p) => {
+                if p.to_str().unwrap() == "" {
+                    Ok(PyFsPath::from("."))
+                } else {
+                    Ok(PyFsPath::from(p))
+                }
+            }
+            None => Ok(self.clone()),
         }
     }
 
