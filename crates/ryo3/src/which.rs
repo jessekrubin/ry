@@ -8,13 +8,9 @@ pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBu
     match path {
         Some(p) => {
             let which_res = which_rs::which_in(cmd, Some(p), env::current_dir().unwrap());
-
             match which_res {
                 Ok(p) => Ok(Some(p)),
-                Err(_e) => {
-                    // println!("which_rs::which_in({:?}, {:?}) -> {:?}", cmd, p, e);
-                    Ok(None)
-                }
+                Err(_e) => Ok(None),
             }
         }
         None => {
@@ -22,10 +18,7 @@ pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBu
 
             match r {
                 Ok(p) => Ok(Some(p)),
-                Err(_e) => {
-                    // println!("which_rs::which({:?}) -> {:?}", cmd, e);
-                    Ok(None)
-                }
+                Err(_e) => Ok(None),
             }
         }
     }

@@ -1,7 +1,7 @@
 use dirs;
 use pyo3::exceptions::PyFileNotFoundError;
 use pyo3::types::PyModule;
-use pyo3::{pyfunction, wrap_pyfunction, PyResult};
+use pyo3::{pyfunction, wrap_pyfunction, PyResult, Python};
 
 use crate::fs::fspath::PathLike;
 
@@ -21,10 +21,7 @@ pub fn pwd() -> String {
 
 /// Change the current working directory to the specified path
 #[pyfunction]
-pub fn cd(
-    // py: Python<'_>,
-    p: PathLike,
-) -> PyResult<()> {
+pub fn cd(p: PathLike) -> PyResult<()> {
     let r = std::env::set_current_dir(p.as_ref());
     match r {
         Ok(_) => Ok(()),
@@ -32,17 +29,12 @@ pub fn cd(
             let p_string = p.to_string();
             let emsg = format!("{}: {:?}", e, p_string);
             let pye = PyFileNotFoundError::new_err(format!("cd: {}", emsg));
-            // pye.set_filename("cd");
-            // pye.set_lineno(1);
-            // pye.set_colno(1);
-            // pye.set_function("cd");
-            // pye.set_traceback(py, vec![]);
-
             Err(pye)
         }
     }
 }
 
+/// List the contents of the specified directory as a Vec<String>
 #[pyfunction]
 pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
     let p = fspath.unwrap_or_else(|| PathLike::PathBuf(std::env::current_dir().unwrap()));
@@ -65,7 +57,7 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
     }
 }
 
-pub fn madd(m: &PyModule) -> PyResult<()> {
+pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(pwd, m)?)?;
     m.add_function(wrap_pyfunction!(cd, m)?)?;
     m.add_function(wrap_pyfunction!(home, m)?)?;

@@ -20,8 +20,8 @@ pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     shlex::madd(py, m)?;
     which::madd(py, m)?;
     fmts::madd(py, m)?;
-    sh::madd(m)?;
-    fs::pymod(m)?;
+    sh::madd(py, m)?;
+    fs::madd(py, m)?;
     sp::madd(py, m)?;
     anystr::madd(py, m)?;
     walkdir::madd(py, m)?;

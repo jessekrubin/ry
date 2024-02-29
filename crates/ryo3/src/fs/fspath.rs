@@ -1,9 +1,13 @@
 use std::hash::Hash;
 use std::path::{Path, PathBuf};
 
+use pyo3::{
+    FromPyObject, pyclass, pymethods, PyObject, PyResult, Python,
+};
+use pyo3::prelude::PyModule;
 use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, FromPyObject, PyResult};
-use tracing::{debug, info};
+
+use crate::fs::fileio::{read_bytes, read_text};
 
 #[pyclass(name = "FsPath")]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -158,6 +162,27 @@ impl PyFsPath {
     }
 
     #[getter]
+    fn suffix(&self) -> PyResult<String> {
+        let e = self.pth.extension();
+        match e {
+            Some(e) => Ok(e.to_str().unwrap().to_string()),
+            None => Ok("".to_string()),
+        }
+    }
+
+    #[getter]
+    fn suffixes(&self) -> PyResult<Vec<String>> {
+        let mut suffixes = vec![];
+        let mut p = self.pth.clone();
+        while let Some(e) = p.extension() {
+            suffixes.push(e.to_str().unwrap().to_string());
+            p = p.with_extension("");
+        }
+        suffixes.reverse();
+        Ok(suffixes)
+    }
+
+    #[getter]
     fn stem(&self) -> PyResult<String> {
         let s = self.pth.file_stem().unwrap().to_str().unwrap().to_string();
         Ok(s)
@@ -174,6 +199,25 @@ impl PyFsPath {
         let p = std::env::current_dir().unwrap();
         Ok(p.into())
     }
+
+    fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
+        read_bytes(py, &self.string())
+    }
+
+    fn read_text(&self, py: Python<'_>) -> PyResult<String> {
+        let s = read_text(py, &self.string())?;
+        Ok(s)
+    }
+
+    // ========================================================================
+    // TODO: not implemented stuff
+    // ========================================================================
+    // #[pyo3(name = "match")]
+    // fn match_(&self, pattern: String, case_sensitive: Option<bool>) -> PyResult<bool> {
+    //     Err(pyo3::exceptions::PyNotImplementedError::new_err(
+    //         "match not implemented",
+    //     ))
+    // }
 }
 
 // impl From<PathBuf> for PyFsPath {
@@ -183,8 +227,8 @@ impl PyFsPath {
 // }
 
 impl<T> From<T> for PyFsPath
-where
-    T: AsRef<Path>,
+    where
+        T: AsRef<Path>,
 {
     fn from(p: T) -> Self {
         PyFsPath {
@@ -192,11 +236,6 @@ where
         }
     }
 }
-// impl From<&Path> for PyFsPath {
-//     fn from(p: &Path) -> Self {
-//         PyFsPath { pth: p.to_path_buf() }
-//     }
-// }
 
 #[derive(Debug, FromPyObject, Clone)]
 pub enum PathLike {
@@ -235,4 +274,9 @@ impl std::fmt::Display for PathLike {
             PathLike::Str(s) => write!(f, "{}", s),
         }
     }
+}
+
+pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_class::<PyFsPath>()?;
+    Ok(())
 }
