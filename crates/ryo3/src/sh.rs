@@ -6,11 +6,13 @@ use pyo3::{pyfunction, wrap_pyfunction, PyResult, Python};
 use crate::fs::fspath::PathLike;
 
 #[pyfunction]
+#[must_use]
 pub fn home() -> String {
     dirs::home_dir().unwrap().to_str().unwrap().to_string()
 }
 
 #[pyfunction]
+#[must_use]
 pub fn pwd() -> String {
     std::env::current_dir()
         .unwrap()
