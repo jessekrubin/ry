@@ -41,6 +41,10 @@ fn env_filter_directives() -> String {
 pub fn tracing_init() {
     // use "RY_LOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
     let env_filter_directives_string = env_filter_directives();
+    println!(
+        "tracing_init - env_filter_directives_string: {}",
+        env_filter_directives_string
+    );
     let filter = EnvFilter::new(&env_filter_directives_string);
     info!(
         "tracing_init - env_filter_directives_string: {}",
@@ -50,6 +54,10 @@ pub fn tracing_init() {
     // TODO: add the json and other format(s)...
     tracing_subscriber::fmt()
         .with_env_filter(filter)
+        .with_span_events(
+            tracing_subscriber::fmt::format::FmtSpan::CLOSE
+                | tracing_subscriber::fmt::format::FmtSpan::ENTER,
+        )
         .with_writer(std::io::stderr)
         .init();
 }

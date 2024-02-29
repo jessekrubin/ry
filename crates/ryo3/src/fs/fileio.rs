@@ -62,6 +62,7 @@ pub fn write_text(s: &str, t: &str) -> PyResult<()> {
     }
 }
 
+// #[instrument(level = "warn", err, fields(s = module_path!()), ret, skip(_py))]
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
