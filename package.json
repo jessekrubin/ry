@@ -1,0 +1,12 @@
+{
+  "name": "ry-dev",
+  "version": "0.0.1",
+  "description": "ry-dev jawascript/interfacescript tools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "jesse rubin <jessekrubin@gmail.com>",
+  "license": "MIT OR Apache-2.0"
+}
