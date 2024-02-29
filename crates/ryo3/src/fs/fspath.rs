@@ -23,7 +23,7 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 
 #[cfg(not(target_os = "windows"))]
 fn path2str<P: AsRef<Path>>(p: P) -> String {
-    p.to_string_lossy().to_string()
+    p.as_ref().display().to_string()
 }
 
 #[pymethods]
