@@ -1,5 +1,5 @@
-use pyo3::{PyResult, Python};
 use pyo3::types::PyModule;
+use pyo3::{PyResult, Python};
 
 #[cfg(feature = "jiter")]
 mod jiter_ry;

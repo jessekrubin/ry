@@ -1,8 +1,8 @@
 use std::hash::Hasher;
 
 use ::fnv as fnv_rs;
-use pyo3::types::PyModule;
 use pyo3::prelude::*;
+use pyo3::types::PyModule;
 use pyo3::{wrap_pyfunction, PyResult, Python};
 
 #[pyclass(name = "FnvHasher")]

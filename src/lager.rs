@@ -8,10 +8,18 @@ fn env_var_str_is_truthy(s: &str) -> bool {
 
 /// Return the EnvFilter directive to use for initializing the tracing subscriber,
 /// Looks for the following environment variables, in order:
+///   "RYTRACE" - truthy value enables trace logging
 ///   "RYDEBUG" - truthy value enables debug logging
 ///   "RYLOG" - returns
 /// otherwise using 'RUST_LOG' if set.
 fn env_filter_directives() -> String {
+    // use "RYTRACE" if set to a truthy value
+    if let Ok(ry_trace) = std::env::var("RYTRACE") {
+        if env_var_str_is_truthy(&ry_trace) {
+            return "trace".to_string();
+        }
+    }
+
     if let Ok(ry_debug) = std::env::var("RYDEBUG") {
         if env_var_str_is_truthy(&ry_debug) {
             return "debug".to_string();
@@ -39,10 +47,14 @@ pub fn tracing_init() {
         env_filter_directives_string
     );
     // Install the global collector configured based on the filter.
-
-    // TODO ADD THE JSON AND OTHER FORMAT AT SOMEPOINT!
+    // TODO: add the json and other format(s)...
     tracing_subscriber::fmt()
         .with_env_filter(filter)
         .with_writer(std::io::stderr)
         .init();
 }
+
+// TODO: add ability to reload tracing subscriber...
+// pub fn tracing_reload() {
+//     todo!("tracing_reload")
+// }

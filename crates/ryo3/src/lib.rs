@@ -2,6 +2,7 @@ use pyo3::prelude::PyModule;
 use pyo3::{PyResult, Python};
 
 pub mod anystr;
+mod dev;
 pub mod fmts;
 pub mod fnv;
 pub mod fs;
@@ -12,7 +13,6 @@ pub mod sleep;
 pub mod sp;
 pub mod walkdir;
 pub mod which;
-mod dev;
 
 pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     dev::madd(py, m)?;

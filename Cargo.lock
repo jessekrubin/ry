@@ -853,6 +853,7 @@ dependencies = [
 name = "ryo3"
 version = "0.0.2"
 dependencies = [
+ "chrono",
  "dirs",
  "fnv",
  "jiter",
@@ -864,6 +865,7 @@ dependencies = [
  "serde_json",
  "shlex",
  "tokio",
+ "tracing",
  "walkdir",
  "which",
 ]
