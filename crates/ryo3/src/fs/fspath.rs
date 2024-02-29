@@ -206,6 +206,30 @@ impl PyFsPath {
         Ok(s)
     }
 
+    fn write_bytes(&self, b: Vec<u8>) -> PyResult<()> {
+        let p = self.pth.as_path();
+        let r = std::fs::write(p, b);
+        match r {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+                Err(pyo3::exceptions::PyFileNotFoundError::new_err(emsg))
+            }
+        }
+    }
+
+    fn write_text(&self, t: &str) -> PyResult<()> {
+        let p = self.pth.as_path();
+        let r = std::fs::write(p, t);
+        match r {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+                Err(pyo3::exceptions::PyFileNotFoundError::new_err(emsg))
+            }
+        }
+    }
+
     // ========================================================================
     // TODO: not implemented stuff
     // ========================================================================
@@ -216,12 +240,6 @@ impl PyFsPath {
     //     ))
     // }
 }
-
-// impl From<PathBuf> for PyFsPath {
-//     fn from(p: PathBuf) -> Self {
-//         PyFsPath { pth: p }
-//     }
-// }
 
 impl<T> From<T> for PyFsPath
 where

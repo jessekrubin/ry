@@ -1,5 +1,5 @@
+//! ry = rust + python (entry point)
 use pyo3::prelude::*;
-
 use tracing::debug;
 mod lager;
 
@@ -9,7 +9,9 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BUILD_PROFILE: &str = env!("PROFILE");
 const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 
-/// Python utils and common wrappers written in rust!
+/// ry = rust + python
+///
+/// `ry` is a kitchen-sink of utils and wrappers around popular rust crates
 #[pymodule]
 #[pyo3(name = "_ry")]
 fn ry(py: Python, m: &PyModule) -> PyResult<()> {

@@ -36,8 +36,36 @@ pub fn read_text(py: Python<'_>, s: &str) -> PyResult<String> {
     }
 }
 
+#[pyfunction]
+pub fn write_bytes(s: &str, b: Vec<u8>) -> PyResult<()> {
+    let p = Path::new(s);
+    let r = std::fs::write(p, b);
+    match r {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+            Err(PyFileNotFoundError::new_err(emsg))
+        }
+    }
+}
+
+#[pyfunction]
+pub fn write_text(s: &str, t: &str) -> PyResult<()> {
+    let p = Path::new(s);
+    let r = std::fs::write(p, t);
+    match r {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+            Err(PyFileNotFoundError::new_err(emsg))
+        }
+    }
+}
+
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
+    m.add_function(wrap_pyfunction!(write_text, m)?)?;
+    m.add_function(wrap_pyfunction!(write_bytes, m)?)?;
     Ok(())
 }
