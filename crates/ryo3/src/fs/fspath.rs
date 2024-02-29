@@ -58,7 +58,7 @@ impl PyFsPath {
         Ok(s)
     }
 
-    fn equiv(&self, other: crate::fs::fspath::PathLike) -> bool {
+    fn equiv(&self, other: PathLike) -> bool {
         let other = other.as_ref();
         self.pth == other
     }
