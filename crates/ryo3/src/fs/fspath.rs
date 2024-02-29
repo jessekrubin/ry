@@ -14,8 +14,8 @@ pub struct PyFsPath {
 fn path2str<P: AsRef<Path>>(p: P) -> String {
     // remove the `\\?\` prefix if it exists
     let p = p.as_ref().display().to_string();
-    if p.starts_with(r"\\?\") {
-        p[4..].to_string()
+    if let Some(p) = p.strip_prefix(r"\\?\") {
+        p.to_string()
     } else {
         p
     }

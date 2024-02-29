@@ -34,7 +34,7 @@ pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
     }
 }
 fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
-    let nabs = if nbytes < 0 { nbytes * -1 } else { nbytes };
+    let nabs = if nbytes < 0 { -nbytes } else { nbytes };
     nbytes_u64(nabs as u64, precision)
 }
 // TODO: Fix to handle negative numbers

@@ -83,7 +83,7 @@ pub fn run(
     let popenargs = popenargs.extract::<Vec<String>>()?;
     let collect = capture.unwrap_or(true);
     // split the popenargs into the command and the args
-    let cmd_str = match popenargs.get(0) {
+    let cmd_str = match popenargs.first() {
         Some(s) => s,
         None => {
             return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(

@@ -1,3 +1,9 @@
+#![deny(clippy::all)]
+#![deny(clippy::perf)]
+#![deny(clippy::style)]
+#![deny(clippy::correctness)]
+#![warn(clippy::must_use_candidate)]
+
 use pyo3::types::PyModule;
 use pyo3::{PyResult, Python};
 
