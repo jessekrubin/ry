@@ -38,6 +38,9 @@ fmt: cargo-fmt black
 mypy:
     mypy python/ry
 
+pyright:
+    pyright
+
 ruff:
     ruff .
 

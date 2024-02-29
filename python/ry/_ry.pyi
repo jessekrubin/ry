@@ -3,6 +3,7 @@
 from os import PathLike
 
 __version__: str
+__authors__: str
 __build_profile__: str
 __build_timestamp__: str
 

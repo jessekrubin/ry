@@ -1,13 +1,14 @@
 """Package metadata/info"""
 
-from ry._ry import __build_profile__, __version__
-
+from ry._ry import __build_profile__, __version__, __authors__, __build_timestamp__
 __all__ = (
-    "__title__",
+    "__authors__",
+    "__build_profile__",
+    "__build_timestamp__",
     "__description__",
     "__pkgroot__",
+    "__title__",
     "__version__",
-    "__build_profile__",
 )
 __title__ = "ry"
 __description__ = "ry = rust + python - most of the letters"

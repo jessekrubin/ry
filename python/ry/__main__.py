@@ -5,7 +5,7 @@ import os
 import sys
 
 from ry import _ry
-from ry.__about__ import __pkgroot__, __title__, __version__
+from ry.__about__ import __pkgroot__, __title__, __version__, __authors__
 
 
 def _ext_info() -> dict[str, str | int]:
@@ -24,6 +24,7 @@ def _lib_info() -> dict[str, str | int | dict[str, str | int]]:
         "package": __title__,
         "version": __version__,
         "pkgroot": __pkgroot__,
+        "authors": __authors__,
         "ry": _ext_info(),
     }
 
