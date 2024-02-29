@@ -16,11 +16,7 @@ impl IntoPy<PyObject> for AnyStr<'_> {
         match self {
             AnyStr::Str(s) => s.into_py(py),
 
-            AnyStr::Bytes(b) => {
-                // b.into()
-                b.into_py(py)
-                // PyBytes::new(py, &b).into()
-            }
+            AnyStr::Bytes(b) => b.into_py(py),
         }
     }
 }

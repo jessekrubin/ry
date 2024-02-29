@@ -1,7 +1,6 @@
 use pyo3::types::PyModule;
 use pyo3::{PyResult, Python};
 
-pub mod anystr;
 pub mod dev;
 pub mod fmts;
 pub mod fnv;
@@ -23,7 +22,6 @@ pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     sh::madd(py, m)?;
     fs::madd(py, m)?;
     sp::madd(py, m)?;
-    anystr::madd(py, m)?;
     walkdir::madd(py, m)?;
     fnv::madd(py, m)?;
     libs::madd(py, m)?;
