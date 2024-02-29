@@ -1,4 +1,4 @@
-use pyo3::prelude::PyModule;
+use pyo3::types::PyModule;
 use pyo3::{PyResult, Python};
 
 pub mod anystr;

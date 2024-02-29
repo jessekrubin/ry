@@ -1,8 +1,6 @@
-use std::path::{Path, PathBuf};
-
-use pyo3::prelude::PyModule;
-use pyo3::types::PyType;
+use pyo3::types::{PyModule, PyType};
 use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
+use std::path::{Path, PathBuf};
 
 use crate::fs::fileio::{read_bytes, read_text};
 

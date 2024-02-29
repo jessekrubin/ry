@@ -1,4 +1,4 @@
-use pyo3::prelude::PyModule;
+use pyo3::types::PyModule;
 use pyo3::{pyfunction, wrap_pyfunction, PyResult, Python};
 
 const KILOBYTE: f64 = 1024.0;
