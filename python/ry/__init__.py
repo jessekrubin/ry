@@ -1,4 +1,5 @@
-from ._ry import *
+from ry import _ry
+from ry._ry import *
 
 __doc__ = _ry.__doc__
 if hasattr(_ry, "__all__"):

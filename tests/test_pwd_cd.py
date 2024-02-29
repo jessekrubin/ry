@@ -12,7 +12,7 @@ def test_pwd():
 
 class TestRyPath:
     def test_path(self):
-        p = ry.Path(os.getcwd())
+        p = ry.FsPath(os.getcwd())
         assert p == pathlib.Path(os.getcwd())
 
 

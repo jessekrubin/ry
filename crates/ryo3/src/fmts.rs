@@ -39,13 +39,13 @@ fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
 }
 // TODO: Fix to handle negative numbers
 #[pyfunction]
-#[pyo3(name = "nbytes_str")]
-pub fn nbytes(nbytes: i64) -> PyResult<String> {
+#[pyo3(name = "fmt_nbytes")]
+pub fn fmt_nbytes(nbytes: i64) -> PyResult<String> {
     Ok(nbytes_i64(nbytes, Option::from(1)).unwrap())
 }
 
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(nbytes, m)?)?;
+    m.add_function(wrap_pyfunction!(fmt_nbytes, m)?)?;
     Ok(())
 }
 

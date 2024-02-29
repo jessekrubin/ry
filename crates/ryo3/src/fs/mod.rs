@@ -29,7 +29,6 @@ pub fn read_bytes(py: Python<'_>, s: &str) -> PyResult<PyObject> {
 pub fn read_text(py: Python<'_>, s: &str) -> PyResult<String> {
     let bvec = read_vec_u8(s)?;
     let r = std::str::from_utf8(&bvec);
-
     match r {
         Ok(s) => Ok(s.to_string()),
         Err(e) => {
@@ -42,6 +41,6 @@ pub fn read_text(py: Python<'_>, s: &str) -> PyResult<String> {
 pub fn pymod(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
-    m.add_class::<fspath::PyPath>()?;
+    m.add_class::<fspath::PyFsPath>()?;
     Ok(())
 }
