@@ -57,7 +57,7 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
     }
 }
 
-pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(pwd, m)?)?;
     m.add_function(wrap_pyfunction!(cd, m)?)?;
     m.add_function(wrap_pyfunction!(home, m)?)?;

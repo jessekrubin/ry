@@ -1,11 +1,8 @@
-use std::hash::Hash;
 use std::path::{Path, PathBuf};
 
-use pyo3::{
-    FromPyObject, pyclass, pymethods, PyObject, PyResult, Python,
-};
 use pyo3::prelude::PyModule;
 use pyo3::types::PyType;
+use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
 
 use crate::fs::fileio::{read_bytes, read_text};
 
@@ -227,8 +224,8 @@ impl PyFsPath {
 // }
 
 impl<T> From<T> for PyFsPath
-    where
-        T: AsRef<Path>,
+where
+    T: AsRef<Path>,
 {
     fn from(p: T) -> Self {
         PyFsPath {
