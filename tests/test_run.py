@@ -4,7 +4,7 @@ import sys
 import ry
 
 
-def test_python_version():
+def test_python_version() -> None:
     python_exe = sys.executable
     completed_proc = sp.run([python_exe, "--version"], capture_output=True)
     assert completed_proc.returncode == 0
@@ -20,7 +20,7 @@ def test_python_version():
     # assert False
 
 
-def test_binary_output():
+def test_binary_output() -> None:
     cproc = sp.run(
         [
             # write out some weird binary data

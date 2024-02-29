@@ -3,8 +3,16 @@ from pathlib import Path
 
 import json
 
+from dataclasses import dataclass
 
-def mk_dir_tree(tmp_path: Path | str):
+
+@dataclass
+class MkDirTree:
+    dirpaths: set[Path]
+    filepaths: set[Path]
+
+
+def mk_dir_tree(tmp_path: Path | str) -> MkDirTree:
     tmp_path = Path(tmp_path)
     abcd = tmp_path / "a" / "b" / "c" / "d"
     abcd.mkdir(parents=True)
@@ -50,13 +58,11 @@ def mk_dir_tree(tmp_path: Path | str):
     for d in empty_dirs:
         d.mkdir()
         dirpaths.add(d)
-    return {
-        "dirpaths": dirpaths,
-        "filepaths": filepaths,
-    }
+
+    return MkDirTree(dirpaths, filepaths)
 
 
-def test_walk_dir_dirpath_string(tmp_path):
+def test_walk_dir_dirpath_string(tmp_path: Path) -> None:
     mk_dir_tree(tmp_path)
 
     paths = []
@@ -66,7 +72,7 @@ def test_walk_dir_dirpath_string(tmp_path):
     print(paths)
 
 
-def test_walk_dir_dirpath_pathlib_path(tmp_path):
+def test_walk_dir_dirpath_pathlib_path(tmp_path: Path) -> None:
     mk_dir_tree(tmp_path)
 
     paths = []
@@ -77,7 +83,7 @@ def test_walk_dir_dirpath_pathlib_path(tmp_path):
     # assert False
 
 
-def test_walk_dir_dirpath_none_use_pwd(tmp_path):
+def test_walk_dir_dirpath_none_use_pwd(tmp_path: Path) -> None:
     mk_dir_tree(tmp_path)
     ry.cd(tmp_path)
 
@@ -89,7 +95,7 @@ def test_walk_dir_dirpath_none_use_pwd(tmp_path):
     # assert False
 
 
-def test_walk_dir_dirpath_string_files_only(tmp_path):
+def test_walk_dir_dirpath_string_files_only(tmp_path: Path) -> None:
     mk_dir_tree(tmp_path)
 
     paths = []

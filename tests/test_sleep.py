@@ -5,7 +5,7 @@ import pytest
 import ry
 
 
-def test_sleep():
+def test_sleep() -> None:
     start = time.time()
     res = ry.sleep(0)
     end = time.time()
@@ -15,7 +15,7 @@ def test_sleep():
 
 
 @pytest.mark.asyncio
-async def test_sleep_async():
+async def test_sleep_async() -> None:
     start = time.time()
     res = await ry.sleep_async(0)
     end = time.time()

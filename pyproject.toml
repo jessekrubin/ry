@@ -176,6 +176,17 @@ ban-relative-imports = "all"
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+# =============================================================================
+# Type checking
+# =============================================================================
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_missing_imports = true
+check_untyped_defs = true
+
 [tool.pyright]
 include = ['ry', 'tests']
 reportUnnecessaryTypeIgnoreComment = true
