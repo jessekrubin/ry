@@ -97,10 +97,6 @@ jobs:
   windows:
     runs-on: windows-latest
     timeout-minutes: 15
-    if: |
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/master' ||
-      github.ref == 'refs/tags/v*'
     strategy:
       matrix:
         target: [ x64, x86 ]
@@ -133,11 +129,6 @@ jobs:
   macos:
     runs-on: macos-latest
     timeout-minutes: 15
-    # only run on tags/main and pull requests to main
-    if: |
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/master' ||
-      github.ref == 'refs/tags/v*'
     strategy:
       matrix:
         target: [ x86_64, aarch64 ]
