@@ -64,5 +64,5 @@ thiserror = "1.0.50"
 tokio = { version = "1.33.0", features = ["full"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["serde", "serde_json", "env-filter"] }
-walkdir = "2.4.0"
+walkdir = "2.5.0"
 which = { version = "6.0.0", features = ["regex"] }
