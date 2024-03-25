@@ -1,7 +1,12 @@
-use pyo3::prelude::PyModule;
+#![deny(clippy::all)]
+#![deny(clippy::perf)]
+#![deny(clippy::style)]
+#![deny(clippy::correctness)]
+#![warn(clippy::must_use_candidate)]
+
+use pyo3::types::PyModule;
 use pyo3::{PyResult, Python};
 
-pub mod anystr;
 pub mod dev;
 pub mod fmts;
 pub mod fnv;
@@ -20,10 +25,9 @@ pub fn madd(py: Python, m: &PyModule) -> PyResult<()> {
     shlex::madd(py, m)?;
     which::madd(py, m)?;
     fmts::madd(py, m)?;
-    sh::madd(m)?;
-    fs::pymod(m)?;
+    sh::madd(py, m)?;
+    fs::madd(py, m)?;
     sp::madd(py, m)?;
-    anystr::madd(py, m)?;
     walkdir::madd(py, m)?;
     fnv::madd(py, m)?;
     libs::madd(py, m)?;

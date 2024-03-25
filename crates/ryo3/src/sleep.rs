@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 #[pyfunction]
+#[must_use]
 pub fn sleep(secs: u64) -> f64 {
     let start = std::time::Instant::now();
     std::thread::sleep(std::time::Duration::from_secs(secs));

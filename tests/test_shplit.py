@@ -111,7 +111,7 @@ SHPLITESTS = [
 
 
 @pytest.mark.parametrize("data", SHPLITESTS)
-def test_shplit(data: Shplitest):
+def test_shplit(data: Shplitest) -> None:
     if data.skip:
         pytest.skip(f"skipping {data}")
     assert ry.shplit(data.string) == data.expected

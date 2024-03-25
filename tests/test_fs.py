@@ -1,16 +1,17 @@
 import pytest
+from pathlib import Path
 
 import ry
 
 
-def test_read_string(tmp_path):
+def test_read_string(tmp_path: Path) -> None:
     p = tmp_path / "test.txt"
     p.write_text("hello")
     ry.cd(tmp_path)
     assert ry.read_text("test.txt") == "hello"
 
 
-def test_read_string_invalid_utf8(tmp_path):
+def test_read_string_invalid_utf8(tmp_path: Path) -> None:
     p = tmp_path / "test.txt"
     p.write_bytes(b"\x80")
     ry.cd(tmp_path)
@@ -24,14 +25,14 @@ def test_read_string_invalid_utf8(tmp_path):
         ry.read_text("test.txt")
 
 
-def test_read_bytes(tmp_path):
+def test_read_bytes(tmp_path: Path) -> None:
     p = tmp_path / "test.txt"
     p.write_bytes(b"hello")
     ry.cd(tmp_path)
     assert ry.read_bytes("test.txt") == b"hello"
 
 
-def test_read_file_missing(tmp_path):
+def test_read_file_missing(tmp_path: Path) -> None:
     p = tmp_path / "test.txt"
     ry.cd(tmp_path)
     with pytest.raises(FileNotFoundError):
@@ -41,7 +42,7 @@ def test_read_file_missing(tmp_path):
 
 
 @pytest.mark.skip(reason="TODO: pathlike not implemented")
-def test_read_file_missing_pathlike(tmp_path):
+def test_read_file_missing_pathlike(tmp_path: Path) -> None:
     p = tmp_path / "test.txt"
     ry.cd(tmp_path)
     with pytest.raises(FileNotFoundError):

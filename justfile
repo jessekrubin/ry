@@ -36,7 +36,10 @@ black:
 fmt: cargo-fmt black
 
 mypy:
-    mypy python/ry
+    mypy python/ry tests/
+
+pyright:
+    pyright
 
 ruff:
     ruff .
