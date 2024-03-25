@@ -4,7 +4,7 @@ use pyo3::types::PyBytes;
 use std::io::{Read, Write};
 
 #[pyfunction]
-pub fn brotli_compress(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
+pub fn brotli_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
     let quality = if let Some(param) = quality { param } else { 11 };
     let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, quality, 22);
     encoder
@@ -15,7 +15,7 @@ pub fn brotli_compress(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyR
 }
 
 #[pyfunction]
-pub fn brotli_decompress(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
+pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
     br::Decompressor::new(data, 4 * 1024)
         .read_to_end(&mut decompressed)
@@ -24,7 +24,7 @@ pub fn brotli_decompress(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
 }
 
 pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(brotli_compress, m)?)?;
-    m.add_function(wrap_pyfunction!(brotli_decompress, m)?)?;
+    m.add_function(wrap_pyfunction!(brotli_decode, m)?)?;
+    m.add_function(wrap_pyfunction!(brotli_encode, m)?)?;
     Ok(())
 }
