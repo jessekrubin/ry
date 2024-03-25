@@ -32,7 +32,7 @@ def mk_dir_tree(tmp_path: Path | str) -> MkDirTree:
         dirpaths.add(rel_dirpath)
         filepaths.add(rel_filepath)
         f.write_text(str(rel_filepath))
-    tiles_z4 = [(x, y, z) for z in range(4) for x in range(2**z) for y in range(2**z)]
+    tiles_z4 = [(x, y, z) for z in range(4) for x in range(2 ** z) for y in range(2 ** z)]
     dir_parts = {(z, x) for x, y, z in tiles_z4}
     tiles_root = tmp_path / "tiles"
     for z, x in dir_parts:
