@@ -5,7 +5,7 @@ import os
 import sys
 
 from ry import _ry
-from ry.__about__ import __pkgroot__, __title__, __version__, __authors__
+from ry.__about__ import __authors__, __pkgroot__, __title__, __version__
 
 
 def _ext_info() -> dict[str, str | int]:

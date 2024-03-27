@@ -1,7 +1,7 @@
 """ry type annotations"""
 
-from typing import AnyStr
 from os import PathLike
+from typing import AnyStr
 
 __version__: str
 __authors__: str
