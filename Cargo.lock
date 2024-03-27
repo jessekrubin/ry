@@ -874,7 +874,7 @@ dependencies = [
 
 [[package]]
 name = "ry"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "chrono",
  "dirs",
@@ -892,7 +892,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "brotli",
  "chrono",
