@@ -1,6 +1,6 @@
 """Package metadata/info"""
 
-from ry._ry import __build_profile__, __version__, __authors__, __build_timestamp__
+from ry._ry import __authors__, __build_profile__, __build_timestamp__, __version__
 
 __all__ = (
     "__authors__",
