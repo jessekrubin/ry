@@ -87,10 +87,16 @@ target-version = "py38"
 line-length = 88
 include = [
     "python/**/*.{py,pyi}",
+    "tests/**/*.{py,pyi}",
 ]
 
-[tool.ruff.lint]
+[tool.ruff.format]
+docstring-code-format = true
 
+[tool.ruff.lint]
+# Require explicit selection of preview rules.
+explicit-preview-rules = true
+preview = true
 select = [
     "A",
     "ARG",
@@ -103,7 +109,6 @@ select = [
     #  "FBT",
     "I",
     "ICN",
-    "ISC",
     "N",
     "PLC",
     "PLE",
@@ -111,6 +116,7 @@ select = [
     "PLW",
     "Q",
     "RUF",
+    "RUF022", # unsorted-dunder-all
     "S",
     "T",
     "TID",
