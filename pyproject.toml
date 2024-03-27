@@ -4,8 +4,8 @@ build-backend = "maturin"
 
 [project]
 name = "ry"
-description = "ry = rust + python kitchen sink utils (WIP -- use at your own risk!)"
-requires-python = ">=3.8"
+description = "ry = rust + python kitchen sink utils (WIP)"
+requires-python = ">=3.9"
 authors = [
     { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
 ]
@@ -14,15 +14,28 @@ maintainers = [
 ]
 keywords = [
     "rust",
-    "python",
-    "utils",
+    "pyo3",
 ]
 license = "MIT OR Apache-2.0"
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3 :: Only',
+    "Intended Audience :: Developers",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Development Status :: 3 - Alpha",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+
 ]
 dynamic = ["version", "readme"]
 
