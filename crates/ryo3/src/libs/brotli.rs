@@ -23,8 +23,7 @@ pub fn brotli_encode(
             encoder.write_all(data).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {:?}", e))
             })?;
-            let t = encoder.into_inner();
-            t
+            encoder.into_inner()
         }
         _ => {
             let quality = if let Some(param) = quality { param } else { 11 };
@@ -32,8 +31,7 @@ pub fn brotli_encode(
             encoder.write_all(data).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {:?}", e))
             })?;
-            let t = encoder.into_inner();
-            t
+            encoder.into_inner()
         }
     };
     Ok(PyBytes::new(py, &encoded).into())

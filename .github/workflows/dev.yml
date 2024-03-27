@@ -17,6 +17,17 @@ permissions:
   contents: read
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+      - uses: Swatinem/rust-cache@v2
+        if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+      - run: just ci
+
   dev-test-linux-x86_64:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -34,7 +45,6 @@ jobs:
           target: ${{ matrix.target }}
           args: --release --out dist --find-interpreter
           sccache: 'true'
-#          manylinux: auto
       - name: pytest
         if: ${{ startsWith(matrix.target, 'x86_64') }}
         shell: bash

@@ -24,6 +24,11 @@ test-release: build-release
 bench: build-release
     pytest -vv
 
+ci:
+    cargo fmt -- --check
+    cargo clippy --all-targets --all-features -- -D warnings
+    cargo test
+
 # ===========================================================================
 # FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT
 # ===========================================================================
@@ -55,10 +60,10 @@ black:
     black python
 
 # python format
-pyfmt: sort-all ruff-fmt
+fmtpy: sort-all ruff-fmt
 
 # pythong format check
-pyfmtc: sort-all-check ruff-fmtc
+fmtcpy: sort-all-check ruff-fmtc
 
 # justfile format
 justfilefmt:
@@ -69,14 +74,13 @@ justfilefmtc:
     just --check --fmt --unstable
 
 # format
-fmt: cargo-fmt pyfmt justfilefmt
+fmt: cargo-fmt fmtpy justfilefmt
 
 # format check
-fmtc: cargo-fmtc pyfmtc justfilefmtc
+fmtc: cargo-fmtc fmtcpy justfilefmtc
 
 # ==========================================================================
 # LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT
-
 # ==========================================================================
 ruff:
     ruff .
