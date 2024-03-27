@@ -45,8 +45,6 @@ pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     br::Decompressor::new(data, 4 * 1024)
         .read_to_end(&mut decompressed)
         .map_err(|e| {
-            // print the error
-            eprintln!("Error: {:?}", e);
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {:?}", e))
         })?;
     Ok(PyBytes::new(py, &decompressed).into())
