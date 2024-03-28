@@ -75,13 +75,13 @@ pub fn parse_json_str(
 }
 
 #[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true, allow_partial = false))]
-pub fn parse_json<'py>(
-    py: Python<'py>,
+pub fn parse_json(
+    py: Python<'_>,
     data: BytesOrString,
     allow_inf_nan: bool,
     cache_strings: bool,
     allow_partial: bool,
-) -> PyResult<Bound<'py, PyAny>> {
+) -> PyResult<Bound<'_, PyAny>> {
     // let json_bytes = match data {
     //     BytesOrString::Str(s) => {
     //         let stringy: &[u8] = s.as_ref();
