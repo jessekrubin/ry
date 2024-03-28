@@ -1,29 +1,29 @@
+from typing import Tuple
+
 import pytest
 
-import ry as xxhash
+import ry
 
 
-def test_xxh32_digest():
-    assert xxhash.xxh32_digest(b"a") == (1426945110).to_bytes(4, "big")
-    assert xxhash.xxh32_digest(b"a", 0) == (1426945110).to_bytes(4, "big")
-    assert xxhash.xxh32_digest(b"a", 1) == (4111757423).to_bytes(4, "big")
-    assert xxhash.xxh32_digest(b"a", 2**32 - 1) == (3443684653).to_bytes(4, "big")
+def test_xxh32_digest() -> None:
+    assert ry.xxh32_digest(b"a") == (1426945110).to_bytes(4, "big")
+    assert ry.xxh32_digest(b"a", 0) == (1426945110).to_bytes(4, "big")
+    assert ry.xxh32_digest(b"a", 1) == (4111757423).to_bytes(4, "big")
+    assert ry.xxh32_digest(b"a", 2**32 - 1) == (3443684653).to_bytes(4, "big")
 
 
-def test_xxh32_intdigest():
-    assert xxhash.xxh32_intdigest(b"a") == 1426945110
-    assert xxhash.xxh32_intdigest(b"a", 0) == 1426945110
-    assert xxhash.xxh32_intdigest(b"a", 1) == 4111757423
-    assert xxhash.xxh32_intdigest(b"a", 2**32 - 1) == 3443684653
+def test_xxh32_intdigest() -> None:
+    assert ry.xxh32_intdigest(b"a") == 1426945110
+    assert ry.xxh32_intdigest(b"a", 0) == 1426945110
+    assert ry.xxh32_intdigest(b"a", 1) == 4111757423
+    assert ry.xxh32_intdigest(b"a", 2**32 - 1) == 3443684653
 
 
-def test_xxh32_hexdigest():
-    assert xxhash.xxh32_hexdigest(b"a") == (1426945110).to_bytes(4, "big").hex()
-    assert xxhash.xxh32_hexdigest(b"a", 0) == (1426945110).to_bytes(4, "big").hex()
-    assert xxhash.xxh32_hexdigest(b"a", 1) == (4111757423).to_bytes(4, "big").hex()
-    assert (
-        xxhash.xxh32_hexdigest(b"a", 2**32 - 1) == (3443684653).to_bytes(4, "big").hex()
-    )
+def test_xxh32_hexdigest() -> None:
+    assert ry.xxh32_hexdigest(b"a") == (1426945110).to_bytes(4, "big").hex()
+    assert ry.xxh32_hexdigest(b"a", 0) == (1426945110).to_bytes(4, "big").hex()
+    assert ry.xxh32_hexdigest(b"a", 1) == (4111757423).to_bytes(4, "big").hex()
+    assert ry.xxh32_hexdigest(b"a", 2**32 - 1) == (3443684653).to_bytes(4, "big").hex()
 
 
 XX32_SEEDS = [0, 1, 2**32 - 1]
@@ -1438,12 +1438,12 @@ XX128_TEST_DATA = [
 
 
 @pytest.mark.parametrize("data, expected", XX32_TEST_DATA)
-def test_xxh32(data, expected):
+def test_xxh32(data: bytes, expected: Tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_0xffffff = expected
     int_digest_0, int_digest_1, int_digest_0xffffff = (
-        xxhash.xxh32_intdigest(data),
-        xxhash.xxh32_intdigest(data, seed=1),
-        xxhash.xxh32_intdigest(data, seed=2**32 - 1),
+        ry.xxh32_intdigest(data),
+        ry.xxh32_intdigest(data, seed=1),
+        ry.xxh32_intdigest(data, seed=2**32 - 1),
     )
     assert int_digest_0 == expected_0
     assert int_digest_1 == expected_1
@@ -1451,9 +1451,9 @@ def test_xxh32(data, expected):
 
     # test the hexdigest
     hex_digest_0, hex_digest_1, hex_digest_0xffffff = (
-        xxhash.xxh32_hexdigest(data),
-        xxhash.xxh32_hexdigest(data, seed=1),
-        xxhash.xxh32_hexdigest(data, seed=2**32 - 1),
+        ry.xxh32_hexdigest(data),
+        ry.xxh32_hexdigest(data, seed=1),
+        ry.xxh32_hexdigest(data, seed=2**32 - 1),
     )
     assert int(hex_digest_0, 16) == expected_0
     assert int(hex_digest_1, 16) == expected_1
@@ -1462,9 +1462,9 @@ def test_xxh32(data, expected):
 
     # test the digest
     digest_0, digest_1, digest_0xffffff = (
-        xxhash.xxh32_digest(data),
-        xxhash.xxh32_digest(data, seed=1),
-        xxhash.xxh32_digest(data, seed=2**32 - 1),
+        ry.xxh32_digest(data),
+        ry.xxh32_digest(data, seed=1),
+        ry.xxh32_digest(data, seed=2**32 - 1),
     )
     assert int.from_bytes(digest_0, "big") == expected_0
     assert int.from_bytes(digest_1, "big") == expected_1
@@ -1472,12 +1472,12 @@ def test_xxh32(data, expected):
 
 
 @pytest.mark.parametrize("data, expected", XX64_TEST_DATA)
-def test_xxh64(data, expected):
+def test_xxh64(data: bytes, expected: Tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_0xffffffff = expected
     int_digest_0, int_digest_1, int_digest_0xffffffff = (
-        xxhash.xxh64_intdigest(data),
-        xxhash.xxh64_intdigest(data, seed=1),
-        xxhash.xxh64_intdigest(data, seed=2**64 - 1),
+        ry.xxh64_intdigest(data),
+        ry.xxh64_intdigest(data, seed=1),
+        ry.xxh64_intdigest(data, seed=2**64 - 1),
     )
     assert int_digest_0 == expected_0
     assert int_digest_1 == expected_1
@@ -1485,9 +1485,9 @@ def test_xxh64(data, expected):
 
     # test the hexdigest
     hex_digest_0, hex_digest_1, hex_digest_0xffffffff = (
-        xxhash.xxh64_hexdigest(data),
-        xxhash.xxh64_hexdigest(data, seed=1),
-        xxhash.xxh64_hexdigest(data, seed=2**64 - 1),
+        ry.xxh64_hexdigest(data),
+        ry.xxh64_hexdigest(data, seed=1),
+        ry.xxh64_hexdigest(data, seed=2**64 - 1),
     )
     assert int(hex_digest_0, 16) == expected_0
     assert int(hex_digest_1, 16) == expected_1
@@ -1495,9 +1495,9 @@ def test_xxh64(data, expected):
 
     # test the digest
     digest_0, digest_1, digest_0xffffffff = (
-        xxhash.xxh64_digest(data),
-        xxhash.xxh64_digest(data, seed=1),
-        xxhash.xxh64_digest(data, seed=2**64 - 1),
+        ry.xxh64_digest(data),
+        ry.xxh64_digest(data, seed=1),
+        ry.xxh64_digest(data, seed=2**64 - 1),
     )
     assert int.from_bytes(digest_0, "big") == expected_0
     assert int.from_bytes(digest_1, "big") == expected_1
@@ -1505,12 +1505,12 @@ def test_xxh64(data, expected):
 
 
 @pytest.mark.parametrize("data, expected", XX128_TEST_DATA)
-def test_xxh128(data, expected):
+def test_xxh128(data: bytes, expected: Tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_2 = expected
     int_digest_0, int_digest_1, int_digest_2 = (
-        xxhash.xxh128_intdigest(data),
-        xxhash.xxh128_intdigest(data, seed=1),
-        xxhash.xxh128_intdigest(data, seed=2**64 - 1),
+        ry.xxh128_intdigest(data),
+        ry.xxh128_intdigest(data, seed=1),
+        ry.xxh128_intdigest(data, seed=2**64 - 1),
     )
     assert int_digest_0 == expected_0
     assert int_digest_1 == expected_1
@@ -1518,9 +1518,9 @@ def test_xxh128(data, expected):
 
     # test the hexdigest
     hex_digest_0, hex_digest_1, hex_digest_2 = (
-        xxhash.xxh128_hexdigest(data),
-        xxhash.xxh128_hexdigest(data, seed=1),
-        xxhash.xxh128_hexdigest(data, seed=2**64 - 1),
+        ry.xxh128_hexdigest(data),
+        ry.xxh128_hexdigest(data, seed=1),
+        ry.xxh128_hexdigest(data, seed=2**64 - 1),
     )
     assert int(hex_digest_0, 16) == expected_0
     assert int(hex_digest_1, 16) == expected_1
@@ -1528,9 +1528,9 @@ def test_xxh128(data, expected):
 
     # test the digest
     digest_0, digest_1, digest_2 = (
-        xxhash.xxh128_digest(data),
-        xxhash.xxh128_digest(data, seed=1),
-        xxhash.xxh128_digest(data, seed=2**64 - 1),
+        ry.xxh128_digest(data),
+        ry.xxh128_digest(data, seed=1),
+        ry.xxh128_digest(data, seed=2**64 - 1),
     )
     assert int.from_bytes(digest_0, "big") == expected_0
     assert int.from_bytes(digest_1, "big") == expected_1
@@ -1538,12 +1538,12 @@ def test_xxh128(data, expected):
 
 
 @pytest.mark.parametrize("data, expected", XX3_64_TEST_DATA)
-def test_xx3_64(data, expected):
+def test_xx3_64(data: bytes, expected: Tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_0xffffffff = expected
     int_digest_0, int_digest_1, int_digest_0xffffffff = (
-        xxhash.xxh3_64_intdigest(data),
-        xxhash.xxh3_64_intdigest(data, seed=1),
-        xxhash.xxh3_64_intdigest(data, seed=2**64 - 1),
+        ry.xxh3_64_intdigest(data),
+        ry.xxh3_64_intdigest(data, seed=1),
+        ry.xxh3_64_intdigest(data, seed=2**64 - 1),
     )
     assert int_digest_0 == expected_0
     assert int_digest_1 == expected_1
@@ -1551,9 +1551,9 @@ def test_xx3_64(data, expected):
 
     # test the hexdigest
     hex_digest_0, hex_digest_1, hex_digest_0xffffffff = (
-        xxhash.xxh3_64_hexdigest(data),
-        xxhash.xxh3_64_hexdigest(data, seed=1),
-        xxhash.xxh3_64_hexdigest(data, seed=2**64 - 1),
+        ry.xxh3_64_hexdigest(data),
+        ry.xxh3_64_hexdigest(data, seed=1),
+        ry.xxh3_64_hexdigest(data, seed=2**64 - 1),
     )
     assert int(hex_digest_0, 16) == expected_0
     assert int(hex_digest_1, 16) == expected_1
@@ -1561,9 +1561,9 @@ def test_xx3_64(data, expected):
 
     # test the digest
     digest_0, digest_1, digest_0xffffffff = (
-        xxhash.xxh3_64_digest(data),
-        xxhash.xxh3_64_digest(data, seed=1),
-        xxhash.xxh3_64_digest(data, seed=2**64 - 1),
+        ry.xxh3_64_digest(data),
+        ry.xxh3_64_digest(data, seed=1),
+        ry.xxh3_64_digest(data, seed=2**64 - 1),
     )
     assert int.from_bytes(digest_0, "big") == expected_0
     assert int.from_bytes(digest_1, "big") == expected_1
