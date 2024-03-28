@@ -24,23 +24,64 @@ test-release: build-release
 bench: build-release
     pytest -vv
 
+ci:
+    cargo fmt -- --check
+    cargo clippy --all-targets --all-features -- -D warnings
+    cargo test
+
+# ===========================================================================
+# FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT
+# ===========================================================================
+
+# cargo format
 cargo-fmt:
-    cargo fmt
+    cargo fmt --all
+
+# cargo format check
+cargo-fmtc:
+    cargo fmt --all -- --check
+
+sort-all-check:
+    ruff check . --select RUF022 --preview --output-format=full
 
 sort-all:
-    sort-all python/ry/__init__.py
+    ruff check . --select RUF022 --preview --output-format=full --fix
 
+# ruff format
+ruff-fmt:
+    ruff format .
+
+# ruff format check
+ruff-fmtc:
+    ruff format . --check
+
+# python format black
 black:
     black python
 
-fmt: cargo-fmt black
+# python format
+fmtpy: sort-all ruff-fmt
 
-mypy:
-    mypy python/ry tests/
+# pythong format check
+fmtcpy: sort-all-check ruff-fmtc
 
-pyright:
-    pyright
+# justfile format
+justfilefmt:
+    just --fmt --unstable
 
+# justfile format check
+justfilefmtc:
+    just --check --fmt --unstable
+
+# format
+fmt: cargo-fmt fmtpy justfilefmt
+
+# format check
+fmtc: cargo-fmtc fmtcpy justfilefmtc
+
+# ==========================================================================
+# LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT
+# ==========================================================================
 ruff:
     ruff .
 
@@ -56,4 +97,19 @@ lintrs: clippy
 
 lint: lintpy lintrs
 
+# =====================================================================
+# TYPECHECK ~ TYPECHECK ~ TYPECHECK ~ TYPECHECK ~ TYPECHECK ~ TYPECHECK
 
+# =====================================================================
+mypy:
+    mypy python/ry tests/
+
+pyright:
+    pyright
+
+# =====================================================================
+# PYTHON ~ PYTHON ~ PYTHON ~ PYTHON ~ PYTHON ~ PYTHON ~ PYTHON ~ PYTHON
+
+# =====================================================================
+pip-compile:
+    uv pip compile requirements.dev.in -n > requirements.dev.txt

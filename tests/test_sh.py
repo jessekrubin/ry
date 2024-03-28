@@ -1,5 +1,6 @@
-import ry
 from pathlib import Path
+
+import ry
 
 
 def test_ls(tmp_path: Path) -> None:
