@@ -7,12 +7,18 @@ mod jiter_ry;
 #[cfg(feature = "brotli")]
 mod brotli;
 
+#[cfg(feature = "xxhash")]
+mod xxhash;
+
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "jiter")]
     jiter_ry::madd(m)?;
 
     #[cfg(feature = "brotli")]
     brotli::madd(m)?;
+
+    #[cfg(feature = "xxhash")]
+    xxhash::madd(m)?;
 
     Ok(())
 }

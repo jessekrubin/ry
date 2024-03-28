@@ -24,8 +24,11 @@ tokio.workspace = true
 tracing.workspace = true
 walkdir.workspace = true
 which = { workspace = true, features = ["regex"] }
+xxhash-rust = { version = "0.8.8", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] , optional = true}
 
 [features]
-all = ["brotli", "jiter"]
+default = ["brotli", "jiter"]
+all = ["brotli", "jiter", "xxhash"]
 jiter = ["dep:jiter"]
 brotli = ["dep:brotli"]
+xxhash = ["dep:xxhash-rust"]
