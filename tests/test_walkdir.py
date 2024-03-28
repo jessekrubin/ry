@@ -11,7 +11,7 @@ class MkDirTree:
     filepaths: set[Path]
 
 
-def mk_dir_tree(tmp_path: Path | str) -> MkDirTree:
+def mk_dir_tree(tmp_path: Path) -> MkDirTree:
     tmp_path = Path(tmp_path)
     abcd = tmp_path / "a" / "b" / "c" / "d"
     abcd.mkdir(parents=True)
@@ -40,17 +40,16 @@ def mk_dir_tree(tmp_path: Path | str) -> MkDirTree:
         dirpaths.add(dirpath)
     for x, y, z in tiles_z4:
         tile_file = tiles_root / str(z) / str(x) / f"{y}.json"
-        tile_file.write_text(
-            json.dumps(
-                {
-                    "x": x,
-                    "y": y,
-                    "z": z,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
+        with open(tile_file, "w", encoding="utf-8", newline="\n") as phile:
+            phile.write(
+                json.dumps(
+                    {
+                        "x": x,
+                        "y": y,
+                        "z": z,
+                    }
+                )
+            )
         filepaths.add(tile_file)
     # make some empty dirs
     empty_dirs = [tmp_path / "nada", tmp_path / "nothing-in-here"]
@@ -106,4 +105,4 @@ def test_walk_dir_dirpath_string_files_only(tmp_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    mk_dir_tree(".")
+    mk_dir_tree(Path("."))
