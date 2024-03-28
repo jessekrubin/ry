@@ -15,7 +15,9 @@ const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 /// `ry` is a kitchen-sink of utils and wrappers around popular rust crates
 #[pymodule]
 #[pyo3(name = "_ry")]
-fn ry(py: Python, m: &PyModule) -> PyResult<()> {
+
+fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // fn ry(py: Python, m: &PyModule) -> PyResult<()> {
     lager::tracing_init();
     debug!("version: {}", VERSION);
     debug!("build_profile: {}", BUILD_PROFILE);
@@ -28,6 +30,6 @@ fn ry(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("__authors__", AUTHORS)?;
 
     // register/add core lib from ryo3
-    ryo3::madd(py, m)?;
+    ryo3::madd(m)?;
     Ok(())
 }

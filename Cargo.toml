@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 [dependencies]
 ryo3 = { path = "./crates/ryo3", features = ["all"] }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-pyo3-asyncio = {workspace = true, features = ["attributes", "tokio-runtime"] }
+# pyo3-asyncio = {workspace = true, features = ["attributes", "tokio-runtime"] }
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
@@ -52,9 +52,9 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0.75"
 chrono = "0.4.31"
 dirs = { version = "5.0.1", features = [] }
-pyo3 = {  version = "0.20.0", features = ["experimental-inspect"] }
-pyo3-asyncio = { version = "0.20.0", features = ["attributes", "tokio-runtime"] }
-pyo3-build-config = "0.20.0"
+pyo3 = {  version = "0.21.0", features = ["experimental-inspect"] }
+pyo3-asyncio = { version = "0.21.0", features = ["attributes", "tokio-runtime"] }
+pyo3-build-config = "0.21.0"
 regex = "1.10.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.12"

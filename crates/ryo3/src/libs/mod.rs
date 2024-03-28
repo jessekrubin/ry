@@ -1,5 +1,5 @@
-use pyo3::types::PyModule;
-use pyo3::{PyResult, Python};
+use pyo3::prelude::*;
+use pyo3::PyResult;
 
 #[cfg(feature = "jiter")]
 mod jiter_ry;
@@ -7,12 +7,12 @@ mod jiter_ry;
 #[cfg(feature = "brotli")]
 mod brotli;
 
-pub fn madd(_py: Python, _m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "jiter")]
-    jiter_ry::madd(_py, _m)?;
+    jiter_ry::madd(m)?;
 
     #[cfg(feature = "brotli")]
-    brotli::madd(_py, _m)?;
+    brotli::madd(m)?;
 
     Ok(())
 }

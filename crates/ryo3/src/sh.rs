@@ -1,7 +1,8 @@
 use dirs;
 use pyo3::exceptions::PyFileNotFoundError;
+use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{pyfunction, wrap_pyfunction, PyResult, Python};
+use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 
 use crate::fs::fspath::PathLike;
 
@@ -59,7 +60,7 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
     }
 }
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(pwd, m)?)?;
     m.add_function(wrap_pyfunction!(cd, m)?)?;
     m.add_function(wrap_pyfunction!(home, m)?)?;

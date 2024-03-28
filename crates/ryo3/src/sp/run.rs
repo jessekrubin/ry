@@ -7,11 +7,12 @@ use pyo3::prelude::*;
 use pyo3::pyfunction;
 use pyo3::types::PyTuple;
 use tracing::warn;
-// use serde::{Deserialize, Serialize};
-// use tracing::instrument::WithSubscriber;
 
 use super::done::Done;
 use super::pydone::PyDone;
+
+// use serde::{Deserialize, Serialize};
+// use tracing::instrument::WithSubscriber;
 
 fn communicate_tee<W: Write + Send + 'static>(
     mut stream: impl Read,
@@ -67,7 +68,7 @@ fn communicate(
 #[pyfunction]
 #[pyo3(signature = (* popenargs, tee = false, capture = true, timeout = None, check = false))]
 pub fn run(
-    popenargs: &PyTuple,
+    popenargs: &Bound<'_, PyTuple>,
     tee: Option<bool>,
     capture: Option<bool>,
     timeout: Option<u64>,

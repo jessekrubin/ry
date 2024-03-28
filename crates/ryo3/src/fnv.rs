@@ -3,7 +3,7 @@ use std::hash::Hasher;
 use ::fnv as fnv_rs;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{wrap_pyfunction, PyResult, Python};
+use pyo3::{wrap_pyfunction, PyResult};
 
 #[pyclass(name = "FnvHasher")]
 pub struct PyFnvHasher {
@@ -65,7 +65,7 @@ pub fn fnv1a(s: &[u8]) -> PyResult<PyFnvHasher> {
     Ok(PyFnvHasher::new(Some(s)))
 }
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFnvHasher>()?;
     m.add_function(wrap_pyfunction!(self::fnv1a, m)?)?;
     Ok(())

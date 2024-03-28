@@ -5,8 +5,8 @@ use pyo3::PyResult;
 pub mod fileio;
 pub mod fspath;
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
-    fileio::madd(_py, m)?;
-    fspath::madd(_py, m)?;
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    fileio::madd(m)?;
+    fspath::madd(m)?;
     Ok(())
 }
