@@ -79,11 +79,11 @@ markers = [
 ]
 
 [tool.black]
-target-version = ["py38"]
+target-version = ["py39"]
 line-length = 88
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 line-length = 88
 include = [
     "python/**/*.{py,pyi}",

@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import pytest
 
 import ry
@@ -1438,7 +1436,7 @@ XX128_TEST_DATA = [
 
 
 @pytest.mark.parametrize("data, expected", XX32_TEST_DATA)
-def test_xxh32(data: bytes, expected: Tuple[int, int, int]) -> None:
+def test_xxh32(data: bytes, expected: tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_0xffffff = expected
     int_digest_0, int_digest_1, int_digest_0xffffff = (
         ry.xxh32_intdigest(data),
@@ -1472,7 +1470,7 @@ def test_xxh32(data: bytes, expected: Tuple[int, int, int]) -> None:
 
 
 @pytest.mark.parametrize("data, expected", XX64_TEST_DATA)
-def test_xxh64(data: bytes, expected: Tuple[int, int, int]) -> None:
+def test_xxh64(data: bytes, expected: tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_0xffffffff = expected
     int_digest_0, int_digest_1, int_digest_0xffffffff = (
         ry.xxh64_intdigest(data),
@@ -1505,7 +1503,7 @@ def test_xxh64(data: bytes, expected: Tuple[int, int, int]) -> None:
 
 
 @pytest.mark.parametrize("data, expected", XX128_TEST_DATA)
-def test_xxh128(data: bytes, expected: Tuple[int, int, int]) -> None:
+def test_xxh128(data: bytes, expected: tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_2 = expected
     int_digest_0, int_digest_1, int_digest_2 = (
         ry.xxh128_intdigest(data),
@@ -1538,7 +1536,7 @@ def test_xxh128(data: bytes, expected: Tuple[int, int, int]) -> None:
 
 
 @pytest.mark.parametrize("data, expected", XX3_64_TEST_DATA)
-def test_xx3_64(data: bytes, expected: Tuple[int, int, int]) -> None:
+def test_xx3_64(data: bytes, expected: tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_0xffffffff = expected
     int_digest_0, int_digest_1, int_digest_0xffffffff = (
         ry.xxh3_64_intdigest(data),

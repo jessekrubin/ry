@@ -41,7 +41,7 @@ members = [
 
 [workspace.package]
 edition = "2021"
-version = "0.0.3"
+version = "0.0.4"
 homepage = "https://github.com/jessekrubin/ry-dev"
 documentation = "https://github.com/jessekrubin/ry-dev"
 repository = "https://github.com/jessekrubin/ry-dev"
