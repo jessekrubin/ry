@@ -9,7 +9,7 @@ edition.workspace = true
 chrono.workspace = true
 
 [dependencies]
-brotli = { version = "3.5.0", optional = true }
+brotli = { version = "4.0.0", optional = true }
 dirs.workspace = true
 fnv = "1.0.7"
 jiter = { version = "0.0.6", features = ["python"], optional = true }
