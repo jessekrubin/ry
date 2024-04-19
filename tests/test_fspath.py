@@ -1,6 +1,7 @@
 """Tests for ry.FsPath"""
 
 from pathlib import Path
+from typing import Type
 
 import pytest
 
@@ -28,7 +29,7 @@ def test_new_path() -> None:
     ],
 )
 class TestFsPath:
-    def test_new_path(self, path_cls: type[Path]) -> None:
+    def test_new_path(self, path_cls: Type[Path]) -> None:
         pypath = Path()
         rypath = path_cls()
         assert rypath == pypath

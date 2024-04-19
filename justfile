@@ -81,7 +81,6 @@ fmtc: cargo-fmtc fmtcpy justfilefmtc
 
 # ==========================================================================
 # LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT
-
 # ==========================================================================
 ruff:
     ruff .
