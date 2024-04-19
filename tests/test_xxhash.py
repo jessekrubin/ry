@@ -1,6 +1,46 @@
 import pytest
+import sys
 
 import ry
+
+
+class TestXxh32Hasher:
+    def test_xxh32_hasher_digest(self) -> None:
+        assert ry.xxh32(b"a").digest() == (1426945110).to_bytes(4, "big")
+        assert ry.xxh32(b"a", 0).digest() == (1426945110).to_bytes(4, "big")
+        assert ry.xxh32(b"a", 1).digest() == (4111757423).to_bytes(4, "big")
+        assert ry.xxh32(b"a", 2**32 - 1).digest() == (3443684653).to_bytes(4, "big")
+
+    def test_xxh32_hasher_intdigest(self) -> None:
+        assert ry.xxh32(b"a").intdigest() == 1426945110
+        assert ry.xxh32(b"a", 0).intdigest() == 1426945110
+        assert ry.xxh32(b"a", 1).intdigest() == 4111757423
+        assert ry.xxh32(b"a", 2**32 - 1).intdigest() == 3443684653
+
+    def test_xxh32_hasher_hexdigest(self) -> None:
+        assert ry.xxh32(b"a").hexdigest() == (1426945110).to_bytes(4, "big").hex()
+        assert ry.xxh32(b"a", 0).hexdigest() == (1426945110).to_bytes(4, "big").hex()
+        assert ry.xxh32(b"a", 1).hexdigest() == (4111757423).to_bytes(4, "big").hex()
+        assert (
+            ry.xxh32(b"a", 2**32 - 1).hexdigest()
+            == (3443684653).to_bytes(4, "big").hex()
+        )
+
+    def test_xxh32_hasher_copy(self) -> None:
+        h = ry.xxh32()
+        h.update(b"hello")
+        h2 = h.copy()
+        assert h.digest() == h2.digest()
+        assert h.intdigest() == h2.intdigest()
+        assert h.hexdigest() == h2.hexdigest()
+        h2.update(b"world")
+        assert h.digest() != h2.digest()
+        assert h.intdigest() != h2.intdigest()
+        assert h.hexdigest() != h2.hexdigest()
+
+        assert h2.digest() == ry.xxh32(b"helloworld").digest()
+        assert h2.intdigest() == ry.xxh32(b"helloworld").intdigest()
+        assert h2.hexdigest() == ry.xxh32(b"helloworld").hexdigest()
 
 
 def test_xxh32_digest() -> None:
@@ -306,7 +346,6 @@ XX64_TEST_DATA = [
         (0x8D4C7BC7E7349192, 0xE2E85C421E8B58AD, 0x8EF9E41AA14677F9),
     ),
 ]
-
 XX3_64_TEST_DATA = [
     (b"", (0x2D06800538D394C2, 0x4DC5B0CC826F6703, 0x4C093276AE47A555)),
     (b"a", (0xE6C632B61E964E1F, 0xD2F6D0996F37A720, 0x43A7E49BC8A25756)),
@@ -1455,7 +1494,6 @@ def test_xxh32(data: bytes, expected: tuple[int, int, int]) -> None:
     )
     assert int(hex_digest_0, 16) == expected_0
     assert int(hex_digest_1, 16) == expected_1
-    print(int(hex_digest_0xffffff, 16), expected_0xffffff)
     assert int(hex_digest_0xffffff, 16) == expected_0xffffff
 
     # test the digest
@@ -1469,8 +1507,41 @@ def test_xxh32(data: bytes, expected: tuple[int, int, int]) -> None:
     assert int.from_bytes(digest_0xffffff, "big") == expected_0xffffff
 
 
+@pytest.mark.parametrize("data, expected", XX32_TEST_DATA)
+def test_xxh32_hasher(data: bytes, expected: tuple[int, int, int]) -> None:
+    expected_0, expected_1, expected_0xffffff = expected
+    int_digest_0, int_digest_1, int_digest_0xffffff = (
+        ry.xxh32(data).intdigest(),
+        ry.xxh32(data, seed=1).intdigest(),
+        ry.xxh32(data, seed=2**32 - 1).intdigest(),
+    )
+    assert int_digest_0 == expected_0
+    assert int_digest_1 == expected_1
+    assert int_digest_0xffffff == expected_0xffffff
+
+    # test the hexdigest
+    hex_digest_0, hex_digest_1, hex_digest_0xffffff = (
+        ry.xxh32(data).hexdigest(),
+        ry.xxh32(data, seed=1).hexdigest(),
+        ry.xxh32(data, seed=2**32 - 1).hexdigest(),
+    )
+    assert int(hex_digest_0, 16) == expected_0
+    assert int(hex_digest_1, 16) == expected_1
+    assert int(hex_digest_0xffffff, 16) == expected_0xffffff
+
+    # test the digest
+    digest_0, digest_1, digest_0xffffff = (
+        ry.xxh32(data).digest(),
+        ry.xxh32(data, seed=1).digest(),
+        ry.xxh32(data, seed=2**32 - 1).digest(),
+    )
+    assert int.from_bytes(digest_0, "big") == expected_0
+    assert int.from_bytes(digest_1, "big") == expected_1
+    assert int.from_bytes(digest_0xffffff, "big") == expected_0xffffff
+
+
 @pytest.mark.parametrize("data, expected", XX64_TEST_DATA)
-def test_xxh64(data: bytes, expected: tuple[int, int, int]) -> None:
+def test_xxh64_const_fns(data: bytes, expected: tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_0xffffffff = expected
     int_digest_0, int_digest_1, int_digest_0xffffffff = (
         ry.xxh64_intdigest(data),
@@ -1503,7 +1574,7 @@ def test_xxh64(data: bytes, expected: tuple[int, int, int]) -> None:
 
 
 @pytest.mark.parametrize("data, expected", XX128_TEST_DATA)
-def test_xxh128(data: bytes, expected: tuple[int, int, int]) -> None:
+def test_xxh128_const_fns(data: bytes, expected: tuple[int, int, int]) -> None:
     expected_0, expected_1, expected_2 = expected
     int_digest_0, int_digest_1, int_digest_2 = (
         ry.xxh128_intdigest(data),
@@ -1566,3 +1637,54 @@ def test_xx3_64(data: bytes, expected: tuple[int, int, int]) -> None:
     assert int.from_bytes(digest_0, "big") == expected_0
     assert int.from_bytes(digest_1, "big") == expected_1
     assert int.from_bytes(digest_0xffffffff, "big") == expected_0xffffffff
+
+
+try:
+    import xxhash
+except ImportError:
+    ...
+
+pytest_skip_xxhash = pytest.mark.skipif(
+    "xxhash" not in sys.modules, reason="xxhash is not installed"
+)
+
+
+@pytest_skip_xxhash
+def test_xxhash_matches_ry_xxh32():
+    for seed in XX32_SEEDS:
+        for data, _ in XX32_TEST_DATA:
+            assert ry.xxh32(data, seed).digest() == xxhash.xxh32(data, seed).digest()
+            assert (
+                ry.xxh32(data, seed).intdigest() == xxhash.xxh32(data, seed).intdigest()
+            )
+            assert (
+                ry.xxh32(data, seed).hexdigest() == xxhash.xxh32(data, seed).hexdigest()
+            )
+
+
+@pytest_skip_xxhash
+def test_xxhash_matches_ry_xxh64():
+    for seed in XX64_SEEDS:
+        for data, _ in XX64_TEST_DATA:
+            assert ry.xxh64(data, seed).digest() == xxhash.xxh64(data, seed).digest()
+            assert (
+                ry.xxh64(data, seed).intdigest() == xxhash.xxh64(data, seed).intdigest()
+            )
+            assert (
+                ry.xxh64(data, seed).hexdigest() == xxhash.xxh64(data, seed).hexdigest()
+            )
+
+
+@pytest_skip_xxhash
+def test_xxhash_matches_ry_xxh128():
+    for seed in XX128_SEEDS:
+        for data, _ in XX128_TEST_DATA:
+            assert ry.xxh3(data, seed).digest128() == xxhash.xxh128(data, seed).digest()
+            assert (
+                ry.xxh3(data, seed).intdigest128()
+                == xxhash.xxh128(data, seed).intdigest()
+            )
+            assert (
+                ry.xxh3(data, seed).hexdigest128()
+                == xxhash.xxh128(data, seed).hexdigest()
+            )
