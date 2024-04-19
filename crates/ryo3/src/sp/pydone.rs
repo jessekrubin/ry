@@ -1,6 +1,7 @@
-use crate::sp::done::Done;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
+
+use crate::sp::done::Done;
 
 #[pyclass]
 #[derive(Debug)]
@@ -25,8 +26,8 @@ impl PyDone {
     }
 
     #[getter]
-    fn stdout<'py>(&'py self, py: Python<'py>) -> &'py PyBytes {
-        PyBytes::new(py, &self.done.stdout)
+    fn stdout<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyBytes> {
+        PyBytes::new_bound(py, &self.done.stdout)
     }
 }
 

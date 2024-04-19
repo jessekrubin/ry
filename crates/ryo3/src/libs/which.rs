@@ -1,7 +1,8 @@
-use ::which as which_rs;
-use pyo3::prelude::*;
 use std::env;
 use std::ffi::OsString;
+
+use ::which as which_rs;
+use pyo3::prelude::*;
 
 #[pyfunction]
 pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBuf>> {
@@ -43,7 +44,7 @@ pub fn whicha(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
     which_all(cmd, path)
 }
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(self::which, m)?)?;
     m.add_function(wrap_pyfunction!(self::which_all, m)?)?;
     m.add_function(wrap_pyfunction!(self::whicha, m)?)?;

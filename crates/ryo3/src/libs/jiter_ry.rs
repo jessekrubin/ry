@@ -1,24 +1,30 @@
 use ::jiter::map_json_error;
 use ::jiter::python_parse;
-use std::fmt::Debug;
-
+use ::jiter::StringCacheMode;
 use pyo3::prelude::*;
+use pyo3::pybacked::{PyBackedBytes, PyBackedStr};
 
-#[derive(Debug, FromPyObject)]
-pub enum BytesOrString<'a> {
-    Str(&'a str),
-    Bytes(&'a [u8]),
+#[derive(FromPyObject)]
+pub enum BytesOrString {
+    Str(PyBackedStr),
+    Bytes(PyBackedBytes),
 }
 
-#[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true))]
-pub fn parse_json_bytes(
-    py: Python,
+#[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true, allow_partial = false))]
+pub fn parse_json_bytes<'py>(
+    py: Python<'py>,
     data: &[u8],
     allow_inf_nan: bool,
     cache_strings: bool,
-) -> PyResult<PyObject> {
+    allow_partial: bool,
+) -> PyResult<Bound<'py, PyAny>> {
     let json_bytes = data;
-    python_parse(py, json_bytes, allow_inf_nan, cache_strings)
+    let cache_mode = if cache_strings {
+        StringCacheMode::All
+    } else {
+        StringCacheMode::None
+    };
+    python_parse(py, json_bytes, allow_inf_nan, cache_mode, allow_partial)
         .map_err(|e| map_json_error(json_bytes, &e))
 }
 
@@ -30,26 +36,46 @@ pub fn parse_json_str(
     cache_strings: bool,
 ) -> PyResult<PyObject> {
     let json_bytes = data.as_bytes();
-    python_parse(py, json_bytes, allow_inf_nan, cache_strings)
+    let cache_mode = if cache_strings {
+        StringCacheMode::All
+    } else {
+        StringCacheMode::None
+    };
+    python_parse(py, json_bytes, allow_inf_nan, cache_mode, false)
         .map_err(|e| map_json_error(json_bytes, &e))
+        .map(|v| v.into_py(py))
 }
 
-#[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true))]
+#[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true, allow_partial = false))]
 pub fn parse_json(
-    py: Python,
+    py: Python<'_>,
     data: BytesOrString,
     allow_inf_nan: bool,
     cache_strings: bool,
-) -> PyResult<PyObject> {
-    let json_bytes = match data {
-        BytesOrString::Str(s) => s.as_bytes(),
-        BytesOrString::Bytes(b) => b,
+    allow_partial: bool,
+) -> PyResult<Bound<'_, PyAny>> {
+    let cache_mode = if cache_strings {
+        StringCacheMode::All
+    } else {
+        StringCacheMode::None
     };
-    python_parse(py, json_bytes, allow_inf_nan, cache_strings)
-        .map_err(|e| map_json_error(json_bytes, &e))
+
+    // Directly call python_parse within the match arms
+    match data {
+        BytesOrString::Str(s) => {
+            let json_bytes: &[u8] = s.as_ref();
+            python_parse(py, json_bytes, allow_inf_nan, cache_mode, allow_partial)
+                .map_err(|e| map_json_error(json_bytes, &e))
+        }
+        BytesOrString::Bytes(b) => {
+            let json_bytes: &[u8] = b.as_ref();
+            python_parse(py, json_bytes, allow_inf_nan, cache_mode, allow_partial)
+                .map_err(|e| map_json_error(json_bytes, &e))
+        }
+    }
 }
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_json_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(parse_json_str, m)?)?;
     m.add_function(wrap_pyfunction!(parse_json, m)?)?;

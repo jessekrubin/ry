@@ -1,5 +1,6 @@
+use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{pyfunction, wrap_pyfunction, PyResult, Python};
+use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 
 const KILOBYTE: f64 = 1024.0;
 const MEGABYTE: f64 = KILOBYTE * 1024.0;
@@ -33,10 +34,12 @@ pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
         Err(format!("Invalid number of bytes: {}", nbytes))
     }
 }
+
 fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
     let nabs = if nbytes < 0 { -nbytes } else { nbytes };
     nbytes_u64(nabs as u64, precision)
 }
+
 // TODO: Fix to handle negative numbers
 #[pyfunction]
 #[pyo3(name = "fmt_nbytes")]
@@ -44,7 +47,7 @@ pub fn fmt_nbytes(nbytes: i64) -> PyResult<String> {
     Ok(nbytes_i64(nbytes, Option::from(1)).unwrap())
 }
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(fmt_nbytes, m)?)?;
     Ok(())
 }

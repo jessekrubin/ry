@@ -1,4 +1,5 @@
 #![allow(clippy::too_many_arguments)]
+
 use std::path::Path;
 
 use ::walkdir as walkdir_rs;
@@ -200,7 +201,7 @@ pub fn fspaths(
     })
 }
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyWalkDirEntry>()?;
     m.add_class::<PyWalkdirGen>()?;
     m.add_class::<PyFspathsGen>()?;

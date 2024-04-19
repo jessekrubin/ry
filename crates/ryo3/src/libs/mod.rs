@@ -1,18 +1,35 @@
-use pyo3::types::PyModule;
-use pyo3::{PyResult, Python};
-
-#[cfg(feature = "jiter")]
-mod jiter_ry;
+use pyo3::prelude::*;
+use pyo3::PyResult;
 
 #[cfg(feature = "brotli")]
 mod brotli;
 
-pub fn madd(_py: Python, _m: &PyModule) -> PyResult<()> {
-    #[cfg(feature = "jiter")]
-    jiter_ry::madd(_py, _m)?;
+#[cfg(feature = "fnv")]
+mod fnv;
 
+#[cfg(feature = "jiter")]
+mod jiter_ry;
+
+#[cfg(feature = "which")]
+mod which;
+#[cfg(feature = "xxhash")]
+mod xxhash;
+
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "brotli")]
-    brotli::madd(_py, _m)?;
+    brotli::madd(m)?;
+
+    #[cfg(feature = "fnv")]
+    fnv::madd(m)?;
+
+    #[cfg(feature = "jiter")]
+    jiter_ry::madd(m)?;
+
+    #[cfg(feature = "which")]
+    which::madd(m)?;
+
+    #[cfg(feature = "xxhash")]
+    xxhash::madd(m)?;
 
     Ok(())
 }

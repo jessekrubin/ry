@@ -1,6 +1,8 @@
+use std::path::{Path, PathBuf};
+
+use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyType};
 use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
-use std::path::{Path, PathBuf};
 
 use crate::fs::fileio::{read_bytes, read_text};
 
@@ -184,13 +186,13 @@ impl PyFsPath {
     }
 
     #[classmethod]
-    fn home(_cls: &PyType) -> PyResult<PyFsPath> {
+    fn home(_cls: &Bound<'_, PyType>) -> PyResult<PyFsPath> {
         let p = dirs::home_dir().unwrap();
         Ok(p.into())
     }
 
     #[classmethod]
-    fn cwd(_cls: &PyType) -> PyResult<PyFsPath> {
+    fn cwd(_cls: &Bound<'_, PyType>) -> PyResult<PyFsPath> {
         let p = std::env::current_dir().unwrap();
         Ok(p.into())
     }
@@ -289,7 +291,7 @@ impl std::fmt::Display for PathLike {
     }
 }
 
-pub fn madd(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFsPath>()?;
     Ok(())
 }

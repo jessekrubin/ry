@@ -11,10 +11,8 @@ chrono.workspace = true
 [dependencies]
 brotli = { version = "5.0.0", optional = true }
 dirs.workspace = true
-fnv = "1.0.7"
-jiter = { version = "0.0.6", features = ["python"], optional = true }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
+#pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
 regex.workspace = true
 serde.workspace = true
 serde_bytes.workspace = true
@@ -23,9 +21,17 @@ shlex.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 walkdir.workspace = true
-which = { workspace = true, features = ["regex"] }
+# optional
+fnv = { version = "1.0.7", optional = true }
+jiter = { version = "0.1.1", features = ["python"], optional = true }
+which = { workspace = true, features = ["regex"], optional = true }
+xxhash-rust = { version = "0.8.8", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
 
 [features]
-all = ["brotli", "jiter"]
-jiter = ["dep:jiter"]
+default = ["brotli", "jiter"]
+all = ["brotli", "jiter", "xxhash", "which", "fnv"]
 brotli = ["dep:brotli"]
+fnv = ["dep:fnv"]
+jiter = ["dep:jiter"]
+which = ["dep:which"]
+xxhash = ["dep:xxhash-rust"]

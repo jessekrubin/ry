@@ -34,25 +34,25 @@ class TestFsPath:
         rypath = path_cls()
         assert rypath == pypath
 
-    def test_parent(self, path_cls: Type[Path]) -> None:
+    def test_parent(self, path_cls: type[Path]) -> None:
         pypath = Path()
         rypath = path_cls()
         assert rypath.parent == pypath.parent
 
-    def test_absolute(self, path_cls: Type[Path]) -> None:
+    def test_absolute(self, path_cls: type[Path]) -> None:
         pypath = Path()
         rypath = path_cls()
         pypath_abs = pypath.absolute()
         rypath_abs = rypath.absolute()
         assert rypath_abs == pypath_abs
 
-    def test_read_text(self, path_cls: Type[Path], tmp_path: Path) -> None:
+    def test_read_text(self, path_cls: type[Path], tmp_path: Path) -> None:
         pypath = tmp_path / "test.txt"
         pypath.write_text("hello")
         rypath = path_cls(pypath)
         assert rypath.read_text() == pypath.read_text()
 
-    def test_read_bytes(self, path_cls: Type[Path], tmp_path: Path) -> None:
+    def test_read_bytes(self, path_cls: type[Path], tmp_path: Path) -> None:
         pypath = tmp_path / "test.txt"
         pypath.write_bytes(b"hello")
         rypath = path_cls(pypath)
