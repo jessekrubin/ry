@@ -149,7 +149,7 @@ jobs:
         run: |
           set -e
           ls -l dist
-          pip install ry --no-index --no-deps --find-links dist --force-reinstall
+          pip install ry --no-index --no-deps --find-links dist/ --force-reinstall
           pip install -r requirements.dev.txt
           pip install pytest
           pytest
