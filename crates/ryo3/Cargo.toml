@@ -9,7 +9,7 @@ edition.workspace = true
 chrono.workspace = true
 
 [dependencies]
-brotli = { version = "5.0.0", optional = true }
+brotli = { version = "6.0.0", optional = true }
 dirs.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 #pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
