@@ -7,12 +7,17 @@ use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 
 #[pyfunction]
 pub fn read_vec_u8(s: &str) -> PyResult<Vec<u8>> {
-    let p = Path::new(s);
-    let b = std::fs::read(p);
-    match b {
+    let fpath = Path::new(s);
+    let fbytes = std::fs::read(fpath);
+    match fbytes {
         Ok(b) => Ok(b),
         Err(e) => {
-            let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+            let emsg = format!(
+                "{}: {} - {:?}",
+                fpath.to_str().unwrap(),
+                e,
+                fpath.to_str().unwrap()
+            );
             Err(PyFileNotFoundError::new_err(emsg))
         }
     }
@@ -38,26 +43,36 @@ pub fn read_text(py: Python<'_>, s: &str) -> PyResult<String> {
 }
 
 #[pyfunction]
-pub fn write_bytes(s: &str, b: Vec<u8>) -> PyResult<()> {
-    let p = Path::new(s);
-    let r = std::fs::write(p, b);
-    match r {
-        Ok(_) => Ok(()),
+pub fn write_bytes(fspath: &str, b: Vec<u8>) -> PyResult<()> {
+    let fpath = Path::new(fspath);
+    let write_res = std::fs::write(fpath, b);
+    match write_res {
+        Ok(()) => Ok(()),
         Err(e) => {
-            let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+            let emsg = format!(
+                "{}: {} - {:?}",
+                fpath.to_str().unwrap(),
+                e,
+                fpath.to_str().unwrap()
+            );
             Err(PyFileNotFoundError::new_err(emsg))
         }
     }
 }
 
 #[pyfunction]
-pub fn write_text(s: &str, t: &str) -> PyResult<()> {
-    let p = Path::new(s);
-    let r = std::fs::write(p, t);
-    match r {
-        Ok(_) => Ok(()),
+pub fn write_text(fspath: &str, string: &str) -> PyResult<()> {
+    let fpath = Path::new(fspath);
+    let write_result = std::fs::write(fpath, string);
+    match write_result {
+        Ok(()) => Ok(()),
         Err(e) => {
-            let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
+            let emsg = format!(
+                "{}: {} - {:?}",
+                fpath.to_str().unwrap(),
+                e,
+                fpath.to_str().unwrap()
+            );
             Err(PyFileNotFoundError::new_err(emsg))
         }
     }

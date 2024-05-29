@@ -10,14 +10,14 @@ const PETABYTE: f64 = TERABYTE * 1024.0;
 const EXABYTE: f64 = PETABYTE * 1024.0;
 
 pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, String> {
-    let nbytes = nbytes as f64;
+    let nbytes_f64 = nbytes as f64;
     let precision = precision.unwrap_or(1);
-    let formatted_size = match nbytes {
+    let formatted_size = match nbytes_f64 {
         n if n < KILOBYTE => {
-            if n == 1.0 {
+            if (n - 1.0).abs() < 0.001 {
                 "1 byte".to_string()
             } else {
-                format!("{:.0} bytes", n)
+                format!("{n:.0} bytes")
             }
         }
         n if n < MEGABYTE => format!("{:.1$} KiB", n / KILOBYTE, precision),
@@ -28,10 +28,10 @@ pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
         n => format!("{:.1$} EiB", n / EXABYTE, precision),
     };
 
-    if nbytes >= 0.0 {
+    if nbytes_f64 >= 0.0 {
         Ok(formatted_size)
     } else {
-        Err(format!("Invalid number of bytes: {}", nbytes))
+        Err(format!("Invalid number of bytes: {nbytes_f64}"))
     }
 }
 
@@ -69,11 +69,11 @@ mod tests {
             "9.8 KiB"
         );
         assert_eq!(
-            super::nbytes_u64(100000, Option::from(1)).unwrap(),
+            super::nbytes_u64(100_000, Option::from(1)).unwrap(),
             "97.7 KiB"
         );
         assert_eq!(
-            super::nbytes_u64(1000000, Option::from(1)).unwrap(),
+            super::nbytes_u64(1_000_000, Option::from(1)).unwrap(),
             "976.6 KiB"
         );
         assert_eq!(
@@ -85,27 +85,27 @@ mod tests {
             "95.4 MiB"
         );
         assert_eq!(
-            super::nbytes_u64(1000000000, Option::from(1)).unwrap(),
+            super::nbytes_u64(1_000_000_000, Option::from(1)).unwrap(),
             "953.7 MiB"
         );
         assert_eq!(
-            super::nbytes_u64(10000000000, Option::from(1)).unwrap(),
+            super::nbytes_u64(10_000_000_000, Option::from(1)).unwrap(),
             "9.3 GiB"
         );
         assert_eq!(
-            super::nbytes_u64(100000000000, Option::from(1)).unwrap(),
+            super::nbytes_u64(100_000_000_000, Option::from(1)).unwrap(),
             "93.1 GiB"
         );
         assert_eq!(
-            super::nbytes_u64(1000000000000, Option::from(1)).unwrap(),
+            super::nbytes_u64(1_000_000_000_000, Option::from(1)).unwrap(),
             "931.3 GiB"
         );
         assert_eq!(
-            super::nbytes_u64(10000000000000, Option::from(1)).unwrap(),
+            super::nbytes_u64(10_000_000_000_000, Option::from(1)).unwrap(),
             "9.1 TiB"
         );
         assert_eq!(
-            super::nbytes_u64(100000000000000, Option::from(1)).unwrap(),
+            super::nbytes_u64(100_000_000_000_000, Option::from(1)).unwrap(),
             "90.9 TiB"
         );
     }

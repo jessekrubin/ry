@@ -163,7 +163,7 @@ impl PyFsPath {
         let e = self.pth.extension();
         match e {
             Some(e) => Ok(e.to_str().unwrap().to_string()),
-            None => Ok("".to_string()),
+            None => Ok(String::new()),
         }
     }
 
@@ -210,7 +210,7 @@ impl PyFsPath {
         let p = self.pth.as_path();
         let r = std::fs::write(p, b);
         match r {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(e) => {
                 let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
                 Err(pyo3::exceptions::PyFileNotFoundError::new_err(emsg))
@@ -222,7 +222,7 @@ impl PyFsPath {
         let p = self.pth.as_path();
         let r = std::fs::write(p, t);
         match r {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(e) => {
                 let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
                 Err(pyo3::exceptions::PyFileNotFoundError::new_err(emsg))
@@ -286,7 +286,7 @@ impl std::fmt::Display for PathLike {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PathLike::PathBuf(p) => write!(f, "{}", p.to_str().unwrap()),
-            PathLike::Str(s) => write!(f, "{}", s),
+            PathLike::Str(s) => write!(f, "{s}"),
         }
     }
 }

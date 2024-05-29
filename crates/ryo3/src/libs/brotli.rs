@@ -8,32 +8,40 @@ use pyo3::types::PyBytes;
 pub fn brotli_encode(
     py: Python<'_>,
     data: &[u8],
-    quality: Option<u32>,
+    quality: Option<u8>,
     magic_number: Option<bool>,
 ) -> PyResult<PyObject> {
-    let encoded = match magic_number {
-        Some(true) => {
-            let params = br::enc::BrotliEncoderParams {
-                quality: quality.unwrap_or(11) as i32,
-                magic_number: true,
-                lgwin: 22,
-                ..Default::default()
-            };
-            let mut encoder = br::CompressorWriter::with_params(Vec::new(), 4 * 1024, &params);
-            // let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, 11, 22);
-            encoder.write_all(data).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {:?}", e))
-            })?;
-            encoder.into_inner()
+    // error on invalid quality value if given
+    let quality_u8 = match quality {
+        Some(q) => {
+            if q > 11 {
+                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                    "Quality value must be between 0 and 11",
+                ));
+            }
+            q
         }
-        _ => {
-            let quality = if let Some(param) = quality { param } else { 11 };
-            let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, quality, 22);
-            encoder.write_all(data).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {:?}", e))
-            })?;
-            encoder.into_inner()
-        }
+        _ => 11,
+    };
+    let encoded = if let Some(true) = magic_number {
+        let params = br::enc::BrotliEncoderParams {
+            quality: quality_u8.into(),
+            magic_number: true,
+            lgwin: 22,
+            ..Default::default()
+        };
+        let mut encoder = br::CompressorWriter::with_params(Vec::new(), 4 * 1024, &params);
+        // let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, 11, 22);
+        encoder.write_all(data).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}"))
+        })?;
+        encoder.into_inner()
+    } else {
+        let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, quality_u8.into(), 22);
+        encoder.write_all(data).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}"))
+        })?;
+        encoder.into_inner()
     };
     Ok(PyBytes::new_bound(py, &encoded).into())
 }
@@ -43,7 +51,7 @@ pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
     br::Decompressor::new(data, 4 * 1024)
         .read_to_end(&mut decompressed)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {:?}", e)))?;
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}")))?;
     Ok(PyBytes::new_bound(py, &decompressed).into())
 }
 

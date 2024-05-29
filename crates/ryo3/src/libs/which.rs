@@ -6,21 +6,26 @@ use pyo3::prelude::*;
 
 #[pyfunction]
 pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBuf>> {
-    match path {
-        Some(p) => {
-            let which_res = which_rs::which_in(cmd, Some(p), env::current_dir().unwrap());
-            match which_res {
-                Ok(p) => Ok(Some(p)),
-                Err(_e) => Ok(None),
+    if let Some(p) = path {
+        // get current directory w/o unwrapping
+        match env::current_dir() {
+            Ok(c) => {
+                let which_res = which_rs::which_in(cmd, Some(p), c);
+                match which_res {
+                    Ok(p) => Ok(Some(p)),
+                    Err(_e) => Ok(None),
+                }
             }
+            Err(_e) => Err(PyErr::new::<pyo3::exceptions::PyOSError, _>(
+                "which: current directory is not a valid path",
+            )),
         }
-        None => {
-            let r = which_rs::which(cmd);
+    } else {
+        let r = which_rs::which(cmd);
 
-            match r {
-                Ok(p) => Ok(Some(p)),
-                Err(_e) => Ok(None),
-            }
+        match r {
+            Ok(p) => Ok(Some(p)),
+            Err(_e) => Ok(None),
         }
     }
 }

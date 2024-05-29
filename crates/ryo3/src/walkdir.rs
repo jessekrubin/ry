@@ -36,7 +36,7 @@ impl PyWalkDirEntry {
 
     fn __repr__(&self) -> String {
         let s = self.de.path().to_str().unwrap().to_string();
-        format!("WalkDirEntry({:?})", s)
+        format!("WalkDirEntry({s:?})")
     }
 }
 

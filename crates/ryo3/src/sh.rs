@@ -1,5 +1,5 @@
 use dirs;
-use pyo3::exceptions::PyFileNotFoundError;
+use pyo3::exceptions::{PyFileNotFoundError, PyOSError};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{pyfunction, wrap_pyfunction, PyResult};
@@ -13,13 +13,22 @@ pub fn home() -> String {
 }
 
 #[pyfunction]
-#[must_use]
-pub fn pwd() -> String {
-    std::env::current_dir()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string()
+pub fn pwd() -> PyResult<String> {
+    let curdur = std::env::current_dir();
+    match curdur {
+        Ok(c) => match c.to_str() {
+            Some(s) => Ok(s.to_string()),
+            None => Err(PyOSError::new_err(
+                "pwd: current directory is not a valid UTF-8 string",
+            )),
+        },
+        Err(e) => {
+            Err(PyOSError::new_err(format!("pwd: {e}")))
+            // let emsg = format!("{e}");
+            // let pye = PyFileNotFoundError::new_err(format!("pwd: {emsg}"));
+            // Err(pye)
+        }
+    }
 }
 
 /// Change the current working directory to the specified path
@@ -27,11 +36,11 @@ pub fn pwd() -> String {
 pub fn cd(p: PathLike) -> PyResult<()> {
     let r = std::env::set_current_dir(p.as_ref());
     match r {
-        Ok(_) => Ok(()),
+        Ok(()) => Ok(()),
         Err(e) => {
             let p_string = p.to_string();
-            let emsg = format!("{}: {:?}", e, p_string);
-            let pye = PyFileNotFoundError::new_err(format!("cd: {}", emsg));
+            let emsg = format!("{e}: {p_string:?}");
+            let pye = PyFileNotFoundError::new_err(format!("cd: {emsg}"));
             Err(pye)
         }
     }
@@ -53,8 +62,8 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
         }
         Err(e) => {
             let p_string = String::from(p);
-            let emsg = format!("{}: {:?}", e, p_string);
-            let pye = PyFileNotFoundError::new_err(format!("ls: {}", emsg));
+            let emsg = format!("{e}: {p_string:?}");
+            let pye = PyFileNotFoundError::new_err(format!("ls: {emsg}"));
             Err(pye)
         }
     }
