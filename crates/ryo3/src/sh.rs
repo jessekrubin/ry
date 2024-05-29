@@ -1,15 +1,24 @@
+use crate::fs::fspath::PathLike;
 use dirs;
 use pyo3::exceptions::{PyFileNotFoundError, PyOSError};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{pyfunction, wrap_pyfunction, PyResult};
-
-use crate::fs::fspath::PathLike;
+use std::fs::read_dir;
 
 #[pyfunction]
-#[must_use]
-pub fn home() -> String {
-    dirs::home_dir().unwrap().to_str().unwrap().to_string()
+pub fn home() -> PyResult<String> {
+    match dirs::home_dir() {
+        Some(x) => match x.to_str() {
+            Some(s) => Ok(s.to_string()),
+            None => Err(PyOSError::new_err(
+                "home: home directory is not a valid UTF-8 string",
+            )),
+        },
+        None => Err(PyOSError::new_err(
+            "home: could not determine home directory",
+        )),
+    }
 }
 
 #[pyfunction]
@@ -22,12 +31,7 @@ pub fn pwd() -> PyResult<String> {
                 "pwd: current directory is not a valid UTF-8 string",
             )),
         },
-        Err(e) => {
-            Err(PyOSError::new_err(format!("pwd: {e}")))
-            // let emsg = format!("{e}");
-            // let pye = PyFileNotFoundError::new_err(format!("pwd: {emsg}"));
-            // Err(pye)
-        }
+        Err(e) => Err(PyOSError::new_err(format!("pwd: {e}"))),
     }
 }
 
@@ -49,24 +53,30 @@ pub fn cd(p: PathLike) -> PyResult<()> {
 /// List the contents of the specified directory as a Vec<String>
 #[pyfunction]
 pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
-    let p = fspath.unwrap_or_else(|| PathLike::PathBuf(std::env::current_dir().unwrap()));
-    let r = std::fs::read_dir(p.as_ref());
-    match r {
-        Ok(r) => {
-            let v = r
-                .map(|x| x.unwrap())
-                .map(|y| y.path())
-                .map(|z| z.file_name().unwrap().to_str().unwrap().to_string())
-                .collect();
-            Ok(v)
-        }
-        Err(e) => {
-            let p_string = String::from(p);
-            let emsg = format!("{e}: {p_string:?}");
-            let pye = PyFileNotFoundError::new_err(format!("ls: {emsg}"));
-            Err(pye)
-        }
-    }
+    let p = if let Some(p) = fspath {
+        p
+    } else {
+        let pwd = pwd()?;
+        PathLike::Str(pwd)
+    };
+    // let r = std::fs::read_dir(p.as_ref());
+
+    let entries = read_dir(p.as_ref()).map_err(|e| {
+        let p_string = format!("{p:?}");
+        let emsg = format!("{e}: {p_string}");
+        PyFileNotFoundError::new_err(format!("ls: {emsg}"))
+    })?;
+
+    let v: Vec<String> = entries
+        .filter_map(Result::ok)
+        .filter_map(|dir_entry| {
+            dir_entry
+                .path()
+                .file_name()
+                .and_then(|name| name.to_str().map(ToString::to_string))
+        })
+        .collect();
+    Ok(v)
 }
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {

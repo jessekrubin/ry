@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyType};
 use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
 
+use crate::fs::fileio;
 use crate::fs::fileio::{read_bytes, read_text};
 
 #[pyclass(name = "FsPath")]
@@ -103,7 +104,7 @@ impl PyFsPath {
     }
 
     fn absolute(&self) -> PyResult<Self> {
-        let p = self.pth.canonicalize().unwrap();
+        let p = self.pth.canonicalize()?;
         // return the canonicalized path
         Ok(PyFsPath::from(p))
     }
@@ -111,7 +112,11 @@ impl PyFsPath {
     fn extension(&self) -> PyResult<Option<String>> {
         let e = self.pth.extension();
         match e {
-            Some(e) => Ok(Some(e.to_str().unwrap().to_string())),
+            Some(e) => Ok(Some(
+                e.to_str()
+                    .expect("extension() - path contains invalid unicode characters")
+                    .to_string(),
+            )),
             None => Ok(None),
         }
     }
@@ -127,7 +132,7 @@ impl PyFsPath {
     }
 
     fn __fspath__(&self) -> PyResult<String> {
-        let s = self.pth.to_str().unwrap().to_string();
+        let s = self.pth.to_string_lossy().to_string();
         Ok(s)
     }
 
@@ -141,28 +146,36 @@ impl PyFsPath {
     fn parent(&self) -> PyResult<PyFsPath> {
         let p = self.pth.parent();
         match p {
-            Some(p) => {
-                if p.to_str().unwrap() == "" {
-                    Ok(PyFsPath::from("."))
-                } else {
-                    Ok(PyFsPath::from(p))
+            Some(p) => match p.to_str() {
+                Some(p) => {
+                    if p.is_empty() {
+                        Ok(PyFsPath::from("."))
+                    } else {
+                        Ok(PyFsPath::from(p))
+                    }
                 }
-            }
+                None => Ok(PyFsPath::from(p)),
+            },
             None => Ok(self.clone()),
         }
     }
 
     #[getter]
     fn name(&self) -> PyResult<String> {
-        let s = self.pth.file_name().unwrap().to_str().unwrap().to_string();
-        Ok(s)
+        match self.pth.file_name() {
+            Some(name) => Ok(name.to_string_lossy().to_string()),
+            None => Ok(String::new()),
+        }
     }
 
     #[getter]
     fn suffix(&self) -> PyResult<String> {
         let e = self.pth.extension();
         match e {
-            Some(e) => Ok(e.to_str().unwrap().to_string()),
+            Some(e) => Ok(path2str(
+                e.to_str()
+                    .expect("suffix() - path contains invalid unicode characters"),
+            )),
             None => Ok(String::new()),
         }
     }
@@ -172,7 +185,10 @@ impl PyFsPath {
         let mut suffixes = vec![];
         let mut p = self.pth.clone();
         while let Some(e) = p.extension() {
-            suffixes.push(e.to_str().unwrap().to_string());
+            match e.to_str() {
+                Some(e) => suffixes.push(e.to_string()),
+                None => break,
+            }
             p = p.with_extension("");
         }
         suffixes.reverse();
@@ -181,19 +197,26 @@ impl PyFsPath {
 
     #[getter]
     fn stem(&self) -> PyResult<String> {
-        let s = self.pth.file_stem().unwrap().to_str().unwrap().to_string();
-        Ok(s)
+        self.pth
+            .file_stem()
+            .map(|s| s.to_string_lossy().to_string())
+            .ok_or_else(|| {
+                pyo3::exceptions::PyValueError::new_err(
+                    "stem() - path contains invalid unicode characters",
+                )
+            })
     }
 
     #[classmethod]
     fn home(_cls: &Bound<'_, PyType>) -> PyResult<PyFsPath> {
-        let p = dirs::home_dir().unwrap();
+        let p = dirs::home_dir().expect("home() - unable to determine home directory");
         Ok(p.into())
     }
 
     #[classmethod]
     fn cwd(_cls: &Bound<'_, PyType>) -> PyResult<PyFsPath> {
-        let p = std::env::current_dir().unwrap();
+        let p =
+            std::env::current_dir().expect("cwd() - unable to determine current working directory");
         Ok(p.into())
     }
 
@@ -207,27 +230,11 @@ impl PyFsPath {
     }
 
     fn write_bytes(&self, b: Vec<u8>) -> PyResult<()> {
-        let p = self.pth.as_path();
-        let r = std::fs::write(p, b);
-        match r {
-            Ok(()) => Ok(()),
-            Err(e) => {
-                let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
-                Err(pyo3::exceptions::PyFileNotFoundError::new_err(emsg))
-            }
-        }
+        fileio::write_bytes(&self.string(), b)
     }
 
     fn write_text(&self, t: &str) -> PyResult<()> {
-        let p = self.pth.as_path();
-        let r = std::fs::write(p, t);
-        match r {
-            Ok(()) => Ok(()),
-            Err(e) => {
-                let emsg = format!("{}: {} - {:?}", p.to_str().unwrap(), e, p.to_str().unwrap());
-                Err(pyo3::exceptions::PyFileNotFoundError::new_err(emsg))
-            }
-        }
+        fileio::write_text(&self.string(), t)
     }
 
     // ========================================================================
@@ -261,7 +268,7 @@ pub enum PathLike {
 impl From<PathLike> for String {
     fn from(p: PathLike) -> Self {
         match p {
-            PathLike::PathBuf(p) => p.to_str().unwrap().to_string(),
+            PathLike::PathBuf(p) => p.to_string_lossy().to_string(),
             PathLike::Str(s) => s,
         }
     }
@@ -285,7 +292,7 @@ impl From<&Path> for PathLike {
 impl std::fmt::Display for PathLike {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PathLike::PathBuf(p) => write!(f, "{}", p.to_str().unwrap()),
+            PathLike::PathBuf(p) => write!(f, "{}", p.to_string_lossy()),
             PathLike::Str(s) => write!(f, "{s}"),
         }
     }

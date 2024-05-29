@@ -4,7 +4,7 @@
 #![deny(clippy::perf)]
 #![deny(clippy::pedantic)]
 #![deny(clippy::style)]
-// #![deny(clippy::unwrap_used)]
+#![deny(clippy::unwrap_used)]
 #![warn(clippy::must_use_candidate)]
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
@@ -24,7 +24,6 @@ pub mod libs;
 pub mod sh;
 pub mod shlex;
 pub mod sleep;
-pub mod sp;
 pub mod walkdir;
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -34,7 +33,6 @@ pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     fmts::madd(m)?;
     sh::madd(m)?;
     fs::madd(m)?;
-    sp::madd(m)?;
     walkdir::madd(m)?;
     libs::madd(m)?;
     Ok(())

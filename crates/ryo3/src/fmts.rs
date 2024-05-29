@@ -19,9 +19,10 @@ fn format_size(nbytes: u64, unit: &str, divisor: u64, precision: usize) -> Strin
     }
 }
 
-pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, String> {
+#[must_use]
+pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> String {
     let precision = precision.unwrap_or(1);
-    let formatted_size = match nbytes {
+    match nbytes {
         n if n < KILOBYTE => {
             if n == 1 {
                 "1 byte".to_string()
@@ -35,9 +36,7 @@ pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, Strin
         n if n < PETABYTE => format_size(n, "TiB", TERABYTE, precision),
         n if n < EXABYTE => format_size(n, "PiB", PETABYTE, precision),
         n => format_size(n, "EiB", EXABYTE, precision),
-    };
-
-    Ok(formatted_size)
+    }
 }
 
 fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
@@ -45,11 +44,11 @@ fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
     if nbytes < 0 {
         // abs it  and then convert to u64
         let ubytes_u64 = nbytes.unsigned_abs();
-        Ok(format!("-{}", nbytes_u64(ubytes_u64, precision).unwrap()))
+        Ok(format!("-{}", nbytes_u64(ubytes_u64, precision)))
     } else {
         // convert to u64
         let ubytes_u64 = nbytes.unsigned_abs();
-        Ok(nbytes_u64(ubytes_u64, precision).unwrap().to_string())
+        Ok(nbytes_u64(ubytes_u64, precision).to_string())
     }
 }
 
@@ -57,7 +56,9 @@ fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
 #[pyfunction]
 #[pyo3(name = "fmt_nbytes")]
 pub fn fmt_nbytes(nbytes: i64) -> PyResult<String> {
-    Ok(nbytes_i64(nbytes, Option::from(1)).unwrap())
+    let formatted_size = nbytes_i64(nbytes, Option::from(1))
+        .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+    Ok(formatted_size)
 }
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -67,6 +68,8 @@ pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     #[test]
     fn test_nbytes_str() {
         let test_data: Vec<(u64, &str)> = vec![
@@ -85,10 +88,7 @@ mod tests {
             (100_000_000_000_000, "90.9 TiB"),
         ];
         for (nbytes, expected) in test_data {
-            assert_eq!(
-                super::nbytes_u64(nbytes, Option::from(1)).unwrap(),
-                expected
-            );
+            assert_eq!(super::nbytes_u64(nbytes, Option::from(1)), expected);
         }
     }
 }
