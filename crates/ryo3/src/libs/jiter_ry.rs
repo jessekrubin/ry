@@ -1,6 +1,6 @@
 //! Wrapper for jiter based on `jiter-python`
 //!
-//! Provides jitter wrapper that uses PyBackedStr and PyBackedBytes and
+//! Provides jitter wrapper that uses `PyBackedStr` and `PyBackedBytes` and
 //! allows for parsing json from bytes or str (which jiter-python does not as
 //! of [2024-05-29])
 use ::jiter::{map_json_error, PartialMode, PythonParse, StringCacheMode};
@@ -93,15 +93,15 @@ pub fn parse_json_str<'py>(
     lossless_floats = false,
     )
 )]
-pub fn parse_json<'py>(
-    py: Python<'py>,
+pub fn parse_json(
+    py: Python<'_>,
     data: BytesOrString,
     allow_inf_nan: bool,
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
     lossless_floats: bool,
-) -> PyResult<Bound<'py, PyAny>> {
+) -> PyResult<Bound<'_, PyAny>> {
     let parse_builder = PythonParse {
         allow_inf_nan,
         cache_mode,
