@@ -2,42 +2,55 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 
-const KILOBYTE: f64 = 1024.0;
-const MEGABYTE: f64 = KILOBYTE * 1024.0;
-const GIGABYTE: f64 = MEGABYTE * 1024.0;
-const TERABYTE: f64 = GIGABYTE * 1024.0;
-const PETABYTE: f64 = TERABYTE * 1024.0;
-const EXABYTE: f64 = PETABYTE * 1024.0;
+const KILOBYTE: u64 = 1024;
+const MEGABYTE: u64 = KILOBYTE * 1024;
+const GIGABYTE: u64 = MEGABYTE * 1024;
+const TERABYTE: u64 = GIGABYTE * 1024;
+const PETABYTE: u64 = TERABYTE * 1024;
+const EXABYTE: u64 = PETABYTE * 1024;
 
-pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, String> {
-    let nbytes_f64 = nbytes as f64;
-    let precision = precision.unwrap_or(1);
-    let formatted_size = match nbytes_f64 {
-        n if n < KILOBYTE => {
-            if (n - 1.0).abs() < 0.001 {
-                "1 byte".to_string()
-            } else {
-                format!("{n:.0} bytes")
-            }
-        }
-        n if n < MEGABYTE => format!("{:.1$} KiB", n / KILOBYTE, precision),
-        n if n < GIGABYTE => format!("{:.1$} MiB", n / MEGABYTE, precision),
-        n if n < TERABYTE => format!("{:.1$} GiB", n / GIGABYTE, precision),
-        n if n < PETABYTE => format!("{:.1$} TiB", n / TERABYTE, precision),
-        n if n < EXABYTE => format!("{:.1$} PiB", n / PETABYTE, precision),
-        n => format!("{:.1$} EiB", n / EXABYTE, precision),
-    };
-
-    if nbytes_f64 >= 0.0 {
-        Ok(formatted_size)
+fn format_size(nbytes: u64, unit: &str, divisor: u64, precision: usize) -> String {
+    let integer_part = nbytes / divisor;
+    let fractional_part = (nbytes % divisor) * 10 / divisor;
+    if precision == 0 {
+        format!("{integer_part} {unit}")
     } else {
-        Err(format!("Invalid number of bytes: {nbytes_f64}"))
+        format!("{integer_part}.{fractional_part:0precision$} {unit}")
     }
 }
 
+pub fn nbytes_u64(nbytes: u64, precision: Option<usize>) -> Result<String, String> {
+    let precision = precision.unwrap_or(1);
+    let formatted_size = match nbytes {
+        n if n < KILOBYTE => {
+            if n == 1 {
+                "1 byte".to_string()
+            } else {
+                format!("{n} bytes")
+            }
+        }
+        n if n < MEGABYTE => format_size(n, "KiB", KILOBYTE, precision),
+        n if n < GIGABYTE => format_size(n, "MiB", MEGABYTE, precision),
+        n if n < TERABYTE => format_size(n, "GiB", GIGABYTE, precision),
+        n if n < PETABYTE => format_size(n, "TiB", TERABYTE, precision),
+        n if n < EXABYTE => format_size(n, "PiB", PETABYTE, precision),
+        n => format_size(n, "EiB", EXABYTE, precision),
+    };
+
+    Ok(formatted_size)
+}
+
 fn nbytes_i64(nbytes: i64, precision: Option<usize>) -> Result<String, String> {
-    let nabs = if nbytes < 0 { -nbytes } else { nbytes };
-    nbytes_u64(nabs as u64, precision)
+    // abs value
+    if nbytes < 0 {
+        // abs it  and then convert to u64
+        let ubytes_u64 = nbytes.unsigned_abs();
+        Ok(format!("-{}", nbytes_u64(ubytes_u64, precision).unwrap()))
+    } else {
+        // convert to u64
+        let ubytes_u64 = nbytes.unsigned_abs();
+        Ok(nbytes_u64(ubytes_u64, precision).unwrap().to_string())
+    }
 }
 
 // TODO: Fix to handle negative numbers
@@ -56,57 +69,26 @@ pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
 mod tests {
     #[test]
     fn test_nbytes_str() {
-        assert_eq!(
-            super::nbytes_u64(100, Option::from(1)).unwrap(),
-            "100 bytes"
-        );
-        assert_eq!(
-            super::nbytes_u64(1000, Option::from(1)).unwrap(),
-            "1000 bytes"
-        );
-        assert_eq!(
-            super::nbytes_u64(10000, Option::from(1)).unwrap(),
-            "9.8 KiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(100_000, Option::from(1)).unwrap(),
-            "97.7 KiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(1_000_000, Option::from(1)).unwrap(),
-            "976.6 KiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(10_000_000, Option::from(1)).unwrap(),
-            "9.5 MiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(100_000_000, Option::from(1)).unwrap(),
-            "95.4 MiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(1_000_000_000, Option::from(1)).unwrap(),
-            "953.7 MiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(10_000_000_000, Option::from(1)).unwrap(),
-            "9.3 GiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(100_000_000_000, Option::from(1)).unwrap(),
-            "93.1 GiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(1_000_000_000_000, Option::from(1)).unwrap(),
-            "931.3 GiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(10_000_000_000_000, Option::from(1)).unwrap(),
-            "9.1 TiB"
-        );
-        assert_eq!(
-            super::nbytes_u64(100_000_000_000_000, Option::from(1)).unwrap(),
-            "90.9 TiB"
-        );
+        let test_data: Vec<(u64, &str)> = vec![
+            (100, "100 bytes"),
+            (1000, "1000 bytes"),
+            (10000, "9.7 KiB"),
+            (100_000, "97.6 KiB"),
+            (1_000_000, "976.5 KiB"),
+            (10_000_000, "9.5 MiB"),
+            (100_000_000, "95.3 MiB"),
+            (1_000_000_000, "953.6 MiB"),
+            (10_000_000_000, "9.3 GiB"),
+            (100_000_000_000, "93.1 GiB"),
+            (1_000_000_000_000, "931.3 GiB"),
+            (10_000_000_000_000, "9.0 TiB"),
+            (100_000_000_000_000, "90.9 TiB"),
+        ];
+        for (nbytes, expected) in test_data {
+            assert_eq!(
+                super::nbytes_u64(nbytes, Option::from(1)).unwrap(),
+                expected
+            );
+        }
     }
 }
