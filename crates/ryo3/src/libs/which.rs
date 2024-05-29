@@ -36,10 +36,23 @@ pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
         Some(p) => Some(OsString::from(p)),
         None => env::var_os("PATH"),
     };
-    let which_iter = which_rs::which_in_all(cmd, search_path, env::current_dir().unwrap()).unwrap();
+    let which_iter = which_rs::which_in_all(
+        cmd,
+        search_path,
+        env::current_dir().expect("which_all: current directory is not a valid path"),
+    )
+    .map_err(|_| {
+        PyErr::new::<pyo3::exceptions::PyOSError, _>(
+            "which_all: current directory is not a valid path",
+        )
+    })?;
     let which_vec = which_iter
         .into_iter()
-        .map(|p| p.to_str().unwrap().to_string())
+        .map(|p| {
+            p.to_str()
+                .expect("which_all: path contains invalid unicode characters")
+                .to_string()
+        })
         .collect::<Vec<String>>();
     Ok(which_vec)
 }
