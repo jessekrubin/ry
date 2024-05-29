@@ -2,8 +2,6 @@
 name = "ryo3"
 version.workspace = true
 edition.workspace = true
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 
 [build-dependencies]
 chrono.workspace = true
@@ -12,7 +10,6 @@ chrono.workspace = true
 brotli = { version = "6.0.0", optional = true }
 dirs.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
-#pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
 regex.workspace = true
 serde.workspace = true
 serde_bytes.workspace = true
@@ -23,7 +20,6 @@ tracing.workspace = true
 walkdir.workspace = true
 # optional
 fnv = { version = "1.0.7", optional = true }
-#jiter = { version = "0.4.0", features = ["python"], optional = true }
 which = { workspace = true, features = ["regex"], optional = true }
 xxhash-rust = { version = "0.8.8", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
 jiter = { version = "0.4.0", features = ["python"], optional = true }
