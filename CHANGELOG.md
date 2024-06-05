@@ -5,6 +5,7 @@
 - Added zstd (`zstd_encode`/`zstd` and `zstd_decode`)
 - Added gzip (`gzip_encode`/`gzip` and `gzip_decode`/`gunzip`)
 - Added bzip2 (`bzip2_encode`/`bzip2` and `bzip2_decode`)
+- Added walkdir
 - Reorg libs 
 
 ## v0.0.5

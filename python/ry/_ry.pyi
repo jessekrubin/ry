@@ -1,4 +1,4 @@
-"""ry type annotations"""
+"""ry api ~ type annotations"""
 
 from os import PathLike
 from typing import AnyStr, Iterator, final
