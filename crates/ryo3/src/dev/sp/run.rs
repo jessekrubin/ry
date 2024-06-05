@@ -84,13 +84,10 @@ pub fn run(
     let popenargs = popenargs.extract::<Vec<String>>()?;
     let collect = capture.unwrap_or(true);
     // split the popenargs into the command and the args
-    let cmd_str = match popenargs.first() {
-        Some(s) => s,
-        None => {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "popenargs must have at least one element",
-            ));
-        }
+    let Some(cmd_str) = popenargs.first() else {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "popenargs must have at least one element",
+        ));
     };
     let cmd_args = popenargs[1..].to_vec();
     let mut binding = Command::new(cmd_str);

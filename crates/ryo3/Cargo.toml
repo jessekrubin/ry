@@ -2,36 +2,55 @@
 name = "ryo3"
 version.workspace = true
 edition.workspace = true
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 
 [build-dependencies]
 chrono.workspace = true
 
 [dependencies]
-brotli = { version = "6.0.0", optional = true }
 dirs.workspace = true
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
-#pyo3-asyncio = { workspace = true, features = ["attributes", "tokio-runtime"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
 regex.workspace = true
 serde.workspace = true
 serde_bytes.workspace = true
 serde_json.workspace = true
-shlex.workspace = true
 tokio.workspace = true
 tracing.workspace = true
-walkdir.workspace = true
+
 # optional
+brotli = { version = "6.0.0", optional = true }
 fnv = { version = "1.0.7", optional = true }
-jiter = { version = "0.3.0", features = ["python"], optional = true }
+jiter = { version = "0.4.0", features = ["python"], optional = true }
+shlex = { workspace = true, optional = true }
+walkdir = { workspace = true, optional = true }
 which = { workspace = true, features = ["regex"], optional = true }
 xxhash-rust = { version = "0.8.8", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
+zstd = { version = "0.13.1", optional = true }
+flate2 = { version = "1.0.30", optional = true }
+bzip2 = { version = "0.4.4", optional = true }
 
 [features]
-default = ["brotli", "jiter"]
-all = ["brotli", "jiter", "xxhash", "which", "fnv"]
+default = [
+    "which", "shlex", "jiter"
+]
+all = [
+    "brotli",
+    "bzip2",
+    "flate2",
+    "fnv",
+    "jiter",
+    "shlex",
+    "walkdir",
+    "which",
+    "xxhash",
+    "zstd",
+]
 brotli = ["dep:brotli"]
 fnv = ["dep:fnv"]
 jiter = ["dep:jiter"]
+shlex = ["dep:shlex"]
+walkdir = ["dep:walkdir"]
 which = ["dep:which"]
 xxhash = ["dep:xxhash-rust"]
+zstd = ["dep:zstd"]
+flate2 = ["dep:flate2"]
+bzip2 = ["dep:bzip2"]

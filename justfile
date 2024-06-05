@@ -50,6 +50,7 @@ sort-all:
 # ruff format
 ruff-fmt:
     ruff format .
+    ruff check --select "I" --show-fixes --fix .
 
 # ruff format check
 ruff-fmtc:
@@ -81,6 +82,7 @@ fmtc: cargo-fmtc fmtcpy justfilefmtc
 
 # ==========================================================================
 # LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT
+
 # ==========================================================================
 ruff:
     ruff .

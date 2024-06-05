@@ -16,13 +16,21 @@ pub struct PyWalkDirEntry {
 #[pymethods]
 impl PyWalkDirEntry {
     #[getter]
-    fn path(&self) -> String {
-        self.de.path().to_str().unwrap().to_string()
+    fn path(&self) -> PyResult<String> {
+        self.de
+            .path()
+            .to_str()
+            .map(ToString::to_string)
+            .ok_or_else(|| {
+                PyErr::new::<pyo3::exceptions::PyUnicodeDecodeError, _>(
+                    "Path contains invalid unicode characters",
+                )
+            })
     }
 
     #[getter]
-    fn file_name(&self) -> String {
-        self.de.file_name().to_str().unwrap().to_string()
+    fn file_name(&self) -> PyResult<String> {
+        Ok(self.de.file_name().to_string_lossy().to_string())
     }
 
     #[getter]
@@ -30,13 +38,21 @@ impl PyWalkDirEntry {
         self.de.depth()
     }
 
-    fn __str__(&self) -> String {
-        self.de.path().to_str().unwrap().to_string()
+    fn __str__(&self) -> PyResult<String> {
+        self.de
+            .path()
+            .to_str()
+            .map(ToString::to_string)
+            .ok_or_else(|| {
+                PyErr::new::<pyo3::exceptions::PyUnicodeDecodeError, _>(
+                    "Path contains invalid unicode characters",
+                )
+            })
     }
 
     fn __repr__(&self) -> String {
-        let s = self.de.path().to_str().unwrap().to_string();
-        format!("WalkDirEntry({:?})", s)
+        let s = self.__str__().unwrap_or_else(|_| String::from("???"));
+        format!("WalkDirEntry({s:?})")
     }
 }
 
@@ -59,16 +75,15 @@ impl PyWalkdirGen {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyWalkDirEntry> {
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<String> {
         while let Some(Ok(entry)) = slf.iter.next() {
             if (entry.file_type().is_file() && slf.files)
                 || (entry.file_type().is_dir() && slf.dirs)
             {
-                return Some(PyWalkDirEntry::from(entry));
+                if let Some(path_str) = entry.path().to_str() {
+                    return Some(path_str.to_string());
+                }
             }
-            // else if entry.file_type().is_dir() && slf.dirs {
-            //     return Some(PyWalkDirEntry::from(entry));
-            // }
         }
         None
     }
@@ -91,15 +106,10 @@ impl PyFspathsGen {
             if (entry.file_type().is_file() && slf.files)
                 || (entry.file_type().is_dir() && slf.dirs)
             {
-                let path = entry.path();
-                let path = path.to_str().unwrap().to_string();
-                return Some(path);
+                if let Some(path_str) = entry.path().to_str() {
+                    return Some(path_str.to_string());
+                }
             }
-            // else if entry.file_type().is_dir() && slf.dirs {
-            //   let path = entry.path();
-            //   let path = path.to_str().unwrap().to_string();
-            //   return Some(path);
-            // }
         }
         None
     }
@@ -148,7 +158,9 @@ fn build_walkdir(
 }
 
 #[pyfunction]
-#[pyo3(signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false))]
+#[pyo3(
+    signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false)
+)]
 pub fn walkdir(
     path: Option<PathLike>,
     files: Option<bool>,            // true
@@ -175,7 +187,9 @@ pub fn walkdir(
 }
 
 #[pyfunction]
-#[pyo3(signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false))]
+#[pyo3(
+    signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false)
+)]
 pub fn fspaths(
     path: Option<PathLike>,
     files: Option<bool>,            // true

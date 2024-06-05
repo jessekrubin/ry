@@ -1,5 +1,6 @@
-import pytest
 import sys
+
+import pytest
 
 import ry
 
@@ -1650,7 +1651,7 @@ pytest_skip_xxhash = pytest.mark.skipif(
 
 
 @pytest_skip_xxhash
-def test_xxhash_matches_ry_xxh32():
+def test_xxhash_matches_ry_xxh32() -> None:
     for seed in XX32_SEEDS:
         for data, _ in XX32_TEST_DATA:
             assert ry.xxh32(data, seed).digest() == xxhash.xxh32(data, seed).digest()
@@ -1663,7 +1664,7 @@ def test_xxhash_matches_ry_xxh32():
 
 
 @pytest_skip_xxhash
-def test_xxhash_matches_ry_xxh64():
+def test_xxhash_matches_ry_xxh64() -> None:
     for seed in XX64_SEEDS:
         for data, _ in XX64_TEST_DATA:
             assert ry.xxh64(data, seed).digest() == xxhash.xxh64(data, seed).digest()
@@ -1676,7 +1677,7 @@ def test_xxhash_matches_ry_xxh64():
 
 
 @pytest_skip_xxhash
-def test_xxhash_matches_ry_xxh128():
+def test_xxhash_matches_ry_xxh128() -> None:
     for seed in XX128_SEEDS:
         for data, _ in XX128_TEST_DATA:
             assert ry.xxh3(data, seed).digest128() == xxhash.xxh128(data, seed).digest()

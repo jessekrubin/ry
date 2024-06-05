@@ -1,6 +1,9 @@
-use ::jiter::map_json_error;
-use ::jiter::python_parse;
-use ::jiter::StringCacheMode;
+//! Wrapper for jiter based on `jiter-python`
+//!
+//! Provides jitter wrapper that uses `PyBackedStr` and `PyBackedBytes` and
+//! allows for parsing json from bytes or str (which jiter-python does not as
+//! of [2024-05-29])
+use ::jiter::{map_json_error, PartialMode, PythonParse, StringCacheMode};
 use pyo3::prelude::*;
 use pyo3::pybacked::{PyBackedBytes, PyBackedStr};
 
@@ -10,66 +13,114 @@ pub enum BytesOrString {
     Bytes(PyBackedBytes),
 }
 
-#[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true, allow_partial = false))]
+#[pyfunction(
+    signature = (
+    data,
+    /,
+    *,
+    allow_inf_nan = true,
+    cache_mode = StringCacheMode::All,
+    partial_mode = PartialMode::Off,
+    catch_duplicate_keys = false,
+    lossless_floats = false,
+    )
+)]
 pub fn parse_json_bytes<'py>(
     py: Python<'py>,
     data: &[u8],
     allow_inf_nan: bool,
-    cache_strings: bool,
-    allow_partial: bool,
+    cache_mode: StringCacheMode,
+    partial_mode: PartialMode,
+    catch_duplicate_keys: bool,
+    lossless_floats: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let json_bytes = data;
-    let cache_mode = if cache_strings {
-        StringCacheMode::All
-    } else {
-        StringCacheMode::None
+    let parse_builder = PythonParse {
+        allow_inf_nan,
+        cache_mode,
+        partial_mode,
+        catch_duplicate_keys,
+        lossless_floats,
     };
-    python_parse(py, json_bytes, allow_inf_nan, cache_mode, allow_partial)
-        .map_err(|e| map_json_error(json_bytes, &e))
+    parse_builder
+        .python_parse(py, data)
+        .map_err(|e| map_json_error(data, &e))
 }
 
-#[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true))]
-pub fn parse_json_str(
-    py: Python,
+#[pyfunction(
+    signature = (
+    data,
+    /,
+    *,
+    allow_inf_nan = true,
+    cache_mode = StringCacheMode::All,
+    partial_mode = PartialMode::Off,
+    catch_duplicate_keys = false,
+    lossless_floats = false,
+    )
+)]
+pub fn parse_json_str<'py>(
+    py: Python<'py>,
     data: &str,
     allow_inf_nan: bool,
-    cache_strings: bool,
-) -> PyResult<PyObject> {
-    let json_bytes = data.as_bytes();
-    let cache_mode = if cache_strings {
-        StringCacheMode::All
-    } else {
-        StringCacheMode::None
+    cache_mode: StringCacheMode,
+    partial_mode: PartialMode,
+    catch_duplicate_keys: bool,
+    lossless_floats: bool,
+) -> PyResult<Bound<'py, PyAny>> {
+    let parse_builder = PythonParse {
+        allow_inf_nan,
+        cache_mode,
+        partial_mode,
+        catch_duplicate_keys,
+        lossless_floats,
     };
-    python_parse(py, json_bytes, allow_inf_nan, cache_mode, false)
+    let json_bytes: &[u8] = data.as_ref();
+    parse_builder
+        .python_parse(py, json_bytes)
         .map_err(|e| map_json_error(json_bytes, &e))
-        .map(|v| v.into_py(py))
 }
 
-#[pyfunction(signature = (data, *, allow_inf_nan = true, cache_strings = true, allow_partial = false))]
+#[allow(clippy::fn_params_excessive_bools)]
+#[pyfunction(
+    signature = (
+    data,
+    /,
+    *,
+    allow_inf_nan = true,
+    cache_mode = StringCacheMode::All,
+    partial_mode = PartialMode::Off,
+    catch_duplicate_keys = false,
+    lossless_floats = false,
+    )
+)]
 pub fn parse_json(
     py: Python<'_>,
     data: BytesOrString,
     allow_inf_nan: bool,
-    cache_strings: bool,
-    allow_partial: bool,
+    cache_mode: StringCacheMode,
+    partial_mode: PartialMode,
+    catch_duplicate_keys: bool,
+    lossless_floats: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
-    let cache_mode = if cache_strings {
-        StringCacheMode::All
-    } else {
-        StringCacheMode::None
+    let parse_builder = PythonParse {
+        allow_inf_nan,
+        cache_mode,
+        partial_mode,
+        catch_duplicate_keys,
+        lossless_floats,
     };
-
-    // Directly call python_parse within the match arms
     match data {
         BytesOrString::Str(s) => {
             let json_bytes: &[u8] = s.as_ref();
-            python_parse(py, json_bytes, allow_inf_nan, cache_mode, allow_partial)
+            parse_builder
+                .python_parse(py, json_bytes)
                 .map_err(|e| map_json_error(json_bytes, &e))
         }
         BytesOrString::Bytes(b) => {
             let json_bytes: &[u8] = b.as_ref();
-            python_parse(py, json_bytes, allow_inf_nan, cache_mode, allow_partial)
+
+            parse_builder
+                .python_parse(py, json_bytes)
                 .map_err(|e| map_json_error(json_bytes, &e))
         }
     }

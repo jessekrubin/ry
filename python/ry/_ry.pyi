@@ -1,7 +1,7 @@
-"""ry type annotations"""
+"""ry api ~ type annotations"""
 
 from os import PathLike
-from typing import AnyStr, final
+from typing import AnyStr, Iterator, final
 
 __version__: str
 __authors__: str
@@ -50,6 +50,26 @@ def which(cmd: str, path: None | str = None) -> str | None: ...
 def which_all(cmd: str, path: None | str = None) -> list[str]: ...
 
 # ==============================================================================
+# WALKDIR
+# ==============================================================================
+class Walkdir:
+    files: bool
+    dirs: bool
+    def __next__(self) -> str: ...
+    def __iter__(self) -> Iterator[str]: ...
+
+def walkdir(
+    path: FsPathLike | None = None,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+) -> Walkdir: ...
+
+# ==============================================================================
 # SHLEX
 # ==============================================================================
 def shplit(s: str) -> list[str]: ...
@@ -92,6 +112,33 @@ def brotli_encode(
     input: bytes, quality: int = 11, magic_number: bool = False
 ) -> bytes: ...
 def brotli_decode(input: bytes) -> bytes: ...
+def brotli(input: bytes, quality: int = 11, magic_number: bool = False) -> bytes:
+    """Alias for brotli_encode"""
+
+# ==============================================================================
+# BZIP2
+# ==============================================================================
+def bzip2_encode(input: bytes, quality: int = 9) -> bytes: ...
+def bzip2_decode(input: bytes) -> bytes: ...
+def bzip2(input: bytes, quality: int = 9) -> bytes:
+    """Alias for bzip2_encode"""
+
+# ==============================================================================
+# GZIP
+# ==============================================================================
+def gzip_encode(input: bytes, quality: int = 9) -> bytes: ...
+def gzip_decode(input: bytes) -> bytes: ...
+def gzip(input: bytes, quality: int = 9) -> bytes:
+    """Alias for gzip_encode"""
+
+# ==============================================================================
+# ZSTD
+# ==============================================================================
+def zstd_encode(input: bytes, level: int = 3) -> bytes: ...
+def zstd(input: bytes, level: int = 3) -> bytes:
+    """Alias for zstd_encode"""
+
+def zstd_decode(input: bytes) -> bytes: ...
 
 # ==============================================================================
 # XXHASH
