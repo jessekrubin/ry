@@ -29,6 +29,21 @@ impl PyDone {
     fn stdout<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyBytes> {
         PyBytes::new_bound(py, &self.done.stdout)
     }
+
+    #[getter]
+    fn stderr<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyBytes> {
+        PyBytes::new_bound(py, &self.done.stderr)
+    }
+
+    #[getter]
+    fn returncode(&self) -> i32 {
+        self.done.returncode
+    }
+
+    #[getter]
+    fn args(&self) -> Vec<String> {
+        self.done.args.clone()
+    }
 }
 
 impl From<Done> for PyDone {
