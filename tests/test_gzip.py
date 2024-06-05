@@ -4,7 +4,6 @@ import gzip
 import io
 
 import ry
-import ry as ry
 
 
 def test_10x10y_round_trip() -> None:

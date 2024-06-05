@@ -1,7 +1,7 @@
 """ry type annotations"""
 
 from os import PathLike
-from typing import AnyStr, final
+from typing import AnyStr, Iterator, final
 
 __version__: str
 __authors__: str
@@ -48,6 +48,26 @@ def read_bytes(path: FsPathLike) -> bytes: ...
 # ==============================================================================
 def which(cmd: str, path: None | str = None) -> str | None: ...
 def which_all(cmd: str, path: None | str = None) -> list[str]: ...
+
+# ==============================================================================
+# WALKDIR
+# ==============================================================================
+class Walkdir:
+    files: bool
+    dirs: bool
+    def __next__(self) -> str: ...
+    def __iter__(self) -> Iterator[str]: ...
+
+def walkdir(
+    path: FsPathLike | None = None,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+) -> Walkdir: ...
 
 # ==============================================================================
 # SHLEX

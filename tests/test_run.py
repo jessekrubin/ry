@@ -11,13 +11,12 @@ def test_python_version() -> None:
     print(completed_proc)
     assert "python" in str(completed_proc.stdout).lower()
 
-    thing = ry.run(
+    res = ry.run(  # type: ignore
         python_exe,
         "--version",
-        # capture_output=True,
     )
-    print(thing)
-    # assert False
+    print(res)
+    assert res.returncode == 0
 
 
 def test_binary_output() -> None:
