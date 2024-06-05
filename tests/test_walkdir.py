@@ -17,8 +17,12 @@ def mk_dir_tree(tmp_path: Path) -> MkDirTree:
     abcd.mkdir(parents=True)
     efgh = tmp_path / "e" / "f" / "g" / "h"
     efgh.mkdir(parents=True)
-    dirpaths = set()
-    filepaths = set()
+    dirpaths: set[Path] = set()
+    filepaths: set[Path] = set()
+
+    # add tmp_path itself
+    dirpaths.add(tmp_path)
+    # make me some files
     files_to_create = [
         abcd / "test.txt",
         abcd / "test2.txt",
@@ -27,9 +31,8 @@ def mk_dir_tree(tmp_path: Path) -> MkDirTree:
     ]
     for f in files_to_create:
         rel_filepath = f.relative_to(tmp_path)
-        rel_dirpath = f.parent.relative_to(tmp_path)
-        dirpaths.add(rel_dirpath)
-        filepaths.add(rel_filepath)
+        dirpaths.add(f.parent)
+        filepaths.add(f)
         f.write_text(str(rel_filepath))
     tiles_z4 = [(x, y, z) for z in range(4) for x in range(2**z) for y in range(2**z)]
     dir_parts = {(z, x) for x, y, z in tiles_z4}
@@ -57,51 +60,75 @@ def mk_dir_tree(tmp_path: Path) -> MkDirTree:
         d.mkdir()
         dirpaths.add(d)
 
+    #  ensure all paths are relative to tmp_path
+    dirpaths = {d.relative_to(tmp_path) for d in dirpaths}
+    filepaths = {f.relative_to(tmp_path) for f in filepaths}
+    # ensure all dirpaths have parents in dirpaths
+    parents2add = set()
+    for d in dirpaths:
+        for i in range(1, len(d.parts)):
+            parent = Path(*d.parts[:i])
+            if parent not in dirpaths:
+                parents2add.add(parent)
+    dirpaths.update(parents2add)
     return MkDirTree(dirpaths, filepaths)
 
 
 def test_walk_dir_dirpath_string(tmp_path: Path) -> None:
-    mk_dir_tree(tmp_path)
-
-    paths = []
-    for f in ry.walkdir(str(tmp_path)):
-        print(f)
-        paths.append(f)
-    print(paths)
+    dirtree = mk_dir_tree(tmp_path)
+    walkdir_paths = [
+        e if e != "" else "."
+        for e in (
+            str(f).replace(str(tmp_path), "").lstrip("/").lstrip("\\")
+            for f in ry.walkdir(str(tmp_path))
+        )
+    ]
+    walkdir_paths_set = set(walkdir_paths)
+    expected = set(map(str, dirtree.dirpaths.union(dirtree.filepaths)))
+    assert walkdir_paths_set == expected
 
 
 def test_walk_dir_dirpath_pathlib_path(tmp_path: Path) -> None:
-    mk_dir_tree(tmp_path)
-
-    paths = []
-    for f in ry.walkdir(tmp_path):
-        print(f)
-        paths.append(f)
-    print(paths)
-    # assert False
+    dirtree = mk_dir_tree(tmp_path)
+    walkdir_paths = [
+        e if e != "" else "."
+        for e in (
+            str(f).replace(str(tmp_path), "").lstrip("/").lstrip("\\")
+            for f in ry.walkdir(tmp_path)
+        )
+    ]
+    walkdir_paths_set = set(walkdir_paths)
+    expected = set(map(str, dirtree.dirpaths.union(dirtree.filepaths)))
+    assert walkdir_paths_set == expected
 
 
 def test_walk_dir_dirpath_none_use_pwd(tmp_path: Path) -> None:
-    mk_dir_tree(tmp_path)
+    dirtree = mk_dir_tree(tmp_path)
     ry.cd(tmp_path)
-
-    paths = []
-    for f in ry.walkdir():
-        print(f)
-        paths.append(f)
-    print(paths)
-    # assert False
+    walkdir_paths = [
+        e if e != "" else "."
+        for e in (
+            str(f).replace(str(tmp_path), "").lstrip("/").lstrip("\\")
+            for f in ry.walkdir(tmp_path)
+        )
+    ]
+    walkdir_paths_set = set(walkdir_paths)
+    expected = set(map(str, dirtree.dirpaths.union(dirtree.filepaths)))
+    assert walkdir_paths_set == expected
 
 
 def test_walk_dir_dirpath_string_files_only(tmp_path: Path) -> None:
-    mk_dir_tree(tmp_path)
-
-    paths = []
-    for f in ry.walkdir(str(tmp_path), files=True, dirs=False):
-        print(f)
-        paths.append(f)
-    print(paths)
-    # assert False
+    dirtree = mk_dir_tree(tmp_path)
+    walkdir_paths = [
+        e if e != "" else "."
+        for e in (
+            str(f).replace(str(tmp_path), "").lstrip("/").lstrip("\\")
+            for f in ry.walkdir(tmp_path, files=True, dirs=False)
+        )
+    ]
+    walkdir_paths_set = set(walkdir_paths)
+    expected = set(map(str, dirtree.filepaths))
+    assert walkdir_paths_set == expected
 
 
 if __name__ == "__main__":

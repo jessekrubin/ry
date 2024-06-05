@@ -92,6 +92,33 @@ def brotli_encode(
     input: bytes, quality: int = 11, magic_number: bool = False
 ) -> bytes: ...
 def brotli_decode(input: bytes) -> bytes: ...
+def brotli(input: bytes, quality: int = 11, magic_number: bool = False) -> bytes:
+    """Alias for brotli_encode"""
+
+# ==============================================================================
+# BZIP2
+# ==============================================================================
+def bzip2_encode(input: bytes, quality: int = 9) -> bytes: ...
+def bzip2_decode(input: bytes) -> bytes: ...
+def bzip2(input: bytes, quality: int = 9) -> bytes:
+    """Alias for bzip2_encode"""
+
+# ==============================================================================
+# GZIP
+# ==============================================================================
+def gzip_encode(input: bytes, quality: int = 9) -> bytes: ...
+def gzip_decode(input: bytes) -> bytes: ...
+def gzip(input: bytes, quality: int = 9) -> bytes:
+    """Alias for gzip_encode"""
+
+# ==============================================================================
+# ZSTD
+# ==============================================================================
+def zstd_encode(input: bytes, level: int = 3) -> bytes: ...
+def zstd(input: bytes, level: int = 3) -> bytes:
+    """Alias for zstd_encode"""
+
+def zstd_decode(input: bytes) -> bytes: ...
 
 # ==============================================================================
 # XXHASH

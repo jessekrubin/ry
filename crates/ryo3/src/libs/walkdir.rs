@@ -75,16 +75,15 @@ impl PyWalkdirGen {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyWalkDirEntry> {
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<String> {
         while let Some(Ok(entry)) = slf.iter.next() {
             if (entry.file_type().is_file() && slf.files)
                 || (entry.file_type().is_dir() && slf.dirs)
             {
-                return Some(PyWalkDirEntry::from(entry));
+                if let Some(path_str) = entry.path().to_str() {
+                    return Some(path_str.to_string());
+                }
             }
-            // else if entry.file_type().is_dir() && slf.dirs {
-            //     return Some(PyWalkDirEntry::from(entry));
-            // }
         }
         None
     }

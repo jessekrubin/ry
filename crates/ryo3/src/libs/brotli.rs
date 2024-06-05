@@ -47,6 +47,16 @@ pub fn brotli_encode(
 }
 
 #[pyfunction]
+pub fn brotli(
+    py: Python<'_>,
+    data: &[u8],
+    quality: Option<u8>,
+    magic_number: Option<bool>,
+) -> PyResult<PyObject> {
+    brotli_encode(py, data, quality, magic_number)
+}
+
+#[pyfunction]
 pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
     br::Decompressor::new(data, 4 * 1024)
@@ -58,5 +68,6 @@ pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(brotli_decode, m)?)?;
     m.add_function(wrap_pyfunction!(brotli_encode, m)?)?;
+    m.add_function(wrap_pyfunction!(self::brotli, m)?)?;
     Ok(())
 }

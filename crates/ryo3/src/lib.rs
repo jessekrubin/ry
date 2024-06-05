@@ -9,7 +9,7 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::needless_pass_by_value)]
+// #![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::unused_self)]
 
@@ -22,18 +22,14 @@ pub mod fmts;
 pub mod fs;
 pub mod libs;
 pub mod sh;
-pub mod shlex;
 pub mod sleep;
-pub mod walkdir;
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     dev::madd(m)?;
     sleep::madd(m)?;
-    shlex::madd(m)?;
     fmts::madd(m)?;
     sh::madd(m)?;
     fs::madd(m)?;
-    walkdir::madd(m)?;
     libs::madd(m)?;
     Ok(())
 }
