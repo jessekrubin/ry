@@ -1,16 +1,37 @@
 # ry
 
-rust + python kitchen sink library
+[![PyPI](https://img.shields.io/pypi/v/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
+[![PyPI - Wheel](https://img.shields.io/pypi/wheel/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
+[![PyPI - Status](https://img.shields.io/pypi/status/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
+[![PyPI - License](https://img.shields.io/pypi/l/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
+
+python bindings for rust crates I wish existed in python
+
+**THIS IS A WORK IN PROGRESS**
+
+## Install
+
+```bash
+pip install ry
+poetry add ry
+pdm add ry
+rye add ry
+```
+
+**Check install:** `python -m ry`
 
 ## What and why?
 
 This is a collection of pyo3-wrappers for rust crates I wish existed in python.
 
-It all started with me wanting a fast `fnv1a-64`
+It all started with me wanting a fast python `xxhash` and `fnv-64`
 
 ## Who?
 
-Me (jesse(krubin)), and possibly you!?
+- jessekrubin <jessekrubin@gmail.com>
+- possibly you!?
 
 ## FAQ
 
@@ -25,21 +46,22 @@ _(aka: questions that I have been asking myself)_
 
 ## Crate bindings
 
-- `which`
+- `brotli`
+- `bzip2`
+- `flate2`
 - `fnv`
 - `shlex`
 - `walkdir`
+- `which`
 - `xxhash`
 - `zstd`
-- `flate2`
-- `bzip2`
-- `brotli`
 - TBD:
-  - `globset`
+  - `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
+  - `globset` (technically done, but not yet in `ry` -- [globsters](https://pypi.org/project/globsters/))
   - `regex`
   - `tokio` (fs + process)
-  - `tracing` (could be nicer than python's awful logging lib)
-  - `reqwest` (http client)
+  - `tracing` (could be nicer than python's awful logging lib -- currently a part of ry/ryo3 for my dev purposes)
+  - `reqwest` (async http client / waiting on pyo3 asyncio to stablize and for me to have more time)
 
 ## API
 
@@ -47,7 +69,7 @@ _(aka: questions that I have been asking myself)_
 """ry api ~ type annotations"""
 
 from os import PathLike
-from typing import AnyStr, Iterator, final
+from typing import AnyStr, Iterator, Literal, final
 
 __version__: str
 __authors__: str
@@ -59,9 +81,9 @@ __build_timestamp__: str
 # ==============================================================================
 JsonPrimitive = None | bool | int | float | str
 JsonValue = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
+        JsonPrimitive
+        | dict[str, JsonPrimitive | JsonValue]
+        | list[JsonPrimitive | JsonValue]
 )
 
 class FsPath:
@@ -81,7 +103,6 @@ def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
 # SLEEP
 # ==============================================================================
 def sleep(seconds: float) -> float: ...
-async def sleep_async(seconds: float) -> float: ...
 
 # ==============================================================================
 # FILESYSTEM
@@ -105,14 +126,14 @@ class Walkdir:
     def __iter__(self) -> Iterator[str]: ...
 
 def walkdir(
-    path: FsPathLike | None = None,
-    files: bool = True,
-    dirs: bool = True,
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    same_file_system: bool = False,
+        path: FsPathLike | None = None,
+        files: bool = True,
+        dirs: bool = True,
+        contents_first: bool = False,
+        min_depth: int = 0,
+        max_depth: int | None = None,
+        follow_links: bool = False,
+        same_file_system: bool = False,
 ) -> Walkdir: ...
 
 # ==============================================================================
@@ -123,9 +144,36 @@ def shplit(s: str) -> list[str]: ...
 # ==============================================================================
 # JSON
 # ==============================================================================
-def parse_json(input: str | bytes) -> JsonValue: ...
-def parse_json_str(input: str) -> JsonValue: ...
-def parse_json_bytes(input: bytes) -> JsonValue: ...
+def parse_json(
+        data: bytes | str,
+        /,
+        *,
+        allow_inf_nan: bool = True,
+        cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+        lossless_floats: bool = False,
+) -> JsonValue: ...
+def parse_json_bytes(
+        data: bytes,
+        /,
+        *,
+        allow_inf_nan: bool = True,
+        cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+        lossless_floats: bool = False,
+) -> JsonValue: ...
+def parse_json_str(
+        data: str,
+        /,
+        *,
+        allow_inf_nan: bool = True,
+        cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+        lossless_floats: bool = False,
+) -> JsonValue: ...
 
 # ==============================================================================
 # FORMATTING
@@ -155,7 +203,7 @@ def anystr_noop(s: AnyStr) -> AnyStr: ...
 # BROTLI
 # ==============================================================================
 def brotli_encode(
-    input: bytes, quality: int = 11, magic_number: bool = False
+        input: bytes, quality: int = 11, magic_number: bool = False
 ) -> bytes: ...
 def brotli_decode(input: bytes) -> bytes: ...
 def brotli(input: bytes, quality: int = 11, magic_number: bool = False) -> bytes:
@@ -220,7 +268,7 @@ class Xxh64:
 @final
 class Xxh3:
     def __init__(
-        self, input: bytes = ..., seed: int | None = ..., secret: bytes | None = ...
+            self, input: bytes = ..., seed: int | None = ..., secret: bytes | None = ...
     ) -> None: ...
     def update(self, input: bytes) -> None: ...
     def digest(self) -> bytes: ...
@@ -239,7 +287,7 @@ class Xxh3:
 def xxh32(input: bytes | None = None, seed: int | None = None) -> Xxh32: ...
 def xxh64(input: bytes | None = None, seed: int | None = None) -> Xxh64: ...
 def xxh3(
-    input: bytes | None = None, seed: int | None = None, secret: bytes | None = None
+        input: bytes | None = None, seed: int | None = None, secret: bytes | None = None
 ) -> Xxh3: ...
 
 # xxh32
@@ -266,7 +314,10 @@ def xxh3_64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
 
 ## DEV
 
-`just` is used to run tasks.
+- `just` is used to run tasks
+- Do not use the phrase `blazing fast` or any emojis in any PRs or issues or docs
+- type annotations are required
+- `ruff` used for formatting and linting
 
 ## SEE ALSO
 
