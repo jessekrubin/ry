@@ -3,7 +3,9 @@
 //! Provides jitter wrapper that uses `PyBackedStr` and `PyBackedBytes` and
 //! allows for parsing json from bytes or str (which jiter-python does not as
 //! of [2024-05-29])
-use ::jiter::{map_json_error, PartialMode, PythonParse, StringCacheMode};
+use ::jiter::{
+    cache_clear, cache_usage, map_json_error, PartialMode, PythonParse, StringCacheMode,
+};
 use pyo3::prelude::*;
 use pyo3::pybacked::{PyBackedBytes, PyBackedStr};
 
@@ -126,9 +128,20 @@ pub fn parse_json(
     }
 }
 
+#[pyfunction]
+pub fn jiter_cache_clear(py: Python<'_>) {
+    cache_clear(py);
+}
+
+#[pyfunction]
+pub fn jiter_cache_usage(py: Python<'_>) -> usize {
+    cache_usage(py)
+}
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_json_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(parse_json_str, m)?)?;
     m.add_function(wrap_pyfunction!(parse_json, m)?)?;
+    m.add_function(wrap_pyfunction!(jiter_cache_clear, m)?)?;
+    m.add_function(wrap_pyfunction!(jiter_cache_usage, m)?)?;
     Ok(())
 }

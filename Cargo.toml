@@ -32,6 +32,7 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 strip = true
+lto = "fat"
 
 [workspace]
 resolver = "2"
@@ -41,7 +42,7 @@ members = [
 
 [workspace.package]
 edition = "2021"
-version = "0.0.6"
+version = "0.0.7"
 homepage = "https://github.com/jessekrubin/ry-dev"
 documentation = "https://github.com/jessekrubin/ry-dev"
 repository = "https://github.com/jessekrubin/ry-dev"

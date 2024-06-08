@@ -1,4 +1,4 @@
-pub use tracing::*;
+use tracing::{debug, info};
 use tracing_subscriber::EnvFilter;
 
 fn env_var_str_is_truthy(s: &str) -> bool {
@@ -41,7 +41,7 @@ fn env_filter_directives() -> String {
 pub fn tracing_init() {
     // use "RY_LOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
     let env_filter_directives_string = env_filter_directives();
-    println!(
+    debug!(
         "tracing_init - env_filter_directives_string: {}",
         env_filter_directives_string
     );

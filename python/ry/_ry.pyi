@@ -1,7 +1,7 @@
 """ry api ~ type annotations"""
 
 from os import PathLike
-from typing import AnyStr, Iterator, final
+from typing import AnyStr, Iterator, Literal, final
 
 __version__: str
 __authors__: str
@@ -35,7 +35,6 @@ def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
 # SLEEP
 # ==============================================================================
 def sleep(seconds: float) -> float: ...
-async def sleep_async(seconds: float) -> float: ...
 
 # ==============================================================================
 # FILESYSTEM
@@ -77,9 +76,36 @@ def shplit(s: str) -> list[str]: ...
 # ==============================================================================
 # JSON
 # ==============================================================================
-def parse_json(input: str | bytes) -> JsonValue: ...
-def parse_json_str(input: str) -> JsonValue: ...
-def parse_json_bytes(input: bytes) -> JsonValue: ...
+def parse_json(
+    data: bytes | str,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    lossless_floats: bool = False,
+) -> JsonValue: ...
+def parse_json_bytes(
+    data: bytes,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    lossless_floats: bool = False,
+) -> JsonValue: ...
+def parse_json_str(
+    data: str,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    lossless_floats: bool = False,
+) -> JsonValue: ...
 
 # ==============================================================================
 # FORMATTING
