@@ -13,6 +13,7 @@ pub struct PyFnvHasher {
 #[pymethods]
 impl PyFnvHasher {
     #[new]
+    #[pyo3(signature = (s = None))]
     fn new(s: Option<&[u8]>) -> Self {
         match s {
             Some(s) => {

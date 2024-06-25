@@ -11,6 +11,7 @@ use xxhash_rust::xxh32::Xxh32;
 use xxhash_rust::xxh64::Xxh64;
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh32_digest<'a>(
     py: Python<'a>,
     b: &'a [u8],
@@ -21,16 +22,19 @@ fn xxh32_digest<'a>(
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh32_intdigest(b: &[u8], seed: Option<u32>) -> PyResult<u32> {
     Ok(const_xxh32(b, seed.unwrap_or(0)))
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh32_hexdigest(b: &[u8], seed: Option<u32>) -> PyResult<String> {
     Ok(format!("{:08x}", const_xxh32(b, seed.unwrap_or(0))))
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh64_digest<'a>(
     py: Python<'a>,
     b: &'a [u8],
@@ -41,16 +45,19 @@ fn xxh64_digest<'a>(
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh64_intdigest(b: &[u8], seed: Option<u64>) -> PyResult<u64> {
     Ok(const_xxh64(b, seed.unwrap_or(0)))
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh64_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
     Ok(format!("{:016x}", const_xxh64(b, seed.unwrap_or(0))))
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_64_digest<'a>(
     py: Python<'a>,
     b: &'a [u8],
@@ -61,11 +68,13 @@ fn xxh3_64_digest<'a>(
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_64_intdigest(b: &[u8], seed: Option<u64>) -> PyResult<u64> {
     Ok(const_xxh3_64_with_seed(b, seed.unwrap_or(0)))
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_64_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
     Ok(format!(
         "{:016x}",
@@ -74,6 +83,7 @@ fn xxh3_64_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_128_digest<'a>(
     py: Python<'a>,
     b: &'a [u8],
@@ -84,11 +94,13 @@ fn xxh3_128_digest<'a>(
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_128_intdigest(b: &[u8], seed: Option<u64>) -> PyResult<u128> {
     Ok(const_xxh3_128_with_seed(b, seed.unwrap_or(0)))
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_128_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
     Ok(format!(
         "{:032x}",
@@ -100,21 +112,25 @@ fn xxh3_128_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
 // ALIASES
 // =======
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_digest<'a>(py: Python<'a>, b: &'a [u8], seed: Option<u64>) -> PyResult<Bound<'a, PyBytes>> {
     xxh3_64_digest(py, b, seed)
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_intdigest(b: &[u8], seed: Option<u64>) -> PyResult<u64> {
     xxh3_64_intdigest(b, seed)
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh3_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
     xxh3_64_hexdigest(b, seed)
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh128_digest<'a>(
     py: Python<'a>,
     b: &'a [u8],
@@ -124,11 +140,13 @@ fn xxh128_digest<'a>(
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh128_intdigest(b: &[u8], seed: Option<u64>) -> PyResult<u128> {
     xxh3_128_intdigest(b, seed)
 }
 
 #[pyfunction]
+#[pyo3(signature = (b, seed = None))]
 fn xxh128_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
     xxh3_128_hexdigest(b, seed)
 }
@@ -142,7 +160,7 @@ pub struct PyXxh32 {
 #[pymethods]
 impl PyXxh32 {
     #[new]
-    #[pyo3(signature = (b = None, seed = 0))]
+    #[pyo3(signature = (b = None, seed = None))]
     fn new(b: Option<&[u8]>, seed: Option<u32>) -> Self {
         match b {
             Some(s) => {
@@ -201,6 +219,7 @@ impl PyXxh32 {
         })
     }
 
+    #[pyo3(signature = (seed = None))]
     fn reset(&mut self, seed: Option<u32>) -> PyResult<()> {
         self.hasher.reset(seed.unwrap_or(self.seed));
         Ok(())
@@ -286,6 +305,7 @@ impl PyXxh64 {
         })
     }
 
+    #[pyo3(signature = (seed = None))]
     fn reset(&mut self, seed: Option<u64>) -> PyResult<()> {
         self.hasher.reset(seed.unwrap_or(self.seed));
         Ok(())

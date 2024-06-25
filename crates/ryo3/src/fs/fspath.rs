@@ -32,6 +32,7 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 #[pymethods]
 impl PyFsPath {
     #[new]
+    #[pyo3(signature = (p=None))]
     fn new(p: Option<PathLike>) -> Self {
         match p {
             Some(p) => Self {

@@ -5,6 +5,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
 #[pyfunction]
+#[pyo3(signature = (data, quality=None, magic_number=None))]
 pub fn brotli_encode(
     py: Python<'_>,
     data: &[u8],
@@ -47,6 +48,7 @@ pub fn brotli_encode(
 }
 
 #[pyfunction]
+#[pyo3(signature = (data, quality=None, magic_number=None))]
 pub fn brotli(
     py: Python<'_>,
     data: &[u8],

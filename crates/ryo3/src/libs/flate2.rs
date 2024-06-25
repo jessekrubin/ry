@@ -7,6 +7,7 @@ use pyo3::types::PyBytes;
 use std::io::{Read, Write};
 
 #[pyfunction]
+#[pyo3(signature = (data, quality=None))]
 pub fn gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
     let quality = if let Some(param) = quality {
         if param > 9 {
@@ -41,6 +42,7 @@ pub fn gzip_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
 
 // aliases...
 #[pyfunction]
+#[pyo3(signature = (data, quality=None))]
 pub fn gzip(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
     gzip_encode(py, data, quality)
 }

@@ -159,7 +159,9 @@ fn build_walkdir(
 
 #[pyfunction]
 #[pyo3(
-    signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false)
+    signature = (path = None, *, files = true, dirs = true,
+    contents_first = false, min_depth = 0, max_depth = None,
+    follow_links = false, same_file_system = false)
 )]
 pub fn walkdir(
     path: Option<PathLike>,
@@ -188,7 +190,9 @@ pub fn walkdir(
 
 #[pyfunction]
 #[pyo3(
-    signature = (path = None, *, files = true, dirs = true, contents_first = false, min_depth = 0, max_depth = None, follow_links = false, same_file_system = false)
+    signature = (path = None, *, files = true, dirs = true,
+    contents_first = false, min_depth = 0, max_depth = None,
+    follow_links = false, same_file_system = false)
 )]
 pub fn fspaths(
     path: Option<PathLike>,
