@@ -8,6 +8,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
 #[pyfunction]
+#[pyo3(signature = (data, quality=None))]
 pub fn bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
     let quality = if let Some(param) = quality {
         if param < Compression::fast().level() || param > Compression::best().level() {
@@ -30,6 +31,7 @@ pub fn bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResu
 }
 
 #[pyfunction]
+#[pyo3(signature = (data, quality=None))]
 pub fn bzip2(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
     bzip2_encode(py, data, quality)
 }

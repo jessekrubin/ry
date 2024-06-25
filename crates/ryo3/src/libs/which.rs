@@ -5,6 +5,7 @@ use ::which as which_rs;
 use pyo3::prelude::*;
 
 #[pyfunction]
+#[pyo3(signature= (cmd, path=None))]
 pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBuf>> {
     if let Some(p) = path {
         // get current directory w/o unwrapping
@@ -31,6 +32,7 @@ pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBu
 }
 
 #[pyfunction]
+#[pyo3(signature= (cmd, path=None))]
 pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
     let search_path: Option<OsString> = match path {
         Some(p) => Some(OsString::from(p)),
@@ -58,6 +60,7 @@ pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
 }
 
 #[pyfunction]
+#[pyo3(signature= (cmd, path=None))]
 pub fn whicha(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
     which_all(cmd, path)
 }

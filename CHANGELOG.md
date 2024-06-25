@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.8
+
+- Upgraded to pyo3-v0.22
+
+___
+
+## v0.0.7
+
+- internal refactoring
+
 ## v0.0.6
 
 - Added zstd (`zstd_encode`/`zstd` and `zstd_decode`)

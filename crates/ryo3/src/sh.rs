@@ -52,6 +52,7 @@ pub fn cd(p: PathLike) -> PyResult<()> {
 
 /// List the contents of the specified directory as a Vec<String>
 #[pyfunction]
+#[pyo3(signature = (fspath = None))]
 pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
     let p = if let Some(p) = fspath {
         p
