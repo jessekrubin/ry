@@ -23,7 +23,7 @@ jiter = { version = "0.5.0", features = ["python"], optional = true }
 shlex = { workspace = true, optional = true }
 walkdir = { workspace = true, optional = true }
 which = { workspace = true, features = ["regex"], optional = true }
-xxhash-rust = { version = "0.8.8", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
+xxhash-rust = { version = "0.8.11", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
 zstd = { version = "0.13.1", optional = true }
 flate2 = { version = "1.0.30", optional = true }
 bzip2 = { version = "0.4.4", optional = true }
