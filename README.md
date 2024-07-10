@@ -37,12 +37,12 @@ It all started with me wanting a fast python `xxhash` and `fnv-64`
 
 _(aka: questions that I have been asking myself)_
 
- - **Q:** Why?
-   - **A:** I (jesse) needed several hashing functions for python and then kept adding things as I needed them
- - **Q:** Does this have anything to do with the (excellent) package manager `rye`?
-   - **A:** short answer: no. long answer: no, it does not.
- - **Q:** Why is the repo split into `ry` and `ryo3`?
-   - **A:** `ry` is the python package, `ryo3` is a rust crate setup to let you "register" functions you may want if you were writing your own pyo3-python bindings library; maybe someday the `ryo3::libs` module will be split up into separate packages
+- **Q:** Why?
+  - **A:** I (jesse) needed several hashing functions for python and then kept adding things as I needed them
+- **Q:** Does this have anything to do with the (excellent) package manager `rye`?
+  - **A:** short answer: no. long answer: no, it does not.
+- **Q:** Why is the repo split into `ry` and `ryo3`?
+  - **A:** `ry` is the python package, `ryo3` is a rust crate setup to let you "register" functions you may want if you were writing your own pyo3-python bindings library; maybe someday the `ryo3::libs` module will be split up into separate packages
 
 ## Crate bindings
 
@@ -309,7 +309,6 @@ def xxh128_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_64_digest(input: bytes, seed: int | None = None) -> bytes: ...
 def xxh3_64_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
 ```
 
 ## DEV
