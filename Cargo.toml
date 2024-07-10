@@ -9,16 +9,16 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
-ryo3 = { path = "./crates/ryo3", features = ["all"] }
+dirs.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3 = { path = "./crates/ryo3", features = ["all"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
 # pyo3-asyncio = {workspace = true, features = ["attributes", "tokio-runtime"] }
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-dirs.workspace = true
-thiserror.workspace = true
 ### alternative to pyo3-asyncio that is notable and should be watched
 # pyo3-async = "0.3.1"
 
@@ -37,23 +37,23 @@ lto = "fat"
 [workspace]
 resolver = "2"
 members = [
-    "crates/ryo3",
+  "crates/ryo3",
 ]
 
 [workspace.package]
-edition = "2021"
 version = "0.0.8"
-homepage = "https://github.com/jessekrubin/ry"
-documentation = "https://github.com/jessekrubin/ry"
-repository = "https://github.com/jessekrubin/ry"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
+documentation = "https://github.com/jessekrubin/ry"
+edition = "2021"
+homepage = "https://github.com/jessekrubin/ry"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/jessekrubin/ry"
 
 [workspace.dependencies]
 anyhow = "1.0.75"
 chrono = "0.4.38"
 dirs = { version = "5.0.1", features = [] }
-pyo3 = {  version = "0.22.1", features = ["experimental-inspect", "num-bigint"] }
+pyo3 = { version = "0.22.1", features = ["experimental-inspect", "num-bigint"] }
 pyo3-build-config = "0.22.0"
 regex = "1.10.5"
 serde = { version = "1.0", features = ["derive"] }

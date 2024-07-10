@@ -7,35 +7,34 @@ name = "ry"
 description = "ry = rust + python kitchen sink utils (WIP)"
 requires-python = ">=3.9"
 authors = [
-    { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
+  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
 ]
 maintainers = [
-    { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
+  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
 ]
 keywords = [
-    "rust",
-    "pyo3",
+  "rust",
+  "pyo3",
 ]
 license = "MIT OR Apache-2.0"
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: MIT License",
-    "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Rust",
-    "Programming Language :: Python :: Implementation :: CPython",
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Programming Language :: Python :: 3.12',
-    'Programming Language :: Python :: 3 :: Only',
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Development Status :: 3 - Alpha",
-    "Topic :: Utilities",
-    "Typing :: Typed",
-
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3 :: Only',
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Development Status :: 3 - Alpha",
+  "Topic :: Utilities",
+  "Typing :: Typed",
 ]
 dynamic = ["version", "readme"]
 
@@ -45,10 +44,9 @@ Source = "https://github.com/jessekrubin/ry"
 Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
 Issues = "https://github.com/jessekrubin/ry/issues"
 
-
 [project.optional-dependencies]
 tests = [
-    "pytest",
+  "pytest",
 ]
 
 [tool.maturin]
@@ -60,38 +58,38 @@ bindings = "pyo3"
 
 [tool.pytest.ini_options]
 testpaths = [
-    "tests",
+  "tests",
 ]
 addopts = [
-    "--doctest-modules",
+  "--doctest-modules",
 ]
 norecursedirs = [
-    ".git",
-    ".nox",
-    ".pytest_cache",
-    ".venv",
-    "build",
-    "dist",
-    "scratch",
-    "node_modules",
-    "venv",
-    "*.bak",
-    "*.egg-info",
-    "*.egg",
-    ".*",
-    "target",
+  ".git",
+  ".nox",
+  ".pytest_cache",
+  ".venv",
+  "build",
+  "dist",
+  "scratch",
+  "node_modules",
+  "venv",
+  "*.bak",
+  "*.egg-info",
+  "*.egg",
+  ".*",
+  "target",
 ]
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "bench"
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "bench",
 ]
 
 [tool.ruff]
 target-version = "py39"
 line-length = 88
 include = [
-    "python/**/*.{py,pyi}",
-    "tests/**/*.{py,pyi}",
+  "python/**/*.{py,pyi}",
+  "tests/**/*.{py,pyi}",
 ]
 
 [tool.ruff.format]
@@ -102,81 +100,87 @@ docstring-code-format = true
 explicit-preview-rules = true
 preview = true
 select = [
-    "A",
-    "ARG",
-    "B",
-    "C",
-    "DTZ",
-    "E",
-    "EM",
-    "F",
-    #  "FBT",
-    "I",
-    "ICN",
-    "N",
-    "PLC",
-    "PLE",
-    "PLR",
-    "PLW",
-    "Q",
-    "RUF",
-    "RUF022", # unsorted-dunder-all
-    "S",
-    "T",
-    "TID",
-    "UP",
-    "W",
-    "YTT",
+  "A",
+  "ARG",
+  "B",
+  "C",
+  "DTZ",
+  "E",
+  "EM",
+  "F",
+  #  "FBT",
+  "I",
+  "ICN",
+  "N",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "Q",
+  "RUF",
+  "RUF022", # unsorted-dunder-all
+  "S",
+  "T",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
 ]
 
 exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
 ]
 ignore = [
-    "TID252",
-    "A003",
-    # Allow non-abstract empty methods in abstract base classes
-    "B027",
-    # Allow boolean positional values in function calls, like `dict.get(... True)`
-    "FBT003",
-    # Ignore checks for possible passwords
-    "S105", "S106", "S107",
-    # Ignore complexity
-    "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
-    #  shadowing builtins
-    "A002",
-    "E501", # line length
-    # type annotations union
-    #  "UP007",
-    # todo figure out if this is needed
-    #  "UP006",
-    # magic value cmp super annoying
-    "PLR2004",
-    "PLW0120",
+  "TID252",
+  "A003",
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT003",
+  # Ignore checks for possible passwords
+  "S105",
+  "S106",
+  "S107",
+  # Ignore complexity
+  "C901",
+  "PLR0911",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915",
+  #  shadowing builtins
+  "A002",
+  "E501", # line length
+  # type annotations union
+  #  "UP007",
+  # todo figure out if this is needed
+  #  "UP006",
+  # magic value cmp super annoying
+  "PLR2004",
+  "PLW0120",
 ]
 unfixable = [
-    # Don't touch unused imports
-    "F401",
+  # Don't touch unused imports
+  "F401",
 ]
 
 [tool.ruff.lint.isort]
@@ -188,12 +192,12 @@ ban-relative-imports = "all"
 [tool.ruff.lint.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 "**/test_*.py" = [
-    "PL",
-    "S101",
-    "S103",
-    "S603",
-    "T201",
-    "TID252",
+  "PL",
+  "S101",
+  "S103",
+  "S603",
+  "T201",
+  "TID252",
 ]
 
 [tool.ruff.lint.pydocstyle]
