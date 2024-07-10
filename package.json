@@ -1,7 +1,7 @@
 {
-  "name": "ry-dev",
+  "name": "ry",
   "version": "0.0.1",
-  "description": "ry-dev jawascript/interfacescript tools",
+  "description": "ry jawascript/interfacescript tools",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
