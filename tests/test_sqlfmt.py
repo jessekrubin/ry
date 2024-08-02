@@ -1,6 +1,10 @@
 import ry
 
 
+def test_sqlfmt_params():
+    params = ry.sqlfmt_params([1, 2])
+    assert str(params) == 'SqlfmtQueryParams(["1", "2"])'
+
 def test_sqlfmt():
     formatted = ry.sqlfmt("select * FROM foo")
     assert formatted == "SELECT\n  *\nFROM\n  foo"
