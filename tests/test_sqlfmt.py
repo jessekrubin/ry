@@ -47,7 +47,7 @@ def test_sqlfmt_named_params_list_strings() -> None:
 
 
 def test_sqlfmt_named_params_list() -> None:
-    params: list[tuple[str, int | str]] = [
+    params: list[tuple[str, int | str | float]] = [
         ("zoom_level", "0"),
         ("tile_column", 0),
         ("tile_row", "0"),
