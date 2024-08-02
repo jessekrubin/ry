@@ -2,7 +2,7 @@
 
 from collections.abc import Iterator
 from os import PathLike
-from typing import AnyStr, Literal, Union, final
+from typing import AnyStr, Literal, final
 
 __version__: str
 __authors__: str

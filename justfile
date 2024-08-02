@@ -82,10 +82,11 @@ fmtc: cargo-fmtc fmtcpy justfilefmtc
 
 # ==========================================================================
 # LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT ~ LINT
-
 # ==========================================================================
+
+# lint with ruff
 ruff:
-    ruff .
+    ruff check .
 
 ruffix:
     ruff --fix --show-fixes
