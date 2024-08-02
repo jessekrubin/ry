@@ -38,18 +38,18 @@ impl PySqlfmtQueryParams {
                 // collect into string for display
                 let s = p
                     .iter()
-                    .map(|(k, v)| format!("(\"{}, \"{}\")", k, v))
+                    .map(|(k, v)| format!("(\"{k}, \"{v}\")"))
                     .collect::<Vec<String>>()
                     .join(", ");
-                format!("SqlfmtQueryParams({})", s)
+                format!("SqlfmtQueryParams({s})")
             }
             QueryParams::Indexed(p) => {
                 let s = p
                     .iter()
-                    .map(|v| format!("\"{}\"", v))
+                    .map(|v| format!("\"{v}\""))
                     .collect::<Vec<String>>()
                     .join(", ");
-                format!("SqlfmtQueryParams([{}])", s)
+                format!("SqlfmtQueryParams([{s}])")
             }
             QueryParams::None => String::from("SqlfmtQueryParams(None)"),
         }
@@ -159,12 +159,11 @@ pub fn sqlfmt(
         lines_between_queries: lines_between_queries.unwrap_or(1),
     };
     if let Some(p) = params {
-        match p {
-            PyQueryParamsLike::PyQueryParams(p) => Ok(sqlformat::format(sql, &p.params, options)),
-            _ => {
-                let py_params = PySqlfmtQueryParams::new(p)?;
-                Ok(sqlformat::format(sql, &py_params.params, options))
-            }
+        if let PyQueryParamsLike::PyQueryParams(p) = p {
+            Ok(sqlformat::format(sql, &p.params, options))
+        } else {
+            let py_params = PySqlfmtQueryParams::new(p)?;
+            Ok(sqlformat::format(sql, &py_params.params, options))
         }
     } else {
         let nada = sqlformat::QueryParams::None;
@@ -181,6 +180,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
     use super::*;
 
     #[test]
