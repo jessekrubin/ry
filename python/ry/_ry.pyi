@@ -2,7 +2,7 @@
 
 from collections.abc import Iterator
 from os import PathLike
-from typing import AnyStr, Literal, final
+from typing import AnyStr, Literal, Union, final
 
 __version__: str
 __authors__: str
@@ -250,3 +250,49 @@ def xxh128_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_64_digest(input: bytes, seed: int | None = None) -> bytes: ...
 def xxh3_64_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
+
+# ==============================================================================
+# SQLFORMAT
+# ==============================================================================
+SqlfmtParamValue = str | int | float
+# This maddness is so (stupid) mypy won't complain
+SqlfmtParamsLike = (
+    dict[str, int]
+    | dict[str, str]
+    | dict[str, float]
+    | dict[str, int | str]
+    | dict[str, int | float]
+    | dict[str, str | float]
+    | dict[str, str | int | float]
+    | list[tuple[str, int]]
+    | list[tuple[str, str]]
+    | list[tuple[str, float]]
+    | list[tuple[str, int | str]]
+    | list[tuple[str, int | float]]
+    | list[tuple[str, str | float]]
+    | list[tuple[str, str | int | float]]
+    | list[int]
+    | list[str]
+    | list[float]
+    | list[int | str]
+    | list[int | float]
+    | list[str | float]
+    | list[str | int | float]
+)
+
+class SqlfmtQueryParams:
+    def __init__(self, params: SqlfmtParamsLike) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+def sqlfmt_params(
+    params: SqlfmtParamsLike | SqlfmtQueryParams,
+) -> SqlfmtQueryParams: ...
+def sqlfmt(
+    sql: str,
+    params: SqlfmtParamsLike | SqlfmtQueryParams | None = None,
+    *,
+    indent: int = 2,  # -1 or any negative value will use tabs
+    uppercase: bool | None = True,
+    lines_between_statements: int = 1,
+) -> str: ...
