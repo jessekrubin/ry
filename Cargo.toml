@@ -65,4 +65,4 @@ tokio = { version = "1.39.3", features = ["full"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["serde", "serde_json", "env-filter", "default"] }
 walkdir = "2.4.0"
-which = { version = "6.0.2", features = ["regex"] }
+which = { version = "6.0.3", features = ["regex"] }
