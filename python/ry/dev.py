@@ -1,7 +1,7 @@
 """dev entry point"""
 
 from ry import _ry
-from ry._ry import *
+from ry._ry import *  # noqa: F403
 
 __version__ = _ry.__version__
 __build_profile__ = _ry.__build_profile__

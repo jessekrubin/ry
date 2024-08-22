@@ -1,7 +1,8 @@
 """ry api ~ type annotations"""
 
+from collections.abc import Iterator
 from os import PathLike
-from typing import Any, AnyStr, Iterator, Literal, final
+from typing import Any, AnyStr, Literal, final
 
 __version__: str
 __authors__: str

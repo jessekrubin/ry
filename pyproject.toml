@@ -199,6 +199,9 @@ ban-relative-imports = "all"
   "T201",
   "TID252",
 ]
+"python/ry/dev.py" = [
+
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

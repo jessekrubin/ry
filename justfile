@@ -109,7 +109,7 @@ fmtc: cargo-fmtc fmtcpy justfilefmtc
 
 # run ruff linter
 ruff:
-    ruff .
+    ruff check .
 
 # run ruff + fix
 ruffix:
