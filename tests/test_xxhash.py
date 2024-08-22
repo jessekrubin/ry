@@ -13,6 +13,16 @@ from _xxhash_test_data import (
 
 import ry
 
+try:
+    # test against python-xxhash if importable...
+    import xxhash  # type: ignore[import-not-found]
+except ImportError:
+    ...
+
+pytest_skip_xxhash = pytest.mark.skipif(
+    "xxhash" not in sys.modules, reason="xxhash is not installed"
+)
+
 
 class TestXxh32Hasher:
     def test_xxh32_hasher_digest(self) -> None:
@@ -237,16 +247,6 @@ def test_xx3_64(data: bytes, expected: tuple[int, int, int]) -> None:
     assert int.from_bytes(digest_0, "big") == expected_0
     assert int.from_bytes(digest_1, "big") == expected_1
     assert int.from_bytes(digest_0xffffffff, "big") == expected_0xffffffff
-
-
-try:
-    import xxhash  # type: ignore[import-not-found]
-except ImportError:
-    ...
-
-pytest_skip_xxhash = pytest.mark.skipif(
-    "xxhash" not in sys.modules, reason="xxhash is not installed"
-)
 
 
 @pytest_skip_xxhash
