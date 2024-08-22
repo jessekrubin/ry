@@ -38,6 +38,7 @@ lto = "fat"
 resolver = "2"
 members = [
   "crates/ryo3",
+  "crates/ryo3-sqlformat",
 ]
 
 [workspace.package]
