@@ -24,10 +24,10 @@ trait PyGlobPatternsString: PyGlobPatterns {
         let inner_str = self
             .patterns_ref()
             .iter()
-            .map(|s| format!("\"{}\"", s))
+            .map(|s| format!("\"{s}\""))
             .collect::<Vec<_>>()
             .join(", ");
-        format!("[{}]", inner_str)
+        format!("[{inner_str}]")
     }
 }
 
@@ -43,8 +43,8 @@ impl PyGlob {
         literal_separator: Option<bool>,
         backslash_escape: Option<bool>,
     ) -> PyResult<Self> {
-        let negative = pattern.starts_with("!");
-        let mut glob_builder = GlobBuilder::new(&*pattern);
+        let negative = pattern.starts_with('!');
+        let mut glob_builder = GlobBuilder::new(&pattern);
         glob_builder
             .backslash_escape(backslash_escape.unwrap_or(DEFAULT_BACKSLASH_ESCAPE))
             .literal_separator(literal_separator.unwrap_or(false))
@@ -126,7 +126,7 @@ impl PyGlobSet {
                 if pattern.starts_with("!!") {
                     return Err(PyValueError::new_err("Double negation is not allowed"));
                 }
-                let g = GlobBuilder::new(&pattern)
+                let g = GlobBuilder::new(pattern)
                     .case_insensitive(case_insensitive)
                     .literal_separator(literal_separator)
                     .backslash_escape(backslash_escape)
@@ -135,9 +135,9 @@ impl PyGlobSet {
                 globset_builder.add(g);
             }
         }
-        let gs = globset_builder.build().map_err(|e| {
-            PyValueError::new_err(format!("Error building globset: {}", e.to_string()))
-        })?;
+        let gs = globset_builder
+            .build()
+            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
         Ok(Self {
             patterns,
             globset: gs,
@@ -146,7 +146,7 @@ impl PyGlobSet {
 
     fn __str__(&self) -> String {
         let tuple_str = self.patterns_string();
-        format!("GlobSet({})", tuple_str)
+        format!("GlobSet({tuple_str})")
     }
 
     fn __repr__(&self) -> String {
@@ -215,7 +215,7 @@ impl Globster {
             if pattern.starts_with("!!") {
                 return Err(PyValueError::new_err("Double negation is not allowed"));
             }
-            if pattern.starts_with("!") {
+            if pattern.starts_with('!') {
                 negative_patterns.push(pattern.clone());
             } else {
                 positive_patterns.push(pattern.clone());
@@ -224,7 +224,7 @@ impl Globster {
 
         {
             for pattern in &positive_patterns {
-                let g = GlobBuilder::new(&pattern)
+                let g = GlobBuilder::new(pattern)
                     .case_insensitive(case_insensitive)
                     .literal_separator(literal_separator)
                     .backslash_escape(backslash_escape)
@@ -235,7 +235,7 @@ impl Globster {
         }
         {
             for pattern in &negative_patterns {
-                let g = GlobBuilder::new(&pattern)
+                let g = GlobBuilder::new(pattern)
                     .case_insensitive(case_insensitive)
                     .literal_separator(literal_separator)
                     .backslash_escape(backslash_escape)
@@ -244,12 +244,12 @@ impl Globster {
                 nglobset_builder.add(g);
             }
         }
-        let gs = globset_builder.build().map_err(|e| {
-            PyValueError::new_err(format!("Error building globset: {}", e.to_string()))
-        })?;
-        let ngs = nglobset_builder.build().map_err(|e| {
-            PyValueError::new_err(format!("Error building globset: {}", e.to_string()))
-        })?;
+        let gs = globset_builder
+            .build()
+            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
+        let ngs = nglobset_builder
+            .build()
+            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
         Ok(Self {
             patterns,
             globset: Option::from(gs),
@@ -260,7 +260,7 @@ impl Globster {
 
     fn __str__(&self) -> String {
         let tuple_str = self.patterns_string();
-        format!("Globster({})", tuple_str)
+        format!("Globster({tuple_str})")
     }
     fn __repr__(&self) -> String {
         self.__str__()
