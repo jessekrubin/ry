@@ -318,7 +318,7 @@ pub fn xxh64(s: Option<&[u8]>, seed: Option<u64>) -> PyResult<PyXxh64> {
     Ok(PyXxh64::new(s, seed))
 }
 
-#[pyclass]
+#[pyclass(name = "Xxh3")]
 pub struct PyXxh3 {
     seed: u64,
     pub hasher: Xxh3,

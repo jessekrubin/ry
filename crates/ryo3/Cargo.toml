@@ -27,6 +27,7 @@ walkdir = { workspace = true, optional = true }
 which = { workspace = true, features = ["regex"], optional = true }
 xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
 zstd = { version = "0.13.2", optional = true }
+globset = { version = "0.4.14", optional = true, features = ["serde"] }
 
 [features]
 default = [
@@ -39,6 +40,7 @@ all = [
   "bzip2",
   "flate2",
   "fnv",
+  "globset",
   "jiter",
   "shlex",
   "walkdir",
@@ -47,12 +49,13 @@ all = [
   "zstd",
 ]
 brotli = ["dep:brotli"]
+bzip2 = ["dep:bzip2"]
+flate2 = ["dep:flate2"]
 fnv = ["dep:fnv"]
+globset = ["dep:globset"]
 jiter = ["dep:jiter"]
 shlex = ["dep:shlex"]
 walkdir = ["dep:walkdir"]
 which = ["dep:which"]
 xxhash = ["dep:xxhash-rust"]
 zstd = ["dep:zstd"]
-flate2 = ["dep:flate2"]
-bzip2 = ["dep:bzip2"]

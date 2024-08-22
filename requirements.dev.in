@@ -1,4 +1,3 @@
-black
 maturin
 pytest
 pytest-asyncio

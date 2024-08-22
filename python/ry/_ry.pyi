@@ -1,12 +1,15 @@
 """ry api ~ type annotations"""
 
+from collections.abc import Iterator
 from os import PathLike
-from typing import AnyStr, Iterator, Literal, final
+from typing import Any, AnyStr, Literal, final
 
 __version__: str
 __authors__: str
 __build_profile__: str
 __build_timestamp__: str
+__pkg_name__: str
+__description__: str
 
 # ==============================================================================
 # TYPE ALIASES
@@ -18,18 +21,46 @@ JsonValue = (
     | list[JsonPrimitive | JsonValue]
 )
 
+# ==============================================================================
+# RY03-CORE
+# ==============================================================================
+
 class FsPath:
-    def __init__(self, path: str | None = None) -> None: ...
+    def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
+    def __fspath__(self) -> str: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
+    def read_text(self) -> str: ...
+    def read_bytes(self) -> bytes: ...
+    def absolute(self) -> FsPath: ...
+    @property
+    def parent(self) -> FsPath: ...
 
 FsPathLike = str | FsPath | PathLike[str]
 
 def pwd() -> str: ...
+def home() -> str: ...
 def cd(path: FsPathLike) -> None: ...
 def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
+def quick_maths() -> Literal[3]:
+    """Performs quick-maths
+
+    Implements the algorithm for performing "quick-maths" as described by
+    Big Shaq in his PHD thesis, 2017, in which he states:
+
+    > "2 plus 2 is 4, minus one that's 3, quick maths." (Big Shaq et al., 2017)
+
+    Reference:
+        https://youtu.be/3M_5oYU-IsU?t=60
+
+    Example:
+        >>> result = quick_maths()
+        >>> assert result == 3
+
+    NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
+    """
 
 # ==============================================================================
 # SLEEP
@@ -41,21 +72,147 @@ def sleep(seconds: float) -> float: ...
 # ==============================================================================
 def read_text(path: FsPathLike) -> str: ...
 def read_bytes(path: FsPathLike) -> bytes: ...
+def write_text(path: FsPathLike, data: str) -> None: ...
+def write_bytes(path: FsPathLike, data: bytes) -> None: ...
+
+# ==============================================================================
+# SUBPROCESS (VERY MUCH WIP)
+# ==============================================================================
+def run(
+    *args: str | list[str],
+    capture_output: bool = True,
+    input: bytes | None = None,
+) -> Any: ...
+
+# ==============================================================================
+# DEV
+# ==============================================================================
+
+def string_noop(s: str) -> str: ...
+def bytes_noop(s: bytes) -> bytes: ...
+
+# ------------------------------------------------------------------------------
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+# ------------------------------------------------------------------------------
+# ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~
+# ------------------------------------------------------------------------------
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+# ------------------------------------------------------------------------------
 
 # ==============================================================================
 # WHICH
 # ==============================================================================
 def which(cmd: str, path: None | str = None) -> str | None: ...
 def which_all(cmd: str, path: None | str = None) -> list[str]: ...
+def whicha(cmd: str, path: None | str = None) -> list[str]:
+    """Alias for which_all (may go away in the future)"""
+
+# ==============================================================================
+# GLOBSET
+# ==============================================================================
+class Glob:
+    """globset::Glob wrapper"""
+
+    def __init__(
+        self,
+        pattern: str,
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def regex(self) -> str: ...
+    def is_match(self, path: str) -> bool: ...
+    def __call__(self, path: str) -> bool: ...
+    def __invert__(self) -> Glob: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class GlobSet:
+    """globset::GlobSet wrapper"""
+
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str) -> bool: ...
+    def matches(self, path: str) -> list[int]: ...
+    def __call__(self, path: str) -> bool: ...
+    def __invert__(self) -> GlobSet: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class Globster:
+    """Globster is a matcher with claws!
+
+    Note: The north american `Globster` is similar to the european `Globset`
+          but allows for negative patterns (prefixed with '!')
+
+    """
+
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str) -> bool: ...
+    def __call__(self, path: str) -> bool: ...
+    def __invert__(self) -> GlobSet: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+def glob(
+    pattern: str,
+    /,
+    *,
+    case_insensitive: bool | None = None,
+    literal_separator: bool | None = None,
+    backslash_escape: bool | None = None,
+) -> Glob: ...
+def globs(
+    patterns: list[str],
+    /,
+    *,
+    case_insensitive: bool | None = None,
+    literal_separator: bool | None = None,
+    backslash_escape: bool | None = None,
+) -> Globster: ...
 
 # ==============================================================================
 # WALKDIR
 # ==============================================================================
-class Walkdir:
+
+class WalkdirGen:
+    """walkdir::Walkdir iterable wrapper"""
+
     files: bool
     dirs: bool
+
     def __next__(self) -> str: ...
     def __iter__(self) -> Iterator[str]: ...
+
+class FspathsGen:
+    """walkdir iterable that yields FsPath objects"""
+
+    files: bool
+    dirs: bool
+
+    def __next__(self) -> FsPath: ...
+    def __iter__(self) -> Iterator[FsPath]: ...
 
 def walkdir(
     path: FsPathLike | None = None,
@@ -66,12 +223,24 @@ def walkdir(
     max_depth: int | None = None,
     follow_links: bool = False,
     same_file_system: bool = False,
-) -> Walkdir: ...
+) -> WalkdirGen: ...
+def fspaths(
+    path: FsPathLike | None = None,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+) -> WalkdirGen: ...
 
 # ==============================================================================
 # SHLEX
 # ==============================================================================
-def shplit(s: str) -> list[str]: ...
+def shplit(s: str) -> list[str]:
+    """shlex::split wrapper much like python's stdlib shlex.split but faster"""
+    ...
 
 # ==============================================================================
 # JSON
@@ -106,6 +275,8 @@ def parse_json_str(
     catch_duplicate_keys: bool = False,
     lossless_floats: bool = False,
 ) -> JsonValue: ...
+def jiter_cache_clear() -> None: ...
+def jiter_cache_usage() -> int: ...
 
 # ==============================================================================
 # FORMATTING
@@ -156,6 +327,9 @@ def gzip_encode(input: bytes, quality: int = 9) -> bytes: ...
 def gzip_decode(input: bytes) -> bytes: ...
 def gzip(input: bytes, quality: int = 9) -> bytes:
     """Alias for gzip_encode"""
+
+def gunzip(input: bytes) -> bytes:
+    """Alias for gzip_decode"""
 
 # ==============================================================================
 # ZSTD
@@ -241,3 +415,11 @@ def xxh128_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_64_digest(input: bytes, seed: int | None = None) -> bytes: ...
 def xxh3_64_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
+def xxh3_digest(input: bytes, seed: int | None = None) -> bytes: ...
+def xxh3_intdigest(input: bytes, seed: int | None = None) -> int: ...
+def xxh3_hexdigest(input: bytes, seed: int | None = None) -> str: ...
+
+# xxh128
+def xxh3_128_digest(input: bytes, seed: int | None = None) -> bytes: ...
+def xxh3_128_intdigest(input: bytes, seed: int | None = None) -> int: ...
+def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...

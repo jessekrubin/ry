@@ -10,7 +10,7 @@ def test_python_version() -> None:
     assert completed_proc.returncode == 0
     print(completed_proc)
     assert "python" in str(completed_proc.stdout).lower()
-    res = ry.run(  # type: ignore
+    res = ry.run(
         python_exe,
         "--version",
     )

@@ -1641,7 +1641,7 @@ def test_xx3_64(data: bytes, expected: tuple[int, int, int]) -> None:
 
 
 try:
-    import xxhash
+    import xxhash  # type: ignore[import-not-found]
 except ImportError:
     ...
 
