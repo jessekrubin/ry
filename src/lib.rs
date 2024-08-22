@@ -12,10 +12,9 @@ const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 
 /// ry = rust + python
 ///
-/// `ry` is a kitchen-sink of utils and wrappers around popular rust crates
+/// `ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
 #[pymodule]
 #[pyo3(name = "_ry")]
-
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // fn ry(py: Python, m: &PyModule) -> PyResult<()> {
     lager::tracing_init();
@@ -28,7 +27,6 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__build_profile__", BUILD_PROFILE)?;
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
     m.add("__authors__", AUTHORS)?;
-
     // register/add core lib from ryo3
     ryo3::madd(m)?;
     Ok(())

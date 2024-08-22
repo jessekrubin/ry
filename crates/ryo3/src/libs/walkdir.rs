@@ -220,7 +220,7 @@ pub fn fspaths(
 }
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyWalkDirEntry>()?;
+    // m.add_class::<PyWalkDirEntry>()?;  // not sure if should be exposed...
     m.add_class::<PyWalkdirGen>()?;
     m.add_class::<PyFspathsGen>()?;
     m.add_function(wrap_pyfunction!(self::walkdir, m)?)?;

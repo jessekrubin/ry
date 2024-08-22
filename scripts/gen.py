@@ -1,11 +1,17 @@
-from ry import _ry
+import sys
+
+from ry import _ry as ryo3
+
+
+def eprint(*args, **kwargs):
+    print(*args, **kwargs, file=sys.stderr)
 
 
 def main():
-    ry_all = _ry.__all__
+    ry_all = ryo3.__all__
 
-    print(_ry.__description__)
-    print(_ry.__pkg_name__)
+    eprint(ryo3.__description__)
+    eprint(ryo3.__pkg_name__)
 
     def sort_all(strings: list[str]):
         dunders = {x for x in strings if x.startswith("__") and x.endswith("__")}
@@ -31,7 +37,7 @@ def main():
     ]
 
     # __init__.py string lines
-    lines = [f'"""{_ry.__doc__}\n"""', "", *import_lines, "", *package_all_list_lines]
+    lines = [f'"""{ryo3.__doc__}\n"""', "", *import_lines, "", *package_all_list_lines]
 
     # __init__.py string
     init_string = "\n".join(lines)
@@ -40,7 +46,7 @@ def main():
     try:
         exec(init_string)
     except Exception as e:
-        print(e)
+        eprint(e)
         raise e from None
     print(init_string)
 

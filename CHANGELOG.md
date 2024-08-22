@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.0.9 [2024-08-22]
+
+- Added `globset` wrapper(s)
+- Added `__init__.py` generator
+
+___
+
+- Upgraded to pyo3-v0.22
+
 ## v0.0.8 [2024-06-25]
 
 - Upgraded to pyo3-v0.22

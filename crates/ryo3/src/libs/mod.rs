@@ -9,6 +9,9 @@ mod bzip2;
 mod flate2;
 #[cfg(feature = "fnv")]
 mod fnv;
+#[cfg(feature = "globset")]
+mod globset;
+
 #[cfg(feature = "jiter")]
 mod jiter_ry;
 #[cfg(feature = "shlex")]
@@ -34,6 +37,9 @@ pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     #[cfg(feature = "flate2")]
     flate2::madd(m)?;
+
+    #[cfg(feature = "globset")]
+    globset::madd(m)?;
 
     #[cfg(feature = "jiter")]
     jiter_ry::madd(m)?;
