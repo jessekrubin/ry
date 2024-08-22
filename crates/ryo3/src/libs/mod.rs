@@ -26,6 +26,9 @@ mod xxhash;
 mod zstd;
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    #[cfg(feature = "sqlformat")]
+    ryo3_sqlformat::pymod_add(m)?;
+
     #[cfg(feature = "brotli")]
     brotli::madd(m)?;
 
