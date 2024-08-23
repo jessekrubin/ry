@@ -7,7 +7,7 @@ use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
 use crate::fs::fileio;
 use crate::fs::fileio::{read_bytes, read_text};
 
-#[pyclass(name = "FsPath")]
+#[pyclass(name = "FsPath", module = "ryo3")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: PathBuf,
