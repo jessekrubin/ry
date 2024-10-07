@@ -253,7 +253,7 @@ def parse_json(
     cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    lossless_floats: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
@@ -263,7 +263,7 @@ def parse_json_bytes(
     cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    lossless_floats: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def parse_json_str(
     data: str,
@@ -273,7 +273,7 @@ def parse_json_str(
     cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    lossless_floats: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def jiter_cache_clear() -> None: ...
 def jiter_cache_usage() -> int: ...

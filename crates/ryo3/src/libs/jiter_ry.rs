@@ -6,6 +6,7 @@
 use ::jiter::{
     cache_clear, cache_usage, map_json_error, PartialMode, PythonParse, StringCacheMode,
 };
+use jiter::FloatMode;
 use pyo3::prelude::*;
 use pyo3::pybacked::{PyBackedBytes, PyBackedStr};
 
@@ -24,7 +25,7 @@ pub enum BytesOrString {
     cache_mode = StringCacheMode::All,
     partial_mode = PartialMode::Off,
     catch_duplicate_keys = false,
-    lossless_floats = false,
+    float_mode = FloatMode::Float
     )
 )]
 pub fn parse_json_bytes<'py>(
@@ -34,14 +35,14 @@ pub fn parse_json_bytes<'py>(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    lossless_floats: bool,
+    float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
     let parse_builder = PythonParse {
         allow_inf_nan,
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        lossless_floats,
+        float_mode,
     };
     parse_builder
         .python_parse(py, data)
@@ -57,7 +58,7 @@ pub fn parse_json_bytes<'py>(
     cache_mode = StringCacheMode::All,
     partial_mode = PartialMode::Off,
     catch_duplicate_keys = false,
-    lossless_floats = false,
+    float_mode = FloatMode::Float,
     )
 )]
 pub fn parse_json_str<'py>(
@@ -67,14 +68,14 @@ pub fn parse_json_str<'py>(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    lossless_floats: bool,
+    float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
     let parse_builder = PythonParse {
         allow_inf_nan,
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        lossless_floats,
+        float_mode,
     };
     let json_bytes: &[u8] = data.as_ref();
     parse_builder
@@ -92,7 +93,7 @@ pub fn parse_json_str<'py>(
     cache_mode = StringCacheMode::All,
     partial_mode = PartialMode::Off,
     catch_duplicate_keys = false,
-    lossless_floats = false,
+    float_mode = FloatMode::Float
     )
 )]
 pub fn parse_json(
@@ -102,14 +103,14 @@ pub fn parse_json(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    lossless_floats: bool,
+    float_mode: FloatMode,
 ) -> PyResult<Bound<'_, PyAny>> {
     let parse_builder = PythonParse {
         allow_inf_nan,
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        lossless_floats,
+        float_mode,
     };
     match data {
         BytesOrString::Str(s) => {
