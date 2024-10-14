@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   dev-test-linux-x86_64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     strategy:
       matrix:
@@ -42,7 +42,7 @@ jobs:
           pytest
 
   linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     strategy:
       matrix:
@@ -156,7 +156,7 @@ jobs:
       #     pytest
 
   sdist:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
