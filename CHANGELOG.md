@@ -1,11 +1,20 @@
 # CHANGELOG
 
+## v0.0.11 [2024-09-22]
+
+- dependencies updated
+- prepare for python 3.13
+
+## v0.0.10 [2024-09-22]
+
+- dependencies updated
+
 ## v0.0.9 [2024-08-22]
 
 - Added `globset` wrapper(s)
 - Added `__init__.py` generator
 
-___
+---
 
 - Upgraded to pyo3-v0.22
 

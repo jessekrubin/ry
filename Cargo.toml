@@ -41,7 +41,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.10"
+version = "0.0.11"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2021"
@@ -60,9 +60,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.12"
 serde_json = "1.0.132"
 shlex = "1.3.0"
-thiserror = "1.0.69"
-tokio = { version = "1.41.0", features = ["full"] }
+thiserror = "2.0.3"
+tokio = { version = "1.41.1", features = ["full"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["serde", "serde_json", "env-filter", "default"] }
 walkdir = "2.4.0"
-which = { version = "6.0.3", features = ["regex"] }
+which = { version = "7.0.0", features = ["regex"] }
