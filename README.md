@@ -668,7 +668,6 @@ def xxh3_128_intdigest(input: bytes, seed: int | None = None) -> int: ...
 
 
 def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
 ```
 
 ## DEV

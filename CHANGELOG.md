@@ -14,7 +14,7 @@
 - Added `globset` wrapper(s)
 - Added `__init__.py` generator
 
-___
+---
 
 - Upgraded to pyo3-v0.22
 
