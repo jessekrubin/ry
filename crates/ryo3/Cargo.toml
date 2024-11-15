@@ -16,6 +16,8 @@ serde_json.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 
+# required ryo3-* dependencies
+ryo3-std = { path = "../ryo3-std" }
 # optional ryo3-* dependencies
 ryo3-sqlformat = { path = "../ryo3-sqlformat", optional = true }
 ryo3-jiff = { path = "../ryo3-jiff", optional = true }

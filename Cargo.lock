@@ -869,6 +869,7 @@ dependencies = [
  "regex",
  "ryo3-jiff",
  "ryo3-sqlformat",
+ "ryo3-std",
  "serde",
  "serde_bytes",
  "serde_json",
@@ -895,6 +896,13 @@ version = "0.0.12"
 dependencies = [
  "pyo3",
  "sqlformat",
+]
+
+[[package]]
+name = "ryo3-std"
+version = "0.0.12"
+dependencies = [
+ "pyo3",
 ]
 
 [[package]]
