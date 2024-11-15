@@ -15,7 +15,7 @@ import ry
 
 try:
     # test against python-xxhash if importable...
-    import xxhash  # type: ignore[import-not-found]
+    import xxhash
 except ImportError:
     ...
 

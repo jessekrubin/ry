@@ -2,7 +2,7 @@
 
 from collections.abc import Iterator
 from os import PathLike
-from typing import Any, AnyStr, Literal, final
+from typing import Any, AnyStr, Literal, TypeVar, final
 
 __version__: str
 __authors__: str
@@ -423,3 +423,56 @@ def xxh3_hexdigest(input: bytes, seed: int | None = None) -> str: ...
 def xxh3_128_digest(input: bytes, seed: int | None = None) -> bytes: ...
 def xxh3_128_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
+
+# ==============================================================================
+# SQLFORMAT
+# ==============================================================================
+SqlfmtParamValue = str | int | float
+TSqlfmtParamValue_co = TypeVar("TSqlfmtParamValue_co", str, int, float, covariant=True)
+TSqlfmtParamsLike = (
+    dict[str, TSqlfmtParamValue_co]
+    | list[tuple[str, TSqlfmtParamValue_co]]
+    | list[TSqlfmtParamValue_co]
+)
+# This maddness for mypy while TSqlfmtParamValue does not work...
+# TODO: FIX THIS MADDNESS
+SqlfmtParamsLikeExpanded = (
+    dict[str, int]
+    | dict[str, str]
+    | dict[str, float]
+    | dict[str, int | str]
+    | dict[str, int | float]
+    | dict[str, str | float]
+    | dict[str, str | int | float]
+    | list[tuple[str, int]]
+    | list[tuple[str, str]]
+    | list[tuple[str, float]]
+    | list[tuple[str, int | str]]
+    | list[tuple[str, int | float]]
+    | list[tuple[str, str | float]]
+    | list[tuple[str, str | int | float]]
+    | list[int]
+    | list[str]
+    | list[float]
+    | list[int | str]
+    | list[int | float]
+    | list[str | float]
+    | list[str | int | float]
+)
+
+class SqlfmtQueryParams:
+    def __init__(self, params: SqlfmtParamsLikeExpanded) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+def sqlfmt_params(
+    params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams,
+) -> SqlfmtQueryParams: ...
+def sqlfmt(
+    sql: str,
+    params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams | None = None,
+    *,
+    indent: int = 2,  # -1 or any negative value will use tabs
+    uppercase: bool | None = True,
+    lines_between_statements: int = 1,
+) -> str: ...

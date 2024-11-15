@@ -4,3 +4,4 @@ pytest-asyncio
 pytest-benchmark
 ruff
 tomli
+mypy

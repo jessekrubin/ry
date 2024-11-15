@@ -212,6 +212,7 @@ convention = "google"
 # =============================================================================
 [tool.mypy]
 strict = true
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"
