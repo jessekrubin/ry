@@ -155,19 +155,20 @@ pub fn sqlfmt(
     };
     let options = sqlformat::FormatOptions {
         indent,
-        uppercase: uppercase.unwrap_or(true),
+        uppercase: Option::from(uppercase.unwrap_or(true)),
         lines_between_queries: lines_between_queries.unwrap_or(1),
+        ignore_case_convert: None,
     };
     if let Some(p) = params {
         if let PyQueryParamsLike::PyQueryParams(p) = p {
-            Ok(sqlformat::format(sql, &p.params, options))
+            Ok(sqlformat::format(sql, &p.params, &options))
         } else {
             let py_params = PySqlfmtQueryParams::new(p)?;
-            Ok(sqlformat::format(sql, &py_params.params, options))
+            Ok(sqlformat::format(sql, &py_params.params, &options))
         }
     } else {
-        let nada = sqlformat::QueryParams::None;
-        Ok(sqlformat::format(sql, &nada, options))
+        let nada = QueryParams::None;
+        Ok(sqlformat::format(sql, &nada, &options))
     }
 }
 

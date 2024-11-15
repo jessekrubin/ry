@@ -428,13 +428,14 @@ def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
 # SQLFORMAT
 # ==============================================================================
 SqlfmtParamValue = str | int | float
-TSqlfmtParamValue = TypeVar("TSqlfmtParamValue", str, int, float, covariant=True)
+TSqlfmtParamValue_co = TypeVar("TSqlfmtParamValue_co", str, int, float, covariant=True)
 TSqlfmtParamsLike = (
-    dict[str, TSqlfmtParamValue]
-    | list[tuple[str, TSqlfmtParamValue]]
-    | list[TSqlfmtParamValue]
+    dict[str, TSqlfmtParamValue_co]
+    | list[tuple[str, TSqlfmtParamValue_co]]
+    | list[TSqlfmtParamValue_co]
 )
 # This maddness for mypy while TSqlfmtParamValue does not work...
+# TODO: FIX THIS MADDNESS
 SqlfmtParamsLikeExpanded = (
     dict[str, int]
     | dict[str, str]

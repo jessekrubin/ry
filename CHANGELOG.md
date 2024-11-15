@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.12 [2024-11-14]
+
+- sqlformat wrapper(s) (this is the first `ryo3-*` sub-crate)
+
 ## v0.0.11 [2024-09-22]
 
 - dependencies updated
