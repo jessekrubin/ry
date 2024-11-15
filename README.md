@@ -38,13 +38,16 @@ It all started with me wanting a fast python `xxhash` and `fnv-64`
 _(aka: questions that I have been asking myself)_
 
 - **Q:** Why?
-  - **A:** I (jesse) needed several hashing functions for python and then kept adding things as I needed them
-- **Q:** Does this have anything to do with the (excellent) package manager `rye`?
+  - **A:** I (jesse) needed several hashing functions for python and then kept
+    adding things as I needed them
+- **Q:** Does this have anything to do with the (excellent) package manager
+  `rye`?
   - **A:** short answer: no. long answer: no, it does not.
 - **Q:** Why is the repo split into `ry` and `ryo3`?
-  - **A:** `ry` is the python package, `ryo3` is a rust crate setup to let you "register" functions you may want if you
-    were writing your own pyo3-python bindings library; maybe someday the `ryo3::libs` module will be split up into
-    separate packages
+  - **A:** `ry` is the python package, `ryo3` is a rust crate setup to let you
+    "register" functions you may want if you were writing your own pyo3-python
+    bindings library; maybe someday the `ryo3::libs` module will be split up
+    into separate packages
 
 ## Crate bindings
 
@@ -56,23 +59,26 @@ _(aka: questions that I have been asking myself)_
 - `walkdir`
 - `which`
 - `xxhash`
+- `globset` (formerly [globsters](https://pypi.org/project/globsters/))
 - `zstd`
+- `sqlformat`
 - TBD:
   - `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
-  - `globset` (technically done, but not yet in `ry` -- [globsters](https://pypi.org/project/globsters/))
   - `regex`
   - `tokio` (fs + process)
-  - `tracing` (could be nicer than python's awful logging lib -- currently a part of ry/ryo3 for my dev purposes)
-  - `reqwest` (async http client / waiting on pyo3 asyncio to stablize and for me to have more time)
+  - `tracing` (could be nicer than python's awful logging lib -- currently a
+    part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
+  - `reqwest` (async http client / waiting on pyo3 asyncio to stablize and for
+    me to have more time)
 
 ## API
 
 ```python
-"""ry api"""
+"""ry api ~ type annotations"""
 
 from collections.abc import Iterator
 from os import PathLike
-from typing import Any, AnyStr, Literal, final
+from typing import Any, AnyStr, Literal, TypeVar, final
 
 __version__: str
 __authors__: str
@@ -394,7 +400,7 @@ def parse_json(
   cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
   partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
   catch_duplicate_keys: bool = False,
-  lossless_floats: bool = False,
+  float_mode: Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 
 
@@ -406,7 +412,7 @@ def parse_json_bytes(
   cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
   partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
   catch_duplicate_keys: bool = False,
-  lossless_floats: bool = False,
+  float_mode: Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 
 
@@ -418,7 +424,7 @@ def parse_json_str(
   cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
   partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
   catch_duplicate_keys: bool = False,
-  lossless_floats: bool = False,
+  float_mode: Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 
 
@@ -668,16 +674,78 @@ def xxh3_128_intdigest(input: bytes, seed: int | None = None) -> int: ...
 
 
 def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
+
+
+# ==============================================================================
+# SQLFORMAT
+# ==============================================================================
+SqlfmtParamValue = str | int | float
+TSqlfmtParamValue_co = TypeVar("TSqlfmtParamValue_co", str, int, float, covariant=True)
+TSqlfmtParamsLike = (
+  dict[str, TSqlfmtParamValue_co]
+  | list[tuple[str, TSqlfmtParamValue_co]]
+  | list[TSqlfmtParamValue_co]
+)
+# This maddness for mypy while TSqlfmtParamValue does not work...
+# TODO: FIX THIS MADDNESS
+SqlfmtParamsLikeExpanded = (
+  dict[str, int]
+  | dict[str, str]
+  | dict[str, float]
+  | dict[str, int | str]
+  | dict[str, int | float]
+  | dict[str, str | float]
+  | dict[str, str | int | float]
+  | list[tuple[str, int]]
+  | list[tuple[str, str]]
+  | list[tuple[str, float]]
+  | list[tuple[str, int | str]]
+  | list[tuple[str, int | float]]
+  | list[tuple[str, str | float]]
+  | list[tuple[str, str | int | float]]
+  | list[int]
+  | list[str]
+  | list[float]
+  | list[int | str]
+  | list[int | float]
+  | list[str | float]
+  | list[str | int | float]
+)
+
+
+class SqlfmtQueryParams:
+  def __init__(self, params: SqlfmtParamsLikeExpanded) -> None: ...
+
+  def __str__(self) -> str: ...
+
+  def __repr__(self) -> str: ...
+
+
+def sqlfmt_params(
+  params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams,
+) -> SqlfmtQueryParams: ...
+
+
+def sqlfmt(
+  sql: str,
+  params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams | None = None,
+  *,
+  indent: int = 2,  # -1 or any negative value will use tabs
+  uppercase: bool | None = True,
+  lines_between_statements: int = 1,
+) -> str: ...
 ```
 
 ## DEV
 
 - `just` is used to run tasks
-- Do not use the phrase `blazing fast` or any emojis in any PRs or issues or docs
+- Do not use the phrase `blazing fast` or any emojis in any PRs or issues or
+  docs
 - type annotations are required
 - `ruff` used for formatting and linting
 
 ## SEE ALSO
 
 - utiles (web-map tile utils): https://github.com/jessekrubin/utiles
-- jsonc2json (jsonc to json converter): https://github.com/jessekrubin/jsonc2json
+- jsonc2json (jsonc to json converter):
+  https://github.com/jessekrubin/jsonc2json
