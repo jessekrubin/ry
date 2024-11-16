@@ -6,17 +6,12 @@ use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pymethods, Bound, IntoPy, PyErr, PyObject, PyResult, Python};
+use std::fmt::Display;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Zoned", module = "ryo3")]
 pub struct RyZoned(pub(crate) Zoned);
-
-impl From<Zoned> for RyZoned {
-    fn from(value: Zoned) -> Self {
-        RyZoned(value)
-    }
-}
 
 #[pymethods]
 impl RyZoned {
@@ -51,7 +46,7 @@ impl RyZoned {
         }
     }
 
-    fn to_string(&self) -> String {
+    fn string(&self) -> String {
         self.0.to_string()
     }
 
@@ -85,5 +80,16 @@ impl RyZoned {
 
     fn __sub__(&self, other: &Self) -> RySpan {
         RySpan::from(&self.0 - &other.0)
+    }
+}
+
+impl Display for RyZoned {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl From<Zoned> for RyZoned {
+    fn from(value: Zoned) -> Self {
+        RyZoned(value)
     }
 }

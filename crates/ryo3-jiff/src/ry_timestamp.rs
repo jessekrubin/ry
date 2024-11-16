@@ -2,17 +2,12 @@ use jiff::Timestamp;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
+use std::fmt::Display;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Timestamp", module = "ryo3")]
 pub struct RyTimestamp(pub(crate) Timestamp);
-
-impl From<Timestamp> for RyTimestamp {
-    fn from(value: Timestamp) -> Self {
-        RyTimestamp(value)
-    }
-}
 
 #[pymethods]
 impl RyTimestamp {
@@ -48,15 +43,12 @@ impl RyTimestamp {
         }
     }
 
-    fn __hash__(&self) -> isize {
-        self.0.as_microsecond() as isize
-    }
-
-    fn to_string(&self) -> String {
+    fn string(&self) -> String {
         self.0.to_string()
     }
+
     fn __str__(&self) -> String {
-        format!("Timestamp<{}>", self.to_string())
+        format!("Timestamp<{}>", self.string())
     }
 
     fn as_microsecond(&self) -> i64 {
@@ -69,5 +61,15 @@ impl RyTimestamp {
 
     fn as_nanosecond(&self) -> i128 {
         self.0.as_nanosecond()
+    }
+}
+impl Display for RyTimestamp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl From<Timestamp> for RyTimestamp {
+    fn from(value: Timestamp) -> Self {
+        RyTimestamp(value)
     }
 }

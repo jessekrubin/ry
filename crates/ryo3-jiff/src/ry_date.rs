@@ -7,16 +7,11 @@ use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pymethods, Bound, IntoPy, PyErr, PyObject, PyResult, Python};
+use std::fmt::Display;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Date")]
 pub struct RyDate(pub(crate) Date);
-
-impl From<Date> for RyDate {
-    fn from(value: Date) -> Self {
-        RyDate(value)
-    }
-}
 
 #[pymethods]
 impl RyDate {
@@ -69,10 +64,21 @@ impl RyDate {
             CompareOp::Ge => (self.0 >= other.0).into_py(py),
         }
     }
-    fn to_string(&self) -> String {
+    fn string(&self) -> String {
         self.0.to_string()
     }
     fn __str__(&self) -> String {
-        format!("Date<{}>", self.to_string())
+        format!("Date<{self}>")
+    }
+}
+
+impl Display for RyDate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Date<{}>", self.0)
+    }
+}
+impl From<Date> for RyDate {
+    fn from(value: Date) -> Self {
+        RyDate(value)
     }
 }

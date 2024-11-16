@@ -6,6 +6,7 @@ use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
+use std::fmt::Display;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -82,12 +83,8 @@ impl RyDateTime {
         self.0.nanosecond()
     }
 
-    fn to_string(&self) -> String {
-        self.0.to_string()
-    }
-
     fn __str__(&self) -> String {
-        format!("DateTime<{}>", self.to_string())
+        format!("DateTime<{self}>")
     }
 
     fn __repr__(&self) -> String {
@@ -125,5 +122,11 @@ impl RyDateTime {
     }
     fn last_of_month(&self) -> RyDateTime {
         RyDateTime::from(self.0.last_of_month())
+    }
+}
+
+impl Display for RyDateTime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }

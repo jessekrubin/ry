@@ -17,6 +17,7 @@ use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
+use std::fmt::Display;
 use std::str::FromStr;
 
 use crate::ry_datetime::RyDateTime;
@@ -25,12 +26,6 @@ use pyo3::IntoPy;
 #[derive(Debug, Clone)]
 #[pyclass(name = "Time")]
 pub struct RyTime(pub(crate) jiff::civil::Time);
-
-impl From<jiff::civil::Time> for RyTime {
-    fn from(value: jiff::civil::Time) -> Self {
-        Self(value)
-    }
-}
 
 #[pymethods]
 impl RyTime {
@@ -69,11 +64,12 @@ impl RyTime {
         }
     }
 
-    fn to_string(&self) -> String {
+    fn string(&self) -> String {
         self.0.to_string()
     }
+
     fn __str__(&self) -> String {
-        format!("Time<{}>", self.to_string())
+        format!("Time<{self}>")
     }
 
     fn millisecond(&self) -> i16 {
@@ -94,5 +90,16 @@ impl RyTime {
 
     fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(date.0))
+    }
+}
+
+impl Display for RyTime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Time<{}>", self.0)
+    }
+}
+impl From<jiff::civil::Time> for RyTime {
+    fn from(value: jiff::civil::Time) -> Self {
+        Self(value)
     }
 }

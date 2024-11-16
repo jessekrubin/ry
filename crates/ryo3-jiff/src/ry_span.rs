@@ -2,6 +2,7 @@ use crate::internal::RySpanRelativeTo;
 use crate::ry_signed_duration::RySignedDuration;
 use jiff::Span;
 use pyo3::prelude::*;
+use std::fmt::Display;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Span", module = "ryo3")]
@@ -13,13 +14,12 @@ impl RySpan {
     fn new() -> PyResult<Self> {
         Ok(Self(Span::new()))
     }
-
-    fn to_string(&self) -> PyResult<String> {
-        Ok(self.0.to_string())
-    }
-
     fn __str__(&self) -> String {
         format!("Span<{}>", self.0)
+    }
+
+    fn string(&self) -> String {
+        self.0.to_string()
     }
 
     fn __repr__(&self) -> String {
@@ -59,6 +59,11 @@ impl RySpan {
                 .map(RySignedDuration)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
         }
+    }
+}
+impl Display for RySpan {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
