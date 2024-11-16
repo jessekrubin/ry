@@ -1,13 +1,16 @@
 use crate::ry_time::RyTime;
+use crate::ry_timezone::RyTimeZone;
+use crate::ry_zoned::RyZoned;
 use crate::RyDate;
 use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Time")]
-pub struct RyDateTime(DateTime);
+pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {
     fn from(value: DateTime) -> Self {
@@ -35,6 +38,12 @@ impl RyDateTime {
     #[classmethod]
     fn now(_cls: &Bound<'_, PyType>) -> Self {
         Self::from(DateTime::from(Zoned::now()))
+    }
+    #[classmethod]
+    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        DateTime::from_str(s)
+            .map(|dt| RyDateTime::from(dt))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
     }
 
     fn year(&self) -> i16 {
@@ -81,11 +90,40 @@ impl RyDateTime {
         format!("DateTime<{}>", self.to_string())
     }
 
+    fn __repr__(&self) -> String {
+        format!("DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, millisecond={}, microsecond={}, nanosecond={})", self.year(), self.month(), self.day(), self.hour(), self.minute(), self.second(), self.millisecond(), self.microsecond(), self.nanosecond())
+    }
+
     fn to_date(&self) -> RyDate {
         RyDate::from(self.0.date())
     }
 
-    fn to_time(&self) -> RyTime {
+    fn time(&self) -> RyTime {
         RyTime::from(self.0.time())
+    }
+
+    fn date(&self) -> RyDate {
+        RyDate::from(self.0.date())
+    }
+
+    fn intz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
+        self.0
+            .intz(time_zone_name)
+            .map(|z| RyZoned::from(z))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+    }
+
+    fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
+        self.0
+            .to_zoned(tz.0)
+            .map(|z| RyZoned::from(z))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+    }
+
+    fn first_of_month(&self) -> RyDateTime {
+        RyDateTime::from(self.0.first_of_month())
+    }
+    fn last_of_month(&self) -> RyDateTime {
+        RyDateTime::from(self.0.last_of_month())
     }
 }

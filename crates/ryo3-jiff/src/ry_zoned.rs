@@ -1,5 +1,6 @@
+use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
-use crate::ry_timezone::PyTimeZone;
+use crate::ry_timezone::RyTimeZone;
 use crate::RyDate;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
@@ -8,7 +9,7 @@ use pyo3::{pyclass, pymethods, Bound, IntoPy, PyErr, PyObject, PyResult, Python}
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Zoned")]
+#[pyclass(name = "Zoned", module = "ryo3")]
 pub struct RyZoned(pub(crate) Zoned);
 
 impl From<Zoned> for RyZoned {
@@ -21,7 +22,7 @@ impl From<Zoned> for RyZoned {
 impl RyZoned {
     #[new]
     #[pyo3(signature = (timestamp, time_zone))]
-    pub fn new(timestamp: RyTimestamp, time_zone: PyTimeZone) -> PyResult<Self> {
+    pub fn new(timestamp: RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
         let ts = timestamp.0;
         let tz = time_zone.0;
         Ok(RyZoned::from(Zoned::new(ts, tz)))
@@ -54,7 +55,36 @@ impl RyZoned {
         self.0.to_string()
     }
 
+    fn __str__(&self) -> String {
+        format!("Zoned<{}>", self.0.to_string())
+    }
+
+    fn __repr__(&self) -> String {
+        format!("Zoned<{}>", self.0.to_string())
+    }
+
+    fn timestamp(&self) -> RyTimestamp {
+        RyTimestamp::from(self.0.timestamp())
+    }
+
     fn date(&self) -> RyDate {
         RyDate::from(self.0.date())
+    }
+
+    fn to_rfc2822(&self) -> PyResult<String> {
+        jiff::fmt::rfc2822::to_string(&self.0)
+            .map(|s| s)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+    }
+
+    #[staticmethod]
+    fn from_rfc2822(s: &str) -> PyResult<Self> {
+        jiff::fmt::rfc2822::parse(s)
+            .map(|z| RyZoned::from(z))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+    }
+
+    fn __sub__(&self, other: &Self) -> RySpan {
+        RySpan::from(&self.0 - &other.0)
     }
 }

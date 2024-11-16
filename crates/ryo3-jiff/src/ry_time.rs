@@ -24,7 +24,7 @@ use pyo3::IntoPy;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Time")]
-pub struct RyTime(jiff::civil::Time);
+pub struct RyTime(pub(crate) jiff::civil::Time);
 
 impl From<jiff::civil::Time> for RyTime {
     fn from(value: jiff::civil::Time) -> Self {
@@ -45,6 +45,13 @@ impl RyTime {
     fn now(_cls: &Bound<'_, PyType>) -> Self {
         let z = jiff::civil::Time::from(Zoned::now());
         Self::from(z)
+    }
+
+    #[classmethod]
+    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        jiff::civil::Time::from_str(s)
+            .map(|t| crate::RyTime::from(t))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
     }
 
     fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {

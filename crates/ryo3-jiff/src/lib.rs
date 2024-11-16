@@ -13,8 +13,11 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::unused_self)]
 
+mod internal;
 mod ry_date;
 mod ry_datetime;
+mod ry_signed_duration;
+mod ry_span;
 mod ry_time;
 mod ry_timestamp;
 mod ry_timezone;
@@ -22,12 +25,15 @@ mod ry_zoned;
 
 use crate::ry_date::RyDate;
 use crate::ry_datetime::RyDateTime;
+use crate::ry_signed_duration::RySignedDuration;
+use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
-use crate::ry_timezone::PyTimeZone;
+use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use ry_time::RyTime;
+
 #[pyfunction]
 pub fn date(year: i16, month: i8, day: i8) -> PyResult<RyDate> {
     RyDate::new(year, month, day)
@@ -53,11 +59,13 @@ pub fn datetime(
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
-    m.add_class::<RyTimestamp>()?;
     m.add_class::<RyDate>()?;
     m.add_class::<RyDateTime>()?;
+    m.add_class::<RySignedDuration>()?;
+    m.add_class::<RySpan>()?;
     m.add_class::<RyTime>()?;
-    m.add_class::<PyTimeZone>()?;
+    m.add_class::<RyTimeZone>()?;
+    m.add_class::<RyTimestamp>()?;
     m.add_class::<RyZoned>()?;
 
     // functions

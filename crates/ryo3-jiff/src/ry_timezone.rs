@@ -4,31 +4,31 @@ use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", module = "ryo3")]
-pub struct PyTimeZone(pub(crate) TimeZone);
+pub struct RyTimeZone(pub(crate) TimeZone);
 
-impl From<jiff::tz::TimeZone> for PyTimeZone {
-    fn from(value: jiff::tz::TimeZone) -> Self {
-        PyTimeZone(value)
+impl From<TimeZone> for RyTimeZone {
+    fn from(value: TimeZone) -> Self {
+        RyTimeZone(value)
     }
 }
 
 #[pymethods]
-impl PyTimeZone {
+impl RyTimeZone {
     #[new]
     pub fn new(time_zone_name: &str) -> PyResult<Self> {
-        jiff::tz::TimeZone::get(time_zone_name)
-            .map(|tz| PyTimeZone::from(tz))
+        TimeZone::get(time_zone_name)
+            .map(|tz| RyTimeZone::from(tz))
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
     }
 
     #[classmethod]
     fn utc(_cls: &Bound<'_, PyType>) -> Self {
-        Self::from(jiff::tz::TimeZone::fixed(Offset::UTC))
+        Self::from(TimeZone::fixed(Offset::UTC))
     }
 
     #[classmethod]
     fn system(_cls: &Bound<'_, PyType>) -> Self {
-        Self::from(jiff::tz::TimeZone::system())
+        Self::from(TimeZone::system())
     }
 
     fn iana_name(&self) -> Option<&str> {
@@ -42,5 +42,9 @@ impl PyTimeZone {
             Some(name) => format!("TimeZone<{}>", name),
             None => "TimeZone<None>".to_string(),
         }
+    }
+
+    fn __eq__(&self, other: &RyTimeZone) -> bool {
+        self.0 == other.0
     }
 }

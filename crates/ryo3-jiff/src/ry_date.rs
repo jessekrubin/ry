@@ -1,4 +1,7 @@
 use crate::ry_datetime::RyDateTime;
+use crate::ry_time::RyTime;
+use crate::ry_timezone::RyTimeZone;
+use crate::ry_zoned::RyZoned;
 use jiff::civil::Date;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
@@ -9,8 +12,8 @@ use pyo3::{pyclass, pymethods, Bound, IntoPy, PyErr, PyObject, PyResult, Python}
 #[pyclass(name = "Date")]
 pub struct RyDate(pub(crate) Date);
 
-impl From<jiff::civil::Date> for RyDate {
-    fn from(value: jiff::civil::Date) -> Self {
+impl From<Date> for RyDate {
+    fn from(value: Date) -> Self {
         RyDate(value)
     }
 }
@@ -19,7 +22,7 @@ impl From<jiff::civil::Date> for RyDate {
 impl RyDate {
     #[new]
     pub fn new(year: i16, month: i8, day: i8) -> PyResult<Self> {
-        jiff::civil::Date::new(year, month, day)
+        Date::new(year, month, day)
             .map(|d| RyDate::from(d))
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
     }
@@ -31,6 +34,29 @@ impl RyDate {
     }
     fn at(&self, hour: i8, minute: i8, second: i8, subsec_nanosecond: i32) -> RyDateTime {
         RyDateTime::from(self.0.at(hour, minute, second, subsec_nanosecond))
+    }
+
+    fn year(&self) -> i16 {
+        self.0.year()
+    }
+
+    fn month(&self) -> i8 {
+        self.0.month()
+    }
+
+    fn day(&self) -> i8 {
+        self.0.day()
+    }
+
+    fn to_datetime(&self, time: RyTime) -> RyDateTime {
+        RyDateTime::from(self.0.to_datetime(time.0))
+    }
+
+    fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
+        self.0
+            .to_zoned(tz.0)
+            .map(|z| RyZoned::from(z))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
