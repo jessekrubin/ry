@@ -36,8 +36,8 @@ impl RyZoned {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Zoned::from_str(s)
-            .map(|z| RyZoned::from(z))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
@@ -56,11 +56,11 @@ impl RyZoned {
     }
 
     fn __str__(&self) -> String {
-        format!("Zoned<{}>", self.0.to_string())
+        format!("Zoned<{}>", self.0)
     }
 
     fn __repr__(&self) -> String {
-        format!("Zoned<{}>", self.0.to_string())
+        format!("Zoned<{}>", self.0)
     }
 
     fn timestamp(&self) -> RyTimestamp {
@@ -73,15 +73,14 @@ impl RyZoned {
 
     fn to_rfc2822(&self) -> PyResult<String> {
         jiff::fmt::rfc2822::to_string(&self.0)
-            .map(|s| s)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[staticmethod]
     fn from_rfc2822(s: &str) -> PyResult<Self> {
         jiff::fmt::rfc2822::parse(s)
-            .map(|z| RyZoned::from(z))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn __sub__(&self, other: &Self) -> RySpan {

@@ -31,8 +31,8 @@ impl RyDateTime {
         subsec_nanosecond: i32,
     ) -> PyResult<Self> {
         DateTime::new(year, month, day, hour, minute, second, subsec_nanosecond)
-            .map(|dt| RyDateTime::from(dt))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyDateTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -42,8 +42,8 @@ impl RyDateTime {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         DateTime::from_str(s)
-            .map(|dt| RyDateTime::from(dt))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyDateTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn year(&self) -> i16 {
@@ -109,15 +109,15 @@ impl RyDateTime {
     fn intz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
         self.0
             .intz(time_zone_name)
-            .map(|z| RyZoned::from(z))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.0)
-            .map(|z| RyZoned::from(z))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn first_of_month(&self) -> RyDateTime {

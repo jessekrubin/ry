@@ -17,8 +17,8 @@ impl RyTimeZone {
     #[new]
     pub fn new(time_zone_name: &str) -> PyResult<Self> {
         TimeZone::get(time_zone_name)
-            .map(|tz| RyTimeZone::from(tz))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyTimeZone::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -39,7 +39,7 @@ impl RyTimeZone {
         // TODO; figure out good repr
         let iana_name = self.0.iana_name();
         match iana_name {
-            Some(name) => format!("TimeZone<{}>", name),
+            Some(name) => format!("TimeZone<{name}>"),
             None => "TimeZone<None>".to_string(),
         }
     }

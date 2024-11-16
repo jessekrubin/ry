@@ -22,8 +22,8 @@ impl RyTimestamp {
         let s = second.unwrap_or(0);
         let ns = nanosecond.unwrap_or(0);
         Timestamp::new(s, ns)
-            .map(|ts| RyTimestamp::from(ts))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyTimestamp::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -34,8 +34,8 @@ impl RyTimestamp {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Timestamp::from_str(s)
-            .map(|ts| RyTimestamp::from(ts))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyTimestamp::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
         match op {

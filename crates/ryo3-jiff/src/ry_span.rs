@@ -19,11 +19,11 @@ impl RySpan {
     }
 
     fn __str__(&self) -> String {
-        format!("Span<{}>", self.0.to_string())
+        format!("Span<{}>", self.0)
     }
 
     fn __repr__(&self) -> String {
-        format!("Span<{}>", self.0.to_string())
+        format!("Span<{}>", self.0)
     }
 
     fn __neg__(&self) -> PyResult<Self> {
@@ -46,17 +46,17 @@ impl RySpan {
             RySpanRelativeTo::Zoned(z) => self
                 .0
                 .to_jiff_duration(&z.0)
-                .map(|d| RySignedDuration(d))
+                .map(RySignedDuration)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
             RySpanRelativeTo::Date(d) => self
                 .0
                 .to_jiff_duration(d.0)
-                .map(|d| RySignedDuration(d))
+                .map(RySignedDuration)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
             RySpanRelativeTo::DateTime(dt) => self
                 .0
                 .to_jiff_duration(dt.0)
-                .map(|d| RySignedDuration(d))
+                .map(RySignedDuration)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
         }
     }

@@ -23,8 +23,8 @@ impl RyDate {
     #[new]
     pub fn new(year: i16, month: i8, day: i8) -> PyResult<Self> {
         Date::new(year, month, day)
-            .map(|d| RyDate::from(d))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyDate::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -55,8 +55,8 @@ impl RyDate {
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.0)
-            .map(|z| RyZoned::from(z))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {

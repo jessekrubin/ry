@@ -82,6 +82,6 @@ mod tests {
     #![allow(clippy::unwrap_used)]
     #[test]
     fn test_dev() {
-        assert_eq!(1 + 1, 2)
+        assert_eq!(1 + 1, 2);
     }
 }

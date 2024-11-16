@@ -18,8 +18,8 @@ impl RySignedDuration {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
-            .map(|d| RySignedDuration::from(d))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(RySignedDuration::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn __abs__(&self) -> Self {

@@ -37,8 +37,8 @@ impl RyTime {
     #[new]
     pub fn new(hour: i8, minute: i8, second: i8, nanosecond: i32) -> PyResult<Self> {
         jiff::civil::Time::new(hour, minute, second, nanosecond)
-            .map(|t| crate::RyTime::from(t))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(crate::RyTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -50,8 +50,8 @@ impl RyTime {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         jiff::civil::Time::from_str(s)
-            .map(|t| crate::RyTime::from(t))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+            .map(crate::RyTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
