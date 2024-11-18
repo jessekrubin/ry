@@ -35,6 +35,17 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    #[classmethod]
+    fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
+        Zoned::strptime(format, input)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn strftime(&self, format: &str) -> String {
+        self.0.strftime(format).to_string()
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
         match op {
             CompareOp::Eq => (self.0 == other.0).into_py(py),
@@ -47,11 +58,11 @@ impl RyZoned {
     }
 
     fn string(&self) -> String {
-        self.0.to_string()
+        self.__str__()
     }
 
     fn __str__(&self) -> String {
-        format!("Zoned<{}>", self.0)
+        self.0.to_string()
     }
 
     fn __repr__(&self) -> String {
@@ -64,6 +75,13 @@ impl RyZoned {
 
     fn date(&self) -> RyDate {
         RyDate::from(self.0.date())
+    }
+
+    fn intz(&self, tz: &str) -> PyResult<Self> {
+        self.0
+            .intz(tz)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn to_rfc2822(&self) -> PyResult<String> {
@@ -80,6 +98,13 @@ impl RyZoned {
 
     fn __sub__(&self, other: &Self) -> RySpan {
         RySpan::from(&self.0 - &other.0)
+    }
+
+    fn checked_add(&self, span: &RySpan) -> PyResult<Self> {
+        self.0
+            .checked_add(span.0)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 }
 

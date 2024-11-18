@@ -1,8 +1,8 @@
 """ry api ~ type annotations"""
 
+import typing as t
 from collections.abc import Iterator
 from os import PathLike
-from typing import Any, AnyStr, Literal, TypeVar, final
 
 __version__: str
 __authors__: str
@@ -44,7 +44,7 @@ def pwd() -> str: ...
 def home() -> str: ...
 def cd(path: FsPathLike) -> None: ...
 def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
-def quick_maths() -> Literal[3]:
+def quick_maths() -> t.Literal[3]:
     """Performs quick-maths
 
     Implements the algorithm for performing "quick-maths" as described by
@@ -82,7 +82,7 @@ def run(
     *args: str | list[str],
     capture_output: bool = True,
     input: bytes | None = None,
-) -> Any: ...
+) -> t.Any: ...
 
 # ==============================================================================
 # DEV
@@ -250,30 +250,30 @@ def parse_json(
     /,
     *,
     allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
     /,
     *,
     allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def parse_json_str(
     data: str,
     /,
     *,
     allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def jiter_cache_clear() -> None: ...
 def jiter_cache_usage() -> int: ...
@@ -300,7 +300,7 @@ def fnv1a(input: bytes) -> FnvHasher: ...
 # ==============================================================================
 # DEV
 # ==============================================================================
-def anystr_noop(s: AnyStr) -> AnyStr: ...
+def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
 
 # ==============================================================================
 # BROTLI
@@ -343,7 +343,7 @@ def zstd_decode(input: bytes) -> bytes: ...
 # ==============================================================================
 # XXHASH
 # ==============================================================================
-@final
+@t.final
 class Xxh32:
     def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
     def update(self, input: bytes) -> None: ...
@@ -357,7 +357,7 @@ class Xxh32:
     @property
     def seed(self) -> int: ...
 
-@final
+@t.final
 class Xxh64:
     def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
     def update(self, input: bytes) -> None: ...
@@ -371,7 +371,7 @@ class Xxh64:
     @property
     def seed(self) -> int: ...
 
-@final
+@t.final
 class Xxh3:
     def __init__(
         self, input: bytes = ..., seed: int | None = ..., secret: bytes | None = ...
@@ -428,7 +428,9 @@ def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
 # SQLFORMAT
 # ==============================================================================
 SqlfmtParamValue = str | int | float
-TSqlfmtParamValue_co = TypeVar("TSqlfmtParamValue_co", str, int, float, covariant=True)
+TSqlfmtParamValue_co = t.TypeVar(
+    "TSqlfmtParamValue_co", str, int, float, covariant=True
+)
 TSqlfmtParamsLike = (
     dict[str, TSqlfmtParamValue_co]
     | list[tuple[str, TSqlfmtParamValue_co]]
@@ -476,3 +478,154 @@ def sqlfmt(
     uppercase: bool | None = True,
     lines_between_statements: int = 1,
 ) -> str: ...
+
+# ==============================================================================
+# JIFF
+# ==============================================================================
+
+class Timestamp:
+    """
+    A representation of a timestamp with second and nanosecond precision.
+    """
+
+    def __init__(
+        self, second: Optional[int] = None, nanosecond: Optional[int] = None
+    ) -> None:
+        """
+        Create a new `Timestamp` object.
+
+        Args:
+            second (Optional[int]): The number of seconds. Defaults to `0`.
+            nanosecond (Optional[int]): The number of nanoseconds. Defaults to `0`.
+        """
+        ...
+
+    @classmethod
+    def now(cls: Type["Timestamp"]) -> "Timestamp":
+        """
+        Get the current `Timestamp`.
+
+        Returns:
+            Timestamp: The current `Timestamp`.
+        """
+        ...
+
+    @classmethod
+    def parse(cls: Type["Timestamp"], s: str) -> "Timestamp":
+        """
+        Parse a string into a `Timestamp`.
+
+        Args:
+            s (str): The string to parse.
+
+        Returns:
+            Timestamp: The parsed `Timestamp`.
+
+        Raises:
+            ValueError: If the string cannot be parsed.
+        """
+        ...
+
+    @classmethod
+    def from_millisecond(cls: Type["Timestamp"], millisecond: int) -> "Timestamp":
+        """
+        Create a `Timestamp` from milliseconds.
+
+        Args:
+            millisecond (int): Milliseconds since epoch.
+
+        Returns:
+            Timestamp: The resulting `Timestamp`.
+
+        Raises:
+            ValueError: If the millisecond value is invalid.
+        """
+        ...
+
+    def to_zoned(self, time_zone: RyTimeZone) -> RyZoned:
+        """
+        Convert the `Timestamp` to a zoned timestamp in the specified timezone.
+
+        Args:
+            time_zone (RyTimeZone): The timezone to convert to.
+
+        Returns:
+            RyZoned: The zoned representation of the `Timestamp`.
+        """
+        ...
+
+    def string(self) -> str:
+        """
+        Get a string representation of the `Timestamp`.
+
+        Returns:
+            str: The string representation.
+        """
+        ...
+
+    def as_second(self) -> int:
+        """
+        Get the timestamp as seconds since epoch.
+
+        Returns:
+            int: The number of seconds since epoch.
+        """
+        ...
+
+    def as_microsecond(self) -> int:
+        """
+        Get the timestamp as microseconds since epoch.
+
+        Returns:
+            int: The number of microseconds since epoch.
+        """
+        ...
+
+    def as_millisecond(self) -> int:
+        """
+        Get the timestamp as milliseconds since epoch.
+
+        Returns:
+            int: The number of milliseconds since epoch.
+        """
+        ...
+
+    def as_nanosecond(self) -> int:
+        """
+        Get the timestamp as nanoseconds since epoch.
+
+        Returns:
+            int: The number of nanoseconds since epoch.
+        """
+        ...
+
+    def __str__(self) -> str:
+        """
+        Get a string representation of the `Timestamp`.
+
+        Returns:
+            str: The string representation.
+        """
+        ...
+
+    def __repr__(self) -> str:
+        """
+        Get a developer-readable string representation of the `Timestamp`.
+
+        Returns:
+            str: The developer-readable string representation.
+        """
+        ...
+
+    def __richcmp__(self, other: "Timestamp", op: int) -> bool:
+        """
+        Perform rich comparison operations.
+
+        Args:
+            other (Timestamp): The other `Timestamp` to compare.
+            op (int): The comparison operation.
+
+        Returns:
+            bool: The result of the comparison.
+        """
+        ...

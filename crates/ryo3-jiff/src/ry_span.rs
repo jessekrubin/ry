@@ -2,7 +2,9 @@ use crate::internal::RySpanRelativeTo;
 use crate::ry_signed_duration::RySignedDuration;
 use jiff::Span;
 use pyo3::prelude::*;
+use pyo3::types::PyType;
 use std::fmt::Display;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Span", module = "ryo3")]
@@ -15,11 +17,19 @@ impl RySpan {
         Ok(Self(Span::new()))
     }
     fn __str__(&self) -> String {
-        format!("Span<{}>", self.0)
+        self.string()
     }
 
     fn string(&self) -> String {
         self.0.to_string()
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+
+    fn __ne__(&self, other: &Self) -> bool {
+        self.0 != other.0
     }
 
     fn __repr__(&self) -> String {
@@ -33,14 +43,58 @@ impl RySpan {
     fn __invert__(&self) -> PyResult<Self> {
         Ok(Self(self.0.negate()))
     }
+    #[classmethod]
+    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        Span::from_str(s)
+            .map(RySpan::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
 
-    // fn to_jiff_duration<'a, R: Into<SpanRelativeTo<'a>>>(
-    //     &self,
-    //     relative: R,
-    // ) -> PyResult<RySignedDuration> {
-    //     let a = self.0.to_jiff_duration(relative.into());
-    //     RySignedDuration()
-    // }
+    fn years(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.years(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn months(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.months(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn weeks(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.weeks(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn days(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.days(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn hours(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.hours(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn minutes(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.minutes(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn seconds(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.seconds(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn milliseconds(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.milliseconds(n);
+        Ok(RySpan::from(s))
+    }
+
+    fn microseconds(&self, n: i64) -> PyResult<Self> {
+        let s = self.0.microseconds(n);
+        Ok(RySpan::from(s))
+    }
+
     fn to_jiff_duration(&self, relative: RySpanRelativeTo) -> PyResult<RySignedDuration> {
         match relative {
             RySpanRelativeTo::Zoned(z) => self

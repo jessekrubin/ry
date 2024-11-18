@@ -1,4 +1,6 @@
-use jiff::Timestamp;
+use crate::ry_timezone::RyTimeZone;
+use crate::ry_zoned::RyZoned;
+use jiff::{Timestamp, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
@@ -32,6 +34,18 @@ impl RyTimestamp {
             .map(RyTimestamp::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
+
+    #[classmethod]
+    fn from_millisecond(_cls: &Bound<'_, PyType>, milisecond: i64) -> PyResult<RyTimestamp> {
+        Timestamp::from_millisecond(milisecond)
+            .map(RyTimestamp::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn to_zoned(&self, time_zone: RyTimeZone) -> RyZoned {
+        RyZoned::from(Zoned::new(self.0, time_zone.0))
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
         match op {
             CompareOp::Eq => (self.0 == other.0).into_py(py),
@@ -44,11 +58,19 @@ impl RyTimestamp {
     }
 
     fn string(&self) -> String {
-        self.0.to_string()
+        self.__str__()
     }
 
     fn __str__(&self) -> String {
+        self.0.to_string()
+    }
+
+    fn __repr__(&self) -> String {
         format!("Timestamp<{}>", self.string())
+    }
+
+    fn as_second(&self) -> i64 {
+        self.0.as_second()
     }
 
     fn as_microsecond(&self) -> i64 {

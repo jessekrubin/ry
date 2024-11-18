@@ -69,7 +69,7 @@ impl RyTime {
     }
 
     fn __str__(&self) -> String {
-        format!("Time<{self}>")
+        self.string()
     }
 
     fn millisecond(&self) -> i16 {

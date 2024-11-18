@@ -65,9 +65,14 @@ impl RyDate {
         }
     }
     fn string(&self) -> String {
+        self.__str__()
+    }
+
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
-    fn __str__(&self) -> String {
+
+    fn __repr__(&self) -> String {
         format!("Date<{self}>")
     }
 }

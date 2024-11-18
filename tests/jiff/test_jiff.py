@@ -5,7 +5,7 @@ ts = Timestamp.now()
 
 print(ts)
 
-ts_string = ts.to_string()
+ts_string = ts.string()
 
 ts_from_string = Timestamp.parse(ts_string)
 print(ts_from_string)
@@ -15,8 +15,7 @@ anotherone = "2024-11-11T18:47:34.639485Z"
 print(Timestamp.parse(anotherone))
 print(Timestamp.parse(anotherone) == ts_from_string)
 
-print(Timestamp.__module__
-      )
+print(Timestamp.__module__)
 
 print(Timestamp.__name__, Timestamp.__qualname__)
 
@@ -61,7 +60,5 @@ def test_span_2_duration() -> None:
     zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
     zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
     span = zdt2 - zdt1
-    duration = span.to_jiff_duration(
-        zdt2
-    )
+    duration = span.to_jiff_duration(zdt2)
     print(duration)
