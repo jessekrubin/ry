@@ -82,6 +82,7 @@ impl Display for RyDate {
         write!(f, "Date<{}>", self.0)
     }
 }
+
 impl From<Date> for RyDate {
     fn from(value: Date) -> Self {
         RyDate(value)
