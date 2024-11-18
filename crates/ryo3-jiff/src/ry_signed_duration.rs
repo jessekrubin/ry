@@ -5,8 +5,8 @@ use pyo3::{pyclass, pymethods, Bound, IntoPy, PyErr, PyObject, PyResult, Python}
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTime")]
-pub struct RySignedDuration(pub(crate) jiff::SignedDuration);
+#[pyclass(name = "SignedDuration")]
+pub struct RySignedDuration(pub(crate) SignedDuration);
 
 #[pymethods]
 impl RySignedDuration {

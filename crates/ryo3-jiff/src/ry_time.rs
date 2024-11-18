@@ -16,7 +16,7 @@
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
+use pyo3::types::{PyDate, PyDateAccess, PyType};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -24,7 +24,7 @@ use crate::ry_datetime::RyDateTime;
 use pyo3::IntoPy;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Time")]
+#[pyclass(name = "Time", module = "ryo3")]
 pub struct RyTime(pub(crate) jiff::civil::Time);
 
 #[pymethods]
@@ -72,6 +72,17 @@ impl RyTime {
         self.string()
     }
 
+    fn hour(&self) -> i8 {
+        self.0.hour()
+    }
+
+    fn minute(&self) -> i8 {
+        self.0.minute()
+    }
+    fn second(&self) -> i8 {
+        self.0.second()
+    }
+
     fn millisecond(&self) -> i16 {
         self.0.millisecond()
     }
@@ -82,10 +93,6 @@ impl RyTime {
 
     fn nanosecond(&self) -> i16 {
         self.0.nanosecond()
-    }
-
-    fn second(&self) -> i8 {
-        self.0.second()
     }
 
     fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {

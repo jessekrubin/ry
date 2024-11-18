@@ -37,3 +37,4 @@ def test_span_2_duration() -> None:
     span = zdt2 - zdt1
     duration = span.to_jiff_duration(zdt2)
     print(duration)
+    assert duration == ry.SignedDuration(secs=105627780, nanos=0)
