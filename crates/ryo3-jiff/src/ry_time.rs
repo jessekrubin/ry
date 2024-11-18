@@ -16,7 +16,7 @@
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyDate, PyDateAccess, PyType};
+use pyo3::types::PyType;
 use std::fmt::Display;
 use std::str::FromStr;
 
