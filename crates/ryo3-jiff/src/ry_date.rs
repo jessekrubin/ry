@@ -83,13 +83,16 @@ impl RyDate {
     }
 
     fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
-        let a = PyDate::new_bound(
-            py,
-            i32::from(self.0.year()),
-            self.0.month() as u8,
-            self.0.day() as u8,
-        );
-        a
+        let y = i32::from(self.0.year());
+        let m = self.0.month();
+
+        let m_u8 = u8::try_from(m)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+
+        let d = self.0.day();
+        let d_u8 = u8::try_from(d)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+        PyDate::new_bound(py, y, m_u8, d_u8)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
