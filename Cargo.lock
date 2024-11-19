@@ -837,7 +837,7 @@ dependencies = [
 
 [[package]]
 name = "ry"
-version = "0.0.12"
+version = "0.0.14"
 dependencies = [
  "chrono",
  "dirs",
@@ -854,7 +854,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.12"
+version = "0.0.14"
 dependencies = [
  "brotli",
  "bzip2",
@@ -883,7 +883,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.12"
+version = "0.0.14"
 dependencies = [
  "jiff",
  "pyo3",
@@ -891,7 +891,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.12"
+version = "0.0.14"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -899,7 +899,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.12"
+version = "0.0.14"
 dependencies = [
  "pyo3",
 ]
