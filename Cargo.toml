@@ -32,12 +32,14 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 strip = true
-lto = "fat"
+lto = "thin"
 
 [workspace]
 resolver = "2"
 members = [
   "crates/ryo3",
+  "crates/ryo3-std",
+  "crates/ryo3-jiff",
   "crates/ryo3-sqlformat",
 ]
 

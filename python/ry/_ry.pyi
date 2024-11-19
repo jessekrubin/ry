@@ -1,8 +1,10 @@
 """ry api ~ type annotations"""
 
+import datetime
+import typing as t
 from collections.abc import Iterator
 from os import PathLike
-from typing import Any, AnyStr, Literal, TypeVar, final
+from typing import TypedDict
 
 __version__: str
 __authors__: str
@@ -20,6 +22,15 @@ JsonValue = (
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]
 )
+
+# ==============================================================================
+# STD
+# ==============================================================================
+
+class Duration:
+    def __init__(self, seconds: int, nanoseconds: int) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
 
 # ==============================================================================
 # RY03-CORE
@@ -44,7 +55,7 @@ def pwd() -> str: ...
 def home() -> str: ...
 def cd(path: FsPathLike) -> None: ...
 def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
-def quick_maths() -> Literal[3]:
+def quick_maths() -> t.Literal[3]:
     """Performs quick-maths
 
     Implements the algorithm for performing "quick-maths" as described by
@@ -82,7 +93,7 @@ def run(
     *args: str | list[str],
     capture_output: bool = True,
     input: bytes | None = None,
-) -> Any: ...
+) -> t.Any: ...
 
 # ==============================================================================
 # DEV
@@ -250,30 +261,30 @@ def parse_json(
     /,
     *,
     allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
     /,
     *,
     allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def parse_json_str(
     data: str,
     /,
     *,
     allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
 def jiter_cache_clear() -> None: ...
 def jiter_cache_usage() -> int: ...
@@ -300,7 +311,7 @@ def fnv1a(input: bytes) -> FnvHasher: ...
 # ==============================================================================
 # DEV
 # ==============================================================================
-def anystr_noop(s: AnyStr) -> AnyStr: ...
+def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
 
 # ==============================================================================
 # BROTLI
@@ -343,7 +354,7 @@ def zstd_decode(input: bytes) -> bytes: ...
 # ==============================================================================
 # XXHASH
 # ==============================================================================
-@final
+@t.final
 class Xxh32:
     def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
     def update(self, input: bytes) -> None: ...
@@ -357,7 +368,7 @@ class Xxh32:
     @property
     def seed(self) -> int: ...
 
-@final
+@t.final
 class Xxh64:
     def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
     def update(self, input: bytes) -> None: ...
@@ -371,7 +382,7 @@ class Xxh64:
     @property
     def seed(self) -> int: ...
 
-@final
+@t.final
 class Xxh3:
     def __init__(
         self, input: bytes = ..., seed: int | None = ..., secret: bytes | None = ...
@@ -428,7 +439,9 @@ def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
 # SQLFORMAT
 # ==============================================================================
 SqlfmtParamValue = str | int | float
-TSqlfmtParamValue_co = TypeVar("TSqlfmtParamValue_co", str, int, float, covariant=True)
+TSqlfmtParamValue_co = t.TypeVar(
+    "TSqlfmtParamValue_co", str, int, float, covariant=True
+)
 TSqlfmtParamsLike = (
     dict[str, TSqlfmtParamValue_co]
     | list[tuple[str, TSqlfmtParamValue_co]]
@@ -476,3 +489,257 @@ def sqlfmt(
     uppercase: bool | None = True,
     lines_between_statements: int = 1,
 ) -> str: ...
+
+# ==============================================================================
+# JIFF
+# ==============================================================================
+
+class Date:
+    def __init__(self, year: int, month: int, day: int) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def at(self, hour: int, minute: int, second: int, nanosecond: int) -> DateTime: ...
+    def year(self) -> int: ...
+    def month(self) -> int: ...
+    def day(self) -> int: ...
+    def to_pydate(self) -> datetime.date: ...
+    @classmethod
+    def from_pydate(cls: type[Date], date: datetime.date) -> Date: ...
+    def astuple(self) -> tuple[int, int, int]: ...
+    def asdict(self) -> dict[str, int]: ...
+
+class Time:
+    def __init__(
+        self, hour: int, minute: int, second: int, nanosecond: int
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def second(self) -> int: ...
+    def millisecond(self) -> int: ...
+    def microsecond(self) -> int: ...
+    def nanosecond(self) -> int: ...
+
+class DateTime:
+    def __init__(
+        self,
+        year: int,
+        month: int,
+        day: int,
+        hour: int,
+        minute: int,
+        second: int,
+        nanosecond: int,
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def intz(self, tz: str) -> Zoned: ...
+
+class TimeZone:
+    def __init__(self, name: str) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SignedDuration:
+    def __init__(self, seconds: int, nanoseconds: int) -> None: ...
+
+class Span:
+    def __init__(
+        self,
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def string(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __neg__(self) -> Span: ...
+    def __invert__(self) -> Span: ...
+    @classmethod
+    def parse(cls: type[Span], s: str) -> Span: ...
+    def years(self, years: int) -> Span: ...
+    def months(self, months: int) -> Span: ...
+    def weeks(self, weeks: int) -> Span: ...
+    def days(self, days: int) -> Span: ...
+    def hours(self, hours: int) -> Span: ...
+    def minutes(self, minutes: int) -> Span: ...
+    def seconds(self, seconds: int) -> Span: ...
+    def to_jiff_duration(self, relative: Zoned | Date | DateTime) -> SignedDuration: ...
+
+class Timestamp:
+    """
+    A representation of a timestamp with second and nanosecond precision.
+    """
+
+    def __init__(
+        self, second: int | None = None, nanosecond: int | None = None
+    ) -> None:
+        """
+        Create a new `Timestamp` object.
+
+        Args:
+            second (Optional[int]): The number of seconds. Defaults to `0`.
+            nanosecond (Optional[int]): The number of nanoseconds. Defaults to `0`.
+        """
+        ...
+
+    @classmethod
+    def now(cls: type[Timestamp]) -> Timestamp:
+        """
+        Get the current `Timestamp`.
+
+        Returns:
+            Timestamp: The current `Timestamp`.
+        """
+        ...
+
+    @classmethod
+    def parse(cls: type[Timestamp], s: str) -> Timestamp:
+        """
+        Parse a string into a `Timestamp`.
+
+        Args:
+            s (str): The string to parse.
+
+        Returns:
+            Timestamp: The parsed `Timestamp`.
+
+        Raises:
+            ValueError: If the string cannot be parsed.
+        """
+        ...
+
+    @classmethod
+    def from_millisecond(cls: type[Timestamp], millisecond: int) -> Timestamp:
+        """
+        Create a `Timestamp` from milliseconds.
+
+        Args:
+            millisecond (int): Milliseconds since epoch.
+
+        Returns:
+            Timestamp: The resulting `Timestamp`.
+
+        Raises:
+            ValueError: If the millisecond value is invalid.
+        """
+        ...
+
+    def to_zoned(self, time_zone: TimeZone) -> Zoned:
+        """
+        Convert the `Timestamp` to a zoned timestamp in the specified timezone.
+
+        Args:
+            time_zone (RyTimeZone): The timezone to convert to.
+
+        Returns:
+            RyZoned: The zoned representation of the `Timestamp`.
+        """
+        ...
+
+    def string(self) -> str:
+        """
+        Get a string representation of the `Timestamp`.
+
+        Returns:
+            str: The string representation.
+        """
+        ...
+
+    def as_second(self) -> int:
+        """
+        Get the timestamp as seconds since epoch.
+
+        Returns:
+            int: The number of seconds since epoch.
+        """
+        ...
+
+    def as_microsecond(self) -> int:
+        """
+        Get the timestamp as microseconds since epoch.
+
+        Returns:
+            int: The number of microseconds since epoch.
+        """
+        ...
+
+    def as_millisecond(self) -> int:
+        """
+        Get the timestamp as milliseconds since epoch.
+
+        Returns:
+            int: The number of milliseconds since epoch.
+        """
+        ...
+
+    def as_nanosecond(self) -> int:
+        """
+        Get the timestamp as nanoseconds since epoch.
+
+        Returns:
+            int: The number of nanoseconds since epoch.
+        """
+        ...
+
+    def __str__(self) -> str:
+        """
+        Get a string representation of the `Timestamp`.
+
+        Returns:
+            str: The string representation.
+        """
+        ...
+
+    def __repr__(self) -> str:
+        """
+        Get a developer-readable string representation of the `Timestamp`.
+
+        Returns:
+            str: The developer-readable string representation.
+        """
+        ...
+
+    def __richcmp__(self, other: Timestamp, op: int) -> bool:
+        """
+        Perform rich comparison operations.
+
+        Args:
+            other (Timestamp): The other `Timestamp` to compare.
+            op (int): The comparison operation.
+
+        Returns:
+            bool: The result of the comparison.
+        """
+        ...
+
+class Zoned:
+    def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -> None: ...
+    @classmethod
+    def now(cls: type[Zoned]) -> Zoned: ...
+    @classmethod
+    def parse(cls: type[Zoned], s: str) -> Zoned: ...
+    def __str__(self) -> str: ...
+    def string(self) -> str: ...
+    @classmethod
+    def strptime(cls: type[Zoned], format: str, input: str) -> Zoned: ...
+    def strftime(self, format: str) -> str: ...
+    def __richcmp__(self, other: Zoned, op: int) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: object) -> bool: ...
+    def __le__(self, other: object) -> bool: ...
+    def __gt__(self, other: object) -> bool: ...
+    def __ge__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __sub__(self, other: Zoned) -> Span: ...
+    def intz(self, tz: str) -> Zoned: ...
+    def checked_add(self, span: Span) -> Zoned: ...
+
+def date(year: int, month: int, day: int) -> Date: ...
+def time(hour: int, minute: int, second: int, nanosecond: int) -> Time: ...
+def datetime(
+    year: int,
+    month: int,
+    day: int,
+    hour: int,
+    minute: int,
+    second: int,
+    nanosecond: int,
+) -> DateTime: ...

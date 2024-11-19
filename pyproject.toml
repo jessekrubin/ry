@@ -64,6 +64,8 @@ testpaths = [
 addopts = [
   "--doctest-modules",
 ]
+asyncio_mode = 'auto'
+asyncio_default_fixture_loop_scope = "function"
 norecursedirs = [
   ".git",
   ".nox",

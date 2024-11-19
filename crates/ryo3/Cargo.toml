@@ -16,8 +16,11 @@ serde_json.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 
+# required ryo3-* dependencies
+ryo3-std = { path = "../ryo3-std" }
 # optional ryo3-* dependencies
 ryo3-sqlformat = { path = "../ryo3-sqlformat", optional = true }
+ryo3-jiff = { path = "../ryo3-jiff", optional = true }
 
 # optional
 brotli = { version = "7.0.0", optional = true }
@@ -44,6 +47,7 @@ all = [
   "brotli",
   "bzip2",
   "flate2",
+  "jiff",
   "fnv",
   "globset",
   "jiter",
@@ -65,3 +69,4 @@ which = ["dep:which"]
 xxhash = ["dep:xxhash-rust"]
 zstd = ["dep:zstd"]
 sqlformat = ["dep:ryo3-sqlformat"]
+jiff = ["dep:ryo3-jiff"]
