@@ -1,9 +1,9 @@
 """ry api ~ type annotations"""
 
+import datetime
 import typing as t
 from collections.abc import Iterator
 from os import PathLike
-import datetime
 from typing import TypedDict
 
 __version__: str
@@ -23,18 +23,14 @@ JsonValue = (
     | list[JsonPrimitive | JsonValue]
 )
 
-
 # ==============================================================================
 # STD
 # ==============================================================================
 
 class Duration:
     def __init__(self, seconds: int, nanoseconds: int) -> None: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
 
 # ==============================================================================
 # RY03-CORE
@@ -42,42 +38,23 @@ class Duration:
 
 class FsPath:
     def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
-
     def __fspath__(self) -> str: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
     def __eq__(self, other: object) -> bool: ...
-
     def __ne__(self, other: object) -> bool: ...
-
     def read_text(self) -> str: ...
-
     def read_bytes(self) -> bytes: ...
-
     def absolute(self) -> FsPath: ...
-
     @property
     def parent(self) -> FsPath: ...
 
-
 FsPathLike = str | FsPath | PathLike[str]
 
-
 def pwd() -> str: ...
-
-
 def home() -> str: ...
-
-
 def cd(path: FsPathLike) -> None: ...
-
-
 def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
-
-
 def quick_maths() -> t.Literal[3]:
     """Performs quick-maths
 
@@ -96,27 +73,18 @@ def quick_maths() -> t.Literal[3]:
     NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
     """
 
-
 # ==============================================================================
 # SLEEP
 # ==============================================================================
 def sleep(seconds: float) -> float: ...
 
-
 # ==============================================================================
 # FILESYSTEM
 # ==============================================================================
 def read_text(path: FsPathLike) -> str: ...
-
-
 def read_bytes(path: FsPathLike) -> bytes: ...
-
-
 def write_text(path: FsPathLike, data: str) -> None: ...
-
-
 def write_bytes(path: FsPathLike, data: bytes) -> None: ...
-
 
 # ==============================================================================
 # SUBPROCESS (VERY MUCH WIP)
@@ -127,16 +95,12 @@ def run(
     input: bytes | None = None,
 ) -> t.Any: ...
 
-
 # ==============================================================================
 # DEV
 # ==============================================================================
 
 def string_noop(s: str) -> str: ...
-
-
 def bytes_noop(s: bytes) -> bytes: ...
-
 
 # ------------------------------------------------------------------------------
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -152,14 +116,9 @@ def bytes_noop(s: bytes) -> bytes: ...
 # WHICH
 # ==============================================================================
 def which(cmd: str, path: None | str = None) -> str | None: ...
-
-
 def which_all(cmd: str, path: None | str = None) -> list[str]: ...
-
-
 def whicha(cmd: str, path: None | str = None) -> list[str]:
     """Alias for which_all (may go away in the future)"""
-
 
 # ==============================================================================
 # GLOBSET
@@ -176,19 +135,12 @@ class Glob:
         literal_separator: bool | None = None,
         backslash_escape: bool | None = None,
     ) -> None: ...
-
     def regex(self) -> str: ...
-
     def is_match(self, path: str) -> bool: ...
-
     def __call__(self, path: str) -> bool: ...
-
     def __invert__(self) -> Glob: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
 
 class GlobSet:
     """globset::GlobSet wrapper"""
@@ -202,21 +154,13 @@ class GlobSet:
         literal_separator: bool | None = None,
         backslash_escape: bool | None = None,
     ) -> None: ...
-
     def is_empty(self) -> bool: ...
-
     def is_match(self, path: str) -> bool: ...
-
     def matches(self, path: str) -> list[int]: ...
-
     def __call__(self, path: str) -> bool: ...
-
     def __invert__(self) -> GlobSet: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
 
 class Globster:
     """Globster is a matcher with claws!
@@ -235,19 +179,12 @@ class Globster:
         literal_separator: bool | None = None,
         backslash_escape: bool | None = None,
     ) -> None: ...
-
     def is_empty(self) -> bool: ...
-
     def is_match(self, path: str) -> bool: ...
-
     def __call__(self, path: str) -> bool: ...
-
     def __invert__(self) -> GlobSet: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
 
 def glob(
     pattern: str,
@@ -257,8 +194,6 @@ def glob(
     literal_separator: bool | None = None,
     backslash_escape: bool | None = None,
 ) -> Glob: ...
-
-
 def globs(
     patterns: list[str],
     /,
@@ -267,7 +202,6 @@ def globs(
     literal_separator: bool | None = None,
     backslash_escape: bool | None = None,
 ) -> Globster: ...
-
 
 # ==============================================================================
 # WALKDIR
@@ -280,9 +214,7 @@ class WalkdirGen:
     dirs: bool
 
     def __next__(self) -> str: ...
-
     def __iter__(self) -> Iterator[str]: ...
-
 
 class FspathsGen:
     """walkdir iterable that yields FsPath objects"""
@@ -291,9 +223,7 @@ class FspathsGen:
     dirs: bool
 
     def __next__(self) -> FsPath: ...
-
     def __iter__(self) -> Iterator[FsPath]: ...
-
 
 def walkdir(
     path: FsPathLike | None = None,
@@ -305,8 +235,6 @@ def walkdir(
     follow_links: bool = False,
     same_file_system: bool = False,
 ) -> WalkdirGen: ...
-
-
 def fspaths(
     path: FsPathLike | None = None,
     files: bool = True,
@@ -318,14 +246,12 @@ def fspaths(
     same_file_system: bool = False,
 ) -> WalkdirGen: ...
 
-
 # ==============================================================================
 # SHLEX
 # ==============================================================================
 def shplit(s: str) -> list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
     ...
-
 
 # ==============================================================================
 # JSON
@@ -340,8 +266,6 @@ def parse_json(
     catch_duplicate_keys: bool = False,
     float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
-
-
 def parse_json_bytes(
     data: bytes,
     /,
@@ -352,8 +276,6 @@ def parse_json_bytes(
     catch_duplicate_keys: bool = False,
     float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
-
-
 def parse_json_str(
     data: str,
     /,
@@ -364,47 +286,32 @@ def parse_json_str(
     catch_duplicate_keys: bool = False,
     float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
 ) -> JsonValue: ...
-
-
 def jiter_cache_clear() -> None: ...
-
-
 def jiter_cache_usage() -> int: ...
-
 
 # ==============================================================================
 # FORMATTING
 # ==============================================================================
 def fmt_nbytes(nbytes: int) -> str: ...
 
-
 # ==============================================================================
 # FNV
 # ==============================================================================
 class FnvHasher:
     def __init__(self, input: bytes | None = None) -> None: ...
-
     def update(self, input: bytes) -> None: ...
-
     def digest(self) -> int: ...
-
     def hexdigest(self) -> str: ...
-
     def copy(self) -> FnvHasher: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
 
-
 def fnv1a(input: bytes) -> FnvHasher: ...
-
 
 # ==============================================================================
 # DEV
 # ==============================================================================
 def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
-
 
 # ==============================================================================
 # BROTLI
@@ -412,57 +319,37 @@ def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
 def brotli_encode(
     input: bytes, quality: int = 11, magic_number: bool = False
 ) -> bytes: ...
-
-
 def brotli_decode(input: bytes) -> bytes: ...
-
-
 def brotli(input: bytes, quality: int = 11, magic_number: bool = False) -> bytes:
     """Alias for brotli_encode"""
-
 
 # ==============================================================================
 # BZIP2
 # ==============================================================================
 def bzip2_encode(input: bytes, quality: int = 9) -> bytes: ...
-
-
 def bzip2_decode(input: bytes) -> bytes: ...
-
-
 def bzip2(input: bytes, quality: int = 9) -> bytes:
     """Alias for bzip2_encode"""
-
 
 # ==============================================================================
 # GZIP
 # ==============================================================================
 def gzip_encode(input: bytes, quality: int = 9) -> bytes: ...
-
-
 def gzip_decode(input: bytes) -> bytes: ...
-
-
 def gzip(input: bytes, quality: int = 9) -> bytes:
     """Alias for gzip_encode"""
 
-
 def gunzip(input: bytes) -> bytes:
     """Alias for gzip_decode"""
-
 
 # ==============================================================================
 # ZSTD
 # ==============================================================================
 def zstd_encode(input: bytes, level: int = 3) -> bytes: ...
-
-
 def zstd(input: bytes, level: int = 3) -> bytes:
     """Alias for zstd_encode"""
 
-
 def zstd_decode(input: bytes) -> bytes: ...
-
 
 # ==============================================================================
 # XXHASH
@@ -470,149 +357,83 @@ def zstd_decode(input: bytes) -> bytes: ...
 @t.final
 class Xxh32:
     def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
-
     def update(self, input: bytes) -> None: ...
-
     def digest(self) -> bytes: ...
-
     def hexdigest(self) -> str: ...
-
     def intdigest(self) -> int: ...
-
     def copy(self) -> Xxh32: ...
-
     def reset(self, seed: int | None = ...) -> None: ...
-
     @property
     def name(self) -> str: ...
-
     @property
     def seed(self) -> int: ...
-
 
 @t.final
 class Xxh64:
     def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
-
     def update(self, input: bytes) -> None: ...
-
     def digest(self) -> bytes: ...
-
     def hexdigest(self) -> str: ...
-
     def intdigest(self) -> int: ...
-
     def copy(self) -> Xxh32: ...
-
     def reset(self, seed: int | None = ...) -> None: ...
-
     @property
     def name(self) -> str: ...
-
     @property
     def seed(self) -> int: ...
-
 
 @t.final
 class Xxh3:
     def __init__(
         self, input: bytes = ..., seed: int | None = ..., secret: bytes | None = ...
     ) -> None: ...
-
     def update(self, input: bytes) -> None: ...
-
     def digest(self) -> bytes: ...
-
     def hexdigest(self) -> str: ...
-
     def intdigest(self) -> int: ...
-
     @property
     def name(self) -> str: ...
-
     @property
     def seed(self) -> int: ...
-
     def digest128(self) -> bytes: ...
-
     def hexdigest128(self) -> str: ...
-
     def intdigest128(self) -> int: ...
-
     def copy(self) -> Xxh3: ...
-
     def reset(self) -> None: ...
 
-
 def xxh32(input: bytes | None = None, seed: int | None = None) -> Xxh32: ...
-
-
 def xxh64(input: bytes | None = None, seed: int | None = None) -> Xxh64: ...
-
-
 def xxh3(
     input: bytes | None = None, seed: int | None = None, secret: bytes | None = None
 ) -> Xxh3: ...
 
-
 # xxh32
 def xxh32_digest(input: bytes, seed: int | None = None) -> bytes: ...
-
-
 def xxh32_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
-
 def xxh32_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
 
 # xxh64
 def xxh64_digest(input: bytes, seed: int | None = None) -> bytes: ...
-
-
 def xxh64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
-
 def xxh64_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
 
 # xxh128
 def xxh128_digest(input: bytes, seed: int | None = None) -> bytes: ...
-
-
 def xxh128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
-
 def xxh128_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
 
 # xxh3
 def xxh3_64_digest(input: bytes, seed: int | None = None) -> bytes: ...
-
-
 def xxh3_64_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
-
 def xxh3_64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
-
 def xxh3_digest(input: bytes, seed: int | None = None) -> bytes: ...
-
-
 def xxh3_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
-
 def xxh3_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
 
 # xxh128
 def xxh3_128_digest(input: bytes, seed: int | None = None) -> bytes: ...
-
-
 def xxh3_128_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
-
 def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
 
 # ==============================================================================
 # SQLFORMAT
@@ -652,20 +473,14 @@ SqlfmtParamsLikeExpanded = (
     | list[str | int | float]
 )
 
-
 class SqlfmtQueryParams:
     def __init__(self, params: SqlfmtParamsLikeExpanded) -> None: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
 
 def sqlfmt_params(
     params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams,
 ) -> SqlfmtQueryParams: ...
-
-
 def sqlfmt(
     sql: str,
     params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams | None = None,
@@ -675,54 +490,34 @@ def sqlfmt(
     lines_between_statements: int = 1,
 ) -> str: ...
 
-
 # ==============================================================================
 # JIFF
 # ==============================================================================
 
-
 class Date:
     def __init__(self, year: int, month: int, day: int) -> None: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
     def at(self, hour: int, minute: int, second: int, nanosecond: int) -> DateTime: ...
-
     def year(self) -> int: ...
-
     def month(self) -> int: ...
-
     def day(self) -> int: ...
-
     def to_pydate(self) -> datetime.date: ...
-
     @classmethod
     def from_pydate(cls: type[Date], date: datetime.date) -> Date: ...
-
     def astuple(self) -> tuple[int, int, int]: ...
-
     def asdict(self) -> dict[str, int]: ...
-
 
 class Time:
     def __init__(
         self, hour: int, minute: int, second: int, nanosecond: int
     ) -> None: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
     def second(self) -> int: ...
-
     def millisecond(self) -> int: ...
-
     def microsecond(self) -> int: ...
-
     def nanosecond(self) -> int: ...
-
 
 class DateTime:
     def __init__(
@@ -735,60 +530,37 @@ class DateTime:
         second: int,
         nanosecond: int,
     ) -> None: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
     def intz(self, tz: str) -> Zoned: ...
-
 
 class TimeZone:
     def __init__(self, name: str) -> None: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
 
 class SignedDuration:
     def __init__(self, seconds: int, nanoseconds: int) -> None: ...
-
 
 class Span:
     def __init__(
         self,
     ) -> None: ...
-
     def __str__(self) -> str: ...
-
     def string(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
     def __neg__(self) -> Span: ...
-
     def __invert__(self) -> Span: ...
-
     @classmethod
     def parse(cls: type[Span], s: str) -> Span: ...
-
     def years(self, years: int) -> Span: ...
-
     def months(self, months: int) -> Span: ...
-
     def weeks(self, weeks: int) -> Span: ...
-
     def days(self, days: int) -> Span: ...
-
     def hours(self, hours: int) -> Span: ...
-
     def minutes(self, minutes: int) -> Span: ...
-
     def seconds(self, seconds: int) -> Span: ...
-
     def to_jiff_duration(self, relative: Zoned | Date | DateTime) -> SignedDuration: ...
-
 
 class Timestamp:
     """
@@ -937,54 +709,31 @@ class Timestamp:
         """
         ...
 
-
 class Zoned:
     def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -> None: ...
-
     @classmethod
     def now(cls: type[Zoned]) -> Zoned: ...
-
     @classmethod
     def parse(cls: type[Zoned], s: str) -> Zoned: ...
-
     def __str__(self) -> str: ...
-
     def string(self) -> str: ...
-
     @classmethod
     def strptime(cls: type[Zoned], format: str, input: str) -> Zoned: ...
-
     def strftime(self, format: str) -> str: ...
-
     def __richcmp__(self, other: Zoned, op: int) -> bool: ...
-
     def __eq__(self, other: object) -> bool: ...
-
     def __ne__(self, other: object) -> bool: ...
-
     def __lt__(self, other: object) -> bool: ...
-
     def __le__(self, other: object) -> bool: ...
-
     def __gt__(self, other: object) -> bool: ...
-
     def __ge__(self, other: object) -> bool: ...
-
     def __hash__(self) -> int: ...
-
     def __sub__(self, other: Zoned) -> Span: ...
-
     def intz(self, tz: str) -> Zoned: ...
-
     def checked_add(self, span: Span) -> Zoned: ...
 
-
 def date(year: int, month: int, day: int) -> Date: ...
-
-
 def time(hour: int, minute: int, second: int, nanosecond: int) -> Time: ...
-
-
 def datetime(
     year: int,
     month: int,

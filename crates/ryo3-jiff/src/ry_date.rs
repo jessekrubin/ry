@@ -85,7 +85,7 @@ impl RyDate {
     fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
         let a = PyDate::new_bound(
             py,
-            self.0.year() as i32,
+            i32::from(self.0.year()),
             self.0.month() as u8,
             self.0.day() as u8,
         );
@@ -104,7 +104,7 @@ impl RyDate {
         Ok(tup)
     }
 
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<PyObject> {
+    fn asdict(&self, py: Python<'_>) -> PyResult<PyObject> {
         let dict = PyDict::new_bound(py);
         dict.set_item("year", self.0.year())?;
         dict.set_item("month", self.0.month())?;
@@ -123,7 +123,7 @@ fn pydate2rydate(py_date: &impl PyDateAccess) -> PyResult<RyDate> {
     let d = py_date.get_day();
     let d_i8 = i8::try_from(d)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
-    Ok(RyDate::new(y_i16, m_i8, d_i8)?)
+    RyDate::new(y_i16, m_i8, d_i8)
 }
 
 // #[derive(Debug, FromPyObject)]
