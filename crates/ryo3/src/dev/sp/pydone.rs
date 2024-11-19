@@ -27,12 +27,12 @@ impl PyDone {
 
     #[getter]
     fn stdout<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        PyBytes::new_bound(py, &self.done.stdout)
+        PyBytes::new(py, &self.done.stdout)
     }
 
     #[getter]
     fn stderr<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        PyBytes::new_bound(py, &self.done.stderr)
+        PyBytes::new(py, &self.done.stderr)
     }
 
     #[getter]

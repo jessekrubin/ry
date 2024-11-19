@@ -27,7 +27,7 @@ pub fn bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResu
     let encoded = bzip2_encoder.finish().map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("bzip2-encode-error: {e:?}"))
     })?;
-    Ok(PyBytes::new_bound(py, &encoded).into())
+    Ok(PyBytes::new(py, &encoded).into())
 }
 
 #[pyfunction]
@@ -44,7 +44,7 @@ pub fn bzip2_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
         .map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("bzip2-decode-error: {e:?}"))
         })?;
-    Ok(PyBytes::new_bound(py, &decompressed).into())
+    Ok(PyBytes::new(py, &decompressed).into())
 }
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {

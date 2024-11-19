@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.14 [2024-11-20]
+
+- Primitive/crude wrappers around Mr. Sushi's `jiff` library
+- Updated to use pyo3 (had to use jiter git repo dep)
+- (todo undo when jiter + pyo3 23 is public)
+
+## v0.0.13 [2024-11-20]
+
+- **VERSION SKIPPED DUE TO `13` BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS (AKA fully 'superstitchous')**
+
 ## v0.0.12 [2024-11-14]
 
 - sqlformat wrapper(s) (this is the first `ryo3-*` sub-crate)

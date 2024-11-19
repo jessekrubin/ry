@@ -18,7 +18,7 @@ fn xxh32_digest<'a>(
     seed: Option<u32>,
 ) -> PyResult<Bound<'a, PyBytes>> {
     let v = const_xxh32(b, seed.unwrap_or(0));
-    Ok(PyBytes::new_bound(py, &v.to_be_bytes()))
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
 }
 
 #[pyfunction]
@@ -41,7 +41,7 @@ fn xxh64_digest<'a>(
     seed: Option<u64>,
 ) -> PyResult<Bound<'a, PyBytes>> {
     let v = const_xxh64(b, seed.unwrap_or(0));
-    Ok(PyBytes::new_bound(py, &v.to_be_bytes()))
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
 }
 
 #[pyfunction]
@@ -64,7 +64,7 @@ fn xxh3_64_digest<'a>(
     seed: Option<u64>,
 ) -> PyResult<Bound<'a, PyBytes>> {
     let v = const_xxh3_64_with_seed(b, seed.unwrap_or(0));
-    Ok(PyBytes::new_bound(py, &v.to_be_bytes()))
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
 }
 
 #[pyfunction]
@@ -90,7 +90,7 @@ fn xxh3_128_digest<'a>(
     seed: Option<u64>,
 ) -> PyResult<Bound<'a, PyBytes>> {
     let v = const_xxh3_128_with_seed(b, seed.unwrap_or(0));
-    Ok(PyBytes::new_bound(py, &v.to_be_bytes()))
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
 }
 
 #[pyfunction]
@@ -196,7 +196,7 @@ impl PyXxh32 {
 
     fn digest<'a>(&self, py: Python<'a>) -> PyResult<Bound<'a, PyBytes>> {
         let digest = self.hasher.digest();
-        Ok(PyBytes::new_bound(py, &digest.to_be_bytes()))
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
     fn intdigest(&self) -> PyResult<u32> {
@@ -282,7 +282,7 @@ impl PyXxh64 {
     }
     fn digest<'a>(&self, py: Python<'a>) -> PyResult<Bound<'a, PyBytes>> {
         let digest = self.hasher.digest();
-        Ok(PyBytes::new_bound(py, &digest.to_be_bytes()))
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
     fn intdigest(&self) -> PyResult<u64> {
@@ -364,7 +364,7 @@ impl PyXxh3 {
 
     fn digest<'a>(&self, py: Python<'a>) -> PyResult<Bound<'a, PyBytes>> {
         let digest = self.hasher.digest();
-        Ok(PyBytes::new_bound(py, &digest.to_be_bytes()))
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
     fn intdigest(&self) -> PyResult<u64> {
@@ -377,7 +377,7 @@ impl PyXxh3 {
 
     fn digest128<'a>(&self, py: Python<'a>) -> PyResult<Bound<'a, PyBytes>> {
         let digest = self.hasher.digest128();
-        Ok(PyBytes::new_bound(py, &digest.to_be_bytes()))
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
     fn intdigest128(&self) -> PyResult<u128> {

@@ -44,7 +44,7 @@ pub fn brotli_encode(
         })?;
         encoder.into_inner()
     };
-    Ok(PyBytes::new_bound(py, &encoded).into())
+    Ok(PyBytes::new(py, &encoded).into())
 }
 
 #[pyfunction]
@@ -64,7 +64,7 @@ pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     br::Decompressor::new(data, 4 * 1024)
         .read_to_end(&mut decompressed)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}")))?;
-    Ok(PyBytes::new_bound(py, &decompressed).into())
+    Ok(PyBytes::new(py, &decompressed).into())
 }
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {

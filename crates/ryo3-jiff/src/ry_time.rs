@@ -21,7 +21,6 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 use crate::ry_datetime::RyDateTime;
-use pyo3::IntoPy;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Time", module = "ryo3")]
@@ -53,14 +52,14 @@ impl RyTime {
         RyDateTime::from(self.0.on(year, month, day))
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
-            CompareOp::Eq => (self.0 == other.0).into_py(py),
-            CompareOp::Ne => (self.0 != other.0).into_py(py),
-            CompareOp::Lt => (self.0 < other.0).into_py(py),
-            CompareOp::Le => (self.0 <= other.0).into_py(py),
-            CompareOp::Gt => (self.0 > other.0).into_py(py),
-            CompareOp::Ge => (self.0 >= other.0).into_py(py),
+            CompareOp::Eq => Ok(self.0 == other.0),
+            CompareOp::Ne => Ok(self.0 != other.0),
+            CompareOp::Lt => Ok(self.0 < other.0),
+            CompareOp::Le => Ok(self.0 <= other.0),
+            CompareOp::Gt => Ok(self.0 > other.0),
+            CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
 
