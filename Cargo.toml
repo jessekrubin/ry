@@ -32,7 +32,7 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 strip = true
-lto = "fat"
+lto = "thin"
 
 [workspace]
 resolver = "2"
