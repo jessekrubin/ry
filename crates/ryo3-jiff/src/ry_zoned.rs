@@ -106,6 +106,10 @@ impl RyZoned {
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
+
+    fn timezone(&self) -> RyTimeZone {
+        RyTimeZone::from(self.0.time_zone())
+    }
 }
 
 impl Display for RyZoned {

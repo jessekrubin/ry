@@ -12,6 +12,12 @@ impl From<TimeZone> for RyTimeZone {
     }
 }
 
+impl From<&TimeZone> for RyTimeZone {
+    fn from(value: &TimeZone) -> Self {
+        RyTimeZone(value.clone())
+    }
+}
+
 #[pymethods]
 impl RyTimeZone {
     #[new]
