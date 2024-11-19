@@ -5,7 +5,7 @@ use crate::RyDate;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, IntoPy, PyErr, PyObject, PyResult, Python};
+use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -46,14 +46,14 @@ impl RyZoned {
         self.0.strftime(format).to_string()
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
-            CompareOp::Eq => (self.0 == other.0).into_py(py),
-            CompareOp::Ne => (self.0 != other.0).into_py(py),
-            CompareOp::Lt => (self.0 < other.0).into_py(py),
-            CompareOp::Le => (self.0 <= other.0).into_py(py),
-            CompareOp::Gt => (self.0 > other.0).into_py(py),
-            CompareOp::Ge => (self.0 >= other.0).into_py(py),
+            CompareOp::Eq => Ok(self.0 == other.0),
+            CompareOp::Ne => Ok(self.0 != other.0),
+            CompareOp::Lt => Ok(self.0 < other.0),
+            CompareOp::Le => Ok(self.0 <= other.0),
+            CompareOp::Gt => Ok(self.0 > other.0),
+            CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
 

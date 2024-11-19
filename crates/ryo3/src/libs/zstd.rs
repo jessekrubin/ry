@@ -12,7 +12,7 @@ pub fn zstd_encode(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<
     let encoded = zstdrs::stream::encode_all(data, level).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("zstd-encode-error: {e:?}"))
     })?;
-    Ok(PyBytes::new_bound(py, &encoded).into())
+    Ok(PyBytes::new(py, &encoded).into())
 }
 #[pyfunction]
 #[pyo3(signature = (data, level=None))]
@@ -27,7 +27,7 @@ pub fn zstd_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     zstdrs::stream::copy_decode(data, &mut decompressed).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("zstd-decode-error: {e:?}"))
     })?;
-    Ok(PyBytes::new_bound(py, &decompressed).into())
+    Ok(PyBytes::new(py, &decompressed).into())
 }
 
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {

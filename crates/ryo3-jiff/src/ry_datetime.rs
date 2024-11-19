@@ -4,6 +4,7 @@ use crate::ry_zoned::RyZoned;
 use crate::RyDate;
 use jiff::civil::DateTime;
 use jiff::Zoned;
+use pyo3::basic::CompareOp;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
 use std::fmt::Display;
@@ -45,6 +46,17 @@ impl RyDateTime {
         DateTime::from_str(s)
             .map(RyDateTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(self.0 == other.0),
+            CompareOp::Ne => Ok(self.0 != other.0),
+            CompareOp::Lt => Ok(self.0 < other.0),
+            CompareOp::Le => Ok(self.0 <= other.0),
+            CompareOp::Gt => Ok(self.0 > other.0),
+            CompareOp::Ge => Ok(self.0 >= other.0),
+        }
     }
 
     fn year(&self) -> i16 {

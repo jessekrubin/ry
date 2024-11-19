@@ -21,7 +21,7 @@ pub fn read_vec_u8(s: &str) -> PyResult<Vec<u8>> {
 #[pyfunction]
 pub fn read_bytes(py: Python<'_>, s: &str) -> PyResult<PyObject> {
     let bvec = read_vec_u8(s)?;
-    Ok(PyBytes::new_bound(py, &bvec).into())
+    Ok(PyBytes::new(py, &bvec).into())
 }
 
 #[pyfunction]
@@ -31,7 +31,7 @@ pub fn read_text(py: Python<'_>, s: &str) -> PyResult<String> {
     match r {
         Ok(s) => Ok(s.to_string()),
         Err(e) => {
-            let decode_err = PyUnicodeDecodeError::new_utf8_bound(py, &bvec, e)?;
+            let decode_err = PyUnicodeDecodeError::new_utf8(py, &bvec, e)?;
             Err(decode_err.into())
         }
     }

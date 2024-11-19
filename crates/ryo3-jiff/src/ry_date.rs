@@ -6,7 +6,7 @@ use jiff::civil::Date;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDate, PyDateAccess, PyDict, PyDictMethods, PyTuple, PyType};
-use pyo3::{pyclass, pymethods, Bound, IntoPy, PyErr, PyObject, PyResult, Python};
+use pyo3::{pyclass, pymethods, Bound, IntoPyObject, PyErr, PyObject, PyResult, Python};
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]
@@ -54,14 +54,14 @@ impl RyDate {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn __richcmp__(&self, other: &RyDate, op: CompareOp, py: Python<'_>) -> PyObject {
+    fn __richcmp__(&self, other: &RyDate, op: CompareOp) -> PyResult<bool> {
         match op {
-            CompareOp::Eq => (self.0 == other.0).into_py(py),
-            CompareOp::Ne => (self.0 != other.0).into_py(py),
-            CompareOp::Lt => (self.0 < other.0).into_py(py),
-            CompareOp::Le => (self.0 <= other.0).into_py(py),
-            CompareOp::Gt => (self.0 > other.0).into_py(py),
-            CompareOp::Ge => (self.0 >= other.0).into_py(py),
+            CompareOp::Eq => Ok(self.0 == other.0),
+            CompareOp::Ne => Ok(self.0 != other.0),
+            CompareOp::Lt => Ok(self.0 < other.0),
+            CompareOp::Le => Ok(self.0 <= other.0),
+            CompareOp::Gt => Ok(self.0 > other.0),
+            CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
 
@@ -92,23 +92,19 @@ impl RyDate {
         let d = self.0.day();
         let d_u8 = u8::try_from(d)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
-        PyDate::new_bound(py, y, m_u8, d_u8)
+        PyDate::new(py, y, m_u8, d_u8)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let tup = PyTuple::new_bound(
-            py,
-            vec![
-                self.0.year().into_py(py),
-                self.0.month().into_py(py),
-                self.0.day().into_py(py),
-            ],
-        );
-        Ok(tup)
-    }
+        let year_any = self.0.year().into_pyobject(py)?.into_any();
+        let month_any = self.0.month().into_pyobject(py)?.into_any();
+        let day_any = self.0.day().into_pyobject(py)?.into_any();
+        let parts = vec![year_any, month_any, day_any];
 
+        PyTuple::new(py, parts)
+    }
     fn asdict(&self, py: Python<'_>) -> PyResult<PyObject> {
-        let dict = PyDict::new_bound(py);
+        let dict = PyDict::new(py);
         dict.set_item("year", self.0.year())?;
         dict.set_item("month", self.0.month())?;
         dict.set_item("day", self.0.day())?;

@@ -26,7 +26,7 @@ pub fn gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResul
     let encoded = gzip_encoder.finish().map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("gzip-encode-error: {e:?}"))
     })?;
-    Ok(PyBytes::new_bound(py, &encoded).into())
+    Ok(PyBytes::new(py, &encoded).into())
 }
 
 #[pyfunction]
@@ -37,7 +37,7 @@ pub fn gzip_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
         .map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("gzip-decode-error: {e:?}"))
         })?;
-    Ok(PyBytes::new_bound(py, &decompressed).into())
+    Ok(PyBytes::new(py, &decompressed).into())
 }
 
 // aliases...
