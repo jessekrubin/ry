@@ -10,5 +10,5 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-jiff = { version = "0.1.14", features = ["serde"] }
+jiff = { version = "0.1.14", features = ["default", "serde"] }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
