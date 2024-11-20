@@ -2,7 +2,6 @@ import itertools as it
 
 import ry.dev as ry
 
-
 # ====================
 # Zoned
 # ====================
@@ -25,8 +24,7 @@ def test_zoned() -> None:
     }
 
     assert zdt_fields == {
-        "tz":
-            "America/New_York",
+        "tz": "America/New_York",
         "year": 2020,
         "month": 8,
         "day": 26,
@@ -35,7 +33,6 @@ def test_zoned() -> None:
         "second": 0,
         "nanosecond": 0,
         "subsec_nanosecond": 0,
-
     }
 
     ry_datetime = zdt.datetime()
@@ -76,7 +73,6 @@ def test_zoned() -> None:
         "minute": 27,
         "second": 0,
         "microsecond": 0,
-
     }
 
 
