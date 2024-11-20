@@ -24,7 +24,7 @@ mod ry_timestamp;
 mod ry_timezone;
 mod ry_zoned;
 
-use crate::dev::{JiffUnit, RyDateTimeRound};
+use crate::dev::RyDateTimeRound;
 use crate::ry_date::RyDate;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;

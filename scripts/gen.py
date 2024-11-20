@@ -48,7 +48,7 @@ def main():
     except Exception as e:
         eprint(e)
         raise e from None
-    print(init_string)
+    sys.stdout.buffer.write(init_string.encode("utf-8"))
 
 
 if __name__ == "__main__":

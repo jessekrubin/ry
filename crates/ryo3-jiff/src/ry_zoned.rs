@@ -142,9 +142,9 @@ enum IntoZonedRound {
     JiffUnit(JiffUnit),
 }
 
-impl Into<ZonedRound> for IntoZonedRound {
-    fn into(self) -> ZonedRound {
-        match self {
+impl From<IntoZonedRound> for ZonedRound {
+    fn from(val: IntoZonedRound) -> Self {
+        match val {
             // TODO: this is ugly
             IntoZonedRound::DateTimeRound(round) => ZonedRound::new()
                 .smallest(round.smallest.0)

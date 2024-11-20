@@ -100,7 +100,7 @@ impl RyDate {
         dict.set_item(intern!(py, "year"), self.0.year())?;
         dict.set_item(intern!(py, "month"), self.0.month())?;
         dict.set_item(intern!(py, "day"), self.0.day())?;
-        Ok(dict.into())
+        Ok(dict)
     }
 }
 

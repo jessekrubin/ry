@@ -17,14 +17,9 @@ pub struct JiffUnit(pub(crate) jiff::Unit);
 // Millisecond = 2,
 // Microsecond = 1,
 // Nanosecond = 0,
-// impl Default for FloatMode {
-//     fn default() -> Self {
-//         Self::Float
-//     }
-// }
 
 impl JiffUnit {
-    pub fn static_str(&self) -> &'static str {
+    pub fn static_str(self) -> &'static str {
         match self.0 {
             jiff::Unit::Year => "year",
             jiff::Unit::Month => "month",
@@ -83,14 +78,14 @@ impl<'py> IntoPyObject<'py> for JiffUnit {
             jiff::Unit::Nanosecond => "nanosecond",
         };
         let string = PyString::new(py, unit);
-        Ok(string.into())
+        Ok(string)
     }
 }
 
 impl Display for JiffUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = self.static_str();
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -127,13 +122,12 @@ impl<'py> IntoPyObject<'py> for JiffRoundMode {
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = self.static_str();
         let string = PyString::new(py, s);
-        Ok(string.into())
+        Ok(string)
     }
 }
 
 impl JiffRoundMode {
-    //     static string fn
-    fn static_str(&self) -> &'static str {
+    fn static_str(self) -> &'static str {
         match self.0 {
             jiff::RoundMode::Ceil => "ceil",
             jiff::RoundMode::Floor => "floor",
@@ -151,7 +145,7 @@ impl JiffRoundMode {
 impl Display for JiffRoundMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = self.static_str();
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
