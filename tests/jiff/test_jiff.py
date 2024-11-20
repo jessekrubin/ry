@@ -2,6 +2,7 @@ import itertools as it
 
 import ry.dev as ry
 
+
 # ====================
 # Zoned
 # ====================
@@ -11,7 +12,8 @@ def test_zoned() -> None:
     zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
     assert zdt.string() == "2020-08-26T06:27:00-04:00[America/New_York]"
 
-    fields = {
+    zdt_fields = {
+        "tz": str(zdt.timezone()),
         "year": zdt.year(),
         "month": zdt.month(),
         "day": zdt.day(),
@@ -22,7 +24,9 @@ def test_zoned() -> None:
         "subsec_nanosecond": zdt.subsec_nanosecond(),
     }
 
-    assert fields == {
+    assert zdt_fields == {
+        "tz":
+            "America/New_York",
         "year": 2020,
         "month": 8,
         "day": 26,
@@ -31,6 +35,48 @@ def test_zoned() -> None:
         "second": 0,
         "nanosecond": 0,
         "subsec_nanosecond": 0,
+
+    }
+
+    ry_datetime = zdt.datetime()
+    assert ry_datetime == ry.datetime(2020, 8, 26, 6, 27, 0, 0)
+
+    dt_fields = {
+        "year": ry_datetime.year(),
+        "month": ry_datetime.month(),
+        "day": ry_datetime.day(),
+        "hour": ry_datetime.hour(),
+        "minute": ry_datetime.minute(),
+        "second": ry_datetime.second(),
+        "nanosecond": ry_datetime.nanosecond(),
+        "subsec_nanosecond": ry_datetime.subsec_nanosecond(),
+    }
+
+    assert dt_fields == {
+        "year": 2020,
+        "month": 8,
+        "day": 26,
+        "hour": 6,
+        "minute": 27,
+        "second": 0,
+        "nanosecond": 0,
+        "subsec_nanosecond": 0,
+    }
+
+    ry_time = zdt.time()
+    assert ry_time == ry.time(6, 27, 0, 0)
+    t_fields = {
+        "hour": ry_time.hour(),
+        "minute": ry_time.minute(),
+        "second": ry_time.second(),
+        "microsecond": ry_time.microsecond(),
+    }
+    assert t_fields == {
+        "hour": 6,
+        "minute": 27,
+        "second": 0,
+        "microsecond": 0,
+
     }
 
 

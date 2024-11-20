@@ -84,6 +84,9 @@ impl RyTimestamp {
     fn as_nanosecond(&self) -> i128 {
         self.0.as_nanosecond()
     }
+    fn subsec_nanosecond(&self) -> i32 {
+        self.0.subsec_nanosecond()
+    }
 }
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

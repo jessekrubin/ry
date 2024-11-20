@@ -1,3 +1,4 @@
+use crate::pydatetime_conversions::jiff_datetime2pydatetime;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
@@ -5,8 +6,8 @@ use crate::RyDate;
 use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
+use pyo3::types::{PyDateTime, PyType};
+use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -104,6 +105,10 @@ impl RyDateTime {
         self.0.nanosecond()
     }
 
+    fn subsec_nanosecond(&self) -> i32 {
+        self.0.subsec_nanosecond()
+    }
+
     fn __str__(&self) -> String {
         self.to_string()
     }
@@ -143,6 +148,10 @@ impl RyDateTime {
     }
     fn last_of_month(&self) -> RyDateTime {
         RyDateTime::from(self.0.last_of_month())
+    }
+
+    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
+        jiff_datetime2pydatetime(py, &self.0)
     }
 }
 

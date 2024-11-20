@@ -1,12 +1,15 @@
 use crate::dev::{JiffUnit, RyDateTimeRound};
+use crate::pydatetime_conversions::{jiff_datetime2pydatetime, jiff_zoned2pydatetime};
+use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
+use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::RyDate;
 use jiff::{Zoned, ZonedRound};
 use pyo3::basic::CompareOp;
-use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult};
+use pyo3::types::{PyDateTime, PyType};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -94,6 +97,18 @@ impl RyZoned {
         RyDate::from(self.0.date())
     }
 
+    fn time(&self) -> RyTime {
+        RyTime::from(self.0.time())
+    }
+
+    fn datetime(&self) -> RyDateTime {
+        RyDateTime::from(self.0.datetime())
+    }
+
+    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
+        jiff_zoned2pydatetime(py, &self.0)
+    }
+
     fn intz(&self, tz: &str) -> PyResult<Self> {
         self.0
             .intz(tz)
@@ -171,12 +186,12 @@ impl RyZoned {
         self.0.second()
     }
 
-    fn microsecond(&self) -> i32 {
-        self.microsecond()
+    fn microsecond(&self) -> i16 {
+        self.0.microsecond()
     }
 
-    fn millisecond(&self) -> i64 {
-        self.millisecond()
+    fn millisecond(&self) -> i16 {
+        self.0.millisecond()
     }
 
     fn nanosecond(&self) -> i16 {
