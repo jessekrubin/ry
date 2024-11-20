@@ -17,7 +17,7 @@ pub struct RyZoned(pub(crate) Zoned);
 impl RyZoned {
     #[new]
     #[pyo3(signature = (timestamp, time_zone))]
-    pub fn new(timestamp: RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
+    pub fn new(timestamp: &RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
         let ts = timestamp.0;
         let tz = time_zone.0;
         Ok(RyZoned::from(Zoned::new(ts, tz)))

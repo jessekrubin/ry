@@ -9,11 +9,12 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::needless_pass_by_value)]
+// #![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::unused_self)]
 
 mod internal;
+mod pydatetime_conversions;
 mod ry_date;
 mod ry_datetime;
 mod ry_signed_duration;
@@ -40,7 +41,13 @@ pub fn date(year: i16, month: i8, day: i8) -> PyResult<RyDate> {
 }
 
 #[pyfunction]
-pub fn time(hour: i8, minute: i8, second: i8, nanosecond: i32) -> PyResult<RyTime> {
+#[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
+pub fn time(
+    hour: Option<i8>,
+    minute: Option<i8>,
+    second: Option<i8>,
+    nanosecond: Option<i32>,
+) -> PyResult<RyTime> {
     RyTime::new(hour, minute, second, nanosecond)
 }
 
