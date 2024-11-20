@@ -510,7 +510,7 @@ class Date:
 
 class Time:
     def __init__(
-        self, hour: int, minute: int, second: int, nanosecond: int
+        self, hour: int = 0, minute: int = 0, second: int = 0, nanosecond: int = 0
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
@@ -525,10 +525,10 @@ class DateTime:
         year: int,
         month: int,
         day: int,
-        hour: int,
-        minute: int,
-        second: int,
-        nanosecond: int,
+        hour: int = 0,
+        minute: int = 0,
+        second: int = 0,
+        nanosecond: int = 0,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
@@ -733,13 +733,15 @@ class Zoned:
     def checked_add(self, span: Span) -> Zoned: ...
 
 def date(year: int, month: int, day: int) -> Date: ...
-def time(hour: int, minute: int, second: int, nanosecond: int) -> Time: ...
+def time(
+    hour: int = 0, minute: int = 0, second: int = 0, nanosecond: int = 0
+) -> Time: ...
 def datetime(
     year: int,
     month: int,
     day: int,
-    hour: int,
-    minute: int,
-    second: int,
-    nanosecond: int,
+    hour: int = 0,
+    minute: int = 0,
+    second: int = 0,
+    nanosecond: int = 0,
 ) -> DateTime: ...

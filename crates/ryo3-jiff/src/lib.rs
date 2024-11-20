@@ -52,6 +52,7 @@ pub fn time(
 }
 
 #[pyfunction]
+#[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
 pub fn datetime(
     year: i16,
     month: i8,
@@ -61,9 +62,16 @@ pub fn datetime(
     second: i8,
     subsec_nanosecond: i32,
 ) -> PyResult<RyDateTime> {
-    RyDateTime::new(year, month, day, hour, minute, second, subsec_nanosecond)
+    RyDateTime::new(
+        year,
+        month,
+        day,
+        Some(hour),
+        Some(minute),
+        Some(second),
+        Some(subsec_nanosecond),
+    )
 }
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
     m.add_class::<RyDate>()?;

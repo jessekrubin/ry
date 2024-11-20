@@ -22,7 +22,7 @@ def test_date_asdict() -> None:
 
 
 def test_rytime2pytime() -> None:
-    pydt.time
+    pt = pydt.time(10, 20, 30)
     rytime = ry.time(10, 20, 30)
     pytime = rytime.to_pytime()
     assert pydt.time(10, 20, 30) == pytime

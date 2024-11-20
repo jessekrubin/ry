@@ -23,18 +23,27 @@ impl From<DateTime> for RyDateTime {
 #[pymethods]
 impl RyDateTime {
     #[new]
+    #[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
     pub fn new(
         year: i16,
         month: i8,
         day: i8,
-        hour: i8,
-        minute: i8,
-        second: i8,
-        subsec_nanosecond: i32,
+        hour: Option<i8>,
+        minute: Option<i8>,
+        second: Option<i8>,
+        subsec_nanosecond: Option<i32>,
     ) -> PyResult<Self> {
-        DateTime::new(year, month, day, hour, minute, second, subsec_nanosecond)
-            .map(RyDateTime::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        DateTime::new(
+            year,
+            month,
+            day,
+            hour.unwrap_or(0),
+            minute.unwrap_or(0),
+            second.unwrap_or(0),
+            subsec_nanosecond.unwrap_or(0),
+        )
+        .map(RyDateTime::from)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
