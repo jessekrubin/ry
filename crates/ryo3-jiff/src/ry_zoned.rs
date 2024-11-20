@@ -1,11 +1,12 @@
+use crate::dev::{JiffUnit, RyDateTimeRound};
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::RyDate;
-use jiff::Zoned;
+use jiff::{Zoned, ZonedRound};
 use pyo3::basic::CompareOp;
 use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -110,6 +111,18 @@ impl RyZoned {
     fn timezone(&self) -> RyTimeZone {
         RyTimeZone::from(self.0.time_zone())
     }
+
+    fn round(&self, option: IntoZonedRound) -> PyResult<Self> {
+        // let round = match option {
+        //     IntoZonedRound::DateTimeRound(round) => round.round,
+        //     IntoZonedRound::JiffUnit(unit) => unit,
+        // };
+        // let zoned_round
+        self.0
+            .round(option)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
 }
 
 impl Display for RyZoned {
@@ -120,5 +133,24 @@ impl Display for RyZoned {
 impl From<Zoned> for RyZoned {
     fn from(value: Zoned) -> Self {
         RyZoned(value)
+    }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+enum IntoZonedRound {
+    DateTimeRound(RyDateTimeRound),
+    JiffUnit(JiffUnit),
+}
+
+impl Into<ZonedRound> for IntoZonedRound {
+    fn into(self) -> ZonedRound {
+        match self {
+            // TODO: this is ugly
+            IntoZonedRound::DateTimeRound(round) => ZonedRound::new()
+                .smallest(round.smallest.0)
+                .mode(round.mode.0)
+                .increment(round.increment),
+            IntoZonedRound::JiffUnit(unit) => unit.0.into(),
+        }
     }
 }

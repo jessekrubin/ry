@@ -2,8 +2,9 @@ use crate::pydatetime_conversions::jiff_time2pytime;
 use crate::ry_datetime::RyDateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
+use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyTime, PyType};
+use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -101,6 +102,27 @@ impl RyTime {
     fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
         let dt = jiff_time2pytime(py, &self.0)?;
         Ok(dt)
+    }
+
+    fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                i32::from(self.0.hour()),
+                i32::from(self.0.minute()),
+                i32::from(self.0.second()),
+                self.0.subsec_nanosecond(),
+            ],
+        )
+    }
+
+    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        dict.set_item(intern!(py, "hour"), self.0.hour())?;
+        dict.set_item(intern!(py, "minute"), self.0.minute())?;
+        dict.set_item(intern!(py, "second"), self.0.second())?;
+        dict.set_item(intern!(py, "nanosecond"), self.0.nanosecond())?;
+        Ok(dict)
     }
 }
 

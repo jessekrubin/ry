@@ -12,6 +12,7 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::unused_self)]
 
+mod dev;
 mod internal;
 mod pydatetime_conversions;
 mod ry_date;
@@ -23,6 +24,7 @@ mod ry_timestamp;
 mod ry_timezone;
 mod ry_zoned;
 
+use crate::dev::{JiffUnit, RyDateTimeRound};
 use crate::ry_date::RyDate;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
@@ -81,6 +83,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyTimeZone>()?;
     m.add_class::<RyTimestamp>()?;
     m.add_class::<RyZoned>()?;
+    m.add_class::<RyDateTimeRound>()?;
 
     // functions
     m.add_function(wrap_pyfunction!(date, m)?)?;

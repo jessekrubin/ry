@@ -35,8 +35,10 @@ pub fn pwd() -> PyResult<String> {
     }
 }
 
+// TODO: revisit needless pass by value
 /// Change the current working directory to the specified path
 #[pyfunction]
+#[allow(clippy::needless_pass_by_value)]
 pub fn cd(p: PathLike) -> PyResult<()> {
     let r = std::env::set_current_dir(p.as_ref());
     match r {

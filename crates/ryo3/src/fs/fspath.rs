@@ -1,3 +1,4 @@
+#![allow(clippy::needless_pass_by_value)]
 use std::path::{Path, PathBuf};
 
 use pyo3::prelude::*;

@@ -44,7 +44,7 @@ def main():
 
     # test it
     try:
-        exec(init_string)
+        exec(init_string)  # noqa: S102
     except Exception as e:
         eprint(e)
         raise e from None

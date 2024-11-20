@@ -1,10 +1,11 @@
 """ry api ~ type annotations"""
 
-import datetime
+import datetime as pydatetime
 import typing as t
 from collections.abc import Iterator
 from os import PathLike
-from typing import TypedDict
+
+from ry._types.jiff import JIFF_ROUND_MODE_STRING, JIFF_UNIT_STRING
 
 __version__: str
 __authors__: str
@@ -502,9 +503,9 @@ class Date:
     def year(self) -> int: ...
     def month(self) -> int: ...
     def day(self) -> int: ...
-    def to_pydate(self) -> datetime.date: ...
+    def to_pydate(self) -> pydatetime.date: ...
     @classmethod
-    def from_pydate(cls: type[Date], date: datetime.date) -> Date: ...
+    def from_pydate(cls: type[Date], date: pydatetime.date) -> Date: ...
     def astuple(self) -> tuple[int, int, int]: ...
     def asdict(self) -> dict[str, int]: ...
 
@@ -518,6 +519,11 @@ class Time:
     def millisecond(self) -> int: ...
     def microsecond(self) -> int: ...
     def nanosecond(self) -> int: ...
+    def to_pytime(self) -> pydatetime.time: ...
+    @classmethod
+    def from_pytime(cls: type[Time], time: pydatetime.time) -> Time: ...
+    def astuple(self) -> tuple[int, int, int, int]: ...
+    def asdict(self) -> dict[str, int]: ...
 
 class DateTime:
     def __init__(
@@ -540,7 +546,7 @@ class TimeZone:
     def __repr__(self) -> str: ...
 
 class SignedDuration:
-    def __init__(self, seconds: int, nanoseconds: int) -> None: ...
+    def __init__(self, secs: int, nanos: int) -> None: ...
 
 class Span:
     def __init__(
@@ -569,145 +575,22 @@ class Timestamp:
 
     def __init__(
         self, second: int | None = None, nanosecond: int | None = None
-    ) -> None:
-        """
-        Create a new `Timestamp` object.
-
-        Args:
-            second (Optional[int]): The number of seconds. Defaults to `0`.
-            nanosecond (Optional[int]): The number of nanoseconds. Defaults to `0`.
-        """
-        ...
-
+    ) -> None: ...
     @classmethod
-    def now(cls: type[Timestamp]) -> Timestamp:
-        """
-        Get the current `Timestamp`.
-
-        Returns:
-            Timestamp: The current `Timestamp`.
-        """
-        ...
-
+    def now(cls: type[Timestamp]) -> Timestamp: ...
     @classmethod
-    def parse(cls: type[Timestamp], s: str) -> Timestamp:
-        """
-        Parse a string into a `Timestamp`.
-
-        Args:
-            s (str): The string to parse.
-
-        Returns:
-            Timestamp: The parsed `Timestamp`.
-
-        Raises:
-            ValueError: If the string cannot be parsed.
-        """
-        ...
-
+    def parse(cls: type[Timestamp], s: str) -> Timestamp: ...
     @classmethod
-    def from_millisecond(cls: type[Timestamp], millisecond: int) -> Timestamp:
-        """
-        Create a `Timestamp` from milliseconds.
-
-        Args:
-            millisecond (int): Milliseconds since epoch.
-
-        Returns:
-            Timestamp: The resulting `Timestamp`.
-
-        Raises:
-            ValueError: If the millisecond value is invalid.
-        """
-        ...
-
-    def to_zoned(self, time_zone: TimeZone) -> Zoned:
-        """
-        Convert the `Timestamp` to a zoned timestamp in the specified timezone.
-
-        Args:
-            time_zone (RyTimeZone): The timezone to convert to.
-
-        Returns:
-            RyZoned: The zoned representation of the `Timestamp`.
-        """
-        ...
-
-    def string(self) -> str:
-        """
-        Get a string representation of the `Timestamp`.
-
-        Returns:
-            str: The string representation.
-        """
-        ...
-
-    def as_second(self) -> int:
-        """
-        Get the timestamp as seconds since epoch.
-
-        Returns:
-            int: The number of seconds since epoch.
-        """
-        ...
-
-    def as_microsecond(self) -> int:
-        """
-        Get the timestamp as microseconds since epoch.
-
-        Returns:
-            int: The number of microseconds since epoch.
-        """
-        ...
-
-    def as_millisecond(self) -> int:
-        """
-        Get the timestamp as milliseconds since epoch.
-
-        Returns:
-            int: The number of milliseconds since epoch.
-        """
-        ...
-
-    def as_nanosecond(self) -> int:
-        """
-        Get the timestamp as nanoseconds since epoch.
-
-        Returns:
-            int: The number of nanoseconds since epoch.
-        """
-        ...
-
-    def __str__(self) -> str:
-        """
-        Get a string representation of the `Timestamp`.
-
-        Returns:
-            str: The string representation.
-        """
-        ...
-
-    def __repr__(self) -> str:
-        """
-        Get a developer-readable string representation of the `Timestamp`.
-
-        Returns:
-            str: The developer-readable string representation.
-        """
-        ...
-
-    def __richcmp__(self, other: Timestamp, op: int) -> bool:
-        """
-        Perform rich comparison operations.
-
-        Args:
-            other (Timestamp): The other `Timestamp` to compare.
-            op (int): The comparison operation.
-
-        Returns:
-            bool: The result of the comparison.
-        """
-        ...
+    def from_millisecond(cls: type[Timestamp], millisecond: int) -> Timestamp: ...
+    def to_zoned(self, time_zone: TimeZone) -> Zoned: ...
+    def string(self) -> str: ...
+    def as_second(self) -> int: ...
+    def as_microsecond(self) -> int: ...
+    def as_millisecond(self) -> int: ...
+    def as_nanosecond(self) -> int: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __richcmp__(self, other: Timestamp, op: int) -> bool: ...
 
 class Zoned:
     def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -> None: ...
@@ -731,6 +614,30 @@ class Zoned:
     def __sub__(self, other: Zoned) -> Span: ...
     def intz(self, tz: str) -> Zoned: ...
     def checked_add(self, span: Span) -> Zoned: ...
+    def round(self, options: JIFF_UNIT_STRING | DateTimeRound) -> Zoned: ...
+
+class DateTimeRound:
+    def __init__(
+        self,
+        smallest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int = 1,
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> DateTimeRound: ...
+    def smallest(self, smallest: JIFF_UNIT_STRING) -> DateTimeRound: ...
+    def increment(self, increment: int) -> DateTimeRound: ...
+    def _smallest(self) -> JIFF_UNIT_STRING: ...
+    def _mode(self) -> JIFF_ROUND_MODE_STRING: ...
+    def _increment(self) -> int: ...
+    def replace(
+        self,
+        smallest: JIFF_UNIT_STRING | None,
+        mode: JIFF_ROUND_MODE_STRING | None,
+        increment: int | None,
+    ) -> DateTimeRound: ...
 
 def date(year: int, month: int, day: int) -> Date: ...
 def time(

@@ -91,6 +91,7 @@ markers = [
 target-version = "py39"
 line-length = 88
 include = [
+  "scripts/**",
   "python/**/*.{py,pyi}",
   "tests/**/*.{py,pyi}",
 ]
@@ -204,6 +205,11 @@ ban-relative-imports = "all"
 ]
 "python/ry/dev.py" = [
 
+]
+"scripts/**" = [
+  "S101",
+  "S603",
+  "T201",
 ]
 
 [tool.ruff.lint.pydocstyle]

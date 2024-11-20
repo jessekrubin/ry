@@ -1,6 +1,6 @@
 import datetime as pydt
 
-import ry.dev as ry
+import ry
 
 
 def test_date() -> None:
@@ -22,17 +22,17 @@ def test_date_asdict() -> None:
 
 
 def test_rytime2pytime() -> None:
-    pt = pydt.time(10, 20, 30)
+    pydt.time(10, 20, 30)
     rytime = ry.time(10, 20, 30)
     pytime = rytime.to_pytime()
     assert pydt.time(10, 20, 30) == pytime
 
 
 def test_time_tuple() -> None:
-    rytime = ry.time(10, 20, 30)
-    assert (10, 20, 30) == rytime.astuple()
+    rytime = ry.time(10, 20, 30, 0)
+    assert (10, 20, 30, 0) == rytime.astuple()
 
 
 def test_time_asdict() -> None:
     rytime = ry.time(10, 20, 30)
-    assert {"hour": 10, "minute": 20, "second": 30} == rytime.asdict()
+    assert {"hour": 10, "minute": 20, "second": 30, "nanosecond": 0} == rytime.asdict()

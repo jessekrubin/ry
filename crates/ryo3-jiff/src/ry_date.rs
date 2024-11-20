@@ -7,7 +7,7 @@ use jiff::civil::Date;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDate, PyDict, PyDictMethods, PyTuple, PyType};
-use pyo3::{pyclass, pymethods, Bound, IntoPyObject, PyErr, PyObject, PyResult, Python};
+use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyErr, PyResult, Python};
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]
@@ -95,20 +95,14 @@ impl RyDate {
 
         PyTuple::new(py, parts)
     }
-    fn asdict(&self, py: Python<'_>) -> PyResult<PyObject> {
+    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item("year", self.0.year())?;
-        dict.set_item("month", self.0.month())?;
-        dict.set_item("day", self.0.day())?;
+        dict.set_item(intern!(py, "year"), self.0.year())?;
+        dict.set_item(intern!(py, "month"), self.0.month())?;
+        dict.set_item(intern!(py, "day"), self.0.day())?;
         Ok(dict.into())
     }
 }
-
-// #[derive(Debug, FromPyObject)]
-// enum RyDateComparable<'py> {
-//     RyDate(RyDate),
-//     PyDate(&'py Bound<'py, PyDate>),
-// }
 
 impl Display for RyDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
