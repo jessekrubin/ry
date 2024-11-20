@@ -2,6 +2,37 @@ import itertools as it
 
 import ry.dev as ry
 
+# ====================
+# Zoned
+# ====================
+
+
+def test_zoned() -> None:
+    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    assert zdt.string() == "2020-08-26T06:27:00-04:00[America/New_York]"
+
+    fields = {
+        "year": zdt.year(),
+        "month": zdt.month(),
+        "day": zdt.day(),
+        "hour": zdt.hour(),
+        "minute": zdt.minute(),
+        "second": zdt.second(),
+        "nanosecond": zdt.nanosecond(),
+        "subsec_nanosecond": zdt.subsec_nanosecond(),
+    }
+
+    assert fields == {
+        "year": 2020,
+        "month": 8,
+        "day": 26,
+        "hour": 6,
+        "minute": 27,
+        "second": 0,
+        "nanosecond": 0,
+        "subsec_nanosecond": 0,
+    }
+
 
 # ====================
 # SPAN

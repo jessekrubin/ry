@@ -3,7 +3,7 @@
 tests based on the examples in the jiff documentation (as of 2024-11-18)
 """
 
-import ry as ry
+import ry.dev as ry
 
 
 def test_print_datetime_for_a_timestamp() -> None:

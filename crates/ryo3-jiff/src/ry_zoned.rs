@@ -25,8 +25,24 @@ impl RyZoned {
     }
 
     #[classmethod]
-    fn now(_cls: &Bound<'_, PyType>) -> Self {
-        Self::from(Zoned::now())
+    #[pyo3(signature = (tz=None))]
+    fn now(_cls: &Bound<'_, PyType>, tz: Option<&str>) -> PyResult<Self> {
+        if let Some(tz) = tz {
+            Zoned::now()
+                .intz(tz)
+                .map(RyZoned::from)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        } else {
+            Ok(Self::from(Zoned::now()))
+        }
+    }
+
+    #[classmethod]
+    fn utcnow(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        Zoned::now()
+            .intz("UTC")
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -85,6 +101,13 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn inutc(&self) -> PyResult<Self> {
+        self.0
+            .intz("UTC")
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
     fn to_rfc2822(&self) -> PyResult<String> {
         jiff::fmt::rfc2822::to_string(&self.0)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
@@ -113,15 +136,55 @@ impl RyZoned {
     }
 
     fn round(&self, option: IntoZonedRound) -> PyResult<Self> {
-        // let round = match option {
-        //     IntoZonedRound::DateTimeRound(round) => round.round,
-        //     IntoZonedRound::JiffUnit(unit) => unit,
-        // };
-        // let zoned_round
         self.0
             .round(option)
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn year(&self) -> i16 {
+        self.0.year()
+    }
+
+    fn month(&self) -> i8 {
+        self.0.month()
+    }
+
+    fn day(&self) -> i8 {
+        self.0.day()
+    }
+
+    // TODO: weekdays
+    // fn weekday(&self) -> i8 {
+    //     self.0.weekday()
+    // }
+
+    fn hour(&self) -> i8 {
+        self.0.hour()
+    }
+
+    fn minute(&self) -> i8 {
+        self.0.minute()
+    }
+
+    fn second(&self) -> i8 {
+        self.0.second()
+    }
+
+    fn microsecond(&self) -> i32 {
+        self.microsecond()
+    }
+
+    fn millisecond(&self) -> i64 {
+        self.millisecond()
+    }
+
+    fn nanosecond(&self) -> i16 {
+        self.0.nanosecond()
+    }
+
+    fn subsec_nanosecond(&self) -> i32 {
+        self.0.subsec_nanosecond()
     }
 }
 
