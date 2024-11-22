@@ -48,11 +48,11 @@ impl RySignedDuration {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
-    fn __add__(&self, other: &RySignedDuration) -> Self {
+    fn __add__(&self, other: RySignedDuration) -> Self {
         Self(self.0 + other.0)
     }
 
-    fn __sub__(&self, other: &RySignedDuration) -> Self {
+    fn __sub__(&self, other: RySignedDuration) -> Self {
         Self(self.0 - other.0)
     }
 }

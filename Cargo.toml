@@ -24,7 +24,7 @@ tracing-subscriber.workspace = true
 
 [build-dependencies]
 pyo3-build-config.workspace = true
-jiff.workspace = true
+chrono.workspace = true
 
 [profile.dev]
 opt-level = 0
@@ -54,7 +54,7 @@ repository = "https://github.com/jessekrubin/ry"
 
 [workspace.dependencies]
 anyhow = "1.0.75"
-jiff = "0.1.14"
+chrono = "0.4.38"
 #jiter = { version ="0.7.1", features = ["python"], optional = true }
 jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
 dirs = { version = "5.0.1", features = [] }

@@ -1,4 +1,5 @@
-use jiff::{Unit, Zoned};
+use chrono::Local;
+use chrono::SecondsFormat;
 
 fn main() {
     println!(
@@ -6,9 +7,9 @@ fn main() {
         std::env::var("PROFILE").unwrap()
     );
 
-    let build_ts = Zoned::now()
-        .round(Unit::Second)
-        .expect("oh no, build time error");
     // build timestamp
-    println!("cargo:rustc-env=BUILD_TIMESTAMP={}", build_ts);
+    println!(
+        "cargo:rustc-env=BUILD_TIMESTAMP={}",
+        Local::now().to_rfc3339_opts(SecondsFormat::Secs, true)
+    );
 }

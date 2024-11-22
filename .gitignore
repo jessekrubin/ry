@@ -72,4 +72,3 @@ docs/_build/
 .python-version
 target/ 
 scratch/
-.hypothesis/

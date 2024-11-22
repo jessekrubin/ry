@@ -16,7 +16,7 @@ use super::pydone::PyDone;
 
 fn communicate_tee<W: Write + Send + 'static>(
     mut stream: impl Read,
-    sender: &mpsc::Sender<Vec<u8>>,
+    sender: mpsc::Sender<Vec<u8>>,
     mut writer: W,
     buf_size: usize,
     collect: bool,
@@ -41,7 +41,7 @@ fn communicate_tee<W: Write + Send + 'static>(
 // Your existing function with modifications to use channels
 fn communicate(
     mut stream: impl Read,
-    sender: &mpsc::Sender<Vec<u8>>,
+    sender: mpsc::Sender<Vec<u8>>,
     buf_size: usize,
     collect: bool,
 ) -> io::Result<()> {
@@ -106,16 +106,16 @@ pub fn run(
     let child_out = std::mem::take(&mut child.stdout).expect("cannot attach to child stdout");
     let child_err = std::mem::take(&mut child.stderr).expect("cannot attach to child stderr");
     let thread_out = if tee.unwrap_or(false) {
-        thread::spawn(move || communicate_tee(child_out, &tx_out, stdout(), 4096, collect).unwrap())
+        thread::spawn(move || communicate_tee(child_out, tx_out, stdout(), 4096, collect).unwrap())
     } else {
-        thread::spawn(move || communicate(child_out, &tx_out, 4096, collect).unwrap())
+        thread::spawn(move || communicate(child_out, tx_out, 4096, collect).unwrap())
     };
 
     // let thread_out = thread::spawn(move || communicate(child_out, tx_out).unwrap());
     let thread_err = if tee.unwrap_or(false) {
-        thread::spawn(move || communicate_tee(child_err, &tx_err, stderr(), 4096, collect).unwrap())
+        thread::spawn(move || communicate_tee(child_err, tx_err, stderr(), 4096, collect).unwrap())
     } else {
-        thread::spawn(move || communicate(child_err, &tx_err, 4096, collect).unwrap())
+        thread::spawn(move || communicate(child_err, tx_err, 4096, collect).unwrap())
     };
 
     let stdout_vector: Vec<u8> = rx_out.iter().flatten().collect();

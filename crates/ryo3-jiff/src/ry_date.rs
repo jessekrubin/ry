@@ -1,4 +1,3 @@
-use crate::pydatetime_conversions::{jiff_date2pydate, pydate2rydate};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
@@ -6,8 +5,8 @@ use crate::ry_zoned::RyZoned;
 use jiff::civil::Date;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDate, PyDict, PyDictMethods, PyTuple, PyType};
-use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyErr, PyResult, Python};
+use pyo3::types::{PyDate, PyDateAccess, PyDict, PyDictMethods, PyTuple, PyType};
+use pyo3::{pyclass, pymethods, Bound, IntoPyObject, PyErr, PyObject, PyResult, Python};
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]
@@ -44,7 +43,7 @@ impl RyDate {
         self.0.day()
     }
 
-    fn to_datetime(&self, time: &RyTime) -> RyDateTime {
+    fn to_datetime(&self, time: RyTime) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(time.0))
     }
 
@@ -84,7 +83,16 @@ impl RyDate {
     }
 
     fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
-        jiff_date2pydate(py, &self.0)
+        let y = i32::from(self.0.year());
+        let m = self.0.month();
+
+        let m_u8 = u8::try_from(m)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+
+        let d = self.0.day();
+        let d_u8 = u8::try_from(d)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+        PyDate::new(py, y, m_u8, d_u8)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -95,14 +103,33 @@ impl RyDate {
 
         PyTuple::new(py, parts)
     }
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    fn asdict(&self, py: Python<'_>) -> PyResult<PyObject> {
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "year"), self.0.year())?;
-        dict.set_item(intern!(py, "month"), self.0.month())?;
-        dict.set_item(intern!(py, "day"), self.0.day())?;
-        Ok(dict)
+        dict.set_item("year", self.0.year())?;
+        dict.set_item("month", self.0.month())?;
+        dict.set_item("day", self.0.day())?;
+        Ok(dict.into())
     }
 }
+
+fn pydate2rydate(py_date: &impl PyDateAccess) -> PyResult<RyDate> {
+    let y = py_date.get_year();
+    let y_i16 = i16::try_from(y)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+    let m = py_date.get_month();
+    let m_i8 = i8::try_from(m)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+    let d = py_date.get_day();
+    let d_i8 = i8::try_from(d)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+    RyDate::new(y_i16, m_i8, d_i8)
+}
+
+// #[derive(Debug, FromPyObject)]
+// enum RyDateComparable<'py> {
+//     RyDate(RyDate),
+//     PyDate(&'py Bound<'py, PyDate>),
+// }
 
 impl Display for RyDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

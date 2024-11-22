@@ -1,12 +1,26 @@
-use crate::pydatetime_conversions::jiff_time2pytime;
-use crate::ry_datetime::RyDateTime;
+#![deny(clippy::all)]
+#![deny(clippy::correctness)]
+#![deny(clippy::panic)]
+#![deny(clippy::perf)]
+#![deny(clippy::pedantic)]
+#![deny(clippy::style)]
+#![deny(clippy::unwrap_used)]
+#![warn(clippy::must_use_candidate)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::unused_self)]
+
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
+use pyo3::types::PyType;
 use std::fmt::Display;
 use std::str::FromStr;
+
+use crate::ry_datetime::RyDateTime;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Time", module = "ryo3")]
@@ -15,21 +29,10 @@ pub struct RyTime(pub(crate) jiff::civil::Time);
 #[pymethods]
 impl RyTime {
     #[new]
-    #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
-    pub fn new(
-        hour: Option<i8>,
-        minute: Option<i8>,
-        second: Option<i8>,
-        nanosecond: Option<i32>,
-    ) -> PyResult<Self> {
-        jiff::civil::Time::new(
-            hour.unwrap_or(0),
-            minute.unwrap_or(0),
-            second.unwrap_or(0),
-            nanosecond.unwrap_or(0),
-        )
-        .map(crate::RyTime::from)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    pub fn new(hour: i8, minute: i8, second: i8, nanosecond: i32) -> PyResult<Self> {
+        jiff::civil::Time::new(hour, minute, second, nanosecond)
+            .map(crate::RyTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -68,10 +71,6 @@ impl RyTime {
         self.string()
     }
 
-    fn __repr__(&self) -> String {
-        format!("Time<{}>", self.0)
-    }
-
     fn hour(&self) -> i8 {
         self.0.hour()
     }
@@ -97,32 +96,6 @@ impl RyTime {
 
     fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(date.0))
-    }
-
-    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
-        let dt = jiff_time2pytime(py, &self.0)?;
-        Ok(dt)
-    }
-
-    fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        PyTuple::new(
-            py,
-            vec![
-                i32::from(self.0.hour()),
-                i32::from(self.0.minute()),
-                i32::from(self.0.second()),
-                self.0.subsec_nanosecond(),
-            ],
-        )
-    }
-
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "hour"), self.0.hour())?;
-        dict.set_item(intern!(py, "minute"), self.0.minute())?;
-        dict.set_item(intern!(py, "second"), self.0.second())?;
-        dict.set_item(intern!(py, "nanosecond"), self.0.nanosecond())?;
-        Ok(dict)
     }
 }
 

@@ -1,176 +1,61 @@
 [build-system]
+requires = ['maturin>=1,<2']
 build-backend = "maturin"
-
-requires = [ "maturin>=1,<2" ]
 
 [project]
 name = "ry"
 description = "ry = rust + python kitchen sink utils (WIP)"
-keywords = [
-  "pyo3",
-  "rust",
-]
-license = "MIT OR Apache-2.0"
-maintainers = [
-  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
-]
+requires-python = ">=3.9"
 authors = [
   { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
 ]
-requires-python = ">=3.9"
+maintainers = [
+  { name = 'jesse rubin', email = 'jessekrubin@gmail.com' },
+]
+keywords = [
+  "rust",
+  "pyo3",
+]
+license = "MIT OR Apache-2.0"
 classifiers = [
   "Development Status :: 3 - Alpha",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python",
-  # 'Programming Language :: Python :: 3.13', # not yet
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
+  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3.13',
+  'Programming Language :: Python :: 3 :: Only',
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Development Status :: 3 - Alpha",
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
-dynamic = [ "readme", "version" ]
+dynamic = ["version", "readme"]
 
-optional-dependencies.tests = [
+[project.urls]
+Homepage = "https://github.com/jessekrubin/ry"
+Source = "https://github.com/jessekrubin/ry"
+Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
+Issues = "https://github.com/jessekrubin/ry/issues"
+
+[project.optional-dependencies]
+tests = [
   "pytest",
 ]
-urls.Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
-urls.Homepage = "https://github.com/jessekrubin/ry"
-urls.Issues = "https://github.com/jessekrubin/ry/issues"
-urls.Source = "https://github.com/jessekrubin/ry"
 
 [tool.maturin]
 python-source = "python"
 strip = true
-features = [ "pyo3/extension-module" ]
+features = ["pyo3/extension-module"]
 module-name = "ry._ry"
 bindings = "pyo3"
-
-[tool.ruff]
-target-version = "py39"
-line-length = 88
-include = [
-  "python/**/*.{py,pyi}",
-  "scripts/**",
-  "tests/**/*.{py,pyi}",
-]
-
-format.docstring-code-format = true
-lint.select = [
-  "A",
-  "ARG",
-  "B",
-  "C",
-  "DTZ",
-  "E",
-  "EM",
-  "F",
-  #  "FBT",
-  "I",
-  "ICN",
-  "N",
-  "PLC",
-  "PLE",
-  "PLR",
-  "PLW",
-  "Q",
-  "RUF",
-  "RUF022", # unsorted-dunder-all
-  "S",
-  "T",
-  "TID",
-  "UP",
-  "W",
-  "YTT",
-]
-lint.ignore = [
-  #  shadowing builtins
-  "A002",
-  "A003",
-  # Allow non-abstract empty methods in abstract base classes
-  "B027",
-  # Ignore complexity
-  "C901",
-  "E501", # line length
-  # Allow boolean positional values in function calls, like `dict.get(... True)`
-  "FBT003",
-  "PLR0911",
-  "PLR0912",
-  "PLR0913",
-  "PLR0915",
-  # type annotations union
-  #  "UP007",
-  # todo figure out if this is needed
-  #  "UP006",
-  # magic value cmp super annoying
-  "PLR2004",
-  "PLW0120",
-  # Ignore checks for possible passwords
-  "S105",
-  "S106",
-  "S107",
-  "TID252",
-]
-# Require explicit selection of preview rules.
-lint.explicit-preview-rules = true
-lint.exclude = [
-  ".bzr",
-  ".direnv",
-  ".eggs",
-  ".git",
-  ".git-rewrite",
-  ".hg",
-  ".mypy_cache",
-  ".nox",
-  ".pants.d",
-  ".pytype",
-  ".ruff_cache",
-  ".svn",
-  ".tox",
-  ".venv",
-  "__pypackages__",
-  "_build",
-  "buck-out",
-  "build",
-  "dist",
-  "node_modules",
-  "venv",
-]
-# Tests can use magic values, assertions, and relative imports
-lint.per-file-ignores."**/test_*.py" = [
-  "PL",
-  "S101",
-  "S103",
-  "S603",
-  "T201",
-  "TID252",
-]
-lint.per-file-ignores."python/ry/dev.py" = [
-]
-lint.per-file-ignores."scripts/**" = [
-  "S101",
-  "S603",
-  "T201",
-]
-lint.unfixable = [
-  # Don't touch unused imports
-  "F401",
-]
-lint.flake8-tidy-imports.ban-relative-imports = "all"
-lint.isort.known-first-party = [ "ry" ]
-# =============================================================================
-# Type checking
-# =============================================================================
-lint.preview = true
-lint.pydocstyle.convention = "google"
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -202,6 +87,131 @@ markers = [
   "bench",
 ]
 
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+include = [
+  "python/**/*.{py,pyi}",
+  "tests/**/*.{py,pyi}",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+# Require explicit selection of preview rules.
+explicit-preview-rules = true
+preview = true
+select = [
+  "A",
+  "ARG",
+  "B",
+  "C",
+  "DTZ",
+  "E",
+  "EM",
+  "F",
+  #  "FBT",
+  "I",
+  "ICN",
+  "N",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "Q",
+  "RUF",
+  "RUF022", # unsorted-dunder-all
+  "S",
+  "T",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
+]
+
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+ignore = [
+  "TID252",
+  "A003",
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT003",
+  # Ignore checks for possible passwords
+  "S105",
+  "S106",
+  "S107",
+  # Ignore complexity
+  "C901",
+  "PLR0911",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915",
+  #  shadowing builtins
+  "A002",
+  "E501", # line length
+  # type annotations union
+  #  "UP007",
+  # todo figure out if this is needed
+  #  "UP006",
+  # magic value cmp super annoying
+  "PLR2004",
+  "PLW0120",
+]
+unfixable = [
+  # Don't touch unused imports
+  "F401",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ry"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+"**/test_*.py" = [
+  "PL",
+  "S101",
+  "S103",
+  "S603",
+  "T201",
+  "TID252",
+]
+"python/ry/dev.py" = [
+
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# =============================================================================
+# Type checking
+# =============================================================================
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
@@ -212,5 +222,5 @@ ignore_missing_imports = true
 check_untyped_defs = true
 
 [tool.pyright]
-include = [ 'ry', 'tests' ]
+include = ['ry', 'tests']
 reportUnnecessaryTypeIgnoreComment = true

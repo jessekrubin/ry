@@ -1,10 +1,7 @@
 import sys
 
 import pytest
-
-import ry
-
-from ._xxhash_test_data import (
+from _xxhash_test_data import (
     XX3_64_TEST_DATA,
     XX32_SEEDS,
     XX32_TEST_DATA,
@@ -13,6 +10,8 @@ from ._xxhash_test_data import (
     XX128_SEEDS,
     XX128_TEST_DATA,
 )
+
+import ry
 
 try:
     # test against python-xxhash if importable...

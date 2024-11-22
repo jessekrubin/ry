@@ -1,4 +1,3 @@
-use crate::pydatetime_conversions::jiff_datetime2pydatetime;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
@@ -6,8 +5,8 @@ use crate::RyDate;
 use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDateTime, PyType};
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult, Python};
+use pyo3::types::PyType;
+use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -24,27 +23,18 @@ impl From<DateTime> for RyDateTime {
 #[pymethods]
 impl RyDateTime {
     #[new]
-    #[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
     pub fn new(
         year: i16,
         month: i8,
         day: i8,
-        hour: Option<i8>,
-        minute: Option<i8>,
-        second: Option<i8>,
-        subsec_nanosecond: Option<i32>,
+        hour: i8,
+        minute: i8,
+        second: i8,
+        subsec_nanosecond: i32,
     ) -> PyResult<Self> {
-        DateTime::new(
-            year,
-            month,
-            day,
-            hour.unwrap_or(0),
-            minute.unwrap_or(0),
-            second.unwrap_or(0),
-            subsec_nanosecond.unwrap_or(0),
-        )
-        .map(RyDateTime::from)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        DateTime::new(year, month, day, hour, minute, second, subsec_nanosecond)
+            .map(RyDateTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -105,10 +95,6 @@ impl RyDateTime {
         self.0.nanosecond()
     }
 
-    fn subsec_nanosecond(&self) -> i32 {
-        self.0.subsec_nanosecond()
-    }
-
     fn __str__(&self) -> String {
         self.to_string()
     }
@@ -148,10 +134,6 @@ impl RyDateTime {
     }
     fn last_of_month(&self) -> RyDateTime {
         RyDateTime::from(self.0.last_of_month())
-    }
-
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        jiff_datetime2pydatetime(py, &self.0)
     }
 }
 
