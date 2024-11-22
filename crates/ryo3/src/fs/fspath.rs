@@ -303,7 +303,7 @@ impl PyFsPath {
         Ok(PyIterdirGen::from(rd))
     }
 
-    fn relative_to(&self, other: PathLike) -> PyResult<PyFsPath> {
+    fn relative_to(&self, _other: PathLike) -> PyResult<PyFsPath> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "relative_to not implemented",
         ))

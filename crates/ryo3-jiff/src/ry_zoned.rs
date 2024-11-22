@@ -1,5 +1,5 @@
 use crate::dev::{JiffUnit, RyDateTimeRound};
-use crate::pydatetime_conversions::{jiff_datetime2pydatetime, jiff_zoned2pydatetime};
+use crate::pydatetime_conversions::jiff_zoned2pydatetime;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
