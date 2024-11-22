@@ -30,6 +30,6 @@ pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     fmts::madd(m)?;
     sh::madd(m)?;
     fs::madd(m)?;
-    libs::madd(m)?;
+    libs::pymod_add(m)?;
     Ok(())
 }

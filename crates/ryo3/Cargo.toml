@@ -19,12 +19,14 @@ tracing.workspace = true
 # required ryo3-* dependencies
 ryo3-std = { path = "../ryo3-std" }
 # optional ryo3-* dependencies
-ryo3-sqlformat = { path = "../ryo3-sqlformat", optional = true }
-ryo3-shlex = { path = "../ryo3-shlex", optional = true }
+ryo3-brotli = { path = "../ryo3-brotli", optional = true }
 ryo3-jiff = { path = "../ryo3-jiff", optional = true }
+ryo3-shlex = { path = "../ryo3-shlex", optional = true }
+ryo3-sqlformat = { path = "../ryo3-sqlformat", optional = true }
+ryo3-which = { path = "../ryo3-which", optional = true }
 
 # optional
-brotli = { version = "7.0.0", optional = true }
+#brotli = { version = "7.0.0", optional = true }
 bzip2 = { version = "0.4.4", optional = true }
 flate2 = { version = "1.0.34", optional = true }
 fnv = { version = "1.0.7", optional = true }
@@ -32,14 +34,12 @@ globset = { version = "0.4.15", optional = true, features = ["serde"] }
 jiter = { workspace = true, features = ["python"], optional = true }
 #shlex = { workspace = true, optional = true }
 walkdir = { workspace = true, optional = true }
-which = { workspace = true, features = ["regex"], optional = true }
 xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
 zstd = { version = "0.13.2", optional = true }
 
 
 [features]
 default = [
-  "which",
   "shlex",
   "jiter",
 ]
@@ -58,7 +58,7 @@ all = [
   "xxhash",
   "zstd",
 ]
-brotli = ["dep:brotli"]
+brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:bzip2"]
 flate2 = ["dep:flate2"]
 fnv = ["dep:fnv"]
@@ -66,7 +66,7 @@ globset = ["dep:globset"]
 jiter = ["dep:jiter"]
 shlex = ["dep:ryo3-shlex"]
 walkdir = ["dep:walkdir"]
-which = ["dep:which"]
+which = ["dep:ryo3-which"]
 xxhash = ["dep:xxhash-rust"]
 zstd = ["dep:zstd"]
 sqlformat = ["dep:ryo3-sqlformat"]

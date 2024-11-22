@@ -1,3 +1,17 @@
+#![deny(clippy::all)]
+#![deny(clippy::correctness)]
+#![deny(clippy::panic)]
+#![deny(clippy::perf)]
+#![deny(clippy::pedantic)]
+#![deny(clippy::style)]
+#![deny(clippy::unwrap_used)]
+#![warn(clippy::must_use_candidate)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::unused_self)]
 use std::io::{Read, Write};
 
 use ::brotli as br;
@@ -67,7 +81,7 @@ pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     Ok(PyBytes::new(py, &decompressed).into())
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(brotli_decode, m)?)?;
     m.add_function(wrap_pyfunction!(brotli_encode, m)?)?;
     m.add_function(wrap_pyfunction!(self::brotli, m)?)?;

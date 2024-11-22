@@ -783,7 +783,6 @@ dependencies = [
 name = "ryo3"
 version = "0.0.14"
 dependencies = [
- "brotli",
  "bzip2",
  "dirs",
  "flate2",
@@ -793,19 +792,28 @@ dependencies = [
  "jiter",
  "pyo3",
  "regex",
+ "ryo3-brotli",
  "ryo3-jiff",
  "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
+ "ryo3-which",
  "serde",
  "serde_bytes",
  "serde_json",
  "tokio",
  "tracing",
  "walkdir",
- "which",
  "xxhash-rust",
  "zstd",
+]
+
+[[package]]
+name = "ryo3-brotli"
+version = "0.0.14"
+dependencies = [
+ "brotli",
+ "pyo3",
 ]
 
 [[package]]
@@ -837,6 +845,14 @@ name = "ryo3-std"
 version = "0.0.14"
 dependencies = [
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-which"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "which",
 ]
 
 [[package]]
@@ -1180,6 +1196,7 @@ dependencies = [
  "home",
  "regex",
  "rustix",
+ "tracing",
  "winsafe",
 ]
 

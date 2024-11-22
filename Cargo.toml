@@ -40,9 +40,11 @@ members = [
   "crates/ryo3",
   "crates/ryo3-std",
   # external wrappers
+  "crates/ryo3-brotli",
   "crates/ryo3-jiff",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
+  "crates/ryo3-which",
 ]
 
 [workspace.package]
