@@ -125,7 +125,11 @@ class TestFsPath:
     def test_relative_to(self, path_cls: TPath) -> None:
         pypath = Path("/some/path/file.txt")
         rypath = path_cls("/some/path/file.txt")
-        with pytest.raises(NotImplementedError):
+        if path_cls is ry.FsPath:
+            with pytest.raises(NotImplementedError):
+                relative_resolved = rypath.relative_to("/some")
+                assert relative_resolved == pypath.relative_to("/some")
+        else:
             relative_resolved = rypath.relative_to("/some")
             assert relative_resolved == pypath.relative_to("/some")
 
