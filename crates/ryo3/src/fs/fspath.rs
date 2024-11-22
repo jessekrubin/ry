@@ -213,7 +213,7 @@ impl PyFsPath {
                         .expect("suffix() - path contains invalid unicode characters"),
                 );
 
-                Ok(format!(".{}", ext))
+                Ok(format!(".{ext}"))
             }
             None => Ok(String::new()),
         }
@@ -298,9 +298,9 @@ impl PyFsPath {
 
     fn iterdir(&self) -> PyResult<PyIterdirGen> {
         let rd = std::fs::read_dir(&self.pth)
-            .map(|rd| PyIterdirGen::from(rd))
+            .map(PyIterdirGen::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
-        Ok(PyIterdirGen::from(rd))
+        Ok(rd)
     }
 
     fn relative_to(&self, _other: PathLike) -> PyResult<PyFsPath> {
