@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use crate::fs::fspath::{PathLike, PyFsPath};
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule};
@@ -19,22 +20,16 @@ pub fn read_vec_u8(s: &str) -> PyResult<Vec<u8>> {
 }
 
 #[pyfunction]
-pub fn read_bytes(py: Python<'_>, s: &str) -> PyResult<PyObject> {
-    let bvec = read_vec_u8(s)?;
+pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
+    let fspath = PyFsPath::from(s);
+    let bvec = fspath.read_vec_u8()?;
     Ok(PyBytes::new(py, &bvec).into())
 }
 
 #[pyfunction]
-pub fn read_text(py: Python<'_>, s: &str) -> PyResult<String> {
-    let bvec = read_vec_u8(s)?;
-    let r = std::str::from_utf8(&bvec);
-    match r {
-        Ok(s) => Ok(s.to_string()),
-        Err(e) => {
-            let decode_err = PyUnicodeDecodeError::new_utf8(py, &bvec, e)?;
-            Err(decode_err.into())
-        }
-    }
+pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
+    let fspath = PyFsPath::from(s);
+    fspath.read_text(py)
 }
 
 #[pyfunction]

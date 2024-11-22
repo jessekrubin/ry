@@ -12,7 +12,7 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "DateTime")]
+#[pyclass(name = "DateTime", module = "ryo3")]
 pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {

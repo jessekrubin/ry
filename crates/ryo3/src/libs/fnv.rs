@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{wrap_pyfunction, PyResult};
 
-#[pyclass(name = "FnvHasher")]
+#[pyclass(name = "FnvHasher", module = "ryo3")]
 pub struct PyFnvHasher {
     pub hasher: fnv_rs::FnvHasher,
 }

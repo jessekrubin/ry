@@ -151,7 +151,7 @@ fn xxh128_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
     xxh3_128_hexdigest(b, seed)
 }
 
-#[pyclass(name = "Xxh32")]
+#[pyclass(name = "Xxh32", module = "ryo3")]
 pub struct PyXxh32 {
     seed: u32,
     pub hasher: Xxh32,
@@ -234,7 +234,7 @@ pub fn xxh32(s: Option<&[u8]>, seed: Option<u32>) -> PyResult<PyXxh32> {
 }
 
 /// Python-Xxh64 hasher
-#[pyclass(name = "Xxh64")]
+#[pyclass(name = "Xxh64", module = "ryo3")]
 pub struct PyXxh64 {
     seed: u64,
     pub hasher: Xxh64,
@@ -318,7 +318,7 @@ pub fn xxh64(s: Option<&[u8]>, seed: Option<u64>) -> PyResult<PyXxh64> {
     Ok(PyXxh64::new(s, seed))
 }
 
-#[pyclass(name = "Xxh3")]
+#[pyclass(name = "Xxh3", module = "ryo3")]
 pub struct PyXxh3 {
     seed: u64,
     pub hasher: Xxh3,

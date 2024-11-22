@@ -1,13 +1,13 @@
 #![allow(clippy::needless_pass_by_value)]
+
 use std::path::{Path, PathBuf};
 
 use crate::fs::fileio;
-use crate::fs::fileio::{read_bytes, read_text};
 use crate::fs::iterdir::PyIterdirGen;
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::PyFileNotFoundError;
+use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
-use pyo3::types::{PyModule, PyType};
+use pyo3::types::{PyBytes, PyModule, PyType};
 use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
 
 #[pyclass(name = "FsPath", module = "ryo3")]
@@ -279,20 +279,51 @@ impl PyFsPath {
         Ok(PyFsPath::from(p))
     }
 
-    fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
-        read_bytes(py, &self.string())
+    pub fn read_vec_u8(&self) -> PyResult<Vec<u8>> {
+        // let fpath = Path::new(s);
+        let fbytes = std::fs::read(&self.pth);
+        match fbytes {
+            Ok(b) => Ok(b),
+            Err(e) => {
+                // TODO: figure out cleaner way of doing this
+                let pathstr = self.string();
+                let emsg = format!("read_vec_u8 - path: {pathstr} - {e}");
+                Err(PyFileNotFoundError::new_err(emsg))
+            }
+        }
     }
 
-    fn read_text(&self, py: Python<'_>) -> PyResult<String> {
-        let s = read_text(py, &self.string())?;
-        Ok(s)
+    pub fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
+        let bvec = self.read_vec_u8()?;
+        Ok(PyBytes::new(py, &bvec).into())
     }
 
-    fn write_bytes(&self, b: Vec<u8>) -> PyResult<()> {
-        fileio::write_bytes(&self.string(), b)
+    pub fn read_text(&self, py: Python<'_>) -> PyResult<String> {
+        let bvec = self.read_vec_u8()?;
+        let r = std::str::from_utf8(&bvec);
+        match r {
+            Ok(s) => Ok(s.to_string()),
+            Err(e) => {
+                let decode_err = PyUnicodeDecodeError::new_utf8(py, &bvec, e)?;
+                Err(decode_err.into())
+            }
+        }
     }
 
-    fn write_text(&self, t: &str) -> PyResult<()> {
+    pub fn write_bytes(&self, b: Vec<u8>) -> PyResult<()> {
+        let write_res = std::fs::write(&self.pth, b);
+        match write_res {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                let fspath = self.string();
+                Err(PyNotADirectoryError::new_err(format!(
+                    "write_bytes - parent: {fspath} - {e}"
+                )))
+            }
+        }
+    }
+
+    pub fn write_text(&self, t: &str) -> PyResult<()> {
         fileio::write_text(&self.string(), t)
     }
 

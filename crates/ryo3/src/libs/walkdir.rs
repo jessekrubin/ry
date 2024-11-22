@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 
 use crate::fs::fspath::PathLike;
 
-#[pyclass(name = "WalkDirEntry")]
+#[pyclass(name = "WalkDirEntry", module = "ryo3")]
 #[derive(Clone, Debug)]
 pub struct PyWalkDirEntry {
     de: walkdir_rs::DirEntry,
@@ -62,7 +62,7 @@ impl From<walkdir_rs::DirEntry> for PyWalkDirEntry {
     }
 }
 
-#[pyclass(name = "WalkdirGen")]
+#[pyclass(name = "WalkdirGen", module = "ryo3")]
 pub struct PyWalkdirGen {
     iter: walkdir_rs::IntoIter,
     files: bool,
@@ -89,7 +89,7 @@ impl PyWalkdirGen {
     }
 }
 
-#[pyclass(name = "FspathsGen")]
+#[pyclass(name = "FspathsGen", module = "ryo3")]
 pub struct PyFspathsGen {
     iter: walkdir_rs::IntoIter,
     files: bool,

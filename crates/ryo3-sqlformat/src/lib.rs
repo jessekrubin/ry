@@ -19,7 +19,7 @@ use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use sqlformat::{self, QueryParams};
 
-#[pyclass(name = "SqlfmtQueryParams")]
+#[pyclass(name = "SqlfmtQueryParams", module = "ryo3")]
 #[derive(Debug, Clone)]
 pub struct PySqlfmtQueryParams {
     pub params: QueryParams,
