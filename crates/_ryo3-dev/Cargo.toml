@@ -1,0 +1,20 @@
+[package]
+name = "ryo3-dev"
+description = "ryo3-dev crate"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+serde.workspace = true
+serde_bytes = "0.11.15"
+serde_json = "1.0.133"
+tracing.workspace = true
+
+# [lints]
+# workspace = true

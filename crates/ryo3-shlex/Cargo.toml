@@ -1,0 +1,16 @@
+[package]
+name = "ryo3-shlex"
+description = "python + rust-shlex (https://github.com/comex/rust-shlex)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+shlex.workspace = true
+[lints]
+workspace = true

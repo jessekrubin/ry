@@ -45,6 +45,6 @@ pip-selfcheck.json
 pnpm-lock.yaml
 scratch/
 sdist/
-target/ 
+target/
 var/
 venv/

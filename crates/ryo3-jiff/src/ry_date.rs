@@ -11,7 +11,7 @@ use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyErr, PyResult, Pyt
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Date")]
+#[pyclass(name = "Date", module = "ryo3")]
 pub struct RyDate(pub(crate) Date);
 
 #[pymethods]

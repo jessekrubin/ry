@@ -4,7 +4,7 @@ use crate::ry_zoned::RyZoned;
 use pyo3::FromPyObject;
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum RySpanRelativeTo {
+pub(crate) enum RySpanRelativeTo {
     Zoned(RyZoned),
     Date(RyDate),
     DateTime(RyDateTime),

@@ -1,0 +1,17 @@
+[package]
+name = "ryo3-brotli"
+description = "brotli - wraps brotli (https://crates.io/crates/brotli)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+brotli = { version = "7.0.0" }
+
+[lints]
+workspace = true

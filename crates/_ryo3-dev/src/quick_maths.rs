@@ -1,4 +1,6 @@
-//! Quick maths - template module
+//! Quick maths
+//!
+//! This is a super simple template module
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{wrap_pyfunction, PyResult};
@@ -11,7 +13,7 @@ use pyo3::{wrap_pyfunction, PyResult};
 ///
 /// # Example
 /// ```
-/// # use ryo3::dev::quick_maths;
+/// # use ryo3_dev::quick_maths;
 /// let result = quick_maths::quick_maths();
 /// assert_eq!(result, 3);
 /// ```
@@ -25,7 +27,7 @@ pub fn quick_maths() -> i32 {
     qm
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(quick_maths, m)?)?;
     Ok(())
 }

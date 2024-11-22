@@ -6,7 +6,7 @@ mod done;
 mod pydone;
 pub mod run;
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run::run, m)?)?;
     Ok(())
 }

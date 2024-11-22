@@ -1,0 +1,17 @@
+[package]
+name = "ryo3-globset"
+description = "python + globset (https://docs.rs/globset/latest/globset/)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+globset = { version = "0.4.15", features = ["serde"] }
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+
+# [lints]
+# workspace = true

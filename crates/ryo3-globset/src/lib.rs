@@ -344,7 +344,7 @@ fn globs(
     )
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(glob, m)?)?;
     m.add_function(wrap_pyfunction!(globs, m)?)?;
     m.add_class::<PyGlob>()?;

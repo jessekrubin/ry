@@ -1,5 +1,7 @@
 """Tests for ry.FsPath"""
 
+from __future__ import annotations
+
 import itertools as it
 from pathlib import Path
 from typing import Union

@@ -6,6 +6,9 @@ edition.workspace = true
 [build-dependencies]
 jiff.workspace = true
 
+#[lints]
+#workspace = true
+
 [dependencies]
 dirs.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
@@ -16,29 +19,32 @@ serde_json.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 
+# ryo3 dev module(s)
+ryo3-dev = { path = "../_ryo3-dev", optional = false }
+
 # required ryo3-* dependencies
 ryo3-std = { path = "../ryo3-std" }
 # optional ryo3-* dependencies
-ryo3-sqlformat = { path = "../ryo3-sqlformat", optional = true }
+ryo3-brotli = { path = "../ryo3-brotli", optional = true }
+ryo3-bzip2 = { path = "../ryo3-bzip2", optional = true }
+ryo3-flate2 = { path = "../ryo3-flate2", optional = true }
+ryo3-fnv = { path = "../ryo3-fnv", optional = true }
+ryo3-globset = { path = "../ryo3-globset", optional = true }
 ryo3-jiff = { path = "../ryo3-jiff", optional = true }
+ryo3-jiter = { path = "../ryo3-jiter", optional = true }
+ryo3-shlex = { path = "../ryo3-shlex", optional = true }
+ryo3-sqlformat = { path = "../ryo3-sqlformat", optional = true }
+ryo3-which = { path = "../ryo3-which", optional = true }
+ryo3-xxhash = { path = "../ryo3-xxhash", optional = true }
+ryo3-zstd = { path = "../ryo3-zstd", optional = true }
+
 
 # optional
-brotli = { version = "7.0.0", optional = true }
-bzip2 = { version = "0.4.4", optional = true }
-flate2 = { version = "1.0.34", optional = true }
-fnv = { version = "1.0.7", optional = true }
-globset = { version = "0.4.15", optional = true, features = ["serde"] }
-jiter = { workspace = true, features = ["python"], optional = true }
-shlex = { workspace = true, optional = true }
 walkdir = { workspace = true, optional = true }
-which = { workspace = true, features = ["regex"], optional = true }
-xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
-zstd = { version = "0.13.2", optional = true }
 
 
 [features]
 default = [
-  "which",
   "shlex",
   "jiter",
 ]
@@ -57,16 +63,17 @@ all = [
   "xxhash",
   "zstd",
 ]
-brotli = ["dep:brotli"]
-bzip2 = ["dep:bzip2"]
-flate2 = ["dep:flate2"]
-fnv = ["dep:fnv"]
-globset = ["dep:globset"]
-jiter = ["dep:jiter"]
-shlex = ["dep:shlex"]
-walkdir = ["dep:walkdir"]
-which = ["dep:which"]
-xxhash = ["dep:xxhash-rust"]
-zstd = ["dep:zstd"]
-sqlformat = ["dep:ryo3-sqlformat"]
+
+brotli = ["dep:ryo3-brotli"]
+bzip2 = ["dep:ryo3-bzip2"]
+flate2 = ["dep:ryo3-flate2"]
+fnv = ["dep:ryo3-fnv"]
+globset = ["dep:ryo3-globset"]
 jiff = ["dep:ryo3-jiff"]
+jiter = ["dep:ryo3-jiter"]
+shlex = ["dep:ryo3-shlex"]
+sqlformat = ["dep:ryo3-sqlformat"]
+walkdir = ["dep:walkdir"]
+which = ["dep:ryo3-which"]
+xxhash = ["dep:ryo3-xxhash"]
+zstd = ["dep:ryo3-zstd"]

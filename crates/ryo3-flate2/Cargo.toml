@@ -1,0 +1,17 @@
+[package]
+name = "ryo3-flate2"
+description = "python + flate2 (https://github.com/rust-lang/flate2-rs)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+flate2 = "1.0.35"
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+
+[lints]
+workspace = true

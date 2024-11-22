@@ -67,7 +67,7 @@ pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     Ok(PyBytes::new(py, &decompressed).into())
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(brotli_decode, m)?)?;
     m.add_function(wrap_pyfunction!(brotli_encode, m)?)?;
     m.add_function(wrap_pyfunction!(self::brotli, m)?)?;

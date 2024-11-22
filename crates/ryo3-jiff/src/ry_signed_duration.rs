@@ -5,7 +5,7 @@ use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "SignedDuration")]
+#[pyclass(name = "SignedDuration", module = "ryo3")]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
 #[pymethods]

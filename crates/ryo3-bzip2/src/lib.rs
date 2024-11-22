@@ -47,7 +47,7 @@ pub fn bzip2_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     Ok(PyBytes::new(py, &decompressed).into())
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(bzip2_decode, m)?)?;
     m.add_function(wrap_pyfunction!(bzip2_encode, m)?)?;
     m.add_function(wrap_pyfunction!(self::bzip2, m)?)?;

@@ -12,6 +12,8 @@ with open(TEST_DATA_FILE_PATH, "r") as f:
 
 """
 
+from __future__ import annotations
+
 XX32_SEEDS = [0, 1, 2**32 - 1]
 XX64_SEEDS = [0, 1, 2**64 - 1]
 XX128_SEEDS = [0, 1, 2**64 - 1]  # same as 64-bit seeds

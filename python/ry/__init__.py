@@ -1,10 +1,7 @@
-"""ry = rust + python
+"""dev entry point"""
 
-`ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
-"""
-
-from ry import _ry
-from ry._ry import (
+from ry import ryo3
+from ry.ryo3 import (
     Date,
     DateTime,
     DateTimeRound,
@@ -130,7 +127,6 @@ __all__ = (
     "__description__",
     "__pkg_name__",
     "__version__",
-    "_ry",
     "anystr_noop",
     "brotli",
     "brotli_decode",
@@ -163,6 +159,7 @@ __all__ = (
     "read_bytes",
     "read_text",
     "run",
+    "ryo3",
     "shplit",
     "sleep",
     "sqlfmt",

@@ -61,7 +61,7 @@ pub fn fmt_nbytes(nbytes: i64) -> PyResult<String> {
     Ok(formatted_size)
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(fmt_nbytes, m)?)?;
     Ok(())
 }

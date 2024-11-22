@@ -2,10 +2,11 @@ use jiff::{Unit, Zoned};
 
 fn main() {
     pyo3_build_config::use_pyo3_cfgs();
-    println!(
-        "cargo:rustc-env=PROFILE={}",
-        std::env::var("PROFILE").unwrap()
-    );
+
+    // env var build profile
+    let profile =
+        std::env::var("PROFILE").expect("PROFILE env var not found which is SUPER strange!");
+    println!("cargo:rustc-env=PROFILE={profile}");
 
     let build_ts = Zoned::now()
         .round(Unit::Second)

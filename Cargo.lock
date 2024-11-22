@@ -783,29 +783,81 @@ dependencies = [
 name = "ryo3"
 version = "0.0.14"
 dependencies = [
- "brotli",
- "bzip2",
  "dirs",
- "flate2",
- "fnv",
- "globset",
  "jiff",
- "jiter",
  "pyo3",
  "regex",
+ "ryo3-brotli",
+ "ryo3-bzip2",
+ "ryo3-dev",
+ "ryo3-flate2",
+ "ryo3-fnv",
+ "ryo3-globset",
  "ryo3-jiff",
+ "ryo3-jiter",
+ "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
+ "ryo3-which",
+ "ryo3-xxhash",
+ "ryo3-zstd",
  "serde",
  "serde_bytes",
  "serde_json",
- "shlex",
  "tokio",
  "tracing",
  "walkdir",
- "which",
- "xxhash-rust",
- "zstd",
+]
+
+[[package]]
+name = "ryo3-brotli"
+version = "0.0.14"
+dependencies = [
+ "brotli",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-bzip2"
+version = "0.0.14"
+dependencies = [
+ "bzip2",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-dev"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
+name = "ryo3-flate2"
+version = "0.0.14"
+dependencies = [
+ "flate2",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-fnv"
+version = "0.0.14"
+dependencies = [
+ "fnv",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-globset"
+version = "0.0.14"
+dependencies = [
+ "globset",
+ "pyo3",
 ]
 
 [[package]]
@@ -814,6 +866,22 @@ version = "0.0.14"
 dependencies = [
  "jiff",
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-jiter"
+version = "0.0.14"
+dependencies = [
+ "jiter",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-shlex"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "shlex",
 ]
 
 [[package]]
@@ -829,6 +897,30 @@ name = "ryo3-std"
 version = "0.0.14"
 dependencies = [
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-which"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "which",
+]
+
+[[package]]
+name = "ryo3-xxhash"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "xxhash-rust",
+]
+
+[[package]]
+name = "ryo3-zstd"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "zstd",
 ]
 
 [[package]]
@@ -1172,6 +1264,7 @@ dependencies = [
  "home",
  "regex",
  "rustix",
+ "tracing",
  "winsafe",
 ]
 
