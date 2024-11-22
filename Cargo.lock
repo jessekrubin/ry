@@ -794,12 +794,12 @@ dependencies = [
  "pyo3",
  "regex",
  "ryo3-jiff",
+ "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
  "serde",
  "serde_bytes",
  "serde_json",
- "shlex",
  "tokio",
  "tracing",
  "walkdir",
@@ -814,6 +814,14 @@ version = "0.0.14"
 dependencies = [
  "jiff",
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-shlex"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "shlex",
 ]
 
 [[package]]

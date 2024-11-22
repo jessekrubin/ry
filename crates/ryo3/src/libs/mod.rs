@@ -29,6 +29,9 @@ pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "sqlformat")]
     ryo3_sqlformat::pymod_add(m)?;
 
+    #[cfg(feature = "shlex")]
+    ryo3_shlex::pymod_add(m)?;
+
     #[cfg(feature = "jiff")]
     ryo3_jiff::pymod_add(m)?;
 
@@ -49,9 +52,6 @@ pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     #[cfg(feature = "jiter")]
     jiter_ry::madd(m)?;
-
-    #[cfg(feature = "shlex")]
-    shlex::madd(m)?;
 
     #[cfg(feature = "walkdir")]
     walkdir::madd(m)?;

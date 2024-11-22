@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::fs::fspath::{PathLike, PyFsPath};
-use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
+use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule};
 use pyo3::{pyfunction, wrap_pyfunction, PyResult};
@@ -56,7 +56,6 @@ pub fn write_text(fspath: &str, string: &str) -> PyResult<()> {
     }
 }
 
-// #[instrument(level = "warn", err, fields(s = module_path!()), ret, skip(_py))]
 pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;

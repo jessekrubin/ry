@@ -3,6 +3,8 @@
 tests based on the examples in the jiff documentation (as of 2024-11-18)
 """
 
+from __future__ import annotations
+
 import ry.dev as ry
 
 

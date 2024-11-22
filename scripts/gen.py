@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import sys
 
-from ry import ryo3
+from ry import dev as ryo3
 
 
 def eprint(*args, **kwargs):
@@ -24,15 +26,15 @@ def main():
 
     # import lines for __init__.py
     import_lines = [
-        "from ry import _ry",
-        "from ry._ry import (",
+        "from ry import ryo3",
+        "from ry.ryo3 import (",
         *(f"    {x}," for x in all_tuple_sorted),
         ")",
     ]
     # '__all__' lines for __init__.py
     package_all_list_lines = [
         "__all__ = (",
-        *(f'    "{x}",' for x in (*all_tuple_sorted, "_ry")),
+        *(f'    "{x}",' for x in (*all_tuple_sorted, "ryo3")),
         ")",
     ]
 
