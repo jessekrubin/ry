@@ -51,7 +51,7 @@ urls.Source = "https://github.com/jessekrubin/ry"
 python-source = "python"
 strip = true
 features = [ "pyo3/extension-module" ]
-module-name = "ry.ryo3"
+module-name = "ry._ry"
 bindings = "pyo3"
 
 [tool.ruff]
