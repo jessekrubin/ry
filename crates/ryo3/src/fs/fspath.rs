@@ -1,13 +1,16 @@
+#![allow(clippy::needless_pass_by_value)]
 use std::path::{Path, PathBuf};
 
+use crate::fs::fileio;
+use crate::fs::fileio::{read_bytes, read_text};
+use crate::fs::iterdir::PyIterdirGen;
+use pyo3::basic::CompareOp;
+use pyo3::exceptions::PyFileNotFoundError;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyType};
 use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
 
-use crate::fs::fileio;
-use crate::fs::fileio::{read_bytes, read_text};
-
-#[pyclass(name = "FsPath")]
+#[pyclass(name = "FsPath", module = "ryo3")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: PathBuf,
@@ -66,19 +69,45 @@ impl PyFsPath {
         self.pth == other
     }
 
-    fn __eq__(&self, other: PathLike) -> bool {
-        // start by comparing as paths
-        if self.pth == other.as_ref() {
-            return true;
+    // fn __eq__(&self, other: PathLike) -> bool {
+    //     // start by comparing as paths
+    //     if self.pth == other.as_ref() {
+    //         return true;
+    //     }
+    //     // if that fails, compare as strings
+    //     self.string() == path2str(other.as_ref())
+    // }
+
+    fn __richcmp__(&self, other: PathLike, op: CompareOp) -> PyResult<bool> {
+        let o = other.as_ref();
+        match op {
+            CompareOp::Eq => {
+                // start by comparing as paths
+                if self.pth == other.as_ref() {
+                    return Ok(true);
+                }
+                // if that fails, compare as strings
+                Ok(self.string() == path2str(other.as_ref()))
+            }
+            CompareOp::Ne => {
+                // start by comparing as paths
+                if self.pth != other.as_ref() {
+                    return Ok(true);
+                }
+                // if that fails, compare as strings
+                Ok(self.string() != path2str(other.as_ref()))
+            }
+            CompareOp::Lt => Ok(self.pth < o),
+            CompareOp::Le => Ok(self.pth <= o),
+            CompareOp::Gt => Ok(self.pth > o),
+            CompareOp::Ge => Ok(self.pth >= o),
         }
-        // if that fails, compare as strings
-        self.string() == path2str(other.as_ref())
     }
 
-    fn __ne__(&self, other: PathLike) -> bool {
-        // let other = other.extract::<PyPath>().unwrap();
-        self.pth != other.as_ref()
-    }
+    // fn __ne__(&self, other: PathLike) -> bool {
+    //     // let other = other.extract::<PyPath>().unwrap();
+    //     self.pth != other.as_ref()
+    // }
 
     fn is_file(&self) -> bool {
         self.pth.is_file()
@@ -169,16 +198,36 @@ impl PyFsPath {
         }
     }
 
+    fn with_name(&self, name: String) -> PyResult<Self> {
+        let p = self.pth.with_file_name(name);
+        Ok(PyFsPath::from(p))
+    }
+
     #[getter]
     fn suffix(&self) -> PyResult<String> {
         let e = self.pth.extension();
         match e {
-            Some(e) => Ok(path2str(
-                e.to_str()
-                    .expect("suffix() - path contains invalid unicode characters"),
-            )),
+            Some(e) => {
+                let ext = path2str(
+                    e.to_str()
+                        .expect("suffix() - path contains invalid unicode characters"),
+                );
+
+                Ok(format!(".{ext}"))
+            }
             None => Ok(String::new()),
         }
+    }
+
+    fn with_suffix(&self, suffix: String) -> PyResult<Self> {
+        // auto strip leading dot
+        let suffix = if suffix.starts_with('.') {
+            suffix.trim_start_matches('.')
+        } else {
+            suffix.as_ref()
+        };
+        let p = self.pth.with_extension(suffix);
+        Ok(PyFsPath::from(p))
     }
 
     #[getter]
@@ -221,6 +270,15 @@ impl PyFsPath {
         Ok(p.into())
     }
 
+    fn as_posix(&self) -> PyResult<String> {
+        Ok(self.pth.to_string_lossy().to_string())
+    }
+
+    fn joinpath(&self, other: PathLike) -> PyResult<PyFsPath> {
+        let p = self.pth.join(other.as_ref());
+        Ok(PyFsPath::from(p))
+    }
+
     fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
         read_bytes(py, &self.string())
     }
@@ -238,6 +296,18 @@ impl PyFsPath {
         fileio::write_text(&self.string(), t)
     }
 
+    fn iterdir(&self) -> PyResult<PyIterdirGen> {
+        let rd = std::fs::read_dir(&self.pth)
+            .map(PyIterdirGen::from)
+            .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
+        Ok(rd)
+    }
+
+    fn relative_to(&self, _other: PathLike) -> PyResult<PyFsPath> {
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "relative_to not implemented",
+        ))
+    }
     // ========================================================================
     // TODO: not implemented stuff
     // ========================================================================

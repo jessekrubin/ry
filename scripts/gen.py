@@ -44,11 +44,11 @@ def main():
 
     # test it
     try:
-        exec(init_string)
+        exec(init_string)  # noqa: S102
     except Exception as e:
         eprint(e)
         raise e from None
-    print(init_string)
+    sys.stdout.buffer.write(init_string.encode("utf-8"))
 
 
 if __name__ == "__main__":

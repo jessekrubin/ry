@@ -14,9 +14,8 @@ const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 ///
 /// `ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
 #[pymodule]
-#[pyo3(name = "_ry")]
+#[pyo3(name = "_ry")] // possibly change to `ryo3`?
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // fn ry(py: Python, m: &PyModule) -> PyResult<()> {
     lager::tracing_init();
     debug!("version: {}", VERSION);
     debug!("build_profile: {}", BUILD_PROFILE);

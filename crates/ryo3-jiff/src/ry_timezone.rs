@@ -41,13 +41,16 @@ impl RyTimeZone {
         self.0.iana_name()
     }
 
-    fn __str__(&self) -> String {
-        // TODO; figure out good repr
+    fn __repr__(&self) -> String {
         let iana_name = self.0.iana_name();
         match iana_name {
-            Some(name) => format!("TimeZone<{name}>"),
-            None => "TimeZone<None>".to_string(),
+            Some(name) => format!("TimeZone(\"{name})\""),
+            None => "TimeZone(None)".to_string(),
         }
+    }
+
+    fn __str__(&self) -> String {
+        self.iana_name().unwrap_or("Unknown").to_string()
     }
 
     fn __eq__(&self, other: &RyTimeZone) -> bool {

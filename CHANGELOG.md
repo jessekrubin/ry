@@ -4,6 +4,8 @@
 
 - Primitive/crude wrappers around Mr. Sushi's `jiff` library
 - Updated to use pyo3 (had to use jiter git repo dep)
+- `ry.FsPath` beefed out
+- Added iterdir gen wrapper
 - (todo undo when jiter + pyo3 23 is public)
 
 ## v0.0.13 [2024-11-20]

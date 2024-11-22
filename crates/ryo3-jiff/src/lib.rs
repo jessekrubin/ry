@@ -9,11 +9,12 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::unused_self)]
 
+mod dev;
 mod internal;
+mod pydatetime_conversions;
 mod ry_date;
 mod ry_datetime;
 mod ry_signed_duration;
@@ -23,6 +24,7 @@ mod ry_timestamp;
 mod ry_timezone;
 mod ry_zoned;
 
+use crate::dev::RyDateTimeRound;
 use crate::ry_date::RyDate;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
@@ -40,11 +42,18 @@ pub fn date(year: i16, month: i8, day: i8) -> PyResult<RyDate> {
 }
 
 #[pyfunction]
-pub fn time(hour: i8, minute: i8, second: i8, nanosecond: i32) -> PyResult<RyTime> {
+#[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
+pub fn time(
+    hour: Option<i8>,
+    minute: Option<i8>,
+    second: Option<i8>,
+    nanosecond: Option<i32>,
+) -> PyResult<RyTime> {
     RyTime::new(hour, minute, second, nanosecond)
 }
 
 #[pyfunction]
+#[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
 pub fn datetime(
     year: i16,
     month: i8,
@@ -54,9 +63,16 @@ pub fn datetime(
     second: i8,
     subsec_nanosecond: i32,
 ) -> PyResult<RyDateTime> {
-    RyDateTime::new(year, month, day, hour, minute, second, subsec_nanosecond)
+    RyDateTime::new(
+        year,
+        month,
+        day,
+        Some(hour),
+        Some(minute),
+        Some(second),
+        Some(subsec_nanosecond),
+    )
 }
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
     m.add_class::<RyDate>()?;
@@ -67,6 +83,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyTimeZone>()?;
     m.add_class::<RyTimestamp>()?;
     m.add_class::<RyZoned>()?;
+    m.add_class::<RyDateTimeRound>()?;
 
     // functions
     m.add_function(wrap_pyfunction!(date, m)?)?;

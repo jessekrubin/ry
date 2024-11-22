@@ -1,5 +1,6 @@
 """Tests for ry.FsPath"""
 
+import itertools as it
 from pathlib import Path
 from typing import Union
 
@@ -61,3 +62,92 @@ class TestFsPath:
         b = rypath.read_bytes()
         assert rypath.read_bytes() == pypath.read_bytes()
         assert rypath.read_bytes() == b
+
+    def test_write_text(self, path_cls: TPath, tmp_path: Path) -> None:
+        pypath = tmp_path / "test.txt"
+        rypath = path_cls(pypath)
+        rypath.write_text("new content")
+        assert pypath.read_text() == "new content"
+
+    def test_write_bytes(self, path_cls: TPath, tmp_path: Path) -> None:
+        pypath = tmp_path / "test.txt"
+        rypath = path_cls(pypath)
+        rypath.write_bytes(b"new content")
+        assert pypath.read_bytes() == b"new content"
+
+    def test_joinpath(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        assert rypath.joinpath("child") == pypath.joinpath("child")
+
+    def test_exists(self, path_cls: TPath, tmp_path: Path) -> None:
+        pypath = tmp_path / "test.txt"
+        pypath.touch()
+        rypath = path_cls(pypath)
+        assert rypath.exists() == pypath.exists()
+
+    def test_is_file(self, path_cls: TPath, tmp_path: Path) -> None:
+        pypath = tmp_path / "test.txt"
+        pypath.touch()
+        rypath = path_cls(pypath)
+        assert rypath.is_file() == pypath.is_file()
+
+    def test_is_dir(self, path_cls: TPath, tmp_path: Path) -> None:
+        rypath = path_cls(tmp_path)
+        assert rypath.is_dir() == tmp_path.is_dir()
+
+    def test_with_name(self, path_cls: TPath) -> None:
+        pypath = Path("file.txt")
+        rypath = path_cls("file.txt")
+        assert rypath.with_name("newfile.txt") == pypath.with_name("newfile.txt")
+
+    def test_with_suffix(self, path_cls: TPath) -> None:
+        pypath = Path("file.txt")
+        rypath = path_cls("file.txt")
+        assert rypath.with_suffix(".md") == pypath.with_suffix(".md")
+
+    def test_stem(self, path_cls: TPath) -> None:
+        pypath = Path("file.txt")
+        rypath = path_cls("file.txt")
+        assert rypath.stem == pypath.stem
+
+    def test_suffix(self, path_cls: TPath) -> None:
+        pypath = Path("file.txt")
+        rypath = path_cls("file.txt")
+        assert rypath.suffix == pypath.suffix
+
+    def test_iterdir(self, path_cls: TPath, tmp_path: Path) -> None:
+        (tmp_path / "file1.txt").touch()
+        (tmp_path / "file2.txt").touch()
+        pypath = tmp_path
+        rypath = path_cls(tmp_path)
+        assert sorted(rypath.iterdir()) == sorted(pypath.iterdir())
+
+    def test_relative_to(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path/file.txt")
+        rypath = path_cls("/some/path/file.txt")
+        if path_cls is ry.FsPath:
+            with pytest.raises(NotImplementedError):
+                relative_resolved = rypath.relative_to("/some")
+                assert relative_resolved == pypath.relative_to("/some")
+        else:
+            relative_resolved = rypath.relative_to("/some")
+            assert relative_resolved == pypath.relative_to("/some")
+
+    def test_as_posix(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path/file.txt")
+        rypath = path_cls("/some/path/file.txt")
+        assert rypath.as_posix() == pypath.as_posix()
+
+    def test_equality(self, path_cls: TPath) -> None:
+        pypath1 = Path("/some/path")
+        pypath2 = Path("/some/path")
+        rypath1 = path_cls("/some/path")
+        rypath2 = path_cls("/some/path")
+        for a, b in it.combinations([pypath1, pypath2, rypath1, rypath2], 2):
+            assert a == b, f"{a} != {b} ({type(a)} != {type(b)})"
+
+    def test_inequality(self, path_cls: TPath) -> None:
+        rypath1 = path_cls("/some/path")
+        rypath2 = path_cls("/other/path")
+        assert rypath1 != rypath2

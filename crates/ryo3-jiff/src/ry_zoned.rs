@@ -1,11 +1,15 @@
+use crate::dev::{JiffUnit, RyDateTimeRound};
+use crate::pydatetime_conversions::jiff_zoned2pydatetime;
+use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
+use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::RyDate;
-use jiff::Zoned;
+use jiff::{Zoned, ZonedRound};
 use pyo3::basic::CompareOp;
-use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
+use pyo3::types::{PyDateTime, PyType};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -17,15 +21,31 @@ pub struct RyZoned(pub(crate) Zoned);
 impl RyZoned {
     #[new]
     #[pyo3(signature = (timestamp, time_zone))]
-    pub fn new(timestamp: RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
+    pub fn new(timestamp: &RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
         let ts = timestamp.0;
         let tz = time_zone.0;
         Ok(RyZoned::from(Zoned::new(ts, tz)))
     }
 
     #[classmethod]
-    fn now(_cls: &Bound<'_, PyType>) -> Self {
-        Self::from(Zoned::now())
+    #[pyo3(signature = (tz=None))]
+    fn now(_cls: &Bound<'_, PyType>, tz: Option<&str>) -> PyResult<Self> {
+        if let Some(tz) = tz {
+            Zoned::now()
+                .intz(tz)
+                .map(RyZoned::from)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        } else {
+            Ok(Self::from(Zoned::now()))
+        }
+    }
+
+    #[classmethod]
+    fn utcnow(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        Zoned::now()
+            .intz("UTC")
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
@@ -77,9 +97,28 @@ impl RyZoned {
         RyDate::from(self.0.date())
     }
 
+    fn time(&self) -> RyTime {
+        RyTime::from(self.0.time())
+    }
+
+    fn datetime(&self) -> RyDateTime {
+        RyDateTime::from(self.0.datetime())
+    }
+
+    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
+        jiff_zoned2pydatetime(py, &self.0)
+    }
+
     fn intz(&self, tz: &str) -> PyResult<Self> {
         self.0
             .intz(tz)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn inutc(&self) -> PyResult<Self> {
+        self.0
+            .intz("UTC")
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
@@ -110,6 +149,58 @@ impl RyZoned {
     fn timezone(&self) -> RyTimeZone {
         RyTimeZone::from(self.0.time_zone())
     }
+
+    fn round(&self, option: IntoZonedRound) -> PyResult<Self> {
+        self.0
+            .round(option)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn year(&self) -> i16 {
+        self.0.year()
+    }
+
+    fn month(&self) -> i8 {
+        self.0.month()
+    }
+
+    fn day(&self) -> i8 {
+        self.0.day()
+    }
+
+    // TODO: weekdays
+    // fn weekday(&self) -> i8 {
+    //     self.0.weekday()
+    // }
+
+    fn hour(&self) -> i8 {
+        self.0.hour()
+    }
+
+    fn minute(&self) -> i8 {
+        self.0.minute()
+    }
+
+    fn second(&self) -> i8 {
+        self.0.second()
+    }
+
+    fn microsecond(&self) -> i16 {
+        self.0.microsecond()
+    }
+
+    fn millisecond(&self) -> i16 {
+        self.0.millisecond()
+    }
+
+    fn nanosecond(&self) -> i16 {
+        self.0.nanosecond()
+    }
+
+    fn subsec_nanosecond(&self) -> i32 {
+        self.0.subsec_nanosecond()
+    }
 }
 
 impl Display for RyZoned {
@@ -120,5 +211,24 @@ impl Display for RyZoned {
 impl From<Zoned> for RyZoned {
     fn from(value: Zoned) -> Self {
         RyZoned(value)
+    }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+enum IntoZonedRound {
+    DateTimeRound(RyDateTimeRound),
+    JiffUnit(JiffUnit),
+}
+
+impl From<IntoZonedRound> for ZonedRound {
+    fn from(val: IntoZonedRound) -> Self {
+        match val {
+            // TODO: this is ugly
+            IntoZonedRound::DateTimeRound(round) => ZonedRound::new()
+                .smallest(round.smallest.0)
+                .mode(round.mode.0)
+                .increment(round.increment),
+            IntoZonedRound::JiffUnit(unit) => unit.0.into(),
+        }
     }
 }
