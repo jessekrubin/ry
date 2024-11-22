@@ -3,8 +3,8 @@
 `ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
 """
 
-from ry import _ry
-from ry._ry import (
+from ry import ryo3
+from ry.ryo3 import (
     Date,
     DateTime,
     DateTimeRound,

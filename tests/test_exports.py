@@ -20,6 +20,7 @@ def test_doc_is_not_none() -> None:
 _IGNORED_NAMES = (
     # ry ignores
     "_ry",
+    "ryo3",
     "dev",
     # misc ignores
     "__builtins__",
@@ -39,4 +40,4 @@ def test_exports_module_attr_param(name: str) -> None:
     module_name = member.__module__
     assert module_name is not None, f"{name} has no __module__"
     assert module_name != "builtins", f"{name} is builtin"
-    assert module_name in ("ry._ry", "ryo3")
+    assert module_name in ("ryo3", "ry.ryo3")

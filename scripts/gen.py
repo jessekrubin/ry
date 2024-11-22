@@ -1,6 +1,6 @@
 import sys
 
-from ry import _ry as ryo3
+from ry import ryo3
 
 
 def eprint(*args, **kwargs):

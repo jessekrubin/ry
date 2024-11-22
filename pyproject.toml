@@ -1,7 +1,7 @@
 [build-system]
 build-backend = "maturin"
 
-requires = [ "maturin>=1,<2" ]
+requires = ["maturin>=1,<2"]
 
 [project]
 name = "ry"
@@ -37,7 +37,7 @@ classifiers = [
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
-dynamic = [ "readme", "version" ]
+dynamic = ["readme", "version"]
 
 optional-dependencies.tests = [
   "pytest",
@@ -50,8 +50,8 @@ urls.Source = "https://github.com/jessekrubin/ry"
 [tool.maturin]
 python-source = "python"
 strip = true
-features = [ "pyo3/extension-module" ]
-module-name = "ry._ry"
+features = ["pyo3/extension-module"]
+module-name = "ry.ryo3"
 bindings = "pyo3"
 
 [tool.ruff]
@@ -165,7 +165,7 @@ lint.unfixable = [
   "F401",
 ]
 lint.flake8-tidy-imports.ban-relative-imports = "all"
-lint.isort.known-first-party = [ "ry" ]
+lint.isort.known-first-party = ["ry"]
 # =============================================================================
 # Type checking
 # =============================================================================
@@ -212,5 +212,5 @@ ignore_missing_imports = true
 check_untyped_defs = true
 
 [tool.pyright]
-include = [ 'ry', 'tests' ]
+include = ['ry', 'tests']
 reportUnnecessaryTypeIgnoreComment = true

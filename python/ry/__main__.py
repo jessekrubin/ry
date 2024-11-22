@@ -4,18 +4,18 @@ import json
 import os
 import sys
 
-from ry import _ry
+from ry import ryo3
 from ry.__about__ import __authors__, __pkgroot__, __title__, __version__
 
 
 def _ext_info() -> dict[str, str | int]:
-    size = os.path.getsize(_ry.__file__)
+    size = os.path.getsize(ryo3.__file__)
     return {
-        "abspath": os.path.abspath(_ry.__file__),
+        "abspath": os.path.abspath(ryo3.__file__),
         "fsize": size,
-        "fsize_str": _ry.fmt_nbytes(size),
-        "build_profile": _ry.__build_profile__,
-        "build_timestamp": _ry.__build_timestamp__,
+        "fsize_str": ryo3.fmt_nbytes(size),
+        "build_profile": ryo3.__build_profile__,
+        "build_timestamp": ryo3.__build_timestamp__,
     }
 
 
