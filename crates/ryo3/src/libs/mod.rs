@@ -1,19 +1,9 @@
 use pyo3::prelude::*;
-use pyo3::PyResult;
-#[cfg(feature = "bzip2")]
-mod bzip2;
-#[cfg(feature = "flate2")]
-mod flate2;
-#[cfg(feature = "fnv")]
-mod fnv;
-#[cfg(feature = "globset")]
-mod globset;
+
 #[cfg(feature = "walkdir")]
 mod walkdir;
 #[cfg(feature = "xxhash")]
 mod xxhash;
-#[cfg(feature = "zstd")]
-mod zstd;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "brotli")]
@@ -31,16 +21,16 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // TODO: move the below libs to their own crates
     #[cfg(feature = "bzip2")]
-    bzip2::pymod_add(m)?;
+    ryo3_bzip2::pymod_add(m)?;
 
     #[cfg(feature = "fnv")]
-    fnv::pymod_add(m)?;
+    ryo3_fnv::pymod_add(m)?;
 
     #[cfg(feature = "flate2")]
-    flate2::pymod_add(m)?;
+    ryo3_flate2::pymod_add(m)?;
 
     #[cfg(feature = "globset")]
-    globset::pymod_add(m)?;
+    ryo3_globset::pymod_add(m)?;
 
     #[cfg(feature = "walkdir")]
     walkdir::pymod_add(m)?;
@@ -49,7 +39,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     xxhash::pymod_add(m)?;
 
     #[cfg(feature = "zstd")]
-    zstd::pymod_add(m)?;
+    ryo3_zstd::pymod_add(m)?;
 
     Ok(())
 }

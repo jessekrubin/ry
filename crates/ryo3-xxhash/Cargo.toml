@@ -1,0 +1,17 @@
+[package]
+name = "ryo3-xxhash"
+description = "python + xxhash-rust (https://github.com/DoumanAsh/xxhash-rust)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
+xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
+
+[lints]
+workspace = true

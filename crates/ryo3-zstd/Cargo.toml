@@ -1,6 +1,6 @@
 [package]
-name = "ryo3-which"
-description = "python + which-rs (https://github.com/harryfei/which-rs)"
+name = "ryo3-zstd"
+description = "python + zstd (https://docs.rs/zstd/latest/zstd/)"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
@@ -11,7 +11,7 @@ repository.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-which = { workspace = true, features = ["tracing"] }
+zstd.workspace = true
 
 [lints]
 workspace = true

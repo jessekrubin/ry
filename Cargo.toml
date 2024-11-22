@@ -42,11 +42,17 @@ members = [
   "crates/ryo3-std",
   # external wrappers
   "crates/ryo3-brotli",
+  "crates/ryo3-bzip2",
+  "crates/ryo3-flate2",
+  "crates/ryo3-fnv",
+  "crates/ryo3-globset",
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
   "crates/ryo3-which",
+  "crates/ryo3-xxhash",
+  "crates/ryo3-zstd",
 ]
 
 [workspace.package]
@@ -75,8 +81,11 @@ thiserror = "2.0.3"
 tokio = { version = "1.41.1", features = ["full"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["serde", "serde_json", "env-filter", "default"] }
+xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
+
 walkdir = "2.4.0"
 which = { version = "7.0.0", features = ["regex"] }
+zstd = "0.13.2"
 
 [workspace.lints.rust]
 unsafe_code = "warn"

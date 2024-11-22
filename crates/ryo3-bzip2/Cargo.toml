@@ -1,6 +1,6 @@
 [package]
-name = "ryo3-which"
-description = "python + which-rs (https://github.com/harryfei/which-rs)"
+name = "ryo3-bzip2"
+description = "python + bzip2 (https://github.com/alexcrichton/bzip2-rs)"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
@@ -10,8 +10,8 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+bzip2 = "0.4.4"
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-which = { workspace = true, features = ["tracing"] }
 
-[lints]
-workspace = true
+# [lints]
+# workspace = true
