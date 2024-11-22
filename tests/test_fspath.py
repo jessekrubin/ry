@@ -1,5 +1,6 @@
 """Tests for ry.FsPath"""
 
+import itertools as it
 from pathlib import Path
 from typing import Union
 
@@ -143,8 +144,8 @@ class TestFsPath:
         pypath2 = Path("/some/path")
         rypath1 = path_cls("/some/path")
         rypath2 = path_cls("/some/path")
-        assert rypath1 == rypath2
-        assert pypath1 == rypath1
+        for a, b in it.combinations([pypath1, pypath2, rypath1, rypath2], 2):
+            assert a == b, f"{a} != {b} ({type(a)} != {type(b)})"
 
     def test_inequality(self, path_cls: TPath) -> None:
         rypath1 = path_cls("/some/path")
