@@ -104,7 +104,7 @@ impl From<std::time::Duration> for PyDuration {
     }
 }
 
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub(crate) fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyDuration>()?;
     Ok(())
 }

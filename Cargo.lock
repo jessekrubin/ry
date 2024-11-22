@@ -789,12 +789,12 @@ dependencies = [
  "fnv",
  "globset",
  "jiff",
- "jiter",
  "pyo3",
  "regex",
  "ryo3-brotli",
  "ryo3-dev",
  "ryo3-jiff",
+ "ryo3-jiter",
  "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
@@ -833,6 +833,14 @@ name = "ryo3-jiff"
 version = "0.0.14"
 dependencies = [
  "jiff",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-jiter"
+version = "0.0.14"
+dependencies = [
+ "jiter",
  "pyo3",
 ]
 

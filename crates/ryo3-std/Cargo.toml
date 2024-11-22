@@ -11,3 +11,6 @@ repository.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
+
+[lints]
+workspace = true

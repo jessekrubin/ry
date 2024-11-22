@@ -1,6 +1,6 @@
 [package]
-name = "ryo3-brotli"
-description = "brotli - wraps brotli (https://crates.io/crates/brotli)"
+name = "ryo3-jiter"
+description = "ry + pydantic-jiter (https://github.com/pydantic/jiter)"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
@@ -11,7 +11,7 @@ repository.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-brotli = { version = "7.0.0" }
+jiter = { workspace = true, features = ["python"] }
 
 [lints]
 workspace = true

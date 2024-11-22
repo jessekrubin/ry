@@ -43,6 +43,7 @@ members = [
   # external wrappers
   "crates/ryo3-brotli",
   "crates/ryo3-jiff",
+  "crates/ryo3-jiter",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
   "crates/ryo3-which",
@@ -76,3 +77,22 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["serde", "serde_json", "env-filter", "default"] }
 walkdir = "2.4.0"
 which = { version = "7.0.0", features = ["regex"] }
+
+[workspace.lints.rust]
+unsafe_code = "warn"
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+# groups
+all = { level = "warn", priority = -2 }
+pedantic = { level = "warn", priority = -2 }
+correctness = { level = "warn", priority = 2 }
+panic = { level = "warn", priority = -1 }
+style = { level = "warn", priority = 1 }
+perf = { level = "warn", priority = 3 }
+# DENY lints
+unwrap_used = "deny"
+# allow pedantic
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"

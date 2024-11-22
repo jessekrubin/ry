@@ -14,7 +14,7 @@
 
 mod dev;
 mod internal;
-mod pydatetime_conversions;
+pub mod pydatetime_conversions;
 mod ry_date;
 mod ry_datetime;
 mod ry_signed_duration;

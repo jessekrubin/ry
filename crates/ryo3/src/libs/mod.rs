@@ -8,8 +8,6 @@ mod flate2;
 mod fnv;
 #[cfg(feature = "globset")]
 mod globset;
-#[cfg(feature = "jiter")]
-mod jiter_ry;
 #[cfg(feature = "walkdir")]
 mod walkdir;
 #[cfg(feature = "xxhash")]
@@ -22,6 +20,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_brotli::pymod_add(m)?;
     #[cfg(feature = "jiff")]
     ryo3_jiff::pymod_add(m)?;
+    #[cfg(feature = "jiter")]
+    ryo3_jiter::pymod_add(m)?;
     #[cfg(feature = "shlex")]
     ryo3_shlex::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]
@@ -41,9 +41,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     #[cfg(feature = "globset")]
     globset::pymod_add(m)?;
-
-    #[cfg(feature = "jiter")]
-    jiter_ry::pymod_add(m)?;
 
     #[cfg(feature = "walkdir")]
     walkdir::pymod_add(m)?;
