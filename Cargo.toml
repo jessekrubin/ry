@@ -54,7 +54,6 @@ repository = "https://github.com/jessekrubin/ry"
 
 [workspace.dependencies]
 anyhow = "1.0.75"
-chrono = "0.4.38"
 jiff = "0.1.14"
 #jiter = { version ="0.7.1", features = ["python"], optional = true }
 jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
