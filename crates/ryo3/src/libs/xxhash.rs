@@ -412,7 +412,7 @@ pub fn xxh3(s: Option<&[u8]>, seed: Option<u64>, secret: Option<[u8; 192]>) -> P
     Ok(PyXxh3::new(s, seed, secret))
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(xxh32_digest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh32_intdigest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh32_hexdigest, m)?)?;

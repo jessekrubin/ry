@@ -400,7 +400,7 @@ impl std::fmt::Display for PathLike {
     }
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFsPath>()?;
     Ok(())
 }

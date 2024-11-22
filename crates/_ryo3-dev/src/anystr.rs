@@ -41,7 +41,7 @@ pub fn bytes_noop<'a>(
     Ok(b)
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(anystr_noop, m)?)?;
     m.add_function(wrap_pyfunction!(string_noop, m)?)?;
     m.add_function(wrap_pyfunction!(bytes_noop, m)?)?;

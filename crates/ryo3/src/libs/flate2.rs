@@ -52,7 +52,7 @@ pub fn gunzip(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     gzip_decode(py, data)
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(gzip_encode, m)?)?;
     m.add_function(wrap_pyfunction!(gzip_decode, m)?)?;
     m.add_function(wrap_pyfunction!(gzip, m)?)?;

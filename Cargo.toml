@@ -38,6 +38,7 @@ lto = "thin"
 resolver = "2"
 members = [
   "crates/ryo3",
+  "crates/_ryo3-dev", # dev sandbox and things
   "crates/ryo3-std",
   # external wrappers
   "crates/ryo3-brotli",

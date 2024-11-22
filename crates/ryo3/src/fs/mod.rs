@@ -6,8 +6,8 @@ pub mod fileio;
 pub mod fspath;
 mod iterdir;
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    fileio::madd(m)?;
-    fspath::madd(m)?;
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    fileio::pymod_add(m)?;
+    fspath::pymod_add(m)?;
     Ok(())
 }

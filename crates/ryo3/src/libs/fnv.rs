@@ -66,7 +66,7 @@ pub fn fnv1a(s: &[u8]) -> PyResult<PyFnvHasher> {
     Ok(PyFnvHasher::new(Some(s)))
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFnvHasher>()?;
     m.add_function(wrap_pyfunction!(self::fnv1a, m)?)?;
     Ok(())

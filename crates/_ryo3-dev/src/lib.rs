@@ -23,8 +23,8 @@ pub mod quick_maths;
 pub mod sp;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    quick_maths::madd(m)?;
-    anystr::madd(m)?;
-    sp::madd(m)?;
+    quick_maths::pymod_add(m)?;
+    anystr::pymod_add(m)?;
+    sp::pymod_add(m)?;
     Ok(())
 }

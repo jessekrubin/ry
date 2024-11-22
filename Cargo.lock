@@ -793,6 +793,7 @@ dependencies = [
  "pyo3",
  "regex",
  "ryo3-brotli",
+ "ryo3-dev",
  "ryo3-jiff",
  "ryo3-shlex",
  "ryo3-sqlformat",
@@ -814,6 +815,17 @@ version = "0.0.14"
 dependencies = [
  "brotli",
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-dev"
+version = "0.0.14"
+dependencies = [
+ "pyo3",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "tracing",
 ]
 
 [[package]]

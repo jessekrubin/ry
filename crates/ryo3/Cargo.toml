@@ -19,6 +19,7 @@ tracing.workspace = true
 # required ryo3-* dependencies
 ryo3-std = { path = "../ryo3-std" }
 # optional ryo3-* dependencies
+ryo3-dev = { path = "../_ryo3-dev", optional = false }
 ryo3-brotli = { path = "../ryo3-brotli", optional = true }
 ryo3-jiff = { path = "../ryo3-jiff", optional = true }
 ryo3-shlex = { path = "../ryo3-shlex", optional = true }

@@ -56,7 +56,7 @@ pub fn write_text(fspath: &str, string: &str) -> PyResult<()> {
     }
 }
 
-pub fn madd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(write_text, m)?)?;

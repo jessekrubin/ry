@@ -31,28 +31,28 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // TODO: move the below libs to their own crates
     #[cfg(feature = "bzip2")]
-    bzip2::madd(m)?;
+    bzip2::pymod_add(m)?;
 
     #[cfg(feature = "fnv")]
-    fnv::madd(m)?;
+    fnv::pymod_add(m)?;
 
     #[cfg(feature = "flate2")]
-    flate2::madd(m)?;
+    flate2::pymod_add(m)?;
 
     #[cfg(feature = "globset")]
-    globset::madd(m)?;
+    globset::pymod_add(m)?;
 
     #[cfg(feature = "jiter")]
-    jiter_ry::madd(m)?;
+    jiter_ry::pymod_add(m)?;
 
     #[cfg(feature = "walkdir")]
-    walkdir::madd(m)?;
+    walkdir::pymod_add(m)?;
 
     #[cfg(feature = "xxhash")]
-    xxhash::madd(m)?;
+    xxhash::pymod_add(m)?;
 
     #[cfg(feature = "zstd")]
-    zstd::madd(m)?;
+    zstd::pymod_add(m)?;
 
     Ok(())
 }
