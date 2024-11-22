@@ -70,6 +70,6 @@ docs/_build/
 
 # Pyenv
 .python-version
-target/ 
+target/
 scratch/
 .hypothesis/
