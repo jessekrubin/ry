@@ -1,5 +1,5 @@
-use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyModule, PyModuleMethods};
+use pyo3::{pyclass, pyfunction, pymethods, wrap_pyfunction, Bound, PyResult, Python};
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder};
 use xxhash_rust::xxh32::Xxh32;
 use xxhash_rust::xxh64::Xxh64;
@@ -37,8 +37,8 @@ impl PyXxh32 {
         Ok(format!("xxh32<{:x}>", self.hasher.digest()))
     }
 
-    #[getter]
-    fn name(&self) -> PyResult<String> {
+    #[classattr]
+    fn name() -> PyResult<String> {
         Ok("xxh32".to_string())
     }
 
@@ -124,8 +124,8 @@ impl PyXxh64 {
     }
 
     /// Return the name of the hasher ('xxh64')
-    #[getter]
-    fn name(&self) -> PyResult<String> {
+    #[classattr]
+    fn name() -> PyResult<String> {
         Ok("xxh64".to_string())
     }
 
@@ -205,9 +205,9 @@ impl PyXxh3 {
         Ok(format!("xxh3<{:x}>", self.hasher.digest()))
     }
 
-    #[getter]
-    fn name(&self) -> PyResult<String> {
-        Ok("xxh3".to_string())
+    #[classattr]
+    fn name() -> String {
+        "xxh3".to_string()
     }
 
     #[getter]
@@ -263,4 +263,14 @@ impl PyXxh3 {
 #[pyo3(signature = (s = None, seed = 0, secret = None))]
 pub fn xxh3(s: Option<&[u8]>, seed: Option<u64>, secret: Option<[u8; 192]>) -> PyResult<PyXxh3> {
     Ok(PyXxh3::new(s, seed, secret))
+}
+
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_class::<PyXxh32>()?;
+    m.add_class::<PyXxh64>()?;
+    m.add_class::<PyXxh3>()?;
+    m.add_function(wrap_pyfunction!(xxh32, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh64, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3, m)?)?;
+    Ok(())
 }

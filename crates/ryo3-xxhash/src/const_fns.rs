@@ -1,10 +1,10 @@
-use pyo3::prelude::*;
-use pyo3::types::PyBytes;
-use pyo3::{PyResult, Python};
+use pyo3::types::{PyBytes, PyModule, PyModuleMethods};
+use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult, Python};
 use xxhash_rust::const_xxh3::xxh3_128_with_seed as const_xxh3_128_with_seed;
 use xxhash_rust::const_xxh3::xxh3_64_with_seed as const_xxh3_64_with_seed;
 use xxhash_rust::const_xxh32::xxh32 as const_xxh32;
 use xxhash_rust::const_xxh64::xxh64 as const_xxh64;
+
 #[pyfunction]
 #[pyo3(signature = (b, seed = None))]
 pub fn xxh32_digest<'py>(
@@ -148,4 +148,32 @@ pub fn xxh128_intdigest(b: &[u8], seed: Option<u64>) -> PyResult<u128> {
 #[pyo3(signature = (b, seed = None))]
 pub fn xxh128_hexdigest(b: &[u8], seed: Option<u64>) -> PyResult<String> {
     xxh3_128_hexdigest(b, seed)
+}
+
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(xxh32_digest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh32_intdigest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh32_hexdigest, m)?)?;
+
+    m.add_function(wrap_pyfunction!(xxh64_digest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh64_intdigest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh64_hexdigest, m)?)?;
+
+    m.add_function(wrap_pyfunction!(xxh3_64_digest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3_64_intdigest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3_64_hexdigest, m)?)?;
+
+    m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3_128_intdigest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3_128_hexdigest, m)?)?;
+
+    // aliases
+    m.add_function(wrap_pyfunction!(xxh3_digest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3_intdigest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3_hexdigest, m)?)?;
+
+    m.add_function(wrap_pyfunction!(xxh128_digest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh128_intdigest, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh128_hexdigest, m)?)?;
+    Ok(())
 }
