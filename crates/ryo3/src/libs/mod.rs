@@ -2,9 +2,6 @@ use pyo3::prelude::*;
 
 #[cfg(feature = "walkdir")]
 mod walkdir;
-#[cfg(feature = "xxhash")]
-mod xxhash;
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "brotli")]
     ryo3_brotli::pymod_add(m)?;
@@ -35,8 +32,10 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "walkdir")]
     walkdir::pymod_add(m)?;
 
+    // #[cfg(feature = "xxhash")]
+    // xxhash::pymod_add(m)?;
     #[cfg(feature = "xxhash")]
-    xxhash::pymod_add(m)?;
+    ryo3_xxhash::pymod_add(m)?;
 
     #[cfg(feature = "zstd")]
     ryo3_zstd::pymod_add(m)?;

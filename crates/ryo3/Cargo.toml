@@ -35,13 +35,12 @@ ryo3-jiter = { path = "../ryo3-jiter", optional = true }
 ryo3-shlex = { path = "../ryo3-shlex", optional = true }
 ryo3-sqlformat = { path = "../ryo3-sqlformat", optional = true }
 ryo3-which = { path = "../ryo3-which", optional = true }
-#ryo3-xxhash = { path = "../ryo3-xxhash", optional = true }
+ryo3-xxhash = { path = "../ryo3-xxhash", optional = true }
 ryo3-zstd = { path = "../ryo3-zstd", optional = true }
 
 
 # optional
 walkdir = { workspace = true, optional = true }
-xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"], optional = true }
 
 
 [features]
@@ -64,18 +63,17 @@ all = [
   "xxhash",
   "zstd",
 ]
+
 brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:ryo3-bzip2"]
 flate2 = ["dep:ryo3-flate2"]
 fnv = ["dep:ryo3-fnv"]
 globset = ["dep:ryo3-globset"]
+jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
 shlex = ["dep:ryo3-shlex"]
+sqlformat = ["dep:ryo3-sqlformat"]
 walkdir = ["dep:walkdir"]
 which = ["dep:ryo3-which"]
-#xxhash = ["dep:ryo3-xxhash"]
-xxhash = ["dep:xxhash-rust"]
-
+xxhash = ["dep:ryo3-xxhash"]
 zstd = ["dep:ryo3-zstd"]
-sqlformat = ["dep:ryo3-sqlformat"]
-jiff = ["dep:ryo3-jiff"]

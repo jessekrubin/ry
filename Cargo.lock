@@ -799,6 +799,7 @@ dependencies = [
  "ryo3-sqlformat",
  "ryo3-std",
  "ryo3-which",
+ "ryo3-xxhash",
  "ryo3-zstd",
  "serde",
  "serde_bytes",
@@ -806,7 +807,6 @@ dependencies = [
  "tokio",
  "tracing",
  "walkdir",
- "xxhash-rust",
 ]
 
 [[package]]
