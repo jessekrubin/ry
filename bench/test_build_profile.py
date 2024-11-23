@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import warnings
 
 import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
+
 import ry
 
 
