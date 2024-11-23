@@ -23,6 +23,7 @@ _IGNORED_NAMES = (
     "ryo3",
     "dev",
     # misc ignores
+    "annotations",
     "__builtins__",
     "__loader__",
     "__spec__",
@@ -31,7 +32,7 @@ _IGNORED_NAMES = (
 
 @pytest.mark.parametrize("name", dir(ry))
 def test_exports_module_attr_param(name: str) -> None:
-    if name in _IGNORED_NAMES or name.startswith("_frozen"):
+    if name in _IGNORED_NAMES or name.startswith("_frozen") or name == "":
         return
     member = getattr(ry, name)
     if isinstance(member, (str, int, float, list, tuple, dict)):
@@ -40,4 +41,4 @@ def test_exports_module_attr_param(name: str) -> None:
     module_name = member.__module__
     assert module_name is not None, f"{name} has no __module__"
     assert module_name != "builtins", f"{name} is builtin"
-    assert module_name in ("ryo3", "ry.ryo3")
+    assert module_name in ("ryo3", "ry.ryo3"), f"{name} {member} is not in ryo3"

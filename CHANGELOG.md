@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.0.15 [2024-11-20]
+
+- `from __future__ import annotations` added to all modules
+- cicd updated to include more targets
+
 ## v0.0.14 [2024-11-20]
 
 - Primitive/crude wrappers around Mr. Sushi's `jiff` library

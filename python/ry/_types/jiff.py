@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Literal
 
 JIFF_UNIT_STRING = Literal[
