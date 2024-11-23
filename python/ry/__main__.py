@@ -25,7 +25,7 @@ def _lib_info() -> dict[str, str | int | dict[str, str | int]]:
         "version": __version__,
         "pkgroot": __pkgroot__,
         "authors": __authors__,
-        "ry": _ext_info(),
+        "ryo3": _ext_info(),
     }
 
 
