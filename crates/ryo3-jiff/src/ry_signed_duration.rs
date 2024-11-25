@@ -48,12 +48,54 @@ impl RySignedDuration {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
-    fn __add__(&self, other: &RySignedDuration) -> Self {
-        Self(self.0 + other.0)
+
+    fn __add__(&self, other: &RySignedDuration) -> PyResult<Self> {
+        let maybe_dur = self.0.checked_add(other.0);
+        match maybe_dur {
+            Some(dur) => Ok(RySignedDuration(dur)),
+            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
+                "overflow",
+            )),
+        }
     }
 
-    fn __sub__(&self, other: &RySignedDuration) -> Self {
-        Self(self.0 - other.0)
+    fn __sub__(&self, other: &RySignedDuration) -> PyResult<Self> {
+        let dur = self.0.checked_sub(other.0);
+        match dur {
+            Some(dur) => Ok(RySignedDuration(dur)),
+            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
+                "overflow",
+            )),
+        }
+    }
+
+    fn __mul__(&self, other: i32) -> PyResult<Self> {
+        let dur = self.0.checked_mul(other);
+        match dur {
+            Some(dur) => Ok(RySignedDuration(dur)),
+            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
+                "overflow",
+            )),
+        }
+    }
+
+    fn __div__(&self, other: i32) -> PyResult<Self> {
+        let dur = self.0.checked_div(other);
+        match dur {
+            Some(dur) => Ok(RySignedDuration(dur)),
+            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
+                "overflow",
+            )),
+        }
+    }
+
+    fn __neg__(&self) -> PyResult<Self> {
+        self.0
+            .checked_neg()
+            .map(RySignedDuration::from)
+            .ok_or_else(|| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>("negation does not exist")
+            })
     }
 }
 

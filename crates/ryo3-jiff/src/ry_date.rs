@@ -1,5 +1,6 @@
 use crate::pydatetime_conversions::{jiff_date2pydate, pydate2rydate};
 use crate::ry_datetime::RyDateTime;
+use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
@@ -7,7 +8,9 @@ use jiff::civil::Date;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDate, PyDict, PyDictMethods, PyTuple, PyType};
-use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyErr, PyResult, Python};
+use pyo3::{
+    intern, pyclass, pymethods, Bound, IntoPyObject, PyErr, PyRef, PyRefMut, PyResult, Python,
+};
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]
@@ -21,6 +24,18 @@ impl RyDate {
         Date::new(year, month, day)
             .map(RyDate::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MIN() -> Self {
+        Self(Date::MIN)
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MAX() -> Self {
+        Self(Date::MAX)
     }
 
     #[classmethod]
@@ -102,6 +117,12 @@ impl RyDate {
         dict.set_item(intern!(py, "day"), self.0.day())?;
         Ok(dict)
     }
+
+    fn series(&self, period: RySpan) -> RyDateSeries {
+        RyDateSeries {
+            series: self.0.series(period.0),
+        }
+    }
 }
 
 impl Display for RyDate {
@@ -113,5 +134,22 @@ impl Display for RyDate {
 impl From<Date> for RyDate {
     fn from(value: Date) -> Self {
         RyDate(value)
+    }
+}
+
+#[pyclass]
+#[pyo3(name = "DateSeries", module = "ryo3")]
+pub struct RyDateSeries {
+    pub(crate) series: jiff::civil::DateSeries,
+}
+
+#[pymethods]
+impl RyDateSeries {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDate> {
+        slf.series.next().map(RyDate::from)
     }
 }

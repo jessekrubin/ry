@@ -1,4 +1,5 @@
 use crate::pydatetime_conversions::jiff_datetime2pydatetime;
+use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
@@ -7,7 +8,7 @@ use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDateTime, PyType};
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult, Python};
+use pyo3::{pyclass, pymethods, Bound, PyErr, PyRef, PyRefMut, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -45,6 +46,18 @@ impl RyDateTime {
         )
         .map(RyDateTime::from)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MIN() -> Self {
+        Self(DateTime::MIN)
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MAX() -> Self {
+        Self(DateTime::MAX)
     }
 
     #[classmethod]
@@ -153,10 +166,33 @@ impl RyDateTime {
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
         jiff_datetime2pydatetime(py, &self.0)
     }
+
+    fn series(&self, period: RySpan) -> RyDateTimeSeries {
+        RyDateTimeSeries {
+            series: self.0.series(period.0),
+        }
+    }
 }
 
 impl Display for RyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+#[pyclass]
+#[pyo3(name = "DateTimeSeries", module = "ryo3")]
+pub struct RyDateTimeSeries {
+    pub(crate) series: jiff::civil::DateTimeSeries,
+}
+
+#[pymethods]
+impl RyDateTimeSeries {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDateTime> {
+        slf.series.next().map(RyDateTime::from)
     }
 }

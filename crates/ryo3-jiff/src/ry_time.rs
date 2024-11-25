@@ -1,5 +1,6 @@
 use crate::pydatetime_conversions::jiff_time2pytime;
 use crate::ry_datetime::RyDateTime;
+use crate::ry_span::RySpan;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
@@ -30,6 +31,18 @@ impl RyTime {
         )
         .map(crate::RyTime::from)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MIN() -> Self {
+        Self(jiff::civil::Time::MIN)
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MAX() -> Self {
+        Self(jiff::civil::Time::MAX)
     }
 
     #[classmethod]
@@ -124,6 +137,11 @@ impl RyTime {
         dict.set_item(intern!(py, "nanosecond"), self.0.nanosecond())?;
         Ok(dict)
     }
+
+    fn series(&self, span: RySpan) -> PyResult<RyTimeSeries> {
+        let ser = self.0.series(span.0);
+        Ok(RyTimeSeries { series: ser })
+    }
 }
 
 impl Display for RyTime {
@@ -134,5 +152,22 @@ impl Display for RyTime {
 impl From<jiff::civil::Time> for RyTime {
     fn from(value: jiff::civil::Time) -> Self {
         Self(value)
+    }
+}
+
+#[pyclass]
+#[pyo3(name = "TimeSeries", module = "ryo3")]
+pub struct RyTimeSeries {
+    pub(crate) series: jiff::civil::TimeSeries,
+}
+
+#[pymethods]
+impl RyTimeSeries {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTime> {
+        slf.series.next().map(RyTime::from)
     }
 }
