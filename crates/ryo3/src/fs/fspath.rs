@@ -172,6 +172,31 @@ impl PyFsPath {
         }
     }
 
+    fn __truediv__(&self, other: PathLike) -> PyResult<Self> {
+        let p = self.pth.join(other.as_ref());
+        Ok(PyFsPath::from(p))
+    }
+
+    fn __rtruediv__(&self, other: PathLike) -> PyResult<Self> {
+        let p = other.as_ref().join(&self.pth);
+        Ok(PyFsPath::from(p))
+    }
+
+    fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
+        let s = path2str(self.pth.clone());
+        let b = s.as_bytes();
+        PyBytes::new(py, b)
+    }
+
+    #[getter]
+    fn root(&self) -> PyResult<Option<PyFsPath>> {
+        if let Some(p) = self.pth.components().next() {
+            Ok(Some(PyFsPath::from(p.as_os_str())))
+        } else {
+            Ok(None)
+        }
+    }
+
     #[getter]
     fn parent(&self) -> PyResult<PyFsPath> {
         let p = self.pth.parent();

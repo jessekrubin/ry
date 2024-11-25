@@ -153,3 +153,24 @@ class TestFsPath:
         rypath1 = path_cls("/some/path")
         rypath2 = path_cls("/other/path")
         assert rypath1 != rypath2
+
+    def test_truediv_operators(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        assert rypath / "file.txt" == pypath / "file.txt"
+        assert "file.txt" / rypath == "file.txt" / pypath
+        assert rypath / Path("file.txt") == pypath / Path("file.txt")
+        assert Path("file.txt") / rypath == Path("file.txt") / pypath
+
+    def test_root(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        assert rypath.root == pypath.root
+
+    def test_bytes(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        pathbytes_fslash = rypath.__bytes__().replace(b"\\", b"/")
+        assert pathbytes_fslash == pypath.__bytes__().replace(
+            b"\\", b"/"
+        )  # todo: reevaluate
