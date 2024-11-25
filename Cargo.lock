@@ -1027,9 +1027,9 @@ dependencies = [
 
 [[package]]
 name = "sqlformat"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31f46f630f39af7250396919c495944ece241a5220b33b753f960065ce1c3ca8"
+checksum = "44c38684453189293372e6fffa3bed1015d20488ce4cc09a23de050fd7411e46"
 dependencies = [
  "nom",
  "once_cell",
