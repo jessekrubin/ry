@@ -108,7 +108,7 @@ impl RyTimestamp {
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyOverflowError, _>("overflow"))
     }
 
-    fn series(&self, period: RySpan) -> RyTimestampSeries {
+    fn series(&self, period: &RySpan) -> RyTimestampSeries {
         RyTimestampSeries {
             series: self.0.series(period.0),
         }

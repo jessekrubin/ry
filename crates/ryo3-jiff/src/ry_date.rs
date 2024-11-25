@@ -118,7 +118,7 @@ impl RyDate {
         Ok(dict)
     }
 
-    fn series(&self, period: RySpan) -> RyDateSeries {
+    fn series(&self, period: &RySpan) -> RyDateSeries {
         RyDateSeries {
             series: self.0.series(period.0),
         }

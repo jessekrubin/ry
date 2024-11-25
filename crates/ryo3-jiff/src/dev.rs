@@ -12,14 +12,7 @@ pub struct RyWeekday(pub(crate) jiff::civil::Weekday);
 
 #[pymethods]
 impl RyWeekday {
-    // #[new]
-    // #[pyo3(signature = (weekday: i8))]
-    // pub fn new(weekday: i8) -> PyResult<Self> {
-    //     jiff::civil::Weekday::from_i8(weekday)
-    //         .map(Self)
-    //         .ok_or_else(|| PyValueError::new_err("Invalid weekday"))
-    // }
-
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn string(&self) -> &'static str {
         match self.0 {
             jiff::civil::Weekday::Sunday => "sunday",

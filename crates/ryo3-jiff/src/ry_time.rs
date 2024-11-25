@@ -138,8 +138,8 @@ impl RyTime {
         Ok(dict)
     }
 
-    fn series(&self, span: RySpan) -> PyResult<RyTimeSeries> {
-        let ser = self.0.series(span.0);
+    fn series(&self, period: &RySpan) -> PyResult<RyTimeSeries> {
+        let ser = self.0.series(period.0);
         Ok(RyTimeSeries { series: ser })
     }
 }

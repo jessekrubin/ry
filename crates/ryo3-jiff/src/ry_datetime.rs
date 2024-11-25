@@ -167,7 +167,7 @@ impl RyDateTime {
         jiff_datetime2pydatetime(py, &self.0)
     }
 
-    fn series(&self, period: RySpan) -> RyDateTimeSeries {
+    fn series(&self, period: &RySpan) -> RyDateTimeSeries {
         RyDateTimeSeries {
             series: self.0.series(period.0),
         }

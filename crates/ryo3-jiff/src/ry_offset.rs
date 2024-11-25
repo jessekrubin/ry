@@ -79,11 +79,11 @@ impl RyOffset {
         self.0.is_negative()
     }
 
-    pub fn to_datetime(&self, timestamp: RyTimestamp) -> RyDateTime {
+    pub fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
 
-    pub fn to_timestamp(&self, datetime: RyDateTime) -> PyResult<RyTimestamp> {
+    pub fn to_timestamp(&self, datetime: &RyDateTime) -> PyResult<RyTimestamp> {
         self.0
             .to_timestamp(datetime.0)
             .map(RyTimestamp::from)
