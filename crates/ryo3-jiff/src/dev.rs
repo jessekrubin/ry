@@ -5,6 +5,34 @@ use pyo3::types::{PyAnyMethods, PyString};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyResult, Python};
 use std::fmt::Display;
 
+#[pyclass]
+#[derive(Debug, Clone, Copy, PartialEq)]
+
+pub struct RyWeekday(pub(crate) jiff::civil::Weekday);
+
+#[pymethods]
+impl RyWeekday {
+    // #[new]
+    // #[pyo3(signature = (weekday: i8))]
+    // pub fn new(weekday: i8) -> PyResult<Self> {
+    //     jiff::civil::Weekday::from_i8(weekday)
+    //         .map(Self)
+    //         .ok_or_else(|| PyValueError::new_err("Invalid weekday"))
+    // }
+
+    fn string(&self) -> &'static str {
+        match self.0 {
+            jiff::civil::Weekday::Sunday => "sunday",
+            jiff::civil::Weekday::Monday => "monday",
+            jiff::civil::Weekday::Tuesday => "tuesday",
+            jiff::civil::Weekday::Wednesday => "wednesday",
+            jiff::civil::Weekday::Thursday => "thursday",
+            jiff::civil::Weekday::Friday => "friday",
+            jiff::civil::Weekday::Saturday => "saturday",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JiffUnit(pub(crate) jiff::Unit);
 // Year = 9,
