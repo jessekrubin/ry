@@ -179,7 +179,7 @@ class TestFsPath:
         pypath = Path("/some/path")
         rypath = path_cls("/some/path")
         assert rypath.parts == pypath.parts
-        assert type(rypath.parts) == type(pypath.parts)
+        assert type(rypath.parts) is type(pypath.parts)
         assert isinstance(rypath.parts, tuple)
 
     def test_drive(self, path_cls: TPath) -> None:

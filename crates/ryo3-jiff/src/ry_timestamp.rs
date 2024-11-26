@@ -1,3 +1,5 @@
+use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::ry_datetime::{RyDateTime, RyDateTimeArithmeticSub};
 use crate::ry_span::RySpan;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
@@ -81,7 +83,60 @@ impl RyTimestamp {
     fn __repr__(&self) -> String {
         format!("Timestamp<{}>", self.string())
     }
+    fn __sub__<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyTimestampArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        match other {
+            RyTimestampArithmeticSub::Timestamp(other) => {
+                let span = self.0 - other.0;
+                let obj = RySpan::from(span)
+                    .into_pyobject(py)
+                    .map(|obj| obj.into_any())?;
+                Ok(obj)
+            }
+            RyTimestampArithmeticSub::Delta(other) => {
+                let t = match other {
+                    RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
+                    RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
+                };
+                RyTimestamp::from(t)
+                    .into_pyobject(py)
+                    .map(|obj| obj.into_any())
+            }
+        }
+    }
 
+    fn __isub__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
+        };
+        self.0 = t;
+        Ok(())
+    }
+
+    fn __add__<'py>(&self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+        };
+        Ok(Self::from(t))
+    }
+
+    fn __iadd__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+        };
+        self.0 = t;
+        Ok(())
+    }
     fn as_second(&self) -> i64 {
         self.0.as_second()
     }
@@ -99,13 +154,6 @@ impl RyTimestamp {
     }
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
-    }
-
-    fn __add__(&self, other: &RySpan) -> PyResult<RyTimestamp> {
-        self.0
-            .checked_add(other.0)
-            .map(RyTimestamp::from)
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyOverflowError, _>("overflow"))
     }
 
     fn series(&self, period: &RySpan) -> RyTimestampSeries {
@@ -140,4 +188,10 @@ impl RyTimestampSeries {
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTimestamp> {
         slf.series.next().map(RyTimestamp::from)
     }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+pub enum RyTimestampArithmeticSub {
+    Timestamp(RyTimestamp),
+    Delta(RyDeltaArithmeticSelf),
 }

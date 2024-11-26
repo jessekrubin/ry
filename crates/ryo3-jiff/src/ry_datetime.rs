@@ -1,4 +1,6 @@
+use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::pydatetime_conversions::jiff_datetime2pydatetime;
+use crate::ry_date::RyDateArithmeticSub;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
@@ -8,7 +10,10 @@ use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDateTime, PyDict, PyDictMethods, PyType};
-use pyo3::{intern, pyclass, pymethods, Bound, PyErr, PyRef, PyRefMut, PyResult, Python};
+use pyo3::{
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
+    PyResult, Python,
+};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -129,7 +134,58 @@ impl RyDateTime {
     fn __repr__(&self) -> String {
         format!("DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, millisecond={}, microsecond={}, nanosecond={})", self.year(), self.month(), self.day(), self.hour(), self.minute(), self.second(), self.millisecond(), self.microsecond(), self.nanosecond())
     }
+    fn __sub__<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyDateTimeArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        match other {
+            RyDateTimeArithmeticSub::DateTime(other) => {
+                let span = self.0 - other.0;
+                let obj = RySpan::from(span)
+                    .into_pyobject(py)
+                    .map(|obj| obj.into_any())?;
+                Ok(obj)
+            }
+            RyDateTimeArithmeticSub::Delta(other) => {
+                let t = match other {
+                    RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
+                    RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
+                };
+                Ok(Self::from(t).into_pyobject(py)?.into_any())
+            }
+        }
+    }
 
+    fn __isub__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
+        };
+        self.0 = t;
+        Ok(())
+    }
+
+    fn __add__<'py>(&self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+        };
+        Ok(Self::from(t))
+    }
+
+    fn __iadd__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+        };
+        self.0 = t;
+        Ok(())
+    }
     fn to_date(&self) -> RyDate {
         RyDate::from(self.0.date())
     }
@@ -208,4 +264,10 @@ impl RyDateTimeSeries {
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDateTime> {
         slf.series.next().map(RyDateTime::from)
     }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+pub enum RyDateTimeArithmeticSub {
+    DateTime(RyDateTime),
+    Delta(RyDeltaArithmeticSelf),
 }

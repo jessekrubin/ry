@@ -12,7 +12,9 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::unused_self)]
 
+mod delta_arithmetic_self;
 mod dev;
+mod dev_sandbox;
 mod internal;
 pub mod pydatetime_conversions;
 mod ry_date;

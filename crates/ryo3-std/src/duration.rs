@@ -5,7 +5,7 @@ use pyo3::{pyclass, pymethods, Bound, PyResult};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Duration", module = "ryo3")]
-pub struct PyDuration(std::time::Duration);
+pub struct PyDuration(pub std::time::Duration);
 
 #[pymethods]
 impl PyDuration {

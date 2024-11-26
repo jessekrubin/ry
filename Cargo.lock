@@ -866,6 +866,7 @@ version = "0.0.16"
 dependencies = [
  "jiff",
  "pyo3",
+ "ryo3-std",
 ]
 
 [[package]]

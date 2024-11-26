@@ -7,7 +7,7 @@ import ry.dev as ry
 
 def test_span_fn_no_positionals_allowed() -> None:
     with pytest.raises(TypeError):
-        s = ry.timespan(1)  # type: ignore
+        ry.timespan(1)  # type: ignore
 
 
 def test_span_repr() -> None:
@@ -40,7 +40,7 @@ def test_span_to_py_timedelta() -> None:
         assert isinstance(py_timedelta, pydatetime.timedelta)
 
 
-def test_negative_spans():
+def test_negative_spans() -> None:
     """
     use jiff::{Span, ToSpan};
 
