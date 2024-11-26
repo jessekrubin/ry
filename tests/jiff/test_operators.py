@@ -149,3 +149,37 @@ def test_timestamp_add() -> None:
     time_add_span = t1 + span
     assert time_add_span == t2
     assert isinstance(time_add_span, ry.Timestamp)
+
+
+def test_zoned_sub() -> None:
+    zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    zdt2 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/Los_Angeles")
+    span = zdt1 - zdt2
+    assert span.string() == "-PT3h"
+    assert isinstance(span, ry.Span)
+
+    inplace_zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    inplace_zdt -= span
+    assert inplace_zdt == zdt2
+    assert isinstance(inplace_zdt, ry.Zoned)
+
+    time_sub_span = zdt1 - span
+    assert time_sub_span == zdt2
+    assert isinstance(time_sub_span, ry.Zoned)
+
+
+def test_zoned_add() -> None:
+    zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    zdt2 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/Los_Angeles")
+    span = zdt1 - zdt2
+    assert span.string() == "-PT3h"
+    assert isinstance(span, ry.Span)
+
+    inplace_zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/Los_Angeles")
+    inplace_zdt += span
+    assert inplace_zdt == zdt1
+    assert isinstance(inplace_zdt, ry.Zoned)
+
+    time_add_span = zdt2 + span
+    assert time_add_span == zdt1
+    assert isinstance(time_add_span, ry.Zoned)
