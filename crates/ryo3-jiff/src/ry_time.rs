@@ -103,7 +103,13 @@ impl RyTime {
     }
 
     fn __repr__(&self) -> String {
-        format!("Time<{}>", self.0)
+        format!(
+            "Time(hour={}, minute={}, second={}, nanosecond={})",
+            self.0.hour(),
+            self.0.minute(),
+            self.0.second(),
+            self.0.nanosecond()
+        )
     }
 
     fn __sub__<'py>(

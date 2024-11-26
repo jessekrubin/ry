@@ -173,3 +173,12 @@ def test_datetime_round_options() -> None:
         )
         assert str(options) == expected_string
         assert options == options_chained
+
+
+# repr
+def test_reprs() -> None:
+    d = ry.date(2020, 8, 26)
+    assert repr(d) == "Date(year=2020, month=8, day=26)"
+
+    t = ry.time(6, 27, 0, 0)
+    assert repr(t) == "Time(hour=6, minute=27, second=0, nanosecond=0)"
