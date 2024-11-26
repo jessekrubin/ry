@@ -134,7 +134,7 @@ impl RyTime {
         dict.set_item(intern!(py, "hour"), self.0.hour())?;
         dict.set_item(intern!(py, "minute"), self.0.minute())?;
         dict.set_item(intern!(py, "second"), self.0.second())?;
-        dict.set_item(intern!(py, "nanosecond"), self.0.nanosecond())?;
+        dict.set_item(intern!(py, "nanosecond"), self.0.subsec_nanosecond())?;
         Ok(dict)
     }
 

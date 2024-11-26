@@ -7,8 +7,8 @@ use crate::RyDate;
 use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDateTime, PyType};
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyRef, PyRefMut, PyResult, Python};
+use pyo3::types::{PyDateTime, PyDict, PyDictMethods, PyType};
+use pyo3::{intern, pyclass, pymethods, Bound, PyErr, PyRef, PyRefMut, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -171,6 +171,19 @@ impl RyDateTime {
         RyDateTimeSeries {
             series: self.0.series(period.0),
         }
+    }
+
+    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        dict.set_item(intern!(py, "year"), self.0.year())?;
+        dict.set_item(intern!(py, "month"), self.0.month())?;
+        dict.set_item(intern!(py, "day"), self.0.day())?;
+        dict.set_item(intern!(py, "hour"), self.0.hour())?;
+        dict.set_item(intern!(py, "minute"), self.0.minute())?;
+        dict.set_item(intern!(py, "second"), self.0.second())?;
+        dict.set_item(intern!(py, "subsec_nanosecond"), self.0.subsec_nanosecond())?;
+
+        Ok(dict)
     }
 }
 

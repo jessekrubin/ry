@@ -174,3 +174,34 @@ class TestFsPath:
         assert pathbytes_fslash == pypath.__bytes__().replace(
             b"\\", b"/"
         )  # todo: reevaluate
+
+    def test_parts(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        assert rypath.parts == pypath.parts
+        assert type(rypath.parts) == type(pypath.parts)
+        assert isinstance(rypath.parts, tuple)
+
+    def test_drive(self, path_cls: TPath) -> None:
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        assert rypath.drive == pypath.drive
+
+    def test_anchor(self, path_cls: TPath) -> None:
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        assert rypath.anchor == pypath.anchor
+
+    def test_name(self, path_cls: TPath) -> None:
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        assert rypath.name == pypath.name
+
+    def test_as_uri(self, path_cls: TPath) -> None:
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        if path_cls is ry.FsPath:
+            with pytest.raises(NotImplementedError):
+                rypath.as_uri()
+        else:
+            assert rypath.as_uri() == pypath.as_uri()
