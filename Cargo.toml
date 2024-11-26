@@ -34,6 +34,12 @@ opt-level = 3
 strip = true
 lto = "thin"
 
+# release fat profile
+[profile.fat]
+inherits = "release"
+lto = "fat"
+
+
 [workspace]
 resolver = "2"
 members = [
