@@ -1,8 +1,8 @@
 use std::hash::Hasher;
 
 use ::fnv as fnv_rs;
-use pyo3::prelude::*;
 use pyo3::types::PyModule;
+use pyo3::{intern, prelude::*};
 use pyo3::{wrap_pyfunction, PyResult};
 
 #[pyclass(name = "FnvHasher", module = "ryo3")]
@@ -35,9 +35,9 @@ impl PyFnvHasher {
         Ok(format!("fnv1a<{:x}>", self.hasher.finish()))
     }
 
-    #[getter]
-    fn name(&self) -> PyResult<String> {
-        Ok("FnvHasher".to_string())
+    #[classattr]
+    fn name<'py>(py: Python<'py>) -> String {
+        intern!(py, "fnv1a").to_string()
     }
 
     fn digest(&self) -> PyResult<u64> {

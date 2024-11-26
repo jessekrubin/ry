@@ -129,6 +129,14 @@ FNV_TEST_DATA = [
 ]
 
 
+def test_fnv_hasher_name() -> None:
+    assert ry.FnvHasher().__class__.__name__ == "FnvHasher"
+    instance = ry.fnv1a(b"")
+    assert instance.name == "fnv1a"
+    assert ry.FnvHasher.name == "fnv1a"
+    assert instance.name == "fnv1a"
+
+
 def test_fnv1a_empty() -> None:
     assert ry.fnv1a(b"").digest() == 0xCBF29CE484222325
 
