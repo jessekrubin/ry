@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools as it
+import os
 from pathlib import Path
 from typing import Union
 
@@ -11,6 +12,7 @@ import pytest
 import ry
 
 TPath = Union[type[Path], type[ry.FsPath]]
+is_windows = os.name == "nt"
 
 
 def test_new_path() -> None:
@@ -182,7 +184,24 @@ class TestFsPath:
         assert type(rypath.parts) is type(pypath.parts)
         assert isinstance(rypath.parts, tuple)
 
+
+@pytest.mark.parametrize(
+    "path_cls",
+    [
+        pytest.param(
+            Path,
+            id="pathlib.Path",
+        ),
+        pytest.param(
+            ry.FsPath,
+            id="ry.FsPath",
+        ),
+    ],
+)
+@pytest.mark.skipif(not is_windows, reason="Windows specific tests")
+class TestFsPathWindows:
     def test_drive(self, path_cls: TPath) -> None:
+        # windows
         pypath = Path("C:/some/path")
         rypath = path_cls("C:/some/path")
         assert rypath.drive == pypath.drive
