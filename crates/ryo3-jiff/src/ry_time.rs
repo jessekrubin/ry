@@ -10,7 +10,6 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
 use std::fmt::Display;
-use std::ops::Sub;
 use std::str::FromStr;
 
 #[pyclass(name = "Time", module = "ryo3")]
@@ -117,21 +116,21 @@ impl RyTime {
                 let span = self.0 - other.0;
                 let obj = RySpan::from(span)
                     .into_pyobject(py)
-                    .map(|obj| obj.into_any())?;
+                    .map(pyo3::Bound::into_any)?;
                 Ok(obj)
             }
             RyTimeArithmeticSub::Span(other) => {
                 let t = self.0 - other.0;
-                RyTime::from(t).into_pyobject(py).map(|obj| obj.into_any())
+                RyTime::from(t).into_pyobject(py).map(pyo3::Bound::into_any)
             }
             RyTimeArithmeticSub::SignedDuration(other) => {
                 let t = self.0 - other.0;
-                RyTime::from(t).into_pyobject(py).map(|obj| obj.into_any())
+                RyTime::from(t).into_pyobject(py).map(pyo3::Bound::into_any)
             }
         }
     }
 
-    fn __isub__<'py>(&mut self, py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
@@ -141,7 +140,7 @@ impl RyTime {
         Ok(())
     }
 
-    fn __add__<'py>(&self, py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
@@ -150,7 +149,7 @@ impl RyTime {
         Ok(RyTime::from(t))
     }
 
-    fn __iadd__<'py>(&mut self, py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
@@ -254,7 +253,7 @@ pub struct RyTimeDifference(pub(crate) jiff::civil::TimeDifference);
 #[pymethods]
 impl RyTimeDifference {
     #[new]
-    pub fn new(time: RyTime) -> PyResult<Self> {
+    pub fn new(time: &RyTime) -> PyResult<Self> {
         let td = jiff::civil::TimeDifference::new(time.0);
         Ok(Self(td))
     }
@@ -284,7 +283,7 @@ impl From<jiff::civil::TimeDifference> for RyTimeDifference {
 //     Span(RySpan),
 // }
 #[derive(Debug, Clone, FromPyObject)]
-pub enum RyTimeArithmeticSub {
+pub(crate) enum RyTimeArithmeticSub {
     Time(RyTime),
     Span(RySpan),
     SignedDuration(RySignedDuration),

@@ -1,9 +1,8 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::pydatetime_conversions::{jiff_date2pydate, pydate2rydate};
 use crate::ry_datetime::RyDateTime;
-use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::ry_time::{RyTime, RyTimeArithmeticSub};
+use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use jiff::civil::Date;
@@ -105,7 +104,7 @@ impl RyDate {
                 let span = self.0 - other.0;
                 let obj = RySpan::from(span)
                     .into_pyobject(py)
-                    .map(|obj| obj.into_any())?;
+                    .map(pyo3::Bound::into_any)?;
                 Ok(obj)
             }
             RyDateArithmeticSub::Delta(other) => {
@@ -119,7 +118,7 @@ impl RyDate {
         }
     }
 
-    fn __isub__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
@@ -129,7 +128,7 @@ impl RyDate {
         Ok(())
     }
 
-    fn __add__<'py>(&self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
@@ -138,7 +137,7 @@ impl RyDate {
         Ok(RyDate::from(t))
     }
 
-    fn __iadd__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
@@ -210,7 +209,7 @@ impl RyDateSeries {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum RyDateArithmeticSub {
+pub(crate) enum RyDateArithmeticSub {
     Time(RyDate),
     Delta(RyDeltaArithmeticSelf),
 }

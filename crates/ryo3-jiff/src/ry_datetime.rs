@@ -1,6 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::pydatetime_conversions::jiff_datetime2pydatetime;
-use crate::ry_date::RyDateArithmeticSub;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
@@ -144,7 +143,7 @@ impl RyDateTime {
                 let span = self.0 - other.0;
                 let obj = RySpan::from(span)
                     .into_pyobject(py)
-                    .map(|obj| obj.into_any())?;
+                    .map(pyo3::Bound::into_any)?;
                 Ok(obj)
             }
             RyDateTimeArithmeticSub::Delta(other) => {
@@ -158,7 +157,7 @@ impl RyDateTime {
         }
     }
 
-    fn __isub__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
@@ -168,7 +167,7 @@ impl RyDateTime {
         Ok(())
     }
 
-    fn __add__<'py>(&self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
@@ -177,7 +176,7 @@ impl RyDateTime {
         Ok(Self::from(t))
     }
 
-    fn __iadd__<'py>(&mut self, _py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
@@ -267,7 +266,7 @@ impl RyDateTimeSeries {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum RyDateTimeArithmeticSub {
+pub(crate) enum RyDateTimeArithmeticSub {
     DateTime(RyDateTime),
     Delta(RyDeltaArithmeticSelf),
 }
