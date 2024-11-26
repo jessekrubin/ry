@@ -13,3 +13,19 @@ def test_span_repr() -> None:
     assert repr(s) == "Span(years=1)"
     _expected_repr_full = "Span(years=1, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)"
     assert s.repr_full() == _expected_repr_full
+
+
+def test_span_dict() -> None:
+    s = ry.timespan(years=1)
+    assert s.asdict() == {
+        "years": 1,
+        "months": 0,
+        "weeks": 0,
+        "days": 0,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0,
+        "milliseconds": 0,
+        "microseconds": 0,
+        "nanoseconds": 0,
+    }

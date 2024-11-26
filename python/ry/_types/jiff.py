@@ -62,3 +62,16 @@ class DateTimeTypedDict(TypedDict):
     microsecond: int
     nanosecond: int
     subsec_nanosecond: int
+
+
+class TimespanTypedDict(TypedDict):
+    years: int
+    months: int
+    weeks: int
+    days: int
+    hours: int
+    minutes: int
+    seconds: int
+    milliseconds: int
+    microseconds: int
+    nanoseconds: int

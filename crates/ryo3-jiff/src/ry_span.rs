@@ -1,8 +1,9 @@
 use crate::internal::RySpanRelativeTo;
 use crate::ry_signed_duration::RySignedDuration;
 use jiff::Span;
+use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
+use pyo3::types::{PyDict, PyType};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -260,6 +261,21 @@ impl RySpan {
             self.0.get_microseconds(),
             self.0.get_nanoseconds()
         )
+    }
+
+    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        dict.set_item(intern!(py, "years"), self.0.get_years())?;
+        dict.set_item(intern!(py, "months"), self.0.get_months())?;
+        dict.set_item(intern!(py, "weeks"), self.0.get_weeks())?;
+        dict.set_item(intern!(py, "days"), self.0.get_days())?;
+        dict.set_item(intern!(py, "hours"), self.0.get_hours())?;
+        dict.set_item(intern!(py, "minutes"), self.0.get_minutes())?;
+        dict.set_item(intern!(py, "seconds"), self.0.get_seconds())?;
+        dict.set_item(intern!(py, "milliseconds"), self.0.get_milliseconds())?;
+        dict.set_item(intern!(py, "microseconds"), self.0.get_microseconds())?;
+        dict.set_item(intern!(py, "nanoseconds"), self.0.get_nanoseconds())?;
+        Ok(dict)
     }
 
     fn to_jiff_duration(&self, relative: RySpanRelativeTo) -> PyResult<RySignedDuration> {

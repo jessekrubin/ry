@@ -10,6 +10,7 @@ from ry._types.jiff import (
     JIFF_UNIT_STRING,
     DateTimeTypedDict,
     DateTypedDict,
+    TimespanTypedDict,
     TimeTypedDict,
 )
 
@@ -646,6 +647,7 @@ class Span:
     def seconds(self, seconds: int) -> Span: ...
     def to_jiff_duration(self, relative: Zoned | Date | DateTime) -> SignedDuration: ...
     def repr_full(self) -> str: ...
+    def asdict(self) -> TimespanTypedDict: ...
 
 class Timestamp:
     """
@@ -743,6 +745,11 @@ class DateTimeRound:
         increment: int | None,
     ) -> DateTimeRound: ...
 
+class Offset:
+    def __init__(self, hours: int) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
 def date(year: int, month: int, day: int) -> Date: ...
 def time(
     hour: int = 0, minute: int = 0, second: int = 0, nanosecond: int = 0
@@ -769,3 +776,17 @@ def timespan(
     microseconds: int = 0,
     nanoseconds: int = 0,
 ) -> Span: ...
+def timespan_unchecked(
+    *,
+    years: int = 0,
+    months: int = 0,
+    weeks: int = 0,
+    days: int = 0,
+    hours: int = 0,
+    minutes: int = 0,
+    seconds: int = 0,
+    milliseconds: int = 0,
+    microseconds: int = 0,
+    nanoseconds: int = 0,
+) -> Span: ...
+def offset(hours: int) -> Offset: ...
