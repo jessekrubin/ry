@@ -94,8 +94,14 @@ impl RyDate {
     }
 
     fn __repr__(&self) -> String {
-        format!("Date<{self}>")
+        format!(
+            "Date(year={}, month={}, day={})",
+            self.year(),
+            self.month(),
+            self.day()
+        )
     }
+
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
