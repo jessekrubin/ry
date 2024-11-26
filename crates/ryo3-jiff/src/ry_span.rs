@@ -1,9 +1,9 @@
 use crate::internal::RySpanRelativeTo;
+use crate::pydatetime_conversions::jiff_span_to_py_time_detla;
 use crate::ry_signed_duration::RySignedDuration;
 use jiff::Span;
-use pyo3::intern;
-use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyType};
+use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
+use pyo3::{intern, pyclass, pymethods, Bound, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -33,13 +33,31 @@ impl RySpan {
         self.0 != other.0
     }
 
+    fn negate(&self) -> PyResult<Self> {
+        Ok(Self(self.0.negate()))
+    }
+
     fn __neg__(&self) -> PyResult<Self> {
         Ok(Self(self.0.negate()))
+    }
+
+    #[inline]
+    fn __abs__(&self) -> PyResult<Self> {
+        Ok(Self(self.0.abs()))
+    }
+
+    fn abs(&self) -> PyResult<Self> {
+        self.__abs__()
     }
 
     fn __invert__(&self) -> PyResult<Self> {
         Ok(Self(self.0.negate()))
     }
+
+    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+        jiff_span_to_py_time_detla(py, &self.0)
+    }
+
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Span::from_str(s)

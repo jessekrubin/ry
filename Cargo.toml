@@ -62,7 +62,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.15"
+version = "0.0.16"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2021"

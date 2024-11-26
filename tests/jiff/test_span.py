@@ -1,3 +1,5 @@
+import datetime as pydatetime
+
 import pytest
 
 import ry.dev as ry
@@ -29,3 +31,51 @@ def test_span_dict() -> None:
         "microseconds": 0,
         "nanoseconds": 0,
     }
+
+
+def test_span_to_py_timedelta() -> None:
+    s = ry.timespan(years=1)
+    with pytest.raises(NotImplementedError):
+        py_timedelta = s.to_pytimedelta()
+        assert isinstance(py_timedelta, pydatetime.timedelta)
+
+
+def test_negative_spans():
+    """
+    use jiff::{Span, ToSpan};
+
+    let span = -Span::new().days(5);
+    assert_eq!(span.to_string(), "-P5d");
+
+    let span = Span::new().days(5).negate();
+    assert_eq!(span.to_string(), "-P5d");
+
+    let span = Span::new().days(-5);
+    assert_eq!(span.to_string(), "-P5d");
+
+    let span = -Span::new().days(-5).negate();
+    assert_eq!(span.to_string(), "-P5d");
+
+    let span = -5.days();
+    assert_eq!(span.to_string(), "-P5d");
+
+    let span = (-5).days();
+    assert_eq!(span.to_string(), "-P5d");
+
+    let span = -(5.days());
+    assert_eq!(span.to_string(), "-P5d");
+    """
+    span = -ry.Span().days(5)
+    assert span.string() == "-P5d"
+
+    span = ry.Span().days(5).negate()
+    assert span.string() == "-P5d"
+
+    span = ry.Span().days(-5)
+    assert span.string() == "-P5d"
+
+    span = -ry.Span().days(-5).negate()
+    assert span.string() == "-P5d"
+
+    span = ry.Span().days(-5)
+    assert span.string() == "-P5d"
