@@ -36,7 +36,7 @@ impl PyFnvHasher {
     }
 
     #[classattr]
-    fn name<'py>(py: Python<'py>) -> String {
+    fn name(py: Python<'_>) -> String {
         intern!(py, "fnv1a").to_string()
     }
 
