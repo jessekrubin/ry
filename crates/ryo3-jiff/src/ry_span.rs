@@ -98,51 +98,38 @@ impl RySpan {
 
     fn try_years(&self, n: i64) -> PyResult<Self> {
         self.0.try_years(n).map(RySpan::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_years: {}",
-                e
-            ))
+            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_years: {e}"))
         })
     }
 
     fn try_months(&self, n: i64) -> PyResult<Self> {
         self.0.try_months(n).map(RySpan::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_months: {}",
-                e
-            ))
+            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_months: {e}"))
         })
     }
 
     fn try_weeks(&self, n: i64) -> PyResult<Self> {
         self.0.try_weeks(n).map(RySpan::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_weeks: {}",
-                e
-            ))
+            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_weeks: {e}"))
         })
     }
 
     fn try_days(&self, n: i64) -> PyResult<Self> {
         self.0.try_days(n).map(RySpan::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_days: {}", e))
+            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_days: {e}"))
         })
     }
 
     fn try_hours(&self, n: i64) -> PyResult<Self> {
         self.0.try_hours(n).map(RySpan::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_hours: {}",
-                e
-            ))
+            PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_hours: {e}"))
         })
     }
 
     fn try_minutes(&self, n: i64) -> PyResult<Self> {
         self.0.try_minutes(n).map(RySpan::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_minutes: {}",
-                e
+                "Failed at try_minutes: {e}"
             ))
         })
     }
@@ -150,8 +137,7 @@ impl RySpan {
     fn try_seconds(&self, n: i64) -> PyResult<Self> {
         self.0.try_seconds(n).map(RySpan::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_seconds: {}",
-                e
+                "Failed at try_seconds: {e}"
             ))
         })
     }
@@ -159,8 +145,7 @@ impl RySpan {
     fn try_milliseconds(&self, n: i64) -> PyResult<Self> {
         self.0.try_milliseconds(n).map(RySpan::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_milliseconds: {}",
-                e
+                "Failed at try_milliseconds: {e}"
             ))
         })
     }
@@ -168,8 +153,7 @@ impl RySpan {
     fn try_microseconds(&self, n: i64) -> PyResult<Self> {
         self.0.try_microseconds(n).map(RySpan::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_microseconds: {}",
-                e
+                "Failed at try_microseconds: {e}"
             ))
         })
     }
@@ -177,8 +161,7 @@ impl RySpan {
     fn try_nanoseconds(&self, n: i64) -> PyResult<Self> {
         self.0.try_nanoseconds(n).map(RySpan::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                "Failed at try_nanoseconds: {}",
-                e
+                "Failed at try_nanoseconds: {e}"
             ))
         })
     }
@@ -263,7 +246,7 @@ impl RySpan {
         format!("Span({})", parts.join(", "))
     }
 
-    fn _repr_full(&self) -> String {
+    fn repr_full(&self) -> String {
         format!(
             "Span(years={}, months={}, weeks={}, days={}, hours={}, minutes={}, seconds={}, milliseconds={}, microseconds={}, nanoseconds={})",
             self.0.get_years(),

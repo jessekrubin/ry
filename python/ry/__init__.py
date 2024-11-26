@@ -1,7 +1,5 @@
 """dev entry point"""
 
-from __future__ import annotations
-
 from ry import ryo3
 from ry.ryo3 import (
     Date,
@@ -14,6 +12,7 @@ from ry.ryo3 import (
     Glob,
     GlobSet,
     Globster,
+    Offset,
     SignedDuration,
     Span,
     SqlfmtQueryParams,
@@ -55,6 +54,7 @@ from ry.ryo3 import (
     jiter_cache_clear,
     jiter_cache_usage,
     ls,
+    offset,
     parse_json,
     parse_json_bytes,
     parse_json_str,
@@ -69,6 +69,8 @@ from ry.ryo3 import (
     sqlfmt_params,
     string_noop,
     time,
+    timespan,
+    timespan_unchecked,
     walkdir,
     which,
     which_all,
@@ -112,6 +114,7 @@ __all__ = (
     "Glob",
     "GlobSet",
     "Globster",
+    "Offset",
     "SignedDuration",
     "Span",
     "SqlfmtQueryParams",
@@ -153,6 +156,7 @@ __all__ = (
     "jiter_cache_clear",
     "jiter_cache_usage",
     "ls",
+    "offset",
     "parse_json",
     "parse_json_bytes",
     "parse_json_str",
@@ -168,6 +172,8 @@ __all__ = (
     "sqlfmt_params",
     "string_noop",
     "time",
+    "timespan",
+    "timespan_unchecked",
     "walkdir",
     "which",
     "which_all",
