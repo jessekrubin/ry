@@ -1,18 +1,20 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::pydatetime_conversions::{jiff_date2pydate, pydate2rydate};
 use crate::ry_datetime::RyDateTime;
+use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use jiff::civil::Date;
-use jiff::Zoned;
+use jiff::{SignedDuration, Zoned};
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDate, PyDict, PyDictMethods, PyTuple, PyType};
+use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
 };
+use ryo3_std::PyDuration;
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]
@@ -128,14 +130,34 @@ impl RyDate {
         Ok(())
     }
 
-    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
-        Ok(RyDate::from(t))
+    fn __add__<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(date) = other.downcast::<RySpan>() {
+            let other = date.extract::<RySpan>()?;
+            let t = self.0 + other.0;
+            return Ok(RyDate::from(t));
+        }
+        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
+            let other = signed_dur.extract::<RySignedDuration>()?;
+            let t = self.0 + other.0;
+            return Ok(RyDate::from(t));
+        }
+        if let Ok(date) = other.downcast::<PyDuration>() {
+            let other = date.extract::<PyDuration>()?;
+            let t = self.0 + other.0;
+            return Ok(RyDate::from(t));
+        }
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "unsupported operand type(s) for +: 'Date' and 'other'",
+        ))
     }
+    // fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    //     let t = match other {
+    //         RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+    //         RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+    //     };
+    //     Ok(RyDate::from(t))
+    // }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
