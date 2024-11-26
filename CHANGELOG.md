@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## FUTURE 
+
+- jiff
+  - Added operators `+`/`+=`/`-`/`-=` to date/time/datetime/etc
+  - TODO: figure out how to take refs in the union enum for the operators
+- fspath
+  - further beefing out as well as testing
+
 ## v0.0.15 [2024-11-20]
 
 - `from __future__ import annotations` added to all modules

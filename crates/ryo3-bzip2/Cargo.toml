@@ -13,5 +13,5 @@ repository.workspace = true
 bzip2 = "0.4.4"
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 
-# [lints]
-# workspace = true
+[lints]
+workspace = true

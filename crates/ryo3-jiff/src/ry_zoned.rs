@@ -1,3 +1,4 @@
+use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::dev::{JiffUnit, RyDateTimeRound};
 use crate::pydatetime_conversions::jiff_zoned2pydatetime;
 use crate::ry_datetime::RyDateTime;
@@ -9,7 +10,7 @@ use crate::RyDate;
 use jiff::{Zoned, ZonedRound};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDateTime, PyType};
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -135,8 +136,100 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn __sub__(&self, other: &Self) -> RySpan {
-        RySpan::from(&self.0 - &other.0)
+    // fn __sub__(&self, other: &Self) -> RySpan {
+    //     RySpan::from(&self.0 - &other.0)
+    // }
+
+    fn __sub__<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyZonedArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        match other {
+            RyZonedArithmeticSub::Zoned(other) => {
+                let span = &self.0 - &other.0;
+                let obj = RySpan::from(span)
+                    .into_pyobject(py)
+                    .map(pyo3::Bound::into_any)?;
+                Ok(obj)
+            }
+            RyZonedArithmeticSub::Delta(other) => {
+                let t = match other {
+                    RyDeltaArithmeticSelf::Span(other) => {
+                        self.0.checked_sub(other.0).map_err(|e| {
+                            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))
+                        })?
+                    }
+                    RyDeltaArithmeticSelf::SignedDuration(other) => {
+                        self.0.checked_sub(other.0).map_err(|e| {
+                            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))
+                        })?
+                    }
+                    RyDeltaArithmeticSelf::Duration(other) => {
+                        self.0.checked_sub(other.0).map_err(|e| {
+                            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))
+                        })?
+                    }
+                };
+                Ok(Self::from(t).into_pyobject(py)?.into_any())
+            }
+        }
+    }
+
+    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self
+                .0
+                .checked_sub(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self
+                .0
+                .checked_sub(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::Duration(other) => self
+                .0
+                .checked_sub(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+        };
+        self.0 = t;
+        Ok(())
+    }
+
+    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::Duration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+        };
+        Ok(Self::from(t))
+    }
+
+    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::Duration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+        };
+        self.0 = t;
+        Ok(())
     }
 
     fn checked_add(&self, span: &RySpan) -> PyResult<Self> {
@@ -231,4 +324,10 @@ impl From<IntoZonedRound> for ZonedRound {
             IntoZonedRound::JiffUnit(unit) => unit.0.into(),
         }
     }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+pub(crate) enum RyZonedArithmeticSub {
+    Zoned(RyZoned),
+    Delta(RyDeltaArithmeticSelf),
 }

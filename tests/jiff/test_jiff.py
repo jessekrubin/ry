@@ -50,8 +50,7 @@ def test_zoned() -> None:
         "nanosecond": ry_datetime.nanosecond(),
         "subsec_nanosecond": ry_datetime.subsec_nanosecond(),
     }
-
-    assert dt_fields == {
+    dt_dictionary = {
         "year": 2020,
         "month": 8,
         "day": 26,
@@ -59,6 +58,16 @@ def test_zoned() -> None:
         "minute": 27,
         "second": 0,
         "nanosecond": 0,
+        "subsec_nanosecond": 0,
+    }
+    assert dt_fields == dt_dictionary
+    assert ry_datetime.asdict() == {
+        "year": 2020,
+        "month": 8,
+        "day": 26,
+        "hour": 6,
+        "minute": 27,
+        "second": 0,
         "subsec_nanosecond": 0,
     }
 
@@ -76,6 +85,9 @@ def test_zoned() -> None:
         "second": 0,
         "microsecond": 0,
     }
+
+    expected_time_dict = {"hour": 6, "minute": 27, "second": 0, "nanosecond": 0}
+    assert ry_time.asdict() == expected_time_dict
 
 
 # ====================
@@ -161,3 +173,12 @@ def test_datetime_round_options() -> None:
         )
         assert str(options) == expected_string
         assert options == options_chained
+
+
+# repr
+def test_reprs() -> None:
+    d = ry.date(2020, 8, 26)
+    assert repr(d) == "Date(year=2020, month=8, day=26)"
+
+    t = ry.time(6, 27, 0, 0)
+    assert repr(t) == "Time(hour=6, minute=27, second=0, nanosecond=0)"

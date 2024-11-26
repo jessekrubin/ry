@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 dirs.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 ryo3 = { path = "./crates/ryo3", features = ["all"] }
+
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -33,6 +34,12 @@ opt-level = 0
 opt-level = 3
 strip = true
 lto = "thin"
+
+# release fat profile
+[profile.fat]
+inherits = "release"
+lto = "fat"
+
 
 [workspace]
 resolver = "2"
@@ -56,7 +63,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.15"
+version = "0.0.16"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2021"
@@ -65,13 +72,29 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"
 
 [workspace.dependencies]
+# ryo3-*
+ryo3 = { path = "./crates/ryo3", features = ["all"] }
+ryo3-std = { path = "./crates/ryo3-std" }
+ryo3-brotli = { path = "./crates/ryo3-brotli" }
+ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
+ryo3-flate2 = { path = "./crates/ryo3-flate2" }
+ryo3-fnv = { path = "./crates/ryo3-fnv" }
+ryo3-globset = { path = "./crates/ryo3-globset" }
+ryo3-jiff = { path = "./crates/ryo3-jiff" }
+ryo3-jiter = { path = "./crates/ryo3-jiter" }
+ryo3-shlex = { path = "./crates/ryo3-shlex" }
+ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
+ryo3-which = { path = "./crates/ryo3-which" }
+ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
+ryo3-zstd = { path = "./crates/ryo3-zstd" }
+# external
 anyhow = "1.0.75"
 jiff = "0.1.14"
 #jiter = { version ="0.7.1", features = ["python"], optional = true }
 jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
 dirs = { version = "5.0.1", features = [] }
-pyo3 = { version = "0.23.1", features = ["experimental-inspect", "num-bigint"] }
-pyo3-build-config = "0.23.1"
+pyo3 = { version = "0.23.2", features = ["experimental-inspect", "num-bigint"] }
+pyo3-build-config = "0.23.2"
 regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.12"

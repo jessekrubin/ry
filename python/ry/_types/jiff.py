@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, TypedDict
+
+__all__ = (
+    "JIFF_ROUND_MODE_STRING",
+    "JIFF_UNIT_STRING",
+    "DateTimeTypedDict",
+    "DateTypedDict",
+    "TimeTypedDict",
+)
 
 JIFF_UNIT_STRING = Literal[
     "nanosecond",
@@ -25,3 +33,45 @@ JIFF_ROUND_MODE_STRING = Literal[
     "half_trunc",
     "half_even",
 ]
+
+
+class DateTypedDict(TypedDict):
+    year: int
+    month: int
+    day: int
+
+
+class TimeTypedDict(TypedDict):
+    hour: int
+    minute: int
+    second: int
+    millisecond: int
+    microsecond: int
+    nanosecond: int
+    subsec_nanosecond: int
+
+
+class DateTimeTypedDict(TypedDict):
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
+    millisecond: int
+    microsecond: int
+    nanosecond: int
+    subsec_nanosecond: int
+
+
+class TimespanTypedDict(TypedDict):
+    years: int
+    months: int
+    weeks: int
+    days: int
+    hours: int
+    minutes: int
+    seconds: int
+    milliseconds: int
+    microseconds: int
+    nanoseconds: int

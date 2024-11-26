@@ -1,3 +1,5 @@
+use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::ry_span::RySpan;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use jiff::{Timestamp, Zoned};
@@ -21,6 +23,18 @@ impl RyTimestamp {
         Timestamp::new(s, ns)
             .map(RyTimestamp::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MIN() -> Self {
+        Self(Timestamp::MIN)
+    }
+
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn MAX() -> Self {
+        Self(Timestamp::MAX)
     }
 
     #[classmethod]
@@ -68,7 +82,60 @@ impl RyTimestamp {
     fn __repr__(&self) -> String {
         format!("Timestamp<{}>", self.string())
     }
+    fn __sub__<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyTimestampArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        match other {
+            RyTimestampArithmeticSub::Timestamp(other) => {
+                let span = self.0 - other.0;
+                let obj = RySpan::from(span)
+                    .into_pyobject(py)
+                    .map(pyo3::Bound::into_any)?;
+                Ok(obj)
+            }
+            RyTimestampArithmeticSub::Delta(other) => {
+                let t = match other {
+                    RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
+                    RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
+                };
+                RyTimestamp::from(t)
+                    .into_pyobject(py)
+                    .map(pyo3::Bound::into_any)
+            }
+        }
+    }
 
+    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
+        };
+        self.0 = t;
+        Ok(())
+    }
+
+    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+        };
+        Ok(Self::from(t))
+    }
+
+    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+        };
+        self.0 = t;
+        Ok(())
+    }
     fn as_second(&self) -> i64 {
         self.0.as_second()
     }
@@ -87,6 +154,12 @@ impl RyTimestamp {
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
+
+    fn series(&self, period: &RySpan) -> RyTimestampSeries {
+        RyTimestampSeries {
+            series: self.0.series(period.0),
+        }
+    }
 }
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -97,4 +170,27 @@ impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
         RyTimestamp(value)
     }
+}
+
+#[pyclass]
+#[pyo3(name = "TimestampSeries", module = "ryo3")]
+pub struct RyTimestampSeries {
+    pub(crate) series: jiff::TimestampSeries,
+}
+
+#[pymethods]
+impl RyTimestampSeries {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTimestamp> {
+        slf.series.next().map(RyTimestamp::from)
+    }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+pub(crate) enum RyTimestampArithmeticSub {
+    Timestamp(RyTimestamp),
+    Delta(RyDeltaArithmeticSelf),
 }

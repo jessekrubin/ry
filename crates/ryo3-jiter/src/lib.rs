@@ -130,14 +130,14 @@ pub fn parse_json(
 }
 
 #[pyfunction]
-pub fn jiter_cache_clear(py: Python<'_>) {
-    cache_clear(py);
+pub fn jiter_cache_clear() {
+    cache_clear();
 }
 
 #[pyfunction]
 #[must_use]
-pub fn jiter_cache_usage(py: Python<'_>) -> usize {
-    cache_usage(py)
+pub fn jiter_cache_usage() -> usize {
+    cache_usage()
 }
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_json_bytes, m)?)?;

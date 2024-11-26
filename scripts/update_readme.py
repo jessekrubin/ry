@@ -8,13 +8,8 @@ from ry import which
 # this filesdir
 PWDPATH = Path(__file__).resolve().parent
 REPO_ROOT = PWDPATH.parent
-API_PYI_FILEPATH = REPO_ROOT / "python" / "ry" / "_ry.pyi"
+API_PYI_FILEPATH = REPO_ROOT / "python" / "ry" / "ryo3.pyi"
 README_FILEPATH = REPO_ROOT / "README.md"
-
-
-# PWD = path.dirname(path.abspath(__file__))
-# REPO_ROOT = path.dirname(PWD)
-# PYI_FILE = path.join(REPO_ROOT, 'python', "ry", "_ry.pyi")
 
 
 def main():

@@ -15,6 +15,7 @@
 
 use pyo3::prelude::*;
 mod duration;
+pub use duration::PyDuration;
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     duration::pymod_add(m)?;
     Ok(())

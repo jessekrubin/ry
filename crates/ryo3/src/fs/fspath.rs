@@ -7,8 +7,11 @@ use crate::fs::iterdir::PyIterdirGen;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyModule, PyType};
+use pyo3::types::{PyBytes, PyModule, PyTuple, PyType};
 use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
+
+// separator
+const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
 #[pyclass(name = "FsPath", module = "ryo3")]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -172,6 +175,62 @@ impl PyFsPath {
         }
     }
 
+    fn __truediv__(&self, other: PathLike) -> PyResult<Self> {
+        let p = self.pth.join(other.as_ref());
+        Ok(PyFsPath::from(p))
+    }
+
+    fn __rtruediv__(&self, other: PathLike) -> PyResult<Self> {
+        let p = other.as_ref().join(&self.pth);
+        Ok(PyFsPath::from(p))
+    }
+
+    fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
+        let s = path2str(self.pth.clone());
+        let b = s.as_bytes();
+        PyBytes::new(py, b)
+    }
+
+    #[getter]
+    fn root(&self) -> PyResult<Option<PyFsPath>> {
+        if let Some(p) = self.pth.components().next() {
+            Ok(Some(PyFsPath::from(p.as_os_str())))
+        } else {
+            Ok(None)
+        }
+    }
+
+    #[getter]
+    fn drive(&self) -> PyResult<Option<String>> {
+        #[cfg(target_os = "windows")]
+        {
+            let drive = self.pth.components().next();
+            match drive {
+                Some(drive) => {
+                    let drive = drive.as_os_str().to_string_lossy().to_string();
+                    Ok(Some(drive))
+                }
+                None => Ok(None),
+            }
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            Ok(None)
+        }
+    }
+
+    #[getter]
+    fn anchor(&self) -> PyResult<String> {
+        let anchor = self.pth.components().next();
+        match anchor {
+            Some(anchor) => {
+                let a = anchor.as_os_str().to_string_lossy().to_string();
+                // ensure that the anchor ends with a separator
+                Ok(format!("{a}{MAIN_SEPARATOR}"))
+            }
+            None => Ok(String::new()),
+        }
+    }
     #[getter]
     fn parent(&self) -> PyResult<PyFsPath> {
         let p = self.pth.parent();
@@ -188,6 +247,16 @@ impl PyFsPath {
             },
             None => Ok(self.clone()),
         }
+    }
+
+    #[getter]
+    fn parts<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let parts = self
+            .pth
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().to_string())
+            .collect::<Vec<String>>();
+        PyTuple::new(py, parts)
     }
 
     #[getter]
@@ -325,6 +394,12 @@ impl PyFsPath {
 
     pub fn write_text(&self, t: &str) -> PyResult<()> {
         fileio::write_text(&self.string(), t)
+    }
+
+    pub fn as_uri(&self) -> PyResult<String> {
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "as_uri not implemented",
+        ))
     }
 
     fn iterdir(&self) -> PyResult<PyIterdirGen> {

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools as it
+import os
 from pathlib import Path
 from typing import Union
 
@@ -11,6 +12,7 @@ import pytest
 import ry
 
 TPath = Union[type[Path], type[ry.FsPath]]
+is_windows = os.name == "nt"
 
 
 def test_new_path() -> None:
@@ -153,3 +155,72 @@ class TestFsPath:
         rypath1 = path_cls("/some/path")
         rypath2 = path_cls("/other/path")
         assert rypath1 != rypath2
+
+    def test_truediv_operators(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        assert rypath / "file.txt" == pypath / "file.txt"
+        assert "file.txt" / rypath == "file.txt" / pypath
+        assert rypath / Path("file.txt") == pypath / Path("file.txt")
+        assert Path("file.txt") / rypath == Path("file.txt") / pypath
+
+    def test_root(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        assert rypath.root == pypath.root
+
+    def test_bytes(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        pathbytes_fslash = rypath.__bytes__().replace(b"\\", b"/")
+        assert pathbytes_fslash == pypath.__bytes__().replace(
+            b"\\", b"/"
+        )  # todo: reevaluate
+
+    def test_parts(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path")
+        rypath = path_cls("/some/path")
+        assert rypath.parts == pypath.parts
+        assert type(rypath.parts) is type(pypath.parts)
+        assert isinstance(rypath.parts, tuple)
+
+
+@pytest.mark.parametrize(
+    "path_cls",
+    [
+        pytest.param(
+            Path,
+            id="pathlib.Path",
+        ),
+        pytest.param(
+            ry.FsPath,
+            id="ry.FsPath",
+        ),
+    ],
+)
+@pytest.mark.skipif(not is_windows, reason="Windows specific tests")
+class TestFsPathWindows:
+    def test_drive(self, path_cls: TPath) -> None:
+        # windows
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        assert rypath.drive == pypath.drive
+
+    def test_anchor(self, path_cls: TPath) -> None:
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        assert rypath.anchor == pypath.anchor
+
+    def test_name(self, path_cls: TPath) -> None:
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        assert rypath.name == pypath.name
+
+    def test_as_uri(self, path_cls: TPath) -> None:
+        pypath = Path("C:/some/path")
+        rypath = path_cls("C:/some/path")
+        if path_cls is ry.FsPath:
+            with pytest.raises(NotImplementedError):
+                rypath.as_uri()
+        else:
+            assert rypath.as_uri() == pypath.as_uri()
