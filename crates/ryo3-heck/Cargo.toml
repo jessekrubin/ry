@@ -1,0 +1,17 @@
+[package]
+name = "ryo3-heck"
+description = "ryo3-heck - wraps heck (https://crates.io/crates/heck)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+heck.workspace = true
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+
+[lints]
+workspace = true

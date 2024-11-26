@@ -793,6 +793,7 @@ dependencies = [
  "ryo3-flate2",
  "ryo3-fnv",
  "ryo3-globset",
+ "ryo3-heck",
  "ryo3-jiff",
  "ryo3-jiter",
  "ryo3-shlex",
@@ -857,6 +858,14 @@ name = "ryo3-globset"
 version = "0.0.16"
 dependencies = [
  "globset",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-heck"
+version = "0.0.16"
+dependencies = [
+ "heck",
  "pyo3",
 ]
 
