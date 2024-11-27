@@ -1,7 +1,5 @@
 """dev entry point"""
 
-from __future__ import annotations
-
 from ry import ryo3
 from ry.ryo3 import (
     Date,
@@ -72,6 +70,7 @@ from ry.ryo3 import (
     shouty_snake_case,
     shplit,
     sleep,
+    sleep_async,
     snake_case,
     snek_case,
     sqlfmt,
@@ -184,6 +183,7 @@ __all__ = (
     "shouty_snake_case",
     "shplit",
     "sleep",
+    "sleep_async",
     "snake_case",
     "snek_case",
     "sqlfmt",

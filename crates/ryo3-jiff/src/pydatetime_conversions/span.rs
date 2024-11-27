@@ -4,7 +4,7 @@ use pyo3::types::PyDelta;
 use pyo3::{Bound, PyErr, PyResult, Python};
 
 // TODO: THIS IS NOT RIGHT PROLLY
-pub fn jiff_span_to_py_time_detla<'py>(
+pub fn span_to_pyobject<'py>(
     _py: Python<'py>,
     _span: &jiff::Span,
 ) -> PyResult<Bound<'py, PyDelta>> {

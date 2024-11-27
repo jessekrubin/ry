@@ -1,7 +1,7 @@
 use pyo3::types::PyDateTime;
 use pyo3::{Bound, PyErr, PyResult, Python};
 
-pub fn jiff_datetime2pydatetime<'a>(
+pub fn datetime_to_pyobject<'a>(
     py: Python<'a>,
     datetime: &jiff::civil::DateTime,
 ) -> PyResult<Bound<'a, PyDateTime>> {

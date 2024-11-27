@@ -52,7 +52,8 @@ pub fn signed_duration_from_pyobject<'py>(
     }
 
     // Ensure nanoseconds is within i32 range
-    let nanoseconds = nanoseconds as i32;
+    let nanoseconds = i32::try_from(nanoseconds)
+        .map_err(|_| PyErr::new::<PyOverflowError, _>("Nanoseconds out of range"))?;
 
     Ok(SignedDuration::new(total_seconds, nanoseconds))
 }
@@ -109,18 +110,18 @@ pub fn signed_duration_to_pyobject<'py>(
     duration: &SignedDuration,
 ) -> PyResult<Bound<'py, PyDelta>> {
     let days = duration.as_secs() / SECONDS_PER_DAY;
+    let days_i32 = days
+        .try_into()
+        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in days conversion"))?;
     let seconds = duration.as_secs() % SECONDS_PER_DAY;
+    let seconds_i32 = seconds
+        .try_into()
+        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in seconds conversion"))?;
     let microseconds = duration.subsec_micros();
 
     #[cfg(not(Py_LIMITED_API))]
     {
-        PyDelta::new(
-            py,
-            days.try_into()?,
-            seconds.try_into().unwrap(),
-            microseconds.try_into().unwrap(),
-            false,
-        )
+        PyDelta::new(py, days_i32, seconds_i32, microseconds, false)
     }
     #[cfg(Py_LIMITED_API)]
     {

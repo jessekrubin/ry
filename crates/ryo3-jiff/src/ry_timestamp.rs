@@ -90,9 +90,7 @@ impl RyTimestamp {
         match other {
             RyTimestampArithmeticSub::Timestamp(other) => {
                 let span = self.0 - other.0;
-                let obj = RySpan::from(span)
-                    .into_pyobject(py)
-                    .map(pyo3::Bound::into_any)?;
+                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
             RyTimestampArithmeticSub::Delta(other) => {
@@ -101,9 +99,7 @@ impl RyTimestamp {
                     RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
                     RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
                 };
-                RyTimestamp::from(t)
-                    .into_pyobject(py)
-                    .map(pyo3::Bound::into_any)
+                RyTimestamp::from(t).into_pyobject(py).map(Bound::into_any)
             }
         }
     }

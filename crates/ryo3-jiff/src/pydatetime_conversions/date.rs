@@ -1,8 +1,8 @@
-use crate::ry_date::RyDate;
+use jiff::civil::Date;
 use pyo3::types::{PyDate, PyDateAccess};
 use pyo3::{Bound, PyErr, PyResult, Python};
 
-pub fn jiff_date2pydate<'a>(py: Python<'a>, d: &jiff::civil::Date) -> PyResult<Bound<'a, PyDate>> {
+pub fn date_to_pyobject<'a>(py: Python<'a>, d: &Date) -> PyResult<Bound<'a, PyDate>> {
     let y = i32::from(d.year());
     let m = d.month();
 
@@ -14,7 +14,7 @@ pub fn jiff_date2pydate<'a>(py: Python<'a>, d: &jiff::civil::Date) -> PyResult<B
     PyDate::new(py, y, m_u8, d_u8)
 }
 
-pub fn pydate2rydate(py_date: &impl PyDateAccess) -> PyResult<RyDate> {
+pub fn date_from_pyobject(py_date: &impl PyDateAccess) -> PyResult<Date> {
     let y = py_date.get_year();
     let y_i16 = i16::try_from(y)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
@@ -24,5 +24,7 @@ pub fn pydate2rydate(py_date: &impl PyDateAccess) -> PyResult<RyDate> {
     let d = py_date.get_day();
     let d_i8 = i8::try_from(d)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
-    RyDate::new(y_i16, m_i8, d_i8)
+    let date = Date::new(y_i16, m_i8, d_i8)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("date: {e}")))?;
+    Ok(date)
 }

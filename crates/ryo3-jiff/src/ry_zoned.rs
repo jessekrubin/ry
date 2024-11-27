@@ -1,6 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::dev::{JiffUnit, RyDateTimeRound};
-use crate::pydatetime_conversions::jiff_zoned2pydatetime;
+use crate::pydatetime_conversions::zoned_to_pyobject;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -107,7 +107,7 @@ impl RyZoned {
     }
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        jiff_zoned2pydatetime(py, &self.0)
+        zoned_to_pyobject(py, &self.0)
     }
 
     fn intz(&self, tz: &str) -> PyResult<Self> {
@@ -148,9 +148,7 @@ impl RyZoned {
         match other {
             RyZonedArithmeticSub::Zoned(other) => {
                 let span = &self.0 - &other.0;
-                let obj = RySpan::from(span)
-                    .into_pyobject(py)
-                    .map(pyo3::Bound::into_any)?;
+                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
             RyZonedArithmeticSub::Delta(other) => {

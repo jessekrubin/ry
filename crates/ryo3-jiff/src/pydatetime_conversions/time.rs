@@ -1,7 +1,7 @@
 use pyo3::types::PyTime;
 use pyo3::{Bound, PyErr, PyResult, Python};
 
-pub fn jiff_time2pytime<'py>(
+pub fn time_to_pyobject<'py>(
     py: Python<'py>,
     time: &jiff::civil::Time,
 ) -> PyResult<Bound<'py, PyTime>> {

@@ -1,7 +1,7 @@
 use pyo3::types::PyDateTime;
 use pyo3::{Bound, PyErr, PyResult, Python};
 
-pub fn jiff_zoned2pydatetime<'a>(
+pub fn zoned_to_pyobject<'a>(
     py: Python<'a>,
     datetime: &jiff::Zoned,
 ) -> PyResult<Bound<'a, PyDateTime>> {
@@ -33,5 +33,3 @@ pub fn jiff_zoned2pydatetime<'a>(
         None,
     )
 }
-
-// 24 * 60 * 60

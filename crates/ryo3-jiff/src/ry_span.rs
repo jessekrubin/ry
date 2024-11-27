@@ -1,5 +1,5 @@
 use crate::internal::RySpanRelativeTo;
-use crate::pydatetime_conversions::jiff_span_to_py_time_detla;
+use crate::pydatetime_conversions::span_to_pyobject;
 use crate::ry_signed_duration::RySignedDuration;
 use jiff::Span;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
@@ -55,7 +55,7 @@ impl RySpan {
     }
 
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        jiff_span_to_py_time_detla(py, &self.0)
+        span_to_pyobject(py, &self.0)
     }
 
     #[classmethod]

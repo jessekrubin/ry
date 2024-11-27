@@ -1,6 +1,6 @@
 use pyo3::basic::CompareOp;
 use pyo3::prelude::{PyModule, PyModuleMethods};
-use pyo3::types::{PyAnyMethods, PyDelta, PyType};
+use pyo3::types::{PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyResult, Python};
 use std::time::Duration;
 
@@ -12,7 +12,7 @@ pub struct PyDuration(pub Duration);
 impl PyDuration {
     #[new]
     fn new(secs: u64, nanos: u32) -> Self {
-        let dur = std::time::Duration::new(secs, nanos);
+        let dur = Duration::new(secs, nanos);
         PyDuration(dur)
     }
 
@@ -38,7 +38,7 @@ impl PyDuration {
 
     #[classmethod]
     fn zero(_cls: &Bound<'_, PyType>) -> Self {
-        PyDuration(std::time::Duration::new(0, 0))
+        PyDuration(Duration::new(0, 0))
     }
 
     #[classmethod]
@@ -128,8 +128,8 @@ impl PyDuration {
     }
 
     #[getter]
-    fn microseconds(&self) -> u64 {
-        self.0.subsec_micros() as u64
+    fn microseconds(&self) -> u32 {
+        self.0.subsec_micros()
     }
 
     fn __add__(&self, other: PyDurationComparable) -> PyDuration {

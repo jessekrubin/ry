@@ -1,6 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::dev::JiffUnit;
-use crate::pydatetime_conversions::jiff_time2pytime;
+use crate::pydatetime_conversions::time_to_pyobject;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -120,18 +120,16 @@ impl RyTime {
         match other {
             RyTimeArithmeticSub::Time(other) => {
                 let span = self.0 - other.0;
-                let obj = RySpan::from(span)
-                    .into_pyobject(py)
-                    .map(pyo3::Bound::into_any)?;
+                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
             RyTimeArithmeticSub::Span(other) => {
                 let t = self.0 - other.0;
-                RyTime::from(t).into_pyobject(py).map(pyo3::Bound::into_any)
+                RyTime::from(t).into_pyobject(py).map(Bound::into_any)
             }
             RyTimeArithmeticSub::SignedDuration(other) => {
                 let t = self.0 - other.0;
-                RyTime::from(t).into_pyobject(py).map(pyo3::Bound::into_any)
+                RyTime::from(t).into_pyobject(py).map(Bound::into_any)
             }
         }
     }
@@ -193,7 +191,7 @@ impl RyTime {
     }
 
     fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
-        let dt = jiff_time2pytime(py, &self.0)?;
+        let dt = time_to_pyobject(py, &self.0)?;
         Ok(dt)
     }
 
