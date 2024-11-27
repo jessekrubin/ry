@@ -1,0 +1,31 @@
+# REF: https://github.com/crate-ci/typos/blob/master/docs/reference.md
+# install typos: cargo install typos-cli
+
+[files]
+extend-exclude = [
+  "tests/xxhash/_xxhash_test_data.py"
+]
+
+[default]
+extend-ignore-identifiers-re = [
+  "arange", # range list fn
+  "NdArray",
+]
+extend-ignore-re = [
+  # disable line with `# spellchecker:disable-line` or `// spellchecker:disable-line`
+  "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+  # ignore line with `# typos:ignore` or `// typos:ignore`
+  "(?Rm)^.*(#|//)\\s*typos:ignore$",
+  # ignore block with `# typos:off` and `# typos:on`
+  "(?s)(#|//)\\s*typos:off.*?\\n\\s*(#|//)\\s*typos:on",
+  # ignore block with `# spellchecker:<on|off>` or `// spellchecker:<on|off>`
+  "(?s)(#|//)\\s*spellchecker:off.*?\\n\\s*(#|//)\\s*spellchecker:on",
+]
+
+[default.extend-identifiers]
+arange = "arange"
+flate2 = "flate2"
+
+[default.extend-words]
+2nd = "2nd"
+flate = "flate"

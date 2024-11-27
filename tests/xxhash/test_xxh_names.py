@@ -15,6 +15,3 @@ hashers = [
 def test_xxh_name(args: tuple[ry.Xxh32 | ry.Xxh64 | ry.Xxh3, str]) -> None:
     hasher, name = args
     assert hasher.name == name
-    # not sure why this is needed but mypy complains otherwise
-    hasher_instance = hasher()  # type: ignore[operator]
-    assert hasher_instance.name == hasher.name

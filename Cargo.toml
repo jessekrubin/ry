@@ -90,8 +90,10 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 # external
 anyhow = "1.0.75"
 jiff = "0.1.14"
-#jiter = { version ="0.7.1", features = ["python"], optional = true }
-jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
+jiter = { version ="0.8.0", features = ["python"]}
+# keep around incase jiter repo moves forward faster than crate release which
+# it has been doing as mr. pyo3 (david hewitt) seems super involved in  jiter
+# jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
 dirs = { version = "5.0.1", features = [] }
 pyo3 = { version = "0.23.2", features = ["experimental-inspect", "num-bigint"] }
 pyo3-build-config = "0.23.2"

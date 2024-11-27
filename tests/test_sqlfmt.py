@@ -25,12 +25,12 @@ def test_sqlfmt_with_indent_and_newline() -> None:
 
 
 def test_sqlfmt_indexed_params() -> None:
-    formated = ry.sqlfmt(
+    formatted = ry.sqlfmt(
         "SELECT * FROM tiles WHERE zoom_level = ? AND tile_column = ? AND tile_row = ?",
         [0, 0, 0],
     )
     assert (
-        formated
+        formatted
         == "SELECT\n  *\nFROM\n  tiles\nWHERE\n  zoom_level = 0\n  AND tile_column = 0\n  AND tile_row = 0"
     )
 
