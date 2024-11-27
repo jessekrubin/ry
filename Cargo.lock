@@ -418,7 +418,8 @@ dependencies = [
 [[package]]
 name = "jiter"
 version = "0.8.0"
-source = "git+https://github.com/pydantic/jiter.git#2b67dd0d4cf06cb9c36e0e99654cb83b8d5fc391"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c88e0910b421b182953e774fd31930f690fc456a0ea56cd5e6ffcccee278731"
 dependencies = [
  "ahash",
  "bitvec",
