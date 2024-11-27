@@ -86,7 +86,7 @@ black:
 # python format
 fmtpy: sort-all ruff-fmt
 
-# pythong format check
+# python format check
 fmtcpy: sort-all-check ruff-fmtc
 
 # justfile format

@@ -497,8 +497,8 @@ TSqlfmtParamsLike = (
     | list[tuple[str, TSqlfmtParamValue_co]]
     | list[TSqlfmtParamValue_co]
 )
-# This maddness for mypy while TSqlfmtParamValue does not work...
-# TODO: FIX THIS MADDNESS
+# This madness for mypy while TSqlfmtParamValue does not work...
+# TODO: FIX THIS MADNESS
 SqlfmtParamsLikeExpanded = (
     dict[str, int]
     | dict[str, str]

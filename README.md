@@ -56,7 +56,7 @@ _(aka: questions that I have been asking myself)_
 - compression:
   - `brotli`
   - `bzip2`
-  - `flate2`
+  - `flat2`
   - `zstd`
 - hashing:
   - `fnv`
@@ -73,7 +73,7 @@ _(aka: questions that I have been asking myself)_
 - `tokio` (fs + process)
 - `tracing` (could be nicer than python's awful logging lib -- currently a
   part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
-- `reqwest` (async http client / waiting on pyo3 asyncio to stablize and for
+- `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for
   me to have more time)
 
 ## API
@@ -620,8 +620,8 @@ TSqlfmtParamsLike = (
   | list[tuple[str, TSqlfmtParamValue_co]]
   | list[TSqlfmtParamValue_co]
 )
-# This maddness for mypy while TSqlfmtParamValue does not work...
-# TODO: FIX THIS MADDNESS
+# This madness for mypy while TSqlfmtParamValue does not work...
+# TODO: FIX THIS MADNESS
 SqlfmtParamsLikeExpanded = (
   dict[str, int]
   | dict[str, str]

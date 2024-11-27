@@ -4,6 +4,7 @@ import pytest
 
 import ry
 
+# typos:off
 FNV_TEST_DATA = [
     (b"", 0xCBF29CE484222325),
     (b"a", 0xAF63DC4C8601EC8C),
@@ -127,6 +128,9 @@ FNV_TEST_DATA = [
     (b"feedfacedeadbeef\0", 0xA7A4C9F3EDEBF0D8),
     (b"line 1\nline 2\nline 3", 0x7829851FAC17B143),
 ]
+
+
+# typos:on
 
 
 def test_fnv_hasher_name() -> None:
