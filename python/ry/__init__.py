@@ -1,5 +1,7 @@
 """dev entry point"""
 
+from __future__ import annotations
+
 from ry import ryo3
 from ry.ryo3 import (
     Date,
