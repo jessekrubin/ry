@@ -1,7 +1,6 @@
 """ry api ~ type annotations"""
 
 import datetime as pydatetime
-import decimal
 import typing as t
 from collections.abc import Iterator
 from os import PathLike
