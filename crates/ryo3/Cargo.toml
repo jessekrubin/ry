@@ -11,7 +11,7 @@ jiff.workspace = true
 
 [dependencies]
 dirs.workspace = true
-pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"]}
 regex.workspace = true
 serde.workspace = true
 serde_bytes.workspace = true

@@ -50,8 +50,8 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn from_millisecond(_cls: &Bound<'_, PyType>, milisecond: i64) -> PyResult<RyTimestamp> {
-        Timestamp::from_millisecond(milisecond)
+    fn from_millisecond(_cls: &Bound<'_, PyType>, millisecond: i64) -> PyResult<RyTimestamp> {
+        Timestamp::from_millisecond(millisecond)
             .map(RyTimestamp::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }

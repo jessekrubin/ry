@@ -14,6 +14,7 @@ class Shplitest:
     skip: bool = False
 
 
+# typos:off
 SHPLITESTS = [
     Shplitest(string="x", expected=["x"]),
     Shplitest(string="foo bar", expected=["foo", "bar"]),
@@ -110,6 +111,9 @@ SHPLITESTS = [
     Shplitest(string=":-) ;-)", expected=[":-)", ";-)"]),
     Shplitest(string="áéíóú", expected=["áéíóú"]),
 ]
+
+
+# typos:on
 
 
 @pytest.mark.parametrize("data", SHPLITESTS)
