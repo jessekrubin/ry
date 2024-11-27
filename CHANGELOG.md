@@ -2,6 +2,9 @@
 
 ## FUTURE 
 
+- Moved walkdir to `ryo3-walkdir`
+- added `ryo3-types` for custom and shared types
+- `heck` wrapper(s)
 - jiff
   - Added operators `+`/`+=`/`-`/`-=` to date/time/datetime/etc
   - TODO: figure out how to take refs in the union enum for the operators
