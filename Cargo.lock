@@ -799,6 +799,8 @@ dependencies = [
  "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
+ "ryo3-types",
+ "ryo3-walkdir",
  "ryo3-which",
  "ryo3-xxhash",
  "ryo3-zstd",
@@ -807,7 +809,6 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
- "walkdir",
 ]
 
 [[package]]
@@ -907,6 +908,22 @@ name = "ryo3-std"
 version = "0.0.16"
 dependencies = [
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-types"
+version = "0.0.16"
+dependencies = [
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-walkdir"
+version = "0.0.16"
+dependencies = [
+ "pyo3",
+ "ryo3-types",
+ "walkdir",
 ]
 
 [[package]]

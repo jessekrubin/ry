@@ -45,7 +45,8 @@ lto = "fat"
 resolver = "2"
 members = [
   "crates/ryo3",
-  "crates/_ryo3-dev", # dev sandbox and things
+  "crates/_ryo3-dev",
+  "crates/ryo3-types",
   "crates/ryo3-std",
   # external wrappers
   "crates/ryo3-brotli",
@@ -59,6 +60,7 @@ members = [
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
   "crates/ryo3-which",
+  "crates/ryo3-walkdir",
   "crates/ryo3-xxhash",
   "crates/ryo3-zstd",
 ]
@@ -73,9 +75,15 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"
 
 [workspace.dependencies]
+# ======
 # ryo3-*
+# ======
+# internal
 ryo3 = { path = "./crates/ryo3", features = ["all"] }
+ryo3-dev = { path = "./crates/_ryo3-dev" }
+ryo3-types = { path = "./crates/ryo3-types" }
 ryo3-std = { path = "./crates/ryo3-std" }
+# wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
@@ -87,8 +95,10 @@ ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-which = { path = "./crates/ryo3-which" }
+ryo3-walkdir = { path = "./crates/ryo3-walkdir" }
 ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
+
 # external
 anyhow = "1.0.75"
 jiff = "0.1.14"

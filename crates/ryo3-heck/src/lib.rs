@@ -1,15 +1,15 @@
 use heck::{
-    self, ToUpperCamelCase, ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase,
-    ToShoutySnakeCase, ToShoutySnekCase, ToSnakeCase, ToSnekCase, ToTitleCase,
-    ToTrainCase
+    self, ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase,
+    ToSnakeCase, ToSnekCase, ToTitleCase, ToTrainCase,
 };
 use pyo3::prelude::*;
 
 macro_rules! ryheckfn {
     ($name:ident, $case:ident) => {
         #[pyfunction]
-        fn $name(s: &str) -> String {
-            s.$case().to_string()
+        #[pyo3(text_signature = "(string: str)")]
+        fn $name(string: &str) -> String {
+            string.$case().to_string()
         }
     };
 }

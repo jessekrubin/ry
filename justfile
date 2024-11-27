@@ -33,6 +33,10 @@ dev-rel:
 pytest:
     pytest --benchmark-skip
 
+# run pytest (printing captured output)
+pytestv:
+    pytest --benchmark-skip -rP
+
 # run all test
 test: pytest
 

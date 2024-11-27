@@ -8,7 +8,8 @@ use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule, PyTuple, PyType};
-use pyo3::{pyclass, pymethods, FromPyObject, PyObject, PyResult, Python};
+use pyo3::{pyclass, pymethods, PyObject, PyResult, Python};
+use ryo3_types::PathLike;
 
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
@@ -435,45 +436,45 @@ where
         }
     }
 }
-
-#[derive(Debug, FromPyObject, Clone)]
-pub enum PathLike {
-    PathBuf(PathBuf),
-    Str(String),
-}
-
-impl From<PathLike> for String {
-    fn from(p: PathLike) -> Self {
-        match p {
-            PathLike::PathBuf(p) => p.to_string_lossy().to_string(),
-            PathLike::Str(s) => s,
-        }
-    }
-}
-
-impl AsRef<Path> for PathLike {
-    fn as_ref(&self) -> &Path {
-        match self {
-            PathLike::PathBuf(p) => p.as_ref(),
-            PathLike::Str(s) => Path::new(s),
-        }
-    }
-}
-
-impl From<&Path> for PathLike {
-    fn from(p: &Path) -> Self {
-        PathLike::PathBuf(p.to_path_buf())
-    }
-}
-
-impl std::fmt::Display for PathLike {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PathLike::PathBuf(p) => write!(f, "{}", p.to_string_lossy()),
-            PathLike::Str(s) => write!(f, "{s}"),
-        }
-    }
-}
+//
+// #[derive(Debug, FromPyObject, Clone)]
+// pub enum PathLike {
+//     PathBuf(PathBuf),
+//     Str(String),
+// }
+//
+// impl From<PathLike> for String {
+//     fn from(p: PathLike) -> Self {
+//         match p {
+//             PathLike::PathBuf(p) => p.to_string_lossy().to_string(),
+//             PathLike::Str(s) => s,
+//         }
+//     }
+// }
+//
+// impl AsRef<Path> for PathLike {
+//     fn as_ref(&self) -> &Path {
+//         match self {
+//             PathLike::PathBuf(p) => p.as_ref(),
+//             PathLike::Str(s) => Path::new(s),
+//         }
+//     }
+// }
+//
+// impl From<&Path> for PathLike {
+//     fn from(p: &Path) -> Self {
+//         PathLike::PathBuf(p.to_path_buf())
+//     }
+// }
+//
+// impl std::fmt::Display for PathLike {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self {
+//             PathLike::PathBuf(p) => write!(f, "{}", p.to_string_lossy()),
+//             PathLike::Str(s) => write!(f, "{s}"),
+//         }
+//     }
+// }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFsPath>()?;

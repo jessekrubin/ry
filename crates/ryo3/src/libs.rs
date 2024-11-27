@@ -1,7 +1,4 @@
 use pyo3::prelude::*;
-
-#[cfg(feature = "walkdir")]
-mod walkdir;
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "brotli")]
     ryo3_brotli::pymod_add(m)?;
@@ -23,17 +20,13 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_shlex::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]
     ryo3_sqlformat::pymod_add(m)?;
+    #[cfg(feature = "walkdir")]
+    ryo3_walkdir::pymod_add(m)?;
     #[cfg(feature = "which")]
     ryo3_which::pymod_add(m)?;
     #[cfg(feature = "xxhash")]
     ryo3_xxhash::pymod_add(m)?;
     #[cfg(feature = "zstd")]
     ryo3_zstd::pymod_add(m)?;
-
-
-    // TODO: move the below libs to their own crates
-    #[cfg(feature = "walkdir")]
-    walkdir::pymod_add(m)?;
-
     Ok(())
 }
