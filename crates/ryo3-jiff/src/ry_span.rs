@@ -1,7 +1,7 @@
 use crate::internal::RySpanRelativeTo;
 use crate::pydatetime_conversions::jiff_span_to_py_time_detla;
 use crate::ry_signed_duration::RySignedDuration;
-use jiff::Span;
+use jiff::{Span, SpanRelativeTo};
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
 use pyo3::{intern, pyclass, pymethods, Bound, PyErr, PyResult, Python};
 use std::fmt::Display;
@@ -296,23 +296,32 @@ impl RySpan {
         Ok(dict)
     }
 
-    fn to_jiff_duration(&self, relative: RySpanRelativeTo) -> PyResult<RySignedDuration> {
-        match relative {
-            RySpanRelativeTo::Zoned(z) => self
-                .0
-                .to_jiff_duration(&z.0)
+    #[pyo3(signature = (relative = None))]
+    fn to_jiff_duration(&self, relative: Option<RySpanRelativeTo>) -> PyResult<RySignedDuration> {
+        if let Some(r) = relative {
+            match r {
+                RySpanRelativeTo::Zoned(z) => self
+                    .0
+                    .to_jiff_duration(&z.0)
+                    .map(RySignedDuration)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
+                RySpanRelativeTo::Date(d) => self
+                    .0
+                    .to_jiff_duration(d.0)
+                    .map(RySignedDuration)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
+                RySpanRelativeTo::DateTime(dt) => self
+                    .0
+                    .to_jiff_duration(dt.0)
+                    .map(RySignedDuration)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
+            }
+        } else {
+            let now = jiff::Zoned::now();
+            self.0
+                .to_jiff_duration(&now)
                 .map(RySignedDuration)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
-            RySpanRelativeTo::Date(d) => self
-                .0
-                .to_jiff_duration(d.0)
-                .map(RySignedDuration)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
-            RySpanRelativeTo::DateTime(dt) => self
-                .0
-                .to_jiff_duration(dt.0)
-                .map(RySignedDuration)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
         }
     }
 }

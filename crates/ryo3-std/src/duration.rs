@@ -1,11 +1,12 @@
 use pyo3::basic::CompareOp;
 use pyo3::prelude::{PyModule, PyModuleMethods};
-use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, PyResult};
+use pyo3::types::{PyAnyMethods, PyDelta, PyType};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyResult, Python};
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Duration", module = "ryo3")]
-pub struct PyDuration(pub std::time::Duration);
+pub struct PyDuration(pub Duration);
 
 #[pymethods]
 impl PyDuration {
@@ -42,22 +43,22 @@ impl PyDuration {
 
     #[classmethod]
     fn from_secs(_cls: &Bound<'_, PyType>, secs: u64) -> Self {
-        PyDuration(std::time::Duration::from_secs(secs))
+        PyDuration(Duration::from_secs(secs))
     }
 
     #[classmethod]
     fn from_millis(_cls: &Bound<'_, PyType>, millis: u64) -> Self {
-        PyDuration(std::time::Duration::from_millis(millis))
+        PyDuration(Duration::from_millis(millis))
     }
 
     #[classmethod]
     fn from_micros(_cls: &Bound<'_, PyType>, micros: u64) -> Self {
-        PyDuration(std::time::Duration::from_micros(micros))
+        PyDuration(Duration::from_micros(micros))
     }
 
     #[classmethod]
     fn from_nanos(_cls: &Bound<'_, PyType>, nanos: u64) -> Self {
-        PyDuration(std::time::Duration::from_nanos(nanos))
+        PyDuration(Duration::from_nanos(nanos))
     }
 
     #[getter]
@@ -86,20 +87,74 @@ impl PyDuration {
         self.0.as_nanos()
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
-        match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+    fn __richcmp__(&self, other: PyDurationComparable, op: CompareOp) -> PyResult<bool> {
+        match other {
+            PyDurationComparable::PyDuration(other) => match op {
+                CompareOp::Eq => Ok(self.0 == other.0),
+                CompareOp::Ne => Ok(self.0 != other.0),
+                CompareOp::Lt => Ok(self.0 < other.0),
+                CompareOp::Le => Ok(self.0 <= other.0),
+                CompareOp::Gt => Ok(self.0 > other.0),
+                CompareOp::Ge => Ok(self.0 >= other.0),
+            },
+            PyDurationComparable::Duration(other) => match op {
+                CompareOp::Eq => Ok(self.0 == other),
+                CompareOp::Ne => Ok(self.0 != other),
+                CompareOp::Lt => Ok(self.0 < other),
+                CompareOp::Le => Ok(self.0 <= other),
+                CompareOp::Gt => Ok(self.0 > other),
+                CompareOp::Ge => Ok(self.0 >= other),
+            },
+        }
+    }
+
+    fn to_timedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+        self.0.into_pyobject(py)
+    }
+
+    #[classmethod]
+    fn from_timedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> PyResult<Self> {
+        Ok(PyDuration(delta))
+    }
+
+    #[getter]
+    fn days(&self) -> u64 {
+        self.0.as_secs() / 86400
+    }
+
+    #[getter]
+    fn seconds(&self) -> u64 {
+        self.0.as_secs() % 86400
+    }
+
+    #[getter]
+    fn microseconds(&self) -> u64 {
+        self.0.subsec_micros() as u64
+    }
+
+    fn __add__(&self, other: PyDurationComparable) -> PyDuration {
+        match other {
+            PyDurationComparable::PyDuration(other) => PyDuration(self.0 + other.0),
+            PyDurationComparable::Duration(other) => PyDuration(self.0 + other),
+        }
+    }
+
+    fn __sub__(&self, other: PyDurationComparable) -> PyDuration {
+        match other {
+            PyDurationComparable::PyDuration(other) => PyDuration(self.0 - other.0),
+            PyDurationComparable::Duration(other) => PyDuration(self.0 - other),
         }
     }
 }
 
-impl From<std::time::Duration> for PyDuration {
-    fn from(d: std::time::Duration) -> Self {
+#[derive(Debug, Clone, FromPyObject)]
+enum PyDurationComparable {
+    PyDuration(PyDuration),
+    Duration(Duration),
+}
+
+impl From<Duration> for PyDuration {
+    fn from(d: Duration) -> Self {
         PyDuration(d)
     }
 }

@@ -1,6 +1,9 @@
 use crate::ry_date::RyDate;
-use pyo3::types::{PyDate, PyDateAccess, PyDateTime, PyDelta, PyTime};
+use pyo3::types::{PyAnyMethods, PyDate, PyDateAccess, PyDateTime, PyDelta, PyDeltaAccess, PyTime};
 use pyo3::{Bound, PyErr, PyResult, Python};
+
+mod signed_duration;
+pub use signed_duration::{signed_duration_from_pyobject, signed_duration_to_pyobject};
 
 pub fn jiff_time2pytime<'py>(
     py: Python<'py>,
@@ -106,6 +109,8 @@ pub fn jiff_zoned2pydatetime<'a>(
         None,
     )
 }
+
+// 24 * 60 * 60
 
 // TODO: THIS IS NOT RIGHT PROLLY
 pub fn jiff_span_to_py_time_detla<'py>(
