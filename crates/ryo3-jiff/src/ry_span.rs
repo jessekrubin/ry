@@ -1,7 +1,7 @@
 use crate::internal::RySpanRelativeTo;
 use crate::pydatetime_conversions::jiff_span_to_py_time_detla;
 use crate::ry_signed_duration::RySignedDuration;
-use jiff::{Span, SpanRelativeTo};
+use jiff::Span;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
 use pyo3::{intern, pyclass, pymethods, Bound, PyErr, PyResult, Python};
 use std::fmt::Display;

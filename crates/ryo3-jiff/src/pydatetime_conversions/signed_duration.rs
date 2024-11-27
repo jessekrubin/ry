@@ -1,9 +1,8 @@
-use crate::ry_signed_duration::RySignedDuration;
 use jiff::SignedDuration;
 use pyo3::exceptions::PyOverflowError;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDeltaAccess};
-use pyo3::{Bound, IntoPyObject, PyErr, PyResult, Python};
+use pyo3::{Bound, PyErr, PyResult, Python};
 
 const SECONDS_PER_DAY: i64 = 86_400;
 
@@ -30,9 +29,9 @@ pub fn signed_duration_from_pyobject<'py>(
     };
 
     // Convert to i64 to handle negative durations
-    let days = days as i64;
-    let seconds = seconds as i64;
-    let microseconds = microseconds as i64;
+    let days = i64::from(days);
+    let seconds = i64::from(seconds);
+    let microseconds = i64::from(microseconds);
 
     // Calculate total seconds
     let total_seconds = days
@@ -46,7 +45,7 @@ pub fn signed_duration_from_pyobject<'py>(
         .ok_or_else(|| PyErr::new::<PyOverflowError, _>("Overflow in nanoseconds calculation"))?;
 
     // Check if total_seconds fits in i64
-    if total_seconds > i64::MAX || total_seconds < i64::MIN {
+    if !(i64::MIN..=i64::MAX).contains(&total_seconds) {
         return Err(PyErr::new::<PyOverflowError, _>(
             "Duration too large to represent",
         ));
