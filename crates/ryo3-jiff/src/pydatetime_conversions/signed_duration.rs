@@ -8,7 +8,7 @@ use pyo3::{Bound, IntoPyObject, PyErr, PyResult, Python};
 const SECONDS_PER_DAY: i64 = 86_400;
 
 pub fn signed_duration_from_pyobject<'py>(
-    py: Python<'py>,
+    _py: Python<'py>,
     obj: &Bound<'py, PyDelta>,
 ) -> PyResult<SignedDuration> {
     #[cfg(not(Py_LIMITED_API))]

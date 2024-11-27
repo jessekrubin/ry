@@ -3,9 +3,7 @@ use jiff::SignedDuration;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
-use ryo3_std::PyDuration;
 use std::str::FromStr;
-use std::time::Duration;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "SignedDuration", module = "ryo3")]
@@ -35,7 +33,7 @@ impl RySignedDuration {
         Ok(Self::from(signed_dur))
     }
 
-    fn to_pydelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+    fn to_timedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         signed_duration_to_pyobject(py, &self.0)
     }
     fn __abs__(&self) -> Self {
