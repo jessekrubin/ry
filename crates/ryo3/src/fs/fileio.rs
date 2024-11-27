@@ -1,10 +1,11 @@
 use std::path::Path;
 
-use crate::fs::fspath::{PathLike, PyFsPath};
+use crate::fs::fspath::PyFsPath;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule};
 use pyo3::{pyfunction, wrap_pyfunction, PyResult};
+use ryo3_types::PathLike;
 
 #[pyfunction]
 pub fn read_vec_u8(s: &str) -> PyResult<Vec<u8>> {

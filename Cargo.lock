@@ -329,8 +329,7 @@ dependencies = [
 [[package]]
 name = "jiter"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c88e0910b421b182953e774fd31930f690fc456a0ea56cd5e6ffcccee278731"
+source = "git+https://github.com/pydantic/jiter.git#2b67dd0d4cf06cb9c36e0e99654cb83b8d5fc391"
 dependencies = [
  "ahash",
  "bitvec",
@@ -794,11 +793,14 @@ dependencies = [
  "ryo3-flate2",
  "ryo3-fnv",
  "ryo3-globset",
+ "ryo3-heck",
  "ryo3-jiff",
  "ryo3-jiter",
  "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
+ "ryo3-types",
+ "ryo3-walkdir",
  "ryo3-which",
  "ryo3-xxhash",
  "ryo3-zstd",
@@ -807,7 +809,6 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
- "walkdir",
 ]
 
 [[package]]
@@ -862,6 +863,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryo3-heck"
+version = "0.0.16"
+dependencies = [
+ "heck",
+ "pyo3",
+]
+
+[[package]]
 name = "ryo3-jiff"
 version = "0.0.16"
 dependencies = [
@@ -899,6 +908,22 @@ name = "ryo3-std"
 version = "0.0.16"
 dependencies = [
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-types"
+version = "0.0.16"
+dependencies = [
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-walkdir"
+version = "0.0.16"
+dependencies = [
+ "pyo3",
+ "ryo3-types",
+ "walkdir",
 ]
 
 [[package]]
@@ -1149,9 +1174,9 @@ dependencies = [
 
 [[package]]
 name = "tracing"
-version = "0.1.40"
+version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
+checksum = "784e0ac535deb450455cbfa28a6f0df145ea1bb7ae51b821cf5e7927fdcfbdd0"
 dependencies = [
  "pin-project-lite",
  "tracing-attributes",

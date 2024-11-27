@@ -45,7 +45,8 @@ lto = "fat"
 resolver = "2"
 members = [
   "crates/ryo3",
-  "crates/_ryo3-dev", # dev sandbox and things
+  "crates/_ryo3-dev",
+  "crates/ryo3-types",
   "crates/ryo3-std",
   # external wrappers
   "crates/ryo3-brotli",
@@ -53,11 +54,13 @@ members = [
   "crates/ryo3-flate2",
   "crates/ryo3-fnv",
   "crates/ryo3-globset",
+  "crates/ryo3-heck",
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
   "crates/ryo3-which",
+  "crates/ryo3-walkdir",
   "crates/ryo3-xxhash",
   "crates/ryo3-zstd",
 ]
@@ -72,28 +75,36 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"
 
 [workspace.dependencies]
+# ======
 # ryo3-*
+# ======
+# internal
 ryo3 = { path = "./crates/ryo3", features = ["all"] }
+ryo3-dev = { path = "./crates/_ryo3-dev" }
+ryo3-types = { path = "./crates/ryo3-types" }
 ryo3-std = { path = "./crates/ryo3-std" }
+# wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
 ryo3-fnv = { path = "./crates/ryo3-fnv" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
+ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-which = { path = "./crates/ryo3-which" }
+ryo3-walkdir = { path = "./crates/ryo3-walkdir" }
 ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
+
 # external
 anyhow = "1.0.75"
 jiff = "0.1.14"
-jiter = { version ="0.8.0", features = ["python"]}
-# keep around incase jiter repo moves forward faster than crate release which
-# it has been doing as mr. pyo3 (david hewitt) seems super involved in  jiter
-# jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
+#jiter = { version ="0.7.1", features = ["python"], optional = true }
+heck = "0.5.0"
+jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
 dirs = { version = "5.0.1", features = [] }
 pyo3 = { version = "0.23.2", features = ["experimental-inspect", "num-bigint"] }
 pyo3-build-config = "0.23.2"
@@ -104,7 +115,7 @@ serde_json = "1.0.133"
 shlex = "1.3.0"
 thiserror = "2.0.3"
 tokio = { version = "1.41.1", features = ["full"] }
-tracing = "0.1.40"
+tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.17", features = ["serde", "serde_json", "env-filter", "default"] }
 xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 

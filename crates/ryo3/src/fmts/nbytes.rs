@@ -1,6 +1,4 @@
-use pyo3::prelude::*;
-use pyo3::types::PyModule;
-use pyo3::{pyfunction, wrap_pyfunction, PyResult};
+use pyo3::{pyfunction, PyErr, PyResult};
 
 const KILOBYTE: u64 = 1024;
 const MEGABYTE: u64 = KILOBYTE * 1024;
@@ -59,11 +57,6 @@ pub fn fmt_nbytes(nbytes: i64) -> PyResult<String> {
     let formatted_size = nbytes_i64(nbytes, Option::from(1))
         .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
     Ok(formatted_size)
-}
-
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(fmt_nbytes, m)?)?;
-    Ok(())
 }
 
 #[cfg(test)]

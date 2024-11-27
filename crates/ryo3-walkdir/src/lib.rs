@@ -4,8 +4,7 @@ use std::path::Path;
 
 use ::walkdir as walkdir_rs;
 use pyo3::prelude::*;
-
-use crate::fs::fspath::PathLike;
+use ryo3_types::PathLike;
 
 #[pyclass(name = "WalkDirEntry", module = "ryo3")]
 #[derive(Clone, Debug)]
@@ -29,8 +28,8 @@ impl PyWalkDirEntry {
     }
 
     #[getter]
-    fn file_name(&self) -> PyResult<String> {
-        Ok(self.de.file_name().to_string_lossy().to_string())
+    fn file_name(&self) -> String {
+        self.de.file_name().to_string_lossy().to_string()
     }
 
     #[getter]
