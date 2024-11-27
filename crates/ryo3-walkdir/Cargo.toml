@@ -1,0 +1,18 @@
+[package]
+name = "ryo3-walkdir"
+description = "python + walkdir (https://docs.rs/walkdir/latest/walkdir/)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-types = { workspace = true }
+walkdir = { workspace = true }
+
+[lints]
+workspace = true
