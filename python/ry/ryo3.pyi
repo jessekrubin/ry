@@ -139,6 +139,7 @@ def quick_maths() -> t.Literal[3]:
 # SLEEP
 # ==============================================================================
 def sleep(seconds: float) -> float: ...
+async def sleep_async(seconds: float) -> float: ...
 
 # ==============================================================================
 # FILESYSTEM
