@@ -1,5 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::pydatetime_conversions::{jiff_date2pydate, pydate2rydate};
+use crate::pydatetime_conversions::{date_from_pyobject, date_to_pyobject};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -25,9 +25,11 @@ pub struct RyDate(pub(crate) Date);
 impl RyDate {
     #[new]
     pub fn new(year: i16, month: i8, day: i8) -> PyResult<Self> {
-        Date::new(year, month, day)
-            .map(RyDate::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        Date::new(year, month, day).map(RyDate::from).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "{e} (year={year}, month={month}, day={day})",
+            ))
+        })
     }
 
     #[allow(non_snake_case)]
@@ -51,14 +53,17 @@ impl RyDate {
         RyDateTime::from(self.0.at(hour, minute, second, subsec_nanosecond))
     }
 
+    #[getter]
     fn year(&self) -> i16 {
         self.0.year()
     }
 
+    #[getter]
     fn month(&self) -> i8 {
         self.0.month()
     }
 
+    #[getter]
     fn day(&self) -> i8 {
         self.0.day()
     }
@@ -110,9 +115,7 @@ impl RyDate {
         match other {
             RyDateArithmeticSub::Time(other) => {
                 let span = self.0 - other.0;
-                let obj = RySpan::from(span)
-                    .into_pyobject(py)
-                    .map(pyo3::Bound::into_any)?;
+                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
             RyDateArithmeticSub::Delta(other) => {
@@ -177,11 +180,11 @@ impl RyDate {
 
     #[classmethod]
     fn from_pydate(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        pydate2rydate(d)
+        date_from_pyobject(d).map(RyDate::from)
     }
 
     fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
-        jiff_date2pydate(py, &self.0)
+        date_to_pyobject(py, &self.0)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

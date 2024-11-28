@@ -1,5 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::pydatetime_conversions::jiff_datetime2pydatetime;
+use crate::pydatetime_conversions::datetime_to_pyobject;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
@@ -86,42 +86,52 @@ impl RyDateTime {
         }
     }
 
+    #[getter]
     fn year(&self) -> i16 {
         self.0.year()
     }
 
+    #[getter]
     fn month(&self) -> i8 {
         self.0.month()
     }
 
+    #[getter]
     fn day(&self) -> i8 {
         self.0.day()
     }
 
+    #[getter]
     fn hour(&self) -> i8 {
         self.0.hour()
     }
 
+    #[getter]
     fn minute(&self) -> i8 {
         self.0.minute()
     }
 
+    #[getter]
     fn second(&self) -> i8 {
         self.0.second()
     }
 
+    #[getter]
     fn millisecond(&self) -> i16 {
         self.0.millisecond()
     }
 
+    #[getter]
     fn microsecond(&self) -> i16 {
         self.0.microsecond()
     }
 
+    #[getter]
     fn nanosecond(&self) -> i16 {
         self.0.nanosecond()
     }
 
+    #[getter]
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
@@ -141,9 +151,7 @@ impl RyDateTime {
         match other {
             RyDateTimeArithmeticSub::DateTime(other) => {
                 let span = self.0 - other.0;
-                let obj = RySpan::from(span)
-                    .into_pyobject(py)
-                    .map(pyo3::Bound::into_any)?;
+                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
             RyDateTimeArithmeticSub::Delta(other) => {
@@ -219,7 +227,7 @@ impl RyDateTime {
     }
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        jiff_datetime2pydatetime(py, &self.0)
+        datetime_to_pyobject(py, &self.0)
     }
 
     fn series(&self, period: &RySpan) -> RyDateTimeSeries {

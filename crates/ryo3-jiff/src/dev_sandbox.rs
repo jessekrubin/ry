@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
-
 use pyo3::{pyfunction, PyResult};
 
 pub(crate) fn jiffdev() -> Result<(), String> {

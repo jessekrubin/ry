@@ -102,9 +102,11 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 # external
 anyhow = "1.0.75"
 jiff = "0.1.14"
-#jiter = { version ="0.7.1", features = ["python"], optional = true }
+jiter = { version = "0.8.0", features = ["python"] }
+# keeping around for if/when mr. pyo3 (david hewitt) is working on pyo3 and
+# jiter and there is some sort of conflict
+#jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
 heck = "0.5.0"
-jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
 dirs = { version = "5.0.1", features = [] }
 pyo3 = { version = "0.23.2", features = ["experimental-inspect", "num-bigint"] }
 pyo3-build-config = "0.23.2"

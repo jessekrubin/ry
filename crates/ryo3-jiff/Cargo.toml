@@ -14,5 +14,8 @@ jiff = { version = "0.1.14", features = ["default", "serde"] }
 ryo3-std = { workspace = true }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 
+[build-dependencies]
+pyo3-build-config = "0.23.2"
+
 [lints]
 workspace = true

@@ -1,7 +1,8 @@
+use crate::pydatetime_conversions::{signed_duration_from_pyobject, signed_duration_to_pyobject};
 use jiff::SignedDuration;
 use pyo3::basic::CompareOp;
-use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
+use pyo3::types::{PyDelta, PyType};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -22,6 +23,19 @@ impl RySignedDuration {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    #[classmethod]
+    fn from_pytimedelta<'py>(
+        _cls: &Bound<'py, PyType>,
+        py: Python<'py>,
+        delta: &Bound<'py, PyDelta>,
+    ) -> PyResult<Self> {
+        let signed_dur = signed_duration_from_pyobject(py, delta)?;
+        Ok(Self::from(signed_dur))
+    }
+
+    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+        signed_duration_to_pyobject(py, &self.0)
+    }
     fn __abs__(&self) -> Self {
         Self(self.0.abs())
     }
@@ -36,17 +50,6 @@ impl RySignedDuration {
             self.0.as_secs(),
             self.0.subsec_nanos()
         )
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
-        match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
-        }
     }
 
     fn __add__(&self, other: &RySignedDuration) -> PyResult<Self> {
@@ -97,10 +100,59 @@ impl RySignedDuration {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>("negation does not exist")
             })
     }
+
+    #[getter]
+    fn days(&self) -> i64 {
+        self.0.as_secs() / 86400
+    }
+
+    #[getter]
+    fn seconds(&self) -> i64 {
+        self.0.as_secs() % 86400
+    }
+
+    #[getter]
+    fn microseconds(&self) -> i32 {
+        self.0.subsec_micros()
+    }
+
+    fn __richcmp__<'py>(
+        &self,
+        py: Python<'py>,
+        other: RySignedDurationComparable<'py>,
+        op: CompareOp,
+    ) -> PyResult<bool> {
+        match other {
+            RySignedDurationComparable::RySignedDuration(other) => match op {
+                CompareOp::Eq => Ok(self.0 == other.0),
+                CompareOp::Ne => Ok(self.0 != other.0),
+                CompareOp::Lt => Ok(self.0 < other.0),
+                CompareOp::Le => Ok(self.0 <= other.0),
+                CompareOp::Gt => Ok(self.0 > other.0),
+                CompareOp::Ge => Ok(self.0 >= other.0),
+            },
+            RySignedDurationComparable::PyDelta(other) => {
+                let other = signed_duration_from_pyobject(py, &other)?;
+                match op {
+                    CompareOp::Eq => Ok(self.0 == other),
+                    CompareOp::Ne => Ok(self.0 != other),
+                    CompareOp::Lt => Ok(self.0 < other),
+                    CompareOp::Le => Ok(self.0 <= other),
+                    CompareOp::Gt => Ok(self.0 > other),
+                    CompareOp::Ge => Ok(self.0 >= other),
+                }
+            }
+        }
+    }
 }
 
 impl From<SignedDuration> for RySignedDuration {
     fn from(d: SignedDuration) -> Self {
         Self(d)
     }
+}
+#[derive(Debug, Clone, FromPyObject)]
+enum RySignedDurationComparable<'py> {
+    RySignedDuration(RySignedDuration),
+    PyDelta(Bound<'py, PyDelta>),
 }

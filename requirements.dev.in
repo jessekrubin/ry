@@ -1,7 +1,8 @@
 maturin
+hypothesis
+mypy
 pytest
 pytest-asyncio
 pytest-benchmark
 ruff
 tomli
-mypy

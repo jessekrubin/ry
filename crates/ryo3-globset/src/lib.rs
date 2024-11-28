@@ -10,7 +10,7 @@ const DEFAULT_BACKSLASH_ESCAPE: bool = cfg!(windows);
 struct PyGlob {
     pattern: String,
     glob: Glob,
-    matcher: ::globset::GlobMatcher,
+    matcher: globset::GlobMatcher,
     negative: bool,
 }
 
@@ -98,7 +98,7 @@ impl PyGlob {
 #[pyclass(name = "GlobSet", frozen, module = "ryo3")]
 #[derive(Clone, Debug)]
 struct PyGlobSet {
-    globset: ::globset::GlobSet,
+    globset: globset::GlobSet,
     patterns: Vec<String>,
 }
 
@@ -182,8 +182,8 @@ impl PyGlobSet {
 #[pyclass(name = "Globster", frozen, module = "ryo3")]
 #[derive(Clone, Debug)]
 struct Globster {
-    globset: Option<::globset::GlobSet>,
-    nglobset: Option<::globset::GlobSet>,
+    globset: Option<globset::GlobSet>,
+    nglobset: Option<globset::GlobSet>,
     patterns: Vec<String>,
     length: usize,
 }

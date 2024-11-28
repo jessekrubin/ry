@@ -15,14 +15,14 @@ def test_zoned() -> None:
 
     zdt_fields = {
         "tz": str(zdt.timezone()),
-        "year": zdt.year(),
-        "month": zdt.month(),
-        "day": zdt.day(),
-        "hour": zdt.hour(),
-        "minute": zdt.minute(),
-        "second": zdt.second(),
-        "nanosecond": zdt.nanosecond(),
-        "subsec_nanosecond": zdt.subsec_nanosecond(),
+        "year": zdt.year,
+        "month": zdt.month,
+        "day": zdt.day,
+        "hour": zdt.hour,
+        "minute": zdt.minute,
+        "second": zdt.second,
+        "nanosecond": zdt.nanosecond,
+        "subsec_nanosecond": zdt.subsec_nanosecond,
     }
 
     assert zdt_fields == {
@@ -41,14 +41,14 @@ def test_zoned() -> None:
     assert ry_datetime == ry.datetime(2020, 8, 26, 6, 27, 0, 0)
 
     dt_fields = {
-        "year": ry_datetime.year(),
-        "month": ry_datetime.month(),
-        "day": ry_datetime.day(),
-        "hour": ry_datetime.hour(),
-        "minute": ry_datetime.minute(),
-        "second": ry_datetime.second(),
-        "nanosecond": ry_datetime.nanosecond(),
-        "subsec_nanosecond": ry_datetime.subsec_nanosecond(),
+        "year": ry_datetime.year,
+        "month": ry_datetime.month,
+        "day": ry_datetime.day,
+        "hour": ry_datetime.hour,
+        "minute": ry_datetime.minute,
+        "second": ry_datetime.second,
+        "nanosecond": ry_datetime.nanosecond,
+        "subsec_nanosecond": ry_datetime.subsec_nanosecond,
     }
     dt_dictionary = {
         "year": 2020,
@@ -74,10 +74,10 @@ def test_zoned() -> None:
     ry_time = zdt.time()
     assert ry_time == ry.time(6, 27, 0, 0)
     t_fields = {
-        "hour": ry_time.hour(),
-        "minute": ry_time.minute(),
-        "second": ry_time.second(),
-        "microsecond": ry_time.microsecond(),
+        "hour": ry_time.hour,
+        "minute": ry_time.minute,
+        "second": ry_time.second,
+        "microsecond": ry_time.microsecond,
     }
     assert t_fields == {
         "hour": 6,

@@ -207,9 +207,9 @@ impl PyFsPath {
         {
             let drive = self.pth.components().next();
             match drive {
-                Some(drive) => {
-                    let drive = drive.as_os_str().to_string_lossy().to_string();
-                    Ok(Some(drive))
+                Some(drive_component) => {
+                    let drive_str = drive_component.as_os_str().to_string_lossy().to_string();
+                    Ok(Some(drive_str))
                 }
                 None => Ok(None),
             }
