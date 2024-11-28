@@ -24,7 +24,7 @@ impl RySignedDuration {
     }
 
     #[classmethod]
-    fn from_timedelta<'py>(
+    fn from_pytimedelta<'py>(
         _cls: &Bound<'py, PyType>,
         py: Python<'py>,
         delta: &Bound<'py, PyDelta>,
@@ -33,7 +33,7 @@ impl RySignedDuration {
         Ok(Self::from(signed_dur))
     }
 
-    fn to_timedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         signed_duration_to_pyobject(py, &self.0)
     }
     fn __abs__(&self) -> Self {

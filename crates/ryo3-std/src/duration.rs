@@ -108,12 +108,12 @@ impl PyDuration {
         }
     }
 
-    fn to_timedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         self.0.into_pyobject(py)
     }
 
     #[classmethod]
-    fn from_timedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> PyResult<Self> {
+    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> PyResult<Self> {
         Ok(PyDuration(delta))
     }
 

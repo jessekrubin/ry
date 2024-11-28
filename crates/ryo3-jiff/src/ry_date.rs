@@ -25,9 +25,11 @@ pub struct RyDate(pub(crate) Date);
 impl RyDate {
     #[new]
     pub fn new(year: i16, month: i8, day: i8) -> PyResult<Self> {
-        Date::new(year, month, day)
-            .map(RyDate::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        Date::new(year, month, day).map(RyDate::from).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "{e} (year={year}, month={month}, day={day})",
+            ))
+        })
     }
 
     #[allow(non_snake_case)]
@@ -51,14 +53,17 @@ impl RyDate {
         RyDateTime::from(self.0.at(hour, minute, second, subsec_nanosecond))
     }
 
+    #[getter]
     fn year(&self) -> i16 {
         self.0.year()
     }
 
+    #[getter]
     fn month(&self) -> i8 {
         self.0.month()
     }
 
+    #[getter]
     fn day(&self) -> i8 {
         self.0.day()
     }

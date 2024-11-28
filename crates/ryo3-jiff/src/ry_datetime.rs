@@ -86,42 +86,52 @@ impl RyDateTime {
         }
     }
 
+    #[getter]
     fn year(&self) -> i16 {
         self.0.year()
     }
 
+    #[getter]
     fn month(&self) -> i8 {
         self.0.month()
     }
 
+    #[getter]
     fn day(&self) -> i8 {
         self.0.day()
     }
 
+    #[getter]
     fn hour(&self) -> i8 {
         self.0.hour()
     }
 
+    #[getter]
     fn minute(&self) -> i8 {
         self.0.minute()
     }
 
+    #[getter]
     fn second(&self) -> i8 {
         self.0.second()
     }
 
+    #[getter]
     fn millisecond(&self) -> i16 {
         self.0.millisecond()
     }
 
+    #[getter]
     fn microsecond(&self) -> i16 {
         self.0.microsecond()
     }
 
+    #[getter]
     fn nanosecond(&self) -> i16 {
         self.0.nanosecond()
     }
 
+    #[getter]
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
