@@ -15,14 +15,14 @@ def test_zoned() -> None:
 
     zdt_fields = {
         "tz": str(zdt.timezone()),
-        "year": zdt.year(),
-        "month": zdt.month(),
-        "day": zdt.day(),
-        "hour": zdt.hour(),
-        "minute": zdt.minute(),
-        "second": zdt.second(),
-        "nanosecond": zdt.nanosecond(),
-        "subsec_nanosecond": zdt.subsec_nanosecond(),
+        "year": zdt.year,
+        "month": zdt.month,
+        "day": zdt.day,
+        "hour": zdt.hour,
+        "minute": zdt.minute,
+        "second": zdt.second,
+        "nanosecond": zdt.nanosecond,
+        "subsec_nanosecond": zdt.subsec_nanosecond,
     }
 
     assert zdt_fields == {
