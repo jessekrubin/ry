@@ -62,7 +62,7 @@ impl RyTimeZone {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum TimeZoneEquality {
+enum TimeZoneEquality {
     TimeZone(RyTimeZone),
     Str(String),
 }

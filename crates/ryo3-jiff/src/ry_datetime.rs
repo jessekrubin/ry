@@ -7,7 +7,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::RyDate;
 use jiff::civil::{DateTime, DateTimeRound};
-use jiff::{Zoned, ZonedRound};
+use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDateTime, PyDict, PyDictMethods, PyType};
 use pyo3::{
@@ -283,30 +283,13 @@ impl RyDateTime {
         Ok(dict)
     }
 
-    fn round(&self, option: IntoDateTimeRound) -> PyResult<Self> {
+    fn round(&self, option: crate::internal::IntoDateTimeRound) -> PyResult<Self> {
         self.0
             .round(option)
             .map(RyDateTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 }
-#[derive(Debug, Clone, FromPyObject)]
-enum IntoDateTimeRound {
-    RyDateTimeRound(RyDateTimeRound),
-    JiffUnit(JiffUnit),
-}
-impl From<IntoDateTimeRound> for DateTimeRound {
-    fn from(value: IntoDateTimeRound) -> Self {
-        match value {
-            IntoDateTimeRound::RyDateTimeRound(round) => jiff::civil::DateTimeRound::new()
-                .smallest(round.smallest.0)
-                .mode(round.mode.0)
-                .increment(round.increment),
-            IntoDateTimeRound::JiffUnit(unit) => unit.0.into(),
-        }
-    }
-}
-
 impl Display for RyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
