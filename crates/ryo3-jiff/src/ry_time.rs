@@ -1,6 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::dev::JiffUnit;
-use crate::pydatetime_conversions::time_to_pyobject;
+use crate::pydatetime_conversions::{time_from_pyobject, time_to_pyobject};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -204,6 +204,12 @@ impl RyTime {
     fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
         let dt = time_to_pyobject(py, &self.0)?;
         Ok(dt)
+    }
+    #[classmethod]
+    fn from_pytime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyTime>) -> PyResult<Self> {
+        time_from_pyobject(d)
+            .map(crate::RyTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::nujiff::{JiffDate, JiffDateTime};
 use crate::pydatetime_conversions::datetime_to_pyobject;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -8,7 +9,7 @@ use crate::RyDate;
 use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDateTime, PyDict, PyDictMethods, PyType};
+use pyo3::types::{PyAnyMethods, PyDate, PyDateTime, PyDict, PyDictMethods, PyType};
 use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
@@ -261,6 +262,12 @@ impl RyDateTime {
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
         datetime_to_pyobject(py, &self.0)
+    }
+
+    #[classmethod]
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
+        let jiff_datetime: JiffDateTime = d.extract()?;
+        Ok(Self::from(jiff_datetime.0))
     }
 
     fn series(&self, period: &RySpan) -> RyDateTimeSeries {

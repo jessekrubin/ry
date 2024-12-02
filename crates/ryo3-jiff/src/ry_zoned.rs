@@ -6,10 +6,11 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::RyDate;
+use crate::{JiffDateTime, JiffZoned, RyDate};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDateTime, PyType};
+use pyo3::prelude::PyAnyMethods;
+use pyo3::types::{PyDate, PyDateTime, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
@@ -107,7 +108,17 @@ impl RyZoned {
     }
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        zoned_to_pyobject(py, &self.0)
+        let new_zoned = JiffZoned(self.0.clone()); // todo: remove clone
+
+        new_zoned.into_pyobject(py)
+
+        // zoned_to_pyobject(py, &self.0)
+    }
+
+    #[classmethod]
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
+        let jiff_datetime: JiffZoned = d.extract()?;
+        Ok(Self::from(jiff_datetime.0))
     }
 
     fn intz(&self, tz: &str) -> PyResult<Self> {
