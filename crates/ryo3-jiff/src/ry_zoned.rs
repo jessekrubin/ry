@@ -317,7 +317,7 @@ impl From<Zoned> for RyZoned {
 
 #[derive(Debug, Clone, FromPyObject)]
 enum IntoZonedRound {
-    DateTimeRound(RyDateTimeRound),
+    RyDateTimeRound(RyDateTimeRound),
     JiffUnit(JiffUnit),
 }
 
@@ -325,7 +325,7 @@ impl From<IntoZonedRound> for ZonedRound {
     fn from(val: IntoZonedRound) -> Self {
         match val {
             // TODO: this is ugly
-            IntoZonedRound::DateTimeRound(round) => ZonedRound::new()
+            IntoZonedRound::RyDateTimeRound(round) => ZonedRound::new()
                 .smallest(round.smallest.0)
                 .mode(round.mode.0)
                 .increment(round.increment),

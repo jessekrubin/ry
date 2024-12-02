@@ -1,6 +1,6 @@
 use jiff::tz::{Offset, TimeZone};
 use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", module = "ryo3")]
@@ -44,7 +44,7 @@ impl RyTimeZone {
     fn __repr__(&self) -> String {
         let iana_name = self.0.iana_name();
         match iana_name {
-            Some(name) => format!("TimeZone(\"{name})\""),
+            Some(name) => format!("TimeZone(\"{name}\")"),
             None => "TimeZone(None)".to_string(),
         }
     }
@@ -53,7 +53,16 @@ impl RyTimeZone {
         self.iana_name().unwrap_or("Unknown").to_string()
     }
 
-    fn __eq__(&self, other: &RyTimeZone) -> bool {
-        self.0 == other.0
+    fn __eq__(&self, other: TimeZoneEquality) -> bool {
+        match other {
+            TimeZoneEquality::TimeZone(other) => self.0 == other.0,
+            TimeZoneEquality::Str(other) => self.0.iana_name() == Some(other.as_str()),
+        }
     }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+pub enum TimeZoneEquality {
+    TimeZone(RyTimeZone),
+    Str(String),
 }

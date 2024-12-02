@@ -124,7 +124,10 @@ impl RyTime {
                 Ok(obj)
             }
             RyTimeArithmeticSub::Span(other) => {
-                let t = self.0 - other.0;
+                let t = self.0.checked_sub(other.0).map_err(|e| {
+                    PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))
+                })?;
+
                 RyTime::from(t).into_pyobject(py).map(Bound::into_any)
             }
             RyTimeArithmeticSub::SignedDuration(other) => {
@@ -146,19 +149,21 @@ impl RyTime {
 
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
         Ok(RyTime::from(t))
     }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
         self.0 = t;
         Ok(())
     }

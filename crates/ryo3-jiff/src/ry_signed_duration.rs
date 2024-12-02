@@ -1,5 +1,6 @@
 use crate::pydatetime_conversions::{signed_duration_from_pyobject, signed_duration_to_pyobject};
-use jiff::SignedDuration;
+use crate::ry_span::RySpan;
+use jiff::{SignedDuration, Span};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
@@ -16,11 +17,29 @@ impl RySignedDuration {
         Self(SignedDuration::new(secs, nanos))
     }
 
+    #[getter]
+    fn secs(&self) -> i64 {
+        self.0.as_secs()
+    }
+
+    #[getter]
+    fn nanos(&self) -> i32 {
+        self.0.subsec_nanos()
+    }
+
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
             .map(RySignedDuration::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn is_negative(&self) -> bool {
+        self.0.is_negative()
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0.is_zero()
     }
 
     #[classmethod]
@@ -36,8 +55,19 @@ impl RySignedDuration {
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         signed_duration_to_pyobject(py, &self.0)
     }
+
+    fn to_timespan(&self) -> PyResult<RySpan> {
+        Span::try_from(self.0)
+            .map(RySpan::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))
+    }
+
     fn __abs__(&self) -> Self {
         Self(self.0.abs())
+    }
+
+    fn string(&self) -> String {
+        self.0.to_string()
     }
 
     fn __str__(&self) -> String {

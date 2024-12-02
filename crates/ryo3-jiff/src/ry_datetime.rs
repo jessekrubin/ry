@@ -1,12 +1,13 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::dev::{JiffUnit, RyDateTimeRound};
 use crate::pydatetime_conversions::datetime_to_pyobject;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::RyDate;
-use jiff::civil::DateTime;
-use jiff::Zoned;
+use jiff::civil::{DateTime, DateTimeRound};
+use jiff::{Zoned, ZonedRound};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDateTime, PyDict, PyDictMethods, PyType};
 use pyo3::{
@@ -140,8 +141,21 @@ impl RyDateTime {
         self.to_string()
     }
 
+    fn string(&self) -> String {
+        self.to_string()
+    }
+
     fn __repr__(&self) -> String {
-        format!("DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, millisecond={}, microsecond={}, nanosecond={})", self.year(), self.month(), self.day(), self.hour(), self.minute(), self.second(), self.millisecond(), self.microsecond(), self.nanosecond())
+        format!(
+            "DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, subsec_nanosecond={})",
+            self.year(),
+            self.month(),
+            self.day(),
+            self.hour(),
+            self.minute(),
+            self.second(),
+            self.subsec_nanosecond()
+        )
     }
     fn __sub__<'py>(
         &self,
@@ -156,10 +170,11 @@ impl RyDateTime {
             }
             RyDateTimeArithmeticSub::Delta(other) => {
                 let t = match other {
-                    RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-                };
+                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+                }
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
                 Ok(Self::from(t).into_pyobject(py)?.into_any())
             }
         }
@@ -167,29 +182,48 @@ impl RyDateTime {
 
     fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
         self.0 = t;
         Ok(())
     }
 
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::Duration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+        }?;
         Ok(Self::from(t))
     }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::Duration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+        }?;
         self.0 = t;
         Ok(())
     }
@@ -247,6 +281,29 @@ impl RyDateTime {
         dict.set_item(intern!(py, "subsec_nanosecond"), self.0.subsec_nanosecond())?;
 
         Ok(dict)
+    }
+
+    fn round(&self, option: IntoDateTimeRound) -> PyResult<Self> {
+        self.0
+            .round(option)
+            .map(RyDateTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+}
+#[derive(Debug, Clone, FromPyObject)]
+enum IntoDateTimeRound {
+    RyDateTimeRound(RyDateTimeRound),
+    JiffUnit(JiffUnit),
+}
+impl From<IntoDateTimeRound> for DateTimeRound {
+    fn from(value: IntoDateTimeRound) -> Self {
+        match value {
+            IntoDateTimeRound::RyDateTimeRound(round) => jiff::civil::DateTimeRound::new()
+                .smallest(round.smallest.0)
+                .mode(round.mode.0)
+                .increment(round.increment),
+            IntoDateTimeRound::JiffUnit(unit) => unit.0.into(),
+        }
     }
 }
 
