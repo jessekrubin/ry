@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::intz::RyInTz;
 use crate::nujiff::JiffDateTime;
 use crate::pydatetime_conversions::datetime_to_pyobject;
 use crate::ry_span::RySpan;
@@ -15,6 +16,7 @@ use pyo3::{
     PyResult, Python,
 };
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -162,6 +164,11 @@ impl RyDateTime {
             self.subsec_nanosecond()
         )
     }
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -244,11 +251,22 @@ impl RyDateTime {
         RyDate::from(self.0.date())
     }
 
-    fn intz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
-        self.0
-            .intz(time_zone_name)
-            .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    fn intz(&self, tz: RyInTz) -> PyResult<RyZoned> {
+        let tz_str = tz.tz_string();
+        if let Some(tz_str) = tz_str {
+            self.0
+                .intz(tz_str)
+                .map(RyZoned::from)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "Invalid/None timezone: {tz:?}"
+            )))
+        }
+    }
+
+    fn astimezone(&self, tz: RyInTz) -> PyResult<RyZoned> {
+        self.intz(tz)
     }
 
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {

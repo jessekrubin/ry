@@ -5,6 +5,7 @@ use crate::ry_timestamp::RyTimestamp;
 use jiff::tz::Offset;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pyfunction, pymethods, Bound, PyErr, PyResult};
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Offset", module = "ryo3")]
@@ -108,6 +109,12 @@ impl RyOffset {
     pub fn duration_since(&self, other: &RyOffset) -> RySignedDuration {
         let s = self.0.duration_since(other.0);
         RySignedDuration::from(s)
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
     }
 }
 

@@ -89,15 +89,10 @@ def _mk_test_bin_dirs(tmp_path: Path) -> list[str]:
 
 def test_which_python() -> None:
     py_which = shutil.which("python")
-    print("py", py_which)
     ry_which = ry.which("python")
-    print("ry", ry_which)
-
     # clean path
     py_clean = _clean_path(py_which)
     ry_clean = _clean_path(ry_which)
-    print("py", py_clean)
-    print("ry", ry_clean)
     assert py_clean == ry_clean
 
 
@@ -106,17 +101,11 @@ def test_which_path(tmp_path: Path) -> None:
     path_list = _mk_test_bin_dirs(tmp_path)
     path_kwarg = os.pathsep.join(path_list)
     py_which = shutil.which("notavirus", path=path_kwarg)
-    print("py", py_which)
     ry_which = ry.which("notavirus", path=path_kwarg)
-    print("ry", ry_which)
     # clean path
     py_clean = _clean_path(py_which)
     ry_clean = _clean_path(ry_which)
-    print("py", py_clean)
-    print("ry", ry_clean)
     assert py_clean == ry_clean
-
-    # assert False
 
 
 def test_which_all_path(tmp_path: Path) -> None:
@@ -132,14 +121,10 @@ def test_which_path_cwd(tmp_path: Path) -> None:
     path_kwarg = os.pathsep.join(path_list)
     ry.cd(tmp_path)
     py_which = shutil.which("notavirus", path=path_kwarg)
-    print("py", py_which)
     ry_which = ry.which("notavirus", path=path_kwarg)
-    print("ry", ry_which)
     # clean path
     py_clean = _clean_path(py_which)
     ry_clean = _clean_path(ry_which)
-    print("py", py_clean)
-    print("ry", ry_clean)
     assert py_clean == ry_clean
 
 
@@ -148,6 +133,5 @@ def test_which_nada() -> None:
     py_which = shutil.which(exe)
     ry_which = ry.which(exe)
     ry_which_all = ry.which_all(exe)
-    print(ry_which_all)
     assert py_which == ry_which
     assert len(ry_which_all) == 0 and isinstance(ry_which_all, list)

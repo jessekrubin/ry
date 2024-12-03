@@ -1,10 +1,12 @@
 use crate::internal::RySpanRelativeTo;
 use crate::pydatetime_conversions::span_to_pyobject;
 use crate::ry_signed_duration::RySignedDuration;
+use crate::timespan;
 use jiff::Span;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
 use pyo3::{intern, pyclass, pymethods, Bound, PyErr, PyResult, Python};
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -14,9 +16,33 @@ pub struct RySpan(pub(crate) Span);
 #[pymethods]
 impl RySpan {
     #[new]
-    fn new() -> PyResult<Self> {
-        Ok(Self(Span::new()))
+    #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0))]
+    fn new(
+        years: i64,
+        months: i64,
+        weeks: i64,
+        days: i64,
+        hours: i64,
+        minutes: i64,
+        seconds: i64,
+        milliseconds: i64,
+        microseconds: i64,
+        nanoseconds: i64,
+    ) -> PyResult<Self> {
+        timespan(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )
     }
+
     fn __str__(&self) -> String {
         self.string()
     }
@@ -279,6 +305,20 @@ impl RySpan {
             self.0.get_microseconds(),
             self.0.get_nanoseconds()
         )
+    }
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.get_years().hash(&mut hasher);
+        self.0.get_months().hash(&mut hasher);
+        self.0.get_weeks().hash(&mut hasher);
+        self.0.get_days().hash(&mut hasher);
+        self.0.get_hours().hash(&mut hasher);
+        self.0.get_minutes().hash(&mut hasher);
+        self.0.get_seconds().hash(&mut hasher);
+        self.0.get_milliseconds().hash(&mut hasher);
+        self.0.get_microseconds().hash(&mut hasher);
+        self.0.get_nanoseconds().hash(&mut hasher);
+        hasher.finish()
     }
 
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {

@@ -2,6 +2,7 @@ use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
 use pyo3::types::{PyAnyMethods, PyType, PyTzInfo};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", module = "ryo3")]
@@ -53,6 +54,12 @@ impl RyTimeZone {
             Some(name) => format!("TimeZone(\"{name}\")"),
             None => "TimeZone(None)".to_string(),
         }
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.__str__().hash(&mut hasher);
+        hasher.finish()
     }
 
     fn __str__(&self) -> String {

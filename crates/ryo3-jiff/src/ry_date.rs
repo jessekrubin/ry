@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::intz::RyInTz;
 use crate::pydatetime_conversions::{date_from_pyobject, date_to_pyobject};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
@@ -6,6 +7,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::JiffDate;
 use jiff::civil::Date;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
@@ -16,6 +18,7 @@ use pyo3::{
 };
 use ryo3_std::PyDuration;
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Date", module = "ryo3")]
@@ -73,7 +76,11 @@ impl RyDate {
     fn day(&self) -> i8 {
         self.0.day()
     }
-
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     fn to_datetime(&self, time: &RyTime) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(time.0))
     }
@@ -186,11 +193,13 @@ impl RyDate {
 
     #[classmethod]
     fn from_pydate(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        date_from_pyobject(d).map(RyDate::from)
+        let jiff_date: JiffDate = d.extract()?;
+        Ok(Self::from(jiff_date.0))
     }
 
     fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
-        date_to_pyobject(py, &self.0)
+        let jiff_date = JiffDate(self.0);
+        jiff_date.into_pyobject(py)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -201,6 +210,21 @@ impl RyDate {
 
         PyTuple::new(py, parts)
     }
+
+    fn intz(&self, tz: RyInTz) -> PyResult<RyZoned> {
+        let tz_str = tz.tz_string();
+        if let Some(tz_str) = tz_str {
+            self.0
+                .intz(tz_str)
+                .map(RyZoned::from)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "Invalid/None timezone: {tz:?}"
+            )))
+        }
+    }
+
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "year"), self.0.year())?;
