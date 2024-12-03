@@ -17,6 +17,21 @@ impl RySignedDuration {
         Self(SignedDuration::new(secs, nanos))
     }
 
+    #[classattr]
+    fn MIN() -> Self {
+        Self(SignedDuration::MIN)
+    }
+
+    #[classattr]
+    fn MAX() -> Self {
+        Self(SignedDuration::MAX)
+    }
+
+    #[classattr]
+    fn ZERO() -> Self {
+        Self(SignedDuration::ZERO)
+    }
+
     #[getter]
     fn secs(&self) -> i64 {
         self.0.as_secs()

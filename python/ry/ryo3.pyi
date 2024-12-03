@@ -574,8 +574,9 @@ def sqlfmt(
 # ==============================================================================
 
 class Date:
-    MIN: Time
-    MAX: Time
+    MIN: Date
+    MAX: Date
+    ZERO: Date
 
     def __init__(self, year: int, month: int, day: int) -> None: ...
     def __str__(self) -> str: ...
@@ -652,6 +653,7 @@ class TimeSeries:
 class DateTime:
     MIN: DateTime
     MAX: DateTime
+    ZERO: DateTime
 
     def __init__(
         self,
@@ -720,6 +722,10 @@ class TimeZone:
     def utc(cls: type[TimeZone]) -> TimeZone: ...
 
 class SignedDuration:
+    MIN: SignedDuration
+    MAX: SignedDuration
+    ZERO: SignedDuration
+
     def __init__(self, secs: int, nanos: int) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...

@@ -64,6 +64,11 @@ impl RyDateTime {
     fn MAX() -> Self {
         Self(DateTime::MAX)
     }
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn ZERO() -> Self {
+        Self(DateTime::ZERO)
+    }
 
     #[classmethod]
     fn now(_cls: &Bound<'_, PyType>) -> Self {
