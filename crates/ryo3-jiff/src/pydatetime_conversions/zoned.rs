@@ -110,6 +110,16 @@ impl<'py> IntoPyObject<'py> for JiffOffset {
 //     }
 // }
 
+impl FromPyObject<'_> for JiffTimeZone {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffTimeZone> {
+        let name = ob.to_string();
+        let tz = jiff::tz::TimeZone::get(name.as_str())
+            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+        let jtz = JiffTimeZone(tz);
+        Ok(jtz)
+    }
+}
+
 impl FromPyObject<'_> for JiffOffset {
     /// Convert python tzinfo to rust [`FixedOffset`].
     ///

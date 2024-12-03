@@ -1,6 +1,7 @@
+use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
-use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult};
+use pyo3::types::{PyAnyMethods, PyType, PyTzInfo};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", module = "ryo3")]
@@ -41,6 +42,11 @@ impl RyTimeZone {
         self.0.iana_name()
     }
 
+    #[getter]
+    fn name(&self) -> Option<&str> {
+        self.iana_name()
+    }
+
     fn __repr__(&self) -> String {
         let iana_name = self.0.iana_name();
         match iana_name {
@@ -55,9 +61,22 @@ impl RyTimeZone {
 
     fn __eq__(&self, other: TimeZoneEquality) -> bool {
         match other {
-            TimeZoneEquality::TimeZone(other) => self.0 == other.0,
+            TimeZoneEquality::TimeZone(other) => {
+                self.0.eq(&other.0) || self.0.iana_name() == other.0.iana_name()
+            }
             TimeZoneEquality::Str(other) => self.0.iana_name() == Some(other.as_str()),
         }
+    }
+
+    fn to_pytzinfo<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let jiff_tz = JiffTimeZone::from(self.0.clone()); // TODO: figure out no clone
+        jiff_tz.into_pyobject(py)
+    }
+
+    #[classmethod]
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyTzInfo>) -> PyResult<Self> {
+        let jiff_tz: JiffTimeZone = d.extract()?;
+        Ok(Self::from(jiff_tz.0))
     }
 }
 

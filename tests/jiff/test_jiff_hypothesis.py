@@ -69,7 +69,7 @@ timezone_strategy = st.sampled_from(
 
 duration_strategy = st.builds(
     ry.SignedDuration,
-    secs=st.integers(min_value=-(10**15), max_value=10**15),
+    secs=st.integers(min_value=-(10 ** 15), max_value=10 ** 15),
     nanos=st.integers(min_value=-999_999_999, max_value=999_999_999),
 )
 
@@ -115,7 +115,9 @@ def test_datetime_add_subtract_signed_duration(
         assert dt == dt_minus
     except OverflowError as _oe:
         with pytest.raises(OverflowError):
-            dt + duration
+            dt_plus = dt + duration
+            dt_minus = dt_plus - duration
+            assert dt == dt_minus
 
 
 @given(datetime_strategy, datetime_strategy)
@@ -199,7 +201,7 @@ def test_duration_addition_cancellation(duration: ry.SignedDuration) -> None:
 
 @given(st.integers(), st.integers(), st.integers())
 def test_invalid_date_creation(year: int, month: int, day: int) -> None:
-    assume(not (1 <= year <= 9999 and 1 <= month <= 12 and 1 <= day <= 31))
+    assume(not (-9999 <= year <= 9999 and 1 <= month <= 12 and 1 <= day <= 31))
     try:
         # pydt.date(year, month, day)
         ry.date(year, month, day)
