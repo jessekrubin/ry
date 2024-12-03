@@ -69,7 +69,7 @@ timezone_strategy = st.sampled_from(
 
 duration_strategy = st.builds(
     ry.SignedDuration,
-    secs=st.integers(min_value=-(10 ** 15), max_value=10 ** 15),
+    secs=st.integers(min_value=-(10**15), max_value=10**15),
     nanos=st.integers(min_value=-999_999_999, max_value=999_999_999),
 )
 

@@ -4,6 +4,17 @@
 
 ___ 
 
+## v0.0.18 [2024-12-03]
+
+- `jiff`
+  - Renamed `ry.Span` to `ry.TimeSpan`
+  - Renamed `ry.Zoned` to `ry.ZonedDateTime`
+  - Updated type stubs to reflect renames
+- docs
+  - init-ed the docs
+  - style guide under `DEVELOPMENT.md` file
+
+
 ## v0.0.17 [2024-12-02]
 
 - `jiff`
