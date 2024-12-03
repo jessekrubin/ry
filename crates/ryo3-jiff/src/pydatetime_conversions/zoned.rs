@@ -234,6 +234,7 @@ impl FromPyObject<'_> for JiffZoned {
         let zdt = dt
             .intz(tz.as_str())
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
-        Ok(JiffZoned::from(zdt))
+        Ok(JiffZoned(zdt))
+        // Ok(JiffZoned::from(zdt))
     }
 }

@@ -1,12 +1,11 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::internal::IntoDateTimeRound;
-use crate::pydatetime_conversions::zoned_to_pyobject;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::{JiffDateTime, JiffZoned, RyDate};
+use crate::{JiffZoned, RyDate};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
@@ -109,10 +108,7 @@ impl RyZoned {
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
         let new_zoned = JiffZoned(self.0.clone()); // todo: remove clone
-
         new_zoned.into_pyobject(py)
-
-        // zoned_to_pyobject(py, &self.0)
     }
 
     #[classmethod]

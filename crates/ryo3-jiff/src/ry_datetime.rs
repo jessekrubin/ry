@@ -1,5 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::nujiff::{JiffDate, JiffDateTime};
+use crate::nujiff::JiffDateTime;
 use crate::pydatetime_conversions::datetime_to_pyobject;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
