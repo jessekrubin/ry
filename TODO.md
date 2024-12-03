@@ -1,6 +1,7 @@
 # TODO
 
 - [ ] jiff until methods
+- [ ] jiff offset object testing
 
 ___
 

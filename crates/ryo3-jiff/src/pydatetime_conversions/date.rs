@@ -1,6 +1,6 @@
 use jiff::civil::Date;
+use pyo3::prelude::*;
 use pyo3::types::{PyDate, PyDateAccess};
-use pyo3::{Bound, PyErr, PyResult, Python};
 
 pub fn date_to_pyobject<'a>(py: Python<'a>, d: &Date) -> PyResult<Bound<'a, PyDate>> {
     let y = i32::from(d.year());
@@ -14,7 +14,8 @@ pub fn date_to_pyobject<'a>(py: Python<'a>, d: &Date) -> PyResult<Bound<'a, PyDa
     PyDate::new(py, y, m_u8, d_u8)
 }
 
-pub fn date_from_pyobject(py_date: &impl PyDateAccess) -> PyResult<Date> {
+#[cfg(not(Py_LIMITED_API))]
+pub fn py_date_to_jiff_date(py_date: &impl PyDateAccess) -> PyResult<jiff::civil::Date> {
     let y = py_date.get_year();
     let y_i16 = i16::try_from(y)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
@@ -27,4 +28,23 @@ pub fn date_from_pyobject(py_date: &impl PyDateAccess) -> PyResult<Date> {
     let date = Date::new(y_i16, m_i8, d_i8)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("date: {e}")))?;
     Ok(date)
+}
+
+#[cfg(Py_LIMITED_API)]
+pub fn py_date_to_naive_date(py_date: &Bound<'_, PyAny>) -> PyResult<jiff::civil::Date> {
+    Date::new(
+        py_date
+            .getattr(pyo3::intern!(py_date.py(), "year"))?
+            .extract()?,
+        py_date
+            .getattr(pyo3::intern!(py_date.py(), "month"))?
+            .extract()?,
+        py_date
+            .getattr(pyo3::intern!(py_date.py(), "day"))?
+            .extract()?,
+    )
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+}
+pub fn date_from_pyobject(py_date: &impl PyDateAccess) -> PyResult<Date> {
+    py_date_to_jiff_date(py_date)
 }

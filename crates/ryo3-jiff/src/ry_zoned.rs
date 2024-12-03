@@ -1,15 +1,15 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::dev::{JiffUnit, RyDateTimeRound};
-use crate::pydatetime_conversions::zoned_to_pyobject;
+use crate::internal::IntoDateTimeRound;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::RyDate;
-use jiff::{Zoned, ZonedRound};
+use crate::{JiffZoned, RyDate};
+use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDateTime, PyType};
+use pyo3::prelude::PyAnyMethods;
+use pyo3::types::{PyDate, PyDateTime, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::str::FromStr;
@@ -107,7 +107,14 @@ impl RyZoned {
     }
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        zoned_to_pyobject(py, &self.0)
+        let new_zoned = JiffZoned(self.0.clone()); // todo: remove clone
+        new_zoned.into_pyobject(py)
+    }
+
+    #[classmethod]
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
+        let jiff_datetime: JiffZoned = d.extract()?;
+        Ok(Self::from(jiff_datetime.0))
     }
 
     fn intz(&self, tz: &str) -> PyResult<Self> {
@@ -241,7 +248,7 @@ impl RyZoned {
         RyTimeZone::from(self.0.time_zone())
     }
 
-    fn round(&self, option: IntoZonedRound) -> PyResult<Self> {
+    fn round(&self, option: IntoDateTimeRound) -> PyResult<Self> {
         self.0
             .round(option)
             .map(RyZoned::from)
@@ -312,25 +319,6 @@ impl Display for RyZoned {
 impl From<Zoned> for RyZoned {
     fn from(value: Zoned) -> Self {
         RyZoned(value)
-    }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-enum IntoZonedRound {
-    DateTimeRound(RyDateTimeRound),
-    JiffUnit(JiffUnit),
-}
-
-impl From<IntoZonedRound> for ZonedRound {
-    fn from(val: IntoZonedRound) -> Self {
-        match val {
-            // TODO: this is ugly
-            IntoZonedRound::DateTimeRound(round) => ZonedRound::new()
-                .smallest(round.smallest.0)
-                .mode(round.mode.0)
-                .increment(round.increment),
-            IntoZonedRound::JiffUnit(unit) => unit.0.into(),
-        }
     }
 }
 

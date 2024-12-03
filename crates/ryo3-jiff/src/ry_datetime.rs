@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::nujiff::JiffDateTime;
 use crate::pydatetime_conversions::datetime_to_pyobject;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -8,7 +9,7 @@ use crate::RyDate;
 use jiff::civil::DateTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDateTime, PyDict, PyDictMethods, PyType};
+use pyo3::types::{PyAnyMethods, PyDate, PyDateTime, PyDict, PyDictMethods, PyType};
 use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
@@ -62,6 +63,11 @@ impl RyDateTime {
     #[classattr]
     fn MAX() -> Self {
         Self(DateTime::MAX)
+    }
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn ZERO() -> Self {
+        Self(DateTime::ZERO)
     }
 
     #[classmethod]
@@ -140,8 +146,21 @@ impl RyDateTime {
         self.to_string()
     }
 
+    fn string(&self) -> String {
+        self.to_string()
+    }
+
     fn __repr__(&self) -> String {
-        format!("DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, millisecond={}, microsecond={}, nanosecond={})", self.year(), self.month(), self.day(), self.hour(), self.minute(), self.second(), self.millisecond(), self.microsecond(), self.nanosecond())
+        format!(
+            "DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, subsec_nanosecond={})",
+            self.year(),
+            self.month(),
+            self.day(),
+            self.hour(),
+            self.minute(),
+            self.second(),
+            self.subsec_nanosecond()
+        )
     }
     fn __sub__<'py>(
         &self,
@@ -156,10 +175,11 @@ impl RyDateTime {
             }
             RyDateTimeArithmeticSub::Delta(other) => {
                 let t = match other {
-                    RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-                };
+                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+                }
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
                 Ok(Self::from(t).into_pyobject(py)?.into_any())
             }
         }
@@ -167,29 +187,48 @@ impl RyDateTime {
 
     fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
         self.0 = t;
         Ok(())
     }
 
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::Duration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+        }?;
         Ok(Self::from(t))
     }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+            RyDeltaArithmeticSelf::Duration(other) => self
+                .0
+                .checked_add(other.0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))),
+        }?;
         self.0 = t;
         Ok(())
     }
@@ -230,6 +269,12 @@ impl RyDateTime {
         datetime_to_pyobject(py, &self.0)
     }
 
+    #[classmethod]
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
+        let jiff_datetime: JiffDateTime = d.extract()?;
+        Ok(Self::from(jiff_datetime.0))
+    }
+
     fn series(&self, period: &RySpan) -> RyDateTimeSeries {
         RyDateTimeSeries {
             series: self.0.series(period.0),
@@ -248,8 +293,14 @@ impl RyDateTime {
 
         Ok(dict)
     }
-}
 
+    fn round(&self, option: crate::internal::IntoDateTimeRound) -> PyResult<Self> {
+        self.0
+            .round(option)
+            .map(RyDateTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+}
 impl Display for RyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

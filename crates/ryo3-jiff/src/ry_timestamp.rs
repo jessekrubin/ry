@@ -37,6 +37,12 @@ impl RyTimestamp {
         Self(Timestamp::MAX)
     }
 
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn UNIX_EPOCH() -> Self {
+        Self(Timestamp::UNIX_EPOCH)
+    }
+
     #[classmethod]
     fn now(_cls: &Bound<'_, PyType>) -> Self {
         Self::from(Timestamp::now())

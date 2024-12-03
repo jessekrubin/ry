@@ -66,7 +66,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.16"
+version = "0.0.17"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2021"
@@ -102,7 +102,7 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 # external
 anyhow = "1.0.75"
 jiff = "0.1.15"
-jiter = { version = "0.8.0", features = ["python"] }
+jiter = { version = "0.8.1", features = ["python"] }
 # keeping around for if/when mr. pyo3 (david hewitt) is working on pyo3 and
 # jiter and there is some sort of conflict
 #jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }

@@ -16,6 +16,8 @@ mod delta_arithmetic_self;
 mod dev;
 mod dev_sandbox;
 mod internal;
+mod nujiff;
+pub use nujiff::*;
 pub mod pydatetime_conversions;
 mod ry_date;
 mod ry_datetime;

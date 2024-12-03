@@ -1,6 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::dev::JiffUnit;
-use crate::pydatetime_conversions::time_to_pyobject;
+use crate::pydatetime_conversions::{time_from_pyobject, time_to_pyobject};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -124,7 +124,10 @@ impl RyTime {
                 Ok(obj)
             }
             RyTimeArithmeticSub::Span(other) => {
-                let t = self.0 - other.0;
+                let t = self.0.checked_sub(other.0).map_err(|e| {
+                    PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))
+                })?;
+
                 RyTime::from(t).into_pyobject(py).map(Bound::into_any)
             }
             RyTimeArithmeticSub::SignedDuration(other) => {
@@ -146,19 +149,21 @@ impl RyTime {
 
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
         Ok(RyTime::from(t))
     }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
         self.0 = t;
         Ok(())
     }
@@ -199,6 +204,12 @@ impl RyTime {
     fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
         let dt = time_to_pyobject(py, &self.0)?;
         Ok(dt)
+    }
+    #[classmethod]
+    fn from_pytime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyTime>) -> PyResult<Self> {
+        time_from_pyobject(d)
+            .map(crate::RyTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

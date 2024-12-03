@@ -1,6 +1,19 @@
 # CHANGELOG
 
-## FUTURE 
+## FUTURE
+
+___ 
+
+## v0.0.17 [2024-12-02]
+
+- `jiff`
+  - `ry.TimeZone` testing and to/from `datetime.tzinfo` conversions
+  - Using nu-types for `jiff` intermedate types bc of the classic orphans problem (aka batman) w/ traits
+  - hypothesis tests
+- `jiter`
+  - Updated to `jiter` v0.8.1
+
+## v0.0.16 [2024-11-29]
 
 - Moved walkdir to `ryo3-walkdir`
 - added `ryo3-types` for custom and shared types

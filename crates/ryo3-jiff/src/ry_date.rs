@@ -44,6 +44,12 @@ impl RyDate {
         Self(Date::MAX)
     }
 
+    #[allow(non_snake_case)]
+    #[classattr]
+    fn ZERO() -> Self {
+        Self(Date::ZERO)
+    }
+
     #[classmethod]
     fn today(_cls: &Bound<'_, PyType>) -> Self {
         let z = jiff::civil::Date::from(Zoned::now());
