@@ -13,8 +13,8 @@ use pyo3::{wrap_pyfunction, PyResult};
 ///
 /// # Example
 /// ```
-/// # use ryo3_dev::quick_maths;
-/// let result = quick_maths::quick_maths();
+/// # use ryo3_quick_maths::quick_maths;
+/// let result = ryo3_quick_maths::quick_maths();
 /// assert_eq!(result, 3);
 /// ```
 ///

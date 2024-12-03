@@ -46,6 +46,7 @@ resolver = "2"
 members = [
   "crates/ryo3",
   "crates/_ryo3-dev",
+  "crates/_ryo3-quick-maths",
   "crates/ryo3-types",
   "crates/ryo3-std",
   # external wrappers
@@ -66,7 +67,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.17"
+version = "0.0.18"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2021"
@@ -83,6 +84,7 @@ ryo3 = { path = "./crates/ryo3", features = ["all"] }
 ryo3-dev = { path = "./crates/_ryo3-dev" }
 ryo3-types = { path = "./crates/ryo3-types" }
 ryo3-std = { path = "./crates/ryo3-std" }
+ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }

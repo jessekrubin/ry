@@ -14,8 +14,8 @@ def test_span_fn_no_positionals_allowed() -> None:
 
 def test_span_repr() -> None:
     s = ry.timespan(years=1)
-    assert repr(s) == "Span(years=1)"
-    _expected_repr_full = "Span(years=1, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)"
+    assert repr(s) == "TimeSpan(years=1)"
+    _expected_repr_full = "TimeSpan(years=1, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)"
     assert s.repr_full() == _expected_repr_full
 
 
@@ -67,17 +67,17 @@ def test_negative_spans() -> None:
     let span = -(5.days());
     assert_eq!(span.to_string(), "-P5d");
     """
-    span = -ry.Span().days(5)
+    span = -ry.TimeSpan().days(5)
     assert span.string() == "-P5d"
 
-    span = ry.Span().days(5).negate()
+    span = ry.TimeSpan().days(5).negate()
     assert span.string() == "-P5d"
 
-    span = ry.Span().days(-5)
+    span = ry.TimeSpan().days(-5)
     assert span.string() == "-P5d"
 
-    span = -ry.Span().days(-5).negate()
+    span = -ry.TimeSpan().days(-5).negate()
     assert span.string() == "-P5d"
 
-    span = ry.Span().days(-5)
+    span = ry.TimeSpan().days(-5)
     assert span.string() == "-P5d"

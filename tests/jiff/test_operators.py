@@ -8,7 +8,7 @@ def test_time_sub() -> None:
     t2 = ry.time(16, 30, 0, 0)
     span = t1 - t2
     assert span.string() == "PT59s"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_time = ry.time(16, 30, 59, 0)
     inplace_time -= span
@@ -26,7 +26,7 @@ def test_time_add() -> None:
     t2 = ry.time(16, 30, 0, 0)
     span = t1 - t2
     assert span.string() == "PT59s"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_span = ry.time(16, 30, 0, 0)
     inplace_span += span
@@ -43,7 +43,7 @@ def test_datetime_sub() -> None:
     t2 = ry.datetime(2021, 1, 1, 16, 30, 0, 0)
     span = t1 - t2
     assert span.string() == "PT59s"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_dt = ry.datetime(2021, 1, 1, 16, 30, 59, 0)
     inplace_dt -= span
@@ -57,7 +57,7 @@ def test_datetime_add() -> None:
     t2 = ry.datetime(2021, 1, 1, 16, 30, 0, 0)
     span = t1 - t2
     assert span.string() == "PT59s"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_dt = ry.datetime(2021, 1, 1, 16, 30, 0, 0)
     inplace_dt += span
@@ -74,7 +74,7 @@ def test_date_sub() -> None:
     t2 = ry.date(2021, 1, 2)
     span = t1 - t2
     assert span.string() == "-P1d"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_span = ry.date(2021, 1, 1)
     inplace_span -= span
@@ -91,7 +91,7 @@ def test_date_add() -> None:
     t2 = ry.date(2021, 1, 2)
     span = t2 - t1
     assert span.string() == "P1d"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_span = ry.date(2021, 1, 1)
     inplace_span += span
@@ -113,7 +113,7 @@ def test_timestamp_sub() -> None:
     )
     span = t1 - t2
     assert span.string() == "-PT1s"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_ts = ry.Timestamp(
         second=1609459200,
@@ -138,7 +138,7 @@ def test_timestamp_add() -> None:
     )
     span = t2 - t1
     assert span.string() == "PT1s"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_span = ry.Timestamp(
         second=1609459200,
@@ -158,16 +158,16 @@ def test_zoned_sub() -> None:
     zdt2 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/Los_Angeles")
     span = zdt1 - zdt2
     assert span.string() == "-PT3h"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
     inplace_zdt -= span
     assert inplace_zdt == zdt2
-    assert isinstance(inplace_zdt, ry.Zoned)
+    assert isinstance(inplace_zdt, ry.ZonedDateTime)
 
     time_sub_span = zdt1 - span
     assert time_sub_span == zdt2
-    assert isinstance(time_sub_span, ry.Zoned)
+    assert isinstance(time_sub_span, ry.ZonedDateTime)
 
 
 def test_zoned_add() -> None:
@@ -175,13 +175,13 @@ def test_zoned_add() -> None:
     zdt2 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/Los_Angeles")
     span = zdt1 - zdt2
     assert span.string() == "-PT3h"
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
 
     inplace_zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/Los_Angeles")
     inplace_zdt += span
     assert inplace_zdt == zdt1
-    assert isinstance(inplace_zdt, ry.Zoned)
+    assert isinstance(inplace_zdt, ry.ZonedDateTime)
 
     time_add_span = zdt2 + span
     assert time_add_span == zdt1
-    assert isinstance(time_add_span, ry.Zoned)
+    assert isinstance(time_add_span, ry.ZonedDateTime)

@@ -10,7 +10,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Span", module = "ryo3")]
+#[pyclass(name = "TimeSpan", module = "ryo3")]
 pub struct RySpan(pub(crate) Span);
 
 #[pymethods]
@@ -289,12 +289,12 @@ impl RySpan {
             parts.push(format!("nanoseconds={}", self.0.get_nanoseconds()));
         }
 
-        format!("Span({})", parts.join(", "))
+        format!("TimeSpan({})", parts.join(", "))
     }
 
     fn repr_full(&self) -> String {
         format!(
-            "Span(years={}, months={}, weeks={}, days={}, hours={}, minutes={}, seconds={}, milliseconds={}, microseconds={}, nanoseconds={})",
+            "TimeSpan(years={}, months={}, weeks={}, days={}, hours={}, minutes={}, seconds={}, milliseconds={}, microseconds={}, nanoseconds={})",
             self.0.get_years(),
             self.0.get_months(),
             self.0.get_weeks(),

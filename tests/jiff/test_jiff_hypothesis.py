@@ -240,7 +240,7 @@ def test_zoned_datetime_add_duration(
     try:
         zdt = dt.intz(tz)
         new_zdt = zdt + duration
-        assert isinstance(new_zdt, ry.Zoned)
+        assert isinstance(new_zdt, ry.ZonedDateTime)
     except Exception:
         # Handle invalid combinations
         assume(False)

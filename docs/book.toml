@@ -1,0 +1,19 @@
+[book]
+title = "ry-docs"
+authors = ["jessekrubin"]
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+smart-punctuation = true
+mathjax-support = false
+no-section-label = false
+git-repository-url = "https://github.com/jessekrubin/ry"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/jessekrubin/ry/edit/main/docs/src/{path}"
+site-url = "https://jessekrubin.github.io/ry"
+cname = "ry.jessekrubin.dev"
+input-404 = "four-o-four.md"

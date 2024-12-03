@@ -58,5 +58,5 @@ def test_from_zoned() -> None:
     assert pdt_tzinfo.tzname(pdt) in ("EDT", "EST", "America/New_York")
 
     # round trip
-    zdt_from_py = ry.Zoned.from_pydatetime(pdt)
+    zdt_from_py = ry.ZonedDateTime.from_pydatetime(pdt)
     assert zdt == zdt_from_py
