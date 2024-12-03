@@ -22,6 +22,7 @@ pyo3-async-runtimes = { version = "0.23", features = ["attributes", "tokio-runti
 
 # ryo3 dev module(s)
 ryo3-dev = { workspace = true, optional = false }
+ryo3-quick-maths.workspace = true
 
 # required ryo3-* dependencies
 ryo3-types = { workspace = true }
