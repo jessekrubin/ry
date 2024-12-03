@@ -1,7 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
-use crate::intz::RyInTz;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;

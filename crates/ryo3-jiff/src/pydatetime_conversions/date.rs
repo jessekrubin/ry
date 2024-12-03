@@ -143,7 +143,7 @@ impl TryFrom<&JiffDate> for DateArgs {
         let month_u8 = u8::try_from(month)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
 
-        let day = value.0.day() as u8;
+        let day = value.0.day();
         let day_u8 = u8::try_from(day)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
         Ok(Self {
