@@ -517,52 +517,27 @@ def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
 # ==============================================================================
 # SQLFORMAT
 # ==============================================================================
-SqlfmtParamValue = str | int | float
+SqlfmtParamValue = str | int | float | bool
 TSqlfmtParamValue_co = t.TypeVar(
-    "TSqlfmtParamValue_co", str, int, float, covariant=True
+    "TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
 )
-TSqlfmtParamsLike = (
+SqlfmtParamsLike = (
     dict[str, TSqlfmtParamValue_co]
-    | list[tuple[str, TSqlfmtParamValue_co]]
-    | list[TSqlfmtParamValue_co]
-)
-# This madness for mypy while TSqlfmtParamValue does not work...
-# TODO: FIX THIS MADNESS
-SqlfmtParamsLikeExpanded = (
-    dict[str, int]
-    | dict[str, str]
-    | dict[str, float]
-    | dict[str, int | str]
-    | dict[str, int | float]
-    | dict[str, str | float]
-    | dict[str, str | int | float]
-    | list[tuple[str, int]]
-    | list[tuple[str, str]]
-    | list[tuple[str, float]]
-    | list[tuple[str, int | str]]
-    | list[tuple[str, int | float]]
-    | list[tuple[str, str | float]]
-    | list[tuple[str, str | int | float]]
-    | list[int]
-    | list[str]
-    | list[float]
-    | list[int | str]
-    | list[int | float]
-    | list[str | float]
-    | list[str | int | float]
+    | t.Sequence[tuple[str, TSqlfmtParamValue_co]]
+    | t.Sequence[TSqlfmtParamValue_co]
 )
 
 class SqlfmtQueryParams:
-    def __init__(self, params: SqlfmtParamsLikeExpanded) -> None: ...
+    def __init__(self, params: SqlfmtParamsLike[TSqlfmtParamValue_co]) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
 
 def sqlfmt_params(
-    params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams,
+    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams,
 ) -> SqlfmtQueryParams: ...
 def sqlfmt(
     sql: str,
-    params: SqlfmtParamsLikeExpanded | SqlfmtQueryParams | None = None,
+    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
     *,
     indent: int = 2,  # -1 or any negative value will use tabs
     uppercase: bool | None = True,

@@ -89,9 +89,12 @@ lint.exclude = [
 ]
 # Tests can use magic values, assertions, and relative imports
 lint.per-file-ignores."**/test_*.py" = [
+  "B011",
+  "DTZ001",
   "PL",
   "S101",
   "S103",
+  "S307",
   "S603",
   "T201",
   "TID252",
