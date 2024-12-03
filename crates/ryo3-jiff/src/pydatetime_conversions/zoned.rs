@@ -129,14 +129,14 @@ impl FromPyObject<'_> for JiffOffset {
         let py_timedelta = ob.call_method1("utcoffset", (PyNone::get(ob.py()),))?;
         if py_timedelta.is_none() {
             return Err(PyTypeError::new_err(format!(
-                "{:?} is not a fixed offset timezone",
-                ob
+                "{ob:?} is not a fixed offset timezone"
             )));
         }
         let total_seconds: Duration = py_timedelta.extract()?;
         // This cast is safe since the timedelta is limited to -24 hours and 24 hours.
 
-        let total_seconds = total_seconds.as_secs() as i32;
+        let total_seconds = i32::try_from(total_seconds.as_secs())
+            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
         let o = Offset::from_seconds(total_seconds)
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
         Ok(JiffOffset::from(o))
@@ -218,15 +218,11 @@ impl FromPyObject<'_> for JiffZoned {
         #[cfg(Py_LIMITED_API)]
         let tzinfo: Option<Bound<'_, PyAny>> = dt.getattr(intern!(dt.py(), "tzinfo"))?.extract()?;
 
-        let tzinfo = match tzinfo {
-            Some(tzinfo) => tzinfo,
-            None => {
-                return Err(PyTypeError::new_err(
-                    "expected a datetime with non-None tzinfo",
-                ));
-            }
+        let Some(tzinfo) = tzinfo else {
+            return Err(PyTypeError::new_err(
+                "expected a datetime with non-None tzinfo",
+            ));
         };
-
         let tz = tzinfo.to_string();
         let jiff_date = date_from_pyobject(dt)?;
         let jiff_time = py_time_to_jiff_time(dt)?;
