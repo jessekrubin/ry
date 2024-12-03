@@ -91,7 +91,7 @@ impl RyZoned {
 
     fn __repr__(&self) -> String {
         // representable format
-        format!("Zoned.parse(\"{}\")", self.0.to_string())
+        format!("Zoned.parse(\"{}\")", self.0)
     }
 
     fn __hash__(&self) -> u64 {
@@ -128,21 +128,14 @@ impl RyZoned {
         Ok(Self::from(jiff_datetime.0))
     }
 
-    fn intz(&self, tz: RyInTz) -> PyResult<Self> {
-        let tz_str = tz.tz_string();
-        if let Some(tz_str) = tz_str {
-            self.0
-                .intz(tz_str)
-                .map(RyZoned::from)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "Invalid/None timezone: {tz:?}"
-            )))
-        }
+    fn intz(&self, tz: &str) -> PyResult<Self> {
+        self.0
+            .intz(tz)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn astimezone(&self, tz: RyInTz) -> PyResult<Self> {
+    fn astimezone(&self, tz: &str) -> PyResult<Self> {
         self.intz(tz)
     }
 

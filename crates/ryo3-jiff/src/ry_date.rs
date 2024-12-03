@@ -1,6 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::intz::RyInTz;
-use crate::pydatetime_conversions::{date_from_pyobject, date_to_pyobject};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -211,20 +210,16 @@ impl RyDate {
         PyTuple::new(py, parts)
     }
 
-    fn intz(&self, tz: RyInTz) -> PyResult<RyZoned> {
-        let tz_str = tz.tz_string();
-        if let Some(tz_str) = tz_str {
-            self.0
-                .intz(tz_str)
-                .map(RyZoned::from)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "Invalid/None timezone: {tz:?}"
-            )))
-        }
+    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
+        self.0
+            .intz(tz)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn astimezone(&self, tz: &str) -> PyResult<RyZoned> {
+        self.intz(tz)
+    }
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "year"), self.0.year())?;

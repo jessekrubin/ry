@@ -1,7 +1,9 @@
 use crate::JiffTimeZone;
-use pyo3::FromPyObject;
+use pyo3::{pyclass, FromPyObject};
 
-#[derive(Debug, FromPyObject)]
+// #[derive(Debug, FromPyObject)]
+#[pyclass]
+#[derive(Debug, Clone)]
 pub(crate) enum RyInTz {
     Str(String),
     JiffTimezone(JiffTimeZone),
