@@ -4,11 +4,11 @@ attrs==24.2.0
     # via hypothesis
 colorama==0.4.6
     # via pytest
-hypothesis==6.120.0
+hypothesis==6.122.1
     # via -r requirements.dev.in
 iniconfig==2.0.0
     # via pytest
-maturin==1.7.5
+maturin==1.7.7
     # via -r requirements.dev.in
 mypy==1.13.0
     # via -r requirements.dev.in
@@ -20,7 +20,7 @@ pluggy==1.5.0
     # via pytest
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pytest==8.3.3
+pytest==8.3.4
     # via
     #   -r requirements.dev.in
     #   pytest-asyncio
@@ -29,7 +29,7 @@ pytest-asyncio==0.24.0
     # via -r requirements.dev.in
 pytest-benchmark==5.1.0
     # via -r requirements.dev.in
-ruff==0.8.0
+ruff==0.8.1
     # via -r requirements.dev.in
 sortedcontainers==2.4.0
     # via hypothesis
@@ -37,3 +37,5 @@ tomli==2.2.1
     # via -r requirements.dev.in
 typing-extensions==4.12.2
     # via mypy
+tzdata==2024.2
+    # via -r requirements.dev.in
