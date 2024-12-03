@@ -2,6 +2,10 @@
 
 ## FUTURE
 
+___ 
+
+## v0.0.17 [2024-12-02]
+
 - `jiff`
   - `ry.TimeZone` testing and to/from `datetime.tzinfo` conversions
   - Using nu-types for `jiff` intermedate types bc of the classic orphans problem (aka batman) w/ traits
