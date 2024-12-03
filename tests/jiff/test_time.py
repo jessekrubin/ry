@@ -61,7 +61,7 @@ class TestTimeSeries:
         ]);
         """
         start = ry.Time.MIN
-        tspan = ry.Span().hours(3)
+        tspan = ry.TimeSpan().hours(3)
         every_third_hour = list(start.series(tspan))
         expected = [
             ry.time(0, 0, 0, 0),
@@ -89,7 +89,7 @@ class TestTimeSeries:
         ]);
         """
         start = ry.time(23, 0, 0, 0)
-        times = list(start.series(ry.Span().hours(-6).minutes(30)))
+        times = list(start.series(ry.TimeSpan().hours(-6).minutes(30)))
         expected = [
             ry.time(23, 0, 0, 0),
             ry.time(16, 30, 0, 0),
@@ -101,7 +101,7 @@ class TestTimeSeries:
     def test_time_series_jiff_hash_unique(self) -> None:
         """test time series + hash via set"""
         start = ry.Time.MIN
-        tspan = ry.Span().hours(3)
+        tspan = ry.TimeSpan().hours(3)
         every_third_hour = list(start.series(tspan))
         expected = [
             ry.time(0, 0, 0, 0),

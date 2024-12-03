@@ -5,7 +5,7 @@ tests based on the examples in the jiff documentation (as of 2024-11-18)
 
 from __future__ import annotations
 
-import ry.dev as ry
+import ry
 
 
 def test_print_datetime_for_a_timestamp() -> None:
@@ -32,13 +32,13 @@ def test_find_duration_between_datetimes() -> None:
     zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
     zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
     span = zdt2 - zdt1
-    assert isinstance(span, ry.Span)
+    assert isinstance(span, ry.TimeSpan)
     assert str(span) == "PT29341h3m"
 
 
 def test_add_duration_to_a_zoned_datetime() -> None:
     zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
-    span = ry.Span().years(3).months(4).days(5).hours(12).minutes(3)
+    span = ry.TimeSpan().years(3).months(4).days(5).hours(12).minutes(3)
     zdt2 = zdt1.checked_add(span)
     assert zdt2.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
@@ -51,14 +51,14 @@ def test_dealing_with_ambiguity() -> None:
 
 
 def test_parsing_a_span() -> None:
-    span: ry.Span = ry.Span.parse("P5y1w10dT5h59m")
-    expected = ry.Span().years(5).weeks(1).days(10).hours(5).minutes(59)
+    span: ry.TimeSpan = ry.TimeSpan.parse("P5y1w10dT5h59m")
+    expected = ry.TimeSpan().years(5).weeks(1).days(10).hours(5).minutes(59)
     assert span == expected
     assert str(span) == "P5y1w10dT5h59m"
 
 
 def test_using_strftime_and_strptime_for_formatting_and_parsing() -> None:
-    zdt = ry.Zoned.strptime(
+    zdt = ry.ZonedDateTime.strptime(
         "%A, %B %d, %Y at %I:%M%p %V",
         "Monday, July 15, 2024 at 5:30pm US/Eastern",
     )
@@ -88,8 +88,8 @@ def test_using_strftime_and_strptime_for_formatting_and_parsing() -> None:
 #
 #     """
 #
-#     span = ry.Span().hours(1).minutes(59)
-#     assert span.round(ry.Unit.Hour) == ry.Span().hours(2)
+#     span = ry.TimeSpan().hours(1).minutes(59)
+#     assert span.round(ry.Unit.Hour) == ry.TimeSpan().hours(2)
 #     options = ry.SpanRound().smallest(ry.Unit.Hour).mode(ry.RoundMode.Trunc)
 #     assert span.round(options) == ry.Span().hours(1)
 #
@@ -110,7 +110,7 @@ def test_rounding_a_zoned_datetime() -> None:
     ```
     """
 
-    zdt = ry.Zoned.parse("2024-07-06 17:44:22.158-04[America/New_York]")
+    zdt = ry.ZonedDateTime.parse("2024-07-06 17:44:22.158-04[America/New_York]")
     nearest_minute = zdt.round("minute")
     assert nearest_minute.string() == "2024-07-06T17:44:00-04:00[America/New_York]"
     # nearest_minute = zdt.round(ry.JiffUnit.Minute)

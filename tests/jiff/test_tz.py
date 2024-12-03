@@ -4,7 +4,7 @@ import ry
 
 
 def test_timezone_to_pytzinfo() -> None:
-    zdt = ry.Zoned.now().intz("utc")
+    zdt = ry.ZonedDateTime.now().intz("utc")
     rytz = zdt.timezone()
     py_tzinfo = rytz.to_pytzinfo()
     assert isinstance(py_tzinfo, pydt.tzinfo)

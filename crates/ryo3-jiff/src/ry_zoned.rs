@@ -17,7 +17,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Zoned", module = "ryo3")]
+#[pyclass(name = "ZonedDateTime", module = "ryo3")]
 pub struct RyZoned(pub(crate) Zoned);
 
 #[pymethods]
@@ -90,7 +90,7 @@ impl RyZoned {
 
     fn __repr__(&self) -> String {
         // representable format
-        format!("Zoned.parse(\"{}\")", self.0)
+        format!("ZonedDateTime.parse(\"{}\")", self.0)
     }
 
     fn __hash__(&self) -> u64 {

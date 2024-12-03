@@ -69,7 +69,7 @@ timezone_strategy = st.sampled_from(
 
 duration_strategy = st.builds(
     ry.SignedDuration,
-    secs=st.integers(min_value=-(10**15), max_value=10**15),
+    secs=st.integers(min_value=-(10 ** 15), max_value=10 ** 15),
     nanos=st.integers(min_value=-999_999_999, max_value=999_999_999),
 )
 
@@ -240,7 +240,7 @@ def test_zoned_datetime_add_duration(
     try:
         zdt = dt.intz(tz)
         new_zdt = zdt + duration
-        assert isinstance(new_zdt, ry.Zoned)
+        assert isinstance(new_zdt, ry.ZonedDateTime)
     except Exception:
         # Handle invalid combinations
         assume(False)
