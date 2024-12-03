@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_span::RySpan;
@@ -12,6 +13,7 @@ use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDate, PyDateTime, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -35,7 +37,7 @@ impl RyZoned {
             Zoned::now()
                 .intz(tz)
                 .map(RyZoned::from)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+                .map_err(map_py_value_err)
         } else {
             Ok(Self::from(Zoned::now()))
         }
@@ -46,7 +48,7 @@ impl RyZoned {
         Zoned::now()
             .intz("UTC")
             .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[classmethod]
@@ -60,7 +62,7 @@ impl RyZoned {
     fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
         Zoned::strptime(format, input)
             .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn strftime(&self, format: &str) -> String {
@@ -79,7 +81,7 @@ impl RyZoned {
     }
 
     fn string(&self) -> String {
-        self.__str__()
+        self.0.to_string()
     }
 
     fn __str__(&self) -> String {
@@ -87,7 +89,15 @@ impl RyZoned {
     }
 
     fn __repr__(&self) -> String {
-        format!("Zoned<{}>", self.0)
+        // representable format
+        format!("Zoned.parse(\"{}\")", self.0)
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.datetime().hash(&mut hasher);
+        self.0.time_zone().iana_name().hash(&mut hasher);
+        hasher.finish()
     }
 
     fn timestamp(&self) -> RyTimestamp {
@@ -124,6 +134,10 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn astimezone(&self, tz: &str) -> PyResult<Self> {
+        self.intz(tz)
+    }
+
     fn inutc(&self) -> PyResult<Self> {
         self.0
             .intz("UTC")
@@ -143,10 +157,6 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    // fn __sub__(&self, other: &Self) -> RySpan {
-    //     RySpan::from(&self.0 - &other.0)
-    // }
-
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -161,19 +171,13 @@ impl RyZoned {
             RyZonedArithmeticSub::Delta(other) => {
                 let t = match other {
                     RyDeltaArithmeticSelf::Span(other) => {
-                        self.0.checked_sub(other.0).map_err(|e| {
-                            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))
-                        })?
+                        self.0.checked_sub(other.0).map_err(map_py_value_err)?
                     }
                     RyDeltaArithmeticSelf::SignedDuration(other) => {
-                        self.0.checked_sub(other.0).map_err(|e| {
-                            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))
-                        })?
+                        self.0.checked_sub(other.0).map_err(map_py_value_err)?
                     }
                     RyDeltaArithmeticSelf::Duration(other) => {
-                        self.0.checked_sub(other.0).map_err(|e| {
-                            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))
-                        })?
+                        self.0.checked_sub(other.0).map_err(map_py_value_err)?
                     }
                 };
                 Ok(Self::from(t).into_pyobject(py)?.into_any())
@@ -183,18 +187,15 @@ impl RyZoned {
 
     fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self
-                .0
-                .checked_sub(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self
-                .0
-                .checked_sub(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
-            RyDeltaArithmeticSelf::Duration(other) => self
-                .0
-                .checked_sub(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::Span(other) => {
+                self.0.checked_sub(other.0).map_err(map_py_value_err)?
+            }
+            RyDeltaArithmeticSelf::SignedDuration(other) => {
+                self.0.checked_sub(other.0).map_err(map_py_value_err)?
+            }
+            RyDeltaArithmeticSelf::Duration(other) => {
+                self.0.checked_sub(other.0).map_err(map_py_value_err)?
+            }
         };
         self.0 = t;
         Ok(())
@@ -202,36 +203,30 @@ impl RyZoned {
 
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self
-                .0
-                .checked_add(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self
-                .0
-                .checked_add(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
-            RyDeltaArithmeticSelf::Duration(other) => self
-                .0
-                .checked_add(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::Span(other) => {
+                self.0.checked_add(other.0).map_err(map_py_value_err)?
+            }
+            RyDeltaArithmeticSelf::SignedDuration(other) => {
+                self.0.checked_add(other.0).map_err(map_py_value_err)?
+            }
+            RyDeltaArithmeticSelf::Duration(other) => {
+                self.0.checked_add(other.0).map_err(map_py_value_err)?
+            }
         };
         Ok(Self::from(t))
     }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self
-                .0
-                .checked_add(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self
-                .0
-                .checked_add(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
-            RyDeltaArithmeticSelf::Duration(other) => self
-                .0
-                .checked_add(other.0)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
+            RyDeltaArithmeticSelf::Span(other) => {
+                self.0.checked_add(other.0).map_err(map_py_value_err)?
+            }
+            RyDeltaArithmeticSelf::SignedDuration(other) => {
+                self.0.checked_add(other.0).map_err(map_py_value_err)?
+            }
+            RyDeltaArithmeticSelf::Duration(other) => {
+                self.0.checked_add(other.0).map_err(map_py_value_err)?
+            }
         };
         self.0 = t;
         Ok(())
@@ -270,10 +265,18 @@ impl RyZoned {
         self.0.day()
     }
 
-    // TODO: weekdays
-    // fn weekday(&self) -> i8 {
-    //     self.0.weekday()
-    // }
+    #[getter]
+    fn weekday(&self) -> i8 {
+        match self.0.weekday() {
+            jiff::civil::Weekday::Monday => 1,
+            jiff::civil::Weekday::Tuesday => 2,
+            jiff::civil::Weekday::Wednesday => 3,
+            jiff::civil::Weekday::Thursday => 4,
+            jiff::civil::Weekday::Friday => 5,
+            jiff::civil::Weekday::Saturday => 6,
+            jiff::civil::Weekday::Sunday => 7,
+        }
+    }
 
     #[getter]
     fn hour(&self) -> i8 {
@@ -308,6 +311,20 @@ impl RyZoned {
     #[getter]
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
+    }
+
+    fn tomorrow(&self) -> PyResult<Self> {
+        self.0
+            .tomorrow()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn yesterday(&self) -> PyResult<Self> {
+        self.0
+            .yesterday()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
     }
 }
 

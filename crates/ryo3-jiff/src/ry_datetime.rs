@@ -15,6 +15,7 @@ use pyo3::{
     PyResult, Python,
 };
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -162,6 +163,11 @@ impl RyDateTime {
             self.subsec_nanosecond()
         )
     }
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -244,13 +250,16 @@ impl RyDateTime {
         RyDate::from(self.0.date())
     }
 
-    fn intz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
+    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
         self.0
-            .intz(time_zone_name)
+            .intz(tz)
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn astimezone(&self, tz: &str) -> PyResult<RyZoned> {
+        self.intz(tz)
+    }
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.0)

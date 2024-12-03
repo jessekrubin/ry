@@ -1,5 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::dev::JiffUnit;
+use crate::errors::map_py_overflow_err;
 use crate::pydatetime_conversions::{time_from_pyobject, time_to_pyobject};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
@@ -10,6 +11,7 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[pyclass(name = "Time", module = "ryo3")]
@@ -112,6 +114,12 @@ impl RyTime {
         )
     }
 
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
+
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -124,9 +132,7 @@ impl RyTime {
                 Ok(obj)
             }
             RyTimeArithmeticSub::Span(other) => {
-                let t = self.0.checked_sub(other.0).map_err(|e| {
-                    PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))
-                })?;
+                let t = self.0.checked_sub(other.0).map_err(map_py_overflow_err)?;
 
                 RyTime::from(t).into_pyobject(py).map(Bound::into_any)
             }
@@ -153,7 +159,7 @@ impl RyTime {
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
             RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
         }
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
+        .map_err(map_py_overflow_err)?;
         Ok(RyTime::from(t))
     }
 
@@ -163,7 +169,7 @@ impl RyTime {
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
             RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
         }
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
+        .map_err(map_py_overflow_err)?;
         self.0 = t;
         Ok(())
     }

@@ -1,11 +1,11 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::pydatetime_conversions::{date_from_pyobject, date_to_pyobject};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::JiffDate;
 use jiff::civil::Date;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
@@ -16,6 +16,7 @@ use pyo3::{
 };
 use ryo3_std::PyDuration;
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Date", module = "ryo3")]
@@ -73,7 +74,11 @@ impl RyDate {
     fn day(&self) -> i8 {
         self.0.day()
     }
-
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     fn to_datetime(&self, time: &RyTime) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(time.0))
     }
@@ -186,11 +191,13 @@ impl RyDate {
 
     #[classmethod]
     fn from_pydate(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        date_from_pyobject(d).map(RyDate::from)
+        let jiff_date: JiffDate = d.extract()?;
+        Ok(Self::from(jiff_date.0))
     }
 
     fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
-        date_to_pyobject(py, &self.0)
+        let jiff_date = JiffDate(self.0);
+        jiff_date.into_pyobject(py)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -200,6 +207,17 @@ impl RyDate {
         let parts = vec![year_any, month_any, day_any];
 
         PyTuple::new(py, parts)
+    }
+
+    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
+        self.0
+            .intz(tz)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn astimezone(&self, tz: &str) -> PyResult<RyZoned> {
+        self.intz(tz)
     }
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);

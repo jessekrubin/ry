@@ -4,6 +4,7 @@ use jiff::{SignedDuration, Span};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -98,6 +99,11 @@ impl RySignedDuration {
             self.0.as_secs(),
             self.0.subsec_nanos()
         )
+    }
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
     }
 
     fn __add__(&self, other: &RySignedDuration) -> PyResult<Self> {

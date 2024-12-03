@@ -1,8 +1,10 @@
 mod date;
 mod datetime;
+mod offset;
 mod signed_duration;
 mod span;
 mod time;
+mod timezone;
 mod zoned;
 
 pub use date::*;

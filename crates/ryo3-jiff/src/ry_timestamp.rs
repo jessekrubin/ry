@@ -7,6 +7,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use std::fmt::Display;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -78,16 +79,27 @@ impl RyTimestamp {
     }
 
     fn string(&self) -> String {
-        self.__str__()
-    }
-
-    fn __str__(&self) -> String {
         self.0.to_string()
     }
 
-    fn __repr__(&self) -> String {
+    fn __str__(&self) -> String {
         format!("Timestamp<{}>", self.string())
     }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "Timestamp({:?}, {:?})",
+            self.0.as_second(),
+            self.0.subsec_nanosecond()
+        )
+    }
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        // use nanosecond as hash as it is lossless
+        self.0.as_nanosecond().hash(&mut hasher);
+        hasher.finish()
+    }
+
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
