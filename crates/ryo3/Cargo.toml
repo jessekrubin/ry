@@ -11,7 +11,7 @@ jiff.workspace = true
 
 [dependencies]
 dirs.workspace = true
-pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"]}
+pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
 regex.workspace = true
 serde.workspace = true
 serde_bytes.workspace = true
@@ -38,6 +38,7 @@ ryo3-jiff = { workspace = true, optional = true }
 ryo3-jiter = { workspace = true, optional = true }
 ryo3-shlex = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
+ryo3-url = { workspace = true, optional = true }
 ryo3-walkdir = { workspace = true, optional = true }
 ryo3-which = { workspace = true, optional = true }
 ryo3-xxhash = { workspace = true, optional = true }
@@ -56,6 +57,7 @@ all = [
   "jiter",
   "shlex",
   "sqlformat",
+  "url",
   "walkdir",
   "which",
   "xxhash",
@@ -72,6 +74,7 @@ jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
 shlex = ["dep:ryo3-shlex"]
 sqlformat = ["dep:ryo3-sqlformat"]
+url = ["dep:ryo3-url"]
 walkdir = ["dep:ryo3-walkdir"]
 which = ["dep:ryo3-which"]
 xxhash = ["dep:ryo3-xxhash"]

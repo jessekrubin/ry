@@ -1,0 +1,17 @@
+[package]
+name = "ryo3-url"
+description = "ryo3 + url (https://docs.rs/url/latest/url/)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+url = { version = "2.5.4", features = ["serde"] }
+
+[lints]
+workspace = true
