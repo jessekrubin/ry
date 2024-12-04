@@ -15,7 +15,7 @@ pub struct PyUrl(pub(crate) url::Url);
 impl PyUrl {
     #[new]
     fn new(url: &str) -> PyResult<Self> {
-        url::Url::parse(url).map(|u| PyUrl(u)).map_err(|e| {
+        url::Url::parse(url).map(PyUrl).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
         })
     }
@@ -41,7 +41,7 @@ impl PyUrl {
         hasher.finish()
     }
     #[pyo3(signature = (*parts))]
-    fn join<'py>(&self, parts: &Bound<'py, PyTuple>) -> PyResult<Self> {
+    fn join(&self, parts: &Bound<'_, PyTuple>) -> PyResult<Self> {
         let parts = parts.extract::<Vec<String>>()?;
 
         if parts.is_empty() {
@@ -84,14 +84,14 @@ impl PyUrl {
         })
     }
 
-    fn __richcmp__(&self, other: &PyUrl, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &PyUrl, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -183,10 +183,12 @@ impl PyUrl {
         self.0.is_special()
     }
 
+    #[allow(clippy::unused_self)]
     fn options(&self) -> PyResult<()> {
         Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
     }
 
+    #[allow(clippy::unused_self)]
     fn origin(&self) -> PyResult<()> {
         Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
     }
@@ -203,7 +205,7 @@ impl PyUrl {
     }
 
     fn to_filepath(&self) -> PyResult<PathBuf> {
-        self.0.to_file_path().map_err(|e| {
+        self.0.to_file_path().map_err(|_e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                 "Url::to_filepath: {}",
                 self.__str__()
@@ -211,42 +213,52 @@ impl PyUrl {
         })
     }
 
+    #[allow(clippy::unused_self)]
     fn set_fragment(&mut self, _fragment: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_fragment".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_host(&mut self, _host: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_host".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_ip_host(&mut self, _host: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_ip_host".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_password(&mut self, _password: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_password".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_path(&mut self, _path: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_path".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_port(&mut self, _port: u16) -> PyResult<()> {
         py_err_not_implemented("Url::set_port".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_query(&mut self, _query: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_query".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_scheme(&mut self, _scheme: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_scheme".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn set_username(&mut self, _username: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_username".to_string())
     }
 
+    #[allow(clippy::unused_self)]
     fn socket_addrs(&self) -> PyResult<()> {
         py_err_not_implemented("Url::socket_addrs".to_string())
     }
