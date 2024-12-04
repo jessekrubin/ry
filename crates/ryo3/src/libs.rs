@@ -20,6 +20,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_shlex::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]
     ryo3_sqlformat::pymod_add(m)?;
+    #[cfg(feature = "url")]
+    ryo3_url::pymod_add(m)?;
     #[cfg(feature = "walkdir")]
     ryo3_walkdir::pymod_add(m)?;
     #[cfg(feature = "which")]
