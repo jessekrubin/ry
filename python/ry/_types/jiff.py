@@ -7,6 +7,7 @@ __all__ = (
     "JIFF_UNIT_STRING",
     "DateTimeTypedDict",
     "DateTypedDict",
+    "TimeSpanTypedDict",
     "TimeTypedDict",
 )
 
