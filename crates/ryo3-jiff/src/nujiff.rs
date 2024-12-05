@@ -1,5 +1,3 @@
-use pyo3::types::PyDelta;
-
 #[derive(Debug)]
 pub struct JiffDate(pub jiff::civil::Date);
 #[derive(Debug)]

@@ -1,7 +1,6 @@
 use crate::internal::RySpanRelativeTo;
-use crate::pydatetime_conversions::span_to_pyobject;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::{timespan, JiffSignedDuration, JiffSpan};
+use crate::{timespan, JiffSpan};
 use jiff::Span;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};

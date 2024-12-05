@@ -10,5 +10,5 @@ mod zoned;
 
 pub use date::*;
 pub use signed_duration::*;
-pub use span::*;
+// pub use span::*;
 pub use time::*;
