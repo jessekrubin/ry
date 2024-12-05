@@ -2,9 +2,10 @@ use crate::nujiff::JiffDateTime;
 use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyTypeError;
-use pyo3::types::{PyAnyMethods, PyDateTime, PyTzInfoAccess};
-use pyo3::{Bound, FromPyObject, PyAny, PyErr, PyResult, Python};
+use pyo3::types::{PyAnyMethods, PyDate, PyDateTime, PyTzInfoAccess};
+use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use std::convert::From;
+use crate::JiffDate;
 
 pub fn datetime_to_pyobject<'a>(
     py: Python<'a>,
@@ -36,7 +37,50 @@ pub fn datetime_to_pyobject<'a>(
         None,
     )
 }
+impl<'py> IntoPyObject<'py> for JiffDateTime {
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyDateTime;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
 
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let crate::pydatetime_conversions::date::DateArgs { year, month, day } = crate::pydatetime_conversions::date::DateArgs::try_from(&self)?;
+        #[cfg(not(Py_LIMITED_API))]
+        {
+            PyDate::new(py, year, month, day)
+        }
+
+        #[cfg(Py_LIMITED_API)]
+        {
+            DatetimeTypes::try_get(py).and_then(|dt| dt.date.bind(py).call1((year, month, day)))
+        }
+    }
+}
+
+// impl<'py> IntoPyObject<'py> for &JiffDate {
+//     #[cfg(Py_LIMITED_API)]
+//     type Target = PyAny;
+//     #[cfg(not(Py_LIMITED_API))]
+//     type Target = PyDate;
+//     type Output = Bound<'py, Self::Target>;
+//     type Error = PyErr;
+//
+//     #[inline]
+//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+//         let crate::pydatetime_conversions::date::DateArgs { year, month, day } = crate::pydatetime_conversions::date::DateArgs::try_from(self)?;
+//         #[cfg(not(Py_LIMITED_API))]
+//         {
+//             PyDate::new(py, year, month, day)
+//         }
+//
+//         #[cfg(Py_LIMITED_API)]
+//         {
+//             DatetimeTypes::try_get(py).and_then(|dt| dt.date.bind(py).call1((year, month, day)))
+//         }
+//     }
+// }
 impl FromPyObject<'_> for JiffDateTime {
     fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<JiffDateTime> {
         #[cfg(not(Py_LIMITED_API))]

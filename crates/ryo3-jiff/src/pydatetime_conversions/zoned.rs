@@ -5,37 +5,6 @@ use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::types::{PyAnyMethods, PyDateTime, PyTzInfo, PyTzInfoAccess};
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 
-pub fn zoned_to_pyobject<'a>(
-    py: Python<'a>,
-    datetime: &jiff::Zoned,
-) -> PyResult<Bound<'a, PyDateTime>> {
-    let year = i32::from(datetime.year());
-    let m_u8 = u8::try_from(datetime.month())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-    let d_u8 =
-        u8::try_from(datetime.day()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-    let hour_u8 = u8::try_from(datetime.hour())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("hour: {e}")))?;
-    let minute_u8 = u8::try_from(datetime.minute())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("minute: {e}")))?;
-    let second_u8 = u8::try_from(datetime.second())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("second: {e}")))?;
-    let microsecond_u32 = u32::try_from(datetime.microsecond())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("microsecond: {e}")))?;
-    // let tz = datetime.time_zone();
-    // let pytzinfo  =  TODO: implement pytzinfo
-    PyDateTime::new(
-        py,
-        year,
-        m_u8,
-        d_u8,
-        hour_u8,
-        minute_u8,
-        second_u8,
-        microsecond_u32,
-        None,
-    )
-}
 
 impl<'py> IntoPyObject<'py> for &JiffZoned {
     #[cfg(Py_LIMITED_API)]
@@ -89,7 +58,7 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
             minute_u8,
             second_u8,
             microsecond_u32,
-            None,
+            Some(tz),
         );
 
         // if truncated_leap_second {
@@ -97,6 +66,20 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
         // }
 
         Ok(datetime)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for JiffZoned{
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyDateTime;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
     }
 }
 

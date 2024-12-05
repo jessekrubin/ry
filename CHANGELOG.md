@@ -2,6 +2,36 @@
 
 ## FUTURE
 
+- `jiff`
+  - py-conversions
+    - [ ] `JiffDateTime`
+      - [x] FromPyObject
+      - [ ] IntoPyObject
+      - [ ] IntoPyObject (REF)
+    - [x] `JiffDate`
+      - [x] FromPyObject
+      - [x] IntoPyObject
+      - [x] IntoPyObject (REF)
+    - [ ] `JiffOffset`
+      - [ ] FromPyObject
+      - [ ] IntoPyObject
+      - [ ] IntoPyObject (REF)
+    - [ ] `JiffSpan`
+      - [ ] FromPyObject
+      - [ ] IntoPyObject
+      - [ ] IntoPyObject (REF)
+    - [ ] `JiffTimeZone`
+      - [ ] FromPyObject
+      - [ ] IntoPyObject
+      - [ ] IntoPyObject (REF)
+    - [ ] `JiffTime`
+      - [ ] FromPyObject
+      - [ ] IntoPyObject
+      - [ ] IntoPyObject (REF)
+    - [x] `JiffZoned`
+      - [x] FromPyObject
+      - [x] IntoPyObject 
+      - [x] IntoPyObject (REF)
 ___ 
 
 ## v0.0.18 [2024-12-03]

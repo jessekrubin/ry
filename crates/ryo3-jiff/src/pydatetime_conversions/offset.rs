@@ -21,6 +21,16 @@ impl<'py> IntoPyObject<'py> for JiffOffset {
         tz.into_pyobject(py)
     }
 }
+
+impl<'py> IntoPyObject<'py> for &JiffOffset {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        self.into_pyobject(py)
+    }
+}
 // impl<'py> IntoPyObject<'py> for &JiffOffset {
 //     #[cfg(Py_LIMITED_API)]
 //     type Target = PyAny;
