@@ -1,0 +1,41 @@
+name: gh-pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  docs-build-test-deploy:
+    name: Build, test and deploy docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # To push a branch 
+      pull-requests: write  # To create a PR from that branch
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Setup mdBook
+        uses: taiki-e/install-action@v2
+        with:
+          tool: mdbook
+      - run: mdbook build docs && mdbook test docs
+      - name: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: book
+          path: docs/book
+
+      - name: deploy-docs
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/book
