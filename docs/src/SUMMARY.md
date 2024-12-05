@@ -1,8 +1,8 @@
 # Summary
 
-- [README](./README.md)
+- [README](./index.md)
 - [DEVELOPMENT](./DEVELOPMENT.md)
 
 ___
 
-- [API](./API.md)
+- [API](./api.md)
