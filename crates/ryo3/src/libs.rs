@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "brotli")]
     ryo3_brotli::pymod_add(m)?;
@@ -16,6 +17,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_jiff::pymod_add(m)?;
     #[cfg(feature = "jiter")]
     ryo3_jiter::pymod_add(m)?;
+    #[cfg(feature = "regex")]
+    ryo3_regex::pymod_add(m)?;
     #[cfg(feature = "shlex")]
     ryo3_shlex::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]

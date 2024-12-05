@@ -36,6 +36,7 @@ ryo3-globset = { workspace = true, optional = true }
 ryo3-heck = { workspace = true, optional = true }
 ryo3-jiff = { workspace = true, optional = true }
 ryo3-jiter = { workspace = true, optional = true }
+ryo3-regex = { workspace = true, optional = true }
 ryo3-shlex = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
 ryo3-url = { workspace = true, optional = true }
@@ -55,6 +56,7 @@ all = [
   "heck",
   "jiff",
   "jiter",
+  "regex",
   "shlex",
   "sqlformat",
   "url",
@@ -72,6 +74,7 @@ globset = ["dep:ryo3-globset"]
 heck = ["dep:ryo3-heck"]
 jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
+regex = ["dep:ryo3-regex"]
 shlex = ["dep:ryo3-shlex"]
 sqlformat = ["dep:ryo3-sqlformat"]
 url = ["dep:ryo3-url"]

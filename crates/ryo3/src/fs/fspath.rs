@@ -201,23 +201,27 @@ impl PyFsPath {
         }
     }
 
+    #[cfg(target_os = "windows")]
     #[getter]
     fn drive(&self) -> PyResult<Option<String>> {
-        #[cfg(target_os = "windows")]
-        {
-            let drive = self.pth.components().next();
-            match drive {
-                Some(drive_component) => {
-                    let drive_str = drive_component.as_os_str().to_string_lossy().to_string();
-                    Ok(Some(drive_str))
-                }
-                None => Ok(None),
+        let drive = self.pth.components().next();
+        match drive {
+            Some(drive_component) => {
+                let drive_str = drive_component.as_os_str().to_string_lossy().to_string();
+                Ok(Some(drive_str))
             }
+            None => Ok(None),
         }
-        #[cfg(not(target_os = "windows"))]
-        {
-            Ok(None)
-        }
+        // #[cfg(not(target_os = "windows"))]
+        // {
+        //     Ok(None)
+        // }
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    #[getter]
+    fn drive(&self) -> PyResult<Option<String>> {
+        Ok(None)
     }
 
     #[getter]
