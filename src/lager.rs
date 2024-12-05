@@ -1,4 +1,4 @@
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 use tracing_subscriber::EnvFilter;
 
 fn env_var_str_is_truthy(s: &str) -> bool {
