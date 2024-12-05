@@ -1,11 +1,24 @@
 use crate::{JiffOffset, JiffTimeZone};
 use jiff::tz::Offset;
 use pyo3::exceptions::{PyTypeError, PyValueError};
-use pyo3::types::{PyAnyMethods, PyNone, PyTzInfo};
-use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use pyo3::prelude::*;
+use pyo3::types::{PyNone, PyTzInfo};
 use std::time::Duration;
 
 impl<'py> IntoPyObject<'py> for JiffOffset {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        // let tz = self.0.to_time_zone();
+        // let tz = JiffTimeZone(tz);
+        // tz.into_pyobject(py)
+        (&self).into_pyobject(py)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for &JiffOffset {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

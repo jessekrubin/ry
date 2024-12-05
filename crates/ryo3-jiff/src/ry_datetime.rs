@@ -1,6 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::nujiff::JiffDateTime;
-use crate::pydatetime_conversions::datetime_to_pyobject;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
@@ -275,7 +274,8 @@ impl RyDateTime {
     }
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        datetime_to_pyobject(py, &self.0)
+        let jiff_datetime = JiffDateTime(self.0);
+        jiff_datetime.into_pyobject(py)
     }
 
     #[classmethod]

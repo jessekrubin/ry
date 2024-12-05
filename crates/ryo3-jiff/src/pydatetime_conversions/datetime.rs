@@ -2,13 +2,12 @@ use crate::nujiff::JiffDateTime;
 use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyTypeError;
-use pyo3::types::{PyAnyMethods, PyDateTime, PyTzInfoAccess};
-use pyo3::{Bound, FromPyObject, PyAny, PyErr, PyResult, Python};
+use pyo3::prelude::*;
+use pyo3::types::{PyDateTime, PyTzInfoAccess};
 use std::convert::From;
-
-pub fn datetime_to_pyobject<'a>(
+fn datetime_to_pyobject<'a>(
     py: Python<'a>,
-    datetime: &jiff::civil::DateTime,
+    datetime: &DateTime,
 ) -> PyResult<Bound<'a, PyDateTime>> {
     let year = i32::from(datetime.year());
     let m_u8 = u8::try_from(datetime.month())
@@ -24,7 +23,8 @@ pub fn datetime_to_pyobject<'a>(
     let microsecond_u32 = u32::try_from(datetime.microsecond()).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("microsecond: {e}"))
     })?;
-    PyDateTime::new(
+    #[cfg(not(Py_LIMITED_API))]
+    let py_datetime = PyDateTime::new(
         py,
         year,
         m_u8,
@@ -34,9 +34,48 @@ pub fn datetime_to_pyobject<'a>(
         second_u8,
         microsecond_u32,
         None,
-    )
+    )?;
+
+    #[cfg(Py_LIMITED_API)]
+    let py_datetime = DatetimeTypes::try_get(py).and_then(|dt| {
+        dt.datetime.bind(py).call1((
+            year,
+            m_u8,
+            d_u8,
+            hour_u8,
+            minute_u8,
+            second_u8,
+            microsecond_u32,
+        ))
+    })?;
+    Ok(py_datetime)
+}
+impl<'py> IntoPyObject<'py> for JiffDateTime {
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyDateTime;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        datetime_to_pyobject(py, &self.0)
+    }
 }
 
+impl<'py> IntoPyObject<'py> for &JiffDateTime {
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyDateTime;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        datetime_to_pyobject(py, &self.0)
+    }
+}
 impl FromPyObject<'_> for JiffDateTime {
     fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<JiffDateTime> {
         #[cfg(not(Py_LIMITED_API))]
@@ -54,7 +93,6 @@ impl FromPyObject<'_> for JiffDateTime {
         if has_tzinfo {
             return Err(PyTypeError::new_err("expected a datetime without tzinfo"));
         }
-
         let jiff_date = date_from_pyobject(dt)?;
         let jiff_time = py_time_to_jiff_time(dt)?;
         let dt = DateTime::from_parts(jiff_date, jiff_time);

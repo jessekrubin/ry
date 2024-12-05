@@ -7,6 +7,7 @@ __all__ = (
     "JIFF_UNIT_STRING",
     "DateTimeTypedDict",
     "DateTypedDict",
+    "TimeSpanTypedDict",
     "TimeTypedDict",
 )
 
@@ -64,7 +65,7 @@ class DateTimeTypedDict(TypedDict):
     subsec_nanosecond: int
 
 
-class TimespanTypedDict(TypedDict):
+class TimeSpanTypedDict(TypedDict):
     years: int
     months: int
     weeks: int

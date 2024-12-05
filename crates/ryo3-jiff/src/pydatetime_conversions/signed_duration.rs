@@ -1,14 +1,51 @@
+use crate::JiffSignedDuration;
 use jiff::SignedDuration;
-use pyo3::exceptions::PyOverflowError;
-use pyo3::prelude::PyAnyMethods;
+use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDeltaAccess};
-use pyo3::{Bound, PyErr, PyResult, Python};
 
+use pyo3::exceptions::PyOverflowError;
+use std::convert::TryInto;
 const SECONDS_PER_DAY: i64 = 86_400;
+const MICROS_PER_DAY: i128 = 86_400_000_000;
+
+pub fn signed_duration_to_pyobject<'py>(
+    py: Python<'py>,
+    duration: &SignedDuration,
+) -> PyResult<Bound<'py, PyDelta>> {
+    let total_micros = duration.as_micros();
+    // total_microseconds(duration)?;
+
+    let days = total_micros.div_euclid(MICROS_PER_DAY);
+    let remainder = total_micros.rem_euclid(MICROS_PER_DAY);
+    let seconds = remainder.div_euclid(1_000_000);
+    let microseconds = remainder.rem_euclid(1_000_000);
+
+    let days_i32: i32 = days
+        .try_into()
+        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in days conversion"))?;
+    let seconds_i32: i32 = seconds
+        .try_into()
+        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in seconds conversion"))?;
+    let microseconds_i32: i32 = microseconds
+        .try_into()
+        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in microseconds conversion"))?;
+
+    #[cfg(not(Py_LIMITED_API))]
+    {
+        // `normalize = false` because we've already normalized the values.
+        PyDelta::new(py, days_i32, seconds_i32, microseconds_i32, false)
+    }
+    #[cfg(Py_LIMITED_API)]
+    {
+        Err(PyErr::new::<PyNotImplementedError, _>(
+            "not implemented for Py_LIMITED_API",
+        ))
+    }
+}
 
 pub fn signed_duration_from_pyobject<'py>(
     _py: Python<'py>,
-    obj: &Bound<'py, PyDelta>,
+    obj: &Bound<'py, PyAny>,
 ) -> PyResult<SignedDuration> {
     #[cfg(not(Py_LIMITED_API))]
     let (days, seconds, microseconds) = {
@@ -58,76 +95,36 @@ pub fn signed_duration_from_pyobject<'py>(
     Ok(SignedDuration::new(total_seconds, nanoseconds))
 }
 
-// impl<'py> IntoPyObject<'py> for RySignedDuration {
-//     #[cfg(not(Py_LIMITED_API))]
-//     type Target = PyDelta;
-//     #[cfg(Py_LIMITED_API)]
-//     type Target = PyAny;
-//     type Output = Bound<'py, Self::Target>;
-//     type Error = PyErr;
-//
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         let days = self.0.as_secs() / SECONDS_PER_DAY;
-//         let seconds = self.0.as_secs() % SECONDS_PER_DAY;
-//         let microseconds = self.0.subsec_micros();
-//
-//         #[cfg(not(Py_LIMITED_API))]
-//         {
-//             PyDelta::new(
-//                 py,
-//                 days.try_into()?,
-//                 seconds.try_into().unwrap(),
-//                 microseconds.try_into().unwrap(),
-//                 false,
-//             )
-//         }
-//         #[cfg(Py_LIMITED_API)]
-//         {
-//             static TIMEDELTA: GILOnceCell<Py<PyType>> = GILOnceCell::new();
-//             TIMEDELTA
-//                 .import(py, "datetime", "timedelta")?
-//                 .call1((days, seconds, microseconds))
-//         }
-//     }
-// }
-//
-// impl<'py> IntoPyObject<'py> for &RySignedDuration {
-//     #[cfg(not(Py_LIMITED_API))]
-//     type Target = PyDelta;
-//     #[cfg(Py_LIMITED_API)]
-//     type Target = PyAny;
-//     type Output = Bound<'py, Self::Target>;
-//     type Error = PyErr;
-//
-//     #[inline]
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         self.into_pyobject(py)
-//     }
-// }
-
-pub fn signed_duration_to_pyobject<'py>(
-    py: Python<'py>,
-    duration: &SignedDuration,
-) -> PyResult<Bound<'py, PyDelta>> {
-    let days = duration.as_secs() / SECONDS_PER_DAY;
-    let days_i32 = days
-        .try_into()
-        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in days conversion"))?;
-    let seconds = duration.as_secs() % SECONDS_PER_DAY;
-    let seconds_i32 = seconds
-        .try_into()
-        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in seconds conversion"))?;
-    let microseconds = duration.subsec_micros();
-
-    #[cfg(not(Py_LIMITED_API))]
-    {
-        PyDelta::new(py, days_i32, seconds_i32, microseconds, false)
-    }
+impl<'py> IntoPyObject<'py> for JiffSignedDuration {
     #[cfg(Py_LIMITED_API)]
-    {
-        static TIMEDELTA: GILOnceCell<Py<PyType>> = GILOnceCell::new();
-        TIMEDELTA
-            .import(py, "datetime", "timedelta")?
-            .call1((days, seconds, microseconds))
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyDelta;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        signed_duration_to_pyobject(py, &self.0)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for &JiffSignedDuration {
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyDelta;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        signed_duration_to_pyobject(py, &self.0)
+    }
+}
+
+impl FromPyObject<'_> for JiffSignedDuration {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffSignedDuration> {
+        let sdur: SignedDuration = signed_duration_from_pyobject(ob.py(), ob)?;
+        Ok(JiffSignedDuration(sdur))
     }
 }

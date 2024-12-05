@@ -58,17 +58,18 @@ members = [
   "crates/ryo3-heck",
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
+  "crates/ryo3-regex",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
   "crates/ryo3-url",
-  "crates/ryo3-which",
   "crates/ryo3-walkdir",
+  "crates/ryo3-which",
   "crates/ryo3-xxhash",
   "crates/ryo3-zstd",
 ]
 
 [workspace.package]
-version = "0.0.18"
+version = "0.0.19"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2021"
@@ -95,6 +96,7 @@ ryo3-globset = { path = "./crates/ryo3-globset" }
 ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
+ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-url = { path = "./crates/ryo3-url" }
