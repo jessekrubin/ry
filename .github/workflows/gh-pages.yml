@@ -15,10 +15,11 @@ jobs:
       pull-requests: write  # To create a PR from that branch
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Setup mdBook
+        uses: taiki-e/install-action@v2
         with:
-          toolchain: stable
-      - run: (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.4" mdbook)
+          tool: mdbook
       - run: mdbook build docs && mdbook test docs
       - uses: JamesIves/github-pages-deploy-action@4.1.7
         with:

@@ -1,6 +1,9 @@
 [book]
-title = "ry-docs"
-authors = ["jessekrubin"]
+title = "ryo3"
+authors = [
+  "jessekrubin",
+  # hopefully you!? plz help me build this thingy!
+]
 language = "en"
 multilingual = false
 src = "src"
@@ -15,5 +18,5 @@ git-repository-url = "https://github.com/jessekrubin/ry"
 git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/jessekrubin/ry/edit/main/docs/src/{path}"
 site-url = "https://jessekrubin.github.io/ry"
-cname = "ry.jessekrubin.dev"
+cname = "ryo3.dev"
 input-404 = "four-o-four.md"
