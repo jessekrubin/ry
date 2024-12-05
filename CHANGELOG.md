@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## FUTURE
+___
+
+## v0.0.19 [2024-12-05]
 
 - `jiff`
   - py-conversions
@@ -20,10 +23,10 @@
       - [x] FromPyObject
       - [x] IntoPyObject
       - [x] IntoPyObject (REF)
-    - [ ] `JiffSpan`
-      - [ ] FromPyObject
-      - [ ] IntoPyObject
-      - [ ] IntoPyObject (REF)
+    - [x] `JiffSpan`
+      - [x] FromPyObject
+      - [x] IntoPyObject
+      - [x] IntoPyObject (REF)
     - [x] `JiffTimeZone`
       - [x] FromPyObject
       - [x] IntoPyObject
@@ -36,6 +39,7 @@
       - [x] FromPyObject
       - [x] IntoPyObject 
       - [x] IntoPyObject (REF)
+
 ___ 
 
 ## v0.0.18 [2024-12-03]
