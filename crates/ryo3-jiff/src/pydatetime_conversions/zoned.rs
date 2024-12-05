@@ -2,9 +2,8 @@ use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
 use crate::{JiffTimeZone, JiffZoned};
 use jiff::civil::DateTime;
 use pyo3::exceptions::{PyTypeError, PyValueError};
-use pyo3::types::{PyAnyMethods, PyDateTime, PyTzInfo, PyTzInfoAccess};
-use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
-
+use pyo3::prelude::*;
+use pyo3::types::{PyDateTime, PyTzInfo, PyTzInfoAccess};
 
 impl<'py> IntoPyObject<'py> for &JiffZoned {
     #[cfg(Py_LIMITED_API)]
@@ -69,7 +68,7 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
     }
 }
 
-impl<'py> IntoPyObject<'py> for JiffZoned{
+impl<'py> IntoPyObject<'py> for JiffZoned {
     #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
     #[cfg(not(Py_LIMITED_API))]

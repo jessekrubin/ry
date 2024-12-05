@@ -1,10 +1,11 @@
 use crate::internal::RySpanRelativeTo;
 use crate::pydatetime_conversions::span_to_pyobject;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::timespan;
+use crate::{timespan, JiffSignedDuration, JiffSpan};
 use jiff::Span;
+use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
-use pyo3::{intern, pyclass, pymethods, Bound, PyErr, PyResult, Python};
+use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -17,7 +18,8 @@ pub struct RySpan(pub(crate) Span);
 impl RySpan {
     #[allow(clippy::too_many_arguments)]
     #[new]
-    #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0))]
+    #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)
+    )]
     fn new(
         years: i64,
         months: i64,
@@ -81,8 +83,19 @@ impl RySpan {
         Ok(Self(self.0.negate()))
     }
 
+    #[classmethod]
+    fn from_pytimedelta<'py>(
+        _cls: &Bound<'py, PyType>,
+        // py: Python<'py>,
+        delta: &Bound<'py, PyAny>,
+    ) -> PyResult<Self> {
+        delta.extract::<JiffSpan>().map(Self::from)
+    }
+
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        span_to_pyobject(py, &self.0)
+        let jiff_span = JiffSpan(self.0);
+        jiff_span.into_pyobject(py)
+        // span_to_pyobject(py, &self.0)
     }
 
     #[classmethod]
@@ -337,6 +350,12 @@ impl RySpan {
         Ok(dict)
     }
 
+    fn total_seconds(&self) -> PyResult<f64> {
+        self.0
+            .total(jiff::Unit::Second)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
     #[pyo3(signature = (relative = None))]
     fn to_jiff_duration(&self, relative: Option<RySpanRelativeTo>) -> PyResult<RySignedDuration> {
         if let Some(r) = relative {
@@ -375,5 +394,11 @@ impl Display for RySpan {
 impl From<Span> for RySpan {
     fn from(span: Span) -> Self {
         Self(span)
+    }
+}
+
+impl From<JiffSpan> for RySpan {
+    fn from(span: JiffSpan) -> Self {
+        Self(span.0)
     }
 }

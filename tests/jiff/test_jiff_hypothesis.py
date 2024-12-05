@@ -24,6 +24,7 @@ datetime_strategy = st.datetimes(
         dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond * 1000
     )
 )
+timedelta_strategy = st.timedeltas()
 
 # Define strategies for generating test data
 date_tuple_strategy = st.builds(
@@ -300,3 +301,52 @@ def test_duration_subtraction(dt: ry.DateTime, duration: ry.SignedDuration) -> N
     except OverflowError:
         with pytest.raises(OverflowError):
             dt - duration
+
+
+class TestSignedDurationConversion:
+    @given(timedelta_strategy)
+    def test_span_from_timedelta_min_max(self, tdelta: pydt.timedelta) -> None:
+        assume(-7304484 <= tdelta.days <= 7304484)
+        ry_signed_dur = ry.TimeSpan.from_pytimedelta(tdelta)
+        assert isinstance(ry_signed_dur, ry.TimeSpan)
+
+    @given(timedelta_strategy)
+    def test_positive_signed_duration_round_trip(self, tdelta: pydt.timedelta) -> None:
+        # assume the duration is positive
+        assume(tdelta.days >= 0)
+        ry_signed_duration = ry.SignedDuration.from_pytimedelta(tdelta)
+        assert isinstance(ry_signed_duration, ry.SignedDuration)
+        round_trip_tdelta = ry_signed_duration.to_pytimedelta()
+        assert isinstance(round_trip_tdelta, pydt.timedelta)
+        assert round_trip_tdelta == tdelta
+
+    @given(timedelta_strategy)
+    def test_negative_signed_duration_round_trip(self, tdelta: pydt.timedelta) -> None:
+        # assume the duration is negative
+        assume(tdelta.days < 0)
+        ry_signed_duration = ry.SignedDuration.from_pytimedelta(tdelta)
+        assert isinstance(ry_signed_duration, ry.SignedDuration)
+        round_trip_tdelta = ry_signed_duration.to_pytimedelta()
+        assert isinstance(round_trip_tdelta, pydt.timedelta)
+        assert round_trip_tdelta == tdelta
+
+
+class TestTimeSpanConversion:
+    @given(timedelta_strategy)
+    def test_span_from_timedelta_round_trip(self, tdelta: pydt.timedelta) -> None:
+        assume(-7304484 <= tdelta.days <= 7304484)
+        ry_span = ry.TimeSpan.from_pytimedelta(tdelta)
+
+        assert isinstance(ry_span, ry.TimeSpan)
+        round_trip_tdelta = ry_span.to_pytimedelta()
+        assert isinstance(round_trip_tdelta, pydt.timedelta)
+        assert round_trip_tdelta == tdelta
+
+    @given(timedelta_strategy)
+    def test_span_from_timedelta_to_many_days(self, tdelta: pydt.timedelta) -> None:
+        # to span
+        print("===========")
+        print("tdelta", tdelta, tdelta.__repr__())
+        assume(-7304484 > tdelta.days or tdelta.days > 7304484)
+        with pytest.raises(ValueError):
+            ry.TimeSpan.from_pytimedelta(tdelta)

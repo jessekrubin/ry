@@ -1,10 +1,19 @@
 use crate::JiffTimeZone;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use pyo3::sync::GILOnceCell;
-use pyo3::types::{PyAnyMethods, PyString, PyType};
-use pyo3::{Bound, FromPyObject, IntoPyObject, Py, PyAny, PyErr, PyResult, Python};
+use pyo3::types::{PyString, PyType};
 
 impl<'py> IntoPyObject<'py> for JiffTimeZone {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
+    }
+}
+impl<'py> IntoPyObject<'py> for &JiffTimeZone {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime as pydatetime
+import datetime as pydt
 
 import pytest
 
@@ -36,10 +36,10 @@ def test_span_dict() -> None:
 
 
 def test_span_to_py_timedelta() -> None:
-    s = ry.timespan(years=1)
-    with pytest.raises(NotImplementedError):
-        py_timedelta = s.to_pytimedelta()
-        assert isinstance(py_timedelta, pydatetime.timedelta)
+    s = ry.timespan(hours=1)
+    py_timedelta = s.to_pytimedelta()
+    assert isinstance(py_timedelta, pydt.timedelta)
+    assert py_timedelta == pydt.timedelta(hours=1)
 
 
 def test_negative_spans() -> None:

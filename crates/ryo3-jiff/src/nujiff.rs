@@ -1,3 +1,5 @@
+use pyo3::types::PyDelta;
+
 #[derive(Debug)]
 pub struct JiffDate(pub jiff::civil::Date);
 #[derive(Debug)]
@@ -8,10 +10,13 @@ pub struct JiffDateTime(pub jiff::civil::DateTime);
 pub struct JiffZoned(pub jiff::Zoned);
 #[derive(Debug)]
 pub struct JiffSpan(pub jiff::Span);
+
 #[derive(Debug, Clone)]
 pub struct JiffTimeZone(pub jiff::tz::TimeZone);
 #[derive(Debug)]
 pub struct JiffOffset(pub jiff::tz::Offset);
+#[derive(Debug)]
+pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
 impl From<jiff::civil::Date> for JiffDate {
     fn from(value: jiff::civil::Date) -> Self {
@@ -55,6 +60,12 @@ impl From<jiff::tz::Offset> for JiffOffset {
     }
 }
 
+impl From<jiff::SignedDuration> for JiffSignedDuration {
+    fn from(value: jiff::SignedDuration) -> Self {
+        JiffSignedDuration(value)
+    }
+}
+
 impl From<JiffDate> for jiff::civil::Date {
     fn from(val: JiffDate) -> Self {
         val.0
@@ -93,6 +104,12 @@ impl From<JiffTimeZone> for jiff::tz::TimeZone {
 
 impl From<JiffOffset> for jiff::tz::Offset {
     fn from(val: JiffOffset) -> Self {
+        val.0
+    }
+}
+
+impl From<JiffSignedDuration> for jiff::SignedDuration {
+    fn from(val: JiffSignedDuration) -> Self {
         val.0
     }
 }

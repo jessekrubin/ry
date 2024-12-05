@@ -1,9 +1,10 @@
-use crate::pydatetime_conversions::{signed_duration_from_pyobject, signed_duration_to_pyobject};
+use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::ry_span::RySpan;
+use crate::JiffSignedDuration;
 use jiff::{SignedDuration, Span};
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDelta, PyType};
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, PyErr, PyResult, Python};
+use pyo3::types::{PyAnyMethods, PyDelta, PyType};
+use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
@@ -64,15 +65,14 @@ impl RySignedDuration {
     #[classmethod]
     fn from_pytimedelta<'py>(
         _cls: &Bound<'py, PyType>,
-        py: Python<'py>,
-        delta: &Bound<'py, PyDelta>,
+        // py: Python<'py>,
+        delta: &Bound<'py, PyAny>,
     ) -> PyResult<Self> {
-        let signed_dur = signed_duration_from_pyobject(py, delta)?;
-        Ok(Self::from(signed_dur))
+        delta.extract::<JiffSignedDuration>().map(Self::from)
     }
 
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        signed_duration_to_pyobject(py, &self.0)
+        JiffSignedDuration(self.0).into_pyobject(py)
     }
 
     fn to_timespan(&self) -> PyResult<RySpan> {
@@ -205,6 +205,13 @@ impl From<SignedDuration> for RySignedDuration {
         Self(d)
     }
 }
+
+impl From<JiffSignedDuration> for RySignedDuration {
+    fn from(d: JiffSignedDuration) -> Self {
+        Self(d.0)
+    }
+}
+
 #[derive(Debug, Clone, FromPyObject)]
 enum RySignedDurationComparable<'py> {
     RySignedDuration(RySignedDuration),
