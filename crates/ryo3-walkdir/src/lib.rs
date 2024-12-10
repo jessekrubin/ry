@@ -4,6 +4,7 @@ use std::path::Path;
 
 use ::walkdir as walkdir_rs;
 use pyo3::prelude::*;
+use ryo3_globset::{PyGlob, PyGlobSet};
 use ryo3_types::PathLike;
 
 #[pyclass(name = "WalkDirEntry", module = "ryo3")]
@@ -66,6 +67,7 @@ pub struct PyWalkdirGen {
     iter: walkdir_rs::IntoIter,
     files: bool,
     dirs: bool,
+    globs: Option<PyGlobSet>,
 }
 
 #[pymethods]
@@ -79,9 +81,20 @@ impl PyWalkdirGen {
             if (entry.file_type().is_file() && slf.files)
                 || (entry.file_type().is_dir() && slf.dirs)
             {
-                if let Some(path_str) = entry.path().to_str() {
-                    return Some(path_str.to_string());
+                if let Some(globs) = &slf.globs {
+                    let path_str = entry.path().to_string_lossy().to_string();
+                    if globs.is_match(&path_str) {
+                        return Some(path_str);
+                    }
+                } else {
+                    if let Some(path_str) = entry.path().to_str() {
+                        return Some(path_str.to_string());
+                    }
                 }
+
+                // if let Some(path_str) = entry.path().to_str() {
+                //     return Some(path_str.to_string());
+                // }
             }
         }
         None
@@ -121,6 +134,7 @@ impl From<walkdir_rs::WalkDir> for PyWalkdirGen {
             iter: wdit,
             files: true,
             dirs: true,
+            globs: None,
         }
     }
 }
@@ -160,7 +174,7 @@ fn build_walkdir(
 #[pyo3(
     signature = (path = None, *, files = true, dirs = true,
     contents_first = false, min_depth = 0, max_depth = None,
-    follow_links = false, same_file_system = false)
+    follow_links = false, same_file_system = false, globs = None)
 )]
 pub fn walkdir(
     path: Option<PathLike>,
@@ -171,6 +185,7 @@ pub fn walkdir(
     max_depth: Option<usize>,       // default None
     follow_links: Option<bool>,     // default false
     same_file_system: Option<bool>, // default false
+    globs: Option<PyGlobSet>,       // default None
 ) -> PyResult<PyWalkdirGen> {
     let wd = build_walkdir(
         path.unwrap_or(PathLike::Str(String::from("."))).as_ref(),
@@ -184,6 +199,7 @@ pub fn walkdir(
         iter: wd.into_iter(),
         files: files.unwrap_or(true),
         dirs: dirs.unwrap_or(true),
+        globs: globs,
     })
 }
 

@@ -1235,6 +1235,7 @@ name = "ryo3-walkdir"
 version = "0.0.20"
 dependencies = [
  "pyo3",
+ "ryo3-globset",
  "ryo3-types",
  "walkdir",
 ]
