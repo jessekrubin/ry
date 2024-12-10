@@ -35,6 +35,7 @@ jobs:
           path: docs/book
 
       - name: deploy-docs
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

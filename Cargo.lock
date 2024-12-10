@@ -153,9 +153,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.2"
+version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f34d93e62b03caf570cccc334cbc6c2fceca82f39211051345108adcba3eebdc"
+checksum = "27f657647bcff5394bf56c7317665bbf790a137a50eaaa5c6bfbb9e27a518f2d"
 dependencies = [
  "jobserver",
  "libc",
@@ -631,9 +631,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.167"
+version = "0.2.168"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09d6582e104315a817dff97f75133544b2e094ee22447d2acf4a74e189ba06fc"
+checksum = "5aaeb2981e0606ca11d79718f8bb01164f1d6ed75080182d3abf017e6d244b6d"
 
 [[package]]
 name = "libredox"
@@ -1036,20 +1036,20 @@ checksum = "719b953e2095829ee67db738b3bfa9fa368c94900df327b3f07fe6e794d2fe1f"
 
 [[package]]
 name = "rustix"
-version = "0.38.41"
+version = "0.38.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7f649912bc1495e167a6edee79151c84b1bad49748cb4f1f1167f459f6224f6"
+checksum = "f93dc38ecbab2eb790ff964bb77fa94faf256fd3e73285fd7ba0903b76bedb85"
 dependencies = [
  "bitflags",
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
 name = "ry"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "dirs",
  "jiff",
@@ -1066,7 +1066,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "dirs",
  "jiff",
@@ -1102,7 +1102,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "brotli",
  "pyo3",
@@ -1110,7 +1110,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -1118,7 +1118,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "serde",
@@ -1129,7 +1129,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "flate2",
  "pyo3",
@@ -1137,7 +1137,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "fnv",
  "pyo3",
@@ -1145,7 +1145,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "globset",
  "pyo3",
@@ -1153,7 +1153,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "heck",
  "pyo3",
@@ -1161,7 +1161,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1171,7 +1171,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "jiter",
  "pyo3",
@@ -1179,14 +1179,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "regex",
@@ -1194,7 +1194,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "shlex",
@@ -1202,7 +1202,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -1210,21 +1210,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-types"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "url",
@@ -1232,7 +1232,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "ryo3-types",
@@ -1241,7 +1241,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "which",
@@ -1249,7 +1249,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-xxhash"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "xxhash-rust",
@@ -1257,7 +1257,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "pyo3",
  "zstd",
