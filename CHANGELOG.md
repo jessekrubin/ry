@@ -3,6 +3,17 @@
 ## FUTURE
 ___
 
+## v0.0.20 [2024-12-10]
+
+- `regex`
+  - Templated out regex package but nothing added
+- `ry`
+  - python 3.13 yay!
+- `jiter`
+  - Updated jiter version thanks depbot!
+
+___
+
 ## v0.0.19 [2024-12-05]
 
 - `jiff`
