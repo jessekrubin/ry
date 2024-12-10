@@ -2,7 +2,7 @@ use std::path::Path;
 
 use ::walkdir as walkdir_rs;
 use pyo3::prelude::*;
-use ryo3_globset::{GlobsterLike, PyGlobSet, PyGlobster};
+use ryo3_globset::{GlobsterLike, PyGlobster};
 use ryo3_types::PathLike;
 
 #[pyclass(name = "WalkDirEntry", module = "ryo3")]
@@ -102,6 +102,7 @@ pub struct PyFspathsGen {
     iter: walkdir_rs::IntoIter,
     files: bool,
     dirs: bool,
+    glob: Option<PyGlobster>,
 }
 
 #[pymethods]
@@ -114,9 +115,18 @@ impl PyFspathsGen {
             if (entry.file_type().is_file() && slf.files)
                 || (entry.file_type().is_dir() && slf.dirs)
             {
-                if let Some(path_str) = entry.path().to_str() {
+                if let Some(globs) = &slf.glob {
+                    let path_str = entry.path().to_string_lossy().to_string();
+                    if globs.is_match_str(&path_str) {
+                        return Some(path_str);
+                    }
+                } else if let Some(path_str) = entry.path().to_str() {
                     return Some(path_str.to_string());
                 }
+
+                // if let Some(path_str) = entry.path().to_str() {
+                //     return Some(path_str.to_string());
+                // }
             }
         }
         None
@@ -139,10 +149,10 @@ impl From<walkdir_rs::WalkDir> for PyFspathsGen {
     fn from(wd: walkdir_rs::WalkDir) -> Self {
         let wdit = wd.into_iter();
         Self {
-            // wd: wd,
             iter: wdit,
             files: true,
             dirs: true,
+            glob: None,
         }
     }
 }
@@ -229,6 +239,7 @@ pub fn fspaths(
         iter: wd.into_iter(),
         files: files.unwrap_or(true),
         dirs: dirs.unwrap_or(true),
+        glob: None,
     })
 }
 

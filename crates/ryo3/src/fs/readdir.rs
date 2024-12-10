@@ -1,13 +1,13 @@
 use crate::fs::fspath::PyFsPath;
 use pyo3::{pyclass, pymethods, PyRef, PyRefMut};
 
-#[pyclass(name = "IterdirGen", module = "ryo3")]
-pub struct PyIterdirGen {
+#[pyclass(name = "ReadDir", module = "ryo3")]
+pub struct PyReadDir {
     iter: std::fs::ReadDir,
 }
 
 #[pymethods]
-impl PyIterdirGen {
+impl PyReadDir {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -19,7 +19,7 @@ impl PyIterdirGen {
     }
 }
 
-impl From<std::fs::ReadDir> for PyIterdirGen {
+impl From<std::fs::ReadDir> for PyReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
         Self { iter }
     }

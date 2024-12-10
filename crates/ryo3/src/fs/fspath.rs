@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::fs::iterdir::PyIterdirGen;
+use crate::fs::readdir::PyReadDir;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
@@ -415,9 +415,9 @@ impl PyFsPath {
         ))
     }
 
-    fn iterdir(&self) -> PyResult<PyIterdirGen> {
+    fn iterdir(&self) -> PyResult<PyReadDir> {
         let rd = std::fs::read_dir(&self.pth)
-            .map(PyIterdirGen::from)
+            .map(PyReadDir::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
         Ok(rd)
     }
