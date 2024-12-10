@@ -111,19 +111,17 @@ impl PyGlob {
     }
 
     fn globster(&self) -> PyGlobster {
-        PyGlobster {
-            0: Globster {
-                patterns: vec![self.pattern.clone()],
-                globset: Some(
-                    GlobSetBuilder::new()
-                        .add(self.glob.clone())
-                        .build()
-                        .unwrap(),
-                ),
-                nglobset: None,
-                length: 1,
-            },
-        }
+        PyGlobster(Globster {
+            patterns: vec![self.pattern.clone()],
+            globset: Some(
+                GlobSetBuilder::new()
+                    .add(self.glob.clone())
+                    .build()
+                    .unwrap(),
+            ),
+            nglobset: None,
+            length: 1,
+        })
     }
 }
 
@@ -215,14 +213,12 @@ impl PyGlobSet {
     }
 
     fn globster(&self) -> PyGlobster {
-        PyGlobster {
-            0: Globster {
-                patterns: self.patterns.clone(),
-                globset: Some(self.globset.clone()),
-                nglobset: None,
-                length: self.patterns.len(),
-            },
-        }
+        PyGlobster(Globster {
+            patterns: self.patterns.clone(),
+            globset: Some(self.globset.clone()),
+            nglobset: None,
+            length: self.patterns.len(),
+        })
     }
 }
 

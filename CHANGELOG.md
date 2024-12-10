@@ -1,6 +1,14 @@
 # CHANGELOG
 
 ## FUTURE
+
+- `walkdir`
+  - add `glob` kwarg that takes a `ry.Glob` or `ry.GlobSet` or `ry.Globster` obj to filter the walk on
+- `globset`
+  - Internal refactoring
+  - added `globster()` method to `ry.Glob` and `ry.GlobSet` to return a `ry.Globster` obj
+  - added `globset()` method to `ry.Glob` to return a `ry.GlobSet` obj from a `ry.Glob` obj
+
 ___
 
 ## v0.0.20 [2024-12-10]
