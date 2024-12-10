@@ -372,6 +372,23 @@ impl PyGlobPatterns for PyGlobster {
 impl PyGlobPatternsString for PyGlobSet {}
 impl PyGlobPatternsString for PyGlobster {}
 
+#[derive(FromPyObject)]
+pub enum GlobsterLike {
+    Glob(PyGlob),
+    GlobSet(PyGlobSet),
+    Globster(PyGlobster),
+}
+
+impl From<GlobsterLike> for PyGlobster {
+    fn from(globster_like: GlobsterLike) -> Self {
+        match globster_like {
+            GlobsterLike::Glob(glob) => glob.globster(),
+            GlobsterLike::GlobSet(globset) => globset.globster(),
+            GlobsterLike::Globster(globster) => globster,
+        }
+    }
+}
+
 #[pyfunction]
 #[pyo3(
     signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)

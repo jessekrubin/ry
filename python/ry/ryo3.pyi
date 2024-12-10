@@ -313,6 +313,7 @@ def walkdir(
     max_depth: int | None = None,
     follow_links: bool = False,
     same_file_system: bool = False,
+    glob: Glob | GlobSet | Globster | None = None,
 ) -> WalkdirGen: ...
 def fspaths(
     path: FsPathLike | None = None,
