@@ -63,7 +63,8 @@ impl PyFsPath {
     }
 
     fn __repr__(&self) -> PyResult<String> {
-        let s = path2str(&self.pth);
+        let posix_str = self.as_posix()?;
+        let s = format!("FsPath(\'{}\')", posix_str);
         Ok(s)
     }
 
