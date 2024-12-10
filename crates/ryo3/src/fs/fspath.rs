@@ -2,7 +2,6 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::fs::fileio;
 use crate::fs::iterdir::PyIterdirGen;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
@@ -398,7 +397,16 @@ impl PyFsPath {
     }
 
     pub fn write_text(&self, t: &str) -> PyResult<()> {
-        fileio::write_text(&self.string(), t)
+        let write_result = std::fs::write(&self.pth, t);
+        match write_result {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                let fspath = self.string();
+                Err(PyNotADirectoryError::new_err(format!(
+                    "write_bytes - parent: {fspath} - {e}"
+                )))
+            }
+        }
     }
 
     pub fn as_uri(&self) -> PyResult<String> {

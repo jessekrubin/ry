@@ -4,7 +4,7 @@ use std::path::Path;
 
 use ::walkdir as walkdir_rs;
 use pyo3::prelude::*;
-use ryo3_globset::{PyGlob, PyGlobSet};
+use ryo3_globset::PyGlobSet;
 use ryo3_types::PathLike;
 
 #[pyclass(name = "WalkDirEntry", module = "ryo3")]
@@ -83,13 +83,11 @@ impl PyWalkdirGen {
             {
                 if let Some(globs) = &slf.globs {
                     let path_str = entry.path().to_string_lossy().to_string();
-                    if globs.is_match(&path_str) {
+                    if globs.is_match_str(&path_str) {
                         return Some(path_str);
                     }
-                } else {
-                    if let Some(path_str) = entry.path().to_str() {
-                        return Some(path_str.to_string());
-                    }
+                } else if let Some(path_str) = entry.path().to_str() {
+                    return Some(path_str.to_string());
                 }
 
                 // if let Some(path_str) = entry.path().to_str() {
@@ -199,7 +197,7 @@ pub fn walkdir(
         iter: wd.into_iter(),
         files: files.unwrap_or(true),
         dirs: dirs.unwrap_or(true),
-        globs: globs,
+        globs,
     })
 }
 

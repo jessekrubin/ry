@@ -2,6 +2,7 @@ use ::globset::{Glob, GlobBuilder, GlobSetBuilder};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
+use ryo3_types::PathLike;
 
 /// Default value for the `literal_separator` parameter.
 const DEFAULT_BACKSLASH_ESCAPE: bool = cfg!(windows);
@@ -74,11 +75,15 @@ impl PyGlob {
         }
     }
 
-    pub fn is_match(&self, path: &str) -> bool {
+    pub fn is_match_str(&self, path: &str) -> bool {
         self.matcher.is_match(path) ^ self.negative
     }
 
-    fn __call__(&self, path: &str) -> bool {
+    pub fn is_match(&self, path: PathLike) -> bool {
+        self.matcher.is_match(path) ^ self.negative
+    }
+
+    fn __call__(&self, path: PathLike) -> bool {
         self.is_match(path)
     }
 
@@ -102,6 +107,22 @@ impl PyGlob {
                 .add(self.glob.clone())
                 .build()
                 .unwrap(),
+        }
+    }
+
+    fn globster(&self) -> PyGlobster {
+        PyGlobster {
+            0: Globster {
+                patterns: vec![self.pattern.clone()],
+                globset: Some(
+                    GlobSetBuilder::new()
+                        .add(self.glob.clone())
+                        .build()
+                        .unwrap(),
+                ),
+                nglobset: None,
+                length: 1,
+            },
         }
     }
 }
@@ -172,21 +193,36 @@ impl PyGlobSet {
         self.globset.is_empty()
     }
 
-    pub fn is_match(&self, path: &str) -> bool {
+    pub fn is_match_str(&self, path: &str) -> bool {
         self.globset.is_match(path)
+    }
+
+    pub fn is_match(&self, path: PathLike) -> bool {
+        self.globset.is_match(path)
+    }
+
+    fn __call__(&self, path: PathLike) -> bool {
+        self.is_match(path)
     }
 
     fn matches(&self, path: &str) -> Vec<usize> {
         self.globset.matches(path)
     }
 
-    fn __call__(&self, path: &str) -> bool {
-        self.is_match(path)
-    }
-
     #[getter]
     fn patterns(&self) -> Vec<String> {
         self.patterns.clone()
+    }
+
+    fn globster(&self) -> PyGlobster {
+        PyGlobster {
+            0: Globster {
+                patterns: self.patterns.clone(),
+                globset: Some(self.globset.clone()),
+                nglobset: None,
+                length: self.patterns.len(),
+            },
+        }
     }
 }
 
@@ -289,7 +325,7 @@ impl PyGlobster {
         self.0.length == 0
     }
 
-    pub fn is_match(&self, path: &str) -> bool {
+    pub fn is_match_str(&self, path: &str) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
             (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
             (Some(gs), None) => gs.is_match(path),
@@ -298,7 +334,19 @@ impl PyGlobster {
         }
     }
 
-    fn __call__(&self, path: &str) -> bool {
+    pub fn is_match(&self, path: PathLike) -> bool {
+        match (&self.0.globset, &self.0.nglobset) {
+            (Some(gs), Some(ngs)) => {
+                // let path = path.to_string();
+                gs.is_match(&path) && !ngs.is_match(&path)
+            }
+            (Some(gs), None) => gs.is_match(&path),
+            (None, Some(ngs)) => !ngs.is_match(&path),
+            _ => false,
+        }
+    }
+
+    fn __call__(&self, path: PathLike) -> bool {
         self.is_match(path)
     }
 
