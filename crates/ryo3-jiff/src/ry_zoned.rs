@@ -12,6 +12,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDate, PyDateTime, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -325,6 +326,87 @@ impl RyZoned {
             .yesterday()
             .map(RyZoned::from)
             .map_err(map_py_value_err)
+    }
+
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn day_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn day_of_year_no_leap(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn days_in_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn days_in_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn end_of_day(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn era_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn first_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn first_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    fn in_leap_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    fn last_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn last_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn offset(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn start_of_day(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    fn time_zone(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    fn until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    fn with(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn with_time_zone(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 

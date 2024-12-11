@@ -1167,6 +1167,7 @@ dependencies = [
  "jiff",
  "pyo3",
  "pyo3-build-config",
+ "ryo3-macros",
  "ryo3-std",
 ]
 
@@ -1175,6 +1176,13 @@ name = "ryo3-jiter"
 version = "0.0.20"
 dependencies = [
  "jiter",
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-macros"
+version = "0.0.20"
+dependencies = [
  "pyo3",
 ]
 

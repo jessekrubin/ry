@@ -14,6 +14,7 @@ use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
 };
+use ryo3_macros::err_py_not_impl;
 use ryo3_std::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -232,6 +233,106 @@ impl RyDate {
             series: self.0.series(period.0),
         }
     }
+
+    fn checked_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn constant(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn day_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn day_of_year_no_leap(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn days_in_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn days_in_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn era_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn first_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn first_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn from_iso_week_date(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn in_leap_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn last_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn last_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn strftime(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn strptime(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_iso_week_date(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn tomorrow(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn with(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn yesterday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+}
+
+// macro for not impl
+#[macro_export]
+macro_rules! not_impl {
+    ($name:ident) => {
+        fn $name(&self) -> PyResult<()> {
+            Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+                format!("{name} not implemented",),
+            ))
+        }
+    };
 }
 
 impl Display for RyDate {
