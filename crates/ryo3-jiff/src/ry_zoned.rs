@@ -328,6 +328,30 @@ impl RyZoned {
             .map_err(map_py_value_err)
     }
 
+    fn end_of_day(&self) -> PyResult<Self> {
+        self.0
+            .end_of_day()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn in_leap_year(&self) -> bool {
+        self.0.in_leap_year()
+    }
+
+    fn last_of_month(&self) -> PyResult<Self> {
+        self.0
+            .last_of_month()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+    fn days_in_month(&self) -> i8 {
+        self.0.days_in_month()
+    }
+    fn days_in_year(&self) -> i16 {
+        self.0.days_in_year()
+    }
+
     fn checked_sub(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -337,19 +361,10 @@ impl RyZoned {
     fn day_of_year_no_leap(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn days_in_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn days_in_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn duration_since(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn duration_until(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn end_of_day(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn era_year(&self) -> PyResult<()> {
@@ -362,13 +377,6 @@ impl RyZoned {
         err_py_not_impl!()
     }
 
-    fn in_leap_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-
-    fn last_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn last_of_year(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

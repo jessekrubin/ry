@@ -8,6 +8,16 @@
   - Internal refactoring
   - added `globster()` method to `ry.Glob` and `ry.GlobSet` to return a `ry.Globster` obj
   - added `globset()` method to `ry.Glob` to return a `ry.GlobSet` obj from a `ry.Glob` obj
+- `jiff`
+  - not-implemented placeholders
+    - [x] `RyDateTime`
+    - [x] `RyDate`
+    - [x] `RyOffset`
+    - [x] `RySignedDuration`
+    - [x] `RySpan`
+    - [ ] `RyTimeZone`
+    - [x] `RyTime`
+    - [x] `RyZoned`
 
 ___
 

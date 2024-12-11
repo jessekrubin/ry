@@ -5,6 +5,7 @@ use jiff::Span;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
 use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -382,6 +383,67 @@ impl RySpan {
                 .map(RySignedDuration)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
         }
+    }
+
+    fn checked_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_mul(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn compare(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_days(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_hours(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_microseconds(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_milliseconds(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_minutes(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_months(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_nanoseconds(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_seconds(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_weeks(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn get_years(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn is_negative(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn is_positive(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn is_zero(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn round(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn signum(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn total(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 impl Display for RySpan {

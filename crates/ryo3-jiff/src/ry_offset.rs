@@ -5,6 +5,7 @@ use crate::ry_timestamp::RyTimestamp;
 use jiff::tz::Offset;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pyfunction, pymethods, Bound, PyErr, PyResult};
+use ryo3_macros::err_py_not_impl;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
@@ -115,6 +116,22 @@ impl RyOffset {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
+    }
+
+    fn checked_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_time_zone(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 

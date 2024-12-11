@@ -323,18 +323,6 @@ impl RyDate {
     }
 }
 
-// macro for not impl
-#[macro_export]
-macro_rules! not_impl {
-    ($name:ident) => {
-        fn $name(&self) -> PyResult<()> {
-            Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
-                format!("{name} not implemented",),
-            ))
-        }
-    };
-}
-
 impl Display for RyDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Date<{}>", self.0)

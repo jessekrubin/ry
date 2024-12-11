@@ -747,6 +747,35 @@ class DateTime:
     def asdict(self) -> DateTimeTypedDict: ...
     def round(self, options: JIFF_UNIT_STRING | DateTimeRound) -> t.Self: ...
 
+    # checked_add(&self) -> PyResult<()> {
+    # checked_sub(&self) -> PyResult<()> {
+    # constant(&self) -> PyResult<()> {
+    # day_of_year(&self) -> PyResult<()> {
+    # day_of_year_no_leap(&self) -> PyResult<()> {
+    # days_in_month(&self) -> PyResult<()> {
+    # days_in_year(&self) -> PyResult<()> {
+    # duration_since(&self) -> PyResult<()> {
+    # duration_until(&self) -> PyResult<()> {
+    # end_of_day(&self) -> PyResult<()> {
+    # era_year(&self) -> PyResult<()> {
+    # first_of_year(&self) -> PyResult<()> {
+    # from_parts(&self) -> PyResult<()> {
+    # in_leap_year(&self) -> PyResult<()> {
+    # last_of_year(&self) -> PyResult<()> {
+    # nth_weekday(&self) -> PyResult<()> {
+    # nth_weekday_of_month(&self) -> PyResult<()> {
+    # saturating_add(&self) -> PyResult<()> {
+    # saturating_sub(&self) -> PyResult<()> {
+    # since(&self) -> PyResult<()> {
+    # start_of_day(&self) -> PyResult<()> {
+    # strftime(&self) -> PyResult<()> {
+    # strptime(&self) -> PyResult<()> {
+    # tomorrow(&self) -> PyResult<()> {
+    # until(&self) -> PyResult<()> {
+    # weekday(&self) -> PyResult<()> {
+    # with(&self) -> PyResult<()> {
+    # yesterday(&self) -> PyResult<()> {
+
 class DateTimeSeries:
     def __iter__(self) -> t.Iterator[DateTime]: ...
     def __next__(self) -> DateTime: ...
@@ -761,6 +790,18 @@ class TimeZone:
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -> TimeZone: ...
     @classmethod
     def utc(cls: type[TimeZone]) -> TimeZone: ...
+    # fn fixed(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
+    # fn get(&self) -> PyResult<()> {
+    # fn into_ambiguous_zoned(&self) -> PyResult<()> {
+    # fn posix(&self) -> PyResult<()> {
+    # fn to_ambiguous_timestamp(&self) -> PyResult<()> {
+    # fn to_ambiguous_zoned(&self) -> PyResult<()> {
+    # fn to_datetime(&self) -> PyResult<()> {
+    # fn to_offset(&self) -> PyResult<()> {
+    # fn to_timestamp(&self) -> PyResult<()> {
+    # fn to_zoned(&self) -> PyResult<()> {
+    # fn try_system(&self) -> PyResult<()> {
+    # fn tzif(&self) -> PyResult<()> {
 
 class SignedDuration:
     MIN: SignedDuration
@@ -796,6 +837,48 @@ class SignedDuration:
     def seconds(self) -> int: ...
     @property
     def microseconds(self) -> int: ...
+    #  fn abs(&self) -> PyResult<()> {
+    #  fn as_hours(&self) -> PyResult<()> {
+    #  fn as_micros(&self) -> PyResult<()> {
+    #  fn as_millis(&self) -> PyResult<()> {
+    #  fn as_millis_f32(&self) -> PyResult<()> {
+    #  fn as_millis_f64(&self) -> PyResult<()> {
+    #  fn as_mins(&self) -> PyResult<()> {
+    #  fn as_nanos(&self) -> PyResult<()> {
+    #  fn as_secs(&self) -> PyResult<()> {
+    #  fn as_secs_f32(&self) -> PyResult<()> {
+    #  fn as_secs_f64(&self) -> PyResult<()> {
+    #  fn checked_add(&self) -> PyResult<()> {
+    #  fn checked_div(&self) -> PyResult<()> {
+    #  fn checked_mul(&self) -> PyResult<()> {
+    #  fn checked_neg(&self) -> PyResult<()> {
+    #  fn checked_sub(&self) -> PyResult<()> {
+    #  fn div_duration_f32(&self) -> PyResult<()> {
+    #  fn div_duration_f64(&self) -> PyResult<()> {
+    #  fn div_f32(&self) -> PyResult<()> {
+    #  fn div_f64(&self) -> PyResult<()> {
+    #  fn from_hours(&self) -> PyResult<()> {
+    #  fn from_micros(&self) -> PyResult<()> {
+    #  fn from_millis(&self) -> PyResult<()> {
+    #  fn from_mins(&self) -> PyResult<()> {
+    #  fn from_nanos(&self) -> PyResult<()> {
+    #  fn from_secs(&self) -> PyResult<()> {
+    #  fn from_secs_f32(&self) -> PyResult<()> {
+    #  fn from_secs_f64(&self) -> PyResult<()> {
+    #  fn is_positive(&self) -> PyResult<()> {
+    #  fn mul_f32(&self) -> PyResult<()> {
+    #  fn mul_f64(&self) -> PyResult<()> {
+    #  fn saturating_add(&self) -> PyResult<()> {
+    #  fn saturating_mul(&self) -> PyResult<()> {
+    #  fn saturating_sub(&self) -> PyResult<()> {
+    #  fn signum(&self) -> PyResult<()> {
+    #  fn subsec_micros(&self) -> PyResult<()> {
+    #  fn subsec_millis(&self) -> PyResult<()> {
+    #  fn subsec_nanos(&self) -> PyResult<()> {
+    #  fn system_until(&self) -> PyResult<()> {
+    #  fn try_from_secs_f32(&self) -> PyResult<()> {
+    #  fn try_from_secs_f64(&self) -> PyResult<()> {
+    #  fn unsigned_abs(&self) -> PyResult<()> {
 
 class TimeSpan:
     def __init__(
@@ -825,6 +908,26 @@ class TimeSpan:
     ) -> SignedDuration: ...
     def repr_full(self) -> str: ...
     def asdict(self) -> TimeSpanTypedDict: ...
+    # fn checked_add(&self) -> PyResult<()> {
+    # fn checked_mul(&self) -> PyResult<()> {
+    # fn checked_sub(&self) -> PyResult<()> {
+    # fn compare(&self) -> PyResult<()> {
+    # fn get_days(&self) -> PyResult<()> {
+    # fn get_hours(&self) -> PyResult<()> {
+    # fn get_microseconds(&self) -> PyResult<()> {
+    # fn get_milliseconds(&self) -> PyResult<()> {
+    # fn get_minutes(&self) -> PyResult<()> {
+    # fn get_months(&self) -> PyResult<()> {
+    # fn get_nanoseconds(&self) -> PyResult<()> {
+    # fn get_seconds(&self) -> PyResult<()> {
+    # fn get_weeks(&self) -> PyResult<()> {
+    # fn get_years(&self) -> PyResult<()> {
+    # fn is_negative(&self) -> PyResult<()> {
+    # fn is_positive(&self) -> PyResult<()> {
+    # fn is_zero(&self) -> PyResult<()> {
+    # fn round(&self) -> PyResult<()> {
+    # fn signum(&self) -> PyResult<()> {
+    # fn total(&self) -> PyResult<()> {
 
 class Timestamp:
     """
@@ -931,6 +1034,22 @@ class ZonedDateTime:
     def time(self) -> Time: ...
     def datetime(self) -> DateTime: ...
 
+#  fn end_of_day(&self) -> PyResult<Self> {
+#  fn in_leap_year(&self) -> bool {
+#  fn last_of_month(&self) -> PyResult<Self> {
+#  fn days_in_month(&self) -> i8 {
+#  fn days_in_year(&self) -> i16 {
+#  fn checked_sub(&self) -> PyResult<()> {
+#  fn day_of_year_no_leap(&self) -> PyResult<()> {
+#  fn days_in_month(&self) -> PyResult<()> {
+#  fn days_in_year(&self) -> PyResult<()> {
+#  fn duration_since(&self) -> PyResult<()> {
+#  fn duration_until(&self) -> PyResult<()> {
+#  fn end_of_day(&self) -> PyResult<()> {
+#  fn era_year(&self) -> PyResult<()> {
+#  fn in_leap_year(&self) -> PyResult<()> {
+#  fn last_of_month(&self) -> PyResult<()> {
+#  fn last_of_year(&self) -> PyResult<()> {
 class DateTimeRound:
     def __init__(
         self,
@@ -958,6 +1077,11 @@ class Offset:
     def __init__(self, hours: int) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
+    # fn checked_add(&self) -> PyResult<()> {
+    # fn checked_sub(&self) -> PyResult<()> {
+    # fn saturating_add(&self) -> PyResult<()> {
+    # fn saturating_sub(&self) -> PyResult<()> {
+    # fn to_time_zone(&self) -> PyResult<()> {
 
 def date(year: int, month: int, day: int) -> Date: ...
 def time(
