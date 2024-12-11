@@ -165,45 +165,45 @@ pub fn timespan(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-#[pyfunction]
-#[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0))]
-pub fn timespan_unchecked(
-    years: i64,
-    months: i64,
-    weeks: i64,
-    days: i64,
-    hours: i64,
-    minutes: i64,
-    seconds: i64,
-    milliseconds: i64,
-    microseconds: i64,
-    nanoseconds: i64,
-) -> PyResult<RySpan> {
-    fn apply_if_nonzero(span: Span, value: i64, method: impl FnOnce(Span, i64) -> Span) -> Span {
-        if value != 0 {
-            // span.and_then(|s| {
-            method(span, value)
-        } else {
-            span
-        }
-    }
-
-    let span = Span::new();
-    let span = apply_if_nonzero(span, years, Span::years);
-    let span = apply_if_nonzero(span, months, Span::months);
-    let span = apply_if_nonzero(span, weeks, Span::weeks);
-    let span = apply_if_nonzero(span, days, Span::days);
-    let span = apply_if_nonzero(span, hours, Span::hours);
-    let span = apply_if_nonzero(span, minutes, Span::minutes);
-    let span = apply_if_nonzero(span, seconds, Span::seconds);
-    let span = apply_if_nonzero(span, milliseconds, Span::milliseconds);
-    let span = apply_if_nonzero(span, microseconds, Span::microseconds);
-    let span = apply_if_nonzero(span, nanoseconds, Span::nanoseconds);
-
-    Ok(RySpan::from(span))
-}
-
+// #[allow(clippy::too_many_arguments)]
+// #[pyfunction]
+// #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0))]
+// pub fn timespan_unchecked(
+//     years: i64,
+//     months: i64,
+//     weeks: i64,
+//     days: i64,
+//     hours: i64,
+//     minutes: i64,
+//     seconds: i64,
+//     milliseconds: i64,
+//     microseconds: i64,
+//     nanoseconds: i64,
+// ) -> PyResult<RySpan> {
+//     fn apply_if_nonzero(span: Span, value: i64, method: impl FnOnce(Span, i64) -> Span) -> Span {
+//         if value != 0 {
+//             // span.and_then(|s| {
+//             method(span, value)
+//         } else {
+//             span
+//         }
+//     }
+//
+//     let span = Span::new();
+//     let span = apply_if_nonzero(span, years, Span::years);
+//     let span = apply_if_nonzero(span, months, Span::months);
+//     let span = apply_if_nonzero(span, weeks, Span::weeks);
+//     let span = apply_if_nonzero(span, days, Span::days);
+//     let span = apply_if_nonzero(span, hours, Span::hours);
+//     let span = apply_if_nonzero(span, minutes, Span::minutes);
+//     let span = apply_if_nonzero(span, seconds, Span::seconds);
+//     let span = apply_if_nonzero(span, milliseconds, Span::milliseconds);
+//     let span = apply_if_nonzero(span, microseconds, Span::microseconds);
+//     let span = apply_if_nonzero(span, nanoseconds, Span::nanoseconds);
+//
+//     Ok(RySpan::from(span))
+// }
+//
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
     m.add_class::<RyDate>()?;
@@ -223,7 +223,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(datetime, m)?)?;
     m.add_function(wrap_pyfunction!(ry_offset::offset, m)?)?;
     m.add_function(wrap_pyfunction!(timespan, m)?)?;
-    m.add_function(wrap_pyfunction!(timespan_unchecked, m)?)?;
 
     // okee-dokey
     Ok(())

@@ -47,7 +47,7 @@ class TestOffset:
         assert offset == ry.Offset.from_hours(-4)
 
     def test_offset_from_seconds(self) -> None:
-        offset = ry.Offset.from_seconds((-4 * 60 * 60))
+        offset = ry.Offset.from_seconds(-4 * 60 * 60)
         assert offset == ry.Offset(hours=-4)
 
     def test_offset_errors_when_given_both_hours_and_seconds(self) -> None:

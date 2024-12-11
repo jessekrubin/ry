@@ -38,7 +38,14 @@ def test_find_duration_between_datetimes() -> None:
 
 def test_add_duration_to_a_zoned_datetime() -> None:
     zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
-    span = ry.TimeSpan().years(3).months(4).days(5).hours(12).minutes(3)
+    span = (
+        ry.TimeSpan()
+        .with_years(3)
+        .with_months(4)
+        .with_days(5)
+        .with_hours(12)
+        .with_minutes(3)
+    )
     zdt2 = zdt1.checked_add(span)
     assert zdt2.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
@@ -52,7 +59,14 @@ def test_dealing_with_ambiguity() -> None:
 
 def test_parsing_a_span() -> None:
     span: ry.TimeSpan = ry.TimeSpan.parse("P5y1w10dT5h59m")
-    expected = ry.TimeSpan().years(5).weeks(1).days(10).hours(5).minutes(59)
+    expected = (
+        ry.TimeSpan()
+        .with_years(5)
+        .with_weeks(1)
+        .with_days(10)
+        .with_hours(5)
+        .with_minutes(59)
+    )
     assert span == expected
     assert str(span) == "P5y1w10dT5h59m"
 

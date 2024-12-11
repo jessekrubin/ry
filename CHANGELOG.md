@@ -19,6 +19,7 @@
     - [x] `RyTimeZone`
     - [x] `RyTime`
     - [x] `RyZoned`
+  - builder functions changed to be more pythonic using `with_` prefix
 
 ___
 
