@@ -248,37 +248,45 @@ impl RySignedDuration {
             .map_err(map_py_value_err)
     }
 
+    // =======
+    // AS NUMS
+    // =======
+    fn as_hours(&self) -> i64 {
+        self.0.as_hours()
+    }
+    fn as_micros(&self) -> i128 {
+        self.0.as_micros()
+    }
+    fn as_millis(&self) -> i128 {
+        self.0.as_millis()
+    }
+    fn as_millis_f32(&self) -> f32 {
+        self.0.as_millis_f32()
+    }
+    fn as_millis_f64(&self) -> f64 {
+        self.0.as_millis_f64()
+    }
+
+    fn as_mins(&self) -> i64 {
+        self.0.as_mins()
+    }
+
+    fn as_nanos(&self) -> i128 {
+        self.0.as_nanos()
+    }
+
+    fn as_secs(&self) -> i64 {
+        self.0.as_secs()
+    }
+
+    fn as_secs_f32(&self) -> f32 {
+        self.0.as_secs_f32()
+    }
+
+    fn as_secs_f64(&self) -> f64 {
+        self.0.as_secs_f64()
+    }
     fn abs(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_hours(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_micros(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_millis(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_millis_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_millis_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_mins(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_nanos(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_secs(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_secs_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn as_secs_f64(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn checked_add(&self) -> PyResult<()> {

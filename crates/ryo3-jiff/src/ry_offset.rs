@@ -86,7 +86,7 @@ impl RyOffset {
         if s % 3600 == 0 {
             format!("Offset(hours={})", s / 3600)
         } else {
-            format!("Offset(seconds={})", s)
+            format!("Offset(seconds={s})")
         }
     }
 

@@ -238,7 +238,7 @@ impl RyZoned {
         self.0 = t;
         Ok(())
     }
-    fn checked_add<'py>(&self, py: Python<'py>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    fn checked_add(&self, py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         self.__add__(py, other)
     }
     fn checked_sub<'py>(

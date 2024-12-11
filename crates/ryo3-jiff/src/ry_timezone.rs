@@ -90,7 +90,7 @@ impl RyTimeZone {
 
     #[classmethod]
     fn fixed(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
-        Self::from(TimeZone::fixed(offset.0.clone()))
+        Self::from(TimeZone::fixed(offset.0))
     }
 
     // ===============
@@ -100,9 +100,9 @@ impl RyTimeZone {
     fn get(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn into_ambiguous_zoned(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
+    // fn into_ambiguous_zoned(self) -> PyResult<()> {
+    //     err_py_not_impl!()
+    // }
     fn posix(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

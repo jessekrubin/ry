@@ -244,13 +244,9 @@ impl RyTimestamp {
     fn duration_until(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn from_jiff_duration(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn since(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-
     fn round(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

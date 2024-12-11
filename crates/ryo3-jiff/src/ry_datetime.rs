@@ -379,8 +379,10 @@ impl RyDateTime {
     fn first_of_year(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn from_parts(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    #[classmethod]
+    fn from_parts(_cls: &Bound<'_, PyType>, date: &RyDate, time: &RyTime) -> Self {
+        Self::from(DateTime::from_parts(date.0, time.0))
     }
     fn in_leap_year(&self) -> PyResult<()> {
         err_py_not_impl!()
