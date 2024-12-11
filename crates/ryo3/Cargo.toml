@@ -44,6 +44,7 @@ ryo3-walkdir = { workspace = true, optional = true }
 ryo3-which = { workspace = true, optional = true }
 ryo3-xxhash = { workspace = true, optional = true }
 ryo3-zstd = { workspace = true, optional = true }
+#ryo3-fspath.workspace = true
 
 [features]
 default = ["shlex", "jiter"]

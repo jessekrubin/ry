@@ -2,8 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::fs::fileio;
-use crate::fs::iterdir::PyIterdirGen;
+use crate::fs::readdir::PyReadDir;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
@@ -64,7 +63,8 @@ impl PyFsPath {
     }
 
     fn __repr__(&self) -> PyResult<String> {
-        let s = path2str(&self.pth);
+        let posix_str = self.as_posix()?;
+        let s = format!("FsPath(\'{posix_str}\')");
         Ok(s)
     }
 
@@ -398,7 +398,16 @@ impl PyFsPath {
     }
 
     pub fn write_text(&self, t: &str) -> PyResult<()> {
-        fileio::write_text(&self.string(), t)
+        let write_result = std::fs::write(&self.pth, t);
+        match write_result {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                let fspath = self.string();
+                Err(PyNotADirectoryError::new_err(format!(
+                    "write_bytes - parent: {fspath} - {e}"
+                )))
+            }
+        }
     }
 
     pub fn as_uri(&self) -> PyResult<String> {
@@ -407,9 +416,9 @@ impl PyFsPath {
         ))
     }
 
-    fn iterdir(&self) -> PyResult<PyIterdirGen> {
+    fn iterdir(&self) -> PyResult<PyReadDir> {
         let rd = std::fs::read_dir(&self.pth)
-            .map(PyIterdirGen::from)
+            .map(PyReadDir::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
         Ok(rd)
     }

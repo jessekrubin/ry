@@ -1149,6 +1149,7 @@ version = "0.0.20"
 dependencies = [
  "globset",
  "pyo3",
+ "ryo3-types",
 ]
 
 [[package]]
@@ -1235,6 +1236,7 @@ name = "ryo3-walkdir"
 version = "0.0.20"
 dependencies = [
  "pyo3",
+ "ryo3-globset",
  "ryo3-types",
  "walkdir",
 ]
