@@ -163,6 +163,7 @@ impl RySpan {
         Ok(RySpan::from(s))
     }
 
+    #[allow(clippy::too_many_arguments)]
     #[pyo3(signature = (years=None, months=None, weeks=None, days=None, hours=None, minutes=None, seconds=None, milliseconds=None, microseconds=None, nanoseconds=None))]
     fn replace(
         &self,
@@ -177,11 +178,11 @@ impl RySpan {
         microseconds: Option<i64>,
         nanoseconds: Option<i64>,
     ) -> PyResult<Self> {
-        let years = years.unwrap_or(self.0.get_years() as i64);
-        let months = months.unwrap_or(self.0.get_months() as i64);
-        let weeks = weeks.unwrap_or(self.0.get_weeks() as i64);
-        let days = days.unwrap_or(self.0.get_days() as i64);
-        let hours = hours.unwrap_or(self.0.get_hours() as i64);
+        let years = years.unwrap_or(i64::from(self.0.get_years()));
+        let months = months.unwrap_or(i64::from(self.0.get_months()));
+        let weeks = weeks.unwrap_or(i64::from(self.0.get_weeks()));
+        let days = days.unwrap_or(i64::from(self.0.get_days()));
+        let hours = hours.unwrap_or(i64::from(self.0.get_hours()));
         let minutes = minutes.unwrap_or(self.0.get_minutes());
         let seconds = seconds.unwrap_or(self.0.get_seconds());
         let milliseconds = milliseconds.unwrap_or(self.0.get_milliseconds());
@@ -432,41 +433,38 @@ impl RySpan {
         }
     }
 
-    fn __add__<'py>(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn __add__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = other.into();
         self.0
             .checked_add(span_arithmetic)
-            .map(|s| RySpan::from(s))
+            .map(RySpan::from)
             .map_err(map_py_overflow_err)
     }
-    fn checked_add<'py>(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn checked_add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn __sub__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = other.into();
         self.0
-            .checked_add(span_arithmetic)
-            .map(|s| RySpan::from(s))
+            .checked_sub(span_arithmetic)
+            .map(RySpan::from)
+            .map_err(map_py_overflow_err)
+    }
+    fn checked_sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+        self.__sub__(other)
+    }
+    fn __mul__(&self, rhs: i64) -> PyResult<Self> {
+        self.0
+            .checked_mul(rhs)
+            .map(RySpan::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn __sub__<'py>(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = other.into();
-        self.0
-            .checked_sub(span_arithmetic)
-            .map(|s| RySpan::from(s))
-            .map_err(map_py_overflow_err)
-    }
-    fn checked_sub<'py>(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = other.into();
-        self.0
-            .checked_sub(span_arithmetic)
-            .map(|s| RySpan::from(s))
-            .map_err(map_py_overflow_err)
-    }
     fn checked_mul(&self, rhs: i64) -> PyResult<Self> {
-        self.0
-            .checked_mul(rhs)
-            .map(|s| RySpan::from(s))
-            .map_err(map_py_overflow_err)
+        self.__mul__(rhs)
     }
+
     fn compare(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -525,10 +523,9 @@ pub(crate) enum SpanArithmeticTupleIx1 {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum IntoSpanArithmetic {
-    RySpan(RySpan),
-    RySignedDuration(RySignedDuration),
-    RySpanDateTuple((SpanArithmeticTupleIx0, SpanArithmeticTupleIx1)),
+pub(crate) enum IntoSpanArithmetic {
+    Uno(SpanArithmeticTupleIx0),
+    Dos((SpanArithmeticTupleIx0, SpanArithmeticTupleIx1)),
 }
 
 impl From<IntoSpanArithmetic> for SpanArithmetic<'_> {
@@ -536,9 +533,12 @@ impl From<IntoSpanArithmetic> for SpanArithmetic<'_> {
         // HERE WE HAVE A TOTAL CLUSTERFUCK OF MATCHING...
         // BUT I AM NOT SURE HOW TO GET THIS TO PLAY NICE WITH PYTHON + LIFETIMES
         match value {
-            IntoSpanArithmetic::RySpan(s) => SpanArithmetic::from(s.0),
-            IntoSpanArithmetic::RySignedDuration(s) => SpanArithmetic::from(s.0),
-            IntoSpanArithmetic::RySpanDateTuple((s, r)) => match s {
+            IntoSpanArithmetic::Uno(s) => match s {
+                SpanArithmeticTupleIx0::Span(sp) => SpanArithmetic::from(sp.0),
+                SpanArithmeticTupleIx0::Duration(dur) => SpanArithmetic::from(dur.0),
+                SpanArithmeticTupleIx0::SignedDuration(dur) => SpanArithmetic::from(dur.0),
+            },
+            IntoSpanArithmetic::Dos((s, r)) => match s {
                 SpanArithmeticTupleIx0::Span(sp) => match r {
                     // TODO: figure out if this is bad........
                     SpanArithmeticTupleIx1::Zoned(z) => {
