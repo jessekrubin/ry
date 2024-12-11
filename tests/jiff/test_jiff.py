@@ -217,16 +217,16 @@ class TestDateTime:
 
 
 class TestTimespanFunction:
-    def test_timespan_fn(self):
+    def test_timespan_fn(self) -> None:
         ts = ry.timespan(weeks=1)
         assert ts.string() == "P1w"
 
-    def test_timespan_overflow(self):
+    def test_timespan_overflow(self) -> None:
         max_i64 = 9_223_372_036_854_775_807
         with pytest.raises(OverflowError):
             ry.timespan(years=100, days=max_i64)
 
-    def test_timespan_overflow_unchecked(self):
+    def test_timespan_overflow_unchecked(self) -> None:
         max_i64 = 9_223_372_036_854_775_807
 
         with pytest.raises(Exception):
