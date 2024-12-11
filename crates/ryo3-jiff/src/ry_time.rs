@@ -1,10 +1,9 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::dev::JiffUnit;
 use crate::errors::map_py_overflow_err;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::JiffTime;
+use crate::{JiffTime, JiffUnit};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;

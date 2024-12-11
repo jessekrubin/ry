@@ -18,8 +18,7 @@ pub struct RySpan(pub(crate) Span);
 impl RySpan {
     #[allow(clippy::too_many_arguments)]
     #[new]
-    #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)
-    )]
+    #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0, unchecked=false))]
     fn new(
         years: i64,
         months: i64,
@@ -31,6 +30,7 @@ impl RySpan {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
+        unchecked: bool,
     ) -> PyResult<Self> {
         timespan(
             years,
@@ -43,6 +43,7 @@ impl RySpan {
             milliseconds,
             microseconds,
             nanoseconds,
+            unchecked,
         )
     }
 
@@ -357,7 +358,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (relative = None))]
-    fn to_jiff_duration(&self, relative: Option<RySpanRelativeTo>) -> PyResult<RySignedDuration> {
+    fn to_signed_duration(&self, relative: Option<RySpanRelativeTo>) -> PyResult<RySignedDuration> {
         if let Some(r) = relative {
             match r {
                 RySpanRelativeTo::Zoned(z) => self

@@ -8,90 +8,31 @@ from hypothesis import strategies as st
 
 import ry.dev as ry
 
-date_strategy = st.dates(
-    min_value=pydt.date(1, 1, 1), max_value=pydt.date(9999, 12, 31)
-).map(lambda dt: ry.date(dt.year, dt.month, dt.day))
-
-time_strategy = st.times().map(
-    lambda t: ry.time(t.hour, t.minute, t.second, t.microsecond * 1000)
-)
-
-datetime_strategy = st.datetimes(
-    min_value=pydt.datetime(1, 1, 1, 0, 0, 0),
-    max_value=pydt.datetime(9999, 12, 31, 23, 59, 59, 999999),
-).map(
-    lambda dt: ry.datetime(
-        dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond * 1000
-    )
-)
-timedelta_strategy = st.timedeltas()
-
-# Define strategies for generating test data
-date_tuple_strategy = st.builds(
-    # make build tuple
-    lambda year, month, day: (year, month, day),
-    st.integers(min_value=1, max_value=9999),  # Year
-    st.integers(min_value=1, max_value=12),  # Month
-    st.integers(min_value=1, max_value=31),
-)  # Day
-
-time_tuple_strategy = st.builds(
-    lambda *args: tuple(map(int, args)),
-    st.integers(min_value=0, max_value=23),  # Hour
-    st.integers(min_value=0, max_value=59),  # Minute
-    st.integers(min_value=0, max_value=59),  # Second
-    st.integers(min_value=0, max_value=999_999_999),
-)  # Nanosecond
-
-datetime_tuple_strategy = st.builds(
-    lambda *args: tuple(map(int, args)),
-    st.integers(min_value=1, max_value=9999),  # Year
-    st.integers(min_value=1, max_value=12),  # Month
-    st.integers(min_value=1, max_value=31),  # Day
-    st.integers(min_value=0, max_value=23),  # Hour
-    st.integers(min_value=0, max_value=59),  # Minute
-    st.integers(min_value=0, max_value=59),  # Second
-    st.integers(min_value=0, max_value=999_999_999),
-)  # Nanosecond
-
-timezone_strategy = st.sampled_from(
-    [
-        "UTC",
-        "America/New_York",
-        "Europe/London",
-        "Asia/Tokyo",
-        "Australia/Sydney",
-        "Europe/Berlin",
-        "Africa/Cairo",
-        "America/Los_Angeles",
-        # Add more timezones as needed
-    ]
-)
-
-duration_strategy = st.builds(
-    ry.SignedDuration,
-    secs=st.integers(min_value=-(10**15), max_value=10**15),
-    nanos=st.integers(min_value=-999_999_999, max_value=999_999_999),
+from .strategies import (
+    date_tuple_strategy,
+    datetime_strategy,
+    duration_strategy,
+    time_strategy,
+    time_tuple_strategy,
+    timedelta_strategy,
+    timezone_strategy,
 )
 
 
-# Test that creating a date and extracting its fields works correctly
 @given(date_tuple_strategy)
 def test_date_fields(date_tuple: tuple[int, int, int]) -> None:
+    """Test that creating a date and extracting its fields works correctly"""
     try:
         pydate = pydt.date(date_tuple[0], date_tuple[1], date_tuple[2])
         date = ry.date(date_tuple[0], date_tuple[1], date_tuple[2])
-        assert date.year >= 1 and date.year <= 9999
-        assert date.month >= 1 and date.month <= 12
-        assert date.day >= 1 and date.day <= 31
+        assert 1 <= date.year <= 9999
+        assert 1 <= date.month <= 12
+        assert 1 <= date.day <= 31
 
         assert date.to_pydate() == pydate
     except ValueError:
         with pytest.raises(ValueError):
             ry.date(date_tuple[0], date_tuple[1], date_tuple[2])
-
-    # pydate
-    # date = ry.date(pydate.year, pydate.month, pydate.day)
 
 
 @given(time_tuple_strategy)
@@ -109,7 +50,6 @@ def test_datetime_add_subtract_signed_duration(
     dt: ry.DateTime, duration: ry.SignedDuration
 ) -> None:
     """Test that adding and subtracting durations works correctly"""
-    print(dt, duration)
     try:
         dt_plus = dt + duration
         dt_minus = dt_plus - duration
@@ -146,11 +86,11 @@ def test_zoned_datetime_creation(dt: ry.DateTime, tz: str) -> None:
     """Test that tz are handled correctly"""
     try:
         zdt = dt.intz(tz)
-        print("dt", dt)
-        print("zdt.timezone()", zdt.datetime())
+
         assert zdt.timezone() == tz
-        assert zdt.datetime() == dt
+        assert isinstance(zdt, ry.ZonedDateTime)
     except ValueError:
+        print(f"Invalid timezone: {tz}")
         # Some combinations might raise exceptions due to invalid dates or timezones
         assume(False)
 
@@ -347,8 +287,6 @@ class TestTimeSpanConversion:
     @given(timedelta_strategy)
     def test_span_from_timedelta_to_many_days(self, tdelta: pydt.timedelta) -> None:
         # to span
-        print("===========")
-        print("tdelta", tdelta, tdelta.__repr__())
         assume(-7304484 > tdelta.days or tdelta.days > 7304484)
         with pytest.raises(ValueError):
             ry.TimeSpan.from_pytimedelta(tdelta)

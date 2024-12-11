@@ -115,3 +115,18 @@ def test_rounding_a_zoned_datetime() -> None:
     assert nearest_minute.string() == "2024-07-06T17:44:00-04:00[America/New_York]"
     # nearest_minute = zdt.round(ry.JiffUnit.Minute)
     # assert nearest_minute.string() == "2024-07-06T17:44:00-04:00[America/New_York]"
+
+
+def test_find_duration_between_datetimes() -> None:
+    """
+    ```rust
+    let zdt1 = date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")?;
+    let zdt2 = date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")?;
+    let span = &zdt2 - &zdt1;
+    assert_eq!(span.to_string(), "PT29341h3m");
+    ```
+    """
+    zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
+    span = zdt2 - zdt1
+    assert span.string() == "PT29341h3m"
