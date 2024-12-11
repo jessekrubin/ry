@@ -72,28 +72,30 @@ def test_using_strftime_and_strptime_for_formatting_and_parsing() -> None:
     assert string == "Monday, July 15, 2024 at 5:30pm Australia/Tasmania"
 
 
-#
-#
-# def test_rounding_a_span() -> None:
-#     """
-#     ```rust
-#     use jiff::{RoundMode, SpanRound, ToSpan, Unit};
-#
-#     // The default rounds like how you were taught in school:
-#     assert_eq!(1.hour().minutes(59).round(Unit::Hour)?, 2.hours());
-#     // But we can change the mode, e.g., truncation:
-#     let options = SpanRound::new().smallest(Unit::Hour).mode(RoundMode::Trunc);
-#     assert_eq!(1.hour().minutes(59).round(options)?, 1.hour());
-#     ```
-#
-#     """
-#
-#     span = ry.TimeSpan().hours(1).minutes(59)
-#     assert span.round(ry.Unit.Hour) == ry.TimeSpan().hours(2)
-#     options = ry.SpanRound().smallest(ry.Unit.Hour).mode(ry.RoundMode.Trunc)
-#     assert span.round(options) == ry.Span().hours(1)
-#
-#
+def test_rounding_a_span() -> None:
+    """
+    ```rust
+    use jiff::{RoundMode, SpanRound, ToSpan, Unit};
+
+    // The default rounds like how you were taught in school:
+    assert_eq!(1.hour().minutes(59).round(Unit::Hour)?, 2.hours());
+    // But we can change the mode, e.g., truncation:
+    let options = SpanRound::new().smallest(Unit::Hour).mode(RoundMode::Trunc);
+    assert_eq!(1.hour().minutes(59).round(options)?, 1.hour());
+    ```
+    """
+
+    span = ry.TimeSpan(
+        hours=1,
+        minutes=59,
+    )
+
+    assert span.round("hour") == ry.TimeSpan(hours=2)
+
+    # options = ry.SpanRound().smallest(ry.Unit.Hour).mode(ry.RoundMode.Trunc)
+    # assert span.round(options) == ry.Span().hours(1)
+
+
 def test_rounding_a_zoned_datetime() -> None:
     """
     ref: https://docs.rs/jiff/latest/jiff/enum.Unit.html

@@ -1,6 +1,8 @@
-use crate::internal::RySpanRelativeTo;
+use crate::errors::map_py_value_err;
+use crate::internal::{IntoDateTimeRound, RySpanRelativeTo};
 use crate::ry_signed_duration::RySignedDuration;
-use crate::{timespan, JiffSpan};
+use crate::{timespan, JiffRoundMode, JiffSpan};
+use jiff::civil::DateTimeRound;
 use jiff::Span;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
@@ -437,8 +439,11 @@ impl RySpan {
     fn is_zero(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn round(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn round(&self, round: IntoDateTimeRound) -> PyResult<Self> {
+        self.0
+            .round(round)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
     }
     fn signum(&self) -> PyResult<()> {
         err_py_not_impl!()
