@@ -1,8 +1,7 @@
 use crate::errors::map_py_value_err;
 use crate::internal::{IntoDateTimeRound, RySpanRelativeTo};
 use crate::ry_signed_duration::RySignedDuration;
-use crate::{timespan, JiffRoundMode, JiffSpan};
-use jiff::civil::DateTimeRound;
+use crate::{timespan, JiffSpan};
 use jiff::Span;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
