@@ -101,8 +101,8 @@ pub fn timespan(
 ) -> PyResult<RySpan> {
     // let unchecked = unchecked.unwrap_or(false);
 
-    println!("unchecked: {}", unchecked);
-    println!("days: {}", days);
+    println!("unchecked: {unchecked}");
+    println!("days: {days}");
     if unchecked {
         fn apply_if_nonzero(
             span: Span,

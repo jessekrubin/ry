@@ -1,7 +1,7 @@
 use crate::JiffUnit;
 use jiff::Unit;
 use pyo3::prelude::*;
-use pyo3::types::{PyInt, PyString};
+use pyo3::types::PyString;
 
 impl<'py> IntoPyObject<'py> for JiffUnit {
     #[cfg(Py_LIMITED_API)]
@@ -63,8 +63,7 @@ impl FromPyObject<'_> for JiffUnit {
                 "microsecond" => Ok(JiffUnit(Unit::Microsecond)),
                 "nanosecond" => Ok(JiffUnit(Unit::Nanosecond)),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid unit: {} (options: {})",
-                    s, JIFF_UNIT_STRINGS
+                    "Invalid unit: {s} (options: {JIFF_UNIT_STRINGS})"
                 ))),
             }
         } else {
@@ -81,8 +80,7 @@ impl FromPyObject<'_> for JiffUnit {
                 8 => Ok(JiffUnit(Unit::Microsecond)),
                 9 => Ok(JiffUnit(Unit::Nanosecond)),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid unit: {} (options: {})",
-                    i, JIFF_UNIT_OPTIONS
+                    "Invalid unit: {i} (options: {JIFF_UNIT_OPTIONS})"
                 ))),
             }
         }

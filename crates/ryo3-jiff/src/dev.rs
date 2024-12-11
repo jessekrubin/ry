@@ -1,9 +1,7 @@
 //! Development place
 use crate::{JiffRoundMode, JiffUnit};
 use jiff::civil::DateTimeRound;
-use pyo3::exceptions::{PyTypeError, PyValueError};
-use pyo3::types::{PyAnyMethods, PyString};
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyResult, Python};
+use pyo3::{pyclass, pymethods, PyResult};
 use std::fmt::Display;
 
 #[pyclass]
@@ -38,6 +36,7 @@ impl RyWeekday {
 // Nanosecond = 0,
 
 impl JiffUnit {
+    #[must_use]
     pub fn static_str(self) -> &'static str {
         match self.0 {
             jiff::Unit::Year => "year",

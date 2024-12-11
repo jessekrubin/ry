@@ -38,14 +38,14 @@ impl<'py> IntoPyObject<'py> for &JiffRoundMode {
             RoundMode::HalfEven => "half-even",
             _ => "unknown",
         };
-        Ok(PyString::new(py, s).into())
+        Ok(PyString::new(py, s))
     }
 }
 const JIFF_ROUND_MODE_ERROR: &str = "Invalid round mode, should be `'ceil'`, `'floor'`, `'expand'`, `'trunc'`, `'half_ceil'`, `'half_floor'`, `'half_expand'`, `'half_trunc'` or `'half_even'`";
 impl<'py> FromPyObject<'py> for JiffRoundMode {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(str_mode) = ob.extract::<&str>() {
-            match str_mode.to_ascii_lowercase().replace("_", "-").as_str() {
+            match str_mode.to_ascii_lowercase().replace('_', "-").as_str() {
                 "ceil" => Ok(Self(RoundMode::Ceil)),
                 "floor" => Ok(Self(RoundMode::Floor)),
                 "expand" => Ok(Self(RoundMode::Expand)),
