@@ -1,3 +1,4 @@
+use crate::errors::map_py_value_err;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::ry_span::RySpan;
 use crate::JiffSignedDuration;
@@ -5,6 +6,7 @@ use jiff::{SignedDuration, Span};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use ryo3_macros::err_py_not_impl;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
@@ -197,6 +199,165 @@ impl RySignedDuration {
                 }
             }
         }
+    }
+
+    // =========
+    // FROM NUMS
+    // =========
+    #[classmethod]
+    fn from_hours(_cls: &Bound<'_, PyType>, hours: i64) -> Self {
+        Self(SignedDuration::from_hours(hours))
+    }
+
+    #[classmethod]
+    fn from_micros(_cls: &Bound<'_, PyType>, micros: i64) -> Self {
+        Self(SignedDuration::from_micros(micros))
+    }
+
+    #[classmethod]
+    fn from_millis(_cls: &Bound<'_, PyType>, millis: i64) -> Self {
+        Self(SignedDuration::from_millis(millis))
+    }
+
+    #[classmethod]
+    fn from_mins(_cls: &Bound<'_, PyType>, mins: i64) -> Self {
+        Self(SignedDuration::from_mins(mins))
+    }
+
+    #[classmethod]
+    fn from_nanos(_cls: &Bound<'_, PyType>, nanos: i64) -> Self {
+        Self(SignedDuration::from_nanos(nanos))
+    }
+
+    #[classmethod]
+    fn from_secs(_cls: &Bound<'_, PyType>, secs: i64) -> Self {
+        Self(SignedDuration::from_secs(secs))
+    }
+
+    #[classmethod]
+    fn from_secs_f32(_cls: &Bound<'_, PyType>, secs: f32) -> PyResult<Self> {
+        SignedDuration::try_from_secs_f32(secs)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[classmethod]
+    fn from_secs_f64(_cls: &Bound<'_, PyType>, secs: f64) -> PyResult<Self> {
+        SignedDuration::try_from_secs_f64(secs)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    // =======
+    // AS NUMS
+    // =======
+    fn as_hours(&self) -> i64 {
+        self.0.as_hours()
+    }
+    fn as_micros(&self) -> i128 {
+        self.0.as_micros()
+    }
+    fn as_millis(&self) -> i128 {
+        self.0.as_millis()
+    }
+    fn as_millis_f32(&self) -> f32 {
+        self.0.as_millis_f32()
+    }
+    fn as_millis_f64(&self) -> f64 {
+        self.0.as_millis_f64()
+    }
+
+    fn as_mins(&self) -> i64 {
+        self.0.as_mins()
+    }
+
+    fn as_nanos(&self) -> i128 {
+        self.0.as_nanos()
+    }
+
+    fn as_secs(&self) -> i64 {
+        self.0.as_secs()
+    }
+
+    fn as_secs_f32(&self) -> f32 {
+        self.0.as_secs_f32()
+    }
+
+    fn as_secs_f64(&self) -> f64 {
+        self.0.as_secs_f64()
+    }
+    fn abs(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_div(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_mul(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_neg(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn div_duration_f32(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn div_duration_f64(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn div_f32(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn div_f64(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    fn is_positive(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn mul_f32(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn mul_f64(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_mul(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn signum(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn subsec_micros(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn subsec_millis(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn subsec_nanos(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn system_until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn try_from_secs_f32(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn try_from_secs_f64(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn unsigned_abs(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 

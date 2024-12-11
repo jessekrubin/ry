@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::errors::map_py_value_err;
 use crate::ry_span::RySpan;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
@@ -6,6 +7,7 @@ use jiff::{Timestamp, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
+use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -168,11 +170,94 @@ impl RyTimestamp {
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
+    fn subsec_microsecond(&self) -> i32 {
+        self.0.subsec_microsecond()
+    }
+    fn subsec_millisecond(&self) -> i32 {
+        self.0.subsec_millisecond()
+    }
 
     fn series(&self, period: &RySpan) -> RyTimestampSeries {
         RyTimestampSeries {
             series: self.0.series(period.0),
         }
+    }
+
+    #[getter]
+    fn is_zero(&self) -> bool {
+        self.0.is_zero()
+    }
+
+    fn intz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
+        self.0
+            .intz(time_zone_name)
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[classmethod]
+    fn from_microsecond(_cls: &Bound<'_, PyType>, microsecond: i64) -> PyResult<RyTimestamp> {
+        Timestamp::from_microsecond(microsecond)
+            .map(RyTimestamp::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[classmethod]
+    fn from_nanosecond(_cls: &Bound<'_, PyType>, nanosecond: i128) -> PyResult<RyTimestamp> {
+        Timestamp::from_nanosecond(nanosecond)
+            .map(RyTimestamp::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[classmethod]
+    fn from_second(_cls: &Bound<'_, PyType>, second: i64) -> PyResult<RyTimestamp> {
+        Timestamp::from_second(second)
+            .map(RyTimestamp::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+    fn signum(&self) -> i8 {
+        self.0.signum()
+    }
+    fn strftime(&self, format: &str) -> PyResult<String> {
+        Ok(self.0.strftime(format).to_string())
+    }
+
+    #[classmethod]
+    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<RyTimestamp> {
+        Timestamp::strptime(s, format)
+            .map(RyTimestamp::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn checked_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn display_with_offset(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn round(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn until(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 impl Display for RyTimestamp {

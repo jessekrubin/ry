@@ -1,4 +1,4 @@
-use crate::nujiff::JiffDateTime;
+use crate::jiff_types::JiffDateTime;
 use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyTypeError;

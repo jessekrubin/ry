@@ -1,5 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::nujiff::JiffDateTime;
+use crate::errors::map_py_value_err;
+use crate::jiff_types::JiffDateTime;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
@@ -13,6 +14,7 @@ use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
 };
+use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -167,39 +169,6 @@ impl RyDateTime {
         self.0.hash(&mut hasher);
         hasher.finish()
     }
-    fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: RyDateTimeArithmeticSub,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        match other {
-            RyDateTimeArithmeticSub::DateTime(other) => {
-                let span = self.0 - other.0;
-                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-                Ok(obj)
-            }
-            RyDateTimeArithmeticSub::Delta(other) => {
-                let t = match other {
-                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-                }
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
-                Ok(Self::from(t).into_pyobject(py)?.into_any())
-            }
-        }
-    }
-
-    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-        }
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
-        self.0 = t;
-        Ok(())
-    }
 
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
@@ -237,6 +206,77 @@ impl RyDateTime {
         self.0 = t;
         Ok(())
     }
+    fn __sub__<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyDateTimeArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        match other {
+            RyDateTimeArithmeticSub::DateTime(other) => {
+                let span = self.0 - other.0;
+                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
+                Ok(obj)
+            }
+            RyDateTimeArithmeticSub::Delta(other) => {
+                let t = match other {
+                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+                }
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
+                Ok(Self::from(t).into_pyobject(py)?.into_any())
+            }
+        }
+    }
+
+    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}")))?;
+        self.0 = t;
+        Ok(())
+    }
+
+    fn checked_add(&self, py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        self.__add__(py, other)
+    }
+    fn checked_sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: crate::ry_datetime::RyDateTimeArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
+    }
+
+    fn saturating_add<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyDeltaArithmeticSelf,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_add(other.0),
+        };
+        Ok(Self::from(t).into_pyobject(py)?.into_any())
+    }
+
+    fn saturating_sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyDeltaArithmeticSelf,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_sub(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_sub(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_sub(other.0),
+        };
+        Ok(Self::from(t).into_pyobject(py)?.into_any())
+    }
+
     fn to_date(&self) -> RyDate {
         RyDate::from(self.0.date())
     }
@@ -308,6 +348,91 @@ impl RyDateTime {
             .round(option)
             .map(RyDateTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+    fn constant(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn day_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn day_of_year_no_leap(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn days_in_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn days_in_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn end_of_day(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn era_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn first_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    #[classmethod]
+    fn from_parts(_cls: &Bound<'_, PyType>, date: &RyDate, time: &RyTime) -> Self {
+        Self::from(DateTime::from_parts(date.0, time.0))
+    }
+    fn in_leap_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn last_of_year(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn start_of_day(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn strftime(&self, format: &str) -> String {
+        self.0.strftime(format).to_string()
+    }
+
+    #[classmethod]
+    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
+        DateTime::strptime(s, format)
+            .map(RyDateTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn tomorrow(&self) -> PyResult<Self> {
+        self.0
+            .tomorrow()
+            .map(RyDateTime::from)
+            .map_err(map_py_value_err)
+    }
+    fn yesterday(&self) -> PyResult<Self> {
+        self.0
+            .yesterday()
+            .map(RyDateTime::from)
+            .map_err(map_py_value_err)
+    }
+    fn until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn with(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 impl Display for RyDateTime {

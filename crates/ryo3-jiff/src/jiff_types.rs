@@ -16,6 +16,16 @@ pub struct JiffOffset(pub jiff::tz::Offset);
 #[derive(Debug)]
 pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JiffUnit(pub(crate) jiff::Unit);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
+
+// ============================================================================
 impl From<jiff::civil::Date> for JiffDate {
     fn from(value: jiff::civil::Date) -> Self {
         JiffDate(value)
@@ -64,6 +74,20 @@ impl From<jiff::SignedDuration> for JiffSignedDuration {
     }
 }
 
+impl From<jiff::Unit> for JiffUnit {
+    fn from(value: jiff::Unit) -> Self {
+        JiffUnit(value)
+    }
+}
+
+impl From<jiff::civil::Weekday> for JiffWeekday {
+    fn from(value: jiff::civil::Weekday) -> Self {
+        JiffWeekday(value)
+    }
+}
+
+// ============================================================================
+
 impl From<JiffDate> for jiff::civil::Date {
     fn from(val: JiffDate) -> Self {
         val.0
@@ -108,6 +132,18 @@ impl From<JiffOffset> for jiff::tz::Offset {
 
 impl From<JiffSignedDuration> for jiff::SignedDuration {
     fn from(val: JiffSignedDuration) -> Self {
+        val.0
+    }
+}
+
+impl From<JiffUnit> for jiff::Unit {
+    fn from(val: JiffUnit) -> Self {
+        val.0
+    }
+}
+
+impl From<JiffWeekday> for jiff::civil::Weekday {
+    fn from(val: JiffWeekday) -> Self {
         val.0
     }
 }

@@ -2,16 +2,23 @@ use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
 use crate::ry_datetime::RyDateTime;
+use crate::ry_offset::RyOffset;
+use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::{JiffZoned, RyDate};
+use jiff::civil::Weekday;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDate, PyDateTime, PyType};
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use pyo3::types::{PyDate, PyDateTime, PyTuple, PyType};
+use pyo3::{
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
+    PyResult, Python,
+};
+use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -231,12 +238,32 @@ impl RyZoned {
         self.0 = t;
         Ok(())
     }
+    fn checked_add(&self, py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        self.__add__(py, other)
+    }
+    fn checked_sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyZonedArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
+    }
 
-    fn checked_add(&self, span: &RySpan) -> PyResult<Self> {
-        self.0
-            .checked_add(span.0)
-            .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    fn saturating_add(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_add(other.0),
+        };
+        Ok(Self::from(t))
+    }
+    fn saturating_sub(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_sub(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_sub(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_sub(other.0),
+        };
+        Ok(Self::from(t))
     }
 
     fn timezone(&self) -> RyTimeZone {
@@ -268,13 +295,13 @@ impl RyZoned {
     #[getter]
     fn weekday(&self) -> i8 {
         match self.0.weekday() {
-            jiff::civil::Weekday::Monday => 1,
-            jiff::civil::Weekday::Tuesday => 2,
-            jiff::civil::Weekday::Wednesday => 3,
-            jiff::civil::Weekday::Thursday => 4,
-            jiff::civil::Weekday::Friday => 5,
-            jiff::civil::Weekday::Saturday => 6,
-            jiff::civil::Weekday::Sunday => 7,
+            Weekday::Monday => 1,
+            Weekday::Tuesday => 2,
+            Weekday::Wednesday => 3,
+            Weekday::Thursday => 4,
+            Weekday::Friday => 5,
+            Weekday::Saturday => 6,
+            Weekday::Sunday => 7,
         }
     }
 
@@ -325,6 +352,113 @@ impl RyZoned {
             .yesterday()
             .map(RyZoned::from)
             .map_err(map_py_value_err)
+    }
+
+    fn end_of_day(&self) -> PyResult<Self> {
+        self.0
+            .end_of_day()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn in_leap_year(&self) -> bool {
+        self.0.in_leap_year()
+    }
+
+    fn last_of_month(&self) -> PyResult<Self> {
+        self.0
+            .last_of_month()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+    fn last_of_year(&self) -> PyResult<Self> {
+        self.0
+            .last_of_year()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+    fn days_in_month(&self) -> i8 {
+        self.0.days_in_month()
+    }
+    fn days_in_year(&self) -> i16 {
+        self.0.days_in_year()
+    }
+
+    fn day_of_year(&self) -> i16 {
+        self.0.day_of_year()
+    }
+    fn day_of_year_no_leap(&self) -> Option<i16> {
+        self.0.day_of_year_no_leap()
+    }
+
+    fn duration_since(&self, other: &Self) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_since(&other.0))
+    }
+    fn duration_until(&self, other: &Self) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_until(&other.0))
+    }
+
+    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let (y, e) = self.0.era_year();
+
+        let era_str_pyobj = match e {
+            jiff::civil::Era::BCE => intern!(py, "BCE"),
+            jiff::civil::Era::CE => intern!(py, "CE"),
+        };
+        let year_py = y.into_py_any(py)?;
+        let era_str = era_str_pyobj.into_py_any(py)?;
+
+        let pyobjs_vec = vec![year_py, era_str];
+        PyTuple::new(py, pyobjs_vec)
+    }
+    fn first_of_month(&self) -> PyResult<Self> {
+        self.0
+            .first_of_month()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+    fn first_of_year(&self) -> PyResult<Self> {
+        self.0
+            .first_of_year()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn nth_weekday(&self, _nth: i32, _weekday: u8) -> PyResult<Self> {
+        err_py_not_impl!()
+    }
+
+    fn nth_weekday_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn offset(&self) -> RyOffset {
+        self.0.offset().into()
+    }
+
+    fn since(&self) -> PyResult<()> {
+        // self.0.since()
+        err_py_not_impl!()
+    }
+    fn start_of_day(&self) -> PyResult<Self> {
+        self.0
+            .start_of_day()
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn time_zone(&self) -> PyResult<RyTimeZone> {
+        Ok(RyTimeZone::from(self.0.time_zone()))
+    }
+
+    fn until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+
+    fn with(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {
+        self.0.with_time_zone(tz.0.clone()).into()
     }
 }
 

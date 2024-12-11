@@ -88,7 +88,7 @@ lint.exclude = [
   "venv",
 ]
 # Tests can use magic values, assertions, and relative imports
-lint.per-file-ignores."**/test_*.py" = [
+lint.per-file-ignores."tests/**/*.py" = [
   "B011",
   "DTZ001",
   "PL",

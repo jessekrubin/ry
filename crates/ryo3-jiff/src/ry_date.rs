@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::errors::map_py_value_err;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -11,9 +12,10 @@ use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
-    PyResult, Python,
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
+    PyRef, PyRefMut, PyResult, Python,
 };
+use ryo3_macros::err_py_not_impl;
 use ryo3_std::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -231,6 +233,110 @@ impl RyDate {
         RyDateSeries {
             series: self.0.series(period.0),
         }
+    }
+
+    fn checked_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn constant(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn day_of_year(&self) -> i16 {
+        self.0.day_of_year()
+    }
+    fn day_of_year_no_leap(&self) -> Option<i16> {
+        self.0.day_of_year_no_leap()
+    }
+    fn days_in_month(&self) -> i8 {
+        self.0.days_in_month()
+    }
+    fn days_in_year(&self) -> i16 {
+        self.0.days_in_year()
+    }
+    fn duration_since(&self, other: &Self) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_since(other.0))
+    }
+    fn duration_until(&self, other: &Self) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_until(other.0))
+    }
+    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let (y, e) = self.0.era_year();
+
+        let era_str_pyobj = match e {
+            jiff::civil::Era::BCE => intern!(py, "BCE"),
+            jiff::civil::Era::CE => intern!(py, "CE"),
+        };
+        let year_py = y.into_py_any(py)?;
+        let era_str = era_str_pyobj.into_py_any(py)?;
+
+        let pyobjs_vec = vec![year_py, era_str];
+        PyTuple::new(py, pyobjs_vec)
+    }
+    fn first_of_month(&self) -> RyDate {
+        Self::from(self.0.first_of_month())
+    }
+    fn first_of_year(&self) -> RyDate {
+        Self::from(self.0.first_of_year())
+    }
+
+    #[classmethod]
+    fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn in_leap_year(&self) -> bool {
+        self.0.in_leap_year()
+    }
+    fn last_of_month(&self) -> RyDate {
+        Self::from(self.0.last_of_month())
+    }
+    fn last_of_year(&self) -> RyDate {
+        Self::from(self.0.last_of_year())
+    }
+    fn tomorrow(&self) -> PyResult<Self> {
+        self.0.tomorrow().map(From::from).map_err(map_py_value_err)
+    }
+    fn yesterday(&self) -> PyResult<Self> {
+        self.0.yesterday().map(From::from).map_err(map_py_value_err)
+    }
+    fn nth_weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn strftime(&self, format: &str) -> PyResult<String> {
+        Ok(self.0.strftime(format).to_string())
+    }
+
+    #[classmethod]
+    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
+        Date::strptime(s, format)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+    fn to_iso_week_date(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn with(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 

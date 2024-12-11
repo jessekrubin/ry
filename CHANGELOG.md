@@ -8,6 +8,18 @@
   - Internal refactoring
   - added `globster()` method to `ry.Glob` and `ry.GlobSet` to return a `ry.Globster` obj
   - added `globset()` method to `ry.Glob` to return a `ry.GlobSet` obj from a `ry.Glob` obj
+- `jiff`
+  - conversions for jiff-round-mode/unit/weekday
+  - not-implemented placeholders and new impls
+    - [x] `RyDateTime`
+    - [x] `RyDate`
+    - [x] `RyOffset`
+    - [x] `RySignedDuration`
+    - [x] `RySpan`
+    - [x] `RyTimeZone`
+    - [x] `RyTime`
+    - [x] `RyZoned`
+  - builder functions changed to be more pythonic using `with_` prefix
 
 ___
 

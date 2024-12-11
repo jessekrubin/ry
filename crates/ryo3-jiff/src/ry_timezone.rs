@@ -1,7 +1,9 @@
+use crate::ry_offset::RyOffset;
 use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
 use pyo3::types::{PyAnyMethods, PyType, PyTzInfo};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use ryo3_macros::err_py_not_impl;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
@@ -84,6 +86,49 @@ impl RyTimeZone {
     fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyTzInfo>) -> PyResult<Self> {
         let jiff_tz: JiffTimeZone = d.extract()?;
         Ok(Self::from(jiff_tz.0))
+    }
+
+    #[classmethod]
+    fn fixed(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
+        Self::from(TimeZone::fixed(offset.0))
+    }
+
+    // ===============
+    // NOT IMPLEMENTED
+    // ===============
+
+    fn get(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    // fn into_ambiguous_zoned(self) -> PyResult<()> {
+    //     err_py_not_impl!()
+    // }
+    fn posix(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_ambiguous_timestamp(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_ambiguous_zoned(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_datetime(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_offset(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_timestamp(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn to_zoned(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn try_system(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn tzif(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 

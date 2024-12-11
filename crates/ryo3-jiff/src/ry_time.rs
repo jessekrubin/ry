@@ -1,15 +1,15 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::dev::JiffUnit;
 use crate::errors::map_py_overflow_err;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::JiffTime;
+use crate::{JiffTime, JiffUnit};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
+use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -216,17 +216,6 @@ impl RyTime {
     #[classmethod]
     fn from_pytime(_cls: &Bound<'_, PyType>, py_time: &Bound<'_, PyTime>) -> PyResult<Self> {
         py_time.extract::<JiffTime>().map(RyTime::from)
-        // let jiff_time : JiffTime =
-        //     py_time.extract::<JiffTime>()?;
-        // let a = Self::from(
-        //     jiff_time.0
-        // );
-        // Ok(a)
-
-        // JiffTime::from_pyobject(d)?;
-        // time_from_pyobject(py_time)
-        //     .map(crate::RyTime::from)
-        //     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -253,6 +242,49 @@ impl RyTime {
     fn series(&self, period: &RySpan) -> PyResult<RyTimeSeries> {
         let ser = self.0.series(period.0);
         Ok(RyTimeSeries { series: ser })
+    }
+
+    fn checked_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn checked_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn constant(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn duration_until(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn midnight(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn round(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn saturating_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn subsec_nanosecond(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn with(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn wrapping_add(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn wrapping_sub(&self) -> PyResult<()> {
+        err_py_not_impl!()
     }
 }
 

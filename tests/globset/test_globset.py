@@ -44,7 +44,7 @@ def test_multiple_globsters() -> None:
 
 
 def test_multiple_globsters_tuple() -> None:
-    gset = ry.globs(tuple(["*.py", "*.txt"]))
+    gset = ry.globs(("*.py", "*.txt"))
     assert gset.is_match("file.py")
     assert gset.is_match("file.txt")
     assert not gset.is_match("file.exe")

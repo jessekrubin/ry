@@ -1,6 +1,7 @@
-use crate::dev::{JiffUnit, RyDateTimeRound};
+use crate::dev::RyDateTimeRound;
+use crate::JiffUnit;
 use jiff::civil::DateTimeRound;
-use jiff::ZonedRound;
+use jiff::{SpanRound, ZonedRound};
 use pyo3::FromPyObject;
 
 #[derive(Debug, Clone, FromPyObject)]
@@ -34,6 +35,18 @@ impl From<IntoDateTimeRound> for ZonedRound {
     fn from(value: IntoDateTimeRound) -> Self {
         match value {
             IntoDateTimeRound::RyDateTimeRound(round) => jiff::ZonedRound::new()
+                .smallest(round.smallest.0)
+                .mode(round.mode.0)
+                .increment(round.increment),
+            IntoDateTimeRound::JiffUnit(unit) => unit.0.into(),
+        }
+    }
+}
+
+impl From<IntoDateTimeRound> for SpanRound<'_> {
+    fn from(value: IntoDateTimeRound) -> Self {
+        match value {
+            IntoDateTimeRound::RyDateTimeRound(round) => jiff::SpanRound::new()
                 .smallest(round.smallest.0)
                 .mode(round.mode.0)
                 .increment(round.increment),
