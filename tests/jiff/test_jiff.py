@@ -2,11 +2,61 @@ from __future__ import annotations
 
 import itertools as it
 
-import ry.dev as ry
+import pytest
+
+import ry
 
 # ====================
 # Zoned
 # ====================
+
+
+class TestZonedDateTime:
+    def test_era_year(self) -> None:
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        era_year = zdt.era_year()
+        assert era_year == (2020, "CE")
+
+    def test_offset_from_zdt(self) -> None:
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        offset = zdt.offset()
+        assert isinstance(offset, ry.Offset)
+        assert offset == ry.Offset(hours=-4)
+
+    def test_start_of_day(self) -> None:
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        start_of_day = zdt.start_of_day()
+        assert isinstance(start_of_day, ry.ZonedDateTime)
+        assert start_of_day == ry.date(2020, 8, 26).at(0, 0, 0, 0).intz(
+            "America/New_York"
+        )
+
+    def test_end_of_day(self) -> None:
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        end_of_day = zdt.end_of_day()
+        assert isinstance(end_of_day, ry.ZonedDateTime)
+        assert end_of_day == ry.date(2020, 8, 26).at(23, 59, 59, 999_999_999).intz(
+            "America/New_York"
+        )
+
+
+class TestOffset:
+    def test_create_offset_with_hours(self) -> None:
+        offset = ry.Offset(hours=-4)
+        assert offset == ry.Offset(hours=-4)
+        assert offset == ry.Offset.from_hours(-4)
+
+    def test_offset_from_seconds(self) -> None:
+        offset = ry.Offset.from_seconds((-4 * 60 * 60))
+        assert offset == ry.Offset(hours=-4)
+
+    def test_offset_errors_when_given_both_hours_and_seconds(self) -> None:
+        with pytest.raises(TypeError):
+            ry.Offset(hours=-4, seconds=-4 * 60 * 60)
+
+    def test_offset_errors_when_given_neither_hours_nor_seconds(self) -> None:
+        with pytest.raises(TypeError):
+            ry.Offset()
 
 
 def test_zoned() -> None:

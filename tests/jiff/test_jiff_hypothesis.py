@@ -146,6 +146,8 @@ def test_zoned_datetime_creation(dt: ry.DateTime, tz: str) -> None:
     """Test that tz are handled correctly"""
     try:
         zdt = dt.intz(tz)
+        print("dt", dt)
+        print("zdt.timezone()", zdt.datetime())
         assert zdt.timezone() == tz
         assert zdt.datetime() == dt
     except ValueError:

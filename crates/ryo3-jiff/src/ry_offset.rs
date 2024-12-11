@@ -2,7 +2,9 @@ use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
+use crate::ry_timezone::RyTimeZone;
 use jiff::tz::Offset;
+use pyo3::pyclass::CompareOp;
 use pyo3::types::PyType;
 use pyo3::{pyclass, pyfunction, pymethods, Bound, PyErr, PyResult};
 use ryo3_macros::err_py_not_impl;
@@ -15,8 +17,17 @@ pub struct RyOffset(pub(crate) Offset);
 #[pymethods]
 impl RyOffset {
     #[new]
-    pub fn new(hours: i8) -> Self {
-        RyOffset::from(jiff::tz::offset(hours))
+    #[pyo3(signature = (hours = None, seconds = None))]
+    pub fn new(hours: Option<i8>, seconds: Option<i32>) -> PyResult<Self> {
+        match (hours, seconds) {
+            (Some(h), None) => Ok(RyOffset::from(Offset::constant(h))),
+            (None, Some(s)) => Offset::from_seconds(s)
+                .map(RyOffset::from)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
+            _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "Offset() takes either hours or seconds",
+            )),
+        }
     }
 
     #[allow(non_snake_case)]
@@ -50,12 +61,12 @@ impl RyOffset {
 
     #[classmethod]
     pub fn constant(_cls: &Bound<'_, PyType>, hours: i8) -> Self {
-        Self::new(hours)
+        RyOffset::from(Offset::constant(hours))
     }
 
     #[classmethod]
     pub fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> Self {
-        Self::new(hours)
+        RyOffset::from(Offset::constant(hours))
     }
 
     #[classmethod]
@@ -63,6 +74,20 @@ impl RyOffset {
         Offset::from_seconds(seconds)
             .map(RyOffset::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    pub fn __str__(&self) -> String {
+        self.__repr__()
+    }
+
+    pub fn __repr__(&self) -> String {
+        let s = self.0.seconds();
+        // if it is hours then use hours for repr
+        if s % 3600 == 0 {
+            format!("Offset(hours={})", s / 3600)
+        } else {
+            format!("Offset(seconds={})", s)
+        }
     }
 
     pub fn seconds(&self) -> i32 {
@@ -118,6 +143,17 @@ impl RyOffset {
         hasher.finish()
     }
 
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(self.0 == other.0),
+            CompareOp::Ne => Ok(self.0 != other.0),
+            CompareOp::Lt => Ok(self.0 < other.0),
+            CompareOp::Le => Ok(self.0 <= other.0),
+            CompareOp::Gt => Ok(self.0 > other.0),
+            CompareOp::Ge => Ok(self.0 >= other.0),
+        }
+    }
+
     fn checked_add(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -130,8 +166,8 @@ impl RyOffset {
     fn saturating_sub(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn to_time_zone(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn to_time_zone(&self) -> RyTimeZone {
+        RyTimeZone::from(self.0.to_time_zone())
     }
 }
 
