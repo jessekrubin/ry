@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import subprocess as sp
 from functools import lru_cache
-from pathlib import Path
 
-from ry import which
+from ry import FsPath, which
 
 # this filesdir
-PWDPATH = Path(__file__).resolve().parent
+PWDPATH = FsPath(__file__).resolve().parent
 REPO_ROOT = PWDPATH.parent
 API_PYI_FILEPATH = REPO_ROOT / "python" / "ry" / "ryo3.pyi"
 README_FILEPATH = REPO_ROOT / "README.md"

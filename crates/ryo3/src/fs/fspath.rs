@@ -143,6 +143,11 @@ impl PyFsPath {
         Ok(PyFsPath::from(p))
     }
 
+    fn resolve(&self) -> PyResult<Self> {
+        let p = self.pth.canonicalize()?;
+        Ok(PyFsPath::from(p))
+    }
+
     fn extension(&self) -> PyResult<Option<String>> {
         let e = self.pth.extension();
         match e {
