@@ -13,7 +13,7 @@ def test_parse_error() -> None:
     """
 
     with pytest.raises(ValueError):
-        ry.Url.parse("http://[:::1]")
+        ry.URL.parse("http://[:::1]")
 
 
 def test_parse_url_readme() -> None:
@@ -38,7 +38,7 @@ def test_parse_url_readme() -> None:
     assert!(issue_list_url.fragment() == None);
     assert!(!issue_list_url.cannot_be_a_base());
     """
-    u = ry.Url.parse(
+    u = ry.URL.parse(
         "https://github.com/rust-lang/rust/issues?labels=E-easy&state=open"
     )
     assert u.scheme == "https"
@@ -59,7 +59,7 @@ def test_parse_url_readme() -> None:
 def test_inheritance() -> None:
     with pytest.raises(TypeError):
 
-        class MyURL(ry.Url):
+        class MyURL(ry.URL):
             pass
 
 
@@ -67,32 +67,32 @@ def test_str_subclass() -> None:
     class S(str):
         pass
 
-    assert str(ry.Url(S("http://example.com"))) == "http://example.com/"
+    assert str(ry.URL(S("http://example.com"))) == "http://example.com/"
 
 
 #
 def test_absolute_url_without_host() -> None:
     with pytest.raises(ValueError):
-        ry.Url("http://:8080/")
+        ry.URL("http://:8080/")
 
 
 def test_url_is_not_str() -> None:
-    url = ry.Url("http://example.com")
+    url = ry.URL("http://example.com")
     assert not isinstance(url, str)
 
 
 def test_str() -> None:
-    url = ry.Url("http://example.com:8888/path/to?a=1&b=2")
+    url = ry.URL("http://example.com:8888/path/to?a=1&b=2")
     assert str(url) == "http://example.com:8888/path/to?a=1&b=2"
 
 
 def test_repr() -> None:
-    url = ry.Url("http://example.com")
-    assert "Url('http://example.com/')" == repr(url)
+    url = ry.URL("http://example.com")
+    assert "URL('http://example.com/')" == repr(url)
 
 
 def test_join() -> None:
-    u = ry.Url("http://example.com")
+    u = ry.URL("http://example.com")
     joined = u.join("foo")
     assert str(joined) == "http://example.com/foo"
     joined_multiple = u.join("foo").join("bar")
@@ -102,7 +102,7 @@ def test_join() -> None:
 
 
 def test_join_truediv() -> None:
-    u = ry.Url("http://example.com")
+    u = ry.URL("http://example.com")
     joined = u / "foo"
     assert str(joined) == "http://example.com/foo"
     joined_multiple = u / "foo" / "bar"
@@ -112,7 +112,7 @@ def test_join_truediv() -> None:
 
 
 def test_join_truediv_trailing_slash() -> None:
-    u = ry.Url("http://example.com")
+    u = ry.URL("http://example.com")
     joined = u / "foo"
     assert str(joined) == "http://example.com/foo"
     joined_multiple = u / "foo/" / "bar"
