@@ -113,7 +113,9 @@ class TestSpanCheckedAdd:
         with pytest.raises(OverflowError):
             span1.checked_add(span2)
 
-    def test_adding_spans_with_calendar_units_with_relative_datetime(self) -> None:
+    def test_adding_spans_with_calendar_units_with_relative_datetime(
+        self,
+    ) -> None:
         # with relative datetime
         span1 = ry.timespan(months=1, days=15)
         span2 = ry.timespan(days=15)

@@ -37,4 +37,9 @@ def test_time_tuple() -> None:
 
 def test_time_asdict() -> None:
     rytime = ry.time(10, 20, 30)
-    assert {"hour": 10, "minute": 20, "second": 30, "nanosecond": 0} == rytime.asdict()
+    assert {
+        "hour": 10,
+        "minute": 20,
+        "second": 30,
+        "nanosecond": 0,
+    } == rytime.asdict()

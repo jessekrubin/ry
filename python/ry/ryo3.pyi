@@ -562,7 +562,10 @@ class Xxh3:
     name: t.Literal["xxh3"]
 
     def __init__(
-        self, input: bytes = ..., seed: int | None = ..., secret: bytes | None = ...
+        self,
+        input: bytes = ...,
+        seed: int | None = ...,
+        secret: bytes | None = ...,
     ) -> None: ...
     def update(self, input: bytes) -> None: ...
     def digest(self) -> bytes: ...
@@ -579,7 +582,9 @@ class Xxh3:
 def xxh32(input: bytes | None = None, seed: int | None = None) -> Xxh32: ...
 def xxh64(input: bytes | None = None, seed: int | None = None) -> Xxh64: ...
 def xxh3(
-    input: bytes | None = None, seed: int | None = None, secret: bytes | None = None
+    input: bytes | None = None,
+    seed: int | None = None,
+    secret: bytes | None = None,
 ) -> Xxh3: ...
 
 # xxh32
@@ -766,7 +771,11 @@ class Time:
     MAX: Time
 
     def __init__(
-        self, hour: int = 0, minute: int = 0, second: int = 0, nanosecond: int = 0
+        self,
+        hour: int = 0,
+        minute: int = 0,
+        second: int = 0,
+        nanosecond: int = 0,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
