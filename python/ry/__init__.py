@@ -2,6 +2,7 @@
 
 from ry import ryo3
 from ry.ryo3 import (
+    URL,
     Date,
     DateTime,
     DateTimeRound,
@@ -19,7 +20,6 @@ from ry.ryo3 import (
     TimeSpan,
     Timestamp,
     TimeZone,
-    Url,
     WalkdirGen,
     Xxh3,
     Xxh32,
@@ -114,6 +114,7 @@ from ry.ryo3 import (
 )
 
 __all__ = (
+    "URL",
     "Date",
     "DateTime",
     "DateTimeRound",
@@ -131,7 +132,6 @@ __all__ = (
     "TimeSpan",
     "TimeZone",
     "Timestamp",
-    "Url",
     "WalkdirGen",
     "Xxh3",
     "Xxh32",

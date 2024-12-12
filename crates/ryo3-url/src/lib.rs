@@ -1,23 +1,41 @@
 //! ryo3 url wrapper library for python
+
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyAnyMethods, PyTuple};
+use pyo3::types::{PyAnyMethods, PyDict, PyTuple};
 use pyo3::types::{PyModule, PyType};
 use pyo3::{pyclass, Bound, PyResult};
 use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Url", module = "ryo3")]
+#[pyclass(name = "URL", module = "ryo3")]
 pub struct PyUrl(pub(crate) url::Url);
 
 #[pymethods]
 impl PyUrl {
     #[new]
-    fn new(url: &str) -> PyResult<Self> {
-        url::Url::parse(url).map(PyUrl).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-        })
+    #[pyo3(signature = (url, *, params = None))]
+    fn new(url: &str, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        if let Some(params) = params {
+            let params = params
+                .into_iter()
+                .map(|(k, v)| {
+                    let k_str: String = k.extract()?;
+                    let v_str: String = v.extract()?;
+                    Ok((k_str, v_str))
+                })
+                .collect::<PyResult<Vec<(String, String)>>>()?;
+            url::Url::parse_with_params(url, params)
+                .map(PyUrl)
+                .map_err(|e| {
+                    PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
+                })
+        } else {
+            url::Url::parse(url).map(PyUrl).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
+            })
+        }
     }
 
     #[classmethod]
@@ -27,12 +45,34 @@ impl PyUrl {
         })
     }
 
+    #[classmethod]
+    fn parse_with_params<'py>(
+        _cls: &Bound<'py, PyType>,
+        url: &str,
+        params: &Bound<'py, PyDict>,
+    ) -> PyResult<Self> {
+        let params = params
+            .into_iter()
+            .map(|(k, v)| {
+                let k_str: String = k.extract()?;
+                let v_str: String = v.extract()?;
+                Ok((k_str, v_str))
+            })
+            .collect::<PyResult<Vec<(String, String)>>>()?;
+
+        url::Url::parse_with_params(url, params)
+            .map(PyUrl)
+            .map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
+            })
+    }
+
     fn __str__(&self) -> &str {
         self.0.as_str()
     }
 
     fn __repr__(&self) -> String {
-        format!("Url(\'{}\')", self.0.as_str())
+        format!("URL(\'{}\')", self.0.as_str())
     }
 
     fn __hash__(&self) -> u64 {
@@ -175,6 +215,11 @@ impl PyUrl {
         self.0.has_authority()
     }
 
+    #[getter]
+    fn netloc(&self) -> &str {
+        // not provided by python
+        self.0.authority()
+    }
     fn has_host(&self) -> bool {
         self.0.has_host()
     }

@@ -8,6 +8,10 @@
   - Internal refactoring
   - added `globster()` method to `ry.Glob` and `ry.GlobSet` to return a `ry.Globster` obj
   - added `globset()` method to `ry.Glob` to return a `ry.GlobSet` obj from a `ry.Glob` obj
+- `url`
+  - python `Url` changed name `URL`; aligns with jawascript and other python libs
+- `bzip2`
+  - update to v5
 - `jiff`
   - conversions for jiff-round-mode/unit/weekday
   - not-implemented placeholders and new impls
