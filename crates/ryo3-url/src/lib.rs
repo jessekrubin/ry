@@ -16,7 +16,7 @@ pub struct PyUrl(pub(crate) url::Url);
 impl PyUrl {
     #[new]
     #[pyo3(signature = (url, *, params = None))]
-    fn new<'py>(url: &str, params: Option<&Bound<'py, PyDict>>) -> PyResult<Self> {
+    fn new(url: &str, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         if let Some(params) = params {
             let params = params
                 .into_iter()
@@ -59,12 +59,12 @@ impl PyUrl {
                 Ok((k_str, v_str))
             })
             .collect::<PyResult<Vec<(String, String)>>>()?;
-        let url = url::Url::parse_with_params(url, params)
+
+        url::Url::parse_with_params(url, params)
             .map(PyUrl)
             .map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-            });
-        url
+            })
     }
 
     fn __str__(&self) -> &str {
