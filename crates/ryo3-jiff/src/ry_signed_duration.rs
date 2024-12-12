@@ -7,6 +7,7 @@ use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use ryo3_macros::err_py_not_impl;
+use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
@@ -85,6 +86,12 @@ impl RySignedDuration {
 
     fn __abs__(&self) -> Self {
         Self(self.0.abs())
+    }
+    fn abs(&self) -> RySignedDuration {
+        self.__abs__()
+    }
+    fn unsigned_abs(&self) -> PyDuration {
+        PyDuration::from(self.0.unsigned_abs())
     }
 
     fn string(&self) -> String {
@@ -286,9 +293,6 @@ impl RySignedDuration {
     fn as_secs_f64(&self) -> f64 {
         self.0.as_secs_f64()
     }
-    fn abs(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn checked_add(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -354,9 +358,6 @@ impl RySignedDuration {
         err_py_not_impl!()
     }
     fn try_from_secs_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn unsigned_abs(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }

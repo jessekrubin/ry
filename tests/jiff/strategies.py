@@ -19,7 +19,13 @@ datetime_strategy = st.datetimes(
     max_value=pydt.datetime(9999, 12, 31, 23, 59, 59, 999999),
 ).map(
     lambda dt: ry.datetime(
-        dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond * 1000
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        dt.microsecond * 1000,
     )
 )
 timedelta_strategy = st.timedeltas()

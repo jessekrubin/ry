@@ -246,7 +246,7 @@ impl RyDateTime {
     fn checked_sub<'py>(
         &self,
         py: Python<'py>,
-        other: crate::ry_datetime::RyDateTimeArithmeticSub,
+        other: RyDateTimeArithmeticSub,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }

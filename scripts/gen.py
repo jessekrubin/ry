@@ -39,7 +39,13 @@ def main():
     ]
 
     # __init__.py string lines
-    lines = [f'"""{ryo3.__doc__}\n"""', "", *import_lines, "", *package_all_list_lines]
+    lines = [
+        f'"""{ryo3.__doc__}\n"""',
+        "",
+        *import_lines,
+        "",
+        *package_all_list_lines,
+    ]
 
     # __init__.py string
     init_string = "\n".join(lines)

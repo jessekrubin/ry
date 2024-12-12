@@ -143,6 +143,11 @@ impl PyFsPath {
         Ok(PyFsPath::from(p))
     }
 
+    fn resolve(&self) -> PyResult<Self> {
+        let p = self.pth.canonicalize()?;
+        Ok(PyFsPath::from(p))
+    }
+
     fn extension(&self) -> PyResult<Option<String>> {
         let e = self.pth.extension();
         match e {
@@ -252,6 +257,13 @@ impl PyFsPath {
             },
             None => Ok(self.clone()),
         }
+    }
+
+    // TODO - implement ad iterator not tuple
+    #[getter]
+    fn parents<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let parents: Vec<Self> = self.pth.ancestors().map(PyFsPath::from).collect();
+        PyTuple::new(py, parents)
     }
 
     #[getter]

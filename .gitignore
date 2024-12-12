@@ -1,5 +1,6 @@
 /target
-
+node_modules/
+/pnpm-lock.yaml
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .pytest_cache/

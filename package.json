@@ -1,6 +1,6 @@
 {
   "name": "ry",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "ry jawascript/interfacescript tools",
   "main": "index.js",
   "scripts": {
@@ -8,5 +8,8 @@
   },
   "keywords": [],
   "author": "jesse rubin <jessekrubin@gmail.com>",
-  "license": "MIT OR Apache-2.0"
+  "license": "MIT OR Apache-2.0",
+  "devDependencies": {
+    "pyright": "^1.1.390"
+  }
 }

@@ -2,27 +2,38 @@ from __future__ import annotations
 
 import subprocess as sp
 from functools import lru_cache
-from pathlib import Path
 
-from ry import which
+from ry import FsPath, which
 
 # this filesdir
-PWDPATH = Path(__file__).resolve().parent
+PWDPATH = FsPath(__file__).resolve().parent
 REPO_ROOT = PWDPATH.parent
 API_PYI_FILEPATH = REPO_ROOT / "python" / "ry" / "ryo3.pyi"
 README_FILEPATH = REPO_ROOT / "README.md"
 
 
 @lru_cache
-def get_api_content():
+def get_api_content(
+    line_length: int = 80,
+    indent_width: int = 4,
+):
     api_content_raw = API_PYI_FILEPATH.read_text()
 
     ruff_path = which("ruff")
     assert ruff_path is not None, "ruff not found in PATH"
     # format the file... w/ 2 spaces so it fits in the README better
     # ruff format --config "indent-width = 2" -
+    # line length 80 for the API docs
     run_res = sp.run(
-        [ruff_path, "format", "--config", "indent-width = 2", "-"],
+        [
+            ruff_path,
+            "format",
+            "--line-length",
+            str(line_length),
+            "--config",
+            f"indent-width = {indent_width}",
+            "-",
+        ],
         input=api_content_raw,
         text=True,
         capture_output=True,
@@ -69,7 +80,6 @@ def update_readme():
     assert api_end_ix != -1, f"Could not find {api_end} in README.md"
 
     api_content_formatted = get_api_content()
-
     api_content_wrapped = f"\n```python\n{api_content_formatted}\n```\n"
     readme_chunks = (
         readme_content[: api_start_ix + len(api_start)],

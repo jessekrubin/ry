@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+  "include": ["python", "tests"],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.vscode",
+    "**/.git",
+    "**/.venv",
+    "**/.nox",
+    "**/.mypy_cache"
+  ],
+  "ignore": ["python/ry/dev.py"],
+  "defineConstant": {
+    "DEBUG": true
+  },
+  "reportMissingImports": "error",
+  "reportMissingTypeStubs": false,
+  "pythonVersion": "3.9",
+  "pythonPlatform": "Linux",
+  "executionEnvironments": [
+    {
+      "root": "tests/xxhash",
+      "extraPaths": [],
+      "reportPossiblyUnboundVariable": false,
+      "reportAttributeAccessIssue": false
+    },
+    {
+      "root": "tests",
+      "extraPaths": [],
+      "reportCallIssue": false
+    },
+    {
+      "root": "src"
+    }
+  ]
+}

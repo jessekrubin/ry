@@ -172,7 +172,7 @@ def test_time_addition_overflow(time: ry.Time, seconds_to_add: int) -> None:
         assert isinstance(new_time, ry.Time)
     except OverflowError:
         with pytest.raises(OverflowError):
-            time + tspan
+            _res = time + tspan
 
 
 @given(datetime_strategy, timezone_strategy, duration_strategy)
@@ -242,7 +242,7 @@ def test_duration_subtraction(dt: ry.DateTime, duration: ry.SignedDuration) -> N
         assert result_subtract == result_add_negation
     except OverflowError:
         with pytest.raises(OverflowError):
-            dt - duration
+            _res = dt - duration
 
 
 class TestSignedDurationConversion:

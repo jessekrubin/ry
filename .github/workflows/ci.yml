@@ -20,6 +20,9 @@ concurrency:
 jobs:
   linux:
     runs-on: ${{ matrix.platform.runner }}
+    permissions:
+      contents: read
+      packages: write # Required to upload docker images to ghcr
     strategy:
       matrix:
         platform:
@@ -63,6 +66,7 @@ jobs:
           pip install -r requirements.dev.txt
           pip install pytest
           pytest
+
       - name: pytest
         if: ${{ !startsWith(matrix.platform.target, 'x86') && matrix.platform.target != 'ppc64' }}
         uses: uraimo/run-on-arch-action@v2

@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 [dependencies]
 dirs.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-ryo3 = { path = "./crates/ryo3", features = ["all"] }
+ryo3 = { workspace = true, features = ["all"] }
 
 serde.workspace = true
 serde_json.workspace = true
@@ -20,8 +20,6 @@ thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-### alternative to pyo3-asyncio that is notable and should be watched
-# pyo3-async = "0.3.1"
 
 [build-dependencies]
 pyo3-build-config.workspace = true
@@ -32,7 +30,7 @@ opt-level = 0
 
 [profile.release]
 opt-level = 3
-strip = true
+strip = true # strip debug symbols
 lto = "thin"
 
 # release fat profile
@@ -70,7 +68,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.20"
+version = "0.0.21"
 authors = ["Jesse K. Rubin <jessekrubin@gmail.com>"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2021"

@@ -1,13 +1,13 @@
 use pyo3::prelude::*;
+use ryo3_std::PyDuration;
+use std::time::Duration;
 
 #[pyfunction]
-#[must_use]
-pub fn sleep(secs: u64) -> f64 {
-    let start = std::time::Instant::now();
-    std::thread::sleep(std::time::Duration::from_secs(secs));
-    let end = std::time::Instant::now();
-    let duration = end - start;
-    duration.as_secs_f64()
+pub fn sleep(py: Python<'_>, secs: u64) -> PyResult<f64> {
+    let py_duration = PyDuration(Duration::from_secs(secs));
+    py_duration.sleep(py, None)?;
+
+    Ok(py_duration.0.as_secs_f64())
 }
 
 #[pyfunction]
