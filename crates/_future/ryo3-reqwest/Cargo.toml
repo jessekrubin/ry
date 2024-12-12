@@ -1,0 +1,20 @@
+[package]
+name = "ryo3-reqwest"
+description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.html)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
+reqwest = { workspace = true, features = ["default", "blocking", "gzip", "brotli", "zstd", "cookies", "json", "multipart", "stream"] }
+pyo3-async-runtimes = { workspace = true, features = ["attributes", "tokio-runtime", "async-std-runtime"] }
+tracing.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true
