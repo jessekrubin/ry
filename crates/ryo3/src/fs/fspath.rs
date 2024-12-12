@@ -254,6 +254,13 @@ impl PyFsPath {
         }
     }
 
+    // TODO - implement ad iterator not tuple
+    #[getter]
+    fn parents<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let parents: Vec<Self> = self.pth.ancestors().map(|p| PyFsPath::from(p)).collect();
+        PyTuple::new(py, parents)
+    }
+
     #[getter]
     fn parts<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let parts = self

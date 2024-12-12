@@ -3,6 +3,7 @@ use pyo3::prelude::{PyModule, PyModuleMethods};
 use pyo3::types::{PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyResult, Python};
 use ryo3_macros::err_py_not_impl;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Duration;
 
 // const NANOS_PER_SEC: u32 = 1_000_000_000;
@@ -85,6 +86,12 @@ impl PyDuration {
             self.0.as_secs(),
             self.0.subsec_nanos()
         )
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
     }
 
     fn dbg(&self) -> String {
@@ -265,8 +272,7 @@ impl PyDuration {
     fn from_days(_cls: &Bound<'_, PyType>, days: u64) -> PyResult<Self> {
         if days > u64::MAX / MAX_DAYS {
             Err(pyo3::exceptions::PyOverflowError::new_err(format!(
-                "overflow in Duration::from_days: {} > {}",
-                days, MAX_DAYS
+                "overflow in Duration::from_days: {days} > {MAX_DAYS}"
             )))
         } else {
             Ok(Self(Duration::from_secs(days * 60 * 60 * 24)))
@@ -277,8 +283,7 @@ impl PyDuration {
     fn from_weeks(_cls: &Bound<'_, PyType>, weeks: u64) -> PyResult<Self> {
         if weeks > u64::MAX / (MAX_WEEKS) {
             Err(pyo3::exceptions::PyOverflowError::new_err(format!(
-                "overflow in Duration::from_weeks: {} > {}",
-                weeks, MAX_WEEKS
+                "overflow in Duration::from_weeks: {weeks} > {MAX_WEEKS}"
             )))
         } else {
             Ok(Self(Duration::from_secs(weeks * 60 * 60 * 24 * 7)))
@@ -304,7 +309,7 @@ impl PyDuration {
     // ========================================================================
     #[pyo3(signature = (interval = None))]
     /// Sleep for the duration
-    pub fn sleep<'py>(&self, py: Python<'py>, interval: Option<u64>) -> PyResult<()> {
+    pub fn sleep(&self, py: Python<'_>, interval: Option<u64>) -> PyResult<()> {
         let interval = match interval {
             Some(interval) => {
                 if interval > 1000 {

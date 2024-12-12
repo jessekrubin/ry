@@ -3,7 +3,7 @@ use ryo3_std::PyDuration;
 use std::time::Duration;
 
 #[pyfunction]
-pub fn sleep<'py>(py: Python<'py>, secs: u64) -> PyResult<f64> {
+pub fn sleep(py: Python<'_>, secs: u64) -> PyResult<f64> {
     let py_duration = PyDuration(Duration::from_secs(secs));
     py_duration.sleep(py, None)?;
 

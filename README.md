@@ -53,32 +53,43 @@ _(aka: questions that I have been asking myself)_
 
 ## Crate bindings
 
-- `shlex`
-- `jiter`
-- `which`
-- `sqlformat`
-- compression:
-  - `brotli`
-  - `bzip2`
-  - `flat2`
-  - `zstd`
-- hashing:
-  - `fnv`
-  - `xxhash`
-- burnt-sushi:
-  - `walkdir`
-  - `globset` (formerly [globsters](https://pypi.org/project/globsters/))
-  - `jiff`
+ryo3-std
+- wrapped crates:
+  - `heck`
+  - `jiter`
+  - `shlex`
+  - `sqlformat`
+  - `url`
+  - `which`
+  - compression:
+    - `brotli`
+    - `bzip2`
+    - `flate2`
+    - `zstd`
+  - hashing:
+    - `fnv`
+    - `xxhash`
+  - burnt-sushi:
+    - `globset` (formerly [globsters](https://pypi.org/project/globsters/))
+    - `jiff`
+    - `walkdir`
 
 ### FUTURE?
 
 - `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
-- `regex`
-- `tokio` (fs + process)
-- `tracing` (could be nicer than python's awful logging lib -- currently a
-  part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
-- `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for
-  me to have more time)
+- wrappers:
+  - `ignore`
+  - `regex`
+  - `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for me to have more time)
+  - `tokio` (`fs` and `process`)
+  - `tracing` (could be nicer than python's awful logging lib -- currently a part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
+  - `tracing` (eg logging)
+  - `uuid`
+- organization
+  - split up the `ryo3` type annotations?
+  - chunk things into smaller sub-packages within the `ry` package?
+
+___
 
 ## API
 
@@ -1151,6 +1162,8 @@ def offset(hours: int) -> Offset: ...
   docs
 - type annotations are required
 - `ruff` used for formatting and linting
+
+___
 
 ## SEE ALSO
 
