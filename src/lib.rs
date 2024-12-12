@@ -5,7 +5,7 @@ mod lager;
 
 const PACKAGE: &str = "ry";
 const AUTHORS: &str = "jesse rubin <jessekrubin@gmail.com>";
-const DESCRIPTION: &str = "ry ~ rush & python & wrappers oh my!";
+const DESCRIPTION: &str = "ry ~ rust & python & wrappers oh my!";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BUILD_PROFILE: &str = env!("PROFILE");
 const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");

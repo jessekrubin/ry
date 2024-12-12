@@ -92,7 +92,7 @@ ___
 
 - `jiff`
   - `ry.TimeZone` testing and to/from `datetime.tzinfo` conversions
-  - Using nu-types for `jiff` intermedate types bc of the classic orphans problem (aka batman) w/ traits
+  - Using nu-types for `jiff` intermediate types bc of the classic orphans problem (aka batman) w/ traits
   - hypothesis tests
 - `jiter`
   - Updated to `jiter` v0.8.1
