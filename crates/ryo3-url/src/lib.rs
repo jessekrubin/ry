@@ -5,7 +5,6 @@ use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyTuple};
 use pyo3::types::{PyModule, PyType};
 use pyo3::{pyclass, Bound, PyResult};
-use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 
@@ -22,11 +21,11 @@ impl PyUrl {
             let params = params
                 .into_iter()
                 .map(|(k, v)| {
-                    let k = k.extract::<String>().unwrap();
-                    let v = v.extract::<String>().unwrap();
-                    (k, v)
+                    let k_str: String = k.extract()?;
+                    let v_str: String = v.extract()?;
+                    Ok((k_str, v_str))
                 })
-                .collect::<HashMap<_, _>>();
+                .collect::<PyResult<Vec<(String, String)>>>()?;
             url::Url::parse_with_params(url, params)
                 .map(PyUrl)
                 .map_err(|e| {
@@ -55,11 +54,11 @@ impl PyUrl {
         let params = params
             .into_iter()
             .map(|(k, v)| {
-                let k = k.extract::<String>().unwrap();
-                let v = v.extract::<String>().unwrap();
-                (k, v)
+                let k_str: String = k.extract()?;
+                let v_str: String = v.extract()?;
+                Ok((k_str, v_str))
             })
-            .collect::<HashMap<_, _>>();
+            .collect::<PyResult<Vec<(String, String)>>>()?;
         let url = url::Url::parse_with_params(url, params)
             .map(PyUrl)
             .map_err(|e| {
