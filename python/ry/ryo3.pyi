@@ -20,9 +20,9 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 
-# ==============================================================================
+# =============================================================================
 # TYPE ALIASES
-# ==============================================================================
+# =============================================================================
 JsonPrimitive = None | bool | int | float | str
 JsonValue = (
     JsonPrimitive
@@ -30,12 +30,20 @@ JsonValue = (
     | list[JsonPrimitive | JsonValue]
 )
 
-# ==============================================================================
+# =============================================================================
 # STD
-# ==============================================================================
+# =============================================================================
 
 class Duration:
-    def __init__(self, seconds: int, nanoseconds: int) -> None: ...
+    ZERO: Duration
+    MIN: Duration
+    MAX: Duration
+    NANOSECOND: Duration
+    MICROSECOND: Duration
+    MILLISECOND: Duration
+    SECOND: Duration
+
+    def __init__(self, secs: int, nanos: int) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: object) -> bool: ...
@@ -44,19 +52,87 @@ class Duration:
     def __ge__(self, other: object) -> bool: ...
     def __richcmp__(self, other: Duration | pydt.timedelta, op: int) -> bool: ...
     def __str__(self) -> str: ...
+    def abs_diff(self, other: Duration) -> Duration: ...
+
+    # =========================================================================
+    # PYTHON_CONVERSIONS
+    # =========================================================================
     @classmethod
     def from_pytimedelta(cls: type[Duration], td: pydt.timedelta) -> Duration: ...
     def to_pytimedelta(self) -> pydt.timedelta: ...
+
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def is_zero(self) -> bool: ...
+    @property
+    def nanos(self) -> int: ...
+    @property
+    def secs(self) -> int: ...
     @property
     def days(self) -> int: ...
     @property
     def seconds(self) -> int: ...
     @property
     def microseconds(self) -> int: ...
+    @property
+    def subsec_micros(self) -> int: ...
+    @property
+    def subsec_millis(self) -> int: ...
+    @property
+    def subsec_nanos(self) -> int: ...
 
-# ==============================================================================
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def from_hours(cls, hours: int) -> Duration: ...
+    @classmethod
+    def from_micros(cls, micros: int) -> Duration: ...
+    @classmethod
+    def from_millis(cls, millis: int) -> Duration: ...
+    @classmethod
+    def from_mins(cls, mins: int) -> Duration: ...
+    @classmethod
+    def from_nanos(cls, nanos: int) -> Duration: ...
+    @classmethod
+    def from_secs(cls, secs: int) -> Duration: ...
+    @classmethod
+    def from_secs_f32(cls, secs: float) -> Duration: ...
+    @classmethod
+    def from_secs_f64(cls, secs: float) -> Duration: ...
+    @classmethod
+    def from_days(cls, days: int) -> Duration: ...
+    @classmethod
+    def from_weeks(cls, weeks: int) -> Duration: ...
+    def as_micros(self) -> int: ...
+    def as_millis(self) -> int: ...
+    def as_nanos(self) -> int: ...
+    def as_secs(self) -> int: ...
+    def as_secs_f32(self) -> float: ...
+    def as_secs_f64(self) -> float: ...
+
+    # =========================================================================
+    # NOT IMPLEMENTED
+    # =========================================================================
+    def checked_add(self) -> None: ...
+    def checked_div(self) -> None: ...
+    def checked_mul(self) -> None: ...
+    def checked_sub(self) -> None: ...
+    def div_duration_f32(self) -> None: ...
+    def div_duration_f64(self) -> None: ...
+    def div_f32(self) -> None: ...
+    def div_f64(self) -> None: ...
+    def mul_f32(self) -> None: ...
+    def mul_f64(self) -> None: ...
+    def saturating_add(self) -> None: ...
+    def saturating_mul(self) -> None: ...
+    def saturating_sub(self) -> None: ...
+
+# =============================================================================
 # RY03-CORE
-# ==============================================================================
+# =============================================================================
 
 class FsPath:
     def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
@@ -128,63 +204,64 @@ def quick_maths() -> t.Literal[3]:
         https://youtu.be/3M_5oYU-IsU?t=60
 
     Example:
-        >>> result = quick_maths()
+        >>> import ry
+        >>> result = ry.quick_maths()
         >>> assert result == 3
 
     NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
     """
 
-# ==============================================================================
+# =============================================================================
 # SLEEP
-# ==============================================================================
+# =============================================================================
 def sleep(seconds: float) -> float: ...
 async def sleep_async(seconds: float) -> float: ...
 
-# ==============================================================================
+# =============================================================================
 # FILESYSTEM
-# ==============================================================================
+# =============================================================================
 def read_text(path: FsPathLike) -> str: ...
 def read_bytes(path: FsPathLike) -> bytes: ...
 def write_text(path: FsPathLike, data: str) -> None: ...
 def write_bytes(path: FsPathLike, data: bytes) -> None: ...
 
-# ==============================================================================
+# =============================================================================
 # SUBPROCESS (VERY MUCH WIP)
-# ==============================================================================
+# =============================================================================
 def run(
     *args: str | list[str],
     capture_output: bool = True,
     input: bytes | None = None,
 ) -> t.Any: ...
 
-# ==============================================================================
+# =============================================================================
 # DEV
-# ==============================================================================
+# =============================================================================
 
 def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
 
-# ------------------------------------------------------------------------------
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-# ------------------------------------------------------------------------------
-# ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~ LIBS ~
-# ------------------------------------------------------------------------------
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# -----------------------------------------------------------------------------
+# |~|~ LIBS ~|~ LIBS ~|~ LIBS ~|~ LIBS ~|~ LIBS ~|~ LIBS ~|~ LIBS ~|~ LIBS ~|~|
+# -----------------------------------------------------------------------------
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# -----------------------------------------------------------------------------
 
-# ==============================================================================
+# =============================================================================
 # WHICH
-# ==============================================================================
+# =============================================================================
 def which(cmd: str, path: None | str = None) -> str | None: ...
 def which_all(cmd: str, path: None | str = None) -> list[str]: ...
 def whicha(cmd: str, path: None | str = None) -> list[str]:
     """Alias for which_all (may go away in the future)"""
 
-# ==============================================================================
+# =============================================================================
 # HECK
-# ==============================================================================
+# =============================================================================
 
 def camel_case(string: str) -> str: ...
 def kebab_case(string: str) -> str: ...
@@ -196,9 +273,9 @@ def snek_case(string: str) -> str: ...
 def title_case(string: str) -> str: ...
 def train_case(string: str) -> str: ...
 
-# ==============================================================================
+# =============================================================================
 # GLOBSET
-# ==============================================================================
+# =============================================================================
 class Glob:
     """globset::Glob wrapper"""
 
@@ -282,9 +359,9 @@ def globs(
     backslash_escape: bool | None = None,
 ) -> Globster: ...
 
-# ==============================================================================
+# =============================================================================
 # WALKDIR
-# ==============================================================================
+# =============================================================================
 
 class WalkdirGen:
     """walkdir::Walkdir iterable wrapper"""
@@ -326,16 +403,16 @@ def fspaths(
     same_file_system: bool = False,
 ) -> WalkdirGen: ...
 
-# ==============================================================================
+# =============================================================================
 # SHLEX
-# ==============================================================================
+# =============================================================================
 def shplit(s: str) -> list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
     ...
 
-# ==============================================================================
+# =============================================================================
 # JSON
-# ==============================================================================
+# =============================================================================
 def parse_json(
     data: bytes | str,
     /,
@@ -344,7 +421,7 @@ def parse_json(
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = False,
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
@@ -354,7 +431,7 @@ def parse_json_bytes(
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = False,
 ) -> JsonValue: ...
 def parse_json_str(
     data: str,
@@ -364,19 +441,19 @@ def parse_json_str(
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-    float_mode: t.Literal["float", "decimal", "lossless-float"] = "float",
+    float_mode: t.Literal["float", "decimal", "lossless-float"] = False,
 ) -> JsonValue: ...
 def jiter_cache_clear() -> None: ...
 def jiter_cache_usage() -> int: ...
 
-# ==============================================================================
+# =============================================================================
 # FORMATTING
-# ==============================================================================
+# =============================================================================
 def fmt_nbytes(nbytes: int) -> str: ...
 
-# ==============================================================================
+# =============================================================================
 # FNV
-# ==============================================================================
+# =============================================================================
 class FnvHasher:
     name: t.Literal["fnv1a"]
 
@@ -390,14 +467,14 @@ class FnvHasher:
 
 def fnv1a(input: bytes) -> FnvHasher: ...
 
-# ==============================================================================
+# =============================================================================
 # DEV
-# ==============================================================================
+# =============================================================================
 def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
 
-# ==============================================================================
+# =============================================================================
 # BROTLI
-# ==============================================================================
+# =============================================================================
 def brotli_encode(
     input: bytes, quality: int = 11, magic_number: bool = False
 ) -> bytes: ...
@@ -405,17 +482,17 @@ def brotli_decode(input: bytes) -> bytes: ...
 def brotli(input: bytes, quality: int = 11, magic_number: bool = False) -> bytes:
     """Alias for brotli_encode"""
 
-# ==============================================================================
+# =============================================================================
 # BZIP2
-# ==============================================================================
+# =============================================================================
 def bzip2_encode(input: bytes, quality: int = 9) -> bytes: ...
 def bzip2_decode(input: bytes) -> bytes: ...
 def bzip2(input: bytes, quality: int = 9) -> bytes:
     """Alias for bzip2_encode"""
 
-# ==============================================================================
+# =============================================================================
 # GZIP
-# ==============================================================================
+# =============================================================================
 def gzip_encode(input: bytes, quality: int = 9) -> bytes: ...
 def gzip_decode(input: bytes) -> bytes: ...
 def gzip(input: bytes, quality: int = 9) -> bytes:
@@ -424,18 +501,18 @@ def gzip(input: bytes, quality: int = 9) -> bytes:
 def gunzip(input: bytes) -> bytes:
     """Alias for gzip_decode"""
 
-# ==============================================================================
+# =============================================================================
 # ZSTD
-# ==============================================================================
+# =============================================================================
 def zstd_encode(input: bytes, level: int = 3) -> bytes: ...
 def zstd(input: bytes, level: int = 3) -> bytes:
     """Alias for zstd_encode"""
 
 def zstd_decode(input: bytes) -> bytes: ...
 
-# ==============================================================================
+# =============================================================================
 # XXHASH
-# ==============================================================================
+# =============================================================================
 @t.final
 class Xxh32:
     name: t.Literal["xxh32"]
@@ -517,9 +594,9 @@ def xxh3_128_digest(input: bytes, seed: int | None = None) -> bytes: ...
 def xxh3_128_intdigest(input: bytes, seed: int | None = None) -> int: ...
 def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
 
-# ==============================================================================
+# =============================================================================
 # SQLFORMAT
-# ==============================================================================
+# =============================================================================
 SqlfmtParamValue = str | int | float | bool
 TSqlfmtParamValue_co = t.TypeVar(
     "TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
@@ -547,9 +624,9 @@ def sqlfmt(
     lines_between_statements: int = 1,
 ) -> str: ...
 
-# ==============================================================================
+# =============================================================================
 # URL
-# ==============================================================================
+# =============================================================================
 
 class URL:
     def __init__(self, url: str, *, params: dict[str, str] | None = None) -> None: ...
@@ -611,9 +688,9 @@ class URL:
     def set_username(self, username: str) -> None: ...
     def socket_addrs(self) -> None: ...
 
-# ==============================================================================
+# =============================================================================
 # JIFF
-# ==============================================================================
+# =============================================================================
 
 class Date:
     MIN: Date
@@ -854,6 +931,9 @@ class SignedDuration:
     def __ge__(self, other: object) -> bool: ...
     def __neg__(self) -> t.Self: ...
     def __add__(self, other: t.Self) -> t.Self: ...
+    def __abs__(self) -> t.Self: ...
+    def abs(self) -> t.Self: ...
+    def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: SignedDuration | pydt.timedelta, op: int) -> bool: ...
     def __str__(self) -> str: ...
     def string(self) -> str: ...
@@ -924,7 +1004,10 @@ class SignedDuration:
     #  fn system_until(&self) -> PyResult<()> {
     #  fn unsigned_abs(&self) -> PyResult<()> {
 
-_TimeSpanArithmeticSingle = TimeSpan | Duration | SignedDuration
+# put in quotes to avoid ruff F821 - undefined name
+T_TimeSpan = t.TypeVar("T_TimeSpan", bound=TimeSpan)
+# _TimeSpanArithmeticSingle = "TimeSpan" | Duration | SignedDuration
+_TimeSpanArithmeticSingle = T_TimeSpan | Duration | SignedDuration
 _TimeSpanArithmeticTuple = tuple[
     _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
 ]

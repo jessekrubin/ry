@@ -1222,6 +1222,7 @@ name = "ryo3-std"
 version = "0.0.20"
 dependencies = [
  "pyo3",
+ "ryo3-macros",
 ]
 
 [[package]]

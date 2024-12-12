@@ -1,6 +1,6 @@
 [package]
-name = "ryo3-std"
-description = "rust-std python wrappers"
+name = "ryo3-tokio"
+description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
@@ -10,8 +10,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
-ryo3-macros.workspace = true
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
 
 [lints]
 workspace = true

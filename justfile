@@ -13,6 +13,10 @@ dev: develop test
 develop:
     maturin develop
 
+# maturin develop (shorthand)
+mat:
+    maturin develop
+
 # cargo test
 cargo-test:
     cargo test

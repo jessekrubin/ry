@@ -229,5 +229,5 @@ class TestTimespanFunction:
     def test_timespan_overflow_unchecked(self) -> None:
         max_i64 = 9_223_372_036_854_775_807
 
-        with pytest.raises(Exception):
-            ry.timespan(years=100, days=max_i64)
+        with pytest.raises(BaseException):  # noqa: B017
+            ry.timespan(years=100, days=max_i64, unchecked=True)
