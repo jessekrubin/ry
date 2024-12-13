@@ -79,6 +79,7 @@ ryo3-std
 - `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
 - wrappers:
   - `ignore`
+  - `http`
   - `regex`
   - `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for me to have more time)
   - `tokio` (`fs` and `process`)
