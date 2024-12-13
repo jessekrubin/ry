@@ -153,7 +153,7 @@ impl RyTime {
         Ok(())
     }
 
-    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    fn __add__(&self, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
@@ -173,8 +173,8 @@ impl RyTime {
         self.0 = t;
         Ok(())
     }
-    fn checked_add(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        self.__add__(_py, other)
+    fn checked_add(&self, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        self.__add__(other)
     }
 
     fn checked_sub<'py>(

@@ -129,15 +129,7 @@ impl RyTimeZone {
             .map(RyTimeZone::from)
             .map_err(map_py_value_err)
     }
-    // ===============
-    // NOT IMPLEMENTED
-    // ===============
-
-    // fn into_ambiguous_zoned(self) -> PyResult<()> {
-    //     err_py_not_impl!()
-    // }
-
-    fn to_datetime(&self, timestamp: RyTimestamp) -> RyDateTime {
+    fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
     fn to_offset<'py>(
@@ -165,6 +157,9 @@ impl RyTimeZone {
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
+    // ===============
+    // NOT IMPLEMENTED
+    // ===============
 
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
