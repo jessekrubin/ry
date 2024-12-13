@@ -1,8 +1,13 @@
+use crate::errors::map_py_value_err;
 use crate::ry_offset::RyOffset;
+use crate::ry_timestamp::RyTimestamp;
 use crate::JiffTimeZone;
-use jiff::tz::{Offset, TimeZone};
-use pyo3::types::{PyAnyMethods, PyType, PyTzInfo};
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use jiff::tz::{Dst, Offset, TimeZone};
+use pyo3::types::{PyAnyMethods, PyTuple, PyType, PyTzInfo};
+use pyo3::{
+    pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult,
+    Python,
+};
 use ryo3_macros::err_py_not_impl;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -103,9 +108,14 @@ impl RyTimeZone {
     // fn into_ambiguous_zoned(self) -> PyResult<()> {
     //     err_py_not_impl!()
     // }
-    fn posix(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    #[classmethod]
+    fn posix(_cls: &Bound<'_, PyType>, string: &str) -> PyResult<Self> {
+        TimeZone::posix(string)
+            .map(RyTimeZone::from)
+            .map_err(map_py_value_err)
     }
+
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -115,9 +125,19 @@ impl RyTimeZone {
     fn to_datetime(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn to_offset(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn to_offset<'py>(
+        &self,
+        py: Python<'py>,
+        timestamp: RyTimestamp,
+    ) -> PyResult<Bound<'py, PyTuple>> {
+        let (offset, dst, s) = self.0.to_offset(timestamp.0);
+        let offset = RyOffset::from(offset).into_py_any(py)?;
+        let dst_bool = matches!(dst, Dst::Yes);
+        let dst_py = dst_bool.into_py_any(py)?;
+        let s = s.into_py_any(py)?;
+        PyTuple::new(py, vec![offset, dst_py, s])
     }
+
     fn to_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

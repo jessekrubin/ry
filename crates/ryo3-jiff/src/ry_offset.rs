@@ -1,13 +1,14 @@
+use crate::errors::map_py_value_err;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use jiff::tz::Offset;
+use jiff::tz::{Offset, OffsetArithmetic};
 use pyo3::pyclass::CompareOp;
 use pyo3::types::PyType;
-use pyo3::{pyclass, pyfunction, pymethods, Bound, PyErr, PyResult};
-use ryo3_macros::err_py_not_impl;
+use pyo3::{pyclass, pyfunction, pymethods, Bound, FromPyObject, PyErr, PyResult};
+use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
@@ -20,7 +21,9 @@ impl RyOffset {
     #[pyo3(signature = (hours = None, seconds = None))]
     pub fn new(hours: Option<i8>, seconds: Option<i32>) -> PyResult<Self> {
         match (hours, seconds) {
-            (Some(h), None) => Ok(RyOffset::from(Offset::constant(h))),
+            (Some(h), None) => Offset::from_hours(h)
+                .map(RyOffset::from)
+                .map_err(map_py_value_err),
             (None, Some(s)) => Offset::from_seconds(s)
                 .map(RyOffset::from)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
@@ -60,20 +63,17 @@ impl RyOffset {
     }
 
     #[classmethod]
-    pub fn constant(_cls: &Bound<'_, PyType>, hours: i8) -> Self {
-        RyOffset::from(Offset::constant(hours))
-    }
-
-    #[classmethod]
-    pub fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> Self {
-        RyOffset::from(Offset::constant(hours))
+    pub fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> PyResult<RyOffset> {
+        Offset::from_hours(hours)
+            .map(RyOffset::from)
+            .map_err(map_py_value_err)
     }
 
     #[classmethod]
     pub fn from_seconds(_cls: &Bound<'_, PyType>, seconds: i32) -> PyResult<Self> {
         Offset::from_seconds(seconds)
             .map(RyOffset::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     pub fn __str__(&self) -> String {
@@ -90,6 +90,7 @@ impl RyOffset {
         }
     }
 
+    #[getter]
     pub fn seconds(&self) -> i32 {
         self.0.seconds()
     }
@@ -102,8 +103,14 @@ impl RyOffset {
         self.negate()
     }
 
+    #[getter]
     pub fn is_negative(&self) -> bool {
         self.0.is_negative()
+    }
+
+    #[getter]
+    pub fn is_positive(&self) -> bool {
+        !self.0.is_negative()
     }
 
     pub fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
@@ -154,20 +161,30 @@ impl RyOffset {
         }
     }
 
-    fn checked_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn to_time_zone(&self) -> RyTimeZone {
+    fn to_timezone(&self) -> RyTimeZone {
         RyTimeZone::from(self.0.to_time_zone())
+    }
+
+    fn checked_add(&self, other: IntoOffsetArithmetic) -> PyResult<Self> {
+        self.0
+            .checked_add(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn checked_sub(&self, other: IntoOffsetArithmetic) -> PyResult<Self> {
+        self.0
+            .checked_sub(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn saturating_add(&self, other: IntoOffsetArithmetic) -> Self {
+        Self::from(self.0.saturating_add(other))
+    }
+
+    fn saturating_sub(&self, other: IntoOffsetArithmetic) -> Self {
+        Self::from(self.0.saturating_sub(other))
     }
 }
 
@@ -180,4 +197,21 @@ impl From<Offset> for RyOffset {
 #[pyfunction]
 pub(crate) fn offset(hours: i8) -> RyOffset {
     RyOffset::from(jiff::tz::offset(hours))
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+enum IntoOffsetArithmetic {
+    Duration(PyDuration),
+    SignedDuration(RySignedDuration),
+    Span(RySpan),
+}
+
+impl Into<OffsetArithmetic> for IntoOffsetArithmetic {
+    fn into(self) -> OffsetArithmetic {
+        match self {
+            IntoOffsetArithmetic::Duration(d) => OffsetArithmetic::from(d.0),
+            IntoOffsetArithmetic::SignedDuration(d) => OffsetArithmetic::from(d.0),
+            IntoOffsetArithmetic::Span(s) => OffsetArithmetic::from(s.0),
+        }
+    }
 }
