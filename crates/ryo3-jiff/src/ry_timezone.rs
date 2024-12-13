@@ -59,7 +59,6 @@ impl RyTimeZone {
     }
 
     fn __repr__(&self) -> String {
-        // let iana_name = self.0.iana_name();
         let iana_name = self.0.iana_name();
         match iana_name {
             Some(name) => format!("TimeZone(\"{name}\")"),
@@ -69,11 +68,6 @@ impl RyTimeZone {
                 format!("TimeZone('{offset}')")
             }
         }
-    }
-
-    #[classmethod]
-    fn from_offset(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
-        Self::from(TimeZone::fixed(offset.0))
     }
 
     fn __hash__(&self) -> u64 {
@@ -108,11 +102,21 @@ impl RyTimeZone {
         Ok(Self::from(jiff_tz.0))
     }
 
+    // =====================================================================
+    // class methods
+    // =====================================================================
+
     #[classmethod]
     fn fixed(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
         Self::from(TimeZone::fixed(offset.0))
     }
 
+    #[classmethod]
+    fn posix(_cls: &Bound<'_, PyType>, string: &str) -> PyResult<Self> {
+        TimeZone::posix(string)
+            .map(RyTimeZone::from)
+            .map_err(map_py_value_err)
+    }
     // ===============
     // NOT IMPLEMENTED
     // ===============
@@ -123,13 +127,6 @@ impl RyTimeZone {
     // fn into_ambiguous_zoned(self) -> PyResult<()> {
     //     err_py_not_impl!()
     // }
-
-    #[classmethod]
-    fn posix(_cls: &Bound<'_, PyType>, string: &str) -> PyResult<Self> {
-        TimeZone::posix(string)
-            .map(RyTimeZone::from)
-            .map_err(map_py_value_err)
-    }
 
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
