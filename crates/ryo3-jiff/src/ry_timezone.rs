@@ -1,6 +1,8 @@
 use crate::errors::map_py_value_err;
+use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
+use crate::ry_zoned::RyZoned;
 use crate::JiffTimeZone;
 use jiff::tz::{Dst, Offset, TimeZone};
 use jiff::Timestamp;
@@ -101,7 +103,7 @@ impl RyTimeZone {
     }
 
     // =====================================================================
-    // class methods
+    // CLASS METHODS
     // =====================================================================
 
     #[classmethod]
@@ -115,25 +117,28 @@ impl RyTimeZone {
             .map(RyTimeZone::from)
             .map_err(map_py_value_err)
     }
+
+    #[classmethod]
+    fn get(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<RyTimeZone> {
+        TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
+    }
+
+    #[classmethod]
+    fn tzif(_cls: &Bound<'_, PyType>, name: &str, data: &[u8]) -> PyResult<RyTimeZone> {
+        TimeZone::tzif(name, data)
+            .map(RyTimeZone::from)
+            .map_err(map_py_value_err)
+    }
     // ===============
     // NOT IMPLEMENTED
     // ===============
 
-    fn get(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     // fn into_ambiguous_zoned(self) -> PyResult<()> {
     //     err_py_not_impl!()
     // }
 
-    fn to_ambiguous_timestamp(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn to_ambiguous_zoned(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn to_datetime(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn to_datetime(&self, timestamp: RyTimestamp) -> RyDateTime {
+        RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
     fn to_offset<'py>(
         &self,
@@ -148,16 +153,26 @@ impl RyTimeZone {
         PyTuple::new(py, vec![offset, dst_py, s])
     }
 
-    fn to_timestamp(&self) -> PyResult<()> {
+    fn to_timestamp(&self, datetime: &RyDateTime) -> Result<RyTimestamp, PyErr> {
+        self.0
+            .to_timestamp(datetime.0)
+            .map(RyTimestamp::from)
+            .map_err(map_py_value_err)
+    }
+    fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
+        self.0
+            .to_zoned(datetime.0)
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn to_zoned(&self) -> PyResult<()> {
+    fn to_ambiguous_zoned(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn try_system(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn tzif(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }

@@ -423,6 +423,8 @@ class TestTzOffset:
         assert isinstance(tz, ry.TimeZone)
         tz_offset, dst, tzname = tz.to_offset(ry.Timestamp(0, 0))
         assert tz_offset == offset
+        assert dst is False
+        assert tzname == "+00:01:01"
 
     def test_checked_add(self) -> None:
         offset = ry.Offset.from_hours(-8)
