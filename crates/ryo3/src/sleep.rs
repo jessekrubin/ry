@@ -13,10 +13,8 @@ pub fn sleep(py: Python<'_>, secs: u64) -> PyResult<f64> {
 #[pyfunction]
 fn sleep_async(py: Python, secs: u64) -> PyResult<Bound<PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::time::sleep(std::time::Duration::from_secs(secs)).await;
-        // return
+        tokio::time::sleep(Duration::from_secs(secs)).await;
         Ok(secs)
-        // Ok(())
     })
 }
 
