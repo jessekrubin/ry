@@ -210,9 +210,9 @@ enum IntoOffsetArithmetic {
     Span(RySpan),
 }
 
-impl Into<OffsetArithmetic> for IntoOffsetArithmetic {
-    fn into(self) -> OffsetArithmetic {
-        match self {
+impl From<IntoOffsetArithmetic> for OffsetArithmetic {
+    fn from(val: IntoOffsetArithmetic) -> Self {
+        match val {
             IntoOffsetArithmetic::Duration(d) => OffsetArithmetic::from(d.0),
             IntoOffsetArithmetic::SignedDuration(d) => OffsetArithmetic::from(d.0),
             IntoOffsetArithmetic::Span(s) => OffsetArithmetic::from(s.0),

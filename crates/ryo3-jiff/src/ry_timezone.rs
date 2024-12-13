@@ -59,13 +59,12 @@ impl RyTimeZone {
 
     fn __repr__(&self) -> String {
         let iana_name = self.0.iana_name();
-        match iana_name {
-            Some(name) => format!("TimeZone(\"{name}\")"),
-            None => {
-                // REALLY NOT SURE IF THIS IS CORRECT
-                let (offset, _dst, _s) = self.0.to_offset(Timestamp::now());
-                format!("TimeZone('{offset}')")
-            }
+        if let Some(name) = iana_name {
+            format!("TimeZone(\"{name}\")")
+        } else {
+            // REALLY NOT SURE IF THIS IS CORRECT
+            let (offset, _dst, _s) = self.0.to_offset(Timestamp::now());
+            format!("TimeZone('{offset}')")
         }
     }
 
@@ -139,7 +138,7 @@ impl RyTimeZone {
     fn to_offset<'py>(
         &self,
         py: Python<'py>,
-        timestamp: RyTimestamp,
+        timestamp: &RyTimestamp,
     ) -> PyResult<Bound<'py, PyTuple>> {
         let (offset, dst, s) = self.0.to_offset(timestamp.0);
         let offset = RyOffset::from(offset).into_py_any(py)?;
