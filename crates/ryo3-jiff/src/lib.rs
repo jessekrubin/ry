@@ -19,7 +19,6 @@ mod internal;
 mod jiff_types;
 pub use jiff_types::*;
 mod errors;
-mod into_time_round;
 mod intz;
 pub mod pydatetime_conversions;
 mod ry_date;
