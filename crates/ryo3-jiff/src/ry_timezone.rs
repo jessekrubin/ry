@@ -3,12 +3,15 @@ use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::JiffTimeZone;
 use jiff::tz::{Dst, Offset, TimeZone};
+use jiff::Timestamp;
 use pyo3::types::{PyAnyMethods, PyTuple, PyType, PyTzInfo};
 use pyo3::{
     pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult,
     Python,
 };
 use ryo3_macros::err_py_not_impl;
+use std::any::Any;
+use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
@@ -56,11 +59,21 @@ impl RyTimeZone {
     }
 
     fn __repr__(&self) -> String {
+        // let iana_name = self.0.iana_name();
         let iana_name = self.0.iana_name();
         match iana_name {
             Some(name) => format!("TimeZone(\"{name}\")"),
-            None => "TimeZone(None)".to_string(),
+            None => {
+                // REALLY NOT SURE IF THIS IS CORRECT
+                let (offset, _dst, _s) = self.0.to_offset(Timestamp::now());
+                format!("TimeZone('{offset}')")
+            }
         }
+    }
+
+    #[classmethod]
+    fn from_offset(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
+        Self::from(TimeZone::fixed(offset.0))
     }
 
     fn __hash__(&self) -> u64 {
@@ -70,7 +83,9 @@ impl RyTimeZone {
     }
 
     fn __str__(&self) -> String {
-        self.iana_name().unwrap_or("Unknown").to_string()
+        self.iana_name()
+            .unwrap_or(&self.0.to_offset(Timestamp::now()).0.to_string())
+            .to_string()
     }
 
     fn __eq__(&self, other: TimeZoneEquality) -> bool {

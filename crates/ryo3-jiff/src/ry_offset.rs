@@ -76,6 +76,10 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
+    pub fn string(&self) -> String {
+        self.0.to_string()
+    }
+
     pub fn __str__(&self) -> String {
         self.__repr__()
     }
