@@ -231,3 +231,117 @@ class TestTimespanFunction:
 
         with pytest.raises(BaseException):  # noqa: B017
             ry.timespan(years=100, days=max_i64, unchecked=True)
+
+
+class TestTzOffset:
+    def test_const_max(self) -> None:
+        assert ry.Offset.MAX == ry.Offset(seconds=93599)
+
+    def test_const_min(self) -> None:
+        assert ry.Offset.MIN == ry.Offset(seconds=-93599)
+
+    def test_const_zero(self) -> None:
+        assert ry.Offset.ZERO == ry.Offset(seconds=0)
+
+    def test_const_utc(self) -> None:
+        assert ry.Offset.UTC == ry.Offset(seconds=0)
+
+    def test_seconds_property(self) -> None:
+        offset = ry.Offset.from_seconds(61)
+        assert offset.seconds == 61
+        assert offset.is_positive
+        assert not offset.is_negative
+        offset_neg = -offset
+        assert offset_neg.seconds == -61
+        assert offset_neg.is_negative
+        assert not offset_neg.is_positive
+
+    def test_from_hours(self) -> None:
+        offset = ry.Offset.from_hours(2)
+        assert offset == ry.Offset(seconds=7200)
+
+    def test_from_hours_error(self) -> None:
+        with pytest.raises(ValueError):
+            _offset = ry.Offset.from_hours(26)
+        with pytest.raises(ValueError):
+            _offset = ry.Offset.from_hours(-26)
+
+    def test_from_seconds(self) -> None:
+        offset = ry.Offset.from_seconds(61)
+        assert offset == ry.Offset(seconds=61)
+
+    def test_from_seconds_error(self) -> None:
+        with pytest.raises(ValueError):
+            _offset = ry.Offset.from_seconds(93600)
+        with pytest.raises(ValueError):
+            _offset = ry.Offset.from_seconds(-93600)
+
+    def test_negate(self) -> None:
+        offset = ry.Offset.from_seconds(61)
+        assert -offset == ry.Offset.from_seconds(-61)
+
+    def test_until(self) -> None:
+        offset = ry.Offset.from_seconds(61)
+        span_until = offset.until(ry.Offset.from_seconds(62))
+        assert isinstance(span_until, ry.TimeSpan)
+        assert span_until == ry.TimeSpan(seconds=1)
+        assert offset.until(ry.Offset.from_seconds(61)) == ry.TimeSpan()
+
+    def test_since(self) -> None:
+        offset = ry.Offset.from_seconds(61)
+        span_since = offset.since(ry.Offset.from_seconds(62))
+        assert isinstance(span_since, ry.TimeSpan)
+
+        assert span_since == ry.TimeSpan(seconds=-1)
+        assert offset.since(ry.Offset.from_seconds(61)) == ry.TimeSpan()
+
+    def test_to_timezone(self) -> None:
+        offset = ry.Offset.from_seconds(61)
+        tz = offset.to_timezone()
+        assert isinstance(tz, ry.TimeZone)
+        tz_offset, dst, tzname = tz.to_offset(ry.Timestamp(0, 0))
+        assert tz_offset == offset
+
+    def test_checked_add(self) -> None:
+        offset = ry.Offset.from_hours(-8)
+        span = ry.timespan(hours=1)
+        assert offset.checked_add(span) == ry.Offset.from_hours(-7)
+        signed_duration = span.to_signed_duration(
+            ry.Date(
+                year=2024,
+                month=12,
+                day=13,  # OOOOH friday the 13th
+            )
+        )
+        assert offset.checked_add(signed_duration) == ry.Offset.from_hours(-7)
+        duration = ry.Duration(secs=3600)
+        assert offset.checked_add(duration) == ry.Offset.from_hours(-7)
+
+    def test_checked_sub(self) -> None:
+        offset = ry.Offset.from_hours(-8)
+        span = ry.timespan(hours=1)
+        assert offset.checked_sub(span) == ry.Offset.from_hours(-9)
+        signed_duration = span.to_signed_duration(
+            ry.Date(year=2024, month=12, day=13)  # OOOOH friday the 13th (again)
+        )
+        assert offset.checked_sub(signed_duration) == ry.Offset.from_hours(-9)
+        duration = ry.Duration(secs=3600)
+        assert offset.checked_sub(duration) == ry.Offset.from_hours(-9)
+
+    def test_saturating_add(self) -> None:
+        offset = ry.Offset.from_hours(25)
+        span = ry.TimeSpan(hours=2)
+        assert offset.saturating_add(span) == ry.Offset.MAX
+        signed_duration = span.to_signed_duration(ry.Date(year=2024, month=12, day=13))
+        assert offset.saturating_add(signed_duration) == ry.Offset.MAX
+        duration = ry.Duration(secs=7200)
+        assert offset.saturating_add(duration) == ry.Offset.MAX
+
+    def test_saturating_sub(self) -> None:
+        offset = ry.Offset.from_hours(-25)
+        span = ry.TimeSpan(hours=2)
+        assert offset.saturating_sub(span) == ry.Offset.MIN
+        signed_duration = span.to_signed_duration(ry.Date(year=2024, month=12, day=13))
+        assert offset.saturating_sub(signed_duration) == ry.Offset.MIN
+        duration = ry.Duration(secs=7200)
+        assert offset.saturating_sub(duration) == ry.Offset.MIN
