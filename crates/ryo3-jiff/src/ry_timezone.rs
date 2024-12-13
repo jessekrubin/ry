@@ -10,7 +10,6 @@ use pyo3::{
     Python,
 };
 use ryo3_macros::err_py_not_impl;
-use std::any::Any;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 

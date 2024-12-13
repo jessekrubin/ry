@@ -40,6 +40,59 @@ class TestZonedDateTime:
         )
 
 
+class TestZonedDateTimeProperties:
+    """Test all the properties of the ZonedDateTime class
+
+    properties:
+        - year
+        - month
+        - day
+        - weekday
+        - hour
+        - minute
+        - second
+        - microsecond
+        - millisecond
+        - nanosecond
+        - subsec_nanosecond
+    """
+
+    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+
+    def test_year(self) -> None:
+        assert self.zdt.year == 2020
+
+    def test_month(self) -> None:
+        assert self.zdt.month == 8
+
+    def test_day(self) -> None:
+        assert self.zdt.day == 26
+
+    def test_weekday(self) -> None:
+        assert self.zdt.weekday == 3
+
+    def test_hour(self) -> None:
+        assert self.zdt.hour == 6
+
+    def test_minute(self) -> None:
+        assert self.zdt.minute == 27
+
+    def test_second(self) -> None:
+        assert self.zdt.second == 0
+
+    def test_microsecond(self) -> None:
+        assert self.zdt.microsecond == 0
+
+    def test_millisecond(self) -> None:
+        assert self.zdt.millisecond == 0
+
+    def test_nanosecond(self) -> None:
+        assert self.zdt.nanosecond == 0
+
+    def test_subsec_nanosecond(self) -> None:
+        assert self.zdt.subsec_nanosecond == 0
+
+
 class TestOffset:
     def test_create_offset_with_hours(self) -> None:
         offset = ry.Offset(hours=-4)
@@ -145,7 +198,7 @@ def test_zoned() -> None:
 # ====================
 
 
-class TestSpan:
+class TestTimeSpan:
     def test_span_negate(self) -> None:
         zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
         zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
@@ -163,6 +216,75 @@ class TestSpan:
         span = zdt2 - zdt1
         duration = span.to_signed_duration(zdt2)
         assert duration == ry.SignedDuration(secs=105627780, nanos=0)
+
+
+class TestTimeSpanProperties:
+    """Test all the properties of the TimeSpan class
+
+    properties:
+        - is_positive
+        - is_negative
+        - is_zero
+        - years
+        - months
+        - weeks
+        - days
+        - hours
+        - minutes
+        - seconds
+        - milliseconds
+        - microseconds
+        - nanoseconds
+    """
+
+    ts = ry.TimeSpan(
+        days=1,
+        hours=2,
+        minutes=3,
+        seconds=4,
+        milliseconds=5,
+        microseconds=5_000,
+        nanoseconds=5_000_000,
+    )
+
+    def test_is_positive(self) -> None:
+        assert self.ts.is_positive
+
+    def test_is_negative(self) -> None:
+        assert not self.ts.is_negative
+
+    def test_is_zero(self) -> None:
+        assert not self.ts.is_zero
+
+    def test_years(self) -> None:
+        assert self.ts.years == 0
+
+    def test_months(self) -> None:
+        assert self.ts.months == 0
+
+    def test_weeks(self) -> None:
+        assert self.ts.weeks == 0
+
+    def test_days(self) -> None:
+        assert self.ts.days == 1
+
+    def test_hours(self) -> None:
+        assert self.ts.hours == 2
+
+    def test_minutes(self) -> None:
+        assert self.ts.minutes == 3
+
+    def test_seconds(self) -> None:
+        assert self.ts.seconds == 4
+
+    def test_milliseconds(self) -> None:
+        assert self.ts.milliseconds == 5
+
+    def test_microseconds(self) -> None:
+        assert self.ts.microseconds == 5_000
+
+    def test_nanoseconds(self) -> None:
+        assert self.ts.nanoseconds == 5_000_000
 
 
 # ====================

@@ -56,13 +56,16 @@ impl RySignedDuration {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    #[getter]
     fn is_positive(&self) -> bool {
         self.0.is_positive()
     }
 
+    #[getter]
     fn is_negative(&self) -> bool {
         self.0.is_negative()
     }
+    #[getter]
 
     fn is_zero(&self) -> bool {
         self.0.is_zero()

@@ -107,7 +107,7 @@ def test_datetime_serialization(dt: ry.DateTime) -> None:
 def test_duration_negation(duration: ry.SignedDuration) -> None:
     """Test duration negation"""
     negated_duration = -duration
-    if duration.is_zero():
+    if duration.is_zero:
         assert duration.secs == 0
         assert negated_duration.secs == 0
         assert duration.nanos == 0

@@ -56,6 +56,7 @@ IGNORED_MEMBERS = {
     "__rsub__",
     "__sizeof__",
     "__sub__",
+    "__isub__",
     "__subclasshook__",
     "dbg",
 }

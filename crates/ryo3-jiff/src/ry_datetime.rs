@@ -1,18 +1,19 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
 use crate::jiff_types::JiffDateTime;
+use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::RyDate;
-use jiff::civil::DateTime;
+use jiff::civil::{DateTime, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDate, PyDateTime, PyDict, PyDictMethods, PyType};
+use pyo3::types::{PyAnyMethods, PyDate, PyDateTime, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
-    PyResult, Python,
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
+    PyRef, PyRefMut, PyResult, Python,
 };
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
@@ -277,10 +278,6 @@ impl RyDateTime {
         Ok(Self::from(t).into_pyobject(py)?.into_any())
     }
 
-    fn to_date(&self) -> RyDate {
-        RyDate::from(self.0.date())
-    }
-
     fn time(&self) -> RyTime {
         RyTime::from(self.0.time())
     }
@@ -296,9 +293,6 @@ impl RyDateTime {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn astimezone(&self, tz: &str) -> PyResult<RyZoned> {
-        self.intz(tz)
-    }
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.0)
@@ -349,58 +343,59 @@ impl RyDateTime {
             .map(RyDateTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
-    fn constant(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn day_of_year(&self) -> i16 {
+        self.0.day_of_year()
     }
-    fn day_of_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn day_of_year_no_leap(&self) -> Option<i16> {
+        self.0.day_of_year_no_leap()
     }
-    fn day_of_year_no_leap(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn days_in_month(&self) -> i8 {
+        self.0.days_in_month()
     }
-    fn days_in_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn days_in_year(&self) -> i16 {
+        self.0.days_in_year()
     }
-    fn days_in_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn duration_since(&self, dt: &Self) -> RySignedDuration {
+        self.0.duration_since(dt.0).into()
     }
-    fn duration_since(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn duration_until(&self, dt: &Self) -> RySignedDuration {
+        self.0.duration_until(dt.0).into()
     }
-    fn duration_until(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn end_of_day(&self) -> RyDateTime {
+        RyDateTime::from(self.0.end_of_day())
     }
-    fn end_of_day(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let (y, e) = self.0.era_year();
+
+        let era_str_pyobj = match e {
+            jiff::civil::Era::BCE => intern!(py, "BCE"),
+            jiff::civil::Era::CE => intern!(py, "CE"),
+        };
+        let year_py = y.into_py_any(py)?;
+        let era_str = era_str_pyobj.into_py_any(py)?;
+
+        let pyobjs_vec = vec![year_py, era_str];
+        PyTuple::new(py, pyobjs_vec)
     }
-    fn era_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn first_of_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn first_of_year(&self) -> RyDateTime {
+        RyDateTime::from(self.0.first_of_year())
     }
 
     #[classmethod]
     fn from_parts(_cls: &Bound<'_, PyType>, date: &RyDate, time: &RyTime) -> Self {
         Self::from(DateTime::from_parts(date.0, time.0))
     }
-    fn in_leap_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn in_leap_year(&self) -> bool {
+        self.0.in_leap_year()
     }
-    fn last_of_year(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn last_of_year(&self) -> RyDateTime {
+        RyDateTime::from(self.0.last_of_year())
     }
-    fn nth_weekday(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn nth_weekday_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn since(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn start_of_day(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn start_of_day(&self) -> RyDateTime {
+        Self::from(self.0.start_of_day())
     }
     fn strftime(&self, format: &str) -> String {
         self.0.strftime(format).to_string()
@@ -425,14 +420,29 @@ impl RyDateTime {
             .map(RyDateTime::from)
             .map_err(map_py_value_err)
     }
+    fn nth_weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
     fn until(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn weekday(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn with(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    #[getter]
+    fn weekday(&self) -> i8 {
+        match self.0.weekday() {
+            Weekday::Monday => 1,
+            Weekday::Tuesday => 2,
+            Weekday::Wednesday => 3,
+            Weekday::Thursday => 4,
+            Weekday::Friday => 5,
+            Weekday::Saturday => 6,
+            Weekday::Sunday => 7,
+        }
     }
 }
 impl Display for RyDateTime {

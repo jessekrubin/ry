@@ -275,37 +275,6 @@ impl RySpan {
 
     // getter functions
 
-    fn years(&self) -> i16 {
-        self.0.get_years()
-    }
-    fn months(&self) -> i32 {
-        self.0.get_months()
-    }
-    fn weeks(&self) -> i32 {
-        self.0.get_weeks()
-    }
-    fn days(&self) -> i32 {
-        self.0.get_days()
-    }
-    fn hours(&self) -> i32 {
-        self.0.get_hours()
-    }
-    fn minutes(&self) -> i64 {
-        self.0.get_minutes()
-    }
-    fn seconds(&self) -> i64 {
-        self.0.get_seconds()
-    }
-    fn milliseconds(&self) -> i64 {
-        self.0.get_milliseconds()
-    }
-    fn microseconds(&self) -> i64 {
-        self.0.get_microseconds()
-    }
-    fn nanoseconds(&self) -> i64 {
-        self.0.get_nanoseconds()
-    }
-
     fn __repr__(&self) -> String {
         // parts that we want are the years, months, weeks, days, hours,
         // minutes, seconds, milliseconds, microseconds, nanoseconds if not
@@ -468,15 +437,67 @@ impl RySpan {
     fn compare(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
+    // ========================================================================
+    // PROPERTIES
+    // ========================================================================
+
+    #[getter]
     fn is_negative(&self) -> bool {
         self.0.is_negative()
     }
+    #[getter]
     fn is_positive(&self) -> bool {
         self.0.is_positive()
     }
+    #[getter]
     fn is_zero(&self) -> bool {
         self.0.is_zero()
     }
+
+    #[getter]
+    fn years(&self) -> i16 {
+        self.0.get_years()
+    }
+    #[getter]
+    fn months(&self) -> i32 {
+        self.0.get_months()
+    }
+    #[getter]
+    fn weeks(&self) -> i32 {
+        self.0.get_weeks()
+    }
+    #[getter]
+    fn days(&self) -> i32 {
+        self.0.get_days()
+    }
+    #[getter]
+    fn hours(&self) -> i32 {
+        self.0.get_hours()
+    }
+    #[getter]
+    fn minutes(&self) -> i64 {
+        self.0.get_minutes()
+    }
+    #[getter]
+    fn seconds(&self) -> i64 {
+        self.0.get_seconds()
+    }
+    #[getter]
+    fn milliseconds(&self) -> i64 {
+        self.0.get_milliseconds()
+    }
+    #[getter]
+    fn microseconds(&self) -> i64 {
+        self.0.get_microseconds()
+    }
+    #[getter]
+    fn nanoseconds(&self) -> i64 {
+        self.0.get_nanoseconds()
+    }
+
+    // ========================================================================
+    // INSTANCE METHODS
+    // ========================================================================
     fn round(&self, round: IntoDateTimeRound) -> PyResult<Self> {
         self.0
             .round(round)

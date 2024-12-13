@@ -7,7 +7,7 @@ use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::JiffDate;
-use jiff::civil::Date;
+use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
@@ -218,9 +218,6 @@ impl RyDate {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn astimezone(&self, tz: &str) -> PyResult<RyZoned> {
-        self.intz(tz)
-    }
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "year"), self.0.year())?;
@@ -239,9 +236,6 @@ impl RyDate {
         err_py_not_impl!()
     }
     fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn constant(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn day_of_year(&self) -> i16 {
@@ -282,10 +276,6 @@ impl RyDate {
         Self::from(self.0.first_of_year())
     }
 
-    #[classmethod]
-    fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn in_leap_year(&self) -> bool {
         self.0.in_leap_year()
     }
@@ -300,6 +290,33 @@ impl RyDate {
     }
     fn yesterday(&self) -> PyResult<Self> {
         self.0.yesterday().map(From::from).map_err(map_py_value_err)
+    }
+    fn strftime(&self, format: &str) -> PyResult<String> {
+        Ok(self.0.strftime(format).to_string())
+    }
+
+    #[classmethod]
+    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
+        Date::strptime(s, format)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+    #[getter]
+    fn weekday(&self) -> i8 {
+        match self.0.weekday() {
+            Weekday::Monday => 1,
+            Weekday::Tuesday => 2,
+            Weekday::Wednesday => 3,
+            Weekday::Thursday => 4,
+            Weekday::Friday => 5,
+            Weekday::Saturday => 6,
+            Weekday::Sunday => 7,
+        }
+    }
+
+    #[classmethod]
+    fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
+        err_py_not_impl!()
     }
     fn nth_weekday(&self) -> PyResult<()> {
         err_py_not_impl!()
@@ -316,26 +333,10 @@ impl RyDate {
     fn since(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn strftime(&self, format: &str) -> PyResult<String> {
-        Ok(self.0.strftime(format).to_string())
-    }
-
-    #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
-        Date::strptime(s, format)
-            .map(Self::from)
-            .map_err(map_py_value_err)
-    }
     fn to_iso_week_date(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn until(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn weekday(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn with(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }
