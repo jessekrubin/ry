@@ -56,6 +56,7 @@ IGNORED_MEMBERS = {
     "__rsub__",
     "__sizeof__",
     "__sub__",
+    "__isub__",
     "__subclasshook__",
     "dbg",
 }
@@ -85,10 +86,28 @@ def compare_member(toget: str) -> MembersComparison:
     )
 
 
+def ry_classes_n_types():
+    return list(filter(lambda el: isinstance(getattr(ry, el), type), dir(ry)))
+
+
 def main():
+    # get all classes in ry
     members = [
+        # url
+        "URL",
+        # globset
+        "Glob",
+        "GlobSet",
+        "Globster",
+        # xxhash
+        "Xxh3",
+        "Xxh32",
+        "Xxh64",
+        # path
         "FsPath",
+        # std
         "Duration",
+        # jiff
         "SignedDuration",
         "DateTime",
         "TimeSpan",

@@ -101,7 +101,7 @@ class TestTimeSeries:
     def test_time_series_jiff_hash_unique(self) -> None:
         """test time series + hash via set"""
         start = ry.Time.MIN
-        tspan = ry.TimeSpan().with_hours(3)
+        tspan = ry.TimeSpan()._hours(3)
         every_third_hour = list(start.series(tspan))
         expected = [
             ry.time(0, 0, 0, 0),

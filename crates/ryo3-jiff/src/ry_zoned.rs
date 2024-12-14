@@ -454,12 +454,14 @@ impl RyZoned {
         err_py_not_impl!()
     }
 
-    fn with(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {
         self.0.with_time_zone(tz.0.clone()).into()
     }
+
+    // python doesnt allow for `with` as a method name as it is a reserved keyword
+    // fn with(&self) -> PyResult<()> {
+    //     err_py_not_impl!()
+    // }
 }
 
 impl Display for RyZoned {

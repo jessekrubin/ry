@@ -7,7 +7,7 @@ use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::JiffDate;
-use jiff::civil::Date;
+use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
@@ -141,6 +141,13 @@ impl RyDate {
             }
         }
     }
+    fn checked_sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyDateArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
+    }
 
     fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
@@ -152,7 +159,7 @@ impl RyDate {
         Ok(())
     }
 
-    fn __add__<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(date) = other.downcast::<RySpan>() {
             let other = date.extract::<RySpan>()?;
             let t = self.0 + other.0;
@@ -172,6 +179,45 @@ impl RyDate {
             "unsupported operand type(s) for +: 'Date' and 'other'",
         ))
     }
+    fn checked_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn saturating_add<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(date) = other.downcast::<RySpan>() {
+            let other = date.extract::<RySpan>()?;
+            return Ok(RyDate::from(self.0.saturating_add(other.0)));
+        }
+        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
+            let other = signed_dur.extract::<RySignedDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_add(other.0)));
+        }
+        if let Ok(date) = other.downcast::<PyDuration>() {
+            let other = date.extract::<PyDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_add(other.0)));
+        }
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "unsupported operand type(s) for +: 'Date' and 'other'",
+        ))
+    }
+    fn saturating_sub<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(date) = other.downcast::<RySpan>() {
+            let other = date.extract::<RySpan>()?;
+            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
+        }
+        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
+            let other = signed_dur.extract::<RySignedDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
+        }
+        if let Ok(date) = other.downcast::<PyDuration>() {
+            let other = date.extract::<PyDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
+        }
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "unsupported operand type(s) for +: 'Date' and 'other'",
+        ))
+    }
+
     // fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
     //     let t = match other {
     //         RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
@@ -218,9 +264,6 @@ impl RyDate {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn astimezone(&self, tz: &str) -> PyResult<RyZoned> {
-        self.intz(tz)
-    }
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "year"), self.0.year())?;
@@ -235,15 +278,6 @@ impl RyDate {
         }
     }
 
-    fn checked_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn constant(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn day_of_year(&self) -> i16 {
         self.0.day_of_year()
     }
@@ -282,10 +316,6 @@ impl RyDate {
         Self::from(self.0.first_of_year())
     }
 
-    #[classmethod]
-    fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn in_leap_year(&self) -> bool {
         self.0.in_leap_year()
     }
@@ -301,21 +331,6 @@ impl RyDate {
     fn yesterday(&self) -> PyResult<Self> {
         self.0.yesterday().map(From::from).map_err(map_py_value_err)
     }
-    fn nth_weekday(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn nth_weekday_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn since(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn strftime(&self, format: &str) -> PyResult<String> {
         Ok(self.0.strftime(format).to_string())
     }
@@ -326,16 +341,36 @@ impl RyDate {
             .map(Self::from)
             .map_err(map_py_value_err)
     }
+    #[getter]
+    fn weekday(&self) -> i8 {
+        match self.0.weekday() {
+            Weekday::Monday => 1,
+            Weekday::Tuesday => 2,
+            Weekday::Wednesday => 3,
+            Weekday::Thursday => 4,
+            Weekday::Friday => 5,
+            Weekday::Saturday => 6,
+            Weekday::Sunday => 7,
+        }
+    }
+
+    #[classmethod]
+    fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn nth_weekday_of_month(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn since(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
     fn to_iso_week_date(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn until(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn weekday(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn with(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }

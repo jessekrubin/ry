@@ -2,6 +2,8 @@
 
 ## FUTURE
 
+## v0.0.21 [2024-12-13] (friday the 13th... spoogidy oogidity)
+
 - `walkdir`
   - add `glob` kwarg that takes a `ry.Glob` or `ry.GlobSet` or `ry.Globster` obj to filter the walk on
 - `globset`
@@ -23,7 +25,9 @@
     - [x] `RyTimeZone`
     - [x] `RyTime`
     - [x] `RyZoned`
-  - builder functions changed to be more pythonic using `with_` prefix
+  - span builder functions use form `s._hours(1)` for panic-inducing building, and `s.try_hours(1)` for non-panic-inducing building
+- type-annotations
+  - fixes and updates and a hacky script I wrote to check for discrepancies
 
 ___
 
@@ -92,7 +96,7 @@ ___
 
 - `jiff`
   - `ry.TimeZone` testing and to/from `datetime.tzinfo` conversions
-  - Using nu-types for `jiff` intermedate types bc of the classic orphans problem (aka batman) w/ traits
+  - Using nu-types for `jiff` intermediate types bc of the classic orphans problem (aka batman) w/ traits
   - hypothesis tests
 - `jiter`
   - Updated to `jiter` v0.8.1

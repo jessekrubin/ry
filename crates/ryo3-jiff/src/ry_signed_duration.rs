@@ -6,7 +6,6 @@ use jiff::{SignedDuration, Span};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
-use ryo3_macros::err_py_not_impl;
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -57,9 +56,16 @@ impl RySignedDuration {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    #[getter]
+    fn is_positive(&self) -> bool {
+        self.0.is_positive()
+    }
+
+    #[getter]
     fn is_negative(&self) -> bool {
         self.0.is_negative()
     }
+    #[getter]
 
     fn is_zero(&self) -> bool {
         self.0.is_zero()
@@ -293,72 +299,82 @@ impl RySignedDuration {
     fn as_secs_f64(&self) -> f64 {
         self.0.as_secs_f64()
     }
-    fn checked_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_div(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_mul(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_neg(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn div_duration_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn div_duration_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn div_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn div_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn checked_add(&self, other: &Self) -> Option<Self> {
+        self.0.checked_add(other.0).map(Self::from)
     }
 
-    fn is_positive(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn checked_div(&self, other: i32) -> Option<Self> {
+        self.0.checked_div(other).map(Self::from)
     }
-    fn mul_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn checked_mul(&self, other: i32) -> Option<Self> {
+        self.0.checked_mul(other).map(Self::from)
     }
-    fn mul_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn checked_sub(&self, other: &Self) -> Option<Self> {
+        self.0.checked_sub(other.0).map(Self::from)
     }
-    fn saturating_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_duration_f32(&self, other: &Self) -> f32 {
+        self.0.div_duration_f32(other.0)
     }
-    fn saturating_mul(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_duration_f64(&self, other: &Self) -> f64 {
+        self.0.div_duration_f64(other.0)
     }
-    fn saturating_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_f32(&self, n: f32) -> RySignedDuration {
+        Self::from(self.0.div_f32(n))
     }
-    fn signum(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_f64(&self, n: f64) -> RySignedDuration {
+        Self::from(self.0.div_f64(n))
     }
-    fn subsec_micros(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn mul_f32(&self, n: f32) -> RySignedDuration {
+        Self::from(self.0.mul_f32(n))
     }
-    fn subsec_millis(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn mul_f64(&self, n: f64) -> RySignedDuration {
+        Self::from(self.0.mul_f64(n))
     }
-    fn subsec_nanos(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn saturating_add(&self, other: &Self) -> RySignedDuration {
+        Self::from(self.0.saturating_add(other.0))
     }
-    fn system_until(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn saturating_mul(&self, other: i32) -> RySignedDuration {
+        Self::from(self.0.saturating_mul(other))
     }
-    fn try_from_secs_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn saturating_sub(&self, other: &Self) -> RySignedDuration {
+        Self::from(self.0.saturating_sub(other.0))
     }
-    fn try_from_secs_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn checked_neg(&self) -> Option<RySignedDuration> {
+        self.0.checked_neg().map(Self::from)
+    }
+
+    fn signum(&self) -> i8 {
+        self.0.signum()
+    }
+    fn subsec_micros(&self) -> i32 {
+        self.0.subsec_micros()
+    }
+    fn subsec_millis(&self) -> i32 {
+        self.0.subsec_millis()
+    }
+    fn subsec_nanos(&self) -> i32 {
+        self.0.subsec_nanos()
+    }
+
+    fn try_from_secs_f32(&self, secs: f32) -> PyResult<Self> {
+        SignedDuration::try_from_secs_f32(secs)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+    fn try_from_secs_f64(&self, secs: f64) -> PyResult<Self> {
+        SignedDuration::try_from_secs_f64(secs)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 }
 

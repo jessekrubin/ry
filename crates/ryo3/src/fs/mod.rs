@@ -4,7 +4,6 @@ use pyo3::PyResult;
 
 pub mod fileio;
 pub mod fspath;
-mod readdir;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     fileio::pymod_add(m)?;

@@ -2,7 +2,6 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::{PyModule, PyModuleMethods};
 use pyo3::types::{PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyResult, Python};
-use ryo3_macros::err_py_not_impl;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Duration;
 
@@ -28,8 +27,7 @@ impl PyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
     fn new(secs: u64, nanos: u32) -> Self {
-        let dur = Duration::new(secs, nanos);
-        PyDuration(dur)
+        PyDuration(Duration::new(secs, nanos))
     }
     #[allow(non_snake_case)]
     #[classattr]
@@ -368,47 +366,53 @@ impl PyDuration {
         }
     }
 
-    // Methods
-    // abs_diff
+    fn checked_add(&self, other: &Self) -> Option<Self> {
+        self.0.checked_add(other.0).map(Self::from)
+    }
 
-    fn checked_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn checked_div(&self, other: u32) -> Option<Self> {
+        self.0.checked_div(other).map(Self::from)
     }
-    fn checked_div(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn checked_mul(&self, other: u32) -> Option<Self> {
+        self.0.checked_mul(other).map(Self::from)
     }
-    fn checked_mul(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn checked_sub(&self, other: &Self) -> Option<Self> {
+        self.0.checked_sub(other.0).map(Self::from)
     }
-    fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_duration_f32(&self, other: &Self) -> f32 {
+        self.0.div_duration_f32(other.0)
     }
-    fn div_duration_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_duration_f64(&self, other: &Self) -> f64 {
+        self.0.div_duration_f64(other.0)
     }
-    fn div_duration_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_f32(&self, n: f32) -> PyDuration {
+        Self::from(self.0.div_f32(n))
     }
-    fn div_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn div_f64(&self, n: f64) -> PyDuration {
+        Self::from(self.0.div_f64(n))
     }
-    fn div_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn mul_f32(&self, n: f32) -> PyDuration {
+        Self::from(self.0.mul_f32(n))
     }
-    fn mul_f32(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn mul_f64(&self, n: f64) -> PyDuration {
+        Self::from(self.0.mul_f64(n))
     }
-    fn mul_f64(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn saturating_add(&self, other: &Self) -> PyDuration {
+        Self::from(self.0.saturating_add(other.0))
     }
-    fn saturating_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn saturating_mul(&self, other: u32) -> PyDuration {
+        Self::from(self.0.saturating_mul(other))
     }
-    fn saturating_mul(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn saturating_sub(&self, other: &Self) -> PyDuration {
+        Self::from(self.0.saturating_sub(other.0))
     }
 }
 

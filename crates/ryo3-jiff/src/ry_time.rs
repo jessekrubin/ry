@@ -57,6 +57,10 @@ impl RyTime {
     }
 
     #[classmethod]
+    fn midnight(_cls: &Bound<'_, PyType>) -> Self {
+        Self(jiff::civil::Time::midnight())
+    }
+    #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         jiff::civil::Time::from_str(s)
             .map(crate::RyTime::from)
@@ -153,7 +157,7 @@ impl RyTime {
         Ok(())
     }
 
-    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    fn __add__(&self, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
@@ -172,6 +176,17 @@ impl RyTime {
         .map_err(map_py_overflow_err)?;
         self.0 = t;
         Ok(())
+    }
+    fn checked_add(&self, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn checked_sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyTimeArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
     }
 
     #[getter]
@@ -203,20 +218,29 @@ impl RyTime {
         self.0.nanosecond()
     }
 
+    #[getter]
+    fn subsec_nanosecond(&self) -> i32 {
+        self.0.subsec_nanosecond()
+    }
+
     fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(date.0))
     }
 
+    // =====================================================================
+    // PYTHON CONVERSIONS
+    // =====================================================================
     fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
-        let jiff_time = JiffTime(self.0);
-        jiff_time.into_pyobject(py)
-        // let dt = time_to_pyobject(py, &self.0)?;
-        // Ok(dt)
+        JiffTime(self.0).into_pyobject(py)
     }
     #[classmethod]
     fn from_pytime(_cls: &Bound<'_, PyType>, py_time: &Bound<'_, PyTime>) -> PyResult<Self> {
         py_time.extract::<JiffTime>().map(RyTime::from)
     }
+
+    // =====================================================================
+    // INSTANCE METHODS
+    // =====================================================================
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
@@ -243,47 +267,56 @@ impl RyTime {
         let ser = self.0.series(period.0);
         Ok(RyTimeSeries { series: ser })
     }
+    fn duration_since(&self, other: &Self) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_since(other.0))
+    }
+    fn duration_until(&self, other: &Self) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_until(other.0))
+    }
 
-    fn checked_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn saturating_add(&self, other: RyDeltaArithmeticSelf) -> RyTime {
+        match other {
+            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.saturating_add(other.0)),
+            RyDeltaArithmeticSelf::SignedDuration(other) => {
+                Self::from(self.0.saturating_add(other.0))
+            }
+            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.saturating_add(other.0)),
+        }
     }
-    fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn saturating_sub(&self, other: RyDeltaArithmeticSelf) -> RyTime {
+        match other {
+            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.saturating_sub(other.0)),
+            RyDeltaArithmeticSelf::SignedDuration(other) => {
+                Self::from(self.0.saturating_sub(other.0))
+            }
+            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.saturating_sub(other.0)),
+        }
     }
-    fn constant(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn wrapping_add(&self, other: RyDeltaArithmeticSelf) -> RyTime {
+        match other {
+            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.wrapping_add(other.0)),
+            RyDeltaArithmeticSelf::SignedDuration(other) => {
+                Self::from(self.0.wrapping_add(other.0))
+            }
+            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.wrapping_add(other.0)),
+        }
     }
-    fn duration_since(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn wrapping_sub(&self, other: RyDeltaArithmeticSelf) -> RyTime {
+        match other {
+            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.wrapping_sub(other.0)),
+            RyDeltaArithmeticSelf::SignedDuration(other) => {
+                Self::from(self.0.wrapping_sub(other.0))
+            }
+            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.wrapping_sub(other.0)),
+        }
     }
-    fn duration_until(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn midnight(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
+
     fn round(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_sub(&self) -> PyResult<()> {
+        // self.0.round()
         err_py_not_impl!()
     }
     fn since(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn subsec_nanosecond(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn with(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn wrapping_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn wrapping_sub(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }

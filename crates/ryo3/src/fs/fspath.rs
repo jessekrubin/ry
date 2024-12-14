@@ -1,14 +1,12 @@
 #![allow(clippy::needless_pass_by_value)]
 
-use std::path::{Path, PathBuf};
-
-use crate::fs::readdir::PyReadDir;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule, PyTuple, PyType};
 use pyo3::{pyclass, pymethods, PyObject, PyResult, Python};
 use ryo3_types::PathLike;
+use std::path::{Path, PathBuf};
 
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
@@ -500,6 +498,30 @@ where
 //         }
 //     }
 // }
+
+#[pyclass(name = "ReadDir", module = "ryo3")]
+pub struct PyReadDir {
+    iter: std::fs::ReadDir,
+}
+
+#[pymethods]
+impl PyReadDir {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyFsPath> {
+        match slf.iter.next() {
+            Some(Ok(entry)) => Some(PyFsPath::from(entry.path())),
+            _ => None,
+        }
+    }
+}
+
+impl From<std::fs::ReadDir> for PyReadDir {
+    fn from(iter: std::fs::ReadDir) -> Self {
+        Self { iter }
+    }
+}
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFsPath>()?;
