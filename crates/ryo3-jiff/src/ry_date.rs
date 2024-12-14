@@ -141,6 +141,13 @@ impl RyDate {
             }
         }
     }
+    fn checked_sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyDateArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
+    }
 
     fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
@@ -172,6 +179,45 @@ impl RyDate {
             "unsupported operand type(s) for +: 'Date' and 'other'",
         ))
     }
+    fn checked_add<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+        self.__add__(_py, other)
+    }
+
+    fn saturating_add<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(date) = other.downcast::<RySpan>() {
+            let other = date.extract::<RySpan>()?;
+            return Ok(RyDate::from(self.0.saturating_add(other.0)));
+        }
+        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
+            let other = signed_dur.extract::<RySignedDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_add(other.0)));
+        }
+        if let Ok(date) = other.downcast::<PyDuration>() {
+            let other = date.extract::<PyDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_add(other.0)));
+        }
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "unsupported operand type(s) for +: 'Date' and 'other'",
+        ))
+    }
+    fn saturating_sub<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(date) = other.downcast::<RySpan>() {
+            let other = date.extract::<RySpan>()?;
+            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
+        }
+        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
+            let other = signed_dur.extract::<RySignedDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
+        }
+        if let Ok(date) = other.downcast::<PyDuration>() {
+            let other = date.extract::<PyDuration>()?;
+            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
+        }
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "unsupported operand type(s) for +: 'Date' and 'other'",
+        ))
+    }
+
     // fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
     //     let t = match other {
     //         RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
@@ -232,12 +278,6 @@ impl RyDate {
         }
     }
 
-    fn checked_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn day_of_year(&self) -> i16 {
         self.0.day_of_year()
     }
@@ -322,12 +362,6 @@ impl RyDate {
         err_py_not_impl!()
     }
     fn nth_weekday_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn saturating_sub(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn since(&self) -> PyResult<()> {

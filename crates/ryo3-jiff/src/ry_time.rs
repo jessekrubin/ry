@@ -57,6 +57,10 @@ impl RyTime {
     }
 
     #[classmethod]
+    fn midnight(_cls: &Bound<'_, PyType>) -> Self {
+        Self(jiff::civil::Time::midnight())
+    }
+    #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         jiff::civil::Time::from_str(s)
             .map(crate::RyTime::from)
@@ -223,6 +227,9 @@ impl RyTime {
         RyDateTime::from(self.0.to_datetime(date.0))
     }
 
+    // =====================================================================
+    // PYTHON CONVERSIONS
+    // =====================================================================
     fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
         JiffTime(self.0).into_pyobject(py)
     }
@@ -230,6 +237,10 @@ impl RyTime {
     fn from_pytime(_cls: &Bound<'_, PyType>, py_time: &Bound<'_, PyTime>) -> PyResult<Self> {
         py_time.extract::<JiffTime>().map(RyTime::from)
     }
+
+    // =====================================================================
+    // INSTANCE METHODS
+    // =====================================================================
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
@@ -261,10 +272,6 @@ impl RyTime {
     }
     fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
-    }
-    #[classmethod]
-    fn midnight(_cls: &Bound<'_, PyType>) -> Self {
-        Self(jiff::civil::Time::midnight())
     }
 
     fn saturating_add(&self, other: RyDeltaArithmeticSelf) -> RyTime {

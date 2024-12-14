@@ -1,18 +1,13 @@
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::internal::{IntoDateTimeRound, RySpanRelativeTo};
-use crate::ry_date::RyDate;
-use crate::ry_datetime::RyDateTime;
+use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::ry_zoned::RyZoned;
 use crate::{timespan, JiffSpan};
 use jiff::{Span, SpanArithmetic};
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
-use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python,
-};
+use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyAny, PyErr, PyResult, Python};
 use ryo3_macros::err_py_not_impl;
-use ryo3_std::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -113,54 +108,44 @@ impl RySpan {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn with_years(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.years(n);
-        Ok(RySpan::from(s))
+    fn _years(&self, n: i64) -> Self {
+        Self::from(self.0.years(n))
     }
 
-    fn with_months(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.months(n);
-        Ok(RySpan::from(s))
+    fn _months(&self, n: i64) -> Self {
+        Self::from(self.0.months(n))
     }
 
-    fn with_weeks(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.weeks(n);
-        Ok(RySpan::from(s))
+    fn _weeks(&self, n: i64) -> Self {
+        Self::from(self.0.weeks(n))
     }
 
-    fn with_days(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.days(n);
-        Ok(RySpan::from(s))
+    fn _days(&self, n: i64) -> Self {
+        Self::from(self.0.days(n))
     }
 
-    fn with_hours(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.hours(n);
-        Ok(RySpan::from(s))
+    fn _hours(&self, n: i64) -> Self {
+        Self::from(self.0.hours(n))
     }
 
-    fn with_minutes(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.minutes(n);
-        Ok(RySpan::from(s))
+    fn _minutes(&self, n: i64) -> Self {
+        Self::from(self.0.minutes(n))
     }
 
-    fn with_seconds(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.seconds(n);
-        Ok(RySpan::from(s))
+    fn _seconds(&self, n: i64) -> Self {
+        Self::from(self.0.seconds(n))
     }
 
-    fn with_milliseconds(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.milliseconds(n);
-        Ok(RySpan::from(s))
+    fn _milliseconds(&self, n: i64) -> Self {
+        Self::from(self.0.milliseconds(n))
     }
 
-    fn with_microseconds(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.microseconds(n);
-        Ok(RySpan::from(s))
+    fn _microseconds(&self, n: i64) -> Self {
+        Self::from(self.0.microseconds(n))
     }
 
-    fn with_nanoseconds(&self, n: i64) -> PyResult<Self> {
-        let s = self.0.nanoseconds(n);
-        Ok(RySpan::from(s))
+    fn _nanoseconds(&self, n: i64) -> Self {
+        Self::from(self.0.nanoseconds(n))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -526,65 +511,5 @@ impl From<Span> for RySpan {
 impl From<JiffSpan> for RySpan {
     fn from(span: JiffSpan) -> Self {
         Self(span.0)
-    }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum SpanArithmeticTupleIx0 {
-    Span(RySpan),
-    Duration(PyDuration),
-    SignedDuration(RySignedDuration),
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum SpanArithmeticTupleIx1 {
-    Zoned(RyZoned),
-    Date(RyDate),
-    DateTime(RyDateTime),
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum IntoSpanArithmetic {
-    Uno(SpanArithmeticTupleIx0),
-    Dos((SpanArithmeticTupleIx0, SpanArithmeticTupleIx1)),
-}
-
-impl From<IntoSpanArithmetic> for SpanArithmetic<'_> {
-    fn from<'b>(value: IntoSpanArithmetic) -> Self {
-        // HERE WE HAVE A TOTAL CLUSTERFUCK OF MATCHING...
-        // BUT I AM NOT SURE HOW TO GET THIS TO PLAY NICE WITH PYTHON + LIFETIMES
-        match value {
-            IntoSpanArithmetic::Uno(s) => match s {
-                SpanArithmeticTupleIx0::Span(sp) => SpanArithmetic::from(sp.0),
-                SpanArithmeticTupleIx0::Duration(dur) => SpanArithmetic::from(dur.0),
-                SpanArithmeticTupleIx0::SignedDuration(dur) => SpanArithmetic::from(dur.0),
-            },
-            IntoSpanArithmetic::Dos((s, r)) => match s {
-                SpanArithmeticTupleIx0::Span(sp) => match r {
-                    // TODO: figure out if this is bad........
-                    SpanArithmeticTupleIx1::Zoned(z) => {
-                        SpanArithmetic::from((sp.0, z.0.datetime()))
-                    }
-                    SpanArithmeticTupleIx1::Date(d) => SpanArithmetic::from((sp.0, d.0)),
-                    SpanArithmeticTupleIx1::DateTime(dt) => SpanArithmetic::from((sp.0, dt.0)),
-                },
-                SpanArithmeticTupleIx0::Duration(dur) => match r {
-                    // TODO: figure out if this is bad........
-                    SpanArithmeticTupleIx1::Zoned(z) => {
-                        SpanArithmetic::from((dur.0, z.0.datetime()))
-                    }
-                    SpanArithmeticTupleIx1::Date(d) => SpanArithmetic::from((dur.0, d.0)),
-                    SpanArithmeticTupleIx1::DateTime(dt) => SpanArithmetic::from((dur.0, dt.0)),
-                },
-                SpanArithmeticTupleIx0::SignedDuration(dur) => match r {
-                    // TODO: figure out if this is bad........
-                    SpanArithmeticTupleIx1::Zoned(z) => {
-                        SpanArithmetic::from((dur.0, z.0.datetime()))
-                    }
-                    SpanArithmeticTupleIx1::Date(d) => SpanArithmetic::from((dur.0, d.0)),
-                    SpanArithmeticTupleIx1::DateTime(dt) => SpanArithmetic::from((dur.0, dt.0)),
-                },
-            },
-        }
     }
 }

@@ -24,9 +24,9 @@ def test_timestamp_series_jiff_example() -> None:
     ]);
     """
     start = ry.Timestamp.parse("2023-07-15 16:30:00-04")
-    end = start + ry.TimeSpan().with_hours(48)
+    end = start + ry.TimeSpan()._hours(48)
     scan_times = []
-    for ts in start.series(ry.TimeSpan().with_hours(5)):
+    for ts in start.series(ry.TimeSpan()._hours(5)):
         if ts > end:
             break
         scan_times.append(ts)

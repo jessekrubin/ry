@@ -77,15 +77,8 @@ pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
     Ok(which_vec)
 }
 
-#[pyfunction]
-#[pyo3(signature= (cmd, path=None))]
-pub fn whicha(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
-    which_all(cmd, path)
-}
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(self::which, m)?)?;
     m.add_function(wrap_pyfunction!(self::which_all, m)?)?;
-    m.add_function(wrap_pyfunction!(self::whicha, m)?)?;
     Ok(())
 }
