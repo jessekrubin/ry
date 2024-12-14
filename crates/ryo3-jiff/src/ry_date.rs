@@ -159,7 +159,7 @@ impl RyDate {
         Ok(())
     }
 
-    fn __add__<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(date) = other.downcast::<RySpan>() {
             let other = date.extract::<RySpan>()?;
             let t = self.0 + other.0;
@@ -179,8 +179,8 @@ impl RyDate {
             "unsupported operand type(s) for +: 'Date' and 'other'",
         ))
     }
-    fn checked_add<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
-        self.__add__(_py, other)
+    fn checked_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
     }
 
     fn saturating_add<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
