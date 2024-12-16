@@ -3,9 +3,9 @@ use pyo3::prelude::*;
 use tracing::debug;
 mod lager;
 
-const PACKAGE: &str = "ry";
-const AUTHORS: &str = "jesse rubin <jessekrubin@gmail.com>";
-const DESCRIPTION: &str = "ry ~ rust & python & wrappers oh my!";
+const PACKAGE: &str = env!("CARGO_PKG_NAME");
+const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BUILD_PROFILE: &str = env!("PROFILE");
 const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");

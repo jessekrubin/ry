@@ -23,22 +23,33 @@ mod into_span_arithmetic;
 mod intz;
 pub mod pydatetime_conversions;
 mod ry_date;
+mod ry_date_difference;
 mod ry_datetime;
+mod ry_datetime_difference;
 mod ry_offset;
 mod ry_signed_duration;
 mod ry_span;
+// mod ry_span_round;
 mod ry_time;
+mod ry_time_difference;
 mod ry_timestamp;
+mod ry_timestamp_difference;
 mod ry_timezone;
 mod ry_zoned;
+mod ry_zoned_difference;
 
 use crate::dev::RyDateTimeRound;
 use crate::ry_date::RyDate;
+use crate::ry_date_difference::RyDateDifference;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
+// use crate::ry_span_round::RySpanRound;
+use crate::ry_datetime_difference::RyDateTimeDifference;
+use crate::ry_time_difference::RyTimeDifference;
 use crate::ry_timestamp::RyTimestamp;
+use crate::ry_timestamp_difference::RyTimestampDifference;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use jiff::Span;
@@ -172,8 +183,16 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyTimeZone>()?;
     m.add_class::<RyTimestamp>()?;
     m.add_class::<RyZoned>()?;
-    m.add_class::<RyDateTimeRound>()?;
     m.add_class::<RyOffset>()?;
+
+    // difference
+    m.add_class::<RyDateDifference>()?;
+    m.add_class::<RyDateTimeDifference>()?;
+    m.add_class::<RyTimeDifference>()?;
+    m.add_class::<RyTimestampDifference>()?;
+
+    // round
+    m.add_class::<RyDateTimeRound>()?;
 
     // functions
     m.add_function(wrap_pyfunction!(date, m)?)?;

@@ -1,6 +1,8 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
 use crate::jiff_types::JiffDateTime;
+use crate::ry_date_difference::{IntoDateDifference, RyDateDifference};
+use crate::ry_datetime_difference::{IntoDateTimeDifference, RyDateTimeDifference};
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -407,7 +409,31 @@ impl RyDateTime {
             .map(RyDateTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
+    fn since(&self, other: IntoDateTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+    fn until(&self, other: IntoDateTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
 
+    fn _since(&self, other: &RyDateTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+    fn _until(&self, other: &RyDateTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
     fn tomorrow(&self) -> PyResult<Self> {
         self.0
             .tomorrow()
@@ -424,12 +450,6 @@ impl RyDateTime {
         err_py_not_impl!()
     }
     fn nth_weekday_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn since(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn until(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     #[getter]

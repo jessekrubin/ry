@@ -12,15 +12,16 @@ __all__ = (
 )
 
 JIFF_UNIT_STRING = Literal[
-    "nanosecond",
-    "microsecond",
-    "millisecond",
-    "second",
-    "minute",
-    "hour",
-    "day",
-    "month",
     "year",
+    "month",
+    "week",
+    "day",
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
 ]
 
 JIFF_ROUND_MODE_STRING = Literal[
