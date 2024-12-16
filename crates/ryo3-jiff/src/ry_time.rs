@@ -1,9 +1,10 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
-use crate::errors::map_py_overflow_err;
+use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::{JiffTime, JiffUnit};
+use crate::ry_time_difference::{IntoTimeDifference, RyTimeDifference};
+use crate::JiffTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
@@ -80,13 +81,6 @@ impl RyTime {
 
     fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
         RyDateTime::from(self.0.on(year, month, day))
-    }
-
-    fn until(&self, other: &RyTime) -> PyResult<RySpan> {
-        self.0
-            .until(other.0)
-            .map(crate::RySpan::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -316,8 +310,30 @@ impl RyTime {
         // self.0.round()
         err_py_not_impl!()
     }
-    fn since(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn since(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+    fn until(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn _since(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+    fn _until(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
     }
 }
 
@@ -355,36 +371,40 @@ impl RyTimeSeries {
     }
 }
 
-#[pyclass(name = "TimeDifference", module = "ryo3")]
-#[derive(Debug, Clone)]
-pub struct RyTimeDifference(pub(crate) jiff::civil::TimeDifference);
+// #[pyclass(name = "TimeDifference", module = "ryo3")]
+// #[derive(Debug, Clone)]
+// pub struct RyTimeDifference(pub(crate) jiff::civil::TimeDifference);
+//
+// #[pymethods]
+// impl RyTimeDifference {
+//     #[new]
+//     pub fn new(time: &RyTime) -> PyResult<Self> {
+//         let td = jiff::civil::TimeDifference::new(time.0);
+//         Ok(Self(td))
+//     }
+//
+//     pub fn smallest(&self, unit: JiffUnit) -> Self {
+//         Self::from(self.0.smallest(unit.0))
+//     }
+//
+//     pub fn largest(&self, unit: JiffUnit) -> Self {
+//         Self::from(self.0.largest(unit.0))
+//     }
+//
+//     pub fn mode(&self, mode: crate::JiffRoundMode) -> Self {
+//         Self::from(self.0.mode(mode.0))
+//     }
+//
+//     pub fn increment(&self, increment: i64) -> Self {
+//         Self::from(self.0.increment(increment))
+//     }
+// }
 
-#[pymethods]
-impl RyTimeDifference {
-    #[new]
-    pub fn new(time: &RyTime) -> PyResult<Self> {
-        let td = jiff::civil::TimeDifference::new(time.0);
-        Ok(Self(td))
-    }
-
-    pub fn smallest(&self, unit: JiffUnit) -> Self {
-        Self::from(self.0.smallest(unit.0))
-    }
-
-    pub fn largest(&self, unit: JiffUnit) -> Self {
-        Self::from(self.0.largest(unit.0))
-    }
-
-    pub fn increment(&self, increment: i64) -> Self {
-        Self::from(self.0.increment(increment))
-    }
-}
-
-impl From<jiff::civil::TimeDifference> for RyTimeDifference {
-    fn from(value: jiff::civil::TimeDifference) -> Self {
-        Self(value)
-    }
-}
+// impl From<jiff::civil::TimeDifference> for RyTimeDifference {
+//     fn from(value: jiff::civil::TimeDifference) -> Self {
+//         Self(value)
+//     }
+// }
 
 // #[derive(Debug, Clone, FromPyObject)]
 // pub enum RyTimeArithmeticSub {

@@ -153,9 +153,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.3"
+version = "1.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27f657647bcff5394bf56c7317665bbf790a137a50eaaa5c6bfbb9e27a518f2d"
+checksum = "9157bbaa6b165880c27a4293a474c91cdcf265cc68cc829bf10be0964a391caf"
 dependencies = [
  "jobserver",
  "libc",
@@ -981,7 +981,7 @@ checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
 dependencies = [
  "getrandom",
  "libredox",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1049,24 +1049,19 @@ dependencies = [
 
 [[package]]
 name = "ry"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
- "dirs",
  "jiff",
  "pyo3",
  "pyo3-build-config",
  "ryo3",
- "serde",
- "serde_json",
- "thiserror 2.0.6",
- "tokio",
  "tracing",
  "tracing-subscriber",
 ]
 
 [[package]]
 name = "ryo3"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "dirs",
  "jiff",
@@ -1102,7 +1097,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "brotli",
  "pyo3",
@@ -1110,7 +1105,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -1118,7 +1113,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "serde",
@@ -1129,7 +1124,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "flate2",
  "pyo3",
@@ -1137,7 +1132,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "fnv",
  "pyo3",
@@ -1145,7 +1140,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "globset",
  "pyo3",
@@ -1154,7 +1149,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "heck",
  "pyo3",
@@ -1162,7 +1157,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1173,7 +1168,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "jiter",
  "pyo3",
@@ -1181,21 +1176,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macros"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "regex",
@@ -1203,7 +1198,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "shlex",
@@ -1211,7 +1206,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -1219,7 +1214,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "ryo3-macros",
@@ -1227,14 +1222,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-types"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "url",
@@ -1242,7 +1237,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "ryo3-globset",
@@ -1252,15 +1247,16 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
+ "ryo3-regex",
  "which",
 ]
 
 [[package]]
 name = "ryo3-xxhash"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "xxhash-rust",
@@ -1268,7 +1264,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "pyo3",
  "zstd",
@@ -1447,16 +1443,7 @@ version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
 dependencies = [
- "thiserror-impl 1.0.69",
-]
-
-[[package]]
-name = "thiserror"
-version = "2.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fec2a1820ebd077e2b90c4df007bebf344cd394098a13c563957d0afc83ea47"
-dependencies = [
- "thiserror-impl 2.0.6",
+ "thiserror-impl",
 ]
 
 [[package]]
@@ -1464,17 +1451,6 @@ name = "thiserror-impl"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "2.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d65750cab40f4ff1929fb1ba509e9914eb756131cef4210da8d5d700d26f6312"
 dependencies = [
  "proc-macro2",
  "quote",

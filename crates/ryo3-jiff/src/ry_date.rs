@@ -1,5 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
+use crate::ry_date_difference::{IntoDateDifference, RyDateDifference};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -120,13 +121,17 @@ impl RyDate {
         )
     }
 
+    fn sub_date(&self, other: &RyDate) -> RySpan {
+        RySpan::from(self.0 - other.0)
+    }
+
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
         other: RyDateArithmeticSub,
     ) -> PyResult<Bound<'py, PyAny>> {
         match other {
-            RyDateArithmeticSub::Time(other) => {
+            RyDateArithmeticSub::Date(other) => {
                 let span = self.0 - other.0;
                 let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
@@ -354,6 +359,31 @@ impl RyDate {
         }
     }
 
+    fn since(&self, other: IntoDateDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+    fn until(&self, other: IntoDateDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn _since(&self, other: &RyDateDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+    fn _until(&self, other: &RyDateDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
     #[classmethod]
     fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
         err_py_not_impl!()
@@ -364,13 +394,7 @@ impl RyDate {
     fn nth_weekday_of_month(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn since(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn to_iso_week_date(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn until(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }
@@ -406,6 +430,6 @@ impl RyDateSeries {
 
 #[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum RyDateArithmeticSub {
-    Time(RyDate),
+    Date(RyDate),
     Delta(RyDeltaArithmeticSelf),
 }

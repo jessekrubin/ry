@@ -8,9 +8,9 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::{JiffZoned, RyDate};
+use crate::{JiffUnit, JiffZoned, RyDate};
 use jiff::civil::Weekday;
-use jiff::Zoned;
+use jiff::{Zoned, ZonedDifference};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDate, PyDateTime, PyTuple, PyType};
@@ -435,10 +435,6 @@ impl RyZoned {
         self.0.offset().into()
     }
 
-    fn since(&self) -> PyResult<()> {
-        // self.0.since()
-        err_py_not_impl!()
-    }
     fn start_of_day(&self) -> PyResult<Self> {
         self.0
             .start_of_day()
@@ -449,9 +445,38 @@ impl RyZoned {
     fn time_zone(&self) -> PyResult<RyTimeZone> {
         Ok(RyTimeZone::from(self.0.time_zone()))
     }
+    fn since<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
+        if let Ok(other) = other.extract::<RyZoned>() {
+            self.0
+                .since(&other.0)
+                .map(RySpan::from)
+                .map_err(map_py_value_err)
+        } else if let Ok(other) = other.extract::<(JiffUnit, RyZoned)>() {
+            let zdiff = ZonedDifference::from((other.0 .0, &other.1 .0));
+            self.0
+                .since(zdiff)
+                .map(RySpan::from)
+                .map_err(map_py_value_err)
+        } else {
+            err_py_not_impl!()
+        }
+    }
 
-    fn until(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn until<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
+        if let Ok(other) = other.extract::<RyZoned>() {
+            self.0
+                .until(&other.0)
+                .map(RySpan::from)
+                .map_err(map_py_value_err)
+        } else if let Ok(other) = other.extract::<(JiffUnit, RyZoned)>() {
+            let zdiff = ZonedDifference::from((other.0 .0, &other.1 .0));
+            self.0
+                .until(zdiff)
+                .map(RySpan::from)
+                .map_err(map_py_value_err)
+        } else {
+            err_py_not_impl!()
+        }
     }
 
     fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {

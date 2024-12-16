@@ -17,10 +17,10 @@ no-section-label = false
 git-repository-url = "https://github.com/jessekrubin/ry"
 git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/jessekrubin/ry/edit/main/docs/{path}"
-#site-url = "https://jessekrubin.github.io/ry" # gh-pages
+# site-url = "https://jessekrubin.github.io/ry" # gh-pages
 site-url = "https://ryo3.dev" # cf
 cname = "ryo3.dev"
 input-404 = "four-o-four.md"
 
-#[preprocessor.py_preprocessor]
-#command = "python3 docs/ryo3_version.py"
+# [preprocessor.py_preprocessor]
+# command = "python3 docs/ryo3_version.py"

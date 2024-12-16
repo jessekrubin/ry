@@ -157,3 +157,11 @@ _gen-py: _gen_init fmtpy
 
 # generate code tasks
 gen: _gen-py
+
+# =====================================================================
+# docs
+# =====================================================================
+
+# generate cargo docs for all crates (in workspace)
+cargo-doc:
+    cargo doc --no-deps --workspace

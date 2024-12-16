@@ -11,7 +11,12 @@ repository.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-regex = { workspace = true, optional = true }
 which = { workspace = true, features = ["tracing"] }
 
 [lints]
 workspace = true
+
+[features]
+default = ["dep:ryo3-regex", "which/regex"]
+regex = ["dep:ryo3-regex", "which/regex"]

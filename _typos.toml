@@ -3,7 +3,7 @@
 
 [files]
 extend-exclude = [
-  "tests/xxhash/_xxhash_test_data.py"
+  "tests/xxhash/_xxhash_test_data.py",
 ]
 
 [default]

@@ -1,6 +1,8 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
+use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
+use crate::ry_timestamp_difference::{IntoTimestampDifference, RyTimestampDifference};
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use jiff::{Timestamp, Zoned};
@@ -229,6 +231,53 @@ impl RyTimestamp {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn since(&self, other: IntoTimestampDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn until(&self, other: IntoTimestampDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn _since(&self, other: &RyTimestampDifference) -> PyResult<RySpan> {
+        self.0
+            .since(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn _until(&self, other: &RyTimestampDifference) -> PyResult<RySpan> {
+        self.0
+            .until(other.0)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
+    // fn until(&self, other: IntoDateDifference) -> PyResult<RySpan> {
+    //     self.0
+    //         .until(other)
+    //         .map(RySpan::from)
+    //         .map_err(map_py_value_err)
+    // }
+    //
+    // fn _since(&self, other: &RyDateDifference) -> PyResult<RySpan> {
+    //     self.0
+    //         .since(other.0)
+    //         .map(RySpan::from)
+    //         .map_err(map_py_value_err)
+    // }
+    // fn _until(&self, other: &RyDateDifference) -> PyResult<RySpan> {
+    //     self.0
+    //         .until(other.0)
+    //         .map(RySpan::from)
+    //         .map_err(map_py_value_err)
+    // }
     fn checked_add(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -238,15 +287,16 @@ impl RyTimestamp {
     fn display_with_offset(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn duration_since(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn duration_since(&self, other: &RyTimestamp) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_since(other.0))
     }
-    fn duration_until(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn duration_until(&self, other: &RyTimestamp) -> RySignedDuration {
+        RySignedDuration::from(self.0.duration_until(other.0))
     }
-    fn since(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
+
+    // fn since(&self) -> PyResult<()> {
+    //     err_py_not_impl!()
+    // }
     fn round(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -256,9 +306,9 @@ impl RyTimestamp {
     fn saturating_sub(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn until(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
+    // fn until(&self) -> PyResult<()> {
+    //     err_py_not_impl!()
+    // }
 }
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -1,17 +1,9 @@
-// #![deny(clippy::all)]
-// #![deny(clippy::correctness)]
-// #![deny(clippy::panic)]
-// #![deny(clippy::perf)]
-// #![deny(clippy::pedantic)]
-// #![deny(clippy::style)]
-// #![deny(clippy::unwrap_used)]
-// #![warn(clippy::must_use_candidate)]
-// #![allow(clippy::missing_errors_doc)]
-// #![allow(clippy::missing_panics_doc)]
-// #![allow(clippy::unnecessary_wraps)]
-// #![allow(clippy::needless_pass_by_value)]
-// #![allow(clippy::module_name_repetitions)]
-// #![allow(clippy::unused_self)]
+#![doc = include_str!("../README.md")]
+
+#[cfg(feature = "regex")]
+mod which_regex;
+#[cfg(feature = "regex")]
+pub use which_regex::which_re;
 
 use pyo3::types::{PyModule, PyModuleMethods};
 use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult};
@@ -80,5 +72,8 @@ pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(self::which, m)?)?;
     m.add_function(wrap_pyfunction!(self::which_all, m)?)?;
+
+    #[cfg(feature = "regex")]
+    which_regex::pymod_add(m)?;
     Ok(())
 }

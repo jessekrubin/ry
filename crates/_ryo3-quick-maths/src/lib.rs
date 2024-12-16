@@ -1,6 +1,4 @@
-//! Quick maths
-//!
-//! This is a super simple template module
+#![doc = include_str!("../README.md")]
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{wrap_pyfunction, PyResult};
@@ -9,7 +7,10 @@ use pyo3::{wrap_pyfunction, PyResult};
 ///
 /// Based on the Big Shaq's thesis "Man's Not Hot"
 ///
-/// Ref: https://youtu.be/3M_5oYU-IsU?t=60
+/// Ref: [https://youtu.be/3M_5oYU-IsU?t=60](https://youtu.be/3M_5oYU-IsU?t=60)
+///
+/// This is a very computationally expensive operation, but it may be the
+/// fastest implementation of `quick_maths` in the world.
 ///
 /// # Example
 /// ```
