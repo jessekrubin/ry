@@ -496,3 +496,127 @@ class TestTimestampDifference:
             .mode("half_expand")
         )
         assert span == ry.timespan(minutes=275)
+
+
+#
+# Example
+# This example shows how to round a span between two zoned datetimes to the nearest half-hour, with ties breaking away from zero.
+#
+# use jiff::{RoundMode, ToSpan, Unit, Zoned, ZonedDifference};
+#
+# let zdt1 = "2024-03-15 08:14:00.123456789[America/New_York]".parse::<Zoned>()?;
+# let zdt2 = "2030-03-22 15:00[America/New_York]".parse::<Zoned>()?;
+# let span = zdt1.until(
+#     ZonedDifference::new(&zdt2)
+#         .smallest(Unit::Minute)
+#         .largest(Unit::Year)
+#         .mode(RoundMode::HalfExpand)
+#         .increment(30),
+# )?;
+# assert_eq!(span, 6.years().days(7).hours(7));
+# Implementations
+# Source
+# impl<'a> ZonedDifference<'a>
+# Source
+# pub fn new(zoned: &'a Zoned) -> ZonedDifference<'a>
+# Create a new default configuration for computing the span between the given zoned datetime and some other zoned datetime (specified as the receiver in Zoned::since or Zoned::until).
+#
+# Source
+# pub fn smallest(self, unit: Unit) -> ZonedDifference<'a>
+# Set the smallest units allowed in the span returned.
+#
+# When a largest unit is not specified and the smallest unit is hours or greater, then the largest unit is automatically set to be equal to the smallest unit.
+#
+# Errors
+# The smallest units must be no greater than the largest units. If this is violated, then computing a span with this configuration will result in an error.
+#
+# Example
+# This shows how to round a span between two zoned datetimes to the nearest number of weeks.
+#
+# use jiff::{RoundMode, ToSpan, Unit, Zoned, ZonedDifference};
+#
+# let zdt1 = "2024-03-15 08:14[America/New_York]".parse::<Zoned>()?;
+# let zdt2 = "2030-11-22 08:30[America/New_York]".parse::<Zoned>()?;
+# let span = zdt1.until(
+#     ZonedDifference::new(&zdt2)
+#         .smallest(Unit::Week)
+#         .largest(Unit::Week)
+#         .mode(RoundMode::HalfExpand),
+# )?;
+# assert_eq!(span, 349.weeks());
+# Source
+# pub fn largest(self, unit: Unit) -> ZonedDifference<'a>
+# Set the largest units allowed in the span returned.
+#
+# When a largest unit is not specified and the smallest unit is hours or greater, then the largest unit is automatically set to be equal to the smallest unit. Otherwise, when the largest unit is not specified, it is set to hours.
+#
+# Once a largest unit is set, there is no way to change this rounding configuration back to using the “automatic” default. Instead, callers must create a new configuration.
+#
+# Errors
+# The largest units, when set, must be at least as big as the smallest units (which defaults to Unit::Nanosecond). If this is violated, then computing a span with this configuration will result in an error.
+#
+# Example
+# This shows how to round a span between two zoned datetimes to units no bigger than seconds.
+#
+# use jiff::{ToSpan, Unit, Zoned, ZonedDifference};
+#
+# let zdt1 = "2024-03-15 08:14[America/New_York]".parse::<Zoned>()?;
+# let zdt2 = "2030-11-22 08:30[America/New_York]".parse::<Zoned>()?;
+# let span = zdt1.until(
+#     ZonedDifference::new(&zdt2).largest(Unit::Second),
+# )?;
+# assert_eq!(span, 211079760.seconds());
+# Source
+# pub fn mode(self, mode: RoundMode) -> ZonedDifference<'a>
+# Set the rounding mode.
+#
+# This defaults to RoundMode::Trunc since it’s plausible that rounding “up” in the context of computing the span between two zoned datetimes could be surprising in a number of cases. The RoundMode::HalfExpand mode corresponds to typical rounding you might have learned about in school. But a variety of other rounding modes exist.
+#
+# Example
+# This shows how to always round “up” towards positive infinity.
+#
+# use jiff::{RoundMode, ToSpan, Unit, Zoned, ZonedDifference};
+#
+# let zdt1 = "2024-03-15 08:10[America/New_York]".parse::<Zoned>()?;
+# let zdt2 = "2024-03-15 08:11[America/New_York]".parse::<Zoned>()?;
+# let span = zdt1.until(
+#     ZonedDifference::new(&zdt2)
+#         .smallest(Unit::Hour)
+#         .mode(RoundMode::Ceil),
+# )?;
+# // Only one minute elapsed, but we asked to always round up!
+# assert_eq!(span, 1.hour());
+#
+# // Since `Ceil` always rounds toward positive infinity, the behavior
+# // flips for a negative span.
+# let span = zdt1.since(
+#     ZonedDifference::new(&zdt2)
+#         .smallest(Unit::Hour)
+#         .mode(RoundMode::Ceil),
+# )?;
+# assert_eq!(span, 0.hour());
+# Source
+# pub fn increment(self, increment: i64) -> ZonedDifference<'a>
+# Set the rounding increment for the smallest unit.
+#
+# The default value is 1. Other values permit rounding the smallest unit to the nearest integer increment specified. For example, if the smallest unit is set to Unit::Minute, then a rounding increment of 30 would result in rounding in increments of a half hour. That is, the only minute value that could result would be 0 or 30.
+#
+# Errors
+# When the smallest unit is less than days, the rounding increment must divide evenly into the next highest unit after the smallest unit configured (and must not be equivalent to it). For example, if the smallest unit is Unit::Nanosecond, then some of the valid values for the rounding increment are 1, 2, 4, 5, 100 and 500. Namely, any integer that divides evenly into 1,000 nanoseconds since there are 1,000 nanoseconds in the next highest unit (microseconds).
+#
+# The error will occur when computing the span, and not when setting the increment here.
+#
+# Example
+# This shows how to round the span between two zoned datetimes to the nearest 5 minute increment.
+#
+# use jiff::{RoundMode, ToSpan, Unit, Zoned, ZonedDifference};
+#
+# let zdt1 = "2024-03-15 08:19[America/New_York]".parse::<Zoned>()?;
+# let zdt2 = "2024-03-15 12:52[America/New_York]".parse::<Zoned>()?;
+# let span = zdt1.until(
+#     ZonedDifference::new(&zdt2)
+#         .smallest(Unit::Minute)
+#         .increment(5)
+#         .mode(RoundMode::HalfExpand),
+# )?;
+# assert_eq!(span, 4.hour().minutes(35));
