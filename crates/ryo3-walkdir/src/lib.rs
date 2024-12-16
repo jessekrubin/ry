@@ -67,7 +67,6 @@ pub struct PyWalkdirGen {
     dirs: bool,
     glob: Option<PyGlobster>,
 }
-
 #[pymethods]
 impl PyWalkdirGen {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -87,13 +86,38 @@ impl PyWalkdirGen {
                 } else if let Some(path_str) = entry.path().to_str() {
                     return Some(path_str.to_string());
                 }
-
-                // if let Some(path_str) = entry.path().to_str() {
-                //     return Some(path_str.to_string());
-                // }
             }
         }
         None
+    }
+    fn collect(&mut self) -> Vec<String> {
+        let files = self.files;
+        let dirs = self.dirs;
+        let globs = &self.glob;
+
+        self.iter
+            .by_ref() // Allows us to consume items from self.iter
+            .filter_map(std::result::Result::ok) // Filter out Err results
+            .filter_map(move |entry| {
+                let ftype = entry.file_type();
+                // Filter by whether we want files and/or directories
+                if (ftype.is_file() && files) || (ftype.is_dir() && dirs) {
+                    let path = entry.path();
+                    if let Some(globs) = globs {
+                        // If we have a glob, we need a string
+                        let path_str = path.to_string_lossy();
+                        if globs.is_match_str(&path_str) {
+                            // Convert from Cow<str> to owned String
+                            return Some(path_str.into_owned());
+                        }
+                    } else if let Some(path_str) = path.to_str() {
+                        // No glob, just return the path as a String
+                        return Some(path_str.to_string());
+                    }
+                }
+                None
+            })
+            .collect()
     }
 }
 

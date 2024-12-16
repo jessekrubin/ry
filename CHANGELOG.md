@@ -10,6 +10,8 @@
   - `until`/`since`
     - Basic `until`/`since` implementation but I do not like them and they confusingly named `*Difference` structs/py-objects, so I may change how they work...
   - `jiff` seems to be about as performant as `whenever` ~ yay! also the whenever dude appears to be watching this repo (as of 2024-12-16)
+- `walkdir`
+  - `collect` added to `WalkdirGen` to collect the results into a list
 - deps
   - `thiserror` version `2.0.7` -> `2.0.8`
 
