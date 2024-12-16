@@ -1250,6 +1250,7 @@ name = "ryo3-which"
 version = "0.0.21"
 dependencies = [
  "pyo3",
+ "ryo3-regex",
  "which",
 ]
 

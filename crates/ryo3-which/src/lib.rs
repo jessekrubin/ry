@@ -13,6 +13,10 @@
 // #![allow(clippy::module_name_repetitions)]
 // #![allow(clippy::unused_self)]
 
+// if the feature is regex
+#[cfg(feature = "regex")]
+mod which_re;
+
 use pyo3::types::{PyModule, PyModuleMethods};
 use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult};
 
@@ -80,5 +84,8 @@ pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(self::which, m)?)?;
     m.add_function(wrap_pyfunction!(self::which_all, m)?)?;
+
+    #[cfg(feature = "regex")]
+    which_re::pymod_add(m)?;
     Ok(())
 }
