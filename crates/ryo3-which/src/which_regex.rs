@@ -1,5 +1,3 @@
-#![cfg(feature = "regex")]
-
 use pyo3::prelude::*;
 use ryo3_regex::PyRegex;
 use std::path::PathBuf;
@@ -14,8 +12,7 @@ pub fn which_re(regex: PyRegex, path: Option<&str>) -> PyResult<Vec<PathBuf>> {
                 Ok(which_vec)
             }
             Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "which-re-err: {}",
-                e
+                "which-re-err: {e}"
             ))),
         }
     } else {

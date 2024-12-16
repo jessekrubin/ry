@@ -17,7 +17,7 @@ impl TryFrom<RegexBuilder> for PyRegex {
 
     fn try_from(rb: RegexBuilder) -> Result<Self, Self::Error> {
         rb.build().map(PyRegex::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {}", e))
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
         })
     }
 }
@@ -70,6 +70,7 @@ impl PyRegex {
         unicode = true
     ))]
     #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::fn_params_excessive_bools)]
     fn py_new(
         pattern: &str,
         // kwargs
@@ -104,7 +105,7 @@ impl PyRegex {
             builder.size_limit(size_limit);
         }
         builder.build().map(PyRegex::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {}", e))
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
         })
     }
 

@@ -279,11 +279,11 @@ class Regex:
         *,
         case_insensitive: bool = False,
         crlf: bool = False,
-        dot_matches_new_line=False,
-        ignore_whitespace=False,
+        dot_matches_new_line: bool = False,
+        ignore_whitespace: bool = False,
         line_terminator: str | None = None,
-        multi_line=False,
-        octal=False,
+        multi_line: bool = False,
+        octal: bool = False,
         size_limit: int | None = None,
         swap_greed: bool = False,
         unicode: bool = False,
@@ -850,15 +850,15 @@ class Date:
     def to_zoned(self) -> t.NoReturn: ...
     def weekday(self) -> t.NoReturn: ...
 
-IntoDateDifference = t.Union[
-    DateDifference,
-    Date,
-    DateTime,
-    ZonedDateTime,
-    tuple[JIFF_UNIT_STRING, Date],
-    tuple[JIFF_UNIT_STRING, DateTime],
-    tuple[JIFF_UNIT_STRING, ZonedDateTime],
-]
+IntoDateDifference = (
+    DateDifference
+    | Date
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
 
 class DateDifference:
     def __init__(
@@ -981,15 +981,15 @@ class Time:
     def since(self, other: IntoTimeDifference) -> TimeSpan: ...
     def until(self, other: IntoTimeDifference) -> TimeSpan: ...
 
-IntoTimeDifference = t.Union[
-    TimeDifference,
-    Time,
-    DateTime,
-    ZonedDateTime,
-    tuple[JIFF_UNIT_STRING, Time],
-    tuple[JIFF_UNIT_STRING, DateTime],
-    tuple[JIFF_UNIT_STRING, ZonedDateTime],
-]
+IntoTimeDifference = (
+    TimeDifference
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
 
 class TimeDifference:
     def __init__(
@@ -1550,13 +1550,13 @@ class Timestamp:
     def since(self, other: IntoTimestampDifference) -> TimeSpan: ...
     def until(self, other: IntoTimestampDifference) -> TimeSpan: ...
 
-IntoTimestampDifference = t.Union[
-    TimestampDifference,
-    Timestamp,
-    ZonedDateTime,
-    tuple[JIFF_UNIT_STRING, Timestamp],
-    tuple[JIFF_UNIT_STRING, ZonedDateTime],
-]
+IntoTimestampDifference = (
+    TimestampDifference
+    | Timestamp
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Timestamp]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
 
 class TimestampDifference:
     def __init__(
@@ -1701,15 +1701,20 @@ class ZonedDateTime:
     def tomorrow(self) -> ZonedDateTime: ...
     def with_time_zone(self, tz: TimeZone) -> ZonedDateTime: ...
     def yesterday(self) -> ZonedDateTime: ...
-
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def since(
+        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    ) -> TimeSpan: ...
+    def until(
+        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    ) -> TimeSpan: ...
     # =========================================================================
     # NOT IMPLEMENTED & NOT TYPED
     # =========================================================================
-
     def nth_weekday(self) -> t.NoReturn: ...
     def nth_weekday_of_month(self) -> t.NoReturn: ...
-    def since(self) -> t.NoReturn: ...
-    def until(self) -> t.NoReturn: ...
 
 class DateTimeRound:
     def __init__(

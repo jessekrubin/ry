@@ -91,6 +91,7 @@ ___
   - init-ed the docs
   - style guide under `DEVELOPMENT.md` file
 
+___
 
 ## v0.0.17 [2024-12-02]
 
@@ -100,6 +101,8 @@ ___
   - hypothesis tests
 - `jiter`
   - Updated to `jiter` v0.8.1
+
+___
 
 ## v0.0.16 [2024-11-29]
 
@@ -112,10 +115,14 @@ ___
 - fspath
   - further beefing out as well as testing
 
+___
+
 ## v0.0.15 [2024-11-20]
 
 - `from __future__ import annotations` added to all modules
 - cicd updated to include more targets
+
+___
 
 ## v0.0.14 [2024-11-20]
 
@@ -125,22 +132,32 @@ ___
 - Added iterdir gen wrapper
 - (todo undo when jiter + pyo3 23 is public)
 
+___
+
 ## v0.0.13 [2024-11-20]
 
 - **VERSION SKIPPED DUE TO `13` BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS (AKA fully 'superstitchous')**
 
+___
+
 ## v0.0.12 [2024-11-14]
 
 - sqlformat wrapper(s) (this is the first `ryo3-*` sub-crate)
+
+___
 
 ## v0.0.11 [2024-09-22]
 
 - dependencies updated
 - prepare for python 3.13
 
+___
+
 ## v0.0.10 [2024-09-22]
 
 - dependencies updated
+
+___
 
 ## v0.0.9 [2024-08-22]
 
