@@ -22,7 +22,7 @@ impl RyDateDifference {
        signature = (date, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     pub fn py_new(
-        date: RyDate,
+        date: &RyDate,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
@@ -61,24 +61,25 @@ impl RyDateDifference {
     }
 }
 #[derive(Debug, Clone, FromPyObject)]
-pub enum IntoDateDifferenceTuple {
+#[allow(clippy::enum_variant_names)]
+pub(crate) enum IntoDateDifferenceTuple {
     UnitDate(JiffUnit, RyDate),
     UnitDateTime(JiffUnit, RyDateTime),
     UnitZoned(JiffUnit, RyZoned),
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum IntoDateDifference {
+pub(crate) enum IntoDateDifference {
     RyDateDifference(RyDateDifference),
     Zoned(RyZoned),
     Date(RyDate),
     DateTime(RyDateTime),
-    IntoDateDifferenceTuple(IntoDateDifferenceTuple),
+    DateDifferenceTuple(IntoDateDifferenceTuple),
 }
 
-impl Into<DateDifference> for IntoDateDifferenceTuple {
-    fn into(self) -> DateDifference {
-        match self {
+impl From<IntoDateDifferenceTuple> for DateDifference {
+    fn from(val: IntoDateDifferenceTuple) -> Self {
+        match val {
             IntoDateDifferenceTuple::UnitDate(unit, date) => DateDifference::from((unit.0, date.0)),
             IntoDateDifferenceTuple::UnitDateTime(unit, date_time) => {
                 DateDifference::from((unit.0, date_time.0))
@@ -89,14 +90,14 @@ impl Into<DateDifference> for IntoDateDifferenceTuple {
         }
     }
 }
-impl Into<DateDifference> for IntoDateDifference {
-    fn into(self) -> DateDifference {
-        match self {
+impl From<IntoDateDifference> for DateDifference {
+    fn from(val: IntoDateDifference) -> Self {
+        match val {
             IntoDateDifference::RyDateDifference(d_diff) => d_diff.0,
             IntoDateDifference::Zoned(zoned) => DateDifference::from(zoned.0),
             IntoDateDifference::Date(date) => DateDifference::from(date.0),
             IntoDateDifference::DateTime(date) => DateDifference::from(date.0),
-            IntoDateDifference::IntoDateDifferenceTuple(tuple) => tuple.into(),
+            IntoDateDifference::DateDifferenceTuple(tuple) => tuple.into(),
         }
     }
 }

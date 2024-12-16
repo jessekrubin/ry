@@ -1,4 +1,3 @@
-use crate::ry_date::RyDate;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
 use crate::ry_zoned::RyZoned;
@@ -23,7 +22,7 @@ impl RyTimeDifference {
        signature = (time, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     pub fn py_new(
-        time: RyTime,
+        time: &RyTime,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
@@ -62,24 +61,25 @@ impl RyTimeDifference {
     }
 }
 #[derive(Debug, Clone, FromPyObject)]
-pub enum IntoTimeDifferenceTuple {
+#[allow(clippy::enum_variant_names)]
+pub(crate) enum IntoTimeDifferenceTuple {
     UnitTime(JiffUnit, RyTime),
     UnitDateTime(JiffUnit, RyDateTime),
     UnitZoned(JiffUnit, RyZoned),
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum IntoTimeDifference {
+pub(crate) enum IntoTimeDifference {
     RyTimeDifference(RyTimeDifference),
     Zoned(RyZoned),
     Time(RyTime),
     DateTime(RyDateTime),
-    IntoTimeDifferenceTuple(IntoTimeDifferenceTuple),
+    TimeDifferenceTuple(IntoTimeDifferenceTuple),
 }
 
-impl Into<TimeDifference> for IntoTimeDifferenceTuple {
-    fn into(self) -> TimeDifference {
-        match self {
+impl From<IntoTimeDifferenceTuple> for TimeDifference {
+    fn from(val: IntoTimeDifferenceTuple) -> Self {
+        match val {
             IntoTimeDifferenceTuple::UnitTime(unit, date) => TimeDifference::from((unit.0, date.0)),
             IntoTimeDifferenceTuple::UnitDateTime(unit, date_time) => {
                 TimeDifference::from((unit.0, date_time.0))
@@ -90,14 +90,14 @@ impl Into<TimeDifference> for IntoTimeDifferenceTuple {
         }
     }
 }
-impl Into<TimeDifference> for IntoTimeDifference {
-    fn into(self) -> TimeDifference {
-        match self {
+impl From<IntoTimeDifference> for TimeDifference {
+    fn from(val: IntoTimeDifference) -> Self {
+        match val {
             IntoTimeDifference::RyTimeDifference(d_diff) => d_diff.0,
             IntoTimeDifference::Zoned(zoned) => TimeDifference::from(zoned.0),
             IntoTimeDifference::Time(date) => TimeDifference::from(date.0),
             IntoTimeDifference::DateTime(date) => TimeDifference::from(date.0),
-            IntoTimeDifference::IntoTimeDifferenceTuple(tuple) => tuple.into(),
+            IntoTimeDifference::TimeDifferenceTuple(tuple) => tuple.into(),
         }
     }
 }

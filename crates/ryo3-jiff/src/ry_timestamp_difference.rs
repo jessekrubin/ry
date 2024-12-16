@@ -21,7 +21,7 @@ impl RyTimestampDifference {
        signature = (timestamp, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     pub fn py_new(
-        timestamp: RyTimestamp,
+        timestamp: &RyTimestamp,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
@@ -60,13 +60,15 @@ impl RyTimestampDifference {
     }
 }
 #[derive(Debug, Clone, FromPyObject)]
-pub enum IntoTimestampDifferenceTuple {
+#[allow(clippy::enum_variant_names)]
+pub(crate) enum IntoTimestampDifferenceTuple {
     UnitTimestamp(JiffUnit, RyTimestamp),
     UnitZoned(JiffUnit, RyZoned),
 }
-impl Into<TimestampDifference> for IntoTimestampDifferenceTuple {
-    fn into(self) -> TimestampDifference {
-        match self {
+
+impl From<IntoTimestampDifferenceTuple> for TimestampDifference {
+    fn from(val: IntoTimestampDifferenceTuple) -> Self {
+        match val {
             IntoTimestampDifferenceTuple::UnitTimestamp(unit, date) => {
                 TimestampDifference::from((unit.0, date.0))
             }
@@ -78,20 +80,20 @@ impl Into<TimestampDifference> for IntoTimestampDifferenceTuple {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum IntoTimestampDifference {
+pub(crate) enum IntoTimestampDifference {
     RyTimestampDifference(RyTimestampDifference),
     Zoned(RyZoned),
     Timestamp(RyTimestamp),
-    IntoTimestampDifferenceTuple(IntoTimestampDifferenceTuple),
+    TimestampDifferenceTuple(IntoTimestampDifferenceTuple),
 }
 
-impl Into<TimestampDifference> for IntoTimestampDifference {
-    fn into(self) -> TimestampDifference {
-        match self {
+impl From<IntoTimestampDifference> for TimestampDifference {
+    fn from(val: IntoTimestampDifference) -> Self {
+        match val {
             IntoTimestampDifference::RyTimestampDifference(d_diff) => d_diff.0,
             IntoTimestampDifference::Zoned(zoned) => TimestampDifference::from(zoned.0),
             IntoTimestampDifference::Timestamp(date) => TimestampDifference::from(date.0),
-            IntoTimestampDifference::IntoTimestampDifferenceTuple(tuple) => tuple.into(),
+            IntoTimestampDifference::TimestampDifferenceTuple(tuple) => tuple.into(),
         }
     }
 }

@@ -1,6 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
-use crate::ry_date_difference::{IntoDateDifference, RyDateDifference};
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp_difference::{IntoTimestampDifference, RyTimestampDifference};

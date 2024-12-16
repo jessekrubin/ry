@@ -4,7 +4,7 @@ use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time_difference::{IntoTimeDifference, RyTimeDifference};
-use crate::{JiffTime, JiffUnit};
+use crate::JiffTime;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;

@@ -1,6 +1,6 @@
 use crate::ry_zoned::RyZoned;
 use crate::{JiffRoundMode, JiffUnit};
-use jiff::{Unit, ZonedDifference};
+use jiff::Unit;
 use pyo3::prelude::*;
 
 #[derive(Debug, Clone)]
