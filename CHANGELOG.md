@@ -29,7 +29,7 @@
 - type-annotations
   - fixes and updates and a hacky script I wrote to check for discrepancies
 
-___
+---
 
 ## v0.0.20 [2024-12-10]
 
@@ -40,7 +40,7 @@ ___
 - `jiter`
   - Updated jiter version thanks depbot!
 
-___
+---
 
 ## v0.0.19 [2024-12-05]
 
@@ -76,10 +76,10 @@ ___
       - [x] IntoPyObject (REF)
     - [x] `JiffZoned`
       - [x] FromPyObject
-      - [x] IntoPyObject 
+      - [x] IntoPyObject
       - [x] IntoPyObject (REF)
 
-___ 
+---
 
 ## v0.0.18 [2024-12-03]
 
@@ -91,7 +91,7 @@ ___
   - init-ed the docs
   - style guide under `DEVELOPMENT.md` file
 
-___
+---
 
 ## v0.0.17 [2024-12-02]
 
@@ -102,7 +102,7 @@ ___
 - `jiter`
   - Updated to `jiter` v0.8.1
 
-___
+---
 
 ## v0.0.16 [2024-11-29]
 
@@ -115,14 +115,14 @@ ___
 - fspath
   - further beefing out as well as testing
 
-___
+---
 
 ## v0.0.15 [2024-11-20]
 
 - `from __future__ import annotations` added to all modules
 - cicd updated to include more targets
 
-___
+---
 
 ## v0.0.14 [2024-11-20]
 
@@ -132,32 +132,32 @@ ___
 - Added iterdir gen wrapper
 - (todo undo when jiter + pyo3 23 is public)
 
-___
+---
 
 ## v0.0.13 [2024-11-20]
 
 - **VERSION SKIPPED DUE TO `13` BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS (AKA fully 'superstitchous')**
 
-___
+---
 
 ## v0.0.12 [2024-11-14]
 
 - sqlformat wrapper(s) (this is the first `ryo3-*` sub-crate)
 
-___
+---
 
 ## v0.0.11 [2024-09-22]
 
 - dependencies updated
 - prepare for python 3.13
 
-___
+---
 
 ## v0.0.10 [2024-09-22]
 
 - dependencies updated
 
-___
+---
 
 ## v0.0.9 [2024-08-22]
 

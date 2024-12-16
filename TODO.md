@@ -8,7 +8,7 @@
   - [ ] MAYBE rename `Zoned` to `ZonedDatetime` in `jiff`?
   - [ ] convert all `jiff` python conversions to use the jiff-new-type pattern
 
-___
+---
 
 ## DONE
 
