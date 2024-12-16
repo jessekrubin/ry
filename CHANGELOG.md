@@ -2,6 +2,19 @@
 
 ## FUTURE
 
+## v0.0.22 [2024-12-16]
+
+- `regex`
+  - Super simple regex wrapper (must to do here, but was added for `ryo3-which::which_re`)
+- `jiff`
+  - `until`/`since`
+    - Basic `until`/`since` implementation but I do not like them and they confusingly named `*Difference` structs/py-objects, so I may change how they work...
+  - `jiff` seems to be about as performant as `whenever` ~ yay! also the whenever dude appears to be watching this repo (as of 2024-12-16)
+- deps
+  - `thiserror` version `2.0.7` -> `2.0.8`
+
+___
+
 ## v0.0.21 [2024-12-13] (friday the 13th... spoogidy oogidity)
 
 - `walkdir`
