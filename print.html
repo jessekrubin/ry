@@ -549,14 +549,38 @@ def bytes_noop(s: bytes) -&gt; bytes: ...
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 # -----------------------------------------------------------------------------
 
+# =============================================================================
+# Regex
+# =============================================================================
+
+
+class Regex:
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_insensitive: bool = False,
+        crlf: bool = False,
+        dot_matches_new_line: bool = False,
+        ignore_whitespace: bool = False,
+        line_terminator: str | None = None,
+        multi_line: bool = False,
+        octal: bool = False,
+        size_limit: int | None = None,
+        swap_greed: bool = False,
+        unicode: bool = False,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def is_match(self, string: str) -&gt; bool: ...
+
 
 # =============================================================================
 # WHICH
 # =============================================================================
 def which(cmd: str, path: None | str = None) -&gt; str | None: ...
 def which_all(cmd: str, path: None | str = None) -&gt; list[str]: ...
-def whicha(cmd: str, path: None | str = None) -&gt; list[str]:
-    """Alias for which_all (may go away in the future)"""
+def which_re(regex: Regex, path: None | str = None) -&gt; list[str]: ...
 
 
 # =============================================================================
@@ -678,6 +702,7 @@ class WalkdirGen:
 
     def __next__(self) -&gt; str: ...
     def __iter__(self) -&gt; t.Iterator[str]: ...
+    def collect(self) -&gt; list[str]: ...
 
 
 class FspathsGen:
@@ -1108,6 +1133,7 @@ class Date:
     def __isub__(self, other: Date) -&gt; TimeSpan: ...
     @t.overload
     def __isub__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Date: ...
+
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
@@ -1142,6 +1168,15 @@ class Date:
     def to_datetime(self, time: Time) -&gt; DateTime: ...
     def tomorrow(self) -&gt; Date: ...
     def yesterday(self) -&gt; Date: ...
+
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: DateDifference) -&gt; TimeSpan: ...
+    def _until(self, other: DateDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoDateDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoDateDifference) -&gt; TimeSpan: ...
+
     # =========================================================================
     # INSTANCE METHODS W/ OVERLOADS
     # =========================================================================
@@ -1158,10 +1193,37 @@ class Date:
 
     def nth_weekday(self) -&gt; t.NoReturn: ...
     def nth_weekday_of_month(self) -&gt; t.NoReturn: ...
-    def since(self) -&gt; t.NoReturn: ...
     def to_zoned(self) -&gt; t.NoReturn: ...
-    def until(self) -&gt; t.NoReturn: ...
     def weekday(self) -&gt; t.NoReturn: ...
+
+
+IntoDateDifference = (
+    DateDifference
+    | Date
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+
+
+class DateDifference:
+    def __init__(
+        self,
+        date: Date,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; DateDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; DateDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; DateDifference: ...
+    def increment(self, increment: int) -&gt; DateDifference: ...
 
 
 class Time:
@@ -1245,7 +1307,6 @@ class Time:
     def astuple(self) -&gt; tuple[int, int, int, int]: ...
     def asdict(self) -&gt; TimeTypedDict: ...
     def series(self, span: TimeSpan) -&gt; t.Iterator[Time]: ...
-    def until(self, other: Time) -&gt; TimeSpan: ...
     def checked_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Time: ...
@@ -1271,8 +1332,44 @@ class Time:
     def duration_until(self, other: Time) -&gt; SignedDuration: ...
     def duration_since(self, other: Time) -&gt; SignedDuration: ...
     def round(self) -&gt; None: ...
-    def since(self) -&gt; None: ...
     def to_datetime(self) -&gt; None: ...
+
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: TimeDifference) -&gt; TimeSpan: ...
+    def _until(self, other: TimeDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
+
+
+IntoTimeDifference = (
+    TimeDifference
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+
+
+class TimeDifference:
+    def __init__(
+        self,
+        date: Time,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; TimeDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; TimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; TimeDifference: ...
+    def increment(self, increment: int) -&gt; TimeDifference: ...
 
 
 class DateTime:
@@ -1420,10 +1517,47 @@ class DateTime:
     def to_zoned(self, tz: TimeZone) -&gt; ZonedDateTime: ...
 
     # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: DateTimeDifference) -&gt; TimeSpan: ...
+    def _until(self, other: DateTimeDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
+
+    # =========================================================================
     def nth_weekday(self) -&gt; t.NoReturn: ...
     def nth_weekday_of_month(self) -&gt; t.NoReturn: ...
-    def since(self) -&gt; t.NoReturn: ...
-    def until(self) -&gt; t.NoReturn: ...
+
+
+IntoDateTimeDifference = t.Union[
+    DateTimeDifference,
+    Date,
+    Time,
+    DateTime,
+    ZonedDateTime,
+    tuple[JIFF_UNIT_STRING, Date],
+    tuple[JIFF_UNIT_STRING, Time],
+    tuple[JIFF_UNIT_STRING, DateTime],
+    tuple[JIFF_UNIT_STRING, ZonedDateTime],
+]
+
+
+class DateTimeDifference:
+    def __init__(
+        self,
+        date: DateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; DateTimeDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; DateTimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; DateTimeDifference: ...
+    def increment(self, increment: int) -&gt; DateTimeDifference: ...
 
 
 class TimeZone:
@@ -1809,6 +1943,41 @@ class Timestamp:
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; t.Self: ...
 
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: TimestampDifference) -&gt; TimeSpan: ...
+    def _until(self, other: TimestampDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
+
+
+IntoTimestampDifference = (
+    TimestampDifference
+    | Timestamp
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Timestamp]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+
+
+class TimestampDifference:
+    def __init__(
+        self,
+        date: Timestamp,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; TimestampDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; TimestampDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; TimestampDifference: ...
+    def increment(self, increment: int) -&gt; TimestampDifference: ...
+
 
 class ZonedDateTime:
     def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -&gt; None: ...
@@ -1954,15 +2123,20 @@ class ZonedDateTime:
     def tomorrow(self) -&gt; ZonedDateTime: ...
     def with_time_zone(self, tz: TimeZone) -&gt; ZonedDateTime: ...
     def yesterday(self) -&gt; ZonedDateTime: ...
-
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def since(
+        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    ) -&gt; TimeSpan: ...
+    def until(
+        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    ) -&gt; TimeSpan: ...
     # =========================================================================
     # NOT IMPLEMENTED &amp; NOT TYPED
     # =========================================================================
-
     def nth_weekday(self) -&gt; t.NoReturn: ...
     def nth_weekday_of_month(self) -&gt; t.NoReturn: ...
-    def since(self) -&gt; t.NoReturn: ...
-    def until(self) -&gt; t.NoReturn: ...
 
 
 class DateTimeRound:
@@ -2208,6 +2382,35 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <p>If you want to be added to this list, please open an issue or PR! Happy to add you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="future-1"><a class="header" href="#future-1">FUTURE</a></h2>
+<h2 id="v0022-2024-12-16"><a class="header" href="#v0022-2024-12-16">v0.0.22 [2024-12-16]</a></h2>
+<ul>
+<li><code>regex</code>
+<ul>
+<li>Super simple regex wrapper (must to do here, but was added for <code>ryo3-which::which_re</code>)</li>
+</ul>
+</li>
+<li><code>jiff</code>
+<ul>
+<li><code>until</code>/<code>since</code>
+<ul>
+<li>Basic <code>until</code>/<code>since</code> implementation but I do not like them and they confusingly named <code>*Difference</code> structs/py-objects, so I may change how they work…</li>
+</ul>
+</li>
+<li><code>jiff</code> seems to be about as performant as <code>whenever</code> ~ yay! also the whenever dude appears to be watching this repo (as of 2024-12-16)</li>
+</ul>
+</li>
+<li><code>walkdir</code>
+<ul>
+<li><code>collect</code> added to <code>WalkdirGen</code> to collect the results into a list</li>
+</ul>
+</li>
+<li>deps
+<ul>
+<li><code>thiserror</code> version <code>2.0.7</code> -&gt; <code>2.0.8</code></li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0021-2024-12-13-friday-the-13th-spoogidy-oogidity"><a class="header" href="#v0021-2024-12-13-friday-the-13th-spoogidy-oogidity">v0.0.21 [2024-12-13] (friday the 13th… spoogidy oogidity)</a></h2>
 <ul>
 <li><code>walkdir</code>
@@ -2400,6 +2603,7 @@ IntoPyObject (REF)</li>
 </ul>
 </li>
 </ul>
+<hr />
 <h2 id="v0017-2024-12-02"><a class="header" href="#v0017-2024-12-02">v0.0.17 [2024-12-02]</a></h2>
 <ul>
 <li><code>jiff</code>
@@ -2415,6 +2619,7 @@ IntoPyObject (REF)</li>
 </ul>
 </li>
 </ul>
+<hr />
 <h2 id="v0016-2024-11-29"><a class="header" href="#v0016-2024-11-29">v0.0.16 [2024-11-29]</a></h2>
 <ul>
 <li>Moved walkdir to <code>ryo3-walkdir</code></li>
@@ -2432,11 +2637,13 @@ IntoPyObject (REF)</li>
 </ul>
 </li>
 </ul>
+<hr />
 <h2 id="v0015-2024-11-20"><a class="header" href="#v0015-2024-11-20">v0.0.15 [2024-11-20]</a></h2>
 <ul>
 <li><code>from __future__ import annotations</code> added to all modules</li>
 <li>cicd updated to include more targets</li>
 </ul>
+<hr />
 <h2 id="v0014-2024-11-20"><a class="header" href="#v0014-2024-11-20">v0.0.14 [2024-11-20]</a></h2>
 <ul>
 <li>Primitive/crude wrappers around Mr. Sushi’s <code>jiff</code> library</li>
@@ -2445,23 +2652,28 @@ IntoPyObject (REF)</li>
 <li>Added iterdir gen wrapper</li>
 <li>(todo undo when jiter + pyo3 23 is public)</li>
 </ul>
+<hr />
 <h2 id="v0013-2024-11-20"><a class="header" href="#v0013-2024-11-20">v0.0.13 [2024-11-20]</a></h2>
 <ul>
 <li><strong>VERSION SKIPPED DUE TO <code>13</code> BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS (AKA fully ‘superstitchous’)</strong></li>
 </ul>
+<hr />
 <h2 id="v0012-2024-11-14"><a class="header" href="#v0012-2024-11-14">v0.0.12 [2024-11-14]</a></h2>
 <ul>
 <li>sqlformat wrapper(s) (this is the first <code>ryo3-*</code> sub-crate)</li>
 </ul>
+<hr />
 <h2 id="v0011-2024-09-22"><a class="header" href="#v0011-2024-09-22">v0.0.11 [2024-09-22]</a></h2>
 <ul>
 <li>dependencies updated</li>
 <li>prepare for python 3.13</li>
 </ul>
+<hr />
 <h2 id="v0010-2024-09-22"><a class="header" href="#v0010-2024-09-22">v0.0.10 [2024-09-22]</a></h2>
 <ul>
 <li>dependencies updated</li>
 </ul>
+<hr />
 <h2 id="v009-2024-08-22"><a class="header" href="#v009-2024-08-22">v0.0.9 [2024-08-22]</a></h2>
 <ul>
 <li>Added <code>globset</code> wrapper(s)</li>
@@ -2786,14 +2998,38 @@ def bytes_noop(s: bytes) -&gt; bytes: ...
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 # -----------------------------------------------------------------------------
 
+# =============================================================================
+# Regex
+# =============================================================================
+
+
+class Regex:
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_insensitive: bool = False,
+        crlf: bool = False,
+        dot_matches_new_line: bool = False,
+        ignore_whitespace: bool = False,
+        line_terminator: str | None = None,
+        multi_line: bool = False,
+        octal: bool = False,
+        size_limit: int | None = None,
+        swap_greed: bool = False,
+        unicode: bool = False,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def is_match(self, string: str) -&gt; bool: ...
+
 
 # =============================================================================
 # WHICH
 # =============================================================================
 def which(cmd: str, path: None | str = None) -&gt; str | None: ...
 def which_all(cmd: str, path: None | str = None) -&gt; list[str]: ...
-def whicha(cmd: str, path: None | str = None) -&gt; list[str]:
-    """Alias for which_all (may go away in the future)"""
+def which_re(regex: Regex, path: None | str = None) -&gt; list[str]: ...
 
 
 # =============================================================================
@@ -2915,6 +3151,7 @@ class WalkdirGen:
 
     def __next__(self) -&gt; str: ...
     def __iter__(self) -&gt; t.Iterator[str]: ...
+    def collect(self) -&gt; list[str]: ...
 
 
 class FspathsGen:
@@ -3345,6 +3582,7 @@ class Date:
     def __isub__(self, other: Date) -&gt; TimeSpan: ...
     @t.overload
     def __isub__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Date: ...
+
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
@@ -3379,6 +3617,15 @@ class Date:
     def to_datetime(self, time: Time) -&gt; DateTime: ...
     def tomorrow(self) -&gt; Date: ...
     def yesterday(self) -&gt; Date: ...
+
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: DateDifference) -&gt; TimeSpan: ...
+    def _until(self, other: DateDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoDateDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoDateDifference) -&gt; TimeSpan: ...
+
     # =========================================================================
     # INSTANCE METHODS W/ OVERLOADS
     # =========================================================================
@@ -3395,10 +3642,37 @@ class Date:
 
     def nth_weekday(self) -&gt; t.NoReturn: ...
     def nth_weekday_of_month(self) -&gt; t.NoReturn: ...
-    def since(self) -&gt; t.NoReturn: ...
     def to_zoned(self) -&gt; t.NoReturn: ...
-    def until(self) -&gt; t.NoReturn: ...
     def weekday(self) -&gt; t.NoReturn: ...
+
+
+IntoDateDifference = (
+    DateDifference
+    | Date
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+
+
+class DateDifference:
+    def __init__(
+        self,
+        date: Date,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; DateDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; DateDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; DateDifference: ...
+    def increment(self, increment: int) -&gt; DateDifference: ...
 
 
 class Time:
@@ -3482,7 +3756,6 @@ class Time:
     def astuple(self) -&gt; tuple[int, int, int, int]: ...
     def asdict(self) -&gt; TimeTypedDict: ...
     def series(self, span: TimeSpan) -&gt; t.Iterator[Time]: ...
-    def until(self, other: Time) -&gt; TimeSpan: ...
     def checked_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Time: ...
@@ -3508,8 +3781,44 @@ class Time:
     def duration_until(self, other: Time) -&gt; SignedDuration: ...
     def duration_since(self, other: Time) -&gt; SignedDuration: ...
     def round(self) -&gt; None: ...
-    def since(self) -&gt; None: ...
     def to_datetime(self) -&gt; None: ...
+
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: TimeDifference) -&gt; TimeSpan: ...
+    def _until(self, other: TimeDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
+
+
+IntoTimeDifference = (
+    TimeDifference
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+
+
+class TimeDifference:
+    def __init__(
+        self,
+        date: Time,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; TimeDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; TimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; TimeDifference: ...
+    def increment(self, increment: int) -&gt; TimeDifference: ...
 
 
 class DateTime:
@@ -3657,10 +3966,47 @@ class DateTime:
     def to_zoned(self, tz: TimeZone) -&gt; ZonedDateTime: ...
 
     # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: DateTimeDifference) -&gt; TimeSpan: ...
+    def _until(self, other: DateTimeDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
+
+    # =========================================================================
     def nth_weekday(self) -&gt; t.NoReturn: ...
     def nth_weekday_of_month(self) -&gt; t.NoReturn: ...
-    def since(self) -&gt; t.NoReturn: ...
-    def until(self) -&gt; t.NoReturn: ...
+
+
+IntoDateTimeDifference = t.Union[
+    DateTimeDifference,
+    Date,
+    Time,
+    DateTime,
+    ZonedDateTime,
+    tuple[JIFF_UNIT_STRING, Date],
+    tuple[JIFF_UNIT_STRING, Time],
+    tuple[JIFF_UNIT_STRING, DateTime],
+    tuple[JIFF_UNIT_STRING, ZonedDateTime],
+]
+
+
+class DateTimeDifference:
+    def __init__(
+        self,
+        date: DateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; DateTimeDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; DateTimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; DateTimeDifference: ...
+    def increment(self, increment: int) -&gt; DateTimeDifference: ...
 
 
 class TimeZone:
@@ -4046,6 +4392,41 @@ class Timestamp:
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; t.Self: ...
 
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def _since(self, other: TimestampDifference) -&gt; TimeSpan: ...
+    def _until(self, other: TimestampDifference) -&gt; TimeSpan: ...
+    def since(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
+    def until(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
+
+
+IntoTimestampDifference = (
+    TimestampDifference
+    | Timestamp
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Timestamp]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+
+
+class TimestampDifference:
+    def __init__(
+        self,
+        date: Timestamp,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -&gt; TimestampDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -&gt; TimestampDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -&gt; TimestampDifference: ...
+    def increment(self, increment: int) -&gt; TimestampDifference: ...
+
 
 class ZonedDateTime:
     def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -&gt; None: ...
@@ -4191,15 +4572,20 @@ class ZonedDateTime:
     def tomorrow(self) -&gt; ZonedDateTime: ...
     def with_time_zone(self, tz: TimeZone) -&gt; ZonedDateTime: ...
     def yesterday(self) -&gt; ZonedDateTime: ...
-
+    # =========================================================================
+    # SINCE/UNTIL
+    # =========================================================================
+    def since(
+        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    ) -&gt; TimeSpan: ...
+    def until(
+        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    ) -&gt; TimeSpan: ...
     # =========================================================================
     # NOT IMPLEMENTED &amp; NOT TYPED
     # =========================================================================
-
     def nth_weekday(self) -&gt; t.NoReturn: ...
     def nth_weekday_of_month(self) -&gt; t.NoReturn: ...
-    def since(self) -&gt; t.NoReturn: ...
-    def until(self) -&gt; t.NoReturn: ...
 
 
 class DateTimeRound:
