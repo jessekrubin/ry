@@ -1,14 +1,18 @@
+use crate::py_regex_options::PyRegexOptions;
 use pyo3::prelude::*;
 use regex::{Regex, RegexBuilder};
 use std::borrow::Borrow;
 
 #[pyclass(name = "Regex", frozen, module = "ryo3")]
 #[derive(Clone, Debug)]
-pub struct PyRegex(pub Regex);
+pub struct PyRegex {
+    pub re: Regex,
+    pub options: Option<PyRegexOptions>,
+}
 
 impl From<Regex> for PyRegex {
-    fn from(r: Regex) -> Self {
-        PyRegex(r)
+    fn from(re: Regex) -> Self {
+        PyRegex { re, options: None }
     }
 }
 
@@ -110,34 +114,38 @@ impl PyRegex {
     }
 
     fn __str__(&self) -> String {
-        format!("Regex('{}')", self.0)
+        format!("Regex('{}')", self.re)
     }
     fn __repr__(&self) -> String {
-        format!("Regex('{}')", self.0)
+        format!("Regex('{}')", self.re)
+    }
+
+    fn __eq__(&self, other: &PyRegex) -> bool {
+        self.re.as_str() == other.re.as_str()
     }
 
     fn is_match(&self, text: &str) -> bool {
-        self.0.is_match(text)
+        self.re.is_match(text)
     }
 
     fn find(&self, text: &str) -> Option<(usize, usize)> {
-        self.0.find(text).map(|m| (m.start(), m.end()))
+        self.re.find(text).map(|m| (m.start(), m.end()))
     }
 
     fn findall(&self, text: &str) -> Vec<(usize, usize)> {
-        self.0
+        self.re
             .find_iter(text)
             .map(|m| (m.start(), m.end()))
             .collect()
     }
 
     fn replace(&self, text: &str, replace: &str) -> String {
-        self.0.replace(text, replace).to_string()
+        self.re.replace(text, replace).to_string()
     }
 }
 
 impl Borrow<Regex> for PyRegex {
     fn borrow(&self) -> &Regex {
-        &self.0
+        &self.re
     }
 }
