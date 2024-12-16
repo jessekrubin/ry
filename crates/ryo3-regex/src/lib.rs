@@ -1,4 +1,4 @@
-//! TODO: implement this wrapper!
+#![doc = include_str!("../README.md")]
 
 mod py_regex;
 

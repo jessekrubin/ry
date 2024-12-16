@@ -273,7 +273,21 @@ def bytes_noop(s: bytes) -> bytes: ...
 # =============================================================================
 
 class Regex:
-    def __init__(self, pattern: str) -> None: ...
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_insensitive: bool = False,
+        crlf: bool = False,
+        dot_matches_new_line=False,
+        ignore_whitespace=False,
+        line_terminator: str | None = None,
+        multi_line=False,
+        octal=False,
+        size_limit: int | None = None,
+        swap_greed: bool = False,
+        unicode: bool = False,
+    ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def is_match(self, string: str) -> bool: ...

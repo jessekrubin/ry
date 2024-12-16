@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![deny(clippy::all)]
 #![deny(clippy::correctness)]
 #![deny(clippy::panic)]
@@ -137,7 +138,7 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
 #[pyo3(signature = (sql, params=None, *, indent=None, uppercase=None, lines_between_queries=None))]
 /// Format SQL queries
 ///
-/// Based on the sqlformat crate (https://crates.io/crates/sqlformat)
+/// Based on [sqlformat-crate](https://crates.io/crates/sqlformat)
 pub fn sqlfmt(
     sql: &str,
     params: Option<PyQueryParamsLike>,

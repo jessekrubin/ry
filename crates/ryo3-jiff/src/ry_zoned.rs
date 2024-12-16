@@ -450,7 +450,7 @@ impl RyZoned {
         Ok(RyTimeZone::from(self.0.time_zone()))
     }
 
-    fn until<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
+    fn until<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
         //     downcast to RyZoned
         if let Ok(other) = other.extract::<RyZoned>() {
             self.0
