@@ -7,6 +7,9 @@ from ry import ryo3
 # noinspection PyUnresolvedReferences
 from ry.ryo3 import *  # noqa: F403
 
+# noinspection PyUnresolvedReferences
+from ry.ryo3._dev import *  # noqa: F403
+
 __version__ = ryo3.__version__
 __build_profile__ = ryo3.__build_profile__
 __build_timestamp__ = ryo3.__build_timestamp__

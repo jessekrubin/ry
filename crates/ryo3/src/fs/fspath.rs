@@ -5,6 +5,7 @@ use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecod
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule, PyTuple, PyType};
 use pyo3::{pyclass, pymethods, PyObject, PyResult, Python};
+use ryo3_macros::err_py_not_impl;
 use ryo3_types::PathLike;
 use std::path::{Path, PathBuf};
 
@@ -37,7 +38,7 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 impl PyFsPath {
     #[new]
     #[pyo3(signature = (p=None))]
-    fn new(p: Option<PathLike>) -> Self {
+    fn py_new(p: Option<PathLike>) -> Self {
         match p {
             Some(p) => Self {
                 pth: p.as_ref().to_path_buf(),
@@ -111,60 +112,13 @@ impl PyFsPath {
     //     self.pth != other.as_ref()
     // }
 
-    fn is_file(&self) -> bool {
-        self.pth.is_file()
-    }
-
-    fn is_dir(&self) -> bool {
-        self.pth.is_dir()
-    }
-
-    fn is_symlink(&self) -> bool {
-        self.pth.is_symlink()
-    }
-
-    fn is_absolute(&self) -> bool {
-        self.pth.is_absolute()
-    }
-
-    fn is_relative(&self) -> bool {
-        self.pth.is_relative()
-    }
-
-    fn exists(&self) -> bool {
-        self.pth.exists()
-    }
-
     fn absolute(&self) -> PyResult<Self> {
         let p = self.pth.canonicalize()?;
-        // return the canonicalized path
         Ok(PyFsPath::from(p))
     }
 
     fn resolve(&self) -> PyResult<Self> {
         let p = self.pth.canonicalize()?;
-        Ok(PyFsPath::from(p))
-    }
-
-    fn extension(&self) -> PyResult<Option<String>> {
-        let e = self.pth.extension();
-        match e {
-            Some(e) => Ok(Some(
-                e.to_str()
-                    .expect("extension() - path contains invalid unicode characters")
-                    .to_string(),
-            )),
-            None => Ok(None),
-        }
-    }
-
-    fn with_extension(&self, extension: String) -> PyResult<Self> {
-        let p = self.pth.with_extension(extension);
-        Ok(PyFsPath::from(p))
-    }
-
-    fn with_file_name(&self, name: String) -> PyResult<Self> {
-        let p = self.pth.with_file_name(name);
         Ok(PyFsPath::from(p))
     }
 
@@ -378,12 +332,23 @@ impl PyFsPath {
     }
 
     pub fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
-        let bvec = self.read_vec_u8()?;
-        Ok(PyBytes::new(py, &bvec).into())
+        let fbytes = std::fs::read(&self.pth);
+        match fbytes {
+            Ok(b) => Ok(PyBytes::new(py, &b).into()),
+            Err(e) => {
+                // TODO: figure out cleaner way of doing this
+                let pathstr = self.string();
+                let emsg = format!("read_vec_u8 - path: {pathstr} - {e}");
+                Err(PyFileNotFoundError::new_err(emsg))
+            }
+        }
     }
 
     pub fn read_text(&self, py: Python<'_>) -> PyResult<String> {
-        let bvec = self.read_vec_u8()?;
+        let bvec = std::fs::read(&self.pth).map_err(|e| {
+            let pathstr = self.string();
+            PyFileNotFoundError::new_err(format!("read_text - path: {pathstr} - {e}"))
+        })?;
         let r = std::str::from_utf8(&bvec);
         match r {
             Ok(s) => Ok(s.to_string()),
@@ -427,10 +392,11 @@ impl PyFsPath {
     }
 
     fn iterdir(&self) -> PyResult<PyReadDir> {
-        let rd = std::fs::read_dir(&self.pth)
-            .map(PyReadDir::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
-        Ok(rd)
+        self.read_dir()
+        // let rd = std::fs::read_dir(&self.pth)
+        //     .map(PyReadDir::from)
+        //     .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
+        // Ok(rd)
     }
 
     fn relative_to(&self, _other: PathLike) -> PyResult<PyFsPath> {
@@ -438,75 +404,203 @@ impl PyFsPath {
             "relative_to not implemented",
         ))
     }
+
     // ========================================================================
-    // TODO: not implemented stuff
+    // Methods from ::std::path::PathBuf
     // ========================================================================
-    // #[pyo3(name = "match")]
-    // fn match_(&self, pattern: String, case_sensitive: Option<bool>) -> PyResult<bool> {
-    //     Err(pyo3::exceptions::PyNotImplementedError::new_err(
-    //         "match not implemented",
-    //     ))
-    // }
+    //  - PathBuf.add_extension
+    //  - PathBuf.pop
+    //  - PathBuf.push
+    //  - PathBuf.set_extension
+    //  - PathBuf.set_file_name
 
+    fn _push(mut slf: PyRefMut<'_, Self>, path: PathLike) -> PyRefMut<'_, PyFsPath> {
+        slf.pth.push(path);
+        slf
+    }
 
+    fn _pop(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, PyFsPath> {
+        slf.pth.pop();
+        slf
+    }
 
-    // # methods- path buf
-    // add_extension
-    // as_mut_os_string
-    // as_path
-    // capacity
-    // clear
-    // into_boxed_path
-    // into_os_string
-    // leak
-    // new
-    // pop
-    // push
-    // reserve
-    // reserve_exact
-    // set_extension
-    // set_file_name
-    // shrink_to
-    // shrink_to_fit
-    // try_reserve
-    // try_reserve_exact
-    // with_capacity
-    //
-    // # Methods from Deref<Target=Path>
-    // ancestors
-    // as_mut_os_str
-    // as_os_str
-    // canonicalize
-    // components
-    // display
-    // ends_with
-    // exists
-    // extension
-    // file_name
-    // file_prefix
-    // file_stem
-    // has_root
-    // is_absolute
-    // is_dir
-    // is_file
-    // is_relative
-    // is_symlink
-    // iter
-    // join
-    // metadata
-    // parent
-    // read_dir
-    // read_link
-    // starts_with
-    // strip_prefix
-    // symlink_metadata
-    // to_path_buf
-    // to_str
-    // to_string_lossy
-    // try_exists
-    // with_added_extension
-    // with_extension
-    // with_file_name
+    fn _set_extension(mut slf: PyRefMut<'_, Self>, ext: String) -> PyRefMut<'_, PyFsPath> {
+        slf.pth.set_extension(ext);
+        slf
+    }
+
+    fn _set_file_name(mut slf: PyRefMut<'_, Self>, name: String) -> PyRefMut<'_, PyFsPath> {
+        slf.pth.set_file_name(name);
+        slf
+    }
+
+    // ========================================================================
+    // Methods from ::std::path::Path (Deref<Target=PathBuf>)
+    // ========================================================================
+    //  - [x] Path.ancestors
+    //  - [x] Path.canonicalize
+    //  - [x] Path.components
+    //  - [x] Path.display
+    //  - [x] Path.ends_with
+    //  - [x] Path.exists
+    //  - [x] Path.extension
+    //  - [x] Path.file_name
+    //  - [x] Path.file_prefix
+    //  - [x] Path.file_stem
+    //  - [x] Path.has_root
+    //  - [x] Path.is_absolute
+    //  - [x] Path.is_dir
+    //  - [x] Path.is_file
+    //  - [x] Path.is_relative
+    //  - [x] Path.is_symlink
+    //  - [ ] Path.iter
+    //  - [ ] Path.join
+    //  - [ ] Path.metadata
+    //  - [ ] Path.read_dir
+    //  - [ ] Path.read_link
+    //  - [ ] Path.starts_with
+    //  - [ ] Path.strip_prefix
+    //  - [ ] Path.symlink_metadata
+    //  - [ ] Path.try_exists
+    //  - [ ] Path.with_added_extension
+    //  - [ ] Path.with_extension
+    //  - [ ] Path.with_file_name
+    // __PYTHON_IMPL__ (implemented to adhere to pathlib.Path)
+    //  - [x] Path.parent
+    // __PATH_NOT_PYTHONABLE__
+    //  - Path.to_str
+    //  - Path.to_string_lossy
+    //  - Path.to_path_buf
+    //  - Path.as_mut_os_str
+    //  - Path.as_os_str
+    fn ancestors<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let parents: Vec<Self> = self.pth.ancestors().map(PyFsPath::from).collect();
+        PyTuple::new(py, parents)
+    }
+
+    fn canonicalize(&self) -> PyResult<Self> {
+        let p = self.pth.canonicalize()?;
+        Ok(PyFsPath::from(p))
+    }
+
+    fn components<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let parts = self
+            .pth
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().to_string())
+            .collect::<Vec<String>>();
+        PyTuple::new(py, parts)
+    }
+
+    fn display(&self) -> String {
+        self.pth.display().to_string()
+    }
+
+    fn ends_with(&self, path: PathLike) -> bool {
+        self.pth.ends_with(path.as_ref())
+    }
+
+    fn exists(&self) -> bool {
+        self.pth.exists()
+    }
+
+    fn extension(&self) -> Option<String> {
+        let e = self.pth.extension();
+        match e {
+            Some(e) => Some(
+                e.to_str()
+                    .expect("extension() - path contains invalid unicode characters")
+                    .to_string(),
+            ),
+            None => None,
+        }
+    }
+
+    fn file_name(&self) -> Option<String> {
+        self.pth
+            .file_name()
+            .map(|s| s.to_string_lossy().to_string())
+    }
+
+    fn file_prefix(&self) -> Option<String> {
+        self.pth
+            .file_stem()
+            .map(|s| s.to_string_lossy().to_string())
+    }
+
+    fn file_stem(&self) -> Option<String> {
+        self.pth
+            .file_stem()
+            .map(|s| s.to_string_lossy().to_string())
+    }
+
+    fn has_root(&self) -> bool {
+        self.pth.has_root()
+    }
+
+    fn is_absolute(&self) -> bool {
+        self.pth.is_absolute()
+    }
+    fn is_dir(&self) -> bool {
+        self.pth.is_dir()
+    }
+    fn is_file(&self) -> bool {
+        self.pth.is_file()
+    }
+    fn is_relative(&self) -> bool {
+        self.pth.is_relative()
+    }
+    fn is_symlink(&self) -> bool {
+        self.pth.is_symlink()
+    }
+
+    fn iter(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn join(&self, p: PathLike) -> PyFsPath {
+        Self::from(self.pth.join(p))
+    }
+    fn metadata(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn read_dir(&self) -> PyResult<PyReadDir> {
+        let rd = std::fs::read_dir(&self.pth)
+            .map(PyReadDir::from)
+            .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
+        Ok(rd)
+    }
+    fn read_link(&self) -> PyResult<Self> {
+        self.pth
+            .read_link()
+            .map(PyFsPath::from)
+            .map_err(|e| PyFileNotFoundError::new_err(format!("read_link: {e}")))
+    }
+    fn starts_with(&self, p: PathLike) -> bool {
+        self.pth.starts_with(p.as_ref())
+    }
+    fn strip_prefix(&self, p: PathLike) -> PyResult<PyFsPath> {
+        self.pth
+            .strip_prefix(p.as_ref())
+            .map(|p| PyFsPath::from(p))
+            .map_err(|e| PyFileNotFoundError::new_err(format!("strip_prefix: {e}")))
+    }
+    fn symlink_metadata(&self) -> PyResult<()> {
+        err_py_not_impl!()
+    }
+    fn try_exists(&self) -> PyResult<bool> {
+        self.pth
+            .try_exists()
+            .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
+    }
+    fn with_extension(&self, extension: String) -> PyResult<Self> {
+        let p = self.pth.with_extension(extension);
+        Ok(PyFsPath::from(p))
+    }
+
+    fn with_file_name(&self, name: String) -> PyResult<Self> {
+        let p = self.pth.with_file_name(name);
+        Ok(PyFsPath::from(p))
+    }
 }
 
 impl<T> From<T> for PyFsPath

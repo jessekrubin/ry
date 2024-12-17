@@ -29,8 +29,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_walkdir::pymod_add(m)?;
     #[cfg(feature = "which")]
     ryo3_which::pymod_add(m)?;
-    #[cfg(feature = "xxhash")]
-    ryo3_xxhash::pymod_add(m)?;
+    // #[cfg(feature = "xxhash")]
+    // ryo3_xxhash::pymod_add(m)?;
     #[cfg(feature = "zstd")]
     ryo3_zstd::pymod_add(m)?;
     Ok(())

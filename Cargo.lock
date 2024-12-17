@@ -1077,6 +1077,7 @@ dependencies = [
  "ryo3-heck",
  "ryo3-jiff",
  "ryo3-jiter",
+ "ryo3-macros",
  "ryo3-quick-maths",
  "ryo3-regex",
  "ryo3-shlex",

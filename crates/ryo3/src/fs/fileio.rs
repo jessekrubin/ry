@@ -23,8 +23,7 @@ pub fn read_vec_u8(s: &str) -> PyResult<Vec<u8>> {
 #[pyfunction]
 pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
     let fspath = PyFsPath::from(s);
-    let bvec = fspath.read_vec_u8()?;
-    Ok(PyBytes::new(py, &bvec).into())
+    fspath.read_bytes(py)
 }
 
 #[pyfunction]
@@ -34,11 +33,10 @@ pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
 }
 
 #[pyfunction]
-pub fn write_bytes(fspath: &str, b: Vec<u8>) -> PyResult<()> {
-    let fpath = Path::new(fspath);
-    let write_res = std::fs::write(fpath, b);
+pub fn write_bytes(fspath: PathLike, b: &[u8]) -> PyResult<usize> {
+    let write_res = std::fs::write(fspath.as_ref(), b);
     match write_res {
-        Ok(()) => Ok(()),
+        Ok(()) => Ok(b.len()),
         Err(e) => Err(PyNotADirectoryError::new_err(format!(
             "write_bytes - parent: {fspath} - {e}"
         ))),
@@ -46,11 +44,10 @@ pub fn write_bytes(fspath: &str, b: Vec<u8>) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn write_text(fspath: &str, string: &str) -> PyResult<()> {
-    let fpath = Path::new(fspath);
-    let write_result = std::fs::write(fpath, string);
-    match write_result {
-        Ok(()) => Ok(()),
+pub fn write_text(fspath: PathLike, string: &str) -> PyResult<usize> {
+    let str_bytes = string.as_bytes();
+    match std::fs::write(fspath.as_ref(), str_bytes) {
+        Ok(()) => Ok(str_bytes.len()),
         Err(e) => Err(PyNotADirectoryError::new_err(format!(
             "write_bytes - parent: {fspath} - {e}"
         ))),

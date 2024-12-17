@@ -18,14 +18,14 @@ pub enum BytesOrString {
 
 #[pyfunction(
     signature = (
-    data,
-    /,
-    *,
-    allow_inf_nan = true,
-    cache_mode = StringCacheMode::All,
-    partial_mode = PartialMode::Off,
-    catch_duplicate_keys = false,
-    float_mode = FloatMode::Float
+        data,
+        /,
+        *,
+        allow_inf_nan = true,
+        cache_mode = StringCacheMode::All,
+        partial_mode = PartialMode::Off,
+        catch_duplicate_keys = false,
+        float_mode = FloatMode::Float
     )
 )]
 pub fn parse_json_bytes<'py>(
@@ -51,14 +51,14 @@ pub fn parse_json_bytes<'py>(
 
 #[pyfunction(
     signature = (
-    data,
-    /,
-    *,
-    allow_inf_nan = true,
-    cache_mode = StringCacheMode::All,
-    partial_mode = PartialMode::Off,
-    catch_duplicate_keys = false,
-    float_mode = FloatMode::Float,
+        data,
+        /,
+        *,
+        allow_inf_nan = true,
+        cache_mode = StringCacheMode::All,
+        partial_mode = PartialMode::Off,
+        catch_duplicate_keys = false,
+        float_mode = FloatMode::Float,
     )
 )]
 pub fn parse_json_str<'py>(
@@ -86,14 +86,14 @@ pub fn parse_json_str<'py>(
 #[allow(clippy::fn_params_excessive_bools)]
 #[pyfunction(
     signature = (
-    data,
-    /,
-    *,
-    allow_inf_nan = true,
-    cache_mode = StringCacheMode::All,
-    partial_mode = PartialMode::Off,
-    catch_duplicate_keys = false,
-    float_mode = FloatMode::Float
+        data,
+        /,
+        *,
+        allow_inf_nan = true,
+        cache_mode = StringCacheMode::All,
+        partial_mode = PartialMode::Off,
+        catch_duplicate_keys = false,
+        float_mode = FloatMode::Float
     )
 )]
 pub fn parse_json(
@@ -139,6 +139,7 @@ pub fn jiter_cache_clear() {
 pub fn jiter_cache_usage() -> usize {
     cache_usage()
 }
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_json_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(parse_json_str, m)?)?;

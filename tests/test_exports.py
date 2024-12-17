@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import ModuleType
+
 import pytest
 
 import ry
@@ -36,6 +38,12 @@ def test_exports_module_attr_param(name: str) -> None:
         return
     member = getattr(ry, name)
     if isinstance(member, (str, int, float, list, tuple, dict)):
+        return
+
+    if isinstance(member, ModuleType):
+        member_name = member.__name__
+        print(member_name)
+        assert member.__name__.startswith("ry."), f"{name} {member} is not in ry"
         return
 
     module_name = member.__module__
