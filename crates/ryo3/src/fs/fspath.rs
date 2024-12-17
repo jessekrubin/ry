@@ -447,6 +447,66 @@ impl PyFsPath {
     //         "match not implemented",
     //     ))
     // }
+
+
+
+    // # methods- path buf
+    // add_extension
+    // as_mut_os_string
+    // as_path
+    // capacity
+    // clear
+    // into_boxed_path
+    // into_os_string
+    // leak
+    // new
+    // pop
+    // push
+    // reserve
+    // reserve_exact
+    // set_extension
+    // set_file_name
+    // shrink_to
+    // shrink_to_fit
+    // try_reserve
+    // try_reserve_exact
+    // with_capacity
+    //
+    // # Methods from Deref<Target=Path>
+    // ancestors
+    // as_mut_os_str
+    // as_os_str
+    // canonicalize
+    // components
+    // display
+    // ends_with
+    // exists
+    // extension
+    // file_name
+    // file_prefix
+    // file_stem
+    // has_root
+    // is_absolute
+    // is_dir
+    // is_file
+    // is_relative
+    // is_symlink
+    // iter
+    // join
+    // metadata
+    // parent
+    // read_dir
+    // read_link
+    // starts_with
+    // strip_prefix
+    // symlink_metadata
+    // to_path_buf
+    // to_str
+    // to_string_lossy
+    // try_exists
+    // with_added_extension
+    // with_extension
+    // with_file_name
 }
 
 impl<T> From<T> for PyFsPath

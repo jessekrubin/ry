@@ -2,6 +2,10 @@
 
 ## FUTURE
 
+- `python -m ry.dev` repl for ipython/python repl ~ handy nifty secret tool makes it into repo
+
+___
+
 ## v0.0.22 [2024-12-16]
 
 - `regex`
