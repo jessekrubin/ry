@@ -1,7 +1,9 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError};
+use pyo3::exceptions::{
+    PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
+};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule, PyTuple, PyType};
 use pyo3::{pyclass, pymethods, PyObject, PyResult, Python};
@@ -505,15 +507,9 @@ impl PyFsPath {
     }
 
     fn extension(&self) -> Option<String> {
-        let e = self.pth.extension();
-        match e {
-            Some(e) => Some(
-                e.to_str()
-                    .expect("extension() - path contains invalid unicode characters")
-                    .to_string(),
-            ),
-            None => None,
-        }
+        self.pth
+            .extension()
+            .map(|e| e.to_string_lossy().to_string())
     }
 
     fn file_name(&self) -> Option<String> {
@@ -554,9 +550,9 @@ impl PyFsPath {
         self.pth.is_symlink()
     }
 
-    fn iter(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
+    // fn iter(&self) -> PyResult<()> {
+    //     err_py_not_impl!()
+    // }
     fn join(&self, p: PathLike) -> PyFsPath {
         Self::from(self.pth.join(p))
     }
@@ -581,8 +577,8 @@ impl PyFsPath {
     fn strip_prefix(&self, p: PathLike) -> PyResult<PyFsPath> {
         self.pth
             .strip_prefix(p.as_ref())
-            .map(|p| PyFsPath::from(p))
-            .map_err(|e| PyFileNotFoundError::new_err(format!("strip_prefix: {e}")))
+            .map(PyFsPath::from)
+            .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
     fn symlink_metadata(&self) -> PyResult<()> {
         err_py_not_impl!()
