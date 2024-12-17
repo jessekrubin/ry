@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::fs::fspath::PyFsPath;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError};
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyModule};
+use pyo3::types::PyModule;
 use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 use ryo3_types::PathLike;
 
@@ -32,6 +32,7 @@ pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
     fspath.read_text(py)
 }
 
+#[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn write_bytes(fspath: PathLike, b: &[u8]) -> PyResult<usize> {
     let write_res = std::fs::write(fspath.as_ref(), b);
@@ -43,6 +44,7 @@ pub fn write_bytes(fspath: PathLike, b: &[u8]) -> PyResult<usize> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn write_text(fspath: PathLike, string: &str) -> PyResult<usize> {
     let str_bytes = string.as_bytes();
