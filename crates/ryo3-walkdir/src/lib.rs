@@ -97,7 +97,7 @@ impl PyWalkdirGen {
 
         self.iter
             .by_ref() // Allows us to consume items from self.iter
-            .filter_map(std::result::Result::ok) // Filter out Err results
+            .filter_map(Result::ok) // Filter out Err results
             .filter_map(move |entry| {
                 let ftype = entry.file_type();
                 // Filter by whether we want files and/or directories

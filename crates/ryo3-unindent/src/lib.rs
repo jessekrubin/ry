@@ -1,5 +1,6 @@
+#![doc = include_str!("../README.md")]
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyModule};
 
 #[pyfunction]
 pub fn unindent(input: &str) -> String {
@@ -11,4 +12,9 @@ pub fn unindent_bytes<'py>(py: Python<'py>, input: &[u8]) -> Bound<'py, PyBytes>
     let b = ::unindent::unindent_bytes(input);
     let pb = PyBytes::new(py, &b);
     pb
+}
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(crate::unindent, m)?)?;
+    m.add_function(wrap_pyfunction!(crate::unindent_bytes, m)?)?;
+    Ok(())
 }

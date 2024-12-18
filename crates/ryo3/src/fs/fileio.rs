@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::fs::fspath::PyFsPath;
 use pyo3::exceptions::{PyFileNotFoundError, PyNotADirectoryError};
@@ -21,7 +21,7 @@ pub fn read_vec_u8(s: &str) -> PyResult<Vec<u8>> {
 }
 
 #[pyfunction]
-pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
+pub fn read_bytes(py: Python<'_>, s: PathBuf) -> PyResult<PyObject> {
     let fspath = PyFsPath::from(s);
     fspath.read_bytes(py)
 }

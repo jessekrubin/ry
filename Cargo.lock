@@ -1084,6 +1084,7 @@ dependencies = [
  "ryo3-sqlformat",
  "ryo3-std",
  "ryo3-types",
+ "ryo3-unindent",
  "ryo3-url",
  "ryo3-walkdir",
  "ryo3-which",
@@ -1094,7 +1095,6 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
- "unindent",
 ]
 
 [[package]]
@@ -1227,6 +1227,14 @@ name = "ryo3-types"
 version = "0.0.22"
 dependencies = [
  "pyo3",
+]
+
+[[package]]
+name = "ryo3-unindent"
+version = "0.0.22"
+dependencies = [
+ "pyo3",
+ "unindent",
 ]
 
 [[package]]

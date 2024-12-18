@@ -57,6 +57,7 @@ members = [
   "crates/ryo3-regex",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
+  "crates/ryo3-unindent",
   "crates/ryo3-url",
   "crates/ryo3-walkdir",
   "crates/ryo3-which",
@@ -99,6 +100,7 @@ ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
+ryo3-unindent = { path = "./crates/ryo3-unindent" }
 ryo3-url = { path = "./crates/ryo3-url" }
 ryo3-walkdir = { path = "./crates/ryo3-walkdir" }
 ryo3-which = { path = "./crates/ryo3-which" }
@@ -126,6 +128,7 @@ tokio = { version = "1.41.1", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "env-filter", "default"] }
 xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
+unindent = "0.2.3"
 url = { version = "2.5.4", features = ["serde"] }
 walkdir = "2.4.0"
 which = { version = "7.0.0", features = ["regex"] }

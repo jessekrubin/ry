@@ -1,4 +1,4 @@
-#![allow(clippy::needless_pass_by_value)]
+// #![allow(clippy::needless_pass_by_value)]
 
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
@@ -291,9 +291,7 @@ impl PyFsPath {
             .file_stem()
             .map(|s| s.to_string_lossy().to_string())
             .ok_or_else(|| {
-                pyo3::exceptions::PyValueError::new_err(
-                    "stem() - path contains invalid unicode characters",
-                )
+                PyValueError::new_err("stem() - path contains invalid unicode characters")
             })
     }
 
