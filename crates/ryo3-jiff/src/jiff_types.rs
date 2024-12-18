@@ -25,6 +25,11 @@ pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JiffEra(pub(crate) jiff::civil::Era);
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JiffEraYear(pub(crate) (i16, jiff::civil::Era));
+
 // ============================================================================
 impl From<jiff::civil::Date> for JiffDate {
     fn from(value: jiff::civil::Date) -> Self {

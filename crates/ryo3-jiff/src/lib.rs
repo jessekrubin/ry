@@ -59,7 +59,7 @@ use ry_time::RyTime;
 
 #[pyfunction]
 pub fn date(year: i16, month: i8, day: i8) -> PyResult<RyDate> {
-    RyDate::new(year, month, day)
+    RyDate::py_new(year, month, day)
 }
 
 #[pyfunction]
@@ -70,7 +70,7 @@ pub fn time(
     second: Option<i8>,
     nanosecond: Option<i32>,
 ) -> PyResult<RyTime> {
-    RyTime::new(hour, minute, second, nanosecond)
+    RyTime::py_new(hour, minute, second, nanosecond)
 }
 
 #[pyfunction]

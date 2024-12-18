@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ry  # noqa: F401
 from ry import ryo3
 
 # noinspection PyUnresolvedReferences

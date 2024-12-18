@@ -10,7 +10,7 @@ use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
-use ryo3_macros::err_py_not_impl;
+use ryo3_macros::err_py_not_impl_yet;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -23,7 +23,7 @@ pub struct RyTime(pub(crate) jiff::civil::Time);
 impl RyTime {
     #[new]
     #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
-    pub fn new(
+    pub fn py_new(
         hour: Option<i8>,
         minute: Option<i8>,
         second: Option<i8>,
@@ -39,6 +39,9 @@ impl RyTime {
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    // ========================================================================
+    // CLASS ATTRS
+    // ========================================================================
     #[allow(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
@@ -51,6 +54,9 @@ impl RyTime {
         Self(jiff::civil::Time::MAX)
     }
 
+    // ========================================================================
+    // CLASS METHODS
+    // ========================================================================
     #[classmethod]
     fn now(_cls: &Bound<'_, PyType>) -> Self {
         let z = jiff::civil::Time::from(Zoned::now());
@@ -68,6 +74,10 @@ impl RyTime {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    // ========================================================================
+    // STRPTIME/STRFTIME
+    // ========================================================================
+
     #[classmethod]
     fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
         jiff::civil::Time::strptime(format, input)
@@ -79,21 +89,9 @@ impl RyTime {
         self.0.strftime(format).to_string()
     }
 
-    fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
-        RyDateTime::from(self.0.on(year, month, day))
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
-        match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
-        }
-    }
-
+    // ========================================================================
+    // STRING
+    // ========================================================================
     fn string(&self) -> String {
         self.0.to_string()
     }
@@ -110,6 +108,20 @@ impl RyTime {
             self.0.second(),
             self.0.nanosecond()
         )
+    }
+
+    // ========================================================================
+    // OPERATORS/DUNDERS
+    // ========================================================================
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(self.0 == other.0),
+            CompareOp::Ne => Ok(self.0 != other.0),
+            CompareOp::Lt => Ok(self.0 < other.0),
+            CompareOp::Le => Ok(self.0 <= other.0),
+            CompareOp::Gt => Ok(self.0 > other.0),
+            CompareOp::Ge => Ok(self.0 >= other.0),
+        }
     }
 
     fn __hash__(&self) -> u64 {
@@ -183,6 +195,9 @@ impl RyTime {
         self.__sub__(py, other)
     }
 
+    // ========================================================================
+    // PROPERTIES
+    // ========================================================================
     #[getter]
     fn hour(&self) -> i8 {
         self.0.hour()
@@ -217,10 +232,6 @@ impl RyTime {
         self.0.subsec_nanosecond()
     }
 
-    fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
-        RyDateTime::from(self.0.to_datetime(date.0))
-    }
-
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
@@ -235,6 +246,10 @@ impl RyTime {
     // =====================================================================
     // INSTANCE METHODS
     // =====================================================================
+
+    fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
+        RyDateTime::from(self.0.on(year, month, day))
+    }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
@@ -306,10 +321,16 @@ impl RyTime {
         }
     }
 
-    fn round(&self) -> PyResult<()> {
-        // self.0.round()
-        err_py_not_impl!()
+    fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
+        RyDateTime::from(self.0.to_datetime(date.0))
     }
+
+    fn round(&self) -> PyResult<()> {
+        err_py_not_impl_yet!()
+    }
+    // ------------------------------------------------------------------------
+    // SINCE/UNTIL
+    // ------------------------------------------------------------------------
     fn since(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
         self.0
             .since(other)

@@ -7,15 +7,13 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::RyDate;
+use crate::{JiffEraYear, RyDate};
 use jiff::civil::{DateTime, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDate, PyDateTime, PyDict, PyDictMethods, PyTuple, PyType};
-use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
-    PyRef, PyRefMut, PyResult, Python,
-};
+use pyo3::intern;
+use pyo3::prelude::*;
+use pyo3::types::{PyDateTime, PyDict, PyType};
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -314,7 +312,7 @@ impl RyDateTime {
     }
 
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDateTime>) -> PyResult<Self> {
         let jiff_datetime: JiffDateTime = d.extract()?;
         Ok(Self::from(jiff_datetime.0))
     }
@@ -367,18 +365,11 @@ impl RyDateTime {
     fn end_of_day(&self) -> RyDateTime {
         RyDateTime::from(self.0.end_of_day())
     }
-    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let (y, e) = self.0.era_year();
 
-        let era_str_pyobj = match e {
-            jiff::civil::Era::BCE => intern!(py, "BCE"),
-            jiff::civil::Era::CE => intern!(py, "CE"),
-        };
-        let year_py = y.into_py_any(py)?;
-        let era_str = era_str_pyobj.into_py_any(py)?;
-
-        let pyobjs_vec = vec![year_py, era_str];
-        PyTuple::new(py, pyobjs_vec)
+    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let era_year = JiffEraYear(self.0.era_year());
+        let obj = era_year.into_pyobject(py)?;
+        Ok(obj.into_any())
     }
 
     fn first_of_year(&self) -> RyDateTime {

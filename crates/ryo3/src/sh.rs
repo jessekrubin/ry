@@ -23,15 +23,12 @@ pub fn home() -> PyResult<String> {
 
 #[pyfunction]
 pub fn pwd() -> PyResult<String> {
-    let curdur = std::env::current_dir();
-    match curdur {
-        Ok(c) => match c.to_str() {
-            Some(s) => Ok(s.to_string()),
-            None => Err(PyOSError::new_err(
-                "pwd: current directory is not a valid UTF-8 string",
-            )),
-        },
-        Err(e) => Err(PyOSError::new_err(format!("pwd: {e}"))),
+    let curdur = std::env::current_dir()?;
+    match curdur.to_str() {
+        Some(s) => Ok(s.to_string()),
+        None => Err(PyOSError::new_err(
+            "pwd: current directory is not a valid UTF-8 string",
+        )),
     }
 }
 

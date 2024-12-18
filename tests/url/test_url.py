@@ -1,5 +1,7 @@
 """Tests for ryo3-url library"""
 
+from __future__ import annotations
+
 import pytest
 
 import ry.dev as ry

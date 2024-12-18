@@ -10,4 +10,8 @@ ___
 
 ___
 
+- [EXAMPLES](./examples.md)
+
+___
+
 - [API](./api.md)
