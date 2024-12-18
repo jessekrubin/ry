@@ -26,7 +26,7 @@ pub struct PyDuration(pub Duration);
 impl PyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
-    fn new(secs: u64, nanos: u32) -> Self {
+    fn py_new(secs: u64, nanos: u32) -> Self {
         PyDuration(Duration::new(secs, nanos))
     }
     #[allow(non_snake_case)]

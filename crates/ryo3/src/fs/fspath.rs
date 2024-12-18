@@ -1,12 +1,11 @@
-// #![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::needless_pass_by_value)] // TODO: remove in future? if possible?
 
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
 };
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyModule, PyTuple, PyType};
-use pyo3::{pyclass, pymethods, PyObject, PyResult, Python};
+use pyo3::types::{PyBytes, PyTuple, PyType};
 use ryo3_macros::err_py_not_impl;
 use ryo3_types::PathLike;
 use std::path::{Path, PathBuf};
@@ -83,6 +82,7 @@ impl PyFsPath {
     //     self.string() == path2str(other.as_ref())
     // }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn __richcmp__(&self, other: PathLike, op: CompareOp) -> PyResult<bool> {
         let o = other.as_ref();
         match op {

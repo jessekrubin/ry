@@ -13,8 +13,8 @@ use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
-    PyRef, PyRefMut, PyResult, Python,
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
+    PyResult, Python,
 };
 use ryo3_macros::err_py_not_impl;
 use ryo3_std::PyDuration;

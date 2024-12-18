@@ -5,9 +5,9 @@ use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use jiff::tz::{Offset, OffsetArithmetic};
+use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::PyType;
-use pyo3::{pyclass, pyfunction, pymethods, Bound, FromPyObject, PyErr, PyResult};
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -196,11 +196,6 @@ impl From<Offset> for RyOffset {
     fn from(value: Offset) -> Self {
         RyOffset(value)
     }
-}
-
-#[pyfunction]
-pub(crate) fn offset(hours: i8) -> RyOffset {
-    RyOffset::from(jiff::tz::offset(hours))
 }
 
 #[derive(Debug, Clone, FromPyObject)]

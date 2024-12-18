@@ -1,8 +1,6 @@
-use crate::fs::fspath::PyFsPath;
-use pyo3::exceptions::PyNotADirectoryError;
+use pyo3::exceptions::{PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyModule};
-use pyo3::{pyfunction, wrap_pyfunction, PyResult};
+use pyo3::types::PyBytes;
 use ryo3_types::PathLike;
 
 #[allow(clippy::needless_pass_by_value)]
@@ -15,8 +13,15 @@ pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
 #[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
-    let fspath = PyFsPath::from(s);
-    fspath.read_text(py)
+    let fbytes = std::fs::read(s)?;
+    let r = std::str::from_utf8(&fbytes);
+    match r {
+        Ok(s) => Ok(s.to_string()),
+        Err(e) => {
+            let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
+            Err(decode_err.into())
+        }
+    }
 }
 
 #[allow(clippy::needless_pass_by_value)]

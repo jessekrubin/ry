@@ -1220,6 +1220,7 @@ version = "0.0.22"
 dependencies = [
  "pyo3",
  "ryo3-macros",
+ "ryo3-types",
 ]
 
 [[package]]

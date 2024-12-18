@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug)]
 pub struct JiffDate(pub jiff::civil::Date);
 #[derive(Debug)]
@@ -150,5 +152,59 @@ impl From<JiffUnit> for jiff::Unit {
 impl From<JiffWeekday> for jiff::civil::Weekday {
     fn from(val: JiffWeekday) -> Self {
         val.0
+    }
+}
+
+// ============================================================================
+// JIFF UNIT
+// ============================================================================
+impl JiffUnit {
+    #[must_use]
+    pub fn static_str(self) -> &'static str {
+        match self.0 {
+            jiff::Unit::Year => "year",
+            jiff::Unit::Month => "month",
+            jiff::Unit::Week => "week",
+            jiff::Unit::Day => "day",
+            jiff::Unit::Hour => "hour",
+            jiff::Unit::Minute => "minute",
+            jiff::Unit::Second => "second",
+            jiff::Unit::Millisecond => "millisecond",
+            jiff::Unit::Microsecond => "microsecond",
+            jiff::Unit::Nanosecond => "nanosecond",
+        }
+    }
+}
+
+impl Display for JiffUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self.static_str();
+        write!(f, "{s}")
+    }
+}
+
+// ============================================================================
+// ROUND MODE
+// ============================================================================
+impl JiffRoundMode {
+    fn static_str(self) -> &'static str {
+        match self.0 {
+            jiff::RoundMode::Ceil => "ceil",
+            jiff::RoundMode::Floor => "floor",
+            jiff::RoundMode::Expand => "expand",
+            jiff::RoundMode::Trunc => "trunc",
+            jiff::RoundMode::HalfCeil => "half_ceil",
+            jiff::RoundMode::HalfFloor => "half_floor",
+            jiff::RoundMode::HalfExpand => "half_expand",
+            jiff::RoundMode::HalfTrunc => "half_trunc",
+            jiff::RoundMode::HalfEven => "half_even",
+            _ => "round_unknown",
+        }
+    }
+}
+impl Display for JiffRoundMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self.static_str();
+        write!(f, "{s}")
     }
 }
