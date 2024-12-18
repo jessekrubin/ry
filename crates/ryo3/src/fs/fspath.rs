@@ -502,8 +502,10 @@ impl PyFsPath {
         self.pth.ends_with(path.as_ref())
     }
 
-    fn exists(&self) -> bool {
-        self.pth.exists()
+    fn exists(&self) -> PyResult<bool> {
+        self.pth
+            .try_exists()
+            .map_err(|e| PyFileNotFoundError::new_err(format!("(try_)exists: {e}")))
     }
 
     fn extension(&self) -> Option<String> {

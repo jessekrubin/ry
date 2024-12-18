@@ -29,7 +29,7 @@ pub struct PySqlfmtQueryParams {
 #[pymethods]
 impl PySqlfmtQueryParams {
     #[new]
-    fn new(params: PyQueryParamsLike) -> PyResult<Self> {
+    fn py_new(params: PyQueryParamsLike) -> PyResult<Self> {
         sqlfmt_params(Some(params))
     }
 
@@ -134,11 +134,11 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
     }
 }
 
-#[pyfunction]
-#[pyo3(signature = (sql, params=None, *, indent=None, uppercase=None, lines_between_queries=None))]
 /// Format SQL queries
 ///
 /// Based on [sqlformat-crate](https://crates.io/crates/sqlformat)
+#[pyfunction]
+#[pyo3(signature = (sql, params=None, *, indent=None, uppercase=None, lines_between_queries=None))]
 pub fn sqlfmt(
     sql: &str,
     params: Option<PyQueryParamsLike>,
@@ -164,7 +164,7 @@ pub fn sqlfmt(
         if let PyQueryParamsLike::PyQueryParams(p) = p {
             Ok(sqlformat::format(sql, &p.params, &options))
         } else {
-            let py_params = PySqlfmtQueryParams::new(p)?;
+            let py_params = PySqlfmtQueryParams::py_new(p)?;
             Ok(sqlformat::format(sql, &py_params.params, &options))
         }
     } else {

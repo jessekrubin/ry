@@ -14,7 +14,7 @@ pub struct PyFnvHasher {
 impl PyFnvHasher {
     #[new]
     #[pyo3(signature = (s = None))]
-    fn new(s: Option<&[u8]>) -> Self {
+    fn py_new(s: Option<&[u8]>) -> Self {
         match s {
             Some(s) => {
                 let mut hasher = fnv_rs::FnvHasher::default();
@@ -63,7 +63,7 @@ impl PyFnvHasher {
 
 #[pyfunction]
 pub fn fnv1a(s: &[u8]) -> PyResult<PyFnvHasher> {
-    Ok(PyFnvHasher::new(Some(s)))
+    Ok(PyFnvHasher::py_new(Some(s)))
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -14,7 +14,7 @@ pub struct PyXxh32 {
 impl PyXxh32 {
     #[new]
     #[pyo3(signature = (b = None, seed = None))]
-    fn new(b: Option<&[u8]>, seed: Option<u32>) -> Self {
+    fn py_new(b: Option<&[u8]>, seed: Option<u32>) -> Self {
         match b {
             Some(s) => {
                 let seed = seed.unwrap_or(0);
@@ -83,7 +83,7 @@ impl PyXxh32 {
 #[pyfunction]
 #[pyo3(signature = (s = None, seed = 0))]
 pub fn xxh32(s: Option<&[u8]>, seed: Option<u32>) -> PyResult<PyXxh32> {
-    Ok(PyXxh32::new(s, seed))
+    Ok(PyXxh32::py_new(s, seed))
 }
 
 /// Python-Xxh64 hasher
@@ -98,7 +98,7 @@ impl PyXxh64 {
     /// Create a new Xxh64 hasher
     #[new]
     #[pyo3(signature = (b = None, seed = 0))]
-    fn new(b: Option<&[u8]>, seed: Option<u64>) -> Self {
+    fn py_new(b: Option<&[u8]>, seed: Option<u64>) -> Self {
         match b {
             Some(s) => {
                 let mut hasher = Xxh64::new(seed.unwrap_or(0));
@@ -168,7 +168,7 @@ impl PyXxh64 {
 #[pyfunction]
 #[pyo3(signature = (s = None, seed = 0))]
 pub fn xxh64(s: Option<&[u8]>, seed: Option<u64>) -> PyResult<PyXxh64> {
-    Ok(PyXxh64::new(s, seed))
+    Ok(PyXxh64::py_new(s, seed))
 }
 
 #[pyclass(name = "Xxh3", module = "ryo3")]
@@ -181,7 +181,7 @@ pub struct PyXxh3 {
 impl PyXxh3 {
     #[new]
     #[pyo3(signature = (b = None, seed = 0, secret = None))]
-    fn new(b: Option<&[u8]>, seed: Option<u64>, secret: Option<[u8; 192]>) -> Self {
+    fn py_new(b: Option<&[u8]>, seed: Option<u64>, secret: Option<[u8; 192]>) -> Self {
         let seed = seed.unwrap_or(0);
         let h = match secret {
             Some(s) => Xxh3Builder::new().with_seed(seed).with_secret(s).build(),
@@ -262,7 +262,7 @@ impl PyXxh3 {
 #[pyfunction]
 #[pyo3(signature = (s = None, seed = 0, secret = None))]
 pub fn xxh3(s: Option<&[u8]>, seed: Option<u64>, secret: Option<[u8; 192]>) -> PyResult<PyXxh3> {
-    Ok(PyXxh3::new(s, seed, secret))
+    Ok(PyXxh3::py_new(s, seed, secret))
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
