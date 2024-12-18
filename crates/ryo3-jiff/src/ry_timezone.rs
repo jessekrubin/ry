@@ -1,4 +1,5 @@
 use crate::errors::map_py_value_err;
+use crate::pydatetime_conversions::timezone2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
@@ -99,8 +100,7 @@ impl RyTimeZone {
     }
 
     fn to_pytzinfo<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let jiff_tz = JiffTimeZone::from(self.0.clone()); // TODO: figure out no clone
-        jiff_tz.into_pyobject(py)
+        timezone2pyobect(py, &self.0)
     }
 
     #[classmethod]

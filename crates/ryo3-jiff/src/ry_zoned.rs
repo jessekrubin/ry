@@ -1,6 +1,7 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
+use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_signed_duration::RySignedDuration;
@@ -120,8 +121,7 @@ impl RyZoned {
     }
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        let new_zoned = JiffZoned(self.0.clone()); // todo: remove clone
-        new_zoned.into_pyobject(py)
+        zoned2pyobect(py, &self.0)
     }
 
     #[classmethod]
@@ -413,6 +413,7 @@ impl RyZoned {
     }
 
     fn nth_weekday(&self, _nth: i32, _weekday: u8) -> PyResult<Self> {
+        // self.0.nth_weekday(_nth, _weekday).map(RyZoned::from).map_err(map_py_value_err)
         err_py_not_impl!()
     }
 
@@ -470,11 +471,6 @@ impl RyZoned {
     fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {
         self.0.with_time_zone(tz.0.clone()).into()
     }
-
-    // python doesnt allow for `with` as a method name as it is a reserved keyword
-    // fn with(&self) -> PyResult<()> {
-    //     err_py_not_impl!()
-    // }
 }
 
 impl Display for RyZoned {

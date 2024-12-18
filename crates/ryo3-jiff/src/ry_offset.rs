@@ -76,14 +76,17 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
+    #[must_use]
     pub fn string(&self) -> String {
         self.0.to_string()
     }
 
+    #[must_use]
     pub fn __str__(&self) -> String {
         self.__repr__()
     }
 
+    #[must_use]
     pub fn __repr__(&self) -> String {
         let s = self.0.seconds();
         // if it is hours then use hours for repr
@@ -95,10 +98,12 @@ impl RyOffset {
     }
 
     #[getter]
+    #[must_use]
     pub fn seconds(&self) -> i32 {
         self.0.seconds()
     }
 
+    #[must_use]
     pub fn negate(&self) -> Self {
         RyOffset::from(self.0.negate())
     }
@@ -108,15 +113,18 @@ impl RyOffset {
     }
 
     #[getter]
+    #[must_use]
     pub fn is_negative(&self) -> bool {
         self.0.is_negative()
     }
 
     #[getter]
+    #[must_use]
     pub fn is_positive(&self) -> bool {
         !self.0.is_negative()
     }
 
+    #[must_use]
     pub fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
@@ -128,21 +136,25 @@ impl RyOffset {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    #[must_use]
     pub fn until(&self, other: &RyOffset) -> RySpan {
         let s = self.0.until(other.0);
         RySpan::from(s)
     }
 
+    #[must_use]
     pub fn since(&self, other: &RyOffset) -> RySpan {
         let s = self.0.since(other.0);
         RySpan::from(s)
     }
 
+    #[must_use]
     pub fn duration_until(&self, other: &RyOffset) -> RySignedDuration {
         let s = self.0.duration_until(other.0);
         RySignedDuration::from(s)
     }
 
+    #[must_use]
     pub fn duration_since(&self, other: &RyOffset) -> RySignedDuration {
         let s = self.0.duration_since(other.0);
         RySignedDuration::from(s)

@@ -1,4 +1,3 @@
-use dirs;
 use pyo3::exceptions::{PyFileNotFoundError, PyOSError};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
@@ -6,20 +5,20 @@ use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 use ryo3_types::PathLike;
 use std::fs::read_dir;
 
-#[pyfunction]
-pub fn home() -> PyResult<String> {
-    match dirs::home_dir() {
-        Some(x) => match x.to_str() {
-            Some(s) => Ok(s.to_string()),
-            None => Err(PyOSError::new_err(
-                "home: home directory is not a valid UTF-8 string",
-            )),
-        },
-        None => Err(PyOSError::new_err(
-            "home: could not determine home directory",
-        )),
-    }
-}
+// #[pyfunction]
+// pub fn home() -> PyResult<String> {
+//     match dirs::home_dir() {
+//         Some(x) => match x.to_str() {
+//             Some(s) => Ok(s.to_string()),
+//             None => Err(PyOSError::new_err(
+//                 "home: home directory is not a valid UTF-8 string",
+//             )),
+//         },
+//         None => Err(PyOSError::new_err(
+//             "home: could not determine home directory",
+//         )),
+//     }
+// }
 
 #[pyfunction]
 pub fn pwd() -> PyResult<String> {
@@ -82,7 +81,10 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(pwd, m)?)?;
     m.add_function(wrap_pyfunction!(cd, m)?)?;
-    m.add_function(wrap_pyfunction!(home, m)?)?;
     m.add_function(wrap_pyfunction!(ls, m)?)?;
+
+    #[cfg(feature = "dirs")]
+    m.add_function(wrap_pyfunction!(ryo3_dirs::home, m)?)?;
+
     Ok(())
 }

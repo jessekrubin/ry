@@ -15,3 +15,5 @@ mod zoned;
 pub use date::*;
 pub use signed_duration::*;
 pub use time::*;
+pub use timezone::timezone2pyobect;
+pub use zoned::zoned2pyobect;

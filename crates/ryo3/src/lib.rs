@@ -20,6 +20,7 @@ mod dev;
 pub mod fmts;
 pub mod fs;
 pub mod libs;
+mod ry;
 pub mod sh;
 pub mod sleep;
 mod submodules;

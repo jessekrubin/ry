@@ -4,13 +4,13 @@ use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time_difference::{IntoTimeDifference, RyTimeDifference};
-use crate::JiffTime;
+use crate::{JiffRoundMode, JiffTime, JiffUnit};
+use jiff::civil::TimeRound;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
-use ryo3_macros::err_py_not_impl_yet;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -325,9 +325,29 @@ impl RyTime {
         RyDateTime::from(self.0.to_datetime(date.0))
     }
 
-    fn round(&self) -> PyResult<()> {
-        err_py_not_impl_yet!()
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<Self> {
+        let mut timeround = TimeRound::new();
+        if let Some(smallest) = smallest {
+            timeround = timeround.smallest(smallest.0);
+        }
+        if let Some(mode) = mode {
+            timeround = timeround.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            timeround = timeround.increment(increment);
+        }
+        self.0
+            .round(timeround)
+            .map(RyTime::from)
+            .map_err(map_py_value_err)
     }
+
     // ------------------------------------------------------------------------
     // SINCE/UNTIL
     // ------------------------------------------------------------------------
@@ -392,61 +412,9 @@ impl RyTimeSeries {
     }
 }
 
-// #[pyclass(name = "TimeDifference", module = "ryo3")]
-// #[derive(Debug, Clone)]
-// pub struct RyTimeDifference(pub(crate) jiff::civil::TimeDifference);
-//
-// #[pymethods]
-// impl RyTimeDifference {
-//     #[new]
-//     pub fn new(time: &RyTime) -> PyResult<Self> {
-//         let td = jiff::civil::TimeDifference::new(time.0);
-//         Ok(Self(td))
-//     }
-//
-//     pub fn smallest(&self, unit: JiffUnit) -> Self {
-//         Self::from(self.0.smallest(unit.0))
-//     }
-//
-//     pub fn largest(&self, unit: JiffUnit) -> Self {
-//         Self::from(self.0.largest(unit.0))
-//     }
-//
-//     pub fn mode(&self, mode: crate::JiffRoundMode) -> Self {
-//         Self::from(self.0.mode(mode.0))
-//     }
-//
-//     pub fn increment(&self, increment: i64) -> Self {
-//         Self::from(self.0.increment(increment))
-//     }
-// }
-
-// impl From<jiff::civil::TimeDifference> for RyTimeDifference {
-//     fn from(value: jiff::civil::TimeDifference) -> Self {
-//         Self(value)
-//     }
-// }
-
-// #[derive(Debug, Clone, FromPyObject)]
-// pub enum RyTimeArithmeticSub {
-//     Time(RyTime),
-//     Span(RySpan),
-// }
 #[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum RyTimeArithmeticSub {
     Time(RyTime),
     Span(RySpan),
     SignedDuration(RySignedDuration),
 }
-
-// #[derive(Debug, Clone, FromPyObject)]
-// pub enum RyTimeArithmeticSub<'py> {
-//     Time(Bound<'py, RyTime>),
-//     Span(Bound<'py, RySpan>),
-// }
-
-// #[derive(Debug, Clone)]
-// pub enum RyTimeArithmeticSub<'py> {
-//     Time(&'py Bound<'py, RyTime>),
-//     Span(&'py Bound<'py, RySpan>),
-// }

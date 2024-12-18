@@ -894,8 +894,13 @@ class Time:
     def on(self, year: int, month: int, day: int) -> DateTime: ...
     def duration_until(self, other: Time) -> SignedDuration: ...
     def duration_since(self, other: Time) -> SignedDuration: ...
-    def round(self) -> None: ...
-    def to_datetime(self) -> None: ...
+    def round(
+        self,
+        smallest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -> Time: ...
+    def to_datetime(self, d: Date) -> DateTime: ...
 
     # =========================================================================
     # SINCE/UNTIL
@@ -1108,6 +1113,7 @@ class DateTimeDifference:
 class TimeZone:
     def __init__(self, name: str) -> None: ...
     def __eq__(self, other: object) -> bool: ...
+
     # =========================================================================
     # STRING
     # =========================================================================
@@ -1126,6 +1132,7 @@ class TimeZone:
     # =========================================================================
     @property
     def name(self) -> str: ...
+
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
@@ -1152,6 +1159,7 @@ class TimeZone:
     def to_offset(self, timestamp: Timestamp) -> tuple[Offset, bool, str]: ...
     def to_timestamp(self, dt: DateTime) -> Timestamp: ...
     def to_zoned(self, other: DateTime) -> ZonedDateTime: ...
+
     # =========================================================================
     # NOT IMPLEMENTED
     # =========================================================================
@@ -1164,6 +1172,7 @@ class SignedDuration:
     ZERO: SignedDuration
 
     def __init__(self, secs: int, nanos: int) -> None: ...
+
     # =========================================================================
     # OPERATORS/DUNDERS
     # =========================================================================
@@ -1453,6 +1462,7 @@ class Timestamp:
     # =========================================================================
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
+
     # =========================================================================
     # OPERATORS/DUNDERS
     # =========================================================================
@@ -1465,6 +1475,7 @@ class Timestamp:
     def __lt__(self, other: Timestamp) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __richcmp__(self, other: Timestamp, op: int) -> bool: ...
+
     # =========================================================================
     # OPERATORS/DUNDERS W/ OVERLOADS
     # =========================================================================
@@ -1476,6 +1487,7 @@ class Timestamp:
     def __sub__(self, other: Timestamp) -> TimeSpan: ...
     @t.overload
     def __sub__(self, other: TimeSpan | SignedDuration | Duration) -> t.Self: ...
+
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
@@ -1584,6 +1596,7 @@ class ZonedDateTime:
     # =========================================================================
     def __str__(self) -> str: ...
     def string(self) -> str: ...
+
     # =========================================================================
     # OPERATORS/DUNDERS
     # =========================================================================
@@ -1597,6 +1610,7 @@ class ZonedDateTime:
     def __lt__(self, other: ZonedDateTime) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __richcmp__(self, other: ZonedDateTime, op: int) -> bool: ...
+
     # =========================================================================
     # OPERATORS/DUNDERS W/ OVERLOADS
     # =========================================================================
@@ -1651,6 +1665,7 @@ class ZonedDateTime:
     def tomorrow(self) -> ZonedDateTime: ...
     def with_time_zone(self, tz: TimeZone) -> ZonedDateTime: ...
     def yesterday(self) -> ZonedDateTime: ...
+
     # =========================================================================
     # SINCE/UNTIL
     # =========================================================================
@@ -1660,6 +1675,7 @@ class ZonedDateTime:
     def until(
         self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
     ) -> TimeSpan: ...
+
     # =========================================================================
     # NOT IMPLEMENTED & NOT TYPED
     # =========================================================================

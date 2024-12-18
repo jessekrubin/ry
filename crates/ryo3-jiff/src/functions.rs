@@ -122,6 +122,7 @@ pub fn timespan(
 }
 
 #[pyfunction]
+#[must_use]
 pub fn offset(hours: i8) -> RyOffset {
     RyOffset::from(jiff::tz::offset(hours))
 }

@@ -493,6 +493,7 @@ impl RySpan {
         self.0.signum()
     }
     fn total(&self) -> PyResult<()> {
+        // self.0.total()
         err_py_not_impl!()
     }
 }

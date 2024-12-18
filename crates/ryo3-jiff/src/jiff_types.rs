@@ -6,7 +6,7 @@ pub struct JiffDate(pub jiff::civil::Date);
 pub struct JiffTime(pub jiff::civil::Time);
 #[derive(Debug)]
 pub struct JiffDateTime(pub jiff::civil::DateTime);
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct JiffZoned(pub jiff::Zoned);
 #[derive(Debug)]
 pub struct JiffSpan(pub jiff::Span);

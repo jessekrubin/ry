@@ -48,6 +48,7 @@ members = [
   # external wrappers
   "crates/ryo3-brotli",
   "crates/ryo3-bzip2",
+  "crates/ryo3-dirs",
   "crates/ryo3-flate2",
   "crates/ryo3-fnv",
   "crates/ryo3-globset",
@@ -91,6 +92,7 @@ ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
+ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
 ryo3-fnv = { path = "./crates/ryo3-fnv" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
@@ -118,6 +120,7 @@ heck = "0.5.0"
 dirs = { version = "5.0.1", features = [] }
 pyo3 = { version = "0.23.3", features = ["experimental-inspect", "num-bigint"] }
 pyo3-build-config = "0.23.2"
+pyo3-async-runtimes = { version = "0.23", features = ["attributes", "tokio-runtime"] }
 regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.12"

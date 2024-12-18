@@ -1071,6 +1071,7 @@ dependencies = [
  "ryo3-brotli",
  "ryo3-bzip2",
  "ryo3-dev",
+ "ryo3-dirs",
  "ryo3-flate2",
  "ryo3-fnv",
  "ryo3-globset",
@@ -1122,6 +1123,14 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "tracing",
+]
+
+[[package]]
+name = "ryo3-dirs"
+version = "0.0.22"
+dependencies = [
+ "dirs",
+ "pyo3",
 ]
 
 [[package]]
