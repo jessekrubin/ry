@@ -71,11 +71,13 @@ impl PySqlfmtQueryParams {
     fn __eq__(&self, other: &PySqlfmtQueryParams) -> bool {
         match (&self.params, &other.params) {
             (QueryParams::Named(p1), QueryParams::Named(p2)) => {
-                // make 2 treeeeees...
-                let p1: HashMap<&str, &str> =
+                // make 2 vecccccs o refs...
+                let mut p1: Vec<(&str, &str)> =
                     p1.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
-                let p2: HashMap<&str, &str> =
+                p1.sort();
+                let mut p2: Vec<(&str, &str)> =
                     p2.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+                p2.sort();
                 p1 == p2
             }
             (QueryParams::Indexed(p1), QueryParams::Indexed(p2)) => p1 == p2,
@@ -89,12 +91,13 @@ impl PySqlfmtQueryParams {
     }
 
     fn __hash__(&self) -> PyResult<u64> {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let mut hasher = std::hash::DefaultHasher::new();
         match &self.params {
             QueryParams::Named(p) => {
-                let p: BTreeMap<&str, &str> =
+                let mut p: Vec<(&str, &str)> =
                     p.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
-                for (k, v) in p.iter() {
+                p.sort();
+                for (k, v) in p {
                     k.hash(&mut hasher);
                     v.hash(&mut hasher);
                 }
