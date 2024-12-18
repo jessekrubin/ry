@@ -1,5 +1,7 @@
 from typing import Any
 
+import pytest
+
 import ry
 
 params_list: list[tuple[str, int | str | float]] = [
@@ -14,8 +16,6 @@ params_arr = [
     {"zoom_level": "0", "tile_column": "0", "tile_row": "0"},
     {"zoom_level": 0, "tile_column": 0, "tile_row": 0},
 ]
-
-import pytest
 
 
 @pytest.mark.parametrize("params", params_arr)

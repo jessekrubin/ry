@@ -102,6 +102,9 @@ lint.per-file-ignores."tests/**/*.py" = [
 lint.per-file-ignores."python/ry/dev.py" = [
 
 ]
+lint.per-file-ignores."python/ry/ryo3/*.pyi" = [
+  "F821",
+]
 lint.per-file-ignores."scripts/**" = [
   "S101",
   "S603",

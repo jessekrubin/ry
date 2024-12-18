@@ -1076,17 +1076,17 @@ class DateTime:
     def nth_weekday(self) -> t.NoReturn: ...
     def nth_weekday_of_month(self) -> t.NoReturn: ...
 
-IntoDateTimeDifference = t.Union[
-    DateTimeDifference,
-    Date,
-    Time,
-    DateTime,
-    ZonedDateTime,
-    tuple[JIFF_UNIT_STRING, Date],
-    tuple[JIFF_UNIT_STRING, Time],
-    tuple[JIFF_UNIT_STRING, DateTime],
-    tuple[JIFF_UNIT_STRING, ZonedDateTime],
-]
+IntoDateTimeDifference = (
+    DateTimeDifference
+    | Date
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
 
 class DateTimeDifference:
     def __init__(
