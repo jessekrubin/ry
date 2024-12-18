@@ -17,7 +17,7 @@
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use sqlformat::{self, QueryParams};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 #[pyclass(name = "SqlfmtQueryParams", module = "ryo3")]
@@ -74,10 +74,11 @@ impl PySqlfmtQueryParams {
                 // make 2 vecccccs o refs...
                 let mut p1: Vec<(&str, &str)> =
                     p1.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
-                p1.sort();
+                p1.sort_by(|a, b| a.0.cmp(b.0));
+
                 let mut p2: Vec<(&str, &str)> =
                     p2.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
-                p2.sort();
+                p2.sort_by(|a, b| a.0.cmp(b.0));
                 p1 == p2
             }
             (QueryParams::Indexed(p1), QueryParams::Indexed(p2)) => p1 == p2,
@@ -96,14 +97,14 @@ impl PySqlfmtQueryParams {
             QueryParams::Named(p) => {
                 let mut p: Vec<(&str, &str)> =
                     p.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
-                p.sort();
+                p.sort_by(|a, b| a.0.cmp(b.0));
                 for (k, v) in p {
                     k.hash(&mut hasher);
                     v.hash(&mut hasher);
                 }
             }
             QueryParams::Indexed(p) => {
-                for v in p.iter() {
+                for v in p {
                     v.hash(&mut hasher);
                 }
             }
