@@ -14,11 +14,11 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::unused_self)]
 
-use std::collections::HashMap;
-
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use sqlformat::{self, QueryParams};
+use std::collections::{BTreeMap, HashMap};
+use std::hash::{Hash, Hasher};
 
 #[pyclass(name = "SqlfmtQueryParams", module = "ryo3")]
 #[derive(Debug, Clone)]
@@ -33,16 +33,16 @@ impl PySqlfmtQueryParams {
         sqlfmt_params(Some(params))
     }
 
-    fn __str__(&self) -> String {
+    fn __repr__(&self) -> String {
         match &self.params {
             QueryParams::Named(p) => {
                 // collect into string for display
                 let s = p
                     .iter()
-                    .map(|(k, v)| format!("(\"{k}, \"{v}\")"))
+                    .map(|(k, v)| format!("\"{k}\": \"{v}\""))
                     .collect::<Vec<String>>()
                     .join(", ");
-                format!("SqlfmtQueryParams({s})")
+                format!("SqlfmtQueryParams({{{s}}})")
             }
             QueryParams::Indexed(p) => {
                 let s = p
@@ -54,6 +54,59 @@ impl PySqlfmtQueryParams {
             }
             QueryParams::None => String::from("SqlfmtQueryParams(None)"),
         }
+    }
+
+    fn __str__(&self) -> String {
+        self.__repr__()
+    }
+
+    fn __len__(&self) -> usize {
+        match &self.params {
+            QueryParams::Named(p) => p.len(),
+            QueryParams::Indexed(p) => p.len(),
+            QueryParams::None => 0,
+        }
+    }
+
+    fn __eq__(&self, other: &PySqlfmtQueryParams) -> bool {
+        match (&self.params, &other.params) {
+            (QueryParams::Named(p1), QueryParams::Named(p2)) => {
+                // make 2 treeeeees...
+                let p1: HashMap<&str, &str> =
+                    p1.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+                let p2: HashMap<&str, &str> =
+                    p2.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+                p1 == p2
+            }
+            (QueryParams::Indexed(p1), QueryParams::Indexed(p2)) => p1 == p2,
+            (QueryParams::None, QueryParams::None) => true,
+            _ => false,
+        }
+    }
+
+    fn __ne__(&self, other: &PySqlfmtQueryParams) -> bool {
+        !self.__eq__(other)
+    }
+
+    fn __hash__(&self) -> PyResult<u64> {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        match &self.params {
+            QueryParams::Named(p) => {
+                let p: BTreeMap<&str, &str> =
+                    p.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+                for (k, v) in p.iter() {
+                    k.hash(&mut hasher);
+                    v.hash(&mut hasher);
+                }
+            }
+            QueryParams::Indexed(p) => {
+                for v in p.iter() {
+                    v.hash(&mut hasher);
+                }
+            }
+            QueryParams::None => {}
+        }
+        Ok(hasher.finish())
     }
 }
 
