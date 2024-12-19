@@ -27,8 +27,8 @@ opt-level = 0
 opt-level = 3
 strip = true # strip debug symbols
 debug = false
-#lto = "thin" # not sure if this should be 'fat'
-lto = "fat"
+lto = "thin" # not sure if this should be 'fat'
+#lto = "fat"
 
 # release fat profile
 [profile.bench]
