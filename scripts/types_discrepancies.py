@@ -1,6 +1,7 @@
 import dataclasses
+import shutil
 from pathlib import Path
-from shutil import copy2
+from shutil import copy2, copytree
 
 import griffe
 from rich import print  # noqa
@@ -10,14 +11,15 @@ import ry
 PWD = Path.cwd()
 __dirname = Path(__file__).parent
 
-TYPES_PATH = PWD / "python" / "ry" / "ryo3.pyi"
+TYPES_PATH = PWD / "python" / "ry" / "ryo3"
 
 
 def load_types() -> griffe.Object | griffe.Alias:
     # copy file to ryo3-types.pyi
-    copy2(TYPES_PATH, __dirname / "ryo3types.py")
+    copytree(
+        TYPES_PATH, __dirname / "ryo3types", dirs_exist_ok=True, copy_function=copy2
+    )
     # get the dummy types thingy
-    # print(TYPES_PATH)
     types_package = griffe.load("ryo3types")
     return types_package
 
@@ -26,14 +28,6 @@ def load_ry() -> griffe.Object | griffe.Alias:
     ry_package = griffe.load("ry")
     return ry_package
 
-
-# my_package = load_types()
-# types_dict = my_package.as_dict()
-# print(types_dict)
-# get the actual ry duration
-# ry_package_duration = griffe.load("ry.Duration", resolve_aliases=True)
-
-# ry_package_duration_dict = ry_package_duration.as_dict()
 
 IGNORED_MEMBERS = {
     "__add__",
@@ -100,9 +94,9 @@ def main():
         "GlobSet",
         "Globster",
         # xxhash
-        "Xxh3",
-        "Xxh32",
-        "Xxh64",
+        # "Xxh3",
+        # "Xxh32",
+        # "Xxh64",
         # path
         "FsPath",
         # std
@@ -121,7 +115,7 @@ def main():
         res = compare_member(member)
         print(res)
 
-    (__dirname / "ryo3types.py").unlink()
+    shutil.rmtree(__dirname / "ryo3types")
 
 
 if __name__ == "__main__":

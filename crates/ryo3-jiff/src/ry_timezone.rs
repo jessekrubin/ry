@@ -1,4 +1,5 @@
 use crate::errors::map_py_value_err;
+use crate::pydatetime_conversions::timezone2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
@@ -6,11 +7,9 @@ use crate::ry_zoned::RyZoned;
 use crate::JiffTimeZone;
 use jiff::tz::{Dst, Offset, TimeZone};
 use jiff::Timestamp;
-use pyo3::types::{PyAnyMethods, PyTuple, PyType, PyTzInfo};
-use pyo3::{
-    pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult,
-    Python,
-};
+use pyo3::prelude::*;
+use pyo3::types::{PyTuple, PyType, PyTzInfo};
+use pyo3::IntoPyObjectExt;
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -34,7 +33,7 @@ impl From<&TimeZone> for RyTimeZone {
 #[pymethods]
 impl RyTimeZone {
     #[new]
-    pub fn new(time_zone_name: &str) -> PyResult<Self> {
+    pub fn py_new(time_zone_name: &str) -> PyResult<Self> {
         TimeZone::get(time_zone_name)
             .map(RyTimeZone::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
@@ -46,8 +45,17 @@ impl RyTimeZone {
     }
 
     #[classmethod]
-    fn system(_cls: &Bound<'_, PyType>) -> Self {
-        Self::from(TimeZone::system())
+    fn try_system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        TimeZone::try_system()
+            .map(RyTimeZone::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[classmethod]
+    fn system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        TimeZone::try_system()
+            .map(RyTimeZone::from)
+            .map_err(map_py_value_err)
     }
 
     fn iana_name(&self) -> Option<&str> {
@@ -92,8 +100,7 @@ impl RyTimeZone {
     }
 
     fn to_pytzinfo<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let jiff_tz = JiffTimeZone::from(self.0.clone()); // TODO: figure out no clone
-        jiff_tz.into_pyobject(py)
+        timezone2pyobect(py, &self.0)
     }
 
     #[classmethod]
@@ -160,14 +167,10 @@ impl RyTimeZone {
     // ===============
     // NOT IMPLEMENTED
     // ===============
-
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn try_system(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }

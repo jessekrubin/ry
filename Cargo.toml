@@ -27,8 +27,8 @@ opt-level = 0
 opt-level = 3
 strip = true # strip debug symbols
 debug = false
-#lto = "thin" # not sure if this should be 'fat'
-lto = "fat"
+lto = "thin" # not sure if this should be 'fat'
+#lto = "fat"
 
 # release fat profile
 [profile.bench]
@@ -48,6 +48,7 @@ members = [
   # external wrappers
   "crates/ryo3-brotli",
   "crates/ryo3-bzip2",
+  "crates/ryo3-dirs",
   "crates/ryo3-flate2",
   "crates/ryo3-fnv",
   "crates/ryo3-globset",
@@ -57,6 +58,7 @@ members = [
   "crates/ryo3-regex",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
+  "crates/ryo3-unindent",
   "crates/ryo3-url",
   "crates/ryo3-walkdir",
   "crates/ryo3-which",
@@ -90,6 +92,7 @@ ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
+ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
 ryo3-fnv = { path = "./crates/ryo3-fnv" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
@@ -99,6 +102,7 @@ ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
+ryo3-unindent = { path = "./crates/ryo3-unindent" }
 ryo3-url = { path = "./crates/ryo3-url" }
 ryo3-walkdir = { path = "./crates/ryo3-walkdir" }
 ryo3-which = { path = "./crates/ryo3-which" }
@@ -116,6 +120,7 @@ heck = "0.5.0"
 dirs = { version = "5.0.1", features = [] }
 pyo3 = { version = "0.23.3", features = ["experimental-inspect", "num-bigint"] }
 pyo3-build-config = "0.23.2"
+pyo3-async-runtimes = { version = "0.23", features = ["attributes", "tokio-runtime"] }
 regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.12"
@@ -126,6 +131,7 @@ tokio = { version = "1.41.1", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "env-filter", "default"] }
 xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
+unindent = "0.2.3"
 url = { version = "2.5.4", features = ["serde"] }
 walkdir = "2.4.0"
 which = { version = "7.0.0", features = ["regex"] }

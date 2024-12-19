@@ -7,14 +7,14 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::JiffDate;
+use crate::{JiffDate, JiffEraYear};
 use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
-    PyRef, PyRefMut, PyResult, Python,
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
+    PyResult, Python,
 };
 use ryo3_macros::err_py_not_impl;
 use ryo3_std::PyDuration;
@@ -28,7 +28,7 @@ pub struct RyDate(pub(crate) Date);
 #[pymethods]
 impl RyDate {
     #[new]
-    pub fn new(year: i16, month: i8, day: i8) -> PyResult<Self> {
+    pub fn py_new(year: i16, month: i8, day: i8) -> PyResult<Self> {
         Date::new(year, month, day).map(RyDate::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                 "{e} (year={year}, month={month}, day={day})",
@@ -301,18 +301,22 @@ impl RyDate {
     fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
-    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let (y, e) = self.0.era_year();
+    // #[cfg(Py_LIMITED_API)]
+    // fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    //     let era_year = JiffEraYear(self.0.era_year());
+    //     era_year.into_pyobject(py)
+    // }
+    //
+    // #[cfg(not(Py_LIMITED_API))]
+    // fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py,PyTuple>> {
+    //     let era_year = JiffEraYear(self.0.era_year());
+    //     era_year.into_pyobject(py)
+    // }
 
-        let era_str_pyobj = match e {
-            jiff::civil::Era::BCE => intern!(py, "BCE"),
-            jiff::civil::Era::CE => intern!(py, "CE"),
-        };
-        let year_py = y.into_py_any(py)?;
-        let era_str = era_str_pyobj.into_py_any(py)?;
-
-        let pyobjs_vec = vec![year_py, era_str];
-        PyTuple::new(py, pyobjs_vec)
+    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let era_year = JiffEraYear(self.0.era_year());
+        let obj = era_year.into_pyobject(py)?;
+        Ok(obj.into_any())
     }
     fn first_of_month(&self) -> RyDate {
         Self::from(self.0.first_of_month())

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime as pydt
 
 import ry
@@ -29,11 +31,7 @@ def test_timezone_from_str() -> None:
     ]
 
     for tz in timezones2test:
-        # py_tz = pydt.timezone(tz)
-        # assert py_tz.tzname(None) == ry_tz.name
-
         ry_tz = ry.TimeZone(tz)
-
         assert isinstance(ry_tz, ry.TimeZone)
         pytzinfo = ry_tz.to_pytzinfo()
         assert isinstance(pytzinfo, pydt.tzinfo)

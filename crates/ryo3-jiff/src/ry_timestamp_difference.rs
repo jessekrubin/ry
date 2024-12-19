@@ -20,6 +20,7 @@ impl RyTimestampDifference {
     #[pyo3(
        signature = (timestamp, *, smallest=None, largest = None, mode = None, increment = None),
     )]
+    #[must_use]
     pub fn py_new(
         timestamp: &RyTimestamp,
         smallest: Option<JiffUnit>,

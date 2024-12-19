@@ -2,6 +2,23 @@
 
 ## FUTURE
 
+- `python -m ry.dev` repl for ipython/python repl ~ handy nifty secret tool makes it into repo
+- internal
+  - in process of renaming all python-rust `#[new]` functions to be named `fn py_new(...)`
+- `unindent`
+  - Added `unindent` module for unindenting strings will move to `ryo3-unindent`
+- `FsPath` 
+  - creeping ever closer to being a full-fledged pathlib.Path replacement 
+  - Added bindings to all rust `std::path::Path(buf)` methods for `FsPath`
+- sub-packaging
+  - `xxhash` is own sub package now `ry.xxhash`
+  - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respsect to sub-packages and where that organization should be
+- type-annotations
+  - required to break up the type annotations due to migration to sub-packages
+  - breaking up the type annotations file into smaller files under `<REPO>/python/ry/ryo3/*.pyi`
+
+___
+
 ## v0.0.22 [2024-12-16]
 
 - `regex`

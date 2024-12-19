@@ -21,6 +21,7 @@ impl RyTimeDifference {
     #[pyo3(
        signature = (time, *, smallest=None, largest = None, mode = None, increment = None),
     )]
+    #[must_use]
     pub fn py_new(
         time: &RyTime,
         smallest: Option<JiffUnit>,

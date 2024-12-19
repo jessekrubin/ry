@@ -22,7 +22,7 @@ pub struct RyTimestamp(pub(crate) Timestamp);
 impl RyTimestamp {
     #[new]
     #[pyo3(signature = (second = None, nanosecond = None))]
-    pub fn new(second: Option<i64>, nanosecond: Option<i32>) -> PyResult<Self> {
+    pub fn py_new(second: Option<i64>, nanosecond: Option<i32>) -> PyResult<Self> {
         let s = second.unwrap_or(0);
         let ns = nanosecond.unwrap_or(0);
         Timestamp::new(s, ns)

@@ -122,3 +122,36 @@ class TestTimeSeries:
             every_third_hour_set.add(t)
         assert len(every_third_hour_set) == 8
         assert set(every_third_hour) == every_third_hour_set
+
+
+class TestTimeRound:
+    def test_time_round_docs_example(self) -> None:
+        t = ry.time(15, 45, 10, 123_456_789)
+        assert t.round(smallest="second") == ry.time(15, 45, 10, 0)
+
+        t = ry.time(15, 45, 10, 500_000_001)
+        assert t.round(smallest="second") == ry.time(15, 45, 11, 0)
+
+    def test_round_example_changing_the_rounding_mode(self) -> None:
+        t = ry.time(15, 45, 10, 999_999_999)
+        assert t.round(smallest="second") == ry.time(15, 45, 11, 0)
+        assert t.round(smallest="second", mode="trunc") == ry.time(15, 45, 10, 0)
+
+    def test_example_rounding_to_the_nearest_5_minute_increment(self) -> None:
+        """
+        ```rust
+        use jiff::{civil::time, Unit};
+
+        // rounds down
+        let t = time(15, 27, 29, 999_999_999);
+        assert_eq!(t.round((Unit::Minute, 5))?, time(15, 25, 0, 0));
+        // rounds up
+        let t = time(15, 27, 30, 0);
+        assert_eq!(t.round((Unit::Minute, 5))?, time(15, 30, 0, 0));
+        ```
+        """
+        t = ry.time(15, 27, 29, 999_999_999)
+        assert t.round(smallest="minute", increment=5) == ry.time(15, 25, 0, 0)
+
+        t = ry.time(15, 27, 30, 0)
+        assert t.round(smallest="minute", increment=5) == ry.time(15, 30, 0, 0)

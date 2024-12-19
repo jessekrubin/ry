@@ -46,3 +46,17 @@ def test_equality() -> None:
     assert pydelta2 != ryduration
     assert ryduration2 != pydelta
     assert pydelta != ryduration2
+
+
+class TestSignedDurationAbs:
+    def test_signed_duration_abs(self) -> None:
+        sd = ry.SignedDuration(1, -1_999_999_999)
+
+        assert abs(sd) == ry.SignedDuration(0, 999_999_999)
+        assert sd.abs() == ry.SignedDuration(0, 999_999_999)
+
+    def test_unsigned_abs(self) -> None:
+        sd = ry.SignedDuration.MIN
+
+        dur = sd.unsigned_abs()
+        assert dur == ry.Duration(secs=9223372036854775808, nanos=999999999)

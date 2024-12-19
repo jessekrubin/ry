@@ -12,6 +12,7 @@ repository.workspace = true
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
 ryo3-macros.workspace = true
+ryo3-types.workspace = true
 
 [lints]
 workspace = true

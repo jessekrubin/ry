@@ -4,13 +4,13 @@ use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time_difference::{IntoTimeDifference, RyTimeDifference};
-use crate::JiffTime;
+use crate::{JiffRoundMode, JiffTime, JiffUnit};
+use jiff::civil::TimeRound;
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
-use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -23,7 +23,7 @@ pub struct RyTime(pub(crate) jiff::civil::Time);
 impl RyTime {
     #[new]
     #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
-    pub fn new(
+    pub fn py_new(
         hour: Option<i8>,
         minute: Option<i8>,
         second: Option<i8>,
@@ -39,6 +39,9 @@ impl RyTime {
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    // ========================================================================
+    // CLASS ATTRS
+    // ========================================================================
     #[allow(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
@@ -51,6 +54,9 @@ impl RyTime {
         Self(jiff::civil::Time::MAX)
     }
 
+    // ========================================================================
+    // CLASS METHODS
+    // ========================================================================
     #[classmethod]
     fn now(_cls: &Bound<'_, PyType>) -> Self {
         let z = jiff::civil::Time::from(Zoned::now());
@@ -68,6 +74,10 @@ impl RyTime {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    // ========================================================================
+    // STRPTIME/STRFTIME
+    // ========================================================================
+
     #[classmethod]
     fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
         jiff::civil::Time::strptime(format, input)
@@ -79,21 +89,9 @@ impl RyTime {
         self.0.strftime(format).to_string()
     }
 
-    fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
-        RyDateTime::from(self.0.on(year, month, day))
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
-        match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
-        }
-    }
-
+    // ========================================================================
+    // STRING
+    // ========================================================================
     fn string(&self) -> String {
         self.0.to_string()
     }
@@ -110,6 +108,20 @@ impl RyTime {
             self.0.second(),
             self.0.nanosecond()
         )
+    }
+
+    // ========================================================================
+    // OPERATORS/DUNDERS
+    // ========================================================================
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(self.0 == other.0),
+            CompareOp::Ne => Ok(self.0 != other.0),
+            CompareOp::Lt => Ok(self.0 < other.0),
+            CompareOp::Le => Ok(self.0 <= other.0),
+            CompareOp::Gt => Ok(self.0 > other.0),
+            CompareOp::Ge => Ok(self.0 >= other.0),
+        }
     }
 
     fn __hash__(&self) -> u64 {
@@ -183,6 +195,9 @@ impl RyTime {
         self.__sub__(py, other)
     }
 
+    // ========================================================================
+    // PROPERTIES
+    // ========================================================================
     #[getter]
     fn hour(&self) -> i8 {
         self.0.hour()
@@ -217,10 +232,6 @@ impl RyTime {
         self.0.subsec_nanosecond()
     }
 
-    fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
-        RyDateTime::from(self.0.to_datetime(date.0))
-    }
-
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
@@ -235,6 +246,10 @@ impl RyTime {
     // =====================================================================
     // INSTANCE METHODS
     // =====================================================================
+
+    fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
+        RyDateTime::from(self.0.on(year, month, day))
+    }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
@@ -306,10 +321,36 @@ impl RyTime {
         }
     }
 
-    fn round(&self) -> PyResult<()> {
-        // self.0.round()
-        err_py_not_impl!()
+    fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
+        RyDateTime::from(self.0.to_datetime(date.0))
     }
+
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<Self> {
+        let mut timeround = TimeRound::new();
+        if let Some(smallest) = smallest {
+            timeround = timeround.smallest(smallest.0);
+        }
+        if let Some(mode) = mode {
+            timeround = timeround.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            timeround = timeround.increment(increment);
+        }
+        self.0
+            .round(timeround)
+            .map(RyTime::from)
+            .map_err(map_py_value_err)
+    }
+
+    // ------------------------------------------------------------------------
+    // SINCE/UNTIL
+    // ------------------------------------------------------------------------
     fn since(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
         self.0
             .since(other)
@@ -371,61 +412,9 @@ impl RyTimeSeries {
     }
 }
 
-// #[pyclass(name = "TimeDifference", module = "ryo3")]
-// #[derive(Debug, Clone)]
-// pub struct RyTimeDifference(pub(crate) jiff::civil::TimeDifference);
-//
-// #[pymethods]
-// impl RyTimeDifference {
-//     #[new]
-//     pub fn new(time: &RyTime) -> PyResult<Self> {
-//         let td = jiff::civil::TimeDifference::new(time.0);
-//         Ok(Self(td))
-//     }
-//
-//     pub fn smallest(&self, unit: JiffUnit) -> Self {
-//         Self::from(self.0.smallest(unit.0))
-//     }
-//
-//     pub fn largest(&self, unit: JiffUnit) -> Self {
-//         Self::from(self.0.largest(unit.0))
-//     }
-//
-//     pub fn mode(&self, mode: crate::JiffRoundMode) -> Self {
-//         Self::from(self.0.mode(mode.0))
-//     }
-//
-//     pub fn increment(&self, increment: i64) -> Self {
-//         Self::from(self.0.increment(increment))
-//     }
-// }
-
-// impl From<jiff::civil::TimeDifference> for RyTimeDifference {
-//     fn from(value: jiff::civil::TimeDifference) -> Self {
-//         Self(value)
-//     }
-// }
-
-// #[derive(Debug, Clone, FromPyObject)]
-// pub enum RyTimeArithmeticSub {
-//     Time(RyTime),
-//     Span(RySpan),
-// }
 #[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum RyTimeArithmeticSub {
     Time(RyTime),
     Span(RySpan),
     SignedDuration(RySignedDuration),
 }
-
-// #[derive(Debug, Clone, FromPyObject)]
-// pub enum RyTimeArithmeticSub<'py> {
-//     Time(Bound<'py, RyTime>),
-//     Span(Bound<'py, RySpan>),
-// }
-
-// #[derive(Debug, Clone)]
-// pub enum RyTimeArithmeticSub<'py> {
-//     Time(&'py Bound<'py, RyTime>),
-//     Span(&'py Bound<'py, RySpan>),
-// }

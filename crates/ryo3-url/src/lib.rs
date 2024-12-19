@@ -16,7 +16,7 @@ pub struct PyUrl(pub(crate) url::Url);
 impl PyUrl {
     #[new]
     #[pyo3(signature = (url, *, params = None))]
-    fn new(url: &str, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+    fn py_new(url: &str, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         if let Some(params) = params {
             let params = params
                 .into_iter()

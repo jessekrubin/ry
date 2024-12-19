@@ -17,7 +17,8 @@ pub struct RySignedDuration(pub(crate) SignedDuration);
 #[pymethods]
 impl RySignedDuration {
     #[new]
-    fn new(secs: i64, nanos: i32) -> Self {
+    #[pyo3(signature = (secs = 0, nanos = 0))]
+    fn py_new(secs: i64, nanos: i32) -> Self {
         Self(SignedDuration::new(secs, nanos))
     }
 
@@ -66,7 +67,6 @@ impl RySignedDuration {
         self.0.is_negative()
     }
     #[getter]
-
     fn is_zero(&self) -> bool {
         self.0.is_zero()
     }

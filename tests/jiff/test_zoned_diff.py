@@ -2,20 +2,21 @@ from __future__ import annotations
 
 import ry.dev as ry
 
-"""
-use jiff::{civil::date, ToSpan};
-
-let earlier = date(2006, 8, 24).at(22, 30, 0, 0).intz("America/New_York")?;
-let later = date(2019, 1, 31).at(21, 0, 0, 0).intz("America/New_York")?;
-assert_eq!(earlier.until(&later)?, 109_031.hours().minutes(30));
-
-// Flipping the dates is fine, but you'll get a negative span.
-assert_eq!(later.until(&earlier)?, -109_031.hours().minutes(30));
-"""
-
 
 class TestZonedUntil:
     def test_zoned_until(self) -> None:
+        """
+        ```rust
+        use jiff::{civil::date, ToSpan};
+
+        let earlier = date(2006, 8, 24).at(22, 30, 0, 0).intz("America/New_York")?;
+        let later = date(2019, 1, 31).at(21, 0, 0, 0).intz("America/New_York")?;
+        assert_eq!(earlier.until(&later)?, 109_031.hours().minutes(30));
+
+        // Flipping the dates is fine, but you'll get a negative span.
+        assert_eq!(later.until(&earlier)?, -109_031.hours().minutes(30));
+        ```
+        """
         earlier = ry.date(2006, 8, 24).at(22, 30, 0, 0).intz("America/New_York")
         later = ry.date(2019, 1, 31).at(21, 0, 0, 0).intz("America/New_York")
         assert earlier.until(later) == ry.timespan(hours=109_031, minutes=30)

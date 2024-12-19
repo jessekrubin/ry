@@ -4,7 +4,6 @@ import ry
 
 
 def test_sqlfmt_params() -> None:
-    # myparams = [1, "2", 3.0]
     params = ry.sqlfmt_params([1, 2])
     assert str(params) == 'SqlfmtQueryParams(["1", "2"])'
 
@@ -29,10 +28,19 @@ def test_sqlfmt_indexed_params() -> None:
         "SELECT * FROM tiles WHERE zoom_level = ? AND tile_column = ? AND tile_row = ?",
         [0, 0, 0],
     )
-    assert (
-        formatted
-        == "SELECT\n  *\nFROM\n  tiles\nWHERE\n  zoom_level = 0\n  AND tile_column = 0\n  AND tile_row = 0"
+    expected = ry.unindent(
+        """
+        SELECT
+          *
+        FROM
+          tiles
+        WHERE
+          zoom_level = 0
+          AND tile_column = 0
+          AND tile_row = 0
+        """
     )
+    assert formatted == expected.strip()
 
 
 def test_sqlfmt_named_params_list_strings() -> None:
@@ -40,10 +48,19 @@ def test_sqlfmt_named_params_list_strings() -> None:
         "SELECT * FROM tiles WHERE zoom_level = :zoom_level AND tile_column = :tile_column AND tile_row = :tile_row",
         [("zoom_level", "0"), ("tile_column", "0"), ("tile_row", "0")],
     )
-    assert (
-        formatted
-        == "SELECT\n  *\nFROM\n  tiles\nWHERE\n  zoom_level = 0\n  AND tile_column = 0\n  AND tile_row = 0"
+    expected = ry.unindent(
+        """
+        SELECT
+          *
+        FROM
+          tiles
+        WHERE
+          zoom_level = 0
+          AND tile_column = 0
+          AND tile_row = 0
+        """
     )
+    assert formatted == expected.strip()
 
 
 def test_sqlfmt_named_params_list() -> None:
@@ -56,10 +73,19 @@ def test_sqlfmt_named_params_list() -> None:
         "SELECT * FROM tiles WHERE zoom_level = :zoom_level AND tile_column = :tile_column AND tile_row = :tile_row",
         params,
     )
-    assert (
-        formatted
-        == "SELECT\n  *\nFROM\n  tiles\nWHERE\n  zoom_level = 0\n  AND tile_column = 0\n  AND tile_row = 0"
+    expected = ry.unindent(
+        """
+        SELECT
+          *
+        FROM
+          tiles
+        WHERE
+          zoom_level = 0
+          AND tile_column = 0
+          AND tile_row = 0
+        """
     )
+    assert formatted == expected.strip()
 
 
 def test_sqlfmt_named_params_dict_strings() -> None:
@@ -67,10 +93,19 @@ def test_sqlfmt_named_params_dict_strings() -> None:
         "SELECT * FROM tiles WHERE zoom_level = :zoom_level AND tile_column = :tile_column AND tile_row = :tile_row",
         {"zoom_level": "0", "tile_column": "0", "tile_row": "0"},
     )
-    assert (
-        formatted
-        == "SELECT\n  *\nFROM\n  tiles\nWHERE\n  zoom_level = 0\n  AND tile_column = 0\n  AND tile_row = 0"
+    expected = ry.unindent(
+        """
+        SELECT
+          *
+        FROM
+          tiles
+        WHERE
+          zoom_level = 0
+          AND tile_column = 0
+          AND tile_row = 0
+        """
     )
+    assert formatted == expected.strip()
 
 
 def test_sqlfmt_named_params_dict_ints() -> None:
@@ -78,7 +113,16 @@ def test_sqlfmt_named_params_dict_ints() -> None:
         "SELECT * FROM tiles WHERE zoom_level = :zoom_level AND tile_column = :tile_column AND tile_row = :tile_row",
         {"zoom_level": 0, "tile_column": 0, "tile_row": 0},
     )
-    assert (
-        formatted
-        == "SELECT\n  *\nFROM\n  tiles\nWHERE\n  zoom_level = 0\n  AND tile_column = 0\n  AND tile_row = 0"
+    expected = ry.unindent(
+        """
+        SELECT
+          *
+        FROM
+          tiles
+        WHERE
+          zoom_level = 0
+          AND tile_column = 0
+          AND tile_row = 0
+        """
     )
+    assert formatted == expected.strip()

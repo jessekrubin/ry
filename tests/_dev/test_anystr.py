@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import ry
+import ry.dev as ry
 
 
 def test_anystr_string() -> None:

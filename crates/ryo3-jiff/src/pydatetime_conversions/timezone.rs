@@ -1,9 +1,16 @@
 use crate::JiffTimeZone;
+use jiff::tz::TimeZone;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{PyString, PyType};
 
+pub fn timezone2pyobect<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyAny>> {
+    static ZONE_INFO: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    ZONE_INFO
+        .import(py, "zoneinfo", "ZoneInfo")
+        .and_then(|obj| obj.call1((tz.iana_name(),)))
+}
 impl<'py> IntoPyObject<'py> for JiffTimeZone {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
@@ -19,10 +26,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZone {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        static ZONE_INFO: GILOnceCell<Py<PyType>> = GILOnceCell::new();
-        ZONE_INFO
-            .import(py, "zoneinfo", "ZoneInfo")
-            .and_then(|obj| obj.call1((self.0.iana_name(),)))
+        timezone2pyobect(py, &self.0)
     }
 }
 

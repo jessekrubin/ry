@@ -1,7 +1,7 @@
 use pyo3::FromPyObject;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, FromPyObject, Clone)]
+#[derive(Debug, Clone, FromPyObject)]
 pub enum PathLike {
     PathBuf(PathBuf),
     Str(String),

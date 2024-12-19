@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess as sp
 import sys
 
-import ry
+import ry.dev as ry
 
 
 def test_python_version() -> None:

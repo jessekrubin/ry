@@ -1,6 +1,7 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
+use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_signed_duration::RySignedDuration;
@@ -8,16 +9,12 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::{JiffUnit, JiffZoned, RyDate};
+use crate::{JiffEraYear, JiffUnit, JiffZoned, RyDate};
 use jiff::civil::Weekday;
 use jiff::{Zoned, ZonedDifference};
-use pyo3::basic::CompareOp;
-use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDate, PyDateTime, PyTuple, PyType};
-use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
-    PyResult, Python,
-};
+use pyo3::prelude::*;
+use pyo3::pyclass::CompareOp;
+use pyo3::types::{PyDate, PyDateTime, PyType};
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -31,7 +28,7 @@ pub struct RyZoned(pub(crate) Zoned);
 impl RyZoned {
     #[new]
     #[pyo3(signature = (timestamp, time_zone))]
-    pub fn new(timestamp: &RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
+    pub fn py_new(timestamp: &RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
         let ts = timestamp.0;
         let tz = time_zone.0;
         Ok(RyZoned::from(Zoned::new(ts, tz)))
@@ -124,8 +121,7 @@ impl RyZoned {
     }
 
     fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        let new_zoned = JiffZoned(self.0.clone()); // todo: remove clone
-        new_zoned.into_pyobject(py)
+        zoned2pyobect(py, &self.0)
     }
 
     #[classmethod]
@@ -398,18 +394,10 @@ impl RyZoned {
         RySignedDuration::from(self.0.duration_until(&other.0))
     }
 
-    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let (y, e) = self.0.era_year();
-
-        let era_str_pyobj = match e {
-            jiff::civil::Era::BCE => intern!(py, "BCE"),
-            jiff::civil::Era::CE => intern!(py, "CE"),
-        };
-        let year_py = y.into_py_any(py)?;
-        let era_str = era_str_pyobj.into_py_any(py)?;
-
-        let pyobjs_vec = vec![year_py, era_str];
-        PyTuple::new(py, pyobjs_vec)
+    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let era_year = JiffEraYear(self.0.era_year());
+        let obj = era_year.into_pyobject(py)?;
+        Ok(obj.into_any())
     }
     fn first_of_month(&self) -> PyResult<Self> {
         self.0
@@ -425,6 +413,7 @@ impl RyZoned {
     }
 
     fn nth_weekday(&self, _nth: i32, _weekday: u8) -> PyResult<Self> {
+        // self.0.nth_weekday(_nth, _weekday).map(RyZoned::from).map_err(map_py_value_err)
         err_py_not_impl!()
     }
 
@@ -482,11 +471,6 @@ impl RyZoned {
     fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {
         self.0.with_time_zone(tz.0.clone()).into()
     }
-
-    // python doesnt allow for `with` as a method name as it is a reserved keyword
-    // fn with(&self) -> PyResult<()> {
-    //     err_py_not_impl!()
-    // }
 }
 
 impl Display for RyZoned {

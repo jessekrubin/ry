@@ -30,6 +30,7 @@ ryo3-std = { workspace = true }
 # optional ryo3-* dependencies
 ryo3-brotli = { workspace = true, optional = true }
 ryo3-bzip2 = { workspace = true, optional = true }
+ryo3-dirs = { workspace = true, optional = true }
 ryo3-flate2 = { workspace = true, optional = true }
 ryo3-fnv = { workspace = true, optional = true }
 ryo3-globset = { workspace = true, optional = true }
@@ -39,11 +40,13 @@ ryo3-jiter = { workspace = true, optional = true }
 ryo3-regex = { workspace = true, optional = true }
 ryo3-shlex = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
+ryo3-unindent = { workspace = true, optional = true }
 ryo3-url = { workspace = true, optional = true }
 ryo3-walkdir = { workspace = true, optional = true }
-ryo3-which = { workspace = true, optional = true, features = ["regex"] }
+ryo3-which = { workspace = true, optional = true}
 ryo3-xxhash = { workspace = true, optional = true }
 ryo3-zstd = { workspace = true, optional = true }
+ryo3-macros.workspace = true
 #ryo3-fspath.workspace = true
 
 [features]
@@ -51,6 +54,7 @@ default = ["shlex", "jiter"]
 all = [
   "brotli",
   "bzip2",
+  "dirs",
   "flate2",
   "fnv",
   "globset",
@@ -60,6 +64,7 @@ all = [
   "regex",
   "shlex",
   "sqlformat",
+  "unindent",
   "url",
   "walkdir",
   "which",
@@ -69,15 +74,17 @@ all = [
 
 brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:ryo3-bzip2"]
+dirs = ["dep:ryo3-dirs"]
 flate2 = ["dep:ryo3-flate2"]
 fnv = ["dep:ryo3-fnv"]
 globset = ["dep:ryo3-globset"]
 heck = ["dep:ryo3-heck"]
 jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
-regex = ["dep:ryo3-regex"]
+regex = ["dep:ryo3-regex", "ryo3-which/regex"]
 shlex = ["dep:ryo3-shlex"]
 sqlformat = ["dep:ryo3-sqlformat"]
+unindent = ["dep:ryo3-unindent"]
 url = ["dep:ryo3-url"]
 walkdir = ["dep:ryo3-walkdir"]
 which = ["dep:ryo3-which"]

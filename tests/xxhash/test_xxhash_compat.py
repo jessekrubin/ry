@@ -30,12 +30,17 @@ pytest_skip_xxhash = pytest.mark.skipif(
 def test_xxhash_matches_ry_xxh32() -> None:
     for seed in XX32_SEEDS:
         for data, _ in XX32_TEST_DATA:
-            assert ry.xxh32(data, seed).digest() == xxhash.xxh32(data, seed).digest()
             assert (
-                ry.xxh32(data, seed).intdigest() == xxhash.xxh32(data, seed).intdigest()
+                ry.xxhash.xxh32(data, seed).digest()
+                == xxhash.xxh32(data, seed).digest()
             )
             assert (
-                ry.xxh32(data, seed).hexdigest() == xxhash.xxh32(data, seed).hexdigest()
+                ry.xxhash.xxh32(data, seed).intdigest()
+                == xxhash.xxh32(data, seed).intdigest()
+            )
+            assert (
+                ry.xxhash.xxh32(data, seed).hexdigest()
+                == xxhash.xxh32(data, seed).hexdigest()
             )
 
 
@@ -43,12 +48,17 @@ def test_xxhash_matches_ry_xxh32() -> None:
 def test_xxhash_matches_ry_xxh64() -> None:
     for seed in XX64_SEEDS:
         for data, _ in XX64_TEST_DATA:
-            assert ry.xxh64(data, seed).digest() == xxhash.xxh64(data, seed).digest()
             assert (
-                ry.xxh64(data, seed).intdigest() == xxhash.xxh64(data, seed).intdigest()
+                ry.xxhash.xxh64(data, seed).digest()
+                == xxhash.xxh64(data, seed).digest()
             )
             assert (
-                ry.xxh64(data, seed).hexdigest() == xxhash.xxh64(data, seed).hexdigest()
+                ry.xxhash.xxh64(data, seed).intdigest()
+                == xxhash.xxh64(data, seed).intdigest()
+            )
+            assert (
+                ry.xxhash.xxh64(data, seed).hexdigest()
+                == xxhash.xxh64(data, seed).hexdigest()
             )
 
 
@@ -56,12 +66,15 @@ def test_xxhash_matches_ry_xxh64() -> None:
 def test_xxhash_matches_ry_xxh128() -> None:
     for seed in XX128_SEEDS:
         for data, _ in XX128_TEST_DATA:
-            assert ry.xxh3(data, seed).digest128() == xxhash.xxh128(data, seed).digest()
             assert (
-                ry.xxh3(data, seed).intdigest128()
+                ry.xxhash.xxh3(data, seed).digest128()
+                == xxhash.xxh128(data, seed).digest()
+            )
+            assert (
+                ry.xxhash.xxh3(data, seed).intdigest128()
                 == xxhash.xxh128(data, seed).intdigest()
             )
             assert (
-                ry.xxh3(data, seed).hexdigest128()
+                ry.xxhash.xxh3(data, seed).hexdigest128()
                 == xxhash.xxh128(data, seed).hexdigest()
             )

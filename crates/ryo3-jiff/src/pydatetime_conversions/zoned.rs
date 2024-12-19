@@ -1,9 +1,61 @@
+use crate::pydatetime_conversions::timezone::timezone2pyobect;
 use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
-use crate::{JiffTimeZone, JiffZoned};
+use crate::JiffZoned;
 use jiff::civil::DateTime;
+use jiff::tz::TimeZone;
+use jiff::Zoned;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDateTime, PyTzInfo, PyTzInfoAccess};
+
+pub fn zoned2pyobect<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
+    // let tz = self.offset().fix().into_pyobject(py)?;
+    let tz = z.time_zone();
+    let pytz = timezone2pyobect(py, tz)?;
+    // let pytz = JiffTimeZone(tz.clone()).into_pyobject(py)?;
+    // downcast to tz
+    let tz = pytz.downcast::<PyTzInfo>()?;
+
+    let year = i32::from(z.year());
+    let m_u8 =
+        u8::try_from(z.month()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+    let d_u8 = u8::try_from(z.day()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+    let hour_u8 =
+        u8::try_from(z.hour()).map_err(|e| PyErr::new::<PyValueError, _>(format!("hour: {e}")))?;
+    let minute_u8 = u8::try_from(z.minute())
+        .map_err(|e| PyErr::new::<PyValueError, _>(format!("minute: {e}")))?;
+    let second_u8 = u8::try_from(z.second())
+        .map_err(|e| PyErr::new::<PyValueError, _>(format!("second: {e}")))?;
+    let microsecond_u32 = u32::try_from(z.microsecond())
+        .map_err(|e| PyErr::new::<PyValueError, _>(format!("microsecond: {e}")))?;
+
+    #[cfg(not(Py_LIMITED_API))]
+    let datetime = PyDateTime::new(
+        py,
+        year,
+        m_u8,
+        d_u8,
+        hour_u8,
+        minute_u8,
+        second_u8,
+        microsecond_u32,
+        Some(tz),
+    )?;
+
+    #[cfg(Py_LIMITED_API)]
+    let datetime = PyDateTime::new(
+        py,
+        year,
+        m_u8,
+        d_u8,
+        hour_u8,
+        minute_u8,
+        second_u8,
+        microsecond_u32,
+        Some(tz),
+    );
+    Ok(datetime)
+}
 
 impl<'py> IntoPyObject<'py> for &JiffZoned {
     #[cfg(Py_LIMITED_API)]
@@ -14,57 +66,8 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        // let tz = self.offset().fix().into_pyobject(py)?;
-        let tz = self.0.time_zone();
-        let pytz = JiffTimeZone(tz.clone()).into_pyobject(py)?;
-        // downcast to tz
-        let tz = pytz.downcast::<PyTzInfo>()?;
-
-        let year = i32::from(self.0.year());
-        let m_u8 = u8::try_from(self.0.month())
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-        let d_u8 = u8::try_from(self.0.day())
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-        let hour_u8 = u8::try_from(self.0.hour())
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("hour: {e}")))?;
-        let minute_u8 = u8::try_from(self.0.minute())
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("minute: {e}")))?;
-        let second_u8 = u8::try_from(self.0.second())
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("second: {e}")))?;
-        let microsecond_u32 = u32::try_from(self.0.microsecond())
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("microsecond: {e}")))?;
-
-        #[cfg(not(Py_LIMITED_API))]
-        let datetime = PyDateTime::new(
-            py,
-            year,
-            m_u8,
-            d_u8,
-            hour_u8,
-            minute_u8,
-            second_u8,
-            microsecond_u32,
-            Some(tz),
-        )?;
-
-        #[cfg(Py_LIMITED_API)]
-        let datetime = PyDateTime::new(
-            py,
-            year,
-            m_u8,
-            d_u8,
-            hour_u8,
-            minute_u8,
-            second_u8,
-            microsecond_u32,
-            Some(tz),
-        );
-
-        // if truncated_leap_second {
-        //     warn_truncated_leap_second(&datetime);
-        // }
-
-        Ok(datetime)
+        let z = &self.0;
+        zoned2pyobect(py, z)
     }
 }
 
@@ -102,7 +105,7 @@ impl FromPyObject<'_> for JiffZoned {
         let tz = tzinfo.to_string();
 
         let tz_str = if tz.ends_with("/etc/localtime") {
-            let systz = jiff::tz::TimeZone::system();
+            let systz = TimeZone::system();
             let systz_thing = systz.iana_name().unwrap_or("UTC").to_string();
             systz_thing
         } else {
@@ -115,6 +118,5 @@ impl FromPyObject<'_> for JiffZoned {
             .intz(&tz_str)
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
         Ok(JiffZoned(zdt))
-        // Ok(JiffZoned::from(zdt))
     }
 }
