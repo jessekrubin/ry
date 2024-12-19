@@ -4,7 +4,6 @@ import ry
 
 
 def test_sqlfmt_params() -> None:
-    # myparams = [1, "2", 3.0]
     params = ry.sqlfmt_params([1, 2])
     assert str(params) == 'SqlfmtQueryParams(["1", "2"])'
 

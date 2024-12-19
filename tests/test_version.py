@@ -47,8 +47,3 @@ def test_version() -> None:
 
     cargo_version = _version_from_workspace_package()
     assert ry.__version__ == cargo_version
-
-    # pyproject_dict = tomli.loads(Path(PYPROJECT_TOML).read_text())
-    # print(pyproject_dict)
-    # pyproject_version = pyproject_dict["project"]["version"]
-    # assert ry.__version__ == pyproject_version

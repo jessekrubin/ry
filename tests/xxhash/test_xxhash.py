@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-# import ry
 from ry import xxhash as ry_xxh
 
 from ._xxhash_test_data import (
