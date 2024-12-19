@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## FUTURE
+## v0.0.23 [2024-12-19]
 
 - `python -m ry.dev` repl for ipython/python repl ~ handy nifty secret tool makes it into repo
 - internal
@@ -12,6 +12,7 @@
   - Added bindings to all rust `std::path::Path(buf)` methods for `FsPath`
 - sub-packaging
   - `xxhash` is own sub package now `ry.xxhash`
+  - `JSON` is own subpackage right now -- named `ry.JSON` to avoid conflict with `json` module but maybe will change...
   - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respsect to sub-packages and where that organization should be
 - type-annotations
   - required to break up the type annotations due to migration to sub-packages
