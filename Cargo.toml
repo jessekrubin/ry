@@ -45,6 +45,9 @@ members = [
   "crates/ryo3-macros",
   "crates/ryo3-types",
   "crates/ryo3-std",
+  # DEV/FUTURE
+  "crates/_future/ryo3-reqwest",
+  "crates/_future/ryo3-http",
   # external wrappers
   "crates/ryo3-brotli",
   "crates/ryo3-bzip2",
@@ -89,6 +92,9 @@ ryo3-types = { path = "./crates/ryo3-types" }
 ryo3-std = { path = "./crates/ryo3-std" }
 ryo3-macros = { path = "./crates/ryo3-macros" }
 ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
+# dev/future
+ryo3-reqwest = { path = "./crates/_future/ryo3-reqwest" }
+ryo3-http = { path = "./crates/_future/ryo3-http" }
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
