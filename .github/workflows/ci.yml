@@ -23,28 +23,29 @@ jobs:
     permissions:
       contents: read
       packages: write # Required to upload docker images to ghcr
+    
     strategy:
       matrix:
-        
         platform:
           - runner: ubuntu-latest
-          - target: x86_64
-          - manylinux: auto
+            target: x86_64
+            manylinux: auto
           - runner: ubuntu-latest
-          - target: x86
-          - manylinux: auto
+            target: x86
+            manylinux: auto
           - runner: ubuntu-latest
-          - target: aarch64
-          - manylinux: "2_28"
+            target: aarch64
+            manylinux: "2_28"
           - runner: ubuntu-latest
-          - target: armv7
-          - manylinux: auto
+            target: armv7
+            manylinux: auto
           - runner: ubuntu-latest
-          - target: s390x
-          - manylinux: auto
+            target: s390x
+            manylinux: auto
           - runner: ubuntu-latest
-          - target: ppc64le
-          - manylinux: auto
+            target: ppc64le
+            manylinux: auto
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
