@@ -10,7 +10,6 @@ jiff.workspace = true
 #workspace = true
 
 [dependencies]
-dirs.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async", "num-bigint"] }
 regex.workspace = true
 serde.workspace = true

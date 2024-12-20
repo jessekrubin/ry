@@ -97,6 +97,7 @@ ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 ryo3-http = { path = "./crates/_future/ryo3-http" }
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
+ryo3-bytes= { path = "./crates/ryo3-bytes" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
 ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }

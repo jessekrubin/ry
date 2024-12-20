@@ -48,25 +48,23 @@ pub fn cd(p: PathLike) -> PyResult<()> {
     }
 }
 
-#[pyfunction]
-#[pyo3(signature = (fspath = None))]
 /// List the contents of the specified directory as a `Vec<String>`
-pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
+#[pyfunction]
+#[pyo3(signature = (fspath = None, *, sort = None))]
+pub fn ls(fspath: Option<PathLike>, sort: Option<bool>) -> PyResult<Vec<String>> {
     let p = if let Some(p) = fspath {
         p
     } else {
         let pwd = pwd()?;
         PathLike::Str(pwd)
     };
-    // let r = std::fs::read_dir(p.as_ref());
-
     let entries = read_dir(p.as_ref()).map_err(|e| {
         let p_string = format!("{p:?}");
         let emsg = format!("{e}: {p_string}");
         PyFileNotFoundError::new_err(format!("ls: {emsg}"))
     })?;
 
-    let v: Vec<String> = entries
+    let mut v = entries
         .filter_map(Result::ok)
         .filter_map(|dir_entry| {
             dir_entry
@@ -74,7 +72,10 @@ pub fn ls(fspath: Option<PathLike>) -> PyResult<Vec<String>> {
                 .file_name()
                 .and_then(|name| name.to_str().map(ToString::to_string))
         })
-        .collect();
+        .collect::<Vec<String>>();
+    if let Some(true) = sort {
+        v.sort();
+    }
     Ok(v)
 }
 

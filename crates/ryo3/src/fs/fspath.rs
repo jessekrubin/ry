@@ -296,9 +296,8 @@ impl PyFsPath {
     }
 
     #[classmethod]
-    fn home(_cls: &Bound<'_, PyType>) -> PyResult<PyFsPath> {
-        let p = dirs::home_dir().expect("home() - unable to determine home directory");
-        Ok(p.into())
+    fn home(_cls: &Bound<'_, PyType>) -> Option<Self> {
+        ryo3_dirs::home().map(|p| Self { pth: p.into() })
     }
 
     #[classmethod]

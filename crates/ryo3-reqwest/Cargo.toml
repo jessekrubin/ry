@@ -17,8 +17,8 @@ tokio.workspace = true
 reqwest = { workspace = true, features = ["blocking", "brotli", "cookies", "gzip", "zstd"] }
 bytes = { workspace = true }
 jiter.workspace = true
+ryo3-bytes.workspace = true
 ryo3-url.workspace = true
-ryo3-bytes = { version = "0.0.23", path = "../ryo3-bytes" }
 
 [lints]
 workspace = true
