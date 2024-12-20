@@ -175,8 +175,8 @@ impl PyFsPath {
 
     #[cfg(not(target_os = "windows"))]
     #[getter]
-    fn drive(&self) -> PyResult<Option<String>> {
-        Ok(None)
+    fn drive(&self) -> Option<String> {
+        None
     }
 
     #[getter]
