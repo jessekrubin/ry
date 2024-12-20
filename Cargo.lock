@@ -1572,8 +1572,10 @@ dependencies = [
  "ryo3-dirs",
  "ryo3-flate2",
  "ryo3-fnv",
+ "ryo3-fspath",
  "ryo3-globset",
  "ryo3-heck",
+ "ryo3-http",
  "ryo3-jiff",
  "ryo3-jiter",
  "ryo3-macros",
@@ -1657,6 +1659,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryo3-fspath"
+version = "0.0.23"
+dependencies = [
+ "pyo3",
+ "ryo3-dirs",
+ "ryo3-macros",
+ "ryo3-types",
+]
+
+[[package]]
 name = "ryo3-globset"
 version = "0.0.23"
 dependencies = [
@@ -1677,7 +1689,9 @@ dependencies = [
 name = "ryo3-http"
 version = "0.0.23"
 dependencies = [
+ "http",
  "pyo3",
+ "pyo3-build-config",
 ]
 
 [[package]]

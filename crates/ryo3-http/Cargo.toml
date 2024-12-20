@@ -10,7 +10,11 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+http.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+
+[build-dependencies]
+pyo3-build-config = {workspace = true}
 
 [lints]
 workspace = true

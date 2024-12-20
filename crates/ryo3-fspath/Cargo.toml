@@ -1,6 +1,6 @@
 [package]
-name = "ryo3-jiff"
-description = "ryo3 + jiff https://github.com/BurntSushi/jiff"
+name = "ryo3-fspath"
+description = "python + `std::fs::Path(Buf)`"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
@@ -10,13 +10,10 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-jiff = { version = "0.1.15", features = ["default", "serde"] }
-ryo3-std = { workspace = true }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-dirs.workspace = true
 ryo3-macros.workspace = true
-
-[build-dependencies]
-pyo3-build-config = {workspace = true}
+ryo3-types.workspace = true
 
 [lints]
 workspace = true

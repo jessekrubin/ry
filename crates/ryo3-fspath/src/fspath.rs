@@ -1,5 +1,5 @@
+//! FsPath struct python module
 #![allow(clippy::needless_pass_by_value)] // TODO: remove in future? if possible?
-
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
@@ -670,9 +670,4 @@ impl From<std::fs::ReadDir> for PyReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
         Self { iter }
     }
-}
-
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyFsPath>()?;
-    Ok(())
 }
