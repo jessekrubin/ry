@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 mod async_client;
 mod blocking;
+mod errors;
 mod pyo3_bytes;
 
 use crate::async_client::RyAsyncClient;

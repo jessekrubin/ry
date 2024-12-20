@@ -10,6 +10,11 @@ impl Pyo3Bytes {
         Self(buf)
     }
 }
+impl From<Bytes> for Pyo3Bytes {
+    fn from(value: Bytes) -> Self {
+        Self::new(value)
+    }
+}
 
 impl<'py> IntoPyObject<'py> for Pyo3Bytes {
     type Target = PyBytes;
@@ -26,6 +31,12 @@ pub(crate) struct Pyo3JsonBytes(pub Bytes);
 impl Pyo3JsonBytes {
     pub fn new(buf: Bytes) -> Self {
         Self(buf)
+    }
+}
+
+impl From<Bytes> for Pyo3JsonBytes {
+    fn from(value: Bytes) -> Self {
+        Self::new(value)
     }
 }
 

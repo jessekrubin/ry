@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 
+use crate::errors::map_reqwest_err;
 use crate::pyo3_bytes::{Pyo3Bytes, Pyo3JsonBytes};
 use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
@@ -55,47 +56,38 @@ impl RyAsyncResponse {
             .res
             .take()
             .ok_or(PyValueError::new_err("Response already consumed"))?;
-        let r = pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            let bytes = response
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            response
                 .bytes()
                 .await
-                .map_err(|e| PyValueError::new_err(format!("{e}")))?;
-            println!("bytes: {:?}", bytes);
-            Ok(Pyo3Bytes::new(bytes))
-            // let pybytes = PyBytes::new(py, &bytes);
-            // Ok(pybytes.into_any())
-
-            // Ok(PyBytes::new(py, &bytes).into())
-        });
-        r
+                .map(Pyo3Bytes::from)
+                .map_err(map_reqwest_err)
+        })
     }
     fn text<'py>(&'py mut self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let res = self
+        let response = self
             .res
             .take()
             .ok_or(PyValueError::new_err("Response already consumed"))?;
-        let r = pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            res.text()
-                .await
-                .map_err(|e| PyValueError::new_err(format!("{e}")))
-        });
-        r
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            response.text().await.map_err(map_reqwest_err)
+        })
     }
 
     fn json<'py>(&'py mut self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let res = self
+        let response = self
             .res
             .take()
             .ok_or(PyValueError::new_err("Response already consumed"))?;
-        let r = pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            let bytes = res
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            response
                 .bytes()
                 .await
-                .map_err(|e| PyValueError::new_err(format!("{e}")))?;
-            Ok(Pyo3JsonBytes::new(bytes))
-        });
-        r
+                .map(Pyo3JsonBytes::from)
+                .map_err(map_reqwest_err)
+        })
     }
+
     fn __str__(&self) -> String {
         format!("Response: {}", self.status_code)
     }
