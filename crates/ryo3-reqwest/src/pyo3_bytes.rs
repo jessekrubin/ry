@@ -28,7 +28,7 @@ use pyo3::prelude::*;
 pub(crate) struct Pyo3JsonBytes(pub Bytes);
 
 impl Pyo3JsonBytes {
-    pub fn new(buf: Bytes) -> Self {
+    pub(crate) fn new(buf: Bytes) -> Self {
         Self(buf)
     }
 }

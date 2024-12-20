@@ -4,11 +4,11 @@ use pyo3::PyResult;
 use ::jiter::{map_json_error, PythonParse};
 use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
-use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyDict};
 use pyo3::Bound;
 use reqwest::StatusCode;
-use std::borrow::Borrow;
+use ryo3_url::PyUrl;
+
 #[pyclass]
 #[pyo3(name = "Response")]
 #[derive(Debug)]
@@ -27,20 +27,19 @@ pub struct RyResponse {
 
 impl RyResponse {
     fn read_body(&mut self) -> PyResult<()> {
-        match self.body.as_ref() {
-            Some(b) => Ok(()),
-            None => {
-                let res = self
-                    .res
-                    .take()
-                    .ok_or_else(|| PyValueError::new_err("Response already consumed"))?;
-                let b = res
-                    .bytes()
-                    .map_err(|e| PyValueError::new_err(format!("{e}")))?;
-                self.body = Some(b);
-                Ok(())
-                // Ok(&*b)
-            }
+        if let Some(_b) = self.body.as_ref() {
+            Ok(())
+        } else {
+            let res = self
+                .res
+                .take()
+                .ok_or_else(|| PyValueError::new_err("Response already consumed"))?;
+            let b = res
+                .bytes()
+                .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+            self.body = Some(b);
+            Ok(())
+            // Ok(&*b)
         }
     }
 }
@@ -55,10 +54,12 @@ impl RyResponse {
             .ok_or_else(|| PyValueError::new_err("Response already consumed"))?;
         Ok(res.status().as_u16())
     }
-    fn bytes<'py>(mut slf: PyRefMut<'py, Self>) -> PyResult<Bound<'py, PyBytes>> {
+    fn bytes(mut slf: PyRefMut<'_, Self>) -> PyResult<Bound<'_, PyBytes>> {
         slf.read_body()?;
-        let b = slf.body.as_ref().unwrap();
-        Ok(PyBytes::new(slf.py(), &b))
+        let b = slf.body.as_ref().ok_or(PyValueError::new_err(
+            "Something went wrong.... this should not happen",
+        ))?;
+        Ok(PyBytes::new(slf.py(), b))
 
         // match slf.body.as_ref() {
         //     Some(b) => Ok(b.to_vec()),
@@ -78,10 +79,33 @@ impl RyResponse {
         //     }
         // }
     }
+    #[getter]
+    #[pyo3(name = "url")]
+    fn py_url(&self) -> PyUrl {
+        PyUrl(self.url.clone())
+    }
 
+    #[getter]
+    #[pyo3(name = "headers")]
+    fn py_headers<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let c = self.headers.clone();
+        let pydict = PyDict::new(py);
+        for (name, value) in &c {
+            let k = name.to_string();
+            let v = value
+                .to_str()
+                .map(String::from)
+                .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+            // .to_str()?.to_string();
+            pydict.set_item(k, v)?;
+        }
+        Ok(pydict)
+    }
     fn text(mut slf: PyRefMut<'_, Self>) -> PyResult<String> {
         slf.read_body()?;
-        let b = slf.body.as_ref().unwrap();
+        let b = slf.body.as_ref().ok_or(PyValueError::new_err(
+            "Something went wrong.... this should not happen",
+        ))?;
 
         let s = String::from_utf8_lossy(b);
         Ok(s.to_string())
@@ -97,7 +121,7 @@ impl RyResponse {
 
     // ) -> PyResult<Bound<'py, PyAny>> {
 
-    fn json<'py>(mut slf: PyRefMut<'py, Self>) -> PyResult<Bound<'py, PyAny>> {
+    fn json(mut slf: PyRefMut<'_, Self>) -> PyResult<Bound<'_, PyAny>> {
         slf.read_body()?;
 
         let parse_builder = PythonParse {
@@ -111,7 +135,9 @@ impl RyResponse {
             // catch_duplicate_keys = false,
             // float_mode = FloatMode::Float
         };
-        let b = slf.body.as_ref().unwrap();
+        let b = slf.body.as_ref().ok_or(PyValueError::new_err(
+            "Something went wrong.... this should not happen",
+        ))?;
         parse_builder
             .python_parse(slf.py(), b)
             .map_err(|e| map_json_error(b, &e))
@@ -131,10 +157,10 @@ impl RyClient {
 
     // self.request(Method::GET, url)
 
-    fn get(&self, url: String) -> PyResult<RyResponse> {
+    fn get(&self, url: &str) -> PyResult<RyResponse> {
         let response = self
             .0
-            .get(&url)
+            .get(url)
             .send()
             .map_err(|e| PyValueError::new_err(format!("{e}")))?;
 
