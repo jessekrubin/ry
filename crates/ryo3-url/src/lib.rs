@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "URL", module = "ryo3")]
-pub struct PyUrl(pub(crate) url::Url);
+pub struct PyUrl(pub url::Url);
 
 #[pymethods]
 impl PyUrl {

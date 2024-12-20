@@ -11,7 +11,7 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
 ryo3 = { workspace = true, features = ["all"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true
@@ -45,17 +45,21 @@ members = [
   "crates/ryo3-macros",
   "crates/ryo3-types",
   "crates/ryo3-std",
+  "crates/ryo3-fspath",
   # external wrappers
   "crates/ryo3-brotli",
+  "crates/ryo3-bytes",
   "crates/ryo3-bzip2",
   "crates/ryo3-dirs",
   "crates/ryo3-flate2",
   "crates/ryo3-fnv",
   "crates/ryo3-globset",
   "crates/ryo3-heck",
+  "crates/ryo3-http",
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
   "crates/ryo3-regex",
+  "crates/ryo3-reqwest",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
   "crates/ryo3-unindent",
@@ -87,19 +91,26 @@ ryo3 = { path = "./crates/ryo3", features = ["all"] }
 ryo3-dev = { path = "./crates/_ryo3-dev" }
 ryo3-types = { path = "./crates/ryo3-types" }
 ryo3-std = { path = "./crates/ryo3-std" }
+ryo3-fspath = { path = "./crates/ryo3-fspath" }
 ryo3-macros = { path = "./crates/ryo3-macros" }
 ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
+# dev/future
+#ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
+#ryo3-tokio = { path = "./crates/_future/ryo3-tokio" }
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
+ryo3-bytes = { path = "./crates/ryo3-bytes" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
 ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
 ryo3-fnv = { path = "./crates/ryo3-fnv" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
 ryo3-heck = { path = "./crates/ryo3-heck" }
+ryo3-http = { path = "./crates/ryo3-http" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-regex = { path = "./crates/ryo3-regex" }
+ryo3-reqwest = { path = "./crates/ryo3-reqwest" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-unindent = { path = "./crates/ryo3-unindent" }
@@ -111,16 +122,18 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # external
 anyhow = "1.0.75"
-jiff = "0.1.15"
-jiter = { version = "0.8.2", features = ["python"] }
 # keeping around for if/when mr. pyo3 (david hewitt) is working on pyo3 and
 # jiter and there is some sort of conflict
 #jiter = { git = "https://github.com/pydantic/jiter.git", features = ["python"] }
-heck = "0.5.0"
+bytes = "1.9.0"
 dirs = { version = "5.0.1", features = [] }
+heck = "0.5.0"
+http = "1.2.0"
+jiff = "0.1.15"
+jiter = { version = "0.8.2", features = ["python"] }
 pyo3 = { version = "0.23.3", features = ["experimental-inspect", "num-bigint"] }
-pyo3-build-config = "0.23.2"
 pyo3-async-runtimes = { version = "0.23", features = ["attributes", "tokio-runtime"] }
+pyo3-build-config = "0.23.3"
 regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.12"
@@ -130,11 +143,11 @@ thiserror = "2.0.7"
 tokio = { version = "1.41.1", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "env-filter", "default"] }
-xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 unindent = "0.2.3"
 url = { version = "2.5.4", features = ["serde"] }
 walkdir = "2.4.0"
 which = { version = "7.0.0", features = ["regex"] }
+xxhash-rust = { version = "0.8.12", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 zstd = "0.13.2"
 
 [workspace.lints.rust]

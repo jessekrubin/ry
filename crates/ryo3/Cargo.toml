@@ -10,8 +10,7 @@ jiff.workspace = true
 #workspace = true
 
 [dependencies]
-dirs.workspace = true
-pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async", "num-bigint"] }
 regex.workspace = true
 serde.workspace = true
 serde_bytes.workspace = true
@@ -27,11 +26,13 @@ ryo3-quick-maths.workspace = true
 # required ryo3-* dependencies
 ryo3-types = { workspace = true }
 ryo3-std = { workspace = true }
+ryo3-fspath = { workspace = true }
 # optional ryo3-* dependencies
 ryo3-brotli = { workspace = true, optional = true }
 ryo3-bzip2 = { workspace = true, optional = true }
 ryo3-dirs = { workspace = true, optional = true }
 ryo3-flate2 = { workspace = true, optional = true }
+ryo3-http = { workspace = true, optional = true }
 ryo3-fnv = { workspace = true, optional = true }
 ryo3-globset = { workspace = true, optional = true }
 ryo3-heck = { workspace = true, optional = true }
@@ -59,6 +60,7 @@ all = [
   "fnv",
   "globset",
   "heck",
+  "http",
   "jiff",
   "jiter",
   "regex",
@@ -79,6 +81,7 @@ flate2 = ["dep:ryo3-flate2"]
 fnv = ["dep:ryo3-fnv"]
 globset = ["dep:ryo3-globset"]
 heck = ["dep:ryo3-heck"]
+http = ["dep:ryo3-http"]
 jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
 regex = ["dep:ryo3-regex", "ryo3-which/regex"]

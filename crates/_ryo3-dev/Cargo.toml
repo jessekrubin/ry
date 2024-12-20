@@ -10,7 +10,8 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
+ryo3-reqwest.workspace = true
 serde.workspace = true
 serde_bytes = "0.11.15"
 serde_json = "1.0.133"

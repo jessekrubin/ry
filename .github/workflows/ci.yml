@@ -23,21 +23,29 @@ jobs:
     permissions:
       contents: read
       packages: write # Required to upload docker images to ghcr
+    
     strategy:
       matrix:
         platform:
           - runner: ubuntu-latest
             target: x86_64
+            manylinux: auto
           - runner: ubuntu-latest
             target: x86
+            manylinux: auto
           - runner: ubuntu-latest
             target: aarch64
+            manylinux: "2_28"
           - runner: ubuntu-latest
             target: armv7
+            manylinux: auto
           - runner: ubuntu-latest
             target: s390x
+            manylinux: auto
           - runner: ubuntu-latest
             target: ppc64le
+            manylinux: auto
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -49,7 +57,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter
           sccache: 'true'
-          manylinux: auto
+          manylinux: ${{ matrix.platform.manylinux }}  # SUPER WEIRD BUT ARRRRRRM IS A PITA
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:

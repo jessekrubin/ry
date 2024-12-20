@@ -1,6 +1,6 @@
 [package]
-name = "ryo3-http"
-description = "python + http (https://docs.rs/http/latest/http/)"
+name = "ryo3-bytes"
+description = "ryo3 + bytes (https://docs.rs/regex/latest/bytes/)"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
@@ -11,6 +11,7 @@ repository.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+bytes = { workspace = true }
 
 [lints]
 workspace = true

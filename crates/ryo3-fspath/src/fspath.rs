@@ -1,5 +1,6 @@
+//! `FsPath` struct python module
+#![allow(clippy::unused_self)] // TODO: remove in future
 #![allow(clippy::needless_pass_by_value)] // TODO: remove in future? if possible?
-
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
@@ -57,15 +58,13 @@ impl PyFsPath {
         path2str(&self.pth)
     }
 
-    fn __str__(&self) -> PyResult<String> {
-        let s = self.string();
-        Ok(s)
+    fn __str__(&self) -> String {
+        self.string()
     }
 
-    fn __repr__(&self) -> PyResult<String> {
-        let posix_str = self.as_posix()?;
-        let s = format!("FsPath(\'{posix_str}\')");
-        Ok(s)
+    fn __repr__(&self) -> String {
+        let posix_str = self.as_posix();
+        format!("FsPath(\'{posix_str}\')")
     }
 
     fn equiv(&self, other: PathLike) -> bool {
@@ -83,29 +82,29 @@ impl PyFsPath {
     // }
 
     #[allow(clippy::needless_pass_by_value)]
-    fn __richcmp__(&self, other: PathLike, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: PathLike, op: CompareOp) -> bool {
         let o = other.as_ref();
         match op {
             CompareOp::Eq => {
                 // start by comparing as paths
                 if self.pth == other.as_ref() {
-                    return Ok(true);
+                    return true;
                 }
                 // if that fails, compare as strings
-                Ok(self.string() == path2str(other.as_ref()))
+                self.string() == path2str(other.as_ref())
             }
             CompareOp::Ne => {
                 // start by comparing as paths
                 if self.pth != other.as_ref() {
-                    return Ok(true);
+                    return true;
                 }
                 // if that fails, compare as strings
-                Ok(self.string() != path2str(other.as_ref()))
+                self.string() != path2str(other.as_ref())
             }
-            CompareOp::Lt => Ok(self.pth < o),
-            CompareOp::Le => Ok(self.pth <= o),
-            CompareOp::Gt => Ok(self.pth > o),
-            CompareOp::Ge => Ok(self.pth >= o),
+            CompareOp::Lt => self.pth < o,
+            CompareOp::Le => self.pth <= o,
+            CompareOp::Gt => self.pth > o,
+            CompareOp::Ge => self.pth >= o,
         }
     }
 
@@ -124,9 +123,8 @@ impl PyFsPath {
         Ok(PyFsPath::from(p))
     }
 
-    fn __fspath__(&self) -> PyResult<String> {
-        let s = self.pth.to_string_lossy().to_string();
-        Ok(s)
+    fn __fspath__(&self) -> String {
+        self.pth.to_string_lossy().to_string()
     }
 
     fn clone(&self) -> Self {
@@ -135,14 +133,13 @@ impl PyFsPath {
         }
     }
 
-    fn __truediv__(&self, other: PathLike) -> PyResult<Self> {
-        let p = self.pth.join(other.as_ref());
-        Ok(PyFsPath::from(p))
+    fn __truediv__(&self, other: PathLike) -> Self {
+        Self::from(self.pth.join(other.as_ref()))
     }
 
-    fn __rtruediv__(&self, other: PathLike) -> PyResult<Self> {
+    fn __rtruediv__(&self, other: PathLike) -> Self {
         let p = other.as_ref().join(&self.pth);
-        Ok(PyFsPath::from(p))
+        PyFsPath::from(p)
     }
 
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
@@ -152,24 +149,23 @@ impl PyFsPath {
     }
 
     #[getter]
-    fn root(&self) -> PyResult<Option<PyFsPath>> {
-        if let Some(p) = self.pth.components().next() {
-            Ok(Some(PyFsPath::from(p.as_os_str())))
-        } else {
-            Ok(None)
-        }
+    fn root(&self) -> Option<Self> {
+        self.pth
+            .components()
+            .next()
+            .map(|p| Self::from(p.as_os_str()))
     }
 
     #[cfg(target_os = "windows")]
     #[getter]
-    fn drive(&self) -> PyResult<Option<String>> {
+    fn drive(&self) -> Option<String> {
         let drive = self.pth.components().next();
         match drive {
             Some(drive_component) => {
                 let drive_str = drive_component.as_os_str().to_string_lossy().to_string();
-                Ok(Some(drive_str))
+                Some(drive_str)
             }
-            None => Ok(None),
+            None => None,
         }
         // #[cfg(not(target_os = "windows"))]
         // {
@@ -179,37 +175,37 @@ impl PyFsPath {
 
     #[cfg(not(target_os = "windows"))]
     #[getter]
-    fn drive(&self) -> PyResult<Option<String>> {
-        Ok(None)
+    fn drive(&self) -> Option<String> {
+        None
     }
 
     #[getter]
-    fn anchor(&self) -> PyResult<String> {
+    fn anchor(&self) -> String {
         let anchor = self.pth.components().next();
         match anchor {
             Some(anchor) => {
                 let a = anchor.as_os_str().to_string_lossy().to_string();
                 // ensure that the anchor ends with a separator
-                Ok(format!("{a}{MAIN_SEPARATOR}"))
+                format!("{a}{MAIN_SEPARATOR}")
             }
-            None => Ok(String::new()),
+            None => String::new(),
         }
     }
     #[getter]
-    fn parent(&self) -> PyResult<PyFsPath> {
+    fn parent(&self) -> Self {
         let p = self.pth.parent();
         match p {
             Some(p) => match p.to_str() {
                 Some(p) => {
                     if p.is_empty() {
-                        Ok(PyFsPath::from("."))
+                        Self::from(".")
                     } else {
-                        Ok(PyFsPath::from(p))
+                        Self::from(p)
                     }
                 }
-                None => Ok(PyFsPath::from(p)),
+                None => Self::from(p),
             },
-            None => Ok(self.clone()),
+            None => self.clone(),
         }
     }
 
@@ -231,35 +227,35 @@ impl PyFsPath {
     }
 
     #[getter]
-    fn name(&self) -> PyResult<String> {
+    fn name(&self) -> String {
         match self.pth.file_name() {
-            Some(name) => Ok(name.to_string_lossy().to_string()),
-            None => Ok(String::new()),
+            Some(name) => name.to_string_lossy().to_string(),
+            None => String::new(),
         }
     }
 
-    fn with_name(&self, name: String) -> PyResult<Self> {
+    fn with_name(&self, name: String) -> Self {
         let p = self.pth.with_file_name(name);
-        Ok(PyFsPath::from(p))
+        PyFsPath::from(p)
     }
 
     #[getter]
-    fn suffix(&self) -> PyResult<String> {
+    fn suffix(&self) -> String {
         let e = self.pth.extension();
         match e {
             Some(e) => {
-                let ext = path2str(
-                    e.to_str()
-                        .expect("suffix() - path contains invalid unicode characters"),
-                );
-
-                Ok(format!(".{ext}"))
+                let e = e.to_string_lossy().to_string();
+                if e.starts_with('.') {
+                    e
+                } else {
+                    format!(".{e}") // python pathlib.path does this
+                }
             }
-            None => Ok(String::new()),
+            None => String::new(),
         }
     }
 
-    fn with_suffix(&self, suffix: String) -> PyResult<Self> {
+    fn with_suffix(&self, suffix: String) -> Self {
         // auto strip leading dot
         let suffix = if suffix.starts_with('.') {
             suffix.trim_start_matches('.')
@@ -267,11 +263,11 @@ impl PyFsPath {
             suffix.as_ref()
         };
         let p = self.pth.with_extension(suffix);
-        Ok(PyFsPath::from(p))
+        Self::from(p)
     }
 
     #[getter]
-    fn suffixes(&self) -> PyResult<Vec<String>> {
+    fn suffixes(&self) -> Vec<String> {
         let mut suffixes = vec![];
         let mut p = self.pth.clone();
         while let Some(e) = p.extension() {
@@ -282,7 +278,7 @@ impl PyFsPath {
             p = p.with_extension("");
         }
         suffixes.reverse();
-        Ok(suffixes)
+        suffixes
     }
 
     #[getter]
@@ -296,25 +292,24 @@ impl PyFsPath {
     }
 
     #[classmethod]
-    fn home(_cls: &Bound<'_, PyType>) -> PyResult<PyFsPath> {
-        let p = dirs::home_dir().expect("home() - unable to determine home directory");
-        Ok(p.into())
+    fn home(_cls: &Bound<'_, PyType>) -> Option<Self> {
+        ryo3_dirs::home().map(|p| Self { pth: p.into() })
     }
 
     #[classmethod]
-    fn cwd(_cls: &Bound<'_, PyType>) -> PyResult<PyFsPath> {
-        let p =
-            std::env::current_dir().expect("cwd() - unable to determine current working directory");
-        Ok(p.into())
+    fn cwd(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        std::env::current_dir()
+            .map(Self::from)
+            .map_err(|e| PyFileNotFoundError::new_err(format!("cwd: {e}")))
     }
 
-    fn as_posix(&self) -> PyResult<String> {
-        Ok(self.pth.to_string_lossy().to_string())
+    fn as_posix(&self) -> String {
+        self.pth.to_string_lossy().to_string()
     }
 
-    fn joinpath(&self, other: PathLike) -> PyResult<PyFsPath> {
+    fn joinpath(&self, other: PathLike) -> Self {
         let p = self.pth.join(other.as_ref());
-        Ok(PyFsPath::from(p))
+        Self::from(p)
     }
 
     pub fn read_vec_u8(&self) -> PyResult<Vec<u8>> {
@@ -556,6 +551,7 @@ impl PyFsPath {
     fn join(&self, p: PathLike) -> PyFsPath {
         Self::from(self.pth.join(p))
     }
+
     fn metadata(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -568,7 +564,7 @@ impl PyFsPath {
     fn read_link(&self) -> PyResult<Self> {
         self.pth
             .read_link()
-            .map(PyFsPath::from)
+            .map(Self::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("read_link: {e}")))
     }
     fn starts_with(&self, p: PathLike) -> bool {
@@ -577,7 +573,7 @@ impl PyFsPath {
     fn strip_prefix(&self, p: PathLike) -> PyResult<PyFsPath> {
         self.pth
             .strip_prefix(p.as_ref())
-            .map(PyFsPath::from)
+            .map(Self::from)
             .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
     fn symlink_metadata(&self) -> PyResult<()> {
@@ -588,14 +584,14 @@ impl PyFsPath {
             .try_exists()
             .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
     }
-    fn with_extension(&self, extension: String) -> PyResult<Self> {
+    fn with_extension(&self, extension: String) -> Self {
         let p = self.pth.with_extension(extension);
-        Ok(PyFsPath::from(p))
+        Self::from(p)
     }
 
-    fn with_file_name(&self, name: String) -> PyResult<Self> {
+    fn with_file_name(&self, name: String) -> Self {
         let p = self.pth.with_file_name(name);
-        Ok(PyFsPath::from(p))
+        Self::from(p)
     }
 }
 
@@ -671,9 +667,4 @@ impl From<std::fs::ReadDir> for PyReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
         Self { iter }
     }
-}
-
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyFsPath>()?;
-    Ok(())
 }
