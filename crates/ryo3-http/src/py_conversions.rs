@@ -6,17 +6,6 @@ use pyo3::types::PyString;
 
 pub struct HttpMethod(pub http::Method);
 
-impl<'py> IntoPyObject<'py> for HttpMethod {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
-    type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        (&self).into_pyobject(py)
-    }
-}
 impl<'py> IntoPyObject<'py> for &HttpMethod {
     #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
@@ -49,6 +38,18 @@ impl<'py> IntoPyObject<'py> for &HttpMethod {
         {
             Ok(PyString::new(py, s))
         }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for HttpMethod {
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
     }
 }
 
