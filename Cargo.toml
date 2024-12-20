@@ -11,7 +11,7 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
 ryo3 = { workspace = true, features = ["all"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true

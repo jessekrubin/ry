@@ -2000,9 +2000,12 @@ dependencies = [
 name = "ryo3-reqwest"
 version = "0.0.23"
 dependencies = [
+ "bytes",
+ "jiter",
  "pyo3",
  "pyo3-async-runtimes",
  "reqwest",
+ "ryo3-url",
  "tokio",
  "tracing",
 ]

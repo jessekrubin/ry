@@ -16,6 +16,9 @@ pyo3-async-runtimes = { workspace = true, features = ["attributes", "tokio-runti
 tracing.workspace = true
 tokio.workspace = true
 reqwest = { version = "0.12.9", features = ["blocking", "brotli", "cookies", "gzip", "zstd"] }
+bytes = "1.9.0"
+jiter.workspace = true
+ryo3-url.workspace = true
 
 [lints]
 workspace = true
