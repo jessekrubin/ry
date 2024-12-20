@@ -1,8 +1,8 @@
 use pyo3::prelude::*;
 use pyo3::PyResult;
 
-use bytes::Bytes;
 use ::jiter::{map_json_error, PythonParse};
+use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
