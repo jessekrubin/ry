@@ -1,15 +1,17 @@
-use pyo3::prelude::*;
-use std::sync::Arc;
-
 use crate::errors::map_reqwest_err;
 use crate::pyo3_bytes::Pyo3JsonBytes;
+use bytes::Bytes;
+use futures_core::Stream;
 use futures_util::StreamExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
+use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use reqwest::StatusCode;
 use ryo3_bytes::Pyo3Bytes;
 use ryo3_url::PyUrl;
-// for `.next()`
+use std::pin::Pin;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 #[pyclass]
 #[pyo3(name = "AsyncClient")]
@@ -117,7 +119,7 @@ impl RyAsyncResponse {
         })
     }
 
-    fn bytes_stream<'py>(&'py mut self, py: Python<'py>) -> PyResult<RyAsyncResponseIter> {
+    fn bytes_stream(&mut self) -> PyResult<RyAsyncResponseIter> {
         let response = self
             .res
             .take()
@@ -127,7 +129,7 @@ impl RyAsyncResponse {
         let stream = response.bytes_stream();
         let stream = Box::pin(stream);
         Ok(RyAsyncResponseIter {
-            stream: Arc::new(tokio::sync::Mutex::new(stream)),
+            stream: Arc::new(Mutex::new(stream)),
         })
         // let s = RyAsyncResponseIter { response };
         // Ok(s)
@@ -146,15 +148,12 @@ impl RyAsyncResponse {
     }
 }
 
+// clippy says this is too long and complicated to just sit in the struct def
+type AsyncResponseStreamInner =
+    Arc<Mutex<Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send>>>>;
 #[pyclass]
 pub struct RyAsyncResponseIter {
-    stream: Arc<
-        tokio::sync::Mutex<
-            std::pin::Pin<
-                Box<dyn futures_core::Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send>,
-            >,
-        >,
-    >,
+    stream: AsyncResponseStreamInner,
 }
 
 #[pymethods]
@@ -170,7 +169,8 @@ impl RyAsyncResponseIter {
             match guard.as_mut().next().await {
                 Some(Ok(bytes)) => Ok(Some(Pyo3Bytes::from(bytes))),
                 Some(Err(e)) => Err(map_reqwest_err(e)),
-                None => Err(PyStopAsyncIteration::new_err("stream exhausted")), // No more items, return None to end iteration
+                // I totally forgot that this was a thing and that I couldn't just return None
+                None => Err(PyStopAsyncIteration::new_err("response-stream-fin")),
             }
         })
     }
