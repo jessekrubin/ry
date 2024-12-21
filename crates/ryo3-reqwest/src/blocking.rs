@@ -98,6 +98,13 @@ impl RyBlockingResponse {
         }
         Ok(pydict)
     }
+
+    /// Return the content length of the response, if it is known or `None`.
+    #[getter]
+    fn content_length(&self) -> Option<u64> {
+        self.content_length
+    }
+
     fn text(mut slf: PyRefMut<'_, Self>) -> PyResult<String> {
         slf.read_body()?;
         let b = slf.body.as_ref().ok_or(PyValueError::new_err(

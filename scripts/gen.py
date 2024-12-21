@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-from ry import dev as ryo3
+import ry.ryo3 as ryo3
 
 
 def eprint(*args, **kwargs):
@@ -53,10 +53,11 @@ def main():
     # test it
     try:
         exec(init_string)  # noqa: S102
+        sys.stdout.buffer.write(init_string.encode("utf-8"))
     except Exception as e:
+        print(init_string)
         eprint(e)
         raise e from None
-    sys.stdout.buffer.write(init_string.encode("utf-8"))
 
 
 if __name__ == "__main__":

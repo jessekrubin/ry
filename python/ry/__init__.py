@@ -1,4 +1,7 @@
-"""dev entry point"""
+"""ry = rust + python
+
+`ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
+"""
 
 from ry import ryo3
 from ry.ryo3 import (

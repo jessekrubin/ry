@@ -79,6 +79,7 @@ impl RyAsyncResponse {
         Ok(pydict)
     }
 
+    /// Return the content length of the response, if it is known or `None`.
     #[getter]
     fn content_length(&self) -> Option<u64> {
         self.content_length
