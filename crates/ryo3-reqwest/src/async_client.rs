@@ -21,16 +21,19 @@ pub struct RyAsyncClient(reqwest::Client);
 #[pyo3(name = "AsyncResponse")]
 #[derive(Debug)]
 pub struct RyAsyncResponse {
-    // Store the response in an Option so we can take ownership later.
-    status_code: StatusCode,
-    headers: reqwest::header::HeaderMap,
-    // cookies: reqwest::cookie::CookieJar,
-    // version: Option<reqwest::Version>,
-    url: reqwest::Url,
-    content_length: Option<u64>,
-
-    // body: Option<Bytes>,
+    /// The actual response which will be consumed when read
     res: Option<reqwest::Response>,
+
+    // ========================================================================
+    /// das status code
+    status_code: StatusCode,
+    /// das headers
+    headers: reqwest::header::HeaderMap,
+    /// das url
+    url: reqwest::Url,
+    /// das content length -- if it exists (tho it might not and/or be
+    /// different if the response is compressed)
+    content_length: Option<u64>,
 }
 
 impl From<reqwest::Response> for RyAsyncResponse {
@@ -71,7 +74,6 @@ impl RyAsyncResponse {
                 .to_str()
                 .map(String::from)
                 .map_err(|e| PyValueError::new_err(format!("{e}")))?;
-            // .to_str()?.to_string();
             pydict.set_item(k, v)?;
         }
         Ok(pydict)
@@ -119,6 +121,7 @@ impl RyAsyncResponse {
         })
     }
 
+    /// Return a response consuming async iterator over the response body
     fn bytes_stream(&mut self) -> PyResult<RyAsyncResponseIter> {
         let response = self
             .res
@@ -131,12 +134,6 @@ impl RyAsyncResponse {
         Ok(RyAsyncResponseIter {
             stream: Arc::new(Mutex::new(stream)),
         })
-        // let s = RyAsyncResponseIter { response };
-        // Ok(s)
-
-        // pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        //     Ok(response.bytes_stream())
-        // })
     }
 
     fn __str__(&self) -> String {
@@ -148,6 +145,12 @@ impl RyAsyncResponse {
     }
 }
 
+// This whole response iterator was a difficult thing to figure out.
+//
+// NOTE: I (jesse) am pretty proud of this. I was struggling to get the
+//       async-iterator thingy to work bc rust + async is quite hard, but
+//       after lots and lots and lots of trial and error this works!
+//
 // clippy says this is too long and complicated to just sit in the struct def
 type AsyncResponseStreamInner =
     Arc<Mutex<Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send>>>>;
@@ -183,7 +186,6 @@ impl RyAsyncClient {
         Self(reqwest::Client::new())
     }
 
-    // self.request(Method::GET, url)
     fn get<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
         let response_future = self.0.get(url).send();
         pyo3_async_runtimes::tokio::future_into_py(py, async move {

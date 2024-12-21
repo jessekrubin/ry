@@ -12,20 +12,37 @@ use ryo3_url::PyUrl;
 #[pyclass]
 #[pyo3(name = "Response")]
 #[derive(Debug)]
-pub struct RyResponse {
+pub struct RyBlockingResponse {
     // Store the response in an Option so we can take ownership later.
-    status_code: StatusCode,
-    headers: reqwest::header::HeaderMap,
-    // cookies: reqwest::cookie::CookieJar,
-    // version: Option<reqwest::Version>,
-    url: reqwest::Url,
-
-    body: Option<Bytes>,
-
+    /// The actual response which will be consumed when read
     res: Option<reqwest::blocking::Response>,
-}
 
-impl RyResponse {
+    /// The body stored as bytes in the ob
+    body: Option<Bytes>,
+    // ========================================================================
+    /// das status code
+    status_code: StatusCode,
+    /// das headers
+    headers: reqwest::header::HeaderMap,
+    /// das url
+    url: reqwest::Url,
+    /// das content length -- if it exists (tho it might not and/or be
+    /// different if the response is compressed)
+    content_length: Option<u64>,
+}
+impl From<reqwest::blocking::Response> for RyBlockingResponse {
+    fn from(res: reqwest::blocking::Response) -> Self {
+        Self {
+            status_code: res.status(),
+            headers: res.headers().clone(),
+            url: res.url().clone(),
+            content_length: res.content_length(),
+            body: None,
+            res: Some(res),
+        }
+    }
+}
+impl RyBlockingResponse {
     fn read_body(&mut self) -> PyResult<()> {
         if let Some(_b) = self.body.as_ref() {
             Ok(())
@@ -39,13 +56,12 @@ impl RyResponse {
                 .map_err(|e| PyValueError::new_err(format!("{e}")))?;
             self.body = Some(b);
             Ok(())
-            // Ok(&*b)
         }
     }
 }
 
 #[pymethods]
-impl RyResponse {
+impl RyBlockingResponse {
     #[getter]
     fn status_code(&self) -> PyResult<u16> {
         let res = self
@@ -60,24 +76,6 @@ impl RyResponse {
             "Something went wrong.... this should not happen",
         ))?;
         Ok(PyBytes::new(slf.py(), b))
-
-        // match slf.body.as_ref() {
-        //     Some(b) => Ok(b.to_vec()),
-        //     None => {
-        //         // Take ownership of the response, leaving None in place.
-        //         let res = slf
-        //             .res
-        //             .take()
-        //             .ok_or_else(|| PyValueError::new_err("Response already consumed"))?;
-        //
-        //         // Now we have full ownership of res, so we can call text() without error.
-        //         let b = res
-        //             .bytes()
-        //             .map_err(|e| PyValueError::new_err(format!("{e}")))?;
-        //         // return the b
-        //         Ok(b.to_vec())
-        //     }
-        // }
     }
     #[getter]
     #[pyo3(name = "url")]
@@ -96,7 +94,6 @@ impl RyResponse {
                 .to_str()
                 .map(String::from)
                 .map_err(|e| PyValueError::new_err(format!("{e}")))?;
-            // .to_str()?.to_string();
             pydict.set_item(k, v)?;
         }
         Ok(pydict)
@@ -119,21 +116,15 @@ impl RyResponse {
         format!("Response: {}", self.status_code)
     }
 
-    // ) -> PyResult<Bound<'py, PyAny>> {
-
     fn json(mut slf: PyRefMut<'_, Self>) -> PyResult<Bound<'_, PyAny>> {
         slf.read_body()?;
 
         let parse_builder = PythonParse {
             allow_inf_nan: true,
-            cache_mode: ::jiter::StringCacheMode::All,
-            partial_mode: ::jiter::PartialMode::Off,
+            cache_mode: jiter::StringCacheMode::All,
+            partial_mode: jiter::PartialMode::Off,
             catch_duplicate_keys: false,
-            float_mode: ::jiter::FloatMode::Float,
-            // cache_mode = StringCacheMode::All,
-            // partial_mode = PartialMode::Off,
-            // catch_duplicate_keys = false,
-            // float_mode = FloatMode::Float
+            float_mode: jiter::FloatMode::Float,
         };
         let b = slf.body.as_ref().ok_or(PyValueError::new_err(
             "Something went wrong.... this should not happen",
@@ -155,32 +146,54 @@ impl RyClient {
         Self(reqwest::blocking::Client::new())
     }
 
-    // self.request(Method::GET, url)
-
-    fn get(&self, url: &str) -> PyResult<RyResponse> {
-        let response = self
-            .0
+    fn get(&self, url: &str) -> PyResult<RyBlockingResponse> {
+        self.0
             .get(url)
             .send()
-            .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+            .map(RyBlockingResponse::from)
+            .map_err(|e| PyValueError::new_err(format!("{e}")))
+    }
 
-        let url = response.url().clone();
-        let headers = response.headers().clone();
-        let status_code = response.status();
+    fn post(&self, url: &str, body: &str) -> PyResult<RyBlockingResponse> {
+        self.0
+            .post(url)
+            .body(body.to_string())
+            .send()
+            .map(RyBlockingResponse::from)
+            .map_err(|e| PyValueError::new_err(format!("{e}")))
+    }
 
-        Ok(RyResponse {
-            status_code,
-            headers,
-            url,
-            body: None,
+    fn put(&self, url: &str, body: &str) -> PyResult<RyBlockingResponse> {
+        self.0
+            .put(url)
+            .body(body.to_string())
+            .send()
+            .map(RyBlockingResponse::from)
+            .map_err(|e| PyValueError::new_err(format!("{e}")))
+    }
 
-            res: Some(response),
-        })
+    fn patch(&self, url: &str, body: &str) -> PyResult<RyBlockingResponse> {
+        self.0
+            .patch(url)
+            .body(body.to_string())
+            .send()
+            .map(RyBlockingResponse::from)
+            .map_err(|e| PyValueError::new_err(format!("{e}")))
+    }
+
+    fn delete(&self, url: &str) -> PyResult<RyBlockingResponse> {
+        self.0
+            .delete(url)
+            .send()
+            .map(RyBlockingResponse::from)
+            .map_err(|e| PyValueError::new_err(format!("{e}")))
+    }
+
+    fn head(&self, url: &str) -> PyResult<RyBlockingResponse> {
+        self.0
+            .head(url)
+            .send()
+            .map(RyBlockingResponse::from)
+            .map_err(|e| PyValueError::new_err(format!("{e}")))
     }
 }
-
-// pub fn pymod_add(py: Python<'_>, m: &PyModule) -> PyResult<()> {
-//     m.add_class::<RyClient>()?;
-//     m.add_class::<RyResponse>()?;
-//     Ok(())
-// }
