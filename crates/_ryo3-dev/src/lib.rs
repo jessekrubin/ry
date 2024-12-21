@@ -24,8 +24,6 @@ pub mod sp;
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     anystr::pymod_add(m)?;
     sp::pymod_add(m)?;
-
-    println!("adding req");
     ryo3_reqwest::pymod_add(m)?;
     Ok(())
 }
