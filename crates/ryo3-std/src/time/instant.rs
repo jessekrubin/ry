@@ -97,6 +97,31 @@ impl PyInstant {
         }
     }
 
+    pub fn __isub__(&mut self, _py: Python<'_>, other: PyInstantSub) -> PyResult<()> {
+        match other {
+            PyInstantSub::Instant(other) => {
+                let dur = self.0.checked_duration_since(other.0);
+                match dur {
+                    Some(d) => {
+                        self.0 = self.0.checked_sub(d).unwrap();
+                        Ok(())
+                    }
+                    None => Err(PyErr::new::<PyOverflowError, _>("instant-sub-overflow")),
+                }
+            }
+            PyInstantSub::Duration(other) => {
+                let inst = self.0.checked_sub(other.0);
+                match inst {
+                    Some(i) => {
+                        self.0 = i;
+                        Ok(())
+                    }
+                    None => Err(PyErr::new::<PyOverflowError, _>("instant-sub-overflow")),
+                }
+            }
+        }
+    }
+
     pub fn elapsed(&self) -> PyDuration {
         PyDuration(self.0.elapsed())
     }
