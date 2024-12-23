@@ -1,5 +1,4 @@
 use pyo3::basic::CompareOp;
-use pyo3::prelude::{PyModule, PyModuleMethods};
 use pyo3::types::{PyDelta, PyType};
 use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyResult, Python};
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -225,6 +224,7 @@ impl PyDuration {
     // FROM NUMBERS
     // ========================================================================
 
+    /// Create a new `Duration` from the specified number of seconds.
     #[classmethod]
     fn from_secs(_cls: &Bound<'_, PyType>, secs: u64) -> Self {
         PyDuration(Duration::from_secs(secs))
@@ -426,9 +426,4 @@ impl From<Duration> for PyDuration {
     fn from(d: Duration) -> Self {
         PyDuration(d)
     }
-}
-
-pub(crate) fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyDuration>()?;
-    Ok(())
 }

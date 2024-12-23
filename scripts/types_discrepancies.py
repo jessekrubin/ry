@@ -101,6 +101,7 @@ def main():
         "FsPath",
         # std
         "Duration",
+        "Instant",
         # jiff
         "SignedDuration",
         "DateTime",
