@@ -20,29 +20,35 @@ impl From<Instant> for PyInstant {
 #[pymethods]
 impl PyInstant {
     #[new]
+    #[must_use]
     pub fn py_new() -> Self {
         PyInstant(Instant::now())
     }
 
     #[classmethod]
+    #[must_use]
     pub fn now(_cls: &Bound<'_, PyType>) -> Self {
         PyInstant(Instant::now())
     }
 
+    #[must_use]
     pub fn __str__(&self) -> String {
         format!("{:?}", self.0)
     }
 
+    #[must_use]
     pub fn __repr__(&self) -> String {
         format!("{:?}", self.0)
     }
 
+    #[must_use]
     pub fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
     }
 
+    #[must_use]
     pub fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,
@@ -103,8 +109,14 @@ impl PyInstant {
                 let dur = self.0.checked_duration_since(other.0);
                 match dur {
                     Some(d) => {
-                        self.0 = self.0.checked_sub(d).unwrap();
-                        Ok(())
+                        let self2assign = self.0.checked_sub(d);
+                        match self2assign {
+                            Some(self2assign) => {
+                                self.0 = self2assign;
+                                Ok(())
+                            }
+                            None => Err(PyErr::new::<PyOverflowError, _>("instant-sub-overflow")),
+                        }
                     }
                     None => Err(PyErr::new::<PyOverflowError, _>("instant-sub-overflow")),
                 }
@@ -122,6 +134,7 @@ impl PyInstant {
         }
     }
 
+    #[must_use]
     pub fn elapsed(&self) -> PyDuration {
         PyDuration(self.0.elapsed())
     }
@@ -140,10 +153,12 @@ impl PyInstant {
             .map(PyDuration::from)
     }
 
+    #[must_use]
     pub fn saturating_duration_since(&self, earlier: &Self) -> PyDuration {
         PyDuration(self.0.saturating_duration_since(earlier.0))
     }
 
+    #[must_use]
     pub fn duration_since(&self, earlier: &Self) -> PyDuration {
         PyDuration(self.0.duration_since(earlier.0))
     }
@@ -156,6 +171,7 @@ pub enum PyInstantSub {
 }
 
 #[pyfunction]
+#[must_use]
 pub fn instant() -> PyInstant {
     PyInstant::from(Instant::now())
 }
