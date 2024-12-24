@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-import ry.ryo3 as ryo3
+from ry import ryo3
 
 
 def eprint(*args, **kwargs):

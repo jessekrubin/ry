@@ -87,7 +87,7 @@ impl FromPyObject<'_> for HttpMethod {
 // HttpHeaderName
 // ============================================================================
 
-pub fn header_name_to_pystring<'py>(
+pub(crate) fn header_name_to_pystring<'py>(
     py: Python<'py>,
     name: &http::HeaderName,
 ) -> Bound<'py, PyString> {
@@ -95,10 +95,10 @@ pub fn header_name_to_pystring<'py>(
     PyString::new(py, s)
 }
 
-pub fn pystring_to_header_name(s: &str) -> PyResult<http::HeaderName> {
-    http::HeaderName::from_bytes(s.as_bytes())
-        .map_err(|e| PyValueError::new_err(format!("invalid-header-name: {e}")))
-}
+// pub(crate) fn pystring_to_header_name<'py>(py: Python<'py> , s:&Bound<'py, PyString>) -> PyResult<http::HeaderName> {
+//     http::HeaderName::from_bytes(s.as_bytes())
+//         .map_err(|e| PyValueError::new_err(format!("invalid-header-name: {e}")))
+// }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderName {
     #[cfg(Py_LIMITED_API)]
@@ -157,7 +157,7 @@ impl FromPyObject<'_> for HttpHeaderName {
 // HttpHeaderValue
 // ============================================================================
 
-pub fn header_value_to_pystring<'py>(
+pub(crate) fn header_value_to_pystring<'py>(
     py: Python<'py>,
     value: &http::HeaderValue,
 ) -> PyResult<Bound<'py, PyString>> {
@@ -167,10 +167,10 @@ pub fn header_value_to_pystring<'py>(
     Ok(PyString::new(py, s))
 }
 
-pub fn pystring_to_header_value(s: &str) -> PyResult<http::HeaderValue> {
-    http::HeaderValue::from_str(s)
-        .map_err(|e| PyValueError::new_err(format!("invalid-header-value: {e}")))
-}
+// pub(crate) fn pystring_to_header_value(s: &str) -> PyResult<http::HeaderValue> {
+//     http::HeaderValue::from_str(s)
+//         .map_err(|e| PyValueError::new_err(format!("invalid-header-value: {e}")))
+// }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderValue {
     #[cfg(Py_LIMITED_API)]

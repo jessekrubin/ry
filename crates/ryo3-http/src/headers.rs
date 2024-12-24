@@ -3,7 +3,6 @@ use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use ryo3_macros::err_py_not_impl_yet;
 use std::collections::HashMap;
 
 #[pyclass(name = "Headers", module = "ry.ryo3.http")]
@@ -14,7 +13,7 @@ pub struct PyHeaders(pub http::header::HeaderMap);
 impl PyHeaders {
     #[new]
     #[pyo3(signature = (d = None))]
-    fn py_new<'py>(py: Python<'py>, d: Option<HashMap<String, String>>) -> PyResult<Self> {
+    fn py_new(_py: Python<'_>, d: Option<HashMap<String, String>>) -> PyResult<Self> {
         let mut headers = http::header::HeaderMap::new();
         if let Some(d) = d {
             for (k, v) in d {
@@ -24,13 +23,11 @@ impl PyHeaders {
                             "header-name-error: {e} (k={k}, v={v})"
                         ))
                     })?;
-                println!("header_name: {:?}", header_name);
                 let header_value = http::header::HeaderValue::from_str(&v).map_err(|e| {
                     PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                         "header-value-error: {e} (k={k}, v={v})"
                     ))
                 })?;
-                println!("header_value: {:?}", header_value);
                 headers.insert(header_name, header_value);
             }
         }
@@ -39,7 +36,7 @@ impl PyHeaders {
 
     /// Return struct Debug-string
     pub fn __dbg__(&self) {
-        println!("{:?}", self);
+        println!("{self:?}");
     }
 
     pub fn __str__(&self) -> String {
@@ -67,21 +64,19 @@ impl PyHeaders {
     }
 
     pub fn __getitem__(&self, key: &str) -> Option<HttpHeaderValue> {
-        self.0.get(key).map(|h| HttpHeaderValue::from(h))
+        self.0.get(key).map(HttpHeaderValue::from)
     }
 
-    pub fn __setitem__(&mut self, key: &str, value: &str) -> PyResult<()> {
+    pub fn __setitem__(&mut self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<()> {
         self.insert(key, value)
     }
 
-    pub fn __delitem__(&mut self, key: HttpHeaderName) -> PyResult<()> {
-        self.remove(key)?;
-        Ok(())
+    pub fn __delitem__(&mut self, key: HttpHeaderName) {
+        self.remove(key);
     }
 
-    pub fn __iter__(&self) -> PyResult<Vec<String>> {
-        let keys = self.0.keys().map(|h| h.as_str().to_string()).collect();
-        Ok(keys)
+    pub fn __iter__(&self) -> Vec<String> {
+        self.0.keys().map(|h| h.as_str().to_string()).collect()
     }
 
     // ========================================================================
@@ -114,14 +109,16 @@ impl PyHeaders {
     //     - `values_mut`
     //     - `with_capacity`
 
-    pub fn append(&mut self, key: &str, value: &str) -> PyResult<bool> {
-        let header_name = http::header::HeaderName::from_bytes(key.as_bytes()).unwrap();
-        let header_value = http::header::HeaderValue::from_str(value).unwrap();
-        let res = self.0.try_append(header_name, header_value).map_err(|e| {
-            PyRuntimeError::new_err(format!(
-                "header-append-error: {e} (key={key}, value={value})"
-            ))
-        })?;
+    pub fn append(&mut self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<bool> {
+        // let header_name = http::header::HeaderName::from_bytes(key.as_bytes()).unwrap();
+        // let header_value = http::header::HeaderValue::from_str(value).unwrap();
+        // let hn = key.0;
+        let hv = value.0;
+
+        let res = self
+            .0
+            .try_append(key.0, hv)
+            .map_err(|e| PyRuntimeError::new_err(format!("header-append-error: {e}")))?;
         Ok(res)
     }
 
@@ -138,7 +135,7 @@ impl PyHeaders {
         Ok(self.0.contains_key(&header_name))
     }
     pub fn get(&self, key: &str) -> Option<HttpHeaderValue> {
-        self.0.get(key).map(|h| HttpHeaderValue::from(h))
+        self.0.get(key).map(HttpHeaderValue::from)
     }
 
     pub fn get_all(&self, key: &str) -> PyResult<Vec<String>> {
@@ -162,22 +159,22 @@ impl PyHeaders {
         Ok(hvalues)
     }
 
-    pub fn insert(&mut self, key: &str, value: &str) -> PyResult<()> {
-        eprintln!("insert: {:?} {:?}", key, value);
-        err_py_not_impl_yet!()
+    pub fn insert(&mut self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<()> {
+        self.0
+            .try_insert(key.0, value.0)
+            .map_err(|e| PyRuntimeError::new_err(format!("header-insert-error: {e}")))?;
+        Ok(())
     }
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    pub fn keys<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyString>>> {
-        let k = self
-            .0
+    pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
+        self.0
             .keys()
             .map(|h| header_name_to_pystring(py, h))
-            .collect();
-        Ok(k)
+            .collect()
     }
 
     pub fn keys_len(&self) -> usize {
@@ -188,11 +185,11 @@ impl PyHeaders {
         self.0.len()
     }
 
-    pub fn remove(&mut self, key: HttpHeaderName) -> PyResult<Option<HttpHeaderValue>> {
-        Ok(self.0.remove(key.0).map(|h| HttpHeaderValue::from(h)))
+    pub fn remove(&mut self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
+        self.0.remove(key.0).map(HttpHeaderValue::from)
     }
 
-    pub fn pop(&mut self, key: HttpHeaderName) -> PyResult<Option<HttpHeaderValue>> {
+    pub fn pop(&mut self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
         self.remove(key)
     }
 
@@ -205,17 +202,5 @@ impl PyHeaders {
             vals.push(pystr);
         }
         Ok(vals)
-        // let vals = self
-        //     .0
-        //     .values()
-        //     .map(|header_value| header_value_to_pystring(py, header_value)).filter_map(
-        //
-        //
-        // Ok(vals)
     }
-}
-
-#[pyclass(name = "HeadersValues", module = "ry.ryo3.http")]
-pub struct PyHeadersValues {
-    headers: PyHeaders,
 }

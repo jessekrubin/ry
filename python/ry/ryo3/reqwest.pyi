@@ -1,29 +1,4 @@
-"""ry.ryo3.dev"""
-
-from __future__ import annotations
-
 import typing as t
-
-# =============================================================================
-# SUBPROCESS (VERY MUCH WIP)
-# =============================================================================
-def run(
-    *args: str | list[str],
-    capture_output: bool = True,
-    input: bytes | None = None,
-) -> t.Any: ...
-
-# =============================================================================
-# STRING-DEV
-# =============================================================================
-
-def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
-def string_noop(s: str) -> str: ...
-def bytes_noop(s: bytes) -> bytes: ...
-
-# =============================================================================
-# REQWEST
-# =============================================================================
 
 class AsyncClient:
     def __init__(
@@ -43,6 +18,7 @@ class AsyncClient:
         url: str,
         *,
         body: bytes | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def put(
         self,
@@ -52,15 +28,17 @@ class AsyncClient:
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def delete(
-        self,
-        url: str,
-        *,
-        headers: dict[str, str] | None = None,
+        self, url: str, *, headers: dict[str, str] | None = None
     ) -> Response: ...
     async def head(
+        self, url: str, *, headers: dict[str, str] | None = None
+    ) -> Response: ...
+    async def fetch(
         self,
         url: str,
         *,
+        method: str = "GET",
+        body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
 
@@ -74,5 +52,5 @@ class Response:
     def bytes_stream(self) -> ResponseStream: ...
 
 class ResponseStream:
-    def __aiter__(self) -> ResponseStream: ...
+    async def __aiter__(self) -> t.AsyncIterator[bytes]: ...
     async def __anext__(self) -> bytes: ...

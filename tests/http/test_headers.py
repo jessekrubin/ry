@@ -1,10 +1,6 @@
 from ry.http import Headers
 
 
-def test_headers_dev() -> None:
-    h = Headers({"Content-Type": "application/json"})
-
-
 class TestHeadersObj:
     def test_len_and_keys_len(self) -> None:
         h = Headers({"Content-Type": "application/json", "Accept": "application/json"})

@@ -10,7 +10,8 @@ import json
 import threading
 import time
 from asyncio import sleep as aiosleep
-from typing import Any, AsyncGenerator, Awaitable, Callable, Coroutine, Iterator
+from collections.abc import AsyncGenerator, Awaitable, Coroutine, Iterator
+from typing import Any, Callable
 
 import httpx
 import pytest

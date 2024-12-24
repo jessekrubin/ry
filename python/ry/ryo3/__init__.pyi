@@ -12,6 +12,7 @@ from ry.types.jiff import (
 )
 
 from . import http
+from .reqwest import AsyncClient, Response, ResponseStream
 
 __version__: str
 __authors__: str
