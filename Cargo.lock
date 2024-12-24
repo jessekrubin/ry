@@ -1738,6 +1738,7 @@ dependencies = [
  "http",
  "pyo3",
  "pyo3-build-config",
+ "ryo3-macros",
 ]
 
 [[package]]
@@ -1793,6 +1794,7 @@ dependencies = [
  "pyo3-async-runtimes",
  "reqwest",
  "ryo3-bytes",
+ "ryo3-macros",
  "ryo3-url",
  "tokio",
  "tracing",

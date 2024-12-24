@@ -98,23 +98,23 @@ impl PyDuration {
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================
-    fn __richcmp__(&self, other: PyDurationComparable, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: PyDurationComparable, op: CompareOp) -> bool {
         match other {
             PyDurationComparable::PyDuration(other) => match op {
-                CompareOp::Eq => Ok(self.0 == other.0),
-                CompareOp::Ne => Ok(self.0 != other.0),
-                CompareOp::Lt => Ok(self.0 < other.0),
-                CompareOp::Le => Ok(self.0 <= other.0),
-                CompareOp::Gt => Ok(self.0 > other.0),
-                CompareOp::Ge => Ok(self.0 >= other.0),
+                CompareOp::Eq => self.0 == other.0,
+                CompareOp::Ne => self.0 != other.0,
+                CompareOp::Lt => self.0 < other.0,
+                CompareOp::Le => self.0 <= other.0,
+                CompareOp::Gt => self.0 > other.0,
+                CompareOp::Ge => self.0 >= other.0,
             },
             PyDurationComparable::Duration(other) => match op {
-                CompareOp::Eq => Ok(self.0 == other),
-                CompareOp::Ne => Ok(self.0 != other),
-                CompareOp::Lt => Ok(self.0 < other),
-                CompareOp::Le => Ok(self.0 <= other),
-                CompareOp::Gt => Ok(self.0 > other),
-                CompareOp::Ge => Ok(self.0 >= other),
+                CompareOp::Eq => self.0 == other,
+                CompareOp::Ne => self.0 != other,
+                CompareOp::Lt => self.0 < other,
+                CompareOp::Le => self.0 <= other,
+                CompareOp::Gt => self.0 > other,
+                CompareOp::Ge => self.0 >= other,
             },
         }
     }
@@ -216,8 +216,8 @@ impl PyDuration {
     }
 
     #[classmethod]
-    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> PyResult<Self> {
-        Ok(PyDuration(delta))
+    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> Self {
+        PyDuration(delta)
     }
 
     // ========================================================================

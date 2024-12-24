@@ -2,6 +2,7 @@
 mod async_client;
 mod blocking;
 mod errors;
+mod fetch;
 mod pyo3_bytes;
 
 use crate::async_client::RyAsyncClient;

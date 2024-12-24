@@ -4,14 +4,14 @@ import datetime as pydt
 import typing as t
 from os import PathLike
 
-from ry._types.jiff import (
-    JIFF_ROUND_MODE_STRING,
-    JIFF_UNIT_STRING,
+from ry.types.jiff import (
     DateTimeTypedDict,
     DateTypedDict,
     TimeSpanTypedDict,
     TimeTypedDict,
 )
+
+from . import http
 
 __version__: str
 __authors__: str
@@ -151,6 +151,7 @@ class Instant:
     def __sub__(self, other: Duration) -> Instant: ...
     @t.overload
     def __sub__(self, other: Instant) -> Duration: ...
+
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
@@ -714,6 +715,30 @@ class URL:
 # =============================================================================
 # JIFF
 # =============================================================================
+JIFF_UNIT_STRING = t.Literal[
+    "year",
+    "month",
+    "week",
+    "day",
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
+
+JIFF_ROUND_MODE_STRING = t.Literal[
+    "ceil",
+    "floor",
+    "expand",
+    "trunc",
+    "half_ceil",
+    "half_floor",
+    "half_expand",
+    "half_trunc",
+    "half_even",
+]
 
 class Date:
     MIN: Date
