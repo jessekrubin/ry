@@ -7,3 +7,4 @@ pytest-benchmark
 ruff
 tomli
 tzdata
+uvicorn

@@ -193,8 +193,8 @@ impl RyAsyncClient {
             deflate = true
         )
     )]
-    fn py_new<'py>(
-        headers: Option<Bound<'py, PyDict>>,
+    fn py_new(
+        headers: Option<Bound<'_, PyDict>>,
         timeout: Option<u64>,
         gzip: Option<bool>,
         brotli: Option<bool>,
@@ -345,73 +345,4 @@ impl RyAsyncClient {
                 .map_err(map_reqwest_err)
         })
     }
-    // fn fetch<'py>(
-    //     &'py mut self,
-    //     py: Python<'py>,
-    //     url: &str,
-    //     method:&str,
-    //     headers: Option<Bound<'py, PyDict>>,
-    //     body: Option<&[u8]>,
-    // ) -> PyResult<Bound<'py, PyAny>> {
-    //     let mut req = self.0.request(
-    //         method.map_or(reqwest::Method::GET, |m| {
-    //             reqwest::Method::from_bytes(m.as_bytes()).unwrap()
-    //         }),
-    //         url,
-    //     );
-    //     if let Some(body) = body {
-    //         req = req.body(body.to_vec());
-    //     }
-    //     if let Some(headers) = headers {
-    //         let mut default_headers = reqwest::header::HeaderMap::new();
-    //         for (k, v) in headers {
-    //             let k = k.to_string();
-    //             let v = v.to_string();
-    //             let header_name = reqwest::header::HeaderName::from_bytes(k.as_bytes())
-    //                 .map_err(|e| PyValueError::new_err(format!("header-name-error: {e}")))?;
-    //             let header_value = reqwest::header::HeaderValue::from_str(&v)
-    //                 .map_err(|e| PyValueError::new_err(format!("header-value-error: {e}")))?;
-    //             default_headers.insert(header_name, header_value);
-    //         }
-    //         req = req.headers(default_headers);
-    //     }
-    //     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-    //         req.send()
-    //             .await
-    //             .map(RyAsyncResponse::from)
-    //             .map_err(map_reqwest_err)
-    //     })
-    // }
 }
-// static DEFAULT_CLIENT: OnceLock<std::sync::Mutex<RyAsyncClient>> = OnceLock::new();
-//
-// #[inline]
-// fn get_default_client() -> &'static std::sync::Mutex<RyAsyncClient> {
-//     DEFAULT_CLIENT.get_or_init(|| std::sync::Mutex::new(RyAsyncClient(reqwest::Client::new())))
-// }
-//
-// // global fetch
-// #[pyfunction]
-// #[pyo3(
-//     signature = (
-//         url,
-//         *,
-//         method = "GET",
-//         body = None,
-//         headers = None
-//     )
-// )]
-// pub fn fetch<'py>(
-//     py: Python<'py>,
-//     url: &str,
-//     method: Option<&str>,
-//     body: Option<&[u8]>,
-//     headers: Option<Bound<'py, PyDict>>,
-// ) -> PyResult<Bound<'py, PyAny>> {
-//     let client = get_default_client();
-//     let mut client = client
-//         .lock()
-//         .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
-//     let r = client.fetch(py, url, method, body, headers);
-//     r
-// }

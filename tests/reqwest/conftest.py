@@ -13,11 +13,12 @@ from asyncio import sleep as aiosleep
 from collections.abc import AsyncGenerator, Awaitable, Coroutine, Iterator
 from typing import Any, Callable
 
-import httpx
 import pytest
 from uvicorn import _types as uvt
 from uvicorn.config import Config
 from uvicorn.server import Server
+
+import ry
 
 ENVIRONMENT_VARIABLES = {
     "SSL_CERT_FILE",
@@ -28,7 +29,6 @@ ENVIRONMENT_VARIABLES = {
     "NO_PROXY",
     "SSLKEYLOGFILE",
 }
-
 
 Message = dict[str, Any]
 Receive = Callable[[], Awaitable[Message]]
@@ -146,9 +146,9 @@ async def reqtest_server(scope: Scope, receive: Receive, send: Send) -> None:
 
 class ReqtestServer(Server):
     @property
-    def url(self) -> httpx.URL:
+    def url(self) -> ry.URL:
         protocol = "https" if self.config.is_ssl else "http"
-        return httpx.URL(f"{protocol}://{self.config.host}:{self.config.port}/")
+        return ry.URL(f"{protocol}://{self.config.host}:{self.config.port}/")
 
     def install_signal_handlers(self) -> None:
         # Disable the default installation of handlers for signals such as SIGTERM,

@@ -1,3 +1,5 @@
+"""ry-types"""
+
 from __future__ import annotations
 
 from typing import TypedDict
@@ -10,6 +12,9 @@ __all__ = (
 )
 
 
+# =============================================================================
+# JIFF
+# =============================================================================
 class DateTypedDict(TypedDict):
     year: int
     month: int
