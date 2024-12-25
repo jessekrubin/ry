@@ -30,6 +30,13 @@ class AsyncClient:
     async def delete(
         self, url: str, *, headers: dict[str, str] | None = None
     ) -> Response: ...
+    async def patch(
+        self,
+        url: str,
+        *,
+        body: bytes | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Response: ...
     async def head(
         self, url: str, *, headers: dict[str, str] | None = None
     ) -> Response: ...
