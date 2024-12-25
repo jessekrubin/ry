@@ -1,4 +1,5 @@
 use crate::errors::map_reqwest_err;
+
 use crate::pyo3_bytes::Pyo3JsonBytes;
 use bytes::Bytes;
 use futures_core::Stream;
@@ -14,13 +15,13 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 #[pyclass]
-#[pyo3(name = "AsyncClient")]
+#[pyo3(name = "AsyncClient", module = "ry.ryo3.reqwest")]
 #[derive(Debug, Clone)]
-pub struct RyAsyncClient(reqwest::Client);
+pub struct RyAsyncClient(pub reqwest::Client);
 #[pyclass]
-#[pyo3(name = "AsyncResponse")]
+#[pyo3(name = "Response", module = "ry.ryo3.reqwest")]
 #[derive(Debug)]
-pub struct RyAsyncResponse {
+pub struct RyResponse {
     /// The actual response which will be consumed when read
     res: Option<reqwest::Response>,
 
@@ -36,7 +37,7 @@ pub struct RyAsyncResponse {
     content_length: Option<u64>,
 }
 
-impl From<reqwest::Response> for RyAsyncResponse {
+impl From<reqwest::Response> for RyResponse {
     fn from(res: reqwest::Response) -> Self {
         Self {
             status_code: res.status(),
@@ -51,7 +52,7 @@ impl From<reqwest::Response> for RyAsyncResponse {
     }
 }
 #[pymethods]
-impl RyAsyncResponse {
+impl RyResponse {
     #[getter]
     fn status_code(&self) -> u16 {
         self.status_code.as_u16()
@@ -138,11 +139,11 @@ impl RyAsyncResponse {
     }
 
     fn __str__(&self) -> String {
-        format!("Response: {}", self.status_code)
+        format!("Response<{}>", self.status_code)
     }
 
     fn __repr__(&self) -> String {
-        format!("Response: {}", self.status_code)
+        format!("Response<{}>", self.status_code)
     }
 }
 
@@ -183,16 +184,56 @@ impl RyAsyncResponseIter {
 #[pymethods]
 impl RyAsyncClient {
     #[new]
-    fn new() -> Self {
-        Self(reqwest::Client::new())
+    #[pyo3(
+        signature = (
+            headers = None,
+            timeout = 30,
+            gzip = true,
+            brotli = true,
+            deflate = true
+        )
+    )]
+    fn py_new(
+        headers: Option<Bound<'_, PyDict>>,
+        timeout: Option<u64>,
+        gzip: Option<bool>,
+        brotli: Option<bool>,
+        deflate: Option<bool>,
+    ) -> PyResult<Self> {
+        let mut client_builder = reqwest::Client::builder();
+
+        // TODO: revisit when `ry.Headers` becomes better/stable
+        if let Some(headers) = headers {
+            let mut default_headers = reqwest::header::HeaderMap::new();
+            for (k, v) in headers {
+                let k = k.to_string();
+                let v = v.to_string();
+                let header_name = reqwest::header::HeaderName::from_bytes(k.as_bytes())
+                    .map_err(|e| PyValueError::new_err(format!("header-name-error: {e}")))?;
+                let header_value = reqwest::header::HeaderValue::from_str(&v)
+                    .map_err(|e| PyValueError::new_err(format!("header-value-error: {e}")))?;
+                default_headers.insert(header_name, header_value);
+            }
+            client_builder = client_builder.default_headers(default_headers);
+        }
+
+        client_builder = client_builder
+            .brotli(brotli.unwrap_or(true))
+            .gzip(gzip.unwrap_or(true))
+            .deflate(deflate.unwrap_or(true))
+            .timeout(std::time::Duration::from_secs(timeout.unwrap_or(30)));
+        let client = client_builder
+            .build()
+            .map_err(|e| PyValueError::new_err(format!("client-build: {e}")))?;
+        Ok(Self(client))
     }
 
     fn get<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
-        let response_future = self.0.get(url).send();
+        let req = self.0.get(url);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response_future
+            req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -203,11 +244,11 @@ impl RyAsyncClient {
         url: &str,
         body: &[u8],
     ) -> PyResult<Bound<'py, PyAny>> {
-        let response_future = self.0.post(url).body(body.to_vec()).send();
+        let req = self.0.post(url).body(body.to_vec());
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response_future
+            req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -218,11 +259,11 @@ impl RyAsyncClient {
         url: &str,
         body: &[u8],
     ) -> PyResult<Bound<'py, PyAny>> {
-        let response_future = self.0.put(url).body(body.to_vec()).send();
+        let req = self.0.put(url).body(body.to_vec());
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response_future
+            req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -233,31 +274,74 @@ impl RyAsyncClient {
         url: &str,
         body: &[u8],
     ) -> PyResult<Bound<'py, PyAny>> {
-        let response_future = self.0.patch(url).body(body.to_vec()).send();
+        let req = self.0.patch(url).body(body.to_vec());
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response_future
+            req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
 
     fn delete<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
-        let response_future = self.0.delete(url).send();
+        let req = self.0.delete(url);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response_future
+            req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
 
     fn head<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
-        let response_future = self.0.head(url).send();
+        let req = self.0.head(url);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response_future
+            req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
+                .map_err(map_reqwest_err)
+        })
+    }
+
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            method = None,
+            body = None,
+            headers = None
+        )
+    )]
+    pub fn fetch<'py>(
+        &'py mut self,
+        py: Python<'py>,
+        url: &str,
+        method: Option<ryo3_http::HttpMethod>,
+        body: Option<&[u8]>,
+        headers: Option<Bound<'py, PyDict>>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let method = method.unwrap_or(ryo3_http::HttpMethod(reqwest::Method::GET));
+        let mut req = self.0.request(method.0, url);
+        if let Some(body) = body {
+            req = req.body(body.to_vec());
+        }
+        if let Some(headers) = headers {
+            let mut default_headers = reqwest::header::HeaderMap::new();
+            for (k, v) in headers {
+                let k = k.to_string();
+                let v = v.to_string();
+                let header_name = reqwest::header::HeaderName::from_bytes(k.as_bytes())
+                    .map_err(|e| PyValueError::new_err(format!("header-name-error: {e}")))?;
+                let header_value = reqwest::header::HeaderValue::from_str(&v)
+                    .map_err(|e| PyValueError::new_err(format!("header-value-error: {e}")))?;
+                default_headers.insert(header_name, header_value);
+            }
+            req = req.headers(default_headers);
+        }
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            req.send()
+                .await
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }

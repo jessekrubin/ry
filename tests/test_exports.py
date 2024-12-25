@@ -42,11 +42,12 @@ def test_exports_module_attr_param(name: str) -> None:
 
     if isinstance(member, ModuleType):
         member_name = member.__name__
-        print(member_name)
         assert member.__name__.startswith("ry."), f"{name} {member} is not in ry"
         return
 
     module_name = member.__module__
     assert module_name is not None, f"{name} has no __module__"
     assert module_name != "builtins", f"{name} is builtin"
-    assert module_name in ("ryo3", "ry.ryo3"), f"{name} {member} is not in ryo3"
+    assert any(
+        module_name.startswith(prefix) for prefix in ("ry", "ryo3", "ry.ryo3")
+    ), f"{name} {member} is not in ry"

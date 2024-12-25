@@ -99,10 +99,14 @@ lint.per-file-ignores."tests/**/*.py" = [
   "T201",
   "TID252",
 ]
+lint.per-file-ignores."tests/reqwest/conftest.py"=[
+  "ARG001",
+]
 lint.per-file-ignores."python/ry/dev.py" = [
 
 ]
 lint.per-file-ignores."python/ry/ryo3/*.pyi" = [
+  "F401",
   "F821",
 ]
 lint.per-file-ignores."scripts/**" = [

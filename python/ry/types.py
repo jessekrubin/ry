@@ -1,42 +1,20 @@
+"""ry-types"""
+
 from __future__ import annotations
 
-from typing import Literal, TypedDict
+from typing import TypedDict
 
 __all__ = (
-    "JIFF_ROUND_MODE_STRING",
-    "JIFF_UNIT_STRING",
     "DateTimeTypedDict",
     "DateTypedDict",
     "TimeSpanTypedDict",
     "TimeTypedDict",
 )
 
-JIFF_UNIT_STRING = Literal[
-    "year",
-    "month",
-    "week",
-    "day",
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
 
-JIFF_ROUND_MODE_STRING = Literal[
-    "ceil",
-    "floor",
-    "expand",
-    "trunc",
-    "half_ceil",
-    "half_floor",
-    "half_expand",
-    "half_trunc",
-    "half_even",
-]
-
-
+# =============================================================================
+# JIFF
+# =============================================================================
 class DateTypedDict(TypedDict):
     year: int
     month: int

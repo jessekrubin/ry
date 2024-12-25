@@ -21,6 +21,10 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_jiter::pymod_add(m)?;
     #[cfg(feature = "regex")]
     ryo3_regex::pymod_add(m)?;
+
+    #[cfg(feature = "reqwest")] // WILL MOVE
+    ryo3_reqwest::pymod_add(m)?;
+
     #[cfg(feature = "shlex")]
     ryo3_shlex::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]

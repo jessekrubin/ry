@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v0.0.24 [2024-12-24] (the night b4 xmas...)
+
+
+- `http`
+  - basic headers struct/obj -- WIP
+- `reqwest`
+  - reqwest client (currently root-export)
+  - default client + root `fetch` function likely needs work...
+  - response `byte_stream`!
+
+
+___
+
 ## v0.0.23 [2024-12-19]
 
 - `python -m ry.dev` repl for ipython/python repl ~ handy nifty secret tool makes it into repo
