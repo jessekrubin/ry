@@ -19,9 +19,9 @@ use tokio::sync::Mutex;
 #[derive(Debug, Clone)]
 pub struct RyAsyncClient(pub reqwest::Client);
 #[pyclass]
-#[pyo3(name = "AsyncResponse", module = "ry.ryo3.reqwest")]
+#[pyo3(name = "Response", module = "ry.ryo3.reqwest")]
 #[derive(Debug)]
-pub struct RyAsyncResponse {
+pub struct RyResponse {
     /// The actual response which will be consumed when read
     res: Option<reqwest::Response>,
 
@@ -37,7 +37,7 @@ pub struct RyAsyncResponse {
     content_length: Option<u64>,
 }
 
-impl From<reqwest::Response> for RyAsyncResponse {
+impl From<reqwest::Response> for RyResponse {
     fn from(res: reqwest::Response) -> Self {
         Self {
             status_code: res.status(),
@@ -52,7 +52,7 @@ impl From<reqwest::Response> for RyAsyncResponse {
     }
 }
 #[pymethods]
-impl RyAsyncResponse {
+impl RyResponse {
     #[getter]
     fn status_code(&self) -> u16 {
         self.status_code.as_u16()
@@ -139,11 +139,11 @@ impl RyAsyncResponse {
     }
 
     fn __str__(&self) -> String {
-        format!("Response: {}", self.status_code)
+        format!("Response<{}>", self.status_code)
     }
 
     fn __repr__(&self) -> String {
-        format!("Response: {}", self.status_code)
+        format!("Response<{}>", self.status_code)
     }
 }
 
@@ -233,7 +233,7 @@ impl RyAsyncClient {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -248,7 +248,7 @@ impl RyAsyncClient {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -263,7 +263,7 @@ impl RyAsyncClient {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -278,7 +278,7 @@ impl RyAsyncClient {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -288,7 +288,7 @@ impl RyAsyncClient {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -298,7 +298,7 @@ impl RyAsyncClient {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
@@ -341,7 +341,7 @@ impl RyAsyncClient {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
-                .map(RyAsyncResponse::from)
+                .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
     }
