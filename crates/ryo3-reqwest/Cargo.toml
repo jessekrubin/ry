@@ -14,7 +14,7 @@ pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-asy
 pyo3-async-runtimes = { workspace = true, features = ["attributes", "tokio-runtime"] }
 tracing.workspace = true
 tokio.workspace = true
-reqwest = { version = "0.12.9", features = [
+reqwest = { version = "0.12.11", features = [
   "blocking",
   "brotli",
   "charset",
