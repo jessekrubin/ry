@@ -10,7 +10,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-jiff = { version = "0.1.15", features = ["default", "serde"] }
+jiff = { version = "0.1.16", features = ["default", "serde"] }
 ryo3-std = { workspace = true }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 ryo3-macros.workspace = true
