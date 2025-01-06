@@ -134,7 +134,7 @@ bytes = "1.9.0"
 dirs = { version = "5.0.1", features = [] }
 heck = "0.5.0"
 http = "1.2.0"
-jiff = "0.1.16"
+jiff = "0.1.21"
 jiter = { version = "0.8.2", features = ["python"] }
 pyo3 = { version = "0.23.3", features = ["experimental-inspect", "num-bigint"] }
 pyo3-async-runtimes = { version = "0.23", features = ["attributes", "tokio-runtime"] }
