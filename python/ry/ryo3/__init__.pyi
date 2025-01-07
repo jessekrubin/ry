@@ -4,26 +4,13 @@ import datetime as pydt
 import typing as t
 from os import PathLike
 
-from ry.types import (
-    DateTimeTypedDict,
-    DateTypedDict,
-    TimeSpanTypedDict,
-    TimeTypedDict,
-)
+from ry.types import DateTimeTypedDict, DateTypedDict, TimeSpanTypedDict, TimeTypedDict
 
 from . import http as http
-from .reqwest import (
-    AsyncClient as AsyncClient,
-)
-from .reqwest import (
-    Response as Response,
-)
-from .reqwest import (
-    ResponseStream as ResponseStream,
-)
-from .reqwest import (
-    fetch as fetch,
-)
+from .reqwest import AsyncClient as AsyncClient
+from .reqwest import Response as Response
+from .reqwest import ResponseStream as ResponseStream
+from .reqwest import fetch as fetch
 
 __version__: str
 __authors__: str
