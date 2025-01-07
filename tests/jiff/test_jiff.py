@@ -203,12 +203,12 @@ class TestTimeSpan:
         zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
         zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
         span = zdt2 - zdt1
-        assert span.string() == "PT29341h3m"
+        assert span.string() == "PT29341H3M"
         span_negated = -span
-        assert span_negated.string() == "-PT29341h3m"
+        assert span_negated.string() == "-PT29341H3M"
 
         span_inverted = ~span
-        assert span_inverted.string() == "-PT29341h3m"
+        assert span_inverted.string() == "-PT29341H3M"
 
     def test_span_2_duration(self) -> None:
         zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
@@ -341,7 +341,7 @@ class TestDateTime:
 class TestTimespanFunction:
     def test_timespan_fn(self) -> None:
         ts = ry.timespan(weeks=1)
-        assert ts.string() == "P1w"
+        assert ts.string() == "P1W"
 
     def test_timespan_overflow(self) -> None:
         max_i64 = 9_223_372_036_854_775_807

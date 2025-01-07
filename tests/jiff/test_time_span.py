@@ -68,19 +68,19 @@ def test_negative_spans() -> None:
     assert_eq!(span.to_string(), "-P5d");
     """
     span = -ry.TimeSpan()._days(5)
-    assert span.string() == "-P5d"
+    assert span.string() == "-P5D"
 
     span = ry.TimeSpan()._days(5).negate()
-    assert span.string() == "-P5d"
+    assert span.string() == "-P5D"
 
     span = ry.TimeSpan()._days(-5)
-    assert span.string() == "-P5d"
+    assert span.string() == "-P5D"
 
     span = -ry.TimeSpan()._days(-5).negate()
-    assert span.string() == "-P5d"
+    assert span.string() == "-P5D"
 
     span = ry.TimeSpan()._days(-5)
-    assert span.string() == "-P5d"
+    assert span.string() == "-P5D"
 
 
 class TestSpanCheckedAdd:

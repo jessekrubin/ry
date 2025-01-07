@@ -44,10 +44,10 @@ class TestZonedUntil:
         zdt2 = ry.date(2019, 1, 31).at(15, 30, 0, 0).intz("America/New_York")
 
         span = zdt1.until(zdt2)
-        assert str(span) == "PT202956h5m29.9999965s"
+        assert str(span) == "PT202956H5M29.9999965S"
 
         span = zdt1.until(("year", zdt2))
-        assert str(span) == "P23y1m24dT12h5m29.9999965s"
+        assert str(span) == "P23Y1M24DT12H5M29.9999965S"
 
     # def test_zoned_until_rounding_the_result(self) ->None:
     #     """

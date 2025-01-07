@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.25 [2024-01-07] (25 for 2025)
+
+- `jiff`
+  - Updated to `0.1.21` which has span and signed duration strings with capital letters
+
+
+___
+
 ## v0.0.24 [2024-12-24] (the night b4 xmas...)
 
 

@@ -33,7 +33,7 @@ def test_find_duration_between_datetimes() -> None:
     zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
     span = zdt2 - zdt1
     assert isinstance(span, ry.TimeSpan)
-    assert str(span) == "PT29341h3m"
+    assert str(span) == "PT29341H3M"
 
 
 def test_add_duration_to_a_zoned_datetime() -> None:
@@ -54,7 +54,7 @@ def test_parsing_a_span() -> None:
     span: ry.TimeSpan = ry.TimeSpan.parse("P5y1w10dT5h59m")
     expected = ry.TimeSpan()._years(5)._weeks(1)._days(10)._hours(5)._minutes(59)
     assert span == expected
-    assert str(span) == "P5y1w10dT5h59m"
+    assert str(span) == "P5Y1W10DT5H59M"
 
 
 def test_using_strftime_and_strptime_for_formatting_and_parsing() -> None:
