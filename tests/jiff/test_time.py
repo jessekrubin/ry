@@ -33,7 +33,7 @@ def test_time_until() -> None:
     t1 = ry.time(3, 24, 30, 3500)
     t2 = ry.time(15, 30, 0, 0)
     span = t1.until(t2)
-    assert span.string() == "PT12h5m29.9999965s"
+    assert span.string() == "PT12H5M29.9999965S"
 
     # span = t1.until((ry.JiffUnit.Minute, t2))
     # assert span.string() == "PT725m29.9999965s"
