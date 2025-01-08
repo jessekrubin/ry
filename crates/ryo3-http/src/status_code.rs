@@ -15,64 +15,78 @@ impl PyHttpStatus {
         })?))
     }
 
+    #[must_use]
     pub fn __str__(&self) -> String {
         format!("{:?}", self.0)
     }
 
+    #[must_use]
     pub fn __repr__(&self) -> String {
         format!("{:?}", self.0)
     }
 
+    #[must_use]
     pub fn __int__(&self) -> u16 {
         self.0.as_u16()
     }
 
+    #[must_use]
     pub fn canonical_reason(&self) -> Option<&'static str> {
         self.0.canonical_reason()
     }
 
+    #[must_use]
     pub fn reason(&self) -> Option<&'static str> {
         self.0.canonical_reason()
     }
 
+    #[must_use]
     pub fn is_informational(&self) -> bool {
         self.0.is_informational()
     }
 
+    #[must_use]
     pub fn is_success(&self) -> bool {
         self.0.is_success()
     }
 
+    #[must_use]
     pub fn is_redirection(&self) -> bool {
         self.0.is_redirection()
     }
 
+    #[must_use]
     pub fn is_client_error(&self) -> bool {
         self.0.is_client_error()
     }
 
+    #[must_use]
     pub fn is_server_error(&self) -> bool {
         self.0.is_server_error()
     }
 
+    #[must_use]
     pub fn is_ok(&self) -> bool {
         self.0.is_success()
     }
 
     #[getter]
+    #[must_use]
     pub fn ok(&self) -> bool {
         self.0.is_success()
     }
 
+    #[must_use]
     pub fn __hash__(&self) -> u64 {
         u64::from(self.0.as_u16())
     }
 
+    #[must_use]
     pub fn __bool__(&self) -> bool {
         self.0.is_success()
     }
 
-    pub fn __richcmp__<'py>(&self, other: &Bound<'py, PyAny>, op: CompareOp) -> PyResult<bool> {
+    pub fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
         let downcast_res = other.downcast::<PyHttpStatus>();
         if let Ok(status_downcast_gucci) = downcast_res {
             let status = status_downcast_gucci.extract::<PyHttpStatus>()?;

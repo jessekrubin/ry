@@ -39,22 +39,27 @@ impl PyHeaders {
         println!("{self:?}");
     }
 
+    #[must_use]
     pub fn __str__(&self) -> String {
         format!("Headers({:?})", self.0)
     }
 
+    #[must_use]
     pub fn __repr__(&self) -> String {
         format!("Headers({:?})", self.0)
     }
 
+    #[must_use]
     pub fn __len__(&self) -> usize {
         self.0.len()
     }
 
+    #[must_use]
     pub fn __eq__(&self, other: &PyHeaders) -> bool {
         self.0 == other.0
     }
 
+    #[must_use]
     pub fn __ne__(&self, other: &PyHeaders) -> bool {
         self.0 != other.0
     }
@@ -75,6 +80,7 @@ impl PyHeaders {
         self.remove(key);
     }
 
+    #[must_use]
     pub fn __iter__(&self) -> Vec<String> {
         self.0.keys().map(|h| h.as_str().to_string()).collect()
     }
@@ -166,10 +172,12 @@ impl PyHeaders {
         Ok(())
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
+    #[must_use]
     pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
         self.0
             .keys()
@@ -177,10 +185,12 @@ impl PyHeaders {
             .collect()
     }
 
+    #[must_use]
     pub fn keys_len(&self) -> usize {
         self.0.keys_len()
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }

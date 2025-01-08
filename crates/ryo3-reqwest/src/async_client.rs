@@ -204,7 +204,7 @@ impl RyAsyncClient {
     ) -> PyResult<Self> {
         let mut client_builder = reqwest::Client::builder();
         if let Some(headers) = headers {
-            client_builder = client_builder.default_headers(HeaderMap::from(headers));
+            client_builder = client_builder.default_headers(HeaderMap::try_from(headers)?);
         }
         client_builder = client_builder
             .brotli(brotli.unwrap_or(true))
@@ -229,7 +229,7 @@ impl RyAsyncClient {
         let mut req = self.0.get(url);
         // fing-fang-foom make de headers...
         if let Some(headers) = headers {
-            req = req.headers(HeaderMap::from(headers));
+            req = req.headers(HeaderMap::try_from(headers)?);
         }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
