@@ -7,8 +7,10 @@ use futures_util::StreamExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
+use reqwest::header::HeaderMap;
 use reqwest::StatusCode;
 use ryo3_bytes::Pyo3Bytes;
+use ryo3_http::PyHeadersLike;
 use ryo3_url::PyUrl;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -194,29 +196,16 @@ impl RyAsyncClient {
         )
     )]
     fn py_new(
-        headers: Option<Bound<'_, PyDict>>,
+        headers: Option<PyHeadersLike>,
         timeout: Option<u64>,
         gzip: Option<bool>,
         brotli: Option<bool>,
         deflate: Option<bool>,
     ) -> PyResult<Self> {
         let mut client_builder = reqwest::Client::builder();
-
-        // TODO: revisit when `ry.Headers` becomes better/stable
         if let Some(headers) = headers {
-            let mut default_headers = reqwest::header::HeaderMap::new();
-            for (k, v) in headers {
-                let k = k.to_string();
-                let v = v.to_string();
-                let header_name = reqwest::header::HeaderName::from_bytes(k.as_bytes())
-                    .map_err(|e| PyValueError::new_err(format!("header-name-error: {e}")))?;
-                let header_value = reqwest::header::HeaderValue::from_str(&v)
-                    .map_err(|e| PyValueError::new_err(format!("header-value-error: {e}")))?;
-                default_headers.insert(header_name, header_value);
-            }
-            client_builder = client_builder.default_headers(default_headers);
+            client_builder = client_builder.default_headers(HeaderMap::from(headers));
         }
-
         client_builder = client_builder
             .brotli(brotli.unwrap_or(true))
             .gzip(gzip.unwrap_or(true))
@@ -228,8 +217,20 @@ impl RyAsyncClient {
         Ok(Self(client))
     }
 
-    fn get<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.0.get(url);
+    #[pyo3(
+      signature = (url, *, headers = None),
+    )]
+    fn get<'py>(
+        &'py mut self,
+        py: Python<'py>,
+        url: &str,
+        headers: Option<PyHeadersLike>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let mut req = self.0.get(url);
+        // fing-fang-foom make de headers...
+        if let Some(headers) = headers {
+            req = req.headers(HeaderMap::from(headers));
+        }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await

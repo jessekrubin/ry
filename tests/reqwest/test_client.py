@@ -62,7 +62,20 @@ async def test_get_stream(server: ReqtestServer) -> None:
     #     assert response.elapsed > timedelta(seconds=0)
 
 
+async def test_client_headers_req(server: ReqtestServer) -> None:
+    """Test that headers are sent with the request and work good"""
+    url = server.url
+    client = ry.AsyncClient()
+    headers = {"User-Agent": "ry-test", "babydog": "dingo"}
+    response = await client.get(str(url) + "echo", headers=headers)
+    assert response.status_code == 200
+    res_json = await response.json()
+    assert res_json["headers"]["user-agent"] == "ry-test"
+    assert res_json["headers"]["babydog"] == "dingo"
+
+
 async def test_client_default_headers_get(server: ReqtestServer) -> None:
+    """Test that default headers are sent with the request and work good"""
     url = server.url
     client = ry.AsyncClient(headers={"User-Agent": "ry-test", "babydog": "dingo"})
     response = await client.get(str(url) + "echo")
@@ -75,8 +88,8 @@ async def test_client_default_headers_get(server: ReqtestServer) -> None:
 async def test_client_post(server: ReqtestServer) -> None:
     url = server.url
     client = ry.AsyncClient()
-    response = await client.post(str(url) + "echo", body=b"BOOM")
+    response = await client.post(str(url) + "echo", body=b"BABOOM")
 
     assert response.status_code == 200
     res_json = await response.json()
-    assert res_json["body"] == "BOOM"
+    assert res_json["body"] == "BABOOM"
