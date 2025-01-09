@@ -20,7 +20,7 @@ impl RyReqwestError {
     #[allow(unused_variables)]
     #[new]
     #[pyo3(signature = (*args, **kwargs))]
-    fn py_new<'py>(args: Bound<'py, PyTuple>, kwargs: Option<Bound<'py, PyDict>>) -> Self {
+    fn py_new<'py>(args: &Bound<'py, PyTuple>, kwargs: Option<&Bound<'py, PyDict>>) -> Self {
         Self(None)
     }
     fn __dbg__(&self) -> String {
@@ -90,7 +90,7 @@ impl RyReqwestError {
         slf
     }
 
-    pub fn without_url<'py>(mut slf: PyRefMut<'py, Self>) -> PyRefMut<'py, Self> {
+    pub fn without_url(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, Self> {
         if let Some(e) = &mut slf.0 {
             e.url_mut().take();
         }

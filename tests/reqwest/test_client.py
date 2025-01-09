@@ -117,8 +117,6 @@ async def test_client_timeout_dev(server: ReqtestServer) -> None:
 async def test_client_timeout(server: ReqtestServer) -> None:
     url = server.url
     client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
-    with pytest.raises(Exception):
+    with pytest.raises(ry.ReqwestError):
         res = await client.get(str(url) + "slow")
-        print(res)
-        text = await res.text()
-        print(text)
+        _text = await res.text()
