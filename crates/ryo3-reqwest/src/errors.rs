@@ -4,7 +4,6 @@ use pyo3::types::{PyDict, PyTuple};
 use pyo3::PyErr;
 use ryo3_http::PyHttpStatus;
 use ryo3_url::PyUrl;
-use std::fmt;
 
 #[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError")]
 #[derive(Debug)]
@@ -18,6 +17,7 @@ pub struct RyReqwestError(pub Option<reqwest::Error>);
 
 #[pymethods]
 impl RyReqwestError {
+    #[allow(unused_variables)]
     #[new]
     #[pyo3(signature = (*args, **kwargs))]
     fn py_new<'py>(args: Bound<'py, PyTuple>, kwargs: Option<Bound<'py, PyDict>>) -> Self {
@@ -68,11 +68,7 @@ impl RyReqwestError {
 
     pub fn status(&self) -> Option<PyHttpStatus> {
         if let Some(e) = &self.0 {
-            if let Some(status) = e.status() {
-                Some(PyHttpStatus(status))
-            } else {
-                None
-            }
+            e.status().map(PyHttpStatus)
         } else {
             None
         }
@@ -80,22 +76,27 @@ impl RyReqwestError {
 
     pub fn url(&self) -> Option<PyUrl> {
         if let Some(e) = &self.0 {
-            if let Some(url) = e.url() {
-                Some(PyUrl(url.clone()))
-            } else {
-                None
-            }
+            e.url().map(|url| PyUrl(url.clone()))
         } else {
             None
         }
     }
 
-    // pub fn with_url<'py>(mut slf: PyRefMut<'py, Self>, url: &PyUrl) -> PyRefMut<'py, Self> {
-    //     let mut url = url.0.clone();
-    //     slf.0.url_mut().replace(&mut url);
-    //     slf
-    // }
-    //
+    pub fn with_url<'py>(mut slf: PyRefMut<'py, Self>, url: &PyUrl) -> PyRefMut<'py, Self> {
+        if let Some(e) = &mut slf.0 {
+            let mut url = url.0.clone();
+            e.url_mut().replace(&mut url);
+        }
+        slf
+    }
+
+    pub fn without_url<'py>(mut slf: PyRefMut<'py, Self>) -> PyRefMut<'py, Self> {
+        if let Some(e) = &mut slf.0 {
+            e.url_mut().take();
+        }
+        slf
+    }
+
     // pub fn without_url(mut slf: PyRefMut<'_, Self>) {
     //     slf.0.url_mut().take();
     // }
@@ -162,7 +163,7 @@ impl From<RyReqwestError> for PyErr {
     fn from(e: RyReqwestError) -> Self {
         // map_reqwest_err(e)
         if let Some(e) = e.0 {
-            PyErr::new::<RyReqwestError, _>(format!("{:?}", e))
+            PyErr::new::<RyReqwestError, _>(format!("{e:?}"))
         } else {
             PyErr::new::<RyReqwestError, _>("RyReqwestError(None)")
         }

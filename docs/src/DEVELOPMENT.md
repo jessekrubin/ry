@@ -6,6 +6,7 @@
 
 - **NO UNWRAPPING**
 - **NO PANICS**
+- **NO `blazingly-fast`** -- `ry` is fast and does not need an adverb
 - **USE CLIPPY** `just clippy` or `just ci`
 - **USE RUSTFMT AND RUFF** `just fmt`
 - avoid using macros as they are not as easy to reason about and/or debug, but feel free to say 'yolo'

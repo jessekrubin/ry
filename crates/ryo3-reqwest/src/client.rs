@@ -198,6 +198,7 @@ fn parse_user_agent(user_agent: Option<String>) -> PyResult<HeaderValue> {
 
 #[pymethods]
 impl RyHttpClient {
+    #[allow(clippy::too_many_arguments)]
     #[new]
     #[pyo3(
         signature = (
@@ -240,17 +241,17 @@ impl RyHttpClient {
             .deflate(deflate.unwrap_or(true));
 
         if let Some(timeout) = timeout {
-            println!("timeout: {:?}", timeout);
+            println!("timeout: {timeout:?}");
             client_builder = client_builder.timeout(timeout.0);
         }
 
         if let Some(read_timeout) = read_timeout {
-            println!("read_timeout: {:?}", read_timeout);
+            println!("read_timeout: {read_timeout:?}");
             client_builder = client_builder.read_timeout(read_timeout.0);
         }
 
         if let Some(connect_timeout) = connect_timeout {
-            println!("connect_timeout: {:?}", connect_timeout);
+            println!("connect_timeout: {connect_timeout:?}");
             client_builder = client_builder.connect_timeout(connect_timeout.0);
         }
 
@@ -276,7 +277,7 @@ impl RyHttpClient {
         }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send().await.map(RyResponse::from).map_err(|e| {
-                println!("error: {:?}", e);
+                println!("error: {e:?}");
                 map_reqwest_err(e)
             })
         })
