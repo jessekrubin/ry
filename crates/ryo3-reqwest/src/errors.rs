@@ -9,12 +9,6 @@ use ryo3_url::PyUrl;
 #[derive(Debug)]
 pub struct RyReqwestError(pub Option<reqwest::Error>);
 
-// impl RyReqwestError {
-//     fn new(e: reqwest::Error) -> Self {
-//         RyReqwestError(e)
-//     }
-// }
-
 #[pymethods]
 impl RyReqwestError {
     #[allow(unused_variables)]
@@ -42,22 +36,62 @@ impl RyReqwestError {
     // - with_url
     // - without_url
 
-    // pub fn is_decode(&self) -> bool {
-    //     self.0.is_decode()
-    // }
-    //
-    // pub fn is_redirect(&self) -> bool {
-    //     self.0.is_redirect()
-    // }
-    //
-    // pub fn is_request(&self) -> bool {
-    //     self.0.is_request()
-    // }
-    //
-    // pub fn is_status(&self) -> bool {
-    //     self.0.is_status()
-    // }
-    //
+    pub fn is_body(&self) -> bool {
+        if let Some(e) = &self.0 {
+            e.is_body()
+        } else {
+            false
+        }
+    }
+
+    pub fn is_builder(&self) -> bool {
+        if let Some(e) = &self.0 {
+            e.is_builder()
+        } else {
+            false
+        }
+    }
+
+    pub fn is_connect(&self) -> bool {
+        if let Some(e) = &self.0 {
+            e.is_connect()
+        } else {
+            false
+        }
+    }
+
+    pub fn is_decode(&self) -> bool {
+        if let Some(e) = &self.0 {
+            e.is_decode()
+        } else {
+            false
+        }
+    }
+
+    pub fn is_redirect(&self) -> bool {
+        if let Some(e) = &self.0 {
+            e.is_redirect()
+        } else {
+            false
+        }
+    }
+
+    pub fn is_request(&self) -> bool {
+        if let Some(e) = &self.0 {
+            e.is_request()
+        } else {
+            false
+        }
+    }
+
+    pub fn is_status(&self) -> bool {
+        if let Some(e) = &self.0 {
+            e.is_status()
+        } else {
+            false
+        }
+    }
+
     pub fn is_timeout(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_timeout()
@@ -96,67 +130,6 @@ impl RyReqwestError {
         }
         slf
     }
-
-    // pub fn without_url(mut slf: PyRefMut<'_, Self>) {
-    //     slf.0.url_mut().take();
-    // }
-}
-//
-// impl fmt::Display for RyReqwestError {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         write!(f, "RyReqwestErrorPy: {:?}", self.0)
-//     }
-// }
-//
-// #[derive(Error, Debug)]
-// #[pyclass]
-// pub struct RyReqwestError
-
-// #[derive(Error, Debug)]
-// pub enum Ryo3ReqwestError {
-//     /// A wrapped [object_store::Error]
-//     #[error(transparent)]
-//     ReqwestError(#[from] reqwest::Error),
-//
-//     /// A wrapped [PyErr]
-//     #[error(transparent)]
-//     PyErr(#[from] PyErr),
-//
-//     /// A wrapped [std::io::Error]
-//     #[error(transparent)]
-//     IOError(#[from] std::io::Error),
-// }
-//
-// impl From<Ryo3ReqwestError> for PyErr {
-//     fn from(e: Ryo3ReqwestError) -> Self {
-//         match e {
-//             Ryo3ReqwestError::PyErr(err) => err,
-//
-//             Ryo3ReqwestError::ReqwestError(ref err) => {
-//                 tracing::trace!("ReqwestError: {:?}", err);
-//                 ReqwestError::new_err(format!("{:?}", err))
-//             }
-//             // Ryo3ReqwestError::PyErr(err) => err,
-//             Ryo3ReqwestError::IOError(err) => PyIOError::new_err(err.to_string()),
-//         }
-//     }
-// }
-
-// pub(crate) fn map_reqwest_err(e: &Error) -> PyErr {
-//     PyValueError::new_err(format!("{e}"))
-// }
-// pub(crate) fn map_reqwest_err<E>(e: E) -> PyErr
-// where
-//     E: fmt::Display,
-// {
-//
-//     PyErr::new::<PyValueError, _>(format!("{e}"))
-// }
-
-// version taht takes either a reqwest::Error or a reference to a reqwest::Error
-pub(crate) fn map_reqwest_err(e: reqwest::Error) -> PyErr {
-    let e = RyReqwestError(Some(e));
-    e.into()
 }
 
 impl From<RyReqwestError> for PyErr {
@@ -168,4 +141,9 @@ impl From<RyReqwestError> for PyErr {
             PyErr::new::<RyReqwestError, _>("RyReqwestError(None)")
         }
     }
+}
+
+pub(crate) fn map_reqwest_err(e: reqwest::Error) -> PyErr {
+    let e = RyReqwestError(Some(e));
+    e.into()
 }
