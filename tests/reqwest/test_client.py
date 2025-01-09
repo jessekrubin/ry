@@ -11,7 +11,7 @@ from .conftest import ReqtestServer
 async def test_get(server: ReqtestServer) -> None:
     print(server)
     url = server.url
-    client = ry.AsyncClient()
+    client = ry.HttpClient()
     response = await client.get(str(url) + "howdy")
     assert response.status_code == 200
     res_text = await response.text()
@@ -32,7 +32,7 @@ async def test_get(server: ReqtestServer) -> None:
 @pytest.mark.anyio
 async def test_get_json(server: ReqtestServer) -> None:
     url = server.url
-    client = ry.AsyncClient()
+    client = ry.HttpClient()
     response = await client.get(str(url) + "howdy")
     assert response.status_code == 200
     res_json = await response.json()
@@ -44,7 +44,7 @@ async def test_get_json(server: ReqtestServer) -> None:
 
 async def test_get_stream(server: ReqtestServer) -> None:
     url = server.url
-    client = ry.AsyncClient()
+    client = ry.HttpClient()
     response = await client.get(str(url) + "long")
 
     expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
@@ -65,7 +65,7 @@ async def test_get_stream(server: ReqtestServer) -> None:
 async def test_client_headers_req(server: ReqtestServer) -> None:
     """Test that headers are sent with the request and work good"""
     url = server.url
-    client = ry.AsyncClient()
+    client = ry.HttpClient()
     headers = {"User-Agent": "ry-test", "babydog": "dingo"}
     response = await client.get(str(url) + "echo", headers=headers)
     assert response.status_code == 200
@@ -77,7 +77,7 @@ async def test_client_headers_req(server: ReqtestServer) -> None:
 async def test_client_default_headers_get(server: ReqtestServer) -> None:
     """Test that default headers are sent with the request and work good"""
     url = server.url
-    client = ry.AsyncClient(headers={"User-Agent": "ry-test", "babydog": "dingo"})
+    client = ry.HttpClient(headers={"User-Agent": "ry-test", "babydog": "dingo"})
     response = await client.get(str(url) + "echo")
     assert response.status_code == 200
     res_json = await response.json()
@@ -87,9 +87,38 @@ async def test_client_default_headers_get(server: ReqtestServer) -> None:
 
 async def test_client_post(server: ReqtestServer) -> None:
     url = server.url
-    client = ry.AsyncClient()
+    client = ry.HttpClient()
     response = await client.post(str(url) + "echo", body=b"BABOOM")
 
     assert response.status_code == 200
     res_json = await response.json()
     assert res_json["body"] == "BABOOM"
+
+
+async def test_client_timeout_dev(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
+    try:
+        res = await client.get(str(url) + "slow")
+        print(res)
+        text = await res.text()
+        print(text)
+    except ry.ReqwestError as e:
+        print("exception", e)
+        print("repr", repr(e))
+        print("str", str(e))
+        print("type", type(e))
+        print("dir", dir(e))
+        print("args", e.args)
+        print(e)
+        print(type(e))
+
+
+async def test_client_timeout(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
+    with pytest.raises(Exception):
+        res = await client.get(str(url) + "slow")
+        print(res)
+        text = await res.text()
+        print(text)

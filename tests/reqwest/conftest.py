@@ -104,8 +104,11 @@ async def slow_response(
         status=200,
         headers=[(b"content-type", b"text/plain")],
     )
-    await aiosleep(1.0)  # Allow triggering a read timeout.
-    yield {"type": "http.response.body", "body": b"Hello, world!"}
+    for i in range(10):
+        body_chunk = f"howdy partner {i}\n".encode()
+        yield {"type": "http.response.body", "body": body_chunk, "more_body": True}
+        await aiosleep(0.2)
+    yield {"type": "http.response.body", "body": b"", "more_body": False}
 
 
 async def loooooooong_response(
@@ -133,6 +136,8 @@ def router(
         return five_hundred
     elif scope["path"].startswith("/long"):
         return loooooooong_response
+    elif scope["path"].startswith("/slow"):
+        return slow_response
     else:
         return four_oh_four
 

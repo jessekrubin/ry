@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.26 - FUTURE
+
+- `reqwest`
+  - `AsyncClient` renamed to `HttpClient`
+- `jiff`
+  - human timespan strings for `TimeSpan` and `SignedDuration` objects:
+    - `ry.TimeSpan.parse("P2M10DT2H30M").string(human=True) == "2mo 10d 2h 30m"`
+
+___
+
 ## v0.0.25 [2024-01-07] (25 for 2025)
 
 - `jiff`

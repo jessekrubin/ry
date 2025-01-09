@@ -7,7 +7,8 @@ from os import PathLike
 from ry.types import DateTimeTypedDict, DateTypedDict, TimeSpanTypedDict, TimeTypedDict
 
 from . import http as http
-from .reqwest import AsyncClient as AsyncClient
+from .reqwest import HttpClient as HttpClient
+from .reqwest import ReqwestError as ReqwestError
 from .reqwest import Response as Response
 from .reqwest import ResponseStream as ResponseStream
 from .reqwest import fetch as fetch
@@ -1273,7 +1274,7 @@ class SignedDuration:
     # STRING
     # =========================================================================
     def __str__(self) -> str: ...
-    def string(self) -> str: ...
+    def string(self, human: bool = False) -> str: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -1387,7 +1388,7 @@ class TimeSpan:
     # =========================================================================
     # STRING
     # =========================================================================
-    def string(self) -> str: ...
+    def string(self, human=False) -> str: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def repr_full(self) -> str: ...

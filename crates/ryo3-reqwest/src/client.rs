@@ -7,7 +7,7 @@ use futures_util::StreamExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use reqwest::header::HeaderMap;
+use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
 use ryo3_bytes::Pyo3Bytes;
 use ryo3_http::PyHeadersLike;
@@ -17,9 +17,10 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 #[pyclass]
-#[pyo3(name = "AsyncClient", module = "ry.ryo3.reqwest")]
+#[pyo3(name = "HttpClient", module = "ry.ryo3.reqwest")]
 #[derive(Debug, Clone)]
-pub struct RyAsyncClient(pub reqwest::Client);
+pub struct RyHttpClient(pub reqwest::Client);
+
 #[pyclass]
 #[pyo3(name = "Response", module = "ry.ryo3.reqwest")]
 #[derive(Debug)]
@@ -183,13 +184,28 @@ impl RyAsyncResponseIter {
     }
 }
 
+fn parse_user_agent(user_agent: Option<String>) -> PyResult<HeaderValue> {
+    let ua_str = user_agent.unwrap_or_else(|| {
+        format!(
+            "ry/{} - OSS (github.com/jessekrubin/ry)",
+            env!("CARGO_PKG_VERSION")
+        )
+    });
+    ua_str
+        .parse()
+        .map_err(|e| PyValueError::new_err(format!("{e}")))
+}
+
 #[pymethods]
-impl RyAsyncClient {
+impl RyHttpClient {
     #[new]
     #[pyo3(
         signature = (
             headers = None,
-            timeout = 30,
+            user_agent = None,
+            timeout = None,
+            read_timeout = None,
+            connect_timeout = None,
             gzip = true,
             brotli = true,
             deflate = true
@@ -197,20 +213,47 @@ impl RyAsyncClient {
     )]
     fn py_new(
         headers: Option<PyHeadersLike>,
-        timeout: Option<u64>,
+        user_agent: Option<String>,
+        timeout: Option<ryo3_std::PyDuration>,
+        read_timeout: Option<ryo3_std::PyDuration>,
+        connect_timeout: Option<ryo3_std::PyDuration>,
         gzip: Option<bool>,
         brotli: Option<bool>,
         deflate: Option<bool>,
     ) -> PyResult<Self> {
-        let mut client_builder = reqwest::Client::builder();
+        let user_agent: HeaderValue = parse_user_agent(user_agent)?;
+        let mut client_builder = reqwest::Client::builder().user_agent(user_agent);
         if let Some(headers) = headers {
             client_builder = client_builder.default_headers(HeaderMap::try_from(headers)?);
         }
+
+        // let default_timeout = if let Some(timeout) = timeout {
+        //     timeout.0
+        // } else {
+        //     std::time::Duration::from_secs(30)
+        // };
+
         client_builder = client_builder
+            .connection_verbose(false)
             .brotli(brotli.unwrap_or(true))
             .gzip(gzip.unwrap_or(true))
-            .deflate(deflate.unwrap_or(true))
-            .timeout(std::time::Duration::from_secs(timeout.unwrap_or(30)));
+            .deflate(deflate.unwrap_or(true));
+
+        if let Some(timeout) = timeout {
+            println!("timeout: {:?}", timeout);
+            client_builder = client_builder.timeout(timeout.0);
+        }
+
+        if let Some(read_timeout) = read_timeout {
+            println!("read_timeout: {:?}", read_timeout);
+            client_builder = client_builder.read_timeout(read_timeout.0);
+        }
+
+        if let Some(connect_timeout) = connect_timeout {
+            println!("connect_timeout: {:?}", connect_timeout);
+            client_builder = client_builder.connect_timeout(connect_timeout.0);
+        }
+
         let client = client_builder
             .build()
             .map_err(|e| PyValueError::new_err(format!("client-build: {e}")))?;
@@ -232,10 +275,10 @@ impl RyAsyncClient {
             req = req.headers(HeaderMap::try_from(headers)?);
         }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            req.send()
-                .await
-                .map(RyResponse::from)
-                .map_err(map_reqwest_err)
+            req.send().await.map(RyResponse::from).map_err(|e| {
+                println!("error: {:?}", e);
+                map_reqwest_err(e)
+            })
         })
     }
 
@@ -327,7 +370,7 @@ impl RyAsyncClient {
             req = req.body(body.to_vec());
         }
         if let Some(headers) = headers {
-            let mut default_headers = reqwest::header::HeaderMap::new();
+            let mut default_headers = HeaderMap::new();
             for (k, v) in headers {
                 let k = k.to_string();
                 let v = v.to_string();

@@ -1,6 +1,7 @@
 //! python `reqwest` based `fetch` implementation
 
 use crate::default_client::default_client;
+use crate::RyHttpClient;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -12,6 +13,7 @@ use pyo3::IntoPyObjectExt;
     signature = (
         url,
         *,
+        client = None,
         method = None,
         body = None,
         headers = None
@@ -20,24 +22,21 @@ use pyo3::IntoPyObjectExt;
 pub(crate) fn fetch<'py>(
     py: Python<'py>,
     url: &str,
+    client: Option<RyHttpClient>,
     method: Option<ryo3_http::HttpMethod>,
     body: Option<&[u8]>,
     headers: Option<Bound<'py, PyDict>>,
 ) -> PyResult<Py<PyAny>> {
-    let client = default_client();
-    // boom lock that up!
-    let mut client = client
-        .lock()
-        .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
-
-    // client.fetch(...) presumably returns something like PyResult<Bound<'py, PyAny>>
-    let borrowed_pyany = client.fetch(py, url, method, body, headers)?;
-    borrowed_pyany.into_py_any(py)
-    // let borrowed_pyany = client.fetch(py, url, method, body, headers)?;
-    // borrowed_pyany
-    //
-    // // Convert the borrowed reference to an owned PyObject
-    // let owned: PyObject = borrowed_pyany.into_py(py);
-    //
-    // Ok(owned)
+    if let Some(mut client) = client {
+        let bound_pyany = client.fetch(py, url, method, body, headers)?;
+        bound_pyany.into_py_any(py)
+    } else {
+        let client = default_client();
+        // boom lock that up!
+        let mut client = client
+            .lock()
+            .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
+        let bound_pyany = client.fetch(py, url, method, body, headers)?;
+        bound_pyany.into_py_any(py)
+    }
 }

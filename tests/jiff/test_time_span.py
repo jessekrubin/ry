@@ -12,13 +12,6 @@ def test_span_fn_no_positionals_allowed() -> None:
         ry.timespan(1)  # type: ignore
 
 
-def test_span_repr() -> None:
-    s = ry.timespan(years=1)
-    assert repr(s) == "TimeSpan(years=1)"
-    _expected_repr_full = "TimeSpan(years=1, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)"
-    assert s.repr_full() == _expected_repr_full
-
-
 def test_span_dict() -> None:
     s = ry.timespan(years=1)
     assert s.asdict() == {
@@ -40,6 +33,28 @@ def test_span_to_py_timedelta() -> None:
     py_timedelta = s.to_pytimedelta()
     assert isinstance(py_timedelta, pydt.timedelta)
     assert py_timedelta == pydt.timedelta(hours=1)
+
+
+class TestTimeSpanStrings:
+    def test_span_repr(self) -> None:
+        s = ry.timespan(years=1)
+        assert repr(s) == "TimeSpan(years=1)"
+        _expected_repr_full = "TimeSpan(years=1, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)"
+        assert s.repr_full() == _expected_repr_full
+
+    def test_span_str(self) -> None:
+        s = ry.timespan(years=1)
+        assert str(s) == "P1Y"
+
+    def test_span_str_human(self) -> None:
+        s = ry.TimeSpan.parse("P2M10DT2H30M")
+        assert s.string(human=True) == "2mo 10d 2h 30m"
+        assert s.string(True) == "2mo 10d 2h 30m"
+
+    def test_span_str_alien_or_idk_but_not_human(self) -> None:
+        s = ry.TimeSpan.parse("P2M10DT2H30M")
+        assert s.string(human=False) == "P2M10DT2H30M"
+        assert s.string() == "P2M10DT2H30M"
 
 
 def test_negative_spans() -> None:

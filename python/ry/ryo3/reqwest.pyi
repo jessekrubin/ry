@@ -1,11 +1,17 @@
 import typing as t
 
-class AsyncClient:
+if t.TYPE_CHECKING:
+    from ry import Duration
+
+class HttpClient:
     def __init__(
         self,
         *,
         headers: dict[str, str] | None = None,
-        timeout: float | None = None,
+        user_agent: str | None = None,  # default ~ 'ry-reqwest/<VERSION> ...'
+        timeout: Duration | None = None,
+        connect_timeout: Duration | None = None,
+        read_timeout: Duration | None = None,
         gzip: bool = True,
         brotli: bool = True,
         deflate: bool = True,
@@ -49,6 +55,12 @@ class AsyncClient:
         headers: dict[str, str] | None = None,
     ) -> Response: ...
 
+class ReqwestError(Exception):
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __dbg__(self) -> str: ...
+
 class Response:
     status_code: int
     headers: dict[str, str]
@@ -65,6 +77,7 @@ class ResponseStream:
 async def fetch(
     url: str,
     *,
+    client: HttpClient | None = None,
     method: str = "GET",
     body: bytes | None = None,
     headers: dict[str, str] | None = None,
