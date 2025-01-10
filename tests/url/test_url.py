@@ -11,11 +11,11 @@ def test_parse_error() -> None:
     """
     use url::{Url, ParseError};
 
-    assert!(Url::parse("http://[:::1]") == Err(ParseError::InvalidIpv6Address))
+    assert!(Url::parse("ry_http://[:::1]") == Err(ParseError::InvalidIpv6Address))
     """
 
     with pytest.raises(ValueError):
-        ry.URL.parse("http://[:::1]")
+        ry.URL.parse("ry_http://[:::1]")
 
 
 def test_parse_url_readme() -> None:

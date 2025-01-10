@@ -160,7 +160,7 @@ class CODEGEN:
                     "    #[allow(non_snake_case)]",
                     "    #[classattr]",
                     f"    fn {name}() -> PyHttpStatus {{",
-                    f"        PyHttpStatus(http::StatusCode::{name})",
+                    f"        PyHttpStatus(ryo3-http::StatusCode::{name})",
                     "    }\n",
                 )
             )
