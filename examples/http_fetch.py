@@ -2,6 +2,7 @@
 
 The stuff at the top of this file is a simple http server for example purposes
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -12,10 +13,12 @@ from threading import Thread
 # =============================================================================
 import ry
 
-def _print_break():
+
+def _print_break() -> None:
     print("\n" + "=" * 79 + "\n")
 
-async def main():
+
+async def main() -> None:
     # -------------------------------------------------------------------------
     # GET
     # -------------------------------------------------------------------------
@@ -41,7 +44,9 @@ async def main():
     # POST
     # -------------------------------------------------------------------------
     _print_break()
-    post_response = await ry.fetch("http://127.0.0.1:8000", method="POST", body=b"post post post... dumb as a post")
+    post_response = await ry.fetch(
+        "http://127.0.0.1:8000", method="POST", body=b"post post post... dumb as a post"
+    )
     print("Raw post response:", post_response)
     post_response_data = await post_response.json()
     print("JSON post response:\n", json.dumps(post_response_data, indent=2))
@@ -51,19 +56,17 @@ async def main():
     # -------------------------------------------------------------------------
     _print_break()
     long_body = "\n".join([f"dingo{i}" for i in range(1000)]).encode()
-    response = await ry.fetch("http://127.0.0.1:8000", method="POST",
-                              body=long_body)
+    response = await ry.fetch("http://127.0.0.1:8000", method="POST", body=long_body)
 
     async for chunk in response.bytes_stream():
         assert isinstance(chunk, bytes)  # tis a bytes
-        print('chunk this! len =:', len(chunk))
+        print("chunk this! len =:", len(chunk))
 
 
 # -----------------------------------------------------------------------------
 # HTTP SERVER THAT DOES SUPER SIMPLE JSON RESPONSES
 # -----------------------------------------------------------------------------
 class HTTPRequestHandler(BaseHTTPRequestHandler):
-
     def do_GET(self) -> None:
         self.send_response(200)
         self.send_header("Content-type", "application/json")
@@ -74,7 +77,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             "data": {
                 "dog": "dingo",
                 "oreo": "mcflurry",
-            }
+            },
         }
         res_bytes = json.dumps(res_data).encode()
         self.wfile.write(res_bytes)
@@ -92,15 +95,17 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             "data": {
                 "dog": "dingo",
                 "oreo": "mcflurry",
-            }
+            },
         }
         res_bytes = json.dumps(res_data).encode()
         self.wfile.write(res_bytes)
 
 
-def start_server(host="127.0.0.1", port=8000, logging=False):
+def start_server(
+    host: str = "127.0.0.1", port: int = 8000, logging: bool = False
+) -> None:
     class HttpRequestHandlerNoLog(HTTPRequestHandler):
-        def log_message(self, format, *args):
+        def log_message(self, format, *args):  # type: ignore[no-untyped-def]
             ...
 
     server_address = (host, port)

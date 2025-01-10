@@ -47,7 +47,7 @@ async def echo(
         more_body = message.get("more_body", False)
 
     yield uvt.HTTPResponseStartEvent(
-        type="ry_http.response.start",
+        type="http.response.start",
         status=200,
         headers=[(b"content-type", b"application/json")],
     )
@@ -60,69 +60,69 @@ async def echo(
         },
         "body": body.decode(),
     }
-    yield {"type": "ry_http.response.body", "body": json.dumps(data_body_dict).encode()}
+    yield {"type": "http.response.body", "body": json.dumps(data_body_dict).encode()}
 
 
 async def four_oh_four(
     scope: Scope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
-        type="ry_http.response.start",
+        type="http.response.start",
         status=404,
         headers=[(b"content-type", b"text/plain")],
     )
-    yield {"type": "ry_http.response.body", "body": b"Not Found"}
+    yield {"type": "http.response.body", "body": b"Not Found"}
 
 
 async def five_hundred(
     scope: Scope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
-        type="ry_http.response.start",
+        type="http.response.start",
         status=500,
         headers=[(b"content-type", b"text/plain")],
     )
-    yield {"type": "ry_http.response.body", "body": b"Internal Server Error"}
+    yield {"type": "http.response.body", "body": b"Internal Server Error"}
 
 
 async def howdy(
     scope: Scope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
-        type="ry_http.response.start",
+        type="http.response.start",
         status=200,
         headers=[(b"content-type", b"application/json")],
     )
-    yield {"type": "ry_http.response.body", "body": b'{"howdy": "partner"}'}
+    yield {"type": "http.response.body", "body": b'{"howdy": "partner"}'}
 
 
 async def slow_response(
     scope: Scope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
-        type="ry_http.response.start",
+        type="http.response.start",
         status=200,
         headers=[(b"content-type", b"text/plain")],
     )
     for i in range(10):
         body_chunk = f"howdy partner {i}\n".encode()
-        yield {"type": "ry_http.response.body", "body": body_chunk, "more_body": True}
+        yield {"type": "http.response.body", "body": body_chunk, "more_body": True}
         await aiosleep(0.2)
-    yield {"type": "ry_http.response.body", "body": b"", "more_body": False}
+    yield {"type": "http.response.body", "body": b"", "more_body": False}
 
 
 async def loooooooong_response(
     scope: Scope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
-        type="ry_http.response.start",
+        type="http.response.start",
         status=200,
         headers=[(b"content-type", b"text/plain")],
     )
     for i in range(100):
         body_chunk = f"howdy partner {i}\n".encode()
-        yield {"type": "ry_http.response.body", "body": body_chunk, "more_body": True}
-    yield {"type": "ry_http.response.body", "body": b"", "more_body": False}
+        yield {"type": "http.response.body", "body": body_chunk, "more_body": True}
+    yield {"type": "http.response.body", "body": b"", "more_body": False}
 
 
 def router(
@@ -143,7 +143,7 @@ def router(
 
 
 async def reqtest_server(scope: Scope, receive: Receive, send: Send) -> None:
-    assert scope["type"] == "ry_http"
+    assert scope["type"] == "http"
     handler = router(scope, receive, send)
     async for message in handler(scope, receive, send):
         await send(message)
@@ -152,7 +152,7 @@ async def reqtest_server(scope: Scope, receive: Receive, send: Send) -> None:
 class ReqtestServer(Server):
     @property
     def url(self) -> ry.URL:
-        protocol = "https" if self.config.is_ssl else "ry_http"
+        protocol = "https" if self.config.is_ssl else "http"
         return ry.URL(f"{protocol}://{self.config.host}:{self.config.port}/")
 
     def install_signal_handlers(self) -> None:
