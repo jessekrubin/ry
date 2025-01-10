@@ -10,7 +10,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-globset = { version = "0.4.15", features = ["serde"] }
+globset.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 ryo3-types.workspace = true
 

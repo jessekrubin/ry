@@ -312,20 +312,6 @@ impl PyFsPath {
         Self::from(p)
     }
 
-    pub fn read_vec_u8(&self) -> PyResult<Vec<u8>> {
-        // let fpath = Path::new(s);
-        let fbytes = std::fs::read(&self.pth);
-        match fbytes {
-            Ok(b) => Ok(b),
-            Err(e) => {
-                // TODO: figure out cleaner way of doing this
-                let pathstr = self.string();
-                let emsg = format!("read_vec_u8 - path: {pathstr} - {e}");
-                Err(PyFileNotFoundError::new_err(emsg))
-            }
-        }
-    }
-
     pub fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
         let fbytes = std::fs::read(&self.pth);
         match fbytes {
@@ -498,7 +484,7 @@ impl PyFsPath {
     fn exists(&self) -> PyResult<bool> {
         self.pth
             .try_exists()
-            .map_err(|e| PyFileNotFoundError::new_err(format!("(try_)exists: {e}")))
+            .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
     }
 
     fn extension(&self) -> Option<String> {
@@ -579,11 +565,7 @@ impl PyFsPath {
     fn symlink_metadata(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn try_exists(&self) -> PyResult<bool> {
-        self.pth
-            .try_exists()
-            .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
-    }
+
     fn with_extension(&self, extension: String) -> Self {
         let p = self.pth.with_extension(extension);
         Self::from(p)

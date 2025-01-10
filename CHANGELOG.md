@@ -8,6 +8,8 @@
   - human timespan strings for `TimeSpan` and `SignedDuration` objects:
     - `ry.TimeSpan.parse("P2M10DT2H30M").string(human=True) == "2mo 10d 2h 30m"`
     - `ry.SignedDuration.parse("PT2H30M").string(human=True) == "2h 30m"`
+- internal
+  - workspace-ified all the deps
 
 ___
 
