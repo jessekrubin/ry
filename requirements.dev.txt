@@ -10,13 +10,13 @@ colorama==0.4.6
     #   pytest
 h11==0.14.0
     # via uvicorn
-hypothesis==6.123.1
+hypothesis==6.123.13
     # via -r requirements.dev.in
 iniconfig==2.0.0
     # via pytest
-maturin==1.7.8
+maturin==1.8.1
     # via -r requirements.dev.in
-mypy==1.14.0
+mypy==1.14.1
     # via -r requirements.dev.in
 mypy-extensions==1.0.0
     # via mypy
@@ -31,11 +31,11 @@ pytest==8.3.4
     #   -r requirements.dev.in
     #   pytest-asyncio
     #   pytest-benchmark
-pytest-asyncio==0.25.0
+pytest-asyncio==0.25.2
     # via -r requirements.dev.in
 pytest-benchmark==5.1.0
     # via -r requirements.dev.in
-ruff==0.8.4
+ruff==0.9.0
     # via -r requirements.dev.in
 sortedcontainers==2.4.0
     # via hypothesis

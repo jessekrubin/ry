@@ -103,12 +103,12 @@ def update_api_docs():
 
 
 def update_readme():
-    assert (
-        RYO_PYI_DIRPATH.exists()
-    ), f"RYO_PYI_DIRPATH does not exist: {RYO_PYI_DIRPATH}"
-    assert (
-        README_FILEPATH.exists()
-    ), f"README_FILEPATH does not exist: {README_FILEPATH}"
+    assert RYO_PYI_DIRPATH.exists(), (
+        f"RYO_PYI_DIRPATH does not exist: {RYO_PYI_DIRPATH}"
+    )
+    assert README_FILEPATH.exists(), (
+        f"README_FILEPATH does not exist: {README_FILEPATH}"
+    )
     readme_content = README_FILEPATH.read_text()
     # API goes between `<!-- API_PYI_START -->` and `<!-- API_PYI_END -->`
     api_start = "<!-- API-START -->"

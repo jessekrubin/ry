@@ -15,23 +15,19 @@
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::PyResult;
-
 mod dev;
 pub mod fmts;
 pub mod libs;
 mod reexports;
 mod ry;
 pub mod sh;
-pub mod sleep;
 mod submodules;
 pub use reexports::*;
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_std::pymod_add(m)?;
     ryo3_fspath::pymod_add(m)?;
     // ryo3_dev::pymod_add(m)?;
     ryo3_quick_maths::pymod_add(m)?;
-    sleep::pymod_add(m)?;
     fmts::pymod_add(m)?;
     sh::pymod_add(m)?;
     libs::pymod_add(m)?;

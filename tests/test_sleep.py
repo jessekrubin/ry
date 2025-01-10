@@ -26,3 +26,15 @@ async def test_sleep_async() -> None:
     assert end - start >= 0
 
     # assert isinstance(res, float)
+
+
+@pytest.mark.asyncio
+async def test_asleep() -> None:
+    start = time.time()
+    res = await ry.asleep(0)
+    end = time.time()
+    # is float
+    assert res >= 0
+    assert end - start >= 0
+
+    # assert isinstance(res, float)

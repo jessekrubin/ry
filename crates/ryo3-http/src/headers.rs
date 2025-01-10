@@ -35,8 +35,9 @@ impl PyHeaders {
     }
 
     /// Return struct Debug-string
-    pub fn __dbg__(&self) {
-        println!("{self:?}");
+    #[must_use]
+    pub fn __dbg__(&self) -> String {
+        format!("{self:?}")
     }
 
     #[must_use]
@@ -116,16 +117,9 @@ impl PyHeaders {
     //     - `with_capacity`
 
     pub fn append(&mut self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<bool> {
-        // let header_name = http::header::HeaderName::from_bytes(key.as_bytes()).unwrap();
-        // let header_value = http::header::HeaderValue::from_str(value).unwrap();
-        // let hn = key.0;
-        let hv = value.0;
-
-        let res = self
-            .0
-            .try_append(key.0, hv)
-            .map_err(|e| PyRuntimeError::new_err(format!("header-append-error: {e}")))?;
-        Ok(res)
+        self.0
+            .try_append(key.0, value.0)
+            .map_err(|e| PyRuntimeError::new_err(format!("header-append-error: {e}")))
     }
 
     pub fn clear(&mut self) {
@@ -140,6 +134,7 @@ impl PyHeaders {
         })?;
         Ok(self.0.contains_key(&header_name))
     }
+
     pub fn get(&self, key: &str) -> Option<HttpHeaderValue> {
         self.0.get(key).map(HttpHeaderValue::from)
     }

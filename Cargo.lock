@@ -1628,6 +1628,7 @@ dependencies = [
  "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
+ "ryo3-tokio",
  "ryo3-types",
  "ryo3-unindent",
  "ryo3-url",
@@ -1824,6 +1825,15 @@ dependencies = [
  "pyo3",
  "ryo3-macros",
  "ryo3-types",
+]
+
+[[package]]
+name = "ryo3-tokio"
+version = "0.0.26"
+dependencies = [
+ "pyo3",
+ "pyo3-async-runtimes",
+ "tokio",
 ]
 
 [[package]]

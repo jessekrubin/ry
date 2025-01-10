@@ -17,6 +17,8 @@ from ry.types import (
 )
 
 from . import http as http
+from .http import Headers as Headers
+from .http import HttpStatus as HttpStatus
 from .reqwest import HttpClient as HttpClient
 from .reqwest import ReqwestError as ReqwestError
 from .reqwest import Response as Response
@@ -318,6 +320,9 @@ def quick_maths() -> t.Literal[3]:
 # =============================================================================
 def sleep(seconds: float) -> float: ...
 async def sleep_async(seconds: float) -> float: ...
+async def asleep(seconds: float) -> float:
+    """Alias for sleep_async"""
+    ...
 
 
 # =============================================================================
@@ -482,8 +487,6 @@ def globs(
 # =============================================================================
 # WALKDIR
 # =============================================================================
-
-
 class WalkdirGen:
     """walkdir::Walkdir iterable wrapper"""
 
@@ -495,18 +498,9 @@ class WalkdirGen:
     def collect(self) -> list[str]: ...
 
 
-class FspathsGen:
-    """walkdir iterable that yields FsPath objects"""
-
-    files: bool
-    dirs: bool
-
-    def __next__(self) -> FsPath: ...
-    def __iter__(self) -> t.Iterator[FsPath]: ...
-
-
 def walkdir(
     path: FsPathLike | None = None,
+    *,
     files: bool = True,
     dirs: bool = True,
     contents_first: bool = False,
@@ -515,16 +509,6 @@ def walkdir(
     follow_links: bool = False,
     same_file_system: bool = False,
     glob: Glob | GlobSet | Globster | None = None,
-) -> WalkdirGen: ...
-def fspaths(
-    path: FsPathLike | None = None,
-    files: bool = True,
-    dirs: bool = True,
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    same_file_system: bool = False,
 ) -> WalkdirGen: ...
 
 
@@ -1005,7 +989,7 @@ class Time:
     # =========================================================================
     def to_pytime(self) -> pydt.time: ...
     @classmethod
-    def from_pytime(cls: type[Time], time: pydt.time) -> Time: ...
+    def from_pytime(cls: type[Time], t: pydt.time) -> Time: ...
 
     # =========================================================================
     # CLASS METHODS

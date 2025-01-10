@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ry.http import Headers
+from ry import Headers
 
 
 class TestHeadersObj:

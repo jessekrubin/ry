@@ -15,23 +15,23 @@ class HttpStatusMetadata:
 
 
 def test_status_200() -> None:
-    s = ry.http.HttpStatus(200)
+    s = ry.HttpStatus(200)
     assert str(s) == "200"
     assert int(s) == 200
 
 
 def _test_dev_status_code(num: int) -> None:
     try:
-        s = ry.http.HttpStatus(num)
+        s = ry.HttpStatus(num)
     except ValueError:
         return
     assert str(s) == str(num)
     assert int(s) == num
     assert s == num
     assert s == s
-    assert s == ry.http.HttpStatus(num)
+    assert s == ry.HttpStatus(num)
     try:
-        assert s != ry.http.HttpStatus(num + 1)
+        assert s != ry.HttpStatus(num + 1)
     except ValueError:
         pass
     assert s != num + 1
@@ -122,7 +122,7 @@ def _reason2const_name(reason: str) -> str:
 def _class_attr_names() -> list[HttpStatusMetadata]:
     def _int2metadata(i: int) -> HttpStatusMetadata | None:
         try:
-            status = ry.http.HttpStatus(i)
+            status = ry.HttpStatus(i)
             reason = status.reason()
             if reason is None:
                 return None
@@ -142,7 +142,7 @@ def _class_attr_names() -> list[HttpStatusMetadata]:
 
 @pytest.mark.parametrize("status_meta", _class_attr_names())
 def test_class_attr_const(status_meta: HttpStatusMetadata) -> None:
-    const_status_code = getattr(ry.http.HttpStatus, status_meta.const_name)
+    const_status_code = getattr(ry.HttpStatus, status_meta.const_name)
     assert const_status_code == status_meta.code
 
 

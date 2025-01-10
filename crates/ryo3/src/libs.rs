@@ -15,16 +15,18 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_globset::pymod_add(m)?;
     #[cfg(feature = "heck")]
     ryo3_heck::pymod_add(m)?;
+    #[cfg(feature = "http")]
+    ryo3_http::pymod_add(m)?;
     #[cfg(feature = "jiff")]
     ryo3_jiff::pymod_add(m)?;
     #[cfg(feature = "jiter")]
     ryo3_jiter::pymod_add(m)?;
     #[cfg(feature = "regex")]
     ryo3_regex::pymod_add(m)?;
-
-    #[cfg(feature = "reqwest")] // WILL MOVE
+    #[cfg(feature = "reqwest")]
     ryo3_reqwest::pymod_add(m)?;
-
+    #[cfg(feature = "tokio")]
+    ryo3_tokio::pymod_add(m)?;
     #[cfg(feature = "shlex")]
     ryo3_shlex::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]

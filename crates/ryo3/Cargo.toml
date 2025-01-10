@@ -31,16 +31,17 @@ ryo3-brotli = { workspace = true, optional = true }
 ryo3-bzip2 = { workspace = true, optional = true }
 ryo3-dirs = { workspace = true, optional = true }
 ryo3-flate2 = { workspace = true, optional = true }
-ryo3-http = { workspace = true, optional = true }
 ryo3-fnv = { workspace = true, optional = true }
 ryo3-globset = { workspace = true, optional = true }
 ryo3-heck = { workspace = true, optional = true }
+ryo3-http = { workspace = true, optional = true }
 ryo3-jiff = { workspace = true, optional = true }
 ryo3-jiter = { workspace = true, optional = true }
 ryo3-regex = { workspace = true, optional = true }
 ryo3-reqwest = { workspace = true, optional = true }
 ryo3-shlex = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
+ryo3-tokio = { workspace = true, optional = true }
 ryo3-unindent = { workspace = true, optional = true }
 ryo3-url = { workspace = true, optional = true }
 ryo3-walkdir = { workspace = true, optional = true }
@@ -53,26 +54,27 @@ pyo3-async-runtimes.workspace = true
 [features]
 default = ["shlex", "jiter"]
 all = [
-  "brotli",
-  "bzip2",
-  "dirs",
-  "flate2",
-  "fnv",
-  "globset",
-  "heck",
-  "http",
-  "jiff",
-  "jiter",
-  "regex",
-  "reqwest",
-  "shlex",
-  "sqlformat",
-  "unindent",
-  "url",
-  "walkdir",
-  "which",
-  "xxhash",
-  "zstd",
+    "brotli",
+    "bzip2",
+    "dirs",
+    "flate2",
+    "fnv",
+    "globset",
+    "heck",
+    "http",
+    "jiff",
+    "jiter",
+    "regex",
+    "reqwest",
+    "shlex",
+    "sqlformat",
+    "tokio",
+    "unindent",
+    "url",
+    "walkdir",
+    "which",
+    "xxhash",
+    "zstd",
 ]
 
 brotli = ["dep:ryo3-brotli"]
@@ -89,6 +91,7 @@ regex = ["dep:ryo3-regex", "ryo3-which/regex"]
 reqwest = ["dep:ryo3-reqwest", "http", "url"]
 shlex = ["dep:ryo3-shlex"]
 sqlformat = ["dep:ryo3-sqlformat"]
+tokio = ["dep:ryo3-tokio"]
 unindent = ["dep:ryo3-unindent"]
 url = ["dep:ryo3-url"]
 walkdir = ["dep:ryo3-walkdir"]

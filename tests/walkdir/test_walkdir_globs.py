@@ -37,10 +37,10 @@ def test_walkdir_with_glob(
     ]
     walkdir_paths_set = set(walkdir_paths)
     expected = {el for el in map(str, dirtree.filepaths) if el.endswith(".txt")}
-    assert (
-        walkdir_paths_set == expected
-    ), f"walkdir_paths_set: {walkdir_paths_set} expected: {expected}"
+    assert walkdir_paths_set == expected, (
+        f"walkdir_paths_set: {walkdir_paths_set} expected: {expected}"
+    )
 
-    assert all(
-        p.endswith(".txt") for p in walkdir_paths_set
-    ), f"walkdir_paths_set: {walkdir_paths_set} type: {type(walkdir_paths_set)}"
+    assert all(p.endswith(".txt") for p in walkdir_paths_set), (
+        f"walkdir_paths_set: {walkdir_paths_set} type: {type(walkdir_paths_set)}"
+    )

@@ -19,9 +19,12 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
         .getattr(intern!(py, "modules"))?
         .downcast_into::<PyDict>()?;
 
-    sys_modules.set_item("ry.ryo3._dev", m.getattr("_dev")?)?;
-    let attr = m.getattr("_dev")?;
-    attr.setattr("__name__", "ry.ryo3._dev")?;
+    // dev module
+    let pystr_dev = intern!(py, "_dev");
+    let pystr_ryo3_dev = intern!(py, "ry.ryo3._dev");
+    sys_modules.set_item(pystr_ryo3_dev, m.getattr(pystr_dev)?)?;
+    let attr = m.getattr(pystr_dev)?;
+    attr.setattr(intern!(py, "__name__"), pystr_ryo3_dev)?;
 
     Ok(())
 }

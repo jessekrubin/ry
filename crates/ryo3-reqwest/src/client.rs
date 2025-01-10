@@ -10,7 +10,8 @@ use pyo3::types::PyDict;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
 use ryo3_bytes::Pyo3Bytes;
-use ryo3_http::PyHeadersLike;
+use ryo3_http::{PyHeadersLike, PyHttpStatus};
+use ryo3_macros::err_py_not_impl;
 use ryo3_url::PyUrl;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -32,9 +33,9 @@ pub struct RyResponse {
     /// das status code
     status_code: StatusCode,
     /// das headers
-    headers: reqwest::header::HeaderMap,
+    headers: HeaderMap,
     /// das url
-    url: reqwest::Url,
+    url: Option<reqwest::Url>,
     /// das content length -- if it exists (tho it might not and/or be
     /// different if the response is compressed)
     content_length: Option<u64>,
@@ -47,24 +48,57 @@ impl From<reqwest::Response> for RyResponse {
             headers: res.headers().clone(),
             // cookies: res.cookies().clone(),
             // version: res.version(),
-            url: res.url().clone(),
+            url: Some(res.url().clone()),
             content_length: res.content_length(),
             // body: None,
             res: Some(res),
         }
     }
 }
+
 #[pymethods]
 impl RyResponse {
+    #[new]
+    pub fn py_new() -> PyResult<Self> {
+        err_py_not_impl!("Response::new")
+    }
+
+    fn __str__(&self) -> String {
+        format!("Response<{}>", self.status_code)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("Response<{}>", self.status_code)
+    }
+
     #[getter]
-    fn status_code(&self) -> u16 {
+    fn status(&self) -> u16 {
         self.status_code.as_u16()
     }
 
     #[getter]
+    fn status_text(&self) -> String {
+        self.status_code
+            .canonical_reason()
+            .unwrap_or_default()
+            .to_string()
+    }
+
+    #[getter]
+    fn status_code(&self) -> PyHttpStatus {
+        PyHttpStatus(self.status_code)
+    }
+
+    /// Returns true if the response was redirected
+    #[getter]
+    fn redirected(&self) -> bool {
+        self.status_code.is_redirection()
+    }
+
+    #[getter]
     #[pyo3(name = "url")]
-    fn py_url(&self) -> PyUrl {
-        PyUrl(self.url.clone())
+    fn url(&self) -> Option<PyUrl> {
+        self.url.as_ref().map(|url| PyUrl(url.clone()))
     }
 
     #[getter]
@@ -89,6 +123,26 @@ impl RyResponse {
         self.content_length
     }
 
+    /// Return true if the status code is a success code (200-299)
+    #[getter]
+    fn ok(&self) -> bool {
+        self.status_code.is_success()
+    }
+
+    /// __bool__ dunder method returns true if `ok` is true
+    fn __bool__(&self) -> bool {
+        self.status_code.is_success()
+    }
+
+    /// Return true if the body has been consumed
+    ///
+    /// named after jawascript fetch
+    #[getter]
+    fn body_used(&self) -> bool {
+        self.res.is_none()
+    }
+
+    /// Return the response body as bytes (consumes the response)
     fn bytes<'py>(&'py mut self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let response = self
             .res
@@ -102,6 +156,8 @@ impl RyResponse {
                 .map_err(map_reqwest_err)
         })
     }
+
+    /// Return the response body as text/string (consumes the response)
     fn text<'py>(&'py mut self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let response = self
             .res
@@ -112,6 +168,7 @@ impl RyResponse {
         })
     }
 
+    /// Return the response body as json (consumes the response)
     fn json<'py>(&'py mut self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let response = self
             .res
@@ -139,14 +196,6 @@ impl RyResponse {
         Ok(RyAsyncResponseIter {
             stream: Arc::new(Mutex::new(stream)),
         })
-    }
-
-    fn __str__(&self) -> String {
-        format!("Response<{}>", self.status_code)
-    }
-
-    fn __repr__(&self) -> String {
-        format!("Response<{}>", self.status_code)
     }
 }
 
