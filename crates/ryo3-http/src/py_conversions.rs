@@ -167,11 +167,6 @@ pub(crate) fn header_value_to_pystring<'py>(
     Ok(PyString::new(py, s))
 }
 
-// pub(crate) fn pystring_to_header_value(s: &str) -> PyResult<http::HeaderValue> {
-//     http::HeaderValue::from_str(s)
-//         .map_err(|e| PyValueError::new_err(format!("invalid-header-value: {e}")))
-// }
-
 impl<'py> IntoPyObject<'py> for &HttpHeaderValue {
     #[cfg(Py_LIMITED_API)]
     type Target = PyAny;

@@ -11,6 +11,9 @@ pub struct HttpHeaderValue(pub http::HeaderValue);
 #[derive(Debug, Clone)]
 pub struct HttpMethod(pub http::Method);
 
+#[derive(Debug, Clone)]
+pub struct HttpStatusCode(pub http::StatusCode);
+
 // ============================================================================
 //  FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ============================================================================
@@ -48,6 +51,12 @@ impl From<http::HeaderValue> for HttpHeaderValue {
 impl From<http::Method> for HttpMethod {
     fn from(h: http::Method) -> Self {
         HttpMethod(h)
+    }
+}
+
+impl From<http::StatusCode> for HttpStatusCode {
+    fn from(h: http::StatusCode) -> Self {
+        HttpStatusCode(h)
     }
 }
 

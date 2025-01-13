@@ -100,8 +100,13 @@ impl RySignedDuration {
         PyDuration::from(self.0.unsigned_abs())
     }
 
-    fn string(&self) -> String {
-        self.0.to_string()
+    #[pyo3(signature = (human=false))]
+    fn string(&self, human: bool) -> String {
+        if human {
+            format!("{:#}", self.0)
+        } else {
+            self.0.to_string()
+        }
     }
 
     fn __str__(&self) -> String {

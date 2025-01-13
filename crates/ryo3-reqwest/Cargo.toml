@@ -12,29 +12,19 @@ repository.workspace = true
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
 pyo3-async-runtimes = { workspace = true, features = ["attributes", "tokio-runtime"] }
-tracing.workspace = true
+tracing = { workspace = true, features = ["log"] }
 tokio.workspace = true
-reqwest = { version = "0.12.12", features = [
-  "blocking",
-  "brotli",
-  "charset",
-  "cookies",
-  "deflate",
-  "gzip",
-  "http2",
-  "macos-system-configuration",
-  "rustls-tls-native-roots",
-  "stream",
-  "zstd"
-], default-features = false}
 bytes = { workspace = true }
 jiter.workspace = true
 ryo3-bytes.workspace = true
 ryo3-url.workspace = true
-futures-core = "0.3.31"
-futures-util = "0.3.31"
-ryo3-macros.workspace = true
 ryo3-http.workspace = true
+futures-core.workspace = true
+futures-util.workspace = true
+ryo3-macros.workspace = true
+ryo3-std.workspace = true
+thiserror.workspace = true
+reqwest.workspace = true
 
 [lints]
 workspace = true

@@ -5,21 +5,6 @@ use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 use ryo3_types::PathLike;
 use std::fs::read_dir;
 
-// #[pyfunction]
-// pub fn home() -> PyResult<String> {
-//     match dirs::home_dir() {
-//         Some(x) => match x.to_str() {
-//             Some(s) => Ok(s.to_string()),
-//             None => Err(PyOSError::new_err(
-//                 "home: home directory is not a valid UTF-8 string",
-//             )),
-//         },
-//         None => Err(PyOSError::new_err(
-//             "home: could not determine home directory",
-//         )),
-//     }
-// }
-
 #[pyfunction]
 pub fn pwd() -> PyResult<String> {
     let curdur = std::env::current_dir()?;

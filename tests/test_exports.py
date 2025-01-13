@@ -42,7 +42,7 @@ def test_exports_module_attr_param(name: str) -> None:
 
     if isinstance(member, ModuleType):
         member_name = member.__name__
-        assert member.__name__.startswith("ry."), f"{name} {member} is not in ry"
+        assert member_name.startswith("ry."), f"{name} {member} is not in ry"
         return
 
     module_name = member.__module__

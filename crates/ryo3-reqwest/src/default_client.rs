@@ -1,10 +1,10 @@
-use crate::async_client::RyAsyncClient;
+use crate::client::RyHttpClient;
 use std::sync::Mutex;
 use std::sync::OnceLock;
 
-static DEFAULT_CLIENT: OnceLock<Mutex<RyAsyncClient>> = OnceLock::new();
+static DEFAULT_CLIENT: OnceLock<Mutex<RyHttpClient>> = OnceLock::new();
 
 #[inline]
-pub(crate) fn default_client() -> &'static Mutex<RyAsyncClient> {
-    DEFAULT_CLIENT.get_or_init(|| Mutex::new(RyAsyncClient(reqwest::Client::new())))
+pub(crate) fn default_client() -> &'static Mutex<RyHttpClient> {
+    DEFAULT_CLIENT.get_or_init(|| Mutex::new(RyHttpClient(reqwest::Client::new())))
 }

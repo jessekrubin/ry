@@ -121,55 +121,7 @@ impl PyWalkdirGen {
     }
 }
 
-#[pyclass(name = "FspathsGen", module = "ryo3")]
-pub struct PyFspathsGen {
-    iter: walkdir_rs::IntoIter,
-    files: bool,
-    dirs: bool,
-    glob: Option<PyGlobster>,
-}
-
-#[pymethods]
-impl PyFspathsGen {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<String> {
-        while let Some(Ok(entry)) = slf.iter.next() {
-            if (entry.file_type().is_file() && slf.files)
-                || (entry.file_type().is_dir() && slf.dirs)
-            {
-                if let Some(globs) = &slf.glob {
-                    let path_str = entry.path().to_string_lossy().to_string();
-                    if globs.is_match_str(&path_str) {
-                        return Some(path_str);
-                    }
-                } else if let Some(path_str) = entry.path().to_str() {
-                    return Some(path_str.to_string());
-                }
-
-                // if let Some(path_str) = entry.path().to_str() {
-                //     return Some(path_str.to_string());
-                // }
-            }
-        }
-        None
-    }
-}
-
 impl From<walkdir_rs::WalkDir> for PyWalkdirGen {
-    fn from(wd: walkdir_rs::WalkDir) -> Self {
-        let wdit = wd.into_iter();
-        Self {
-            iter: wdit,
-            files: true,
-            dirs: true,
-            glob: None,
-        }
-    }
-}
-
-impl From<walkdir_rs::WalkDir> for PyFspathsGen {
     fn from(wd: walkdir_rs::WalkDir) -> Self {
         let wdit = wd.into_iter();
         Self {
@@ -234,44 +186,9 @@ pub fn walkdir(
     })
 }
 
-#[allow(clippy::too_many_arguments)]
-#[pyfunction]
-#[pyo3(
-    signature = (path = None, *, files = true, dirs = true,
-    contents_first = false, min_depth = 0, max_depth = None,
-    follow_links = false, same_file_system = false)
-)]
-pub fn fspaths(
-    path: Option<PathLike>,
-    files: Option<bool>,            // true
-    dirs: Option<bool>,             // true
-    contents_first: Option<bool>,   // false
-    min_depth: Option<usize>,       // default 0
-    max_depth: Option<usize>,       // default None
-    follow_links: Option<bool>,     // default false
-    same_file_system: Option<bool>, // default false
-) -> PyResult<PyFspathsGen> {
-    let wd = build_walkdir(
-        path.unwrap_or(PathLike::Str(String::from("."))).as_ref(),
-        contents_first,
-        min_depth,
-        max_depth,
-        follow_links,
-        same_file_system,
-    );
-    Ok(PyFspathsGen {
-        iter: wd.into_iter(),
-        files: files.unwrap_or(true),
-        dirs: dirs.unwrap_or(true),
-        glob: None,
-    })
-}
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // m.add_class::<PyWalkDirEntry>()?;  // not sure if should be exposed...
     m.add_class::<PyWalkdirGen>()?;
-    m.add_class::<PyFspathsGen>()?;
     m.add_function(wrap_pyfunction!(self::walkdir, m)?)?;
-    m.add_function(wrap_pyfunction!(self::fspaths, m)?)?;
     Ok(())
 }

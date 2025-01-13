@@ -46,9 +46,9 @@ def test_which_regex_multiple_matches(tmp_path: Path) -> None:
     results = ry.which_re(regex, path=search_path)
 
     assert results is not None
-    assert (
-        len(results) > 0
-    ), "Expected multiple matches for executables starting with 'notavirus'"
+    assert len(results) > 0, (
+        "Expected multiple matches for executables starting with 'notavirus'"
+    )
     for result in results:
         assert "notavirus" in result
 
