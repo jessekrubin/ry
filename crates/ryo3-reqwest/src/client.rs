@@ -149,11 +149,8 @@ impl RyResponse {
             .take()
             .ok_or(PyValueError::new_err("Response already consumed"))?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response
-                .bytes()
-                .await
-                .map(Pyo3Bytes::from)
-                .map_err(map_reqwest_err)
+            let bytes_result = response.bytes().await;
+            bytes_result.map(Pyo3Bytes::from).map_err(map_reqwest_err)
         })
     }
 
