@@ -159,6 +159,30 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0026---future"><a class="header" href="#v0026---future">v0.0.26 - FUTURE</a></h2>
+<ul>
+<li><code>reqwest</code>
+<ul>
+<li><code>AsyncClient</code> renamed to <code>HttpClient</code></li>
+</ul>
+</li>
+<li><code>jiff</code>
+<ul>
+<li>human timespan strings for <code>TimeSpan</code> and <code>SignedDuration</code> objects:
+<ul>
+<li><code>ry.TimeSpan.parse("P2M10DT2H30M").string(human=True) == "2mo 10d 2h 30m"</code></li>
+<li><code>ry.SignedDuration.parse("PT2H30M").string(human=True) == "2h 30m"</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>internal
+<ul>
+<li>workspace-ified all the deps</li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0025-2024-01-07-25-for-2025"><a class="header" href="#v0025-2024-01-07-25-for-2025">v0.0.25 [2024-01-07] (25 for 2025)</a></h2>
 <ul>
 <li><code>jiff</code>
