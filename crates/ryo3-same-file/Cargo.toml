@@ -1,0 +1,18 @@
+[package]
+name = "ryo3-same-file"
+description = "ryo3-same-file - pyo3 shim for same-file crate (https://github.com/BurntSushi/same-file)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-types.workspace = true
+same-file = "1.0.6"
+
+[lints]
+workspace = true

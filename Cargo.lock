@@ -1631,6 +1631,7 @@ dependencies = [
  "ryo3-quick-maths",
  "ryo3-regex",
  "ryo3-reqwest",
+ "ryo3-same-file",
  "ryo3-shlex",
  "ryo3-sqlformat",
  "ryo3-std",
@@ -1806,6 +1807,15 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "ryo3-same-file"
+version = "0.0.26"
+dependencies = [
+ "pyo3",
+ "ryo3-types",
+ "same-file",
 ]
 
 [[package]]

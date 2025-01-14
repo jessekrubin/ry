@@ -27,6 +27,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_reqwest::pymod_add(m)?;
     #[cfg(feature = "tokio")]
     ryo3_tokio::pymod_add(m)?;
+    #[cfg(feature = "same-file")]
+    ryo3_same_file::pymod_add(m)?;
     #[cfg(feature = "shlex")]
     ryo3_shlex::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]
