@@ -18,12 +18,12 @@ def _print_break() -> None:
     print("\n" + "=" * 79 + "\n")
 
 
-async def main() -> None:
+async def main(server_url: str = "http://127.0.0.1:8000") -> None:
     # -------------------------------------------------------------------------
     # GET
     # -------------------------------------------------------------------------
     _print_break()
-    response = await ry.fetch("http://127.0.0.1:8000")
+    response = await ry.fetch(server_url)
     print("Raw response:", response)
     json_data = await response.json()
     print("JSON data:\n", json.dumps(json_data, indent=2))
@@ -45,7 +45,7 @@ async def main() -> None:
     # -------------------------------------------------------------------------
     _print_break()
     post_response = await ry.fetch(
-        "http://127.0.0.1:8000", method="POST", body=b"post post post... dumb as a post"
+        server_url, method="POST", body=b"post post post... dumb as a post"
     )
     print("Raw post response:", post_response)
     post_response_data = await post_response.json()
@@ -56,7 +56,7 @@ async def main() -> None:
     # -------------------------------------------------------------------------
     _print_break()
     long_body = "\n".join([f"dingo{i}" for i in range(1000)]).encode()
-    response = await ry.fetch("http://127.0.0.1:8000", method="POST", body=long_body)
+    response = await ry.fetch(server_url, method="POST", body=long_body)
 
     async for chunk in response.bytes_stream():
         assert isinstance(chunk, bytes)  # tis a bytes
@@ -102,8 +102,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def start_server(
-    host: str = "127.0.0.1", port: int = 8000, logging: bool = False
-) -> None:
+    host: str = "127.0.0.1", port: int = 8888, logging: bool = False
+) -> HTTPServer:
     class HttpRequestHandlerNoLog(HTTPRequestHandler):
         def log_message(self, format, *args):  # type: ignore[no-untyped-def]
             ...
@@ -111,9 +111,17 @@ def start_server(
     server_address = (host, port)
     handler = HttpRequestHandlerNoLog if not logging else HTTPRequestHandler
     httpd = HTTPServer(server_address, handler)
-    httpd.serve_forever()
+    Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd
 
 
 if __name__ == "__main__":
-    Thread(target=start_server, daemon=True).start()
-    asyncio.run(main())
+    server = start_server(logging=True)
+    try:
+        asyncio.run(
+            main(server_url=f"http://{server.server_name}:{server.server_port}")
+        )
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt")
+    finally:
+        server.shutdown()
