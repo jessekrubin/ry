@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## v0.0.26 - FUTURE
+## v0.0.27 - FUTURE
+
+- `reqwest` headers-property response returns `Headers` object instead of python dict
+
+___
+
+## v0.0.26 [2025-01-13]
 
 - `reqwest`
   - `AsyncClient` renamed to `HttpClient`

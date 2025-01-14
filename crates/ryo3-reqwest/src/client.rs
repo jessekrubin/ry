@@ -10,7 +10,7 @@ use pyo3::types::PyDict;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
 use ryo3_bytes::Pyo3Bytes;
-use ryo3_http::{PyHeadersLike, PyHttpStatus};
+use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macros::err_py_not_impl;
 use ryo3_url::PyUrl;
 use std::pin::Pin;
@@ -39,6 +39,9 @@ pub struct RyResponse {
     /// das content length -- if it exists (tho it might not and/or be
     /// different if the response is compressed)
     content_length: Option<u64>,
+
+    /// version of http spec
+    version: reqwest::Version,
 }
 
 impl From<reqwest::Response> for RyResponse {
@@ -50,7 +53,7 @@ impl From<reqwest::Response> for RyResponse {
             // version: res.version(),
             url: Some(res.url().clone()),
             content_length: res.content_length(),
-            // body: None,
+            version: res.version(),
             res: Some(res),
         }
     }
@@ -96,25 +99,20 @@ impl RyResponse {
     }
 
     #[getter]
+    fn version_str(&self) -> String {
+        format!("{:?}", self.version)
+    }
+
+    #[getter]
     #[pyo3(name = "url")]
     fn url(&self) -> Option<PyUrl> {
         self.url.as_ref().map(|url| PyUrl(url.clone()))
     }
 
     #[getter]
-    #[pyo3(name = "headers")]
-    fn py_headers<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    fn headers(&self) -> PyHeaders {
         let c = self.headers.clone();
-        let pydict = PyDict::new(py);
-        for (name, value) in &c {
-            let k = name.to_string();
-            let v = value
-                .to_str()
-                .map(String::from)
-                .map_err(|e| PyValueError::new_err(format!("{e}")))?;
-            pydict.set_item(k, v)?;
-        }
-        Ok(pydict)
+        PyHeaders::from(c)
     }
 
     /// Return the content length of the response, if it is known or `None`.

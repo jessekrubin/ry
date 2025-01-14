@@ -10,6 +10,20 @@ pub enum PyHeadersLike {
     Map(HashMap<String, String>),
 }
 
+impl PyHeadersLike {
+    pub fn map2headers(d: &HashMap<String, String>) -> PyResult<HeaderMap> {
+        let mut headers = HeaderMap::new();
+        for (k, v) in d {
+            let header_name = http::header::HeaderName::from_bytes(k.as_bytes())
+                .map_err(|e| PyValueError::new_err(format!("header-name-error: {e}")))?;
+            let header_value = http::header::HeaderValue::from_str(v)
+                .map_err(|e| PyValueError::new_err(format!("header-value-error: {e}")))?;
+            headers.insert(header_name, header_value);
+        }
+        Ok(headers)
+    }
+}
+
 impl TryFrom<PyHeadersLike> for HeaderMap {
     type Error = PyErr;
     fn try_from(h: PyHeadersLike) -> Result<Self, Self::Error> {
