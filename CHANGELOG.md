@@ -3,6 +3,7 @@
 ## v0.0.27 - FUTURE
 
 - `reqwest` headers-property response returns `Headers` object instead of python dict
+- `same-file` wrapper module added with `is_same_file` py-fn (yet another piece of burnt sushi)
 
 ___
 
