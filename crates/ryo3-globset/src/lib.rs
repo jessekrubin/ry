@@ -143,7 +143,7 @@ impl PyGlobSet {
         signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
     )]
     fn py_new(
-        patterns: Vec<String>,
+        patterns: StringOrStrings,
         case_insensitive: Option<bool>,
         literal_separator: Option<bool>,
         backslash_escape: Option<bool>,
@@ -152,6 +152,8 @@ impl PyGlobSet {
         let case_insensitive = case_insensitive.unwrap_or(false);
         let literal_separator = literal_separator.unwrap_or(false);
         let backslash_escape = backslash_escape.unwrap_or(DEFAULT_BACKSLASH_ESCAPE);
+        let patterns = Vec::from(patterns);
+
         {
             for pattern in &patterns {
                 if pattern.is_empty() {
