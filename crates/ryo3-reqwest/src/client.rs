@@ -1,6 +1,6 @@
 use crate::errors::map_reqwest_err;
 
-use crate::pyo3_bytes::Pyo3JsonBytes;
+use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use bytes::Bytes;
 use futures_core::Stream;
 use futures_util::StreamExt;

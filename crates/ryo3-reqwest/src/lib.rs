@@ -4,7 +4,7 @@ mod client;
 mod default_client;
 mod errors;
 mod fetch;
-mod pyo3_bytes;
+mod pyo3_json_bytes;
 
 pub use crate::client::RyHttpClient;
 use crate::errors::RyReqwestError;
