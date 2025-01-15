@@ -155,9 +155,20 @@ fn build_walkdir(
 #[allow(clippy::too_many_arguments)]
 #[pyfunction]
 #[pyo3(
-    signature = (path = None, *, files = true, dirs = true,
-    contents_first = false, min_depth = 0, max_depth = None,
-    follow_links = false, same_file_system = false, glob = None)
+    signature = (
+        path = None,
+        /,
+        *,
+        files = true,
+        dirs = true,
+        contents_first = false,
+        min_depth = 0,
+        max_depth = None,
+        follow_links = false,
+        same_file_system = false,
+        glob = None,
+        objects = false
+    )
 )]
 pub fn walkdir(
     path: Option<PathLike>,
@@ -169,6 +180,7 @@ pub fn walkdir(
     follow_links: Option<bool>,     // default false
     same_file_system: Option<bool>, // default false
     glob: Option<GlobsterLike>,     // default None
+    objects: Option<bool>,          // default false
 ) -> PyResult<PyWalkdirGen> {
     let wd = build_walkdir(
         path.unwrap_or(PathLike::Str(String::from("."))).as_ref(),
@@ -178,12 +190,18 @@ pub fn walkdir(
         follow_links,
         same_file_system,
     );
-    Ok(PyWalkdirGen {
-        iter: wd.into_iter(),
-        files: files.unwrap_or(true),
-        dirs: dirs.unwrap_or(true),
-        glob: glob.map(PyGlobster::from),
-    })
+    if objects.unwrap_or(false) {
+        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+            "objects=True not yet implemented",
+        ))
+    } else {
+        Ok(PyWalkdirGen {
+            iter: wd.into_iter(),
+            files: files.unwrap_or(true),
+            dirs: dirs.unwrap_or(true),
+            glob: glob.map(PyGlobster::from),
+        })
+    }
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
