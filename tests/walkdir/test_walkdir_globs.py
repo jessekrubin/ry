@@ -49,13 +49,14 @@ def test_walkdir_with_glob(
 @pytest.mark.parametrize(
     "glob_strings",
     [
-        ("*.txt"),  # string
-        (["*.txt"]),  # list
+        "*.txt",  # string
+        ["*.txt"],  # list
+        ("*.txt",),  # tuple
     ],
 )
 def test_walkdir_with_glob_strings(
     tmp_path: Path,
-    glob_strings: t.Tuple[str] | t.Tuple[t.List[str]],
+    glob_strings: str | list[str] | tuple[str],
 ) -> None:
     dirtree = mk_dir_tree(tmp_path)
     walkdir_it = ry.walkdir(tmp_path, files=True, dirs=False, glob=glob_strings)

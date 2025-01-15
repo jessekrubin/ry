@@ -474,7 +474,7 @@ def walkdir(
     max_depth: int | None = None,
     follow_links: bool = False,
     same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | None = None,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
 ) -> WalkdirGen: ...
 
 # =============================================================================

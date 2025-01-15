@@ -3,6 +3,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use ryo3_types::{PathLike, StringOrStrings};
+use std::str::FromStr;
 
 /// Default value for the `literal_separator` parameter.
 const DEFAULT_BACKSLASH_ESCAPE: bool = cfg!(windows);
@@ -234,8 +235,11 @@ pub struct Globster {
 #[derive(Clone, Debug)]
 pub struct PyGlobster(Globster);
 
-impl PyGlobster {
-    pub fn from_str(pattern: &str) -> PyResult<Self> {
+
+impl FromStr for PyGlobster {
+    type Err = PyErr;
+
+    fn from_str(pattern: &str) -> PyResult<Self> {
         let patterns = vec![pattern.to_string()];
         PyGlobster::__new__(patterns, None, None, None)
     }
