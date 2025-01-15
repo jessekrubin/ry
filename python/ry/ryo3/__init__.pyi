@@ -442,7 +442,7 @@ def glob(
     literal_separator: bool | None = None,
     backslash_escape: bool | None = None,
 ) -> Glob: ...
-def globs(
+def globster(
     patterns: list[str] | tuple[str, ...],
     /,
     *,

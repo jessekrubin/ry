@@ -195,11 +195,18 @@ pub fn walkdir(
             "objects=True not yet implemented",
         ))
     } else {
+        let walk_globster = if let Some(glob) = glob {
+            let globster = PyGlobster::try_from(&glob)?;
+            Some(globster)
+        } else {
+            None
+        };
+
         Ok(PyWalkdirGen {
             iter: wd.into_iter(),
             files: files.unwrap_or(true),
             dirs: dirs.unwrap_or(true),
-            glob: glob.map(PyGlobster::from),
+            glob: walk_globster,
         })
     }
 }

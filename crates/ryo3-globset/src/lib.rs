@@ -2,7 +2,7 @@ use ::globset::{Glob, GlobBuilder, GlobSetBuilder};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use ryo3_types::PathLike;
+use ryo3_types::{PathLike, StringOrStrings};
 
 /// Default value for the `literal_separator` parameter.
 const DEFAULT_BACKSLASH_ESCAPE: bool = cfg!(windows);
@@ -234,6 +234,21 @@ pub struct Globster {
 #[derive(Clone, Debug)]
 pub struct PyGlobster(Globster);
 
+impl PyGlobster {
+    pub fn from_str(pattern: &str) -> PyResult<Self> {
+        let patterns = vec![pattern.to_string()];
+        PyGlobster::__new__(patterns, None, None, None)
+    }
+}
+
+impl TryFrom<Vec<String>> for PyGlobster {
+    type Error = PyErr;
+
+    fn try_from(patterns: Vec<String>) -> PyResult<Self> {
+        PyGlobster::__new__(patterns, None, None, None)
+    }
+}
+
 #[pymethods]
 impl PyGlobster {
     #[new]
@@ -373,14 +388,20 @@ pub enum GlobsterLike {
     Glob(PyGlob),
     GlobSet(PyGlobSet),
     Globster(PyGlobster),
+    Str(String),
+    Strings(Vec<String>),
 }
 
-impl From<GlobsterLike> for PyGlobster {
-    fn from(globster_like: GlobsterLike) -> Self {
+impl TryFrom<&GlobsterLike> for PyGlobster {
+    type Error = PyErr;
+
+    fn try_from(globster_like: &GlobsterLike) -> PyResult<Self> {
         match globster_like {
-            GlobsterLike::Glob(glob) => glob.globster(),
-            GlobsterLike::GlobSet(globset) => globset.globster(),
-            GlobsterLike::Globster(globster) => globster,
+            GlobsterLike::Glob(glob) => Ok(glob.globster()),
+            GlobsterLike::GlobSet(globset) => Ok(globset.globster()),
+            GlobsterLike::Globster(globster) => Ok(globster.clone()),
+            GlobsterLike::Strings(patterns) => PyGlobster::try_from(patterns.clone()),
+            GlobsterLike::Str(s) => PyGlobster::from_str(s),
         }
     }
 }
@@ -425,12 +446,13 @@ fn glob(
 #[pyo3(
     signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
 )]
-fn globs(
-    patterns: Vec<String>,
+fn globster(
+    patterns: StringOrStrings,
     case_insensitive: Option<bool>,
     literal_separator: Option<bool>,
     backslash_escape: Option<bool>,
 ) -> PyResult<PyGlobster> {
+    let patterns = Vec::from(patterns);
     PyGlobster::__new__(
         patterns,
         case_insensitive,
@@ -441,7 +463,7 @@ fn globs(
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(glob, m)?)?;
-    m.add_function(wrap_pyfunction!(globs, m)?)?;
+    m.add_function(wrap_pyfunction!(globster, m)?)?;
     m.add_class::<PyGlob>()?;
     m.add_class::<PyGlobSet>()?;
     m.add_class::<PyGlobster>()?;
