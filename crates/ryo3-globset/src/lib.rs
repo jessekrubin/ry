@@ -1,7 +1,10 @@
+mod globster;
+
+pub use crate::globster::PyGlobster;
 use ::globset::{Glob, GlobBuilder, GlobSetBuilder};
+use globster::Globster;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
 use ryo3_types::{PathLike, StringOrStrings};
 use std::str::FromStr;
 
@@ -40,7 +43,7 @@ impl PyGlob {
     #[pyo3(
         signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
     )]
-    fn __new__(
+    fn py_new(
         pattern: String,
         case_insensitive: Option<bool>,
         literal_separator: Option<bool>,
@@ -139,7 +142,7 @@ impl PyGlobSet {
     #[pyo3(
         signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
     )]
-    fn __new__(
+    fn py_new(
         patterns: Vec<String>,
         case_insensitive: Option<bool>,
         literal_separator: Option<bool>,
@@ -223,155 +226,6 @@ impl PyGlobSet {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Globster {
-    pub globset: Option<globset::GlobSet>,
-    pub nglobset: Option<globset::GlobSet>,
-    pub patterns: Vec<String>,
-    pub length: usize,
-}
-
-#[pyclass(name = "Globster", frozen, module = "ryo3")]
-#[derive(Clone, Debug)]
-pub struct PyGlobster(Globster);
-
-
-impl FromStr for PyGlobster {
-    type Err = PyErr;
-
-    fn from_str(pattern: &str) -> PyResult<Self> {
-        let patterns = vec![pattern.to_string()];
-        PyGlobster::__new__(patterns, None, None, None)
-    }
-}
-
-impl TryFrom<Vec<String>> for PyGlobster {
-    type Error = PyErr;
-
-    fn try_from(patterns: Vec<String>) -> PyResult<Self> {
-        PyGlobster::__new__(patterns, None, None, None)
-    }
-}
-
-#[pymethods]
-impl PyGlobster {
-    #[new]
-    #[pyo3(
-        signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
-    )]
-    fn __new__(
-        patterns: Vec<String>,
-        case_insensitive: Option<bool>,
-        literal_separator: Option<bool>,
-        backslash_escape: Option<bool>,
-    ) -> PyResult<Self> {
-        let mut globset_builder = GlobSetBuilder::new();
-        let mut nglobset_builder = GlobSetBuilder::new();
-        let case_insensitive = case_insensitive.unwrap_or(false);
-        let literal_separator = literal_separator.unwrap_or(false);
-        let backslash_escape = backslash_escape.unwrap_or(DEFAULT_BACKSLASH_ESCAPE);
-        let mut positive_patterns: Vec<String> = vec![];
-        let mut negative_patterns: Vec<String> = vec![];
-
-        for pattern in &patterns {
-            if pattern.is_empty() {
-                return Err(PyValueError::new_err("Empty pattern"));
-            }
-            if pattern.starts_with("!!") {
-                return Err(PyValueError::new_err("Double negation is not allowed"));
-            }
-            if pattern.starts_with('!') {
-                negative_patterns.push(pattern.clone());
-            } else {
-                positive_patterns.push(pattern.clone());
-            }
-        }
-
-        {
-            for pattern in &positive_patterns {
-                let g = GlobBuilder::new(pattern)
-                    .case_insensitive(case_insensitive)
-                    .literal_separator(literal_separator)
-                    .backslash_escape(backslash_escape)
-                    .build()
-                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
-                globset_builder.add(g);
-            }
-        }
-        {
-            for pattern in &negative_patterns {
-                let g = GlobBuilder::new(pattern)
-                    .case_insensitive(case_insensitive)
-                    .literal_separator(literal_separator)
-                    .backslash_escape(backslash_escape)
-                    .build()
-                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
-                nglobset_builder.add(g);
-            }
-        }
-        let gs = globset_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
-        let ngs = nglobset_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
-        let globster = Globster {
-            patterns,
-            globset: Option::from(gs),
-            nglobset: Option::from(ngs),
-            length: positive_patterns.len() + negative_patterns.len(),
-        };
-        Ok(Self(globster))
-    }
-
-    fn __str__(&self) -> String {
-        let tuple_str = self.patterns_string();
-        format!("Globster({tuple_str})")
-    }
-    fn __repr__(&self) -> String {
-        self.__str__()
-    }
-
-    fn __len__(&self) -> usize {
-        self.0.length
-    }
-
-    fn is_empty(&self) -> bool {
-        self.0.length == 0
-    }
-
-    pub fn is_match_str(&self, path: &str) -> bool {
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
-            (Some(gs), None) => gs.is_match(path),
-            (None, Some(ngs)) => !ngs.is_match(path),
-            _ => false,
-        }
-    }
-
-    pub fn is_match(&self, path: PathLike) -> bool {
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => {
-                // let path = path.to_string();
-                gs.is_match(&path) && !ngs.is_match(&path)
-            }
-            (Some(gs), None) => gs.is_match(&path),
-            (None, Some(ngs)) => !ngs.is_match(&path),
-            _ => false,
-        }
-    }
-
-    fn __call__(&self, path: PathLike) -> bool {
-        self.is_match(path)
-    }
-
-    #[getter]
-    fn patterns<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let patterns = self.0.patterns.clone();
-        PyTuple::new(py, patterns)
-    }
-}
-
 impl PyGlobPatterns for PyGlobSet {
     fn patterns_ref(&self) -> &Vec<String> {
         &self.patterns
@@ -420,7 +274,7 @@ fn glob(
     literal_separator: Option<bool>,
     backslash_escape: Option<bool>,
 ) -> PyResult<PyGlob> {
-    PyGlob::__new__(
+    PyGlob::py_new(
         pattern,
         case_insensitive,
         literal_separator,
@@ -428,36 +282,19 @@ fn glob(
     )
 }
 
-// #[pyfunction]
-// #[pyo3(
-//     signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
-// )]
-// fn globset(
-//     pattern: String,
-//     case_insensitive: Option<bool>,
-//     literal_separator: Option<bool>,
-//     backslash_escape: Option<bool>,
-// ) -> PyResult<PyGlob> {
-//     PyGlob::__new__(
-//         pattern,
-//         case_insensitive,
-//         literal_separator,
-//         backslash_escape,
-//     )
-// }
-
 #[pyfunction]
 #[pyo3(
+    name = "globster",
     signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
 )]
-fn globster(
+fn globster_fn(
     patterns: StringOrStrings,
     case_insensitive: Option<bool>,
     literal_separator: Option<bool>,
     backslash_escape: Option<bool>,
 ) -> PyResult<PyGlobster> {
     let patterns = Vec::from(patterns);
-    PyGlobster::__new__(
+    PyGlobster::py_new(
         patterns,
         case_insensitive,
         literal_separator,
@@ -467,7 +304,7 @@ fn globster(
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(glob, m)?)?;
-    m.add_function(wrap_pyfunction!(globster, m)?)?;
+    m.add_function(wrap_pyfunction!(globster_fn, m)?)?;
     m.add_class::<PyGlob>()?;
     m.add_class::<PyGlobSet>()?;
     m.add_class::<PyGlobster>()?;

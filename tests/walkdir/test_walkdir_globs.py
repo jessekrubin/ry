@@ -22,7 +22,7 @@ def test_walkdir_with_glob(
     tmp_path: Path,
     glob_type_factory: t.Callable[[ry.Glob], ry.GlobSet | ry.Glob | ry.Globster],
 ) -> None:
-    ry_glob = ry.glob("*.txt")
+    ry_glob = ry.Glob("*.txt")
     dirtree = mk_dir_tree(tmp_path)
 
     glob_type = glob_type_factory(ry_glob)
