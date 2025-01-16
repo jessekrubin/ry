@@ -29,6 +29,7 @@ ryo3-fspath = { workspace = true }
 # optional ryo3-* dependencies
 ryo3-brotli = { workspace = true, optional = true }
 ryo3-bzip2 = { workspace = true, optional = true }
+ryo3-bytes = { workspace = true, optional = true }
 ryo3-dirs = { workspace = true, optional = true }
 ryo3-flate2 = { workspace = true, optional = true }
 ryo3-fnv = { workspace = true, optional = true }
@@ -55,32 +56,34 @@ pyo3-async-runtimes.workspace = true
 [features]
 default = ["shlex", "jiter"]
 all = [
-    "brotli",
-    "bzip2",
-    "dirs",
-    "flate2",
-    "fnv",
-    "globset",
-    "heck",
-    "http",
-    "jiff",
-    "jiter",
-    "regex",
-    "reqwest",
-    "same-file",
-    "shlex",
-    "sqlformat",
-    "tokio",
-    "unindent",
-    "url",
-    "walkdir",
-    "which",
-    "xxhash",
-    "zstd",
+  "brotli",
+  "bzip2",
+  "dirs",
+  "flate2",
+  "bytes",
+  "fnv",
+  "globset",
+  "heck",
+  "http",
+  "jiff",
+  "jiter",
+  "regex",
+  "reqwest",
+  "same-file",
+  "shlex",
+  "sqlformat",
+  "tokio",
+  "unindent",
+  "url",
+  "walkdir",
+  "which",
+  "xxhash",
+  "zstd",
 ]
 
 brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:ryo3-bzip2"]
+bytes = ["dep:ryo3-bytes"]
 dirs = ["dep:ryo3-dirs"]
 flate2 = ["dep:ryo3-flate2"]
 fnv = ["dep:ryo3-fnv"]
