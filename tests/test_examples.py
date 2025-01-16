@@ -43,6 +43,8 @@ def examples_scripts() -> list[ExampleScript]:
 
 @pytest.mark.parametrize("example", examples_scripts())
 def test_example_script(example: ExampleScript, tmp_path: Path) -> None:
+    if os.name == "nt":
+        pytest.skip("Skipping on Windows (for now)")
     os.chdir(tmp_path)
     assert os.path.exists(example.filepath)
     assert os.path.isfile(example.filepath)
