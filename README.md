@@ -2,6 +2,7 @@
 
 ry = rust and python and bears, oh my!
 
+
 [![PyPI](https://img.shields.io/pypi/v/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Wheel](https://img.shields.io/pypi/wheel/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
@@ -11,7 +12,8 @@ ry = rust and python and bears, oh my!
 
 **DOCS:** https://ryo3.dev (WIP)
 
-python bindings for rust crates I wish existed in python
+- `ry` is a library of python shims/bindings to popular rust crates
+- `ryo3-*` is the collection of rust crates providing the shims used by ry and possibly your `pyo3` rust-python library
 
 **THIS IS A WORK IN PROGRESS**
 
@@ -23,6 +25,12 @@ uv add ry
 ```
 
 **Check install:** `python -m ry`
+
+## Quickstart
+
+Check out the [examples](./examples) directory for some quickstart examples.
+__
+
 
 ## What and why?
 

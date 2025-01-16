@@ -18,7 +18,7 @@ def test_globset_str_repr_methods() -> None:
 
 
 def test_globster_str_repr_methods() -> None:
-    globset = ry.globs(["*.py", "*.txt"])
+    globset = ry.globster(["*.py", "*.txt"])
     assert str(globset) == 'Globster(["*.py", "*.txt"])'
     assert str(globset) == repr(globset)
     assert globset.__module__ == "ryo3"
@@ -37,21 +37,21 @@ def test_single_globster_callable() -> None:
 
 
 def test_multiple_globsters() -> None:
-    gset = ry.globs(["*.py", "*.txt"])
+    gset = ry.globster(["*.py", "*.txt"])
     assert gset.is_match("file.py")
     assert gset.is_match("file.txt")
     assert not gset.is_match("file.exe")
 
 
 def test_multiple_globsters_tuple() -> None:
-    gset = ry.globs(("*.py", "*.txt"))
+    gset = ry.globster(("*.py", "*.txt"))
     assert gset.is_match("file.py")
     assert gset.is_match("file.txt")
     assert not gset.is_match("file.exe")
 
 
 def test_multiple_globsters_callable() -> None:
-    gset = ry.globs(
+    gset = ry.globster(
         ["*.py", "*.txt"],
     )
     assert gset("file.py")
@@ -65,7 +65,7 @@ def test_multiple_globsters_callable() -> None:
 
 
 def test_multiple_globsters_callable_fspath() -> None:
-    gset = ry.globs(
+    gset = ry.globster(
         ["*.py", "*.txt"],
     )
     assert gset(ry.FsPath("file.py"))
@@ -79,7 +79,7 @@ def test_multiple_globsters_callable_fspath() -> None:
 
 
 def test_multiple_globsters_negative() -> None:
-    gset = ry.globs(["*.py", "!*.txt"])
+    gset = ry.globster(["*.py", "!*.txt"])
     assert gset("file.py")
     assert gset("file.txt") is False
     assert not gset("path/to/a/file.txt")
@@ -87,7 +87,7 @@ def test_multiple_globsters_negative() -> None:
 
 
 def test_multiple_globsters_case_insensitive() -> None:
-    globset = ry.globs(["*.py", "*.txt"], case_insensitive=True)
+    globset = ry.globster(["*.py", "*.txt"], case_insensitive=True)
     assert globset("file.py")
     assert globset("file.PY")
     assert globset("file.txt")
@@ -105,7 +105,7 @@ def test_glob_paths() -> None:
         "/b",
         "/c",
     ]
-    globber = ry.globs(
+    globber = ry.globster(
         ["/a/*", "!/a/*/*"], case_insensitive=True, literal_separator=True
     )
     matches = [el for el in strings if globber(el)]

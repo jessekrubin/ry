@@ -1,7 +1,7 @@
 import typing as t
 
 if t.TYPE_CHECKING:
-    from ry import Duration
+    from ry import Duration, Headers
 
 class HttpClient:
     def __init__(
@@ -63,8 +63,9 @@ class ReqwestError(Exception):
 
 class Response:
     status_code: int
-    headers: dict[str, str]
 
+    @property
+    def headers(self) -> Headers: ...
     async def text(self) -> str: ...
     async def json(self) -> t.Any: ...
     async def bytes(self) -> bytes: ...

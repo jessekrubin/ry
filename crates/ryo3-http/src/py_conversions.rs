@@ -4,6 +4,7 @@
 
 use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod};
 use pyo3::exceptions::PyValueError;
+use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 
@@ -12,32 +13,32 @@ impl<'py> IntoPyObject<'py> for &HttpMethod {
     type Target = PyAny;
     #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            http::Method::GET => Ok("GET"),
-            http::Method::POST => Ok("POST"),
-            http::Method::PUT => Ok("PUT"),
-            http::Method::DELETE => Ok("DELETE"),
-            http::Method::HEAD => Ok("HEAD"),
-            http::Method::OPTIONS => Ok("OPTIONS"),
-            http::Method::CONNECT => Ok("CONNECT"),
-            http::Method::PATCH => Ok("PATCH"),
-            http::Method::TRACE => Ok("TRACE"),
-            _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            http::Method::GET => Ok(intern!(py, "GET")),
+            http::Method::POST => Ok(intern!(py, "POST")),
+            http::Method::PUT => Ok(intern!(py, "PUT")),
+            http::Method::DELETE => Ok(intern!(py, "DELETE")),
+            http::Method::HEAD => Ok(intern!(py, "HEAD")),
+            http::Method::OPTIONS => Ok(intern!(py, "OPTIONS")),
+            http::Method::CONNECT => Ok(intern!(py, "CONNECT")),
+            http::Method::PATCH => Ok(intern!(py, "PATCH")),
+            http::Method::TRACE => Ok(intern!(py, "TRACE")),
+            _ => Err(PyErr::new::<PyValueError, _>(
                 "UNSUPPORTED HTTP METHOD".to_string(),
             )),
         }?;
-
+        let b = s.as_borrowed();
         #[cfg(Py_LIMITED_API)]
         {
-            Ok(PyString::new(py, s).into_any())
+            Ok(b.into_any())
         }
         #[cfg(not(Py_LIMITED_API))]
         {
-            Ok(PyString::new(py, s))
+            Ok(b)
         }
     }
 }
@@ -47,8 +48,9 @@ impl<'py> IntoPyObject<'py> for HttpMethod {
     type Target = PyAny;
     #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
+    type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
+
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
     }

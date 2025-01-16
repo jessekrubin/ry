@@ -442,7 +442,7 @@ def glob(
     literal_separator: bool | None = None,
     backslash_escape: bool | None = None,
 ) -> Glob: ...
-def globs(
+def globster(
     patterns: list[str] | tuple[str, ...],
     /,
     *,
@@ -474,8 +474,14 @@ def walkdir(
     max_depth: int | None = None,
     follow_links: bool = False,
     same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | None = None,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
 ) -> WalkdirGen: ...
+
+# =============================================================================
+# SAME_FILE
+# =============================================================================
+
+def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
 
 # =============================================================================
 # SHLEX

@@ -39,6 +39,7 @@ ryo3-jiff = { workspace = true, optional = true }
 ryo3-jiter = { workspace = true, optional = true }
 ryo3-regex = { workspace = true, optional = true }
 ryo3-reqwest = { workspace = true, optional = true }
+ryo3-same-file = { workspace = true, optional = true }
 ryo3-shlex = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
 ryo3-tokio = { workspace = true, optional = true }
@@ -66,6 +67,7 @@ all = [
     "jiter",
     "regex",
     "reqwest",
+    "same-file",
     "shlex",
     "sqlformat",
     "tokio",
@@ -89,6 +91,7 @@ jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
 regex = ["dep:ryo3-regex", "ryo3-which/regex"]
 reqwest = ["dep:ryo3-reqwest", "http", "url"]
+same-file = ["dep:ryo3-same-file"]
 shlex = ["dep:ryo3-shlex"]
 sqlformat = ["dep:ryo3-sqlformat"]
 tokio = ["dep:ryo3-tokio"]

@@ -38,8 +38,11 @@ async def test_get_json(server: ReqtestServer) -> None:
     res_json = await response.json()
     assert res_json == {"howdy": "partner"}
     headers = response.headers
-    assert isinstance(headers, dict)
+    assert isinstance(headers, ry.Headers)
+    # assert isinstance(headers, dict)
     assert headers["content-type"] == "application/json"
+    headers_dict = dict(headers)
+    assert headers_dict["content-type"] == "application/json"
 
 
 async def test_get_stream(server: ReqtestServer) -> None:

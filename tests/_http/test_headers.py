@@ -59,3 +59,29 @@ class TestHeadersObj:
         assert isinstance(keys, list)
         keyset = set(keys)
         assert keyset == {"content-type", "accept"}
+
+    def test_headers_dict_able(self) -> None:
+        h = Headers(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
+        d = dict(h)
+        assert isinstance(d, dict)
+        assert d == {
+            "content-type": "application/json",
+            "accept": "application/json",
+        }
+
+    def test_headers_update(self) -> None:
+        h = Headers(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
+        h.update({"Content-Type": "application/xml"})
+        assert len(h) == 2
+        assert h["Content-Type"] == "application/xml"
+        assert h["Accept"] == "application/json"

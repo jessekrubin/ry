@@ -65,6 +65,7 @@ members = [
   "crates/ryo3-jiter",
   "crates/ryo3-regex",
   "crates/ryo3-reqwest",
+  "crates/ryo3-same-file",
   "crates/ryo3-shlex",
   "crates/ryo3-sqlformat",
   "crates/ryo3-tokio",
@@ -77,7 +78,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.26"
+version = "0.0.27"
 authors = [
   "Jesse K. Rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
@@ -116,6 +117,7 @@ ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-reqwest = { path = "./crates/ryo3-reqwest" }
+ryo3-same-file = { path = "./crates/ryo3-same-file" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-tokio = { path = "./crates/ryo3-tokio" }

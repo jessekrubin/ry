@@ -1,5 +1,7 @@
 use crate::http_types::{HttpHeaderName, HttpHeaderValue};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
+use crate::PyHeadersLike;
+use http::header::HeaderMap;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -7,14 +9,20 @@ use std::collections::HashMap;
 
 #[pyclass(name = "Headers", module = "ry.ryo3.http")]
 #[derive(Clone, Debug)]
-pub struct PyHeaders(pub http::header::HeaderMap);
+pub struct PyHeaders(pub HeaderMap);
+
+impl From<HeaderMap> for PyHeaders {
+    fn from(hm: HeaderMap) -> Self {
+        Self(hm)
+    }
+}
 
 #[pymethods]
 impl PyHeaders {
     #[new]
     #[pyo3(signature = (d = None))]
     fn py_new(_py: Python<'_>, d: Option<HashMap<String, String>>) -> PyResult<Self> {
-        let mut headers = http::header::HeaderMap::new();
+        let mut headers = HeaderMap::new();
         if let Some(d) = d {
             for (k, v) in d {
                 let header_name =
@@ -208,4 +216,78 @@ impl PyHeaders {
         }
         Ok(vals)
     }
+
+    #[pyo3(signature = (other, append = false))]
+    pub fn update(&mut self, other: PyHeadersLike, append: bool) -> PyResult<()> {
+        match other {
+            PyHeadersLike::Headers(other) => {
+                if append {
+                    for (k, v) in other.0 {
+                        if let Some(k) = k {
+                            self.0.append(k, v);
+                        }
+                    }
+                } else {
+                    for (k, v) in other.0 {
+                        if let Some(k) = k {
+                            self.0.insert(k, v);
+                        }
+                    }
+                }
+            }
+            PyHeadersLike::Map(other) => {
+                let hm = PyHeadersLike::map2headers(&other)?;
+
+                if append {
+                    for (k, v) in hm {
+                        if let Some(k) = k {
+                            self.0.append(k, v);
+                        }
+                    }
+                } else {
+                    for (k, v) in hm {
+                        if let Some(k) = k {
+                            self.0.insert(k, v);
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn __or__(&self, other: PyHeadersLike) -> PyResult<PyHeaders> {
+        let mut headers = self.0.clone();
+        match other {
+            PyHeadersLike::Headers(other) => {
+                for (k, v) in other.0 {
+                    if let Some(k) = k {
+                        headers.insert(k, v);
+                    }
+                }
+            }
+            PyHeadersLike::Map(other) => {
+                let h = PyHeadersLike::map2headers(&other)?;
+                for (k, v) in h {
+                    if let Some(k) = k {
+                        headers.insert(k, v);
+                    }
+                }
+            }
+        }
+        Ok(PyHeaders(headers))
+    }
+
+    // pub fn __ior__<'py>(
+    //     mut slf: PyRefMut<'py, Self>,
+    //     other: &PyHeaders,
+    // ) -> PyResult<PyRefMut<'py, Self>> {
+    //     let other_headers = other.0.clone();
+    //     for (k, v) in other_headers {
+    //         if let Some(k) = k {
+    //             slf.0.insert(k, v);
+    //         }
+    //     }
+    //     Ok(slf)
+    // }
 }

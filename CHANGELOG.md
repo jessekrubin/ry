@@ -1,6 +1,15 @@
 # CHANGELOG
 
-## v0.0.26 - FUTURE
+## v0.0.27 - FUTURE
+
+- `reqwest`
+  - headers-property response returns `Headers` object instead of python dict
+- `same-file`
+  - wrapper module added with `is_same_file` py-fn (yet another piece of burnt sushi)
+
+___
+
+## v0.0.26 [2025-01-13]
 
 - `reqwest`
   - `AsyncClient` renamed to `HttpClient`

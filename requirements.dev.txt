@@ -4,13 +4,9 @@ attrs==24.3.0
     # via hypothesis
 click==8.1.8
     # via uvicorn
-colorama==0.4.6
-    # via
-    #   click
-    #   pytest
 h11==0.14.0
     # via uvicorn
-hypothesis==6.123.13
+hypothesis==6.123.17
     # via -r requirements.dev.in
 iniconfig==2.0.0
     # via pytest
@@ -35,7 +31,7 @@ pytest-asyncio==0.25.2
     # via -r requirements.dev.in
 pytest-benchmark==5.1.0
     # via -r requirements.dev.in
-ruff==0.9.0
+ruff==0.9.1
     # via -r requirements.dev.in
 sortedcontainers==2.4.0
     # via hypothesis
