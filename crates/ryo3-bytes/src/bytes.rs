@@ -101,7 +101,7 @@ impl PyBytes {
 
     #[allow(non_snake_case)]
     #[classattr]
-    fn EMPTY() -> Self {
+    fn ZERO() -> Self {
         Self(Bytes::new())
     }
 
@@ -111,11 +111,7 @@ impl PyBytes {
     }
 
     fn __repr__(&self) -> String {
-        // format!("Bytes({:?})", self.0)
         format!("Bytes({})", python_bytes_repr(self.0.as_ref()))
-        // format!("Bytes({:?})", self.0)
-        // format!("Bytes({})", self
-        // python_bytes_repr(self.0.as_ref())
     }
 
     fn __add__(&self, other: PyBytes) -> PyBytes {
@@ -169,14 +165,14 @@ impl PyBytes {
         }
         let mut new_buf = BytesMut::with_capacity(new_cap_usize);
         if step > 0 {
-            // Forward iteration using a range and step_by
+            // forward
             new_buf.extend(
                 (start..stop)
                     .step_by(step as usize)
                     .map(|i| self.0[i as usize]),
             );
         } else {
-            // Reverse iteration using a range and step_by
+            // backward
             new_buf.extend(
                 (stop + 1..=start)
                     .rev()
@@ -186,6 +182,7 @@ impl PyBytes {
         }
         Ok(PyBytes(new_buf.freeze()))
     }
+
     fn __getitem__<'py>(&self, py: Python<'py>, key: BytesGetItemKey<'py>) -> PyResult<PyObject> {
         match key {
             BytesGetItemKey::Int(mut index) => {
