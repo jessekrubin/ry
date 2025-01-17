@@ -5,6 +5,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_brotli::pymod_add(m)?;
     #[cfg(feature = "bzip2")]
     ryo3_bzip2::pymod_add(m)?;
+    #[cfg(feature = "bytes")]
+    ryo3_bytes::pymod_add(m)?;
     // #[cfg(feature = "dirs")]
     // ryo3_dirs::pymod_add(m)?;
     #[cfg(feature = "flate2")]

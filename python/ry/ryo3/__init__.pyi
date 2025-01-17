@@ -7,6 +7,7 @@ from os import PathLike
 from ry._types import DateTimeTypedDict, DateTypedDict, TimeSpanTypedDict, TimeTypedDict
 
 from . import http as http
+from ._bytes import Bytes as Bytes
 from .http import Headers as Headers
 from .http import HttpStatus as HttpStatus
 from .reqwest import HttpClient as HttpClient

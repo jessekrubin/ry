@@ -7,6 +7,7 @@ from ry import ryo3
 from ry.ryo3 import (
     JSON,
     URL,
+    Bytes,
     Date,
     DateDifference,
     DateTime,
@@ -109,6 +110,7 @@ from ry.ryo3 import (
 __all__ = (
     "JSON",
     "URL",
+    "Bytes",
     "Date",
     "DateDifference",
     "DateTime",

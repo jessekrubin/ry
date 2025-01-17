@@ -1616,6 +1616,7 @@ dependencies = [
  "pyo3-async-runtimes",
  "regex",
  "ryo3-brotli",
+ "ryo3-bytes",
  "ryo3-bzip2",
  "ryo3-dev",
  "ryo3-dirs",
