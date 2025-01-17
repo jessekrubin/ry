@@ -1,6 +1,13 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::unused_self)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::ptr_as_ptr)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::cast_possible_wrap)]
 mod pyo3_bytes;
 mod ry_bytes;
 

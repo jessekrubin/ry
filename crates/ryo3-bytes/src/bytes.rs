@@ -136,7 +136,7 @@ impl PyBytes {
         self.0.as_ref() == other.0.as_ref()
     }
 
-    fn slice<'py>(&self, slice: &Bound<'py, PySlice>) -> PyResult<PyBytes> {
+    fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<PyBytes> {
         let len_isize = self.0.len() as isize;
         let psi = slice.indices(len_isize)?;
         let (start, stop, step) = (psi.start, psi.stop, psi.step);
@@ -200,8 +200,7 @@ impl PyBytes {
             }
             BytesGetItemKey::Slice(slice) => {
                 let s = self.slice(&slice)?;
-                let thing = s.into_py_any(py);
-                thing
+                s.into_py_any(py)
             }
         }
     }
@@ -246,7 +245,7 @@ impl PyBytes {
     /// If the binary data starts with the prefix string, return bytes[len(prefix):]. Otherwise,
     /// return a copy of the original binary data:
     #[pyo3(signature = (prefix, /))]
-    fn removeprefix(&self, prefix: PyBytes) -> PyBytes {
+    fn removeprefix(&self, prefix: &PyBytes) -> PyBytes {
         if self.0.starts_with(prefix.as_ref()) {
             self.0.slice(prefix.0.len()..).into()
         } else {
@@ -257,7 +256,7 @@ impl PyBytes {
     /// If the binary data ends with the suffix string and that suffix is not empty, return
     /// `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
     #[pyo3(signature = (suffix, /))]
-    fn removesuffix(&self, suffix: PyBytes) -> PyBytes {
+    fn removesuffix(&self, suffix: &PyBytes) -> PyBytes {
         if self.0.ends_with(suffix.as_ref()) {
             self.0.slice(0..self.0.len() - suffix.0.len()).into()
         } else {
@@ -472,8 +471,8 @@ impl PyBytes {
     /// With optional end, stop comparing B at that position.
     /// prefix can also be a tuple of bytes to try.
     ///
-    fn startswith(&self, prefix: &PyBytes) -> PyResult<bool> {
-        Ok(self.0.starts_with(prefix.as_ref()))
+    fn startswith(&self, prefix: &PyBytes) -> bool {
+        self.0.starts_with(prefix.as_ref())
     }
 }
 
@@ -571,7 +570,7 @@ fn python_bytes_repr(data: &[u8]) -> String {
             }
             _ => {
                 // For everything else, use \xNN
-                out.push_str(&format!("\\x{:02x}", byte));
+                out.push_str(&format!("\\x{byte:02x}"));
             }
         }
     }

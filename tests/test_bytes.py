@@ -103,7 +103,6 @@ def test_hex_str(b: bytes) -> None:
         "capitalize",
         "center",
         "count",
-        "decode",
         "endswith",
         "expandtabs",
         "find",
