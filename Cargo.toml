@@ -142,7 +142,7 @@ futures-util = "0.3.31"
 globset = { version = "0.4.15", features = ["serde"] }
 heck = "0.5.0"
 http = "1.2.0"
-jiff = { version = "0.1.22", features = ["default", "serde"] }
+jiff = { version = "0.1.24", features = ["default", "serde"] }
 jiter = { version = "0.8.2", features = ["python"] }
 regex = "1.11.1"
 reqwest = { version = "0.12.12", features = ["blocking", "brotli", "charset", "cookies", "deflate", "gzip", "http2", "macos-system-configuration", "rustls-tls-native-roots", "stream", "zstd"], default-features = false}
