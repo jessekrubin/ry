@@ -13,29 +13,29 @@ import ry
 
 class TestZonedDateTime:
     def test_era_year(self) -> None:
-        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
         era_year = zdt.era_year()
         assert era_year == (2020, "CE")
 
     def test_offset_from_zdt(self) -> None:
-        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
         offset = zdt.offset()
         assert isinstance(offset, ry.Offset)
         assert offset == ry.Offset(hours=-4)
 
     def test_start_of_day(self) -> None:
-        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
         start_of_day = zdt.start_of_day()
         assert isinstance(start_of_day, ry.ZonedDateTime)
-        assert start_of_day == ry.date(2020, 8, 26).at(0, 0, 0, 0).intz(
+        assert start_of_day == ry.date(2020, 8, 26).at(0, 0, 0, 0).in_tz(
             "America/New_York"
         )
 
     def test_end_of_day(self) -> None:
-        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+        zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
         end_of_day = zdt.end_of_day()
         assert isinstance(end_of_day, ry.ZonedDateTime)
-        assert end_of_day == ry.date(2020, 8, 26).at(23, 59, 59, 999_999_999).intz(
+        assert end_of_day == ry.date(2020, 8, 26).at(23, 59, 59, 999_999_999).in_tz(
             "America/New_York"
         )
 
@@ -57,7 +57,7 @@ class TestZonedDateTimeProperties:
         - subsec_nanosecond
     """
 
-    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
 
     def test_year(self) -> None:
         assert self.zdt.year == 2020
@@ -113,7 +113,7 @@ class TestOffset:
 
 
 def test_zoned() -> None:
-    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     assert zdt.string() == "2020-08-26T06:27:00-04:00[America/New_York]"
 
     zdt_fields = {
@@ -200,8 +200,8 @@ def test_zoned() -> None:
 
 class TestTimeSpan:
     def test_span_negate(self) -> None:
-        zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
-        zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
+        zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+        zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
         span = zdt2 - zdt1
         assert span.string() == "PT29341H3M"
         span_negated = -span
@@ -211,8 +211,8 @@ class TestTimeSpan:
         assert span_inverted.string() == "-PT29341H3M"
 
     def test_span_2_duration(self) -> None:
-        zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
-        zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
+        zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+        zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
         span = zdt2 - zdt1
         duration = span.to_signed_duration(zdt2)
         assert duration == ry.SignedDuration(secs=105627780, nanos=0)

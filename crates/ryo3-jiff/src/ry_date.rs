@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::ry_date_difference::{IntoDateDifference, RyDateDifference};
 use crate::ry_datetime::RyDateTime;
@@ -262,11 +263,16 @@ impl RyDate {
         PyTuple::new(py, parts)
     }
 
-    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
+    fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
         self.0
-            .intz(tz)
+            .in_tz(tz)
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn intz(&self, py: Python, tz: &str) -> PyResult<RyZoned> {
+        deprecation_warning_intz(py)?;
+        self.in_tz(tz)
     }
 
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {

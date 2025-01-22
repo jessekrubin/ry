@@ -43,7 +43,7 @@ def test_from_datetime() -> None:
 
 
 def test_from_zoned() -> None:
-    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     pdt = zdt.to_pydatetime()
     assert pdt.year == zdt.year
     assert pdt.month == zdt.month

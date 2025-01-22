@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::jiff_types::JiffDateTime;
 use crate::ry_datetime_difference::{IntoDateTimeDifference, RyDateTimeDifference};
@@ -285,11 +286,16 @@ impl RyDateTime {
         RyDate::from(self.0.date())
     }
 
-    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
+    fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
         self.0
-            .intz(tz)
+            .in_tz(tz)
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn intz(&self, py: Python, tz: &str) -> PyResult<RyZoned> {
+        deprecation_warning_intz(py)?;
+        self.in_tz(tz)
     }
 
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
@@ -418,30 +424,36 @@ impl RyDateTime {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn _until(&self, other: &RyDateTimeDifference) -> PyResult<RySpan> {
         self.0
             .until(other.0)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn tomorrow(&self) -> PyResult<Self> {
         self.0
             .tomorrow()
             .map(RyDateTime::from)
             .map_err(map_py_value_err)
     }
+
     fn yesterday(&self) -> PyResult<Self> {
         self.0
             .yesterday()
             .map(RyDateTime::from)
             .map_err(map_py_value_err)
     }
+
     fn nth_weekday(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
+
     fn nth_weekday_of_month(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
+
     #[getter]
     fn weekday(&self) -> i8 {
         match self.0.weekday() {

@@ -6,6 +6,8 @@
   - headers-property response returns `Headers` object instead of python dict
 - `same-file`
   - wrapper module added with `is_same_file` py-fn (yet another piece of burnt sushi)
+- `jiff`
+  - jiff-version `0.1.25` ~ add `in_tz` methods and point old `intz` at new `in_tz` methods and raise `DeprecationWarning` for old `intz` methods
 
 ___
 

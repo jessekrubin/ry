@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -190,11 +191,16 @@ impl RyTimestamp {
         self.0.is_zero()
     }
 
-    fn intz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
+    fn in_tz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
         self.0
-            .intz(time_zone_name)
+            .in_tz(time_zone_name)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
+    }
+
+    fn intz(&self, py: Python, time_zone_name: &str) -> PyResult<RyZoned> {
+        deprecation_warning_intz(py)?;
+        self.in_tz(time_zone_name)
     }
 
     #[classmethod]

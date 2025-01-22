@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import random
+import typing as t
 
 import pytest
 
@@ -20,11 +23,7 @@ def expected_repr(b: bytes) -> str:
 
 @pytest.mark.parametrize(
     "b",
-    [
-        #     all bytes
-        bytes([i])
-        for i in range(256)
-    ],
+    [bytes([i]) for i in range(256)],
 )
 def test_random_bytes_repr(b: bytes) -> None:
     ry_bytes = ry.Bytes(b)
@@ -38,19 +37,21 @@ class TestBytesSlice:
         ry_bytes = ry.Bytes(b"abcdefg")
         py_bytes = b"abcdefg"
         with pytest.raises(ValueError):
-            _new = py_bytes[0:4:0]
+            _py_new = py_bytes[0:4:0]
 
         with pytest.raises(ValueError):
-            _new = ry_bytes[0:4:0]
+            _ry_new = ry_bytes[0:4:0]
 
     def test_slice_forward(self) -> None:
         ry_bytes = ry.Bytes(b"abcdefg")
-        py_bytes = b"abcdefg"
+        py_bytes = bytes(b"abcdefg")
         for start, stop, step, sliced in all_slices(py_bytes):
             print("======")
-            print(f"start={start}, stop={stop}, step={step}, sliced={sliced}")
+            sliced_str = str(sliced)  # mypy doesn't complain with `str-bytes-safe`
+            print(f"start={start}, stop={stop}, step={step}, sliced={sliced_str}")
             new_py = py_bytes[start:stop:step]
-            print(f"new_py={new_py}")
+            new_py_str = str(new_py)  # mypy doesn't complain with `str-bytes-safe`
+            print(f"new_py={new_py_str}")
             new_ry = ry_bytes[start:stop:step]
             print("new_ry={new_ry}")
             if len(new_py) == 0:
@@ -58,7 +59,7 @@ class TestBytesSlice:
             assert new_ry == new_py
 
 
-def all_slices(b: bytes) -> list[bytes]:
+def all_slices(b: bytes) -> t.Generator[tuple[int, int, int, bytes], None, None]:
     """
     Yield all tuples (start, stop, step, sliced_result) that do NOT raise ValueError.
     We pick a range that goes a bit beyond len(b) in both negative and positive directions,
