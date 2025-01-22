@@ -39,9 +39,6 @@ classifiers = [
 ]
 dynamic = [ "readme", "version" ]
 
-optional-dependencies.tests = [
-  "pytest",
-]
 urls.Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/jessekrubin/ry"
 urls.Issues = "https://github.com/jessekrubin/ry/issues"
@@ -60,6 +57,9 @@ extend = "./ruff.toml"
 [tool.pytest.ini_options]
 testpaths = [
   "tests",
+]
+filterwarnings = [
+  "ignore:ry not compiled in release mode:RuntimeWarning",
 ]
 addopts = [
   "--doctest-modules",
