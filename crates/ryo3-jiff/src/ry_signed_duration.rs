@@ -156,6 +156,10 @@ impl RySignedDuration {
         }
     }
 
+    fn __rmul__(&self, other: i32) -> PyResult<Self> {
+        self.__mul__(other)
+    }
+
     fn __div__(&self, other: i32) -> PyResult<Self> {
         let dur = self.0.checked_div(other);
         match dur {

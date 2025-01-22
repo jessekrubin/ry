@@ -34,12 +34,31 @@ const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 //     serde_json::to_string_pretty(&v).map_err(|e| PyOSError::new_err(e.to_string()))
 // }
 
+/// Raise RuntimeWarning for debug build(s)
+///
+/// Taken from `obstore` pyo3 library (obstore)[https://github.com/developmentseed/obstore.git]
+#[cfg(debug_assertions)]
+#[pyfunction]
+fn warn_debug_build(_py: Python) -> PyResult<()> {
+    use pyo3::exceptions::PyRuntimeWarning;
+    use pyo3::intern;
+    use pyo3::types::PyTuple;
+
+    let warnings_mod = _py.import(intern!(_py, "warnings"))?;
+    let warning = PyRuntimeWarning::new_err("ry not compiled in release mode");
+    let args = PyTuple::new(_py, vec![warning])?;
+    warnings_mod.call_method1(intern!(_py, "warn"), args)?;
+    Ok(())
+}
+
 /// ry = rust + python
 ///
 /// `ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
 #[pymodule(gil_used = false)]
 #[pyo3(name = "ryo3")] // possibly change to `ryo3`?
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    #[cfg(debug_assertions)]
+    warn_debug_build(m.py())?;
     lager::tracing_init();
     debug!("version: {}", VERSION);
     debug!("build_profile: {}", BUILD_PROFILE);

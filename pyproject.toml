@@ -39,9 +39,6 @@ classifiers = [
 ]
 dynamic = [ "readme", "version" ]
 
-optional-dependencies.tests = [
-  "pytest",
-]
 urls.Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/jessekrubin/ry"
 urls.Issues = "https://github.com/jessekrubin/ry/issues"
@@ -60,6 +57,9 @@ extend = "./ruff.toml"
 [tool.pytest.ini_options]
 testpaths = [
   "tests",
+]
+filterwarnings = [
+  "ignore:ry not compiled in release mode:RuntimeWarning",
 ]
 addopts = [
   "--doctest-modules",
@@ -99,3 +99,17 @@ check_untyped_defs = true
 [tool.pyright]
 include = [ 'ry', 'tests' ]
 reportUnnecessaryTypeIgnoreComment = true
+
+[dependency-groups]
+dev = [
+    "anyio>=4.8.0",
+    "hypothesis>=6.124.2",
+    "mypy>=1.14.1",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.2",
+    "pytest-benchmark>=5.1.0",
+    "ruff>=0.9.2",
+    "tomli>=2.2.1",
+    "tzdata>=2025.1",
+    "uvicorn>=0.34.0",
+]

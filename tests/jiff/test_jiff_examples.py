@@ -18,35 +18,35 @@ def test_print_datetime_for_a_timestamp() -> None:
 
 
 def test_create_zoned_datetime_from_civil_time() -> None:
-    zdt = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
+    zdt = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
     assert zdt.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_change_an_instant_from_one_time_zone_to_another() -> None:
-    zdt1 = ry.date(1918, 11, 11).at(11, 0, 0, 0).intz("Europe/Paris")
-    zdt2 = zdt1.intz("America/New_York")
+    zdt1 = ry.date(1918, 11, 11).at(11, 0, 0, 0).in_tz("Europe/Paris")
+    zdt2 = zdt1.in_tz("America/New_York")
     assert zdt2.string() == "1918-11-11T06:00:00-05:00[America/New_York]"
 
 
 def test_find_duration_between_datetimes() -> None:
-    zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
-    zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).intz("America/New_York")
+    zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+    zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
     span = zdt2 - zdt1
     assert isinstance(span, ry.TimeSpan)
     assert str(span) == "PT29341H3M"
 
 
 def test_add_duration_to_a_zoned_datetime() -> None:
-    zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).intz("America/New_York")
+    zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     span = ry.TimeSpan()._years(3)._months(4)._days(5)._hours(12)._minutes(3)
     zdt2 = zdt1.checked_add(span)
     assert zdt2.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_dealing_with_ambiguity() -> None:
-    zdt = ry.date(2024, 3, 10).at(2, 30, 0, 0).intz("America/New_York")
+    zdt = ry.date(2024, 3, 10).at(2, 30, 0, 0).in_tz("America/New_York")
     assert zdt.string() == "2024-03-10T03:30:00-04:00[America/New_York]"
-    zdt = ry.date(2024, 11, 3).at(1, 30, 0, 0).intz("America/New_York")
+    zdt = ry.date(2024, 11, 3).at(1, 30, 0, 0).in_tz("America/New_York")
     assert zdt.string() == "2024-11-03T01:30:00-04:00[America/New_York]"
 
 
@@ -63,11 +63,11 @@ def test_using_strftime_and_strptime_for_formatting_and_parsing() -> None:
         "Monday, July 15, 2024 at 5:30pm US/Eastern",
     )
     assert zdt.string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
-    zdt = ry.date(2024, 7, 15).at(17, 30, 59, 0).intz("Australia/Tasmania")
+    zdt = ry.date(2024, 7, 15).at(17, 30, 59, 0).in_tz("Australia/Tasmania")
     string = zdt.strftime("%A, %B %d, %Y at %-I:%M%P %Z")
     assert string == "Monday, July 15, 2024 at 5:30pm AEST"
 
-    zdt = ry.date(2024, 7, 15).at(17, 30, 59, 0).intz("Australia/Tasmania")
+    zdt = ry.date(2024, 7, 15).at(17, 30, 59, 0).in_tz("Australia/Tasmania")
     string = zdt.strftime("%A, %B %d, %Y at %-I:%M%P %V")
     assert string == "Monday, July 15, 2024 at 5:30pm Australia/Tasmania"
 

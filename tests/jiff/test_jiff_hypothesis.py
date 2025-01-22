@@ -85,7 +85,7 @@ def test_datetime_difference(dt1: ry.DateTime, dt2: ry.DateTime) -> None:
 def test_zoned_datetime_creation(dt: ry.DateTime, tz: str) -> None:
     """Test that tz are handled correctly"""
     try:
-        zdt = dt.intz(tz)
+        zdt = dt.in_tz(tz)
 
         assert zdt.timezone() == tz
         assert isinstance(zdt, ry.ZonedDateTime)
@@ -181,7 +181,7 @@ def test_zoned_datetime_add_duration(
 ) -> None:
     """Test that adding a duration to a zoned datetime works correctly"""
     try:
-        zdt = dt.intz(tz)
+        zdt = dt.in_tz(tz)
         new_zdt = zdt + duration
         assert isinstance(new_zdt, ry.ZonedDateTime)
     except Exception:

@@ -115,7 +115,7 @@ impl FromPyObject<'_> for JiffZoned {
         let jiff_time = py_time_to_jiff_time(dt)?;
         let dt = DateTime::from_parts(jiff_date, jiff_time);
         let zdt = dt
-            .intz(&tz_str)
+            .in_tz(&tz_str)
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
         Ok(JiffZoned(zdt))
     }

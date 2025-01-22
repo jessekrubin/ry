@@ -1,4 +1,5 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
+use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
 use crate::pydatetime_conversions::zoned2pyobect;
@@ -39,7 +40,7 @@ impl RyZoned {
     fn now(_cls: &Bound<'_, PyType>, tz: Option<&str>) -> PyResult<Self> {
         if let Some(tz) = tz {
             Zoned::now()
-                .intz(tz)
+                .in_tz(tz)
                 .map(RyZoned::from)
                 .map_err(map_py_value_err)
         } else {
@@ -50,7 +51,7 @@ impl RyZoned {
     #[classmethod]
     fn utcnow(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
         Zoned::now()
-            .intz("UTC")
+            .in_tz("UTC")
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
@@ -130,20 +131,25 @@ impl RyZoned {
         Ok(Self::from(jiff_datetime.0))
     }
 
-    fn intz(&self, tz: &str) -> PyResult<Self> {
+    fn in_tz(&self, tz: &str) -> PyResult<Self> {
         self.0
-            .intz(tz)
+            .in_tz(tz)
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn intz(&self, py: Python, tz: &str) -> PyResult<Self> {
+        deprecation_warning_intz(py)?;
+        self.in_tz(tz)
+    }
+
     fn astimezone(&self, tz: &str) -> PyResult<Self> {
-        self.intz(tz)
+        self.in_tz(tz)
     }
 
     fn inutc(&self) -> PyResult<Self> {
         self.0
-            .intz("UTC")
+            .in_tz("UTC")
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }

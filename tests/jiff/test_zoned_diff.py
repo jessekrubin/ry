@@ -9,16 +9,16 @@ class TestZonedUntil:
         ```rust
         use jiff::{civil::date, ToSpan};
 
-        let earlier = date(2006, 8, 24).at(22, 30, 0, 0).intz("America/New_York")?;
-        let later = date(2019, 1, 31).at(21, 0, 0, 0).intz("America/New_York")?;
+        let earlier = date(2006, 8, 24).at(22, 30, 0, 0).in_tz("America/New_York")?;
+        let later = date(2019, 1, 31).at(21, 0, 0, 0).in_tz("America/New_York")?;
         assert_eq!(earlier.until(&later)?, 109_031.hours().minutes(30));
 
         // Flipping the dates is fine, but you'll get a negative span.
         assert_eq!(later.until(&earlier)?, -109_031.hours().minutes(30));
         ```
         """
-        earlier = ry.date(2006, 8, 24).at(22, 30, 0, 0).intz("America/New_York")
-        later = ry.date(2019, 1, 31).at(21, 0, 0, 0).intz("America/New_York")
+        earlier = ry.date(2006, 8, 24).at(22, 30, 0, 0).in_tz("America/New_York")
+        later = ry.date(2019, 1, 31).at(21, 0, 0, 0).in_tz("America/New_York")
         assert earlier.until(later) == ry.timespan(hours=109_031, minutes=30)
 
         assert later.until(earlier) == ry.timespan(hours=-109_031, minutes=30)
@@ -28,8 +28,8 @@ class TestZonedUntil:
         ```rust
         use jiff::{civil::date, Unit, ToSpan};
 
-        let zdt1 = date(1995, 12, 07).at(3, 24, 30, 3500).intz("America/New_York")?;
-        let zdt2 = date(2019, 01, 31).at(15, 30, 0, 0).intz("America/New_York")?;
+        let zdt1 = date(1995, 12, 07).at(3, 24, 30, 3500).in_tz("America/New_York")?;
+        let zdt2 = date(2019, 01, 31).at(15, 30, 0, 0).in_tz("America/New_York")?;
 
         // The default limits durations to using "hours" as the biggest unit.
         let span = zdt1.until(&zdt2)?;
@@ -40,8 +40,8 @@ class TestZonedUntil:
         assert_eq!(span.to_string(), "P23y1m24dT12h5m29.9999965s");
         ```
         """
-        zdt1 = ry.date(1995, 12, 7).at(3, 24, 30, 3500).intz("America/New_York")
-        zdt2 = ry.date(2019, 1, 31).at(15, 30, 0, 0).intz("America/New_York")
+        zdt1 = ry.date(1995, 12, 7).at(3, 24, 30, 3500).in_tz("America/New_York")
+        zdt2 = ry.date(2019, 1, 31).at(15, 30, 0, 0).in_tz("America/New_York")
 
         span = zdt1.until(zdt2)
         assert str(span) == "PT202956H5M29.9999965S"
@@ -54,8 +54,8 @@ class TestZonedUntil:
     #     ```rust
     #     use jiff::{civil::date, Unit, ToSpan, ZonedDifference};
     #
-    #     let zdt1 = date(1995, 12, 07).at(3, 24, 30, 3500).intz("America/New_York")?;
-    #     let zdt2 = date(2019, 01, 31).at(15, 30, 0, 0).intz("America/New_York")?;
+    #     let zdt1 = date(1995, 12, 07).at(3, 24, 30, 3500).in_tz("America/New_York")?;
+    #     let zdt2 = date(2019, 01, 31).at(15, 30, 0, 0).in_tz("America/New_York")?;
     #
     #     let span = zdt1.until(
     #         ZonedDifference::from(&zdt2).smallest(Unit::Second),
@@ -71,8 +71,8 @@ class TestZonedUntil:
     #     assert_eq!(span, 23.years().months(1).days(24).hours(12).minutes(5).seconds(29));
     #     ```
     #     """
-    #     zdt1 = ry.date(1995, 12, 7).at(3, 24, 30, 3500).intz("America/New_York")
-    #     zdt2 = ry.date(2019, 1, 31).at(15, 30, 0, 0).intz("America/New_York")
+    #     zdt1 = ry.date(1995, 12, 7).at(3, 24, 30, 3500).in_tz("America/New_York")
+    #     zdt2 = ry.date(2019, 1, 31).at(15, 30, 0, 0).in_tz("America/New_York")
     #
     #     span = zdt1.until(ry.ZonedDifference.from(zdt2).smallest('second'))
     #     assert span == ry.timespan(hours=202_956, minutes=5, seconds=29)
@@ -85,8 +85,8 @@ class TestZonedUntil:
         ```rust
         use jiff::{civil::date, Unit, ToSpan};
 
-        let zdt1 = date(2024, 3, 2).at(0, 0, 0, 0).intz("America/New_York")?;
-        let zdt2 = date(2024, 5, 1).at(0, 0, 0, 0).intz("America/New_York")?;
+        let zdt1 = date(2024, 3, 2).at(0, 0, 0, 0).in_tz("America/New_York")?;
+        let zdt2 = date(2024, 5, 1).at(0, 0, 0, 0).in_tz("America/New_York")?;
 
         let span = zdt1.until((Unit::Month, &zdt2))?;
         assert_eq!(span, 1.month().days(29));
@@ -94,7 +94,7 @@ class TestZonedUntil:
         // Not the same as the original datetime!
         assert_eq!(
             maybe_original,
-            date(2024, 3, 3).at(0, 0, 0, 0).intz("America/New_York")?,
+            date(2024, 3, 3).at(0, 0, 0, 0).in_tz("America/New_York")?,
         );
 
         // But in the default configuration, hours are always the biggest unit
@@ -105,13 +105,13 @@ class TestZonedUntil:
         assert_eq!(is_original, zdt1);
         ```
         """
-        zdt1 = ry.date(2024, 3, 2).at(0, 0, 0, 0).intz("America/New_York")
-        zdt2 = ry.date(2024, 5, 1).at(0, 0, 0, 0).intz("America/New_York")
+        zdt1 = ry.date(2024, 3, 2).at(0, 0, 0, 0).in_tz("America/New_York")
+        zdt2 = ry.date(2024, 5, 1).at(0, 0, 0, 0).in_tz("America/New_York")
 
         span = zdt1.until(("month", zdt2))
         assert span == ry.timespan(months=1, days=29)
         maybe_original = zdt2.checked_sub(span)
-        assert maybe_original == ry.date(2024, 3, 3).at(0, 0, 0, 0).intz(
+        assert maybe_original == ry.date(2024, 3, 3).at(0, 0, 0, 0).in_tz(
             "America/New_York"
         )
 
@@ -127,11 +127,11 @@ class TestZonedSince:
         ```rust
         use jiff::{civil::date, ToSpan};
 
-        let earlier = date(2006, 8, 24).at(22, 30, 0, 0).intz("America/New_York")?;
-        let later = date(2019, 1, 31).at(21, 0, 0, 0).intz("America/New_York")?;
+        let earlier = date(2006, 8, 24).at(22, 30, 0, 0).in_tz("America/New_York")?;
+        let later = date(2019, 1, 31).at(21, 0, 0, 0).in_tz("America/New_York")?;
         assert_eq!(&later - &earlier, 109_031.hours().minutes(30));
         ```
         """
-        earlier = ry.date(2006, 8, 24).at(22, 30, 0, 0).intz("America/New_York")
-        later = ry.date(2019, 1, 31).at(21, 0, 0, 0).intz("America/New_York")
+        earlier = ry.date(2006, 8, 24).at(22, 30, 0, 0).in_tz("America/New_York")
+        later = ry.date(2019, 1, 31).at(21, 0, 0, 0).in_tz("America/New_York")
         assert later - earlier == ry.timespan(hours=109_031, minutes=30)

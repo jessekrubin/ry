@@ -18,7 +18,7 @@ jiff_objects = [
     # timestamp
     ry.Timestamp.from_millisecond(1598438400000),
     # Zoned
-    ry.datetime(2020, 8, 26, 6, 27, 0, 0).intz("America/New_York"),
+    ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
     # signed-duration
     ry.SignedDuration(1, 1),
     # offset
