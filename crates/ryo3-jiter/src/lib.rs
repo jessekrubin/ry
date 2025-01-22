@@ -21,7 +21,7 @@ pub enum BytesOrString {
         data,
         /,
         *,
-        allow_inf_nan = true,
+        allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
@@ -54,7 +54,7 @@ pub fn parse_json_bytes<'py>(
         data,
         /,
         *,
-        allow_inf_nan = true,
+        allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
@@ -89,7 +89,7 @@ pub fn parse_json_str<'py>(
         data,
         /,
         *,
-        allow_inf_nan = true,
+        allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
@@ -121,7 +121,6 @@ pub fn parse_json(
         }
         BytesOrString::Bytes(b) => {
             let json_bytes: &[u8] = b.as_ref();
-
             parse_builder
                 .python_parse(py, json_bytes)
                 .map_err(|e| map_json_error(json_bytes, &e))

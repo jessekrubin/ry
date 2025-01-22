@@ -10,6 +10,9 @@ if not isort_path:
     echo("plz install isort - `pip install isort`")
     sys.exit(1)
 
+PWD = Path(__file__).parent.resolve()
+REPO_ROOT = PWD.parent
+
 FROM_FUTURE_IMPORT_ANNOTATIONS = "from __future__ import annotations"
 
 
@@ -18,7 +21,7 @@ def file_string_is_empty(string: str) -> bool:
     return not string.strip(" \t\n\r")
 
 
-for file in Path("../tests").glob("**/*.py"):
+for file in REPO_ROOT.joinpath("tests").resolve().glob("**/*.py"):
     echo("=" * 80)
     echo(file)
     string = file.read_text()

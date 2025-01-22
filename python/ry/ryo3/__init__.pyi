@@ -3,6 +3,7 @@
 import datetime as pydt
 import typing as t
 from os import PathLike
+from typing import TypedDict, Unpack
 
 from ry._types import DateTimeTypedDict, DateTypedDict, TimeSpanTypedDict, TimeTypedDict
 
@@ -494,35 +495,33 @@ def shplit(s: str) -> list[str]:
 # =============================================================================
 # JSON
 # =============================================================================
+
+class JsonParseKwargs(TypedDict, total=False):
+    allow_inf_nan: bool
+    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: True"""
+    cache_mode: t.Literal[True, False, "all", "keys", "none"]
+    """Cache mode for JSON parsing ~ default: `all` """
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"]
+    """Partial mode for JSON parsing ~ default: False"""
+    catch_duplicate_keys: bool
+    """Catch duplicate keys in JSON objects ~ default: False"""
+    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool
+    """Mode for parsing JSON floats ~ default: False"""
+
 def parse_json(
     data: bytes | str,
     /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool = False,
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
     /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool = False,
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse_json_str(
     data: str,
     /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool = False,
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def jiter_cache_clear() -> None: ...
 def jiter_cache_usage() -> int: ...
