@@ -35,7 +35,7 @@ jobs:
         with:
           tool: mdbook
       - name: build-docs
-        run: cd docs && mdbook build docs && mdbook test docs
+        run: cd docs && mdbook build && mdbook test
       - name: upload-artifact
         uses: actions/upload-artifact@v4
         with:
