@@ -1,8 +1,8 @@
 # Summary
 
 - [README](./index.md)
-- [DEVELOPMENT](./DEVELOPMENT.md)
-- [ACKNOWLEDGEMENTS](./ACKNOWLEDGEMENTS.md)
+- [DEVELOPMENT](./development.md)
+- [ACKNOWLEDGEMENTS](./acknowledgements.md)
 
 ___
 

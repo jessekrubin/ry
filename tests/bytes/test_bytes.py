@@ -4,7 +4,7 @@ import typing as t
 
 import pytest
 
-from ry.dev import Bytes
+from ry import Bytes
 
 
 def test_decode() -> None:
@@ -13,10 +13,10 @@ def test_decode() -> None:
     assert ry_bytes.decode() == "asdf"
 
 
+# TODO: figure out if accepts empty bytes (i jessekrubin think it should if it is trying to be `bytes`)
 def test_empty_eq() -> None:
     py_bytes = b""
     ry_bytes = Bytes(py_bytes)
-    # with pytest.raises(ValueError):
     assert py_bytes == ry_bytes
 
 
@@ -36,7 +36,7 @@ class TestBytesRemovePrefixSuffix:
     "b",
     [bytes([i]) for i in range(256)],
 )
-def test_random_bytes_repr(b: bytes) -> None:
+def test_uno_byte_bytes_repr(b: bytes) -> None:
     ry_bytes = Bytes(b)
     ry_bytes_str = str(ry_bytes)
     ry_bytes_str_eval = eval(ry_bytes_str)
@@ -56,15 +56,9 @@ class TestBytesSlice:
     def test_slice_forward(self) -> None:
         ry_bytes = Bytes(b"abcdefg")
         py_bytes = b"abcdefg"
-        for start, stop, step, sliced in _bytes_slices(py_bytes):
-            print("======")
-            sliced_str = str(sliced)  # mypy doesn't complain with `str-bytes-safe`
-            print(f"start={start}, stop={stop}, step={step}, sliced={sliced_str}")
+        for start, stop, step, _sliced in _bytes_slices(py_bytes):
             new_py = py_bytes[start:stop:step]
-            new_py_str = str(new_py)  # mypy doesn't complain with `str-bytes-safe`
-            print(f"new_py={new_py_str}")
             new_ry = ry_bytes[start:stop:step]
-            print("new_ry={new_ry}")
             assert new_ry == new_py
 
 

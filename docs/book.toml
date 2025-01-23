@@ -22,5 +22,5 @@ site-url = "https://ryo3.dev" # cf
 cname = "ryo3.dev"
 input-404 = "four-o-four.md"
 
-# [preprocessor.py_preprocessor]
-# command = "python3 docs/ryo3_version.py"
+[preprocessor.py_preprocessor]
+command = "uv run ryo3_version.py"
