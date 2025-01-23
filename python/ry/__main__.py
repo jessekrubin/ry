@@ -31,7 +31,8 @@ def _lib_info() -> dict[str, str | int | dict[str, str | int]]:
 
 def main() -> None:
     """Print package metadata"""
-    sys.stdout.write(json.dumps(_lib_info(), indent=2))
+    json_out = json.dumps(_lib_info(), indent=2)
+    sys.stdout.write(f"{json_out}\n")
 
 
 if __name__ == "__main__":
