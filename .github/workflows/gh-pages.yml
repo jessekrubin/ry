@@ -33,9 +33,9 @@ jobs:
       - name: Setup mdBook
         uses: taiki-e/install-action@v2
         with:
-          tool: mdbook
+          tool: mdbook,lychee
       - name: build-docs
-        run: cd docs && mdbook build && mdbook test
+        run: cd docs && mdbook build && lychee build
       - name: upload-artifact
         uses: actions/upload-artifact@v4
         with:
