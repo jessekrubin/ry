@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "ry",
+# ]
+# ///
 """mdbook preprocessor to inject build stuff into docs
 
 BASED ON: https://github.com/PyO3/pyo3/blob/main/guide/pyo3_version.py

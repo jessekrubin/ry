@@ -2,7 +2,7 @@ name: gh-pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, jkrdev ]
   pull_request:
     branches: [ main ]
     
@@ -23,6 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v5
+      # - uses: actions/setup-python@v5
+      #   with:
+      #     python-version: '3.12'
       - name: Setup mdBook
         uses: taiki-e/install-action@v2
         with:
