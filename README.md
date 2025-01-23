@@ -28,7 +28,7 @@ uv add ry
 
 ## Quickstart
 
-Check out the [examples](./examples) directory for some quickstart examples.
+Check out the [examples](https://github.com/jessekrubin/ry/tree/main/examples) directory for some quickstart examples.
 __
 
 
