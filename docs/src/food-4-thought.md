@@ -53,4 +53,4 @@ pros & cons:
     - type annotations are easier to read
     - importing `ry.jiff` (or `ry.ryo3.jiff` tbd) is more explicitly the `jiff` wrapper(s)
   - cons:
-    - Don't know how type annotations should be layed out... if there is a submodule called `ry.ryo3.reqwest`, do you import from `ry.ryo3.reqwest` or do I reexport from `ry.reqwest`? Then were doe the type-annotations live and how are they layed out without having to duplicate/shim them?
+    - Don't know how type annotations should be laid out... if there is a submodule called `ry.ryo3.reqwest`, do you import from `ry.ryo3.reqwest` or do I reexport from `ry.reqwest`? Then were doe the type-annotations live and how are they laid out without having to duplicate/shim them?
