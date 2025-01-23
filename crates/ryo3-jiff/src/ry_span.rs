@@ -2,12 +2,13 @@ use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::internal::{IntoDateTimeRound, RySpanRelativeTo};
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::{timespan, JiffSpan};
+use crate::{timespan, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{Span, SpanArithmetic};
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
-use pyo3::{intern, pyclass, pymethods, Bound, IntoPyObject, PyAny, PyErr, PyResult, Python};
-use ryo3_macros::err_py_not_impl;
+use pyo3::{
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python,
+};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -69,6 +70,17 @@ impl RySpan {
     fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
+
+    // maybe shoulde be?
+    // fn __eq__(&self, other: &Self) -> PyResult<bool> {
+    //     let r = self.0.compare(&other.0).map_err(map_py_value_err)?;
+    //     Ok(matches!(r, std::cmp::Ordering::Equal))
+    // }
+    //
+    // fn __ne__(&self, other: &Self) -> PyResult<bool> {
+    //     let r = self.0.compare(&other.0).map_err(map_py_value_err)?;
+    //     Ok(!matches!(r, std::cmp::Ordering::Equal))
+    // }
 
     fn negate(&self) -> PyResult<Self> {
         Ok(Self(self.0.negate()))
@@ -424,8 +436,43 @@ impl RySpan {
         self.__mul__(rhs)
     }
 
-    fn compare(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    #[pyo3(signature = (other, relative=None))]
+    fn compare(&self, other: &Self, relative: Option<SpanCompareRelative>) -> PyResult<i8> {
+        if let Some(r) = relative {
+            match r {
+                SpanCompareRelative::Zoned(z) => {
+                    let r = self.0.compare((&other.0, &z.0)).map_err(map_py_value_err)?;
+                    match r {
+                        std::cmp::Ordering::Less => Ok(-1),
+                        std::cmp::Ordering::Equal => Ok(0),
+                        std::cmp::Ordering::Greater => Ok(1),
+                    }
+                }
+                SpanCompareRelative::Date(d) => {
+                    let r = self.0.compare((&other.0, d.0)).map_err(map_py_value_err)?;
+                    match r {
+                        std::cmp::Ordering::Less => Ok(-1),
+                        std::cmp::Ordering::Equal => Ok(0),
+                        std::cmp::Ordering::Greater => Ok(1),
+                    }
+                }
+                SpanCompareRelative::DateTime(dt) => {
+                    let r = self.0.compare((&other.0, dt.0)).map_err(map_py_value_err)?;
+                    match r {
+                        std::cmp::Ordering::Less => Ok(-1),
+                        std::cmp::Ordering::Equal => Ok(0),
+                        std::cmp::Ordering::Greater => Ok(1),
+                    }
+                }
+            }
+        } else {
+            let r = self.0.compare(other.0).map_err(map_py_value_err)?;
+            match r {
+                std::cmp::Ordering::Less => Ok(-1),
+                std::cmp::Ordering::Equal => Ok(0),
+                std::cmp::Ordering::Greater => Ok(1),
+            }
+        }
     }
     // ========================================================================
     // PROPERTIES
@@ -497,9 +544,24 @@ impl RySpan {
     fn signum(&self) -> i8 {
         self.0.signum()
     }
-    fn total(&self) -> PyResult<()> {
-        // self.0.total()
-        err_py_not_impl!()
+
+    #[pyo3(signature = (unit, relative=None))]
+    fn total(&self, unit: JiffUnit, relative: Option<SpanCompareRelative>) -> PyResult<f64> {
+        if let Some(r) = relative {
+            match r {
+                SpanCompareRelative::Zoned(z) => {
+                    Ok(self.0.total((unit.0, &z.0)).map_err(map_py_value_err)?)
+                }
+                SpanCompareRelative::Date(d) => {
+                    Ok(self.0.total((unit.0, d.0)).map_err(map_py_value_err)?)
+                }
+                SpanCompareRelative::DateTime(dt) => {
+                    Ok(self.0.total((unit.0, dt.0)).map_err(map_py_value_err)?)
+                }
+            }
+        } else {
+            Ok(self.0.total(unit.0).map_err(map_py_value_err)?)
+        }
     }
 }
 impl Display for RySpan {
@@ -518,4 +580,11 @@ impl From<JiffSpan> for RySpan {
     fn from(span: JiffSpan) -> Self {
         Self(span.0)
     }
+}
+
+#[derive(Debug, Clone, FromPyObject)]
+enum SpanCompareRelative {
+    Zoned(RyZoned),
+    Date(RyDate),
+    DateTime(RyDateTime),
 }

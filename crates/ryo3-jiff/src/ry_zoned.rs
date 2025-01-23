@@ -10,7 +10,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::{JiffEraYear, JiffUnit, JiffZoned, RyDate};
+use crate::{JiffEraYear, JiffUnit, JiffWeekday, JiffZoned, RyDate};
 use jiff::civil::Weekday;
 use jiff::{Zoned, ZonedDifference};
 use pyo3::prelude::*;
@@ -417,14 +417,18 @@ impl RyZoned {
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
-
-    fn nth_weekday(&self, _nth: i32, _weekday: u8) -> PyResult<Self> {
-        // self.0.nth_weekday(_nth, _weekday).map(RyZoned::from).map_err(map_py_value_err)
-        err_py_not_impl!()
+    fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
+        self.0
+            .nth_weekday(nth, weekday.0)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
-    fn nth_weekday_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn nth_weekday_of_month(&self, nth: i8, weekday: JiffWeekday) -> PyResult<Self> {
+        self.0
+            .nth_weekday_of_month(nth, weekday.0)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
     fn offset(&self) -> RyOffset {
         self.0.offset().into()

@@ -8,14 +8,13 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffEraYear, RyDate};
+use crate::{JiffEraYear, JiffWeekday, RyDate};
 use jiff::civil::{DateTime, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDateTime, PyDict, PyType};
-use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -446,12 +445,18 @@ impl RyDateTime {
             .map_err(map_py_value_err)
     }
 
-    fn nth_weekday(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
+        self.0
+            .nth_weekday(nth, weekday.0)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
-    fn nth_weekday_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn nth_weekday_of_month(&self, nth: i8, weekday: JiffWeekday) -> PyResult<Self> {
+        self.0
+            .nth_weekday_of_month(nth, weekday.0)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     #[getter]

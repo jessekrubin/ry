@@ -2,6 +2,12 @@
 
 **OPEN TO PRS!**
 
+## goals
+
+1. Provide a really nice ergonomic API to work with
+2. Get naming right (this is a hard one!)
+3. Be fast
+
 ## style guide
 
 - **NO UNWRAPPING**

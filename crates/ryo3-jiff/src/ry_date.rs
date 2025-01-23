@@ -8,7 +8,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffDate, JiffEraYear};
+use crate::{JiffDate, JiffEraYear, JiffWeekday};
 use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
@@ -356,6 +356,7 @@ impl RyDate {
             .map(Self::from)
             .map_err(map_py_value_err)
     }
+
     #[getter]
     fn weekday(&self) -> i8 {
         match self.0.weekday() {
@@ -375,6 +376,7 @@ impl RyDate {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn until(&self, other: IntoDateDifference) -> PyResult<RySpan> {
         self.0
             .until(other)
@@ -388,22 +390,33 @@ impl RyDate {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn _until(&self, other: &RyDateDifference) -> PyResult<RySpan> {
         self.0
             .until(other.0)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     #[classmethod]
     fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn nth_weekday(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
+        self.0
+            .nth_weekday(nth, weekday.0)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
-    fn nth_weekday_of_month(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn nth_weekday_of_month(&self, nth: i8, weekday: JiffWeekday) -> PyResult<Self> {
+        self.0
+            .nth_weekday_of_month(nth, weekday.0)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
+
     fn to_iso_week_date(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

@@ -63,12 +63,12 @@ macro_rules! dirs_pyfunction (
 dirs_pyfunction!(
     home,
     home_dir,
-    r#"Return home directory string or None.
+    r"Return home directory string or None.
 
 lin: `Some($HOME)`
 win: `Some({FOLDERID_Profile})`
 mac: `Some($HOME)`
-"#
+"
 );
 
 dirs_pyfunction!(cache, cache_dir);

@@ -265,25 +265,6 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    // fn until(&self, other: IntoDateDifference) -> PyResult<RySpan> {
-    //     self.0
-    //         .until(other)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
-    //
-    // fn _since(&self, other: &RyDateDifference) -> PyResult<RySpan> {
-    //     self.0
-    //         .since(other.0)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
-    // fn _until(&self, other: &RyDateDifference) -> PyResult<RySpan> {
-    //     self.0
-    //         .until(other.0)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
     fn checked_add(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -300,9 +281,6 @@ impl RyTimestamp {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
-    // fn since(&self) -> PyResult<()> {
-    //     err_py_not_impl!()
-    // }
     fn round(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -312,9 +290,6 @@ impl RyTimestamp {
     fn saturating_sub(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    // fn until(&self) -> PyResult<()> {
-    //     err_py_not_impl!()
-    // }
 }
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
