@@ -10,12 +10,12 @@ ry = rust and python and bears, oh my!
 [![PyPI - Status](https://img.shields.io/pypi/status/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - License](https://img.shields.io/pypi/l/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 
-**DOCS:** https://ryo3.dev (WIP)
+**DOCS:** [ryo3.dev](https://ryo3.dev) (WIP)
 
 - `ry` is a library of python shims/bindings to popular rust crates
 - `ryo3-*` is the collection of rust crates providing the shims used by ry and possibly your `pyo3` rust-python library
 
-**THIS IS A WORK IN PROGRESS**
+**THIS IS A WORK IN PROGRESS ~ FEEDBACK/PRs WELCOME!**
 
 ## Install
 

@@ -4,9 +4,19 @@
 
 ## goals
 
-1. Provide a really nice ergonomic API to work with
+1. Provide a really nice ergonomic API to work with (this is the highest priority)
 2. Get naming right (this is a hard one!)
 3. Be fast
+
+## development-setup
+
+- clone repo
+- install `just` (`cargo install just`)
+- create a virtual env (using ye olde `venv` or `uv` or dare I say `conda`) -- I am still working out the kinks of using `uv` with maturin
+- install the dev-requirements (`pip install -r requirements.dev.txt`)
+- run `just dev` to build and test the library
+- run `just fmt` to format the python and rust code
+
 
 ## style guide
 

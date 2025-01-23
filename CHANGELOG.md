@@ -2,12 +2,23 @@
 
 ## v0.0.27 - FUTURE
 
+- `ry`
+  - Warning on `debug` build
 - `reqwest`
   - headers-property response returns `Headers` object instead of python dict
 - `same-file`
   - wrapper module added with `is_same_file` py-fn (yet another piece of burnt sushi)
 - `jiff`
   - jiff-version `0.1.25` ~ add `in_tz` methods and point old `intz` at new `in_tz` methods and raise `DeprecationWarning` for old `intz` methods
+  - Continued adding implementations that previously raised `NotImplementedError`
+    - `Date.nth_weekday_of_month`
+    - `Date.nth_weekday`
+    - `DateTime.nth_weekday_of_month`
+    - `DateTime.nth_weekday`
+    - `TimeSpan.compare`
+    - `TimeSpan.total`
+    - `ZonedDateTime.nth_weekday_of_month`
+    - `ZonedDateTime.nth_weekday`
 
 ___
 
