@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.27 - FUTURE
+## v0.0.27 [2025-01-23]
 
 - `ry`
   - Warning on `debug` build
