@@ -1,12 +1,11 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::ry_date_difference::{DateDifferenceArg, IntoDateDifference, RyDateDifference};
+use crate::ry_date_difference::{DateDifferenceArg, RyDateDifference};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
-use crate::ry_timestamp_difference::TimestampDifferenceArg;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffDate, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};

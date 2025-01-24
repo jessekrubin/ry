@@ -3,8 +3,7 @@ use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::ry_time_difference::{IntoTimeDifference, RyTimeDifference, TimeDifferenceArg};
-use crate::ry_timestamp_difference::TimestampDifferenceArg;
+use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
 use jiff::civil::TimeRound;
 use jiff::Zoned;
@@ -352,19 +351,6 @@ impl RyTime {
     // ------------------------------------------------------------------------
     // SINCE/UNTIL
     // ------------------------------------------------------------------------
-    // fn since(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
-    //     self.0
-    //         .since(other)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
-    // fn until(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
-    //     self.0
-    //         .until(other)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
-    //
     #[pyo3(
        signature = (t, *, smallest=None, largest = None, mode = None, increment = None),
     )]

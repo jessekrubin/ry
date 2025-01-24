@@ -2,9 +2,7 @@ use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::jiff_types::JiffDateTime;
-use crate::ry_datetime_difference::{
-    DateTimeDifferenceArg, IntoDateTimeDifference, RyDateTimeDifference,
-};
+use crate::ry_datetime_difference::{DateTimeDifferenceArg, RyDateTimeDifference};
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;

@@ -1,12 +1,9 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::ry_datetime_difference::DateTimeDifferenceArg;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::ry_timestamp_difference::{
-    IntoTimestampDifference, RyTimestampDifference, TimestampDifferenceArg,
-};
+use crate::ry_timestamp_difference::{RyTimestampDifference, TimestampDifferenceArg};
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffRoundMode, JiffUnit};
@@ -277,23 +274,6 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    // #[pyo3(
-    //    signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
-    // )]
-    // fn until(
-    //     &self,
-    //     datetime: DateTimeDifferenceArg,
-    //     smallest: Option<JiffUnit>,
-    //     largest: Option<JiffUnit>,
-    //     mode: Option<JiffRoundMode>,
-    //     increment: Option<i64>,
-    // ) -> PyResult<RySpan> {
-    //     let dt_diff = datetime.build(smallest, largest, mode, increment);
-    //     self.0
-    //         .until(dt_diff)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
     fn _since(&self, other: &RyTimestampDifference) -> PyResult<RySpan> {
         self.0
             .since(other.0)

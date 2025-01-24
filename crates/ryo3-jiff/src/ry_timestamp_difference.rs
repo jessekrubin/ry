@@ -1,8 +1,6 @@
-use crate::ry_datetime_difference::DateTimeDifferenceArg;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffRoundMode, JiffUnit};
-use jiff::civil::DateTimeDifference;
 use jiff::TimestampDifference;
 use pyo3::prelude::*;
 

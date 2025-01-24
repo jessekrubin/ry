@@ -1,7 +1,7 @@
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffRoundMode, JiffUnit, RyDate};
+use crate::{JiffRoundMode, JiffUnit};
 use jiff::civil::TimeDifference;
 use pyo3::prelude::*;
 
