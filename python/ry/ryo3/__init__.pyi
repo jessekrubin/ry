@@ -882,16 +882,6 @@ class Date:
     # =========================================================================
     def to_zoned(self) -> t.NoReturn: ...
 
-IntoDateDifference = (
-    DateDifference
-    | Date
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Date]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
-
 class DateDifference:
     def __init__(
         self,
@@ -1033,16 +1023,6 @@ class Time:
         mode: JIFF_ROUND_MODE_STRING | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
-
-IntoTimeDifference = (
-    TimeDifference
-    | Time
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Time]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
 
 class TimeDifference:
     def __init__(
@@ -1223,18 +1203,6 @@ class DateTime:
         mode: JIFF_ROUND_MODE_STRING | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
-
-IntoDateTimeDifference = (
-    DateTimeDifference
-    | Date
-    | Time
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Date]
-    | tuple[JIFF_UNIT_STRING, Time]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
 
 class DateTimeDifference:
     def __init__(
@@ -1552,7 +1520,15 @@ class TimeSpan:
         microseconds: int | None = None,
         nanoseconds: int | None = None,
     ) -> te.Self: ...
-    def round(self, options: JIFF_UNIT_STRING) -> te.Self: ...
+    def round(
+        self,
+        smallest: JIFF_UNIT_STRING,
+        increment: int = 1,
+        *,
+        relative: ZonedDateTime | Date | DateTime | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+    ) -> te.Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
         self, relative: ZonedDateTime | Date | DateTime
@@ -1672,14 +1648,6 @@ class Timestamp:
         mode: JIFF_ROUND_MODE_STRING | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
-
-IntoTimestampDifference = (
-    TimestampDifference
-    | Timestamp
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Timestamp]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
 
 class TimestampDifference:
     def __init__(

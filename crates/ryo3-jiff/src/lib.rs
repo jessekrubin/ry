@@ -38,6 +38,7 @@ mod ry_time;
 mod ry_time_difference;
 mod ry_timestamp;
 mod ry_timestamp_difference;
+mod ry_timestamp_round;
 mod ry_timezone;
 mod ry_weekday;
 mod ry_zoned;

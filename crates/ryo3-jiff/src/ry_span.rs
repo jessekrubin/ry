@@ -1,9 +1,9 @@
 use crate::errors::{map_py_overflow_err, map_py_value_err};
-use crate::internal::{IntoDateTimeRound, RySpanRelativeTo};
+use crate::internal::RySpanRelativeTo;
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::{timespan, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
-use jiff::{Span, SpanArithmetic};
+use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
+use jiff::{Span, SpanArithmetic, SpanRound};
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
 use pyo3::{
@@ -535,12 +535,80 @@ impl RySpan {
     // ========================================================================
     // INSTANCE METHODS
     // ========================================================================
-    fn round(&self, round: IntoDateTimeRound) -> PyResult<Self> {
+    #[pyo3(
+       signature = (smallest = None, increment = None, *, relative=None, largest = None, mode = None),
+    )]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        increment: Option<i64>,
+        relative: Option<SpanCompareRelative>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+    ) -> PyResult<RySpan> {
+        if let Some(ref relative) = relative {
+            // if  it is zoned...
+            if let SpanCompareRelative::Zoned(z) = relative {
+                let mut span_round: SpanRound = SpanRound::new();
+                if let Some(smallest) = smallest {
+                    span_round = span_round.smallest(smallest.0);
+                }
+                if let Some(largest) = largest {
+                    span_round = span_round.largest(largest.0);
+                }
+                if let Some(mode) = mode {
+                    span_round = span_round.mode(mode.0);
+                }
+                if let Some(increment) = increment {
+                    span_round = span_round.increment(increment);
+                }
+                span_round = span_round.relative(&z.0);
+                return self
+                    .0
+                    .round(span_round)
+                    .map(RySpan::from)
+                    .map_err(map_py_value_err);
+            }
+        }
+        //     let mut zdt_diff = ZonedDifference::from(&zdt.0);
+        let mut span_round: SpanRound = SpanRound::new();
+        if let Some(smallest) = smallest {
+            span_round = span_round.smallest(smallest.0);
+        }
+        if let Some(largest) = largest {
+            span_round = span_round.largest(largest.0);
+        }
+        if let Some(mode) = mode {
+            span_round = span_round.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            span_round = span_round.increment(increment);
+        }
+        if let Some(relative) = relative {
+            match relative {
+                SpanCompareRelative::Zoned(_z) => {
+                    unreachable!("This should not happen")
+                }
+                SpanCompareRelative::Date(d) => {
+                    span_round = span_round.relative(d.0);
+                }
+                SpanCompareRelative::DateTime(dt) => {
+                    span_round = span_round.relative(dt.0);
+                }
+            }
+        }
+
         self.0
-            .round(round)
+            .round(span_round)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+    // fn round(&self, round: IntoDateTimeRound) -> PyResult<Self> {
+    //     self.0
+    //         .round(round)
+    //         .map(RySpan::from)
+    //         .map_err(map_py_value_err)
+    // }
     fn signum(&self) -> i8 {
         self.0.signum()
     }
@@ -583,7 +651,7 @@ impl From<JiffSpan> for RySpan {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-enum SpanCompareRelative {
+pub enum SpanCompareRelative {
     Zoned(RyZoned),
     Date(RyDate),
     DateTime(RyDateTime),

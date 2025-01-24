@@ -1,5 +1,51 @@
 # CHANGELOG
 
+## v0.0.28 - [FUTURE]
+
+- `jiff`
+  - Per Mr. Sushi's thoughts changed all `until`/`since` methods to use kwargs instead of the rust-like tuples that impl `From`/`Into` as it does not translate well to python
+  - Gets rid of the following inane types:
+```python
+IntoDateDifference = (
+  DateDifference
+  | Date
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Date]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoTimeDifference = (
+  TimeDifference
+  | Time
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Time]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoDateTimeDifference = (
+  DateTimeDifference
+  | Date
+  | Time
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Date]
+  | tuple[JIFF_UNIT_STRING, Time]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoTimestampDifference = (
+  TimestampDifference
+  | Timestamp
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Timestamp]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+```
+
+___
+
 ## v0.0.27 [2025-01-23]
 
 - `ry`

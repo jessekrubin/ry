@@ -11,9 +11,13 @@ pub use crate::ry_time::RyTime;
 pub use crate::ry_time_difference::RyTimeDifference;
 pub use crate::ry_timestamp::RyTimestamp;
 pub use crate::ry_timestamp_difference::RyTimestampDifference;
+pub use crate::ry_timestamp_round::RyTimestampRound;
 pub use crate::ry_timezone::RyTimeZone;
 pub use crate::ry_zoned::RyZoned;
+pub use crate::ry_zoned_difference::RyZonedDifference;
+
 use pyo3::prelude::*;
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
     m.add_class::<RyDate>()?;
@@ -31,9 +35,11 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyDateTimeDifference>()?;
     m.add_class::<RyTimeDifference>()?;
     m.add_class::<RyTimestampDifference>()?;
+    m.add_class::<RyZonedDifference>()?;
 
     // round
     m.add_class::<RyDateTimeRound>()?;
+    m.add_class::<RyTimestampRound>()?;
 
     // functions
     m.add_function(wrap_pyfunction!(date, m)?)?;

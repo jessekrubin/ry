@@ -3,11 +3,13 @@ use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
+use crate::ry_time_difference::TimeDifferenceArg;
 use crate::ry_timestamp_difference::{RyTimestampDifference, TimestampDifferenceArg};
+use crate::ry_timestamp_round::RyTimestampRound;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffRoundMode, JiffUnit};
-use jiff::{Timestamp, Zoned};
+use crate::{JiffRoundMode, JiffUnit, RyTime};
+use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
@@ -303,10 +305,38 @@ impl RyTimestamp {
     fn duration_until(&self, other: &RyTimestamp) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
-
-    fn round(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    #[pyo3(
+       signature = (smallest=None, mode = None, increment = None),
+    )]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RyTimestamp> {
+        let mut ts_round = TimestampRound::new();
+        if let Some(smallest) = smallest {
+            ts_round = ts_round.smallest(smallest.0);
+        }
+        if let Some(mode) = mode {
+            ts_round = ts_round.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            ts_round = ts_round.increment(increment);
+        }
+        self.0
+            .round(ts_round)
+            .map(RyTimestamp::from)
+            .map_err(map_py_value_err)
     }
+
+    fn _round(&self, opts: &RyTimestampRound) -> PyResult<RyTimestamp> {
+        self.0
+            .round(opts.round)
+            .map(RyTimestamp::from)
+            .map_err(map_py_value_err)
+    }
+
     fn saturating_add(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
