@@ -1,14 +1,15 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::ry_date_difference::{IntoDateDifference, RyDateDifference};
+use crate::ry_date_difference::{DateDifferenceArg, IntoDateDifference, RyDateDifference};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
+use crate::ry_timestamp_difference::TimestampDifferenceArg;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffDate, JiffEraYear, JiffWeekday};
+use crate::{JiffDate, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
@@ -370,16 +371,38 @@ impl RyDate {
         }
     }
 
-    fn since(&self, other: IntoDateDifference) -> PyResult<RySpan> {
+    #[pyo3(
+       signature = (d, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn since(
+        &self,
+        d: DateDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let dt_diff = d.build(smallest, largest, mode, increment);
         self.0
-            .since(other)
+            .since(dt_diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
 
-    fn until(&self, other: IntoDateDifference) -> PyResult<RySpan> {
+    #[pyo3(
+       signature = (d, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn until(
+        &self,
+        d: DateDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let dt_diff = d.build(smallest, largest, mode, increment);
         self.0
-            .until(other)
+            .until(dt_diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }

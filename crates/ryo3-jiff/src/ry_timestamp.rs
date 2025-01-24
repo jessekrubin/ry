@@ -1,11 +1,15 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
+use crate::ry_datetime_difference::DateTimeDifferenceArg;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::ry_timestamp_difference::{IntoTimestampDifference, RyTimestampDifference};
+use crate::ry_timestamp_difference::{
+    IntoTimestampDifference, RyTimestampDifference, TimestampDifferenceArg,
+};
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::{JiffRoundMode, JiffUnit};
 use jiff::{Timestamp, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
@@ -237,20 +241,59 @@ impl RyTimestamp {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn since(&self, other: IntoTimestampDifference) -> PyResult<RySpan> {
+    #[pyo3(
+       signature = (ts, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn since(
+        &self,
+        ts: TimestampDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let dt_diff = ts.build(smallest, largest, mode, increment);
         self.0
-            .since(other)
+            .since(dt_diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
 
-    fn until(&self, other: IntoTimestampDifference) -> PyResult<RySpan> {
+    #[pyo3(
+       signature = (ts, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn until(
+        &self,
+        ts: TimestampDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let dt_diff = ts.build(smallest, largest, mode, increment);
         self.0
-            .until(other)
+            .until(dt_diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
 
+    // #[pyo3(
+    //    signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
+    // )]
+    // fn until(
+    //     &self,
+    //     datetime: DateTimeDifferenceArg,
+    //     smallest: Option<JiffUnit>,
+    //     largest: Option<JiffUnit>,
+    //     mode: Option<JiffRoundMode>,
+    //     increment: Option<i64>,
+    // ) -> PyResult<RySpan> {
+    //     let dt_diff = datetime.build(smallest, largest, mode, increment);
+    //     self.0
+    //         .until(dt_diff)
+    //         .map(RySpan::from)
+    //         .map_err(map_py_value_err)
+    // }
     fn _since(&self, other: &RyTimestampDifference) -> PyResult<RySpan> {
         self.0
             .since(other.0)

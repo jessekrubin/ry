@@ -1,7 +1,7 @@
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffRoundMode, JiffUnit};
+use crate::{JiffRoundMode, JiffUnit, RyDate};
 use jiff::civil::TimeDifference;
 use pyo3::prelude::*;
 
@@ -100,5 +100,45 @@ impl From<IntoTimeDifference> for TimeDifference {
             IntoTimeDifference::DateTime(date) => TimeDifference::from(date.0),
             IntoTimeDifference::TimeDifferenceTuple(tuple) => tuple.into(),
         }
+    }
+}
+
+// ============================================================================
+// Zoned/Time/DateTime
+// ============================================================================
+
+#[derive(Debug, Clone, FromPyObject)]
+pub(crate) enum TimeDifferenceArg {
+    Zoned(RyZoned),
+    Time(RyTime),
+    DateTime(RyDateTime),
+}
+
+impl TimeDifferenceArg {
+    pub(crate) fn build(
+        self,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> TimeDifference {
+        let mut diff = match self {
+            TimeDifferenceArg::Time(other) => TimeDifference::from(other.0),
+            TimeDifferenceArg::Zoned(other) => TimeDifference::from(other.0),
+            TimeDifferenceArg::DateTime(other) => TimeDifference::from(other.0),
+        };
+        if let Some(smallest) = smallest {
+            diff = diff.smallest(smallest.0);
+        }
+        if let Some(largest) = largest {
+            diff = diff.largest(largest.0);
+        }
+        if let Some(mode) = mode {
+            diff = diff.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            diff = diff.increment(increment);
+        }
+        diff
     }
 }

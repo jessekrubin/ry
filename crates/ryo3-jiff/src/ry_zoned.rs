@@ -4,13 +4,14 @@ use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
 use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
+use crate::ry_datetime_difference::DateTimeDifferenceArg;
 use crate::ry_offset::RyOffset;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::{JiffEraYear, JiffUnit, JiffWeekday, JiffZoned, RyDate};
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, JiffZoned, RyDate};
 use jiff::civil::Weekday;
 use jiff::{Zoned, ZonedDifference};
 use pyo3::prelude::*;
@@ -444,38 +445,96 @@ impl RyZoned {
     fn time_zone(&self) -> PyResult<RyTimeZone> {
         Ok(RyTimeZone::from(self.0.time_zone()))
     }
-    fn since<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
-        if let Ok(other) = other.extract::<RyZoned>() {
-            self.0
-                .since(&other.0)
-                .map(RySpan::from)
-                .map_err(map_py_value_err)
-        } else if let Ok(other) = other.extract::<(JiffUnit, RyZoned)>() {
-            let zdiff = ZonedDifference::from((other.0 .0, &other.1 .0));
-            self.0
-                .since(zdiff)
-                .map(RySpan::from)
-                .map_err(map_py_value_err)
-        } else {
-            err_py_not_impl!()
+    // fn since<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
+    //     if let Ok(other) = other.extract::<RyZoned>() {
+    //         self.0
+    //             .since(&other.0)
+    //             .map(RySpan::from)
+    //             .map_err(map_py_value_err)
+    //     } else if let Ok(other) = other.extract::<(JiffUnit, RyZoned)>() {
+    //         let zdiff = ZonedDifference::from((other.0 .0, &other.1 .0));
+    //         self.0
+    //             .since(zdiff)
+    //             .map(RySpan::from)
+    //             .map_err(map_py_value_err)
+    //     } else {
+    //         err_py_not_impl!()
+    //     }
+    // }
+    //
+    // fn until<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
+    //     if let Ok(other) = other.extract::<RyZoned>() {
+    //         self.0
+    //             .until(&other.0)
+    //             .map(RySpan::from)
+    //             .map_err(map_py_value_err)
+    //     } else if let Ok(other) = other.extract::<(JiffUnit, RyZoned)>() {
+    //         let zdiff = ZonedDifference::from((other.0 .0, &other.1 .0));
+    //         self.0
+    //             .until(zdiff)
+    //             .map(RySpan::from)
+    //             .map_err(map_py_value_err)
+    //     } else {
+    //         err_py_not_impl!()
+    //     }
+    // }
+    #[pyo3(
+       signature = (zdt, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn since(
+        &self,
+        zdt: &Self,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let mut zdt_diff = ZonedDifference::from(&zdt.0);
+        if let Some(smallest) = smallest {
+            zdt_diff = zdt_diff.smallest(smallest.0);
         }
+        if let Some(largest) = largest {
+            zdt_diff = zdt_diff.largest(largest.0);
+        }
+        if let Some(mode) = mode {
+            zdt_diff = zdt_diff.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            zdt_diff = zdt_diff.increment(increment);
+        }
+        self.0
+            .since(zdt_diff)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
     }
-
-    fn until<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<RySpan> {
-        if let Ok(other) = other.extract::<RyZoned>() {
-            self.0
-                .until(&other.0)
-                .map(RySpan::from)
-                .map_err(map_py_value_err)
-        } else if let Ok(other) = other.extract::<(JiffUnit, RyZoned)>() {
-            let zdiff = ZonedDifference::from((other.0 .0, &other.1 .0));
-            self.0
-                .until(zdiff)
-                .map(RySpan::from)
-                .map_err(map_py_value_err)
-        } else {
-            err_py_not_impl!()
+    #[pyo3(
+       signature = (zdt, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn until(
+        &self,
+        zdt: &Self,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let mut zdt_diff = ZonedDifference::from(&zdt.0);
+        if let Some(smallest) = smallest {
+            zdt_diff = zdt_diff.smallest(smallest.0);
         }
+        if let Some(largest) = largest {
+            zdt_diff = zdt_diff.largest(largest.0);
+        }
+        if let Some(mode) = mode {
+            zdt_diff = zdt_diff.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            zdt_diff = zdt_diff.increment(increment);
+        }
+        self.0
+            .until(zdt_diff)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
     }
 
     fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {

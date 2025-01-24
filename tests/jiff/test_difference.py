@@ -259,6 +259,11 @@ class TestDateTimeDifference:
         )
         assert span == ry.timespan(years=6, days=7, hours=7)
 
+        span = dt1.until(
+            dt2, smallest="minute", largest="year", mode="half_expand", increment=30
+        )
+        assert span == ry.timespan(years=6, days=7, hours=7)
+
     def test_datetime_difference_smallest(self) -> None:
         """
         ```rust
