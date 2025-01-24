@@ -1,5 +1,4 @@
 use crate::{JiffRoundMode, JiffUnit};
-use jiff::civil::DateTimeRound;
 use jiff::TimestampRound;
 use pyo3::prelude::*;
 

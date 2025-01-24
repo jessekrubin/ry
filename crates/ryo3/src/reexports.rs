@@ -5,6 +5,8 @@
 //!
 //! Also look MA(!), writing macros all on my own! Still crappy at it...
 
+pub use ryo3_std;
+
 macro_rules! ryo3_features_reexport {
     ($($feature:literal, $crate_name:ident),* $(,)?) => {
         $(

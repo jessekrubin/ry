@@ -542,35 +542,32 @@ impl RySpan {
         &self,
         smallest: Option<JiffUnit>,
         increment: Option<i64>,
+        // kwarg only
         relative: Option<SpanCompareRelative>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
     ) -> PyResult<RySpan> {
-        if let Some(ref relative) = relative {
-            // if  it is zoned...
-            if let SpanCompareRelative::Zoned(z) = relative {
-                let mut span_round: SpanRound = SpanRound::new();
-                if let Some(smallest) = smallest {
-                    span_round = span_round.smallest(smallest.0);
-                }
-                if let Some(largest) = largest {
-                    span_round = span_round.largest(largest.0);
-                }
-                if let Some(mode) = mode {
-                    span_round = span_round.mode(mode.0);
-                }
-                if let Some(increment) = increment {
-                    span_round = span_round.increment(increment);
-                }
-                span_round = span_round.relative(&z.0);
-                return self
-                    .0
-                    .round(span_round)
-                    .map(RySpan::from)
-                    .map_err(map_py_value_err);
+        if let Some(SpanCompareRelative::Zoned(z)) = relative {
+            let mut span_round: SpanRound = SpanRound::new();
+            if let Some(smallest) = smallest {
+                span_round = span_round.smallest(smallest.0);
             }
+            if let Some(largest) = largest {
+                span_round = span_round.largest(largest.0);
+            }
+            if let Some(mode) = mode {
+                span_round = span_round.mode(mode.0);
+            }
+            if let Some(increment) = increment {
+                span_round = span_round.increment(increment);
+            }
+            span_round = span_round.relative(&z.0);
+            return self
+                .0
+                .round(span_round)
+                .map(RySpan::from)
+                .map_err(map_py_value_err);
         }
-        //     let mut zdt_diff = ZonedDifference::from(&zdt.0);
         let mut span_round: SpanRound = SpanRound::new();
         if let Some(smallest) = smallest {
             span_round = span_round.smallest(smallest.0);
@@ -651,7 +648,7 @@ impl From<JiffSpan> for RySpan {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub enum SpanCompareRelative {
+pub(crate) enum SpanCompareRelative {
     Zoned(RyZoned),
     Date(RyDate),
     DateTime(RyDateTime),
