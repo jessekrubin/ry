@@ -156,7 +156,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-01-23T22:31:24.780973517+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-01-25T00:18:26.234661391+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -1193,8 +1193,24 @@ class Date:
     # =========================================================================
     def _since(self, other: DateDifference) -&gt; TimeSpan: ...
     def _until(self, other: DateDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoDateDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoDateDifference) -&gt; TimeSpan: ...
+    def since(
+        self,
+        other: Date | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Date | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
     # =========================================================================
     # INSTANCE METHODS W/ OVERLOADS
@@ -1210,17 +1226,6 @@ class Date:
     # NOT IMPLEMENTED &amp; NOT TYPED
     # =========================================================================
     def to_zoned(self) -&gt; t.NoReturn: ...
-
-
-IntoDateDifference = (
-    DateDifference
-    | Date
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Date]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
 
 
 class DateDifference:
@@ -1359,19 +1364,24 @@ class Time:
     # =========================================================================
     def _since(self, other: TimeDifference) -&gt; TimeSpan: ...
     def _until(self, other: TimeDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
-
-
-IntoTimeDifference = (
-    TimeDifference
-    | Time
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Time]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
+    def since(
+        self,
+        other: Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
 
 class TimeDifference:
@@ -1548,21 +1558,24 @@ class DateTime:
     # =========================================================================
     def _since(self, other: DateTimeDifference) -&gt; TimeSpan: ...
     def _until(self, other: DateTimeDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
-
-
-IntoDateTimeDifference = (
-    DateTimeDifference
-    | Date
-    | Time
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Date]
-    | tuple[JIFF_UNIT_STRING, Time]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
+    def since(
+        self,
+        other: Date | Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Date | Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
 
 class DateTimeDifference:
@@ -1897,7 +1910,15 @@ class TimeSpan:
         microseconds: int | None = None,
         nanoseconds: int | None = None,
     ) -&gt; te.Self: ...
-    def round(self, options: JIFF_UNIT_STRING) -&gt; te.Self: ...
+    def round(
+        self,
+        smallest: JIFF_UNIT_STRING,
+        increment: int = 1,
+        *,
+        relative: ZonedDateTime | Date | DateTime | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+    ) -&gt; te.Self: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
         self, relative: ZonedDateTime | Date | DateTime
@@ -2008,17 +2029,24 @@ class Timestamp:
     # =========================================================================
     def _since(self, other: TimestampDifference) -&gt; TimeSpan: ...
     def _until(self, other: TimestampDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
-
-
-IntoTimestampDifference = (
-    TimestampDifference
-    | Timestamp
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Timestamp]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
+    def since(
+        self,
+        other: Timestamp | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Timestamp | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
 
 class TimestampDifference:
@@ -2202,10 +2230,22 @@ class ZonedDateTime:
     # SINCE/UNTIL
     # =========================================================================
     def since(
-        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+        self,
+        other: ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
     ) -&gt; TimeSpan: ...
     def until(
-        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+        self,
+        other: ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
     ) -&gt; TimeSpan: ...
 
 
@@ -3085,6 +3125,53 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <hr />
 <p>If you want to be added to this list, please open an issue or PR! Happy to add you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0028---future"><a class="header" href="#v0028---future">v0.0.28 - [FUTURE]</a></h2>
+<ul>
+<li><code>jiff</code>
+<ul>
+<li>Per Mr. Sushi’s thoughts changed all <code>until</code>/<code>since</code> methods to use kwargs instead of the rust-like tuples that impl <code>From</code>/<code>Into</code> as it does not translate well to python</li>
+<li>Gets rid of the following inane types:</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-python">IntoDateDifference = (
+  DateDifference
+  | Date
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Date]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoTimeDifference = (
+  TimeDifference
+  | Time
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Time]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoDateTimeDifference = (
+  DateTimeDifference
+  | Date
+  | Time
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Date]
+  | tuple[JIFF_UNIT_STRING, Time]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoTimestampDifference = (
+  TimestampDifference
+  | Timestamp
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Timestamp]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+</code></pre>
+<hr />
 <h2 id="v0027-2025-01-23"><a class="header" href="#v0027-2025-01-23">v0.0.27 [2025-01-23]</a></h2>
 <ul>
 <li><code>ry</code>
@@ -4457,8 +4544,24 @@ class Date:
     # =========================================================================
     def _since(self, other: DateDifference) -&gt; TimeSpan: ...
     def _until(self, other: DateDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoDateDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoDateDifference) -&gt; TimeSpan: ...
+    def since(
+        self,
+        other: Date | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Date | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
     # =========================================================================
     # INSTANCE METHODS W/ OVERLOADS
@@ -4474,17 +4577,6 @@ class Date:
     # NOT IMPLEMENTED &amp; NOT TYPED
     # =========================================================================
     def to_zoned(self) -&gt; t.NoReturn: ...
-
-
-IntoDateDifference = (
-    DateDifference
-    | Date
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Date]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
 
 
 class DateDifference:
@@ -4623,19 +4715,24 @@ class Time:
     # =========================================================================
     def _since(self, other: TimeDifference) -&gt; TimeSpan: ...
     def _until(self, other: TimeDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoTimeDifference) -&gt; TimeSpan: ...
-
-
-IntoTimeDifference = (
-    TimeDifference
-    | Time
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Time]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
+    def since(
+        self,
+        other: Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
 
 class TimeDifference:
@@ -4812,21 +4909,24 @@ class DateTime:
     # =========================================================================
     def _since(self, other: DateTimeDifference) -&gt; TimeSpan: ...
     def _until(self, other: DateTimeDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoDateTimeDifference) -&gt; TimeSpan: ...
-
-
-IntoDateTimeDifference = (
-    DateTimeDifference
-    | Date
-    | Time
-    | DateTime
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Date]
-    | tuple[JIFF_UNIT_STRING, Time]
-    | tuple[JIFF_UNIT_STRING, DateTime]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
+    def since(
+        self,
+        other: Date | Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Date | Time | DateTime | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
 
 class DateTimeDifference:
@@ -5161,7 +5261,15 @@ class TimeSpan:
         microseconds: int | None = None,
         nanoseconds: int | None = None,
     ) -&gt; te.Self: ...
-    def round(self, options: JIFF_UNIT_STRING) -&gt; te.Self: ...
+    def round(
+        self,
+        smallest: JIFF_UNIT_STRING,
+        increment: int = 1,
+        *,
+        relative: ZonedDateTime | Date | DateTime | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+    ) -&gt; te.Self: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
         self, relative: ZonedDateTime | Date | DateTime
@@ -5272,17 +5380,24 @@ class Timestamp:
     # =========================================================================
     def _since(self, other: TimestampDifference) -&gt; TimeSpan: ...
     def _until(self, other: TimestampDifference) -&gt; TimeSpan: ...
-    def since(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
-    def until(self, other: IntoTimestampDifference) -&gt; TimeSpan: ...
-
-
-IntoTimestampDifference = (
-    TimestampDifference
-    | Timestamp
-    | ZonedDateTime
-    | tuple[JIFF_UNIT_STRING, Timestamp]
-    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
-)
+    def since(
+        self,
+        other: Timestamp | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
+    def until(
+        self,
+        other: Timestamp | ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeSpan: ...
 
 
 class TimestampDifference:
@@ -5466,10 +5581,22 @@ class ZonedDateTime:
     # SINCE/UNTIL
     # =========================================================================
     def since(
-        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+        self,
+        other: ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
     ) -&gt; TimeSpan: ...
     def until(
-        self, other: ZonedDateTime | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+        self,
+        other: ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
     ) -&gt; TimeSpan: ...
 
 

@@ -159,6 +159,53 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0028---future"><a class="header" href="#v0028---future">v0.0.28 - [FUTURE]</a></h2>
+<ul>
+<li><code>jiff</code>
+<ul>
+<li>Per Mr. Sushi’s thoughts changed all <code>until</code>/<code>since</code> methods to use kwargs instead of the rust-like tuples that impl <code>From</code>/<code>Into</code> as it does not translate well to python</li>
+<li>Gets rid of the following inane types:</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-python">IntoDateDifference = (
+  DateDifference
+  | Date
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Date]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoTimeDifference = (
+  TimeDifference
+  | Time
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Time]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoDateTimeDifference = (
+  DateTimeDifference
+  | Date
+  | Time
+  | DateTime
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Date]
+  | tuple[JIFF_UNIT_STRING, Time]
+  | tuple[JIFF_UNIT_STRING, DateTime]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+IntoTimestampDifference = (
+  TimestampDifference
+  | Timestamp
+  | ZonedDateTime
+  | tuple[JIFF_UNIT_STRING, Timestamp]
+  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+)
+</code></pre>
+<hr />
 <h2 id="v0027-2025-01-23"><a class="header" href="#v0027-2025-01-23">v0.0.27 [2025-01-23]</a></h2>
 <ul>
 <li><code>ry</code>
