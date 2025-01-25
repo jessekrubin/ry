@@ -46,7 +46,7 @@ class TestZonedUntil:
         span = zdt1.until(zdt2)
         assert str(span) == "PT202956H5M29.9999965S"
 
-        span = zdt1.until(("year", zdt2))
+        span = zdt1.until(zdt2, largest="year")
         assert str(span) == "P23Y1M24DT12H5M29.9999965S"
 
     # def test_zoned_until_rounding_the_result(self) ->None:
@@ -108,7 +108,7 @@ class TestZonedUntil:
         zdt1 = ry.date(2024, 3, 2).at(0, 0, 0, 0).in_tz("America/New_York")
         zdt2 = ry.date(2024, 5, 1).at(0, 0, 0, 0).in_tz("America/New_York")
 
-        span = zdt1.until(("month", zdt2))
+        span = zdt1.until(zdt2, largest="month")
         assert span == ry.timespan(months=1, days=29)
         maybe_original = zdt2.checked_sub(span)
         assert maybe_original == ry.date(2024, 3, 3).at(0, 0, 0, 0).in_tz(

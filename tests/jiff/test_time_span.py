@@ -180,7 +180,7 @@ class TestSpanCompare:
         span2 = ry.timespan(seconds=0)
         assert span1.compare(span2) == -1
 
-    def test_example_comparisons_take_DST_into_account(self) -> None:
+    def test_example_comparisons_take_DST_into_account(self) -> None: # noqa: N802
         """
         ```rust
         use jiff::{ToSpan, Zoned};
@@ -258,7 +258,7 @@ class TestSpanTotal:
         span = ry.timespan(seconds=123_456_789)
         assert span.total("day") == 1428.8980208333332
 
-    def test_example_DST_is_taken_into_account(self) -> None:
+    def test_example_DST_is_taken_into_account(self) -> None:  # noqa: N802
         """
         ```rust
         use jiff::{civil::date, ToSpan, Unit};

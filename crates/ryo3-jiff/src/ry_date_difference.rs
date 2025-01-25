@@ -102,3 +102,43 @@ impl From<IntoDateDifference> for DateDifference {
         }
     }
 }
+
+// ============================================================================
+// Date/DateTime/Zoned
+// ============================================================================
+
+#[derive(Debug, Clone, FromPyObject)]
+pub(crate) enum DateDifferenceArg {
+    Zoned(RyZoned),
+    Date(RyDate),
+    DateTime(RyDateTime),
+}
+
+impl DateDifferenceArg {
+    pub(crate) fn build(
+        self,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> DateDifference {
+        let mut diff = match self {
+            DateDifferenceArg::Zoned(zoned) => DateDifference::from(zoned.0),
+            DateDifferenceArg::Date(date) => DateDifference::from(date.0),
+            DateDifferenceArg::DateTime(date_time) => DateDifference::from(date_time.0),
+        };
+        if let Some(smallest) = smallest {
+            diff = diff.smallest(smallest.0);
+        }
+        if let Some(largest) = largest {
+            diff = diff.largest(largest.0);
+        }
+        if let Some(mode) = mode {
+            diff = diff.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            diff = diff.increment(increment);
+        }
+        diff
+    }
+}

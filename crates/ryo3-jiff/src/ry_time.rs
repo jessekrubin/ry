@@ -3,7 +3,7 @@ use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
-use crate::ry_time_difference::{IntoTimeDifference, RyTimeDifference};
+use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
 use jiff::civil::TimeRound;
 use jiff::Zoned;
@@ -351,19 +351,41 @@ impl RyTime {
     // ------------------------------------------------------------------------
     // SINCE/UNTIL
     // ------------------------------------------------------------------------
-    fn since(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
+    #[pyo3(
+       signature = (t, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn since(
+        &self,
+        t: TimeDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let t_diff = t.build(smallest, largest, mode, increment);
         self.0
-            .since(other)
-            .map(RySpan::from)
-            .map_err(map_py_value_err)
-    }
-    fn until(&self, other: IntoTimeDifference) -> PyResult<RySpan> {
-        self.0
-            .until(other)
+            .since(t_diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
 
+    #[pyo3(
+       signature = (t, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn until(
+        &self,
+        t: TimeDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let t_diff = t.build(smallest, largest, mode, increment);
+        self.0
+            .until(t_diff)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
     fn _since(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
         self.0
             .since(other.0)

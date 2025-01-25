@@ -2,13 +2,13 @@ use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::jiff_types::JiffDateTime;
-use crate::ry_datetime_difference::{IntoDateTimeDifference, RyDateTimeDifference};
+use crate::ry_datetime_difference::{DateTimeDifferenceArg, RyDateTimeDifference};
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffEraYear, JiffWeekday, RyDate};
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate};
 use jiff::civil::{DateTime, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
@@ -404,15 +404,38 @@ impl RyDateTime {
             .map(RyDateTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
-    fn since(&self, other: IntoDateTimeDifference) -> PyResult<RySpan> {
+
+    #[pyo3(
+       signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn since(
+        &self,
+        datetime: DateTimeDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let dt_diff = datetime.build(smallest, largest, mode, increment);
         self.0
-            .since(other)
+            .since(dt_diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
-    fn until(&self, other: IntoDateTimeDifference) -> PyResult<RySpan> {
+    #[pyo3(
+       signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
+    )]
+    fn until(
+        &self,
+        datetime: DateTimeDifferenceArg,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<RySpan> {
+        let dt_diff = datetime.build(smallest, largest, mode, increment);
         self.0
-            .until(other)
+            .until(dt_diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }

@@ -98,3 +98,36 @@ impl From<IntoTimestampDifference> for TimestampDifference {
         }
     }
 }
+
+#[derive(Debug, Clone, FromPyObject)]
+pub(crate) enum TimestampDifferenceArg {
+    Zoned(RyZoned),
+    Timestamp(RyTimestamp),
+}
+impl TimestampDifferenceArg {
+    pub(crate) fn build(
+        self,
+        smallest: Option<JiffUnit>,
+        largest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> TimestampDifference {
+        let mut diff = match self {
+            TimestampDifferenceArg::Zoned(zoned) => TimestampDifference::from(zoned.0),
+            TimestampDifferenceArg::Timestamp(date) => TimestampDifference::from(date.0),
+        };
+        if let Some(smallest) = smallest {
+            diff = diff.smallest(smallest.0);
+        }
+        if let Some(largest) = largest {
+            diff = diff.largest(largest.0);
+        }
+        if let Some(mode) = mode {
+            diff = diff.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            diff = diff.increment(increment);
+        }
+        diff
+    }
+}

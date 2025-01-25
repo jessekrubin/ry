@@ -1,6 +1,5 @@
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use pyo3::{intern, wrap_pymodule};
 
 #[cfg(feature = "dirs")]
 #[pymodule(gil_used = false, submodule, name = "dirs")]
@@ -33,26 +32,29 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
 
     #[cfg(feature = "dirs")]
-    m.add_wrapped(wrap_pymodule!(dirs_module))?;
+    m.add_wrapped(pyo3::wrap_pymodule!(dirs_module))?;
 
     // #[cfg(feature = "http")]
     // m.add_wrapped(wrap_pymodule!(http))?;
 
     #[cfg(feature = "jiter")]
-    m.add_wrapped(wrap_pymodule!(json))?;
+    m.add_wrapped(pyo3::wrap_pymodule!(json))?;
 
     #[cfg(feature = "xxhash")]
-    m.add_wrapped(wrap_pymodule!(xxhash))?;
+    m.add_wrapped(pyo3::wrap_pymodule!(xxhash))?;
 
     // renaming
-    let sys = PyModule::import(py, intern!(py, "sys"))?;
+    let sys = PyModule::import(py, pyo3::intern!(py, "sys"))?;
     let sys_modules = sys
-        .getattr(intern!(py, "modules"))?
+        .getattr(pyo3::intern!(py, "modules"))?
         .downcast_into::<PyDict>()?;
 
-    sys_modules.set_item(intern!(py, "ry.dirs"), m.getattr(intern!(py, "dirs"))?)?;
-    let attr = m.getattr(intern!(py, "dirs"))?;
-    attr.setattr(intern!(py, "__name__"), intern!(py, "ry.dirs"))?;
+    sys_modules.set_item(
+        pyo3::intern!(py, "ry.dirs"),
+        m.getattr(pyo3::intern!(py, "dirs"))?,
+    )?;
+    let attr = m.getattr(pyo3::intern!(py, "dirs"))?;
+    attr.setattr(pyo3::intern!(py, "__name__"), pyo3::intern!(py, "ry.dirs"))?;
 
     // // http
     // sys_modules.set_item(intern!(py, "ry.http"), m.getattr(intern!(py, "http"))?)?;
@@ -60,14 +62,23 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // attr.setattr(intern!(py, "__name__"), intern!(py, "ry.http"))?;
 
     // JSON
-    sys_modules.set_item(intern!(py, "ry.JSON"), m.getattr(intern!(py, "JSON"))?)?;
-    let attr = m.getattr(intern!(py, "JSON"))?;
-    attr.setattr(intern!(py, "__name__"), intern!(py, "ry.JSON"))?;
+    sys_modules.set_item(
+        pyo3::intern!(py, "ry.JSON"),
+        m.getattr(pyo3::intern!(py, "JSON"))?,
+    )?;
+    let attr = m.getattr(pyo3::intern!(py, "JSON"))?;
+    attr.setattr(pyo3::intern!(py, "__name__"), pyo3::intern!(py, "ry.JSON"))?;
 
     // xxhash
-    sys_modules.set_item(intern!(py, "ry.xxhash"), m.getattr(intern!(py, "xxhash"))?)?;
-    let attr = m.getattr(intern!(py, "xxhash"))?;
-    attr.setattr(intern!(py, "__name__"), intern!(py, "ry.xxhash"))?;
+    sys_modules.set_item(
+        pyo3::intern!(py, "ry.xxhash"),
+        m.getattr(pyo3::intern!(py, "xxhash"))?,
+    )?;
+    let attr = m.getattr(pyo3::intern!(py, "xxhash"))?;
+    attr.setattr(
+        pyo3::intern!(py, "__name__"),
+        pyo3::intern!(py, "ry.xxhash"),
+    )?;
 
     Ok(())
 }
