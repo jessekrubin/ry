@@ -3,6 +3,7 @@ use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::ry_date_difference::{DateDifferenceArg, RyDateDifference};
 use crate::ry_datetime::RyDateTime;
+use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -17,7 +18,6 @@ use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
 };
-use ryo3_macros::err_py_not_impl;
 use ryo3_std::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -60,6 +60,7 @@ impl RyDate {
         let z = jiff::civil::Date::from(Zoned::now());
         Self::from(z)
     }
+
     fn at(&self, hour: i8, minute: i8, second: i8, subsec_nanosecond: i32) -> RyDateTime {
         RyDateTime::from(self.0.at(hour, minute, second, subsec_nanosecond))
     }
@@ -206,6 +207,7 @@ impl RyDate {
             "unsupported operand type(s) for +: 'Date' and 'other'",
         ))
     }
+
     fn saturating_sub<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(date) = other.downcast::<RySpan>() {
             let other = date.extract::<RySpan>()?;
@@ -223,15 +225,6 @@ impl RyDate {
             "unsupported operand type(s) for +: 'Date' and 'other'",
         ))
     }
-
-    // fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-    //     };
-    //     Ok(RyDate::from(t))
-    // }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
@@ -292,38 +285,32 @@ impl RyDate {
     fn day_of_year(&self) -> i16 {
         self.0.day_of_year()
     }
+
     fn day_of_year_no_leap(&self) -> Option<i16> {
         self.0.day_of_year_no_leap()
     }
+
     fn days_in_month(&self) -> i8 {
         self.0.days_in_month()
     }
+
     fn days_in_year(&self) -> i16 {
         self.0.days_in_year()
     }
+
     fn duration_since(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_since(other.0))
     }
     fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
-    // #[cfg(Py_LIMITED_API)]
-    // fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-    //     let era_year = JiffEraYear(self.0.era_year());
-    //     era_year.into_pyobject(py)
-    // }
-    //
-    // #[cfg(not(Py_LIMITED_API))]
-    // fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py,PyTuple>> {
-    //     let era_year = JiffEraYear(self.0.era_year());
-    //     era_year.into_pyobject(py)
-    // }
 
     fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let era_year = JiffEraYear(self.0.era_year());
         let obj = era_year.into_pyobject(py)?;
         Ok(obj.into_any())
     }
+
     fn first_of_month(&self) -> RyDate {
         Self::from(self.0.first_of_month())
     }
@@ -346,6 +333,7 @@ impl RyDate {
     fn yesterday(&self) -> PyResult<Self> {
         self.0.yesterday().map(From::from).map_err(map_py_value_err)
     }
+
     fn strftime(&self, format: &str) -> PyResult<String> {
         Ok(self.0.strftime(format).to_string())
     }
@@ -421,8 +409,11 @@ impl RyDate {
     }
 
     #[classmethod]
-    fn from_iso_week_date(_cls: &Bound<'_, PyType>, _iso_week_date: &str) -> PyResult<()> {
-        err_py_not_impl!()
+    fn from_iso_week_date(
+        _cls: &Bound<'_, PyType>,
+        iso_week_date: &RyISOWeekDate,
+    ) -> PyResult<Self> {
+        Ok(Self::from(iso_week_date.0.date()))
     }
 
     fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
@@ -439,8 +430,8 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
-    fn iso_week_date(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn iso_week_date(&self) -> RyISOWeekDate {
+        self.0.iso_week_date().into()
     }
 }
 

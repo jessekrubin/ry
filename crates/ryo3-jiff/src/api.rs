@@ -16,19 +16,21 @@ pub use crate::ry_timezone::RyTimeZone;
 pub use crate::ry_zoned::RyZoned;
 pub use crate::ry_zoned_difference::RyZonedDifference;
 
+use crate::ry_iso_week_date::RyISOWeekDate;
 use pyo3::prelude::*;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
     m.add_class::<RyDate>()?;
     m.add_class::<RyDateTime>()?;
+    m.add_class::<RyISOWeekDate>()?;
+    m.add_class::<RyOffset>()?;
     m.add_class::<RySignedDuration>()?;
     m.add_class::<RySpan>()?;
     m.add_class::<RyTime>()?;
     m.add_class::<RyTimeZone>()?;
     m.add_class::<RyTimestamp>()?;
     m.add_class::<RyZoned>()?;
-    m.add_class::<RyOffset>()?;
 
     // difference
     m.add_class::<RyDateDifference>()?;

@@ -125,34 +125,8 @@ def ry_classes_n_types():
 
 
 def main():
-    # get all classes in ry
-    members = [
-        # url
-        "URL",
-        # globset
-        "Glob",
-        "GlobSet",
-        "Globster",
-        # xxhash
-        # "Xxh3",
-        # "Xxh32",
-        # "Xxh64",
-        # path
-        "FsPath",
-        # std
-        "Duration",
-        "Instant",
-        # jiff
-        "SignedDuration",
-        "DateTime",
-        "TimeSpan",
-        "Date",
-        "Time",
-        "ZonedDateTime",
-        "Offset",
-        "TimeZone",
-    ]
-    for member in members:
+    class_members = ry_classes_n_types()
+    for member in class_members:
         res = compare_member(member)
         print(res)
     shutil.rmtree(__dirname / "ryo3types")
