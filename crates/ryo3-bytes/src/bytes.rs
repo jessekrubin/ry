@@ -596,6 +596,16 @@ impl<'py> FromPyObject<'py> for PyBytesWrapper {
     }
 }
 
+/// Implement Debug for PyBytes
+///
+/// Don't use the `bytes::Bytes` Debug impl, b/c it doesn't _look_
+/// how the python bytes repr looks; this isn't exactly the same
+/// either, as the python repr will switch between `'` and `"` based
+/// on the presence of the other in the string, but it's close enough
+/// AND we don't have to do a full scan of the bytes to check for
+/// that.
+///
+/// BABOOM!
 impl std::fmt::Debug for PyBytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Bytes(b\"")?;
