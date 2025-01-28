@@ -4,6 +4,7 @@ use crate::errors::map_py_value_err;
 use crate::internal::IntoDateTimeRound;
 use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
+use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_offset::RyOffset;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -505,6 +506,11 @@ impl RyZoned {
 
     fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {
         self.0.with_time_zone(tz.0.clone()).into()
+    }
+
+    fn iso_week_date(&self) -> RyISOWeekDate {
+        let d = self.0.date();
+        d.iso_week_date().into()
     }
 }
 

@@ -3,6 +3,7 @@ use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
 use crate::jiff_types::JiffDateTime;
 use crate::ry_datetime_difference::{DateTimeDifferenceArg, RyDateTimeDifference};
+use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -164,6 +165,7 @@ impl RyDateTime {
             self.subsec_nanosecond()
         )
     }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
@@ -206,6 +208,7 @@ impl RyDateTime {
         self.0 = t;
         Ok(())
     }
+
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -297,6 +300,10 @@ impl RyDateTime {
         self.in_tz(tz)
     }
 
+    fn iso_week_date(&self) -> RyISOWeekDate {
+        RyISOWeekDate::from(self.0.iso_week_date())
+    }
+
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.0)
@@ -351,26 +358,33 @@ impl RyDateTime {
     fn day_of_year(&self) -> i16 {
         self.0.day_of_year()
     }
+
     fn day_of_year_no_leap(&self) -> Option<i16> {
         self.0.day_of_year_no_leap()
     }
+
     fn days_in_month(&self) -> i8 {
         self.0.days_in_month()
     }
+
     fn days_in_year(&self) -> i16 {
         self.0.days_in_year()
     }
+
     fn duration_since(&self, dt: &Self) -> RySignedDuration {
         self.0.duration_since(dt.0).into()
     }
+
     fn duration_until(&self, dt: &Self) -> RySignedDuration {
         self.0.duration_until(dt.0).into()
     }
 
+    /// Returns the end of the day DateTime
     fn end_of_day(&self) -> RyDateTime {
         RyDateTime::from(self.0.end_of_day())
     }
 
+    /// Return the era year as a tuple (era, year)
     fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let era_year = JiffEraYear(self.0.era_year());
         let obj = era_year.into_pyobject(py)?;
@@ -495,6 +509,7 @@ impl RyDateTime {
         }
     }
 }
+
 impl Display for RyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

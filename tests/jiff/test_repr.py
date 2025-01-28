@@ -23,6 +23,8 @@ jiff_objects = [
     ry.SignedDuration(1, 1),
     # offset
     ry.Offset(1),
+    # iso-week-date
+    ry.date(2020, 8, 26).iso_week_date(),
 ]
 
 

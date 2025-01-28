@@ -34,6 +34,7 @@ mod ry_span;
 mod api;
 mod functions;
 mod ry_datetime_round;
+mod ry_iso_week_date;
 mod ry_time;
 mod ry_time_difference;
 mod ry_timestamp;

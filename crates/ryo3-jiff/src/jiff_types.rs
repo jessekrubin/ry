@@ -208,3 +208,27 @@ impl Display for JiffRoundMode {
         write!(f, "{s}")
     }
 }
+
+// ============================================================================
+// WEEKDAY
+// ============================================================================
+impl JiffWeekday {
+    fn static_str(self) -> &'static str {
+        match self.0 {
+            jiff::civil::Weekday::Monday => "monday",
+            jiff::civil::Weekday::Tuesday => "tuesday",
+            jiff::civil::Weekday::Wednesday => "wednesday",
+            jiff::civil::Weekday::Thursday => "thursday",
+            jiff::civil::Weekday::Friday => "friday",
+            jiff::civil::Weekday::Saturday => "saturday",
+            jiff::civil::Weekday::Sunday => "sunday",
+        }
+    }
+}
+
+impl Display for JiffWeekday {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self.static_str();
+        write!(f, "{s}")
+    }
+}

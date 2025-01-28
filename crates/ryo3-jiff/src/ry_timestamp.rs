@@ -7,12 +7,11 @@ use crate::ry_timestamp_difference::{RyTimestampDifference, TimestampDifferenceA
 use crate::ry_timestamp_round::RyTimestampRound;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffRoundMode, JiffUnit};
+use crate::{JiffRoundMode, JiffUnit, RyOffset};
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
-use ryo3_macros::err_py_not_impl;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -306,15 +305,19 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    fn display_with_offset(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn display_with_offset(&self, offset: &RyOffset) -> String {
+        let dwo = self.0.display_with_offset(offset.0);
+        dwo.to_string()
     }
+
     fn duration_since(&self, other: &RyTimestamp) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_since(other.0))
     }
+
     fn duration_until(&self, other: &RyTimestamp) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
+
     #[pyo3(
        signature = (smallest=None, mode = None, increment = None),
     )]

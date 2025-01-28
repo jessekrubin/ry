@@ -12,6 +12,8 @@ import ry
 
 
 class TestZonedDateTime:
+    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+
     def test_era_year(self) -> None:
         zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
         era_year = zdt.era_year()
@@ -38,6 +40,10 @@ class TestZonedDateTime:
         assert end_of_day == ry.date(2020, 8, 26).at(23, 59, 59, 999_999_999).in_tz(
             "America/New_York"
         )
+
+    def test_iso_week_date(self) -> None:
+        iwd = self.zdt.iso_week_date()
+        assert iwd == ry.ISOWeekDate(2020, 35, 3)
 
 
 class TestZonedDateTimeProperties:
@@ -317,6 +323,8 @@ JIFF_ROUND_MODES = [
 
 
 class TestDateTime:
+    d = ry.date(2020, 8, 26).at(6, 27, 0, 0)
+
     def test_datetime_round_options(self) -> None:
         default = ry.DateTimeRound()
         expected_default_string = (
@@ -334,8 +342,9 @@ class TestDateTime:
             assert str(options) == expected_string
             assert options == options_chained
 
-
-# repr
+    def test_datetime_to_iso_week_date(self) -> None:
+        iwd = self.d.iso_week_date()
+        assert iwd == ry.ISOWeekDate(2020, 35, 3)
 
 
 class TestTimespanFunction:
@@ -498,3 +507,42 @@ class TestDateWeekday:
         assert d.weekday == 1
         with pytest.raises(ValueError):
             d.nth_weekday(-1, "sunday")
+
+
+class TestISOWeekDate:
+    def test_iso_week_date(self) -> None:
+        d = ry.date(2024, 3, 10)
+        iso_week = d.iso_week_date()
+        assert iso_week == ry.ISOWeekDate(2024, 10, 7)
+
+    def test_iso_week_date_properties(self) -> None:
+        iso_week = ry.ISOWeekDate(2024, 10, 7)
+        assert iso_week.year == 2024
+        assert iso_week.week == 10
+        assert iso_week.weekday == 7
+
+    def test_iso_week_date_from_date(self) -> None:
+        d = ry.date(2024, 3, 10)
+        iso_week = ry.ISOWeekDate.from_date(d)
+        assert iso_week == ry.ISOWeekDate(2024, 10, 7)
+        assert iso_week.date() == d
+
+    def test_iwd_equality(self) -> None:
+        iwd1 = ry.ISOWeekDate(2024, 10, 7)
+        iwd2 = ry.ISOWeekDate(2024, 10, 7)
+        assert iwd1 == iwd2
+
+    def test_iwd_inequality(self) -> None:
+        iwd1 = ry.ISOWeekDate(2024, 10, 7)
+        iwd2 = ry.ISOWeekDate(2024, 10, 6)
+        assert iwd1 != iwd2
+
+    def test_iwd_hash(self) -> None:
+        iwd1 = ry.ISOWeekDate(2024, 10, 7)
+        iwd2 = ry.ISOWeekDate(2024, 10, 7)
+        assert hash(iwd1) == hash(iwd2)
+
+    def test_iwd_hash_inequality(self) -> None:
+        iwd1 = ry.ISOWeekDate(2024, 10, 7)
+        iwd2 = ry.ISOWeekDate(2024, 10, 6)
+        assert hash(iwd1) != hash(iwd2)
