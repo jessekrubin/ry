@@ -439,7 +439,7 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
-    fn to_iso_week_date(&self) -> PyResult<()> {
+    fn iso_week_date(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
 }
