@@ -180,7 +180,7 @@ class TestSpanCompare:
         span2 = ry.timespan(seconds=0)
         assert span1.compare(span2) == -1
 
-    def test_example_comparisons_take_DST_into_account(self) -> None: # noqa: N802
+    def test_example_comparisons_take_DST_into_account(self) -> None:  # noqa: N802
         """
         ```rust
         use jiff::{ToSpan, Zoned};

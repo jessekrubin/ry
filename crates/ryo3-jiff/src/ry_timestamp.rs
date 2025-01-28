@@ -1,6 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
-use crate::errors::map_py_value_err;
+use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp_difference::{RyTimestampDifference, TimestampDifferenceArg};
@@ -120,10 +120,11 @@ impl RyTimestamp {
             }
             RyTimestampArithmeticSub::Delta(other) => {
                 let t = match other {
-                    RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-                };
+                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+                }
+                .map_err(map_py_overflow_err)?;
                 RyTimestamp::from(t).into_pyobject(py).map(Bound::into_any)
             }
         }
@@ -131,32 +132,48 @@ impl RyTimestamp {
 
     fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+        }
+        .map_err(map_py_overflow_err)?;
         self.0 = t;
         Ok(())
     }
 
+    fn checked_sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: RyTimestampArithmeticSub,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
+    }
+
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
+        }
+        .map_err(map_py_overflow_err)?;
         Ok(Self::from(t))
     }
 
     fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
         let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
+            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
+        }
+        .map_err(map_py_overflow_err)?;
         self.0 = t;
         Ok(())
     }
+
+    fn checked_add(&self, py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        self.__add__(py, other)
+    }
+
     fn as_second(&self) -> i64 {
         self.0.as_second()
     }
@@ -289,12 +306,6 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    fn checked_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
-    fn checked_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
-    }
     fn display_with_offset(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
@@ -336,13 +347,25 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    fn saturating_add(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn saturating_add(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_add(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_add(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_add(other.0),
+        };
+        Ok(Self::from(t))
     }
-    fn saturating_sub(&self) -> PyResult<()> {
-        err_py_not_impl!()
+
+    fn saturating_sub(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+        let t = match other {
+            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_sub(other.0),
+            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_sub(other.0),
+            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_sub(other.0),
+        };
+        Ok(Self::from(t))
     }
 }
+
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
