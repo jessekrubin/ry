@@ -1,3 +1,5 @@
+"""jiff types"""
+
 import datetime as pydt
 import typing as t
 
