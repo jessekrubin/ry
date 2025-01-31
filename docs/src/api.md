@@ -11,15 +11,30 @@ from os import PathLike
 
 import typing_extensions as te
 
-from ry._types import (
-    DateTimeTypedDict,
-    DateTypedDict,
-    TimeSpanTypedDict,
-    TimeTypedDict,
-)
-
 from . import http as http
 from ._bytes import Bytes as Bytes
+from ._jiff import Date as Date
+from ._jiff import DateDifference as DateDifference
+from ._jiff import DateTime as DateTime
+from ._jiff import DateTimeDifference as DateTimeDifference
+from ._jiff import DateTimeRound as DateTimeRound
+from ._jiff import ISOWeekDate as ISOWeekDate
+from ._jiff import Offset as Offset
+from ._jiff import SignedDuration as SignedDuration
+from ._jiff import Time as Time
+from ._jiff import TimeDifference as TimeDifference
+from ._jiff import TimeSpan as TimeSpan
+from ._jiff import Timestamp as Timestamp
+from ._jiff import TimestampDifference as TimestampDifference
+from ._jiff import TimestampRound as TimestampRound
+from ._jiff import TimeZone as TimeZone
+from ._jiff import ZonedDateTime as ZonedDateTime
+from ._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
+from ._jiff import date as date
+from ._jiff import datetime as datetime
+from ._jiff import offset as offset
+from ._jiff import time as time
+from ._jiff import timespan as timespan
 from .http import Headers as Headers
 from .http import HttpStatus as HttpStatus
 from .reqwest import HttpClient as HttpClient
@@ -247,7 +262,7 @@ class FsPath:
     @property
     def parent(self) -> FsPath: ...
     @property
-    def parents(self) -> t.Sequence[te.Self]: ...
+    def parents(self) -> t.Sequence[FsPath]: ...
     @property
     def parts(self) -> tuple[str, ...]: ...
     @property
@@ -767,6 +782,245 @@ class URL:
     def set_username(self, username: str) -> None: ...
     def socket_addrs(self) -> None: ...
 
+```
+## `ry.JSON`
+
+```python
+"""ry.ryo3.JSON"""
+
+from typing import Literal
+
+JsonPrimitive = None | bool | int | float | str
+JsonValue = (
+    JsonPrimitive
+    | dict[str, JsonPrimitive | JsonValue]
+    | list[JsonPrimitive | JsonValue]
+)
+
+
+def parse_json(
+    data: bytes | str,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+) -> JsonValue: ...
+def parse_json_bytes(
+    data: bytes,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+) -> JsonValue: ...
+def parse_json_str(
+    data: str,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+) -> JsonValue: ...
+def jiter_cache_clear() -> None: ...
+def jiter_cache_usage() -> int: ...
+
+```
+## `ry._bytes`
+
+```python
+import sys
+from typing import overload
+
+if sys.version_info >= (3, 12):
+    from collections.abc import Buffer
+else:
+    from typing_extensions import Buffer
+
+
+class Bytes(Buffer):
+    """
+    A buffer implementing the Python buffer protocol, allowing zero-copy access
+    to underlying Rust memory.
+
+    You can pass this to `memoryview` for a zero-copy view into the underlying
+    data or to `bytes` to copy the underlying data into a Python `bytes`.
+
+    Many methods from the Python `bytes` class are implemented on this,
+    """
+
+    def __init__(self, buf: Buffer = b"") -> None:
+        """Construct a new Bytes object.
+
+        This will be a zero-copy view on the Python byte slice.
+        """
+
+    def __add__(self, other: Buffer) -> Bytes: ...
+    def __buffer__(self, flags: int) -> memoryview[int]: ...
+    def __contains__(self, other: Buffer) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    @overload
+    def __getitem__(self, other: int) -> int: ...
+    @overload
+    def __getitem__(self, other: slice) -> Bytes: ...
+    def __mul__(self, other: Buffer) -> int: ...
+    def __len__(self) -> int: ...
+    def __repr__(self) -> str: ...
+    def removeprefix(self, prefix: Buffer, /) -> Bytes:
+        """
+        If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
+        Otherwise, return the original binary data.
+        """
+
+    def removesuffix(self, suffix: Buffer, /) -> Bytes:
+        """
+        If the binary data ends with the suffix string and that suffix is not empty,
+        return `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
+        """
+
+    def isalnum(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are alphabetical ASCII characters or
+        ASCII decimal digits and the sequence is not empty, `False` otherwise.
+
+        Alphabetic ASCII characters are those byte values in the sequence
+        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`. ASCII decimal digits
+        are those byte values in the sequence `b'0123456789'`.
+        """
+
+    def isalpha(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are alphabetic ASCII characters and
+        the sequence is not empty, `False` otherwise.
+
+        Alphabetic ASCII characters are those byte values in the sequence
+        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`.
+        """
+
+    def isascii(self) -> bool:
+        """
+        Return `True` if the sequence is empty or all bytes in the sequence are ASCII,
+        `False` otherwise.
+
+        ASCII bytes are in the range `0-0x7F`.
+        """
+
+    def isdigit(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are ASCII decimal digits and the
+        sequence is not empty, `False` otherwise.
+
+        ASCII decimal digits are those byte values in the sequence `b'0123456789'`.
+        """
+
+    def islower(self) -> bool:
+        """
+        Return `True` if there is at least one lowercase ASCII character in the sequence
+        and no uppercase ASCII characters, `False` otherwise.
+        """
+
+    def isspace(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
+        is not empty, `False` otherwise.
+
+        ASCII whitespace characters are those byte values
+        in the sequence `b' \t\n\r\x0b\f'` (space, tab, newline, carriage return,
+        vertical tab, form feed).
+        """
+
+    def isupper(self) -> bool:
+        """
+        Return `True` if there is at least one uppercase alphabetic ASCII character in
+        the sequence and no lowercase ASCII characters, `False` otherwise.
+        """
+
+    def lower(self) -> Bytes:
+        """
+        Return a copy of the sequence with all the uppercase ASCII characters converted
+        to their corresponding lowercase counterpart.
+        """
+
+    def upper(self) -> Bytes:
+        """
+        Return a copy of the sequence with all the lowercase ASCII characters converted
+        to their corresponding uppercase counterpart.
+        """
+
+    def to_bytes(self) -> bytes:
+        """Copy this buffer's contents into a Python `bytes` object."""
+
+    # =========================================================================
+    # IMPL IN RY
+    # =========================================================================
+
+    def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
+        """Decode the binary data using the given encoding."""
+
+    def hex(
+        self, sep: str | None = None, bytes_per_sep: int | None = None
+    ) -> str:
+        """Return a hexadecimal representation of the binary data."""
+
+    @classmethod
+    def fromhex(cls, hexstr: str) -> Bytes:
+        """Construct a `Bytes` object from a hexadecimal string."""
+
+```
+## `ry._dev`
+
+```python
+"""ry.ryo3.dev"""
+
+from __future__ import annotations
+
+import typing as t
+
+
+# =============================================================================
+# SUBPROCESS (VERY MUCH WIP)
+# =============================================================================
+def run(
+    *args: str | list[str],
+    capture_output: bool = True,
+    input: bytes | None = None,
+) -> t.Any: ...
+
+
+# =============================================================================
+# STRING-DEV
+# =============================================================================
+
+
+def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
+def string_noop(s: str) -> str: ...
+def bytes_noop(s: bytes) -> bytes: ...
+
+```
+## `ry._jiff`
+
+```python
+"""jiff types"""
+
+import datetime as pydt
+import typing as t
+
+import typing_extensions as te
+
+from ry._types import (
+    DateTimeTypedDict,
+    DateTypedDict,
+    TimeSpanTypedDict,
+    TimeTypedDict,
+)
+
+from . import Duration
 
 # =============================================================================
 # JIFF
@@ -895,6 +1149,7 @@ class Date:
     def era_year(self) -> tuple[int, t.Literal["BCE", "CE"]]: ...
     def first_of_month(self) -> Date: ...
     def first_of_year(self) -> Date: ...
+    def iso_week_date(self) -> ISOWeekDate: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: str) -> ZonedDateTime: ...
     def intz(self, tz: str) -> ZonedDateTime: ...
@@ -950,11 +1205,6 @@ class Date:
     def checked_sub(
         self, other: TimeSpan | SignedDuration | Duration
     ) -> Date: ...
-
-    # =========================================================================
-    # NOT IMPLEMENTED & NOT TYPED
-    # =========================================================================
-    def to_zoned(self) -> t.NoReturn: ...
 
 
 class DateDifference:
@@ -1207,6 +1457,7 @@ class DateTime:
     ) -> DateTime: ...
     def in_tz(self, tz: str) -> ZonedDateTime: ...
     def intz(self, tz: str) -> ZonedDateTime: ...
+    def iso_week_date(self) -> tuple[int, int, int]: ...
     def date(self) -> Date: ...
     def time(self) -> Time: ...
     def series(self, span: TimeSpan) -> t.Iterator[DateTime]: ...
@@ -1254,7 +1505,7 @@ class DateTime:
     @property
     def subsec_nanosecond(self) -> int: ...
     @property
-    def weekday(self) -> t.NoReturn: ...
+    def weekday(self) -> int: ...
 
     # =========================================================================
     # NOT IMPLEMENTED & NOT TYPED
@@ -1689,6 +1940,10 @@ class Timestamp:
     A representation of a timestamp with second and nanosecond precision.
     """
 
+    MIN: Timestamp
+    MAX: Timestamp
+    UNIX_EPOCH: Timestamp
+
     def __init__(
         self, second: int | None = None, nanosecond: int | None = None
     ) -> None: ...
@@ -1697,11 +1952,17 @@ class Timestamp:
     # CLASS METHODS
     # =========================================================================
     @classmethod
-    def now(cls: type[te.Self]) -> te.Self: ...
+    def now(cls) -> Timestamp: ...
     @classmethod
-    def parse(cls: type[te.Self], s: str) -> te.Self: ...
+    def parse(cls, s: str) -> Timestamp: ...
     @classmethod
-    def from_millisecond(cls: type[te.Self], millisecond: int) -> te.Self: ...
+    def from_millisecond(cls, millisecond: int) -> Timestamp: ...
+    @classmethod
+    def from_microsecond(cls, microsecond: int) -> Timestamp: ...
+    @classmethod
+    def from_nanosecond(cls, nanosecond: int) -> Timestamp: ...
+    @classmethod
+    def from_second(cls, second: int) -> Timestamp: ...
 
     # =========================================================================
     # STRING
@@ -1743,15 +2004,48 @@ class Timestamp:
     ) -> te.Self: ...
 
     # =========================================================================
+    # STRPTIME/STRFTIME
+    # =========================================================================
+    def strftime(self, format: str) -> str: ...
+    @classmethod
+    def strptime(cls, format: str, input: str) -> Timestamp: ...
+
+    # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
-    def series(self, span: TimeSpan) -> t.Iterator[Timestamp]: ...
-    def to_zoned(self, time_zone: TimeZone) -> ZonedDateTime: ...
-    def string(self) -> str: ...
-    def as_second(self) -> int: ...
+
     def as_microsecond(self) -> int: ...
     def as_millisecond(self) -> int: ...
     def as_nanosecond(self) -> int: ...
+    def as_second(self) -> int: ...
+    def checked_add(
+        self, other: TimeSpan | SignedDuration | Duration
+    ) -> Timestamp: ...
+    @t.overload
+    def checked_sub(self, other: Timestamp) -> TimeSpan: ...
+    @t.overload
+    def checked_sub(
+        self, other: TimeSpan | SignedDuration | Duration
+    ) -> Timestamp: ...
+    def display_with_offset(self, offset: Offset) -> str: ...
+    def in_tz(self, tz: str) -> ZonedDateTime: ...
+    def intz(self, tz: str) -> ZonedDateTime:
+        """Deprecated ~ use `in_tz`"""
+
+    def is_zero(self) -> bool: ...
+    def saturating_add(
+        self, other: TimeSpan | SignedDuration | Duration
+    ) -> Timestamp: ...
+    def saturating_sub(
+        self, other: TimeSpan | SignedDuration | Duration
+    ) -> Timestamp: ...
+    def series(self, span: TimeSpan) -> t.Iterator[Timestamp]: ...
+    def signum(self) -> t.Literal[-1, 0, 1]: ...
+    def string(self) -> str: ...
+    def subsec_microsecond(self) -> int: ...
+    def subsec_millisecond(self) -> int: ...
+    def subsec_nanosecond(self) -> int: ...
+    def to_zoned(self, time_zone: TimeZone) -> ZonedDateTime: ...
 
     # =========================================================================
     # SINCE/UNTIL
@@ -1776,6 +2070,15 @@ class Timestamp:
         mode: JIFF_ROUND_MODE_STRING | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
+    def duration_since(self, other: Timestamp) -> SignedDuration: ...
+    def duration_until(self, other: Timestamp) -> SignedDuration: ...
+    def round(
+        self,
+        unit: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -> Timestamp: ...
+    def _round(self, options: TimestampRound) -> Timestamp: ...
 
 
 class TimestampDifference:
@@ -1912,6 +2215,7 @@ class ZonedDateTime:
     ) -> te.Self: ...
     def date(self) -> Date: ...
     def datetime(self) -> DateTime: ...
+    def iso_week_date(self) -> ISOWeekDate: ...
     def day_of_year(self) -> int: ...
     def day_of_year_no_leap(self) -> int | None: ...
     def days_in_month(self) -> int: ...
@@ -1976,6 +2280,101 @@ class ZonedDateTime:
         mode: JIFF_ROUND_MODE_STRING | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
+
+
+class ZonedDateTimeDifference:
+    def __init__(
+        self,
+        date: ZonedDateTime,
+        *,
+        smallest: JIFF_UNIT_STRING | None = None,
+        largest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int | None = None,
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def smallest(self, unit: JIFF_UNIT_STRING) -> ZonedDateTimeDifference: ...
+    def largest(self, unit: JIFF_UNIT_STRING) -> ZonedDateTimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> ZonedDateTimeDifference: ...
+    def increment(self, increment: int) -> ZonedDateTimeDifference: ...
+
+
+class ISOWeekDate:
+    MIN: ISOWeekDate
+    MAX: ISOWeekDate
+    ZERO: ISOWeekDate
+
+    def __init__(
+        self,
+        year: int,
+        week: int,
+        weekday: JIFF_WEEKDAY_INT | JIFF_WEEKDAY_STRING,
+    ) -> None: ...
+
+    # =========================================================================
+    # OPERATORS/DUNDERS
+    # =========================================================================
+
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: ISOWeekDate) -> bool: ...
+    def __le__(self, other: ISOWeekDate) -> bool: ...
+    def __gt__(self, other: ISOWeekDate) -> bool: ...
+    def __ge__(self, other: ISOWeekDate) -> bool: ...
+    def __hash__(self) -> int: ...
+
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __repr__(self) -> str: ...
+
+    # =========================================================================
+    # CLASS METHODS
+    # =========================================================================
+    @classmethod
+    def from_date(cls: type[ISOWeekDate], date: Date) -> ISOWeekDate: ...
+    @classmethod
+    def today(cls: type[ISOWeekDate]) -> ISOWeekDate: ...
+
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def year(self) -> int: ...
+    @property
+    def week(self) -> int: ...
+    @property
+    def weekday(self) -> JIFF_WEEKDAY_INT: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def date(self) -> Date: ...
+
+
+class TimestampRound:
+    def __init__(
+        self,
+        smallest: JIFF_UNIT_STRING | None = None,
+        mode: JIFF_ROUND_MODE_STRING | None = None,
+        increment: int = 1,
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> TimestampRound: ...
+    def smallest(self, smallest: JIFF_UNIT_STRING) -> TimestampRound: ...
+    def increment(self, increment: int) -> TimestampRound: ...
+    def _smallest(self) -> JIFF_UNIT_STRING: ...
+    def _mode(self) -> JIFF_ROUND_MODE_STRING: ...
+    def _increment(self) -> int: ...
+    def replace(
+        self,
+        smallest: JIFF_UNIT_STRING | None,
+        mode: JIFF_ROUND_MODE_STRING | None,
+        increment: int | None,
+    ) -> TimestampRound: ...
 
 
 class DateTimeRound:
@@ -2108,257 +2507,6 @@ def timespan(
     unchecked: bool = False,
 ) -> TimeSpan: ...
 def offset(hours: int) -> Offset: ...
-
-```
-## `ry.JSON`
-
-```python
-"""ry.ryo3.JSON"""
-
-from typing import Literal
-
-JsonPrimitive = None | bool | int | float | str
-JsonValue = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
-)
-
-
-def parse_json(
-    data: bytes | str,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def parse_json_str(
-    data: str,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def jiter_cache_clear() -> None: ...
-def jiter_cache_usage() -> int: ...
-
-```
-## `ry._bytes`
-
-```python
-import sys
-from typing import NoReturn, overload
-
-if sys.version_info >= (3, 12):
-    from collections.abc import Buffer
-else:
-    from typing_extensions import Buffer
-
-
-class Bytes(Buffer):
-    """
-    A buffer implementing the Python buffer protocol, allowing zero-copy access
-    to underlying Rust memory.
-
-    You can pass this to `memoryview` for a zero-copy view into the underlying
-    data or to `bytes` to copy the underlying data into a Python `bytes`.
-
-    Many methods from the Python `bytes` class are implemented on this,
-    """
-
-    def __new__(cls, buf: Buffer) -> Bytes:
-        """
-        Create a new `Bytes` object from a buffer-like object.
-        """
-
-    def __buffer__(self, flags: int, /) -> memoryview:
-        """
-        Return a `memoryview` object that exposes the underlying memory.
-        """
-
-    def __add__(self, other: Buffer) -> Bytes: ...
-    def __contains__(self, other: Buffer) -> bool: ...
-    def __eq__(self, other: object) -> bool: ...
-    @overload
-    def __getitem__(self, other: int) -> int: ...
-    @overload
-    def __getitem__(self, other: slice) -> Bytes: ...
-    def __mul__(self, other: Buffer) -> int: ...
-    def __len__(self) -> int: ...
-    def __repr__(self) -> str: ...
-    def removeprefix(self, prefix: Buffer, /) -> Bytes:
-        """
-        If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
-        Otherwise, return the original binary data.
-        """
-
-    def removesuffix(self, suffix: Buffer, /) -> Bytes:
-        """
-        If the binary data ends with the suffix string and that suffix is not empty,
-        return `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
-        """
-
-    def isalnum(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are alphabetical ASCII characters or
-        ASCII decimal digits and the sequence is not empty, `False` otherwise.
-
-        Alphabetic ASCII characters are those byte values in the sequence
-        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`. ASCII decimal digits
-        are those byte values in the sequence `b'0123456789'`.
-        """
-
-    def isalpha(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are alphabetic ASCII characters and
-        the sequence is not empty, `False` otherwise.
-
-        Alphabetic ASCII characters are those byte values in the sequence
-        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`.
-        """
-
-    def isascii(self) -> bool:
-        """
-        Return `True` if the sequence is empty or all bytes in the sequence are ASCII,
-        `False` otherwise.
-
-        ASCII bytes are in the range `0-0x7F`.
-        """
-
-    def isdigit(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are ASCII decimal digits and the
-        sequence is not empty, `False` otherwise.
-
-        ASCII decimal digits are those byte values in the sequence `b'0123456789'`.
-        """
-
-    def islower(self) -> bool:
-        """
-        Return `True` if there is at least one lowercase ASCII character in the sequence
-        and no uppercase ASCII characters, `False` otherwise.
-        """
-
-    def isspace(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
-        is not empty, `False` otherwise.
-
-        ASCII whitespace characters are those byte values
-        in the sequence `b' \t\n\r\x0b\f'` (space, tab, newline, carriage return,
-        vertical tab, form feed).
-        """
-
-    def isupper(self) -> bool:
-        """
-        Return `True` if there is at least one uppercase alphabetic ASCII character in
-        the sequence and no lowercase ASCII characters, `False` otherwise.
-        """
-
-    def lower(self) -> Bytes:
-        """
-        Return a copy of the sequence with all the uppercase ASCII characters converted
-        to their corresponding lowercase counterpart.
-        """
-
-    def upper(self) -> Bytes:
-        """
-        Return a copy of the sequence with all the lowercase ASCII characters converted
-        to their corresponding uppercase counterpart.
-        """
-
-    def to_bytes(self) -> bytes:
-        """Copy this buffer's contents into a Python `bytes` object."""
-
-    # =========================================================================
-    # IMPL IN RY
-    # =========================================================================
-    def hex(
-        self, sep: str | None = None, bytes_per_sep: int | None = None
-    ) -> str: ...
-
-    # =========================================================================
-    # NOT IMPLEMENTED
-    # =========================================================================
-    def __bytes__(self) -> NoReturn: ...
-    def __getnewargs__(self) -> NoReturn: ...
-    def __iter__(self) -> NoReturn: ...
-    def capitalize(self) -> NoReturn: ...
-    def center(self) -> NoReturn: ...
-    def count(self) -> NoReturn: ...
-    def decode(self) -> NoReturn: ...
-    def endswith(self) -> NoReturn: ...
-    def expandtabs(self) -> NoReturn: ...
-    def find(self) -> NoReturn: ...
-    def fromhex(self) -> NoReturn: ...
-    def index(self) -> NoReturn: ...
-    def istitle(self) -> NoReturn: ...
-    def join(self) -> NoReturn: ...
-    def ljust(self) -> NoReturn: ...
-    def lstrip(self) -> NoReturn: ...
-    def maketrans(self) -> NoReturn: ...
-    def partition(self) -> NoReturn: ...
-    def replace(self) -> NoReturn: ...
-    def rfind(self) -> NoReturn: ...
-    def rindex(self) -> NoReturn: ...
-    def rjust(self) -> NoReturn: ...
-    def rpartition(self) -> NoReturn: ...
-    def rsplit(self) -> NoReturn: ...
-    def rstrip(self) -> NoReturn: ...
-    def split(self) -> NoReturn: ...
-    def splitlines(self) -> NoReturn: ...
-    def startswith(self) -> NoReturn: ...
-    def strip(self) -> NoReturn: ...
-    def swapcase(self) -> NoReturn: ...
-    def title(self) -> NoReturn: ...
-    def translate(self) -> NoReturn: ...
-    def zfill(self) -> NoReturn: ...
-
-```
-## `ry._dev`
-
-```python
-"""ry.ryo3.dev"""
-
-from __future__ import annotations
-
-import typing as t
-
-
-# =============================================================================
-# SUBPROCESS (VERY MUCH WIP)
-# =============================================================================
-def run(
-    *args: str | list[str],
-    capture_output: bool = True,
-    input: bytes | None = None,
-) -> t.Any: ...
-
-
-# =============================================================================
-# STRING-DEV
-# =============================================================================
-
-
-def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
-def string_noop(s: str) -> str: ...
-def bytes_noop(s: bytes) -> bytes: ...
 
 ```
 ## `ry.dirs`
@@ -2548,6 +2696,8 @@ class HttpStatus:
 ```python
 import typing as t
 
+import ry
+
 if t.TYPE_CHECKING:
     from ry import Duration, Headers
 
@@ -2619,13 +2769,13 @@ class Response:
     def headers(self) -> Headers: ...
     async def text(self) -> str: ...
     async def json(self) -> t.Any: ...
-    async def bytes(self) -> bytes: ...
+    async def bytes(self) -> ry.Bytes: ...
     def bytes_stream(self) -> ResponseStream: ...
 
 
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
-    async def __anext__(self) -> bytes: ...
+    async def __anext__(self) -> ry.Bytes: ...
 
 
 async def fetch(
