@@ -148,7 +148,9 @@ impl RyResponse {
             .ok_or(PyValueError::new_err("Response already consumed"))?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let bytes_result = response.bytes().await;
-            bytes_result.map(Pyo3Bytes::from).map_err(map_reqwest_err)
+            bytes_result
+                .map(ryo3_bytes::PyBytes::from)
+                .map_err(map_reqwest_err)
         })
     }
 
@@ -219,7 +221,7 @@ impl RyAsyncResponseIter {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let mut guard = stream.lock().await;
             match guard.as_mut().next().await {
-                Some(Ok(bytes)) => Ok(Some(Pyo3Bytes::from(bytes))),
+                Some(Ok(bytes)) => Ok(Some(ryo3_bytes::PyBytes::from(bytes))),
                 Some(Err(e)) => Err(map_reqwest_err(e)),
                 // I totally forgot that this was a thing and that I couldn't just return None
                 None => Err(PyStopAsyncIteration::new_err("response-stream-fin")),

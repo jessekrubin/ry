@@ -59,7 +59,10 @@ async def main(server_url: str = "http://127.0.0.1:8000") -> None:
     response = await ry.fetch(server_url, method="POST", body=long_body)
 
     async for chunk in response.bytes_stream():
-        assert isinstance(chunk, bytes)  # tis a bytes
+        assert isinstance(chunk, ry.Bytes)  # tis a bytes
+        py_bytes = bytes(chunk)
+        assert isinstance(py_bytes, bytes)
+        assert py_bytes == chunk
         print("chunk this! len =:", len(chunk))
 
 

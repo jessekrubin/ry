@@ -52,14 +52,23 @@ pub fn tracing_init() {
     );
     // Install the global collector configured based on the filter.
     // TODO: add the json and other format(s)...
-    tracing_subscriber::fmt()
+    let subscriber = tracing_subscriber::fmt()
         .with_env_filter(filter)
         .with_span_events(
             tracing_subscriber::fmt::format::FmtSpan::CLOSE
                 | tracing_subscriber::fmt::format::FmtSpan::ENTER,
         )
         .with_writer(std::io::stderr)
-        .init();
+        .finish();
+    let set_subscriber_result = tracing::subscriber::set_global_default(subscriber);
+    match set_subscriber_result {
+        Ok(()) => {
+            info!("tracing_init - set_global_default succeeded");
+        }
+        Err(e) => {
+            info!("tracing_init - set_global_default failed: {:?}", e);
+        }
+    }
 }
 
 // TODO: add ability to reload tracing subscriber...

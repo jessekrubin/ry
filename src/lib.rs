@@ -57,9 +57,9 @@ fn warn_debug_build(_py: Python) -> PyResult<()> {
 #[pymodule(gil_used = false)]
 #[pyo3(name = "ryo3")] // possibly change to `ryo3`?
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    lager::tracing_init();
     #[cfg(debug_assertions)]
     warn_debug_build(m.py())?;
-    lager::tracing_init();
     debug!("version: {}", VERSION);
     debug!("build_profile: {}", BUILD_PROFILE);
     debug!("build_timestamp: {}", BUILD_TIMESTAMP);
