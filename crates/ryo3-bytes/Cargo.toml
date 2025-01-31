@@ -10,7 +10,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "multiple-pymethods"] }
 bytes = { workspace = true }
 
 [lints]

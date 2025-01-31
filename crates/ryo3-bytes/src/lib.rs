@@ -14,10 +14,22 @@ mod ry_bytes;
 use pyo3::prelude::*;
 pub use pyo3_bytes::Pyo3Bytes;
 pub mod bytes;
+mod bytes_dev;
+mod bytes_ext;
+mod bytes_like;
+
+pub use crate::bytes::PyBytes;
+pub use bytes_like::extract_vecu8_ref;
 pub use ry_bytes::RyBytes;
 
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<RyBytes>()?;
+    m.add_class::<PyBytes>()?;
+
+    // rename bytes module to `ry`
+    m.getattr("Bytes")?.setattr("__module__", "ryo3")?;
+
+    // TODO: remove in future
+    bytes_dev::pymod_add(m)?;
     Ok(())
 }

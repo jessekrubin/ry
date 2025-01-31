@@ -17,7 +17,6 @@ import ry
         "endswith",
         "expandtabs",
         "find",
-        "fromhex",
         "index",
         "istitle",
         "join",

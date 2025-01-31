@@ -4,6 +4,7 @@ include = [
   "python/**/*.{py,pyi}",
   "scripts/**",
   "tests/**/*.{py,pyi}",
+  "bench/**/*.{py,pyi}",
   "examples/**/*.{py,pyi}",
 ]
 

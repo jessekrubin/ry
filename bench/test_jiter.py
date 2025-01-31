@@ -1,8 +1,11 @@
 from __future__ import annotations
+
+import json
+
 import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
+
 import ry as ry
-import json
 
 
 @pytest.mark.benchmark(group="parse_bytes")
