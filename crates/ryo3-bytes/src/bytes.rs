@@ -1,16 +1,14 @@
 //! Support for Python buffer protocol
 
-use std::ffi::c_char;
 use std::fmt::Write;
 use std::os::raw::c_int;
 use std::ptr::NonNull;
 
 use bytes::{Bytes, BytesMut};
-
 use pyo3::buffer::PyBuffer;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::{PySlice, PyString, PyType};
+use pyo3::types::PySlice;
 use pyo3::{ffi, IntoPyObjectExt};
 
 /// A wrapper around a [`bytes::Bytes`][].
@@ -65,74 +63,6 @@ impl PyBytes {
     pub fn as_slice(&self) -> &[u8] {
         self.as_ref()
     }
-}
-
-impl From<PyBytes> for Bytes {
-    fn from(value: PyBytes) -> Self {
-        value.0
-    }
-}
-
-impl From<Vec<u8>> for PyBytes {
-    fn from(value: Vec<u8>) -> Self {
-        PyBytes(value.into())
-    }
-}
-
-impl From<Bytes> for PyBytes {
-    fn from(value: Bytes) -> Self {
-        PyBytes(value)
-    }
-}
-
-impl From<BytesMut> for PyBytes {
-    fn from(value: BytesMut) -> Self {
-        PyBytes(value.into())
-    }
-}
-
-#[pymethods]
-impl PyBytes {
-    // By setting the argument to PyBytes, this means that any buffer-protocol object is supported
-    // here, since it will use the FromPyObject impl.
-    #[new]
-    #[pyo3(signature = (buf = PyBytes(Bytes::new())))]
-    fn py_new(buf: PyBytes) -> Self {
-        buf
-    }
-
-    #[allow(non_snake_case)]
-    #[classattr]
-    fn ZERO() -> Self {
-        Self(Bytes::new())
-    }
-
-    /// The number of bytes in this Bytes
-    fn __len__(&self) -> usize {
-        self.0.len()
-    }
-
-    fn __repr__(&self) -> String {
-        format!("{self:?}")
-    }
-
-    fn __add__(&self, other: PyBytes) -> PyBytes {
-        let total_length = self.0.len() + other.0.len();
-        let mut new_buffer = BytesMut::with_capacity(total_length);
-        new_buffer.extend_from_slice(&self.0);
-        new_buffer.extend_from_slice(&other.0);
-        new_buffer.into()
-    }
-
-    fn __contains__(&self, item: PyBytes) -> bool {
-        self.0
-            .windows(item.0.len())
-            .any(|window| window == item.as_slice())
-    }
-
-    fn __eq__(&self, other: PyBytes) -> bool {
-        self.0.as_ref() == other.0.as_ref()
-    }
 
     fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<PyBytes> {
         let len_isize = self.0.len() as isize;
@@ -183,6 +113,68 @@ impl PyBytes {
             );
         }
         Ok(PyBytes(new_buf.freeze()))
+    }
+}
+
+impl From<PyBytes> for Bytes {
+    fn from(value: PyBytes) -> Self {
+        value.0
+    }
+}
+
+impl From<Vec<u8>> for PyBytes {
+    fn from(value: Vec<u8>) -> Self {
+        PyBytes(value.into())
+    }
+}
+
+impl From<Bytes> for PyBytes {
+    fn from(value: Bytes) -> Self {
+        PyBytes(value)
+    }
+}
+
+impl From<BytesMut> for PyBytes {
+    fn from(value: BytesMut) -> Self {
+        PyBytes(value.into())
+    }
+}
+
+#[pymethods]
+impl PyBytes {
+    // By setting the argument to PyBytes, this means that any buffer-protocol object is supported
+    // here, since it will use the FromPyObject impl.
+    #[new]
+    #[pyo3(signature = (buf = PyBytes(Bytes::new())), text_signature = "(buf = b'')")]
+    fn py_new(buf: PyBytes) -> Self {
+        buf
+    }
+
+    /// The number of bytes in this Bytes
+    fn __len__(&self) -> usize {
+        self.0.len()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
+    }
+
+    fn __add__(&self, other: PyBytes) -> PyBytes {
+        let total_length = self.0.len() + other.0.len();
+        let mut new_buffer = BytesMut::with_capacity(total_length);
+        new_buffer.extend_from_slice(&self.0);
+        new_buffer.extend_from_slice(&other.0);
+        new_buffer.into()
+    }
+
+    fn __contains__(&self, item: PyBytes) -> bool {
+        self.0
+            .windows(item.0.len())
+            .any(|window| window == item.as_slice())
+    }
+
+    fn __eq__(&self, other: PyBytes) -> bool {
+        self.0.as_ref() == other.0.as_ref()
     }
 
     fn __getitem__<'py>(&self, py: Python<'py>, key: BytesGetItemKey<'py>) -> PyResult<PyObject> {
@@ -299,12 +291,13 @@ impl PyBytes {
     /// Return True if the sequence is empty or all bytes in the sequence are ASCII, False
     /// otherwise. ASCII bytes are in the range 0-0x7F.
     fn isascii(&self) -> bool {
-        for c in self.0.as_ref() {
-            if !c.is_ascii() {
-                return false;
-            }
-        }
-        true
+        self.0.as_ref().is_ascii()
+        // for c in self.0.as_ref() {
+        //     if !c.is_ascii() {
+        //         return false;
+        //     }
+        // }
+        // true
     }
 
     /// Return True if all bytes in the sequence are ASCII decimal digits and the sequence is not
@@ -388,145 +381,13 @@ impl PyBytes {
     fn to_bytes<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
         pyo3::types::PyBytes::new(py, &self.0)
     }
-
-    // ========================================================================
-    // RY IMPLEMENTED ~ to go upstream into `pyo3-bytes`
-    // ========================================================================
-    /// Return hex string for bytes
-    #[pyo3(signature = (sep=None, bytes_per_sep=None))]
-    fn hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
-        // TODO handle sep and bytes_per_sep
-        if sep.is_some() || bytes_per_sep.is_some() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "Not implemented (yet)",
-            ))
-        } else {
-            Ok(format!("{:02x}", self.0))
-        }
-    }
-
-    /// Create a bytes object from a string of hexadecimal numbers.
-    ///
-    /// Spaces between two numbers are accepted.
-    /// Example: bytes.fromhex('B9 01EF') -> b'\\xb9\\x01\\xef'.
-    ///
-    /// ## python-signature
-    /// ```python
-    /// (string, /)
-    /// ```
-    #[classmethod]
-    fn fromhex(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented (yet) ~ Bytes.fromhex",
-        ))
-    }
-
-    // -----------------------------------------------------------------------
-    // python builtin `bytes` methods TODO
-    // -----------------------------------------------------------------------
-    /// Implement iter(self).
-    ///
-    /// ## python-signature
-    /// ```python
-    /// ()
-    /// ```
-    fn __iter__(&self) -> PyResult<()> {
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented (yet) ~ Bytes.__iter__",
-        ))
-    }
-
-    /// Decode the bytes using the codec registered for encoding.
-    ///
-    ///   encoding
-    ///     The encoding with which to decode the bytes.
-    ///   errors
-    ///     The error handling scheme to use for the handling of decoding errors.
-    ///     The default is 'strict' meaning that decoding errors raise a
-    ///     UnicodeDecodeError. Other possible values are 'ignore' and 'replace'
-    ///     as well as any other name registered with codecs.register_error that
-    ///     can handle UnicodeDecodeErrors.
-    ///
-    /// ## python-signature
-    /// ```python
-    /// (encoding='utf-8', errors='strict')
-    /// ```
-    #[pyo3(signature = (encoding="utf-8", errors="strict"))]
-    fn decode<'py>(
-        slf: PyRef<'py, Self>,
-        py: Python<'py>,
-        encoding: &str,
-        errors: &str,
-    ) -> PyResult<Bound<'py, PyString>> {
-        let a = slf.into_bound_py_any(py)?;
-        // let enc_c = std::ffi::CString::new(encoding).map_err(PyValueError::new_err)?;
-        // let err_c = std::ffi::CString::new(errors).map_err(PyValueError::new_err)?;
-        // ensure str is null-term
-        let encoding = {
-            let mut enc = encoding.to_owned();
-            if !enc.ends_with('\0') {
-                enc.push('\0');
-            }
-            enc
-        };
-        let errors = {
-            let mut err = errors.to_owned();
-            if !err.ends_with('\0') {
-                err.push('\0');
-            }
-            err
-        };
-        // this is screwy?
-        PyString::from_object(&a, &encoding, &errors)
-    }
-
-    #[allow(unsafe_code)]
-    #[pyo3(signature = (encoding="utf-8", errors="strict"))]
-    fn __decode_v2<'py>(
-        &self,
-        py: Python<'py>,
-        encoding: &str,
-        errors: &str,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let data_ptr = self.0.as_ptr() as *const c_char;
-        let data_len = self.0.len() as isize;
-        // rust `&str` NEEDS to be null-term CString... classic
-        let enc_c = std::ffi::CString::new(encoding).map_err(PyValueError::new_err)?;
-        let err_c = std::ffi::CString::new(errors).map_err(PyValueError::new_err)?;
-        unsafe {
-            // CPython function: PyUnicode_Decode(const char *data, Py_ssize_t size,
-            //                                     const char *encoding, const char *errors)
-            let obj_ptr = ffi::PyUnicode_Decode(data_ptr, data_len, enc_c.as_ptr(), err_c.as_ptr());
-            if obj_ptr.is_null() {
-                // CPython sets an exception if decode fails
-                Err(PyErr::fetch(py))
-            } else {
-                Ok(Bound::from_owned_ptr(py, obj_ptr))
-            }
-        }
-    }
-
-    /// B.startswith(prefix[, start[, end]]) -> bool
-    ///
-    /// Return True if B starts with the specified prefix, False otherwise.
-    /// With optional start, test B beginning at that position.
-    /// With optional end, stop comparing B at that position.
-    /// prefix can also be a tuple of bytes to try.
-    ///
-    fn startswith(&self, prefix: PyBytes) -> bool {
-        self.0.starts_with(prefix.as_ref())
-    }
 }
 
 impl<'py> FromPyObject<'py> for PyBytes {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        if ob.is_none() {
-            Ok(PyBytes(Bytes::new()))
-        } else {
-            let buffer = ob.extract::<PyBytesWrapper>()?;
-            let bytes = Bytes::from_owner(buffer);
-            Ok(Self(bytes))
-        }
+        let buffer = ob.extract::<PyBytesWrapper>()?;
+        let bytes = Bytes::from_owner(buffer);
+        Ok(Self(bytes))
     }
 }
 
@@ -577,10 +438,6 @@ fn validate_buffer(buf: &PyBuffer<u8>) -> PyResult<()> {
         return Err(PyValueError::new_err("Buffer is not C contiguous"));
     }
 
-    // if buf.shape().iter().any(|s| *s == 0) {
-    //     return Err(PyValueError::new_err("0-length dimension not supported."));
-    // }
-
     if buf.strides().iter().any(|s| *s == 0) {
         return Err(PyValueError::new_err("Non-zero strides not supported."));
     }
@@ -596,34 +453,25 @@ impl<'py> FromPyObject<'py> for PyBytesWrapper {
     }
 }
 
-/// Implement Debug for PyBytes
-///
-/// Don't use the `bytes::Bytes` Debug impl, b/c it doesn't _look_
-/// how the python bytes repr looks; this isn't exactly the same
-/// either, as the python repr will switch between `'` and `"` based
-/// on the presence of the other in the string, but it's close enough
-/// AND we don't have to do a full scan of the bytes to check for
-/// that.
-///
-/// BABOOM!
+/// This is _mostly_ the same as the upstream [`bytes::Bytes` Debug
+/// impl](https://github.com/tokio-rs/bytes/blob/71824b095c4150b3af0776ac158795c00ff9d53f/src/fmt/debug.rs#L6-L37),
+/// however we don't use it because that impl doesn't look how the python bytes repr looks; this
+/// isn't exactly the same either, as the python repr will switch between `'` and `"` based on the
+/// presence of the other in the string, but it's close enough AND we don't have to do a full scan
+/// of the bytes to check for that.
 impl std::fmt::Debug for PyBytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Bytes(b\"")?;
         for &byte in self.0.as_ref() {
             match byte {
-                // bing
+                // https://doc.rust-lang.org/reference/tokens.html#byte-escapes
                 b'\\' => f.write_str(r"\\")?,
-                // bop
                 b'"' => f.write_str("\\\"")?,
-                // boom
                 b'\n' => f.write_str(r"\n")?,
-                // boom
                 b'\r' => f.write_str(r"\r")?,
-                // boom
                 b'\t' => f.write_str(r"\t")?,
-                // bop
-                0x20..=0x7E => f.write_char(byte as char)?, // printable ASCII
-                // bam
+                // printable ASCII
+                0x20..=0x7E => f.write_char(byte as char)?,
                 _ => write!(f, "\\x{byte:02x}")?,
             }
         }

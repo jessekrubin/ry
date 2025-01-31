@@ -7,17 +7,37 @@ import pytest
 from ry import Bytes
 
 
+def test_empty_eq() -> None:
+    assert b"" == Bytes(b"")
+
+
+def test_repr() -> None:
+    py_buf = b"foo\nbar\nbaz"
+    rust_buf = Bytes(py_buf)
+    # Assert reprs are the same excluding the prefix and suffix
+    assert repr(py_buf)[2:-1] == repr(rust_buf)[8:-2]
+
+
+@pytest.mark.parametrize(
+    "b",
+    [bytes([i]) for i in range(256)],
+)
+def test_uno_byte_bytes_repr(b: bytes) -> None:
+    rust_bytes = Bytes(b)
+    rust_bytes_str = repr(rust_bytes)
+    rust_bytes_str_eval = eval(rust_bytes_str)
+    assert rust_bytes_str_eval == rust_bytes == b
+
+
+# =============================================================================
+# The following tests are not in the `pyo3-bytes` test suite
+# =============================================================================
+
+
 def test_decode() -> None:
     py_bytes = b"asdf"
     ry_bytes = Bytes(py_bytes)
     assert ry_bytes.decode() == "asdf"
-
-
-# TODO: figure out if accepts empty bytes (i jessekrubin think it should if it is trying to be `bytes`)
-def test_empty_eq() -> None:
-    py_bytes = b""
-    ry_bytes = Bytes(py_bytes)
-    assert py_bytes == ry_bytes
 
 
 class TestBytesRemovePrefixSuffix:
@@ -30,17 +50,6 @@ class TestBytesRemovePrefixSuffix:
         ry_bytes = Bytes(b"asdf")
         assert ry_bytes.removesuffix(b"df") == Bytes(b"as")
         assert ry_bytes.removesuffix(b"asdf") == Bytes(b"")
-
-
-@pytest.mark.parametrize(
-    "b",
-    [bytes([i]) for i in range(256)],
-)
-def test_uno_byte_bytes_repr(b: bytes) -> None:
-    ry_bytes = Bytes(b)
-    ry_bytes_str = str(ry_bytes)
-    ry_bytes_str_eval = eval(ry_bytes_str)
-    assert ry_bytes_str_eval == ry_bytes
 
 
 class TestBytesSlice:
@@ -83,3 +92,4 @@ def test_hex_str(b: bytes) -> None:
     ry_hex_str = ry_bytes.hex()
     py_hex_str = b.hex()
     assert ry_hex_str == py_hex_str
+    assert ry_bytes == Bytes.fromhex(ry_hex_str)

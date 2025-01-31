@@ -14,6 +14,8 @@ mod ry_bytes;
 use pyo3::prelude::*;
 pub use pyo3_bytes::Pyo3Bytes;
 pub mod bytes;
+mod bytes_ext;
+
 pub use ry_bytes::RyBytes;
 
 /// ryo3-bytes python module registration
