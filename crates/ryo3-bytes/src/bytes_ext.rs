@@ -80,7 +80,7 @@ impl PyBytes {
             let bslice: &[u8] = self.as_ref();
             let mut s = String::with_capacity(bslice.len() * 2);
             for b in bslice {
-                s.push_str(&format!("{:02x}", b));
+                s.push_str(&format!("{b:02x}"));
             }
             Ok(s)
         }
@@ -97,12 +97,12 @@ impl PyBytes {
     /// ```
     #[classmethod]
     fn fromhex(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        let s = s.replace(" ", "");
+        let s = s.replace(' ', "");
         let mut bytes = Vec::new();
         for i in 0..s.len() {
             if i % 2 == 0 {
                 let byte = u8::from_str_radix(&s[i..i + 2], 16).map_err(|e| {
-                    pyo3::exceptions::PyValueError::new_err(format!("Invalid hex string: {}", e))
+                    pyo3::exceptions::PyValueError::new_err(format!("Invalid hex string: {e}"))
                 })?;
                 bytes.push(byte);
             }
