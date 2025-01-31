@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 /// Sum the bytes in a `&[u8]` slice
 #[inline]
 fn bytes_sum_impl(data: &[u8]) -> u128 {
-    data.iter().fold(0, |acc, &x| acc + x as u128)
+    data.iter().fold(0, |acc, &x| acc + u128::from(x))
 }
 
 /// Sum the bytes in a `&[u8]` slice (python-bytes)
@@ -28,7 +28,7 @@ fn bytes_sum_rybytes(data: PyBytes) -> u128 {
 }
 
 #[pyfunction]
-fn bytes_sum_bytes_like<'py>(data: &Bound<'_, PyAny>) -> PyResult<u128> {
+fn bytes_sum_bytes_like(data: &Bound<'_, PyAny>) -> PyResult<u128> {
     let data = extract_vecu8_ref(data)?;
     Ok(bytes_sum_impl(data))
 }
