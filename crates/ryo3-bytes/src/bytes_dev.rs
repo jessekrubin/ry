@@ -1,6 +1,7 @@
 //! Dev area for `pyo3-bytes`/`ryo3-bytes` crate
-use crate::bytes_like::extract_vecu8_ref;
-use crate::PyBytes;
+
+use crate::bytes::PyBytesWrapper;
+use crate::{extract_vecu8_ref, PyBytes};
 use pyo3::prelude::*;
 
 /// Sum the bytes in a `&[u8]` slice
@@ -33,11 +34,17 @@ fn bytes_sum_bytes_like(data: &Bound<'_, PyAny>) -> PyResult<u128> {
     Ok(bytes_sum_impl(data))
 }
 
+#[pyfunction]
+fn bytes_sum_bytes_wrapper(data: PyBytesWrapper) -> u128 {
+    bytes_sum_impl(data.as_ref())
+}
+
 /// ryo3-bytes python module registration
 pub(crate) fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(bytes_sum_pybytes, m)?)?;
     m.add_function(wrap_pyfunction!(bytes_sum_rybytes_ref, m)?)?;
     m.add_function(wrap_pyfunction!(bytes_sum_rybytes, m)?)?;
     m.add_function(wrap_pyfunction!(bytes_sum_bytes_like, m)?)?;
+    m.add_function(wrap_pyfunction!(bytes_sum_bytes_wrapper, m)?)?;
     Ok(())
 }

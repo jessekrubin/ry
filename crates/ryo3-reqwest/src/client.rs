@@ -9,7 +9,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
-use ryo3_bytes::Pyo3Bytes;
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macros::err_py_not_impl;
 use ryo3_url::PyUrl;

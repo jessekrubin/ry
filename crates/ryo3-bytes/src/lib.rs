@@ -19,6 +19,7 @@ mod bytes_ext;
 mod bytes_like;
 
 pub use crate::bytes::PyBytes;
+pub use bytes_like::extract_vecu8_ref;
 pub use ry_bytes::RyBytes;
 
 /// ryo3-bytes python module registration

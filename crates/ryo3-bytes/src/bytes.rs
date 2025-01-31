@@ -396,7 +396,7 @@ impl<'py> FromPyObject<'py> for PyBytes {
 ///
 /// This also implements AsRef<[u8]> because that is required for Bytes::from_owner
 #[derive(Debug)]
-struct PyBytesWrapper(Option<PyBuffer<u8>>);
+pub struct PyBytesWrapper(Option<PyBuffer<u8>>);
 
 impl Drop for PyBytesWrapper {
     #[allow(unsafe_code)]

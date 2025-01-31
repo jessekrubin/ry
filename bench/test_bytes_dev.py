@@ -21,7 +21,7 @@ ALL_BYTES_100X = ALL_BYTES * 100
 
 
 def test_benchmark_not_debug() -> None:
-    assert not ry.__build_profile__ == "release"
+    assert ry.__build_profile__ == "release"
 
 
 @dataclasses.dataclass
@@ -123,11 +123,17 @@ BENCH_FUNCTIONS = [
         ry_bytes=True,
         py_bytes=True,
     ),
+    BytesSumFn.from_fn(
+        id="ry.bytes_sum_bytes_wrapper",
+        fn=ry.bytes_sum_bytes_wrapper,
+        ry_bytes=True,
+        py_bytes=True,
+    ),
 ]
 
 BENCH_DATA = [
-    BytesSumData.from_bytes(b"", "empty"),
-    BytesSumData.from_bytes(b"abc", "abc"),
+    # BytesSumData.from_bytes(b"", "empty"),
+    # BytesSumData.from_bytes(b"abc", "abc"),
     BytesSumData.from_bytes(ALL_BYTES, "1x"),  # all bytes
     # byte_types
     # BytesSumData.from_bytes(ALNUM_BYTES, "alnum"),
