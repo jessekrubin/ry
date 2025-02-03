@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![allow(clippy::unnecessary_wraps)]
 pub mod const_fns;
 pub mod xxhashers;

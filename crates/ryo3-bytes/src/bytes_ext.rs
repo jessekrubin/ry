@@ -4,9 +4,25 @@ use crate::bytes::PyBytes;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyType};
 use pyo3::IntoPyObjectExt;
+use std::hash::Hash;
 
 #[pymethods]
 impl PyBytes {
+    /// Hash bytes
+    fn __hash__(&self) -> u64 {
+        // STD-HASHER VERSION
+        // let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        // let bref: &[u8] = self.as_ref();
+        // bref.hash(&mut hasher);
+        // hasher.finish()
+        use ahash::AHasher;
+        use std::hash::Hasher;
+        let mut hasher = AHasher::default();
+        let bref: &[u8] = self.as_ref();
+        bref.hash(&mut hasher);
+        hasher.finish()
+    }
+
     /// Decode the bytes using the codec registered for encoding.
     ///
     ///   encoding

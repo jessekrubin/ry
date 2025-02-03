@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 use std::hash::Hasher;
 
 use ::fnv as fnv_rs;

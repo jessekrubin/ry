@@ -40,7 +40,7 @@ fn bytes_sum_bytes_wrapper(data: PyBytesWrapper) -> u128 {
 }
 
 /// ryo3-bytes python module registration
-pub(crate) fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(bytes_sum_pybytes, m)?)?;
     m.add_function(wrap_pyfunction!(bytes_sum_rybytes_ref, m)?)?;
     m.add_function(wrap_pyfunction!(bytes_sum_rybytes, m)?)?;

@@ -1,9 +1,12 @@
 # `ryo3-http`
 
-**NOT IMPLEMENTED (YET)**
+ryo3-wrapper for `http` crate
 
-Wrapper around the `http` crate for Python.
+[//]: # (<GENERATED>)
 
-REF:
-- [crates.io](https://crates.io/crates/http)
-- [docs.rs](https://docs.rs/http)
+## Ref:
+
+- docs.rs: [https://docs.rs/http](https://docs.rs/http)
+- crates: [https://crates.io/crates/http](https://crates.io/crates/http)
+
+[//]: # (</GENERATED>)

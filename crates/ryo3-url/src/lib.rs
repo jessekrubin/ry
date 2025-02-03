@@ -1,5 +1,4 @@
-//! ryo3 url wrapper library for python
-
+#![doc = include_str!("../README.md")]
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyTuple};

@@ -3,6 +3,8 @@ from __future__ import annotations
 import gzip
 import io
 
+import pytest
+
 import ry
 
 
@@ -86,3 +88,19 @@ def test_cross_compatibility() -> None:
     # ry
     ry_decompressed = ry.gzip_decode(stdlib_compressed)
     assert ry_decompressed == input_data
+
+
+@pytest.mark.parametrize("quality", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+def test_quality_gzip(quality: int) -> None:
+    input_data = b"XXXXXXXXXXYYYYYYYYYY"
+    output_data = ry.gzip_encode(input_data, quality=quality)
+    assert output_data is not None
+    decoded = ry.gzip_decode(output_data)
+    assert decoded == input_data
+
+
+def test_gzip_quality_value_error() -> None:
+    with pytest.raises(ValueError) as e:
+        ry.gzip(b"test", quality=10)
+    s = str(e.value)
+    assert "Quality must be between 0 and 9 - got: 10" in s

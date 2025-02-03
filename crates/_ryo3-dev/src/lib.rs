@@ -20,9 +20,9 @@ use pyo3::PyResult;
 
 pub mod anystr;
 pub mod sp;
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     anystr::pymod_add(m)?;
     sp::pymod_add(m)?;
+    ryo3_bytes::bytes_dev::pymod_add(m)?;
     Ok(())
 }

@@ -14,7 +14,7 @@ mod ry_bytes;
 use pyo3::prelude::*;
 pub use pyo3_bytes::Pyo3Bytes;
 pub mod bytes;
-mod bytes_dev;
+pub mod bytes_dev;
 mod bytes_ext;
 mod bytes_like;
 
@@ -29,7 +29,5 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // rename bytes module to `ry`
     m.getattr("Bytes")?.setattr("__module__", "ryo3")?;
 
-    // TODO: remove in future
-    bytes_dev::pymod_add(m)?;
     Ok(())
 }

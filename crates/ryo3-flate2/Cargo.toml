@@ -12,6 +12,7 @@ repository.workspace = true
 [dependencies]
 flate2 = "1.0.35"
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-macros.workspace = true
 
 [lints]
 workspace = true

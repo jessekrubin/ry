@@ -1,6 +1,8 @@
 //! `FsPath` struct python module
 #![allow(clippy::unused_self)] // TODO: remove in future
-#![allow(clippy::needless_pass_by_value)] // TODO: remove in future? if possible?
+#![allow(clippy::needless_pass_by_value)]
+
+// TODO: remove in future? if possible?
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
@@ -9,6 +11,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
 use ryo3_macros::err_py_not_impl;
 use ryo3_types::PathLike;
+use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
 // separator
@@ -70,6 +73,12 @@ impl PyFsPath {
     fn equiv(&self, other: PathLike) -> bool {
         let other = other.as_ref();
         self.pth == other
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        self.pth.hash(&mut hasher);
+        hasher.finish()
     }
 
     // fn __eq__(&self, other: PathLike) -> bool {

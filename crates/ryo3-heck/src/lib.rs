@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 use heck::{
     self, ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase,
     ToSnakeCase, ToSnekCase, ToTitleCase, ToTrainCase,
