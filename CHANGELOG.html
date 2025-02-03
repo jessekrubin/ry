@@ -159,11 +159,26 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0028---future"><a class="header" href="#v0028---future">v0.0.28 - [FUTURE]</a></h2>
+<h2 id="v0029-2025-02-03"><a class="header" href="#v0029-2025-02-03">v0.0.29 [2025-02-03]</a></h2>
+<ul>
+<li>internal
+<ul>
+<li>Made sure each <code>ryo3-*</code> crate has a <code>README.md</code></li>
+</ul>
+</li>
+<li><code>ryo3-bytes</code> &amp; <code>ryo3-fspath</code>
+<ul>
+<li>added <code>__hash__</code> dunders to both <code>Bytes</code> and <code>FsPath</code> structs</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="v0028-2025-01-31"><a class="header" href="#v0028-2025-01-31">v0.0.28 [2025-01-31]</a></h2>
 <ul>
 <li><code>jiff</code>
 <ul>
-<li>Per Mr. Sushi’s thoughts changed all <code>until</code>/<code>since</code> methods to use kwargs instead of the rust-like tuples that impl <code>From</code>/<code>Into</code> as it does not translate well to python</li>
+<li>Per Mr. Sushi’s thoughts changed all <code>until</code>/<code>since</code> methods to use kwargs instead of the rust-like tuples that impl
+<code>From</code>/<code>Into</code> as it does not translate well to python</li>
 <li>Gets rid of the following inane types:</li>
 </ul>
 </li>
@@ -225,7 +240,8 @@ IntoTimestampDifference = (
 </li>
 <li><code>jiff</code>
 <ul>
-<li>jiff-version <code>0.1.25</code> ~ add <code>in_tz</code> methods and point old <code>intz</code> at new <code>in_tz</code> methods and raise <code>DeprecationWarning</code> for old <code>intz</code> methods</li>
+<li>jiff-version <code>0.1.25</code> ~ add <code>in_tz</code> methods and point old <code>intz</code> at new <code>in_tz</code> methods and raise
+<code>DeprecationWarning</code> for old <code>intz</code> methods</li>
 <li>Continued adding implementations that previously raised <code>NotImplementedError</code>
 <ul>
 <li><code>Date.nth_weekday_of_month</code></li>
@@ -314,7 +330,8 @@ IntoTimestampDifference = (
 <ul>
 <li><code>xxhash</code> is own sub package now <code>ry.xxhash</code></li>
 <li><code>JSON</code> is own subpackage right now – named <code>ry.JSON</code> to avoid conflict with <code>json</code> module but maybe will change…</li>
-<li>food-for-thought-ing how <code>ryo3</code> and <code>ry</code> should be organized w/ respsect to sub-packages and where that organization should be</li>
+<li>food-for-thought-ing how <code>ryo3</code> and <code>ry</code> should be organized w/ respsect to sub-packages and where that organization
+should be</li>
 </ul>
 </li>
 <li>type-annotations
@@ -336,10 +353,12 @@ IntoTimestampDifference = (
 <ul>
 <li><code>until</code>/<code>since</code>
 <ul>
-<li>Basic <code>until</code>/<code>since</code> implementation but I do not like them and they confusingly named <code>*Difference</code> structs/py-objects, so I may change how they work…</li>
+<li>Basic <code>until</code>/<code>since</code> implementation but I do not like them and they confusingly named <code>*Difference</code>
+structs/py-objects, so I may change how they work…</li>
 </ul>
 </li>
-<li><code>jiff</code> seems to be about as performant as <code>whenever</code> ~ yay! also the whenever dude appears to be watching this repo (as of 2024-12-16)</li>
+<li><code>jiff</code> seems to be about as performant as <code>whenever</code> ~ yay! also the whenever dude appears to be watching this
+repo (as of 2024-12-16)</li>
 </ul>
 </li>
 <li><code>walkdir</code>
@@ -401,7 +420,8 @@ IntoTimestampDifference = (
 <code>RyZoned</code></li>
 </ul>
 </li>
-<li>span builder functions use form <code>s._hours(1)</code> for panic-inducing building, and <code>s.try_hours(1)</code> for non-panic-inducing building</li>
+<li>span builder functions use form <code>s._hours(1)</code> for panic-inducing building, and <code>s.try_hours(1)</code> for
+non-panic-inducing building</li>
 </ul>
 </li>
 <li>type-annotations
