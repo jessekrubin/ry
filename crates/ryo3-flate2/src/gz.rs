@@ -20,12 +20,12 @@ pub fn gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResul
         Compression::default()
     };
     let mut gzip_encoder = GzEncoder::new(Vec::new(), quality);
-    gzip_encoder.write_all(data).map_err(|e| {
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("gzip-encode-error: {e:?}"))
-    })?;
-    let encoded = gzip_encoder.finish().map_err(|e| {
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("gzip-encode-error: {e:?}"))
-    })?;
+    gzip_encoder
+        .write_all(data)
+        .map_err(|e| py_value_error!("gzip-decode-error: {e:?}"))?;
+    let encoded = gzip_encoder
+        .finish()
+        .map_err(|e| py_value_error!("gzip-decode-error: {e:?}"))?;
     Ok(PyBytes::new(py, &encoded).into())
 }
 
@@ -34,9 +34,7 @@ pub fn gzip_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
     GzDecoder::new(data)
         .read_to_end(&mut decompressed)
-        .map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("gzip-decode-error: {e:?}"))
-        })?;
+        .map_err(|e| py_value_error!("gzip-decode-error: {e:?}"))?;
     Ok(PyBytes::new(py, &decompressed).into())
 }
 

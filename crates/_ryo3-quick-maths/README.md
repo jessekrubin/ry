@@ -2,6 +2,8 @@
 
 **THIS IS A TEMPLATE LIBRARY**
 
+copy this crate to create a new `ryo3-*` crate
+
 ___
 
 Package/library/CLI that performs "quick-maths":
