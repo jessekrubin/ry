@@ -135,7 +135,7 @@ pyo3-build-config = "0.23.3"
 pyo3-bytes = "0.1.2"
 # external
 anyhow = "1.0.75"
-bytes = "1.9.0"
+bytes = "1.10.0"
 dirs = { version = "6.0.0", features = [] }
 futures-core = "0.3.31"
 futures-util = "0.3.31"
