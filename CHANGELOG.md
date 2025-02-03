@@ -4,6 +4,8 @@
 
 - internal
   - Made sure each `ryo3-*` crate has a `README.md`
+- `ryo3-bytes` & `ryo3-fspath`
+  - added `__hash__` dunders to both `Bytes` and `FsPath` structs
 
 ___
 
