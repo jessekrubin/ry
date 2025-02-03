@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.29 [FUTURE]
+## v0.0.29 [2025-02-03]
 
 - internal
   - Made sure each `ryo3-*` crate has a `README.md`
