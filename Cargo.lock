@@ -1711,6 +1711,7 @@ version = "0.0.28"
 dependencies = [
  "flate2",
  "pyo3",
+ "ryo3-macros",
 ]
 
 [[package]]
