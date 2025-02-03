@@ -1,4 +1,4 @@
-use ::zstd as zstdrs;
+#![doc = include_str!("../README.md")]
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
@@ -6,8 +6,8 @@ use pyo3::types::PyBytes;
 #[pyfunction]
 #[pyo3(signature = (data, level=None))]
 pub fn zstd_encode(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<PyObject> {
-    let level = level.unwrap_or(zstdrs::DEFAULT_COMPRESSION_LEVEL);
-    let encoded = zstdrs::stream::encode_all(data, level).map_err(|e| {
+    let level = level.unwrap_or(::zstd::DEFAULT_COMPRESSION_LEVEL);
+    let encoded = ::zstd::stream::encode_all(data, level).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("zstd-encode-error: {e:?}"))
     })?;
     Ok(PyBytes::new(py, &encoded).into())
@@ -22,7 +22,7 @@ pub fn zstd(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<PyObjec
 #[pyo3(signature = (data))]
 pub fn zstd_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
-    zstdrs::stream::copy_decode(data, &mut decompressed).map_err(|e| {
+    ::zstd::stream::copy_decode(data, &mut decompressed).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("zstd-decode-error: {e:?}"))
     })?;
     Ok(PyBytes::new(py, &decompressed).into())

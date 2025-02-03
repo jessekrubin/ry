@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 use std::io::{Read, Write};
 
 use ::brotli as br;

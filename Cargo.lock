@@ -1690,6 +1690,7 @@ name = "ryo3-dev"
 version = "0.0.28"
 dependencies = [
  "pyo3",
+ "ryo3-bytes",
  "ryo3-reqwest",
  "serde",
  "serde_bytes",

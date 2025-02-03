@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 use std::path::Path;
 
 use ::walkdir as walkdir_rs;

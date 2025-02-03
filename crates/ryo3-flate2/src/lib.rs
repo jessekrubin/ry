@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 mod gz;
 pub use gz::*;
 use pyo3::prelude::PyModule;

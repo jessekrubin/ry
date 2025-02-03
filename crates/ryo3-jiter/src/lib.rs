@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 //! Wrapper for jiter based on `jiter-python`
 //!
 //! Provides jitter wrapper that uses `PyBackedStr` and `PyBackedBytes` and

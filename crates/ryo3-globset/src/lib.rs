@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 mod globster;
 
 pub use crate::globster::PyGlobster;

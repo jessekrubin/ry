@@ -6,7 +6,7 @@ import typing as t
 import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
 
-import ry
+import ry.dev as ry
 
 ALNUM_BYTES = bytes([i for i in range(256) if bytes([i]).isalnum()])
 ALPHA_BYTES = bytes([i for i in range(256) if bytes([i]).isalpha()])
@@ -120,12 +120,6 @@ BENCH_FUNCTIONS = [
     BytesSumFn.from_fn(
         id="ry.bytes_sum_bytes_like",
         fn=ry.bytes_sum_bytes_like,
-        ry_bytes=True,
-        py_bytes=True,
-    ),
-    BytesSumFn.from_fn(
-        id="ry.bytes_sum_bytes_wrapper",
-        fn=ry.bytes_sum_bytes_wrapper,
         ry_bytes=True,
         py_bytes=True,
     ),

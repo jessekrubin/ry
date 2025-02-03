@@ -1,10 +1,19 @@
 # CHANGELOG
 
-## v0.0.28 - [FUTURE]
+## v0.0.29 [FUTURE]
+
+- internal
+  - Made sure each `ryo3-*` crate has a `README.md`
+
+___
+
+## v0.0.28 [2025-01-31]
 
 - `jiff`
-  - Per Mr. Sushi's thoughts changed all `until`/`since` methods to use kwargs instead of the rust-like tuples that impl `From`/`Into` as it does not translate well to python
+  - Per Mr. Sushi's thoughts changed all `until`/`since` methods to use kwargs instead of the rust-like tuples that impl
+    `From`/`Into` as it does not translate well to python
   - Gets rid of the following inane types:
+
 ```python
 IntoDateDifference = (
   DateDifference
@@ -55,7 +64,8 @@ ___
 - `same-file`
   - wrapper module added with `is_same_file` py-fn (yet another piece of burnt sushi)
 - `jiff`
-  - jiff-version `0.1.25` ~ add `in_tz` methods and point old `intz` at new `in_tz` methods and raise `DeprecationWarning` for old `intz` methods
+  - jiff-version `0.1.25` ~ add `in_tz` methods and point old `intz` at new `in_tz` methods and raise
+    `DeprecationWarning` for old `intz` methods
   - Continued adding implementations that previously raised `NotImplementedError`
     - `Date.nth_weekday_of_month`
     - `Date.nth_weekday`
@@ -86,11 +96,9 @@ ___
 - `jiff`
   - Updated to `0.1.21` which has span and signed duration strings with capital letters
 
-
 ___
 
 ## v0.0.24 [2024-12-24] (the night b4 xmas...)
-
 
 - `http`
   - basic headers struct/obj -- WIP
@@ -98,7 +106,6 @@ ___
   - reqwest client (currently root-export)
   - default client + root `fetch` function likely needs work...
   - response `byte_stream`!
-
 
 ___
 
@@ -109,13 +116,14 @@ ___
   - in process of renaming all python-rust `#[new]` functions to be named `fn py_new(...)`
 - `unindent`
   - Added `unindent` module for unindenting strings will move to `ryo3-unindent`
-- `FsPath` 
-  - creeping ever closer to being a full-fledged pathlib.Path replacement 
+- `FsPath`
+  - creeping ever closer to being a full-fledged pathlib.Path replacement
   - Added bindings to all rust `std::path::Path(buf)` methods for `FsPath`
 - sub-packaging
   - `xxhash` is own sub package now `ry.xxhash`
   - `JSON` is own subpackage right now -- named `ry.JSON` to avoid conflict with `json` module but maybe will change...
-  - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respsect to sub-packages and where that organization should be
+  - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respsect to sub-packages and where that organization
+    should be
 - type-annotations
   - required to break up the type annotations due to migration to sub-packages
   - breaking up the type annotations file into smaller files under `<REPO>/python/ry/ryo3/*.pyi`
@@ -128,8 +136,10 @@ ___
   - Super simple regex wrapper (must to do here, but was added for `ryo3-which::which_re`)
 - `jiff`
   - `until`/`since`
-    - Basic `until`/`since` implementation but I do not like them and they confusingly named `*Difference` structs/py-objects, so I may change how they work...
-  - `jiff` seems to be about as performant as `whenever` ~ yay! also the whenever dude appears to be watching this repo (as of 2024-12-16)
+    - Basic `until`/`since` implementation but I do not like them and they confusingly named `*Difference`
+      structs/py-objects, so I may change how they work...
+  - `jiff` seems to be about as performant as `whenever` ~ yay! also the whenever dude appears to be watching this
+    repo (as of 2024-12-16)
 - `walkdir`
   - `collect` added to `WalkdirGen` to collect the results into a list
 - deps
@@ -160,7 +170,8 @@ ___
     - [x] `RyTimeZone`
     - [x] `RyTime`
     - [x] `RyZoned`
-  - span builder functions use form `s._hours(1)` for panic-inducing building, and `s.try_hours(1)` for non-panic-inducing building
+  - span builder functions use form `s._hours(1)` for panic-inducing building, and `s.try_hours(1)` for
+    non-panic-inducing building
 - type-annotations
   - fixes and updates and a hacky script I wrote to check for discrepancies
 
