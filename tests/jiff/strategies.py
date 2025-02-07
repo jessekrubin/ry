@@ -28,7 +28,24 @@ datetime_strategy = st.datetimes(
         dt.microsecond * 1000,
     )
 )
-timedelta_strategy = st.timedeltas()
+timedelta_minmax_strategy = st.timedeltas(
+    min_value=pydt.timedelta(days=-7304484), max_value=pydt.timedelta(days=7304484)
+)
+timedelta_positive_strategy = st.timedeltas(
+    min_value=pydt.timedelta(0), max_value=pydt.timedelta(days=365 * 100)
+)
+timedelta_negative_strategy = st.timedeltas(
+    min_value=pydt.timedelta(days=-365 * 100), max_value=pydt.timedelta(0)
+)
+
+# out of range timedelta composite strategy of 2 timedelta strategies
+timedelta_out_of_range_strategy = st.one_of(
+    # below min
+    st.timedeltas(max_value=pydt.timedelta(days=-7304484)),
+    # above max
+    st.timedeltas(min_value=pydt.timedelta(days=7304484)),
+)
+
 
 # Define strategies for generating test data
 date_tuple_strategy = st.builds(

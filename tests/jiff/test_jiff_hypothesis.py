@@ -14,7 +14,10 @@ from .strategies import (
     duration_strategy,
     time_strategy,
     time_tuple_strategy,
-    timedelta_strategy,
+    timedelta_minmax_strategy,
+    timedelta_negative_strategy,
+    timedelta_out_of_range_strategy,
+    timedelta_positive_strategy,
     timezone_strategy,
 )
 
@@ -246,13 +249,13 @@ def test_duration_subtraction(dt: ry.DateTime, duration: ry.SignedDuration) -> N
 
 
 class TestSignedDurationConversion:
-    @given(timedelta_strategy)
+    @given(timedelta_minmax_strategy)
     def test_span_from_timedelta_min_max(self, tdelta: pydt.timedelta) -> None:
         assume(-7304484 <= tdelta.days <= 7304484)
         ry_signed_dur = ry.TimeSpan.from_pytimedelta(tdelta)
         assert isinstance(ry_signed_dur, ry.TimeSpan)
 
-    @given(timedelta_strategy)
+    @given(timedelta_positive_strategy)
     def test_positive_signed_duration_round_trip(self, tdelta: pydt.timedelta) -> None:
         # assume the duration is positive
         assume(tdelta.days >= 0)
@@ -262,7 +265,7 @@ class TestSignedDurationConversion:
         assert isinstance(round_trip_tdelta, pydt.timedelta)
         assert round_trip_tdelta == tdelta
 
-    @given(timedelta_strategy)
+    @given(timedelta_negative_strategy)
     def test_negative_signed_duration_round_trip(self, tdelta: pydt.timedelta) -> None:
         # assume the duration is negative
         assume(tdelta.days < 0)
@@ -274,7 +277,7 @@ class TestSignedDurationConversion:
 
 
 class TestTimeSpanConversion:
-    @given(timedelta_strategy)
+    @given(timedelta_minmax_strategy)
     def test_span_from_timedelta_round_trip(self, tdelta: pydt.timedelta) -> None:
         assume(-7304484 <= tdelta.days <= 7304484)
         ry_span = ry.TimeSpan.from_pytimedelta(tdelta)
@@ -284,7 +287,7 @@ class TestTimeSpanConversion:
         assert isinstance(round_trip_tdelta, pydt.timedelta)
         assert round_trip_tdelta == tdelta
 
-    @given(timedelta_strategy)
+    @given(timedelta_out_of_range_strategy)
     def test_span_from_timedelta_to_many_days(self, tdelta: pydt.timedelta) -> None:
         # to span
         assume(-7304484 > tdelta.days or tdelta.days > 7304484)
