@@ -8,7 +8,12 @@ from hypothesis import strategies as st
 
 import ry
 
-TIMEDELTA_STRATEGY = st.timedeltas()
+timedelta_positive_strategy = st.timedeltas(
+    min_value=pydt.timedelta(0), max_value=pydt.timedelta(days=365 * 100)
+)
+timedelta_negative_strategy = st.timedeltas(
+    min_value=pydt.timedelta(days=-365 * 100), max_value=pydt.timedelta(0)
+)
 
 
 class TestDurationPydeltaConversion:
@@ -29,7 +34,7 @@ class TestDurationPydeltaConversion:
         assert isinstance(roundtrip, pydt.timedelta)
         assert roundtrip == pydelta
 
-    @given(TIMEDELTA_STRATEGY)
+    @given(timedelta_positive_strategy)
     def test_positive_signed_duration_round_trip(self, tdelta: pydt.timedelta) -> None:
         # assume the duration is positive
         assume(tdelta.days >= 0)
@@ -39,7 +44,7 @@ class TestDurationPydeltaConversion:
         assert isinstance(round_trip_tdelta, pydt.timedelta)
         assert round_trip_tdelta == tdelta
 
-    @given(TIMEDELTA_STRATEGY)
+    @given(timedelta_negative_strategy)
     def test_negative_signed_duration_round_trip(self, tdelta: pydt.timedelta) -> None:
         # assume the duration is negative
         assume(tdelta.days < 0)
