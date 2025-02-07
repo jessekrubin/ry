@@ -128,7 +128,7 @@ BENCH_FUNCTIONS = [
 BENCH_DATA = [
     # BytesSumData.from_bytes(b"", "empty"),
     # BytesSumData.from_bytes(b"abc", "abc"),
-    BytesSumData.from_bytes(ALL_BYTES, "1x"),  # all bytes
+    BytesSumData.from_bytes(ALL_BYTES, "all-bytes-1x"),  # all bytes
     # byte_types
     # BytesSumData.from_bytes(ALNUM_BYTES, "alnum"),
     # BytesSumData.from_bytes(ALPHA_BYTES, "alpha"),
@@ -138,8 +138,8 @@ BENCH_DATA = [
     # BytesSumData.from_bytes(SPACE_BYTES, "space"),
     # BytesSumData.from_bytes(UPPER_BYTES, "upper"),
     # all bytes large
-    # BytesSumData.from_bytes(ALL_BYTES_10X, "10x"),
-    # BytesSumData.from_bytes(ALL_BYTES_100X, "100x"),
+    BytesSumData.from_bytes(ALL_BYTES_10X, "all-bytes-10x"),
+    BytesSumData.from_bytes(ALL_BYTES_100X, "all-bytes-100x"),
 ]
 
 BENCH_TESTS = [
