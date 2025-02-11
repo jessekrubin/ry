@@ -3,7 +3,7 @@ use crate::internal::RySpanRelativeTo;
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
-use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound, SpanTotal};
+use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
 use pyo3::{
@@ -481,7 +481,7 @@ impl RySpan {
                     std::cmp::Ordering::Greater => Ok(1),
                 }
             } else {
-                let r = self.0.compare(&other.0).map_err(map_py_value_err)?;
+                let r = self.0.compare(other.0).map_err(map_py_value_err)?;
                 match r {
                     std::cmp::Ordering::Less => Ok(-1),
                     std::cmp::Ordering::Equal => Ok(0),

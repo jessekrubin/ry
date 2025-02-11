@@ -5,11 +5,10 @@ use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
 use crate::JiffTimeZone;
-use jiff::tz::{Dst, Offset, TimeZone};
+use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType, PyTzInfo};
-use pyo3::IntoPyObjectExt;
+use pyo3::types::{PyType, PyTzInfo};
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -140,25 +139,32 @@ impl RyTimeZone {
             .map(RyTimeZone::from)
             .map_err(map_py_value_err)
     }
+
     fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
-    fn to_offset<'py>(&self, py: Python<'py>, timestamp: &RyTimestamp) -> RyOffset {
+
+    /// Return `Offset` from TimeZone
+    fn to_offset(&self, timestamp: &RyTimestamp) -> RyOffset {
         RyOffset::from(self.0.to_offset(timestamp.0))
     }
 
+    /// Return `Timestamp` from TimeZone given a `DateTime`
     fn to_timestamp(&self, datetime: &RyDateTime) -> Result<RyTimestamp, PyErr> {
         self.0
             .to_timestamp(datetime.0)
             .map(RyTimestamp::from)
             .map_err(map_py_value_err)
     }
+
+    /// Return `Zoned` from TimeZone given a `DateTime`
     fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
         self.0
             .to_zoned(datetime.0)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
+
     // ===============
     // NOT IMPLEMENTED
     // ===============
