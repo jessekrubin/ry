@@ -5,11 +5,10 @@ use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
 use crate::JiffTimeZone;
-use jiff::tz::{Dst, Offset, TimeZone};
+use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType, PyTzInfo};
-use pyo3::IntoPyObjectExt;
+use pyo3::types::{PyType, PyTzInfo};
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -73,7 +72,7 @@ impl RyTimeZone {
             format!("TimeZone(\"{name}\")")
         } else {
             // REALLY NOT SURE IF THIS IS CORRECT
-            let (offset, _dst, _s) = self.0.to_offset(Timestamp::now());
+            let offset = self.0.to_offset(Timestamp::now());
             format!("TimeZone('{offset}')")
         }
     }
@@ -85,9 +84,13 @@ impl RyTimeZone {
     }
 
     fn __str__(&self) -> String {
-        self.iana_name()
-            .unwrap_or(&self.0.to_offset(Timestamp::now()).0.to_string())
-            .to_string()
+        if let Some(name) = self.iana_name() {
+            name.to_string()
+        } else {
+            // REALLY NOT SURE IF THIS IS CORRECT
+            let offset = self.0.to_offset(Timestamp::now());
+            format!("{offset}")
+        }
     }
 
     fn __eq__(&self, other: TimeZoneEquality) -> bool {
@@ -136,34 +139,32 @@ impl RyTimeZone {
             .map(RyTimeZone::from)
             .map_err(map_py_value_err)
     }
+
     fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
-    fn to_offset<'py>(
-        &self,
-        py: Python<'py>,
-        timestamp: &RyTimestamp,
-    ) -> PyResult<Bound<'py, PyTuple>> {
-        let (offset, dst, s) = self.0.to_offset(timestamp.0);
-        let offset = RyOffset::from(offset).into_py_any(py)?;
-        let dst_bool = matches!(dst, Dst::Yes);
-        let dst_py = dst_bool.into_py_any(py)?;
-        let s = s.into_py_any(py)?;
-        PyTuple::new(py, vec![offset, dst_py, s])
+
+    /// Return `Offset` from TimeZone
+    fn to_offset(&self, timestamp: &RyTimestamp) -> RyOffset {
+        RyOffset::from(self.0.to_offset(timestamp.0))
     }
 
+    /// Return `Timestamp` from TimeZone given a `DateTime`
     fn to_timestamp(&self, datetime: &RyDateTime) -> Result<RyTimestamp, PyErr> {
         self.0
             .to_timestamp(datetime.0)
             .map(RyTimestamp::from)
             .map_err(map_py_value_err)
     }
+
+    /// Return `Zoned` from TimeZone given a `DateTime`
     fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
         self.0
             .to_zoned(datetime.0)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
+
     // ===============
     // NOT IMPLEMENTED
     // ===============

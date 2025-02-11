@@ -17,7 +17,7 @@ pub(crate) fn jiffdev() -> Result<(), String> {
     println!("time_minus_span: {time_minus_span:?}");
 
     let as_duration = sub
-        .to_jiff_duration(jiff::civil::date(2021, 1, 1))
+        .to_duration(jiff::civil::date(2021, 1, 1))
         .map_err(|e| format!("Error converting to jiff duration: {e}"))?;
     println!("as_duration: {as_duration:?}");
 

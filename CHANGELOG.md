@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.30 [2025-02-11]
+
+- `jiff`
+  - Upgraded jiff to version 2
+
+___
+
 ## v0.0.29 [2025-02-03]
 
 - internal

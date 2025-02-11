@@ -33,9 +33,13 @@ impl From<IntoSpanArithmetic> for SpanArithmetic<'_> {
         // BUT I AM NOT SURE HOW TO GET THIS TO PLAY NICE WITH PYTHON + LIFETIMES
         match value {
             IntoSpanArithmetic::Uno(s) => match s {
-                SpanArithmeticTupleIx0::Span(sp) => SpanArithmetic::from(sp.0),
-                SpanArithmeticTupleIx0::Duration(dur) => SpanArithmetic::from(dur.0),
-                SpanArithmeticTupleIx0::SignedDuration(dur) => SpanArithmetic::from(dur.0),
+                SpanArithmeticTupleIx0::Span(sp) => SpanArithmetic::from(sp.0).days_are_24_hours(),
+                SpanArithmeticTupleIx0::Duration(dur) => {
+                    SpanArithmetic::from(dur.0).days_are_24_hours()
+                }
+                SpanArithmeticTupleIx0::SignedDuration(dur) => {
+                    SpanArithmetic::from(dur.0).days_are_24_hours()
+                }
             },
             IntoSpanArithmetic::Dos((s, r)) => match s {
                 SpanArithmeticTupleIx0::Span(sp) => match r {
