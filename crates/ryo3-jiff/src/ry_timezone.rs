@@ -73,7 +73,7 @@ impl RyTimeZone {
             format!("TimeZone(\"{name}\")")
         } else {
             // REALLY NOT SURE IF THIS IS CORRECT
-            let (offset, _dst, _s) = self.0.to_offset(Timestamp::now());
+            let offset = self.0.to_offset(Timestamp::now());
             format!("TimeZone('{offset}')")
         }
     }
@@ -85,9 +85,13 @@ impl RyTimeZone {
     }
 
     fn __str__(&self) -> String {
-        self.iana_name()
-            .unwrap_or(&self.0.to_offset(Timestamp::now()).0.to_string())
-            .to_string()
+        if let Some(name) = self.iana_name() {
+            name.to_string()
+        } else {
+            // REALLY NOT SURE IF THIS IS CORRECT
+            let offset = self.0.to_offset(Timestamp::now());
+            format!("{offset}")
+        }
     }
 
     fn __eq__(&self, other: TimeZoneEquality) -> bool {
@@ -139,17 +143,8 @@ impl RyTimeZone {
     fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
-    fn to_offset<'py>(
-        &self,
-        py: Python<'py>,
-        timestamp: &RyTimestamp,
-    ) -> PyResult<Bound<'py, PyTuple>> {
-        let (offset, dst, s) = self.0.to_offset(timestamp.0);
-        let offset = RyOffset::from(offset).into_py_any(py)?;
-        let dst_bool = matches!(dst, Dst::Yes);
-        let dst_py = dst_bool.into_py_any(py)?;
-        let s = s.into_py_any(py)?;
-        PyTuple::new(py, vec![offset, dst_py, s])
+    fn to_offset<'py>(&self, py: Python<'py>, timestamp: &RyTimestamp) -> RyOffset {
+        RyOffset::from(self.0.to_offset(timestamp.0))
     }
 
     fn to_timestamp(&self, datetime: &RyDateTime) -> Result<RyTimestamp, PyErr> {

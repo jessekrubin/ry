@@ -3,7 +3,7 @@ use crate::internal::RySpanRelativeTo;
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
-use jiff::{Span, SpanArithmetic, SpanRound};
+use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound, SpanTotal};
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
 use pyo3::{
@@ -64,23 +64,16 @@ impl RySpan {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
+        let self_fieldwise = self.0.fieldwise();
+        let other_fieldwise = other.0.fieldwise();
+        self_fieldwise == other_fieldwise
     }
 
     fn __ne__(&self, other: &Self) -> bool {
-        self.0 != other.0
+        let self_fieldwise = self.0.fieldwise();
+        let other_fieldwise = other.0.fieldwise();
+        self_fieldwise != other_fieldwise
     }
-
-    // maybe shoulde be?
-    // fn __eq__(&self, other: &Self) -> PyResult<bool> {
-    //     let r = self.0.compare(&other.0).map_err(map_py_value_err)?;
-    //     Ok(matches!(r, std::cmp::Ordering::Equal))
-    // }
-    //
-    // fn __ne__(&self, other: &Self) -> PyResult<bool> {
-    //     let r = self.0.compare(&other.0).map_err(map_py_value_err)?;
-    //     Ok(!matches!(r, std::cmp::Ordering::Equal))
-    // }
 
     fn negate(&self) -> PyResult<Self> {
         Ok(Self(self.0.negate()))
@@ -106,7 +99,6 @@ impl RySpan {
     #[classmethod]
     fn from_pytimedelta<'py>(
         _cls: &Bound<'py, PyType>,
-        // py: Python<'py>,
         delta: &Bound<'py, PyAny>,
     ) -> PyResult<Self> {
         delta.extract::<JiffSpan>().map(Self::from)
@@ -115,7 +107,6 @@ impl RySpan {
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         let jiff_span = JiffSpan(self.0);
         jiff_span.into_pyobject(py)
-        // span_to_pyobject(py, &self.0)
     }
 
     #[classmethod]
@@ -381,24 +372,24 @@ impl RySpan {
             match r {
                 RySpanRelativeTo::Zoned(z) => self
                     .0
-                    .to_jiff_duration(&z.0)
+                    .to_duration(&z.0)
                     .map(RySignedDuration)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
                 RySpanRelativeTo::Date(d) => self
                     .0
-                    .to_jiff_duration(d.0)
+                    .to_duration(d.0)
                     .map(RySignedDuration)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
                 RySpanRelativeTo::DateTime(dt) => self
                     .0
-                    .to_jiff_duration(dt.0)
+                    .to_duration(dt.0)
                     .map(RySignedDuration)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
             }
         } else {
             let now = jiff::Zoned::now();
             self.0
-                .to_jiff_duration(&now)
+                .to_duration(&now)
                 .map(RySignedDuration)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
         }
@@ -436,8 +427,18 @@ impl RySpan {
         self.__mul__(rhs)
     }
 
-    #[pyo3(signature = (other, relative=None))]
-    fn compare(&self, other: &Self, relative: Option<SpanCompareRelative>) -> PyResult<i8> {
+    #[pyo3(signature = (other, relative=None, *, days_are_24_hours=None))]
+    fn compare(
+        &self,
+        other: &Self,
+        relative: Option<SpanCompareRelative>,
+        days_are_24_hours: Option<bool>,
+    ) -> PyResult<i8> {
+        if days_are_24_hours.is_some() && relative.is_some() {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "Cannot provide both relative and days_are_24_hours",
+            ));
+        }
         if let Some(r) = relative {
             match r {
                 SpanCompareRelative::Zoned(z) => {
@@ -466,11 +467,26 @@ impl RySpan {
                 }
             }
         } else {
-            let r = self.0.compare(other.0).map_err(map_py_value_err)?;
-            match r {
-                std::cmp::Ordering::Less => Ok(-1),
-                std::cmp::Ordering::Equal => Ok(0),
-                std::cmp::Ordering::Greater => Ok(1),
+            let days_are_24_hours = days_are_24_hours.unwrap_or(false);
+
+            if days_are_24_hours {
+                let span_total = SpanRelativeTo::days_are_24_hours();
+                let r = self
+                    .0
+                    .compare((&other.0, span_total))
+                    .map_err(map_py_value_err)?;
+                match r {
+                    std::cmp::Ordering::Less => Ok(-1),
+                    std::cmp::Ordering::Equal => Ok(0),
+                    std::cmp::Ordering::Greater => Ok(1),
+                }
+            } else {
+                let r = self.0.compare(&other.0).map_err(map_py_value_err)?;
+                match r {
+                    std::cmp::Ordering::Less => Ok(-1),
+                    std::cmp::Ordering::Equal => Ok(0),
+                    std::cmp::Ordering::Greater => Ok(1),
+                }
             }
         }
     }
@@ -610,8 +626,19 @@ impl RySpan {
         self.0.signum()
     }
 
-    #[pyo3(signature = (unit, relative=None))]
-    fn total(&self, unit: JiffUnit, relative: Option<SpanCompareRelative>) -> PyResult<f64> {
+    #[pyo3(signature = (unit, relative=None, days_are_24_hours=None))]
+    fn total(
+        &self,
+        unit: JiffUnit,
+        relative: Option<SpanCompareRelative>,
+        days_are_24_hours: Option<bool>,
+    ) -> PyResult<f64> {
+        // err on both relative and days_are_24_hours provided
+        if relative.is_some() && days_are_24_hours.is_some() {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "Cannot provide both relative and days_are_24_hours",
+            ));
+        }
         if let Some(r) = relative {
             match r {
                 SpanCompareRelative::Zoned(z) => {
@@ -625,7 +652,18 @@ impl RySpan {
                 }
             }
         } else {
-            Ok(self.0.total(unit.0).map_err(map_py_value_err)?)
+            let days_are_24_hours = days_are_24_hours.unwrap_or(false);
+
+            if days_are_24_hours {
+                let span_total = SpanRelativeTo::days_are_24_hours();
+                let a = self
+                    .0
+                    .total((unit.0, span_total))
+                    .map_err(map_py_value_err)?;
+                Ok(a)
+            } else {
+                Ok(self.0.total(unit.0).map_err(map_py_value_err)?)
+            }
         }
     }
 }

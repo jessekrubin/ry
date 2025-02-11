@@ -355,7 +355,8 @@ impl RyTimestamp {
             RyDeltaArithmeticSelf::Span(other) => self.0.saturating_add(other.0),
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_add(other.0),
             RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_add(other.0),
-        };
+        }
+        .map_err(map_py_value_err)?;
         Ok(Self::from(t))
     }
 
@@ -364,7 +365,8 @@ impl RyTimestamp {
             RyDeltaArithmeticSelf::Span(other) => self.0.saturating_sub(other.0),
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_sub(other.0),
             RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_sub(other.0),
-        };
+        }
+        .map_err(map_py_value_err)?;
         Ok(Self::from(t))
     }
 }

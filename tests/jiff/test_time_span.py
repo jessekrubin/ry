@@ -224,9 +224,9 @@ class TestSpanCompare:
         # We can do that here since days are considered 24 hours long in all
         # cases when no relative datetime is provided:
         def _compare_key_no_relative(a: ry.TimeSpan, b: ry.TimeSpan) -> int:
-            return a.compare(b)
+            return a.compare(b, days_are_24_hours=True)
 
-        spans.sort(key=lambda s: s.compare(s))
+        spans.sort(key=lambda s: s.compare(s, days_are_24_hours=True))
         spans_sorted_no_dst = sorted(
             spans, key=functools.cmp_to_key(_compare_key_no_relative)
         )
@@ -256,7 +256,7 @@ class TestSpanTotal:
         ```
         """
         span = ry.timespan(seconds=123_456_789)
-        assert span.total("day") == 1428.8980208333332
+        assert span.total("day", days_are_24_hours=True) == 1428.8980208333332
 
     def test_example_DST_is_taken_into_account(self) -> None:  # noqa: N802
         """
@@ -287,9 +287,9 @@ class TestSpanTotal:
         spans_sorted = sorted(spans, key=lambda x: x[1])
         assert [x[0] for x in spans_sorted] == [span1, span3, span2]
         spans = [
-            (span1, span1.total("day")),
-            (span2, span2.total("day")),
-            (span3, span3.total("day")),
+            (span1, span1.total("day", days_are_24_hours=True)),
+            (span2, span2.total("day", days_are_24_hours=True)),
+            (span3, span3.total("day", days_are_24_hours=True)),
         ]
         spans_sorted_no_dst = sorted(spans, key=lambda x: x[1])
         assert [x[0] for x in spans_sorted_no_dst] == [span3, span1, span2]

@@ -1,4 +1,5 @@
 use crate::{JiffSignedDuration, JiffSpan};
+use jiff::SpanRelativeTo;
 use pyo3::types::{PyAnyMethods, PyDelta, PyDeltaAccess};
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 
@@ -25,7 +26,9 @@ impl<'py> IntoPyObject<'py> for &JiffSpan {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let signed_duration = jiff::SignedDuration::try_from(self.0)
+        let signed_duration = self
+            .0
+            .to_duration(SpanRelativeTo::days_are_24_hours())
             .map(JiffSignedDuration::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
         signed_duration.into_pyobject(py)

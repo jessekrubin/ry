@@ -38,3 +38,20 @@ def test_timezone_from_str() -> None:
         assert pytzinfo is not None
 
         assert ry_tz == ry.TimeZone.from_pytzinfo(pytzinfo)
+
+
+class TestTimeZone:
+    def test_fixed_offset_hours(self) -> None:
+        tz = ry.TimeZone.fixed(ry.Offset.from_hours(-8))
+        offset = tz.to_offset(ry.Timestamp(0, 0))
+        assert offset == ry.Offset.from_hours(-8)
+        assert repr(tz) == "TimeZone('-08')"
+        assert str(tz) == "-08"
+
+    def test_fixed_offset_seconds(self) -> None:
+        tz = ry.TimeZone.fixed(ry.Offset.from_seconds(-61))
+        offset: ry.Offset = tz.to_offset(ry.Timestamp(0, 0))
+        assert isinstance(offset, ry.Offset)
+        assert offset == ry.Offset.from_seconds(-61)
+        assert repr(tz) == "TimeZone('-00:01:01')"
+        assert str(tz) == "-00:01:01"
