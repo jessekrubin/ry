@@ -156,7 +156,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-02-10T15:15:44.830162948+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-02-11T19:54:44.035970179+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -1885,7 +1885,7 @@ class TimeZone:
     # =========================================================================
     def iana_name(self) -&gt; str | None: ...
     def to_datetime(self, dt: Timestamp) -&gt; DateTime: ...
-    def to_offset(self, timestamp: Timestamp) -&gt; tuple[Offset, bool, str]: ...
+    def to_offset(self, timestamp: Timestamp) -&gt; Offset: ...
     def to_timestamp(self, dt: DateTime) -&gt; Timestamp: ...
     def to_zoned(self, other: DateTime) -&gt; ZonedDateTime: ...
 
@@ -2138,6 +2138,7 @@ class TimeSpan:
         self,
         other: TimeSpan,
         relative: ZonedDateTime | DateTime | Date | None = None,
+        days_are_24_hours: bool = False,
     ) -&gt; int: ...
     def negate(self) -&gt; te.Self: ...
     def replace(
@@ -2170,6 +2171,7 @@ class TimeSpan:
         self,
         unit: JIFF_UNIT_STRING,
         relative: ZonedDateTime | Date | DateTime | None = None,
+        days_are_24_hours: bool = False,
     ) -&gt; int: ...
     def total_seconds(self) -&gt; int: ...
     def try_years(self, years: int) -&gt; te.Self: ...
@@ -3273,6 +3275,15 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <hr />
 <p>If you want to be added to this list, please open an issue or PR! Happy to add you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0030-2025-02-11"><a class="header" href="#v0030-2025-02-11">v0.0.30 [2025-02-11]</a></h2>
+<ul>
+<li><code>jiff</code>
+<ul>
+<li>Upgraded jiff to version 2</li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0029-2025-02-03"><a class="header" href="#v0029-2025-02-03">v0.0.29 [2025-02-03]</a></h2>
 <ul>
 <li>internal
@@ -5404,7 +5415,7 @@ class TimeZone:
     # =========================================================================
     def iana_name(self) -&gt; str | None: ...
     def to_datetime(self, dt: Timestamp) -&gt; DateTime: ...
-    def to_offset(self, timestamp: Timestamp) -&gt; tuple[Offset, bool, str]: ...
+    def to_offset(self, timestamp: Timestamp) -&gt; Offset: ...
     def to_timestamp(self, dt: DateTime) -&gt; Timestamp: ...
     def to_zoned(self, other: DateTime) -&gt; ZonedDateTime: ...
 
@@ -5657,6 +5668,7 @@ class TimeSpan:
         self,
         other: TimeSpan,
         relative: ZonedDateTime | DateTime | Date | None = None,
+        days_are_24_hours: bool = False,
     ) -&gt; int: ...
     def negate(self) -&gt; te.Self: ...
     def replace(
@@ -5689,6 +5701,7 @@ class TimeSpan:
         self,
         unit: JIFF_UNIT_STRING,
         relative: ZonedDateTime | Date | DateTime | None = None,
+        days_are_24_hours: bool = False,
     ) -&gt; int: ...
     def total_seconds(self) -&gt; int: ...
     def try_years(self, years: int) -&gt; te.Self: ...
