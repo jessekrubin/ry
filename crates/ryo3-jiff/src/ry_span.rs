@@ -19,7 +19,7 @@ pub struct RySpan(pub(crate) Span);
 
 #[pymethods]
 impl RySpan {
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     #[new]
     #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0, unchecked=false))]
     fn py_new(
@@ -156,7 +156,7 @@ impl RySpan {
         Self::from(self.0.nanoseconds(n))
     }
 
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     #[pyo3(signature = (years=None, months=None, weeks=None, days=None, hours=None, minutes=None, seconds=None, milliseconds=None, microseconds=None, nanoseconds=None))]
     fn replace(
         &self,

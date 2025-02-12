@@ -11,7 +11,7 @@ pub struct RyReqwestError(pub Option<reqwest::Error>);
 
 #[pymethods]
 impl RyReqwestError {
-    #[allow(unused_variables)]
+    #[expect(unused_variables)]
     #[new]
     #[pyo3(signature = (*args, **kwargs))]
     fn py_new<'py>(args: &Bound<'py, PyTuple>, kwargs: Option<&Bound<'py, PyDict>>) -> Self {

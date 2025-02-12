@@ -42,13 +42,13 @@ impl RyTime {
     // ========================================================================
     // CLASS ATTRS
     // ========================================================================
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
         Self(jiff::civil::Time::MIN)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
         Self(jiff::civil::Time::MAX)

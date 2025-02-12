@@ -61,7 +61,7 @@ pub fn fmt_nbytes(nbytes: i64) -> PyResult<String> {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::unwrap_used)]
+    #![expect(clippy::unwrap_used)]
 
     #[test]
     fn test_nbytes_str() {

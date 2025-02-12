@@ -46,8 +46,6 @@ impl PyBytes {
         errors: &str,
     ) -> PyResult<Bound<'py, PyString>> {
         let a = slf.into_bound_py_any(py)?;
-        // let enc_c = std::ffi::CString::new(encoding).map_err(PyValueError::new_err)?;
-        // let err_c = std::ffi::CString::new(errors).map_err(PyValueError::new_err)?;
         // ensure str is null-term
         let encoding = {
             let mut enc = encoding.to_owned();

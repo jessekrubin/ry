@@ -6,7 +6,7 @@ pub struct RyWeekday(pub(crate) jiff::civil::Weekday);
 
 #[pymethods]
 impl RyWeekday {
-    #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     fn string(&self) -> &'static str {
         match self.0 {
             jiff::civil::Weekday::Sunday => "sunday",

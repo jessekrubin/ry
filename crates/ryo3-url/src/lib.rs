@@ -227,12 +227,12 @@ impl PyUrl {
         self.0.is_special()
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn options(&self) -> PyResult<()> {
         Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn origin(&self) -> PyResult<()> {
         Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
     }
@@ -257,52 +257,52 @@ impl PyUrl {
         })
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_fragment(&mut self, _fragment: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_fragment".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_host(&mut self, _host: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_host".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_ip_host(&mut self, _host: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_ip_host".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_password(&mut self, _password: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_password".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_path(&mut self, _path: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_path".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_port(&mut self, _port: u16) -> PyResult<()> {
         py_err_not_implemented("Url::set_port".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_query(&mut self, _query: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_query".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_scheme(&mut self, _scheme: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_scheme".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn set_username(&mut self, _username: &str) -> PyResult<()> {
         py_err_not_implemented("Url::set_username".to_string())
     }
 
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self)]
     fn socket_addrs(&self) -> PyResult<()> {
         py_err_not_implemented("Url::socket_addrs".to_string())
     }

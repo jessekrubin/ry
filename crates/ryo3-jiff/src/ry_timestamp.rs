@@ -32,19 +32,19 @@ impl RyTimestamp {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
         Self(Timestamp::MIN)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
         Self(Timestamp::MAX)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn UNIX_EPOCH() -> Self {
         Self(Timestamp::UNIX_EPOCH)

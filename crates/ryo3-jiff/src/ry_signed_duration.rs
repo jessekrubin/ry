@@ -22,19 +22,19 @@ impl RySignedDuration {
         Self(SignedDuration::new(secs, nanos))
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
         Self(SignedDuration::MIN)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
         Self(SignedDuration::MAX)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {
         Self(SignedDuration::ZERO)

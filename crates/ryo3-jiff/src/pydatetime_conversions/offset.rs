@@ -11,9 +11,6 @@ impl<'py> IntoPyObject<'py> for JiffOffset {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        // let tz = self.0.to_time_zone();
-        // let tz = JiffTimeZone(tz);
-        // tz.into_pyobject(py)
         (&self).into_pyobject(py)
     }
 }
@@ -24,29 +21,11 @@ impl<'py> IntoPyObject<'py> for &JiffOffset {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        // static ZONE_INFO: GILOnceCell<Py<PyType>> = GILOnceCell::new();
-        // ZONE_INFO
-        //     .import(py, "zoneinfo", "ZoneInfo")
-        //     .and_then(|obj| obj.call1((self.name(),)))
-        //
         let tz = self.0.to_time_zone();
         let tz = JiffTimeZone(tz);
         tz.into_pyobject(py)
     }
 }
-// impl<'py> IntoPyObject<'py> for &JiffOffset {
-//     #[cfg(Py_LIMITED_API)]
-//     type Target = PyAny;
-//     #[cfg(not(Py_LIMITED_API))]
-//     type Target = PyTzInfo;
-//     type Output = Bound<'py, Self::Target>;
-//     type Error = PyErr;
-//
-//     #[inline]
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         (*self).into_pyobject(py)
-//     }
-// }
 
 impl FromPyObject<'_> for JiffOffset {
     /// Convert python tzinfo to rust [`FixedOffset`].

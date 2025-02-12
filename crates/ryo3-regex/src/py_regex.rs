@@ -73,8 +73,8 @@ impl PyRegex {
         swap_greed = false,
         unicode = true
     ))]
-    #[allow(clippy::too_many_arguments)]
-    #[allow(clippy::fn_params_excessive_bools)]
+    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::fn_params_excessive_bools)]
     fn py_new(
         pattern: &str,
         // kwargs

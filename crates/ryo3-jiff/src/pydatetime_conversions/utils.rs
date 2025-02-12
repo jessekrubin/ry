@@ -1,22 +1,12 @@
 use crate::JiffDate;
 use pyo3::prelude::*;
 
-// pub(crate) fn warn_truncated_leap_second(obj: &Bound<'_, PyAny>) {
-//     let py = obj.py();
-//     if let Err(e) = PyErr::warn(
-//         py,
-//         &py.get_type::<PyUserWarning>(),
-//         ffi::c_str!("ignored leap-second, `datetime` does not support leap-seconds"),
-//         0,
-//     ) {
-//         e.write_unraisable(py, Some(obj))
-//     };
-// }
 pub(crate) struct DateArgs {
     pub(crate) year: i32,
     pub(crate) month: u8,
     pub(crate) day: u8,
 }
+
 impl TryFrom<&JiffDate> for DateArgs {
     type Error = PyErr;
     fn try_from(value: &JiffDate) -> Result<Self, Self::Error> {

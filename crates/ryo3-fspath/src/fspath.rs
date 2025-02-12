@@ -1,6 +1,4 @@
 //! `FsPath` struct python module
-#![allow(clippy::unused_self)] // TODO: remove in future
-#![allow(clippy::needless_pass_by_value)]
 
 // TODO: remove in future? if possible?
 use pyo3::basic::CompareOp;
@@ -39,6 +37,8 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
     p.as_ref().display().to_string()
 }
 
+#[expect(clippy::needless_pass_by_value)]
+#[expect(clippy::unused_self)]
 #[pymethods]
 impl PyFsPath {
     #[new]
@@ -81,16 +81,6 @@ impl PyFsPath {
         hasher.finish()
     }
 
-    // fn __eq__(&self, other: PathLike) -> bool {
-    //     // start by comparing as paths
-    //     if self.pth == other.as_ref() {
-    //         return true;
-    //     }
-    //     // if that fails, compare as strings
-    //     self.string() == path2str(other.as_ref())
-    // }
-
-    #[allow(clippy::needless_pass_by_value)]
     fn __richcmp__(&self, other: PathLike, op: CompareOp) -> bool {
         let o = other.as_ref();
         match op {
@@ -116,11 +106,6 @@ impl PyFsPath {
             CompareOp::Ge => self.pth >= o,
         }
     }
-
-    // fn __ne__(&self, other: PathLike) -> bool {
-    //     // let other = other.extract::<PyPath>().unwrap();
-    //     self.pth != other.as_ref()
-    // }
 
     fn absolute(&self) -> PyResult<Self> {
         let p = self.pth.canonicalize()?;
@@ -176,10 +161,6 @@ impl PyFsPath {
             }
             None => None,
         }
-        // #[cfg(not(target_os = "windows"))]
-        // {
-        //     Ok(None)
-        // }
     }
 
     #[cfg(not(target_os = "windows"))]
@@ -540,9 +521,6 @@ impl PyFsPath {
         self.pth.is_symlink()
     }
 
-    // fn iter(&self) -> PyResult<()> {
-    //     err_py_not_impl!()
-    // }
     fn join(&self, p: PathLike) -> PyFsPath {
         Self::from(self.pth.join(p))
     }

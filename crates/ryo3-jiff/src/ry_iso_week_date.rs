@@ -24,21 +24,21 @@ impl RyISOWeekDate {
     // ========================================================================
 
     /// The minimum representable `ISOWeekDate`.
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
         Self(ISOWeekDate::MIN)
     }
 
     /// The maximum representable `ISOWeekDate`.
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
         Self(ISOWeekDate::MAX)
     }
 
     /// The zero `ISOWeekDate`.
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {
         Self(ISOWeekDate::ZERO)

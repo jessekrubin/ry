@@ -61,7 +61,6 @@ impl RyTimestampDifference {
     }
 }
 #[derive(Debug, Clone, FromPyObject)]
-#[allow(clippy::enum_variant_names)]
 pub(crate) enum IntoTimestampDifferenceTuple {
     UnitTimestamp(JiffUnit, RyTimestamp),
     UnitZoned(JiffUnit, RyZoned),
