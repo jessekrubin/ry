@@ -79,8 +79,8 @@ impl PyUrl {
         hasher.finish()
     }
 
-    fn __fspath__(&self) -> PyResult<&str> {
-        if let Some(path) = self.0.to_file_path().ok().and_then(|p| p.to_str()) {
+    fn __fspath__(&self) -> PyResult<PathBuf> {
+        if let Ok(path) = self.0.to_file_path() {
             Ok(path)
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
