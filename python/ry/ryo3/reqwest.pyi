@@ -5,6 +5,8 @@ import ry
 if t.TYPE_CHECKING:
     from ry import Duration, Headers
 
+    from ._url import URL
+
 class HttpClient:
     def __init__(
         self,
@@ -19,38 +21,38 @@ class HttpClient:
         deflate: bool = True,
     ) -> None: ...
     async def get(
-        self, url: str, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
     async def post(
         self,
-        url: str,
+        url: str | URL,
         *,
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def put(
         self,
-        url: str,
+        url: str | URL,
         *,
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def delete(
-        self, url: str, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
     async def patch(
         self,
-        url: str,
+        url: str | URL,
         *,
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def head(
-        self, url: str, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
     async def fetch(
         self,
-        url: str,
+        url: str | URL,
         *,
         method: str = "GET",
         body: bytes | None = None,
@@ -78,7 +80,7 @@ class ResponseStream:
     async def __anext__(self) -> ry.Bytes: ...
 
 async def fetch(
-    url: str,
+    url: str | URL,
     *,
     client: HttpClient | None = None,
     method: str = "GET",

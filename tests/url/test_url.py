@@ -18,6 +18,13 @@ def test_parse_error() -> None:
         ry.URL.parse("ry_http://[:::1]")
 
 
+def test_url_from_url() -> None:
+    """Test that we can create a URL from a URL"""
+    url = ry.URL("http://example.com")
+    url_from_url = ry.URL(url)
+    assert url == url_from_url
+
+
 def test_parse_url_readme() -> None:
     """
     use url::{Url, Host, Position};

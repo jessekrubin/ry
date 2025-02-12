@@ -1,55 +1,24 @@
 #![doc = include_str!("../README.md")]
+
+mod url_like;
+pub use url_like::{extract_url, UrlLike};
+
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyTuple};
 use pyo3::types::{PyModule, PyType};
 use pyo3::{pyclass, Bound, PyResult};
+use ryo3_macros::py_value_error;
 use std::hash::{Hash, Hasher};
+use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "URL", module = "ryo3")]
 pub struct PyUrl(pub url::Url);
 
-#[pymethods]
 impl PyUrl {
-    #[new]
-    #[pyo3(signature = (url, *, params = None))]
-    fn py_new(url: &str, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
-        if let Some(params) = params {
-            let params = params
-                .into_iter()
-                .map(|(k, v)| {
-                    let k_str: String = k.extract()?;
-                    let v_str: String = v.extract()?;
-                    Ok((k_str, v_str))
-                })
-                .collect::<PyResult<Vec<(String, String)>>>()?;
-            url::Url::parse_with_params(url, params)
-                .map(PyUrl)
-                .map_err(|e| {
-                    PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-                })
-        } else {
-            url::Url::parse(url).map(PyUrl).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-            })
-        }
-    }
-
-    #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, url: &str) -> PyResult<Self> {
-        url::Url::parse(url).map(PyUrl).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-        })
-    }
-
-    #[classmethod]
-    fn parse_with_params<'py>(
-        _cls: &Bound<'py, PyType>,
-        url: &str,
-        params: &Bound<'py, PyDict>,
-    ) -> PyResult<Self> {
+    fn parse_with_params(url: &str, params: &Bound<'_, PyDict>) -> PyResult<Self> {
         let params = params
             .into_iter()
             .map(|(k, v)| {
@@ -65,6 +34,36 @@ impl PyUrl {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
             })
     }
+}
+
+#[pymethods]
+impl PyUrl {
+    #[new]
+    #[pyo3(signature = (url, *, params = None))]
+    fn py_new(url: UrlLike, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        if let Some(params) = params {
+            Self::parse_with_params(url.0.as_str(), params)
+        } else {
+            Ok(Self::from(url.0))
+        }
+    }
+
+    #[classmethod]
+    fn parse(_cls: &Bound<'_, PyType>, url: &str) -> PyResult<Self> {
+        url::Url::parse(url).map(PyUrl).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
+        })
+    }
+
+    #[classmethod]
+    #[pyo3(name = "parse_with_params")]
+    fn py_parse_with_params<'py>(
+        _cls: &Bound<'py, PyType>,
+        url: &str,
+        params: &Bound<'py, PyDict>,
+    ) -> PyResult<Self> {
+        Self::parse_with_params(url, params)
+    }
 
     fn __str__(&self) -> &str {
         self.0.as_str()
@@ -79,6 +78,17 @@ impl PyUrl {
         self.0.as_str().hash(&mut hasher);
         hasher.finish()
     }
+
+    fn __fspath__(&self) -> PyResult<PathBuf> {
+        if let Ok(path) = self.0.to_file_path() {
+            Ok(path)
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "URL::__fspath__: invalid path",
+            ))
+        }
+    }
+
     #[pyo3(signature = (*parts))]
     fn join(&self, parts: &Bound<'_, PyTuple>) -> PyResult<Self> {
         let parts = parts.extract::<Vec<String>>()?;
@@ -123,14 +133,34 @@ impl PyUrl {
         })
     }
 
-    fn __richcmp__(&self, other: &PyUrl, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        if let Ok(other) = other.downcast::<PyUrl>() {
+            let other = other.borrow();
+            match op {
+                CompareOp::Eq => Ok(self.0 == other.0),
+                CompareOp::Ne => Ok(self.0 != other.0),
+                CompareOp::Lt => Ok(self.0 < other.0),
+                CompareOp::Le => Ok(self.0 <= other.0),
+                CompareOp::Gt => Ok(self.0 > other.0),
+                CompareOp::Ge => Ok(self.0 >= other.0),
+            }
+        } else if let Ok(other) = other.extract::<&str>() {
+            match op {
+                CompareOp::Eq => Ok(self.0.as_str() == other),
+                CompareOp::Ne => Ok(self.0.as_str() != other),
+                CompareOp::Lt => Ok(self.0.as_str() < other),
+                CompareOp::Le => Ok(self.0.as_str() <= other),
+                CompareOp::Gt => Ok(self.0.as_str() > other),
+                CompareOp::Ge => Ok(self.0.as_str() >= other),
+            }
+        } else {
+            match op {
+                CompareOp::Eq => Ok(false),
+                CompareOp::Ne => Ok(true),
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "unsupported operand type(s) for comparison",
+                )),
+            }
         }
     }
 
@@ -219,6 +249,7 @@ impl PyUrl {
         // not provided by python
         self.0.authority()
     }
+
     fn has_host(&self) -> bool {
         self.0.has_host()
     }
@@ -257,60 +288,72 @@ impl PyUrl {
         })
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_fragment(&mut self, _fragment: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_fragment".to_string())
+    #[pyo3(signature = (fragment = None))]
+    fn _set_fragment(&mut self, fragment: Option<&str>) {
+        self.0.set_fragment(fragment);
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_host(&mut self, _host: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_host".to_string())
+    #[pyo3(signature = (host = None))]
+    fn _set_host(&mut self, host: Option<&str>) -> PyResult<()> {
+        self.0
+            .set_host(host)
+            .map_err(|e| py_value_error!("{e} (host={host:?})"))
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_ip_host(&mut self, _host: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_ip_host".to_string())
+    fn _set_ip_host(&mut self, ip_host: IpAddr) -> PyResult<()> {
+        self.0
+            .set_ip_host(ip_host)
+            .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_password(&mut self, _password: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_password".to_string())
+    #[pyo3(signature = (password = None))]
+    fn _set_password(&mut self, password: Option<&str>) -> PyResult<()> {
+        self.0.set_password(password).map_err(|()| {
+            let pw_str = password.map_or_else(|| "<None>".to_string(), ToString::to_string);
+            py_value_error!("Err setting password (password={pw_str})")
+        })
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_path(&mut self, _path: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_path".to_string())
+    fn _set_path(&mut self, path: &str) {
+        self.0.set_path(path);
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_port(&mut self, _port: u16) -> PyResult<()> {
-        py_err_not_implemented("Url::set_port".to_string())
+    #[pyo3(signature = (port = None))]
+    fn _set_port(&mut self, port: Option<u16>) -> PyResult<()> {
+        self.0
+            .set_port(port)
+            .map_err(|()| py_value_error!("Err setting port (port={port:?})"))
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_query(&mut self, _query: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_query".to_string())
+    #[pyo3(signature = (username = None))]
+    fn _set_query(&mut self, username: Option<&str>) {
+        self.0.set_query(username);
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_scheme(&mut self, _scheme: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_scheme".to_string())
+    fn _set_scheme(&mut self, scheme: &str) -> PyResult<()> {
+        self.0
+            .set_scheme(scheme)
+            .map_err(|()| py_value_error!("Err setting scheme (scheme={scheme})"))
     }
 
-    #[expect(clippy::unused_self)]
-    fn set_username(&mut self, _username: &str) -> PyResult<()> {
-        py_err_not_implemented("Url::set_username".to_string())
+    fn _set_username(&mut self, username: &str) -> PyResult<()> {
+        self.0
+            .set_username(username)
+            .map_err(|()| py_value_error!("Err setting username (username={username:?})"))
     }
 
     #[expect(clippy::unused_self)]
     fn socket_addrs(&self) -> PyResult<()> {
-        py_err_not_implemented("Url::socket_addrs".to_string())
+        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+            "Url::socket_addrs not implemented",
+        ))
     }
 }
 
-#[inline]
-fn py_err_not_implemented(s: String) -> PyResult<()> {
-    Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(s))
+impl AsRef<url::Url> for PyUrl {
+    fn as_ref(&self) -> &url::Url {
+        &self.0
+    }
 }
 
 impl From<url::Url> for PyUrl {
