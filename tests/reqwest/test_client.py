@@ -30,6 +30,18 @@ async def test_get(server: ReqtestServer) -> None:
 
 
 @pytest.mark.anyio
+async def test_get_url(server: ReqtestServer) -> None:
+    url_str = str(server.url) + "howdy"
+    url_obj = ry.URL(url_str)
+    client = ry.HttpClient()
+
+    response = await client.get(url_obj)
+    assert response.status_code == 200
+    res_text = await response.text()
+    assert res_text == '{"howdy": "partner"}'
+
+
+@pytest.mark.anyio
 async def test_get_json(server: ReqtestServer) -> None:
     url = server.url
     client = ry.HttpClient()
@@ -107,6 +119,7 @@ async def test_client_timeout_dev(server: ReqtestServer) -> None:
         text = await res.text()
         print(text)
     except ry.ReqwestError as e:
+        assert "TimedOut" in str(e)
         print("exception", e)
         print("repr", repr(e))
         print("str", str(e))

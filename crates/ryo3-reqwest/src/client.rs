@@ -318,14 +318,22 @@ impl RyHttpClient {
         })
     }
 
+    #[pyo3(
+      signature = (url, *, body, headers = None),
+    )]
     fn post<'py>(
         &'py mut self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         body: &[u8],
+        headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let req = self.0.post(url).body(body.to_vec());
+        let mut req = self.0.post(url).body(body.to_vec());
+        if let Some(headers) = headers {
+            let headers = HeaderMap::try_from(headers)?;
+            req = req.headers(headers);
+        }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -334,14 +342,22 @@ impl RyHttpClient {
         })
     }
 
+    #[pyo3(
+      signature = (url, *, body, headers = None),
+    )]
     fn put<'py>(
         &'py mut self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         body: &[u8],
+        headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let req = self.0.put(url).body(body.to_vec());
+        let mut req = self.0.put(url).body(body.to_vec());
+        if let Some(headers) = headers {
+            let headers = HeaderMap::try_from(headers)?;
+            req = req.headers(headers);
+        }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -350,14 +366,22 @@ impl RyHttpClient {
         })
     }
 
+    #[pyo3(
+      signature = (url, *, body, headers = None),
+    )]
     fn patch<'py>(
         &'py mut self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         body: &[u8],
+        headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let req = self.0.patch(url).body(body.to_vec());
+        let mut req = self.0.patch(url).body(body.to_vec());
+        if let Some(headers) = headers {
+            let headers = HeaderMap::try_from(headers)?;
+            req = req.headers(headers);
+        }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -366,13 +390,25 @@ impl RyHttpClient {
         })
     }
 
+    #[pyo3(
+      signature = (url, *, body=None, headers = None),
+    )]
     fn delete<'py>(
         &'py mut self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
+        body: Option<&[u8]>,
+        headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let req = self.0.delete(url);
+        let mut req = self.0.delete(url);
+        if let Some(body) = body {
+            req = req.body(body.to_vec());
+        }
+        if let Some(headers) = headers {
+            let headers = HeaderMap::try_from(headers)?;
+            req = req.headers(headers);
+        }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -381,22 +417,21 @@ impl RyHttpClient {
         })
     }
 
-    // fn head<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
-    //     let req = self.0.head(url);
-    //     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-    //         req.send()
-    //             .await
-    //             .map(RyResponse::from)
-    //             .map_err(map_reqwest_err)
-    //     })
-    // }
+    #[pyo3(
+      signature = (url, *, headers = None),
+    )]
     fn head<'py>(
         &'py mut self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
+        headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let req = self.0.head(url);
+        let mut req = self.0.head(url);
+        if let Some(headers) = headers {
+            let headers = HeaderMap::try_from(headers)?;
+            req = req.headers(headers);
+        }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
