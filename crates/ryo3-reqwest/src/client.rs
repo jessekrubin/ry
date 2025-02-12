@@ -11,7 +11,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macros::err_py_not_impl;
-use ryo3_url::PyUrl;
+use ryo3_url::{extract_url, PyUrl};
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -301,9 +301,10 @@ impl RyHttpClient {
     fn get<'py>(
         &'py mut self,
         py: Python<'py>,
-        url: &str,
+        url: &Bound<'py, PyAny>,
         headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
+        let url = extract_url(url)?;
         let mut req = self.0.get(url);
         // fing-fang-foom make de headers...
         if let Some(headers) = headers {
@@ -320,9 +321,10 @@ impl RyHttpClient {
     fn post<'py>(
         &'py mut self,
         py: Python<'py>,
-        url: &str,
+        url: &Bound<'py, PyAny>,
         body: &[u8],
     ) -> PyResult<Bound<'py, PyAny>> {
+        let url = extract_url(url)?;
         let req = self.0.post(url).body(body.to_vec());
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
@@ -335,9 +337,10 @@ impl RyHttpClient {
     fn put<'py>(
         &'py mut self,
         py: Python<'py>,
-        url: &str,
+        url: &Bound<'py, PyAny>,
         body: &[u8],
     ) -> PyResult<Bound<'py, PyAny>> {
+        let url = extract_url(url)?;
         let req = self.0.put(url).body(body.to_vec());
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
@@ -350,9 +353,10 @@ impl RyHttpClient {
     fn patch<'py>(
         &'py mut self,
         py: Python<'py>,
-        url: &str,
+        url: &Bound<'py, PyAny>,
         body: &[u8],
     ) -> PyResult<Bound<'py, PyAny>> {
+        let url = extract_url(url)?;
         let req = self.0.patch(url).body(body.to_vec());
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
@@ -362,7 +366,12 @@ impl RyHttpClient {
         })
     }
 
-    fn delete<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
+    fn delete<'py>(
+        &'py mut self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let url = extract_url(url)?;
         let req = self.0.delete(url);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
@@ -372,7 +381,21 @@ impl RyHttpClient {
         })
     }
 
-    fn head<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
+    // fn head<'py>(&'py mut self, py: Python<'py>, url: &str) -> PyResult<Bound<'py, PyAny>> {
+    //     let req = self.0.head(url);
+    //     pyo3_async_runtimes::tokio::future_into_py(py, async move {
+    //         req.send()
+    //             .await
+    //             .map(RyResponse::from)
+    //             .map_err(map_reqwest_err)
+    //     })
+    // }
+    fn head<'py>(
+        &'py mut self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let url = extract_url(url)?;
         let req = self.0.head(url);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
@@ -394,12 +417,13 @@ impl RyHttpClient {
     pub fn fetch<'py>(
         &'py mut self,
         py: Python<'py>,
-        url: &str,
+        url: &Bound<'py, PyAny>,
         method: Option<ryo3_http::HttpMethod>,
         body: Option<&[u8]>,
         headers: Option<Bound<'py, PyDict>>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let method = method.unwrap_or(ryo3_http::HttpMethod(reqwest::Method::GET));
+        let url = extract_url(url)?;
         let mut req = self.0.request(method.0, url);
         if let Some(body) = body {
             req = req.body(body.to_vec());

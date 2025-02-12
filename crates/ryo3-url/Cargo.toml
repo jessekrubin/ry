@@ -11,6 +11,7 @@ repository.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-macros.workspace = true
 url.workspace = true
 
 [lints]

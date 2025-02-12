@@ -21,7 +21,7 @@ use pyo3::IntoPyObjectExt;
 )]
 pub(crate) fn fetch<'py>(
     py: Python<'py>,
-    url: &str,
+    url: &Bound<'py, PyAny>,
     client: Option<RyHttpClient>,
     method: Option<ryo3_http::HttpMethod>,
     body: Option<&[u8]>,
