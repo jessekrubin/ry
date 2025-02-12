@@ -37,19 +37,19 @@ impl RyDate {
         })
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
         Self(Date::MIN)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
         Self(Date::MAX)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {
         Self(Date::ZERO)

@@ -126,7 +126,3 @@ pub fn py_date_to_jiff_date(py_date: &Bound<'_, PyAny>) -> PyResult<JiffDate> {
 pub fn date_from_pyobject(py_date: &impl PyDateAccess) -> PyResult<Date> {
     py_date_to_date(py_date)
 }
-
-// =================
-// AUXILIARY STRUCTS
-// =================

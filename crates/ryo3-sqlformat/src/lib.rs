@@ -224,7 +224,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::unwrap_used)]
+    #![expect(clippy::unwrap_used)]
     use super::*;
 
     #[test]

@@ -33,25 +33,25 @@ impl RyOffset {
         }
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
         RyOffset::from(Offset::MIN)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
         RyOffset::from(Offset::MAX)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {
         RyOffset::from(Offset::ZERO)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn UTC() -> Self {
         RyOffset::from(Offset::UTC)

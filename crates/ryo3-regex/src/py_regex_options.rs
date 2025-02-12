@@ -1,4 +1,4 @@
-#[allow(clippy::struct_excessive_bools)]
+#[expect(clippy::struct_excessive_bools)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct PyRegexOptions {
     case_insensitive: bool,

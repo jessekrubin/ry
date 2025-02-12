@@ -3,14 +3,12 @@ use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use ryo3_types::PathLike;
 
-#[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
     let fbytes = std::fs::read(s)?;
     Ok(PyBytes::new(py, &fbytes).into())
 }
 
-#[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
     let fbytes = std::fs::read(s)?;
@@ -24,7 +22,7 @@ pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
     }
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn write_bytes(fspath: PathLike, b: &[u8]) -> PyResult<usize> {
     let write_res = std::fs::write(fspath.as_ref(), b);
@@ -36,7 +34,7 @@ pub fn write_bytes(fspath: PathLike, b: &[u8]) -> PyResult<usize> {
     }
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn write_text(fspath: PathLike, string: &str) -> PyResult<usize> {
     let str_bytes = string.as_bytes();

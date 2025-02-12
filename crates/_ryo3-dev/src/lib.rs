@@ -6,13 +6,11 @@
 #![deny(clippy::style)]
 #![deny(clippy::unwrap_used)]
 #![warn(clippy::must_use_candidate)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::needless_pass_by_value)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::unused_self)]
-#![allow(clippy::unwrap_used)]
+#![expect(clippy::missing_errors_doc)]
+#![expect(clippy::missing_panics_doc)]
+#![expect(clippy::unnecessary_wraps)]
+#![expect(clippy::module_name_repetitions)]
+#![expect(clippy::unwrap_used)]
 
 use pyo3::prelude::*;
 use pyo3::types::PyModule;

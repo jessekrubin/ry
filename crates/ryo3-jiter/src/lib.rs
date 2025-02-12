@@ -84,7 +84,6 @@ pub fn parse_json_str<'py>(
         .map_err(|e| map_json_error(json_bytes, &e))
 }
 
-#[allow(clippy::fn_params_excessive_bools)]
 #[pyfunction(
     signature = (
         data,

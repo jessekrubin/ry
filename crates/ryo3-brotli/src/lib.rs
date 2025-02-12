@@ -33,7 +33,6 @@ pub fn brotli_encode(
             ..Default::default()
         };
         let mut encoder = br::CompressorWriter::with_params(Vec::new(), 4 * 1024, &params);
-        // let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, 11, 22);
         encoder.write_all(data).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}"))
         })?;

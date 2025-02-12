@@ -62,7 +62,7 @@ impl RyTimeDifference {
     }
 }
 #[derive(Debug, Clone, FromPyObject)]
-#[allow(clippy::enum_variant_names)]
+#[expect(clippy::enum_variant_names)]
 pub(crate) enum IntoTimeDifferenceTuple {
     UnitTime(JiffUnit, RyTime),
     UnitDateTime(JiffUnit, RyDateTime),

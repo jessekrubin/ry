@@ -133,10 +133,7 @@ impl PyGlobster {
 
     pub fn is_match(&self, path: PathLike) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => {
-                // let path = path.to_string();
-                gs.is_match(&path) && !ngs.is_match(&path)
-            }
+            (Some(gs), Some(ngs)) => gs.is_match(&path) && !ngs.is_match(&path),
             (Some(gs), None) => gs.is_match(&path),
             (None, Some(ngs)) => !ngs.is_match(&path),
             _ => false,

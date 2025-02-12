@@ -62,7 +62,7 @@ impl RyDateDifference {
     }
 }
 #[derive(Debug, Clone, FromPyObject)]
-#[allow(clippy::enum_variant_names)]
+#[expect(clippy::enum_variant_names)]
 pub(crate) enum IntoDateDifferenceTuple {
     UnitDate(JiffUnit, RyDate),
     UnitDateTime(JiffUnit, RyDateTime),

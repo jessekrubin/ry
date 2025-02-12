@@ -7,15 +7,12 @@
 #![deny(clippy::style)]
 #![deny(clippy::unwrap_used)]
 #![warn(clippy::must_use_candidate)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::unnecessary_wraps)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::unused_self)]
+#![expect(clippy::missing_errors_doc)]
+#![expect(clippy::unnecessary_wraps)]
+#![expect(clippy::unused_self)]
 
 mod delta_arithmetic_self;
 mod dev;
-mod dev_sandbox;
 mod internal;
 mod jiff_types;
 pub use jiff_types::*;
@@ -49,7 +46,7 @@ mod ry_zoned_difference;
 pub use api::*;
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::unwrap_used)]
+    #![expect(clippy::unwrap_used)]
     #[test]
     fn test_dev() {
         assert_eq!(1 + 1, 2);
