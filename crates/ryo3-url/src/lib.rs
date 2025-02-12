@@ -12,7 +12,6 @@ use ryo3_macros::py_value_error;
 use std::hash::{Hash, Hasher};
 use std::net::IpAddr;
 use std::path::PathBuf;
-use url;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "URL", module = "ryo3")]
