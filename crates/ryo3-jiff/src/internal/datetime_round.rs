@@ -1,6 +1,6 @@
 use crate::{JiffUnit, RyDateTimeRound};
 use jiff::civil::DateTimeRound;
-use jiff::{SpanRound, ZonedRound};
+use jiff::ZonedRound;
 use pyo3::FromPyObject;
 
 #[derive(Debug, Clone, FromPyObject)]

@@ -44,11 +44,3 @@ mod ry_zoned;
 mod ry_zoned_difference;
 
 pub use api::*;
-#[cfg(test)]
-mod tests {
-    #![expect(clippy::unwrap_used)]
-    #[test]
-    fn test_dev() {
-        assert_eq!(1 + 1, 2);
-    }
-}
