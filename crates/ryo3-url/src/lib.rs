@@ -78,6 +78,17 @@ impl PyUrl {
         self.0.as_str().hash(&mut hasher);
         hasher.finish()
     }
+
+    fn __fspath__(&self) -> PyResult<&str> {
+        if let Some(path) = self.0.to_file_path().ok().and_then(|p| p.to_str()) {
+            Ok(path)
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "URL::__fspath__: invalid path",
+            ))
+        }
+    }
+
     #[pyo3(signature = (*parts))]
     fn join(&self, parts: &Bound<'_, PyTuple>) -> PyResult<Self> {
         let parts = parts.extract::<Vec<String>>()?;
