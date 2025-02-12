@@ -313,7 +313,7 @@ impl RyHttpClient {
             req.send()
                 .await
                 .map(RyResponse::from)
-                .map_err(|e| map_reqwest_err(e))
+                .map_err(map_reqwest_err)
         })
     }
 

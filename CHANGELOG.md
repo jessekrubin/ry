@@ -4,6 +4,9 @@
 
 - `jiff`
   - Upgraded jiff to version 2
+- internal
+  - Switch all lints from `#[allow(...)]`/`#![allow(...)]` to `#[expect(...)]`/`#![expect(...)]`
+  - Removed a bunch o commented out code
 
 ___
 
