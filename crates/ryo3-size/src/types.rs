@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 use pyo3::types::{PyInt, PyString};
 use std::fmt::Display;
 
-// #[derive(Debug)]
 pub struct Base(pub size::fmt::Base);
 
 impl Default for Base {

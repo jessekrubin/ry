@@ -300,9 +300,26 @@ FsPathLike = str | FsPath | PathLike[str]
 def pwd() -> str: ...
 def home() -> str: ...
 def cd(path: FsPathLike) -> None: ...
+@t.overload
 def ls(
-    path: FsPathLike | None = None, *, absolute: bool = False, sort: bool = False
-) -> list[str]: ...
+    path: FsPathLike | None = None,
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[False] = False,
+) -> list[str]:
+    """List directory contents - returns list of strings"""
+
+@t.overload
+def ls(
+    path: FsPathLike | None = None,
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[True] = True,
+) -> list[FsPath]:
+    """List directory contents - returns list of FsPath objects"""
+
 def quick_maths() -> t.Literal[3]:
     """Performs quick-maths
 

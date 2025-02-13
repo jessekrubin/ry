@@ -22,8 +22,7 @@ pub fn pwd() -> PyResult<String> {
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
 pub fn cd(p: PathLike) -> PyResult<()> {
-    let r = std::env::set_current_dir(p.as_ref());
-    match r {
+    match std::env::set_current_dir(p.as_ref()) {
         Ok(()) => Ok(()),
         Err(e) => {
             let p_string = p.to_string();
@@ -88,16 +87,6 @@ pub fn ls(
             .flat_map(|s| s.into_bound_py_any(py))
             .collect();
         Ok(strings)
-
-        // let mut vec: Vec<PyObject> = Vec::new();
-        // for s in v {
-        //     let pyobj = s.into_bound_py_any(py)?;
-        //     vec.push(PyObject::from(pyobj));
-        // }
-        // Ok(vec)
-        // let strings = v.into_iter().map(|s| s.into_pyobject(py)).flatten().collect();
-        //
-        // Ok(strings)
     }
 }
 
