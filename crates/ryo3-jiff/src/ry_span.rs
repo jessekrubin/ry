@@ -1,7 +1,7 @@
 use crate::errors::{map_py_overflow_err, map_py_value_err};
-use crate::internal::RySpanRelativeTo;
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
+use crate::span_relative_to::RySpanRelativeTo;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::PyAnyMethods;
@@ -616,12 +616,7 @@ impl RySpan {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
-    // fn round(&self, round: IntoDateTimeRound) -> PyResult<Self> {
-    //     self.0
-    //         .round(round)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
+
     fn signum(&self) -> i8 {
         self.0.signum()
     }

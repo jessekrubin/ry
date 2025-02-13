@@ -9,8 +9,8 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate};
-use jiff::civil::{DateTime, Weekday};
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
+use jiff::civil::{DateTime, DateTimeRound, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
@@ -348,9 +348,34 @@ impl RyDateTime {
         Ok(dict)
     }
 
-    fn round(&self, option: crate::internal::IntoDateTimeRound) -> PyResult<Self> {
+    #[pyo3(
+       signature = (smallest=None, *, mode = None, increment = None),
+    )]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<Self> {
+        let mut dt_round = DateTimeRound::new();
+        if let Some(smallest) = smallest {
+            dt_round = dt_round.smallest(smallest.0);
+        }
+        if let Some(mode) = mode {
+            dt_round = dt_round.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            dt_round = dt_round.increment(increment);
+        }
         self.0
-            .round(option)
+            .round(dt_round)
+            .map(RyDateTime::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn _round(&self, dt_round: &RyDateTimeRound) -> PyResult<Self> {
+        self.0
+            .round(dt_round.round)
             .map(RyDateTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }

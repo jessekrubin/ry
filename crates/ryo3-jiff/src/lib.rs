@@ -13,7 +13,6 @@
 
 mod delta_arithmetic_self;
 mod dev;
-mod internal;
 mod jiff_types;
 pub use jiff_types::*;
 mod deprecations;
@@ -42,5 +41,7 @@ mod ry_timezone;
 mod ry_weekday;
 mod ry_zoned;
 mod ry_zoned_difference;
+mod ry_zoned_round;
+mod span_relative_to;
 
 pub use api::*;
