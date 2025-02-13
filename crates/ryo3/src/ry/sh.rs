@@ -78,16 +78,14 @@ pub fn ls(
     if objects {
         let fspaths = v
             .into_iter()
-            .map(|s| PyFsPath::new(s).into_bound_py_any(py))
-            .flatten()
+            .flat_map(|s| PyFsPath::new(s).into_bound_py_any(py))
             // .map(PyObject::from)
             .collect();
         Ok(fspaths)
     } else {
         let strings = v
             .into_iter()
-            .map(|s| s.into_bound_py_any(py))
-            .flatten()
+            .flat_map(|s| s.into_bound_py_any(py))
             .collect();
         Ok(strings)
 
