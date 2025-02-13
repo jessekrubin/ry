@@ -8,6 +8,9 @@ use std::fs::read_dir;
 #[pyfunction]
 pub fn pwd() -> PyResult<String> {
     let curdur = std::env::current_dir()?;
+    // to os string
+    let os_str = curdur.as_os_str();
+
     match curdur.to_str() {
         Some(s) => Ok(s.to_string()),
         None => Err(PyOSError::new_err(

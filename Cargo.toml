@@ -67,6 +67,7 @@ members = [
   "crates/ryo3-reqwest",
   "crates/ryo3-same-file",
   "crates/ryo3-shlex",
+  "crates/ryo3-size",
   "crates/ryo3-sqlformat",
   "crates/ryo3-tokio",
   "crates/ryo3-unindent",
@@ -94,7 +95,7 @@ repository = "https://github.com/jessekrubin/ry"
 # ryo3-*
 # ======
 # internal
-ryo3 = { path = "./crates/ryo3", features = ["all"] }
+ryo3 = { path = "./crates/ryo3", features = ["ry"] }
 ryo3-dev = { path = "./crates/_ryo3-dev" }
 ryo3-types = { path = "./crates/ryo3-types" }
 ryo3-std = { path = "./crates/ryo3-std" }
@@ -119,6 +120,7 @@ ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-reqwest = { path = "./crates/ryo3-reqwest" }
 ryo3-same-file = { path = "./crates/ryo3-same-file" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
+ryo3-size = { path = "./crates/ryo3-size" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-tokio = { path = "./crates/ryo3-tokio" }
 ryo3-unindent = { path = "./crates/ryo3-unindent" }
@@ -150,6 +152,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.12"
 serde_json = "1.0.137"
 shlex = "1.3.0"
+size = "0.5.0"
 thiserror = "2.0.11"
 tokio = { version = "1.43.0", features = ["full"] }
 tracing = "0.1.41"

@@ -13,7 +13,7 @@ def _ext_info() -> dict[str, str | int]:
     return {
         "abspath": os.path.abspath(ryo3.__file__),
         "fsize": size,
-        "fsize_str": ryo3.fmt_nbytes(size),
+        "fsize_str": ryo3.fmt_size(size),
         "build_profile": ryo3.__build_profile__,
         "build_timestamp": ryo3.__build_timestamp__,
     }

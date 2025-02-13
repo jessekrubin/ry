@@ -1,3 +1,7 @@
+//! dev module
+//!
+//! makes a submodule `_dev` and renames it to `ry.ryo3._dev` containing all
+//! dev exports
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::{intern, wrap_pymodule};
