@@ -133,11 +133,16 @@ from ._jiff import TimestampRound as TimestampRound
 from ._jiff import TimeZone as TimeZone
 from ._jiff import ZonedDateTime as ZonedDateTime
 from ._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
+from ._jiff import ZonedDateTimeRound as ZonedDateTimeRound
 from ._jiff import date as date
 from ._jiff import datetime as datetime
 from ._jiff import offset as offset
 from ._jiff import time as time
 from ._jiff import timespan as timespan
+from ._size import SizeFormatter as SizeFormatter
+from ._size import fmt_size as fmt_size
+from ._size import parse_size as parse_size
+from ._url import URL as URL
 from .http import Headers as Headers
 from .http import HttpStatus as HttpStatus
 from .reqwest import HttpClient as HttpClient
@@ -415,7 +420,28 @@ FsPathLike = str | FsPath | PathLike[str]
 def pwd() -> str: ...
 def home() -> str: ...
 def cd(path: FsPathLike) -> None: ...
-def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
+@t.overload
+def ls(
+    path: FsPathLike | None = None,
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[False] = False,
+) -> list[str]:
+    """List directory contents - returns list of strings"""
+
+
+@t.overload
+def ls(
+    path: FsPathLike | None = None,
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[True] = True,
+) -> list[FsPath]:
+    """List directory contents - returns list of FsPath objects"""
+
+
 def quick_maths() -> t.Literal[3]:
     """Performs quick-maths
 
@@ -794,97 +820,6 @@ def sqlfmt(
     lines_between_statements: int = 1,
 ) -> str: ...
 
-
-# =============================================================================
-# URL
-# =============================================================================
-
-
-class URL:
-    def __init__(
-        self, url: str, *, params: dict[str, str] | None = None
-    ) -> None: ...
-
-    # =========================================================================
-    # CLASSMETHODS
-    # =========================================================================
-    @classmethod
-    def parse(cls, url: str) -> URL: ...
-    @classmethod
-    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
-    @classmethod
-    def from_directory_path(cls, path: str) -> URL: ...
-
-    # =========================================================================
-    # STRING
-    # =========================================================================
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-    # =========================================================================
-    # OPERATORS/DUNDER
-    # =========================================================================
-    def __eq__(self, other: object) -> bool: ...
-    def __ge__(self, other: URL) -> bool: ...
-    def __gt__(self, other: URL) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __le__(self, other: URL) -> bool: ...
-    def __lt__(self, other: URL) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __rtruediv__(self, relative: str) -> URL: ...
-    def __truediv__(self, relative: str) -> URL: ...
-
-    # =========================================================================
-    # PROPERTIES
-    # =========================================================================
-    @property
-    def authority(self) -> str: ...
-    @property
-    def fragment(self) -> str | None: ...
-    @property
-    def host(self) -> str | None: ...
-    @property
-    def host_str(self) -> str | None: ...
-    @property
-    def netloc(self) -> str: ...
-    @property
-    def password(self) -> str | None: ...
-    @property
-    def path(self) -> str: ...
-    @property
-    def path_segments(self) -> tuple[str, ...]: ...
-    @property
-    def port(self) -> int | None: ...
-    @property
-    def port_or_known_default(self) -> int | None: ...
-    @property
-    def query(self) -> str | None: ...
-    @property
-    def query_pairs(self) -> list[tuple[str, str]]: ...
-    @property
-    def scheme(self) -> str: ...
-    @property
-    def username(self) -> str: ...
-
-    # =========================================================================
-    # INSTANCE METHODS
-    # =========================================================================
-    def has_authority(self) -> bool: ...
-    def has_host(self) -> bool: ...
-    def is_special(self) -> bool: ...
-    def join(self, *parts: str) -> URL: ...
-    def to_filepath(self) -> str: ...
-    def set_fragment(self, fragment: str) -> None: ...
-    def set_host(self, host: str) -> None: ...
-    def set_ip_host(self, host: str) -> None: ...
-    def set_password(self, password: str) -> None: ...
-    def set_path(self, path: str) -> None: ...
-    def set_port(self, port: int) -> None: ...
-    def set_query(self, query: str) -> None: ...
-    def set_scheme(self, scheme: str) -> None: ...
-    def set_username(self, username: str) -> None: ...
-    def socket_addrs(self) -> None: ...
-
 ```
 ## `ry.JSON`
 
@@ -1122,13 +1057,12 @@ from ry._types import (
     TimeSpanTypedDict,
     TimeTypedDict,
 )
-
-from . import Duration
+from ry.ryo3 import Duration
 
 # =============================================================================
 # JIFF
 # =============================================================================
-JIFF_UNIT_STRING = t.Literal[
+JIFF_UNIT = t.Literal[
     "year",
     "month",
     "week",
@@ -1141,7 +1075,7 @@ JIFF_UNIT_STRING = t.Literal[
     "nanosecond",
 ]
 
-JIFF_ROUND_MODE_STRING = t.Literal[
+JIFF_ROUND_MODE = t.Literal[
     "ceil",
     "floor",
     "expand",
@@ -1153,7 +1087,7 @@ JIFF_ROUND_MODE_STRING = t.Literal[
     "half_even",
 ]
 
-JIFF_WEEKDAY_STRING = t.Literal[
+WEEKDAY = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 ]
 
@@ -1259,10 +1193,10 @@ class Date:
     def last_of_month(self) -> Date: ...
     def last_of_year(self) -> Date: ...
     def nth_weekday(
-        self, nth: int, weekday: JIFF_WEEKDAY_STRING | JIFF_WEEKDAY_INT
+        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
     ) -> Date: ...
     def nth_weekday_of_month(
-        self, nth: int, weekday: JIFF_WEEKDAY_STRING | JIFF_WEEKDAY_INT
+        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
     ) -> Date: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration
@@ -1284,18 +1218,18 @@ class Date:
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -1315,16 +1249,16 @@ class DateDifference:
         self,
         date: Date,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def smallest(self, unit: JIFF_UNIT_STRING) -> DateDifference: ...
-    def largest(self, unit: JIFF_UNIT_STRING) -> DateDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> DateDifference: ...
+    def smallest(self, unit: JIFF_UNIT) -> DateDifference: ...
+    def largest(self, unit: JIFF_UNIT) -> DateDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> DateDifference: ...
     def increment(self, increment: int) -> DateDifference: ...
 
 
@@ -1435,8 +1369,8 @@ class Time:
     def duration_since(self, other: Time) -> SignedDuration: ...
     def round(
         self,
-        smallest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> Time: ...
     def to_datetime(self, d: Date) -> DateTime: ...
@@ -1450,18 +1384,18 @@ class Time:
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -1471,16 +1405,16 @@ class TimeDifference:
         self,
         date: Time,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def smallest(self, unit: JIFF_UNIT_STRING) -> TimeDifference: ...
-    def largest(self, unit: JIFF_UNIT_STRING) -> TimeDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> TimeDifference: ...
+    def smallest(self, unit: JIFF_UNIT) -> TimeDifference: ...
+    def largest(self, unit: JIFF_UNIT) -> TimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> TimeDifference: ...
     def increment(self, increment: int) -> TimeDifference: ...
 
 
@@ -1565,7 +1499,14 @@ class DateTime:
     def time(self) -> Time: ...
     def series(self, span: TimeSpan) -> t.Iterator[DateTime]: ...
     def asdict(self) -> DateTimeTypedDict: ...
-    def round(self, options: JIFF_UNIT_STRING | DateTimeRound) -> DateTime: ...
+    def round(
+        self,
+        smallest: JIFF_UNIT | None = None,
+        *,
+        mode: JIFF_ROUND_MODE | None = None,
+        increment: int | None = None,
+    ) -> DateTime: ...
+    def _round(self, options: DateTimeRound) -> DateTime: ...
     def yesterday(self) -> DateTime: ...
 
     # =========================================================================
@@ -1625,10 +1566,10 @@ class DateTime:
     def in_leap_year(self) -> bool: ...
     def end_of_day(self) -> DateTime: ...
     def nth_weekday(
-        self, nth: int, weekday: JIFF_WEEKDAY_STRING | JIFF_WEEKDAY_INT
+        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
     ) -> DateTime: ...
     def nth_weekday_of_month(
-        self, nth: int, weekday: JIFF_WEEKDAY_STRING | JIFF_WEEKDAY_INT
+        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
     ) -> DateTime: ...
     def last_of_month(self) -> DateTime: ...
     def last_of_year(self) -> DateTime: ...
@@ -1645,18 +1586,18 @@ class DateTime:
         self,
         other: Date | Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Date | Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -1666,16 +1607,16 @@ class DateTimeDifference:
         self,
         date: DateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def smallest(self, unit: JIFF_UNIT_STRING) -> DateTimeDifference: ...
-    def largest(self, unit: JIFF_UNIT_STRING) -> DateTimeDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> DateTimeDifference: ...
+    def smallest(self, unit: JIFF_UNIT) -> DateTimeDifference: ...
+    def largest(self, unit: JIFF_UNIT) -> DateTimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> DateTimeDifference: ...
     def increment(self, increment: int) -> DateTimeDifference: ...
 
 
@@ -1996,12 +1937,12 @@ class TimeSpan:
     ) -> te.Self: ...
     def round(
         self,
-        smallest: JIFF_UNIT_STRING,
+        smallest: JIFF_UNIT,
         increment: int = 1,
         *,
         relative: ZonedDateTime | Date | DateTime | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
     ) -> te.Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
@@ -2009,7 +1950,7 @@ class TimeSpan:
     ) -> SignedDuration: ...
     def total(
         self,
-        unit: JIFF_UNIT_STRING,
+        unit: JIFF_UNIT,
         relative: ZonedDateTime | Date | DateTime | None = None,
         days_are_24_hours: bool = False,
     ) -> int: ...
@@ -2161,26 +2102,26 @@ class Timestamp:
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def duration_since(self, other: Timestamp) -> SignedDuration: ...
     def duration_until(self, other: Timestamp) -> SignedDuration: ...
     def round(
         self,
-        unit: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        unit: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> Timestamp: ...
     def _round(self, options: TimestampRound) -> Timestamp: ...
@@ -2191,16 +2132,16 @@ class TimestampDifference:
         self,
         date: Timestamp,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def smallest(self, unit: JIFF_UNIT_STRING) -> TimestampDifference: ...
-    def largest(self, unit: JIFF_UNIT_STRING) -> TimestampDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> TimestampDifference: ...
+    def smallest(self, unit: JIFF_UNIT) -> TimestampDifference: ...
+    def largest(self, unit: JIFF_UNIT) -> TimestampDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> TimestampDifference: ...
     def increment(self, increment: int) -> TimestampDifference: ...
 
 
@@ -2338,13 +2279,20 @@ class ZonedDateTime:
     def last_of_month(self) -> ZonedDateTime: ...
     def last_of_year(self) -> ZonedDateTime: ...
     def nth_weekday(
-        self, nth: int, weekday: JIFF_WEEKDAY_STRING | JIFF_WEEKDAY_INT
+        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
     ) -> Date: ...
     def nth_weekday_of_month(
-        self, nth: int, weekday: JIFF_WEEKDAY_STRING | JIFF_WEEKDAY_INT
+        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
     ) -> Date: ...
     def offset(self) -> Offset: ...
-    def round(self, options: JIFF_UNIT_STRING | DateTimeRound) -> te.Self: ...
+    def round(
+        self,
+        smallest: JIFF_UNIT | None = None,
+        *,
+        mode: JIFF_ROUND_MODE | None = None,
+        increment: int | None = None,
+    ) -> DateTime: ...
+    def _round(self, options: ZonedDateTimeRound) -> DateTime: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -> te.Self: ...
@@ -2371,18 +2319,18 @@ class ZonedDateTime:
         self,
         other: ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -2392,16 +2340,16 @@ class ZonedDateTimeDifference:
         self,
         date: ZonedDateTime,
         *,
-        smallest: JIFF_UNIT_STRING | None = None,
-        largest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int | None = None,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def smallest(self, unit: JIFF_UNIT_STRING) -> ZonedDateTimeDifference: ...
-    def largest(self, unit: JIFF_UNIT_STRING) -> ZonedDateTimeDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> ZonedDateTimeDifference: ...
+    def smallest(self, unit: JIFF_UNIT) -> ZonedDateTimeDifference: ...
+    def largest(self, unit: JIFF_UNIT) -> ZonedDateTimeDifference: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> ZonedDateTimeDifference: ...
     def increment(self, increment: int) -> ZonedDateTimeDifference: ...
 
 
@@ -2411,10 +2359,7 @@ class ISOWeekDate:
     ZERO: ISOWeekDate
 
     def __init__(
-        self,
-        year: int,
-        week: int,
-        weekday: JIFF_WEEKDAY_INT | JIFF_WEEKDAY_STRING,
+        self, year: int, week: int, weekday: JIFF_WEEKDAY_INT | WEEKDAY
     ) -> None: ...
 
     # =========================================================================
@@ -2461,23 +2406,23 @@ class ISOWeekDate:
 class TimestampRound:
     def __init__(
         self,
-        smallest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int = 1,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> TimestampRound: ...
-    def smallest(self, smallest: JIFF_UNIT_STRING) -> TimestampRound: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> TimestampRound: ...
+    def smallest(self, smallest: JIFF_UNIT) -> TimestampRound: ...
     def increment(self, increment: int) -> TimestampRound: ...
-    def _smallest(self) -> JIFF_UNIT_STRING: ...
-    def _mode(self) -> JIFF_ROUND_MODE_STRING: ...
+    def _smallest(self) -> JIFF_UNIT: ...
+    def _mode(self) -> JIFF_ROUND_MODE: ...
     def _increment(self) -> int: ...
     def replace(
         self,
-        smallest: JIFF_UNIT_STRING | None,
-        mode: JIFF_ROUND_MODE_STRING | None,
+        smallest: JIFF_UNIT | None,
+        mode: JIFF_ROUND_MODE | None,
         increment: int | None,
     ) -> TimestampRound: ...
 
@@ -2485,23 +2430,47 @@ class TimestampRound:
 class DateTimeRound:
     def __init__(
         self,
-        smallest: JIFF_UNIT_STRING | None = None,
-        mode: JIFF_ROUND_MODE_STRING | None = None,
+        smallest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
         increment: int = 1,
     ) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE_STRING) -> DateTimeRound: ...
-    def smallest(self, smallest: JIFF_UNIT_STRING) -> DateTimeRound: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> DateTimeRound: ...
+    def smallest(self, smallest: JIFF_UNIT) -> DateTimeRound: ...
     def increment(self, increment: int) -> DateTimeRound: ...
-    def _smallest(self) -> JIFF_UNIT_STRING: ...
-    def _mode(self) -> JIFF_ROUND_MODE_STRING: ...
+    def _smallest(self) -> JIFF_UNIT: ...
+    def _mode(self) -> JIFF_ROUND_MODE: ...
     def _increment(self) -> int: ...
     def replace(
         self,
-        smallest: JIFF_UNIT_STRING | None,
-        mode: JIFF_ROUND_MODE_STRING | None,
+        smallest: JIFF_UNIT | None,
+        mode: JIFF_ROUND_MODE | None,
+        increment: int | None,
+    ) -> DateTimeRound: ...
+
+
+class ZonedDateTimeRound:
+    def __init__(
+        self,
+        smallest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
+        increment: int = 1,
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -> DateTimeRound: ...
+    def smallest(self, smallest: JIFF_UNIT) -> DateTimeRound: ...
+    def increment(self, increment: int) -> DateTimeRound: ...
+    def _smallest(self) -> JIFF_UNIT: ...
+    def _mode(self) -> JIFF_ROUND_MODE: ...
+    def _increment(self) -> int: ...
+    def replace(
+        self,
+        smallest: JIFF_UNIT | None,
+        mode: JIFF_ROUND_MODE | None,
         increment: int | None,
     ) -> DateTimeRound: ...
 
@@ -2612,6 +2581,154 @@ def timespan(
     unchecked: bool = False,
 ) -> TimeSpan: ...
 def offset(hours: int) -> Offset: ...
+
+```
+## `ry._size`
+
+```python
+from __future__ import annotations
+
+from typing import Literal
+
+FORMAT_SIZE_BASE = Literal[2, 10]  # default=2
+FORMAT_SIZE_STYLE = Literal[  # default="default"
+    "default",
+    "abbreviated",
+    "abbreviated_lowercase",
+    "abbreviated-lowercase",
+    "full",
+    "full-lowercase",
+    "full_lowercase",
+]
+
+
+def fmt_size(
+    n: int,
+    *,
+    base: FORMAT_SIZE_BASE | None = 2,
+    style: FORMAT_SIZE_STYLE | None = "default",
+) -> str:
+    """Return human-readable string representation of bytes-size."""
+
+
+def parse_size(s: str) -> int:
+    """Return integer representation of human-readable bytes-size string.
+
+    Raises:
+        ValueError: If string is not a valid human-readable bytes-size string.
+    """
+
+
+class SizeFormatter:
+    """Human-readable bytes-size formatter."""
+
+    def __init__(
+        self,
+        base: FORMAT_SIZE_BASE | None = 2,
+        style: FORMAT_SIZE_STYLE | None = "default",
+    ):
+        self.base = base
+        self.style = style
+
+    def format(self, n: int) -> str:
+        """Return human-readable string representation of bytes-size."""
+
+    def __call__(self, n: int) -> str:
+        """Return human-readable string representation of bytes-size."""
+
+    def __repr__(self) -> str: ...
+
+```
+## `ry._url`
+
+```python
+from __future__ import annotations
+
+
+class URL:
+    def __init__(
+        self, url: str | URL, *, params: dict[str, str] | None = None
+    ) -> None: ...
+
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def parse(cls, url: str) -> URL: ...
+    @classmethod
+    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
+    @classmethod
+    def from_directory_path(cls, path: str) -> URL: ...
+
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+    # =========================================================================
+    # OPERATORS/DUNDER
+    # =========================================================================
+    def __eq__(self, other: object) -> bool: ...
+    def __ge__(self, other: URL) -> bool: ...
+    def __gt__(self, other: URL) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __le__(self, other: URL) -> bool: ...
+    def __lt__(self, other: URL) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __rtruediv__(self, relative: str) -> URL: ...
+    def __truediv__(self, relative: str) -> URL: ...
+
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def authority(self) -> str: ...
+    @property
+    def fragment(self) -> str | None: ...
+    @property
+    def host(self) -> str | None: ...
+    @property
+    def host_str(self) -> str | None: ...
+    @property
+    def netloc(self) -> str: ...
+    @property
+    def password(self) -> str | None: ...
+    @property
+    def path(self) -> str: ...
+    @property
+    def path_segments(self) -> tuple[str, ...]: ...
+    @property
+    def port(self) -> int | None: ...
+    @property
+    def port_or_known_default(self) -> int | None: ...
+    @property
+    def query(self) -> str | None: ...
+    @property
+    def query_pairs(self) -> list[tuple[str, str]]: ...
+    @property
+    def scheme(self) -> str: ...
+    @property
+    def username(self) -> str: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def has_authority(self) -> bool: ...
+    def has_host(self) -> bool: ...
+    def is_special(self) -> bool: ...
+    def join(self, *parts: str) -> URL: ...
+    def to_filepath(self) -> str: ...
+    def set_fragment(self, fragment: str) -> None: ...
+    def set_host(self, host: str) -> None: ...
+    def set_ip_host(self, host: str) -> None: ...
+    def set_password(self, password: str) -> None: ...
+    def set_path(self, path: str) -> None: ...
+    def set_port(self, port: int) -> None: ...
+    def set_query(self, query: str) -> None: ...
+    def set_scheme(self, scheme: str) -> None: ...
+    def set_username(self, username: str) -> None: ...
+    def socket_addrs(self) -> None: ...
 
 ```
 ## `ry.dirs`
@@ -2806,6 +2923,8 @@ import ry
 if t.TYPE_CHECKING:
     from ry import Duration, Headers
 
+    from ._url import URL
+
 
 class HttpClient:
     def __init__(
@@ -2821,38 +2940,38 @@ class HttpClient:
         deflate: bool = True,
     ) -> None: ...
     async def get(
-        self, url: str, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
     async def post(
         self,
-        url: str,
+        url: str | URL,
         *,
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def put(
         self,
-        url: str,
+        url: str | URL,
         *,
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def delete(
-        self, url: str, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
     async def patch(
         self,
-        url: str,
+        url: str | URL,
         *,
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def head(
-        self, url: str, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
     async def fetch(
         self,
-        url: str,
+        url: str | URL,
         *,
         method: str = "GET",
         body: bytes | None = None,
@@ -2884,7 +3003,7 @@ class ResponseStream:
 
 
 async def fetch(
-    url: str,
+    url: str | URL,
     *,
     client: HttpClient | None = None,
     method: str = "GET",

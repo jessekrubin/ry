@@ -25,6 +25,7 @@ from ._jiff import TimestampRound as TimestampRound
 from ._jiff import TimeZone as TimeZone
 from ._jiff import ZonedDateTime as ZonedDateTime
 from ._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
+from ._jiff import ZonedDateTimeRound as ZonedDateTimeRound
 from ._jiff import date as date
 from ._jiff import datetime as datetime
 from ._jiff import offset as offset
