@@ -14,8 +14,8 @@ impl PySizeFormatter {
     #[pyo3(signature = (base = None, style = None))]
     fn py_new(base: Option<Base>, style: Option<Style>) -> Self {
         // fn py_new(base: Option<u8>, style: Option<&str>) -> Self {
-        let base = base.unwrap_or(Base::default());
-        let style = style.unwrap_or(Style::default());
+        let base = base.unwrap_or_default();
+        let style = style.unwrap_or_default();
 
         let formatter = size::fmt::SizeFormatter::new()
             .with_base(base.0)

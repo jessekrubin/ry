@@ -1,17 +1,15 @@
 use pyo3::exceptions::{PyFileNotFoundError, PyOSError};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{pyfunction, wrap_pyfunction, PyResult};
+use pyo3::{pyfunction, wrap_pyfunction, IntoPyObjectExt, PyResult};
+use ryo3_fspath::PyFsPath;
 use ryo3_types::PathLike;
 use std::fs::read_dir;
 
 #[pyfunction]
 pub fn pwd() -> PyResult<String> {
-    let curdur = std::env::current_dir()?;
-    // to os string
-    let os_str = curdur.as_os_str();
-
-    match curdur.to_str() {
+    let current_dir = std::env::current_dir()?;
+    match current_dir.to_str() {
         Some(s) => Ok(s.to_string()),
         None => Err(PyOSError::new_err(
             "pwd: current directory is not a valid UTF-8 string",
@@ -38,8 +36,14 @@ pub fn cd(p: PathLike) -> PyResult<()> {
 
 /// List the contents of the specified directory as a `Vec<String>`
 #[pyfunction]
-#[pyo3(signature = (fspath = None, *, sort = None))]
-pub fn ls(fspath: Option<PathLike>, sort: Option<bool>) -> PyResult<Vec<String>> {
+#[pyo3(signature = (fspath = None, *, absolute = false, sort = false, objects = false))]
+pub fn ls(
+    py: Python<'_>,
+    fspath: Option<PathLike>,
+    absolute: bool,
+    sort: bool,
+    objects: bool,
+) -> PyResult<Vec<Bound<'_, PyAny>>> {
     let p = if let Some(p) = fspath {
         p
     } else {
@@ -52,19 +56,51 @@ pub fn ls(fspath: Option<PathLike>, sort: Option<bool>) -> PyResult<Vec<String>>
         PyFileNotFoundError::new_err(format!("ls: {emsg}"))
     })?;
 
-    let mut v = entries
-        .filter_map(Result::ok)
-        .filter_map(|dir_entry| {
-            dir_entry
-                .path()
-                .file_name()
-                .and_then(|name| name.to_str().map(ToString::to_string))
-        })
-        .collect::<Vec<String>>();
-    if let Some(true) = sort {
+    let mut v = if absolute {
+        entries
+            .filter_map(Result::ok)
+            .filter_map(|dir_entry| dir_entry.path().to_str().map(ToString::to_string))
+            .collect::<Vec<String>>()
+    } else {
+        entries
+            .filter_map(Result::ok)
+            .filter_map(|dir_entry| {
+                dir_entry
+                    .path()
+                    .file_name()
+                    .and_then(|name| name.to_str().map(ToString::to_string))
+            })
+            .collect::<Vec<String>>()
+    };
+    if sort {
         v.sort();
     }
-    Ok(v)
+    if objects {
+        let fspaths = v
+            .into_iter()
+            .map(|s| PyFsPath::new(s).into_bound_py_any(py))
+            .flatten()
+            // .map(PyObject::from)
+            .collect();
+        Ok(fspaths)
+    } else {
+        let strings = v
+            .into_iter()
+            .map(|s| s.into_bound_py_any(py))
+            .flatten()
+            .collect();
+        Ok(strings)
+
+        // let mut vec: Vec<PyObject> = Vec::new();
+        // for s in v {
+        //     let pyobj = s.into_bound_py_any(py)?;
+        //     vec.push(PyObject::from(pyobj));
+        // }
+        // Ok(vec)
+        // let strings = v.into_iter().map(|s| s.into_pyobject(py)).flatten().collect();
+        //
+        // Ok(strings)
+    }
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

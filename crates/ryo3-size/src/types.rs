@@ -33,8 +33,7 @@ impl FromPyObject<'_> for Base {
                 2 => Ok(Base(size::fmt::Base::Base2)),
                 10 => Ok(Base(size::fmt::Base::Base10)),
                 _ => Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "{} ~ given: {}",
-                    BASE_ERR_MSG, base
+                    "{BASE_ERR_MSG} ~ given: {base}"
                 ))),
             }
         } else {
@@ -70,8 +69,7 @@ impl FromPyObject<'_> for Style {
                 "full" => Ok(Style(size::fmt::Style::Full)),
                 "full_lowercase" | "full-lowercase" => Ok(Style(size::fmt::Style::FullLowercase)),
                 _ => Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "{} ~ given: {}",
-                    STYLE_ERR_MSG, s_ref
+                    "{STYLE_ERR_MSG} ~ given: {s_ref}"
                 ))),
             }
         } else {

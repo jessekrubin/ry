@@ -1,7 +1,6 @@
 use crate::types::{Base, Style};
 use pyo3::prelude::*;
 
-#[must_use]
 #[pyfunction]
 pub fn parse_size(input: &str) -> PyResult<i64> {
     size::Size::from_str(input)
@@ -15,7 +14,7 @@ pub fn parse_size(input: &str) -> PyResult<i64> {
 #[pyo3(signature = (n, *, base = None, style = None))]
 pub fn fmt_size(n: i64, base: Option<Base>, style: Option<Style>) -> String {
     let formatter = size::fmt::SizeFormatter::new()
-        .with_base(base.unwrap_or(Base::default()).0)
-        .with_style(style.unwrap_or(Style::default()).0);
+        .with_base(base.unwrap_or_default().0)
+        .with_style(style.unwrap_or_default().0);
     formatter.format(n)
 }
