@@ -396,26 +396,38 @@ impl RySpan {
     }
 
     fn __add__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = other.into();
+        let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_add(span_arithmetic)
             .map(RySpan::from)
             .map_err(map_py_overflow_err)
     }
-    fn checked_add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        self.__add__(other)
+
+    fn checked_add<'py, 'a>(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+        let span_arithmetic: SpanArithmetic = (&other).into();
+
+        self.0
+            .checked_add(span_arithmetic)
+            .map(RySpan::from)
+            .map_err(map_py_overflow_err)
     }
 
     fn __sub__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = other.into();
+        let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
             .map(RySpan::from)
             .map_err(map_py_overflow_err)
     }
+
     fn checked_sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        self.__sub__(other)
+        let span_arithmetic: SpanArithmetic = (&other).into();
+        self.0
+            .checked_sub(span_arithmetic)
+            .map(RySpan::from)
+            .map_err(map_py_overflow_err)
     }
+
     fn __mul__(&self, rhs: i64) -> PyResult<Self> {
         self.0
             .checked_mul(rhs)

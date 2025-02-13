@@ -80,30 +80,12 @@ impl From<IntoTimestampDifferenceTuple> for TimestampDifference {
     }
 }
 
-// #[derive(Debug, Clone, FromPyObject)]
-// pub(crate) enum IntoTimestampDifference {
-//     RyTimestampDifference(RyTimestampDifference),
-//     Zoned(RyZoned),
-//     Timestamp(RyTimestamp),
-//     TimestampDifferenceTuple(IntoTimestampDifferenceTuple),
-// }
-//
-// impl From<IntoTimestampDifference> for TimestampDifference {
-//     fn from(val: IntoTimestampDifference) -> Self {
-//         match val {
-//             IntoTimestampDifference::RyTimestampDifference(d_diff) => d_diff.0,
-//             IntoTimestampDifference::Zoned(zoned) => TimestampDifference::from(zoned.0),
-//             IntoTimestampDifference::Timestamp(date) => TimestampDifference::from(date.0),
-//             IntoTimestampDifference::TimestampDifferenceTuple(tuple) => tuple.into(),
-//         }
-//     }
-// }
-
 #[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum TimestampDifferenceArg {
     Zoned(RyZoned),
     Timestamp(RyTimestamp),
 }
+
 impl TimestampDifferenceArg {
     pub(crate) fn build(
         self,
