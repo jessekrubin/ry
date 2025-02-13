@@ -1,19 +1,28 @@
 from __future__ import annotations
 
+import ast
 import sys
 
 import pytest
 
 import ry
 
-from ._xxhash_test_data import (
+from ._xxhash_fixtures import (
     XX32_SEEDS,
-    XX32_TEST_DATA,
     XX64_SEEDS,
-    XX64_TEST_DATA,
     XX128_SEEDS,
-    XX128_TEST_DATA,
+    XXHASH_TEST_DATA,
+    XXHashDataRecord,
 )
+
+# from ._xxhash_test_data import (
+#     XX32_SEEDS,
+#     XX32_TEST_DATA,
+#     XX64_SEEDS,
+#     XX64_TEST_DATA,
+#     XX128_SEEDS,
+#     XX128_TEST_DATA,
+# )
 
 try:
     # test against python-xxhash if importable...
@@ -26,10 +35,16 @@ pytest_skip_xxhash = pytest.mark.skipif(
 )
 
 
+def _bytes_from_record(rec: XXHashDataRecord) -> bytes:
+    """Eval the bytes from the rec"""
+    return ast.literal_eval(rec["buf"])
+
+
 @pytest_skip_xxhash
 def test_xxhash_matches_ry_xxh32() -> None:
     for seed in XX32_SEEDS:
-        for data, _ in XX32_TEST_DATA:
+        for rec in XXHASH_TEST_DATA:
+            data = _bytes_from_record(rec)
             assert (
                 ry.xxhash.xxh32(data, seed).digest()
                 == xxhash.xxh32(data, seed).digest()
@@ -47,7 +62,8 @@ def test_xxhash_matches_ry_xxh32() -> None:
 @pytest_skip_xxhash
 def test_xxhash_matches_ry_xxh64() -> None:
     for seed in XX64_SEEDS:
-        for data, _ in XX64_TEST_DATA:
+        for rec in XXHASH_TEST_DATA:
+            data = _bytes_from_record(rec)
             assert (
                 ry.xxhash.xxh64(data, seed).digest()
                 == xxhash.xxh64(data, seed).digest()
@@ -65,7 +81,8 @@ def test_xxhash_matches_ry_xxh64() -> None:
 @pytest_skip_xxhash
 def test_xxhash_matches_ry_xxh128() -> None:
     for seed in XX128_SEEDS:
-        for data, _ in XX128_TEST_DATA:
+        for rec in XXHASH_TEST_DATA:
+            data = _bytes_from_record(rec)
             assert (
                 ry.xxhash.xxh3(data, seed).digest128()
                 == xxhash.xxh128(data, seed).digest()
