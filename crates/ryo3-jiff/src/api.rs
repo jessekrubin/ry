@@ -17,6 +17,7 @@ pub use crate::ry_zoned::RyZoned;
 pub use crate::ry_zoned_difference::RyZonedDifference;
 
 use crate::ry_iso_week_date::RyISOWeekDate;
+use crate::ry_zoned_round::RyZonedDateTimeRound;
 use pyo3::prelude::*;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -41,6 +42,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // round
     m.add_class::<RyDateTimeRound>()?;
+    m.add_class::<RyZonedDateTimeRound>()?;
     m.add_class::<RyTimestampRound>()?;
 
     // functions

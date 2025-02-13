@@ -1,7 +1,7 @@
 use crate::errors::{map_py_overflow_err, map_py_value_err};
-use crate::internal::RySpanRelativeTo;
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
+use crate::span_relative_to::RySpanRelativeTo;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::PyAnyMethods;
@@ -395,27 +395,43 @@ impl RySpan {
         }
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __add__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = other.into();
+        let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_add(span_arithmetic)
             .map(RySpan::from)
             .map_err(map_py_overflow_err)
     }
+
+    #[expect(clippy::needless_pass_by_value)]
     fn checked_add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        self.__add__(other)
+        let span_arithmetic: SpanArithmetic = (&other).into();
+
+        self.0
+            .checked_add(span_arithmetic)
+            .map(RySpan::from)
+            .map_err(map_py_overflow_err)
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __sub__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = other.into();
+        let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
             .map(RySpan::from)
             .map_err(map_py_overflow_err)
     }
+
+    #[expect(clippy::needless_pass_by_value)]
     fn checked_sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        self.__sub__(other)
+        let span_arithmetic: SpanArithmetic = (&other).into();
+        self.0
+            .checked_sub(span_arithmetic)
+            .map(RySpan::from)
+            .map_err(map_py_overflow_err)
     }
+
     fn __mul__(&self, rhs: i64) -> PyResult<Self> {
         self.0
             .checked_mul(rhs)
@@ -616,12 +632,7 @@ impl RySpan {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
-    // fn round(&self, round: IntoDateTimeRound) -> PyResult<Self> {
-    //     self.0
-    //         .round(round)
-    //         .map(RySpan::from)
-    //         .map_err(map_py_value_err)
-    // }
+
     fn signum(&self) -> i8 {
         self.0.signum()
     }

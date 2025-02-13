@@ -211,11 +211,15 @@ def test_duration_string(duration: ry.SignedDuration) -> None:
 def test_datetime_round_increment(dt: ry.DateTime, increment: int) -> None:
     options = ry.DateTimeRound(smallest="second", mode="floor", increment=increment)
     try:
-        rounded_dt = dt.round(options)
+        rounded_dt = dt._round(options)
         assert isinstance(rounded_dt, ry.DateTime)
+        rounded_via_kwargs = dt.round(
+            smallest="second", mode="floor", increment=increment
+        )
+        assert rounded_dt == rounded_via_kwargs
     except ValueError as _ve:
         with pytest.raises(ValueError):
-            dt.round(options)
+            dt._round(options)
 
 
 @given(datetime_strategy, datetime_strategy)

@@ -1,7 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::internal::IntoDateTimeRound;
 use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
@@ -11,9 +10,10 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
+use crate::ry_zoned_round::RyZonedDateTimeRound;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, JiffZoned, RyDate};
 use jiff::civil::Weekday;
-use jiff::{Zoned, ZonedDifference};
+use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDate, PyDateTime, PyType};
@@ -272,9 +272,34 @@ impl RyZoned {
         RyTimeZone::from(self.0.time_zone())
     }
 
-    fn round(&self, option: IntoDateTimeRound) -> PyResult<Self> {
+    #[pyo3(
+       signature = (smallest=None, *, mode = None, increment = None),
+    )]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<Self> {
+        let mut zdt_round = ZonedRound::new();
+        if let Some(smallest) = smallest {
+            zdt_round = zdt_round.smallest(smallest.0);
+        }
+        if let Some(mode) = mode {
+            zdt_round = zdt_round.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            zdt_round = zdt_round.increment(increment);
+        }
         self.0
-            .round(option)
+            .round(zdt_round)
+            .map(RyZoned::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn _round(&self, dt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
+        self.0
+            .round(dt_round.round)
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
