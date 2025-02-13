@@ -42,6 +42,7 @@ ryo3-regex = { workspace = true, optional = true }
 ryo3-reqwest = { workspace = true, optional = true }
 ryo3-same-file = { workspace = true, optional = true }
 ryo3-shlex = { workspace = true, optional = true }
+ryo3-size = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
 ryo3-tokio = { workspace = true, optional = true }
 ryo3-unindent = { workspace = true, optional = true }
@@ -54,23 +55,26 @@ ryo3-macros.workspace = true
 pyo3-async-runtimes.workspace = true
 
 [features]
-default = ["shlex", "jiter"]
+default = []
 all = [
   "brotli",
+  "bytes",
   "bzip2",
   "dirs",
   "flate2",
-  "bytes",
   "fnv",
   "globset",
   "heck",
   "http",
   "jiff",
   "jiter",
+  "jiter",
   "regex",
   "reqwest",
   "same-file",
   "shlex",
+  "shlex",
+  "size",
   "sqlformat",
   "tokio",
   "unindent",
@@ -80,6 +84,8 @@ all = [
   "xxhash",
   "zstd",
 ]
+# ry
+ry = ["all"] # `ry` uses all features
 
 brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:ryo3-bzip2"]
@@ -96,6 +102,7 @@ regex = ["dep:ryo3-regex", "ryo3-which/regex"]
 reqwest = ["dep:ryo3-reqwest", "http", "url", "bytes"]
 same-file = ["dep:ryo3-same-file"]
 shlex = ["dep:ryo3-shlex"]
+size = ["dep:ryo3-size"]
 sqlformat = ["dep:ryo3-sqlformat"]
 tokio = ["dep:ryo3-tokio"]
 unindent = ["dep:ryo3-unindent"]

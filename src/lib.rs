@@ -71,7 +71,6 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
     m.add("__authors__", AUTHORS)?;
     // register/add core lib from ryo3
-    ryo3::pymod_add(m)?;
-
+    ryo3::ry::pymod_add(m)?;
     Ok(())
 }

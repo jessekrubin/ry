@@ -1,0 +1,17 @@
+[package]
+name = "ryo3-size"
+description = "python + size crate (https://crates.io/crates/size)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+size.workspace = true
+
+[lints]
+workspace = true

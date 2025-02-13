@@ -21,6 +21,14 @@ pub struct PyFsPath {
     pth: PathBuf,
 }
 
+impl PyFsPath {
+    pub fn new<P: AsRef<Path>>(p: P) -> Self {
+        Self {
+            pth: p.as_ref().to_path_buf(),
+        }
+    }
+}
+
 #[cfg(target_os = "windows")]
 fn path2str<P: AsRef<Path>>(p: P) -> String {
     // remove the `\\?\` prefix if it exists

@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 
+#[allow(unused_variables)]
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "brotli")]
     ryo3_brotli::pymod_add(m)?;
@@ -33,6 +34,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_same_file::pymod_add(m)?;
     #[cfg(feature = "shlex")]
     ryo3_shlex::pymod_add(m)?;
+    #[cfg(feature = "size")]
+    ryo3_size::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]
     ryo3_sqlformat::pymod_add(m)?;
     #[cfg(feature = "unindent")]

@@ -30,6 +30,9 @@ from ._jiff import datetime as datetime
 from ._jiff import offset as offset
 from ._jiff import time as time
 from ._jiff import timespan as timespan
+from ._size import SizeFormatter as SizeFormatter
+from ._size import fmt_size as fmt_size
+from ._size import parse_size as parse_size
 from ._url import URL as URL
 from .http import Headers as Headers
 from .http import HttpStatus as HttpStatus
@@ -297,7 +300,26 @@ FsPathLike = str | FsPath | PathLike[str]
 def pwd() -> str: ...
 def home() -> str: ...
 def cd(path: FsPathLike) -> None: ...
-def ls(path: FsPathLike | None = None) -> list[FsPath]: ...
+@t.overload
+def ls(
+    path: FsPathLike | None = None,
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[False] = False,
+) -> list[str]:
+    """List directory contents - returns list of strings"""
+
+@t.overload
+def ls(
+    path: FsPathLike | None = None,
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[True] = True,
+) -> list[FsPath]:
+    """List directory contents - returns list of FsPath objects"""
+
 def quick_maths() -> t.Literal[3]:
     """Performs quick-maths
 
