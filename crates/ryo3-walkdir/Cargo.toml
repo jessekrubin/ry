@@ -13,6 +13,7 @@ repository.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 ryo3-globset.workspace = true
 ryo3-types = { workspace = true }
+ryo3-std = { workspace = true }
 walkdir = { workspace = true }
 
 [lints]
