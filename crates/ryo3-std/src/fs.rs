@@ -7,6 +7,7 @@ use std::time::SystemTime;
 #[pyclass(name = "FileType", module = "ry")]
 pub struct PyFileType(pub std::fs::FileType);
 impl PyFileType {
+    #[must_use]
     pub fn new(ft: std::fs::FileType) -> Self {
         Self(ft)
     }
@@ -21,16 +22,19 @@ impl From<std::fs::FileType> for PyFileType {
 #[pymethods]
 impl PyFileType {
     #[getter]
+    #[must_use]
     pub fn is_dir(&self) -> bool {
         self.0.is_dir()
     }
 
     #[getter]
+    #[must_use]
     pub fn is_file(&self) -> bool {
         self.0.is_file()
     }
 
     #[getter]
+    #[must_use]
     pub fn is_symlink(&self) -> bool {
         self.0.is_symlink()
     }
@@ -56,6 +60,7 @@ impl From<std::fs::Metadata> for PyMetadata {
 }
 
 impl PyMetadata {
+    #[must_use]
     pub fn new(m: std::fs::Metadata) -> Self {
         Self(m)
     }
@@ -76,28 +81,39 @@ impl PyMetadata {
     }
 
     #[getter]
+    #[must_use]
     pub fn file_type(&self) -> PyFileType {
         PyFileType::new(self.0.file_type())
     }
 
     #[getter]
+    #[must_use]
     pub fn is_dir(&self) -> bool {
         self.0.is_dir()
     }
 
     #[getter]
+    #[must_use]
     pub fn is_file(&self) -> bool {
         self.0.is_file()
     }
 
     #[getter]
+    #[must_use]
     pub fn is_symlink(&self) -> bool {
         self.0.file_type().is_symlink()
     }
 
     #[getter]
+    #[must_use]
     pub fn len(&self) -> u64 {
         self.0.len()
+    }
+
+    #[getter]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.len() == 0
     }
 
     #[getter]
@@ -107,6 +123,7 @@ impl PyMetadata {
     }
 
     #[getter]
+    #[must_use]
     pub fn readonly(&self) -> bool {
         self.0.permissions().readonly()
     }

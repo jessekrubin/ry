@@ -7,6 +7,8 @@
 - internal
   - Switch all lints from `#[allow(...)]`/`#![allow(...)]` to `#[expect(...)]`/`#![expect(...)]`
   - Removed a bunch o commented out code
+- `ryo3-std`
+  - added several `std::fs` structs
 
 ___
 
