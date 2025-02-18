@@ -4,6 +4,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::types::PyTuple;
 use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult, Python};
 use ryo3_types::PathLike;
+use std::path::Path;
 use std::str::FromStr;
 
 #[derive(Clone, Debug)]
@@ -32,6 +33,18 @@ impl TryFrom<Vec<String>> for PyGlobster {
 
     fn try_from(patterns: Vec<String>) -> PyResult<Self> {
         PyGlobster::py_new(patterns, None, None, None)
+    }
+}
+
+impl PyGlobster {
+    pub fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
+        let path = path.as_ref();
+        match (&self.0.globset, &self.0.nglobset) {
+            (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
+            (Some(gs), None) => gs.is_match(path),
+            (None, Some(ngs)) => !ngs.is_match(path),
+            _ => false,
+        }
     }
 }
 
@@ -131,7 +144,8 @@ impl PyGlobster {
         }
     }
 
-    pub fn is_match(&self, path: PathLike) -> bool {
+    #[pyo3(name = "is_match")]
+    pub fn py_is_match(&self, path: PathLike) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
             (Some(gs), Some(ngs)) => gs.is_match(&path) && !ngs.is_match(&path),
             (Some(gs), None) => gs.is_match(&path),

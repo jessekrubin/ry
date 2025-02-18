@@ -15,15 +15,6 @@ from ._xxhash_fixtures import (
     XXHashDataRecord,
 )
 
-# from ._xxhash_test_data import (
-#     XX32_SEEDS,
-#     XX32_TEST_DATA,
-#     XX64_SEEDS,
-#     XX64_TEST_DATA,
-#     XX128_SEEDS,
-#     XX128_TEST_DATA,
-# )
-
 try:
     # test against python-xxhash if importable...
     import xxhash
@@ -37,7 +28,9 @@ pytest_skip_xxhash = pytest.mark.skipif(
 
 def _bytes_from_record(rec: XXHashDataRecord) -> bytes:
     """Eval the bytes from the rec"""
-    return ast.literal_eval(rec["buf"])
+    b = ast.literal_eval(rec["buf"])
+    assert isinstance(b, bytes)
+    return b
 
 
 @pytest_skip_xxhash

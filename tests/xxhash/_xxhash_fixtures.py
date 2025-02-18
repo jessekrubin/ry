@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 from typing import TypedDict
 
@@ -29,18 +30,24 @@ class XXHashDataRecord(TypedDict):
     xxh3_128_0xFFFFFFFFFFFFFFFF: str
 
 
-def _load_data():
+def _load_data() -> list[XXHashDataRecord]:
     with open(_TEST_DATA, "r") as f:
         xx32_test_data = f.read()
     lines = xx32_test_data.split("\n")
     return [
-        XXHashDataRecord(
-            **row,
-        )
+        XXHashDataRecord(**row)  # type: ignore[typeddict-item]
         for row in (
             ry.parse_json(line) for line in lines if line.strip() if line.strip()
         )
+        if row
     ]
 
 
 XXHASH_TEST_DATA = _load_data()
+
+
+def _bytes_from_record(rec: XXHashDataRecord) -> bytes:
+    """Eval the bytes from the rec"""
+    b = ast.literal_eval(rec["buf"])
+    assert isinstance(b, bytes)
+    return b

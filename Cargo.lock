@@ -1904,6 +1904,7 @@ version = "0.0.30"
 dependencies = [
  "pyo3",
  "ryo3-globset",
+ "ryo3-std",
  "ryo3-types",
  "walkdir",
 ]

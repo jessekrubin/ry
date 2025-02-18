@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import ast
-
 import pytest
 
 from ry import xxhash as ry_xxh
 
-from ._xxhash_fixtures import XXHASH_TEST_DATA, XXHashDataRecord
+from ._xxhash_fixtures import XXHASH_TEST_DATA, XXHashDataRecord, _bytes_from_record
 
 
 class TestXxh32Hasher:
@@ -81,11 +79,6 @@ def test_xxh32_hexdigest() -> None:
 # -----------------------------------------------------------------------------
 # UTILS
 # -----------------------------------------------------------------------------
-
-
-def _bytes_from_record(rec: XXHashDataRecord) -> bytes:
-    """Eval the bytes from the rec"""
-    return ast.literal_eval(rec["buf"])
 
 
 def _assert_xxh32_all_forms(
