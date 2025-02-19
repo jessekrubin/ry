@@ -31,7 +31,7 @@ class XXHashDataRecord(TypedDict):
 
 
 def _load_data() -> list[XXHashDataRecord]:
-    with open(_TEST_DATA, "r") as f:
+    with open(_TEST_DATA) as f:
         xx32_test_data = f.read()
     lines = xx32_test_data.split("\n")
     return [

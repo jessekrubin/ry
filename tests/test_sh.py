@@ -16,7 +16,7 @@ def test_ls_objects(tmp_path: Path) -> None:
     (tmp_path / "b.txt").write_text("world")
     paths = ry.ls(tmp_path, objects=True)
     assert all(isinstance(p, ry.FsPath) for p in paths)
-    assert set(str(e) for e in ry.ls(tmp_path, objects=True)) == {
+    assert {str(e) for e in ry.ls(tmp_path, objects=True)} == {
         "a.txt",
         "b.txt",
     }

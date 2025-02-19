@@ -96,13 +96,13 @@ def _assert_xxh32_all_forms(
     # hexdigest
     actual_hexes = [ry_xxh.xxh32_hexdigest(data, seed=s) for s in seeds]
     assert [int(h, 16) for h in actual_hexes] == expected_ints, (
-        f"xxh32_hexdigest mismatch"
+        "xxh32_hexdigest mismatch"
     )
 
     # digest (raw bytes)
     actual_digests = [ry_xxh.xxh32_digest(data, seed=s) for s in seeds]
     actual_from_bytes = [int.from_bytes(d, "big") for d in actual_digests]
-    assert actual_from_bytes == expected_ints, f"xxh32_digest mismatch"
+    assert actual_from_bytes == expected_ints, "xxh32_digest mismatch"
 
 
 def _assert_xxh64_all_forms(
