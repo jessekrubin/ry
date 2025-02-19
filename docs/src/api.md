@@ -8,6 +8,7 @@
 import datetime as pydt
 import typing as t
 from os import PathLike
+from pathlib import Path
 
 import typing_extensions as te
 
@@ -264,6 +265,7 @@ class FsPath:
     def __ge__(self, other: PathLike[str] | str) -> bool: ...
     def __truediv__(self, other: PathLike[str] | str) -> FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -> FsPath: ...
+    def to_pathlib(self) -> Path: ...
     def read_text(self) -> str: ...
     def read_bytes(self) -> bytes: ...
     def absolute(self) -> FsPath: ...
@@ -2880,8 +2882,7 @@ import ry
 
 if t.TYPE_CHECKING:
     from ry import Duration, Headers
-
-    from ._url import URL
+    from ry.ryo3._url import URL
 
 
 class HttpClient:
