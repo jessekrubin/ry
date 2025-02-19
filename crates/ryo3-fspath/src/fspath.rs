@@ -1,6 +1,7 @@
 //! `FsPath` struct python module
 
 // TODO: remove in future? if possible?
+use crate::pathlib::path2pathlib;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
@@ -81,6 +82,10 @@ impl PyFsPath {
     fn equiv(&self, other: PathLike) -> bool {
         let other = other.as_ref();
         self.pth == other
+    }
+
+    fn to_pathlib<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        path2pathlib(py, &self.pth)
     }
 
     fn __hash__(&self) -> u64 {

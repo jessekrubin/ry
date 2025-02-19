@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.30 [2025-02-11]
+## v0.0.30 [2025-02-18]
 
 - `jiff`
   - Upgraded jiff to version 2
@@ -9,6 +9,8 @@
   - Removed a bunch o commented out code
 - `ryo3-std`
   - added several `std::fs` structs
+- `ryo3-fspath`
+  - conversion to `pathlib.Path` by way of `FsPath.to_pathlib()`
 
 ___
 

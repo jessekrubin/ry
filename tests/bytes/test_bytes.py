@@ -33,7 +33,7 @@ def test_uno_byte_bytes_repr(b: bytes) -> None:
     """Test the repr of Bytes and bytes for single byte values."""
     rust_bytes = Bytes(b)
     rust_bytes_str = repr(rust_bytes)
-    rust_bytes_str_eval = eval(rust_bytes_str)  # noqa: S307
+    rust_bytes_str_eval = eval(rust_bytes_str)
     assert rust_bytes_str_eval == rust_bytes == b
 
 
