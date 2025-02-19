@@ -4,7 +4,7 @@ use pyo3::types::PyType;
 use pyo3::{PyAny, PyResult};
 use std::path::Path;
 
-pub fn path2pathlib<'py, T: AsRef<Path>>(py: Python<'py>, path: T) -> PyResult<Bound<'py, PyAny>> {
+pub(crate) fn path2pathlib<T: AsRef<Path>>(py: Python<'_>, path: T) -> PyResult<Bound<'_, PyAny>> {
     static PATHLIB: GILOnceCell<Py<PyType>> = GILOnceCell::new();
 
     PATHLIB
