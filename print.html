@@ -156,7 +156,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-02-18T20:31:16.222956716+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-02-19T04:17:58.56049563+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -279,6 +279,7 @@ into separate packages</li>
 import datetime as pydt
 import typing as t
 from os import PathLike
+from pathlib import Path
 
 import typing_extensions as te
 
@@ -535,6 +536,7 @@ class FsPath:
     def __ge__(self, other: PathLike[str] | str) -&gt; bool: ...
     def __truediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
+    def to_pathlib(self) -&gt; Path: ...
     def read_text(self) -&gt; str: ...
     def read_bytes(self) -&gt; bytes: ...
     def absolute(self) -&gt; FsPath: ...
@@ -3133,8 +3135,7 @@ import ry
 
 if t.TYPE_CHECKING:
     from ry import Duration, Headers
-
-    from ._url import URL
+    from ry.ryo3._url import URL
 
 
 class HttpClient:
@@ -3451,7 +3452,7 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <hr />
 <p>If you want to be added to this list, please open an issue or PR! Happy to add you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0030-2025-02-11"><a class="header" href="#v0030-2025-02-11">v0.0.30 [2025-02-11]</a></h2>
+<h2 id="v0030-2025-02-18"><a class="header" href="#v0030-2025-02-18">v0.0.30 [2025-02-18]</a></h2>
 <ul>
 <li><code>jiff</code>
 <ul>
@@ -3467,6 +3468,11 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <li><code>ryo3-std</code>
 <ul>
 <li>added several <code>std::fs</code> structs</li>
+</ul>
+</li>
+<li><code>ryo3-fspath</code>
+<ul>
+<li>conversion to <code>pathlib.Path</code> by way of <code>FsPath.to_pathlib()</code></li>
 </ul>
 </li>
 </ul>
@@ -3996,6 +4002,7 @@ IntoPyObject (REF)</li>
 import datetime as pydt
 import typing as t
 from os import PathLike
+from pathlib import Path
 
 import typing_extensions as te
 
@@ -4252,6 +4259,7 @@ class FsPath:
     def __ge__(self, other: PathLike[str] | str) -&gt; bool: ...
     def __truediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
+    def to_pathlib(self) -&gt; Path: ...
     def read_text(self) -&gt; str: ...
     def read_bytes(self) -&gt; bytes: ...
     def absolute(self) -&gt; FsPath: ...
@@ -6850,8 +6858,7 @@ import ry
 
 if t.TYPE_CHECKING:
     from ry import Duration, Headers
-
-    from ._url import URL
+    from ry.ryo3._url import URL
 
 
 class HttpClient:

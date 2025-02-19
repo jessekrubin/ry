@@ -158,7 +158,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-02-18T20:31:16.222956716+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-02-19T04:17:58.56049563+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -281,6 +281,7 @@ into separate packages</li>
 import datetime as pydt
 import typing as t
 from os import PathLike
+from pathlib import Path
 
 import typing_extensions as te
 
@@ -537,6 +538,7 @@ class FsPath:
     def __ge__(self, other: PathLike[str] | str) -&gt; bool: ...
     def __truediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
+    def to_pathlib(self) -&gt; Path: ...
     def read_text(self) -&gt; str: ...
     def read_bytes(self) -&gt; bytes: ...
     def absolute(self) -&gt; FsPath: ...
@@ -3135,8 +3137,7 @@ import ry
 
 if t.TYPE_CHECKING:
     from ry import Duration, Headers
-
-    from ._url import URL
+    from ry.ryo3._url import URL
 
 
 class HttpClient:
