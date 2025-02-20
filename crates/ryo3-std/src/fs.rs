@@ -180,6 +180,19 @@ pub fn write(fspath: PathLike, b: &Bound<'_, PyAny>) -> PyResult<usize> {
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
+pub fn write<'py>(fspath: PathLike, b: &Bound<'py, PyAny>) -> PyResult<usize> {
+    let bref = extract_bytes_ref_str(b)?;
+    let write_res = std::fs::write(fspath.as_ref(), bref);
+    match write_res {
+        Ok(()) => Ok(bref.len()),
+        Err(e) => Err(PyNotADirectoryError::new_err(format!(
+            "write_bytes - parent: {fspath} - {e}"
+        ))),
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+#[pyfunction]
 pub fn write_bytes(fspath: PathLike, b: &[u8]) -> PyResult<usize> {
     let write_res = std::fs::write(fspath.as_ref(), b);
     match write_res {
