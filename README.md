@@ -29,7 +29,8 @@ uv add ry
 ## Quickstart
 
 Check out the [examples](https://github.com/jessekrubin/ry/tree/main/examples) directory for some quickstart examples.
-__
+
+___
 
 
 ## What and why?
