@@ -1,10 +1,25 @@
 use pyo3::prelude::*;
+use pyo3::types::PyString;
 use ryo3_regex::PyRegex;
 use std::path::PathBuf;
 
+fn extract_regex(regex: Bound<PyAny>) -> PyResult<PyRegex> {
+    if let Ok(regex) = regex.downcast::<PyString>() {
+        let regex = regex.to_str()?;
+        PyRegex::try_from(regex)
+    } else if let Ok(regex) = regex.extract::<PyRegex>() {
+        Ok(regex)
+    } else {
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "which-re: regex must be a string or a compiled regex",
+        ))
+    }
+}
+
 #[pyfunction]
 #[pyo3(signature= (regex, path=None))]
-pub fn which_re(regex: PyRegex, path: Option<&str>) -> PyResult<Vec<PathBuf>> {
+pub fn which_re<'py>(regex: Bound<'py, PyAny>, path: Option<&str>) -> PyResult<Vec<PathBuf>> {
+    let regex = extract_regex(regex)?;
     if let Some(p) = path {
         match ::which::which_re_in(regex, Some(p)) {
             Ok(p) => {

@@ -10,6 +10,16 @@ pub struct PyRegex {
     pub options: Option<PyRegexOptions>,
 }
 
+impl TryFrom<&str> for PyRegex {
+    type Error = PyErr;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Regex::new(s).map(PyRegex::from).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
+        })
+    }
+}
+
 impl From<Regex> for PyRegex {
     fn from(re: Regex) -> Self {
         PyRegex { re, options: None }
@@ -75,7 +85,7 @@ impl PyRegex {
     ))]
     #[expect(clippy::too_many_arguments)]
     #[expect(clippy::fn_params_excessive_bools)]
-    fn py_new(
+    pub fn py_new(
         pattern: &str,
         // kwargs
         case_insensitive: bool,
