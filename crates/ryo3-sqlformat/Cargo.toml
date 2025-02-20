@@ -13,7 +13,7 @@ categories.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
-sqlformat = "0.3.5"
+sqlformat = { workspace=true}
 
 [lints]
 workspace = true

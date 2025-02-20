@@ -13,8 +13,8 @@ categories.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-ryo3-core.workspace = true
-same-file = "1.0.6"
+ryo3-core = { workspace = true }
+same-file = { workspace = true }
 
 [lints]
 workspace = true

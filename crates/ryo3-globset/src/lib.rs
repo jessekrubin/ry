@@ -105,28 +105,28 @@ impl PyGlob {
         self.glob.regex().to_string()
     }
 
-    fn globset(&self) -> PyGlobSet {
-        PyGlobSet {
+    fn globset(&self) -> PyResult<PyGlobSet> {
+        let gs = GlobSetBuilder::new()
+            .add(self.glob.clone())
+            .build()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok(PyGlobSet {
             patterns: vec![self.pattern.clone()],
-            globset: GlobSetBuilder::new()
-                .add(self.glob.clone())
-                .build()
-                .unwrap(),
-        }
+            globset: gs,
+        })
     }
 
-    fn globster(&self) -> PyGlobster {
-        PyGlobster(Globster {
+    fn globster(&self) -> PyResult<PyGlobster> {
+        let globset = GlobSetBuilder::new()
+            .add(self.glob.clone())
+            .build()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok(PyGlobster(Globster {
             patterns: vec![self.pattern.clone()],
-            globset: Some(
-                GlobSetBuilder::new()
-                    .add(self.glob.clone())
-                    .build()
-                    .unwrap(),
-            ),
+            globset: Some(globset),
             nglobset: None,
             length: 1,
-        })
+        }))
     }
 }
 
@@ -258,7 +258,7 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
 
     fn try_from(globster_like: &GlobsterLike) -> PyResult<Self> {
         match globster_like {
-            GlobsterLike::Glob(glob) => Ok(glob.globster()),
+            GlobsterLike::Glob(glob) => glob.globster(),
             GlobsterLike::GlobSet(globset) => Ok(globset.globster()),
             GlobsterLike::Globster(globster) => Ok(globster.clone()),
             GlobsterLike::Strings(patterns) => PyGlobster::try_from(patterns.clone()),

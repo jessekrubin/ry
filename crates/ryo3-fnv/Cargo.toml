@@ -12,8 +12,8 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-fnv = "1.0.7"
+fnv = { workspace = true }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 
-# [lints]
-# workspace = true
+[lints]
+workspace = true

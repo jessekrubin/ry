@@ -123,6 +123,7 @@ impl PyGlobster {
         let tuple_str = self.patterns_string();
         format!("Globster({tuple_str})")
     }
+
     fn __repr__(&self) -> String {
         self.__str__()
     }
@@ -144,6 +145,7 @@ impl PyGlobster {
         }
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     #[pyo3(name = "is_match")]
     pub fn py_is_match(&self, path: PathLike) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
