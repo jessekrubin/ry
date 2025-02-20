@@ -136,6 +136,7 @@ impl PyGlobster {
         self.0.length == 0
     }
 
+    #[must_use]
     pub fn is_match_str(&self, path: &str) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
             (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
@@ -147,6 +148,7 @@ impl PyGlobster {
 
     #[allow(clippy::needless_pass_by_value)]
     #[pyo3(name = "is_match")]
+    #[must_use]
     pub fn py_is_match(&self, path: PathLike) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
             (Some(gs), Some(ngs)) => gs.is_match(&path) && !ngs.is_match(&path),

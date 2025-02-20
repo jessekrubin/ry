@@ -14,8 +14,8 @@ categories = ["api-bindings"]
 [build-dependencies]
 jiff.workspace = true
 
-#[lints]
-#workspace = true
+[lints]
+workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async", "num-bigint"] }
