@@ -11,7 +11,7 @@ repository.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-ryo3-types.workspace = true
+ryo3-core.workspace = true
 same-file = "1.0.6"
 
 [lints]

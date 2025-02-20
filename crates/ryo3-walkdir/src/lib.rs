@@ -3,8 +3,8 @@
 mod walkdir_entry;
 
 use pyo3::{prelude::*, IntoPyObjectExt};
+use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
-use ryo3_types::PathLike;
 use std::path::Path;
 
 #[pyclass(name = "WalkdirGen", module = "ryo3")]

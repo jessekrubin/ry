@@ -2,8 +2,8 @@ use pyo3::exceptions::{PyFileNotFoundError, PyOSError};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{pyfunction, wrap_pyfunction, IntoPyObjectExt, PyResult};
+use ryo3_core::types::PathLike;
 use ryo3_fspath::PyFsPath;
-use ryo3_types::PathLike;
 use std::fs::read_dir;
 
 #[pyfunction]

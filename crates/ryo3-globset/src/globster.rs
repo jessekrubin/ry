@@ -3,7 +3,7 @@ use globset::{GlobBuilder, GlobSetBuilder};
 use pyo3::exceptions::PyValueError;
 use pyo3::types::PyTuple;
 use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult, Python};
-use ryo3_types::PathLike;
+use ryo3_core::types::PathLike;
 use std::path::Path;
 use std::str::FromStr;
 

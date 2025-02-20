@@ -2,7 +2,7 @@
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{wrap_pyfunction, PyResult};
-use ryo3_types::PathLike;
+use ryo3_core::types::PathLike;
 
 /// Returns `True` (pronounced 'twoo') if pathlike points to same file
 #[pyfunction]

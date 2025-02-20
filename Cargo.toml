@@ -48,7 +48,7 @@ members = [
   "crates/_ryo3-dev",
   "crates/_ryo3-quick-maths",
   "crates/ryo3-macros",
-  "crates/ryo3-types",
+  "crates/ryo3-core",
   "crates/ryo3-std",
   "crates/ryo3-fspath",
   # external wrappers
@@ -97,7 +97,7 @@ repository = "https://github.com/jessekrubin/ry"
 # internal
 ryo3 = { path = "./crates/ryo3", features = ["ry"] }
 ryo3-dev = { path = "./crates/_ryo3-dev" }
-ryo3-types = { path = "./crates/ryo3-types" }
+ryo3-core = { path = "./crates/ryo3-core" }
 ryo3-std = { path = "./crates/ryo3-std" }
 ryo3-fspath = { path = "./crates/ryo3-fspath" }
 ryo3-macros = { path = "./crates/ryo3-macros" }

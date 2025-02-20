@@ -6,7 +6,7 @@ use ::globset::{Glob, GlobBuilder, GlobSetBuilder};
 use globster::Globster;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use ryo3_types::{PathLike, StringOrStrings};
+use ryo3_core::types::{PathLike, StringOrStrings};
 use std::str::FromStr;
 
 /// Default value for the `literal_separator` parameter.

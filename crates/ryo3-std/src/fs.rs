@@ -2,7 +2,7 @@ use pyo3::exceptions::{PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use ryo3_bytes::extract_bytes_ref_str;
-use ryo3_types::PathLike;
+use ryo3_core::types::PathLike;
 use std::time::SystemTime;
 
 #[pyclass(name = "FileType", module = "ry")]

@@ -8,7 +8,10 @@ use pyo3::types::PyString;
 /// Faster py-string creation as done by jiter + orjson
 pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bound<'py, PyString> {
     if ascii_only {
-        unsafe { pystring_ascii_new(py, s) }
+        #[allow(unsafe_code)]
+        unsafe {
+            pystring_ascii_new(py, s)
+        }
     } else {
         PyString::new(py, s)
     }
@@ -16,6 +19,7 @@ pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bou
 
 /// Faster creation of PyString from an ASCII string, inspired by
 /// https://github.com/ijl/orjson/blob/3.10.0/src/str/create.rs#L41
+#[allow(unsafe_code)]
 #[cfg(not(any(PyPy, GraalPy)))]
 unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     // disabled on everything except tier-1 platforms because of a crash in the built wheels from CI,
