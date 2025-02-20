@@ -11,7 +11,7 @@ pub fn read_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
         tokio::fs::read(pth)
             .await
             .map(ryo3_bytes::PyBytes::from)
-            .map_err(|e| PyErr::from(e))
+            .map_err(PyErr::from)
     })
 }
 
@@ -24,6 +24,6 @@ pub fn write_async(py: Python<'_>, fspath: PathBuf, b: PyBytes) -> PyResult<Boun
         tokio::fs::write(fspath, b)
             .await
             .map(|()| len)
-            .map_err(|e| PyErr::from(e))
+            .map_err(PyErr::from)
     })
 }
