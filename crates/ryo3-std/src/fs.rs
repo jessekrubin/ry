@@ -170,7 +170,7 @@ pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
 
 #[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
-pub fn write<'py>(fspath: PathLike, b: &Bound<'py, PyAny>) -> PyResult<usize> {
+pub fn write(fspath: PathLike, b: &Bound<'_, PyAny>) -> PyResult<usize> {
     let bref = extract_bytes_ref_str(b)?;
     let write_res = std::fs::write(fspath.as_ref(), bref);
     match write_res {
