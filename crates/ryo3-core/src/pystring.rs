@@ -1,11 +1,12 @@
 //! python-strings module
 //!
 //! REF(s):
-//! - https://github.com/pydantic/jiter/blob/main/crates/jiter/src/py_string_cache.rs
+//! - <https://github.com/pydantic/jiter/blob/main/crates/jiter/src/py_string_cache.rs>
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 
 /// Faster py-string creation as done by jiter + orjson
+#[must_use]
 pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bound<'py, PyString> {
     if ascii_only {
         #[allow(unsafe_code)]
@@ -17,14 +18,14 @@ pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bou
     }
 }
 
-/// Faster creation of PyString from an ASCII string, inspired by
-/// https://github.com/ijl/orjson/blob/3.10.0/src/str/create.rs#L41
-#[allow(unsafe_code)]
+/// Faster creation of `PyString` from an ASCII string, inspired by
+/// <https://github.com/ijl/orjson/blob/3.10.0/src/str/create.rs#L41>
+#[expect(unsafe_code)]
+#[expect(clippy::cast_possible_wrap)]
 #[cfg(not(any(PyPy, GraalPy)))]
 unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     // disabled on everything except tier-1 platforms because of a crash in the built wheels from CI,
     // see https://github.com/pydantic/jiter/pull/175
-
     let ptr = pyo3::ffi::PyUnicode_New(s.len() as isize, 127);
     debug_assert_eq!(
         pyo3::ffi::PyUnicode_KIND(ptr),
