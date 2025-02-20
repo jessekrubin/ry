@@ -12,6 +12,8 @@ from pathlib import Path
 
 import typing_extensions as te
 
+from ry._types import Buffer
+
 from . import http as http
 from ._bytes import Bytes as Bytes
 from ._jiff import Date as Date
@@ -48,6 +50,8 @@ from .reqwest import ReqwestError as ReqwestError
 from .reqwest import Response as Response
 from .reqwest import ResponseStream as ResponseStream
 from .reqwest import fetch as fetch
+from .tokio import read_async as read_async
+from .tokio import write_async as write_async
 
 __version__: str
 __authors__: str
@@ -412,10 +416,12 @@ async def asleep(seconds: float) -> float:
 # =============================================================================
 # FILESYSTEM
 # =============================================================================
-def read_text(path: FsPathLike) -> str: ...
+def read(path: FsPathLike) -> Bytes: ...
 def read_bytes(path: FsPathLike) -> bytes: ...
-def write_text(path: FsPathLike, data: str) -> None: ...
+def read_text(path: FsPathLike) -> str: ...
+def write(path: FsPathLike, data: Buffer | str) -> None: ...
 def write_bytes(path: FsPathLike, data: bytes) -> None: ...
+def write_text(path: FsPathLike, data: str) -> None: ...
 
 
 # -----------------------------------------------------------------------------
@@ -459,7 +465,7 @@ class Regex:
 # =============================================================================
 def which(cmd: str, path: None | str = None) -> str | None: ...
 def which_all(cmd: str, path: None | str = None) -> list[str]: ...
-def which_re(regex: Regex, path: None | str = None) -> list[str]: ...
+def which_re(regex: str | Regex, path: None | str = None) -> list[str]: ...
 
 
 # =============================================================================
@@ -837,9 +843,9 @@ import sys
 from typing import overload
 
 if sys.version_info >= (3, 12):
-    from collections.abc import Buffer
+    from collections.abc import Buffer as Buffer
 else:
-    from typing_extensions import Buffer
+    from typing_extensions import Buffer as Buffer
 
 
 class Bytes(Buffer):
@@ -969,6 +975,9 @@ class Bytes(Buffer):
     @classmethod
     def fromhex(cls, hexstr: str) -> Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
+
+
+BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 ```
 ## `ry._dev`
@@ -2969,6 +2978,18 @@ async def fetch(
     body: bytes | None = None,
     headers: dict[str, str] | None = None,
 ) -> Response: ...
+
+```
+## `ry.tokio`
+
+```python
+from ry import Bytes
+from ry._types import Buffer
+from ry.ryo3 import FsPathLike
+
+
+async def read_async(path: FsPathLike) -> Bytes: ...
+async def write_async(path: FsPathLike, data: Buffer) -> None: ...
 
 ```
 ## `ry.xxhash`

@@ -6,9 +6,9 @@ import sys
 from typing import TypedDict
 
 if sys.version_info >= (3, 12):
-    from collections.abc import Buffer as Buffer
+    from collections.abc import Buffer
 else:
-    from typing_extensions import Buffer as Buffer
+    from typing_extensions import Buffer
 __all__ = (
     "Buffer",
     "DateTimeTypedDict",

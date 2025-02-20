@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v0.0.31
+
+- `ryo3-core`
+  - got rid of `ryo3-types` and moved into `ryo3-core`
+- `ryo3-tokio`
+  - `read_async` and `write_async` async functions
+- `ryo3-which`
+  - `which_re` functions accepts `ry.Regex` or `str` now
+- `ryo3-std`
+  - `read` and `write` functions which take/return `ry.Bytes` objects
+
+___
+
 ## v0.0.30 [2025-02-18]
 
 - `jiff`
