@@ -32,7 +32,32 @@ def test_read_bytes(tmp_path: Path) -> None:
     p = tmp_path / "test.txt"
     p.write_bytes(b"hello")
     ry.cd(tmp_path)
-    assert ry.read_bytes("test.txt") == b"hello"
+    pybytes = ry.read_bytes("test.txt")
+    assert pybytes == b"hello"
+    assert isinstance(pybytes, bytes)
+    rybytes = ry.read("test.txt")
+    assert pybytes == rybytes
+
+
+def test_fs_read_write(tmp_path: Path) -> None:
+    p = tmp_path / "test.txt"
+    ry.cd(tmp_path)
+    ry.write("test.txt", b"hello")
+    assert p.read_bytes() == b"hello"
+    assert ry.read("test.txt") == b"hello"
+    ry.write("test.txt", "hello")
+    assert p.read_text() == "hello"
+    assert ry.read("test.txt") == b"hello"
+
+
+@pytest.mark.anyio
+async def test_fs_read_write_async(tmp_path: Path) -> None:
+    p = tmp_path / "test.txt"
+    ry.cd(tmp_path)
+    await ry.write_async("test.txt", b"hello")
+    assert p.read_bytes() == b"hello"
+    data_read = await ry.read_async("test.txt")
+    assert data_read == b"hello"
 
 
 def test_read_file_missing(tmp_path: Path) -> None:

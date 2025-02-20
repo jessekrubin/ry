@@ -12,6 +12,7 @@ repository.workspace = true
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 pyo3-async-runtimes.workspace = true
+ryo3-bytes.workspace = true
 tokio.workspace = true
 
 [lints]

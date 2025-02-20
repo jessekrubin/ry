@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import sys
 from typing import TypedDict
 
+if sys.version_info >= (3, 12):
+    from collections.abc import Buffer as Buffer
+else:
+    from typing_extensions import Buffer as Buffer
 __all__ = (
+    "Buffer",
     "DateTimeTypedDict",
     "DateTypedDict",
     "TimeSpanTypedDict",

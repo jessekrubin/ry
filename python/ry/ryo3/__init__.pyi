@@ -7,6 +7,8 @@ from pathlib import Path
 
 import typing_extensions as te
 
+from ry._types import Buffer
+
 from . import http as http
 from ._bytes import Bytes as Bytes
 from ._jiff import Date as Date
@@ -43,6 +45,8 @@ from .reqwest import ReqwestError as ReqwestError
 from .reqwest import Response as Response
 from .reqwest import ResponseStream as ResponseStream
 from .reqwest import fetch as fetch
+from .tokio import read_async as read_async
+from .tokio import write_async as write_async
 
 __version__: str
 __authors__: str
@@ -390,10 +394,12 @@ async def asleep(seconds: float) -> float:
 # =============================================================================
 # FILESYSTEM
 # =============================================================================
-def read_text(path: FsPathLike) -> str: ...
+def read(path: FsPathLike) -> Bytes: ...
 def read_bytes(path: FsPathLike) -> bytes: ...
-def write_text(path: FsPathLike, data: str) -> None: ...
+def read_text(path: FsPathLike) -> str: ...
+def write(path: FsPathLike, data: Buffer | str) -> None: ...
 def write_bytes(path: FsPathLike, data: bytes) -> None: ...
+def write_text(path: FsPathLike, data: str) -> None: ...
 
 # -----------------------------------------------------------------------------
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\

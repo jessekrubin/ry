@@ -1861,6 +1861,7 @@ name = "ryo3-std"
 version = "0.0.30"
 dependencies = [
  "pyo3",
+ "ryo3-bytes",
  "ryo3-macros",
  "ryo3-types",
 ]
@@ -1871,6 +1872,7 @@ version = "0.0.30"
 dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
+ "ryo3-bytes",
  "tokio",
 ]
 

@@ -1,6 +1,7 @@
 use pyo3::exceptions::{PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
+use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_types::PathLike;
 use std::time::SystemTime;
 
@@ -138,6 +139,14 @@ impl PyMetadata {
 // ============================================================================
 // FUNCTIONS
 // ============================================================================
+
+#[allow(clippy::needless_pass_by_value)]
+#[pyfunction]
+pub fn read(pth: PathLike) -> PyResult<ryo3_bytes::PyBytes> {
+    let fbytes = std::fs::read(pth)?;
+    Ok(fbytes.into())
+}
+
 #[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
@@ -156,6 +165,19 @@ pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
             let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
             Err(decode_err.into())
         }
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+#[pyfunction]
+pub fn write<'py>(fspath: PathLike, b: &Bound<'py, PyAny>) -> PyResult<usize> {
+    let bref = extract_bytes_ref_str(b)?;
+    let write_res = std::fs::write(fspath.as_ref(), bref);
+    match write_res {
+        Ok(()) => Ok(bref.len()),
+        Err(e) => Err(PyNotADirectoryError::new_err(format!(
+            "write_bytes - parent: {fspath} - {e}"
+        ))),
     }
 }
 
@@ -186,9 +208,11 @@ pub fn write_text(fspath: PathLike, string: &str) -> PyResult<usize> {
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
-    m.add_function(wrap_pyfunction!(read_text, m)?)?;
+    m.add_function(wrap_pyfunction!(read, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
-    m.add_function(wrap_pyfunction!(write_text, m)?)?;
+    m.add_function(wrap_pyfunction!(read_text, m)?)?;
+    m.add_function(wrap_pyfunction!(write, m)?)?;
     m.add_function(wrap_pyfunction!(write_bytes, m)?)?;
+    m.add_function(wrap_pyfunction!(write_text, m)?)?;
     Ok(())
 }
