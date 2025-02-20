@@ -1,7 +1,15 @@
 [package]
 name = "ryo3"
+description = "ry(o3) = rust & pyo3 & python"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+authors.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories = ["api-bindings"]
 
 [build-dependencies]
 jiff.workspace = true

@@ -4,6 +4,12 @@ description = "ry = rust + python"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
@@ -89,6 +95,8 @@ edition = "2021"
 homepage = "https://github.com/jessekrubin/ry"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"
+keywords = ["python", "pyo3", "ryo3"]
+categories = ["api-bindings"]
 
 [workspace.dependencies]
 # ======
@@ -170,6 +178,7 @@ unreachable_pub = "warn"
 
 [workspace.lints.clippy]
 # groups
+cargo = { level = "warn", priority = 2 }
 all = { level = "warn", priority = -2 }
 pedantic = { level = "warn", priority = -2 }
 correctness = { level = "warn", priority = 2 }

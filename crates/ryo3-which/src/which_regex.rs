@@ -3,7 +3,7 @@ use pyo3::types::PyString;
 use ryo3_regex::PyRegex;
 use std::path::PathBuf;
 
-fn extract_regex(regex: Bound<PyAny>) -> PyResult<PyRegex> {
+fn extract_regex(regex: &Bound<PyAny>) -> PyResult<PyRegex> {
     if let Ok(regex) = regex.downcast::<PyString>() {
         let regex = regex.to_str()?;
         PyRegex::try_from(regex)
@@ -18,7 +18,7 @@ fn extract_regex(regex: Bound<PyAny>) -> PyResult<PyRegex> {
 
 #[pyfunction]
 #[pyo3(signature= (regex, path=None))]
-pub fn which_re<'py>(regex: Bound<'py, PyAny>, path: Option<&str>) -> PyResult<Vec<PathBuf>> {
+pub fn which_re(regex: &Bound<'_, PyAny>, path: Option<&str>) -> PyResult<Vec<PathBuf>> {
     let regex = extract_regex(regex)?;
     if let Some(p) = path {
         match ::which::which_re_in(regex, Some(p)) {
