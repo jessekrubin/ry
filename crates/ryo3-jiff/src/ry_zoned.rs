@@ -22,7 +22,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTime", module = "ryo3")]
+#[pyclass(name = "ZonedDateTime", module = "ryo3", frozen)]
 pub struct RyZoned(pub(crate) Zoned);
 
 #[pymethods]
@@ -194,21 +194,24 @@ impl RyZoned {
         }
     }
 
-    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => {
-                self.0.checked_sub(other.0).map_err(map_py_value_err)?
-            }
-            RyDeltaArithmeticSelf::SignedDuration(other) => {
-                self.0.checked_sub(other.0).map_err(map_py_value_err)?
-            }
-            RyDeltaArithmeticSelf::Duration(other) => {
-                self.0.checked_sub(other.0).map_err(map_py_value_err)?
-            }
-        };
-        self.0 = t;
-        Ok(())
-    }
+    // ----------------------------
+    // incompatible with `frozen`
+    // ----------------------------
+    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    //     let t = match other {
+    //         RyDeltaArithmeticSelf::Span(other) => {
+    //             self.0.checked_sub(other.0).map_err(map_py_value_err)?
+    //         }
+    //         RyDeltaArithmeticSelf::SignedDuration(other) => {
+    //             self.0.checked_sub(other.0).map_err(map_py_value_err)?
+    //         }
+    //         RyDeltaArithmeticSelf::Duration(other) => {
+    //             self.0.checked_sub(other.0).map_err(map_py_value_err)?
+    //         }
+    //     };
+    //     self.0 = t;
+    //     Ok(())
+    // }
 
     fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         let t = match other {
@@ -225,21 +228,25 @@ impl RyZoned {
         Ok(Self::from(t))
     }
 
-    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => {
-                self.0.checked_add(other.0).map_err(map_py_value_err)?
-            }
-            RyDeltaArithmeticSelf::SignedDuration(other) => {
-                self.0.checked_add(other.0).map_err(map_py_value_err)?
-            }
-            RyDeltaArithmeticSelf::Duration(other) => {
-                self.0.checked_add(other.0).map_err(map_py_value_err)?
-            }
-        };
-        self.0 = t;
-        Ok(())
-    }
+    // ----------------------------
+    // incompatible with `frozen`
+    // ----------------------------
+    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    //     let t = match other {
+    //         RyDeltaArithmeticSelf::Span(other) => {
+    //             self.0.checked_add(other.0).map_err(map_py_value_err)?
+    //         }
+    //         RyDeltaArithmeticSelf::SignedDuration(other) => {
+    //             self.0.checked_add(other.0).map_err(map_py_value_err)?
+    //         }
+    //         RyDeltaArithmeticSelf::Duration(other) => {
+    //             self.0.checked_add(other.0).map_err(map_py_value_err)?
+    //         }
+    //     };
+    //     self.0 = t;
+    //     Ok(())
+    // }
+
     fn checked_add(&self, py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         self.__add__(py, other)
     }

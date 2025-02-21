@@ -5,7 +5,7 @@ use jiff::TimestampDifference;
 use pyo3::prelude::*;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimestampDifference", module = "ryo3")]
+#[pyclass(name = "TimestampDifference", module = "ryo3", frozen)]
 pub struct RyTimestampDifference(pub(crate) TimestampDifference);
 
 impl From<TimestampDifference> for RyTimestampDifference {

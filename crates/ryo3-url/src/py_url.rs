@@ -1,6 +1,6 @@
 use crate::UrlLike;
-use pyo3::prelude::*;
 use pyo3::basic::CompareOp;
+use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple, PyType};
 use ryo3_macros::py_value_error;
 use std::hash::{Hash, Hasher};

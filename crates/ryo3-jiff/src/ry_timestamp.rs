@@ -17,7 +17,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Timestamp", module = "ryo3")]
+#[pyclass(name = "Timestamp", module = "ryo3", frozen)]
 pub struct RyTimestamp(pub(crate) Timestamp);
 
 #[pymethods]
@@ -129,16 +129,19 @@ impl RyTimestamp {
         }
     }
 
-    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-        }
-        .map_err(map_py_overflow_err)?;
-        self.0 = t;
-        Ok(())
-    }
+    // ----------------------------
+    // incompatible with `frozen`
+    // ----------------------------
+    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    //     let t = match other {
+    //         RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+    //         RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+    //     }
+    //     .map_err(map_py_overflow_err)?;
+    //     self.0 = t;
+    //     Ok(())
+    // }
 
     fn checked_sub<'py>(
         &self,
@@ -158,16 +161,19 @@ impl RyTimestamp {
         Ok(Self::from(t))
     }
 
-    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
-            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
-        }
-        .map_err(map_py_overflow_err)?;
-        self.0 = t;
-        Ok(())
-    }
+    // ----------------------------
+    // incompatible with `frozen`
+    // ----------------------------
+    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    //     let t = match other {
+    //         RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
+    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
+    //         RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
+    //     }
+    //     .map_err(map_py_overflow_err)?;
+    //     self.0 = t;
+    //     Ok(())
+    // }
 
     fn checked_add(&self, py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
         self.__add__(py, other)
@@ -382,8 +388,7 @@ impl From<Timestamp> for RyTimestamp {
     }
 }
 
-#[pyclass]
-#[pyo3(name = "TimestampSeries", module = "ryo3")]
+#[pyclass(name = "TimestampSeries", module = "ryo3")]
 pub struct RyTimestampSeries {
     pub(crate) series: jiff::TimestampSeries,
 }

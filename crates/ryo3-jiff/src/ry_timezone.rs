@@ -14,7 +14,7 @@ use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeZone", module = "ryo3")]
+#[pyclass(name = "TimeZone", module = "ryo3", frozen)]
 pub struct RyTimeZone(pub(crate) TimeZone);
 
 impl From<TimeZone> for RyTimeZone {

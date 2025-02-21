@@ -7,7 +7,7 @@ use pyo3::types::PyType;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ISOWeekDate", module = "ryo3")]
+#[pyclass(name = "ISOWeekDate", module = "ryo3", frozen)]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 
 #[pymethods]

@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.31
+## v0.0.31 [2025-02-21]
 
 - `ryo3-core`
   - got rid of `ryo3-types` and moved into `ryo3-core`
@@ -10,6 +10,8 @@
   - `which_re` functions accepts `ry.Regex` or `str` now
 - `ryo3-std`
   - `read` and `write` functions which take/return `ry.Bytes` objects
+- `internal`
+  - Changed many many many of the structs/classes to be pyo3 `frozen` behaviour should not be different
 
 ___
 
