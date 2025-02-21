@@ -28,42 +28,42 @@ impl PyDuration {
     fn py_new(secs: u64, nanos: u32) -> Self {
         PyDuration(Duration::new(secs, nanos))
     }
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {
         Self(Duration::ZERO)
     }
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
         Self(Duration::ZERO)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
         Self(Duration::MAX)
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn SECOND() -> Self {
         Self(Duration::from_secs(1))
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MILLISECOND() -> Self {
         Self(Duration::from_millis(1))
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn MICROSECOND() -> Self {
         Self(Duration::from_micros(1))
     }
 
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     #[classattr]
     fn NANOSECOND() -> Self {
         Self(Duration::from_nanos(1))

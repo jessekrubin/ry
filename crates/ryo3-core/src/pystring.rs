@@ -9,7 +9,7 @@ use pyo3::types::PyString;
 #[must_use]
 pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bound<'py, PyString> {
     if ascii_only {
-        #[allow(unsafe_code)]
+        #[expect(unsafe_code)]
         unsafe {
             pystring_ascii_new(py, s)
         }

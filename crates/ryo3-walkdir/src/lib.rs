@@ -83,7 +83,7 @@ fn build_walkdir(
     wd
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 #[pyfunction]
 #[pyo3(
     signature = (

@@ -4,7 +4,6 @@ use pyo3::prelude::*;
 use ryo3_bytes::PyBytes;
 use std::path::PathBuf;
 
-#[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn read_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
@@ -15,7 +14,6 @@ pub fn read_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     })
 }
 
-#[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn write_async(py: Python<'_>, fspath: PathBuf, b: PyBytes) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
