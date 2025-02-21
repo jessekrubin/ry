@@ -12,7 +12,7 @@ use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Offset", module = "ryo3")]
+#[pyclass(name = "Offset", module = "ryo3", frozen)]
 pub struct RyOffset(pub(crate) Offset);
 
 #[pymethods]

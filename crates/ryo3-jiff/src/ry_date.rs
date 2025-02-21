@@ -23,7 +23,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Date", module = "ryo3")]
+#[pyclass(name = "Date", module = "ryo3", frozen)]
 pub struct RyDate(pub(crate) Date);
 
 #[pymethods]
@@ -156,15 +156,18 @@ impl RyDate {
         self.__sub__(py, other)
     }
 
-    fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-        };
-        self.0 = t;
-        Ok(())
-    }
+    // ----------------------------
+    // incompatible with `frozen`
+    // ----------------------------
+    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    //     let t = match other {
+    //         RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
+    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
+    //         RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
+    //     };
+    //     self.0 = t;
+    //     Ok(())
+    // }
 
     fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(date) = other.downcast::<RySpan>() {
@@ -226,15 +229,15 @@ impl RyDate {
         ))
     }
 
-    fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-            RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-        };
-        self.0 = t;
-        Ok(())
-    }
+    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
+    //     let t = match other {
+    //         RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
+    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
+    //         RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
+    //     };
+    //     self.0 = t;
+    //     Ok(())
+    // }
 
     #[classmethod]
     fn from_pydate(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
@@ -447,8 +450,7 @@ impl From<Date> for RyDate {
     }
 }
 
-#[pyclass]
-#[pyo3(name = "DateSeries", module = "ryo3")]
+#[pyclass(name = "DateSeries", module = "ryo3")]
 pub struct RyDateSeries {
     pub(crate) series: jiff::civil::DateSeries,
 }

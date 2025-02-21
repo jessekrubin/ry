@@ -5,7 +5,7 @@ use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
 use std::time::SystemTime;
 
-#[pyclass(name = "FileType", module = "ry")]
+#[pyclass(name = "FileType", module = "ry", frozen)]
 pub struct PyFileType(pub std::fs::FileType);
 impl PyFileType {
     #[must_use]
@@ -51,7 +51,7 @@ impl PyFileType {
     }
 }
 
-#[pyclass(name = "Metadata", module = "ry")]
+#[pyclass(name = "Metadata", module = "ry", frozen)]
 pub struct PyMetadata(pub std::fs::Metadata);
 
 impl From<std::fs::Metadata> for PyMetadata {

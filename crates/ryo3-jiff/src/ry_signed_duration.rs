@@ -11,7 +11,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "SignedDuration", module = "ryo3")]
+#[pyclass(name = "SignedDuration", module = "ryo3", frozen)]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
 #[pymethods]

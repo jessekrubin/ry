@@ -1,7 +1,9 @@
+#![allow(non_snake_case)]
+
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 
-#[pyclass(name = "HttpStatus", module = "ry.ryo3.http")]
+#[pyclass(name = "HttpStatus", module = "ry.ryo3.http", frozen)]
 #[derive(Clone, Debug)]
 pub struct PyHttpStatus(pub http::StatusCode);
 
