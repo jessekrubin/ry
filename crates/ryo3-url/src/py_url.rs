@@ -356,7 +356,7 @@ impl PyUrl {
     // }
 
     #[pyo3(signature = (fragment = None))]
-    fn replace_fragment(&self, fragment: Option<&str>) -> Self{
+    fn replace_fragment(&self, fragment: Option<&str>) -> Self {
         let mut url = self.0.clone();
         url.set_fragment(fragment);
         PyUrl(url)
@@ -385,7 +385,7 @@ impl PyUrl {
         Ok(PyUrl(url))
     }
 
-    fn replace_path(&self, path: &str) ->Self {
+    fn replace_path(&self, path: &str) -> Self {
         let mut url = self.0.clone();
         url.set_path(path);
         Self::from(url)
@@ -400,7 +400,7 @@ impl PyUrl {
     }
 
     #[pyo3(signature = (query = None))]
-    fn replace_query(&self, query: Option<&str>) ->Self {
+    fn replace_query(&self, query: Option<&str>) -> Self {
         let mut url = self.0.clone();
         url.set_query(query);
         Self::from(url)
