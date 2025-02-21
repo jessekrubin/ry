@@ -5,7 +5,7 @@ use sqlformat::{self, QueryParams};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
-#[pyclass(name = "SqlfmtQueryParams", module = "ryo3")]
+#[pyclass(name = "SqlfmtQueryParams", module = "ryo3", frozen)]
 #[derive(Debug, Clone)]
 pub struct PySqlfmtQueryParams {
     pub params: QueryParams,
