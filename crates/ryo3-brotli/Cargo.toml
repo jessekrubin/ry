@@ -13,7 +13,7 @@ categories.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
-brotli.workspace=true
+brotli = { workspace = true }
 
 [lints]
 workspace = true
