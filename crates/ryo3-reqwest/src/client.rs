@@ -17,7 +17,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 #[pyclass]
-#[pyo3(name = "HttpClient", module = "ry.ryo3.reqwest")]
+#[pyo3(name = "HttpClient", module = "ry.ryo3.reqwest", frozen)]
 #[derive(Debug, Clone)]
 pub struct RyHttpClient(pub reqwest::Client);
 
@@ -299,7 +299,7 @@ impl RyHttpClient {
       signature = (url, *, headers = None),
     )]
     fn get<'py>(
-        &'py mut self,
+        &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         headers: Option<PyHeadersLike>,
@@ -322,7 +322,7 @@ impl RyHttpClient {
       signature = (url, *, body, headers = None),
     )]
     fn post<'py>(
-        &'py mut self,
+        &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         body: &[u8],
@@ -346,7 +346,7 @@ impl RyHttpClient {
       signature = (url, *, body, headers = None),
     )]
     fn put<'py>(
-        &'py mut self,
+        &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         body: &[u8],
@@ -370,7 +370,7 @@ impl RyHttpClient {
       signature = (url, *, body, headers = None),
     )]
     fn patch<'py>(
-        &'py mut self,
+        &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         body: &[u8],
@@ -394,7 +394,7 @@ impl RyHttpClient {
       signature = (url, *, body=None, headers = None),
     )]
     fn delete<'py>(
-        &'py mut self,
+        &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         body: Option<&[u8]>,
@@ -421,7 +421,7 @@ impl RyHttpClient {
       signature = (url, *, headers = None),
     )]
     fn head<'py>(
-        &'py mut self,
+        &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         headers: Option<PyHeadersLike>,
@@ -450,7 +450,7 @@ impl RyHttpClient {
         )
     )]
     pub fn fetch<'py>(
-        &'py mut self,
+        &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         method: Option<ryo3_http::HttpMethod>,

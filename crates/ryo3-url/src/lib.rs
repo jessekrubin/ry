@@ -14,7 +14,7 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "URL", module = "ryo3")]
+#[pyclass(name = "URL", module = "ryo3", frozen)]
 pub struct PyUrl(pub url::Url);
 
 impl PyUrl {
@@ -288,59 +288,123 @@ impl PyUrl {
         })
     }
 
-    #[pyo3(signature = (fragment = None))]
-    fn _set_fragment(&mut self, fragment: Option<&str>) {
-        self.0.set_fragment(fragment);
+    // TODO: figure out if this is problematic... it could be a problem w/ how some of the
+    //       underlying set methods take `Option` values...
+    #[pyo3(
+        signature = (
+            fragment = None,
+            host = None,
+            ip_host = None,
+            password = None,
+            path = None,
+            port = None,
+            query = None,
+            scheme = None,
+            username = None
+        )
+    )]
+    fn replace(
+        &self,
+        fragment: Option<&str>,
+        host: Option<&str>,
+        ip_host: Option<IpAddr>,
+        password: Option<&str>,
+        path: Option<&str>,
+        port: Option<u16>,
+        query: Option<&str>,
+        scheme: Option<&str>,
+        username: Option<&str>,
+    ) -> PyResult<Self> {
+        let mut url = self.0.clone();
+        if let Some(fragment) = fragment {
+            url.set_fragment(fragment.into());
+        }
+        if let Some(host) = host {
+            url.set_host(host.into())
+                .map_err(|e| py_value_error!("{e} (host={host:?})"))?;
+        }
+        if let Some(ip_host) = ip_host {
+            url.set_ip_host(ip_host)
+                .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))?;
+        }
+        if let Some(password) = password {
+            url.set_password(password.into())
+                .map_err(|()| py_value_error!("Err setting password (password={password:?})"))?;
+        }
+        if let Some(path) = path {
+            url.set_path(path);
+        }
+        if let Some(port) = port {
+            url.set_port(port.into())
+                .map_err(|()| py_value_error!("Err setting port (port={port:?})"))?;
+        }
+        if let Some(query) = query {
+            url.set_query(query.into());
+        }
+        if let Some(scheme) = scheme {
+            url.set_scheme(scheme)
+                .map_err(|()| py_value_error!("Err setting scheme (scheme={scheme})"))?;
+        }
+        if let Some(username) = username {
+            url.set_username(username)
+                .map_err(|()| py_value_error!("Err setting username (username={username:?})"))?;
+        }
+        Ok(PyUrl(url))
     }
 
-    #[pyo3(signature = (host = None))]
-    fn _set_host(&mut self, host: Option<&str>) -> PyResult<()> {
-        self.0
-            .set_host(host)
-            .map_err(|e| py_value_error!("{e} (host={host:?})"))
-    }
+    // #[pyo3(signature = (fragment = None))]
+    // fn _set_fragment(&mut self, fragment: Option<&str>) {
+    //     self.0.set_fragment(fragment);
+    // }
 
-    fn _set_ip_host(&mut self, ip_host: IpAddr) -> PyResult<()> {
-        self.0
-            .set_ip_host(ip_host)
-            .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))
-    }
+    // #[pyo3(signature = (host = None))]
+    // fn _set_host(&mut self, host: Option<&str>) -> PyResult<()> {
+    //     self.0
+    //         .set_host(host)
+    //         .map_err(|e| py_value_error!("{e} (host={host:?})"))
+    // }
 
-    #[pyo3(signature = (password = None))]
-    fn _set_password(&mut self, password: Option<&str>) -> PyResult<()> {
-        self.0.set_password(password).map_err(|()| {
-            let pw_str = password.map_or_else(|| "<None>".to_string(), ToString::to_string);
-            py_value_error!("Err setting password (password={pw_str})")
-        })
-    }
+    // fn _set_ip_host(&mut self, ip_host: IpAddr) -> PyResult<()> {
+    //     self.0
+    //         .set_ip_host(ip_host)
+    //         .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))
+    // }
 
-    fn _set_path(&mut self, path: &str) {
-        self.0.set_path(path);
-    }
+    // #[pyo3(signature = (password = None))]
+    // fn _set_password(&mut self, password: Option<&str>) -> PyResult<()> {
+    //     self.0.set_password(password).map_err(|()| {
+    //         let pw_str = password.map_or_else(|| "<None>".to_string(), ToString::to_string);
+    //         py_value_error!("Err setting password (password={pw_str})")
+    //     })
+    // }
 
-    #[pyo3(signature = (port = None))]
-    fn _set_port(&mut self, port: Option<u16>) -> PyResult<()> {
-        self.0
-            .set_port(port)
-            .map_err(|()| py_value_error!("Err setting port (port={port:?})"))
-    }
+    // fn _set_path(&mut self, path: &str) {
+    //     self.0.set_path(path);
+    // }
 
-    #[pyo3(signature = (username = None))]
-    fn _set_query(&mut self, username: Option<&str>) {
-        self.0.set_query(username);
-    }
+    // #[pyo3(signature = (port = None))]
+    // fn _set_port(&mut self, port: Option<u16>) -> PyResult<()> {
+    //     self.0
+    //         .set_port(port)
+    //         .map_err(|()| py_value_error!("Err setting port (port={port:?})"))
+    // }
 
-    fn _set_scheme(&mut self, scheme: &str) -> PyResult<()> {
-        self.0
-            .set_scheme(scheme)
-            .map_err(|()| py_value_error!("Err setting scheme (scheme={scheme})"))
-    }
+    // #[pyo3(signature = (username = None))]
+    // fn _set_query(&mut self, username: Option<&str>) {
+    //     self.0.set_query(username);
+    // }
 
-    fn _set_username(&mut self, username: &str) -> PyResult<()> {
-        self.0
-            .set_username(username)
-            .map_err(|()| py_value_error!("Err setting username (username={username:?})"))
-    }
+    // fn _set_scheme(&mut self, scheme: &str) -> PyResult<()> {
+    //     self.0
+    //         .set_scheme(scheme)
+    //         .map_err(|()| py_value_error!("Err setting scheme (scheme={scheme})"))
+    // }
+
+    // fn _set_username(&mut self, username: &str) -> PyResult<()> {
+    //     self.0
+    //         .set_username(username)
+    //         .map_err(|()| py_value_error!("Err setting username (username={username:?})"))
+    // }
 
     #[expect(clippy::unused_self)]
     fn socket_addrs(&self) -> PyResult<()> {

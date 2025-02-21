@@ -27,13 +27,13 @@ pub(crate) fn fetch<'py>(
     body: Option<&[u8]>,
     headers: Option<Bound<'py, PyDict>>,
 ) -> PyResult<Py<PyAny>> {
-    if let Some(mut client) = client {
+    if let Some(client) = client {
         let bound_pyany = client.fetch(py, url, method, body, headers)?;
         bound_pyany.into_py_any(py)
     } else {
         let client = default_client();
         // boom lock that up!
-        let mut client = client
+        let client = client
             .lock()
             .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
         let bound_pyany = client.fetch(py, url, method, body, headers)?;

@@ -18,7 +18,7 @@ const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DA
 const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Duration", module = "ryo3")]
+#[pyclass(name = "Duration", module = "ryo3", frozen)]
 pub struct PyDuration(pub Duration);
 
 #[pymethods]
@@ -401,12 +401,15 @@ impl PyDuration {
     fn mul_f32(&self, n: f32) -> PyDuration {
         Self::from(self.0.mul_f32(n))
     }
+
     fn mul_f64(&self, n: f64) -> PyDuration {
         Self::from(self.0.mul_f64(n))
     }
+
     fn saturating_add(&self, other: &Self) -> PyDuration {
         Self::from(self.0.saturating_add(other.0))
     }
+
     fn saturating_mul(&self, other: u32) -> PyDuration {
         Self::from(self.0.saturating_mul(other))
     }
