@@ -7,10 +7,8 @@ pub use py_url::PyUrl;
 pub use url_like::{extract_url, UrlLike};
 
 use pyo3::prelude::*;
-use pyo3::types::PyAnyMethods;
 use pyo3::types::PyModule;
 use pyo3::{Bound, PyResult};
-use std::hash::{Hash, Hasher};
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyUrl>()?;
     Ok(())

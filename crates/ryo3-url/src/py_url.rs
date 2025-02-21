@@ -1,7 +1,5 @@
 use crate::UrlLike;
 use pyo3::prelude::*;
-// use pyo3::types::{PyDict, PyTuple, PyType};
-// use pyo3::{pyclass, pymethods, Bound, PyAny, PyErr, PyResult, Python};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDict, PyTuple, PyType};
 use ryo3_macros::py_value_error;
