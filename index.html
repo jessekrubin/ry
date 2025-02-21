@@ -158,7 +158,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-02-19T04:17:58.56049563+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-02-21T01:52:32.108752943+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -181,8 +181,8 @@ uv add ry
 </code></pre>
 <p><strong>Check install:</strong> <code>python -m ry</code></p>
 <h2 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h2>
-<p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a> directory for some quickstart examples.
-__</p>
+<p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a> directory for some quickstart examples.</p>
+<hr />
 <h2 id="what-and-why"><a class="header" href="#what-and-why">What and why?</a></h2>
 <p>This is a collection of pyo3-wrappers for rust crates I wish existed in python.</p>
 <p>It all started with me wanting a fast python <code>xxhash</code> and <code>fnv-64</code></p>
@@ -285,6 +285,8 @@ from pathlib import Path
 
 import typing_extensions as te
 
+from ry._types import Buffer
+
 from . import http as http
 from ._bytes import Bytes as Bytes
 from ._jiff import Date as Date
@@ -321,6 +323,8 @@ from .reqwest import ReqwestError as ReqwestError
 from .reqwest import Response as Response
 from .reqwest import ResponseStream as ResponseStream
 from .reqwest import fetch as fetch
+from .tokio import read_async as read_async
+from .tokio import write_async as write_async
 
 __version__: str
 __authors__: str
@@ -685,10 +689,12 @@ async def asleep(seconds: float) -&gt; float:
 # =============================================================================
 # FILESYSTEM
 # =============================================================================
-def read_text(path: FsPathLike) -&gt; str: ...
+def read(path: FsPathLike) -&gt; Bytes: ...
 def read_bytes(path: FsPathLike) -&gt; bytes: ...
-def write_text(path: FsPathLike, data: str) -&gt; None: ...
+def read_text(path: FsPathLike) -&gt; str: ...
+def write(path: FsPathLike, data: Buffer | str) -&gt; None: ...
 def write_bytes(path: FsPathLike, data: bytes) -&gt; None: ...
+def write_text(path: FsPathLike, data: str) -&gt; None: ...
 
 
 # -----------------------------------------------------------------------------
@@ -732,7 +738,7 @@ class Regex:
 # =============================================================================
 def which(cmd: str, path: None | str = None) -&gt; str | None: ...
 def which_all(cmd: str, path: None | str = None) -&gt; list[str]: ...
-def which_re(regex: Regex, path: None | str = None) -&gt; list[str]: ...
+def which_re(regex: str | Regex, path: None | str = None) -&gt; list[str]: ...
 
 
 # =============================================================================
@@ -1106,9 +1112,9 @@ def jiter_cache_usage() -&gt; int: ...
 from typing import overload
 
 if sys.version_info &gt;= (3, 12):
-    from collections.abc import Buffer
+    from collections.abc import Buffer as Buffer
 else:
-    from typing_extensions import Buffer
+    from typing_extensions import Buffer as Buffer
 
 
 class Bytes(Buffer):
@@ -1238,6 +1244,9 @@ class Bytes(Buffer):
     @classmethod
     def fromhex(cls, hexstr: str) -&gt; Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
+
+
+BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 </code></pre>
 <h2 id="ry_dev"><a class="header" href="#ry_dev"><code>ry._dev</code></a></h2>
@@ -3224,6 +3233,16 @@ async def fetch(
     body: bytes | None = None,
     headers: dict[str, str] | None = None,
 ) -&gt; Response: ...
+
+</code></pre>
+<h2 id="rytokio"><a class="header" href="#rytokio"><code>ry.tokio</code></a></h2>
+<pre><code class="language-python">from ry import Bytes
+from ry._types import Buffer
+from ry.ryo3 import FsPathLike
+
+
+async def read_async(path: FsPathLike) -&gt; Bytes: ...
+async def write_async(path: FsPathLike, data: Buffer) -&gt; None: ...
 
 </code></pre>
 <h2 id="ryxxhash"><a class="header" href="#ryxxhash"><code>ry.xxhash</code></a></h2>
