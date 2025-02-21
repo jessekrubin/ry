@@ -8,11 +8,13 @@ edition.workspace = true
 homepage.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect", "multiple-pymethods"] }
 bytes = { workspace = true }
-ahash = "0.8.11"
+ahash = { workspace = true }
 
 [lints]
 workspace = true

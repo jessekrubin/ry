@@ -1,6 +1,6 @@
 //! Dev area for `pyo3-bytes`/`ryo3-bytes` crate
 
-use crate::{extract_vecu8_ref, PyBytes};
+use crate::{extract_bytes_ref, PyBytes};
 use pyo3::prelude::*;
 
 /// Sum the bytes in a `&[u8]` slice
@@ -29,7 +29,7 @@ fn bytes_sum_rybytes(data: PyBytes) -> u128 {
 
 #[pyfunction]
 fn bytes_sum_bytes_like(data: &Bound<'_, PyAny>) -> PyResult<u128> {
-    let data = extract_vecu8_ref(data)?;
+    let data = extract_bytes_ref(data)?;
     Ok(bytes_sum_impl(data))
 }
 

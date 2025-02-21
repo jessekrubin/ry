@@ -8,9 +8,11 @@ edition.workspace = true
 homepage.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-flate2 = "1.0.35"
+flate2 = { workspace = true }
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 ryo3-macros.workspace = true
 

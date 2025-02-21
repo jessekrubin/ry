@@ -1,16 +1,24 @@
 [package]
 name = "ryo3"
+description = "ry(o3) = rust & pyo3 & python"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+authors.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories = ["api-bindings"]
 
 [build-dependencies]
 jiff.workspace = true
 
-#[lints]
-#workspace = true
+[lints]
+workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async", "num-bigint"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
 regex.workspace = true
 serde.workspace = true
 serde_bytes.workspace = true
@@ -23,7 +31,7 @@ ryo3-dev = { workspace = true, optional = false }
 ryo3-quick-maths.workspace = true
 
 # required ryo3-* dependencies
-ryo3-types = { workspace = true }
+ryo3-core = { workspace = true }
 ryo3-std = { workspace = true }
 ryo3-fspath = { workspace = true }
 # optional ryo3-* dependencies

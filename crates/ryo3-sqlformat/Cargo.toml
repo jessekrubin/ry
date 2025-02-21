@@ -8,10 +8,12 @@ edition.workspace = true
 homepage.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
-sqlformat = "0.3.5"
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
+sqlformat = { workspace=true}
 
 [lints]
 workspace = true

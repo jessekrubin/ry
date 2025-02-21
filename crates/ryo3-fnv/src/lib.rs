@@ -28,37 +28,37 @@ impl PyFnvHasher {
         }
     }
 
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("fnv1a<{:x}>", self.hasher.finish()))
+    fn __str__(&self) -> String {
+        format!("fnv1a<{:x}>", self.hasher.finish())
     }
 
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("fnv1a<{:x}>", self.hasher.finish()))
+    fn __repr__(&self) -> String {
+        format!("fnv1a<{:x}>", self.hasher.finish())
     }
 
     #[classattr]
     fn name(py: Python<'_>) -> String {
-        intern!(py, "fnv1a").to_string()
+        let a = intern!(py, "fnv1a");
+        a.to_string()
     }
 
-    fn digest(&self) -> PyResult<u64> {
-        Ok(self.hasher.finish())
+    fn digest(&self) -> u64 {
+        self.hasher.finish()
     }
 
-    fn hexdigest(&self) -> PyResult<String> {
+    fn hexdigest(&self) -> String {
         // format hex string lowercase
-        Ok(format!("{:x}", self.hasher.finish()))
+        format!("{:x}", self.hasher.finish())
     }
 
-    fn update(&mut self, s: &[u8]) -> PyResult<()> {
+    fn update(&mut self, s: &[u8]) {
         self.hasher.write(s);
-        Ok(())
     }
 
-    fn copy(&self) -> PyResult<Self> {
-        Ok(Self {
+    fn copy(&self) -> Self {
+        Self {
             hasher: fnv_rs::FnvHasher::with_key(self.hasher.finish()),
-        })
+        }
     }
 }
 

@@ -8,9 +8,11 @@ edition.workspace = true
 homepage.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-bzip2 = "0.5.0"
+bzip2 = {workspace = true}
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 
 [lints]

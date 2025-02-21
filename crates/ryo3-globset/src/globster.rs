@@ -3,7 +3,7 @@ use globset::{GlobBuilder, GlobSetBuilder};
 use pyo3::exceptions::PyValueError;
 use pyo3::types::PyTuple;
 use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult, Python};
-use ryo3_types::PathLike;
+use ryo3_core::types::PathLike;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -123,6 +123,7 @@ impl PyGlobster {
         let tuple_str = self.patterns_string();
         format!("Globster({tuple_str})")
     }
+
     fn __repr__(&self) -> String {
         self.__str__()
     }
@@ -135,6 +136,7 @@ impl PyGlobster {
         self.0.length == 0
     }
 
+    #[must_use]
     pub fn is_match_str(&self, path: &str) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
             (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
@@ -144,7 +146,9 @@ impl PyGlobster {
         }
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[pyo3(name = "is_match")]
+    #[must_use]
     pub fn py_is_match(&self, path: PathLike) -> bool {
         match (&self.0.globset, &self.0.nglobset) {
             (Some(gs), Some(ngs)) => gs.is_match(&path) && !ngs.is_match(&path),

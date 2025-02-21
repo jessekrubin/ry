@@ -8,8 +8,8 @@ use pyo3::exceptions::{
 };
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
+use ryo3_core::types::PathLike;
 use ryo3_macros::err_py_not_impl;
-use ryo3_types::PathLike;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 

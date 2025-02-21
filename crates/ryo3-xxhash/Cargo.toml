@@ -8,9 +8,11 @@ edition.workspace = true
 homepage.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect", "num-bigint"] }
+pyo3 = { workspace = true, features = ["experimental-inspect"] }
 xxhash-rust = { workspace = true, features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 
 [lints]

@@ -3,8 +3,8 @@
 mod walkdir_entry;
 
 use pyo3::{prelude::*, IntoPyObjectExt};
+use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
-use ryo3_types::PathLike;
 use std::path::Path;
 
 #[pyclass(name = "WalkdirGen", module = "ryo3")]
@@ -83,7 +83,7 @@ fn build_walkdir(
     wd
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 #[pyfunction]
 #[pyo3(
     signature = (
