@@ -152,7 +152,7 @@ bytes = "1.10.0"
 bzip2 = "0.5.1"
 dirs = { version = "6.0.0", features = [] }
 fnv = "1.0.7"
-flate2 = "1.0.20"
+flate2 = "1.1.0"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
 globset = { version = "0.4.15", features = ["serde"] }
