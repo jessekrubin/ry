@@ -1928,6 +1928,7 @@ name = "ryo3-xxhash"
 version = "0.0.33"
 dependencies = [
  "pyo3",
+ "ryo3-bytes",
  "xxhash-rust",
 ]
 

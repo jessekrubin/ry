@@ -5,15 +5,7 @@ use ::brotli as br;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
-#[pyfunction]
-#[pyo3(signature = (data, quality=None, magic_number=None))]
-pub fn brotli_encode(
-    py: Python<'_>,
-    data: &[u8],
-    quality: Option<u8>,
-    magic_number: Option<bool>,
-) -> PyResult<PyObject> {
-    // error on invalid quality value if given
+fn encode(data: &[u8], quality: Option<u8>, magic_number: Option<bool>) -> PyResult<Vec<u8>> {
     let quality_u8 = match quality {
         Some(q) => {
             if q > 11 {
@@ -44,6 +36,18 @@ pub fn brotli_encode(
         })?;
         encoder.into_inner()
     };
+    Ok(encoded)
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, quality=None, magic_number=None))]
+pub fn brotli_encode(
+    py: Python<'_>,
+    data: &[u8],
+    quality: Option<u8>,
+    magic_number: Option<bool>,
+) -> PyResult<PyObject> {
+    let encoded = encode(data, quality, magic_number)?;
     Ok(PyBytes::new(py, &encoded).into())
 }
 
@@ -55,7 +59,8 @@ pub fn brotli(
     quality: Option<u8>,
     magic_number: Option<bool>,
 ) -> PyResult<PyObject> {
-    brotli_encode(py, data, quality, magic_number)
+    let encoded = encode(data, quality, magic_number)?;
+    Ok(PyBytes::new(py, &encoded).into())
 }
 
 #[pyfunction]

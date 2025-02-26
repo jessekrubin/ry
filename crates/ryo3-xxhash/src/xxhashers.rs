@@ -14,12 +14,12 @@ pub struct PyXxh32 {
 impl PyXxh32 {
     #[new]
     #[pyo3(signature = (b = None, seed = None))]
-    fn py_new(b: Option<&[u8]>, seed: Option<u32>) -> Self {
+    fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
         match b {
             Some(s) => {
                 let seed = seed.unwrap_or(0);
                 let mut hasher = Xxh32::new(seed);
-                hasher.update(s);
+                hasher.update(s.as_ref());
                 Self { seed, hasher }
             }
             None => Self {
@@ -60,8 +60,9 @@ impl PyXxh32 {
         Ok(format!("{:08x}", self.hasher.digest()))
     }
 
-    fn update(&mut self, s: &[u8]) -> PyResult<()> {
-        self.hasher.update(s);
+    #[expect(clippy::needless_pass_by_value)]
+    fn update(&mut self, s: ryo3_bytes::PyBytes) -> PyResult<()> {
+        self.hasher.update(s.as_ref());
         Ok(())
     }
 
@@ -82,7 +83,7 @@ impl PyXxh32 {
 /// Create a new Xxh32 hasher
 #[pyfunction]
 #[pyo3(signature = (s = None, seed = 0))]
-pub fn xxh32(s: Option<&[u8]>, seed: Option<u32>) -> PyResult<PyXxh32> {
+pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyResult<PyXxh32> {
     Ok(PyXxh32::py_new(s, seed))
 }
 
@@ -98,11 +99,11 @@ impl PyXxh64 {
     /// Create a new Xxh64 hasher
     #[new]
     #[pyo3(signature = (b = None, seed = 0))]
-    fn py_new(b: Option<&[u8]>, seed: Option<u64>) -> Self {
+    fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> Self {
         match b {
             Some(s) => {
                 let mut hasher = Xxh64::new(seed.unwrap_or(0));
-                hasher.update(s);
+                hasher.update(s.as_ref());
                 let seed = seed.unwrap_or(0);
                 Self { seed, hasher }
             }
@@ -146,8 +147,9 @@ impl PyXxh64 {
         Ok(format!("{:016x}", self.hasher.digest()))
     }
 
-    fn update(&mut self, b: &[u8]) -> PyResult<()> {
-        self.hasher.update(b);
+    #[expect(clippy::needless_pass_by_value)]
+    fn update(&mut self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
+        self.hasher.update(b.as_ref());
         Ok(())
     }
 
@@ -167,7 +169,7 @@ impl PyXxh64 {
 
 #[pyfunction]
 #[pyo3(signature = (s = None, seed = 0))]
-pub fn xxh64(s: Option<&[u8]>, seed: Option<u64>) -> PyResult<PyXxh64> {
+pub fn xxh64(s: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<PyXxh64> {
     Ok(PyXxh64::py_new(s, seed))
 }
 
@@ -181,7 +183,11 @@ pub struct PyXxh3 {
 impl PyXxh3 {
     #[new]
     #[pyo3(signature = (b = None, seed = 0, secret = None))]
-    fn py_new(b: Option<&[u8]>, seed: Option<u64>, secret: Option<[u8; 192]>) -> Self {
+    fn py_new(
+        b: Option<ryo3_bytes::PyBytes>,
+        seed: Option<u64>,
+        secret: Option<[u8; 192]>,
+    ) -> Self {
         let seed = seed.unwrap_or(0);
         let h = match secret {
             Some(s) => Xxh3Builder::new().with_seed(seed).with_secret(s).build(),
@@ -190,7 +196,7 @@ impl PyXxh3 {
         match b {
             Some(s) => {
                 let mut hasher = h.clone();
-                hasher.update(s);
+                hasher.update(s.as_ref());
                 Self { seed, hasher }
             }
             None => Self { seed, hasher: h },
@@ -241,8 +247,9 @@ impl PyXxh3 {
         Ok(format!("{:032x}", self.hasher.digest128()))
     }
 
-    fn update(&mut self, b: &[u8]) -> PyResult<()> {
-        self.hasher.update(b);
+    #[expect(clippy::needless_pass_by_value)]
+    fn update(&mut self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
+        self.hasher.update(b.as_ref());
         Ok(())
     }
 
@@ -261,7 +268,11 @@ impl PyXxh3 {
 
 #[pyfunction]
 #[pyo3(signature = (s = None, seed = 0, secret = None))]
-pub fn xxh3(s: Option<&[u8]>, seed: Option<u64>, secret: Option<[u8; 192]>) -> PyResult<PyXxh3> {
+pub fn xxh3(
+    s: Option<ryo3_bytes::PyBytes>,
+    seed: Option<u64>,
+    secret: Option<[u8; 192]>,
+) -> PyResult<PyXxh3> {
     Ok(PyXxh3::py_new(s, seed, secret))
 }
 

@@ -38,6 +38,7 @@ unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyStri
 }
 
 // unoptimized version (albeit not that much slower) on other platforms
+#[expect(unsafe_code)]
 #[cfg(any(PyPy, GraalPy))]
 unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     PyString::new(py, s)
