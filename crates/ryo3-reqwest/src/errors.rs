@@ -125,8 +125,11 @@ impl RyReqwestError {
     }
 
     pub fn without_url(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, Self> {
-        if let Some(e) = &mut slf.0 {
-            e.url_mut().take();
+        // take the error
+        let err = slf.0.take();
+        if let Some(e) = err {
+            // baboom put it back
+            slf.0 = Some(e.without_url());
         }
         slf
     }
