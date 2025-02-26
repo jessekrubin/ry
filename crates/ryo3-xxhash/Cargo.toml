@@ -13,6 +13,7 @@ categories.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-bytes.workspace = true
 xxhash-rust = { workspace = true, features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 
 [lints]

@@ -12,6 +12,7 @@ pub fn zstd_encode(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<
     })?;
     Ok(PyBytes::new(py, &encoded).into())
 }
+
 #[pyfunction]
 #[pyo3(signature = (data, level=None))]
 pub fn zstd(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<PyObject> {
