@@ -349,7 +349,7 @@ impl PyFsPath {
         }
     }
 
-    pub fn write<'py>(&self, b: &Bound<'py, PyAny>) -> PyResult<usize> {
+    pub fn write(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
         let b = extract_bytes_ref(b)?;
         let write_res = std::fs::write(&self.pth, b);
         match write_res {
@@ -363,7 +363,7 @@ impl PyFsPath {
         }
     }
 
-    pub fn write_bytes<'py>(&self, b: &Bound<'py, PyAny>) -> PyResult<usize> {
+    pub fn write_bytes(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
         self.write(b)
     }
 
