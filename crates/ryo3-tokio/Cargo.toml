@@ -15,6 +15,7 @@ categories.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
+ryo3-std.workspace = true
 tokio.workspace = true
 
 [lints]

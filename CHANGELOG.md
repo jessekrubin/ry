@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.0.32 [UNRELEASED]
+
+- `ryo3-jiter`
+  - Allow `PyBytes` wrapper/buffer protocol to be given
+  - renamed `jiter_cache_clear` to `json_cache_clear` and `jiter_cache_usage` to `json_cache_usage`
+  - Removed `parse_json_str` just use `parse_json` with `str` input
+- `ryo3-fspath`
+  - Allow read/write to take `ry.Bytes` or `Bytes` objects
+
+___
+
 ## v0.0.31 [2025-02-21]
 
 - `ryo3-core`
