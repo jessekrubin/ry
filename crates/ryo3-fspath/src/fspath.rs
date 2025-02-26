@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
-#[pyclass(name = "FsPath", module = "ryo3")]
+#[pyclass(name = "FsPath", module = "ryo3", frozen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: PathBuf,
@@ -408,26 +408,26 @@ impl PyFsPath {
     //  - PathBuf.push
     //  - PathBuf.set_extension
     //  - PathBuf.set_file_name
-
-    fn _push(mut slf: PyRefMut<'_, Self>, path: PathLike) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.push(path);
-        slf
-    }
-
-    fn _pop(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.pop();
-        slf
-    }
-
-    fn _set_extension(mut slf: PyRefMut<'_, Self>, ext: String) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.set_extension(ext);
-        slf
-    }
-
-    fn _set_file_name(mut slf: PyRefMut<'_, Self>, name: String) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.set_file_name(name);
-        slf
-    }
+    // REMOVED FOR `frozen`
+    // fn _push(mut slf: PyRefMut<'_, Self>, path: PathLike) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.push(path);
+    //     slf
+    // }
+    //
+    // fn _pop(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.pop();
+    //     slf
+    // }
+    //
+    // fn _set_extension(mut slf: PyRefMut<'_, Self>, ext: String) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.set_extension(ext);
+    //     slf
+    // }
+    //
+    // fn _set_file_name(mut slf: PyRefMut<'_, Self>, name: String) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.set_file_name(name);
+    //     slf
+    // }
 
     // ========================================================================
     // Methods from ::std::path::Path (Deref<Target=PathBuf>)
