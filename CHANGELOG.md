@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.32 [UNRELEASED]
+## v0.0.32 [2025-02-25]
 
 - `ryo3-jiter`
   - Allow `PyBytes` wrapper/buffer protocol to be given
