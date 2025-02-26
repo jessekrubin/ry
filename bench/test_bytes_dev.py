@@ -15,7 +15,7 @@ DIGIT_BYTES = bytes([i for i in range(256) if bytes([i]).isdigit()])
 LOWER_BYTES = bytes([i for i in range(256) if bytes([i]).islower()])
 SPACE_BYTES = bytes([i for i in range(256) if bytes([i]).isspace()])
 UPPER_BYTES = bytes([i for i in range(256) if bytes([i]).isupper()])
-ALL_BYTES = bytes([i for i in range(256)])
+ALL_BYTES = bytes(list(range(256)))
 ALL_BYTES_10X = ALL_BYTES * 10
 ALL_BYTES_100X = ALL_BYTES * 100
 

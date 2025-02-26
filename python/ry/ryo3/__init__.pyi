@@ -1,11 +1,11 @@
 """ry api ~ type annotations"""
 
+from __future__ import annotations
+
 import datetime as pydt
 import typing as t
 from os import PathLike
 from pathlib import Path
-
-import typing_extensions as te
 
 from ry._types import Buffer
 
@@ -34,6 +34,13 @@ from ._jiff import datetime as datetime
 from ._jiff import offset as offset
 from ._jiff import time as time
 from ._jiff import timespan as timespan
+from ._jiter import JsonParseKwargs as JsonParseKwargs
+from ._jiter import JsonPrimitive as JsonPrimitive
+from ._jiter import JsonValue as JsonValue
+from ._jiter import json_cache_clear as json_cache_clear
+from ._jiter import json_cache_usage as json_cache_usage
+from ._jiter import parse_json as parse_json
+from ._jiter import parse_json_bytes as parse_json_bytes
 from ._size import SizeFormatter as SizeFormatter
 from ._size import fmt_size as fmt_size
 from ._size import parse_size as parse_size
@@ -58,12 +65,6 @@ __description__: str
 # =============================================================================
 # TYPE ALIASES
 # =============================================================================
-JsonPrimitive = None | bool | int | float | str
-JsonValue = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
-)
 
 # =============================================================================
 # STD
@@ -254,12 +255,14 @@ class FsPath:
     def __truediv__(self, other: PathLike[str] | str) -> FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -> FsPath: ...
     def to_pathlib(self) -> Path: ...
+    def read(self) -> Bytes: ...
     def read_text(self) -> str: ...
     def read_bytes(self) -> bytes: ...
     def absolute(self) -> FsPath: ...
     def resolve(self) -> FsPath: ...
+    def write(self, data: Buffer | bytes) -> None: ...
+    def write_bytes(self, data: Buffer | bytes) -> None: ...
     def write_text(self, data: str) -> None: ...
-    def write_bytes(self, data: bytes) -> None: ...
     def joinpath(self, *paths: str) -> FsPath: ...
     def exists(self) -> bool: ...
     def with_name(self, name: str) -> FsPath: ...
@@ -306,14 +309,6 @@ class FsPath:
     def suffix(self) -> str: ...
     @property
     def suffixes(self) -> list[str]: ...
-
-    # =========================================================================
-    # std::path::PathBuf
-    # =========================================================================
-    def _pop(self) -> FsPath: ...
-    def _push(self, path: PathLike[str] | str) -> FsPath: ...
-    def _set_extension(self, ext: str) -> FsPath: ...
-    def _set_file_name(self, name: str) -> FsPath: ...
 
     # =========================================================================
     # std::path::PathBuf (deref -> std::path::Path)
@@ -603,40 +598,6 @@ def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
 def shplit(s: str) -> list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
     ...
-
-# =============================================================================
-# JSON
-# =============================================================================
-
-class JsonParseKwargs(t.TypedDict, total=False):
-    allow_inf_nan: bool
-    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: True"""
-    cache_mode: t.Literal[True, False, "all", "keys", "none"]
-    """Cache mode for JSON parsing ~ default: `all` """
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"]
-    """Partial mode for JSON parsing ~ default: False"""
-    catch_duplicate_keys: bool
-    """Catch duplicate keys in JSON objects ~ default: False"""
-    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool
-    """Mode for parsing JSON floats ~ default: False"""
-
-def parse_json(
-    data: bytes | str,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def parse_json_str(
-    data: str,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def jiter_cache_clear() -> None: ...
-def jiter_cache_usage() -> int: ...
 
 # =============================================================================
 # FORMATTING

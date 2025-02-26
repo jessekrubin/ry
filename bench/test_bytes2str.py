@@ -5,7 +5,7 @@ from pytest_benchmark.fixture import BenchmarkFixture
 
 import ry
 
-ALL_BYTES = bytes([i for i in range(256)])
+ALL_BYTES = bytes(list(range(256)))
 ALL_BYTES_10X = ALL_BYTES * 10
 
 

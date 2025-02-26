@@ -185,6 +185,28 @@ class TestFsPath:
         assert isinstance(rypath.parts, tuple)
 
 
+class TestFsPathBytes:
+    def test_read(self, tmp_path: Path) -> None:
+        """Test reading returning ry.Bytes"""
+        pypath = tmp_path / "test.txt"
+        pypath.write_bytes(b"hello")
+        rypath = ry.FsPath(pypath)
+        b = rypath.read()
+        assert rypath.read() == pypath.read_bytes()
+        assert rypath.read() == b
+
+    def test_write(self, tmp_path: Path) -> None:
+        """Test writing bytes"""
+        pypath = tmp_path / "test.txt"
+        rypath = ry.FsPath(pypath)
+        rypath.write(b"new content")
+        assert pypath.read_bytes() == b"new content"
+
+        # write as ry.Bytes
+        rypath.write(ry.Bytes(b"newer content"))
+        assert pypath.read_bytes() == b"newer content"
+
+
 @pytest.mark.parametrize(
     "path_cls",
     [

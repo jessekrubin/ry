@@ -8,6 +8,7 @@ use pyo3::exceptions::{
 };
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
+use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::types::PathLike;
 use ryo3_macros::err_py_not_impl;
 use std::hash::{Hash, Hasher};
@@ -16,7 +17,7 @@ use std::path::{Path, PathBuf};
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
-#[pyclass(name = "FsPath", module = "ryo3")]
+#[pyclass(name = "FsPath", module = "ryo3", frozen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: PathBuf,
@@ -315,6 +316,11 @@ impl PyFsPath {
         Self::from(p)
     }
 
+    pub fn read(&self) -> PyResult<ryo3_bytes::PyBytes> {
+        let fbytes = std::fs::read(&self.pth)?;
+        Ok(fbytes.into())
+    }
+
     pub fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
         let fbytes = std::fs::read(&self.pth);
         match fbytes {
@@ -343,10 +349,11 @@ impl PyFsPath {
         }
     }
 
-    pub fn write_bytes(&self, b: Vec<u8>) -> PyResult<()> {
+    pub fn write(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+        let b = extract_bytes_ref(b)?;
         let write_res = std::fs::write(&self.pth, b);
         match write_res {
-            Ok(()) => Ok(()),
+            Ok(()) => Ok(b.len()),
             Err(e) => {
                 let fspath = self.string();
                 Err(PyNotADirectoryError::new_err(format!(
@@ -354,6 +361,10 @@ impl PyFsPath {
                 )))
             }
         }
+    }
+
+    pub fn write_bytes(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+        self.write(b)
     }
 
     pub fn write_text(&self, t: &str) -> PyResult<()> {
@@ -397,26 +408,26 @@ impl PyFsPath {
     //  - PathBuf.push
     //  - PathBuf.set_extension
     //  - PathBuf.set_file_name
-
-    fn _push(mut slf: PyRefMut<'_, Self>, path: PathLike) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.push(path);
-        slf
-    }
-
-    fn _pop(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.pop();
-        slf
-    }
-
-    fn _set_extension(mut slf: PyRefMut<'_, Self>, ext: String) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.set_extension(ext);
-        slf
-    }
-
-    fn _set_file_name(mut slf: PyRefMut<'_, Self>, name: String) -> PyRefMut<'_, PyFsPath> {
-        slf.pth.set_file_name(name);
-        slf
-    }
+    // REMOVED FOR `frozen`
+    // fn _push(mut slf: PyRefMut<'_, Self>, path: PathLike) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.push(path);
+    //     slf
+    // }
+    //
+    // fn _pop(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.pop();
+    //     slf
+    // }
+    //
+    // fn _set_extension(mut slf: PyRefMut<'_, Self>, ext: String) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.set_extension(ext);
+    //     slf
+    // }
+    //
+    // fn _set_file_name(mut slf: PyRefMut<'_, Self>, name: String) -> PyRefMut<'_, PyFsPath> {
+    //     slf.pth.set_file_name(name);
+    //     slf
+    // }
 
     // ========================================================================
     // Methods from ::std::path::Path (Deref<Target=PathBuf>)
