@@ -3,6 +3,7 @@
 mod fns;
 mod size_formatter;
 mod types;
+mod py_size;
 
 pub use fns::*;
 use pyo3::prelude::*;
