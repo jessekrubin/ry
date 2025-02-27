@@ -244,7 +244,6 @@ fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize
     }
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn write(fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
     let bref = extract_bytes_ref_str(b)?;

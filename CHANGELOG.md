@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.34 [unreleased]
+
+- `fs`:
+  - `read_stream` function that returns an iterator of `ry.Bytes` objects from a `PathLike` object
+  - Several more fs functions added
+
+___
+
 ## v0.0.33 [2025-02-26]
 
 - update to pyo3 v0.23.5
