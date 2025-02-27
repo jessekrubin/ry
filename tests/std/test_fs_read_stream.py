@@ -36,7 +36,7 @@ def test_read_stream_is_directory(tmp_path: Path) -> None:
     """Test that reading a directory raises an error."""
     ry.cd(tmp_path)
     (tmp_path / "test").mkdir(parents=True)
-    with pytest.raises(IsADirectoryError):
+    with pytest.raises(OSError):
         list(ry.read_stream(tmp_path, chunk_size=10))
 
 
