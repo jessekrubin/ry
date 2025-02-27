@@ -1869,6 +1869,7 @@ dependencies = [
 name = "ryo3-std"
 version = "0.0.33"
 dependencies = [
+ "bytes",
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",

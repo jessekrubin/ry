@@ -1,8 +1,12 @@
-use pyo3::exceptions::{PyNotADirectoryError, PyUnicodeDecodeError};
+use bytes::{Bytes, BytesMut};
+use pyo3::exceptions::{PyIsADirectoryError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
+use std::fs::File;
+use std::io::{self, Read, Seek, SeekFrom};
+use std::path::Path;
 use std::time::SystemTime;
 
 #[pyclass(name = "FileType", module = "ry", frozen)]
@@ -140,6 +144,91 @@ impl PyMetadata {
 // FUNCTIONS
 // ============================================================================
 
+pub struct FileReadStream {
+    file: File,
+    chunk_size: usize,
+    buffer: BytesMut,
+}
+
+impl FileReadStream {
+    pub fn new<P: AsRef<Path>>(path: P, chunk_size: usize) -> io::Result<Self> {
+        let mut file = File::open(path)?;
+        Ok(Self {
+            file,
+            chunk_size,
+            buffer: BytesMut::with_capacity(chunk_size), // Preallocate buffer
+        })
+    }
+
+    pub fn new_with_offset<P: AsRef<Path>>(
+        path: P,
+        chunk_size: usize,
+        offset: u64,
+    ) -> io::Result<Self> {
+        let mut file = File::open(path)?;
+        file.seek(SeekFrom::Start(offset))?;
+        Ok(Self {
+            file,
+            chunk_size,
+            buffer: BytesMut::with_capacity(chunk_size), // Preallocate buffer
+        })
+    }
+}
+
+impl Iterator for FileReadStream {
+    type Item = io::Result<Bytes>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // can resize buffer without reallocating (I think)
+        self.buffer.resize(self.chunk_size, 0);
+        match self.file.read(&mut self.buffer) {
+            Ok(0) => None,
+            Ok(n) => Some(Ok(self.buffer.split_to(n).freeze())),
+            Err(e) => Some(Err(e)),
+        }
+    }
+}
+#[pyclass(name = "FileReadStream", module = "ryo3")]
+pub struct PyFileReadStream {
+    file_read_stream: FileReadStream,
+}
+
+#[pymethods]
+impl PyFileReadStream {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<ryo3_bytes::PyBytes>> {
+        let b = slf.file_read_stream.next();
+        match b {
+            Some(Ok(b)) => Ok(Some(b.into())),
+            Some(Err(e)) => Err(e.into()),
+            None => Ok(None),
+        }
+    }
+}
+
+#[pyfunction]
+#[pyo3(signature = (pth, chunk_size = 65536, *, offset = 0))]
+pub fn read_stream(pth: PathLike, chunk_size: usize, offset: u64) -> PyResult<PyFileReadStream> {
+    let pth = pth.as_ref();
+    let file_read_stream_res = FileReadStream::new_with_offset(pth, chunk_size, offset);
+    match file_read_stream_res {
+        Ok(file_read_stream) => Ok(PyFileReadStream { file_read_stream }),
+        Err(e) => {
+            if pth.is_dir() {
+                let pth_str = pth.to_string_lossy();
+                Err(PyIsADirectoryError::new_err(format!(
+                    "read_stream - parent: {pth_str} - {e}"
+                )))
+            } else {
+                Err(e.into())
+            }
+        }
+    }
+}
+
 #[pyfunction]
 pub fn read(pth: PathLike) -> PyResult<ryo3_bytes::PyBytes> {
     let fbytes = std::fs::read(pth)?;
@@ -206,6 +295,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
     m.add_function(wrap_pyfunction!(read, m)?)?;
+    m.add_function(wrap_pyfunction!(read_stream, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(write, m)?)?;
