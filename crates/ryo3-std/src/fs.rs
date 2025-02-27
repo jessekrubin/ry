@@ -152,11 +152,11 @@ pub struct FileReadStream {
 
 impl FileReadStream {
     pub fn new<P: AsRef<Path>>(path: P, chunk_size: usize) -> io::Result<Self> {
-        let mut file = File::open(path)?;
+        let file = File::open(path)?;
         Ok(Self {
             file,
             chunk_size,
-            buffer: BytesMut::with_capacity(chunk_size), // Preallocate buffer
+            buffer: BytesMut::with_capacity(chunk_size),
         })
     }
 
@@ -170,7 +170,7 @@ impl FileReadStream {
         Ok(Self {
             file,
             chunk_size,
-            buffer: BytesMut::with_capacity(chunk_size), // Preallocate buffer
+            buffer: BytesMut::with_capacity(chunk_size),
         })
     }
 }
@@ -211,6 +211,7 @@ impl PyFileReadStream {
 
 #[pyfunction]
 #[pyo3(signature = (pth, chunk_size = 65536, *, offset = 0))]
+#[expect(clippy::needless_pass_by_value)]
 pub fn read_stream(pth: PathLike, chunk_size: usize, offset: u64) -> PyResult<PyFileReadStream> {
     let pth = pth.as_ref();
     let file_read_stream_res = FileReadStream::new_with_offset(pth, chunk_size, offset);
