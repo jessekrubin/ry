@@ -7,10 +7,12 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
-from ry import dirs as dirs  # noqa
-from ry import http as http  # noqa
-from ry import xxhash as xxhash  # noqa
-from ry._types import Buffer as Buffer
+from ry import dirs as dirs  # noqa: RUF100
+from ry import http as http  # noqa: RUF100
+from ry import xxhash as xxhash  # noqa: RUF100
+from ry._types import Buffer as Buffer  # noqa: RUF100
+from ry.http import Headers as Headers  # noqa: RUF100
+from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
 
 from ._bytes import Bytes as Bytes
 from ._jiff import Date as Date
@@ -43,9 +45,13 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._regex import Regex as Regex
 from ._size import SizeFormatter as SizeFormatter
 from ._size import fmt_size as fmt_size
 from ._size import parse_size as parse_size
+from ._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
+from ._sqlformat import sqlfmt as sqlfmt
+from ._sqlformat import sqlfmt_params as sqlfmt_params
 from ._url import URL as URL
 from .reqwest import HttpClient as HttpClient
 from .reqwest import ReqwestError as ReqwestError
@@ -426,30 +432,6 @@ def rename(from_path: FsPathLike, to_path: FsPathLike) -> None: ...
 # -----------------------------------------------------------------------------
 
 # =============================================================================
-# Regex
-# =============================================================================
-
-class Regex:
-    def __init__(
-        self,
-        pattern: str,
-        *,
-        case_insensitive: bool = False,
-        crlf: bool = False,
-        dot_matches_new_line: bool = False,
-        ignore_whitespace: bool = False,
-        line_terminator: str | None = None,
-        multi_line: bool = False,
-        octal: bool = False,
-        size_limit: int | None = None,
-        swap_greed: bool = False,
-        unicode: bool = False,
-    ) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def is_match(self, string: str) -> bool: ...
-
-# =============================================================================
 # WHICH
 # =============================================================================
 def which(cmd: str, path: None | str = None) -> str | None: ...
@@ -677,33 +659,3 @@ def zstd(input: bytes, level: int = 3) -> bytes:
     """Alias for zstd_encode"""
 
 def zstd_decode(input: bytes) -> bytes: ...
-
-# =============================================================================
-# SQLFORMAT
-# =============================================================================
-SqlfmtParamValue = str | int | float | bool
-TSqlfmtParamValue_co = t.TypeVar(
-    "TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
-)
-SqlfmtParamsLike = (
-    dict[str, TSqlfmtParamValue_co]
-    | t.Sequence[tuple[str, TSqlfmtParamValue_co]]
-    | t.Sequence[TSqlfmtParamValue_co]
-)
-
-class SqlfmtQueryParams:
-    def __init__(self, params: SqlfmtParamsLike[TSqlfmtParamValue_co]) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-def sqlfmt_params(
-    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams,
-) -> SqlfmtQueryParams: ...
-def sqlfmt(
-    sql: str,
-    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
-    *,
-    indent: int = 2,  # -1 or any negative value will use tabs
-    uppercase: bool | None = True,
-    lines_between_statements: int = 1,
-) -> str: ...
