@@ -90,27 +90,7 @@ dirs_pyfunction!(public, public_dir);
 dirs_pyfunction!(template, template_dir);
 dirs_pyfunction!(video, video_dir);
 
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(home, m)?)?;
-    m.add_function(wrap_pyfunction!(cache, m)?)?;
-    m.add_function(wrap_pyfunction!(config, m)?)?;
-    m.add_function(wrap_pyfunction!(config_local, m)?)?;
-    m.add_function(wrap_pyfunction!(data, m)?)?;
-    m.add_function(wrap_pyfunction!(data_local, m)?)?;
-    m.add_function(wrap_pyfunction!(executable, m)?)?;
-    m.add_function(wrap_pyfunction!(preference, m)?)?;
-    m.add_function(wrap_pyfunction!(runtime, m)?)?;
-    m.add_function(wrap_pyfunction!(state, m)?)?;
-    m.add_function(wrap_pyfunction!(audio, m)?)?;
-    m.add_function(wrap_pyfunction!(desktop, m)?)?;
-    m.add_function(wrap_pyfunction!(document, m)?)?;
-    m.add_function(wrap_pyfunction!(download, m)?)?;
-    m.add_function(wrap_pyfunction!(font, m)?)?;
-    m.add_function(wrap_pyfunction!(picture, m)?)?;
-    m.add_function(wrap_pyfunction!(public, m)?)?;
-    m.add_function(wrap_pyfunction!(template, m)?)?;
-    m.add_function(wrap_pyfunction!(video, m)?)?;
-    // *_dir functions
+pub fn pymod_register_suffix(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(home_dir, m)?)?;
     m.add_function(wrap_pyfunction!(cache_dir, m)?)?;
     m.add_function(wrap_pyfunction!(config_dir, m)?)?;
@@ -130,5 +110,33 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(public_dir, m)?)?;
     m.add_function(wrap_pyfunction!(template_dir, m)?)?;
     m.add_function(wrap_pyfunction!(video_dir, m)?)?;
+    Ok(())
+}
+
+pub fn pymod_register_no_suffix(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(home, m)?)?;
+    m.add_function(wrap_pyfunction!(cache, m)?)?;
+    m.add_function(wrap_pyfunction!(config, m)?)?;
+    m.add_function(wrap_pyfunction!(config_local, m)?)?;
+    m.add_function(wrap_pyfunction!(data, m)?)?;
+    m.add_function(wrap_pyfunction!(data_local, m)?)?;
+    m.add_function(wrap_pyfunction!(executable, m)?)?;
+    m.add_function(wrap_pyfunction!(preference, m)?)?;
+    m.add_function(wrap_pyfunction!(runtime, m)?)?;
+    m.add_function(wrap_pyfunction!(state, m)?)?;
+    m.add_function(wrap_pyfunction!(audio, m)?)?;
+    m.add_function(wrap_pyfunction!(desktop, m)?)?;
+    m.add_function(wrap_pyfunction!(document, m)?)?;
+    m.add_function(wrap_pyfunction!(download, m)?)?;
+    m.add_function(wrap_pyfunction!(font, m)?)?;
+    m.add_function(wrap_pyfunction!(picture, m)?)?;
+    m.add_function(wrap_pyfunction!(public, m)?)?;
+    m.add_function(wrap_pyfunction!(template, m)?)?;
+    m.add_function(wrap_pyfunction!(video, m)?)?;
+    Ok(())
+}
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    pymod_register_suffix(m)?;
+    pymod_register_no_suffix(m)?;
     Ok(())
 }

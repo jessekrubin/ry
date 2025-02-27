@@ -1,11 +1,11 @@
-use bytes::{Bytes, BytesMut};
+mod file_read_stream;
+use crate::fs::file_read_stream::{FileReadStream, PyFileReadStream};
 use pyo3::exceptions::{PyIsADirectoryError, PyNotADirectoryError, PyUnicodeDecodeError};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
-use std::fs::File;
-use std::io::{self, Read, Seek, SeekFrom};
+use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
@@ -133,81 +133,50 @@ impl PyMetadata {
         self.0.permissions().readonly()
     }
 
-    // #[getter]
-    // pub fn permissions(&self) -> PyResult<PyObject> {
-    //     let permissions = self.0.permissions();
-    //     Ok(permissions.into())
-    // }
+    #[getter]
+    pub fn permissions(&self) -> PyResult<PyPermissions> {
+        let permissions = self.0.permissions();
+        Ok(PyPermissions::from(permissions))
+    }
+}
+
+#[pyclass(name = "Permissions", module = "ry", frozen)]
+pub struct PyPermissions(pub std::fs::Permissions);
+
+impl From<std::fs::Permissions> for PyPermissions {
+    fn from(p: std::fs::Permissions) -> Self {
+        Self(p)
+    }
+}
+
+impl PyPermissions {
+    #[must_use]
+    pub fn new(p: std::fs::Permissions) -> Self {
+        Self(p)
+    }
+}
+
+#[pymethods]
+impl PyPermissions {
+    #[getter]
+    #[must_use]
+    pub fn readonly(&self) -> bool {
+        self.0.readonly()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        let repr = format!("Permissions(readonly={})", self.0.readonly());
+        Ok(repr)
+    }
+
+    fn __eq__(&self, other: &PyPermissions) -> bool {
+        self.0 == other.0
+    }
 }
 
 // ============================================================================
 // FUNCTIONS
 // ============================================================================
-
-pub struct FileReadStream {
-    file: File,
-    chunk_size: usize,
-    buffer: BytesMut,
-}
-
-impl FileReadStream {
-    pub fn new<P: AsRef<Path>>(path: P, chunk_size: usize) -> io::Result<Self> {
-        let file = File::open(path)?;
-        Ok(Self {
-            file,
-            chunk_size,
-            buffer: BytesMut::with_capacity(chunk_size),
-        })
-    }
-
-    pub fn new_with_offset<P: AsRef<Path>>(
-        path: P,
-        chunk_size: usize,
-        offset: u64,
-    ) -> io::Result<Self> {
-        let mut file = File::open(path)?;
-        file.seek(SeekFrom::Start(offset))?;
-        Ok(Self {
-            file,
-            chunk_size,
-            buffer: BytesMut::with_capacity(chunk_size),
-        })
-    }
-}
-
-impl Iterator for FileReadStream {
-    type Item = io::Result<Bytes>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        // can resize buffer without reallocating (I think)
-        self.buffer.resize(self.chunk_size, 0);
-        match self.file.read(&mut self.buffer) {
-            Ok(0) => None,
-            Ok(n) => Some(Ok(self.buffer.split_to(n).freeze())),
-            Err(e) => Some(Err(e)),
-        }
-    }
-}
-#[pyclass(name = "FileReadStream", module = "ryo3")]
-pub struct PyFileReadStream {
-    file_read_stream: FileReadStream,
-}
-
-#[pymethods]
-impl PyFileReadStream {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<ryo3_bytes::PyBytes>> {
-        let b = slf.file_read_stream.next();
-        match b {
-            Some(Ok(b)) => Ok(Some(b.into())),
-            Some(Err(e)) => Err(e.into()),
-            None => Ok(None),
-        }
-    }
-}
 
 #[pyfunction]
 #[pyo3(signature = (pth, chunk_size = 65536, *, offset = 0))]
@@ -255,29 +224,31 @@ pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
     }
 }
 
-#[expect(clippy::needless_pass_by_value)]
-#[pyfunction]
-pub fn write(fspath: PathLike, b: &Bound<'_, PyAny>) -> PyResult<usize> {
-    let bref = extract_bytes_ref_str(b)?;
-    let write_res = std::fs::write(fspath.as_ref(), bref);
+fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize> {
+    let write_res = std::fs::write(fspath.as_ref(), b.as_ref());
     match write_res {
-        Ok(()) => Ok(bref.len()),
-        Err(e) => Err(PyNotADirectoryError::new_err(format!(
-            "write_bytes - parent: {fspath} - {e}"
-        ))),
+        Ok(()) => Ok(b.as_ref().len()),
+        Err(e) => {
+            let fspath_str = fspath.as_ref().to_string_lossy();
+            Err(PyNotADirectoryError::new_err(format!(
+                "write_bytes - parent: {fspath_str} - {e}"
+            )))
+        }
     }
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-pub fn write_bytes(fspath: PathLike, b: &[u8]) -> PyResult<usize> {
-    let write_res = std::fs::write(fspath.as_ref(), b);
-    match write_res {
-        Ok(()) => Ok(b.len()),
-        Err(e) => Err(PyNotADirectoryError::new_err(format!(
-            "write_bytes - parent: {fspath} - {e}"
-        ))),
-    }
+pub fn write(fspath: PathLike, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+    let bref = extract_bytes_ref_str(b)?;
+    write_impl(fspath, bref)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+pub fn write_bytes(fspath: PathLike, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+    let bref = extract_bytes_ref_str(b)?;
+    write_impl(fspath, bref)
 }
 
 #[expect(clippy::needless_pass_by_value)]
@@ -291,10 +262,12 @@ pub fn write_text(fspath: PathLike, string: &str) -> PyResult<usize> {
         ))),
     }
 }
+
+#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn rename(from: PathBuf, to: PathBuf) -> PyResult<()> {
-    let rename_res = std::fs::rename(&from, &to)?;
-    Ok(rename_res)
+    std::fs::rename(&from, &to)?;
+    Ok(())
 }
 
 #[pyfunction]
@@ -303,6 +276,7 @@ pub fn metadata(pth: PathLike) -> PyResult<PyMetadata> {
     Ok(PyMetadata::new(metadata))
 }
 
+#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn copy(from: PathBuf, to: PathBuf) -> PyResult<u64> {
     let copy_res = std::fs::copy(&from, &to)?;
@@ -311,37 +285,44 @@ pub fn copy(from: PathBuf, to: PathBuf) -> PyResult<u64> {
 
 #[pyfunction]
 pub fn remove_file(pth: PathLike) -> PyResult<()> {
-    let remove_res = std::fs::remove_file(pth)?;
-    Ok(remove_res)
+    std::fs::remove_file(pth)?;
+    Ok(())
 }
 
 #[pyfunction]
 pub fn remove_dir(pth: PathLike) -> PyResult<()> {
-    let remove_res = std::fs::remove_dir(pth)?;
-    Ok(remove_res)
+    std::fs::remove_dir(pth)?;
+    Ok(())
 }
 
 #[pyfunction]
 pub fn remove_dir_all(pth: PathLike) -> PyResult<()> {
-    let remove_res = std::fs::remove_dir_all(pth)?;
-    Ok(remove_res)
+    std::fs::remove_dir_all(pth)?;
+    Ok(())
 }
 
 #[pyfunction]
 pub fn create_dir(pth: PathLike) -> PyResult<()> {
-    let create_res = std::fs::create_dir(pth)?;
-    Ok(create_res)
+    std::fs::create_dir(pth)?;
+    Ok(())
 }
 
 #[pyfunction]
 pub fn create_dir_all(pth: PathLike) -> PyResult<()> {
-    let create_res = std::fs::create_dir_all(pth)?;
-    Ok(create_res)
+    std::fs::create_dir_all(pth)?;
+    Ok(())
+}
+
+#[pyfunction]
+pub fn canonicalize(pth: PathLike) -> PyResult<()> {
+    std::fs::canonicalize(pth)?;
+    Ok(())
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
+    m.add_function(wrap_pyfunction!(canonicalize, m)?)?;
     m.add_function(wrap_pyfunction!(copy, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir_all, m)?)?;

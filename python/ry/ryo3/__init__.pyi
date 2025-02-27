@@ -7,9 +7,13 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
-from ry._types import Buffer
+from ry import dirs as dirs  # noqa
+from ry import http as http  # noqa
+from ry import xxhash as xxhash  # noqa
+from ry._types import Buffer as Buffer
+from ry.http import Headers as Headers
+from ry.http import HttpStatus as HttpStatus
 
-from . import http as http
 from ._bytes import Bytes as Bytes
 from ._jiff import Date as Date
 from ._jiff import DateDifference as DateDifference
@@ -45,8 +49,6 @@ from ._size import SizeFormatter as SizeFormatter
 from ._size import fmt_size as fmt_size
 from ._size import parse_size as parse_size
 from ._url import URL as URL
-from .http import Headers as Headers
-from .http import HttpStatus as HttpStatus
 from .reqwest import HttpClient as HttpClient
 from .reqwest import ReqwestError as ReqwestError
 from .reqwest import Response as Response
