@@ -6,7 +6,7 @@ use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
 use std::fs::File;
 use std::io::{self, Read, Seek, SeekFrom};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 #[pyclass(name = "FileType", module = "ry", frozen)]
@@ -291,14 +291,69 @@ pub fn write_text(fspath: PathLike, string: &str) -> PyResult<usize> {
         ))),
     }
 }
+#[pyfunction]
+pub fn rename(from: PathBuf, to: PathBuf) -> PyResult<()> {
+    let rename_res = std::fs::rename(&from, &to)?;
+    Ok(rename_res)
+}
+
+#[pyfunction]
+pub fn metadata(pth: PathLike) -> PyResult<PyMetadata> {
+    let metadata = std::fs::metadata(pth)?;
+    Ok(PyMetadata::new(metadata))
+}
+
+#[pyfunction]
+pub fn copy(from: PathBuf, to: PathBuf) -> PyResult<u64> {
+    let copy_res = std::fs::copy(&from, &to)?;
+    Ok(copy_res)
+}
+
+#[pyfunction]
+pub fn remove_file(pth: PathLike) -> PyResult<()> {
+    let remove_res = std::fs::remove_file(pth)?;
+    Ok(remove_res)
+}
+
+#[pyfunction]
+pub fn remove_dir(pth: PathLike) -> PyResult<()> {
+    let remove_res = std::fs::remove_dir(pth)?;
+    Ok(remove_res)
+}
+
+#[pyfunction]
+pub fn remove_dir_all(pth: PathLike) -> PyResult<()> {
+    let remove_res = std::fs::remove_dir_all(pth)?;
+    Ok(remove_res)
+}
+
+#[pyfunction]
+pub fn create_dir(pth: PathLike) -> PyResult<()> {
+    let create_res = std::fs::create_dir(pth)?;
+    Ok(create_res)
+}
+
+#[pyfunction]
+pub fn create_dir_all(pth: PathLike) -> PyResult<()> {
+    let create_res = std::fs::create_dir_all(pth)?;
+    Ok(create_res)
+}
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
+    m.add_function(wrap_pyfunction!(copy, m)?)?;
+    m.add_function(wrap_pyfunction!(create_dir, m)?)?;
+    m.add_function(wrap_pyfunction!(create_dir_all, m)?)?;
+    m.add_function(wrap_pyfunction!(metadata, m)?)?;
     m.add_function(wrap_pyfunction!(read, m)?)?;
-    m.add_function(wrap_pyfunction!(read_stream, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
+    m.add_function(wrap_pyfunction!(read_stream, m)?)?;
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
+    m.add_function(wrap_pyfunction!(remove_dir, m)?)?;
+    m.add_function(wrap_pyfunction!(remove_dir_all, m)?)?;
+    m.add_function(wrap_pyfunction!(remove_file, m)?)?;
+    m.add_function(wrap_pyfunction!(rename, m)?)?;
     m.add_function(wrap_pyfunction!(write, m)?)?;
     m.add_function(wrap_pyfunction!(write_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(write_text, m)?)?;
