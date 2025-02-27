@@ -38,3 +38,17 @@ def test_read_stream_is_directory(tmp_path: Path) -> None:
     (tmp_path / "test").mkdir(parents=True)
     with pytest.raises(IsADirectoryError):
         list(ry.read_stream(tmp_path, chunk_size=10))
+
+
+def test_read_offset_greater_than_file_size(tmp_path: Path) -> None:
+    """Test that reading a file in chunks works w/ and w/o offset."""
+    p = tmp_path / "test.txt"
+    string = "123"
+    string_bytes = string.encode()
+    with open(p, "wb") as f:
+        size = f.write(string_bytes)
+    ry.cd(tmp_path)
+    read_offset = size + 1
+    chunks = list(ry.read_stream("test.txt", offset=read_offset))
+    assert b"".join(chunks) == b""
+    assert len(chunks) == 0

@@ -5,14 +5,14 @@ use std::io;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
 
-pub struct FileReadStream {
+pub(crate) struct FileReadStream {
     file: File,
     chunk_size: usize,
     buffer: BytesMut,
 }
 
 impl FileReadStream {
-    pub fn new<P: AsRef<Path>>(path: P, chunk_size: usize) -> io::Result<Self> {
+    pub(crate) fn new<P: AsRef<Path>>(path: P, chunk_size: usize) -> io::Result<Self> {
         let file = File::open(path)?;
         Ok(Self {
             file,
@@ -21,18 +21,22 @@ impl FileReadStream {
         })
     }
 
-    pub fn new_with_offset<P: AsRef<Path>>(
+    pub(crate) fn new_with_offset<P: AsRef<Path>>(
         path: P,
         chunk_size: usize,
         offset: u64,
     ) -> io::Result<Self> {
-        let mut file = File::open(path)?;
-        file.seek(SeekFrom::Start(offset))?;
-        Ok(Self {
-            file,
-            chunk_size,
-            buffer: BytesMut::with_capacity(chunk_size),
-        })
+        if offset == 0 {
+            Self::new(path, chunk_size)
+        } else {
+            let mut file = File::open(path)?;
+            file.seek(SeekFrom::Start(offset))?;
+            Ok(Self {
+                file,
+                chunk_size,
+                buffer: BytesMut::with_capacity(chunk_size),
+            })
+        }
     }
 }
 

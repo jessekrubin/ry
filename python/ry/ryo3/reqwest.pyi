@@ -4,8 +4,7 @@ from http import HTTPStatus
 import ry
 
 if t.TYPE_CHECKING:
-    from ry.ryo3 import Duration, Headers, URL
-
+    from ry.ryo3 import URL, Duration, Headers
 
 class HttpClient:
     def __init__(
@@ -20,11 +19,9 @@ class HttpClient:
         brotli: bool = True,
         deflate: bool = True,
     ) -> None: ...
-
     async def get(
         self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
-
     async def post(
         self,
         url: str | URL,
@@ -32,7 +29,6 @@ class HttpClient:
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
-
     async def put(
         self,
         url: str | URL,
@@ -40,11 +36,9 @@ class HttpClient:
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
-
     async def delete(
         self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
-
     async def patch(
         self,
         url: str | URL,
@@ -52,11 +46,9 @@ class HttpClient:
         body: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
-
     async def head(
         self, url: str | URL, *, headers: dict[str, str] | None = None
     ) -> Response: ...
-
     async def fetch(
         self,
         url: str | URL,
@@ -66,57 +58,35 @@ class HttpClient:
         headers: dict[str, str] | None = None,
     ) -> Response: ...
 
-
 class ReqwestError(Exception):
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
-
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
     def __dbg__(self) -> str: ...
-
     def is_body(self) -> bool: ...
-
     def is_builder(self) -> bool: ...
-
     def is_connect(self) -> bool: ...
-
     def is_decode(self) -> bool: ...
-
     def is_redirect(self) -> bool: ...
-
     def is_request(self) -> bool: ...
-
     def is_status(self) -> bool: ...
-
     def is_timeout(self) -> bool: ...
-
     def status(self) -> HTTPStatus | None: ...
-
     def url(self) -> URL | None: ...
-
 
 class Response:
     status_code: int
 
     @property
     def headers(self) -> Headers: ...
-
     async def text(self) -> str: ...
-
     async def json(self) -> t.Any: ...
-
     async def bytes(self) -> ry.Bytes: ...
-
     def bytes_stream(self) -> ResponseStream: ...
-
 
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
-
     async def __anext__(self) -> ry.Bytes: ...
-
 
 async def fetch(
     url: str | URL,

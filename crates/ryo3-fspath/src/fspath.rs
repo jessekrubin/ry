@@ -17,17 +17,25 @@ use std::path::{Path, PathBuf};
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
+type ArcPathBuf = std::sync::Arc<PathBuf>;
+
 #[pyclass(name = "FsPath", module = "ryo3", frozen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
-    pth: PathBuf,
+    // pth: PathBuf,
+    pth: ArcPathBuf,
 }
 
 impl PyFsPath {
     pub fn new<P: AsRef<Path>>(p: P) -> Self {
         Self {
-            pth: p.as_ref().to_path_buf(),
+            pth: ArcPathBuf::new(p.as_ref().to_path_buf()),
         }
+    }
+
+    #[must_use]
+    pub fn path(&self) -> &Path {
+        self.pth.as_ref()
     }
 }
 
@@ -53,22 +61,15 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 impl PyFsPath {
     #[new]
     #[pyo3(signature = (p=None))]
-    fn py_new(p: Option<PathLike>) -> Self {
+    fn py_new(p: Option<PathBuf>) -> Self {
         match p {
-            Some(p) => Self {
-                pth: p.as_ref().to_path_buf(),
-            },
-            None => {
-                // use "." as default
-                Self {
-                    pth: PathBuf::from("."),
-                }
-            }
+            Some(p) => Self::from(p),
+            None => Self::from("."),
         }
     }
 
     fn string(&self) -> String {
-        path2str(&self.pth)
+        path2str(self.path())
     }
 
     fn __str__(&self) -> String {
@@ -82,11 +83,11 @@ impl PyFsPath {
 
     fn equiv(&self, other: PathLike) -> bool {
         let other = other.as_ref();
-        self.pth == other
+        self.path() == other
     }
 
     fn to_pathlib<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        path2pathlib(py, &self.pth)
+        path2pathlib(py, self.path())
     }
 
     fn __hash__(&self) -> u64 {
@@ -97,10 +98,11 @@ impl PyFsPath {
 
     fn __richcmp__(&self, other: PathLike, op: CompareOp) -> bool {
         let o = other.as_ref();
+        let p = self.pth.as_path();
         match op {
             CompareOp::Eq => {
                 // start by comparing as paths
-                if self.pth == other.as_ref() {
+                if p == other.as_ref() {
                     return true;
                 }
                 // if that fails, compare as strings
@@ -108,16 +110,16 @@ impl PyFsPath {
             }
             CompareOp::Ne => {
                 // start by comparing as paths
-                if self.pth != other.as_ref() {
+                if p != other.as_ref() {
                     return true;
                 }
                 // if that fails, compare as strings
                 self.string() != path2str(other.as_ref())
             }
-            CompareOp::Lt => self.pth < o,
-            CompareOp::Le => self.pth <= o,
-            CompareOp::Gt => self.pth > o,
-            CompareOp::Ge => self.pth >= o,
+            CompareOp::Lt => p < o,
+            CompareOp::Le => p <= o,
+            CompareOp::Gt => p > o,
+            CompareOp::Ge => p >= o,
         }
     }
 
@@ -146,12 +148,12 @@ impl PyFsPath {
     }
 
     fn __rtruediv__(&self, other: PathLike) -> Self {
-        let p = other.as_ref().join(&self.pth);
+        let p = other.as_ref().join(self.path());
         PyFsPath::from(p)
     }
 
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        let s = path2str(self.pth.clone());
+        let s = path2str(self.path());
         let b = s.as_bytes();
         PyBytes::new(py, b)
     }
@@ -167,7 +169,7 @@ impl PyFsPath {
     #[cfg(target_os = "windows")]
     #[getter]
     fn drive(&self) -> Option<String> {
-        let drive = self.pth.components().next();
+        let drive = self.path().components().next();
         match drive {
             Some(drive_component) => {
                 let drive_str = drive_component.as_os_str().to_string_lossy().to_string();
@@ -185,7 +187,7 @@ impl PyFsPath {
 
     #[getter]
     fn anchor(&self) -> String {
-        let anchor = self.pth.components().next();
+        let anchor = self.path().components().next();
         match anchor {
             Some(anchor) => {
                 let a = anchor.as_os_str().to_string_lossy().to_string();
@@ -197,7 +199,7 @@ impl PyFsPath {
     }
     #[getter]
     fn parent(&self) -> Self {
-        let p = self.pth.parent();
+        let p = self.path().parent();
         match p {
             Some(p) => match p.to_str() {
                 Some(p) => {
@@ -216,14 +218,14 @@ impl PyFsPath {
     // TODO - implement ad iterator not tuple
     #[getter]
     fn parents<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parents: Vec<Self> = self.pth.ancestors().map(PyFsPath::from).collect();
+        let parents: Vec<Self> = self.path().ancestors().map(PyFsPath::from).collect();
         PyTuple::new(py, parents)
     }
 
     #[getter]
     fn parts<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let parts = self
-            .pth
+            .path()
             .components()
             .map(|c| c.as_os_str().to_string_lossy().to_string())
             .collect::<Vec<String>>();
@@ -232,20 +234,20 @@ impl PyFsPath {
 
     #[getter]
     fn name(&self) -> String {
-        match self.pth.file_name() {
+        match self.path().file_name() {
             Some(name) => name.to_string_lossy().to_string(),
             None => String::new(),
         }
     }
 
     fn with_name(&self, name: String) -> Self {
-        let p = self.pth.with_file_name(name);
+        let p = self.path().with_file_name(name);
         PyFsPath::from(p)
     }
 
     #[getter]
     fn suffix(&self) -> String {
-        let e = self.pth.extension();
+        let e = self.path().extension();
         match e {
             Some(e) => {
                 let e = e.to_string_lossy().to_string();
@@ -266,14 +268,14 @@ impl PyFsPath {
         } else {
             suffix.as_ref()
         };
-        let p = self.pth.with_extension(suffix);
+        let p = self.path().with_extension(suffix);
         Self::from(p)
     }
 
     #[getter]
     fn suffixes(&self) -> Vec<String> {
         let mut suffixes = vec![];
-        let mut p = self.pth.clone();
+        let mut p = self.path().to_path_buf();
         while let Some(e) = p.extension() {
             match e.to_str() {
                 Some(e) => suffixes.push(e.to_string()),
@@ -287,7 +289,7 @@ impl PyFsPath {
 
     #[getter]
     fn stem(&self) -> PyResult<String> {
-        self.pth
+        self.path()
             .file_stem()
             .map(|s| s.to_string_lossy().to_string())
             .ok_or_else(|| {
@@ -297,7 +299,7 @@ impl PyFsPath {
 
     #[classmethod]
     fn home(_cls: &Bound<'_, PyType>) -> Option<Self> {
-        ryo3_dirs::home().map(|p| Self { pth: p.into() })
+        ryo3_dirs::home().map(Self::from)
     }
 
     #[classmethod]
@@ -312,17 +314,17 @@ impl PyFsPath {
     }
 
     fn joinpath(&self, other: PathLike) -> Self {
-        let p = self.pth.join(other.as_ref());
+        let p = self.path().join(other.as_ref());
         Self::from(p)
     }
 
     pub fn read(&self) -> PyResult<ryo3_bytes::PyBytes> {
-        let fbytes = std::fs::read(&self.pth)?;
+        let fbytes = std::fs::read(self.path())?;
         Ok(fbytes.into())
     }
 
     pub fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
-        let fbytes = std::fs::read(&self.pth);
+        let fbytes = std::fs::read(self.path());
         match fbytes {
             Ok(b) => Ok(PyBytes::new(py, &b).into()),
             Err(e) => {
@@ -335,7 +337,7 @@ impl PyFsPath {
     }
 
     pub fn read_text(&self, py: Python<'_>) -> PyResult<String> {
-        let bvec = std::fs::read(&self.pth).map_err(|e| {
+        let bvec = std::fs::read(self.path()).map_err(|e| {
             let pathstr = self.string();
             PyFileNotFoundError::new_err(format!("read_text - path: {pathstr} - {e}"))
         })?;
@@ -351,7 +353,7 @@ impl PyFsPath {
 
     pub fn write(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
         let b = extract_bytes_ref(b)?;
-        let write_res = std::fs::write(&self.pth, b);
+        let write_res = std::fs::write(self.path(), b);
         match write_res {
             Ok(()) => Ok(b.len()),
             Err(e) => {
@@ -368,7 +370,7 @@ impl PyFsPath {
     }
 
     pub fn write_text(&self, t: &str) -> PyResult<()> {
-        let write_result = std::fs::write(&self.pth, t);
+        let write_result = std::fs::write(self.path(), t);
         match write_result {
             Ok(()) => Ok(()),
             Err(e) => {
@@ -386,12 +388,8 @@ impl PyFsPath {
         ))
     }
 
-    fn iterdir(&self) -> PyResult<PyReadDir> {
+    fn iterdir(&self) -> PyResult<PyFsPathReadDir> {
         self.read_dir()
-        // let rd = std::fs::read_dir(&self.pth)
-        //     .map(PyReadDir::from)
-        //     .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
-        // Ok(rd)
     }
 
     fn relative_to(&self, _other: PathLike) -> PyResult<PyFsPath> {
@@ -552,9 +550,9 @@ impl PyFsPath {
     fn metadata(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-    fn read_dir(&self) -> PyResult<PyReadDir> {
-        let rd = std::fs::read_dir(&self.pth)
-            .map(PyReadDir::from)
+    fn read_dir(&self) -> PyResult<PyFsPathReadDir> {
+        let rd = std::fs::read_dir(self.path())
+            .map(PyFsPathReadDir::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
         Ok(rd)
     }
@@ -578,13 +576,11 @@ impl PyFsPath {
     }
 
     fn with_extension(&self, extension: String) -> Self {
-        let p = self.pth.with_extension(extension);
-        Self::from(p)
+        Self::from(self.pth.with_extension(extension))
     }
 
     fn with_file_name(&self, name: String) -> Self {
-        let p = self.pth.with_file_name(name);
-        Self::from(p)
+        Self::from(self.pth.with_file_name(name))
     }
 }
 
@@ -594,18 +590,18 @@ where
 {
     fn from(p: T) -> Self {
         PyFsPath {
-            pth: p.as_ref().to_path_buf(),
+            pth: ArcPathBuf::new(p.as_ref().to_path_buf()),
         }
     }
 }
 
-#[pyclass(name = "ReadDir", module = "ryo3")]
-pub struct PyReadDir {
+#[pyclass(name = "FsPathReadDir", module = "ryo3")]
+pub struct PyFsPathReadDir {
     iter: std::fs::ReadDir,
 }
 
 #[pymethods]
-impl PyReadDir {
+impl PyFsPathReadDir {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -617,7 +613,7 @@ impl PyReadDir {
     }
 }
 
-impl From<std::fs::ReadDir> for PyReadDir {
+impl From<std::fs::ReadDir> for PyFsPathReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
         Self { iter }
     }

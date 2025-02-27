@@ -1,11 +1,12 @@
 mod file_read_stream;
 use crate::fs::file_read_stream::{FileReadStream, PyFileReadStream};
-use pyo3::exceptions::{PyIsADirectoryError, PyNotADirectoryError, PyUnicodeDecodeError};
+use pyo3::exceptions::{
+    PyIsADirectoryError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
+};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
-use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
@@ -164,9 +165,12 @@ impl PyPermissions {
         self.0.readonly()
     }
 
-    fn __repr__(&self) -> PyResult<String> {
-        let repr = format!("Permissions(readonly={})", self.0.readonly());
-        Ok(repr)
+    fn __repr__(&self) -> &str {
+        if self.readonly() {
+            "Permissions<readonly=True>"
+        } else {
+            "Permissions<readonly=False>"
+        }
     }
 
     fn __eq__(&self, other: &PyPermissions) -> bool {
@@ -182,6 +186,9 @@ impl PyPermissions {
 #[pyo3(signature = (pth, chunk_size = 65536, *, offset = 0))]
 #[expect(clippy::needless_pass_by_value)]
 pub fn read_stream(pth: PathLike, chunk_size: usize, offset: u64) -> PyResult<PyFileReadStream> {
+    if chunk_size == 0 {
+        return Err(PyValueError::new_err("chunk_size must be greater than 0"));
+    }
     let pth = pth.as_ref();
     let file_read_stream_res = FileReadStream::new_with_offset(pth, chunk_size, offset);
     match file_read_stream_res {
@@ -239,27 +246,29 @@ fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-pub fn write(fspath: PathLike, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+pub fn write(fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+    let bref = extract_bytes_ref_str(b)?;
+    write_impl(fspath, bref)
+}
+
+#[pyfunction]
+pub fn write_bytes(fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
     let bref = extract_bytes_ref_str(b)?;
     write_impl(fspath, bref)
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-pub fn write_bytes(fspath: PathLike, b: &Bound<'_, PyAny>) -> PyResult<usize> {
-    let bref = extract_bytes_ref_str(b)?;
-    write_impl(fspath, bref)
-}
-
-#[expect(clippy::needless_pass_by_value)]
-#[pyfunction]
-pub fn write_text(fspath: PathLike, string: &str) -> PyResult<usize> {
+pub fn write_text(fspath: PathBuf, string: &str) -> PyResult<usize> {
     let str_bytes = string.as_bytes();
-    match std::fs::write(fspath.as_ref(), str_bytes) {
+    match std::fs::write(&fspath, str_bytes) {
         Ok(()) => Ok(str_bytes.len()),
-        Err(e) => Err(PyNotADirectoryError::new_err(format!(
-            "write_bytes - parent: {fspath} - {e}"
-        ))),
+        Err(e) => {
+            let fspath_str = fspath.to_string_lossy();
+            Err(PyNotADirectoryError::new_err(format!(
+                "write_bytes - parent: {fspath_str} - {e}"
+            )))
+        }
     }
 }
 
