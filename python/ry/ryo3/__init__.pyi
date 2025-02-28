@@ -487,13 +487,13 @@ def walkdir(
     path: FsPathLike | None = None,
     *,
     files: bool = True,
-    dirs: bool = True,
+    dirs: bool = True,  # noqa: F811
     contents_first: bool = False,
     min_depth: int = 0,
     max_depth: int | None = None,
     follow_links: bool = False,
     same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,  # noqa: F811
 ) -> WalkdirGen: ...
 
 # =============================================================================
