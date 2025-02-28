@@ -1740,6 +1740,7 @@ dependencies = [
  "ryo3-core",
  "ryo3-dirs",
  "ryo3-macros",
+ "same-file",
 ]
 
 [[package]]

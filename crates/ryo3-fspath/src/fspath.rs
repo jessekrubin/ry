@@ -398,6 +398,19 @@ impl PyFsPath {
         ))
     }
 
+    fn samefile(&self, other: PathBuf) -> PyResult<bool> {
+        #[cfg(feature = "same-file")]
+        {
+            Ok(same_file::is_same_file(self.path(), &other)?)
+        }
+        #[cfg(not(feature = "same-file"))]
+        {
+            Err(ryo3_core::FeatureNotEnabledError::new_err(
+                "`same-file` feature not enabled",
+            ))
+        }
+    }
+
     // ========================================================================
     // Methods from ::std::path::PathBuf
     // ========================================================================

@@ -89,8 +89,7 @@ impl PyHttpStatus {
     }
 
     pub fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        let downcast_res = other.downcast::<PyHttpStatus>();
-        if let Ok(status_downcast_gucci) = downcast_res {
+        if let Ok(status_downcast_gucci) = other.downcast::<PyHttpStatus>() {
             let status = status_downcast_gucci.extract::<PyHttpStatus>()?;
             match op {
                 CompareOp::Eq => Ok(self.0 == status.0),
