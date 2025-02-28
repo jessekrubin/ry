@@ -2,9 +2,14 @@
 
 ## v0.0.34 [unreleased]
 
-- `fs`:
-  - `read_stream` function that returns an iterator of `ry.Bytes` objects from a `PathLike` object
-  - Several more fs functions added
+- `ryo3-std`
+  - `fs`:
+    - `read_stream` function that returns an iterator of `ry.Bytes` objects from a `PathLike` object
+    - Several more fs functions added
+- `ryo3-tokio`
+  - Several more tokio fs functions added
+- internal
+  - reorganized type annotations to be not a HUGE file...
 
 ___
 
