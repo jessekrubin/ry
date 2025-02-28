@@ -12,7 +12,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(time::sleep_async, m)?)?;
 
     // fs
-    m.add_function(wrap_pyfunction!(fs::read_async, m)?)?;
-    m.add_function(wrap_pyfunction!(fs::write_async, m)?)?;
+    fs::pymod_add(m)?;
     Ok(())
 }

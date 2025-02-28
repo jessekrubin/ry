@@ -4,8 +4,8 @@ from http import HTTPStatus
 import ry
 
 if t.TYPE_CHECKING:
-    from ry import Duration, Headers
-    from ry.ryo3._url import URL
+    from ry.http import Headers
+    from ry.ryo3 import URL, Duration
 
 class HttpClient:
     def __init__(

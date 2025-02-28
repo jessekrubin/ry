@@ -4,11 +4,6 @@ use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyResult, Pyth
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Duration;
 
-// const NANOS_PER_SEC: u32 = 1_000_000_000;
-// const NANOS_PER_MILLI: u32 = 1_000_000;
-// const NANOS_PER_MICRO: u32 = 1_000;
-// const MILLIS_PER_SEC: u64 = 1_000;
-// const MICROS_PER_SEC: u64 = 1_000_000;
 const SECS_PER_MINUTE: u64 = 60;
 const MINS_PER_HOUR: u64 = 60;
 const HOURS_PER_DAY: u64 = 24;

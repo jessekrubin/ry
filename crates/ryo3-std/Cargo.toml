@@ -16,6 +16,7 @@ pyo3 = { workspace = true, features = ["experimental-inspect"] }
 ryo3-bytes.workspace = true
 ryo3-macros.workspace = true
 ryo3-core.workspace = true
+bytes.workspace = true
 
 [lints]
 workspace = true

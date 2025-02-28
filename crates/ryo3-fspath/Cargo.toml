@@ -17,6 +17,12 @@ ryo3-dirs.workspace = true
 ryo3-macros.workspace = true
 ryo3-core.workspace = true
 ryo3-bytes.workspace = true
+same-file = { workspace = true, optional = true }
+
 
 [lints]
 workspace = true
+
+[features]
+default = ["same-file"]
+same-file = ["dep:same-file"]

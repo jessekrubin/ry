@@ -3,8 +3,7 @@ use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
-#[pyfunction]
-#[pyo3(signature = (data, level=None))]
+#[pyfunction(signature = (data, level=None))]
 pub fn zstd_encode(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<PyObject> {
     let level = level.unwrap_or(::zstd::DEFAULT_COMPRESSION_LEVEL);
     let encoded = ::zstd::stream::encode_all(data, level).map_err(|e| {
@@ -13,14 +12,12 @@ pub fn zstd_encode(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<
     Ok(PyBytes::new(py, &encoded).into())
 }
 
-#[pyfunction]
-#[pyo3(signature = (data, level=None))]
+#[pyfunction(signature = (data, level=None))]
 pub fn zstd(py: Python<'_>, data: &[u8], level: Option<i32>) -> PyResult<PyObject> {
     zstd_encode(py, data, level)
 }
 
-#[pyfunction]
-#[pyo3(signature = (data))]
+#[pyfunction(signature = (data))]
 pub fn zstd_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
     ::zstd::stream::copy_decode(data, &mut decompressed).map_err(|e| {

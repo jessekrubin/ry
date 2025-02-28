@@ -7,10 +7,30 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
-from ry._types import Buffer
+from ry import dirs as dirs  # noqa: RUF100
+from ry import http as http  # noqa: RUF100
+from ry import xxhash as xxhash  # noqa: RUF100
+from ry._types import Buffer as Buffer  # noqa: RUF100
+from ry.http import Headers as Headers  # noqa: RUF100
+from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
 
-from . import http as http
 from ._bytes import Bytes as Bytes
+from ._fnv import FnvHasher as FnvHasher
+from ._fnv import fnv1a as fnv1a
+from ._globset import Glob as Glob
+from ._globset import GlobSet as GlobSet
+from ._globset import Globster as Globster
+from ._globset import glob as glob
+from ._globset import globster as globster
+from ._heck import camel_case as camel_case
+from ._heck import kebab_case as kebab_case
+from ._heck import pascal_case as pascal_case
+from ._heck import shouty_kebab_case as shouty_kebab_case
+from ._heck import shouty_snake_case as shouty_snake_case
+from ._heck import snake_case as snake_case
+from ._heck import snek_case as snek_case
+from ._heck import title_case as title_case
+from ._heck import train_case as train_case
 from ._jiff import Date as Date
 from ._jiff import DateDifference as DateDifference
 from ._jiff import DateTime as DateTime
@@ -41,19 +61,34 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._regex import Regex as Regex
+from ._reqwest import HttpClient as HttpClient
+from ._reqwest import ReqwestError as ReqwestError
+from ._reqwest import Response as Response
+from ._reqwest import ResponseStream as ResponseStream
+from ._reqwest import fetch as fetch
 from ._size import SizeFormatter as SizeFormatter
 from ._size import fmt_size as fmt_size
 from ._size import parse_size as parse_size
+from ._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
+from ._sqlformat import sqlfmt as sqlfmt
+from ._sqlformat import sqlfmt_params as sqlfmt_params
+from ._tokio import asleep as asleep
+from ._tokio import copy_async as copy_async
+from ._tokio import create_dir_async as create_dir_async
+from ._tokio import metadata_async as metadata_async
+from ._tokio import read_async as read_async
+from ._tokio import read_dir_async as read_dir_async
+from ._tokio import remove_dir_async as remove_dir_async
+from ._tokio import remove_file_async as remove_file_async
+from ._tokio import rename_async as rename_async
+from ._tokio import sleep_async as sleep_async
+from ._tokio import write_async as write_async
 from ._url import URL as URL
-from .http import Headers as Headers
-from .http import HttpStatus as HttpStatus
-from .reqwest import HttpClient as HttpClient
-from .reqwest import ReqwestError as ReqwestError
-from .reqwest import Response as Response
-from .reqwest import ResponseStream as ResponseStream
-from .reqwest import fetch as fetch
-from .tokio import read_async as read_async
-from .tokio import write_async as write_async
+from ._which import which as which
+from ._which import which_all as which_all
+from ._which import which_re as which_re
+from .errors import FeatureNotEnabledError as FeatureNotEnabledError
 
 __version__: str
 __authors__: str
@@ -67,12 +102,8 @@ __description__: str
 # =============================================================================
 
 # =============================================================================
-# STD
-# =============================================================================
-
-# -----------------------------------------------------------------------------
 # STD::TIME
-# -----------------------------------------------------------------------------
+# =============================================================================
 class Duration:
     ZERO: Duration
     MIN: Duration
@@ -202,10 +233,11 @@ class Instant:
     def saturating_duration_since(self, earlier: Instant) -> Duration: ...
 
 def instant() -> Instant: ...
+def sleep(seconds: float) -> float: ...
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # STD::FS
-# -----------------------------------------------------------------------------
+# =============================================================================
 class FileType:
     def __repr__(self) -> str: ...
     @property
@@ -237,9 +269,37 @@ class Metadata:
     def is_symlink(self) -> bool: ...
 
 # =============================================================================
-# RY03-CORE
+# STD::FS ~ functions
 # =============================================================================
+def read(path: FsPathLike) -> Bytes: ...
+def read_bytes(path: FsPathLike) -> bytes: ...
+def read_text(path: FsPathLike) -> str: ...
+def read_stream(
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    offset: int = 0,  # noqa: F811
+) -> t.Iterator[Bytes]: ...
+def write(path: FsPathLike, data: Buffer | str) -> int: ...
+def write_bytes(path: FsPathLike, data: bytes) -> int: ...
+def write_text(path: FsPathLike, data: str) -> int: ...
+def canonicalize(path: FsPathLike) -> FsPath: ...
+def copy(from_path: FsPathLike, to_path: FsPathLike) -> int: ...
+def create_dir(path: FsPathLike) -> None: ...
+def create_dir_all(path: FsPathLike) -> None: ...
+def exists(path: FsPathLike) -> bool: ...
+def is_dir(path: FsPathLike) -> bool: ...
+def is_file(path: FsPathLike) -> bool: ...
+def is_symlink(path: FsPathLike) -> bool: ...
+def metadata(path: FsPathLike) -> Metadata: ...
+def remove_dir(path: FsPathLike) -> None: ...
+def remove_dir_all(path: FsPathLike) -> None: ...
+def remove_file(path: FsPathLike) -> None: ...
+def rename(from_path: FsPathLike, to_path: FsPathLike) -> None: ...
 
+# =============================================================================
+# FSPATH
+# =============================================================================
 class FsPath:
     def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
     def __fspath__(self) -> str: ...
@@ -333,7 +393,7 @@ class FsPath:
     def with_extension(self, ext: str) -> FsPath: ...
     def with_file_name(self, name: str) -> FsPath: ...
 
-FsPathLike = str | FsPath | PathLike[str]
+FsPathLike = str | PathLike[str]
 
 def pwd() -> str: ...
 def home() -> str: ...
@@ -377,25 +437,6 @@ def quick_maths() -> t.Literal[3]:
     NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
     """
 
-# =============================================================================
-# SLEEP
-# =============================================================================
-def sleep(seconds: float) -> float: ...
-async def sleep_async(seconds: float) -> float: ...
-async def asleep(seconds: float) -> float:
-    """Alias for sleep_async"""
-    ...
-
-# =============================================================================
-# FILESYSTEM
-# =============================================================================
-def read(path: FsPathLike) -> Bytes: ...
-def read_bytes(path: FsPathLike) -> bytes: ...
-def read_text(path: FsPathLike) -> str: ...
-def write(path: FsPathLike, data: Buffer | str) -> None: ...
-def write_bytes(path: FsPathLike, data: bytes) -> None: ...
-def write_text(path: FsPathLike, data: str) -> None: ...
-
 # -----------------------------------------------------------------------------
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -405,137 +446,6 @@ def write_text(path: FsPathLike, data: str) -> None: ...
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 # -----------------------------------------------------------------------------
-
-# =============================================================================
-# Regex
-# =============================================================================
-
-class Regex:
-    def __init__(
-        self,
-        pattern: str,
-        *,
-        case_insensitive: bool = False,
-        crlf: bool = False,
-        dot_matches_new_line: bool = False,
-        ignore_whitespace: bool = False,
-        line_terminator: str | None = None,
-        multi_line: bool = False,
-        octal: bool = False,
-        size_limit: int | None = None,
-        swap_greed: bool = False,
-        unicode: bool = False,
-    ) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def is_match(self, string: str) -> bool: ...
-
-# =============================================================================
-# WHICH
-# =============================================================================
-def which(cmd: str, path: None | str = None) -> str | None: ...
-def which_all(cmd: str, path: None | str = None) -> list[str]: ...
-def which_re(regex: str | Regex, path: None | str = None) -> list[str]: ...
-
-# =============================================================================
-# HECK
-# =============================================================================
-
-def camel_case(string: str) -> str: ...
-def kebab_case(string: str) -> str: ...
-def pascal_case(string: str) -> str: ...
-def shouty_kebab_case(string: str) -> str: ...
-def shouty_snake_case(string: str) -> str: ...
-def snake_case(string: str) -> str: ...
-def snek_case(string: str) -> str: ...
-def title_case(string: str) -> str: ...
-def train_case(string: str) -> str: ...
-
-# =============================================================================
-# GLOBSET
-# =============================================================================
-class Glob:
-    """globset::Glob wrapper"""
-
-    def __init__(
-        self,
-        pattern: str,
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def regex(self) -> str: ...
-    def is_match(self, path: FsPathLike) -> bool: ...
-    def __call__(self, path: FsPathLike) -> bool: ...
-    def __invert__(self) -> Glob: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def globset(self) -> GlobSet: ...
-    def globster(self) -> Globster: ...
-
-class GlobSet:
-    """globset::GlobSet wrapper"""
-
-    def __init__(
-        self,
-        patterns: list[str],
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def is_empty(self) -> bool: ...
-    def is_match(self, path: str) -> bool: ...
-    def matches(self, path: str) -> list[int]: ...
-    def __call__(self, path: str) -> bool: ...
-    def __invert__(self) -> GlobSet: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def globster(self) -> Globster: ...
-
-class Globster:
-    """Globster is a matcher with claws!
-
-    Note: The north american `Globster` is similar to the european `Globset`
-          but allows for negative patterns (prefixed with '!')
-
-    """
-
-    def __init__(
-        self,
-        patterns: list[str],
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def is_empty(self) -> bool: ...
-    def is_match(self, path: FsPathLike) -> bool: ...
-    def __call__(self, path: FsPathLike) -> bool: ...
-    def __invert__(self) -> GlobSet: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-def glob(
-    pattern: str,
-    /,
-    *,
-    case_insensitive: bool | None = None,
-    literal_separator: bool | None = None,
-    backslash_escape: bool | None = None,
-) -> Glob: ...
-def globster(
-    patterns: list[str] | tuple[str, ...],
-    /,
-    *,
-    case_insensitive: bool | None = None,
-    literal_separator: bool | None = None,
-    backslash_escape: bool | None = None,
-) -> Globster: ...
 
 # =============================================================================
 # WALKDIR
@@ -577,13 +487,13 @@ def walkdir(
     path: FsPathLike | None = None,
     *,
     files: bool = True,
-    dirs: bool = True,
+    dirs: bool = True,  # noqa: F811
     contents_first: bool = False,
     min_depth: int = 0,
     max_depth: int | None = None,
     follow_links: bool = False,
     same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,  # noqa: F811
 ) -> WalkdirGen: ...
 
 # =============================================================================
@@ -604,22 +514,6 @@ def shplit(s: str) -> list[str]:
 # =============================================================================
 def unindent(string: str) -> str: ...
 def unindent_bytes(string: bytes) -> bytes: ...
-
-# =============================================================================
-# FNV
-# =============================================================================
-class FnvHasher:
-    name: t.Literal["fnv1a"]
-
-    def __init__(self, input: bytes | None = None) -> None: ...
-    def update(self, input: bytes) -> None: ...
-    def digest(self) -> int: ...
-    def hexdigest(self) -> str: ...
-    def copy(self) -> FnvHasher: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-def fnv1a(input: bytes) -> FnvHasher: ...
 
 # =============================================================================
 # BROTLI
@@ -658,33 +552,3 @@ def zstd(input: bytes, level: int = 3) -> bytes:
     """Alias for zstd_encode"""
 
 def zstd_decode(input: bytes) -> bytes: ...
-
-# =============================================================================
-# SQLFORMAT
-# =============================================================================
-SqlfmtParamValue = str | int | float | bool
-TSqlfmtParamValue_co = t.TypeVar(
-    "TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
-)
-SqlfmtParamsLike = (
-    dict[str, TSqlfmtParamValue_co]
-    | t.Sequence[tuple[str, TSqlfmtParamValue_co]]
-    | t.Sequence[TSqlfmtParamValue_co]
-)
-
-class SqlfmtQueryParams:
-    def __init__(self, params: SqlfmtParamsLike[TSqlfmtParamValue_co]) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-def sqlfmt_params(
-    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams,
-) -> SqlfmtQueryParams: ...
-def sqlfmt(
-    sql: str,
-    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
-    *,
-    indent: int = 2,  # -1 or any negative value will use tabs
-    uppercase: bool | None = True,
-    lines_between_statements: int = 1,
-) -> str: ...

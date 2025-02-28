@@ -9,6 +9,7 @@ from ry import FsPath, which
 # this filesdir
 PWDPATH = FsPath(__file__).resolve().parent
 REPO_ROOT = PWDPATH.parent
+PYTHON_ROOT = REPO_ROOT / "python"
 RYO_PYI_DIRPATH = REPO_ROOT / "python" / "ry" / "ryo3"
 API_PYI_FILEPATH = REPO_ROOT / "python" / "ry" / "ryo3.pyi"
 README_FILEPATH = REPO_ROOT / "README.md"
@@ -24,12 +25,23 @@ class RyTypeStubInfo:
         return f"RyTypeStubInfo(name={self.name!r}, pyi_filepath={self.pyi_filepath!r})"
 
 
+def filepath2module(filepath: FsPath) -> str:
+    return (
+        filepath.with_suffix("").strip_prefix(PYTHON_ROOT).as_posix().replace("/", ".")
+    )
+
+
 @lru_cache
 def get_types_dictionary():
     types_dict = {}
     for pyi_filepath in RYO_PYI_DIRPATH.iterdir():
         if pyi_filepath.is_file() and pyi_filepath.suffix == ".pyi":
-            types_dict[pyi_filepath.file_name()] = pyi_filepath.read_text()
+            module_name = filepath2module(pyi_filepath)
+
+            types_dict[
+                module_name
+                # pyi_filepath.file_name()
+            ] = pyi_filepath.read_text()
     return types_dict
 
 
@@ -71,15 +83,12 @@ def get_api_content_readme(
     # first one is '__init__.pyi'
     # then the rest are just sorted...
     parts = []
-    root_pyi = dictionary_formatted.pop("__init__.pyi")
-    parts.append(("__init__.pyi", root_pyi))
+    root_pyi = dictionary_formatted.pop("ry.ryo3.__init__")
+    parts.append(("ry.ryo3", root_pyi))
     parts.extend(sorted(dictionary_formatted.items()))
     api_content_parts = []
-    for name, content in parts:
-        mod_name = name.replace(".pyi", "")
-        module_path = f"ry.{mod_name}"
-
-        api_content_parts.append(f"## `{module_path}`\n")
+    for mod_name, content in parts:
+        api_content_parts.append(f"## `{mod_name}`\n")
         api_content_parts.append(f"```python\n{content}\n```")
     api_content_formatted = "\n".join(api_content_parts)
     return api_content_formatted
