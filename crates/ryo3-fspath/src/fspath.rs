@@ -310,7 +310,15 @@ impl PyFsPath {
     }
 
     fn as_posix(&self) -> String {
-        self.pth.to_string_lossy().to_string()
+        #[cfg(target_os = "windows")]
+        {
+            let p = self.path().to_string_lossy().to_string();
+            p.replace('\\', "/")
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            self.path().to_string_lossy().to_string()
+        }
     }
 
     fn joinpath(&self, other: PathLike) -> Self {
