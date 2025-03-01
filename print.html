@@ -156,7 +156,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-03-01T00:08:16.918811022+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-03-01T07:23:18.412995317+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -1230,6 +1230,7 @@ from ry._types import (
 )
 from ry.ryo3 import Duration
 
+T = t.TypeVar("T")
 # =============================================================================
 # JIFF
 # =============================================================================
@@ -1375,7 +1376,7 @@ class Date:
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Date: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[Date]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[Date]: ...
     def to_datetime(self, time: Time) -&gt; DateTime: ...
     def tomorrow(self) -&gt; Date: ...
     def yesterday(self) -&gt; Date: ...
@@ -1513,7 +1514,7 @@ class Time:
     # =========================================================================
     def astuple(self) -&gt; tuple[int, int, int, int]: ...
     def asdict(self) -&gt; TimeTypedDict: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[Time]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[Time]: ...
     def checked_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Time: ...
@@ -1668,7 +1669,7 @@ class DateTime:
     def iso_week_date(self) -&gt; tuple[int, int, int]: ...
     def date(self) -&gt; Date: ...
     def time(self) -&gt; Time: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[DateTime]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[DateTime]: ...
     def asdict(self) -&gt; DateTimeTypedDict: ...
     def round(
         self,
@@ -2256,7 +2257,7 @@ class Timestamp:
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Timestamp: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[Timestamp]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[Timestamp]: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
     def string(self) -&gt; str: ...
     def subsec_microsecond(self) -&gt; int: ...
@@ -2722,6 +2723,14 @@ class Offset:
     ) -&gt; Offset: ...
     def since(self, other: Offset) -&gt; TimeSpan: ...
     def until(self, other: Offset) -&gt; TimeSpan: ...
+
+
+class JiffSeries(
+    t.Generic[T],
+):
+    def __iter__(self) -&gt; t.Iterator[T]: ...
+    def __next__(self) -&gt; T: ...
+    def take(self, n: int) -&gt; list[T]: ...
 
 
 def date(year: int, month: int, day: int) -&gt; Date: ...
@@ -3311,13 +3320,25 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <hr />
 <p>If you want to be added to this list, please open an issue or PR! Happy to add you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0035-unreleased"><a class="header" href="#v0035-unreleased">v0.0.35 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-jiff</code>
+<ul>
+<li><code>series</code> iterators have <code>take</code> function that takes a <code>usize</code> returns a list
+of size <code>usize</code></li>
+<li>updated series types to be <code>JiffSeries</code> class</li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0034-2025-02-28"><a class="header" href="#v0034-2025-02-28">v0.0.34 [2025-02-28]</a></h2>
 <ul>
 <li><code>ryo3-std</code>
 <ul>
 <li><code>fs</code>:
 <ul>
-<li><code>read_stream</code> function that returns an iterator of <code>ry.Bytes</code> objects from a <code>PathLike</code> object</li>
+<li><code>read_stream</code> function that returns an iterator of <code>ry.Bytes</code> objects from
+a <code>PathLike</code> object</li>
 <li>Several more fs functions added</li>
 </ul>
 </li>
@@ -3345,7 +3366,8 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <li><code>ryo3-jiter</code>
 <ul>
 <li>Allow <code>PyBytes</code> wrapper/buffer protocol to be given</li>
-<li>renamed <code>jiter_cache_clear</code> to <code>json_cache_clear</code> and <code>jiter_cache_usage</code> to <code>json_cache_usage</code></li>
+<li>renamed <code>jiter_cache_clear</code> to <code>json_cache_clear</code> and <code>jiter_cache_usage</code> to
+<code>json_cache_usage</code></li>
 <li>Removed <code>parse_json_str</code> just use <code>parse_json</code> with <code>str</code> input</li>
 </ul>
 </li>
@@ -3380,7 +3402,8 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 </li>
 <li><code>internal</code>
 <ul>
-<li>Changed many many many of the structs/classes to be pyo3 <code>frozen</code> behaviour should not be different</li>
+<li>Changed many many many of the structs/classes to be pyo3 <code>frozen</code> behaviour
+should not be different</li>
 </ul>
 </li>
 </ul>
@@ -3394,7 +3417,8 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 </li>
 <li>internal
 <ul>
-<li>Switch all lints from <code>#[allow(...)]</code>/<code>#![allow(...)]</code> to <code>#[expect(...)]</code>/<code>#![expect(...)]</code></li>
+<li>Switch all lints from <code>#[allow(...)]</code>/<code>#![allow(...)]</code> to
+<code>#[expect(...)]</code>/<code>#![expect(...)]</code></li>
 <li>Removed a bunch o commented out code</li>
 </ul>
 </li>
@@ -3428,8 +3452,9 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <ul>
 <li><code>jiff</code>
 <ul>
-<li>Per Mr. Sushi’s thoughts changed all <code>until</code>/<code>since</code> methods to use kwargs instead of the rust-like tuples that impl
-<code>From</code>/<code>Into</code> as it does not translate well to python</li>
+<li>Per Mr. Sushi’s thoughts changed all <code>until</code>/<code>since</code> methods to use kwargs
+instead of the rust-like tuples that impl <code>From</code>/<code>Into</code> as it does not
+translate well to python</li>
 <li>Gets rid of the following inane types:</li>
 </ul>
 </li>
@@ -3486,14 +3511,16 @@ IntoTimestampDifference = (
 </li>
 <li><code>same-file</code>
 <ul>
-<li>wrapper module added with <code>is_same_file</code> py-fn (yet another piece of burnt sushi)</li>
+<li>wrapper module added with <code>is_same_file</code> py-fn (yet another piece of burnt
+sushi)</li>
 </ul>
 </li>
 <li><code>jiff</code>
 <ul>
-<li>jiff-version <code>0.1.25</code> ~ add <code>in_tz</code> methods and point old <code>intz</code> at new <code>in_tz</code> methods and raise
-<code>DeprecationWarning</code> for old <code>intz</code> methods</li>
-<li>Continued adding implementations that previously raised <code>NotImplementedError</code>
+<li>jiff-version <code>0.1.25</code> ~ add <code>in_tz</code> methods and point old <code>intz</code> at new
+<code>in_tz</code> methods and raise <code>DeprecationWarning</code> for old <code>intz</code> methods</li>
+<li>Continued adding implementations that previously raised
+<code>NotImplementedError</code>
 <ul>
 <li><code>Date.nth_weekday_of_month</code></li>
 <li><code>Date.nth_weekday</code></li>
@@ -3537,7 +3564,8 @@ IntoTimestampDifference = (
 <ul>
 <li><code>jiff</code>
 <ul>
-<li>Updated to <code>0.1.21</code> which has span and signed duration strings with capital letters</li>
+<li>Updated to <code>0.1.21</code> which has span and signed duration strings with capital
+letters</li>
 </ul>
 </li>
 </ul>
@@ -3560,10 +3588,12 @@ IntoTimestampDifference = (
 <hr />
 <h2 id="v0023-2024-12-19"><a class="header" href="#v0023-2024-12-19">v0.0.23 [2024-12-19]</a></h2>
 <ul>
-<li><code>python -m ry.dev</code> repl for ipython/python repl ~ handy nifty secret tool makes it into repo</li>
+<li><code>python -m ry.dev</code> repl for ipython/python repl ~ handy nifty secret tool
+makes it into repo</li>
 <li>internal
 <ul>
-<li>in process of renaming all python-rust <code>#[new]</code> functions to be named <code>fn py_new(...)</code></li>
+<li>in process of renaming all python-rust <code>#[new]</code> functions to be named
+<code>fn py_new(...)</code></li>
 </ul>
 </li>
 <li><code>unindent</code>
@@ -3580,15 +3610,17 @@ IntoTimestampDifference = (
 <li>sub-packaging
 <ul>
 <li><code>xxhash</code> is own sub package now <code>ry.xxhash</code></li>
-<li><code>JSON</code> is own subpackage right now – named <code>ry.JSON</code> to avoid conflict with <code>json</code> module but maybe will change…</li>
-<li>food-for-thought-ing how <code>ryo3</code> and <code>ry</code> should be organized w/ respsect to sub-packages and where that organization
-should be</li>
+<li><code>JSON</code> is own subpackage right now – named <code>ry.JSON</code> to avoid conflict with
+<code>json</code> module but maybe will change…</li>
+<li>food-for-thought-ing how <code>ryo3</code> and <code>ry</code> should be organized w/ respsect to
+sub-packages and where that organization should be</li>
 </ul>
 </li>
 <li>type-annotations
 <ul>
 <li>required to break up the type annotations due to migration to sub-packages</li>
-<li>breaking up the type annotations file into smaller files under <code>&lt;REPO&gt;/python/ry/ryo3/*.pyi</code></li>
+<li>breaking up the type annotations file into smaller files under
+<code>&lt;REPO&gt;/python/ry/ryo3/*.pyi</code></li>
 </ul>
 </li>
 </ul>
@@ -3597,19 +3629,21 @@ should be</li>
 <ul>
 <li><code>regex</code>
 <ul>
-<li>Super simple regex wrapper (must to do here, but was added for <code>ryo3-which::which_re</code>)</li>
+<li>Super simple regex wrapper (must to do here, but was added for
+<code>ryo3-which::which_re</code>)</li>
 </ul>
 </li>
 <li><code>jiff</code>
 <ul>
 <li><code>until</code>/<code>since</code>
 <ul>
-<li>Basic <code>until</code>/<code>since</code> implementation but I do not like them and they confusingly named <code>*Difference</code>
-structs/py-objects, so I may change how they work…</li>
+<li>Basic <code>until</code>/<code>since</code> implementation but I do not like them and they
+confusingly named <code>*Difference</code> structs/py-objects, so I may change how
+they work…</li>
 </ul>
 </li>
-<li><code>jiff</code> seems to be about as performant as <code>whenever</code> ~ yay! also the whenever dude appears to be watching this
-repo (as of 2024-12-16)</li>
+<li><code>jiff</code> seems to be about as performant as <code>whenever</code> ~ yay! also the
+whenever dude appears to be watching this repo (as of 2024-12-16)</li>
 </ul>
 </li>
 <li><code>walkdir</code>
@@ -3628,19 +3662,23 @@ repo (as of 2024-12-16)</li>
 <ul>
 <li><code>walkdir</code>
 <ul>
-<li>add <code>glob</code> kwarg that takes a <code>ry.Glob</code> or <code>ry.GlobSet</code> or <code>ry.Globster</code> obj to filter the walk on</li>
+<li>add <code>glob</code> kwarg that takes a <code>ry.Glob</code> or <code>ry.GlobSet</code> or <code>ry.Globster</code> obj
+to filter the walk on</li>
 </ul>
 </li>
 <li><code>globset</code>
 <ul>
 <li>Internal refactoring</li>
-<li>added <code>globster()</code> method to <code>ry.Glob</code> and <code>ry.GlobSet</code> to return a <code>ry.Globster</code> obj</li>
-<li>added <code>globset()</code> method to <code>ry.Glob</code> to return a <code>ry.GlobSet</code> obj from a <code>ry.Glob</code> obj</li>
+<li>added <code>globster()</code> method to <code>ry.Glob</code> and <code>ry.GlobSet</code> to return a
+<code>ry.Globster</code> obj</li>
+<li>added <code>globset()</code> method to <code>ry.Glob</code> to return a <code>ry.GlobSet</code> obj from a
+<code>ry.Glob</code> obj</li>
 </ul>
 </li>
 <li><code>url</code>
 <ul>
-<li>python <code>Url</code> changed name <code>URL</code>; aligns with jawascript and other python libs</li>
+<li>python <code>Url</code> changed name <code>URL</code>; aligns with jawascript and other python
+libs</li>
 </ul>
 </li>
 <li><code>bzip2</code>
@@ -3671,8 +3709,8 @@ repo (as of 2024-12-16)</li>
 <code>RyZoned</code></li>
 </ul>
 </li>
-<li>span builder functions use form <code>s._hours(1)</code> for panic-inducing building, and <code>s.try_hours(1)</code> for
-non-panic-inducing building</li>
+<li>span builder functions use form <code>s._hours(1)</code> for panic-inducing building,
+and <code>s.try_hours(1)</code> for non-panic-inducing building</li>
 </ul>
 </li>
 <li>type-annotations
@@ -3823,7 +3861,8 @@ IntoPyObject (REF)</li>
 <li><code>jiff</code>
 <ul>
 <li><code>ry.TimeZone</code> testing and to/from <code>datetime.tzinfo</code> conversions</li>
-<li>Using nu-types for <code>jiff</code> intermediate types bc of the classic orphans problem (aka batman) w/ traits</li>
+<li>Using nu-types for <code>jiff</code> intermediate types bc of the classic orphans
+problem (aka batman) w/ traits</li>
 <li>hypothesis tests</li>
 </ul>
 </li>
@@ -3869,7 +3908,8 @@ IntoPyObject (REF)</li>
 <hr />
 <h2 id="v0013-2024-11-20"><a class="header" href="#v0013-2024-11-20">v0.0.13 [2024-11-20]</a></h2>
 <ul>
-<li><strong>VERSION SKIPPED DUE TO <code>13</code> BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS (AKA fully ‘superstitchous’)</strong></li>
+<li><strong>VERSION SKIPPED DUE TO <code>13</code> BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS
+(AKA fully ‘superstitchous’)</strong></li>
 </ul>
 <hr />
 <h2 id="v0012-2024-11-14"><a class="header" href="#v0012-2024-11-14">v0.0.12 [2024-11-14]</a></h2>
@@ -4886,6 +4926,7 @@ from ry._types import (
 )
 from ry.ryo3 import Duration
 
+T = t.TypeVar("T")
 # =============================================================================
 # JIFF
 # =============================================================================
@@ -5031,7 +5072,7 @@ class Date:
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Date: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[Date]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[Date]: ...
     def to_datetime(self, time: Time) -&gt; DateTime: ...
     def tomorrow(self) -&gt; Date: ...
     def yesterday(self) -&gt; Date: ...
@@ -5169,7 +5210,7 @@ class Time:
     # =========================================================================
     def astuple(self) -&gt; tuple[int, int, int, int]: ...
     def asdict(self) -&gt; TimeTypedDict: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[Time]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[Time]: ...
     def checked_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Time: ...
@@ -5324,7 +5365,7 @@ class DateTime:
     def iso_week_date(self) -&gt; tuple[int, int, int]: ...
     def date(self) -&gt; Date: ...
     def time(self) -&gt; Time: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[DateTime]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[DateTime]: ...
     def asdict(self) -&gt; DateTimeTypedDict: ...
     def round(
         self,
@@ -5912,7 +5953,7 @@ class Timestamp:
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Timestamp: ...
-    def series(self, span: TimeSpan) -&gt; t.Iterator[Timestamp]: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[Timestamp]: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
     def string(self) -&gt; str: ...
     def subsec_microsecond(self) -&gt; int: ...
@@ -6378,6 +6419,14 @@ class Offset:
     ) -&gt; Offset: ...
     def since(self, other: Offset) -&gt; TimeSpan: ...
     def until(self, other: Offset) -&gt; TimeSpan: ...
+
+
+class JiffSeries(
+    t.Generic[T],
+):
+    def __iter__(self) -&gt; t.Iterator[T]: ...
+    def __next__(self) -&gt; T: ...
+    def take(self, n: int) -&gt; list[T]: ...
 
 
 def date(year: int, month: int, day: int) -&gt; Date: ...
