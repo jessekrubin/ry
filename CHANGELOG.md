@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.34 [unreleased]
+## v0.0.34 [2025-02-28]
 
 - `ryo3-std`
   - `fs`:
