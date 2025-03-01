@@ -19,9 +19,9 @@ use pyo3::{
     PyResult, Python,
 };
 use ryo3_std::PyDuration;
+use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
-
 #[derive(Debug, Clone)]
 #[pyclass(name = "Date", module = "ryo3", frozen)]
 pub struct RyDate(pub(crate) Date);
@@ -463,6 +463,10 @@ impl RyDateSeries {
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDate> {
         slf.series.next().map(RyDate::from)
+    }
+
+    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyDate> {
+        slf.series.borrow_mut().take(n).map(RyDate::from).collect()
     }
 }
 

@@ -56,9 +56,9 @@ dependencies = [
 
 [[package]]
 name = "async-compression"
-version = "0.4.18"
+version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df895a515f70646414f4b45c0b79082783b80552b373a68283012928df56f522"
+checksum = "310c9bcae737a48ef5cdee3174184e6d548b292739ede61a1f955ef76a738861"
 dependencies = [
  "brotli",
  "flate2",
@@ -172,29 +172,28 @@ checksum = "f61dac84819c6588b558454b194026eb1f09c293b9036ae9b159e74e73ab6cf9"
 
 [[package]]
 name = "bzip2"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75b89e7c29231c673a61a46e722602bcd138298f6b9e81e71119693534585f5c"
+checksum = "49ecfb22d906f800d4fe833b6282cf4dc1c298f5057ca0b5445e5c209735ca47"
 dependencies = [
  "bzip2-sys",
 ]
 
 [[package]]
 name = "bzip2-sys"
-version = "0.1.12+1.0.8"
+version = "0.1.13+1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72ebc2f1a417f01e1da30ef264ee86ae31d2dcd2d603ea283d3c244a883ca2a9"
+checksum = "225bff33b2141874fe80d71e07d6eec4f85c5c216453dd96388240f96e1acc14"
 dependencies = [
  "cc",
- "libc",
  "pkg-config",
 ]
 
 [[package]]
 name = "cc"
-version = "1.2.15"
+version = "1.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c736e259eea577f443d5c86c304f9f4ae0295c43f3ba05c21f1d66b5f06001af"
+checksum = "be714c154be609ec7f5dad223a33bf1482fff90472de28f7362806e6d4832b8c"
 dependencies = [
  "jobserver",
  "libc",
@@ -505,9 +504,9 @@ checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
 
 [[package]]
 name = "globset"
-version = "0.4.15"
+version = "0.4.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15f1ce686646e7f1e19bf7d5533fe443a45dbfb990e00629110797578b42fb19"
+checksum = "54a1028dfc5f5df5da8a56a73e6c153c9a9708ec57232470703592a3f18e49f5"
 dependencies = [
  "aho-corasick",
  "bstr",
@@ -1605,7 +1604,7 @@ checksum = "f7c45b9784283f1b2e7fb61b42047c2fd678ef0960d4f6f1eba131594cc369d4"
 
 [[package]]
 name = "ry"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1617,7 +1616,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1662,7 +1661,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "brotli",
  "pyo3",
@@ -1670,7 +1669,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bytes"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "ahash",
  "bytes",
@@ -1679,7 +1678,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -1687,7 +1686,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-core"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -1695,7 +1694,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -1708,7 +1707,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dirs"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "dirs",
  "pyo3",
@@ -1716,7 +1715,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "flate2",
  "pyo3",
@@ -1725,7 +1724,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "fnv",
  "pyo3",
@@ -1733,7 +1732,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fspath"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -1745,7 +1744,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "globset",
  "pyo3",
@@ -1754,7 +1753,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "heck",
  "pyo3",
@@ -1762,7 +1761,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-http"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "http",
  "pyo3",
@@ -1772,7 +1771,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1783,7 +1782,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "jiter",
  "pyo3",
@@ -1792,21 +1791,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macros"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "regex",
@@ -1814,7 +1813,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-reqwest"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "bytes",
  "futures-core",
@@ -1835,7 +1834,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-same-file"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -1844,7 +1843,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "shlex",
@@ -1852,7 +1851,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-size"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "size",
@@ -1860,7 +1859,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -1868,7 +1867,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "bytes",
  "pyo3",
@@ -1879,7 +1878,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
@@ -1890,7 +1889,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-unindent"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "unindent",
@@ -1898,7 +1897,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "ryo3-macros",
@@ -1907,7 +1906,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -1918,7 +1917,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "ryo3-regex",
@@ -1927,7 +1926,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-xxhash"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -1936,7 +1935,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.34"
+version = "0.0.35"
 dependencies = [
  "pyo3",
  "zstd",
