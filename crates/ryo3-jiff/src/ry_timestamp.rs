@@ -12,10 +12,10 @@ use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
+use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-
 #[derive(Debug, Clone)]
 #[pyclass(name = "Timestamp", module = "ryo3", frozen)]
 pub struct RyTimestamp(pub(crate) Timestamp);
@@ -401,6 +401,14 @@ impl RyTimestampSeries {
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTimestamp> {
         slf.series.next().map(RyTimestamp::from)
+    }
+
+    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyTimestamp> {
+        slf.series
+            .borrow_mut()
+            .take(n)
+            .map(RyTimestamp::from)
+            .collect()
     }
 }
 

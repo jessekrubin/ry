@@ -16,10 +16,10 @@ use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDateTime, PyDict, PyType};
+use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-
 #[derive(Debug, Clone)]
 #[pyclass(name = "DateTime", module = "ryo3", frozen)]
 pub struct RyDateTime(pub(crate) DateTime);
@@ -560,6 +560,14 @@ impl RyDateTimeSeries {
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDateTime> {
         slf.series.next().map(RyDateTime::from)
+    }
+
+    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyDateTime> {
+        slf.series
+            .borrow_mut()
+            .take(n)
+            .map(RyDateTime::from)
+            .collect()
     }
 }
 
