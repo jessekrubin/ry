@@ -13,8 +13,13 @@ from ry import xxhash as xxhash  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
 from ry.http import Headers as Headers  # noqa: RUF100
 from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
-
+from ._unindent import unindent as unindent
+from ._unindent import unindent_bytes as unindent_bytes
 from ._bytes import Bytes as Bytes
+from ._flate2 import gunzip as gunzip
+from ._flate2 import gzip as gzip
+from ._flate2 import gzip_decode as gzip_decode
+from ._flate2 import gzip_encode as gzip_encode
 from ._fnv import FnvHasher as FnvHasher
 from ._fnv import fnv1a as fnv1a
 from ._globset import Glob as Glob
@@ -509,11 +514,6 @@ def shplit(s: str) -> list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
     ...
 
-# =============================================================================
-# FORMATTING
-# =============================================================================
-def unindent(string: str) -> str: ...
-def unindent_bytes(string: bytes) -> bytes: ...
 
 # =============================================================================
 # BROTLI
@@ -532,17 +532,6 @@ def bzip2_encode(input: bytes, quality: int = 9) -> bytes: ...
 def bzip2_decode(input: bytes) -> bytes: ...
 def bzip2(input: bytes, quality: int = 9) -> bytes:
     """Alias for bzip2_encode"""
-
-# =============================================================================
-# GZIP
-# =============================================================================
-def gzip_encode(input: bytes, quality: int = 9) -> bytes: ...
-def gzip_decode(input: bytes) -> bytes: ...
-def gzip(input: bytes, quality: int = 9) -> bytes:
-    """Alias for gzip_encode"""
-
-def gunzip(input: bytes) -> bytes:
-    """Alias for gzip_decode"""
 
 # =============================================================================
 # ZSTD
