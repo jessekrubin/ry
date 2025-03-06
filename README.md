@@ -104,7 +104,7 @@ ___
 ## API
 
 <!-- API-START -->
-## `ry.__init__`
+## `ry.ryo3`
 
 ```python
 """ry api ~ type annotations"""
@@ -116,10 +116,30 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
-from ry._types import Buffer
+from ry import dirs as dirs  # noqa: RUF100
+from ry import http as http  # noqa: RUF100
+from ry import xxhash as xxhash  # noqa: RUF100
+from ry._types import Buffer as Buffer  # noqa: RUF100
+from ry.http import Headers as Headers  # noqa: RUF100
+from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
 
-from . import http as http
 from ._bytes import Bytes as Bytes
+from ._fnv import FnvHasher as FnvHasher
+from ._fnv import fnv1a as fnv1a
+from ._globset import Glob as Glob
+from ._globset import GlobSet as GlobSet
+from ._globset import Globster as Globster
+from ._globset import glob as glob
+from ._globset import globster as globster
+from ._heck import camel_case as camel_case
+from ._heck import kebab_case as kebab_case
+from ._heck import pascal_case as pascal_case
+from ._heck import shouty_kebab_case as shouty_kebab_case
+from ._heck import shouty_snake_case as shouty_snake_case
+from ._heck import snake_case as snake_case
+from ._heck import snek_case as snek_case
+from ._heck import title_case as title_case
+from ._heck import train_case as train_case
 from ._jiff import Date as Date
 from ._jiff import DateDifference as DateDifference
 from ._jiff import DateTime as DateTime
@@ -150,19 +170,34 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._regex import Regex as Regex
+from ._reqwest import HttpClient as HttpClient
+from ._reqwest import ReqwestError as ReqwestError
+from ._reqwest import Response as Response
+from ._reqwest import ResponseStream as ResponseStream
+from ._reqwest import fetch as fetch
 from ._size import SizeFormatter as SizeFormatter
 from ._size import fmt_size as fmt_size
 from ._size import parse_size as parse_size
+from ._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
+from ._sqlformat import sqlfmt as sqlfmt
+from ._sqlformat import sqlfmt_params as sqlfmt_params
+from ._tokio import asleep as asleep
+from ._tokio import copy_async as copy_async
+from ._tokio import create_dir_async as create_dir_async
+from ._tokio import metadata_async as metadata_async
+from ._tokio import read_async as read_async
+from ._tokio import read_dir_async as read_dir_async
+from ._tokio import remove_dir_async as remove_dir_async
+from ._tokio import remove_file_async as remove_file_async
+from ._tokio import rename_async as rename_async
+from ._tokio import sleep_async as sleep_async
+from ._tokio import write_async as write_async
 from ._url import URL as URL
-from .http import Headers as Headers
-from .http import HttpStatus as HttpStatus
-from .reqwest import HttpClient as HttpClient
-from .reqwest import ReqwestError as ReqwestError
-from .reqwest import Response as Response
-from .reqwest import ResponseStream as ResponseStream
-from .reqwest import fetch as fetch
-from .tokio import read_async as read_async
-from .tokio import write_async as write_async
+from ._which import which as which
+from ._which import which_all as which_all
+from ._which import which_re as which_re
+from .errors import FeatureNotEnabledError as FeatureNotEnabledError
 
 __version__: str
 __authors__: str
@@ -175,14 +210,10 @@ __description__: str
 # TYPE ALIASES
 # =============================================================================
 
-# =============================================================================
-# STD
-# =============================================================================
 
-
-# -----------------------------------------------------------------------------
+# =============================================================================
 # STD::TIME
-# -----------------------------------------------------------------------------
+# =============================================================================
 class Duration:
     ZERO: Duration
     MIN: Duration
@@ -318,11 +349,12 @@ class Instant:
 
 
 def instant() -> Instant: ...
+def sleep(seconds: float) -> float: ...
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # STD::FS
-# -----------------------------------------------------------------------------
+# =============================================================================
 class FileType:
     def __repr__(self) -> str: ...
     @property
@@ -356,10 +388,38 @@ class Metadata:
 
 
 # =============================================================================
-# RY03-CORE
+# STD::FS ~ functions
 # =============================================================================
+def read(path: FsPathLike) -> Bytes: ...
+def read_bytes(path: FsPathLike) -> bytes: ...
+def read_text(path: FsPathLike) -> str: ...
+def read_stream(
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    offset: int = 0,  # noqa: F811
+) -> t.Iterator[Bytes]: ...
+def write(path: FsPathLike, data: Buffer | str) -> int: ...
+def write_bytes(path: FsPathLike, data: bytes) -> int: ...
+def write_text(path: FsPathLike, data: str) -> int: ...
+def canonicalize(path: FsPathLike) -> FsPath: ...
+def copy(from_path: FsPathLike, to_path: FsPathLike) -> int: ...
+def create_dir(path: FsPathLike) -> None: ...
+def create_dir_all(path: FsPathLike) -> None: ...
+def exists(path: FsPathLike) -> bool: ...
+def is_dir(path: FsPathLike) -> bool: ...
+def is_file(path: FsPathLike) -> bool: ...
+def is_symlink(path: FsPathLike) -> bool: ...
+def metadata(path: FsPathLike) -> Metadata: ...
+def remove_dir(path: FsPathLike) -> None: ...
+def remove_dir_all(path: FsPathLike) -> None: ...
+def remove_file(path: FsPathLike) -> None: ...
+def rename(from_path: FsPathLike, to_path: FsPathLike) -> None: ...
 
 
+# =============================================================================
+# FSPATH
+# =============================================================================
 class FsPath:
     def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
     def __fspath__(self) -> str: ...
@@ -431,14 +491,6 @@ class FsPath:
     def suffixes(self) -> list[str]: ...
 
     # =========================================================================
-    # std::path::PathBuf
-    # =========================================================================
-    def _pop(self) -> FsPath: ...
-    def _push(self, path: PathLike[str] | str) -> FsPath: ...
-    def _set_extension(self, ext: str) -> FsPath: ...
-    def _set_file_name(self, name: str) -> FsPath: ...
-
-    # =========================================================================
     # std::path::PathBuf (deref -> std::path::Path)
     # =========================================================================
     def ancestors(self) -> t.Iterator[FsPath]: ...
@@ -462,7 +514,7 @@ class FsPath:
     def with_file_name(self, name: str) -> FsPath: ...
 
 
-FsPathLike = str | FsPath | PathLike[str]
+FsPathLike = str | PathLike[str]
 
 
 def pwd() -> str: ...
@@ -510,27 +562,6 @@ def quick_maths() -> t.Literal[3]:
     """
 
 
-# =============================================================================
-# SLEEP
-# =============================================================================
-def sleep(seconds: float) -> float: ...
-async def sleep_async(seconds: float) -> float: ...
-async def asleep(seconds: float) -> float:
-    """Alias for sleep_async"""
-    ...
-
-
-# =============================================================================
-# FILESYSTEM
-# =============================================================================
-def read(path: FsPathLike) -> Bytes: ...
-def read_bytes(path: FsPathLike) -> bytes: ...
-def read_text(path: FsPathLike) -> str: ...
-def write(path: FsPathLike, data: Buffer | str) -> None: ...
-def write_bytes(path: FsPathLike, data: bytes) -> None: ...
-def write_text(path: FsPathLike, data: str) -> None: ...
-
-
 # -----------------------------------------------------------------------------
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -540,145 +571,6 @@ def write_text(path: FsPathLike, data: str) -> None: ...
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 # -----------------------------------------------------------------------------
-
-# =============================================================================
-# Regex
-# =============================================================================
-
-
-class Regex:
-    def __init__(
-        self,
-        pattern: str,
-        *,
-        case_insensitive: bool = False,
-        crlf: bool = False,
-        dot_matches_new_line: bool = False,
-        ignore_whitespace: bool = False,
-        line_terminator: str | None = None,
-        multi_line: bool = False,
-        octal: bool = False,
-        size_limit: int | None = None,
-        swap_greed: bool = False,
-        unicode: bool = False,
-    ) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def is_match(self, string: str) -> bool: ...
-
-
-# =============================================================================
-# WHICH
-# =============================================================================
-def which(cmd: str, path: None | str = None) -> str | None: ...
-def which_all(cmd: str, path: None | str = None) -> list[str]: ...
-def which_re(regex: str | Regex, path: None | str = None) -> list[str]: ...
-
-
-# =============================================================================
-# HECK
-# =============================================================================
-
-
-def camel_case(string: str) -> str: ...
-def kebab_case(string: str) -> str: ...
-def pascal_case(string: str) -> str: ...
-def shouty_kebab_case(string: str) -> str: ...
-def shouty_snake_case(string: str) -> str: ...
-def snake_case(string: str) -> str: ...
-def snek_case(string: str) -> str: ...
-def title_case(string: str) -> str: ...
-def train_case(string: str) -> str: ...
-
-
-# =============================================================================
-# GLOBSET
-# =============================================================================
-class Glob:
-    """globset::Glob wrapper"""
-
-    def __init__(
-        self,
-        pattern: str,
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def regex(self) -> str: ...
-    def is_match(self, path: FsPathLike) -> bool: ...
-    def __call__(self, path: FsPathLike) -> bool: ...
-    def __invert__(self) -> Glob: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def globset(self) -> GlobSet: ...
-    def globster(self) -> Globster: ...
-
-
-class GlobSet:
-    """globset::GlobSet wrapper"""
-
-    def __init__(
-        self,
-        patterns: list[str],
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def is_empty(self) -> bool: ...
-    def is_match(self, path: str) -> bool: ...
-    def matches(self, path: str) -> list[int]: ...
-    def __call__(self, path: str) -> bool: ...
-    def __invert__(self) -> GlobSet: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def globster(self) -> Globster: ...
-
-
-class Globster:
-    """Globster is a matcher with claws!
-
-    Note: The north american `Globster` is similar to the european `Globset`
-          but allows for negative patterns (prefixed with '!')
-
-    """
-
-    def __init__(
-        self,
-        patterns: list[str],
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def is_empty(self) -> bool: ...
-    def is_match(self, path: FsPathLike) -> bool: ...
-    def __call__(self, path: FsPathLike) -> bool: ...
-    def __invert__(self) -> GlobSet: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-
-def glob(
-    pattern: str,
-    /,
-    *,
-    case_insensitive: bool | None = None,
-    literal_separator: bool | None = None,
-    backslash_escape: bool | None = None,
-) -> Glob: ...
-def globster(
-    patterns: list[str] | tuple[str, ...],
-    /,
-    *,
-    case_insensitive: bool | None = None,
-    literal_separator: bool | None = None,
-    backslash_escape: bool | None = None,
-) -> Globster: ...
 
 
 # =============================================================================
@@ -723,13 +615,13 @@ def walkdir(
     path: FsPathLike | None = None,
     *,
     files: bool = True,
-    dirs: bool = True,
+    dirs: bool = True,  # noqa: F811
     contents_first: bool = False,
     min_depth: int = 0,
     max_depth: int | None = None,
     follow_links: bool = False,
     same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,  # noqa: F811
 ) -> WalkdirGen: ...
 
 
@@ -754,24 +646,6 @@ def shplit(s: str) -> list[str]:
 # =============================================================================
 def unindent(string: str) -> str: ...
 def unindent_bytes(string: bytes) -> bytes: ...
-
-
-# =============================================================================
-# FNV
-# =============================================================================
-class FnvHasher:
-    name: t.Literal["fnv1a"]
-
-    def __init__(self, input: bytes | None = None) -> None: ...
-    def update(self, input: bytes) -> None: ...
-    def digest(self) -> int: ...
-    def hexdigest(self) -> str: ...
-    def copy(self) -> FnvHasher: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-
-def fnv1a(input: bytes) -> FnvHasher: ...
 
 
 # =============================================================================
@@ -819,45 +693,8 @@ def zstd(input: bytes, level: int = 3) -> bytes:
 
 def zstd_decode(input: bytes) -> bytes: ...
 
-
-# =============================================================================
-# SQLFORMAT
-# =============================================================================
-SqlfmtParamValue = str | int | float | bool
-TSqlfmtParamValue_co = t.TypeVar(
-    "TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
-)
-SqlfmtParamsLike = (
-    dict[str, TSqlfmtParamValue_co]
-    | t.Sequence[tuple[str, TSqlfmtParamValue_co]]
-    | t.Sequence[TSqlfmtParamValue_co]
-)
-
-
-class SqlfmtQueryParams:
-    def __init__(
-        self, params: SqlfmtParamsLike[TSqlfmtParamValue_co]
-    ) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-
-def sqlfmt_params(
-    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams,
-) -> SqlfmtQueryParams: ...
-def sqlfmt(
-    sql: str,
-    params: SqlfmtParamsLike[TSqlfmtParamValue_co]
-    | SqlfmtQueryParams
-    | None = None,
-    *,
-    indent: int = 2,  # -1 or any negative value will use tabs
-    uppercase: bool | None = True,
-    lines_between_statements: int = 1,
-) -> str: ...
-
 ```
-## `ry.JSON`
+## `ry.ryo3.JSON`
 
 ```python
 """ry.ryo3.JSON"""
@@ -906,7 +743,7 @@ def jiter_cache_clear() -> None: ...
 def jiter_cache_usage() -> int: ...
 
 ```
-## `ry._bytes`
+## `ry.ryo3._bytes`
 
 ```python
 import sys
@@ -1050,7 +887,7 @@ class Bytes(Buffer):
 BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 ```
-## `ry._dev`
+## `ry.ryo3._dev`
 
 ```python
 """ry.ryo3.dev"""
@@ -1080,7 +917,149 @@ def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
 
 ```
-## `ry._jiff`
+## `ry.ryo3._fnv`
+
+```python
+"""ryo3-fnv types"""
+
+import typing as t
+
+
+# =============================================================================
+# FNV
+# =============================================================================
+class FnvHasher:
+    name: t.Literal["fnv1a"]
+
+    def __init__(self, input: bytes | None = None) -> None: ...
+    def update(self, input: bytes) -> None: ...
+    def digest(self) -> int: ...
+    def hexdigest(self) -> str: ...
+    def copy(self) -> FnvHasher: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+
+def fnv1a(input: bytes) -> FnvHasher: ...
+
+```
+## `ry.ryo3._globset`
+
+```python
+"""ryo3-globset types"""
+
+from __future__ import annotations
+
+from os import PathLike
+
+
+class Glob:
+    """globset::Glob wrapper"""
+
+    def __init__(
+        self,
+        pattern: str,
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def regex(self) -> str: ...
+    def is_match(self, path: str | PathLike[str]) -> bool: ...
+    def __call__(self, path: str | PathLike[str]) -> bool: ...
+    def __invert__(self) -> Glob: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def globset(self) -> GlobSet: ...
+    def globster(self) -> Globster: ...
+
+
+class GlobSet:
+    """globset::GlobSet wrapper"""
+
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str) -> bool: ...
+    def matches(self, path: str) -> list[int]: ...
+    def __call__(self, path: str) -> bool: ...
+    def __invert__(self) -> GlobSet: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def globster(self) -> Globster: ...
+
+
+class Globster:
+    """Globster is a matcher with claws!
+
+    Note: The north american `Globster` is similar to the european `Globset`
+          but allows for negative patterns (prefixed with '!')
+
+    """
+
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str | PathLike[str]) -> bool: ...
+    def __call__(self, path: str | PathLike[str]) -> bool: ...
+    def __invert__(self) -> GlobSet: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+
+def glob(
+    pattern: str,
+    /,
+    *,
+    case_insensitive: bool | None = None,
+    literal_separator: bool | None = None,
+    backslash_escape: bool | None = None,
+) -> Glob: ...
+def globster(
+    patterns: list[str] | tuple[str, ...],
+    /,
+    *,
+    case_insensitive: bool | None = None,
+    literal_separator: bool | None = None,
+    backslash_escape: bool | None = None,
+) -> Globster: ...
+
+```
+## `ry.ryo3._heck`
+
+```python
+"""ryo3-heck types"""
+
+from __future__ import annotations
+
+
+def camel_case(string: str) -> str: ...
+def kebab_case(string: str) -> str: ...
+def pascal_case(string: str) -> str: ...
+def shouty_kebab_case(string: str) -> str: ...
+def shouty_snake_case(string: str) -> str: ...
+def snake_case(string: str) -> str: ...
+def snek_case(string: str) -> str: ...
+def title_case(string: str) -> str: ...
+def train_case(string: str) -> str: ...
+
+```
+## `ry.ryo3._jiff`
 
 ```python
 """jiff types"""
@@ -1098,6 +1077,7 @@ from ry._types import (
 )
 from ry.ryo3 import Duration
 
+T = t.TypeVar("T")
 # =============================================================================
 # JIFF
 # =============================================================================
@@ -1243,7 +1223,7 @@ class Date:
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration
     ) -> Date: ...
-    def series(self, span: TimeSpan) -> t.Iterator[Date]: ...
+    def series(self, span: TimeSpan) -> JiffSeries[Date]: ...
     def to_datetime(self, time: Time) -> DateTime: ...
     def tomorrow(self) -> Date: ...
     def yesterday(self) -> Date: ...
@@ -1381,7 +1361,7 @@ class Time:
     # =========================================================================
     def astuple(self) -> tuple[int, int, int, int]: ...
     def asdict(self) -> TimeTypedDict: ...
-    def series(self, span: TimeSpan) -> t.Iterator[Time]: ...
+    def series(self, span: TimeSpan) -> JiffSeries[Time]: ...
     def checked_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -> Time: ...
@@ -1536,7 +1516,7 @@ class DateTime:
     def iso_week_date(self) -> tuple[int, int, int]: ...
     def date(self) -> Date: ...
     def time(self) -> Time: ...
-    def series(self, span: TimeSpan) -> t.Iterator[DateTime]: ...
+    def series(self, span: TimeSpan) -> JiffSeries[DateTime]: ...
     def asdict(self) -> DateTimeTypedDict: ...
     def round(
         self,
@@ -2124,7 +2104,7 @@ class Timestamp:
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration
     ) -> Timestamp: ...
-    def series(self, span: TimeSpan) -> t.Iterator[Timestamp]: ...
+    def series(self, span: TimeSpan) -> JiffSeries[Timestamp]: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def string(self) -> str: ...
     def subsec_microsecond(self) -> int: ...
@@ -2592,6 +2572,14 @@ class Offset:
     def until(self, other: Offset) -> TimeSpan: ...
 
 
+class JiffSeries(
+    t.Generic[T],
+):
+    def __iter__(self) -> t.Iterator[T]: ...
+    def __next__(self) -> T: ...
+    def take(self, n: int) -> list[T]: ...
+
+
 def date(year: int, month: int, day: int) -> Date: ...
 def time(
     hour: int = 0, minute: int = 0, second: int = 0, nanosecond: int = 0
@@ -2622,7 +2610,7 @@ def timespan(
 def offset(hours: int) -> Offset: ...
 
 ```
-## `ry._jiter`
+## `ry.ryo3._jiter`
 
 ```python
 from __future__ import annotations
@@ -2671,339 +2659,40 @@ def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
 
 ```
-## `ry._size`
+## `ry.ryo3._regex`
 
 ```python
+"""ryo3-regex types"""
+
 from __future__ import annotations
 
-from typing import Literal
-
-FORMAT_SIZE_BASE = Literal[2, 10]  # default=2
-FORMAT_SIZE_STYLE = Literal[  # default="default"
-    "default",
-    "abbreviated",
-    "abbreviated_lowercase",
-    "abbreviated-lowercase",
-    "full",
-    "full-lowercase",
-    "full_lowercase",
-]
+# =============================================================================
+# Regex
+# =============================================================================
 
 
-def fmt_size(
-    n: int,
-    *,
-    base: FORMAT_SIZE_BASE | None = 2,
-    style: FORMAT_SIZE_STYLE | None = "default",
-) -> str:
-    """Return human-readable string representation of bytes-size."""
-
-
-def parse_size(s: str) -> int:
-    """Return integer representation of human-readable bytes-size string.
-
-    Raises:
-        ValueError: If string is not a valid human-readable bytes-size string.
-    """
-
-
-class SizeFormatter:
-    """Human-readable bytes-size formatter."""
-
+class Regex:
     def __init__(
         self,
-        base: FORMAT_SIZE_BASE | None = 2,
-        style: FORMAT_SIZE_STYLE | None = "default",
-    ):
-        self.base = base
-        self.style = style
-
-    def format(self, n: int) -> str:
-        """Return human-readable string representation of bytes-size."""
-
-    def __call__(self, n: int) -> str:
-        """Return human-readable string representation of bytes-size."""
-
-    def __repr__(self) -> str: ...
-
-```
-## `ry._url`
-
-```python
-from __future__ import annotations
-
-from ipaddress import IPv4Address
-
-
-class URL:
-    def __init__(
-        self, url: str | URL, *, params: dict[str, str] | None = None
+        pattern: str,
+        *,
+        case_insensitive: bool = False,
+        crlf: bool = False,
+        dot_matches_new_line: bool = False,
+        ignore_whitespace: bool = False,
+        line_terminator: str | None = None,
+        multi_line: bool = False,
+        octal: bool = False,
+        size_limit: int | None = None,
+        swap_greed: bool = False,
+        unicode: bool = False,
     ) -> None: ...
-
-    # =========================================================================
-    # CLASSMETHODS
-    # =========================================================================
-    @classmethod
-    def parse(cls, url: str) -> URL: ...
-    @classmethod
-    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
-    @classmethod
-    def from_directory_path(cls, path: str) -> URL: ...
-
-    # =========================================================================
-    # STRING
-    # =========================================================================
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-
-    # =========================================================================
-    # OPERATORS/DUNDER
-    # =========================================================================
-    def __eq__(self, other: object) -> bool: ...
-    def __ge__(self, other: URL) -> bool: ...
-    def __gt__(self, other: URL) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __le__(self, other: URL) -> bool: ...
-    def __lt__(self, other: URL) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __rtruediv__(self, relative: str) -> URL: ...
-    def __truediv__(self, relative: str) -> URL: ...
-
-    # =========================================================================
-    # PROPERTIES
-    # =========================================================================
-    @property
-    def authority(self) -> str: ...
-    @property
-    def fragment(self) -> str | None: ...
-    @property
-    def host(self) -> str | None: ...
-    @property
-    def host_str(self) -> str | None: ...
-    @property
-    def netloc(self) -> str: ...
-    @property
-    def password(self) -> str | None: ...
-    @property
-    def path(self) -> str: ...
-    @property
-    def path_segments(self) -> tuple[str, ...]: ...
-    @property
-    def port(self) -> int | None: ...
-    @property
-    def port_or_known_default(self) -> int | None: ...
-    @property
-    def query(self) -> str | None: ...
-    @property
-    def query_pairs(self) -> list[tuple[str, str]]: ...
-    @property
-    def scheme(self) -> str: ...
-    @property
-    def username(self) -> str: ...
-
-    # =========================================================================
-    # INSTANCE METHODS
-    # =========================================================================
-    def has_authority(self) -> bool: ...
-    def has_host(self) -> bool: ...
-    def is_special(self) -> bool: ...
-    def join(self, *parts: str) -> URL: ...
-    def to_filepath(self) -> str: ...
-    def replace_fragment(self, fragment: str | None = None) -> URL: ...
-    def replace_host(self, host: str | None = None) -> URL: ...
-    def replace_ip_host(self, host: IPv4Address | IPv4Address) -> URL: ...
-    def replace_password(self, password: str | None = None) -> URL: ...
-    def replace_path(self, path: str) -> URL: ...
-    def replace_port(self, port: int | None = None) -> URL: ...
-    def replace_query(self, query: str | None = None) -> URL: ...
-    def replace_scheme(self, scheme: str) -> URL: ...
-    def replace_username(self, username: str) -> URL: ...
-    def socket_addrs(self) -> None: ...
+    def is_match(self, string: str) -> bool: ...
 
 ```
-## `ry.dirs`
-
-```python
-def audio() -> str | None: ...
-def audio_dir() -> str | None: ...
-def cache() -> str | None: ...
-def cache_dir() -> str | None: ...
-def config() -> str | None: ...
-def config_dir() -> str | None: ...
-def config_local() -> str | None: ...
-def config_local_dir() -> str | None: ...
-def data() -> str | None: ...
-def data_dir() -> str | None: ...
-def data_local() -> str | None: ...
-def data_local_dir() -> str | None: ...
-def desktop() -> str | None: ...
-def desktop_dir() -> str | None: ...
-def document() -> str | None: ...
-def document_dir() -> str | None: ...
-def download() -> str | None: ...
-def download_dir() -> str | None: ...
-def executable() -> str | None: ...
-def executable_dir() -> str | None: ...
-def font() -> str | None: ...
-def font_dir() -> str | None: ...
-def home() -> str | None: ...
-def home_dir() -> str | None: ...
-def picture() -> str | None: ...
-def picture_dir() -> str | None: ...
-def preference() -> str | None: ...
-def preference_dir() -> str | None: ...
-def public() -> str | None: ...
-def public_dir() -> str | None: ...
-def runtime() -> str | None: ...
-def runtime_dir() -> str | None: ...
-def state() -> str | None: ...
-def state_dir() -> str | None: ...
-def template() -> str | None: ...
-def template_dir() -> str | None: ...
-def video() -> str | None: ...
-def video_dir() -> str | None: ...
-
-```
-## `ry.http`
-
-```python
-class Headers:
-    """python-ryo3-http `http::HeadersMap` wrapper"""
-
-    def __init__(self, headers: dict[str, str]) -> None: ...
-
-    # =========================================================================
-    # STRING
-    # =========================================================================
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def __dbg__(self) -> str: ...
-
-    # =========================================================================
-    # MAGIC METHODS
-    # =========================================================================
-    def __len__(self) -> int: ...
-    def __getitem__(self, key: str) -> str: ...
-    def __setitem__(self, key: str, value: str) -> None: ...
-    def __delitem__(self, key: str) -> None: ...
-    def __contains__(self, key: str) -> bool: ...
-    def __or__(self, other: Headers | dict[str, str]) -> Headers: ...
-
-    # =========================================================================
-    # INSTANCE METHODS
-    # =========================================================================
-    def append(self, key: str, value: str) -> None: ...
-    def get(self, key: str) -> str | None: ...
-    def get_all(self, key: str) -> list[str]: ...
-    def keys_len(self) -> int: ...
-    def len(self) -> int: ...
-    def remove(self, key: str) -> None: ...
-    def clear(self) -> None: ...
-    def pop(self, key: str) -> str: ...
-    def keys(self) -> list[str]: ...
-    def update(self, headers: Headers | dict[str, str]) -> None: ...
-
-
-class HttpStatus:
-    def __init__(self, code: int) -> None: ...
-    def __int__(self) -> int: ...
-    def __bool__(self) -> bool: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def __hash__(self) -> int: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __lt__(self, other: HttpStatus | int) -> bool: ...
-    def __le__(self, other: HttpStatus | int) -> bool: ...
-    def __gt__(self, other: HttpStatus | int) -> bool: ...
-    def __ge__(self, other: HttpStatus | int) -> bool: ...
-    def reason(self) -> str: ...
-    def is_informational(self) -> bool: ...
-    def is_success(self) -> bool: ...
-    def is_redirect(self) -> bool: ...
-    def is_client_error(self) -> bool: ...
-    def is_server_error(self) -> bool: ...
-    def is_ok(self) -> bool: ...
-    @property
-    def ok(self) -> bool: ...
-
-    # =========================================================================
-    # CONST STATUS CODES
-    # =========================================================================
-    CONTINUE: HttpStatus  # 100 ~ Continue
-    SWITCHING_PROTOCOLS: HttpStatus  # 101 ~ Switching Protocols
-    PROCESSING: HttpStatus  # 102 ~ Processing
-    OK: HttpStatus  # 200 ~ OK
-    CREATED: HttpStatus  # 201 ~ Created
-    ACCEPTED: HttpStatus  # 202 ~ Accepted
-    NON_AUTHORITATIVE_INFORMATION: (
-        HttpStatus  # 203 ~ Non Authoritative Information
-    )
-    NO_CONTENT: HttpStatus  # 204 ~ No Content
-    RESET_CONTENT: HttpStatus  # 205 ~ Reset Content
-    PARTIAL_CONTENT: HttpStatus  # 206 ~ Partial Content
-    MULTI_STATUS: HttpStatus  # 207 ~ Multi-Status
-    ALREADY_REPORTED: HttpStatus  # 208 ~ Already Reported
-    IM_USED: HttpStatus  # 226 ~ IM Used
-    MULTIPLE_CHOICES: HttpStatus  # 300 ~ Multiple Choices
-    MOVED_PERMANENTLY: HttpStatus  # 301 ~ Moved Permanently
-    FOUND: HttpStatus  # 302 ~ Found
-    SEE_OTHER: HttpStatus  # 303 ~ See Other
-    NOT_MODIFIED: HttpStatus  # 304 ~ Not Modified
-    USE_PROXY: HttpStatus  # 305 ~ Use Proxy
-    TEMPORARY_REDIRECT: HttpStatus  # 307 ~ Temporary Redirect
-    PERMANENT_REDIRECT: HttpStatus  # 308 ~ Permanent Redirect
-    BAD_REQUEST: HttpStatus  # 400 ~ Bad Request
-    UNAUTHORIZED: HttpStatus  # 401 ~ Unauthorized
-    PAYMENT_REQUIRED: HttpStatus  # 402 ~ Payment Required
-    FORBIDDEN: HttpStatus  # 403 ~ Forbidden
-    NOT_FOUND: HttpStatus  # 404 ~ Not Found
-    METHOD_NOT_ALLOWED: HttpStatus  # 405 ~ Method Not Allowed
-    NOT_ACCEPTABLE: HttpStatus  # 406 ~ Not Acceptable
-    PROXY_AUTHENTICATION_REQUIRED: (
-        HttpStatus  # 407 ~ Proxy Authentication Required
-    )
-    REQUEST_TIMEOUT: HttpStatus  # 408 ~ Request Timeout
-    CONFLICT: HttpStatus  # 409 ~ Conflict
-    GONE: HttpStatus  # 410 ~ Gone
-    LENGTH_REQUIRED: HttpStatus  # 411 ~ Length Required
-    PRECONDITION_FAILED: HttpStatus  # 412 ~ Precondition Failed
-    PAYLOAD_TOO_LARGE: HttpStatus  # 413 ~ Payload Too Large
-    URI_TOO_LONG: HttpStatus  # 414 ~ URI Too Long
-    UNSUPPORTED_MEDIA_TYPE: HttpStatus  # 415 ~ Unsupported Media Type
-    RANGE_NOT_SATISFIABLE: HttpStatus  # 416 ~ Range Not Satisfiable
-    EXPECTATION_FAILED: HttpStatus  # 417 ~ Expectation Failed
-    IM_A_TEAPOT: HttpStatus  # 418 ~ I'm a teapot
-    MISDIRECTED_REQUEST: HttpStatus  # 421 ~ Misdirected Request
-    UNPROCESSABLE_ENTITY: HttpStatus  # 422 ~ Unprocessable Entity
-    LOCKED: HttpStatus  # 423 ~ Locked
-    FAILED_DEPENDENCY: HttpStatus  # 424 ~ Failed Dependency
-    TOO_EARLY: HttpStatus  # 425 ~ Too Early
-    UPGRADE_REQUIRED: HttpStatus  # 426 ~ Upgrade Required
-    PRECONDITION_REQUIRED: HttpStatus  # 428 ~ Precondition Required
-    TOO_MANY_REQUESTS: HttpStatus  # 429 ~ Too Many Requests
-    REQUEST_HEADER_FIELDS_TOO_LARGE: (
-        HttpStatus  # 431 ~ Request Header Fields Too Large
-    )
-    UNAVAILABLE_FOR_LEGAL_REASONS: (
-        HttpStatus  # 451 ~ Unavailable For Legal Reasons
-    )
-    INTERNAL_SERVER_ERROR: HttpStatus  # 500 ~ Internal Server Error
-    NOT_IMPLEMENTED: HttpStatus  # 501 ~ Not Implemented
-    BAD_GATEWAY: HttpStatus  # 502 ~ Bad Gateway
-    SERVICE_UNAVAILABLE: HttpStatus  # 503 ~ Service Unavailable
-    GATEWAY_TIMEOUT: HttpStatus  # 504 ~ Gateway Timeout
-    HTTP_VERSION_NOT_SUPPORTED: HttpStatus  # 505 ~ HTTP Version Not Supported
-    VARIANT_ALSO_NEGOTIATES: HttpStatus  # 506 ~ Variant Also Negotiates
-    INSUFFICIENT_STORAGE: HttpStatus  # 507 ~ Insufficient Storage
-    LOOP_DETECTED: HttpStatus  # 508 ~ Loop Detected
-    NOT_EXTENDED: HttpStatus  # 510 ~ Not Extended
-    NETWORK_AUTHENTICATION_REQUIRED: (
-        HttpStatus  # 511 ~ Network Authentication Required
-    )
-
-```
-## `ry.reqwest`
+## `ry.ryo3._reqwest`
 
 ```python
 import typing as t
@@ -3012,8 +2701,8 @@ from http import HTTPStatus
 import ry
 
 if t.TYPE_CHECKING:
-    from ry import Duration, Headers
-    from ry.ryo3._url import URL
+    from ry.http import Headers
+    from ry.ryo3 import URL, Duration
 
 
 class HttpClient:
@@ -3112,119 +2801,261 @@ async def fetch(
 ) -> Response: ...
 
 ```
-## `ry.tokio`
+## `ry.ryo3._size`
 
 ```python
-from ry import Bytes
-from ry._types import Buffer
-from ry.ryo3 import FsPathLike
+from __future__ import annotations
+
+from typing import Literal
+
+FORMAT_SIZE_BASE = Literal[2, 10]  # default=2
+FORMAT_SIZE_STYLE = Literal[  # default="default"
+    "default",
+    "abbreviated",
+    "abbreviated_lowercase",
+    "abbreviated-lowercase",
+    "full",
+    "full-lowercase",
+    "full_lowercase",
+]
 
 
-async def read_async(path: FsPathLike) -> Bytes: ...
-async def write_async(path: FsPathLike, data: Buffer) -> None: ...
+def fmt_size(
+    n: int,
+    *,
+    base: FORMAT_SIZE_BASE | None = 2,
+    style: FORMAT_SIZE_STYLE | None = "default",
+) -> str:
+    """Return human-readable string representation of bytes-size."""
+
+
+def parse_size(s: str) -> int:
+    """Return integer representation of human-readable bytes-size string.
+
+    Raises:
+        ValueError: If string is not a valid human-readable bytes-size string.
+    """
+
+
+class SizeFormatter:
+    """Human-readable bytes-size formatter."""
+
+    def __init__(
+        self,
+        base: FORMAT_SIZE_BASE | None = 2,
+        style: FORMAT_SIZE_STYLE | None = "default",
+    ):
+        self.base = base
+        self.style = style
+
+    def format(self, n: int) -> str:
+        """Return human-readable string representation of bytes-size."""
+
+    def __call__(self, n: int) -> str:
+        """Return human-readable string representation of bytes-size."""
+
+    def __repr__(self) -> str: ...
 
 ```
-## `ry.xxhash`
+## `ry.ryo3._sqlformat`
 
 ```python
 from __future__ import annotations
 
 import typing as t
 
-
-@t.final
-class Xxh32:
-    name: t.Literal["xxh32"]
-
-    def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
-    def update(self, input: bytes) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh32: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
+# =============================================================================
+# SQLFORMAT
+# =============================================================================
+SqlfmtParamValue = str | int | float | bool
+TSqlfmtParamValue_co = t.TypeVar(
+    "TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
+)
+SqlfmtParamsLike = (
+    dict[str, TSqlfmtParamValue_co]
+    | t.Sequence[tuple[str, TSqlfmtParamValue_co]]
+    | t.Sequence[TSqlfmtParamValue_co]
+)
 
 
-@t.final
-class Xxh64:
-    name: t.Literal["xxh64"]
-
-    def __init__(self, input: bytes = ..., seed: int | None = ...) -> None: ...
-    def update(self, input: bytes) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh32: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
-
-
-@t.final
-class Xxh3:
-    name: t.Literal["xxh3"]
-
+class SqlfmtQueryParams:
     def __init__(
-        self,
-        input: bytes = ...,
-        seed: int | None = ...,
-        secret: bytes | None = ...,
+        self, params: SqlfmtParamsLike[TSqlfmtParamValue_co]
     ) -> None: ...
-    def update(self, input: bytes) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+
+def sqlfmt_params(
+    params: SqlfmtParamsLike[TSqlfmtParamValue_co] | SqlfmtQueryParams,
+) -> SqlfmtQueryParams: ...
+def sqlfmt(
+    sql: str,
+    params: SqlfmtParamsLike[TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
+    *,
+    indent: int = 2,  # -1 or any negative value will use tabs
+    uppercase: bool | None = True,
+    lines_between_statements: int = 1,
+) -> str: ...
+
+```
+## `ry.ryo3._tokio`
+
+```python
+"""ryo3-tokio types"""
+
+from __future__ import annotations
+
+from typing import NoReturn
+
+from ry import Bytes
+from ry._types import Buffer
+from ry.ryo3 import FsPathLike
+
+# =============================================================================
+# FS
+# =============================================================================
+
+
+async def copy_async(src: FsPathLike, dst: FsPathLike) -> None: ...
+async def create_dir_async(path: FsPathLike) -> None: ...
+async def metadata_async(path: FsPathLike) -> None: ...
+async def read_async(path: FsPathLike) -> Bytes: ...
+async def read_dir_async(path: FsPathLike) -> NoReturn: ...
+async def remove_dir_async(path: FsPathLike) -> None: ...
+async def remove_file_async(path: FsPathLike) -> None: ...
+async def rename_async(src: FsPathLike, dst: FsPathLike) -> None: ...
+async def write_async(path: FsPathLike, data: Buffer) -> None: ...
+
+
+# =============================================================================
+# SLEEP
+# =============================================================================
+async def sleep_async(seconds: float) -> float: ...
+async def asleep(seconds: float) -> float:
+    """Alias for sleep_async"""
+    ...
+
+```
+## `ry.ryo3._url`
+
+```python
+from __future__ import annotations
+
+from ipaddress import IPv4Address
+
+
+class URL:
+    def __init__(
+        self, url: str | URL, *, params: dict[str, str] | None = None
+    ) -> None: ...
+
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def parse(cls, url: str) -> URL: ...
+    @classmethod
+    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
+    @classmethod
+    def from_directory_path(cls, path: str) -> URL: ...
+
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+    # =========================================================================
+    # OPERATORS/DUNDER
+    # =========================================================================
+    def __eq__(self, other: object) -> bool: ...
+    def __ge__(self, other: URL) -> bool: ...
+    def __gt__(self, other: URL) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __le__(self, other: URL) -> bool: ...
+    def __lt__(self, other: URL) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __rtruediv__(self, relative: str) -> URL: ...
+    def __truediv__(self, relative: str) -> URL: ...
+
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
     @property
-    def seed(self) -> int: ...
-    def digest128(self) -> bytes: ...
-    def hexdigest128(self) -> str: ...
-    def intdigest128(self) -> int: ...
-    def copy(self) -> Xxh3: ...
-    def reset(self) -> None: ...
+    def authority(self) -> str: ...
+    @property
+    def fragment(self) -> str | None: ...
+    @property
+    def host(self) -> str | None: ...
+    @property
+    def host_str(self) -> str | None: ...
+    @property
+    def netloc(self) -> str: ...
+    @property
+    def password(self) -> str | None: ...
+    @property
+    def path(self) -> str: ...
+    @property
+    def path_segments(self) -> tuple[str, ...]: ...
+    @property
+    def port(self) -> int | None: ...
+    @property
+    def port_or_known_default(self) -> int | None: ...
+    @property
+    def query(self) -> str | None: ...
+    @property
+    def query_pairs(self) -> list[tuple[str, str]]: ...
+    @property
+    def scheme(self) -> str: ...
+    @property
+    def username(self) -> str: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def has_authority(self) -> bool: ...
+    def has_host(self) -> bool: ...
+    def is_special(self) -> bool: ...
+    def join(self, *parts: str) -> URL: ...
+    def to_filepath(self) -> str: ...
+    def replace_fragment(self, fragment: str | None = None) -> URL: ...
+    def replace_host(self, host: str | None = None) -> URL: ...
+    def replace_ip_host(self, host: IPv4Address | IPv4Address) -> URL: ...
+    def replace_password(self, password: str | None = None) -> URL: ...
+    def replace_path(self, path: str) -> URL: ...
+    def replace_port(self, port: int | None = None) -> URL: ...
+    def replace_query(self, query: str | None = None) -> URL: ...
+    def replace_scheme(self, scheme: str) -> URL: ...
+    def replace_username(self, username: str) -> URL: ...
+    def socket_addrs(self) -> None: ...
+
+```
+## `ry.ryo3._which`
+
+```python
+"""ryo3-which types"""
+
+from __future__ import annotations
+
+from ry.ryo3._regex import Regex
 
 
-def xxh32(input: bytes | None = None, seed: int | None = None) -> Xxh32: ...
-def xxh64(input: bytes | None = None, seed: int | None = None) -> Xxh64: ...
-def xxh3(
-    input: bytes | None = None,
-    seed: int | None = None,
-    secret: bytes | None = None,
-) -> Xxh3: ...
+def which(cmd: str, path: None | str = None) -> str | None: ...
+def which_all(cmd: str, path: None | str = None) -> list[str]: ...
+def which_re(regex: str | Regex, path: None | str = None) -> list[str]: ...
+
+```
+## `ry.ryo3.errors`
+
+```python
+from __future__ import annotations
 
 
-# xxh32
-def xxh32_digest(input: bytes, seed: int | None = None) -> bytes: ...
-def xxh32_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-def xxh32_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
-
-# xxh64
-def xxh64_digest(input: bytes, seed: int | None = None) -> bytes: ...
-def xxh64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-def xxh64_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
-
-# xxh128
-def xxh128_digest(input: bytes, seed: int | None = None) -> bytes: ...
-def xxh128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-def xxh128_intdigest(input: bytes, seed: int | None = None) -> int: ...
-
-
-# xxh3
-def xxh3_64_digest(input: bytes, seed: int | None = None) -> bytes: ...
-def xxh3_64_intdigest(input: bytes, seed: int | None = None) -> int: ...
-def xxh3_64_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-def xxh3_digest(input: bytes, seed: int | None = None) -> bytes: ...
-def xxh3_intdigest(input: bytes, seed: int | None = None) -> int: ...
-def xxh3_hexdigest(input: bytes, seed: int | None = None) -> str: ...
-
-
-# xxh128
-def xxh3_128_digest(input: bytes, seed: int | None = None) -> bytes: ...
-def xxh3_128_intdigest(input: bytes, seed: int | None = None) -> int: ...
-def xxh3_128_hexdigest(input: bytes, seed: int | None = None) -> str: ...
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build."""
 
 ```
 <!-- API-END -->

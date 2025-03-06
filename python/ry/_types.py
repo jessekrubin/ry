@@ -3,19 +3,24 @@
 from __future__ import annotations
 
 import sys
+from os import PathLike
 from typing import TypedDict
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
 else:
     from typing_extensions import Buffer
+
 __all__ = (
     "Buffer",
     "DateTimeTypedDict",
     "DateTypedDict",
+    "FsPathLike",
     "TimeSpanTypedDict",
     "TimeTypedDict",
 )
+
+FsPathLike = str | PathLike[str]
 
 
 # =============================================================================

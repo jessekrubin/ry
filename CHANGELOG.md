@@ -1,29 +1,45 @@
 # CHANGELOG
 
-## v0.0.34 [unreleased]
+## v0.0.35 [unreleased]
 
-- `fs`:
-  - `read_stream` function that returns an iterator of `ry.Bytes` objects from a `PathLike` object
-  - Several more fs functions added
+- `ryo3-jiff`
+  - `series` iterators have `take` function that takes a `usize` returns a list
+    of size `usize`
+  - updated series types to be `JiffSeries` class
 
-___
+---
+
+## v0.0.34 [2025-02-28]
+
+- `ryo3-std`
+  - `fs`:
+    - `read_stream` function that returns an iterator of `ry.Bytes` objects from
+      a `PathLike` object
+    - Several more fs functions added
+- `ryo3-tokio`
+  - Several more tokio fs functions added
+- internal
+  - reorganized type annotations to be not a HUGE file...
+
+---
 
 ## v0.0.33 [2025-02-26]
 
 - update to pyo3 v0.23.5
 
-___
+---
 
 ## v0.0.32 [2025-02-25]
 
 - `ryo3-jiter`
   - Allow `PyBytes` wrapper/buffer protocol to be given
-  - renamed `jiter_cache_clear` to `json_cache_clear` and `jiter_cache_usage` to `json_cache_usage`
+  - renamed `jiter_cache_clear` to `json_cache_clear` and `jiter_cache_usage` to
+    `json_cache_usage`
   - Removed `parse_json_str` just use `parse_json` with `str` input
 - `ryo3-fspath`
   - Allow read/write to take `ry.Bytes` or `Bytes` objects
 
-___
+---
 
 ## v0.0.31 [2025-02-21]
 
@@ -36,23 +52,25 @@ ___
 - `ryo3-std`
   - `read` and `write` functions which take/return `ry.Bytes` objects
 - `internal`
-  - Changed many many many of the structs/classes to be pyo3 `frozen` behaviour should not be different
+  - Changed many many many of the structs/classes to be pyo3 `frozen` behaviour
+    should not be different
 
-___
+---
 
 ## v0.0.30 [2025-02-18]
 
 - `jiff`
   - Upgraded jiff to version 2
 - internal
-  - Switch all lints from `#[allow(...)]`/`#![allow(...)]` to `#[expect(...)]`/`#![expect(...)]`
+  - Switch all lints from `#[allow(...)]`/`#![allow(...)]` to
+    `#[expect(...)]`/`#![expect(...)]`
   - Removed a bunch o commented out code
 - `ryo3-std`
   - added several `std::fs` structs
 - `ryo3-fspath`
   - conversion to `pathlib.Path` by way of `FsPath.to_pathlib()`
 
-___
+---
 
 ## v0.0.29 [2025-02-03]
 
@@ -61,13 +79,14 @@ ___
 - `ryo3-bytes` & `ryo3-fspath`
   - added `__hash__` dunders to both `Bytes` and `FsPath` structs
 
-___
+---
 
 ## v0.0.28 [2025-01-31]
 
 - `jiff`
-  - Per Mr. Sushi's thoughts changed all `until`/`since` methods to use kwargs instead of the rust-like tuples that impl
-    `From`/`Into` as it does not translate well to python
+  - Per Mr. Sushi's thoughts changed all `until`/`since` methods to use kwargs
+    instead of the rust-like tuples that impl `From`/`Into` as it does not
+    translate well to python
   - Gets rid of the following inane types:
 
 ```python
@@ -109,7 +128,7 @@ IntoTimestampDifference = (
 )
 ```
 
-___
+---
 
 ## v0.0.27 [2025-01-23]
 
@@ -118,11 +137,13 @@ ___
 - `reqwest`
   - headers-property response returns `Headers` object instead of python dict
 - `same-file`
-  - wrapper module added with `is_same_file` py-fn (yet another piece of burnt sushi)
+  - wrapper module added with `is_same_file` py-fn (yet another piece of burnt
+    sushi)
 - `jiff`
-  - jiff-version `0.1.25` ~ add `in_tz` methods and point old `intz` at new `in_tz` methods and raise
-    `DeprecationWarning` for old `intz` methods
-  - Continued adding implementations that previously raised `NotImplementedError`
+  - jiff-version `0.1.25` ~ add `in_tz` methods and point old `intz` at new
+    `in_tz` methods and raise `DeprecationWarning` for old `intz` methods
+  - Continued adding implementations that previously raised
+    `NotImplementedError`
     - `Date.nth_weekday_of_month`
     - `Date.nth_weekday`
     - `DateTime.nth_weekday_of_month`
@@ -132,7 +153,7 @@ ___
     - `ZonedDateTime.nth_weekday_of_month`
     - `ZonedDateTime.nth_weekday`
 
-___
+---
 
 ## v0.0.26 [2025-01-13]
 
@@ -145,14 +166,15 @@ ___
 - internal
   - workspace-ified all the deps
 
-___
+---
 
 ## v0.0.25 [2024-01-07] (25 for 2025)
 
 - `jiff`
-  - Updated to `0.1.21` which has span and signed duration strings with capital letters
+  - Updated to `0.1.21` which has span and signed duration strings with capital
+    letters
 
-___
+---
 
 ## v0.0.24 [2024-12-24] (the night b4 xmas...)
 
@@ -163,13 +185,15 @@ ___
   - default client + root `fetch` function likely needs work...
   - response `byte_stream`!
 
-___
+---
 
 ## v0.0.23 [2024-12-19]
 
-- `python -m ry.dev` repl for ipython/python repl ~ handy nifty secret tool makes it into repo
+- `python -m ry.dev` repl for ipython/python repl ~ handy nifty secret tool
+  makes it into repo
 - internal
-  - in process of renaming all python-rust `#[new]` functions to be named `fn py_new(...)`
+  - in process of renaming all python-rust `#[new]` functions to be named
+    `fn py_new(...)`
 - `unindent`
   - Added `unindent` module for unindenting strings will move to `ryo3-unindent`
 - `FsPath`
@@ -177,42 +201,50 @@ ___
   - Added bindings to all rust `std::path::Path(buf)` methods for `FsPath`
 - sub-packaging
   - `xxhash` is own sub package now `ry.xxhash`
-  - `JSON` is own subpackage right now -- named `ry.JSON` to avoid conflict with `json` module but maybe will change...
-  - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respsect to sub-packages and where that organization
-    should be
+  - `JSON` is own subpackage right now -- named `ry.JSON` to avoid conflict with
+    `json` module but maybe will change...
+  - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respsect to
+    sub-packages and where that organization should be
 - type-annotations
   - required to break up the type annotations due to migration to sub-packages
-  - breaking up the type annotations file into smaller files under `<REPO>/python/ry/ryo3/*.pyi`
+  - breaking up the type annotations file into smaller files under
+    `<REPO>/python/ry/ryo3/*.pyi`
 
-___
+---
 
 ## v0.0.22 [2024-12-16]
 
 - `regex`
-  - Super simple regex wrapper (must to do here, but was added for `ryo3-which::which_re`)
+  - Super simple regex wrapper (must to do here, but was added for
+    `ryo3-which::which_re`)
 - `jiff`
   - `until`/`since`
-    - Basic `until`/`since` implementation but I do not like them and they confusingly named `*Difference`
-      structs/py-objects, so I may change how they work...
-  - `jiff` seems to be about as performant as `whenever` ~ yay! also the whenever dude appears to be watching this
-    repo (as of 2024-12-16)
+    - Basic `until`/`since` implementation but I do not like them and they
+      confusingly named `*Difference` structs/py-objects, so I may change how
+      they work...
+  - `jiff` seems to be about as performant as `whenever` ~ yay! also the
+    whenever dude appears to be watching this repo (as of 2024-12-16)
 - `walkdir`
   - `collect` added to `WalkdirGen` to collect the results into a list
 - deps
   - `thiserror` version `2.0.7` -> `2.0.8`
 
-___
+---
 
 ## v0.0.21 [2024-12-13] (friday the 13th... spoogidy oogidity)
 
 - `walkdir`
-  - add `glob` kwarg that takes a `ry.Glob` or `ry.GlobSet` or `ry.Globster` obj to filter the walk on
+  - add `glob` kwarg that takes a `ry.Glob` or `ry.GlobSet` or `ry.Globster` obj
+    to filter the walk on
 - `globset`
   - Internal refactoring
-  - added `globster()` method to `ry.Glob` and `ry.GlobSet` to return a `ry.Globster` obj
-  - added `globset()` method to `ry.Glob` to return a `ry.GlobSet` obj from a `ry.Glob` obj
+  - added `globster()` method to `ry.Glob` and `ry.GlobSet` to return a
+    `ry.Globster` obj
+  - added `globset()` method to `ry.Glob` to return a `ry.GlobSet` obj from a
+    `ry.Glob` obj
 - `url`
-  - python `Url` changed name `URL`; aligns with jawascript and other python libs
+  - python `Url` changed name `URL`; aligns with jawascript and other python
+    libs
 - `bzip2`
   - update to v5
 - `jiff`
@@ -226,8 +258,8 @@ ___
     - [x] `RyTimeZone`
     - [x] `RyTime`
     - [x] `RyZoned`
-  - span builder functions use form `s._hours(1)` for panic-inducing building, and `s.try_hours(1)` for
-    non-panic-inducing building
+  - span builder functions use form `s._hours(1)` for panic-inducing building,
+    and `s.try_hours(1)` for non-panic-inducing building
 - type-annotations
   - fixes and updates and a hacky script I wrote to check for discrepancies
 
@@ -299,7 +331,8 @@ ___
 
 - `jiff`
   - `ry.TimeZone` testing and to/from `datetime.tzinfo` conversions
-  - Using nu-types for `jiff` intermediate types bc of the classic orphans problem (aka batman) w/ traits
+  - Using nu-types for `jiff` intermediate types bc of the classic orphans
+    problem (aka batman) w/ traits
   - hypothesis tests
 - `jiter`
   - Updated to `jiter` v0.8.1
@@ -338,7 +371,8 @@ ___
 
 ## v0.0.13 [2024-11-20]
 
-- **VERSION SKIPPED DUE TO `13` BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS (AKA fully 'superstitchous')**
+- **VERSION SKIPPED DUE TO `13` BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS
+  (AKA fully 'superstitchous')**
 
 ---
 

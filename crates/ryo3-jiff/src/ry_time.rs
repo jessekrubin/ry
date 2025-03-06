@@ -11,10 +11,10 @@ use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
+use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-
 #[pyclass(name = "Time", module = "ryo3", frozen)]
 #[derive(Debug, Clone)]
 pub struct RyTime(pub(crate) jiff::civil::Time);
@@ -436,6 +436,10 @@ impl RyTimeSeries {
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTime> {
         slf.series.next().map(RyTime::from)
+    }
+
+    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyTime> {
+        slf.series.borrow_mut().take(n).map(RyTime::from).collect()
     }
 }
 

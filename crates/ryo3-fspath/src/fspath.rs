@@ -310,7 +310,15 @@ impl PyFsPath {
     }
 
     fn as_posix(&self) -> String {
-        self.pth.to_string_lossy().to_string()
+        #[cfg(target_os = "windows")]
+        {
+            let p = self.path().to_string_lossy().to_string();
+            p.replace('\\', "/")
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            self.path().to_string_lossy().to_string()
+        }
     }
 
     fn joinpath(&self, other: PathLike) -> Self {
@@ -396,6 +404,19 @@ impl PyFsPath {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "relative_to not implemented",
         ))
+    }
+
+    fn samefile(&self, other: PathBuf) -> PyResult<bool> {
+        #[cfg(feature = "same-file")]
+        {
+            Ok(same_file::is_same_file(self.path(), &other)?)
+        }
+        #[cfg(not(feature = "same-file"))]
+        {
+            Err(ryo3_core::FeatureNotEnabledError::new_err(
+                "`same-file` feature not enabled",
+            ))
+        }
     }
 
     // ========================================================================
