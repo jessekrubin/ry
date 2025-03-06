@@ -13,9 +13,14 @@ from ry import xxhash as xxhash  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
 from ry.http import Headers as Headers  # noqa: RUF100
 from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
-from ._unindent import unindent as unindent
-from ._unindent import unindent_bytes as unindent_bytes
+
+from ._brotli import brotli as brotli
+from ._brotli import brotli_decode as brotli_decode
+from ._brotli import brotli_encode as brotli_encode
 from ._bytes import Bytes as Bytes
+from ._bzip2 import bzip2 as bzip2
+from ._bzip2 import bzip2_decode as bzip2_decode
+from ._bzip2 import bzip2_encode as bzip2_encode
 from ._flate2 import gunzip as gunzip
 from ._flate2 import gzip as gzip
 from ._flate2 import gzip_decode as gzip_decode
@@ -72,6 +77,8 @@ from ._reqwest import ReqwestError as ReqwestError
 from ._reqwest import Response as Response
 from ._reqwest import ResponseStream as ResponseStream
 from ._reqwest import fetch as fetch
+from ._same_file import is_same_file as is_same_file
+from ._shlex import shplit as shplit
 from ._size import SizeFormatter as SizeFormatter
 from ._size import fmt_size as fmt_size
 from ._size import parse_size as parse_size
@@ -89,10 +96,18 @@ from ._tokio import remove_file_async as remove_file_async
 from ._tokio import rename_async as rename_async
 from ._tokio import sleep_async as sleep_async
 from ._tokio import write_async as write_async
+from ._unindent import unindent as unindent
+from ._unindent import unindent_bytes as unindent_bytes
 from ._url import URL as URL
+from ._walkdir import WalkDirEntry as WalkDirEntry
+from ._walkdir import WalkdirGen as WalkdirGen
+from ._walkdir import walkdir as walkdir
 from ._which import which as which
 from ._which import which_all as which_all
 from ._which import which_re as which_re
+from ._zstd import zstd as zstd
+from ._zstd import zstd_decode as zstd_decode
+from ._zstd import zstd_encode as zstd_encode
 from .errors import FeatureNotEnabledError as FeatureNotEnabledError
 
 __version__: str
@@ -451,93 +466,3 @@ def quick_maths() -> t.Literal[3]:
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 # -----------------------------------------------------------------------------
-
-# =============================================================================
-# WALKDIR
-# =============================================================================
-class WalkDirEntry:
-    def __fspath__(self) -> str: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    @property
-    def path(self) -> FsPath: ...
-    @property
-    def file_name(self) -> str: ...
-    @property
-    def depth(self) -> int: ...
-    @property
-    def path_is_symlink(self) -> bool: ...
-    @property
-    def file_type(self) -> FileType: ...
-    @property
-    def is_dir(self) -> bool: ...
-    @property
-    def is_file(self) -> bool: ...
-    @property
-    def is_symlink(self) -> bool: ...
-    @property
-    def len(self) -> int: ...
-
-class WalkdirGen:
-    """walkdir::Walkdir iterable wrapper"""
-
-    files: bool
-    dirs: bool
-
-    def __next__(self) -> str: ...
-    def __iter__(self) -> t.Iterator[str]: ...
-    def collect(self) -> list[str]: ...
-
-def walkdir(
-    path: FsPathLike | None = None,
-    *,
-    files: bool = True,
-    dirs: bool = True,  # noqa: F811
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,  # noqa: F811
-) -> WalkdirGen: ...
-
-# =============================================================================
-# SAME_FILE
-# =============================================================================
-
-def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
-
-# =============================================================================
-# SHLEX
-# =============================================================================
-def shplit(s: str) -> list[str]:
-    """shlex::split wrapper much like python's stdlib shlex.split but faster"""
-    ...
-
-
-# =============================================================================
-# BROTLI
-# =============================================================================
-def brotli_encode(
-    input: bytes, quality: int = 11, magic_number: bool = False
-) -> bytes: ...
-def brotli_decode(input: bytes) -> bytes: ...
-def brotli(input: bytes, quality: int = 11, magic_number: bool = False) -> bytes:
-    """Alias for brotli_encode"""
-
-# =============================================================================
-# BZIP2
-# =============================================================================
-def bzip2_encode(input: bytes, quality: int = 9) -> bytes: ...
-def bzip2_decode(input: bytes) -> bytes: ...
-def bzip2(input: bytes, quality: int = 9) -> bytes:
-    """Alias for bzip2_encode"""
-
-# =============================================================================
-# ZSTD
-# =============================================================================
-def zstd_encode(input: bytes, level: int = 3) -> bytes: ...
-def zstd(input: bytes, level: int = 3) -> bytes:
-    """Alias for zstd_encode"""
-
-def zstd_decode(input: bytes) -> bytes: ...
