@@ -5,8 +5,7 @@ from __future__ import annotations
 from typing import NoReturn
 
 from ry import Bytes
-from ry._types import Buffer
-from ry.ryo3 import FsPathLike
+from ry._types import Buffer, FsPathLike
 
 # =============================================================================
 # FS
