@@ -5,13 +5,11 @@ from __future__ import annotations
 from typing import NoReturn
 
 from ry import Bytes
-from ry._types import Buffer
-from ry.ryo3 import FsPathLike
+from ry._types import Buffer, FsPathLike
 
 # =============================================================================
 # FS
 # =============================================================================
-
 async def copy_async(src: FsPathLike, dst: FsPathLike) -> None: ...
 async def create_dir_async(path: FsPathLike) -> None: ...
 async def metadata_async(path: FsPathLike) -> None: ...
