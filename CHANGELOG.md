@@ -2,6 +2,10 @@
 
 ## v0.0.35 [unreleased]
 
+- internal
+  - types split up and cleaned up
+- `ryo3-size`
+  - `ry.Size` object 
 - `ryo3-jiff`
   - `series` iterators have `take` function that takes a `usize` returns a list
     of size `usize`
