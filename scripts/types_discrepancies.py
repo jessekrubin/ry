@@ -125,7 +125,9 @@ def ry_classes_n_types():
 
 
 def main():
-    class_members = ry_classes_n_types()
+    class_members = [
+        el for el in ry_classes_n_types() if el not in {"Headers", "HttpStatus"}
+    ]
     for member in class_members:
         res = compare_member(member)
         print(res)
