@@ -62,14 +62,25 @@ class Size:
     def __add__(self, other: Size) -> Size: ...
     def __sub__(self, other: Size) -> Size: ...
     def __mul__(self, other: Size | int | float) -> Size: ...
-    @classmethod
-    def parse(cls: type[Size], size: str) -> Size: ...
-    @classmethod
-    def from_str(cls: type[Size], size: str) -> Size: ...
+    @property
+    def bytes(self) -> int: ...
+    def format(
+        self,
+        base: FORMAT_SIZE_BASE | None = 2,
+        style: FORMAT_SIZE_STYLE | None = "default",
+    ) -> str: ...
 
     # =========================================================================
     # CLASS-METHODS
     # =========================================================================
+
+    # -------------------------------------------------------------------------
+    # PARSING
+    # -------------------------------------------------------------------------
+    @classmethod
+    def parse(cls: type[Size], size: str) -> Size: ...
+    @classmethod
+    def from_str(cls: type[Size], size: str) -> Size: ...
 
     # -------------------------------------------------------------------------
     # BYTES

@@ -97,6 +97,9 @@ def test_fmt_parse_formatter(
         formatted_via_call = formatter(size)
         assert formatted == formatted_via_call
         parsed = ry.parse_size(formatted)
+        size_obj = Size(size)
+        formatted_struct = size_obj.format(base=base, style=style)
+        assert formatted == formatted_struct
         # parsed won't be EXACTLY the same as size, but it should be close
         # enough for the purposes of this test
         if formatted.lower().endswith(" bytes") or formatted.lower().endswith(" b"):

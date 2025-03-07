@@ -1,3 +1,4 @@
+use crate::types::{Base, Style};
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
@@ -41,6 +42,15 @@ impl PySize {
             CompareOp::Gt => self.0 > other.0,
             CompareOp::Ge => self.0 >= other.0,
         }
+    }
+
+    #[pyo3(signature = (*, base = None, style = None))]
+    fn format(&self, base: Option<Base>, style: Option<Style>) -> String {
+        self.0
+            .format()
+            .with_base(base.unwrap_or_default().0)
+            .with_style(style.unwrap_or_default().0)
+            .to_string()
     }
 
     #[classmethod]
