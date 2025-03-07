@@ -33,6 +33,7 @@ impl PySize {
         u64::from_ne_bytes(self.0.bytes().to_ne_bytes())
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __richcmp__(&self, other: SizeWrapper, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,
@@ -85,10 +86,12 @@ impl PySize {
         PySize(size::Size::from_const(self.0.bytes().not()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __add__(&self, other: SizeWrapper) -> Self {
         PySize(self.0 + other.0)
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __sub__(&self, other: SizeWrapper) -> Self {
         PySize(self.0 - other.0)
     }
@@ -110,9 +113,10 @@ impl PySize {
     //     PySize(other.rtruediv(self.0))
     // }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_bytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
-        PySize(size::Size::from_bytes(size.float64() as u64))
+        PySize(size::Size::from_bytes(size.float64()))
     }
 
     // ========================================================================
@@ -145,121 +149,145 @@ impl PySize {
     // size::Size::from_tib
     // ========================================================================
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_eb(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_eb(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_eib(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_eib(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_exabytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_exabytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_exbibytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_exbibytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_gb(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_gb(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_gib(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_gib(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_gibibytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_gibibytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_gigabytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_gigabytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_kb(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_kb(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_kib(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_kib(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_kibibytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_kibibytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_kilobytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_kilobytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_mb(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_mb(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_mebibytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_mebibytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_megabytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_megabytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_mib(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_mib(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_pb(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_pb(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_pebibytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_pebibytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_petabytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_petabytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_pib(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_pib(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_tb(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_tb(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_tebibytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_tebibytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_terabytes(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_terabytes(size.float64()))
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_tib(_cls: &Bound<'_, PyType>, size: PySizeIntermediate) -> Self {
         PySize(size::Size::from_tib(size.float64()))
@@ -292,6 +320,7 @@ enum PySizeIntermediate {
 }
 
 impl PySizeIntermediate {
+    #[expect(clippy::cast_precision_loss)]
     fn float64(&self) -> f64 {
         match self {
             PySizeIntermediate::Float64(f) => *f,
