@@ -80,6 +80,7 @@ from ._reqwest import ResponseStream as ResponseStream
 from ._reqwest import fetch as fetch
 from ._same_file import is_same_file as is_same_file
 from ._shlex import shplit as shplit
+from ._size import Size as Size
 from ._size import SizeFormatter as SizeFormatter
 from ._size import fmt_size as fmt_size
 from ._size import parse_size as parse_size
