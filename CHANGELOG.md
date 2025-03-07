@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.35 [unreleased]
+## v0.0.35 [2025-03-06]
 
 - internal
   - types split up and cleaned up
