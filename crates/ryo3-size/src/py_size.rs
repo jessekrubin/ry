@@ -33,6 +33,10 @@ impl PySize {
         u64::from_ne_bytes(self.0.bytes().to_ne_bytes())
     }
 
+    fn __bool__(&self) -> bool {
+        self.0.bytes() != 0
+    }
+
     #[expect(clippy::needless_pass_by_value)]
     fn __richcmp__(&self, other: SizeWrapper, op: CompareOp) -> bool {
         match op {
