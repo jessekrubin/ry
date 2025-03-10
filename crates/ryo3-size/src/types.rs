@@ -2,7 +2,18 @@ use pyo3::prelude::*;
 use pyo3::types::{PyInt, PyString};
 use std::fmt::Display;
 
+#[derive(Debug)]
 pub struct Base(pub size::fmt::Base);
+
+impl PartialEq for Base {
+    fn eq(&self, other: &Self) -> bool {
+        matches!(
+            (self.0, other.0),
+            (size::fmt::Base::Base2, size::fmt::Base::Base2)
+                | (size::fmt::Base::Base10, size::fmt::Base::Base10)
+        )
+    }
+}
 
 impl Default for Base {
     fn default() -> Self {
@@ -43,6 +54,25 @@ impl FromPyObject<'_> for Base {
 
 #[derive(Debug)]
 pub struct Style(pub size::fmt::Style);
+
+impl PartialEq for Style {
+    fn eq(&self, other: &Self) -> bool {
+        matches!(
+            (self.0, other.0),
+            (size::fmt::Style::Default, size::fmt::Style::Default)
+                | (size::fmt::Style::Abbreviated, size::fmt::Style::Abbreviated)
+                | (
+                    size::fmt::Style::AbbreviatedLowercase,
+                    size::fmt::Style::AbbreviatedLowercase
+                )
+                | (size::fmt::Style::Full, size::fmt::Style::Full)
+                | (
+                    size::fmt::Style::FullLowercase,
+                    size::fmt::Style::FullLowercase
+                )
+        )
+    }
+}
 
 impl Default for Style {
     fn default() -> Self {

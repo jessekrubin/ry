@@ -31,6 +31,13 @@ class TestHeadersObj:
         assert content_type == "application/json"
         assert isinstance(content_type, str)
 
+        # dump to dict and see if its the same...
+        d = h.asdict()
+        expected_dict = {"content-type": ["application/json", "application/xml"]}
+        assert d == expected_dict
+        from_dict = Headers(d)
+        assert from_dict == h
+
     def test_headers_multiple_same_key_get_all(self) -> None:
         h = Headers({"Content-Type": "application/json"})
         h.append("content-Type", "application/xml")
