@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.36 [unreleased]
+
+- dependencies updated
+- pickling support and tests for several types
+
+---
+
+
 ## v0.0.35 [2025-03-06]
 
 - internal
