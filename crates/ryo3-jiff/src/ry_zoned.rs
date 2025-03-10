@@ -16,13 +16,14 @@ use jiff::civil::Weekday;
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyDate, PyDateTime, PyType};
+use pyo3::types::{PyDate, PyDateTime, PyTuple, PyType};
+use pyo3::IntoPyObjectExt;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTime", module = "ryo3", frozen)]
+#[pyclass(name = "ZonedDateTime", module = "ry", frozen)]
 pub struct RyZoned(pub(crate) Zoned);
 
 #[pymethods]
@@ -33,6 +34,15 @@ impl RyZoned {
         let ts = timestamp.0;
         let tz = time_zone.0;
         Ok(RyZoned::from(Zoned::new(ts, tz)))
+    }
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.timestamp().into_bound_py_any(py)?,
+                self.timezone().into_bound_py_any(py)?,
+            ],
+        )
     }
 
     #[classmethod]

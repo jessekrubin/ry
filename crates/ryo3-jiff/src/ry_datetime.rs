@@ -13,15 +13,15 @@ use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTim
 use jiff::civil::{DateTime, DateTimeRound, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyDict, PyType};
+use pyo3::types::{PyDateTime, PyDict, PyTuple, PyType};
+use pyo3::{intern, IntoPyObjectExt};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 #[derive(Debug, Clone)]
-#[pyclass(name = "DateTime", module = "ryo3", frozen)]
+#[pyclass(name = "DateTime", module = "ry", frozen)]
 pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {
@@ -54,6 +54,21 @@ impl RyDateTime {
         )
         .map(RyDateTime::from)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.year().into_bound_py_any(py)?,
+                self.month().into_bound_py_any(py)?,
+                self.day().into_bound_py_any(py)?,
+                self.hour().into_bound_py_any(py)?,
+                self.minute().into_bound_py_any(py)?,
+                self.second().into_bound_py_any(py)?,
+                self.subsec_nanosecond().into_bound_py_any(py)?,
+            ],
+        )
     }
 
     #[expect(non_snake_case)]

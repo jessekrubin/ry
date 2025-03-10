@@ -4,10 +4,10 @@ use crate::PyHeadersLike;
 use http::header::HeaderMap;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use pyo3::types::PyString;
+use pyo3::types::{PyBytes, PyDict, PyString, PyTuple};
 use std::collections::HashMap;
 
-#[pyclass(name = "Headers", module = "ry.ryo3.http")]
+#[pyclass(name = "Headers", module = "ry")]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub HeaderMap);
 
@@ -40,6 +40,11 @@ impl PyHeaders {
             }
         }
         Ok(Self(headers))
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let dict = self.asdict(py)?;
+        PyTuple::new(py, vec![dict])
     }
 
     /// Return struct Debug-string
@@ -276,6 +281,21 @@ impl PyHeaders {
             }
         }
         Ok(PyHeaders(headers))
+    }
+
+    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let d = PyDict::new(py);
+
+        for (k, v) in &self.0 {
+            let k = k.as_str();
+            if let Ok(vstr) = v.to_str() {
+                d.set_item(k, vstr)?;
+            } else {
+                let pybytes = PyBytes::new(py, v.as_bytes());
+                d.set_item(k, pybytes)?;
+            }
+        }
+        Ok(d)
     }
 
     // pub fn __ior__<'py>(

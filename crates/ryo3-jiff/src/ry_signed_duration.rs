@@ -3,15 +3,17 @@ use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::ry_span::RySpan;
 use crate::JiffSignedDuration;
 use jiff::{SignedDuration, Span};
+use pyo3::prelude::*;
+
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDelta, PyType};
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use pyo3::types::{PyAnyMethods, PyDelta, PyTuple, PyType};
+use pyo3::IntoPyObjectExt;
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "SignedDuration", module = "ryo3", frozen)]
+#[pyclass(name = "SignedDuration", module = "ry", frozen)]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
 #[pymethods]
@@ -20,6 +22,16 @@ impl RySignedDuration {
     #[pyo3(signature = (secs = 0, nanos = 0))]
     fn py_new(secs: i64, nanos: i32) -> Self {
         Self(SignedDuration::new(secs, nanos))
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.0.as_secs().into_bound_py_any(py)?,
+                self.0.subsec_nanos().into_bound_py_any(py)?,
+            ],
+        )
     }
 
     #[expect(non_snake_case)]

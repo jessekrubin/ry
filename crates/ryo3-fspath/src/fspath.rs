@@ -19,10 +19,9 @@ const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
 type ArcPathBuf = std::sync::Arc<PathBuf>;
 
-#[pyclass(name = "FsPath", module = "ryo3", frozen)]
+#[pyclass(name = "FsPath", module = "ry", frozen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
-    // pth: PathBuf,
     pth: ArcPathBuf,
 }
 
@@ -66,6 +65,11 @@ impl PyFsPath {
             Some(p) => Self::from(p),
             None => Self::from("."),
         }
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let os_str = self.pth.as_os_str();
+        PyTuple::new(py, vec![os_str])
     }
 
     fn string(&self) -> String {

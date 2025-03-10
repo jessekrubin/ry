@@ -3,11 +3,11 @@ use crate::{JiffWeekday, RyDate};
 use jiff::civil::ISOWeekDate;
 use jiff::Zoned;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
+use pyo3::types::{PyTuple, PyType};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ISOWeekDate", module = "ryo3", frozen)]
+#[pyclass(name = "ISOWeekDate", module = "ry", frozen)]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 
 #[pymethods]
@@ -17,6 +17,17 @@ impl RyISOWeekDate {
         ISOWeekDate::new(year, week, weekday.0)
             .map(Self::from)
             .map_err(map_py_value_err)
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.year().into_pyobject(py)?,
+                self.week().into_pyobject(py)?,
+                self.weekday().into_pyobject(py)?,
+            ],
+        )
     }
 
     // ========================================================================

@@ -2,6 +2,7 @@
 
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
+use pyo3::types::PyTuple;
 
 #[pyclass(name = "HttpStatus", module = "ry.ryo3.http", frozen)]
 #[derive(Clone, Debug)]
@@ -15,6 +16,10 @@ impl PyHttpStatus {
         Ok(Self(http::StatusCode::from_u16(code).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (code={code})"))
         })?))
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(py, [self.0.as_u16()])
     }
 
     #[must_use]

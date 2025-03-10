@@ -5,16 +5,17 @@ use crate::span_relative_to::RySpanRelativeTo;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyType};
+use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python,
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
+    PyResult, Python,
 };
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeSpan", module = "ryo3", frozen)]
+#[pyclass(name = "TimeSpan", module = "ry", frozen)]
 pub struct RySpan(pub(crate) Span);
 
 #[pymethods]
@@ -52,6 +53,11 @@ impl RySpan {
 
     fn __str__(&self) -> String {
         self.0.to_string()
+    }
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::empty(py).into_bound_py_any(py)?;
+        let kwargs = self.asdict(py)?.into_bound_py_any(py)?;
+        PyTuple::new(py, vec![args, kwargs])
     }
 
     #[pyo3(signature = (human=false))]

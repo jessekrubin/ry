@@ -11,13 +11,13 @@ use crate::{JiffRoundMode, JiffUnit, RyOffset};
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
+use pyo3::types::{PyTuple, PyType};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 #[derive(Debug, Clone)]
-#[pyclass(name = "Timestamp", module = "ryo3", frozen)]
+#[pyclass(name = "Timestamp", module = "ry", frozen)]
 pub struct RyTimestamp(pub(crate) Timestamp);
 
 #[pymethods]
@@ -32,6 +32,15 @@ impl RyTimestamp {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.as_second().into_pyobject(py)?,
+                self.subsec_nanosecond().into_pyobject(py)?,
+            ],
+        )
+    }
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {

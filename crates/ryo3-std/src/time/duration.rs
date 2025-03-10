@@ -1,6 +1,8 @@
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDelta, PyType};
-use pyo3::{pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyResult, Python};
+use pyo3::types::{PyDelta, PyTuple, PyType};
+use pyo3::{
+    pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyResult, Python,
+};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Duration;
 
@@ -13,7 +15,7 @@ const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DA
 const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Duration", module = "ryo3", frozen)]
+#[pyclass(name = "Duration", module = "ry", frozen)]
 pub struct PyDuration(pub Duration);
 
 #[pymethods]
@@ -23,6 +25,17 @@ impl PyDuration {
     fn py_new(secs: u64, nanos: u32) -> Self {
         PyDuration(Duration::new(secs, nanos))
     }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.0.as_secs().into_bound_py_any(py)?,
+                self.0.subsec_nanos().into_bound_py_any(py)?,
+            ],
+        )
+    }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {

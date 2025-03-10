@@ -8,13 +8,14 @@ use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
 use pyo3::prelude::*;
-use pyo3::types::{PyType, PyTzInfo};
+use pyo3::types::{PyTuple, PyType, PyTzInfo};
+use pyo3::IntoPyObjectExt;
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeZone", module = "ryo3", frozen)]
+#[pyclass(name = "TimeZone", module = "ry", frozen)]
 pub struct RyTimeZone(pub(crate) TimeZone);
 
 impl From<TimeZone> for RyTimeZone {
@@ -36,6 +37,13 @@ impl RyTimeZone {
         TimeZone::get(time_zone_name)
             .map(RyTimeZone::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![self.iana_name().unwrap_or("").into_bound_py_any(py)?],
+        )
     }
 
     #[classmethod]

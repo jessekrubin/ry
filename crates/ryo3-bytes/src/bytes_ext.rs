@@ -2,12 +2,17 @@
 
 use crate::bytes::PyBytes;
 use pyo3::prelude::*;
-use pyo3::types::{PyString, PyType};
+use pyo3::types::{PyString, PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use std::hash::Hash;
 
 #[pymethods]
 impl PyBytes {
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let pybytes = pyo3::types::PyBytes::new(py, self.as_ref()).into_bound_py_any(py)?;
+        PyTuple::new(py, vec![pybytes])
+    }
+
     /// Hash bytes
     fn __hash__(&self) -> u64 {
         // STD-HASHER VERSION

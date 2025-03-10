@@ -7,12 +7,13 @@ use crate::ry_timezone::RyTimeZone;
 use jiff::tz::{Offset, OffsetArithmetic};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::PyType;
+use pyo3::types::{PyTuple, PyType};
+use pyo3::IntoPyObjectExt;
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Offset", module = "ryo3", frozen)]
+#[pyclass(name = "Offset", module = "ry", frozen)]
 pub struct RyOffset(pub(crate) Offset);
 
 #[pymethods]
@@ -31,6 +32,16 @@ impl RyOffset {
                 "Offset() takes either hours or seconds",
             )),
         }
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                py.None().into_bound_py_any(py)?,
+                self.0.seconds().into_bound_py_any(py)?,
+            ],
+        )
     }
 
     #[expect(non_snake_case)]

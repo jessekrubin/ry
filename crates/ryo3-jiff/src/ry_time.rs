@@ -15,7 +15,7 @@ use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-#[pyclass(name = "Time", module = "ryo3", frozen)]
+#[pyclass(name = "Time", module = "ry", frozen)]
 #[derive(Debug, Clone)]
 pub struct RyTime(pub(crate) jiff::civil::Time);
 
@@ -39,6 +39,17 @@ impl RyTime {
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.hour().into_pyobject(py)?,
+                self.minute().into_pyobject(py)?,
+                self.second().into_pyobject(py)?,
+                self.subsec_nanosecond().into_pyobject(py)?,
+            ],
+        )
+    }
     // ========================================================================
     // CLASS ATTRS
     // ========================================================================
