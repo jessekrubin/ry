@@ -1,7 +1,7 @@
 use crate::types::{Base, Style};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3::IntoPyObjectExt;
+use pyo3::{intern, IntoPyObjectExt};
 
 #[pyclass(name = "SizeFormatter", module = "ry")]
 pub struct PySizeFormatter {
@@ -38,9 +38,16 @@ impl PySizeFormatter {
             _ => None,
         };
         let style = match self.style.0 {
-            size::fmt::Style::Abbreviated => Some("abbreviated"),
-            size::fmt::Style::Full => Some("full"),
-            _ => None,
+            size::fmt::Style::Default => intern!(py, "default").into_bound_py_any(py)?,
+            size::fmt::Style::Abbreviated => intern!(py, "abbreviated").into_bound_py_any(py)?,
+            size::fmt::Style::AbbreviatedLowercase => {
+                intern!(py, "abbreviated_lowercase").into_bound_py_any(py)?
+            }
+            size::fmt::Style::Full => intern!(py, "full").into_bound_py_any(py)?,
+            size::fmt::Style::FullLowercase => {
+                intern!(py, "full_lowercase").into_bound_py_any(py)?
+            }
+            _ => py.None().into_bound_py_any(py)?,
         };
         PyTuple::new(
             py,
