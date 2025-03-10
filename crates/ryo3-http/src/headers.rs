@@ -4,10 +4,9 @@ use crate::PyHeadersLike;
 use http::header::HeaderMap;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use pyo3::types::PyString;
-use std::collections::HashMap;
+use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
 
-#[pyclass(name = "Headers", module = "ry.ryo3.http")]
+#[pyclass(name = "Headers", module = "ry")]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub HeaderMap);
 
@@ -21,25 +20,18 @@ impl From<HeaderMap> for PyHeaders {
 impl PyHeaders {
     #[new]
     #[pyo3(signature = (d = None))]
-    fn py_new(_py: Python<'_>, d: Option<HashMap<String, String>>) -> PyResult<Self> {
-        let mut headers = HeaderMap::new();
+    fn py_new(_py: Python<'_>, d: Option<PyHeadersLike>) -> PyResult<Self> {
         if let Some(d) = d {
-            for (k, v) in d {
-                let header_name =
-                    http::header::HeaderName::from_bytes(k.as_bytes()).map_err(|e| {
-                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "header-name-error: {e} (k={k}, v={v})"
-                        ))
-                    })?;
-                let header_value = http::header::HeaderValue::from_str(&v).map_err(|e| {
-                    PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                        "header-value-error: {e} (k={k}, v={v})"
-                    ))
-                })?;
-                headers.insert(header_name, header_value);
-            }
+            let headers_map = HeaderMap::try_from(d)?;
+            Ok(Self(headers_map))
+        } else {
+            Ok(PyHeaders(HeaderMap::new()))
         }
-        Ok(Self(headers))
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let dict = self.asdict(py)?;
+        PyTuple::new(py, vec![dict])
     }
 
     /// Return struct Debug-string
@@ -278,16 +270,35 @@ impl PyHeaders {
         Ok(PyHeaders(headers))
     }
 
-    // pub fn __ior__<'py>(
-    //     mut slf: PyRefMut<'py, Self>,
-    //     other: &PyHeaders,
-    // ) -> PyResult<PyRefMut<'py, Self>> {
-    //     let other_headers = other.0.clone();
-    //     for (k, v) in other_headers {
-    //         if let Some(k) = k {
-    //             slf.0.insert(k, v);
-    //         }
-    //     }
-    //     Ok(slf)
-    // }
+    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let d = PyDict::new(py);
+
+        for key in self.0.keys() {
+            let key_str = key.as_str();
+            let values: Vec<_> = self.0.get_all(key).iter().collect();
+
+            if values.len() == 1 {
+                let v = values[0];
+                if let Ok(vstr) = v.to_str() {
+                    d.set_item(key_str, vstr)?;
+                } else {
+                    let pybytes = PyBytes::new(py, v.as_bytes());
+                    d.set_item(key_str, pybytes)?;
+                }
+            } else {
+                let py_list = PyList::empty(py);
+                for v in values {
+                    if let Ok(vstr) = v.to_str() {
+                        py_list.append(vstr)?;
+                    } else {
+                        let pybytes = PyBytes::new(py, v.as_bytes());
+                        py_list.append(pybytes)?;
+                    }
+                }
+                d.set_item(key_str, py_list)?;
+            }
+        }
+
+        Ok(d)
+    }
 }

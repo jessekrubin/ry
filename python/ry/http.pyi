@@ -1,7 +1,11 @@
+from __future__ import annotations
+
+import typing as t
+
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
-    def __init__(self, headers: dict[str, str]) -> None: ...
+    def __init__(self, headers: dict[str, str | t.Sequence[str]]) -> None: ...
 
     # =========================================================================
     # STRING
@@ -19,6 +23,7 @@ class Headers:
     def __delitem__(self, key: str) -> None: ...
     def __contains__(self, key: str) -> bool: ...
     def __or__(self, other: Headers | dict[str, str]) -> Headers: ...
+    def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
 
     # =========================================================================
     # INSTANCE METHODS

@@ -23,7 +23,7 @@ use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 #[derive(Debug, Clone)]
-#[pyclass(name = "Date", module = "ryo3", frozen)]
+#[pyclass(name = "Date", module = "ry", frozen)]
 pub struct RyDate(pub(crate) Date);
 
 #[pymethods]
@@ -120,6 +120,17 @@ impl RyDate {
             self.year(),
             self.month(),
             self.day()
+        )
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(
+            py,
+            vec![
+                self.year().into_pyobject(py)?,
+                self.month().into_pyobject(py)?,
+                self.day().into_pyobject(py)?,
+            ],
         )
     }
 

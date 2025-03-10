@@ -1778,6 +1778,7 @@ dependencies = [
  "http",
  "pyo3",
  "pyo3-build-config",
+ "ryo3-core",
  "ryo3-macros",
 ]
 

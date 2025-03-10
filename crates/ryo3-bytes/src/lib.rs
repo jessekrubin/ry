@@ -27,7 +27,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBytes>()?;
 
     // rename bytes module to `ry`
-    m.getattr("Bytes")?.setattr("__module__", "ryo3")?;
+    m.getattr("Bytes")?.setattr("__module__", "ry.ryo3")?;
 
     Ok(())
 }

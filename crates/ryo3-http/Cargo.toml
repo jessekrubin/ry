@@ -14,6 +14,7 @@ categories.workspace = true
 [dependencies]
 http.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-core.workspace = true
 ryo3-macros.workspace = true
 
 [build-dependencies]

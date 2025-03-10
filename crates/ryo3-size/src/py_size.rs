@@ -2,11 +2,11 @@ use crate::types::{Base, Style};
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::PyType;
+use pyo3::types::{PyTuple, PyType};
 use std::ops::{Mul, Neg, Not};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Size", module = "ryo3", frozen)]
+#[pyclass(name = "Size", module = "ry", frozen)]
 pub struct PySize(size::Size);
 
 #[pymethods]
@@ -14,6 +14,10 @@ impl PySize {
     #[new]
     fn py_new(size: i64) -> Self {
         PySize(size::Size::from_bytes(size))
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(py, vec![self.0.bytes()])
     }
 
     fn __int__(&self) -> i64 {

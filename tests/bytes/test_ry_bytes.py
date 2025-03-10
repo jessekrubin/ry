@@ -5,11 +5,19 @@ import pytest
 import ry
 
 
+def test_bytes_pickling() -> None:
+    b = ry.Bytes(b"asdf")
+    import pickle
+
+    pickled = pickle.dumps(b)
+    loaded = pickle.loads(pickled)
+    assert loaded == b
+
+
 @pytest.mark.parametrize(
     "fn_name",
     [
         "__bytes__",
-        "__getnewargs__",
         "__iter__",
         "__mod__",
         "__rmod__",

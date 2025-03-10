@@ -8,7 +8,7 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "URL", module = "ryo3", frozen)]
+#[pyclass(name = "URL", module = "ry", frozen)]
 pub struct PyUrl(pub url::Url);
 
 impl PyUrl {
@@ -40,6 +40,10 @@ impl PyUrl {
         } else {
             Ok(Self::from(url.0))
         }
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(py, vec![self.0.to_string()])
     }
 
     #[classmethod]
