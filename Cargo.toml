@@ -174,7 +174,7 @@ thiserror = "2.0.12"
 tokio = { version = "1.43.0", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "env-filter", "default"] }
-unindent = "0.2.3"
+unindent = "0.2.4"
 url = { version = "2.5.4", features = ["serde"] }
 walkdir = "2.4.0"
 which = { version = "7.0.2", features = ["regex"] }
