@@ -6,9 +6,7 @@ use pyo3::types::PyBytes;
 use ryo3_macros::py_value_error;
 use std::io::{Read, Write};
 
-#[pyfunction]
-#[pyo3(signature = (data, quality=None))]
-pub fn gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
+pub fn rs_gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
     let quality = if let Some(param) = quality {
         if param > 9 {
             return Err(py_value_error!(
@@ -29,23 +27,51 @@ pub fn gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResul
     Ok(PyBytes::new(py, &encoded).into())
 }
 
-#[pyfunction]
-pub fn gzip_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
+pub fn rs_gzip_decode(data: &[u8]) -> PyResult<ryo3_bytes::PyBytes> {
     let mut decompressed = Vec::new();
     GzDecoder::new(data)
         .read_to_end(&mut decompressed)
         .map_err(|e| py_value_error!("gzip-decode-error: {e:?}"))?;
-    Ok(PyBytes::new(py, &decompressed).into())
+    Ok(ryo3_bytes::PyBytes::from(decompressed))
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, quality=None))]
+#[expect(clippy::needless_pass_by_value)]
+pub fn gzip_encode(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    quality: Option<u32>,
+) -> PyResult<PyObject> {
+    let bin: &[u8] = data.as_ref();
+    rs_gzip_encode(py, bin, quality)
+}
+
+#[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
+pub fn gzip_decode(data: ryo3_bytes::PyBytes) -> PyResult<ryo3_bytes::PyBytes> {
+    let bin: &[u8] = data.as_ref();
+    rs_gzip_decode(bin)
 }
 
 // aliases...
 #[pyfunction]
 #[pyo3(signature = (data, quality=None))]
-pub fn gzip(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
-    gzip_encode(py, data, quality)
+#[expect(clippy::needless_pass_by_value)]
+pub fn gzip(py: Python<'_>, data: ryo3_bytes::PyBytes, quality: Option<u32>) -> PyResult<PyObject> {
+    let data: &[u8] = data.as_ref();
+    rs_gzip_encode(py, data, quality)
 }
 
 #[pyfunction]
-pub fn gunzip(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
-    gzip_decode(py, data)
+#[expect(clippy::needless_pass_by_value)]
+pub fn gunzip(data: ryo3_bytes::PyBytes) -> PyResult<ryo3_bytes::PyBytes> {
+    rs_gzip_decode(data.as_ref())
+}
+
+#[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
+pub fn is_gzipped(data: ryo3_bytes::PyBytes) -> bool {
+    let bin: &[u8] = data.as_ref();
+    bin.starts_with(&[0x1F, 0x8B])
 }

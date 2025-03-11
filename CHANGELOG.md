@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## v0.0.36 [unreleased]
+
+- dependencies updated
+- pickling support and tests for several types
+- bytes/buffer-protocol support for several sub-packages/packages:
+  - `ryo3-brotli`
+  - `ryo3-bzip2`
+  - `ryo3-flate2`
+  - `ryo3-fnv`
+  - `ryo3-xxhash`
+  - `ryo3-zstd`
+
+---
+
+
 ## v0.0.35 [2025-03-06]
 
 - internal

@@ -8,9 +8,7 @@ use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
-#[pyfunction]
-#[pyo3(signature = (data, quality=None))]
-pub fn bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
+fn rs_bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
     let quality = if let Some(param) = quality {
         if param < Compression::fast().level() || param > Compression::best().level() {
             return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
@@ -22,7 +20,7 @@ pub fn bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResu
         Compression::default()
     };
     let mut bzip2_encoder = BzEncoder::new(Vec::new(), quality);
-    bzip2_encoder.write_all(data).map_err(|e| {
+    bzip2_encoder.write_all(data.as_ref()).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("bzip2-encode-error: {e:?}"))
     })?;
     let encoded = bzip2_encoder.finish().map_err(|e| {
@@ -33,13 +31,33 @@ pub fn bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResu
 
 #[pyfunction]
 #[pyo3(signature = (data, quality=None))]
-pub fn bzip2(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
-    bzip2_encode(py, data, quality)
+#[expect(clippy::needless_pass_by_value)]
+pub fn bzip2_encode(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    quality: Option<u32>,
+) -> PyResult<PyObject> {
+    let data = data.as_ref();
+    rs_bzip2_encode(py, data, quality)
 }
 
 #[pyfunction]
-pub fn bzip2_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
+#[pyo3(signature = (data, quality=None))]
+#[expect(clippy::needless_pass_by_value)]
+pub fn bzip2(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    quality: Option<u32>,
+) -> PyResult<PyObject> {
+    let data = data.as_ref();
+    rs_bzip2_encode(py, data, quality)
+}
+
+#[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
+pub fn bzip2_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
+    let data: &[u8] = data.as_ref();
     BzDecoder::new(data)
         .read_to_end(&mut decompressed)
         .map_err(|e| {

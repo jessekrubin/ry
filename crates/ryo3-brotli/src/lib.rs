@@ -41,32 +41,38 @@ fn encode(data: &[u8], quality: Option<u8>, magic_number: Option<bool>) -> PyRes
 
 #[pyfunction]
 #[pyo3(signature = (data, quality=None, magic_number=None))]
+#[expect(clippy::needless_pass_by_value)]
 pub fn brotli_encode(
     py: Python<'_>,
-    data: &[u8],
+    data: ryo3_bytes::PyBytes,
     quality: Option<u8>,
     magic_number: Option<bool>,
 ) -> PyResult<PyObject> {
-    let encoded = encode(data, quality, magic_number)?;
+    let bin: &[u8] = data.as_ref();
+    let encoded = encode(bin, quality, magic_number)?;
     Ok(PyBytes::new(py, &encoded).into())
 }
 
 #[pyfunction]
 #[pyo3(signature = (data, quality=None, magic_number=None))]
+#[expect(clippy::needless_pass_by_value)]
 pub fn brotli(
     py: Python<'_>,
-    data: &[u8],
+    data: ryo3_bytes::PyBytes,
     quality: Option<u8>,
     magic_number: Option<bool>,
 ) -> PyResult<PyObject> {
-    let encoded = encode(data, quality, magic_number)?;
+    let bin: &[u8] = data.as_ref();
+    let encoded = encode(bin, quality, magic_number)?;
     Ok(PyBytes::new(py, &encoded).into())
 }
 
 #[pyfunction]
-pub fn brotli_decode(py: Python<'_>, data: &[u8]) -> PyResult<PyObject> {
+#[expect(clippy::needless_pass_by_value)]
+pub fn brotli_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
-    br::Decompressor::new(data, 4 * 1024)
+    let bin: &[u8] = data.as_ref();
+    br::Decompressor::new(bin, 4 * 1024)
         .read_to_end(&mut decompressed)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}")))?;
     Ok(PyBytes::new(py, &decompressed).into())

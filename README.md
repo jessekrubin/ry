@@ -497,13 +497,15 @@ BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 from __future__ import annotations
 
+from ry._types import Buffer
+
 
 # =============================================================================
 # BZIP2
 # =============================================================================
-def bzip2_encode(input: bytes, quality: int = 9) -> bytes: ...
-def bzip2_decode(input: bytes) -> bytes: ...
-def bzip2(input: bytes, quality: int = 9) -> bytes:
+def bzip2_encode(input: Buffer, quality: int = 9) -> bytes: ...
+def bzip2_decode(input: Buffer) -> bytes: ...
+def bzip2(input: Buffer, quality: int = 9) -> bytes:
     """Alias for bzip2_encode"""
 
 ```
@@ -544,18 +546,24 @@ def bytes_noop(s: bytes) -> bytes: ...
 
 from __future__ import annotations
 
+from ry import Bytes
+from ry._types import Buffer
+
 
 # =============================================================================
 # GZIP
 # =============================================================================
-def gzip_encode(input: bytes, quality: int = 9) -> bytes: ...
-def gzip_decode(input: bytes) -> bytes: ...
-def gzip(input: bytes, quality: int = 9) -> bytes:
+def gzip_encode(input: Buffer, quality: int = 9) -> Bytes: ...
+def gzip_decode(input: Buffer) -> Bytes: ...
+def gzip(input: Buffer, quality: int = 9) -> Bytes:
     """Alias for gzip_encode"""
 
 
-def gunzip(input: bytes) -> bytes:
+def gunzip(input: Buffer) -> Bytes:
     """Alias for gzip_decode"""
+
+
+def is_gzipped(input: Buffer) -> bool: ...
 
 ```
 ## `ry.ryo3._fnv`
@@ -565,6 +573,8 @@ def gunzip(input: bytes) -> bytes:
 
 import typing as t
 
+from ry._types import Buffer
+
 
 # =============================================================================
 # FNV
@@ -572,8 +582,8 @@ import typing as t
 class FnvHasher:
     name: t.Literal["fnv1a"]
 
-    def __init__(self, input: bytes | None = None) -> None: ...
-    def update(self, input: bytes) -> None: ...
+    def __init__(self, input: Buffer | None = None) -> None: ...
+    def update(self, input: Buffer) -> None: ...
     def digest(self) -> int: ...
     def hexdigest(self) -> str: ...
     def copy(self) -> FnvHasher: ...
@@ -581,7 +591,7 @@ class FnvHasher:
     def __repr__(self) -> str: ...
 
 
-def fnv1a(input: bytes) -> FnvHasher: ...
+def fnv1a(input: Buffer) -> FnvHasher: ...
 
 ```
 ## `ry.ryo3._fspath`
@@ -3276,14 +3286,17 @@ def which_re(regex: str | Regex, path: None | str = None) -> list[str]: ...
 
 from __future__ import annotations
 
+from ry import Bytes
+from ry._types import Buffer
+
 # =============================================================================
 # ZSTD
 # =============================================================================
 
 
-def zstd_decode(input: bytes) -> bytes: ...
-def zstd_encode(input: bytes, level: int = 3) -> bytes: ...
-def zstd(input: bytes, level: int = 3) -> bytes:
+def zstd_decode(input: Buffer) -> Bytes: ...
+def zstd_encode(input: Buffer, level: int = 3) -> Bytes: ...
+def zstd(input: Buffer, level: int = 3) -> Bytes:
     """Alias for zstd_encode"""
 
 ```
