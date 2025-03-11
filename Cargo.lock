@@ -1677,6 +1677,7 @@ version = "0.0.36"
 dependencies = [
  "brotli",
  "pyo3",
+ "ryo3-bytes",
 ]
 
 [[package]]
@@ -1694,6 +1695,7 @@ version = "0.0.36"
 dependencies = [
  "bzip2",
  "pyo3",
+ "ryo3-bytes",
 ]
 
 [[package]]
@@ -1731,6 +1733,7 @@ version = "0.0.36"
 dependencies = [
  "flate2",
  "pyo3",
+ "ryo3-bytes",
  "ryo3-macros",
 ]
 
@@ -1740,6 +1743,7 @@ version = "0.0.36"
 dependencies = [
  "fnv",
  "pyo3",
+ "ryo3-bytes",
 ]
 
 [[package]]
@@ -1951,6 +1955,7 @@ name = "ryo3-zstd"
 version = "0.0.36"
 dependencies = [
  "pyo3",
+ "ryo3-bytes",
  "zstd",
 ]
 

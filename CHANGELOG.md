@@ -4,6 +4,9 @@
 
 - dependencies updated
 - pickling support and tests for several types
+- bytes/buffer-protocol support for several sub-packages/packages:
+  - `ryo3-fnv`
+  - 
 
 ---
 

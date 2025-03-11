@@ -16,11 +16,11 @@ pub struct PyFnvHasher {
 impl PyFnvHasher {
     #[new]
     #[pyo3(signature = (s = None, *, key = None))]
-    fn py_new(s: Option<&[u8]>, key: Option<u64>) -> Self {
+    fn py_new(s: Option<ryo3_bytes::PyBytes>, key: Option<u64>) -> Self {
         match (key, s) {
             (Some(k), Some(s)) => {
                 let mut hasher = fnv_rs::FnvHasher::with_key(k);
-                hasher.write(s);
+                hasher.write(s.as_ref());
                 Self { hasher }
             }
             (Some(k), None) => Self {
@@ -28,7 +28,7 @@ impl PyFnvHasher {
             },
             (None, Some(s)) => {
                 let mut hasher = fnv_rs::FnvHasher::default();
-                hasher.write(s);
+                hasher.write(s.as_ref());
                 Self { hasher }
             }
             (None, None) => Self {
@@ -70,8 +70,9 @@ impl PyFnvHasher {
         format!("{:x}", self.hasher.finish())
     }
 
-    fn update(&mut self, s: &[u8]) {
-        self.hasher.write(s);
+    #[expect(clippy::needless_pass_by_value)]
+    fn update(&mut self, s: ryo3_bytes::PyBytes) {
+        self.hasher.write(s.as_ref());
     }
 
     fn copy(&self) -> Self {
@@ -83,15 +84,16 @@ impl PyFnvHasher {
 
 #[pyfunction]
 #[pyo3(signature = (s, key = None))]
-pub fn fnv1a(s: &[u8], key: Option<u64>) -> PyResult<PyFnvHasher> {
+#[expect(clippy::needless_pass_by_value)]
+pub fn fnv1a(s: ryo3_bytes::PyBytes, key: Option<u64>) -> PyResult<PyFnvHasher> {
     Ok(PyFnvHasher {
         hasher: if let Some(k) = key {
             let mut hasher = fnv_rs::FnvHasher::with_key(k);
-            hasher.write(s);
+            hasher.write(s.as_ref());
             hasher
         } else {
             let mut hasher = fnv_rs::FnvHasher::default();
-            hasher.write(s);
+            hasher.write(s.as_ref());
             hasher
         },
     })

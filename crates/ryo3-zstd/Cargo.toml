@@ -13,6 +13,7 @@ categories.workspace = true
 
 [dependencies]
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
+ryo3-bytes.workspace = true
 zstd.workspace = true
 
 [lints]
