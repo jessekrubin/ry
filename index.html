@@ -158,7 +158,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-03-10T20:00:55.730116051+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-03-11T23:53:22.715434595+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -658,13 +658,15 @@ BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 from __future__ import annotations
 
+from ry._types import Buffer
+
 
 # =============================================================================
 # BZIP2
 # =============================================================================
-def bzip2_encode(input: bytes, quality: int = 9) -&gt; bytes: ...
-def bzip2_decode(input: bytes) -&gt; bytes: ...
-def bzip2(input: bytes, quality: int = 9) -&gt; bytes:
+def bzip2_encode(input: Buffer, quality: int = 9) -&gt; bytes: ...
+def bzip2_decode(input: Buffer) -&gt; bytes: ...
+def bzip2(input: Buffer, quality: int = 9) -&gt; bytes:
     """Alias for bzip2_encode"""
 
 </code></pre>
@@ -701,24 +703,32 @@ def bytes_noop(s: bytes) -&gt; bytes: ...
 
 from __future__ import annotations
 
+from ry import Bytes
+from ry._types import Buffer
+
 
 # =============================================================================
 # GZIP
 # =============================================================================
-def gzip_encode(input: bytes, quality: int = 9) -&gt; bytes: ...
-def gzip_decode(input: bytes) -&gt; bytes: ...
-def gzip(input: bytes, quality: int = 9) -&gt; bytes:
+def gzip_encode(input: Buffer, quality: int = 9) -&gt; Bytes: ...
+def gzip_decode(input: Buffer) -&gt; Bytes: ...
+def gzip(input: Buffer, quality: int = 9) -&gt; Bytes:
     """Alias for gzip_encode"""
 
 
-def gunzip(input: bytes) -&gt; bytes:
+def gunzip(input: Buffer) -&gt; Bytes:
     """Alias for gzip_decode"""
+
+
+def is_gzipped(input: Buffer) -&gt; bool: ...
 
 </code></pre>
 <h2 id="ryryo3_fnv"><a class="header" href="#ryryo3_fnv"><code>ry.ryo3._fnv</code></a></h2>
 <pre><code class="language-python">"""ryo3-fnv types"""
 
 import typing as t
+
+from ry._types import Buffer
 
 
 # =============================================================================
@@ -727,8 +737,8 @@ import typing as t
 class FnvHasher:
     name: t.Literal["fnv1a"]
 
-    def __init__(self, input: bytes | None = None) -&gt; None: ...
-    def update(self, input: bytes) -&gt; None: ...
+    def __init__(self, input: Buffer | None = None) -&gt; None: ...
+    def update(self, input: Buffer) -&gt; None: ...
     def digest(self) -&gt; int: ...
     def hexdigest(self) -&gt; str: ...
     def copy(self) -&gt; FnvHasher: ...
@@ -736,7 +746,7 @@ class FnvHasher:
     def __repr__(self) -&gt; str: ...
 
 
-def fnv1a(input: bytes) -&gt; FnvHasher: ...
+def fnv1a(input: Buffer) -&gt; FnvHasher: ...
 
 </code></pre>
 <h2 id="ryryo3_fspath"><a class="header" href="#ryryo3_fspath"><code>ry.ryo3._fspath</code></a></h2>
@@ -3393,14 +3403,17 @@ def which_re(regex: str | Regex, path: None | str = None) -&gt; list[str]: ...
 
 from __future__ import annotations
 
+from ry import Bytes
+from ry._types import Buffer
+
 # =============================================================================
 # ZSTD
 # =============================================================================
 
 
-def zstd_decode(input: bytes) -&gt; bytes: ...
-def zstd_encode(input: bytes, level: int = 3) -&gt; bytes: ...
-def zstd(input: bytes, level: int = 3) -&gt; bytes:
+def zstd_decode(input: Buffer) -&gt; Bytes: ...
+def zstd_encode(input: Buffer, level: int = 3) -&gt; Bytes: ...
+def zstd(input: Buffer, level: int = 3) -&gt; Bytes:
     """Alias for zstd_encode"""
 
 </code></pre>
