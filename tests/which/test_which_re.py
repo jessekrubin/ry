@@ -66,7 +66,7 @@ def test_which_regex_multiple_matches(tmp_path: Path) -> None:
         "Expected multiple matches for executables starting with 'notavirus'"
     )
     for result in results:
-        assert "notavirus" in result
+        assert "notavirus" in str(result)
 
 
 def test_which_regex_ignore_case(tmp_path: Path) -> None:
@@ -83,4 +83,4 @@ def test_which_regex_ignore_case(tmp_path: Path) -> None:
     assert result is not None, "Expected a match for case-insensitive regex"
     assert isinstance(result, list)
     assert len(result) > 0, "Expected a match for executables starting with 'notavirus'"
-    assert all("notavirus" in r.lower() for r in result)
+    assert all("notavirus" in str(r).lower() for r in result)

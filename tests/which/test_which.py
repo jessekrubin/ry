@@ -26,7 +26,7 @@ def test_which_path(tmp_path: Path) -> None:
     ry_which = ry.which("notavirus", path=path_kwarg)
     # clean path
     py_clean = _clean_path(py_which)
-    ry_clean = _clean_path(ry_which)
+    ry_clean = _clean_path(str(ry_which))
     assert py_clean == ry_clean
 
 
@@ -55,5 +55,5 @@ def test_which_nada() -> None:
     py_which = shutil.which(exe)
     ry_which = ry.which(exe)
     ry_which_all = ry.which_all(exe)
-    assert py_which == ry_which
+    assert py_which == ry_which  # type: ignore[comparison-overlap]
     assert len(ry_which_all) == 0 and isinstance(ry_which_all, list)

@@ -86,7 +86,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.36"
+version = "0.0.37"
 authors = [
   "Jesse K. Rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
@@ -140,10 +140,12 @@ ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
-pyo3 = { version = "0.23.5", features = ["experimental-inspect", "num-bigint"] }
-pyo3-async-runtimes = { version = "0.23", features = ["attributes", "tokio-runtime"] }
-pyo3-build-config = "0.23.5"
-pyo3-bytes = "0.1.2"
+pyo3 = { version = "0.24", features = ["experimental-inspect", "num-bigint"] }
+pyo3-build-config = "0.24"
+
+#pyo3 async runtimes
+#pyo3-async-runtimes = { version = "0.24", features = ["attributes", "tokio-runtime"] }
+pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", features = ["attributes", "tokio-runtime"] }
 
 # external
 ahash = "0.8.11"
@@ -160,7 +162,7 @@ globset = { version = "0.4.15", features = ["serde"] }
 heck = "0.5.0"
 http = "1.2.0"
 jiff = { version = "0.2.3", features = ["default", "serde"] }
-jiter = { version = "0.8.2", features = ["python"] }
+jiter = { version = "0.9.0", features = ["python"] }
 regex = "1.11.1"
 reqwest = { version = "0.12.12", features = ["blocking", "brotli", "charset", "cookies", "deflate", "gzip", "http2", "macos-system-configuration", "rustls-tls-native-roots", "stream", "zstd"], default-features = false }
 same-file = "1.0.6"

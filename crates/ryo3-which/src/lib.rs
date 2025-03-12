@@ -33,7 +33,6 @@ pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBu
         }
     } else {
         let r = which_rs::which(cmd);
-
         match r {
             Ok(p) => Ok(Some(p)),
             Err(_e) => Ok(None),
