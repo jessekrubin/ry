@@ -4,7 +4,8 @@
 
 ## goals
 
-1. Provide a really nice ergonomic API to work with (this is the highest priority)
+1. Provide a really nice ergonomic API to work with (this is the highest
+   priority)
 2. Get naming right (this is a hard one!)
 3. Be fast
 
@@ -12,11 +13,11 @@
 
 - clone repo
 - install `just` (`cargo install just`)
-- create a virtual env (using ye olde `venv` or `uv` or dare I say `conda`) -- I am still working out the kinks of using `uv` with maturin
+- create a virtual env (using ye olde `venv` or `uv` or dare I say `conda`) -- I
+  am still working out the kinks of using `uv` with maturin
 - install the dev-requirements (`pip install -r requirements.dev.txt`)
 - run `just dev` to build and test the library
 - run `just fmt` to format the python and rust code
-
 
 ## style guide
 
@@ -25,21 +26,24 @@
 - **NO `blazingly-fast`** -- `ry` is fast and does not need an adverb
 - **USE CLIPPY** `just clippy` or `just ci`
 - **USE RUSTFMT AND RUFF** `just fmt`
-- avoid using macros as they are not as easy to reason about and/or debug, but feel free to say 'yolo'
+- avoid using macros as they are not as easy to reason about and/or debug, but
+  feel free to say 'yolo'
 - library style guide:
-  - python objects/structs/classes defined in the library should be named either `Py<CLASSNAME>` or `Ry<CLASSNAME>` and
-    the prefix should be consistent throughout the library (eg `ryo3-jiff` uses `Ry` as the internal prefix to not
-    conflict with the `Py<CLASSNAME>` structs provided by `pyo3`)
-  - if a `pyclass` or `pyfunction` is not mirroring a rust function prefer names that are puns but also
-    semi-descriptive (eg `Globsters` in `ryo3-globset`)
+  - python objects/structs/classes defined in the library should be named either
+    `Py<CLASSNAME>` or `Ry<CLASSNAME>` and the prefix should be consistent
+    throughout the library (eg `ryo3-jiff` uses `Ry` as the internal prefix to
+    not conflict with the `Py<CLASSNAME>` structs provided by `pyo3`)
+  - if a `pyclass` or `pyfunction` is not mirroring a rust function prefer names
+    that are puns but also semi-descriptive (eg `Globsters` in `ryo3-globset`)
   - attempt to mirror the structure of the og library as much as possible
-  - wrapper libraries should be of the form `ryo3-<LIB_NAME>` where `<LIB_NAME>` is the name of the library they
+  - wrapper libraries should be of the form `ryo3-<LIB_NAME>` where `<LIB_NAME>`
+    is the name of the library they
   - library directories should be `kebab-case` and should be `ryo3-<LIB_NAME>`
   - MUST PROVIDE TYPE ANNOTATIONS
 
 ## Creating a new library/wrapper-thing
 
-- copy the template library  `ryo3-quick-maths` library to your new library name
+- copy the template library `ryo3-quick-maths` library to your new library name
 - refer to the above style guide for naming conventions
 
 ## tools
@@ -58,7 +62,8 @@
 **`cargo install just`**
 
 - we use `just` for task running
-- to see all tasks run `just` or `just --list` (our default task echos the list of tasks)
+- to see all tasks run `just` or `just --list` (our default task echos the list
+  of tasks)
 
 tasks as of 2024-12-03:
 
