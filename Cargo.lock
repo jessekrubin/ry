@@ -1712,7 +1712,6 @@ version = "0.0.36"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
- "ryo3-reqwest",
  "serde",
  "serde_bytes",
  "serde_json",

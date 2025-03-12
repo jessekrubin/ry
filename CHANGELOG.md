@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.0.37 [2025-03-11]
+
+- pyo3 version `0.24.0`
+
+---
+
 ## v0.0.36 [2025-03-11]
 
 - dependencies updated
