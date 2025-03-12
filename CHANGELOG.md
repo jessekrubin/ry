@@ -3,6 +3,8 @@
 ## v0.0.37 [2025-03-11]
 
 - pyo3 version `0.24.0`
+- `ryo3-which` functions return `pathlib.Path` now due to changes in pyo3-v24;
+  this may change in the near future...
 
 ---
 
@@ -19,7 +21,6 @@
   - `ryo3-zstd`
 
 ---
-
 
 ## v0.0.35 [2025-03-06]
 
