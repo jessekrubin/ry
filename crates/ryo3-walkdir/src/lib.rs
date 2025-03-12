@@ -64,21 +64,29 @@ impl From<::walkdir::WalkDir> for PyWalkdirGen {
     }
 }
 
+#[expect(clippy::too_many_arguments)]
 fn build_walkdir(
     path: &Path,
-    contents_first: Option<bool>, // false
-    min_depth: Option<usize>,     // default 0
-    max_depth: Option<usize>,     // default None
-    follow_links: Option<bool>,   // default false
-    same_file_system: Option<bool>,
+    contents_first: Option<bool>,    // false
+    min_depth: Option<usize>,        // default 0
+    max_depth: Option<usize>,        // default None
+    follow_links: Option<bool>,      // default false
+    follow_root_links: Option<bool>, // default true
+    same_file_system: Option<bool>,  // default false
+    sort_by_file_name: Option<bool>, // default false
 ) -> ::walkdir::WalkDir {
     let mut wd = ::walkdir::WalkDir::new(path)
         .contents_first(contents_first.unwrap_or(false))
         .follow_links(follow_links.unwrap_or(false))
+        .follow_root_links(follow_root_links.unwrap_or(true))
         .same_file_system(same_file_system.unwrap_or(false))
         .min_depth(min_depth.unwrap_or(0));
+
     if let Some(max_depth) = max_depth {
         wd = wd.max_depth(max_depth);
+    }
+    if sort_by_file_name.unwrap_or(false) {
+        wd = wd.sort_by(|a, b| a.file_name().cmp(b.file_name()));
     }
     wd
 }
@@ -96,22 +104,26 @@ fn build_walkdir(
         min_depth = 0,
         max_depth = None,
         follow_links = false,
+        follow_root_links = true,
         same_file_system = false,
+        sort_by_file_name = false,
         glob = None,
         objects = false
     )
 )]
 pub fn walkdir(
     path: Option<PathLike>,
-    files: Option<bool>,            // true
-    dirs: Option<bool>,             // true
-    contents_first: Option<bool>,   // false
-    min_depth: Option<usize>,       // default 0
-    max_depth: Option<usize>,       // default None
-    follow_links: Option<bool>,     // default false
-    same_file_system: Option<bool>, // default false
-    glob: Option<GlobsterLike>,     // default None
-    objects: bool,                  // default false
+    files: Option<bool>,             // true
+    dirs: Option<bool>,              // true
+    contents_first: Option<bool>,    // false
+    min_depth: Option<usize>,        // default 0
+    max_depth: Option<usize>,        // default None
+    follow_links: Option<bool>,      // default false
+    follow_root_links: Option<bool>, // default true
+    same_file_system: Option<bool>,  // default false
+    sort_by_file_name: Option<bool>, // default false
+    glob: Option<GlobsterLike>,      // default None
+    objects: bool,                   // default false
 ) -> PyResult<PyWalkdirGen> {
     if objects {
         return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
@@ -124,7 +136,9 @@ pub fn walkdir(
         min_depth,
         max_depth,
         follow_links,
+        follow_root_links,
         same_file_system,
+        sort_by_file_name,
     );
 
     // convert the WalkDir into an iterator of `walkdir::DirEntry` filtering

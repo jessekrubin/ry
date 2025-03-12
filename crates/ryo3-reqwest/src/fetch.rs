@@ -24,7 +24,7 @@ pub(crate) fn fetch<'py>(
     url: &Bound<'py, PyAny>,
     client: Option<RyHttpClient>,
     method: Option<ryo3_http::HttpMethod>,
-    body: Option<&[u8]>,
+    body: Option<ryo3_bytes::PyBytes>,
     headers: Option<Bound<'py, PyDict>>,
 ) -> PyResult<Py<PyAny>> {
     if let Some(client) = client {
