@@ -4,14 +4,14 @@ import os
 from pathlib import Path
 
 
-def _clean_path(path: str | None) -> str | None:
+def _clean_path(path: Path | str | None) -> str | None:
     if path is None:
         return None
     res = path
     for ext in (".EXE", ".BAT", ".CMD"):
-        if res.endswith(ext):
-            res = res.replace(ext, ext.lower())
-    return res
+        if str(res).endswith(ext):
+            res = str(res).replace(ext, ext.lower())
+    return str(res)
 
 
 def _mk_test_bin_dirs(tmp_path: Path) -> list[str]:
