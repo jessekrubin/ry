@@ -14,7 +14,7 @@ mod ry_bytes;
 use pyo3::prelude::*;
 pub use pyo3_bytes::Pyo3Bytes;
 pub mod bytes;
-pub mod bytes_dev;
+// pub mod bytes_dev;
 mod bytes_ext;
 mod bytes_like;
 

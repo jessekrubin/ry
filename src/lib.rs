@@ -57,6 +57,8 @@ fn warn_debug_build(_py: Python) -> PyResult<()> {
 #[pymodule(gil_used = false)]
 #[pyo3(name = "ryo3")] // possibly change to `ryo3`?
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
+
+    let start_time = std::time::Instant::now();
     lager::tracing_init();
     #[cfg(debug_assertions)]
     warn_debug_build(m.py())?;
@@ -72,5 +74,7 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__authors__", AUTHORS)?;
     // register/add core lib from ryo3
     ryo3::ry::pymod_add(m)?;
+    let elapsed = start_time.elapsed();
+    println!("elapsed: {:?}", elapsed);
     Ok(())
 }
