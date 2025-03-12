@@ -12,7 +12,7 @@ colorama==0.4.6
     #   pytest
 h11==0.14.0
     # via uvicorn
-hypothesis==6.128.2
+hypothesis==6.129.0
     # via -r requirements.dev.in
 idna==3.10
     # via anyio
