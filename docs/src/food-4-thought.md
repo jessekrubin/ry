@@ -73,5 +73,7 @@ pros & cons:
 The pypi project size limit of 10gb was reached. I (jesse) won't request a limit
 raise until the package is more stable and hits some sort of `v0.1.x`, SOOOOOO
 for now I will be:
+
 - deleting older versions of ry from pypi as needed
-- update the release gh-action to push the built wheels to the releases page  so they are not lost into the ether...
+- update the release gh-action to push the built wheels to the releases page so
+  they are not lost into the ether...
