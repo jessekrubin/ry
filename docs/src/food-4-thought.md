@@ -2,13 +2,16 @@
 
 thinking out loud...
 
-___
+---
 
 # `ry.dev`
 
-For people who find `ry.dev` it is a module that exports all the things in ry as well as can be used as a repl; `python -m ry.dev` will start a repl (with ipython if installed else python-repl) with all of ry already imported. I use this super often for testing things out.
+For people who find `ry.dev` it is a module that exports all the things in ry as
+well as can be used as a repl; `python -m ry.dev` will start a repl (with
+ipython if installed else python-repl) with all of ry already imported. I use
+this super often for testing things out.
 
-___
+---
 
 ## string-bridge?
 
@@ -17,22 +20,26 @@ overhead of converting strings to python strings. A global string bridge and/or
 caching setup for other types of structs that often convert to strings might be
 worth considering?
 
-___
+---
 
 ## Naming
 
 Coming up with names is hard... I want to strike a balance between being clear
 but also close to the wrapped libraries...
 
-- Should jiff's `Zoned` be `Zoned` in python? or `ZonedDateTime`? (currently `ZonedDateTime`)
-- Should jiff's `Span` be `Span` in python? or `TimeSpan`? (currently `TimeSpan`)
-- Should reqwest's `Client` be `Client` in python? or `HttpClient`? (currently `HttpClient`)
+- Should jiff's `Zoned` be `Zoned` in python? or `ZonedDateTime`? (currently
+  `ZonedDateTime`)
+- Should jiff's `Span` be `Span` in python? or `TimeSpan`? (currently
+  `TimeSpan`)
+- Should reqwest's `Client` be `Client` in python? or `HttpClient`? (currently
+  `HttpClient`)
 
-___
+---
 
 ## Flat? Nested submodules?
 
-I like flat more, but nesting submodules might be preferable for some people and would allow for more flexibility in naming...
+I like flat more, but nesting submodules might be preferable for some people and
+would allow for more flexibility in naming...
 
 pros & cons:
 
@@ -51,6 +58,20 @@ pros & cons:
     - no name conflicts
     - easier to remember where things are
     - type annotations are easier to read
-    - importing `ry.jiff` (or `ry.ryo3.jiff` tbd) is more explicitly the `jiff` wrapper(s)
+    - importing `ry.jiff` (or `ry.ryo3.jiff` tbd) is more explicitly the `jiff`
+      wrapper(s)
   - cons:
-    - Don't know how type annotations should be laid out... if there is a submodule called `ry.ryo3.reqwest`, do you import from `ry.ryo3.reqwest` or do I reexport from `ry.reqwest`? Then were doe the type-annotations live and how are they laid out without having to duplicate/shim them?
+    - Don't know how type annotations should be laid out... if there is a
+      submodule called `ry.ryo3.reqwest`, do you import from `ry.ryo3.reqwest`
+      or do I reexport from `ry.reqwest`? Then were doe the type-annotations
+      live and how are they laid out without having to duplicate/shim them?
+
+---
+
+## pypi size limit
+
+The pypi project size limit of 10gb was reached. I (jesse) won't request a limit
+raise until the package is more stable and hits some sort of `v0.1.x`, SOOOOOO
+for now I will be deleting older versions of ry from pypi as needed and will
+setup gh-action to upload the wheels to the releases page so they are not lost
+into the ether... The first versions of ry were likely not worth keeping.
