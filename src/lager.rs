@@ -1,4 +1,4 @@
-use tracing::{debug, info};
+use tracing::debug;
 use tracing_subscriber::EnvFilter;
 
 fn env_var_str_is_truthy(s: &str) -> bool {
@@ -46,10 +46,6 @@ pub fn tracing_init() {
         env_filter_directives_string
     );
     let filter = EnvFilter::new(&env_filter_directives_string);
-    info!(
-        "tracing_init - env_filter_directives_string: {}",
-        env_filter_directives_string
-    );
     // Install the global collector configured based on the filter.
     // TODO: add the json and other format(s)...
     let subscriber = tracing_subscriber::fmt()
@@ -63,10 +59,10 @@ pub fn tracing_init() {
     let set_subscriber_result = tracing::subscriber::set_global_default(subscriber);
     match set_subscriber_result {
         Ok(()) => {
-            info!("tracing_init - set_global_default succeeded");
+            debug!("tracing_init - set_global_default succeeded");
         }
         Err(e) => {
-            info!("tracing_init - set_global_default failed: {:?}", e);
+            debug!("tracing_init - set_global_default failed: {:?}", e);
         }
     }
 }
