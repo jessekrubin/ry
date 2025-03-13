@@ -73,7 +73,7 @@ impl PyUrl {
 
     fn __hash__(&self) -> u64 {
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        self.0.as_str().hash(&mut hasher);
+        self.0.hash(&mut hasher);
         hasher.finish()
     }
 

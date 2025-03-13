@@ -32,6 +32,12 @@ impl From<&TimeZone> for RyTimeZone {
 impl RyTimeZone {
     #[new]
     pub fn py_new(time_zone_name: &str) -> PyResult<Self> {
+        if time_zone_name.is_empty() || time_zone_name.eq_ignore_ascii_case("unknown") {
+            return Ok(Self::from(TimeZone::unknown()));
+        }
+        if time_zone_name.eq_ignore_ascii_case("utc") {
+            return Ok(Self::from(TimeZone::fixed(Offset::UTC)));
+        }
         TimeZone::get(time_zone_name)
             .map(RyTimeZone::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
@@ -73,6 +79,10 @@ impl RyTimeZone {
     }
 
     fn __repr__(&self) -> String {
+        if self.0.is_unknown() {
+            return "TimeZone('unknown')".to_string();
+        }
+
         let iana_name = self.0.iana_name();
         if let Some(name) = iana_name {
             format!("TimeZone(\"{name}\")")
@@ -83,12 +93,6 @@ impl RyTimeZone {
         }
     }
 
-    fn __hash__(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.__str__().hash(&mut hasher);
-        hasher.finish()
-    }
-
     fn __str__(&self) -> String {
         if let Some(name) = self.iana_name() {
             name.to_string()
@@ -97,6 +101,31 @@ impl RyTimeZone {
             let offset = self.0.to_offset(Timestamp::now());
             format!("{offset}")
         }
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        match self.0.to_fixed_offset() {
+            Ok(offset) => offset.hash(&mut hasher),
+            Err(_) => {
+                if let Some(name) = self.iana_name() {
+                    name.hash(&mut hasher);
+                }
+            }
+        }
+        hasher.finish()
+    }
+
+    fn to_fixed_offset(&self) -> PyResult<RyOffset> {
+        self.0
+            .to_fixed_offset()
+            .map(RyOffset::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[getter]
+    fn is_unknwon(&self) -> bool {
+        self.0.is_unknown()
     }
 
     fn __eq__(&self, other: TimeZoneEquality) -> bool {

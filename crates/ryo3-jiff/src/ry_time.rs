@@ -1,9 +1,9 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
-use crate::ry_datetime::RyDateTime;
-use crate::ry_signed_duration::RySignedDuration;
-use crate::ry_span::RySpan;
 use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
+use crate::RyDateTime;
+use crate::RySignedDuration;
+use crate::RySpan;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
 use jiff::civil::{Time, TimeRound};
 use jiff::Zoned;
@@ -298,9 +298,11 @@ impl RyTime {
         let ser = self.0.series(period.0);
         Ok(RyTimeSeries { series: ser })
     }
+
     fn duration_since(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_since(other.0))
     }
+
     fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
