@@ -9,6 +9,7 @@ use pyo3::IntoPyObjectExt;
 #[pyclass]
 pub struct PyGlobPaths {
     inner: ::glob::Paths,
+    strict: bool,
 }
 
 #[pymethods]
@@ -20,8 +21,6 @@ impl PyGlobPaths {
 
     /// __next__ just pulls one item from the underlying iterator
     fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<Bound<PyAny>>> {
-        //     while loop to get next path from inner that isn't an error
-        //     return path or if empty return None
         let py = slf.py();
         while let Some(path) = slf.inner.next() {
             match path {
@@ -30,8 +29,14 @@ impl PyGlobPaths {
                     return Ok(Some(pyany));
                 }
                 Err(e) => {
-                    // log error
-                    continue;
+                    if slf.strict {
+                        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                            "{e}"
+                        )));
+                    } else {
+                        // log error
+                        continue;
+                    }
                 }
             }
         }
@@ -39,39 +44,103 @@ impl PyGlobPaths {
     }
 
     fn collect<'py>(&mut self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
-        self.inner
-            .by_ref()
-            .flatten()
-            .map(|path| {
-                let el = path.into_bound_py_any(py)?;
-                Ok(el)
-            })
-            .collect::<PyResult<Vec<_>>>()
+        if self.strict {
+            let mut results = Vec::new();
+            for path in self.inner.by_ref() {
+                match path {
+                    Ok(path) => {
+                        let py_any = path.into_bound_py_any(py)?;
+                        results.push(py_any);
+                    }
+                    Err(e) => {
+                        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                            "{e}"
+                        )));
+                    }
+                }
+            }
+            Ok(results)
+        } else {
+            self.inner
+                .by_ref()
+                .flatten()
+                .map(|path| {
+                    let el = path.into_bound_py_any(py)?;
+                    Ok(el)
+                })
+                .collect::<PyResult<Vec<_>>>()
+        }
     }
 
     fn take<'py>(&mut self, py: Python<'py>, n: usize) -> PyResult<Vec<Bound<'py, PyAny>>> {
-        self.inner
-            .by_ref()
-            .take(n)
-            .flatten()
-            .map(|path| {
+        if self.strict {
+            let mut results = Vec::new();
+
+            for path_result in self.inner.by_ref().take(n) {
+                let path = path_result
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
                 let el = path.into_bound_py_any(py)?;
-                Ok(el)
-            })
-            .collect::<PyResult<Vec<_>>>()
+                results.push(el);
+            }
+
+            Ok(results)
+        } else {
+            self.inner
+                .by_ref()
+                .take(n)
+                .flatten()
+                .map(|path| {
+                    let el = path.into_bound_py_any(py)?;
+                    Ok(el)
+                })
+                .collect::<PyResult<Vec<_>>>()
+        }
     }
 }
 
+/// Return iterator of paths that match the given pattern
+///
+/// Pattern syntax (as taken from the `glob` crate):
+///
+/// A compiled Unix shell style pattern.
+///
+/// - `?` matches any single character.
+///
+/// - `*` matches any (possibly empty) sequence of characters.
+///
+/// - `**` matches the current directory and arbitrary
+///   subdirectories. To match files in arbitrary subdiretories, use
+///   `**/*`.
+///
+///   This sequence **must** form a single path component, so both
+///   `**a` and `b**` are invalid and will result in an error.  A
+///   sequence of more than two consecutive `*` characters is also
+///   invalid.
+///
+/// - `[...]` matches any character inside the brackets.  Character sequences
+///   can also specify ranges of characters, as ordered by Unicode, so e.g.
+///   `[0-9]` specifies any character between 0 and 9 inclusive. An unclosed
+///   bracket is invalid.
+///
+/// - `[!...]` is the negation of `[...]`, i.e. it matches any characters
+///   **not** in the brackets.
+///
+/// - The metacharacters `?`, `*`, `[`, `]` can be matched by using brackets
+///   (e.g. `[?]`).  When a `]` occurs immediately following `[` or `[!` then it
+///   is interpreted as being part of, rather then ending, the character set, so
+///   `]` and NOT `]` can be matched by `[]]` and `[!]]` respectively.  The `-`
+///   character can be specified inside a character sequence pattern by placing
+///   it at the start or the end, e.g. `[abc-]`.
 #[pyfunction]
 #[pyo3(
     name = "glob",
     signature = (
         pattern,
-        /,
-        *,
         case_sensitive=true,
+        *,
         require_literal_separator=false,
-        require_literal_leading_dot=false
+        require_literal_leading_dot=false,
+        strict=true
     )
 )]
 pub fn py_glob(
@@ -79,6 +148,7 @@ pub fn py_glob(
     case_sensitive: bool,
     require_literal_separator: bool,
     require_literal_leading_dot: bool,
+    strict: bool,
 ) -> PyResult<PyGlobPaths> {
     ::glob::glob_with(
         pattern,
@@ -88,7 +158,10 @@ pub fn py_glob(
             require_literal_leading_dot,
         },
     )
-    .map(|paths| PyGlobPaths { inner: paths })
+    .map(|paths| PyGlobPaths {
+        inner: paths,
+        strict,
+    })
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
 }
 
