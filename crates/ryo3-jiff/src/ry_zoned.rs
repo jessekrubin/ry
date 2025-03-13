@@ -1,7 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_offset::RyOffset;
@@ -11,13 +10,13 @@ use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned_round::RyZonedDateTimeRound;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, JiffZoned, RyDate};
-use jiff::civil::{Date, DateTime, Time, Weekday};
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate};
+use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyDate, PyDateTime, PyTuple, PyType};
+use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -132,23 +131,23 @@ impl RyZoned {
         RyDateTime::from(self.0.datetime())
     }
 
-    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<&Zoned> {
+    fn to_py(&self, py: Python<'_>) -> PyResult<&Zoned> {
         self.to_pydatetime(py)
     }
 
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<&Zoned> {
+    fn to_pydatetime(&self, py: Python<'_>) -> PyResult<&Zoned> {
         Ok(&self.0)
         // let jiff_datetime = JiffDateTime(self.0);
         // jiff_datetime.into_pyobject(py)
     }
 
-    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+    fn to_pydate(&self, py: Python<'_>) -> PyResult<Date> {
         Ok(self.0.date())
         // let jiff_datetime = JiffDate(self.0.date());
         // jiff_datetime.into_pyobject(py)
     }
 
-    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+    fn to_pytime(&self, py: Python<'_>) -> PyResult<Time> {
         Ok(self.0.time())
     }
 

@@ -1,14 +1,12 @@
 use crate::errors::map_py_value_err;
-use crate::pydatetime_conversions::timezone2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
-use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType, PyTzInfo};
+use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Debug;
@@ -110,11 +108,11 @@ impl RyTimeZone {
         }
     }
 
-    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<&TimeZone> {
+    fn to_py(&self, py: Python<'_>) -> PyResult<&TimeZone> {
         Ok(&self.0)
     }
 
-    fn to_pytzinfo<'py>(&self, py: Python<'py>) -> PyResult<&TimeZone> {
+    fn to_pytzinfo(&self, py: Python<'_>) -> PyResult<&TimeZone> {
         Ok(&self.0)
     }
 

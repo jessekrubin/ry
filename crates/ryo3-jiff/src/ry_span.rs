@@ -4,12 +4,10 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
-use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyTuple, PyType};
-use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
-    PyResult, Python,
-};
+use pyo3::prelude::*;
+
+use pyo3::types::{PyDelta, PyDict, PyTuple, PyType};
+use pyo3::{intern, IntoPyObjectExt};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -103,8 +101,8 @@ impl RySpan {
     }
 
     #[classmethod]
-    fn from_pytimedelta<'py>(
-        _cls: &Bound<'py, PyType>,
+    fn from_pytimedelta(
+        _cls: &Bound<'_, PyType>,
         delta: Span, // delta: &Bound<'py, PyAny>,
     ) -> PyResult<Self> {
         Ok(Self(delta))

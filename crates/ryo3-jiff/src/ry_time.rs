@@ -10,7 +10,7 @@ use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -252,11 +252,11 @@ impl RyTime {
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
-    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+    fn to_py(&self, py: Python<'_>) -> PyResult<Time> {
         self.to_pytime(py)
     }
 
-    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+    fn to_pytime(&self, py: Python<'_>) -> PyResult<Time> {
         Ok(self.0)
     }
 

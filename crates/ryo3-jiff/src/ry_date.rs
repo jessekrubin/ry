@@ -9,11 +9,11 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffDate, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
+use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
@@ -255,11 +255,11 @@ impl RyDate {
         Ok(Self(d))
     }
 
-    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+    fn to_py(&self, py: Python<'_>) -> PyResult<Date> {
         self.to_pydate(py)
     }
 
-    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+    fn to_pydate(&self, py: Python<'_>) -> PyResult<Date> {
         Ok(self.0)
     }
 

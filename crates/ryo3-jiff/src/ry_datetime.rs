@@ -1,7 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::jiff_types::JiffDateTime;
 use crate::ry_datetime_difference::{DateTimeDifferenceArg, RyDateTimeDifference};
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
@@ -9,12 +8,12 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffDate, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyDate, PyDateTime, PyDict, PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use pyo3::{intern, IntoPyObjectExt};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
@@ -339,23 +338,23 @@ impl RyDateTime {
         RyDateTime::from(self.0.last_of_month())
     }
 
-    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<DateTime> {
+    fn to_py(&self, py: Python<'_>) -> PyResult<DateTime> {
         self.to_pydatetime(py)
     }
 
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<DateTime> {
+    fn to_pydatetime(&self, py: Python<'_>) -> PyResult<DateTime> {
         Ok(self.0)
         // let jiff_datetime = JiffDateTime(self.0);
         // jiff_datetime.into_pyobject(py)
     }
 
-    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+    fn to_pydate(&self, py: Python<'_>) -> PyResult<Date> {
         Ok(self.0.date())
         // let jiff_datetime = JiffDate(self.0.date());
         // jiff_datetime.into_pyobject(py)
     }
 
-    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+    fn to_pytime(&self, py: Python<'_>) -> PyResult<Time> {
         Ok(self.0.time())
         // let jiff_datetime = JiffDate(self.0.date());
         // jiff_datetime.into_pyobject(py)
