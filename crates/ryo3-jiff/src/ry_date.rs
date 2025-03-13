@@ -255,11 +255,11 @@ impl RyDate {
         Ok(Self(d))
     }
 
-    fn to_py(&self, py: Python<'_>) -> PyResult<Date> {
-        self.to_pydate(py)
+    fn to_py(&self) -> PyResult<Date> {
+        self.to_pydate()
     }
 
-    fn to_pydate(&self, py: Python<'_>) -> PyResult<Date> {
+    fn to_pydate(&self) -> PyResult<Date> {
         Ok(self.0)
     }
 
@@ -268,7 +268,6 @@ impl RyDate {
         let month_any = self.0.month().into_pyobject(py)?.into_any();
         let day_any = self.0.day().into_pyobject(py)?.into_any();
         let parts = vec![year_any, month_any, day_any];
-
         PyTuple::new(py, parts)
     }
 

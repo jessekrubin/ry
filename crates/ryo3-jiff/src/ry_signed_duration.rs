@@ -6,7 +6,7 @@ use jiff::{SignedDuration, Span};
 use pyo3::prelude::*;
 
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDelta, PyTuple, PyType};
+use pyo3::types::{PyDelta, PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -84,20 +84,15 @@ impl RySignedDuration {
     }
 
     #[classmethod]
-    fn from_pytimedelta(
-        _cls: &Bound<'_, PyType>,
-        // py: Python<'py>,
-        delta: SignedDuration,
-    ) -> PyResult<Self> {
-        // delta.extract::<JiffSignedDuration>().map(Self::from)
+    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: SignedDuration) -> PyResult<Self> {
         Ok(Self(delta))
     }
 
-    fn to_py(&self, py: Python<'_>) -> PyResult<&SignedDuration> {
+    fn to_py(&self) -> PyResult<&SignedDuration> {
         Ok(&self.0)
     }
 
-    fn to_pytimedelta(&self, py: Python<'_>) -> PyResult<&SignedDuration> {
+    fn to_pytimedelta(&self) -> PyResult<&SignedDuration> {
         Ok(&self.0)
     }
 

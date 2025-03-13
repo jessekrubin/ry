@@ -56,13 +56,13 @@ impl RyTime {
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
-        Self(jiff::civil::Time::MIN)
+        Self(Time::MIN)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
-        Self(jiff::civil::Time::MAX)
+        Self(Time::MAX)
     }
 
     // ========================================================================
@@ -252,11 +252,11 @@ impl RyTime {
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
-    fn to_py(&self, py: Python<'_>) -> PyResult<Time> {
-        self.to_pytime(py)
+    fn to_py(&self) -> PyResult<Time> {
+        self.to_pytime()
     }
 
-    fn to_pytime(&self, py: Python<'_>) -> PyResult<Time> {
+    fn to_pytime(&self) -> PyResult<Time> {
         Ok(self.0)
     }
 
@@ -408,12 +408,14 @@ impl RyTime {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn _since(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
         self.0
             .since(other.0)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn _until(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
         self.0
             .until(other.0)

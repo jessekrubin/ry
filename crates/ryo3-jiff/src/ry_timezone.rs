@@ -108,19 +108,17 @@ impl RyTimeZone {
         }
     }
 
-    fn to_py(&self, py: Python<'_>) -> PyResult<&TimeZone> {
+    fn to_py(&self) -> PyResult<&TimeZone> {
         Ok(&self.0)
     }
 
-    fn to_pytzinfo(&self, py: Python<'_>) -> PyResult<&TimeZone> {
+    fn to_pytzinfo(&self) -> PyResult<&TimeZone> {
         Ok(&self.0)
     }
 
     #[classmethod]
     fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: TimeZone) -> PyResult<Self> {
         Ok(Self::from(d))
-        // let jiff_tz: JiffTimeZone = d.extract()?;
-        // Ok(Self::from(jiff_tz.0))
     }
 
     // =====================================================================

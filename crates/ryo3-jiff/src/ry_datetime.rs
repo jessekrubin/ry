@@ -338,33 +338,25 @@ impl RyDateTime {
         RyDateTime::from(self.0.last_of_month())
     }
 
-    fn to_py(&self, py: Python<'_>) -> PyResult<DateTime> {
-        self.to_pydatetime(py)
+    fn to_py(&self) -> PyResult<DateTime> {
+        self.to_pydatetime()
     }
 
-    fn to_pydatetime(&self, py: Python<'_>) -> PyResult<DateTime> {
+    fn to_pydatetime(&self) -> PyResult<DateTime> {
         Ok(self.0)
-        // let jiff_datetime = JiffDateTime(self.0);
-        // jiff_datetime.into_pyobject(py)
     }
 
-    fn to_pydate(&self, py: Python<'_>) -> PyResult<Date> {
+    fn to_pydate(&self) -> PyResult<Date> {
         Ok(self.0.date())
-        // let jiff_datetime = JiffDate(self.0.date());
-        // jiff_datetime.into_pyobject(py)
     }
 
-    fn to_pytime(&self, py: Python<'_>) -> PyResult<Time> {
+    fn to_pytime(&self) -> PyResult<Time> {
         Ok(self.0.time())
-        // let jiff_datetime = JiffDate(self.0.date());
-        // jiff_datetime.into_pyobject(py)
     }
 
     #[classmethod]
     fn from_pydatetime(_cls: &Bound<'_, PyType>, d: DateTime) -> PyResult<Self> {
         Ok(Self::from(d))
-        // let jiff_datetime: JiffDateTime = d.extract()?;
-        // Ok(Self::from(jiff_datetime.0))
     }
 
     fn series(&self, period: &RySpan) -> RyDateTimeSeries {
