@@ -162,7 +162,10 @@
 <p>thinking out loud…</p>
 <hr />
 <h1 id="rydev"><a class="header" href="#rydev"><code>ry.dev</code></a></h1>
-<p>For people who find <code>ry.dev</code> it is a module that exports all the things in ry as well as can be used as a repl; <code>python -m ry.dev</code> will start a repl (with ipython if installed else python-repl) with all of ry already imported. I use this super often for testing things out.</p>
+<p>For people who find <code>ry.dev</code> it is a module that exports all the things in ry as
+well as can be used as a repl; <code>python -m ry.dev</code> will start a repl (with
+ipython if installed else python-repl) with all of ry already imported. I (jesse)
+use this super often for testing things out.</p>
 <hr />
 <h2 id="string-bridge"><a class="header" href="#string-bridge">string-bridge?</a></h2>
 <p>The <code>jiter</code> crate uses a string-cache to store python-strings to avoid the
@@ -171,16 +174,20 @@ caching setup for other types of structs that often convert to strings might be
 worth considering?</p>
 <hr />
 <h2 id="naming"><a class="header" href="#naming">Naming</a></h2>
-<p>Coming up with names is hard… I want to strike a balance between being clear
+<p>Coming up with names is hard… I (jesse) want to strike a balance between being clear
 but also close to the wrapped libraries…</p>
 <ul>
-<li>Should jiff’s <code>Zoned</code> be <code>Zoned</code> in python? or <code>ZonedDateTime</code>? (currently <code>ZonedDateTime</code>)</li>
-<li>Should jiff’s <code>Span</code> be <code>Span</code> in python? or <code>TimeSpan</code>? (currently <code>TimeSpan</code>)</li>
-<li>Should reqwest’s <code>Client</code> be <code>Client</code> in python? or <code>HttpClient</code>? (currently <code>HttpClient</code>)</li>
+<li>Should jiff’s <code>Zoned</code> be <code>Zoned</code> in python? or <code>ZonedDateTime</code>? (currently
+<code>ZonedDateTime</code>)</li>
+<li>Should jiff’s <code>Span</code> be <code>Span</code> in python? or <code>TimeSpan</code>? (currently
+<code>TimeSpan</code>)</li>
+<li>Should reqwest’s <code>Client</code> be <code>Client</code> in python? or <code>HttpClient</code>? (currently
+<code>HttpClient</code>)</li>
 </ul>
 <hr />
 <h2 id="flat-nested-submodules"><a class="header" href="#flat-nested-submodules">Flat? Nested submodules?</a></h2>
-<p>I like flat more, but nesting submodules might be preferable for some people and would allow for more flexibility in naming…</p>
+<p>I like flat more, but nesting submodules might be preferable for some people and
+would allow for more flexibility in naming…</p>
 <p>pros &amp; cons:</p>
 <ul>
 <li>flat:
@@ -209,16 +216,30 @@ but also close to the wrapped libraries…</p>
 <li>no name conflicts</li>
 <li>easier to remember where things are</li>
 <li>type annotations are easier to read</li>
-<li>importing <code>ry.jiff</code> (or <code>ry.ryo3.jiff</code> tbd) is more explicitly the <code>jiff</code> wrapper(s)</li>
+<li>importing <code>ry.jiff</code> (or <code>ry.ryo3.jiff</code> tbd) is more explicitly the <code>jiff</code>
+wrapper(s)</li>
 </ul>
 </li>
 <li>cons:
 <ul>
-<li>Don’t know how type annotations should be laid out… if there is a submodule called <code>ry.ryo3.reqwest</code>, do you import from <code>ry.ryo3.reqwest</code> or do I reexport from <code>ry.reqwest</code>? Then were doe the type-annotations live and how are they laid out without having to duplicate/shim them?</li>
+<li>Don’t know how type annotations should be laid out… if there is a
+submodule called <code>ry.ryo3.reqwest</code>, do you import from <code>ry.ryo3.reqwest</code>
+or do we reexport from <code>ry.reqwest</code>? Then were doe the type-annotations
+live and how are they laid out without having to duplicate/shim them?</li>
 </ul>
 </li>
 </ul>
 </li>
+</ul>
+<hr />
+<h2 id="pypi-size-limit"><a class="header" href="#pypi-size-limit">pypi size limit</a></h2>
+<p>The pypi project size limit of 10gb was reached. I (jesse) won’t request a limit
+raise until the package is more stable and hits some sort of <code>v0.1.x</code>, SOOOOOO
+for now I will be:</p>
+<ul>
+<li>deleting older versions of ry from pypi as needed</li>
+<li>update the release gh-action to push the built wheels to the releases page so
+they are not lost into the ether…</li>
 </ul>
 
                     </main>
@@ -229,6 +250,9 @@ but also close to the wrapped libraries…</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next prefetch" href="jiff.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -240,6 +264,9 @@ but also close to the wrapped libraries…</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next prefetch" href="jiff.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

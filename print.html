@@ -156,7 +156,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-03-12T05:15:15.799038291+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-03-13T21:39:15.672567547+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -757,13 +757,13 @@ from os import PathLike
 from pathlib import Path
 
 from ry import Bytes
-from ry._types import Buffer
+from ry._types import Buffer, ToPy
 
 
 # =============================================================================
 # FSPATH
 # =============================================================================
-class FsPath:
+class FsPath(ToPy[Path]):
     def __init__(self, path: PathLike[str] | str | None = None) -&gt; None: ...
     def __fspath__(self) -&gt; str: ...
     def __str__(self) -&gt; str: ...
@@ -778,8 +778,8 @@ class FsPath:
     def __truediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
     def __bytes__(self) -&gt; bytes: ...
+    def to_py(self) -&gt; Path: ...
     def to_pathlib(self) -&gt; Path: ...
-    def as_py(self) -&gt; Path: ...
     def read(self) -&gt; Bytes: ...
     def read_text(self) -&gt; str: ...
     def read_bytes(self) -&gt; bytes: ...
@@ -973,6 +973,7 @@ def train_case(string: str) -&gt; str: ...
 
 import datetime as pydt
 import typing as t
+from typing import Protocol
 
 import typing_extensions as te
 
@@ -981,6 +982,7 @@ from ry._types import (
     DateTypedDict,
     TimeSpanTypedDict,
     TimeTypedDict,
+    ToPy,
 )
 from ry.ryo3 import Duration
 
@@ -1013,11 +1015,11 @@ JIFF_ROUND_MODE = t.Literal[
     "half_even",
 ]
 
-WEEKDAY = t.Literal[
+WEEKDAY_STR = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 ]
 
-JIFF_WEEKDAY_INT = t.Literal[
+WEEKDAY_INT = t.Literal[
     1,  # Monday
     2,  # Tuesday
     3,  # Wednesday
@@ -1027,8 +1029,30 @@ JIFF_WEEKDAY_INT = t.Literal[
     7,  # Sunday
 ]
 
+WEEKDAY: te.TypeAlias = WEEKDAY_STR | WEEKDAY_INT
 
-class Date:
+
+class ToPyDate(Protocol):
+    def to_pydate(self) -&gt; pydt.date: ...
+
+
+class ToPyTime(Protocol):
+    def to_pytime(self) -&gt; pydt.time: ...
+
+
+class ToPyDateTime(Protocol):
+    def to_pydatetime(self) -&gt; pydt.datetime: ...
+
+
+class ToPyTimeDelta(Protocol):
+    def to_pytimedelta(self) -&gt; pydt.timedelta: ...
+
+
+class ToPyTzInfo(Protocol):
+    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
+
+
+class Date(ToPy[pydt.date], ToPyDate):
     MIN: Date
     MAX: Date
     ZERO: Date
@@ -1045,6 +1069,7 @@ class Date:
     # =========================================================================
     # PYTHON_CONVERSIONS
     # =========================================================================
+    def to_py(self) -&gt; pydt.date: ...
     def to_pydate(self) -&gt; pydt.date: ...
     @classmethod
     def from_pydate(cls: type[Date], date: pydt.date) -&gt; Date: ...
@@ -1082,7 +1107,6 @@ class Date:
     # OPERATORS
     # =========================================================================
     def __add__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Date: ...
-    def __iadd__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Date: ...
     @t.overload
     def __sub__(self, other: Date) -&gt; TimeSpan: ...
     @t.overload
@@ -1118,12 +1142,8 @@ class Date:
     def intz(self, tz: str) -&gt; ZonedDateTime: ...
     def last_of_month(self) -&gt; Date: ...
     def last_of_year(self) -&gt; Date: ...
-    def nth_weekday(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
-    def nth_weekday_of_month(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
+    def nth_weekday(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Date: ...
@@ -1131,7 +1151,9 @@ class Date:
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Date: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[Date]: ...
+    def sub_date(self, other: Date) -&gt; TimeSpan: ...
     def to_datetime(self, time: Time) -&gt; DateTime: ...
+    def to_zoned(self, tz: TimeZone) -&gt; ZonedDateTime: ...
     def tomorrow(self) -&gt; Date: ...
     def yesterday(self) -&gt; Date: ...
 
@@ -1188,7 +1210,7 @@ class DateDifference:
     def increment(self, increment: int) -&gt; DateDifference: ...
 
 
-class Time:
+class Time(ToPy[pydt.time], ToPyTime):
     MIN: Time
     MAX: Time
 
@@ -1211,7 +1233,6 @@ class Time:
     # OPERATORS/DUNDERS
     # =========================================================================
     def __add__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Time: ...
-    def __iadd__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Time: ...
     @t.overload
     def __sub__(self, other: Time) -&gt; TimeSpan: ...
     @t.overload
@@ -1231,6 +1252,7 @@ class Time:
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
+    def to_py(self) -&gt; pydt.time: ...
     def to_pytime(self) -&gt; pydt.time: ...
     @classmethod
     def from_pytime(cls: type[Time], t: pydt.time) -&gt; Time: ...
@@ -1344,7 +1366,7 @@ class TimeDifference:
     def increment(self, increment: int) -&gt; TimeDifference: ...
 
 
-class DateTime:
+class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     MIN: DateTime
     MAX: DateTime
     ZERO: DateTime
@@ -1376,8 +1398,10 @@ class DateTime:
     # =========================================================================
     @classmethod
     def from_pydatetime(cls: type[DateTime], dt: pydt.datetime) -&gt; DateTime: ...
+    def to_py(self) -&gt; pydt.datetime: ...
+    def to_pydate(self) -&gt; pydt.date: ...
     def to_pydatetime(self) -&gt; pydt.datetime: ...
-
+    def to_pytime(self) -&gt; pydt.time: ...
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
@@ -1391,9 +1415,6 @@ class DateTime:
     # =========================================================================
     def __repr__(self) -&gt; str: ...
     def __add__(
-        self, other: TimeSpan | SignedDuration | Duration
-    ) -&gt; DateTime: ...
-    def __iadd__(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; DateTime: ...
     @t.overload
@@ -1420,7 +1441,7 @@ class DateTime:
     ) -&gt; DateTime: ...
     def in_tz(self, tz: str) -&gt; ZonedDateTime: ...
     def intz(self, tz: str) -&gt; ZonedDateTime: ...
-    def iso_week_date(self) -&gt; tuple[int, int, int]: ...
+    def iso_week_date(self) -&gt; ISOWeekDate: ...
     def date(self) -&gt; Date: ...
     def time(self) -&gt; Time: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[DateTime]: ...
@@ -1491,12 +1512,8 @@ class DateTime:
     def duration_until(self, other: DateTime) -&gt; SignedDuration: ...
     def in_leap_year(self) -&gt; bool: ...
     def end_of_day(self) -&gt; DateTime: ...
-    def nth_weekday(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; DateTime: ...
-    def nth_weekday_of_month(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; DateTime: ...
+    def nth_weekday(self, nth: int, weekday: WEEKDAY) -&gt; DateTime: ...
+    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -&gt; DateTime: ...
     def last_of_month(self) -&gt; DateTime: ...
     def last_of_year(self) -&gt; DateTime: ...
     def start_of_day(self) -&gt; DateTime: ...
@@ -1546,7 +1563,7 @@ class DateTimeDifference:
     def increment(self, increment: int) -&gt; DateTimeDifference: ...
 
 
-class TimeZone:
+class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     def __init__(self, name: str) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
 
@@ -1559,6 +1576,8 @@ class TimeZone:
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
+
+    def to_py(self) -&gt; pydt.tzinfo: ...
     def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
     @classmethod
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -&gt; TimeZone: ...
@@ -1603,7 +1622,7 @@ class TimeZone:
     def to_ambiguous_zoned(self) -&gt; t.NoReturn: ...
 
 
-class SignedDuration:
+class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
     MIN: SignedDuration
     MAX: SignedDuration
     ZERO: SignedDuration
@@ -1645,6 +1664,7 @@ class SignedDuration:
     def from_pytimedelta(
         cls: type[SignedDuration], td: pydt.timedelta
     ) -&gt; SignedDuration: ...
+    def to_py(self) -&gt; pydt.timedelta: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
 
     # =========================================================================
@@ -1670,14 +1690,6 @@ class SignedDuration:
     ) -&gt; SignedDuration: ...
     @classmethod
     def from_secs_f64(
-        cls: type[SignedDuration], n: float
-    ) -&gt; SignedDuration: ...
-    @classmethod
-    def try_from_secs_f32(
-        cls: type[SignedDuration], n: float
-    ) -&gt; SignedDuration: ...
-    @classmethod
-    def try_from_secs_f64(
         cls: type[SignedDuration], n: float
     ) -&gt; SignedDuration: ...
 
@@ -1742,7 +1754,7 @@ _TimeSpanArithmeticTuple = tuple[
 TimeSpanArithmetic = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
 
 
-class TimeSpan:
+class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     def __init__(
         self,
         years: int = 0,
@@ -1771,6 +1783,7 @@ class TimeSpan:
     @classmethod
     def from_pytimedelta(cls, td: pydt.timedelta) -&gt; TimeSpan: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
+    def to_py(self) -&gt; pydt.timedelta: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -1907,7 +1920,7 @@ class TimeSpan:
     def _nanoseconds(self, nanoseconds: int) -&gt; te.Self: ...
 
 
-class Timestamp:
+class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     """
     A representation of a timestamp with second and nanosecond precision.
     """
@@ -1951,9 +1964,6 @@ class Timestamp:
     def __eq__(self, other: object) -&gt; bool: ...
     def __ge__(self, other: Timestamp) -&gt; bool: ...
     def __gt__(self, other: Timestamp) -&gt; bool: ...
-    def __iadd__(
-        self, other: TimeSpan | SignedDuration | Duration
-    ) -&gt; te.Self: ...
     def __le__(self, other: Timestamp) -&gt; bool: ...
     def __lt__(self, other: Timestamp) -&gt; bool: ...
     def __ne__(self, other: object) -&gt; bool: ...
@@ -1974,6 +1984,16 @@ class Timestamp:
     def __sub__(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; te.Self: ...
+
+    # =========================================================================
+    # PYTHON CONVERSIONS
+    # =========================================================================
+    @classmethod
+    def from_pydatetime(cls, dt: pydt.datetime) -&gt; Timestamp: ...
+    def to_py(self) -&gt; pydt.datetime: ...
+    def to_pydate(self) -&gt; pydt.date: ...
+    def to_pydatetime(self) -&gt; pydt.datetime: ...
+    def to_pytime(self) -&gt; pydt.time: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -2071,7 +2091,9 @@ class TimestampDifference:
     def increment(self, increment: int) -&gt; TimestampDifference: ...
 
 
-class ZonedDateTime:
+class ZonedDateTime(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo
+):
     def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -&gt; None: ...
 
     # =========================================================================
@@ -2081,8 +2103,11 @@ class ZonedDateTime:
     def from_pydatetime(
         cls: type[ZonedDateTime], dt: pydt.datetime
     ) -&gt; ZonedDateTime: ...
+    def to_py(self) -&gt; pydt.datetime: ...
+    def to_pydate(self) -&gt; pydt.date: ...
     def to_pydatetime(self) -&gt; pydt.datetime: ...
-
+    def to_pytime(self) -&gt; pydt.time: ...
+    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
@@ -2148,9 +2173,6 @@ class ZonedDateTime:
     def __ge__(self, other: ZonedDateTime) -&gt; bool: ...
     def __gt__(self, other: ZonedDateTime) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
-    def __iadd__(
-        self, other: TimeSpan | SignedDuration | Duration
-    ) -&gt; te.Self: ...
     def __le__(self, other: ZonedDateTime) -&gt; bool: ...
     def __lt__(self, other: ZonedDateTime) -&gt; bool: ...
     def __ne__(self, other: object) -&gt; bool: ...
@@ -2204,12 +2226,8 @@ class ZonedDateTime:
     def inutc(self) -&gt; ZonedDateTime: ...
     def last_of_month(self) -&gt; ZonedDateTime: ...
     def last_of_year(self) -&gt; ZonedDateTime: ...
-    def nth_weekday(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
-    def nth_weekday_of_month(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
+    def nth_weekday(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
     def offset(self) -&gt; Offset: ...
     def round(
         self,
@@ -2284,9 +2302,7 @@ class ISOWeekDate:
     MAX: ISOWeekDate
     ZERO: ISOWeekDate
 
-    def __init__(
-        self, year: int, week: int, weekday: JIFF_WEEKDAY_INT | WEEKDAY
-    ) -&gt; None: ...
+    def __init__(self, year: int, week: int, weekday: WEEKDAY) -&gt; None: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -2303,6 +2319,7 @@ class ISOWeekDate:
     # =========================================================================
     # STRING
     # =========================================================================
+    def __str__(self) -&gt; str: ...
     def __repr__(self) -&gt; str: ...
 
     # =========================================================================
@@ -2321,7 +2338,7 @@ class ISOWeekDate:
     @property
     def week(self) -&gt; int: ...
     @property
-    def weekday(self) -&gt; JIFF_WEEKDAY_INT: ...
+    def weekday(self) -&gt; WEEKDAY_INT: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -2401,7 +2418,7 @@ class ZonedDateTimeRound:
     ) -&gt; DateTimeRound: ...
 
 
-class Offset:
+class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
     MIN: Offset
     MAX: Offset
     UTC: Offset
@@ -2429,6 +2446,16 @@ class Offset:
     def __gt__(self, other: Offset) -&gt; bool: ...
     def __ge__(self, other: Offset) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
+
+    # =========================================================================
+    # PYTHON CONVERSIONS
+    # =========================================================================
+    # __FROM__
+    @classmethod
+    def from_pytzinfo(cls: type[Offset], tz: pydt.tzinfo) -&gt; Offset: ...
+    # __TO__
+    def to_py(self) -&gt; pydt.tzinfo: ...
+    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
 
     # =========================================================================
     # PROPERTIES
@@ -2793,9 +2820,8 @@ class SizeFormatter:
         self,
         base: FORMAT_SIZE_BASE | None = 2,
         style: FORMAT_SIZE_STYLE | None = "default",
-    ):
-        self.base = base
-        self.style = style
+    ) -&gt; None:
+        """Initialize human-readable bytes-size formatter."""
 
     def format(self, n: int) -&gt; str:
         """Return human-readable string representation of bytes-size."""
@@ -2804,6 +2830,7 @@ class SizeFormatter:
         """Return human-readable string representation of bytes-size."""
 
     def __repr__(self) -&gt; str: ...
+    def __str__(self) -&gt; str: ...
 
 
 class Size:
@@ -2828,6 +2855,7 @@ class Size:
     def __add__(self, other: Size | int | float) -&gt; Size: ...
     def __sub__(self, other: Size | int | float) -&gt; Size: ...
     def __mul__(self, other: Size | int | float) -&gt; Size: ...
+    def __rmul__(self, other: Size | int | float) -&gt; Size: ...
     @property
     def bytes(self) -&gt; int: ...
     def format(
@@ -3102,7 +3130,6 @@ class Instant:
     def __ge__(self, other: Instant) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
     def __add__(self, other: Duration) -&gt; Instant: ...
-    def __iadd__(self, other: Duration) -&gt; Instant: ...
     @t.overload
     def __sub__(self, other: Duration) -&gt; Instant: ...
     @t.overload
@@ -3258,6 +3285,7 @@ class URL:
     # =========================================================================
     def __str__(self) -&gt; str: ...
     def __repr__(self) -&gt; str: ...
+    def __fspath__(self) -&gt; str: ...
 
     # =========================================================================
     # OPERATORS/DUNDER
@@ -3303,6 +3331,8 @@ class URL:
     def scheme(self) -&gt; str: ...
     @property
     def username(self) -&gt; str: ...
+    @property
+    def origin(self) -&gt; str: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -3322,6 +3352,19 @@ class URL:
     def replace_scheme(self, scheme: str) -&gt; URL: ...
     def replace_username(self, username: str) -&gt; URL: ...
     def socket_addrs(self) -&gt; None: ...
+    def replace(
+        self,
+        *,
+        fragment: str | None = None,
+        host: str | None = None,
+        ip_host: IPv4Address | None = None,
+        password: str | None = None,
+        path: str | None = None,
+        port: int | None = None,
+        query: str | None = None,
+        scheme: str | None = None,
+        username: str | None = None,
+    ) -&gt; URL: ...
 
 </code></pre>
 <h2 id="ryryo3_walkdir"><a class="header" href="#ryryo3_walkdir"><code>ry.ryo3._walkdir</code></a></h2>
@@ -3362,12 +3405,11 @@ class WalkDirEntry:
 class WalkdirGen:
     """walkdir::Walkdir iterable wrapper"""
 
-    files: bool
-    dirs: bool
-
     def __next__(self) -&gt; str: ...
     def __iter__(self) -&gt; t.Iterator[str]: ...
     def collect(self) -&gt; list[str]: ...
+    def take(self, n: int) -&gt; list[str]: ...
+    def __str__(self) -&gt; str: ...
 
 
 def walkdir(
@@ -3447,7 +3489,8 @@ https://github.com/jessekrubin/jsonc2json</li>
 <p><strong>OPEN TO PRS!</strong></p>
 <h2 id="goals"><a class="header" href="#goals">goals</a></h2>
 <ol>
-<li>Provide a really nice ergonomic API to work with (this is the highest priority)</li>
+<li>Provide a really nice ergonomic API to work with (this is the highest
+priority)</li>
 <li>Get naming right (this is a hard one!)</li>
 <li>Be fast</li>
 </ol>
@@ -3455,7 +3498,8 @@ https://github.com/jessekrubin/jsonc2json</li>
 <ul>
 <li>clone repo</li>
 <li>install <code>just</code> (<code>cargo install just</code>)</li>
-<li>create a virtual env (using ye olde <code>venv</code> or <code>uv</code> or dare I say <code>conda</code>) – I am still working out the kinks of using <code>uv</code> with maturin</li>
+<li>create a virtual env (using ye olde <code>venv</code> or <code>uv</code> or dare I say <code>conda</code>) – I
+am still working out the kinks of using <code>uv</code> with maturin</li>
 <li>install the dev-requirements (<code>pip install -r requirements.dev.txt</code>)</li>
 <li>run <code>just dev</code> to build and test the library</li>
 <li>run <code>just fmt</code> to format the python and rust code</li>
@@ -3467,16 +3511,19 @@ https://github.com/jessekrubin/jsonc2json</li>
 <li><strong>NO <code>blazingly-fast</code></strong> – <code>ry</code> is fast and does not need an adverb</li>
 <li><strong>USE CLIPPY</strong> <code>just clippy</code> or <code>just ci</code></li>
 <li><strong>USE RUSTFMT AND RUFF</strong> <code>just fmt</code></li>
-<li>avoid using macros as they are not as easy to reason about and/or debug, but feel free to say ‘yolo’</li>
+<li>avoid using macros as they are not as easy to reason about and/or debug, but
+feel free to say ‘yolo’</li>
 <li>library style guide:
 <ul>
-<li>python objects/structs/classes defined in the library should be named either <code>Py&lt;CLASSNAME&gt;</code> or <code>Ry&lt;CLASSNAME&gt;</code> and
-the prefix should be consistent throughout the library (eg <code>ryo3-jiff</code> uses <code>Ry</code> as the internal prefix to not
-conflict with the <code>Py&lt;CLASSNAME&gt;</code> structs provided by <code>pyo3</code>)</li>
-<li>if a <code>pyclass</code> or <code>pyfunction</code> is not mirroring a rust function prefer names that are puns but also
-semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
+<li>python objects/structs/classes defined in the library should be named either
+<code>Py&lt;CLASSNAME&gt;</code> or <code>Ry&lt;CLASSNAME&gt;</code> and the prefix should be consistent
+throughout the library (eg <code>ryo3-jiff</code> uses <code>Ry</code> as the internal prefix to
+not conflict with the <code>Py&lt;CLASSNAME&gt;</code> structs provided by <code>pyo3</code>)</li>
+<li>if a <code>pyclass</code> or <code>pyfunction</code> is not mirroring a rust function prefer names
+that are puns but also semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <li>attempt to mirror the structure of the og library as much as possible</li>
-<li>wrapper libraries should be of the form <code>ryo3-&lt;LIB_NAME&gt;</code> where <code>&lt;LIB_NAME&gt;</code> is the name of the library they</li>
+<li>wrapper libraries should be of the form <code>ryo3-&lt;LIB_NAME&gt;</code> where <code>&lt;LIB_NAME&gt;</code>
+is the name of the library they</li>
 <li>library directories should be <code>kebab-case</code> and should be <code>ryo3-&lt;LIB_NAME&gt;</code></li>
 <li>MUST PROVIDE TYPE ANNOTATIONS</li>
 </ul>
@@ -3484,7 +3531,7 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 </ul>
 <h2 id="creating-a-new-librarywrapper-thing"><a class="header" href="#creating-a-new-librarywrapper-thing">Creating a new library/wrapper-thing</a></h2>
 <ul>
-<li>copy the template library  <code>ryo3-quick-maths</code> library to your new library name</li>
+<li>copy the template library <code>ryo3-quick-maths</code> library to your new library name</li>
 <li>refer to the above style guide for naming conventions</li>
 </ul>
 <h2 id="tools"><a class="header" href="#tools">tools</a></h2>
@@ -3504,7 +3551,8 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <p><strong><code>cargo install just</code></strong></p>
 <ul>
 <li>we use <code>just</code> for task running</li>
-<li>to see all tasks run <code>just</code> or <code>just --list</code> (our default task echos the list of tasks)</li>
+<li>to see all tasks run <code>just</code> or <code>just --list</code> (our default task echos the list
+of tasks)</li>
 </ul>
 <p>tasks as of 2024-12-03:</p>
 <pre><code class="language-aiignore">Available recipes:
@@ -3548,11 +3596,29 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <ul>
 <li>pyo3 developers</li>
 <li>all authors of all libraries used in this project!</li>
-<li>burnt-sushi for his incredible set of libraries</li>
+<li>burnt-sushi for the incredible set of libraries</li>
+<li>Kyle Barron for working on <code>pyo3-bytes</code> and letting me contribute to it</li>
+<li>The academy and the hollywood foreign press</li>
 </ul>
 <hr />
-<p>If you want to be added to this list, please open an issue or PR! Happy to add you if you’ve helped in any way!</p>
+<p>If you want to be added to this list, please open an issue or PR! Happy to add
+you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0038-unreleased"><a class="header" href="#v0038-unreleased">v0.0.38 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li>client configuration for pickling</li>
+<li>allow buffer-protocol for <code>body</code> fetching methods (should add string maybe?)</li>
+</ul>
+</li>
+<li><code>ryo3-walkdir</code>
+<ul>
+<li>Few more options added</li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0037-2025-03-11"><a class="header" href="#v0037-2025-03-11">v0.0.37 [2025-03-11]</a></h2>
 <ul>
 <li>pyo3 version <code>0.24.0</code></li>
@@ -4719,13 +4785,13 @@ from os import PathLike
 from pathlib import Path
 
 from ry import Bytes
-from ry._types import Buffer
+from ry._types import Buffer, ToPy
 
 
 # =============================================================================
 # FSPATH
 # =============================================================================
-class FsPath:
+class FsPath(ToPy[Path]):
     def __init__(self, path: PathLike[str] | str | None = None) -&gt; None: ...
     def __fspath__(self) -&gt; str: ...
     def __str__(self) -&gt; str: ...
@@ -4740,8 +4806,8 @@ class FsPath:
     def __truediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -&gt; FsPath: ...
     def __bytes__(self) -&gt; bytes: ...
+    def to_py(self) -&gt; Path: ...
     def to_pathlib(self) -&gt; Path: ...
-    def as_py(self) -&gt; Path: ...
     def read(self) -&gt; Bytes: ...
     def read_text(self) -&gt; str: ...
     def read_bytes(self) -&gt; bytes: ...
@@ -4935,6 +5001,7 @@ def train_case(string: str) -&gt; str: ...
 
 import datetime as pydt
 import typing as t
+from typing import Protocol
 
 import typing_extensions as te
 
@@ -4943,6 +5010,7 @@ from ry._types import (
     DateTypedDict,
     TimeSpanTypedDict,
     TimeTypedDict,
+    ToPy,
 )
 from ry.ryo3 import Duration
 
@@ -4975,11 +5043,11 @@ JIFF_ROUND_MODE = t.Literal[
     "half_even",
 ]
 
-WEEKDAY = t.Literal[
+WEEKDAY_STR = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 ]
 
-JIFF_WEEKDAY_INT = t.Literal[
+WEEKDAY_INT = t.Literal[
     1,  # Monday
     2,  # Tuesday
     3,  # Wednesday
@@ -4989,8 +5057,30 @@ JIFF_WEEKDAY_INT = t.Literal[
     7,  # Sunday
 ]
 
+WEEKDAY: te.TypeAlias = WEEKDAY_STR | WEEKDAY_INT
 
-class Date:
+
+class ToPyDate(Protocol):
+    def to_pydate(self) -&gt; pydt.date: ...
+
+
+class ToPyTime(Protocol):
+    def to_pytime(self) -&gt; pydt.time: ...
+
+
+class ToPyDateTime(Protocol):
+    def to_pydatetime(self) -&gt; pydt.datetime: ...
+
+
+class ToPyTimeDelta(Protocol):
+    def to_pytimedelta(self) -&gt; pydt.timedelta: ...
+
+
+class ToPyTzInfo(Protocol):
+    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
+
+
+class Date(ToPy[pydt.date], ToPyDate):
     MIN: Date
     MAX: Date
     ZERO: Date
@@ -5007,6 +5097,7 @@ class Date:
     # =========================================================================
     # PYTHON_CONVERSIONS
     # =========================================================================
+    def to_py(self) -&gt; pydt.date: ...
     def to_pydate(self) -&gt; pydt.date: ...
     @classmethod
     def from_pydate(cls: type[Date], date: pydt.date) -&gt; Date: ...
@@ -5044,7 +5135,6 @@ class Date:
     # OPERATORS
     # =========================================================================
     def __add__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Date: ...
-    def __iadd__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Date: ...
     @t.overload
     def __sub__(self, other: Date) -&gt; TimeSpan: ...
     @t.overload
@@ -5080,12 +5170,8 @@ class Date:
     def intz(self, tz: str) -&gt; ZonedDateTime: ...
     def last_of_month(self) -&gt; Date: ...
     def last_of_year(self) -&gt; Date: ...
-    def nth_weekday(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
-    def nth_weekday_of_month(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
+    def nth_weekday(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Date: ...
@@ -5093,7 +5179,9 @@ class Date:
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; Date: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[Date]: ...
+    def sub_date(self, other: Date) -&gt; TimeSpan: ...
     def to_datetime(self, time: Time) -&gt; DateTime: ...
+    def to_zoned(self, tz: TimeZone) -&gt; ZonedDateTime: ...
     def tomorrow(self) -&gt; Date: ...
     def yesterday(self) -&gt; Date: ...
 
@@ -5150,7 +5238,7 @@ class DateDifference:
     def increment(self, increment: int) -&gt; DateDifference: ...
 
 
-class Time:
+class Time(ToPy[pydt.time], ToPyTime):
     MIN: Time
     MAX: Time
 
@@ -5173,7 +5261,6 @@ class Time:
     # OPERATORS/DUNDERS
     # =========================================================================
     def __add__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Time: ...
-    def __iadd__(self, other: TimeSpan | SignedDuration | Duration) -&gt; Time: ...
     @t.overload
     def __sub__(self, other: Time) -&gt; TimeSpan: ...
     @t.overload
@@ -5193,6 +5280,7 @@ class Time:
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
+    def to_py(self) -&gt; pydt.time: ...
     def to_pytime(self) -&gt; pydt.time: ...
     @classmethod
     def from_pytime(cls: type[Time], t: pydt.time) -&gt; Time: ...
@@ -5306,7 +5394,7 @@ class TimeDifference:
     def increment(self, increment: int) -&gt; TimeDifference: ...
 
 
-class DateTime:
+class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     MIN: DateTime
     MAX: DateTime
     ZERO: DateTime
@@ -5338,8 +5426,10 @@ class DateTime:
     # =========================================================================
     @classmethod
     def from_pydatetime(cls: type[DateTime], dt: pydt.datetime) -&gt; DateTime: ...
+    def to_py(self) -&gt; pydt.datetime: ...
+    def to_pydate(self) -&gt; pydt.date: ...
     def to_pydatetime(self) -&gt; pydt.datetime: ...
-
+    def to_pytime(self) -&gt; pydt.time: ...
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
@@ -5353,9 +5443,6 @@ class DateTime:
     # =========================================================================
     def __repr__(self) -&gt; str: ...
     def __add__(
-        self, other: TimeSpan | SignedDuration | Duration
-    ) -&gt; DateTime: ...
-    def __iadd__(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; DateTime: ...
     @t.overload
@@ -5382,7 +5469,7 @@ class DateTime:
     ) -&gt; DateTime: ...
     def in_tz(self, tz: str) -&gt; ZonedDateTime: ...
     def intz(self, tz: str) -&gt; ZonedDateTime: ...
-    def iso_week_date(self) -&gt; tuple[int, int, int]: ...
+    def iso_week_date(self) -&gt; ISOWeekDate: ...
     def date(self) -&gt; Date: ...
     def time(self) -&gt; Time: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[DateTime]: ...
@@ -5453,12 +5540,8 @@ class DateTime:
     def duration_until(self, other: DateTime) -&gt; SignedDuration: ...
     def in_leap_year(self) -&gt; bool: ...
     def end_of_day(self) -&gt; DateTime: ...
-    def nth_weekday(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; DateTime: ...
-    def nth_weekday_of_month(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; DateTime: ...
+    def nth_weekday(self, nth: int, weekday: WEEKDAY) -&gt; DateTime: ...
+    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -&gt; DateTime: ...
     def last_of_month(self) -&gt; DateTime: ...
     def last_of_year(self) -&gt; DateTime: ...
     def start_of_day(self) -&gt; DateTime: ...
@@ -5508,7 +5591,7 @@ class DateTimeDifference:
     def increment(self, increment: int) -&gt; DateTimeDifference: ...
 
 
-class TimeZone:
+class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     def __init__(self, name: str) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
 
@@ -5521,6 +5604,8 @@ class TimeZone:
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
+
+    def to_py(self) -&gt; pydt.tzinfo: ...
     def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
     @classmethod
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -&gt; TimeZone: ...
@@ -5565,7 +5650,7 @@ class TimeZone:
     def to_ambiguous_zoned(self) -&gt; t.NoReturn: ...
 
 
-class SignedDuration:
+class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
     MIN: SignedDuration
     MAX: SignedDuration
     ZERO: SignedDuration
@@ -5607,6 +5692,7 @@ class SignedDuration:
     def from_pytimedelta(
         cls: type[SignedDuration], td: pydt.timedelta
     ) -&gt; SignedDuration: ...
+    def to_py(self) -&gt; pydt.timedelta: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
 
     # =========================================================================
@@ -5632,14 +5718,6 @@ class SignedDuration:
     ) -&gt; SignedDuration: ...
     @classmethod
     def from_secs_f64(
-        cls: type[SignedDuration], n: float
-    ) -&gt; SignedDuration: ...
-    @classmethod
-    def try_from_secs_f32(
-        cls: type[SignedDuration], n: float
-    ) -&gt; SignedDuration: ...
-    @classmethod
-    def try_from_secs_f64(
         cls: type[SignedDuration], n: float
     ) -&gt; SignedDuration: ...
 
@@ -5704,7 +5782,7 @@ _TimeSpanArithmeticTuple = tuple[
 TimeSpanArithmetic = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
 
 
-class TimeSpan:
+class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     def __init__(
         self,
         years: int = 0,
@@ -5733,6 +5811,7 @@ class TimeSpan:
     @classmethod
     def from_pytimedelta(cls, td: pydt.timedelta) -&gt; TimeSpan: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
+    def to_py(self) -&gt; pydt.timedelta: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -5869,7 +5948,7 @@ class TimeSpan:
     def _nanoseconds(self, nanoseconds: int) -&gt; te.Self: ...
 
 
-class Timestamp:
+class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     """
     A representation of a timestamp with second and nanosecond precision.
     """
@@ -5913,9 +5992,6 @@ class Timestamp:
     def __eq__(self, other: object) -&gt; bool: ...
     def __ge__(self, other: Timestamp) -&gt; bool: ...
     def __gt__(self, other: Timestamp) -&gt; bool: ...
-    def __iadd__(
-        self, other: TimeSpan | SignedDuration | Duration
-    ) -&gt; te.Self: ...
     def __le__(self, other: Timestamp) -&gt; bool: ...
     def __lt__(self, other: Timestamp) -&gt; bool: ...
     def __ne__(self, other: object) -&gt; bool: ...
@@ -5936,6 +6012,16 @@ class Timestamp:
     def __sub__(
         self, other: TimeSpan | SignedDuration | Duration
     ) -&gt; te.Self: ...
+
+    # =========================================================================
+    # PYTHON CONVERSIONS
+    # =========================================================================
+    @classmethod
+    def from_pydatetime(cls, dt: pydt.datetime) -&gt; Timestamp: ...
+    def to_py(self) -&gt; pydt.datetime: ...
+    def to_pydate(self) -&gt; pydt.date: ...
+    def to_pydatetime(self) -&gt; pydt.datetime: ...
+    def to_pytime(self) -&gt; pydt.time: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -6033,7 +6119,9 @@ class TimestampDifference:
     def increment(self, increment: int) -&gt; TimestampDifference: ...
 
 
-class ZonedDateTime:
+class ZonedDateTime(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo
+):
     def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -&gt; None: ...
 
     # =========================================================================
@@ -6043,8 +6131,11 @@ class ZonedDateTime:
     def from_pydatetime(
         cls: type[ZonedDateTime], dt: pydt.datetime
     ) -&gt; ZonedDateTime: ...
+    def to_py(self) -&gt; pydt.datetime: ...
+    def to_pydate(self) -&gt; pydt.date: ...
     def to_pydatetime(self) -&gt; pydt.datetime: ...
-
+    def to_pytime(self) -&gt; pydt.time: ...
+    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
@@ -6110,9 +6201,6 @@ class ZonedDateTime:
     def __ge__(self, other: ZonedDateTime) -&gt; bool: ...
     def __gt__(self, other: ZonedDateTime) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
-    def __iadd__(
-        self, other: TimeSpan | SignedDuration | Duration
-    ) -&gt; te.Self: ...
     def __le__(self, other: ZonedDateTime) -&gt; bool: ...
     def __lt__(self, other: ZonedDateTime) -&gt; bool: ...
     def __ne__(self, other: object) -&gt; bool: ...
@@ -6166,12 +6254,8 @@ class ZonedDateTime:
     def inutc(self) -&gt; ZonedDateTime: ...
     def last_of_month(self) -&gt; ZonedDateTime: ...
     def last_of_year(self) -&gt; ZonedDateTime: ...
-    def nth_weekday(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
-    def nth_weekday_of_month(
-        self, nth: int, weekday: WEEKDAY | JIFF_WEEKDAY_INT
-    ) -&gt; Date: ...
+    def nth_weekday(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
     def offset(self) -&gt; Offset: ...
     def round(
         self,
@@ -6246,9 +6330,7 @@ class ISOWeekDate:
     MAX: ISOWeekDate
     ZERO: ISOWeekDate
 
-    def __init__(
-        self, year: int, week: int, weekday: JIFF_WEEKDAY_INT | WEEKDAY
-    ) -&gt; None: ...
+    def __init__(self, year: int, week: int, weekday: WEEKDAY) -&gt; None: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -6265,6 +6347,7 @@ class ISOWeekDate:
     # =========================================================================
     # STRING
     # =========================================================================
+    def __str__(self) -&gt; str: ...
     def __repr__(self) -&gt; str: ...
 
     # =========================================================================
@@ -6283,7 +6366,7 @@ class ISOWeekDate:
     @property
     def week(self) -&gt; int: ...
     @property
-    def weekday(self) -&gt; JIFF_WEEKDAY_INT: ...
+    def weekday(self) -&gt; WEEKDAY_INT: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -6363,7 +6446,7 @@ class ZonedDateTimeRound:
     ) -&gt; DateTimeRound: ...
 
 
-class Offset:
+class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
     MIN: Offset
     MAX: Offset
     UTC: Offset
@@ -6391,6 +6474,16 @@ class Offset:
     def __gt__(self, other: Offset) -&gt; bool: ...
     def __ge__(self, other: Offset) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
+
+    # =========================================================================
+    # PYTHON CONVERSIONS
+    # =========================================================================
+    # __FROM__
+    @classmethod
+    def from_pytzinfo(cls: type[Offset], tz: pydt.tzinfo) -&gt; Offset: ...
+    # __TO__
+    def to_py(self) -&gt; pydt.tzinfo: ...
+    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
 
     # =========================================================================
     # PROPERTIES
@@ -6755,9 +6848,8 @@ class SizeFormatter:
         self,
         base: FORMAT_SIZE_BASE | None = 2,
         style: FORMAT_SIZE_STYLE | None = "default",
-    ):
-        self.base = base
-        self.style = style
+    ) -&gt; None:
+        """Initialize human-readable bytes-size formatter."""
 
     def format(self, n: int) -&gt; str:
         """Return human-readable string representation of bytes-size."""
@@ -6766,6 +6858,7 @@ class SizeFormatter:
         """Return human-readable string representation of bytes-size."""
 
     def __repr__(self) -&gt; str: ...
+    def __str__(self) -&gt; str: ...
 
 
 class Size:
@@ -6790,6 +6883,7 @@ class Size:
     def __add__(self, other: Size | int | float) -&gt; Size: ...
     def __sub__(self, other: Size | int | float) -&gt; Size: ...
     def __mul__(self, other: Size | int | float) -&gt; Size: ...
+    def __rmul__(self, other: Size | int | float) -&gt; Size: ...
     @property
     def bytes(self) -&gt; int: ...
     def format(
@@ -7064,7 +7158,6 @@ class Instant:
     def __ge__(self, other: Instant) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
     def __add__(self, other: Duration) -&gt; Instant: ...
-    def __iadd__(self, other: Duration) -&gt; Instant: ...
     @t.overload
     def __sub__(self, other: Duration) -&gt; Instant: ...
     @t.overload
@@ -7220,6 +7313,7 @@ class URL:
     # =========================================================================
     def __str__(self) -&gt; str: ...
     def __repr__(self) -&gt; str: ...
+    def __fspath__(self) -&gt; str: ...
 
     # =========================================================================
     # OPERATORS/DUNDER
@@ -7265,6 +7359,8 @@ class URL:
     def scheme(self) -&gt; str: ...
     @property
     def username(self) -&gt; str: ...
+    @property
+    def origin(self) -&gt; str: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -7284,6 +7380,19 @@ class URL:
     def replace_scheme(self, scheme: str) -&gt; URL: ...
     def replace_username(self, username: str) -&gt; URL: ...
     def socket_addrs(self) -&gt; None: ...
+    def replace(
+        self,
+        *,
+        fragment: str | None = None,
+        host: str | None = None,
+        ip_host: IPv4Address | None = None,
+        password: str | None = None,
+        path: str | None = None,
+        port: int | None = None,
+        query: str | None = None,
+        scheme: str | None = None,
+        username: str | None = None,
+    ) -&gt; URL: ...
 
 </code></pre>
 <h2 id="ryryo3_walkdir-1"><a class="header" href="#ryryo3_walkdir-1"><code>ry.ryo3._walkdir</code></a></h2>
@@ -7324,12 +7433,11 @@ class WalkDirEntry:
 class WalkdirGen:
     """walkdir::Walkdir iterable wrapper"""
 
-    files: bool
-    dirs: bool
-
     def __next__(self) -&gt; str: ...
     def __iter__(self) -&gt; t.Iterator[str]: ...
     def collect(self) -&gt; list[str]: ...
+    def take(self, n: int) -&gt; list[str]: ...
+    def __str__(self) -&gt; str: ...
 
 
 def walkdir(
@@ -7392,7 +7500,10 @@ class FeatureNotEnabledError(RuntimeError):
 <p>thinking out loud…</p>
 <hr />
 <h1 id="rydev"><a class="header" href="#rydev"><code>ry.dev</code></a></h1>
-<p>For people who find <code>ry.dev</code> it is a module that exports all the things in ry as well as can be used as a repl; <code>python -m ry.dev</code> will start a repl (with ipython if installed else python-repl) with all of ry already imported. I use this super often for testing things out.</p>
+<p>For people who find <code>ry.dev</code> it is a module that exports all the things in ry as
+well as can be used as a repl; <code>python -m ry.dev</code> will start a repl (with
+ipython if installed else python-repl) with all of ry already imported. I (jesse)
+use this super often for testing things out.</p>
 <hr />
 <h2 id="string-bridge"><a class="header" href="#string-bridge">string-bridge?</a></h2>
 <p>The <code>jiter</code> crate uses a string-cache to store python-strings to avoid the
@@ -7401,16 +7512,20 @@ caching setup for other types of structs that often convert to strings might be
 worth considering?</p>
 <hr />
 <h2 id="naming"><a class="header" href="#naming">Naming</a></h2>
-<p>Coming up with names is hard… I want to strike a balance between being clear
+<p>Coming up with names is hard… I (jesse) want to strike a balance between being clear
 but also close to the wrapped libraries…</p>
 <ul>
-<li>Should jiff’s <code>Zoned</code> be <code>Zoned</code> in python? or <code>ZonedDateTime</code>? (currently <code>ZonedDateTime</code>)</li>
-<li>Should jiff’s <code>Span</code> be <code>Span</code> in python? or <code>TimeSpan</code>? (currently <code>TimeSpan</code>)</li>
-<li>Should reqwest’s <code>Client</code> be <code>Client</code> in python? or <code>HttpClient</code>? (currently <code>HttpClient</code>)</li>
+<li>Should jiff’s <code>Zoned</code> be <code>Zoned</code> in python? or <code>ZonedDateTime</code>? (currently
+<code>ZonedDateTime</code>)</li>
+<li>Should jiff’s <code>Span</code> be <code>Span</code> in python? or <code>TimeSpan</code>? (currently
+<code>TimeSpan</code>)</li>
+<li>Should reqwest’s <code>Client</code> be <code>Client</code> in python? or <code>HttpClient</code>? (currently
+<code>HttpClient</code>)</li>
 </ul>
 <hr />
 <h2 id="flat-nested-submodules"><a class="header" href="#flat-nested-submodules">Flat? Nested submodules?</a></h2>
-<p>I like flat more, but nesting submodules might be preferable for some people and would allow for more flexibility in naming…</p>
+<p>I like flat more, but nesting submodules might be preferable for some people and
+would allow for more flexibility in naming…</p>
 <p>pros &amp; cons:</p>
 <ul>
 <li>flat:
@@ -7439,17 +7554,66 @@ but also close to the wrapped libraries…</p>
 <li>no name conflicts</li>
 <li>easier to remember where things are</li>
 <li>type annotations are easier to read</li>
-<li>importing <code>ry.jiff</code> (or <code>ry.ryo3.jiff</code> tbd) is more explicitly the <code>jiff</code> wrapper(s)</li>
+<li>importing <code>ry.jiff</code> (or <code>ry.ryo3.jiff</code> tbd) is more explicitly the <code>jiff</code>
+wrapper(s)</li>
 </ul>
 </li>
 <li>cons:
 <ul>
-<li>Don’t know how type annotations should be laid out… if there is a submodule called <code>ry.ryo3.reqwest</code>, do you import from <code>ry.ryo3.reqwest</code> or do I reexport from <code>ry.reqwest</code>? Then were doe the type-annotations live and how are they laid out without having to duplicate/shim them?</li>
+<li>Don’t know how type annotations should be laid out… if there is a
+submodule called <code>ry.ryo3.reqwest</code>, do you import from <code>ry.ryo3.reqwest</code>
+or do we reexport from <code>ry.reqwest</code>? Then were doe the type-annotations
+live and how are they laid out without having to duplicate/shim them?</li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
+<hr />
+<h2 id="pypi-size-limit"><a class="header" href="#pypi-size-limit">pypi size limit</a></h2>
+<p>The pypi project size limit of 10gb was reached. I (jesse) won’t request a limit
+raise until the package is more stable and hits some sort of <code>v0.1.x</code>, SOOOOOO
+for now I will be:</p>
+<ul>
+<li>deleting older versions of ry from pypi as needed</li>
+<li>update the release gh-action to push the built wheels to the releases page so
+they are not lost into the ether…</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="jiff"><a class="header" href="#jiff">jiff</a></h1>
+<p>docs.rs: <a href="https://docs.rs/jiff">https://docs.rs/jiff</a></p>
+<p>crates: <a href="https://crates.io/crates/jiff">https://crates.io/crates/jiff</a></p>
+<hr />
+<p>The <code>jiff</code> crate has a super excellent API that is very ergonomic to use and
+<code>ry</code> provides a nearly complete wrapper around it.</p>
+<p>A good amount of time, and a greater amount of thought has gone into balancing
+the <code>jiff</code> python api to be both ergonomic and performant.</p>
+<h2 id="python-conversions"><a class="header" href="#python-conversions">python-conversions</a></h2>
+<p>The structs under <code>ryo3-jiff</code> are convertable to/from python’s <code>datetime.*</code>
+types and the conversions are pretty well tested (ty hypothesis).</p>
+<h3 id="pyo3-v0240--jiff-02"><a class="header" href="#pyo3-v0240--jiff-02"><code>pyo3-v0.24.0</code> &amp; <code>jiff-02</code></a></h3>
+<p>The conversions to/from python <code>datetime.*</code> types were originally hand rolled (
+by me (jesse)) using the ‘new-type’ pattern, HOWEVER <code>pyo3-v0.24.0</code> provides
+conversions via the <code>jiff-02</code> feature flag, which is what is used now.</p>
+<p><code>ry-v0.0.37</code> will be the last version with the mostly hand rolled conversions.</p>
+<p><code>ry-v0.0.38</code> will be the first version with the <code>jiff-02</code> feature flag.</p>
+<p>As of 2025-03-12 <code>pyo3</code> does not seem to support converting <code>Span</code> -&gt;
+<code>datetime.timedelta</code>, so that is still hand rolled.</p>
+<hr />
+<h2 id="ry-vs-whenever"><a class="header" href="#ry-vs-whenever"><code>ry</code> vs <code>whenever</code></a></h2>
+<p>There is another library called <a href="https://github.com/ariebovenberg/whenever">
+<code>whenever</code></a> that provides a similar
+datetime
+library to that of <code>ryo3-jiff</code> (both <code>jiff</code> and <code>whenever</code> are based on the
+<a href="https://tc39.es/proposal-temporal/docs/">temporal</a> API).</p>
+<p>No formal benchmarks between <code>ry</code> and <code>whenever</code> have been done, but I have
+copy-pasta-ed some of the benchmarks from the <code>whenever</code> repo and translated
+them to <code>ry</code> and the results were pretty similar; <code>whenever</code> is faster for some
+things, <code>ry</code> is faster for others, but both are wildly more performant than
+python’s built in <code>datetime</code> module and <code>pendulum</code> – differences in performance
+are almost all measured in nanoseconds.</p>
+<p>Big shoutout to “Mr. Dutch Airlines” guy
+(<a href="https://github.com/ariebovenberg">@ariebovenberg</a>) who wrote <code>whenever</code>!
+Love the name of the library too!</p>
 
                     </main>
 

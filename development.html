@@ -162,7 +162,8 @@
 <p><strong>OPEN TO PRS!</strong></p>
 <h2 id="goals"><a class="header" href="#goals">goals</a></h2>
 <ol>
-<li>Provide a really nice ergonomic API to work with (this is the highest priority)</li>
+<li>Provide a really nice ergonomic API to work with (this is the highest
+priority)</li>
 <li>Get naming right (this is a hard one!)</li>
 <li>Be fast</li>
 </ol>
@@ -170,7 +171,8 @@
 <ul>
 <li>clone repo</li>
 <li>install <code>just</code> (<code>cargo install just</code>)</li>
-<li>create a virtual env (using ye olde <code>venv</code> or <code>uv</code> or dare I say <code>conda</code>) – I am still working out the kinks of using <code>uv</code> with maturin</li>
+<li>create a virtual env (using ye olde <code>venv</code> or <code>uv</code> or dare I say <code>conda</code>) – I
+am still working out the kinks of using <code>uv</code> with maturin</li>
 <li>install the dev-requirements (<code>pip install -r requirements.dev.txt</code>)</li>
 <li>run <code>just dev</code> to build and test the library</li>
 <li>run <code>just fmt</code> to format the python and rust code</li>
@@ -182,16 +184,19 @@
 <li><strong>NO <code>blazingly-fast</code></strong> – <code>ry</code> is fast and does not need an adverb</li>
 <li><strong>USE CLIPPY</strong> <code>just clippy</code> or <code>just ci</code></li>
 <li><strong>USE RUSTFMT AND RUFF</strong> <code>just fmt</code></li>
-<li>avoid using macros as they are not as easy to reason about and/or debug, but feel free to say ‘yolo’</li>
+<li>avoid using macros as they are not as easy to reason about and/or debug, but
+feel free to say ‘yolo’</li>
 <li>library style guide:
 <ul>
-<li>python objects/structs/classes defined in the library should be named either <code>Py&lt;CLASSNAME&gt;</code> or <code>Ry&lt;CLASSNAME&gt;</code> and
-the prefix should be consistent throughout the library (eg <code>ryo3-jiff</code> uses <code>Ry</code> as the internal prefix to not
-conflict with the <code>Py&lt;CLASSNAME&gt;</code> structs provided by <code>pyo3</code>)</li>
-<li>if a <code>pyclass</code> or <code>pyfunction</code> is not mirroring a rust function prefer names that are puns but also
-semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
+<li>python objects/structs/classes defined in the library should be named either
+<code>Py&lt;CLASSNAME&gt;</code> or <code>Ry&lt;CLASSNAME&gt;</code> and the prefix should be consistent
+throughout the library (eg <code>ryo3-jiff</code> uses <code>Ry</code> as the internal prefix to
+not conflict with the <code>Py&lt;CLASSNAME&gt;</code> structs provided by <code>pyo3</code>)</li>
+<li>if a <code>pyclass</code> or <code>pyfunction</code> is not mirroring a rust function prefer names
+that are puns but also semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <li>attempt to mirror the structure of the og library as much as possible</li>
-<li>wrapper libraries should be of the form <code>ryo3-&lt;LIB_NAME&gt;</code> where <code>&lt;LIB_NAME&gt;</code> is the name of the library they</li>
+<li>wrapper libraries should be of the form <code>ryo3-&lt;LIB_NAME&gt;</code> where <code>&lt;LIB_NAME&gt;</code>
+is the name of the library they</li>
 <li>library directories should be <code>kebab-case</code> and should be <code>ryo3-&lt;LIB_NAME&gt;</code></li>
 <li>MUST PROVIDE TYPE ANNOTATIONS</li>
 </ul>
@@ -199,7 +204,7 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 </ul>
 <h2 id="creating-a-new-librarywrapper-thing"><a class="header" href="#creating-a-new-librarywrapper-thing">Creating a new library/wrapper-thing</a></h2>
 <ul>
-<li>copy the template library  <code>ryo3-quick-maths</code> library to your new library name</li>
+<li>copy the template library <code>ryo3-quick-maths</code> library to your new library name</li>
 <li>refer to the above style guide for naming conventions</li>
 </ul>
 <h2 id="tools"><a class="header" href="#tools">tools</a></h2>
@@ -219,7 +224,8 @@ semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
 <p><strong><code>cargo install just</code></strong></p>
 <ul>
 <li>we use <code>just</code> for task running</li>
-<li>to see all tasks run <code>just</code> or <code>just --list</code> (our default task echos the list of tasks)</li>
+<li>to see all tasks run <code>just</code> or <code>just --list</code> (our default task echos the list
+of tasks)</li>
 </ul>
 <p>tasks as of 2024-12-03:</p>
 <pre><code class="language-aiignore">Available recipes:
