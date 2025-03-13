@@ -35,9 +35,8 @@ class SizeFormatter:
         self,
         base: FORMAT_SIZE_BASE | None = 2,
         style: FORMAT_SIZE_STYLE | None = "default",
-    ):
-        self.base = base
-        self.style = style
+    ) -> None:
+        """Initialize human-readable bytes-size formatter."""
 
     def format(self, n: int) -> str:
         """Return human-readable string representation of bytes-size."""
@@ -46,6 +45,7 @@ class SizeFormatter:
         """Return human-readable string representation of bytes-size."""
 
     def __repr__(self) -> str: ...
+    def __str__(self) -> str: ...
 
 class Size:
     """Bytes-size object."""
@@ -69,6 +69,7 @@ class Size:
     def __add__(self, other: Size | int | float) -> Size: ...
     def __sub__(self, other: Size | int | float) -> Size: ...
     def __mul__(self, other: Size | int | float) -> Size: ...
+    def __rmul__(self, other: Size | int | float) -> Size: ...
     @property
     def bytes(self) -> int: ...
     def format(

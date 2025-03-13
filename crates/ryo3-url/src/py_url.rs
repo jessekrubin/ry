@@ -256,14 +256,9 @@ impl PyUrl {
         self.0.is_special()
     }
 
-    #[expect(clippy::unused_self)]
-    fn options(&self) -> PyResult<()> {
-        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
-    }
-
-    #[expect(clippy::unused_self)]
-    fn origin(&self) -> PyResult<()> {
-        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
+    #[getter]
+    fn origin(&self) -> PyResult<String> {
+        Ok(self.0.origin().ascii_serialization())
     }
 
     #[classmethod]

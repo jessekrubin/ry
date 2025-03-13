@@ -41,6 +41,11 @@ impl PySize {
         self.0.bytes() != 0
     }
 
+    #[getter]
+    fn bytes(&self) -> i64 {
+        self.0.bytes()
+    }
+
     #[expect(clippy::needless_pass_by_value)]
     fn __richcmp__(&self, other: SizeWrapper, op: CompareOp) -> bool {
         match op {
@@ -111,6 +116,10 @@ impl PySize {
             PySizeArithmetic::Int64(i) => PySize(self.0.mul(i)),
             PySizeArithmetic::U64(u) => PySize(self.0.mul(u)),
         }
+    }
+
+    fn __rmul__(&self, other: PySizeArithmetic) -> Self {
+        self.__mul__(other)
     }
     //
     // fn __truediv__(&self, other: PySizeArithmetic) -> Self {

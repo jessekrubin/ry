@@ -22,6 +22,7 @@ class URL:
     # =========================================================================
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
+    def __fspath__(self) -> str: ...
 
     # =========================================================================
     # OPERATORS/DUNDER
@@ -67,6 +68,8 @@ class URL:
     def scheme(self) -> str: ...
     @property
     def username(self) -> str: ...
+    @property
+    def origin(self) -> str: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -86,3 +89,16 @@ class URL:
     def replace_scheme(self, scheme: str) -> URL: ...
     def replace_username(self, username: str) -> URL: ...
     def socket_addrs(self) -> None: ...
+    def replace(
+        self,
+        *,
+        fragment: str | None = None,
+        host: str | None = None,
+        ip_host: IPv4Address | None = None,
+        password: str | None = None,
+        path: str | None = None,
+        port: int | None = None,
+        query: str | None = None,
+        scheme: str | None = None,
+        username: str | None = None,
+    ) -> URL: ...
