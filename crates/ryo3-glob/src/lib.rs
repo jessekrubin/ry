@@ -33,9 +33,6 @@ impl PyGlobPaths {
                         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                             "{e}"
                         )));
-                    } else {
-                        // log error
-                        continue;
                     }
                 }
             }
@@ -131,6 +128,7 @@ impl PyGlobPaths {
 ///   `]` and NOT `]` can be matched by `[]]` and `[!]]` respectively.  The `-`
 ///   character can be specified inside a character sequence pattern by placing
 ///   it at the start or the end, e.g. `[abc-]`.
+#[expect(clippy::fn_params_excessive_bools)]
 #[pyfunction]
 #[pyo3(
     name = "glob",

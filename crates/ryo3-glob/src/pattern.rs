@@ -25,16 +25,15 @@ impl PyPattern {
     #[pyo3(
         signature = (ob, *, case_sensitive = true, require_literal_separator = false, require_literal_leading_dot = false)
     )]
-    fn __call__<'py>(
+    fn __call__(
         &self,
-        ob: &Bound<'py, PyAny>,
+        ob: &Bound<'_, PyAny>,
         case_sensitive: bool,
         require_literal_separator: bool,
         require_literal_leading_dot: bool,
     ) -> PyResult<bool> {
-        let use_match_with = case_sensitive != true
-            || require_literal_separator != false
-            || require_literal_leading_dot != false;
+        let use_match_with =
+            !case_sensitive || require_literal_separator || require_literal_leading_dot;
 
         // if string...
         if let Ok(s) = ob.downcast::<PyString>()?.to_str() {
@@ -92,6 +91,7 @@ impl PyPattern {
         self.0.matches(path)
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn matches_path(&self, path: PathBuf) -> bool {
         self.0.matches_path(&path)
     }
@@ -119,6 +119,7 @@ impl PyPattern {
     #[pyo3(
         signature = (path, *, case_sensitive = true, require_literal_separator = false, require_literal_leading_dot = false)
     )]
+    #[expect(clippy::needless_pass_by_value)]
     fn matches_path_with(
         &self,
         path: PathBuf,
