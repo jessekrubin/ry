@@ -1,7 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::jiff_types::JiffDateTime;
 use crate::ry_datetime_difference::{DateTimeDifferenceArg, RyDateTimeDifference};
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
@@ -10,11 +9,11 @@ use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
-use jiff::civil::{DateTime, DateTimeRound, Weekday};
+use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyDict, PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use pyo3::{intern, IntoPyObjectExt};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
@@ -339,15 +338,25 @@ impl RyDateTime {
         RyDateTime::from(self.0.last_of_month())
     }
 
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        let jiff_datetime = JiffDateTime(self.0);
-        jiff_datetime.into_pyobject(py)
+    fn to_py(&self) -> PyResult<DateTime> {
+        self.to_pydatetime()
+    }
+
+    fn to_pydatetime(&self) -> PyResult<DateTime> {
+        Ok(self.0)
+    }
+
+    fn to_pydate(&self) -> PyResult<Date> {
+        Ok(self.0.date())
+    }
+
+    fn to_pytime(&self) -> PyResult<Time> {
+        Ok(self.0.time())
     }
 
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDateTime>) -> PyResult<Self> {
-        let jiff_datetime: JiffDateTime = d.extract()?;
-        Ok(Self::from(jiff_datetime.0))
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: DateTime) -> PyResult<Self> {
+        Ok(Self::from(d))
     }
 
     fn series(&self, period: &RySpan) -> RyDateTimeSeries {

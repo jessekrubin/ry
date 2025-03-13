@@ -1,14 +1,12 @@
 use crate::errors::map_py_value_err;
-use crate::pydatetime_conversions::timezone2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
-use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType, PyTzInfo};
+use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Debug;
@@ -110,14 +108,17 @@ impl RyTimeZone {
         }
     }
 
-    fn to_pytzinfo<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        timezone2pyobect(py, &self.0)
+    fn to_py(&self) -> PyResult<&TimeZone> {
+        Ok(&self.0)
+    }
+
+    fn to_pytzinfo(&self) -> PyResult<&TimeZone> {
+        Ok(&self.0)
     }
 
     #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyTzInfo>) -> PyResult<Self> {
-        let jiff_tz: JiffTimeZone = d.extract()?;
-        Ok(Self::from(jiff_tz.0))
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: TimeZone) -> PyResult<Self> {
+        Ok(Self::from(d))
     }
 
     // =====================================================================
@@ -176,9 +177,12 @@ impl RyTimeZone {
     // ===============
     // NOT IMPLEMENTED
     // ===============
+    #[expect(clippy::unused_self)]
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
+
+    #[expect(clippy::unused_self)]
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

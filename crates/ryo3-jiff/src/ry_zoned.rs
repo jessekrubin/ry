@@ -1,7 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_offset::RyOffset;
@@ -11,12 +10,13 @@ use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned_round::RyZonedDateTimeRound;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, JiffZoned, RyDate};
-use jiff::civil::Weekday;
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate};
+use jiff::civil::{Date, Time, Weekday};
+use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyDate, PyDateTime, PyTuple, PyType};
+use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -131,14 +131,29 @@ impl RyZoned {
         RyDateTime::from(self.0.datetime())
     }
 
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        zoned2pyobect(py, &self.0)
+    fn to_py(&self) -> PyResult<&Zoned> {
+        self.to_pydatetime()
+    }
+
+    fn to_pydatetime(&self) -> PyResult<&Zoned> {
+        Ok(&self.0)
+    }
+
+    fn to_pydate(&self) -> PyResult<Date> {
+        Ok(self.0.date())
+    }
+
+    fn to_pytime(&self) -> PyResult<Time> {
+        Ok(self.0.time())
+    }
+
+    fn to_pytzinfo(&self) -> PyResult<&TimeZone> {
+        Ok(self.0.time_zone())
     }
 
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        let jiff_datetime: JiffZoned = d.extract()?;
-        Ok(Self::from(jiff_datetime.0))
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: Zoned) -> PyResult<Self> {
+        Ok(Self::from(d))
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {

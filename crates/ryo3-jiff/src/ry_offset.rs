@@ -87,6 +87,19 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
+    fn to_py(&self) -> PyResult<&Offset> {
+        Ok(&self.0)
+    }
+
+    fn to_pytzinfo(&self) -> PyResult<&Offset> {
+        Ok(&self.0)
+    }
+
+    #[classmethod]
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: Offset) -> PyResult<Self> {
+        Ok(Self::from(d))
+    }
+
     #[must_use]
     pub fn string(&self) -> String {
         self.0.to_string()

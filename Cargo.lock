@@ -1214,6 +1214,7 @@ dependencies = [
  "cfg-if",
  "indoc",
  "inventory",
+ "jiff",
  "libc",
  "memoffset",
  "num-bigint",

@@ -9,11 +9,11 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffDate, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDate, PyDict, PyDictMethods, PyTuple, PyType};
+use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
@@ -251,14 +251,16 @@ impl RyDate {
     // }
 
     #[classmethod]
-    fn from_pydate(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        let jiff_date: JiffDate = d.extract()?;
-        Ok(Self::from(jiff_date.0))
+    fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> PyResult<Self> {
+        Ok(Self(d))
     }
 
-    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
-        let jiff_date = JiffDate(self.0);
-        jiff_date.into_pyobject(py)
+    fn to_py(&self) -> PyResult<Date> {
+        self.to_pydate()
+    }
+
+    fn to_pydate(&self) -> PyResult<Date> {
+        Ok(self.0)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -266,7 +268,6 @@ impl RyDate {
         let month_any = self.0.month().into_pyobject(py)?.into_any();
         let day_any = self.0.day().into_pyobject(py)?.into_any();
         let parts = vec![year_any, month_any, day_any];
-
         PyTuple::new(py, parts)
     }
 

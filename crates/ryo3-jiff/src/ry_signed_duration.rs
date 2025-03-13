@@ -6,7 +6,7 @@ use jiff::{SignedDuration, Span};
 use pyo3::prelude::*;
 
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDelta, PyTuple, PyType};
+use pyo3::types::{PyDelta, PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -84,16 +84,16 @@ impl RySignedDuration {
     }
 
     #[classmethod]
-    fn from_pytimedelta<'py>(
-        _cls: &Bound<'py, PyType>,
-        // py: Python<'py>,
-        delta: &Bound<'py, PyAny>,
-    ) -> PyResult<Self> {
-        delta.extract::<JiffSignedDuration>().map(Self::from)
+    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: SignedDuration) -> PyResult<Self> {
+        Ok(Self(delta))
     }
 
-    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        JiffSignedDuration(self.0).into_pyobject(py)
+    fn to_py(&self) -> PyResult<&SignedDuration> {
+        Ok(&self.0)
+    }
+
+    fn to_pytimedelta(&self) -> PyResult<&SignedDuration> {
+        Ok(&self.0)
     }
 
     fn to_timespan(&self) -> PyResult<RySpan> {
@@ -385,17 +385,6 @@ impl RySignedDuration {
     }
     fn subsec_nanos(&self) -> i32 {
         self.0.subsec_nanos()
-    }
-
-    fn try_from_secs_f32(&self, secs: f32) -> PyResult<Self> {
-        SignedDuration::try_from_secs_f32(secs)
-            .map(Self::from)
-            .map_err(map_py_value_err)
-    }
-    fn try_from_secs_f64(&self, secs: f64) -> PyResult<Self> {
-        SignedDuration::try_from_secs_f64(secs)
-            .map(Self::from)
-            .map_err(map_py_value_err)
     }
 }
 
