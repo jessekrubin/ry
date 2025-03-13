@@ -1452,14 +1452,6 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def from_secs_f64(
         cls: type[SignedDuration], n: float
     ) -> SignedDuration: ...
-    @classmethod
-    def try_from_secs_f32(
-        cls: type[SignedDuration], n: float
-    ) -> SignedDuration: ...
-    @classmethod
-    def try_from_secs_f64(
-        cls: type[SignedDuration], n: float
-    ) -> SignedDuration: ...
 
     # =========================================================================
     # PROPERTIES

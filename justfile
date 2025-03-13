@@ -6,6 +6,9 @@
 @_default:
     just --list --unsorted
 
+repl:
+    python -m ry.dev
+
 # dev run build + tests
 dev: develop test
 

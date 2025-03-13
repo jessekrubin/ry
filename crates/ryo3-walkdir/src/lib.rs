@@ -1,7 +1,6 @@
 #![doc = include_str!("../README.md")]
 
 mod walkdir_entry;
-
 use pyo3::{prelude::*, IntoPyObjectExt};
 use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
@@ -14,6 +13,7 @@ pub struct PyWalkdirGen {
 
 #[pymethods]
 impl PyWalkdirGen {
+    /// __iter__ just returns self
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -30,20 +30,19 @@ impl PyWalkdirGen {
         }
     }
 
+    /// Take n entries from the iterator
     fn take<'py>(&mut self, py: Python<'py>, n: usize) -> PyResult<Vec<Bound<'py, PyAny>>> {
-        let mut results = Vec::new();
-        for _ in 0..n {
-            if let Some(entry) = self.iter.next() {
+        self.iter
+            .by_ref()
+            .take(n)
+            .map(|entry| {
                 let path_str = entry.path().to_string_lossy().to_string();
-                let py_any = path_str.into_bound_py_any(py)?;
-                results.push(py_any);
-            } else {
-                break;
-            }
-        }
-        Ok(results)
+                path_str.into_bound_py_any(py)
+            })
+            .collect::<PyResult<Vec<_>>>()
     }
 
+    /// Collect all the entries into a Vec<Bound<PyAny>>
     pub fn collect<'py>(&mut self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
         let mut results = Vec::new();
         for entry in self.iter.by_ref() {
