@@ -257,8 +257,8 @@ impl PyUrl {
     }
 
     #[getter]
-    fn origin(&self) -> PyResult<String> {
-        Ok(self.0.origin().ascii_serialization())
+    fn origin(&self) -> String {
+        self.0.origin().ascii_serialization()
     }
 
     #[classmethod]
