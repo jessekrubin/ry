@@ -16,23 +16,19 @@ pub struct RyZonedDateTimeRound {
 impl RyZonedDateTimeRound {
     #[new]
     #[pyo3(signature = (smallest=None, mode=None, increment=1))]
-    pub fn py_new(
-        smallest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: i64,
-    ) -> PyResult<Self> {
+    pub fn py_new(smallest: Option<JiffUnit>, mode: Option<JiffRoundMode>, increment: i64) -> Self {
         let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
         let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand));
         let round = ZonedRound::new()
             .smallest(smallest.0)
             .mode(mode.0)
             .increment(increment);
-        Ok(Self {
+        Self {
             smallest,
             mode,
             increment,
             round,
-        })
+        }
     }
 
     fn __str__(&self) -> String {

@@ -1,7 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
-use crate::pydatetime_conversions::zoned2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_offset::RyOffset;
@@ -11,12 +10,13 @@ use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned_round::RyZonedDateTimeRound;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, JiffZoned, RyDate};
-use jiff::civil::Weekday;
+use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate};
+use jiff::civil::{Date, Time, Weekday};
+use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyDate, PyDateTime, PyTuple, PyType};
+use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -84,14 +84,14 @@ impl RyZoned {
         self.0.strftime(format).to_string()
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -131,14 +131,29 @@ impl RyZoned {
         RyDateTime::from(self.0.datetime())
     }
 
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        zoned2pyobect(py, &self.0)
+    fn to_py(&self) -> &Zoned {
+        self.to_pydatetime()
+    }
+
+    fn to_pydatetime(&self) -> &Zoned {
+        &self.0
+    }
+
+    fn to_pydate(&self) -> Date {
+        self.0.date()
+    }
+
+    fn to_pytime(&self) -> Time {
+        self.0.time()
+    }
+
+    fn to_pytzinfo(&self) -> &TimeZone {
+        self.0.time_zone()
     }
 
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        let jiff_datetime: JiffZoned = d.extract()?;
-        Ok(Self::from(jiff_datetime.0))
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: Zoned) -> Self {
+        Self::from(d)
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {
@@ -268,21 +283,22 @@ impl RyZoned {
         self.__sub__(py, other)
     }
 
-    fn saturating_add(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+    fn saturating_add(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> Self {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0.saturating_add(other.0),
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_add(other.0),
             RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_add(other.0),
         };
-        Ok(Self::from(t))
+        Self::from(t)
     }
-    fn saturating_sub(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
+
+    fn saturating_sub(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> Self {
         let t = match other {
             RyDeltaArithmeticSelf::Span(other) => self.0.saturating_sub(other.0),
             RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_sub(other.0),
             RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_sub(other.0),
         };
-        Ok(Self::from(t))
+        Self::from(t)
     }
 
     fn timezone(&self) -> RyTimeZone {
@@ -483,8 +499,8 @@ impl RyZoned {
             .map_err(map_py_value_err)
     }
 
-    fn time_zone(&self) -> PyResult<RyTimeZone> {
-        Ok(RyTimeZone::from(self.0.time_zone()))
+    fn time_zone(&self) -> RyTimeZone {
+        RyTimeZone::from(self.0.time_zone())
     }
 
     #[pyo3(

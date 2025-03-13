@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
 
 #[pyclass(name = "Headers", module = "ry")]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PyHeaders(pub HeaderMap);
 
 impl From<HeaderMap> for PyHeaders {

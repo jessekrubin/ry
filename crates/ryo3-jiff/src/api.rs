@@ -13,6 +13,7 @@ pub use crate::ry_timestamp::RyTimestamp;
 pub use crate::ry_timestamp_difference::RyTimestampDifference;
 pub use crate::ry_timestamp_round::RyTimestampRound;
 pub use crate::ry_timezone::RyTimeZone;
+use crate::ry_timezone_database::RyTimeZoneDatabase;
 pub use crate::ry_zoned::RyZoned;
 pub use crate::ry_zoned_difference::RyZonedDifference;
 
@@ -32,6 +33,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyTimeZone>()?;
     m.add_class::<RyTimestamp>()?;
     m.add_class::<RyZoned>()?;
+
+    m.add_class::<RyTimeZoneDatabase>()?;
 
     // difference
     m.add_class::<RyDateDifference>()?;

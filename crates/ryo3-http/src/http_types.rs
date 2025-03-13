@@ -4,14 +4,14 @@
 
 use std::ops::Deref;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderName(pub http::HeaderName);
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderValue(pub http::HeaderValue);
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HttpMethod(pub http::Method);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HttpStatusCode(pub http::StatusCode);
 
 // ============================================================================

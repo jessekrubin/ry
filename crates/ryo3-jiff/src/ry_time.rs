@@ -1,16 +1,16 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
-use crate::ry_datetime::RyDateTime;
-use crate::ry_signed_duration::RySignedDuration;
-use crate::ry_span::RySpan;
 use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
+use crate::RyDateTime;
+use crate::RySignedDuration;
+use crate::RySpan;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
-use jiff::civil::TimeRound;
+use jiff::civil::{Time, TimeRound};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTime, PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -29,7 +29,7 @@ impl RyTime {
         second: Option<i8>,
         nanosecond: Option<i32>,
     ) -> PyResult<Self> {
-        jiff::civil::Time::new(
+        Time::new(
             hour.unwrap_or(0),
             minute.unwrap_or(0),
             second.unwrap_or(0),
@@ -56,13 +56,13 @@ impl RyTime {
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
-        Self(jiff::civil::Time::MIN)
+        Self(Time::MIN)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
-        Self(jiff::civil::Time::MAX)
+        Self(Time::MAX)
     }
 
     // ========================================================================
@@ -124,14 +124,14 @@ impl RyTime {
     // ========================================================================
     // OPERATORS/DUNDERS
     // ========================================================================
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -252,12 +252,17 @@ impl RyTime {
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
-    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
-        JiffTime(self.0).into_pyobject(py)
+    fn to_py(&self) -> Time {
+        self.to_pytime()
     }
+
+    fn to_pytime(&self) -> Time {
+        self.0
+    }
+
     #[classmethod]
-    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: &Bound<'_, PyTime>) -> PyResult<Self> {
-        py_time.extract::<JiffTime>().map(RyTime::from)
+    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: Time) -> Self {
+        Self(py_time)
     }
 
     // =====================================================================
@@ -289,13 +294,15 @@ impl RyTime {
         Ok(dict)
     }
 
-    fn series(&self, period: &RySpan) -> PyResult<RyTimeSeries> {
+    fn series(&self, period: &RySpan) -> RyTimeSeries {
         let ser = self.0.series(period.0);
-        Ok(RyTimeSeries { series: ser })
+        RyTimeSeries { series: ser }
     }
+
     fn duration_since(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_since(other.0))
     }
+
     fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
@@ -403,12 +410,14 @@ impl RyTime {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn _since(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
         self.0
             .since(other.0)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     fn _until(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
         self.0
             .until(other.0)

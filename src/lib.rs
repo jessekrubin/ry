@@ -1,4 +1,6 @@
 //! ry = rust + python (entry point)
+
+use pyo3::intern;
 use pyo3::prelude::*;
 use tracing::debug;
 mod lager;
@@ -55,22 +57,26 @@ fn warn_debug_build(_py: Python) -> PyResult<()> {
 ///
 /// `ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
 #[pymodule(gil_used = false)]
-#[pyo3(name = "ryo3")] // possibly change to `ryo3`?
+#[pyo3(name = "ryo3")]
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     lager::tracing_init();
+    let ti = std::time::Instant::now();
     #[cfg(debug_assertions)]
     warn_debug_build(m.py())?;
     debug!("version: {}", VERSION);
     debug!("build_profile: {}", BUILD_PROFILE);
     debug!("build_timestamp: {}", BUILD_TIMESTAMP);
 
-    m.add("__pkg_name__", PACKAGE)?;
-    m.add("__description__", DESCRIPTION)?;
-    m.add("__version__", VERSION)?;
-    m.add("__build_profile__", BUILD_PROFILE)?;
-    m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
-    m.add("__authors__", AUTHORS)?;
+    let py = m.py();
+    m.add(intern!(py, "__pkg_name__"), PACKAGE)?;
+    m.add(intern!(py, "__description__"), DESCRIPTION)?;
+    m.add(intern!(py, "__version__"), VERSION)?;
+    m.add(intern!(py, "__build_profile__"), BUILD_PROFILE)?;
+    m.add(intern!(py, "__build_timestamp__"), BUILD_TIMESTAMP)?;
+    m.add(intern!(py, "__authors__"), AUTHORS)?;
     // register/add core lib from ryo3
     ryo3::ry::pymod_add(m)?;
+
+    debug!("ryo3-init: {:?}", ti.elapsed());
     Ok(())
 }

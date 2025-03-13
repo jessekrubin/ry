@@ -32,7 +32,6 @@ def test_parse_url_readme() -> None:
         "https://github.com/rust-lang/rust/issues?labels=E-easy&state=open"
     )?;
 
-
     assert!(issue_list_url.scheme() == "https");
     assert!(issue_list_url.username() == "");
     assert!(issue_list_url.password() == None);
@@ -100,31 +99,30 @@ def test_repr() -> None:
     assert "URL('http://example.com/')" == repr(url)
 
 
-def test_join() -> None:
-    u = ry.URL("http://example.com")
-    joined = u.join("foo")
-    assert str(joined) == "http://example.com/foo"
-    joined_multiple = u.join("foo").join("bar")
-    assert str(joined_multiple) == "http://example.com/foo/bar"
-    joined_varargs = u.join("foo", "bar")
-    assert str(joined_varargs) == "http://example.com/foo/bar"
+class TestJoinUrl:
+    def test_join(self) -> None:
+        u = ry.URL("http://example.com")
+        joined = u.join("foo")
+        assert str(joined) == "http://example.com/foo"
+        joined_multiple = u.join("foo").join("bar")
+        assert str(joined_multiple) == "http://example.com/foo/bar"
+        joined_varargs = u.join("foo", "bar")
+        assert str(joined_varargs) == "http://example.com/foo/bar"
 
+    def test_join_truediv(self) -> None:
+        u = ry.URL("http://example.com")
+        joined = u / "foo"
+        assert str(joined) == "http://example.com/foo"
+        joined_multiple = u / "foo" / "bar"
+        assert str(joined_multiple) == "http://example.com/bar"
+        joined_varargs = u / "foo" / "bar"
+        assert str(joined_varargs) == "http://example.com/bar"
 
-def test_join_truediv() -> None:
-    u = ry.URL("http://example.com")
-    joined = u / "foo"
-    assert str(joined) == "http://example.com/foo"
-    joined_multiple = u / "foo" / "bar"
-    assert str(joined_multiple) == "http://example.com/bar"
-    joined_varargs = u / "foo" / "bar"
-    assert str(joined_varargs) == "http://example.com/bar"
-
-
-def test_join_truediv_trailing_slash() -> None:
-    u = ry.URL("http://example.com")
-    joined = u / "foo"
-    assert str(joined) == "http://example.com/foo"
-    joined_multiple = u / "foo/" / "bar"
-    assert str(joined_multiple) == "http://example.com/foo/bar"
-    joined_varargs = u / "foo/" / "bar"
-    assert str(joined_varargs) == "http://example.com/foo/bar"
+    def test_join_truediv_trailing_slash(self) -> None:
+        u = ry.URL("http://example.com")
+        joined = u / "foo"
+        assert str(joined) == "http://example.com/foo"
+        joined_multiple = u / "foo/" / "bar"
+        assert str(joined_multiple) == "http://example.com/foo/bar"
+        joined_varargs = u / "foo/" / "bar"
+        assert str(joined_varargs) == "http://example.com/foo/bar"

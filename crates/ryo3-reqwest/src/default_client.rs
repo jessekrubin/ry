@@ -6,5 +6,9 @@ static DEFAULT_CLIENT: OnceLock<Mutex<RyHttpClient>> = OnceLock::new();
 
 #[inline]
 pub(crate) fn default_client() -> &'static Mutex<RyHttpClient> {
-    DEFAULT_CLIENT.get_or_init(|| Mutex::new(RyHttpClient(reqwest::Client::new())))
+    DEFAULT_CLIENT.get_or_init(|| {
+        let client = RyHttpClient::new(None)
+            .expect("Failed to create default client. This should never happen.");
+        Mutex::new(client)
+    })
 }

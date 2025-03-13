@@ -80,3 +80,16 @@ impl TryFrom<PyHeadersLike> for HeaderMap {
         }
     }
 }
+
+impl TryFrom<PyHeadersLike> for PyHeaders {
+    type Error = PyErr;
+    fn try_from(h: PyHeadersLike) -> Result<Self, Self::Error> {
+        match h {
+            PyHeadersLike::Headers(h) => Ok(h),
+            PyHeadersLike::Map(d) => {
+                let headers = PyHeadersLike::map2headers(&d)?;
+                Ok(PyHeaders(headers))
+            }
+        }
+    }
+}

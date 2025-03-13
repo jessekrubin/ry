@@ -10,7 +10,7 @@ def test_bytes_pickling() -> None:
     import pickle
 
     pickled = pickle.dumps(b)
-    loaded = pickle.loads(pickled)
+    loaded = pickle.loads(pickled)  # noqa: S301
     assert loaded == b
 
 

@@ -4,12 +4,10 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
-use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDelta, PyDict, PyDictMethods, PyTuple, PyType};
-use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
-    PyResult, Python,
-};
+use pyo3::prelude::*;
+
+use pyo3::types::{PyDelta, PyDict, PyTuple, PyType};
+use pyo3::{intern, IntoPyObjectExt};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -81,33 +79,34 @@ impl RySpan {
         self_fieldwise != other_fieldwise
     }
 
-    fn negate(&self) -> PyResult<Self> {
-        Ok(Self(self.0.negate()))
+    fn negate(&self) -> Self {
+        Self(self.0.negate())
     }
 
-    fn __neg__(&self) -> PyResult<Self> {
-        Ok(Self(self.0.negate()))
+    fn __neg__(&self) -> Self {
+        Self(self.0.negate())
     }
 
     #[inline]
-    fn __abs__(&self) -> PyResult<Self> {
-        Ok(Self(self.0.abs()))
+    fn __abs__(&self) -> Self {
+        Self(self.0.abs())
     }
 
-    fn abs(&self) -> PyResult<Self> {
+    fn abs(&self) -> Self {
         self.__abs__()
     }
 
-    fn __invert__(&self) -> PyResult<Self> {
-        Ok(Self(self.0.negate()))
+    fn __invert__(&self) -> Self {
+        Self(self.0.negate())
     }
 
     #[classmethod]
-    fn from_pytimedelta<'py>(
-        _cls: &Bound<'py, PyType>,
-        delta: &Bound<'py, PyAny>,
-    ) -> PyResult<Self> {
-        delta.extract::<JiffSpan>().map(Self::from)
+    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Span) -> Self {
+        Self(delta)
+    }
+
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+        self.to_pytimedelta(py)
     }
 
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {

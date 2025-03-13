@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TypedDict
+from typing import Protocol, TypedDict, TypeVar
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
@@ -21,6 +21,12 @@ __all__ = (
 )
 
 FsPathLike = str | PathLike[str]
+
+T_co = TypeVar("T_co", covariant=True)
+
+
+class ToPy(Protocol[T_co]):
+    def to_py(self) -> T_co: ...
 
 
 # =============================================================================

@@ -1,6 +1,4 @@
 //! `FsPath` struct python module
-
-// TODO: remove in future? if possible?
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
@@ -93,7 +91,7 @@ impl PyFsPath {
         self.path()
     }
 
-    fn as_py(&self) -> &Path {
+    fn to_py(&self) -> &Path {
         self.path()
     }
 

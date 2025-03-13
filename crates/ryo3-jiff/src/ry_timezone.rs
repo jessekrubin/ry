@@ -1,14 +1,12 @@
 use crate::errors::map_py_value_err;
-use crate::pydatetime_conversions::timezone2pyobect;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
-use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType, PyTzInfo};
+use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
 use ryo3_macros::err_py_not_impl;
 use std::fmt::Debug;
@@ -34,6 +32,12 @@ impl From<&TimeZone> for RyTimeZone {
 impl RyTimeZone {
     #[new]
     pub fn py_new(time_zone_name: &str) -> PyResult<Self> {
+        if time_zone_name.is_empty() || time_zone_name.eq_ignore_ascii_case("unknown") {
+            return Ok(Self::from(TimeZone::unknown()));
+        }
+        if time_zone_name.eq_ignore_ascii_case("utc") {
+            return Ok(Self::from(TimeZone::fixed(Offset::UTC)));
+        }
         TimeZone::get(time_zone_name)
             .map(RyTimeZone::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
@@ -75,6 +79,10 @@ impl RyTimeZone {
     }
 
     fn __repr__(&self) -> String {
+        if self.0.is_unknown() {
+            return "TimeZone('unknown')".to_string();
+        }
+
         let iana_name = self.0.iana_name();
         if let Some(name) = iana_name {
             format!("TimeZone(\"{name}\")")
@@ -83,12 +91,6 @@ impl RyTimeZone {
             let offset = self.0.to_offset(Timestamp::now());
             format!("TimeZone('{offset}')")
         }
-    }
-
-    fn __hash__(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.__str__().hash(&mut hasher);
-        hasher.finish()
     }
 
     fn __str__(&self) -> String {
@@ -101,6 +103,31 @@ impl RyTimeZone {
         }
     }
 
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        match self.0.to_fixed_offset() {
+            Ok(offset) => offset.hash(&mut hasher),
+            Err(_) => {
+                if let Some(name) = self.iana_name() {
+                    name.hash(&mut hasher);
+                }
+            }
+        }
+        hasher.finish()
+    }
+
+    fn to_fixed_offset(&self) -> PyResult<RyOffset> {
+        self.0
+            .to_fixed_offset()
+            .map(RyOffset::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[getter]
+    fn is_unknwon(&self) -> bool {
+        self.0.is_unknown()
+    }
+
     fn __eq__(&self, other: TimeZoneEquality) -> bool {
         match other {
             TimeZoneEquality::TimeZone(other) => {
@@ -110,14 +137,17 @@ impl RyTimeZone {
         }
     }
 
-    fn to_pytzinfo<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        timezone2pyobect(py, &self.0)
+    fn to_py(&self) -> &TimeZone {
+        &self.0
+    }
+
+    fn to_pytzinfo(&self) -> &TimeZone {
+        &self.0
     }
 
     #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyTzInfo>) -> PyResult<Self> {
-        let jiff_tz: JiffTimeZone = d.extract()?;
-        Ok(Self::from(jiff_tz.0))
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: TimeZone) -> Self {
+        Self::from(d)
     }
 
     // =====================================================================
@@ -176,9 +206,12 @@ impl RyTimeZone {
     // ===============
     // NOT IMPLEMENTED
     // ===============
+    #[expect(clippy::unused_self)]
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
+
+    #[expect(clippy::unused_self)]
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

@@ -8,6 +8,7 @@ use crate::ry_timestamp_round::RyTimestampRound;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffRoundMode, JiffUnit, RyOffset};
+use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
@@ -16,6 +17,7 @@ use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
+
 #[derive(Debug, Clone)]
 #[pyclass(name = "Timestamp", module = "ry", frozen)]
 pub struct RyTimestamp(pub(crate) Timestamp);
@@ -82,14 +84,39 @@ impl RyTimestamp {
         RyZoned::from(Zoned::new(self.0, time_zone.0))
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    #[classmethod]
+    fn from_pydatetime<'py>(
+        _cls: &Bound<'py, PyType>,
+        dt: &Bound<'py, PyAny>,
+    ) -> PyResult<RyTimestamp> {
+        let ts = dt.extract::<Timestamp>()?;
+        Ok(RyTimestamp(ts))
+    }
+
+    fn to_py(&self) -> Timestamp {
+        self.0
+    }
+
+    fn to_pydatetime(&self) -> Timestamp {
+        self.0
+    }
+
+    fn to_pydate(&self) -> jiff::civil::Date {
+        self.0.to_zoned(TimeZone::UTC).date()
+    }
+
+    fn to_pytime(&self) -> jiff::civil::Time {
+        self.0.to_zoned(TimeZone::UTC).time()
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -259,8 +286,8 @@ impl RyTimestamp {
     fn signum(&self) -> i8 {
         self.0.signum()
     }
-    fn strftime(&self, format: &str) -> PyResult<String> {
-        Ok(self.0.strftime(format).to_string())
+    fn strftime(&self, format: &str) -> String {
+        self.0.strftime(format).to_string()
     }
 
     #[classmethod]

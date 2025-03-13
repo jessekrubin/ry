@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.38 [unreleased]
+
+- `ryo3-reqwest`
+  - client configuration for pickling
+  - allow buffer-protocol for `body` fetching methods (should add string maybe?)
+- `ryo3-walkdir`
+  - Few more options added
+
+---
+
 ## v0.0.37 [2025-03-11]
 
 - pyo3 version `0.24.0`

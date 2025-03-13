@@ -73,7 +73,7 @@ impl PyUrl {
 
     fn __hash__(&self) -> u64 {
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        self.0.as_str().hash(&mut hasher);
+        self.0.hash(&mut hasher);
         hasher.finish()
     }
 
@@ -256,14 +256,9 @@ impl PyUrl {
         self.0.is_special()
     }
 
-    #[expect(clippy::unused_self)]
-    fn options(&self) -> PyResult<()> {
-        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
-    }
-
-    #[expect(clippy::unused_self)]
-    fn origin(&self) -> PyResult<()> {
-        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(""))
+    #[getter]
+    fn origin(&self) -> String {
+        self.0.origin().ascii_serialization()
     }
 
     #[classmethod]

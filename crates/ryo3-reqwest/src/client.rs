@@ -1,12 +1,12 @@
 use crate::errors::map_reqwest_err;
-
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use bytes::Bytes;
 use futures_core::Stream;
 use futures_util::StreamExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyTuple};
+use pyo3::{intern, IntoPyObjectExt};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
@@ -15,11 +15,15 @@ use ryo3_url::{extract_url, PyUrl};
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tracing::debug;
 
 #[pyclass]
 #[pyo3(name = "HttpClient", module = "ry.ryo3.reqwest", frozen)]
 #[derive(Debug, Clone)]
-pub struct RyHttpClient(pub reqwest::Client);
+pub struct RyHttpClient {
+    client: reqwest::Client,
+    cfg: ClientConfig,
+}
 
 #[pyclass]
 #[pyo3(name = "Response", module = "ry.ryo3.reqwest")]
@@ -241,12 +245,85 @@ fn parse_user_agent(user_agent: Option<String>) -> PyResult<HeaderValue> {
         .map_err(|e| PyValueError::new_err(format!("{e}")))
 }
 
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct ClientConfig {
+    headers: Option<PyHeaders>,
+    user_agent: Option<ryo3_http::HttpHeaderValue>,
+    timeout: Option<ryo3_std::PyDuration>,
+    read_timeout: Option<ryo3_std::PyDuration>,
+    connect_timeout: Option<ryo3_std::PyDuration>,
+    gzip: bool,
+    brotli: bool,
+    deflate: bool,
+}
+
+impl<'py> IntoPyObject<'py> for &ClientConfig {
+    type Target = PyDict;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let dict = PyDict::new(py);
+        dict.set_item(intern!(py, "headers"), self.headers.clone())?;
+        dict.set_item(intern!(py, "user_agent"), self.user_agent.clone())?;
+        dict.set_item(intern!(py, "timeout"), self.timeout.clone())?;
+        dict.set_item(intern!(py, "read_timeout"), self.read_timeout.clone())?;
+        dict.set_item(intern!(py, "connect_timeout"), self.connect_timeout.clone())?;
+        dict.set_item(intern!(py, "gzip"), self.gzip)?;
+        dict.set_item(intern!(py, "brotli"), self.brotli)?;
+        dict.set_item(intern!(py, "deflate"), self.deflate)?;
+        Ok(dict)
+    }
+}
+
+impl ClientConfig {
+    fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
+        let mut client_builder = client_builder;
+        if let Some(user_agent) = &self.user_agent {
+            client_builder = client_builder.user_agent(user_agent.clone());
+        }
+        if let Some(headers) = &self.headers {
+            client_builder = client_builder.default_headers(headers.0.clone());
+        }
+        if let Some(timeout) = &self.timeout {
+            client_builder = client_builder.timeout(timeout.0);
+        }
+        if let Some(read_timeout) = &self.read_timeout {
+            client_builder = client_builder.read_timeout(read_timeout.0);
+        }
+        if let Some(connect_timeout) = &self.connect_timeout {
+            client_builder = client_builder.connect_timeout(connect_timeout.0);
+        }
+        client_builder = client_builder
+            .connection_verbose(false)
+            .brotli(self.brotli)
+            .gzip(self.gzip)
+            .deflate(self.deflate);
+        client_builder
+    }
+
+    fn client_builder(&self) -> reqwest::ClientBuilder {
+        let client_builder = reqwest::Client::builder();
+        self.apply(client_builder)
+    }
+}
+
+impl RyHttpClient {
+    pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
+        let cfg = cfg.unwrap_or_default();
+        let client_builder = cfg.client_builder();
+        let client = client_builder.build().map_err(map_reqwest_err)?;
+        Ok(Self { client, cfg })
+    }
+}
+
 #[pymethods]
 impl RyHttpClient {
     #[expect(clippy::too_many_arguments)]
     #[new]
     #[pyo3(
         signature = (
+            *,
             headers = None,
             user_agent = None,
             timeout = None,
@@ -267,32 +344,50 @@ impl RyHttpClient {
         brotli: Option<bool>,
         deflate: Option<bool>,
     ) -> PyResult<Self> {
-        let user_agent: HeaderValue = parse_user_agent(user_agent)?;
-        let mut client_builder = reqwest::Client::builder().user_agent(user_agent);
-        if let Some(headers) = headers {
-            client_builder = client_builder.default_headers(HeaderMap::try_from(headers)?);
-        }
-        client_builder = client_builder
-            .connection_verbose(false)
-            .brotli(brotli.unwrap_or(true))
-            .gzip(gzip.unwrap_or(true))
-            .deflate(deflate.unwrap_or(true));
-        if let Some(timeout) = timeout {
-            client_builder = client_builder.timeout(timeout.0);
-        }
-
-        if let Some(read_timeout) = read_timeout {
-            client_builder = client_builder.read_timeout(read_timeout.0);
-        }
-
-        if let Some(connect_timeout) = connect_timeout {
-            client_builder = client_builder.connect_timeout(connect_timeout.0);
-        }
-
+        let user_agent = parse_user_agent(user_agent)?;
+        let headers = headers.map(PyHeaders::try_from).transpose()?;
+        let client_cfg = ClientConfig {
+            headers,
+            user_agent: Some(user_agent.into()),
+            timeout,
+            read_timeout,
+            connect_timeout,
+            gzip: gzip.unwrap_or(true),
+            brotli: brotli.unwrap_or(true),
+            deflate: deflate.unwrap_or(true),
+        };
+        debug!("reqwest-client-config: {:#?}", client_cfg);
+        let client_builder = client_cfg.client_builder();
         let client = client_builder
             .build()
-            .map_err(|e| PyValueError::new_err(format!("client-build: {e}")))?;
-        Ok(Self(client))
+            .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+        Ok(Self {
+            client,
+            cfg: client_cfg,
+        })
+    }
+
+    fn __repr__(&self) -> String {
+        format!("HttpClient<{:?}>", self.cfg)
+    }
+
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::empty(py).into_bound_py_any(py)?;
+        let kwargs = self.cfg.into_bound_py_any(py)?;
+        PyTuple::new(py, vec![args, kwargs])
+    }
+
+    fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let kwargs = self.cfg.into_bound_py_any(py)?;
+        Ok(kwargs)
+    }
+
+    fn __eq__(&self, other: &RyHttpClient) -> bool {
+        self.cfg == other.cfg
+    }
+
+    fn __ne__(&self, other: &RyHttpClient) -> bool {
+        self.cfg != other.cfg
     }
 
     #[pyo3(
@@ -305,7 +400,7 @@ impl RyHttpClient {
         headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let mut req = self.0.get(url);
+        let mut req = self.client.get(url);
         // fing-fang-foom make de headers...
         if let Some(headers) = headers {
             req = req.headers(HeaderMap::try_from(headers)?);
@@ -325,11 +420,12 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: &[u8],
+        body: ryo3_bytes::PyBytes,
         headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let mut req = self.0.post(url).body(body.to_vec());
+        let body_bytes = body.into_inner();
+        let mut req = self.client.post(url).body(body_bytes);
         if let Some(headers) = headers {
             let headers = HeaderMap::try_from(headers)?;
             req = req.headers(headers);
@@ -349,11 +445,12 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: &[u8],
+        body: ryo3_bytes::PyBytes,
         headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let mut req = self.0.put(url).body(body.to_vec());
+        let body_bytes = body.into_inner();
+        let mut req = self.client.put(url).body(body_bytes);
         if let Some(headers) = headers {
             let headers = HeaderMap::try_from(headers)?;
             req = req.headers(headers);
@@ -373,11 +470,12 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: &[u8],
+        body: ryo3_bytes::PyBytes,
         headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let mut req = self.0.patch(url).body(body.to_vec());
+        let body_bytes = body.into_inner();
+        let mut req = self.client.patch(url).body(body_bytes);
         if let Some(headers) = headers {
             let headers = HeaderMap::try_from(headers)?;
             req = req.headers(headers);
@@ -397,13 +495,14 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<&[u8]>,
+        body: Option<ryo3_bytes::PyBytes>,
         headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let mut req = self.0.delete(url);
+        let mut req = self.client.delete(url);
         if let Some(body) = body {
-            req = req.body(body.to_vec());
+            let body_bytes = body.into_inner();
+            req = req.body(body_bytes);
         }
         if let Some(headers) = headers {
             let headers = HeaderMap::try_from(headers)?;
@@ -427,7 +526,7 @@ impl RyHttpClient {
         headers: Option<PyHeadersLike>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
-        let mut req = self.0.head(url);
+        let mut req = self.client.head(url);
         if let Some(headers) = headers {
             let headers = HeaderMap::try_from(headers)?;
             req = req.headers(headers);
@@ -454,14 +553,15 @@ impl RyHttpClient {
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         method: Option<ryo3_http::HttpMethod>,
-        body: Option<&[u8]>,
+        body: Option<ryo3_bytes::PyBytes>,
         headers: Option<Bound<'py, PyDict>>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let method = method.unwrap_or(ryo3_http::HttpMethod(reqwest::Method::GET));
         let url = extract_url(url)?;
-        let mut req = self.0.request(method.0, url);
+        let mut req = self.client.request(method.0, url);
         if let Some(body) = body {
-            req = req.body(body.to_vec());
+            let body_bytes = body.into_inner();
+            req = req.body(body_bytes);
         }
         if let Some(headers) = headers {
             let mut default_headers = HeaderMap::new();
@@ -470,7 +570,7 @@ impl RyHttpClient {
                 let v = v.to_string();
                 let header_name = reqwest::header::HeaderName::from_bytes(k.as_bytes())
                     .map_err(|e| PyValueError::new_err(format!("header-name-error: {e}")))?;
-                let header_value = reqwest::header::HeaderValue::from_str(&v)
+                let header_value = HeaderValue::from_str(&v)
                     .map_err(|e| PyValueError::new_err(format!("header-value-error: {e}")))?;
                 default_headers.insert(header_name, header_value);
             }

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import shutil
 from pathlib import Path
@@ -79,6 +81,8 @@ IGNORED_MEMBERS = {
     "__format__",
     "__getattribute__",
     "__getstate__",
+    "__getnewargs__",
+    "__getnewargs_ex__",
     "__init_subclass__",
     "__module__",
     "__new__",
@@ -128,9 +132,17 @@ def main():
     class_members = [
         el for el in ry_classes_n_types() if el not in {"Headers", "HttpStatus"}
     ]
+
+    all_good = []
+    problems = []
+
     for member in class_members:
         res = compare_member(member)
-        print(res)
+        if not res.missing_from_actual and not res.missing_from_types:
+            all_good.append(res)
+        else:
+            problems.append(res)
+            print(res)
     shutil.rmtree(__dirname / "ryo3types")
 
 

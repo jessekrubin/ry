@@ -11,10 +11,11 @@
 mod pyo3_bytes;
 mod ry_bytes;
 
+use pyo3::intern;
 use pyo3::prelude::*;
 pub use pyo3_bytes::Pyo3Bytes;
 pub mod bytes;
-pub mod bytes_dev;
+// pub mod bytes_dev;
 mod bytes_ext;
 mod bytes_like;
 
@@ -27,7 +28,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBytes>()?;
 
     // rename bytes module to `ry`
-    m.getattr("Bytes")?.setattr("__module__", "ry.ryo3")?;
+    m.getattr(intern!(m.py(), "Bytes"))?
+        .setattr(intern!(m.py(), "__module__"), intern!(m.py(), "ry.ryo3"))?;
 
     Ok(())
 }
