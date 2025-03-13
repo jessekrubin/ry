@@ -87,17 +87,17 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
-    fn to_py(&self) -> PyResult<&Offset> {
-        Ok(&self.0)
+    fn to_py(&self) -> &Offset {
+        &self.0
     }
 
-    fn to_pytzinfo(&self) -> PyResult<&Offset> {
-        Ok(&self.0)
+    fn to_pytzinfo(&self) -> &Offset {
+        &self.0
     }
 
     #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: Offset) -> PyResult<Self> {
-        Ok(Self::from(d))
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: Offset) -> Self {
+        Self::from(d)
     }
 
     #[must_use]
@@ -190,14 +190,14 @@ impl RyOffset {
         hasher.finish()
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 

@@ -124,14 +124,14 @@ impl RyTime {
     // ========================================================================
     // OPERATORS/DUNDERS
     // ========================================================================
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -252,17 +252,17 @@ impl RyTime {
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
-    fn to_py(&self) -> PyResult<Time> {
+    fn to_py(&self) -> Time {
         self.to_pytime()
     }
 
-    fn to_pytime(&self) -> PyResult<Time> {
-        Ok(self.0)
+    fn to_pytime(&self) -> Time {
+        self.0
     }
 
     #[classmethod]
-    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: Time) -> PyResult<Self> {
-        Ok(Self(py_time))
+    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: Time) -> Self {
+        Self(py_time)
     }
 
     // =====================================================================
@@ -294,9 +294,9 @@ impl RyTime {
         Ok(dict)
     }
 
-    fn series(&self, period: &RySpan) -> PyResult<RyTimeSeries> {
+    fn series(&self, period: &RySpan) -> RyTimeSeries {
         let ser = self.0.series(period.0);
-        Ok(RyTimeSeries { series: ser })
+        RyTimeSeries { series: ser }
     }
 
     fn duration_since(&self, other: &Self) -> RySignedDuration {

@@ -84,16 +84,16 @@ impl RySignedDuration {
     }
 
     #[classmethod]
-    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: SignedDuration) -> PyResult<Self> {
-        Ok(Self(delta))
+    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: SignedDuration) -> Self {
+        Self(delta)
     }
 
-    fn to_py(&self) -> PyResult<&SignedDuration> {
-        Ok(&self.0)
+    fn to_py(&self) -> &SignedDuration {
+        &self.0
     }
 
-    fn to_pytimedelta(&self) -> PyResult<&SignedDuration> {
-        Ok(&self.0)
+    fn to_pytimedelta(&self) -> &SignedDuration {
+        &self.0
     }
 
     fn to_timespan(&self) -> PyResult<RySpan> {

@@ -79,33 +79,30 @@ impl RySpan {
         self_fieldwise != other_fieldwise
     }
 
-    fn negate(&self) -> PyResult<Self> {
-        Ok(Self(self.0.negate()))
+    fn negate(&self) -> Self {
+        Self(self.0.negate())
     }
 
-    fn __neg__(&self) -> PyResult<Self> {
-        Ok(Self(self.0.negate()))
+    fn __neg__(&self) -> Self {
+        Self(self.0.negate())
     }
 
     #[inline]
-    fn __abs__(&self) -> PyResult<Self> {
-        Ok(Self(self.0.abs()))
+    fn __abs__(&self) -> Self {
+        Self(self.0.abs())
     }
 
-    fn abs(&self) -> PyResult<Self> {
+    fn abs(&self) -> Self {
         self.__abs__()
     }
 
-    fn __invert__(&self) -> PyResult<Self> {
-        Ok(Self(self.0.negate()))
+    fn __invert__(&self) -> Self {
+        Self(self.0.negate())
     }
 
     #[classmethod]
-    fn from_pytimedelta(
-        _cls: &Bound<'_, PyType>,
-        delta: Span, // delta: &Bound<'py, PyAny>,
-    ) -> PyResult<Self> {
-        Ok(Self(delta))
+    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Span) -> Self {
+        Self(delta)
     }
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {

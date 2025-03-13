@@ -8,7 +8,6 @@
 #![deny(clippy::unwrap_used)]
 #![warn(clippy::must_use_candidate)]
 #![expect(clippy::missing_errors_doc)]
-#![expect(clippy::unnecessary_wraps)]
 
 pub mod pydatetime_conversions;
 

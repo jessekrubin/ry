@@ -98,14 +98,14 @@ impl RyDateTime {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -338,25 +338,25 @@ impl RyDateTime {
         RyDateTime::from(self.0.last_of_month())
     }
 
-    fn to_py(&self) -> PyResult<DateTime> {
+    fn to_py(&self) -> DateTime {
         self.to_pydatetime()
     }
 
-    fn to_pydatetime(&self) -> PyResult<DateTime> {
-        Ok(self.0)
+    fn to_pydatetime(&self) -> DateTime {
+        self.0
     }
 
-    fn to_pydate(&self) -> PyResult<Date> {
-        Ok(self.0.date())
+    fn to_pydate(&self) -> Date {
+        self.0.date()
     }
 
-    fn to_pytime(&self) -> PyResult<Time> {
-        Ok(self.0.time())
+    fn to_pytime(&self) -> Time {
+        self.0.time()
     }
 
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: DateTime) -> PyResult<Self> {
-        Ok(Self::from(d))
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: DateTime) -> Self {
+        Self::from(d)
     }
 
     fn series(&self, period: &RySpan) -> RyDateTimeSeries {

@@ -93,30 +93,30 @@ impl RyTimestamp {
         Ok(RyTimestamp(ts))
     }
 
-    fn to_py(&self) -> PyResult<Timestamp> {
-        Ok(self.0)
+    fn to_py(&self) -> Timestamp {
+        self.0
     }
 
-    fn to_pydatetime(&self) -> PyResult<Timestamp> {
-        Ok(self.0)
+    fn to_pydatetime(&self) -> Timestamp {
+        self.0
     }
 
-    fn to_pydate(&self) -> PyResult<jiff::civil::Date> {
-        Ok(self.0.to_zoned(TimeZone::UTC).date())
+    fn to_pydate(&self) -> jiff::civil::Date {
+        self.0.to_zoned(TimeZone::UTC).date()
     }
 
-    fn to_pytime(&self) -> PyResult<jiff::civil::Time> {
-        Ok(self.0.to_zoned(TimeZone::UTC).time())
+    fn to_pytime(&self) -> jiff::civil::Time {
+        self.0.to_zoned(TimeZone::UTC).time()
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -286,8 +286,8 @@ impl RyTimestamp {
     fn signum(&self) -> i8 {
         self.0.signum()
     }
-    fn strftime(&self, format: &str) -> PyResult<String> {
-        Ok(self.0.strftime(format).to_string())
+    fn strftime(&self, format: &str) -> String {
+        self.0.strftime(format).to_string()
     }
 
     #[classmethod]

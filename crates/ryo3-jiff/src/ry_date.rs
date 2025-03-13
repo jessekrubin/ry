@@ -95,14 +95,14 @@ impl RyDate {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn __richcmp__(&self, other: &RyDate, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &RyDate, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -251,16 +251,16 @@ impl RyDate {
     // }
 
     #[classmethod]
-    fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> PyResult<Self> {
-        Ok(Self(d))
+    fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> Self {
+        Self(d)
     }
 
-    fn to_py(&self) -> PyResult<Date> {
+    fn to_py(&self) -> Date {
         self.to_pydate()
     }
 
-    fn to_pydate(&self) -> PyResult<Date> {
-        Ok(self.0)
+    fn to_pydate(&self) -> Date {
+        self.0
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -349,8 +349,8 @@ impl RyDate {
         self.0.yesterday().map(From::from).map_err(map_py_value_err)
     }
 
-    fn strftime(&self, format: &str) -> PyResult<String> {
-        Ok(self.0.strftime(format).to_string())
+    fn strftime(&self, format: &str) -> String {
+        self.0.strftime(format).to_string()
     }
 
     #[classmethod]
@@ -424,11 +424,8 @@ impl RyDate {
     }
 
     #[classmethod]
-    fn from_iso_week_date(
-        _cls: &Bound<'_, PyType>,
-        iso_week_date: &RyISOWeekDate,
-    ) -> PyResult<Self> {
-        Ok(Self::from(iso_week_date.0.date()))
+    fn from_iso_week_date(_cls: &Bound<'_, PyType>, iso_week_date: &RyISOWeekDate) -> Self {
+        Self::from(iso_week_date.0.date())
     }
 
     fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
