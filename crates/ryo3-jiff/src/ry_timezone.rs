@@ -177,9 +177,12 @@ impl RyTimeZone {
     // ===============
     // NOT IMPLEMENTED
     // ===============
+    #[expect(clippy::unused_self)]
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
+
+    #[expect(clippy::unused_self)]
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
         err_py_not_impl!()
     }

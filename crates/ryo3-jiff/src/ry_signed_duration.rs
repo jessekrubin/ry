@@ -386,17 +386,6 @@ impl RySignedDuration {
     fn subsec_nanos(&self) -> i32 {
         self.0.subsec_nanos()
     }
-
-    fn try_from_secs_f32(&self, secs: f32) -> PyResult<Self> {
-        SignedDuration::try_from_secs_f32(secs)
-            .map(Self::from)
-            .map_err(map_py_value_err)
-    }
-    fn try_from_secs_f64(&self, secs: f64) -> PyResult<Self> {
-        SignedDuration::try_from_secs_f64(secs)
-            .map(Self::from)
-            .map_err(map_py_value_err)
-    }
 }
 
 impl From<SignedDuration> for RySignedDuration {

@@ -9,7 +9,6 @@
 #![warn(clippy::must_use_candidate)]
 #![expect(clippy::missing_errors_doc)]
 #![expect(clippy::unnecessary_wraps)]
-#![expect(clippy::unused_self)]
 
 mod delta_arithmetic_self;
 mod dev;

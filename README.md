@@ -606,13 +606,13 @@ from os import PathLike
 from pathlib import Path
 
 from ry import Bytes
-from ry._types import Buffer
+from ry._types import Buffer, ToPy
 
 
 # =============================================================================
 # FSPATH
 # =============================================================================
-class FsPath:
+class FsPath(ToPy[Path]):
     def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
     def __fspath__(self) -> str: ...
     def __str__(self) -> str: ...
@@ -627,8 +627,8 @@ class FsPath:
     def __truediv__(self, other: PathLike[str] | str) -> FsPath: ...
     def __rtruediv__(self, other: PathLike[str] | str) -> FsPath: ...
     def __bytes__(self) -> bytes: ...
+    def to_py(self) -> Path: ...
     def to_pathlib(self) -> Path: ...
-    def as_py(self) -> Path: ...
     def read(self) -> Bytes: ...
     def read_text(self) -> str: ...
     def read_bytes(self) -> bytes: ...
@@ -828,6 +828,7 @@ def train_case(string: str) -> str: ...
 
 import datetime as pydt
 import typing as t
+from typing import Protocol
 
 import typing_extensions as te
 
@@ -836,6 +837,7 @@ from ry._types import (
     DateTypedDict,
     TimeSpanTypedDict,
     TimeTypedDict,
+    ToPy,
 )
 from ry.ryo3 import Duration
 
@@ -883,7 +885,27 @@ JIFF_WEEKDAY_INT = t.Literal[
 ]
 
 
-class Date:
+class ToPyDate(Protocol):
+    def to_pydate(self) -> pydt.date: ...
+
+
+class ToPyTime(Protocol):
+    def to_pytime(self) -> pydt.time: ...
+
+
+class ToPyDateTime(Protocol):
+    def to_pydatetime(self) -> pydt.datetime: ...
+
+
+class ToPyTimeDelta(Protocol):
+    def to_pytimedelta(self) -> pydt.timedelta: ...
+
+
+class ToPyTzInfo(Protocol):
+    def to_pytzinfo(self) -> pydt.tzinfo: ...
+
+
+class Date(ToPy[pydt.date], ToPyDate):
     MIN: Date
     MAX: Date
     ZERO: Date
@@ -900,6 +922,7 @@ class Date:
     # =========================================================================
     # PYTHON_CONVERSIONS
     # =========================================================================
+    def to_py(self) -> pydt.date: ...
     def to_pydate(self) -> pydt.date: ...
     @classmethod
     def from_pydate(cls: type[Date], date: pydt.date) -> Date: ...
@@ -1043,7 +1066,7 @@ class DateDifference:
     def increment(self, increment: int) -> DateDifference: ...
 
 
-class Time:
+class Time(ToPy[pydt.time], ToPyTime):
     MIN: Time
     MAX: Time
 
@@ -1086,6 +1109,7 @@ class Time:
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
+    def to_py(self) -> pydt.time: ...
     def to_pytime(self) -> pydt.time: ...
     @classmethod
     def from_pytime(cls: type[Time], t: pydt.time) -> Time: ...
@@ -1199,7 +1223,7 @@ class TimeDifference:
     def increment(self, increment: int) -> TimeDifference: ...
 
 
-class DateTime:
+class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     MIN: DateTime
     MAX: DateTime
     ZERO: DateTime
@@ -1231,8 +1255,10 @@ class DateTime:
     # =========================================================================
     @classmethod
     def from_pydatetime(cls: type[DateTime], dt: pydt.datetime) -> DateTime: ...
+    def to_py(self) -> pydt.datetime: ...
+    def to_pydate(self) -> pydt.date: ...
     def to_pydatetime(self) -> pydt.datetime: ...
-
+    def to_pytime(self) -> pydt.time: ...
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
@@ -1401,7 +1427,7 @@ class DateTimeDifference:
     def increment(self, increment: int) -> DateTimeDifference: ...
 
 
-class TimeZone:
+class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     def __init__(self, name: str) -> None: ...
     def __eq__(self, other: object) -> bool: ...
 
@@ -1414,6 +1440,8 @@ class TimeZone:
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
+
+    def to_py(self) -> pydt.tzinfo: ...
     def to_pytzinfo(self) -> pydt.tzinfo: ...
     @classmethod
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -> TimeZone: ...
@@ -1458,7 +1486,7 @@ class TimeZone:
     def to_ambiguous_zoned(self) -> t.NoReturn: ...
 
 
-class SignedDuration:
+class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
     MIN: SignedDuration
     MAX: SignedDuration
     ZERO: SignedDuration
@@ -1500,6 +1528,7 @@ class SignedDuration:
     def from_pytimedelta(
         cls: type[SignedDuration], td: pydt.timedelta
     ) -> SignedDuration: ...
+    def to_py(self) -> pydt.timedelta: ...
     def to_pytimedelta(self) -> pydt.timedelta: ...
 
     # =========================================================================
@@ -1762,7 +1791,7 @@ class TimeSpan:
     def _nanoseconds(self, nanoseconds: int) -> te.Self: ...
 
 
-class Timestamp:
+class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     """
     A representation of a timestamp with second and nanosecond precision.
     """
@@ -1829,6 +1858,16 @@ class Timestamp:
     def __sub__(
         self, other: TimeSpan | SignedDuration | Duration
     ) -> te.Self: ...
+
+    # =========================================================================
+    # PYTHON CONVERSIONS
+    # =========================================================================
+    @classmethod
+    def from_pydatetime(cls, dt: pydt.datetime) -> Timestamp: ...
+    def to_py(self) -> pydt.datetime: ...
+    def to_pydate(self) -> pydt.date: ...
+    def to_pydatetime(self) -> pydt.datetime: ...
+    def to_pytime(self) -> pydt.time: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -1926,7 +1965,9 @@ class TimestampDifference:
     def increment(self, increment: int) -> TimestampDifference: ...
 
 
-class ZonedDateTime:
+class ZonedDateTime(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo
+):
     def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -> None: ...
 
     # =========================================================================
@@ -1936,8 +1977,11 @@ class ZonedDateTime:
     def from_pydatetime(
         cls: type[ZonedDateTime], dt: pydt.datetime
     ) -> ZonedDateTime: ...
+    def to_py(self) -> pydt.datetime: ...
+    def to_pydate(self) -> pydt.date: ...
     def to_pydatetime(self) -> pydt.datetime: ...
-
+    def to_pytime(self) -> pydt.time: ...
+    def to_pytzinfo(self) -> pydt.tzinfo: ...
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
