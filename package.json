@@ -10,6 +10,6 @@
   "author": "jesse rubin <jessekrubin@gmail.com>",
   "license": "MIT OR Apache-2.0",
   "devDependencies": {
-    "pyright": "^1.1.390"
+    "pyright": "^1.1.396"
   }
 }

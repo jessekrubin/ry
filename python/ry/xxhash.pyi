@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import typing as t
 
-from ry import Bytes
 from ry._types import Buffer
 
 @t.final
