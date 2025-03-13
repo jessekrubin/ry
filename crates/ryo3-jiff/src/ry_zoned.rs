@@ -12,7 +12,8 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned_round::RyZonedDateTimeRound;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, JiffZoned, RyDate};
-use jiff::civil::Weekday;
+use jiff::civil::{Date, DateTime, Time, Weekday};
+use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
@@ -131,14 +132,43 @@ impl RyZoned {
         RyDateTime::from(self.0.datetime())
     }
 
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        zoned2pyobect(py, &self.0)
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<&Zoned> {
+        self.to_pydatetime(py)
     }
 
+    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<&Zoned> {
+        Ok(&self.0)
+        // let jiff_datetime = JiffDateTime(self.0);
+        // jiff_datetime.into_pyobject(py)
+    }
+
+    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+        Ok(self.0.date())
+        // let jiff_datetime = JiffDate(self.0.date());
+        // jiff_datetime.into_pyobject(py)
+    }
+
+    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+        Ok(self.0.time())
+    }
+
+    fn to_pytzinfo(&self) -> PyResult<&TimeZone> {
+        Ok(self.0.time_zone())
+    }
+
+    // #[classmethod]
+    // fn from_pydatetime(_cls: &Bound<'_, PyType>, d: DateTime) -> PyResult<Self> {
+    //     Ok(Self::from(d))
+    //     // let jiff_datetime: JiffDateTime = d.extract()?;
+    //     // Ok(Self::from(jiff_datetime.0))
+    // }
+    // fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
+    //     zoned2pyobect(py, &self.0)
+    // }
+
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        let jiff_datetime: JiffZoned = d.extract()?;
-        Ok(Self::from(jiff_datetime.0))
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: Zoned) -> PyResult<Self> {
+        Ok(Self::from(d))
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {

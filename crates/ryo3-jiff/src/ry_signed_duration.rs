@@ -87,13 +87,18 @@ impl RySignedDuration {
     fn from_pytimedelta<'py>(
         _cls: &Bound<'py, PyType>,
         // py: Python<'py>,
-        delta: &Bound<'py, PyAny>,
+        delta: SignedDuration,
     ) -> PyResult<Self> {
-        delta.extract::<JiffSignedDuration>().map(Self::from)
+        // delta.extract::<JiffSignedDuration>().map(Self::from)
+        Ok(Self(delta))
     }
 
-    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        JiffSignedDuration(self.0).into_pyobject(py)
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<&SignedDuration> {
+        Ok(&self.0)
+    }
+
+    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<&SignedDuration> {
+        Ok(&self.0)
     }
 
     fn to_timespan(&self) -> PyResult<RySpan> {

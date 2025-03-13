@@ -105,9 +105,13 @@ impl RySpan {
     #[classmethod]
     fn from_pytimedelta<'py>(
         _cls: &Bound<'py, PyType>,
-        delta: &Bound<'py, PyAny>,
+        delta: Span, // delta: &Bound<'py, PyAny>,
     ) -> PyResult<Self> {
-        delta.extract::<JiffSpan>().map(Self::from)
+        Ok(Self(delta))
+    }
+
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
+        self.to_pytimedelta(py)
     }
 
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {

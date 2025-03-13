@@ -5,7 +5,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
-use jiff::civil::TimeRound;
+use jiff::civil::{Time, TimeRound};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::intern;
@@ -29,7 +29,7 @@ impl RyTime {
         second: Option<i8>,
         nanosecond: Option<i32>,
     ) -> PyResult<Self> {
-        jiff::civil::Time::new(
+        Time::new(
             hour.unwrap_or(0),
             minute.unwrap_or(0),
             second.unwrap_or(0),
@@ -252,12 +252,17 @@ impl RyTime {
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
-    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTime>> {
-        JiffTime(self.0).into_pyobject(py)
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+        self.to_pytime(py)
     }
+
+    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+        Ok(self.0)
+    }
+
     #[classmethod]
-    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: &Bound<'_, PyTime>) -> PyResult<Self> {
-        py_time.extract::<JiffTime>().map(RyTime::from)
+    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: Time) -> PyResult<Self> {
+        Ok(Self(py_time))
     }
 
     // =====================================================================

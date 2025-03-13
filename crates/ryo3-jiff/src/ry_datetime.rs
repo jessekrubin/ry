@@ -9,12 +9,12 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
-use jiff::civil::{DateTime, DateTimeRound, Weekday};
+use crate::{JiffDate, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
+use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyDict, PyTuple, PyType};
+use pyo3::types::{PyDate, PyDateTime, PyDict, PyTuple, PyType};
 use pyo3::{intern, IntoPyObjectExt};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
@@ -339,15 +339,33 @@ impl RyDateTime {
         RyDateTime::from(self.0.last_of_month())
     }
 
-    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDateTime>> {
-        let jiff_datetime = JiffDateTime(self.0);
-        jiff_datetime.into_pyobject(py)
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<DateTime> {
+        self.to_pydatetime(py)
+    }
+
+    fn to_pydatetime<'py>(&self, py: Python<'py>) -> PyResult<DateTime> {
+        Ok(self.0)
+        // let jiff_datetime = JiffDateTime(self.0);
+        // jiff_datetime.into_pyobject(py)
+    }
+
+    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+        Ok(self.0.date())
+        // let jiff_datetime = JiffDate(self.0.date());
+        // jiff_datetime.into_pyobject(py)
+    }
+
+    fn to_pytime<'py>(&self, py: Python<'py>) -> PyResult<Time> {
+        Ok(self.0.time())
+        // let jiff_datetime = JiffDate(self.0.date());
+        // jiff_datetime.into_pyobject(py)
     }
 
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDateTime>) -> PyResult<Self> {
-        let jiff_datetime: JiffDateTime = d.extract()?;
-        Ok(Self::from(jiff_datetime.0))
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: DateTime) -> PyResult<Self> {
+        Ok(Self::from(d))
+        // let jiff_datetime: JiffDateTime = d.extract()?;
+        // Ok(Self::from(jiff_datetime.0))
     }
 
     fn series(&self, period: &RySpan) -> RyDateTimeSeries {

@@ -93,7 +93,7 @@ impl PyFsPath {
         self.path()
     }
 
-    fn as_py(&self) -> &Path {
+    fn to_py(&self) -> &Path {
         self.path()
     }
 

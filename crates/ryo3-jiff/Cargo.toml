@@ -13,7 +13,7 @@ categories.workspace = true
 
 [dependencies]
 ryo3-std = { workspace = true }
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
+pyo3 = { workspace = true, features = ["experimental-inspect", "jiff-02"] }
 ryo3-macros.workspace = true
 jiff.workspace = true
 

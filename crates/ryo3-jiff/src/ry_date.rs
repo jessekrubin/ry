@@ -251,14 +251,16 @@ impl RyDate {
     // }
 
     #[classmethod]
-    fn from_pydate(_cls: &Bound<'_, PyType>, d: &Bound<'_, PyDate>) -> PyResult<Self> {
-        let jiff_date: JiffDate = d.extract()?;
-        Ok(Self::from(jiff_date.0))
+    fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> PyResult<Self> {
+        Ok(Self(d))
     }
 
-    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDate>> {
-        let jiff_date = JiffDate(self.0);
-        jiff_date.into_pyobject(py)
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+        self.to_pydate(py)
+    }
+
+    fn to_pydate<'py>(&self, py: Python<'py>) -> PyResult<Date> {
+        Ok(self.0)
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

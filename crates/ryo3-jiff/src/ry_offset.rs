@@ -4,7 +4,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use jiff::tz::{Offset, OffsetArithmetic};
+use jiff::tz::{Offset, OffsetArithmetic, TimeZone};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyTuple, PyType};
@@ -87,6 +87,16 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
+    fn to_pytzinfo<'py>(&self, py: Python<'py>) -> PyResult<&Offset> {
+        Ok(&self.0)
+    }
+
+    #[classmethod]
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: Offset) -> PyResult<Self> {
+        Ok(Self::from(d))
+        // let jiff_tz: JiffTimeZone = d.extract()?;
+        // Ok(Self::from(jiff_tz.0))
+    }
     #[must_use]
     pub fn string(&self) -> String {
         self.0.to_string()

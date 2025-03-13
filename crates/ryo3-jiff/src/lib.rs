@@ -18,7 +18,6 @@ pub use jiff_types::*;
 mod deprecations;
 mod errors;
 mod into_span_arithmetic;
-mod intz;
 pub mod pydatetime_conversions;
 mod ry_date;
 mod ry_date_difference;
