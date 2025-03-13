@@ -1,14 +1,13 @@
 use tracing::debug;
 use tracing_subscriber::EnvFilter;
 
-
 fn env_var_is_falsey(s: &str) -> bool {
     let s_lower = s.trim().to_lowercase();
     matches!(s_lower.as_str(), "" | "0" | "false" | "off" | "no" | "n")
 }
 
 fn env_var_str_is_truthy(s: &str) -> bool {
-    !env_var_is_falsey(&s)
+    !env_var_is_falsey(s)
 }
 
 /// Return the EnvFilter directive to use for initializing the tracing subscriber,
