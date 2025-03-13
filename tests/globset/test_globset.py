@@ -4,7 +4,7 @@ import ry
 
 
 def test_glob_str_repr_methods() -> None:
-    glob = ry.glob("*.py")
+    glob = ry.Glob("*.py")
     assert str(glob) == 'Glob("*.py")'
     assert repr(glob) == str(glob)
     assert glob.__module__ == "ryo3"
@@ -25,13 +25,13 @@ def test_globster_str_repr_methods() -> None:
 
 
 def test_single_globster() -> None:
-    matcher = ry.glob("*.py")
+    matcher = ry.Glob("*.py")
     assert matcher.is_match("file.py")
     assert not matcher.is_match("file.txt")
 
 
 def test_single_globster_callable() -> None:
-    matcher = ry.glob("*.py")
+    matcher = ry.Glob("*.py")
     assert matcher("file.py")
     assert not matcher("file.txt")
 

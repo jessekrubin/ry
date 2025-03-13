@@ -14,6 +14,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_flate2::pymod_add(m)?;
     #[cfg(feature = "fnv")]
     ryo3_fnv::pymod_add(m)?;
+    #[cfg(feature = "glob")]
+    ryo3_glob::pymod_add(m)?;
     #[cfg(feature = "globset")]
     ryo3_globset::pymod_add(m)?;
     #[cfg(feature = "heck")]
