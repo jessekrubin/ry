@@ -746,14 +746,6 @@ class Globster:
     def __repr__(self) -> str: ...
 
 
-def glob(
-    pattern: str,
-    /,
-    *,
-    case_insensitive: bool | None = None,
-    literal_separator: bool | None = None,
-    backslash_escape: bool | None = None,
-) -> Glob: ...
 def globster(
     patterns: list[str] | tuple[str, ...],
     /,
