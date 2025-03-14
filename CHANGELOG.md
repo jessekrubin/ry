@@ -1,12 +1,17 @@
 # CHANGELOG
 
-## v0.0.38 [unreleased]
+## v0.0.38 [2025-03-13]
 
 - `ryo3-reqwest`
   - client configuration for pickling
   - allow buffer-protocol for `body` fetching methods (should add string maybe?)
 - `ryo3-walkdir`
   - Few more options added
+- `ryo3-glob`
+  - new wrapper around `glob` crate
+- `ryo3-jiff`
+  - Switched to use conversions from `jiff` feature of `pyo3-v24` as opposed to
+    hand-rolled conversions we had before
 
 ---
 
