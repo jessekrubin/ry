@@ -28,6 +28,14 @@ pub fn xxhash(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_xxhash::pymod_add(m)?;
     Ok(())
 }
+
+#[cfg(feature = "zstd")]
+#[pymodule(gil_used = false, submodule, name = "zstd")]
+pub fn zstd(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    ryo3_zstd::pysubmod_register(m)?;
+    Ok(())
+}
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
 
@@ -80,5 +88,14 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
         pyo3::intern!(py, "ry.xxhash"),
     )?;
 
+    // zstd
+    #[cfg(feature = "zstd")]
+    m.add_wrapped(pyo3::wrap_pymodule!(zstd))?;
+    sys_modules.set_item(
+        pyo3::intern!(py, "ry.zstd"),
+        m.getattr(pyo3::intern!(py, "zstd"))?,
+    )?;
+    let attr = m.getattr(pyo3::intern!(py, "zstd"))?;
+    attr.setattr(pyo3::intern!(py, "__name__"), pyo3::intern!(py, "ry.zstd"))?;
     Ok(())
 }

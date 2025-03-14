@@ -1,6 +1,20 @@
 from __future__ import annotations
 
+import pytest
+
 import ry as ry
+
+
+def test_compression_level_range() -> None:
+    input_data = b"XXXXXXXXXXYYYYYYYYYY"
+    for level in range(1, 23):  # max level is 22
+        output_data = ry.zstd_encode(input_data, level)
+        assert output_data is not None
+        decoded = ry.zstd_decode(output_data)
+        assert decoded == input_data
+    for level in (-1, 0, 23, 24):
+        with pytest.raises(ValueError):
+            ry.zstd_encode(input_data, level)
 
 
 def test_10x10y_round_trip() -> None:

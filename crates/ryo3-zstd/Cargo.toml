@@ -15,6 +15,7 @@ categories.workspace = true
 pyo3 = { workspace = true, features = ["experimental-inspect"] }
 ryo3-bytes.workspace = true
 zstd.workspace = true
+zstd-safe.workspace = true
 
 [lints]
 workspace = true
