@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.0.39 [unreleased]
+
+- TODO: more `to_py`
+
+---
+
 ## v0.0.38 [2025-03-13]
 
 - `ryo3-reqwest`

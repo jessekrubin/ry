@@ -2,11 +2,11 @@
 
 ryo3-wrapper for `xxhash` crate
 
-[//]: # (<GENERATED>)
+[//]: # "<GENERATED>"
 
 ## Ref:
 
 - docs.rs: [https://docs.rs/xxhash](https://docs.rs/xxhash)
 - crates: [https://crates.io/crates/xxhash](https://crates.io/crates/xxhash)
 
-[//]: # (</GENERATED>)
+[//]: # "</GENERATED>"

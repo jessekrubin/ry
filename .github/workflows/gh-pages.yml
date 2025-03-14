@@ -2,12 +2,13 @@ name: gh-pages
 
 on:
   push:
-    branches: [ main, jkrdev ]
+    branches: [main, jkrdev]
   pull_request:
-    branches: [ main ]
-    
+    branches: [main]
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  group:
+    ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 env:
@@ -18,8 +19,8 @@ jobs:
     name: Build, test and deploy docs
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # To push a branch 
-      pull-requests: write  # To create a PR from that branch
+      contents: write # To push a branch
+      pull-requests: write # To create a PR from that branch
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly

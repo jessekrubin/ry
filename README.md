@@ -2,7 +2,6 @@
 
 ry = rust and python and bears, oh my!
 
-
 [![PyPI](https://img.shields.io/pypi/v/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Wheel](https://img.shields.io/pypi/wheel/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
@@ -13,7 +12,8 @@ ry = rust and python and bears, oh my!
 **DOCS:** [ryo3.dev](https://ryo3.dev) (WIP)
 
 - `ry` is a library of python shims/bindings to popular rust crates
-- `ryo3-*` is the collection of rust crates providing the shims used by ry and possibly your `pyo3` rust-python library
+- `ryo3-*` is the collection of rust crates providing the shims used by ry and
+  possibly your `pyo3` rust-python library
 
 **THIS IS A WORK IN PROGRESS ~ FEEDBACK/PRs WELCOME!**
 
@@ -28,10 +28,10 @@ uv add ry
 
 ## Quickstart
 
-Check out the [examples](https://github.com/jessekrubin/ry/tree/main/examples) directory for some quickstart examples.
+Check out the [examples](https://github.com/jessekrubin/ry/tree/main/examples)
+directory for some quickstart examples.
 
-___
-
+---
 
 ## What and why?
 
@@ -63,6 +63,7 @@ _(aka: questions that I have been asking myself)_
 ## Crate bindings
 
 ryo3-std
+
 - wrapped crates:
   - `heck`
   - `jiter`
@@ -90,20 +91,23 @@ ryo3-std
   - `ignore`
   - `http`
   - `regex`
-  - `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for me to have more time)
+  - `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for
+    me to have more time)
   - `tokio` (`fs` and `process`)
-  - `tracing` (could be nicer than python's awful logging lib -- currently a part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
+  - `tracing` (could be nicer than python's awful logging lib -- currently a
+    part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
   - `tracing` (eg logging)
   - `uuid`
 - organization
   - split up the `ryo3` type annotations?
   - chunk things into smaller sub-packages within the `ry` package?
 
-___
+---
 
 ## API
 
 <!-- API-START -->
+
 ## `ry.ryo3`
 
 ```python
@@ -289,6 +293,7 @@ def ls(
     """List directory contents - returns list of FsPath objects"""
 
 ```
+
 ## `ry.ryo3.JSON`
 
 ```python
@@ -328,6 +333,7 @@ def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
 
 ```
+
 ## `ry.ryo3._brotli`
 
 ```python
@@ -349,6 +355,7 @@ def brotli(
     """Alias for brotli_encode"""
 
 ```
+
 ## `ry.ryo3._bytes`
 
 ```python
@@ -493,6 +500,7 @@ class Bytes(Buffer):
 BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 ```
+
 ## `ry.ryo3._bzip2`
 
 ```python
@@ -512,6 +520,7 @@ def bzip2(input: Buffer, quality: int = 9) -> bytes:
     """Alias for bzip2_encode"""
 
 ```
+
 ## `ry.ryo3._dev`
 
 ```python
@@ -542,6 +551,7 @@ def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
 
 ```
+
 ## `ry.ryo3._flate2`
 
 ```python
@@ -569,6 +579,7 @@ def gunzip(input: Buffer) -> Bytes:
 def is_gzipped(input: Buffer) -> bool: ...
 
 ```
+
 ## `ry.ryo3._fnv`
 
 ```python
@@ -597,6 +608,7 @@ class FnvHasher:
 def fnv1a(input: Buffer) -> FnvHasher: ...
 
 ```
+
 ## `ry.ryo3._fspath`
 
 ```python
@@ -708,6 +720,7 @@ class FsPath(ToPy[Path]):
     def with_file_name(self, name: str) -> FsPath: ...
 
 ```
+
 ## `ry.ryo3._glob`
 
 ```python
@@ -771,6 +784,7 @@ class Pattern:
     def escape(pattern: str) -> str: ...
 
 ```
+
 ## `ry.ryo3._globset`
 
 ```python
@@ -860,6 +874,7 @@ def globster(
 ) -> Globster: ...
 
 ```
+
 ## `ry.ryo3._heck`
 
 ```python
@@ -879,6 +894,7 @@ def title_case(string: str) -> str: ...
 def train_case(string: str) -> str: ...
 
 ```
+
 ## `ry.ryo3._jiff`
 
 ```python
@@ -2479,6 +2495,7 @@ class TimeZoneDatabase:
     def from_concatenated_path(cls, path: str) -> TimeZoneDatabase: ...
 
 ```
+
 ## `ry.ryo3._jiter`
 
 ```python
@@ -2528,6 +2545,7 @@ def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
 
 ```
+
 ## `ry.ryo3._quick_maths`
 
 ```python
@@ -2558,6 +2576,7 @@ def quick_maths() -> t.Literal[3]:
     """
 
 ```
+
 ## `ry.ryo3._regex`
 
 ```python
@@ -2591,6 +2610,7 @@ class Regex:
     def is_match(self, string: str) -> bool: ...
 
 ```
+
 ## `ry.ryo3._reqwest`
 
 ```python
@@ -2700,6 +2720,7 @@ async def fetch(
 ) -> Response: ...
 
 ```
+
 ## `ry.ryo3._same_file`
 
 ```python
@@ -2713,6 +2734,7 @@ from os import PathLike
 def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
 
 ```
+
 ## `ry.ryo3._shlex`
 
 ```python
@@ -2726,6 +2748,7 @@ def shplit(s: str) -> list[str]:
     ...
 
 ```
+
 ## `ry.ryo3._size`
 
 ```python
@@ -2905,6 +2928,7 @@ class Size:
     def from_exbibytes(cls: type[Size], size: int | float) -> Size: ...
 
 ```
+
 ## `ry.ryo3._sqlformat`
 
 ```python
@@ -2949,6 +2973,7 @@ def sqlfmt(
 ) -> str: ...
 
 ```
+
 ## `ry.ryo3._std`
 
 ```python
@@ -3168,6 +3193,7 @@ def remove_file(path: FsPathLike) -> None: ...
 def rename(from_path: FsPathLike, to_path: FsPathLike) -> None: ...
 
 ```
+
 ## `ry.ryo3._tokio`
 
 ```python
@@ -3204,6 +3230,7 @@ async def asleep(seconds: float) -> float:
     ...
 
 ```
+
 ## `ry.ryo3._unindent`
 
 ```python
@@ -3216,6 +3243,7 @@ def unindent(string: str) -> str: ...
 def unindent_bytes(string: bytes) -> bytes: ...
 
 ```
+
 ## `ry.ryo3._url`
 
 ```python
@@ -3326,6 +3354,7 @@ class URL:
     ) -> URL: ...
 
 ```
+
 ## `ry.ryo3._walkdir`
 
 ```python
@@ -3387,6 +3416,7 @@ def walkdir(
 ) -> WalkdirGen: ...
 
 ```
+
 ## `ry.ryo3._which`
 
 ```python
@@ -3404,6 +3434,7 @@ def which_all(cmd: str, path: None | str = None) -> list[Path]: ...
 def which_re(regex: str | Regex, path: None | str = None) -> list[Path]: ...
 
 ```
+
 ## `ry.ryo3._zstd`
 
 ```python
@@ -3425,6 +3456,7 @@ def zstd(input: Buffer, level: int = 3) -> Bytes:
     """Alias for zstd_encode"""
 
 ```
+
 ## `ry.ryo3.errors`
 
 ```python
@@ -3435,9 +3467,10 @@ class FeatureNotEnabledError(RuntimeError):
     """Raised when a feature is not enabled in the current build."""
 
 ```
+
 <!-- API-END -->
 
-___
+---
 
 ## DEV
 
@@ -3447,7 +3480,7 @@ ___
 - type annotations are required
 - `ruff` used for formatting and linting
 
-___
+---
 
 ## SEE ALSO
 

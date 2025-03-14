@@ -8,8 +8,8 @@ thinking out loud...
 
 For people who find `ry.dev` it is a module that exports all the things in ry as
 well as can be used as a repl; `python -m ry.dev` will start a repl (with
-ipython if installed else python-repl) with all of ry already imported. I (jesse)
-use this super often for testing things out.
+ipython if installed else python-repl) with all of ry already imported. I
+(jesse) use this super often for testing things out.
 
 ---
 
@@ -24,8 +24,8 @@ worth considering?
 
 ## Naming
 
-Coming up with names is hard... I (jesse) want to strike a balance between being clear
-but also close to the wrapped libraries...
+Coming up with names is hard... I (jesse) want to strike a balance between being
+clear but also close to the wrapped libraries...
 
 - Should jiff's `Zoned` be `Zoned` in python? or `ZonedDateTime`? (currently
   `ZonedDateTime`)

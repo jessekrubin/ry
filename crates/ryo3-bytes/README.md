@@ -10,5 +10,3 @@ python wrapper for the `bytes` crate
 
 - [crates.io](https://crates.io/crates/bytes)
 - [docs.rs](https://docs.rs/bytes)
-
-
