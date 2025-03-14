@@ -13,6 +13,7 @@ from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
 from ry.http import Headers as Headers  # noqa: RUF100
 from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.zstd import is_zstd as is_zstd
 from ry.zstd import zstd_compress as zstd_compress
 from ry.zstd import zstd_decode as zstd_decode
 from ry.zstd import zstd_decompress as zstd_decompress

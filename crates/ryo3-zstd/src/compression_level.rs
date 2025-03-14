@@ -13,24 +13,24 @@ impl Default for PyCompressionLevel {
 impl TryFrom<i32> for PyCompressionLevel {
     type Error = ();
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if value < 1 || value > 22 {
-            Err(())
-        } else {
+        if (1..=22).contains(&value) {
             Ok(PyCompressionLevel(value))
+        } else {
+            Err(())
         }
     }
 }
 
-impl Into<i32> for PyCompressionLevel {
-    fn into(self) -> i32 {
-        self.0
+impl From<PyCompressionLevel> for i32 {
+    fn from(val: PyCompressionLevel) -> Self {
+        val.0
     }
 }
 
 impl FromPyObject<'_> for PyCompressionLevel {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(level) = ob.extract::<i32>() {
-            if level < 1 || level > 22 {
+            if !(1..=22).contains(&level) {
                 return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid compression level: {level}. Must be between 1 and 22."
                 )));

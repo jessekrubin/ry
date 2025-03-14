@@ -84,6 +84,7 @@ from ry.ryo3 import (
     instant,
     is_gzipped,
     is_same_file,
+    is_zstd,
     json_cache_clear,
     json_cache_usage,
     kebab_case,
@@ -135,7 +136,9 @@ from ry.ryo3 import (
     write_text,
     xxhash,
     zstd,
+    zstd_compress,
     zstd_decode,
+    zstd_decompress,
     zstd_encode,
 )
 
@@ -219,6 +222,7 @@ __all__ = (
     "instant",
     "is_gzipped",
     "is_same_file",
+    "is_zstd",
     "json_cache_clear",
     "json_cache_usage",
     "kebab_case",
@@ -271,6 +275,8 @@ __all__ = (
     "write_text",
     "xxhash",
     "zstd",
+    "zstd_compress",
     "zstd_decode",
+    "zstd_decompress",
     "zstd_encode",
 )

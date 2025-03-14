@@ -1,21 +1,22 @@
 from __future__ import annotations
 
 import sys
+from typing import Any
 
 from ry import ryo3
 
 
-def eprint(*args, **kwargs):
+def eprint(*args: Any, **kwargs: Any) -> None:
     print(*args, **kwargs, file=sys.stderr)
 
 
-def main():
-    ry_all = ryo3.__all__
+def main() -> None:
+    ry_all = ryo3.__all__  # type: ignore[attr-defined]
 
     eprint(ryo3.__description__)
     eprint(ryo3.__pkg_name__)
 
-    def sort_all(strings: list[str]):
+    def sort_all(strings: list[str]) -> list[str]:
         dunders = {x for x in strings if x.startswith("__") and x.endswith("__")}
         faux_private = {x for x in strings if x.startswith("_") and x not in dunders}
         non_dunders = {x for x in strings if x not in dunders and x not in faux_private}

@@ -1,5 +1,6 @@
 //! ry = rust + python (entry point)
 
+use pyo3::exceptions::PyRuntimeError;
 use pyo3::intern;
 use pyo3::prelude::*;
 use tracing::debug;
@@ -45,7 +46,6 @@ fn warn_debug_build(_py: Python) -> PyResult<()> {
     use pyo3::exceptions::PyRuntimeWarning;
     use pyo3::intern;
     use pyo3::types::PyTuple;
-
     let warnings_mod = _py.import(intern!(_py, "warnings"))?;
     let warning = PyRuntimeWarning::new_err("ry not compiled in release mode");
     let args = PyTuple::new(_py, vec![warning])?;
@@ -59,7 +59,8 @@ fn warn_debug_build(_py: Python) -> PyResult<()> {
 #[pymodule(gil_used = false)]
 #[pyo3(name = "ryo3")]
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    lager::tracing_init();
+    lager::tracing_init()
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to initialize logging: {}", e)))?;
     let ti = std::time::Instant::now();
     #[cfg(debug_assertions)]
     warn_debug_build(m.py())?;

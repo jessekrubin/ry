@@ -12,7 +12,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect", "multiple-pymethods"] }
+pyo3 = { workspace = true, features = [ "multiple-pymethods"] }
 bytes = { workspace = true }
 ahash = { workspace = true }
 

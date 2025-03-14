@@ -6,4 +6,3 @@ mod constants;
 pub mod oneshot;
 
 pub use api::{pymod_add, pysubmod_register};
-use pyo3::prelude::*;

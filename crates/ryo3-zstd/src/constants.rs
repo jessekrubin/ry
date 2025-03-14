@@ -1,6 +1,5 @@
 use pyo3::prelude::*;
 use pyo3::{intern, Bound, PyResult};
-use zstd_safe;
 
 /// Macro to generate constant bindings for Python
 macro_rules! zstd_pymod_register_constants {
@@ -14,6 +13,8 @@ macro_rules! zstd_pymod_register_constants {
 /// Adds all Zstd constants and functions to the Python module
 pub(crate) fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
+    let __zstd_version__ = zstd_safe::version_string();
+    m.add(intern!(py, "__zstd_version__"), __zstd_version__)?;
     zstd_pymod_register_constants!(
         m,
         py,

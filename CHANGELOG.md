@@ -3,6 +3,12 @@
 ## v0.0.39 [unreleased]
 
 - TODO: more `to_py`
+- `ryo3-zstd`
+  - actually changed to use py buffer protocol this time... I dont know how it
+    got missed before...
+  - re-factored a decent bit and made submodule with future plans to expand encoding/decoding dictionary
+    support
+  - submodule is `ry.zstd` and/or `ry.ryo3.zstd`
 
 ---
 

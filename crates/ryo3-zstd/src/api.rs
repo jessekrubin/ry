@@ -10,10 +10,6 @@ pub fn pysubmod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(oneshot::decode, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::decompress, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::unzstd, m)?)?;
-    // m.add_function(wrap_pyfunction!(oneshot::zstd_decode, m)?)?;
-    // m.add_function(wrap_pyfunction!(oneshot::zstd_encode, m)?)?;
-    // m.add_function(wrap_pyfunction!(oneshot::zstd_decompress, m)?)?;
-    // m.add_function(wrap_pyfunction!(oneshot::zstd_encode, m)?)?;
     Ok(())
 }
 
@@ -22,6 +18,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(oneshot::zstd_decode, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::zstd_encode, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::zstd_decompress, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::zstd_encode, m)?)?;
+    m.add_function(wrap_pyfunction!(oneshot::zstd_compress, m)?)?;
     Ok(())
 }

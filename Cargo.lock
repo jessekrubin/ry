@@ -511,8 +511,8 @@ dependencies = [
  "aho-corasick",
  "bstr",
  "log",
- "regex-automata 0.4.9",
- "regex-syntax 0.8.5",
+ "regex-automata",
+ "regex-syntax",
  "serde",
 ]
 
@@ -983,15 +983,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30bde2b3dc3671ae49d8e2e9f044c7c005836e7a023ee57cffa25ab82764bb9e"
 
 [[package]]
-name = "matchers"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8263075bb86c5a1b1427b5ae862e8889656f126e9f77c484496e8b47cf5c5558"
-dependencies = [
- "regex-automata 0.1.10",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1235,24 +1226,14 @@ dependencies = [
 [[package]]
 name = "pyo3-async-runtimes"
 version = "0.24.0"
-source = "git+https://github.com/PyO3/pyo3-async-runtimes#c5a3746f110b4d246556b0f6c29f5f555919eee3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd0b83dc42f9d41f50d38180dad65f0c99763b65a3ff2a81bf351dd35a1df8bf"
 dependencies = [
  "futures",
  "once_cell",
  "pin-project-lite",
  "pyo3",
- "pyo3-async-runtimes-macros",
  "tokio",
-]
-
-[[package]]
-name = "pyo3-async-runtimes-macros"
-version = "0.24.0"
-source = "git+https://github.com/PyO3/pyo3-async-runtimes#c5a3746f110b4d246556b0f6c29f5f555919eee3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -1425,17 +1406,8 @@ checksum = "b544ef1b4eac5dc2db33ea63606ae9ffcfac26c1416a2806ae0bf5f56b201191"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-automata 0.4.9",
- "regex-syntax 0.8.5",
-]
-
-[[package]]
-name = "regex-automata"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c230d73fb8d8c1b9c0b3135c5142a8acee3a0558fb8db5cf1cb65f8d7862132"
-dependencies = [
- "regex-syntax 0.6.29",
+ "regex-automata",
+ "regex-syntax",
 ]
 
 [[package]]
@@ -1446,14 +1418,8 @@ checksum = "809e8dc61f6de73b46c85f4c96486310fe304c434cfa43669d7b40f711150908"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-syntax 0.8.5",
+ "regex-syntax",
 ]
-
-[[package]]
-name = "regex-syntax"
-version = "0.6.29"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f162c6dd7b008981e4d40210aca20b4bd0f9b60ca9271061b07f78537722f2e1"
 
 [[package]]
 name = "regex-syntax"
@@ -1631,8 +1597,6 @@ version = "0.0.39"
 dependencies = [
  "jiff",
  "pyo3",
- "pyo3-async-runtimes",
- "regex",
  "ryo3-brotli",
  "ryo3-bytes",
  "ryo3-bzip2",
@@ -1648,7 +1612,6 @@ dependencies = [
  "ryo3-http",
  "ryo3-jiff",
  "ryo3-jiter",
- "ryo3-macros",
  "ryo3-quick-maths",
  "ryo3-regex",
  "ryo3-reqwest",
@@ -1664,11 +1627,6 @@ dependencies = [
  "ryo3-which",
  "ryo3-xxhash",
  "ryo3-zstd",
- "serde",
- "serde_bytes",
- "serde_json",
- "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -1789,7 +1747,6 @@ dependencies = [
  "pyo3",
  "pyo3-build-config",
  "ryo3-core",
- "ryo3-macros",
 ]
 
 [[package]]
@@ -1850,7 +1807,6 @@ dependencies = [
  "ryo3-macros",
  "ryo3-std",
  "ryo3-url",
- "thiserror",
  "tokio",
  "tracing",
 ]
@@ -2088,15 +2044,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
-name = "signal-hook-registry"
-version = "1.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9e9e0b4211b72e7b8b6e85c807d36c212bdb33ea8587f7569562a84df5465b1"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "size"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2317,7 +2264,6 @@ dependencies = [
  "mio",
  "parking_lot",
  "pin-project-lite",
- "signal-hook-registry",
  "socket2",
  "tokio-macros",
  "windows-sys 0.52.0",
@@ -2390,7 +2336,6 @@ version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "784e0ac535deb450455cbfa28a6f0df145ea1bb7ae51b821cf5e7927fdcfbdd0"
 dependencies = [
- "log",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",
@@ -2434,16 +2379,12 @@ version = "0.3.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8189decb5ac0fa7bc8b96b7cb9b2701d60d48805aca84a238004d665fcc4008"
 dependencies = [
- "matchers",
  "nu-ansi-term",
- "once_cell",
- "regex",
  "serde",
  "serde_json",
  "sharded-slab",
  "smallvec",
  "thread_local",
- "tracing",
  "tracing-core",
  "tracing-log",
 ]

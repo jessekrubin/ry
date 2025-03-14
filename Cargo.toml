@@ -17,7 +17,7 @@ name = "ry"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
+pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true
@@ -105,7 +105,7 @@ categories = ["api-bindings"]
 # ryo3-*
 # ======
 # internal
-ryo3 = { path = "./crates/ryo3", features = ["ry"] }
+ryo3 = { path = "./crates/ryo3", features = [] }
 ryo3-dev = { path = "./crates/_ryo3-dev" }
 ryo3-core = { path = "./crates/ryo3-core" }
 ryo3-std = { path = "./crates/ryo3-std" }
@@ -142,12 +142,13 @@ ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
-pyo3 = { version = "0.24", features = ["experimental-inspect", "num-bigint"] }
+#pyo3 = { version = "0.24", features = [ "num-bigint"] }
+pyo3 = { version = "0.24", features = ["macros"] }
 pyo3-build-config = "0.24"
 
 #pyo3 async runtimes
-#pyo3-async-runtimes = { version = "0.24", features = ["attributes", "tokio-runtime"] }
-pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", features = ["attributes", "tokio-runtime"] }
+pyo3-async-runtimes = { version = "0.24", features = ["tokio-runtime"] }
+#pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", features = ["tokio-runtime"] }
 
 # external
 ahash = "0.8.11"
@@ -167,7 +168,7 @@ http = "1.2.0"
 jiff = { version = "0.2.4", features = ["default", "serde"] }
 jiter = { version = "0.9.0", features = ["python"] }
 regex = "1.11.1"
-reqwest = { version = "0.12.12", features = ["blocking", "brotli", "charset", "cookies", "deflate", "gzip", "http2", "macos-system-configuration", "rustls-tls-native-roots", "stream", "zstd"], default-features = false }
+reqwest = { version = "0.12.12", features = ["brotli", "charset", "cookies", "deflate", "gzip", "http2", "macos-system-configuration", "rustls-tls-native-roots", "stream", "zstd"], default-features = false }
 same-file = "1.0.6"
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11.17"
@@ -176,13 +177,13 @@ shlex = "1.3.0"
 size = "0.5.0"
 sqlformat = "0.3.5"
 thiserror = "2.0.12"
-tokio = { version = "1.44.1", features = ["full"] }
+tokio = { version = "1.44.1", features = ["bytes", "fs", "macros", "parking_lot", "rt", "rt-multi-thread", "sync"] }
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "env-filter", "default"] }
+tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "default"] }
 unindent = "0.2.4"
 url = { version = "2.5.4", features = ["serde"] }
 walkdir = "2.4.0"
-which = { version = "7.0.2", features = ["regex"] }
+which = { version = "7.0.2", features = [] }
 xxhash-rust = { version = "0.8.15", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 zstd = "0.13.2"
 zstd-safe = "7.2.3"

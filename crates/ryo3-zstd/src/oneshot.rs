@@ -37,14 +37,12 @@ pub(crate) fn py_encode<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     let slice = ryo3_bytes::extract_bytes_ref(data)?;
     let encoded = rs_zstd_compress_oneshot(slice, level)?;
-    Ok(ryo3_bytes::PyBytes::from(encoded).into_bound_py_any(py)?)
+    ryo3_bytes::PyBytes::from(encoded).into_bound_py_any(py)
 }
 
 macro_rules! zstd_decode_pyfunction {
     ($func_name:ident) => {
-        #[pyfunction(
-                                    signature = (data)
-                                )]
+        #[pyfunction(signature = (data))]
         pub fn $func_name<'py>(
             py: Python<'py>,
             data: &Bound<'py, PyAny>,
@@ -56,12 +54,7 @@ macro_rules! zstd_decode_pyfunction {
 
 macro_rules! zstd_encode_pyfunction {
     ($func_name:ident) => {
-        #[pyfunction(
-                                    signature = (
-                                            data,
-                                            level = PyCompressionLevel::default()
-                                        )
-                                )]
+        #[pyfunction(signature = (data, level = PyCompressionLevel::default()))]
         pub fn $func_name<'py>(
             py: Python<'py>,
             data: &Bound<'py, PyAny>,
@@ -86,7 +79,7 @@ zstd_decode_pyfunction!(zstd_decode);
 zstd_decode_pyfunction!(zstd_decompress);
 
 #[pyfunction]
-pub fn is_zstd<'py>(data: &Bound<'py, PyAny>) -> PyResult<bool> {
+pub fn is_zstd(data: &Bound<'_, PyAny>) -> PyResult<bool> {
     let slice = ryo3_bytes::extract_bytes_ref(data)?;
     Ok(slice.starts_with(b"\x28\xB5\x2F\xFD"))
 }

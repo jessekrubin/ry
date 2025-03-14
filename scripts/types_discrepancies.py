@@ -124,11 +124,11 @@ def compare_member(toget: str) -> MembersComparison:
     )
 
 
-def ry_classes_n_types():
+def ry_classes_n_types() -> list[str]:
     return list(filter(lambda el: isinstance(getattr(ry, el), type), dir(ry)))
 
 
-def main():
+def main() -> None:
     class_members = [
         el for el in ry_classes_n_types() if el not in {"Headers", "HttpStatus"}
     ]
