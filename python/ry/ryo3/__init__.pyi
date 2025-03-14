@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import datetime as pydt
 import typing as t
+from os import PathLike
 
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
-from ry._types import FsPathLike
 from ry.http import Headers as Headers  # noqa: RUF100
 from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
 
@@ -24,13 +24,15 @@ from ._flate2 import gunzip as gunzip
 from ._flate2 import gzip as gzip
 from ._flate2 import gzip_decode as gzip_decode
 from ._flate2 import gzip_encode as gzip_encode
+from ._flate2 import is_gzipped as is_gzipped
 from ._fnv import FnvHasher as FnvHasher
 from ._fnv import fnv1a as fnv1a
 from ._fspath import FsPath as FsPath
+from ._glob import Pattern as Pattern
+from ._glob import glob as glob
 from ._globset import Glob as Glob
 from ._globset import GlobSet as GlobSet
 from ._globset import Globster as Globster
-from ._globset import glob as glob
 from ._globset import globster as globster
 from ._heck import camel_case as camel_case
 from ._heck import kebab_case as kebab_case
@@ -56,6 +58,7 @@ from ._jiff import Timestamp as Timestamp
 from ._jiff import TimestampDifference as TimestampDifference
 from ._jiff import TimestampRound as TimestampRound
 from ._jiff import TimeZone as TimeZone
+from ._jiff import TimeZoneDatabase as TimeZoneDatabase
 from ._jiff import ZonedDateTime as ZonedDateTime
 from ._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
 from ._jiff import ZonedDateTimeRound as ZonedDateTimeRound
@@ -153,10 +156,10 @@ __description__: str
 # =============================================================================
 def pwd() -> str: ...
 def home() -> str: ...
-def cd(path: FsPathLike) -> None: ...
+def cd(path: str | PathLike[str]) -> None: ...
 @t.overload
 def ls(
-    path: FsPathLike | None = None,
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
     *,
     absolute: bool = False,
     sort: bool = False,
@@ -166,7 +169,7 @@ def ls(
 
 @t.overload
 def ls(
-    path: FsPathLike | None = None,
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
     *,
     absolute: bool = False,
     sort: bool = False,

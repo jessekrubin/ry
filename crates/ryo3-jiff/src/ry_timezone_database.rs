@@ -34,11 +34,21 @@ impl RyTimeZoneDatabase {
         format!("{:?}", self.db())
     }
 
-    pub fn get(&self, name: &str) -> PyResult<RyTimeZone> {
-        self.db()
-            .get(name)
-            .map(RyTimeZone::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
+    #[pyo3(signature = (name, err = false))]
+    pub fn get(&self, name: &str, err: bool) -> PyResult<Option<RyTimeZone>> {
+        let tz_res = self.db().get(name).map(RyTimeZone::from);
+        match tz_res {
+            Ok(tz) => Ok(Some(tz)),
+            Err(e) => {
+                if err {
+                    Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                        e.to_string(),
+                    ))
+                } else {
+                    Ok(None)
+                }
+            }
+        }
     }
 
     pub fn available(&self) -> Vec<String> {
@@ -52,7 +62,7 @@ impl RyTimeZoneDatabase {
         self.db()
             .get(name)
             .map(RyTimeZone::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyKeyError, _>(e.to_string()))
     }
 
     fn __len__(&self) -> usize {

@@ -7,6 +7,7 @@ use pyo3::types::PyModule;
 use pyo3::IntoPyObjectExt;
 
 #[pyclass]
+#[pyo3(name = "GlobPaths", module = "ry")]
 pub struct PyGlobPaths {
     inner: ::glob::Paths,
     strict: bool,
@@ -14,7 +15,6 @@ pub struct PyGlobPaths {
 
 #[pymethods]
 impl PyGlobPaths {
-    /// __iter__ just returns self
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -134,8 +134,8 @@ impl PyGlobPaths {
     name = "glob",
     signature = (
         pattern,
-        case_sensitive=true,
         *,
+        case_sensitive=true,
         require_literal_separator=false,
         require_literal_leading_dot=false,
         strict=true
