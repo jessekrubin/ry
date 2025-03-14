@@ -271,23 +271,23 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
     }
 }
 
-#[pyfunction]
-#[pyo3(
-    signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
-)]
-fn glob(
-    pattern: String,
-    case_insensitive: Option<bool>,
-    literal_separator: Option<bool>,
-    backslash_escape: Option<bool>,
-) -> PyResult<PyGlob> {
-    PyGlob::py_new(
-        pattern,
-        case_insensitive,
-        literal_separator,
-        backslash_escape,
-    )
-}
+// #[pyfunction]
+// #[pyo3(
+//     signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
+// )]
+// fn glob(
+//     pattern: String,
+//     case_insensitive: Option<bool>,
+//     literal_separator: Option<bool>,
+//     backslash_escape: Option<bool>,
+// ) -> PyResult<PyGlob> {
+//     PyGlob::py_new(
+//         pattern,
+//         case_insensitive,
+//         literal_separator,
+//         backslash_escape,
+//     )
+// }
 
 #[pyfunction]
 #[pyo3(
@@ -310,7 +310,6 @@ fn py_globster(
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(glob, m)?)?;
     m.add_function(wrap_pyfunction!(py_globster, m)?)?;
     m.add_class::<PyGlob>()?;
     m.add_class::<PyGlobSet>()?;

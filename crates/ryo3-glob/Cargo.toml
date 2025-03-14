@@ -1,0 +1,19 @@
+[package]
+name = "ryo3-glob"
+description = "python + glob crate (https://crates.io/crates/glob)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+pyo3.workspace = true
+glob.workspace = true
+
+[lints]
+workspace = true

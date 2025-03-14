@@ -41,6 +41,7 @@ ryo3-bytes = { workspace = true, optional = true }
 ryo3-dirs = { workspace = true, optional = true }
 ryo3-flate2 = { workspace = true, optional = true }
 ryo3-fnv = { workspace = true, optional = true }
+ryo3-glob = { workspace = true, optional = true }
 ryo3-globset = { workspace = true, optional = true }
 ryo3-heck = { workspace = true, optional = true }
 ryo3-http = { workspace = true, optional = true }
@@ -71,6 +72,7 @@ all = [
   "dirs",
   "flate2",
   "fnv",
+  "glob",
   "globset",
   "heck",
   "http",
@@ -99,6 +101,7 @@ bytes = ["dep:ryo3-bytes"]
 dirs = ["dep:ryo3-dirs"]
 flate2 = ["dep:ryo3-flate2"]
 fnv = ["dep:ryo3-fnv"]
+glob = ["dep:ryo3-glob"]
 globset = ["dep:ryo3-globset"]
 heck = ["dep:ryo3-heck"]
 http = ["dep:ryo3-http"]

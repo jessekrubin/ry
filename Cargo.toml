@@ -65,6 +65,7 @@ members = [
   "crates/ryo3-dirs",
   "crates/ryo3-flate2",
   "crates/ryo3-fnv",
+  "crates/ryo3-glob",
   "crates/ryo3-globset",
   "crates/ryo3-heck",
   "crates/ryo3-http",
@@ -120,6 +121,7 @@ ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
 ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
 ryo3-fnv = { path = "./crates/ryo3-fnv" }
+ryo3-glob = { path = "./crates/ryo3-glob" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
 ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-http = { path = "./crates/ryo3-http" }
@@ -158,6 +160,7 @@ fnv = "1.0.7"
 flate2 = "1.1.0"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
+glob = "0.3"
 globset = { version = "0.4.15", features = ["serde"] }
 heck = "0.5.0"
 http = "1.2.0"
