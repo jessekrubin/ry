@@ -12,11 +12,11 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect", "experimental-async"] }
-pyo3-async-runtimes = { workspace = true, features = ["attributes", "tokio-runtime"] }
-tracing = { workspace = true, features = ["log"] }
+pyo3 = { workspace = true, features = [] }
+pyo3-async-runtimes.workspace = true
+tracing.workspace = true
 tokio.workspace = true
-bytes = { workspace = true }
+bytes.workspace = true
 jiter.workspace = true
 ryo3-bytes.workspace = true
 ryo3-url.workspace = true
@@ -25,8 +25,14 @@ futures-core.workspace = true
 futures-util.workspace = true
 ryo3-macros.workspace = true
 ryo3-std.workspace = true
-thiserror.workspace = true
 reqwest.workspace = true
+
 
 [lints]
 workspace = true
+
+[features]
+default = []
+blocking = [
+  "reqwest/blocking"
+]

@@ -1,27 +1,30 @@
 from __future__ import annotations
 
 import dataclasses
+import itertools as it
 import subprocess as sp
+from collections.abc import Iterable
 from functools import lru_cache
 
+import ry
 from ry import FsPath, which
 
 # this filesdir
 PWDPATH = FsPath(__file__).resolve().parent
 REPO_ROOT = PWDPATH.parent
 PYTHON_ROOT = REPO_ROOT / "python"
-RYO_PYI_DIRPATH = REPO_ROOT / "python" / "ry" / "ryo3"
+RYO_PYI_DIRPATH = REPO_ROOT / "python" / "ry"
 API_PYI_FILEPATH = REPO_ROOT / "python" / "ry" / "ryo3.pyi"
 README_FILEPATH = REPO_ROOT / "README.md"
 
 
 @dataclasses.dataclass
 class RyTypeStubInfo:
-    def __init__(self, name: str, pyi_filepath: FsPath):
+    def __init__(self, name: str, pyi_filepath: FsPath) -> None:
         self.name = name
         self.pyi_filepath = pyi_filepath
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"RyTypeStubInfo(name={self.name!r}, pyi_filepath={self.pyi_filepath!r})"
 
 
@@ -32,16 +35,16 @@ def filepath2module(filepath: FsPath) -> str:
 
 
 @lru_cache
-def get_types_dictionary():
+def get_types_dictionary() -> dict[str, str]:
     types_dict = {}
-    for pyi_filepath in RYO_PYI_DIRPATH.iterdir():
-        if pyi_filepath.is_file() and pyi_filepath.suffix == ".pyi":
-            module_name = filepath2module(pyi_filepath)
-
-            types_dict[
-                module_name
-                # pyi_filepath.file_name()
-            ] = pyi_filepath.read_text()
+    for pyi_filepath in map(
+        ry.FsPath, ry.walkdir(RYO_PYI_DIRPATH, glob="**/*.pyi", files=True, dirs=False)
+    ):
+        module_name = filepath2module(pyi_filepath)
+        types_dict[
+            module_name
+            # pyi_filepath.file_name()
+        ] = pyi_filepath.read_text()
     return types_dict
 
 
@@ -70,11 +73,10 @@ def ruff_format_pyi(string: str, line_length: int = 80, indent_width: int = 4) -
     return run_res.stdout
 
 
-@lru_cache
-def get_api_content_readme(
+def _gen_api_content_readme(
     line_length: int = 80,
     indent_width: int = 4,
-):
+) -> Iterable[str]:
     dictionary = get_types_dictionary()
     # format all of them...
     dictionary_formatted = {
@@ -84,17 +86,44 @@ def get_api_content_readme(
     # then the rest are just sorted...
     parts = []
     root_pyi = dictionary_formatted.pop("ry.ryo3.__init__")
-    parts.append(("ry.ryo3", root_pyi))
-    parts.extend(sorted(dictionary_formatted.items()))
-    api_content_parts = []
-    for mod_name, content in parts:
-        api_content_parts.append(f"## `{mod_name}`\n")
-        api_content_parts.append(f"```python\n{content}\n```")
-    api_content_formatted = "\n".join(api_content_parts)
-    return api_content_formatted
+
+    root_level = sorted(
+        e for e in dictionary_formatted.keys() if e.startswith("ry.ryo3.")
+    )
+    submodules = sorted(
+        e for e in dictionary_formatted.keys() if not e.startswith("ry.ryo3.")
+    )
+    sorted_dictionary = {
+        **{k: v for k, v in dictionary_formatted.items() if k in root_level},
+        **{k: v for k, v in dictionary_formatted.items() if k in submodules},
+    }
+    parts.append(("ry.ryo3.__init__", root_pyi))
+    parts.extend((mod_name, content) for mod_name, content in sorted_dictionary.items())
+    # make the toc
+    yield "# API"
+    yield ""
+    yield "## Table of Contents"
+
+    yield from (f"- [`{mod_name}`](#{mod_name})" for mod_name, _ in parts)
+
+    headers = (
+        f'<h2 id="{mod_name}"><code>{mod_name}</code></h2>\n' for mod_name, _ in parts
+    )
+    type_stub_bodies = (f"```python\n{content}\n```" for _, content in parts)
+    # zipper the headers and bodies into a single chain
+
+    yield from it.chain.from_iterable(zip(headers, type_stub_bodies))
 
 
-def update_api_docs():
+@lru_cache
+def get_api_content_readme(
+    line_length: int = 80,
+    indent_width: int = 4,
+) -> str:
+    return "\n".join(_gen_api_content_readme(line_length, indent_width))
+
+
+def update_api_docs() -> None:
     """Update the API.md file in ./docs/src/API.md"""
     filepath = REPO_ROOT / "docs" / "src" / "API.md"
     assert filepath.exists(), f"API.md does not exist: {filepath}"
@@ -111,7 +140,7 @@ def update_api_docs():
         )
 
 
-def update_readme():
+def update_readme() -> None:
     assert RYO_PYI_DIRPATH.exists(), (
         f"RYO_PYI_DIRPATH does not exist: {RYO_PYI_DIRPATH}"
     )
@@ -142,10 +171,7 @@ def update_readme():
         )
 
 
-def main():
-    # dictionary = get_types_dictionary()
-    # print(dictionary)
-    # print(list(dictionary.keys()))
+def main() -> None:
     update_readme()
     update_api_docs()
 

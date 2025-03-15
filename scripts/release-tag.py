@@ -9,7 +9,7 @@ if _GIT is None:
     print("git not found in PATH.")
     sys.exit(1)
 else:
-    GIT = _GIT
+    GIT = str(_GIT)
 
 
 def tag_exists(tag_name: str) -> bool:

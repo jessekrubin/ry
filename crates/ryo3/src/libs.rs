@@ -8,8 +8,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_bzip2::pymod_add(m)?;
     #[cfg(feature = "bytes")]
     ryo3_bytes::pymod_add(m)?;
-    // #[cfg(feature = "dirs")]
-    // ryo3_dirs::pymod_add(m)?;
     #[cfg(feature = "flate2")]
     ryo3_flate2::pymod_add(m)?;
     #[cfg(feature = "fnv")]
@@ -48,8 +46,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_walkdir::pymod_add(m)?;
     #[cfg(feature = "which")]
     ryo3_which::pymod_add(m)?;
-    // #[cfg(feature = "xxhash")]
-    // ryo3_xxhash::pymod_add(m)?;
     #[cfg(feature = "zstd")]
     ryo3_zstd::pymod_add(m)?;
     Ok(())

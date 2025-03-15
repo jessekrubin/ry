@@ -12,7 +12,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
+pyo3 = { workspace = true, features = [] }
 ryo3-dirs.workspace = true
 ryo3-macros.workspace = true
 ryo3-core.workspace = true

@@ -13,7 +13,7 @@ categories.workspace = true
 
 [dependencies]
 heck.workspace = true
-pyo3 = { workspace = true, features = ["experimental-inspect"] }
+pyo3 = { workspace = true, features = [] }
 
 [lints]
 workspace = true

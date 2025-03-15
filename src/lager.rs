@@ -1,5 +1,9 @@
+use std::str::FromStr;
 use tracing::debug;
-use tracing_subscriber::EnvFilter;
+use tracing::level_filters::LevelFilter;
+
+/// List of environment variables to check for logging level
+const LOG_ENV_VARS: [&str; 3] = ["RYLOG", "RY_LOG", "RUST_LOG"];
 
 fn env_var_is_falsey(s: &str) -> bool {
     let s_lower = s.trim().to_lowercase();
@@ -16,49 +20,53 @@ fn env_var_str_is_truthy(s: &str) -> bool {
 ///   "RYDEBUG" - truthy value enables debug logging
 ///   "RYLOG" - returns
 /// otherwise using 'RUST_LOG' if set.
-fn env_filter_directives() -> String {
+fn env_log_level() -> LevelFilter {
     // use "RYTRACE" if set to a truthy value
     if let Ok(ry_trace) = std::env::var("RYTRACE") {
         if env_var_str_is_truthy(&ry_trace) {
-            return "trace".to_string();
+            return LevelFilter::TRACE;
         }
     }
 
     if let Ok(ry_debug) = std::env::var("RYDEBUG") {
         if env_var_str_is_truthy(&ry_debug) {
-            return "debug".to_string();
+            return LevelFilter::DEBUG;
         }
     }
 
-    // use "RYLOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
-    if let Ok(ry_log) = std::env::var("RYLOG") {
-        let ry_log_lower = ry_log.to_lowercase();
-        if env_var_str_is_truthy(&ry_log_lower) {
-            return "debug".to_string();
+    for env_var in LOG_ENV_VARS.iter() {
+        if let Ok(value) = std::env::var(env_var) {
+            if value.is_empty() {
+                continue;
+            }
+            if env_var_is_falsey(&value) {
+                continue;
+            }
+            match LevelFilter::from_str(&value) {
+                Ok(level) => return level,
+                Err(_) => {
+                    return LevelFilter::DEBUG;
+                }
+            }
         }
-        return ry_log_lower;
     }
-
-    std::env::var("RUST_LOG").unwrap_or("warn".to_string())
+    LevelFilter::WARN
 }
 
-pub fn tracing_init() {
+pub fn tracing_init() -> Result<(), Box<dyn std::error::Error>> {
     // use "RY_LOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
-    let env_filter_directives_string = env_filter_directives();
+    let env_log_level = env_log_level();
     debug!(
         "tracing_init - env_filter_directives_string: {}",
-        env_filter_directives_string
+        env_log_level
     );
-    let filter = EnvFilter::new(&env_filter_directives_string);
-    // Install the global collector configured based on the filter.
-    // TODO: add the json and other format(s)...
     let subscriber = tracing_subscriber::fmt()
-        .with_env_filter(filter)
         .with_span_events(
             tracing_subscriber::fmt::format::FmtSpan::CLOSE
                 | tracing_subscriber::fmt::format::FmtSpan::ENTER,
         )
         .with_writer(std::io::stderr)
+        .with_max_level(env_log_level)
         .finish();
     let set_subscriber_result = tracing::subscriber::set_global_default(subscriber);
     match set_subscriber_result {
@@ -69,6 +77,7 @@ pub fn tracing_init() {
             debug!("tracing_init - set_global_default failed: {:?}", e);
         }
     }
+    Ok(())
 }
 
 // TODO: add ability to reload tracing subscriber...

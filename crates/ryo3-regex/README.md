@@ -7,7 +7,7 @@ Wrapper around the `regex` crate for Python.
 - [crates.io](https://crates.io/crates/regex)
 - [docs.rs](https://docs.rs/regex)
 
-___
+---
 
 # TODO
 

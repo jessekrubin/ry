@@ -13,5 +13,4 @@ PHD thesis, 2017, in which he states:
 
 _Reference: https://youtu.be/3M_5oYU-IsU?t=60_
 
-The quick-maths algorithm is implemented in this package in ts/js and has a
-CLI.
+The quick-maths algorithm is implemented in this package in ts/js and has a CLI.

@@ -4,7 +4,7 @@ docs.rs: [https://docs.rs/jiff](https://docs.rs/jiff)
 
 crates: [https://crates.io/crates/jiff](https://crates.io/crates/jiff)
 
-___
+---
 
 The `jiff` crate has a super excellent API that is very ergonomic to use and
 `ry` provides a nearly complete wrapper around it.
@@ -30,15 +30,14 @@ conversions via the `jiff-02` feature flag, which is what is used now.
 As of 2025-03-12 `pyo3` does not seem to support converting `Span` ->
 `datetime.timedelta`, so that is still hand rolled.
 
-___
+---
 
 ## `ry` vs `whenever`
 
-There is another library called [
-`whenever`](https://github.com/ariebovenberg/whenever) that provides a similar
-datetime
-library to that of `ryo3-jiff` (both `jiff` and `whenever` are based on the
-[temporal](https://tc39.es/proposal-temporal/docs/) API).
+There is another library called
+[ `whenever`](https://github.com/ariebovenberg/whenever) that provides a similar
+datetime library to that of `ryo3-jiff` (both `jiff` and `whenever` are based on
+the [temporal](https://tc39.es/proposal-temporal/docs/) API).
 
 No formal benchmarks between `ry` and `whenever` have been done, but I have
 copy-pasta-ed some of the benchmarks from the `whenever` repo and translated
@@ -48,5 +47,5 @@ python's built in `datetime` module and `pendulum` -- differences in performance
 are almost all measured in nanoseconds.
 
 Big shoutout to "Mr. Dutch Airlines" guy
-([@ariebovenberg](https://github.com/ariebovenberg)) who wrote `whenever`!
-Love the name of the library too!
+([@ariebovenberg](https://github.com/ariebovenberg)) who wrote `whenever`! Love
+the name of the library too!

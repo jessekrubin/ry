@@ -2,11 +2,11 @@
 
 ryo3-wrapper for `shlex` crate
 
-[//]: # (<GENERATED>)
+[//]: # "<GENERATED>"
 
 ## Ref:
 
 - docs.rs: [https://docs.rs/shlex](https://docs.rs/shlex)
 - crates: [https://crates.io/crates/shlex](https://crates.io/crates/shlex)
 
-[//]: # (</GENERATED>)
+[//]: # "</GENERATED>"

@@ -3,13 +3,13 @@ name: dev
 on:
   push:
     branches:
-      - '*'
-      - '*/*'
-      - '**'
-      - '!main'
-      - '!master'
+      - "*"
+      - "*/*"
+      - "**"
+      - "!main"
+      - "!master"
     tags:
-      - '*'
+      - "*"
   pull_request:
   workflow_dispatch:
 
@@ -25,7 +25,9 @@ jobs:
         with:
           tool: just
       - uses: Swatinem/rust-cache@v2
-        if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+        if:
+          github.event_name != 'release' && github.event_name !=
+          'workflow_dispatch'
       - run: just ci
 
   dev-test-linux-x86_64:
@@ -33,18 +35,18 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-        target: [ x86_64 ]
+        target: [x86_64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
           args: --release --out dist --find-interpreter
-          sccache: 'true'
+          sccache: "true"
       - name: pytest
         if: ${{ startsWith(matrix.target, 'x86_64') }}
         shell: bash

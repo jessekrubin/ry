@@ -4,7 +4,7 @@
 
 copy this crate to create a new `ryo3-*` crate
 
-___
+---
 
 Package/library/CLI that performs "quick-maths":
 
@@ -13,7 +13,7 @@ PHD thesis, 2017, in which he states:
 
 > "2 plus 2 is 4, minus one that's 3, quick maths." (Big Shaq et al., 2017)
 
-**Reference**(: [https://youtu.be/3M_5oYU-IsU?t=60](https://youtu.be/3M_5oYU-IsU?t=60))
+**Reference**(:
+[https://youtu.be/3M_5oYU-IsU?t=60](https://youtu.be/3M_5oYU-IsU?t=60))
 
-The quick-maths algorithm is implemented in this package in ts/js and has a
-CLI.
+The quick-maths algorithm is implemented in this package in ts/js and has a CLI.
