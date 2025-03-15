@@ -179,11 +179,10 @@ conversions via the <code>jiff-02</code> feature flag, which is what is used now
 <code>datetime.timedelta</code>, so that is still hand rolled.</p>
 <hr />
 <h2 id="ry-vs-whenever"><a class="header" href="#ry-vs-whenever"><code>ry</code> vs <code>whenever</code></a></h2>
-<p>There is another library called <a href="https://github.com/ariebovenberg/whenever">
-<code>whenever</code></a> that provides a similar
-datetime
-library to that of <code>ryo3-jiff</code> (both <code>jiff</code> and <code>whenever</code> are based on the
-<a href="https://tc39.es/proposal-temporal/docs/">temporal</a> API).</p>
+<p>There is another library called
+<a href="https://github.com/ariebovenberg/whenever"> <code>whenever</code></a> that provides a similar
+datetime library to that of <code>ryo3-jiff</code> (both <code>jiff</code> and <code>whenever</code> are based on
+the <a href="https://tc39.es/proposal-temporal/docs/">temporal</a> API).</p>
 <p>No formal benchmarks between <code>ry</code> and <code>whenever</code> have been done, but I have
 copy-pasta-ed some of the benchmarks from the <code>whenever</code> repo and translated
 them to <code>ry</code> and the results were pretty similar; <code>whenever</code> is faster for some
@@ -191,8 +190,8 @@ things, <code>ry</code> is faster for others, but both are wildly more performan
 python’s built in <code>datetime</code> module and <code>pendulum</code> – differences in performance
 are almost all measured in nanoseconds.</p>
 <p>Big shoutout to “Mr. Dutch Airlines” guy
-(<a href="https://github.com/ariebovenberg">@ariebovenberg</a>) who wrote <code>whenever</code>!
-Love the name of the library too!</p>
+(<a href="https://github.com/ariebovenberg">@ariebovenberg</a>) who wrote <code>whenever</code>! Love
+the name of the library too!</p>
 
                     </main>
 

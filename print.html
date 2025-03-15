@@ -156,7 +156,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-03-14T06:49:24.788066483+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-03-15T00:51:55.842212539+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -170,7 +170,8 @@
 <p><strong>DOCS:</strong> <a href="https://ryo3.dev">ryo3.dev</a> (WIP)</p>
 <ul>
 <li><code>ry</code> is a library of python shims/bindings to popular rust crates</li>
-<li><code>ryo3-*</code> is the collection of rust crates providing the shims used by ry and possibly your <code>pyo3</code> rust-python library</li>
+<li><code>ryo3-*</code> is the collection of rust crates providing the shims used by ry and
+possibly your <code>pyo3</code> rust-python library</li>
 </ul>
 <p><strong>THIS IS A WORK IN PROGRESS ~ FEEDBACK/PRs WELCOME!</strong></p>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
@@ -179,7 +180,8 @@ uv add ry
 </code></pre>
 <p><strong>Check install:</strong> <code>python -m ry</code></p>
 <h2 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h2>
-<p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a> directory for some quickstart examples.</p>
+<p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a>
+directory for some quickstart examples.</p>
 <hr />
 <h2 id="what-and-why"><a class="header" href="#what-and-why">What and why?</a></h2>
 <p>This is a collection of pyo3-wrappers for rust crates I wish existed in python.</p>
@@ -256,9 +258,11 @@ into separate packages</li>
 <li><code>ignore</code></li>
 <li><code>http</code></li>
 <li><code>regex</code></li>
-<li><code>reqwest</code> (async http client / waiting on pyo3 asyncio to stabilize and for me to have more time)</li>
+<li><code>reqwest</code> (async http client / waiting on pyo3 asyncio to stabilize and for
+me to have more time)</li>
 <li><code>tokio</code> (<code>fs</code> and <code>process</code>)</li>
-<li><code>tracing</code> (could be nicer than python’s awful logging lib – currently a part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)</li>
+<li><code>tracing</code> (could be nicer than python’s awful logging lib – currently a
+part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)</li>
 <li><code>tracing</code> (eg logging)</li>
 <li><code>uuid</code></li>
 </ul>
@@ -273,7 +277,43 @@ into separate packages</li>
 <hr />
 <h2 id="api"><a class="header" href="#api">API</a></h2>
 <!-- API-START -->
-<h2 id="ryryo3"><a class="header" href="#ryryo3"><code>ry.ryo3</code></a></h2>
+<h1 id="api-1"><a class="header" href="#api-1">API</a></h1>
+<h2 id="table-of-contents"><a class="header" href="#table-of-contents">Table of Contents</a></h2>
+<ul>
+<li><a href="index.html#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></li>
+<li><a href="index.html#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></li>
+<li><a href="index.html#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></li>
+<li><a href="index.html#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></li>
+<li><a href="index.html#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></li>
+<li><a href="index.html#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></li>
+<li><a href="index.html#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></li>
+<li><a href="index.html#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></li>
+<li><a href="index.html#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></li>
+<li><a href="index.html#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></li>
+<li><a href="index.html#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></li>
+<li><a href="index.html#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></li>
+<li><a href="index.html#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></li>
+<li><a href="index.html#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></li>
+<li><a href="index.html#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></li>
+<li><a href="index.html#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></li>
+<li><a href="index.html#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></li>
+<li><a href="index.html#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></li>
+<li><a href="index.html#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></li>
+<li><a href="index.html#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></li>
+<li><a href="index.html#ry.ryo3._size"><code>ry.ryo3._size</code></a></li>
+<li><a href="index.html#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></li>
+<li><a href="index.html#ry.ryo3._std"><code>ry.ryo3._std</code></a></li>
+<li><a href="index.html#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></li>
+<li><a href="index.html#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></li>
+<li><a href="index.html#ry.ryo3._url"><code>ry.ryo3._url</code></a></li>
+<li><a href="index.html#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></li>
+<li><a href="index.html#ry.ryo3._which"><code>ry.ryo3._which</code></a></li>
+<li><a href="index.html#ry.dirs"><code>ry.dirs</code></a></li>
+<li><a href="index.html#ry.http"><code>ry.http</code></a></li>
+<li><a href="index.html#ry.xxhash"><code>ry.xxhash</code></a></li>
+<li><a href="index.html#ry.zstd"><code>ry.zstd</code></a></li>
+</ul>
+<h2 id="ry.ryo3.__init__"><a class="header" href="#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></h2>
 <pre><code class="language-python">"""ry api ~ type annotations"""
 
 from __future__ import annotations
@@ -285,9 +325,15 @@ from os import PathLike
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
+from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
 from ry.http import Headers as Headers  # noqa: RUF100
 from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.zstd import is_zstd as is_zstd
+from ry.zstd import zstd_compress as zstd_compress
+from ry.zstd import zstd_decode as zstd_decode
+from ry.zstd import zstd_decompress as zstd_decompress
+from ry.zstd import zstd_encode as zstd_encode
 
 from ._brotli import brotli as brotli
 from ._brotli import brotli_decode as brotli_decode
@@ -412,9 +458,6 @@ from ._walkdir import walkdir as walkdir
 from ._which import which as which
 from ._which import which_all as which_all
 from ._which import which_re as which_re
-from ._zstd import zstd as zstd
-from ._zstd import zstd_decode as zstd_decode
-from ._zstd import zstd_encode as zstd_encode
 from .errors import FeatureNotEnabledError as FeatureNotEnabledError
 
 # =============================================================================
@@ -456,7 +499,15 @@ def ls(
     """List directory contents - returns list of FsPath objects"""
 
 </code></pre>
-<h2 id="ryryo3json"><a class="header" href="#ryryo3json"><code>ry.ryo3.JSON</code></a></h2>
+<h2 id="ry.ryo3.errors"><a class="header" href="#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></h2>
+<pre><code class="language-python">from __future__ import annotations
+
+
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build."""
+
+</code></pre>
+<h2 id="ry.ryo3.JSON"><a class="header" href="#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3.JSON"""
 
 from typing import Literal
@@ -493,7 +544,7 @@ def json_cache_clear() -&gt; None: ...
 def json_cache_usage() -&gt; int: ...
 
 </code></pre>
-<h2 id="ryryo3_brotli"><a class="header" href="#ryryo3_brotli"><code>ry.ryo3._brotli</code></a></h2>
+<h2 id="ry.ryo3._brotli"><a class="header" href="#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></h2>
 <pre><code class="language-python">"""ryo3-brotli types"""
 
 from __future__ import annotations
@@ -512,7 +563,7 @@ def brotli(
     """Alias for brotli_encode"""
 
 </code></pre>
-<h2 id="ryryo3_bytes"><a class="header" href="#ryryo3_bytes"><code>ry.ryo3._bytes</code></a></h2>
+<h2 id="ry.ryo3._bytes"><a class="header" href="#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></h2>
 <pre><code class="language-python">import sys
 from typing import overload
 
@@ -654,7 +705,7 @@ class Bytes(Buffer):
 BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 </code></pre>
-<h2 id="ryryo3_bzip2"><a class="header" href="#ryryo3_bzip2"><code>ry.ryo3._bzip2</code></a></h2>
+<h2 id="ry.ryo3._bzip2"><a class="header" href="#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></h2>
 <pre><code class="language-python">"""ryo3-bzip2 types"""
 
 from __future__ import annotations
@@ -671,7 +722,7 @@ def bzip2(input: Buffer, quality: int = 9) -&gt; bytes:
     """Alias for bzip2_encode"""
 
 </code></pre>
-<h2 id="ryryo3_dev"><a class="header" href="#ryryo3_dev"><code>ry.ryo3._dev</code></a></h2>
+<h2 id="ry.ryo3._dev"><a class="header" href="#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3.dev"""
 
 from __future__ import annotations
@@ -699,7 +750,7 @@ def string_noop(s: str) -&gt; str: ...
 def bytes_noop(s: bytes) -&gt; bytes: ...
 
 </code></pre>
-<h2 id="ryryo3_flate2"><a class="header" href="#ryryo3_flate2"><code>ry.ryo3._flate2</code></a></h2>
+<h2 id="ry.ryo3._flate2"><a class="header" href="#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></h2>
 <pre><code class="language-python">"""ryo3-flate2 types"""
 
 from __future__ import annotations
@@ -724,7 +775,7 @@ def gunzip(input: Buffer) -&gt; Bytes:
 def is_gzipped(input: Buffer) -&gt; bool: ...
 
 </code></pre>
-<h2 id="ryryo3_fnv"><a class="header" href="#ryryo3_fnv"><code>ry.ryo3._fnv</code></a></h2>
+<h2 id="ry.ryo3._fnv"><a class="header" href="#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></h2>
 <pre><code class="language-python">"""ryo3-fnv types"""
 
 import typing as t
@@ -750,7 +801,7 @@ class FnvHasher:
 def fnv1a(input: Buffer) -&gt; FnvHasher: ...
 
 </code></pre>
-<h2 id="ryryo3_fspath"><a class="header" href="#ryryo3_fspath"><code>ry.ryo3._fspath</code></a></h2>
+<h2 id="ry.ryo3._fspath"><a class="header" href="#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></h2>
 <pre><code class="language-python">"""ryo3-fspath types"""
 
 from __future__ import annotations
@@ -859,7 +910,7 @@ class FsPath(ToPy[Path]):
     def with_file_name(self, name: str) -&gt; FsPath: ...
 
 </code></pre>
-<h2 id="ryryo3_glob"><a class="header" href="#ryryo3_glob"><code>ry.ryo3._glob</code></a></h2>
+<h2 id="ry.ryo3._glob"><a class="header" href="#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></h2>
 <pre><code class="language-python">"""ryo3-glob types"""
 
 from __future__ import annotations
@@ -920,7 +971,7 @@ class Pattern:
     def escape(pattern: str) -&gt; str: ...
 
 </code></pre>
-<h2 id="ryryo3_globset"><a class="header" href="#ryryo3_globset"><code>ry.ryo3._globset</code></a></h2>
+<h2 id="ry.ryo3._globset"><a class="header" href="#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></h2>
 <pre><code class="language-python">"""ryo3-globset types"""
 
 from __future__ import annotations
@@ -1007,7 +1058,7 @@ def globster(
 ) -&gt; Globster: ...
 
 </code></pre>
-<h2 id="ryryo3_heck"><a class="header" href="#ryryo3_heck"><code>ry.ryo3._heck</code></a></h2>
+<h2 id="ry.ryo3._heck"><a class="header" href="#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></h2>
 <pre><code class="language-python">"""ryo3-heck types"""
 
 from __future__ import annotations
@@ -1024,7 +1075,7 @@ def title_case(string: str) -&gt; str: ...
 def train_case(string: str) -&gt; str: ...
 
 </code></pre>
-<h2 id="ryryo3_jiff"><a class="header" href="#ryryo3_jiff"><code>ry.ryo3._jiff</code></a></h2>
+<h2 id="ry.ryo3._jiff"><a class="header" href="#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></h2>
 <pre><code class="language-python">"""jiff types"""
 
 import datetime as pydt
@@ -2622,7 +2673,7 @@ class TimeZoneDatabase:
     def from_concatenated_path(cls, path: str) -&gt; TimeZoneDatabase: ...
 
 </code></pre>
-<h2 id="ryryo3_jiter"><a class="header" href="#ryryo3_jiter"><code>ry.ryo3._jiter</code></a></h2>
+<h2 id="ry.ryo3._jiter"><a class="header" href="#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 import typing as t
@@ -2669,7 +2720,7 @@ def json_cache_clear() -&gt; None: ...
 def json_cache_usage() -&gt; int: ...
 
 </code></pre>
-<h2 id="ryryo3_quick_maths"><a class="header" href="#ryryo3_quick_maths"><code>ry.ryo3._quick_maths</code></a></h2>
+<h2 id="ry.ryo3._quick_maths"><a class="header" href="#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></h2>
 <pre><code class="language-python">"""ryo3-quick-maths types"""
 
 from __future__ import annotations
@@ -2697,7 +2748,7 @@ def quick_maths() -&gt; t.Literal[3]:
     """
 
 </code></pre>
-<h2 id="ryryo3_regex"><a class="header" href="#ryryo3_regex"><code>ry.ryo3._regex</code></a></h2>
+<h2 id="ry.ryo3._regex"><a class="header" href="#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></h2>
 <pre><code class="language-python">"""ryo3-regex types"""
 
 from __future__ import annotations
@@ -2728,7 +2779,7 @@ class Regex:
     def is_match(self, string: str) -&gt; bool: ...
 
 </code></pre>
-<h2 id="ryryo3_reqwest"><a class="header" href="#ryryo3_reqwest"><code>ry.ryo3._reqwest</code></a></h2>
+<h2 id="ry.ryo3._reqwest"><a class="header" href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></h2>
 <pre><code class="language-python">import typing as t
 from http import HTTPStatus
 
@@ -2835,7 +2886,7 @@ async def fetch(
 ) -&gt; Response: ...
 
 </code></pre>
-<h2 id="ryryo3_same_file"><a class="header" href="#ryryo3_same_file"><code>ry.ryo3._same_file</code></a></h2>
+<h2 id="ry.ryo3._same_file"><a class="header" href="#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></h2>
 <pre><code class="language-python">"""ryo3-same-file types"""
 
 from __future__ import annotations
@@ -2846,7 +2897,7 @@ from os import PathLike
 def is_same_file(a: PathLike[str], b: PathLike[str]) -&gt; bool: ...
 
 </code></pre>
-<h2 id="ryryo3_shlex"><a class="header" href="#ryryo3_shlex"><code>ry.ryo3._shlex</code></a></h2>
+<h2 id="ry.ryo3._shlex"><a class="header" href="#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></h2>
 <pre><code class="language-python">"""ryo3-shlex types"""
 
 from __future__ import annotations
@@ -2857,7 +2908,7 @@ def shplit(s: str) -&gt; list[str]:
     ...
 
 </code></pre>
-<h2 id="ryryo3_size"><a class="header" href="#ryryo3_size"><code>ry.ryo3._size</code></a></h2>
+<h2 id="ry.ryo3._size"><a class="header" href="#ry.ryo3._size"><code>ry.ryo3._size</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 from typing import Literal
@@ -3034,7 +3085,7 @@ class Size:
     def from_exbibytes(cls: type[Size], size: int | float) -&gt; Size: ...
 
 </code></pre>
-<h2 id="ryryo3_sqlformat"><a class="header" href="#ryryo3_sqlformat"><code>ry.ryo3._sqlformat</code></a></h2>
+<h2 id="ry.ryo3._sqlformat"><a class="header" href="#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 import typing as t
@@ -3076,7 +3127,7 @@ def sqlfmt(
 ) -&gt; str: ...
 
 </code></pre>
-<h2 id="ryryo3_std"><a class="header" href="#ryryo3_std"><code>ry.ryo3._std</code></a></h2>
+<h2 id="ry.ryo3._std"><a class="header" href="#ry.ryo3._std"><code>ry.ryo3._std</code></a></h2>
 <pre><code class="language-python">"""ryo3-std types"""
 
 from __future__ import annotations
@@ -3293,7 +3344,7 @@ def remove_file(path: FsPathLike) -&gt; None: ...
 def rename(from_path: FsPathLike, to_path: FsPathLike) -&gt; None: ...
 
 </code></pre>
-<h2 id="ryryo3_tokio"><a class="header" href="#ryryo3_tokio"><code>ry.ryo3._tokio</code></a></h2>
+<h2 id="ry.ryo3._tokio"><a class="header" href="#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></h2>
 <pre><code class="language-python">"""ryo3-tokio types"""
 
 from __future__ import annotations
@@ -3327,7 +3378,7 @@ async def asleep(seconds: float) -&gt; float:
     ...
 
 </code></pre>
-<h2 id="ryryo3_unindent"><a class="header" href="#ryryo3_unindent"><code>ry.ryo3._unindent</code></a></h2>
+<h2 id="ry.ryo3._unindent"><a class="header" href="#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></h2>
 <pre><code class="language-python">"""ryo3-unindent types"""
 
 from __future__ import annotations
@@ -3337,7 +3388,7 @@ def unindent(string: str) -&gt; str: ...
 def unindent_bytes(string: bytes) -&gt; bytes: ...
 
 </code></pre>
-<h2 id="ryryo3_url"><a class="header" href="#ryryo3_url"><code>ry.ryo3._url</code></a></h2>
+<h2 id="ry.ryo3._url"><a class="header" href="#ry.ryo3._url"><code>ry.ryo3._url</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 from ipaddress import IPv4Address
@@ -3445,7 +3496,7 @@ class URL:
     ) -&gt; URL: ...
 
 </code></pre>
-<h2 id="ryryo3_walkdir"><a class="header" href="#ryryo3_walkdir"><code>ry.ryo3._walkdir</code></a></h2>
+<h2 id="ry.ryo3._walkdir"><a class="header" href="#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></h2>
 <pre><code class="language-python">"""ryo3-walkdir types"""
 
 from __future__ import annotations
@@ -3504,7 +3555,7 @@ def walkdir(
 ) -&gt; WalkdirGen: ...
 
 </code></pre>
-<h2 id="ryryo3_which"><a class="header" href="#ryryo3_which"><code>ry.ryo3._which</code></a></h2>
+<h2 id="ry.ryo3._which"><a class="header" href="#ry.ryo3._which"><code>ry.ryo3._which</code></a></h2>
 <pre><code class="language-python">"""ryo3-which types"""
 
 from __future__ import annotations
@@ -3519,31 +3570,336 @@ def which_all(cmd: str, path: None | str = None) -&gt; list[Path]: ...
 def which_re(regex: str | Regex, path: None | str = None) -&gt; list[Path]: ...
 
 </code></pre>
-<h2 id="ryryo3_zstd"><a class="header" href="#ryryo3_zstd"><code>ry.ryo3._zstd</code></a></h2>
-<pre><code class="language-python">"""ryo3-zstd types"""
-
-from __future__ import annotations
-
-from ry import Bytes
-from ry._types import Buffer
-
-# =============================================================================
-# ZSTD
-# =============================================================================
-
-
-def zstd_decode(input: Buffer) -&gt; Bytes: ...
-def zstd_encode(input: Buffer, level: int = 3) -&gt; Bytes: ...
-def zstd(input: Buffer, level: int = 3) -&gt; Bytes:
-    """Alias for zstd_encode"""
+<h2 id="ry.dirs"><a class="header" href="#ry.dirs"><code>ry.dirs</code></a></h2>
+<pre><code class="language-python">def audio() -&gt; str | None: ...
+def audio_dir() -&gt; str | None: ...
+def cache() -&gt; str | None: ...
+def cache_dir() -&gt; str | None: ...
+def config() -&gt; str | None: ...
+def config_dir() -&gt; str | None: ...
+def config_local() -&gt; str | None: ...
+def config_local_dir() -&gt; str | None: ...
+def data() -&gt; str | None: ...
+def data_dir() -&gt; str | None: ...
+def data_local() -&gt; str | None: ...
+def data_local_dir() -&gt; str | None: ...
+def desktop() -&gt; str | None: ...
+def desktop_dir() -&gt; str | None: ...
+def document() -&gt; str | None: ...
+def document_dir() -&gt; str | None: ...
+def download() -&gt; str | None: ...
+def download_dir() -&gt; str | None: ...
+def executable() -&gt; str | None: ...
+def executable_dir() -&gt; str | None: ...
+def font() -&gt; str | None: ...
+def font_dir() -&gt; str | None: ...
+def home() -&gt; str | None: ...
+def home_dir() -&gt; str | None: ...
+def picture() -&gt; str | None: ...
+def picture_dir() -&gt; str | None: ...
+def preference() -&gt; str | None: ...
+def preference_dir() -&gt; str | None: ...
+def public() -&gt; str | None: ...
+def public_dir() -&gt; str | None: ...
+def runtime() -&gt; str | None: ...
+def runtime_dir() -&gt; str | None: ...
+def state() -&gt; str | None: ...
+def state_dir() -&gt; str | None: ...
+def template() -&gt; str | None: ...
+def template_dir() -&gt; str | None: ...
+def video() -&gt; str | None: ...
+def video_dir() -&gt; str | None: ...
 
 </code></pre>
-<h2 id="ryryo3errors"><a class="header" href="#ryryo3errors"><code>ry.ryo3.errors</code></a></h2>
+<h2 id="ry.http"><a class="header" href="#ry.http"><code>ry.http</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
+import typing as t
 
-class FeatureNotEnabledError(RuntimeError):
-    """Raised when a feature is not enabled in the current build."""
+
+class Headers:
+    """python-ryo3-http `http::HeadersMap` wrapper"""
+
+    def __init__(self, headers: dict[str, str | t.Sequence[str]]) -&gt; None: ...
+
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def __dbg__(self) -&gt; str: ...
+
+    # =========================================================================
+    # MAGIC METHODS
+    # =========================================================================
+    def __len__(self) -&gt; int: ...
+    def __getitem__(self, key: str) -&gt; str: ...
+    def __setitem__(self, key: str, value: str) -&gt; None: ...
+    def __delitem__(self, key: str) -&gt; None: ...
+    def __contains__(self, key: str) -&gt; bool: ...
+    def __or__(self, other: Headers | dict[str, str]) -&gt; Headers: ...
+    def asdict(self) -&gt; dict[str, str | t.Sequence[str]]: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def append(self, key: str, value: str) -&gt; None: ...
+    def get(self, key: str) -&gt; str | None: ...
+    def get_all(self, key: str) -&gt; list[str]: ...
+    def keys_len(self) -&gt; int: ...
+    def len(self) -&gt; int: ...
+    def remove(self, key: str) -&gt; None: ...
+    def clear(self) -&gt; None: ...
+    def pop(self, key: str) -&gt; str: ...
+    def keys(self) -&gt; list[str]: ...
+    def update(self, headers: Headers | dict[str, str]) -&gt; None: ...
+
+
+class HttpStatus:
+    def __init__(self, code: int) -&gt; None: ...
+    def __int__(self) -&gt; int: ...
+    def __bool__(self) -&gt; bool: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def __hash__(self) -&gt; int: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def __ne__(self, other: object) -&gt; bool: ...
+    def __lt__(self, other: HttpStatus | int) -&gt; bool: ...
+    def __le__(self, other: HttpStatus | int) -&gt; bool: ...
+    def __gt__(self, other: HttpStatus | int) -&gt; bool: ...
+    def __ge__(self, other: HttpStatus | int) -&gt; bool: ...
+    def reason(self) -&gt; str: ...
+    def is_informational(self) -&gt; bool: ...
+    def is_success(self) -&gt; bool: ...
+    def is_redirect(self) -&gt; bool: ...
+    def is_client_error(self) -&gt; bool: ...
+    def is_server_error(self) -&gt; bool: ...
+    def is_ok(self) -&gt; bool: ...
+    @property
+    def ok(self) -&gt; bool: ...
+
+    # =========================================================================
+    # CONST STATUS CODES
+    # =========================================================================
+    CONTINUE: HttpStatus  # 100 ~ Continue
+    SWITCHING_PROTOCOLS: HttpStatus  # 101 ~ Switching Protocols
+    PROCESSING: HttpStatus  # 102 ~ Processing
+    OK: HttpStatus  # 200 ~ OK
+    CREATED: HttpStatus  # 201 ~ Created
+    ACCEPTED: HttpStatus  # 202 ~ Accepted
+    NON_AUTHORITATIVE_INFORMATION: (
+        HttpStatus  # 203 ~ Non Authoritative Information
+    )
+    NO_CONTENT: HttpStatus  # 204 ~ No Content
+    RESET_CONTENT: HttpStatus  # 205 ~ Reset Content
+    PARTIAL_CONTENT: HttpStatus  # 206 ~ Partial Content
+    MULTI_STATUS: HttpStatus  # 207 ~ Multi-Status
+    ALREADY_REPORTED: HttpStatus  # 208 ~ Already Reported
+    IM_USED: HttpStatus  # 226 ~ IM Used
+    MULTIPLE_CHOICES: HttpStatus  # 300 ~ Multiple Choices
+    MOVED_PERMANENTLY: HttpStatus  # 301 ~ Moved Permanently
+    FOUND: HttpStatus  # 302 ~ Found
+    SEE_OTHER: HttpStatus  # 303 ~ See Other
+    NOT_MODIFIED: HttpStatus  # 304 ~ Not Modified
+    USE_PROXY: HttpStatus  # 305 ~ Use Proxy
+    TEMPORARY_REDIRECT: HttpStatus  # 307 ~ Temporary Redirect
+    PERMANENT_REDIRECT: HttpStatus  # 308 ~ Permanent Redirect
+    BAD_REQUEST: HttpStatus  # 400 ~ Bad Request
+    UNAUTHORIZED: HttpStatus  # 401 ~ Unauthorized
+    PAYMENT_REQUIRED: HttpStatus  # 402 ~ Payment Required
+    FORBIDDEN: HttpStatus  # 403 ~ Forbidden
+    NOT_FOUND: HttpStatus  # 404 ~ Not Found
+    METHOD_NOT_ALLOWED: HttpStatus  # 405 ~ Method Not Allowed
+    NOT_ACCEPTABLE: HttpStatus  # 406 ~ Not Acceptable
+    PROXY_AUTHENTICATION_REQUIRED: (
+        HttpStatus  # 407 ~ Proxy Authentication Required
+    )
+    REQUEST_TIMEOUT: HttpStatus  # 408 ~ Request Timeout
+    CONFLICT: HttpStatus  # 409 ~ Conflict
+    GONE: HttpStatus  # 410 ~ Gone
+    LENGTH_REQUIRED: HttpStatus  # 411 ~ Length Required
+    PRECONDITION_FAILED: HttpStatus  # 412 ~ Precondition Failed
+    PAYLOAD_TOO_LARGE: HttpStatus  # 413 ~ Payload Too Large
+    URI_TOO_LONG: HttpStatus  # 414 ~ URI Too Long
+    UNSUPPORTED_MEDIA_TYPE: HttpStatus  # 415 ~ Unsupported Media Type
+    RANGE_NOT_SATISFIABLE: HttpStatus  # 416 ~ Range Not Satisfiable
+    EXPECTATION_FAILED: HttpStatus  # 417 ~ Expectation Failed
+    IM_A_TEAPOT: HttpStatus  # 418 ~ I'm a teapot
+    MISDIRECTED_REQUEST: HttpStatus  # 421 ~ Misdirected Request
+    UNPROCESSABLE_ENTITY: HttpStatus  # 422 ~ Unprocessable Entity
+    LOCKED: HttpStatus  # 423 ~ Locked
+    FAILED_DEPENDENCY: HttpStatus  # 424 ~ Failed Dependency
+    TOO_EARLY: HttpStatus  # 425 ~ Too Early
+    UPGRADE_REQUIRED: HttpStatus  # 426 ~ Upgrade Required
+    PRECONDITION_REQUIRED: HttpStatus  # 428 ~ Precondition Required
+    TOO_MANY_REQUESTS: HttpStatus  # 429 ~ Too Many Requests
+    REQUEST_HEADER_FIELDS_TOO_LARGE: (
+        HttpStatus  # 431 ~ Request Header Fields Too Large
+    )
+    UNAVAILABLE_FOR_LEGAL_REASONS: (
+        HttpStatus  # 451 ~ Unavailable For Legal Reasons
+    )
+    INTERNAL_SERVER_ERROR: HttpStatus  # 500 ~ Internal Server Error
+    NOT_IMPLEMENTED: HttpStatus  # 501 ~ Not Implemented
+    BAD_GATEWAY: HttpStatus  # 502 ~ Bad Gateway
+    SERVICE_UNAVAILABLE: HttpStatus  # 503 ~ Service Unavailable
+    GATEWAY_TIMEOUT: HttpStatus  # 504 ~ Gateway Timeout
+    HTTP_VERSION_NOT_SUPPORTED: HttpStatus  # 505 ~ HTTP Version Not Supported
+    VARIANT_ALSO_NEGOTIATES: HttpStatus  # 506 ~ Variant Also Negotiates
+    INSUFFICIENT_STORAGE: HttpStatus  # 507 ~ Insufficient Storage
+    LOOP_DETECTED: HttpStatus  # 508 ~ Loop Detected
+    NOT_EXTENDED: HttpStatus  # 510 ~ Not Extended
+    NETWORK_AUTHENTICATION_REQUIRED: (
+        HttpStatus  # 511 ~ Network Authentication Required
+    )
+
+</code></pre>
+<h2 id="ry.xxhash"><a class="header" href="#ry.xxhash"><code>ry.xxhash</code></a></h2>
+<pre><code class="language-python">from __future__ import annotations
+
+import typing as t
+
+from ry._types import Buffer
+
+
+@t.final
+class Xxh32:
+    name: t.Literal["xxh32"]
+
+    def __init__(self, input: Buffer = ..., seed: int | None = ...) -&gt; None: ...
+    def update(self, input: Buffer) -&gt; None: ...
+    def digest(self) -&gt; bytes: ...
+    def hexdigest(self) -&gt; str: ...
+    def intdigest(self) -&gt; int: ...
+    def copy(self) -&gt; Xxh32: ...
+    def reset(self, seed: int | None = ...) -&gt; None: ...
+    @property
+    def seed(self) -&gt; int: ...
+
+
+@t.final
+class Xxh64:
+    name: t.Literal["xxh64"]
+
+    def __init__(
+        self, input: Buffer | None = None, seed: int | None = ...
+    ) -&gt; None: ...
+    def update(self, input: Buffer) -&gt; None: ...
+    def digest(self) -&gt; bytes: ...
+    def hexdigest(self) -&gt; str: ...
+    def intdigest(self) -&gt; int: ...
+    def copy(self) -&gt; Xxh32: ...
+    def reset(self, seed: int | None = ...) -&gt; None: ...
+    @property
+    def seed(self) -&gt; int: ...
+
+
+@t.final
+class Xxh3:
+    name: t.Literal["xxh3"]
+
+    def __init__(
+        self,
+        input: Buffer = ...,
+        seed: int | None = ...,
+        secret: bytes | None = ...,
+    ) -&gt; None: ...
+    def update(self, input: Buffer) -&gt; None: ...
+    def digest(self) -&gt; bytes: ...
+    def hexdigest(self) -&gt; str: ...
+    def intdigest(self) -&gt; int: ...
+    @property
+    def seed(self) -&gt; int: ...
+    def digest128(self) -&gt; bytes: ...
+    def hexdigest128(self) -&gt; str: ...
+    def intdigest128(self) -&gt; int: ...
+    def copy(self) -&gt; Xxh3: ...
+    def reset(self) -&gt; None: ...
+
+
+def xxh32(input: Buffer | None = None, seed: int | None = None) -&gt; Xxh32: ...
+def xxh64(input: Buffer | None = None, seed: int | None = None) -&gt; Xxh64: ...
+def xxh3(
+    input: Buffer | None = None,
+    seed: int | None = None,
+    secret: bytes | None = None,
+) -&gt; Xxh3: ...
+
+
+# xxh32
+def xxh32_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh32_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh32_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+
+
+# xxh64
+def xxh64_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh64_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh64_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+
+
+# xxh128
+def xxh128_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh128_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh128_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+
+
+# xxh3
+def xxh3_64_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh3_64_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+def xxh3_64_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh3_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh3_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+def xxh3_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+
+
+# xxh128
+def xxh3_128_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+
+</code></pre>
+<h2 id="ry.zstd"><a class="header" href="#ry.zstd"><code>ry.zstd</code></a></h2>
+<pre><code class="language-python">from ry import Bytes
+from ry._types import Buffer
+
+__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
+BLOCKSIZELOG_MAX: int
+BLOCKSIZE_MAX: int
+CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
+CONTENTSIZE_ERROR: int
+CONTENTSIZE_UNKNOWN: int
+MAGICNUMBER: int
+MAGIC_DICTIONARY: int
+MAGIC_SKIPPABLE_MASK: int
+MAGIC_SKIPPABLE_START: int
+VERSION_MAJOR: int
+VERSION_MINOR: int
+VERSION_NUMBER: int
+VERSION_RELEASE: int
+
+
+# =============================================================================
+# PYFUNCTIONS
+# =============================================================================
+# __COMPRESSION__
+def compress(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def encode(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def zstd(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def zstd_compress(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def zstd_encode(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+
+
+# __DECOMPRESSION__
+def decode(data: Buffer) -&gt; Bytes: ...
+def decompress(data: Buffer) -&gt; Bytes: ...
+def unzstd(data: Buffer) -&gt; Bytes: ...
+def zstd_decode(data: Buffer) -&gt; Bytes: ...
+def zstd_decompress(data: Buffer) -&gt; Bytes: ...
+
+
+# __MAGIC__
+def is_zstd(data: Buffer) -&gt; bool: ...
 
 </code></pre>
 <!-- API-END -->
@@ -3682,6 +4038,24 @@ of tasks)</li>
 <p>If you want to be added to this list, please open an issue or PR! Happy to add
 you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0039-2025-03-14"><a class="header" href="#v0039-2025-03-14">v0.0.39 [2025-03-14]</a></h2>
+<ul>
+<li>internal
+<ul>
+<li>cleaned up several dependencies and features</li>
+</ul>
+</li>
+<li><code>ryo3-zstd</code>
+<ul>
+<li>actually changed to use py buffer protocol this time… I dont know how it
+got missed before…</li>
+<li>re-factored a decent bit and made submodule with future plans to expand encoding/decoding dictionary
+support</li>
+<li>submodule is <code>ry.zstd</code> and/or <code>ry.ryo3.zstd</code></li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0038-2025-03-13"><a class="header" href="#v0038-2025-03-13">v0.0.38 [2025-03-13]</a></h2>
 <ul>
 <li><code>ryo3-reqwest</code>
@@ -4389,8 +4763,44 @@ problem (aka batman) w/ traits</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="examples"><a class="header" href="#examples">Examples</a></h1>
 <p><strong>TODO: Add examples</strong></p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="api-1"><a class="header" href="#api-1">API</a></h1>
-<h2 id="ryryo3-1"><a class="header" href="#ryryo3-1"><code>ry.ryo3</code></a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="api-2"><a class="header" href="#api-2">API</a></h1>
+<h1 id="api-3"><a class="header" href="#api-3">API</a></h1>
+<h2 id="table-of-contents-1"><a class="header" href="#table-of-contents-1">Table of Contents</a></h2>
+<ul>
+<li><a href="api.html#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></li>
+<li><a href="api.html#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></li>
+<li><a href="api.html#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></li>
+<li><a href="api.html#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></li>
+<li><a href="api.html#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></li>
+<li><a href="api.html#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></li>
+<li><a href="api.html#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></li>
+<li><a href="api.html#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></li>
+<li><a href="api.html#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></li>
+<li><a href="api.html#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></li>
+<li><a href="api.html#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></li>
+<li><a href="api.html#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></li>
+<li><a href="api.html#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></li>
+<li><a href="api.html#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></li>
+<li><a href="api.html#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></li>
+<li><a href="api.html#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></li>
+<li><a href="api.html#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></li>
+<li><a href="api.html#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></li>
+<li><a href="api.html#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></li>
+<li><a href="api.html#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></li>
+<li><a href="api.html#ry.ryo3._size"><code>ry.ryo3._size</code></a></li>
+<li><a href="api.html#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></li>
+<li><a href="api.html#ry.ryo3._std"><code>ry.ryo3._std</code></a></li>
+<li><a href="api.html#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></li>
+<li><a href="api.html#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></li>
+<li><a href="api.html#ry.ryo3._url"><code>ry.ryo3._url</code></a></li>
+<li><a href="api.html#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></li>
+<li><a href="api.html#ry.ryo3._which"><code>ry.ryo3._which</code></a></li>
+<li><a href="api.html#ry.dirs"><code>ry.dirs</code></a></li>
+<li><a href="api.html#ry.http"><code>ry.http</code></a></li>
+<li><a href="api.html#ry.xxhash"><code>ry.xxhash</code></a></li>
+<li><a href="api.html#ry.zstd"><code>ry.zstd</code></a></li>
+</ul>
+<h2 id="ry.ryo3.__init__"><a class="header" href="#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></h2>
 <pre><code class="language-python">"""ry api ~ type annotations"""
 
 from __future__ import annotations
@@ -4402,9 +4812,15 @@ from os import PathLike
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
+from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
 from ry.http import Headers as Headers  # noqa: RUF100
 from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.zstd import is_zstd as is_zstd
+from ry.zstd import zstd_compress as zstd_compress
+from ry.zstd import zstd_decode as zstd_decode
+from ry.zstd import zstd_decompress as zstd_decompress
+from ry.zstd import zstd_encode as zstd_encode
 
 from ._brotli import brotli as brotli
 from ._brotli import brotli_decode as brotli_decode
@@ -4529,9 +4945,6 @@ from ._walkdir import walkdir as walkdir
 from ._which import which as which
 from ._which import which_all as which_all
 from ._which import which_re as which_re
-from ._zstd import zstd as zstd
-from ._zstd import zstd_decode as zstd_decode
-from ._zstd import zstd_encode as zstd_encode
 from .errors import FeatureNotEnabledError as FeatureNotEnabledError
 
 # =============================================================================
@@ -4573,7 +4986,15 @@ def ls(
     """List directory contents - returns list of FsPath objects"""
 
 </code></pre>
-<h2 id="ryryo3json-1"><a class="header" href="#ryryo3json-1"><code>ry.ryo3.JSON</code></a></h2>
+<h2 id="ry.ryo3.errors"><a class="header" href="#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></h2>
+<pre><code class="language-python">from __future__ import annotations
+
+
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build."""
+
+</code></pre>
+<h2 id="ry.ryo3.JSON"><a class="header" href="#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3.JSON"""
 
 from typing import Literal
@@ -4610,7 +5031,7 @@ def json_cache_clear() -&gt; None: ...
 def json_cache_usage() -&gt; int: ...
 
 </code></pre>
-<h2 id="ryryo3_brotli-1"><a class="header" href="#ryryo3_brotli-1"><code>ry.ryo3._brotli</code></a></h2>
+<h2 id="ry.ryo3._brotli"><a class="header" href="#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></h2>
 <pre><code class="language-python">"""ryo3-brotli types"""
 
 from __future__ import annotations
@@ -4629,7 +5050,7 @@ def brotli(
     """Alias for brotli_encode"""
 
 </code></pre>
-<h2 id="ryryo3_bytes-1"><a class="header" href="#ryryo3_bytes-1"><code>ry.ryo3._bytes</code></a></h2>
+<h2 id="ry.ryo3._bytes"><a class="header" href="#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></h2>
 <pre><code class="language-python">import sys
 from typing import overload
 
@@ -4771,7 +5192,7 @@ class Bytes(Buffer):
 BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
 
 </code></pre>
-<h2 id="ryryo3_bzip2-1"><a class="header" href="#ryryo3_bzip2-1"><code>ry.ryo3._bzip2</code></a></h2>
+<h2 id="ry.ryo3._bzip2"><a class="header" href="#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></h2>
 <pre><code class="language-python">"""ryo3-bzip2 types"""
 
 from __future__ import annotations
@@ -4788,7 +5209,7 @@ def bzip2(input: Buffer, quality: int = 9) -&gt; bytes:
     """Alias for bzip2_encode"""
 
 </code></pre>
-<h2 id="ryryo3_dev-1"><a class="header" href="#ryryo3_dev-1"><code>ry.ryo3._dev</code></a></h2>
+<h2 id="ry.ryo3._dev"><a class="header" href="#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3.dev"""
 
 from __future__ import annotations
@@ -4816,7 +5237,7 @@ def string_noop(s: str) -&gt; str: ...
 def bytes_noop(s: bytes) -&gt; bytes: ...
 
 </code></pre>
-<h2 id="ryryo3_flate2-1"><a class="header" href="#ryryo3_flate2-1"><code>ry.ryo3._flate2</code></a></h2>
+<h2 id="ry.ryo3._flate2"><a class="header" href="#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></h2>
 <pre><code class="language-python">"""ryo3-flate2 types"""
 
 from __future__ import annotations
@@ -4841,7 +5262,7 @@ def gunzip(input: Buffer) -&gt; Bytes:
 def is_gzipped(input: Buffer) -&gt; bool: ...
 
 </code></pre>
-<h2 id="ryryo3_fnv-1"><a class="header" href="#ryryo3_fnv-1"><code>ry.ryo3._fnv</code></a></h2>
+<h2 id="ry.ryo3._fnv"><a class="header" href="#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></h2>
 <pre><code class="language-python">"""ryo3-fnv types"""
 
 import typing as t
@@ -4867,7 +5288,7 @@ class FnvHasher:
 def fnv1a(input: Buffer) -&gt; FnvHasher: ...
 
 </code></pre>
-<h2 id="ryryo3_fspath-1"><a class="header" href="#ryryo3_fspath-1"><code>ry.ryo3._fspath</code></a></h2>
+<h2 id="ry.ryo3._fspath"><a class="header" href="#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></h2>
 <pre><code class="language-python">"""ryo3-fspath types"""
 
 from __future__ import annotations
@@ -4976,7 +5397,7 @@ class FsPath(ToPy[Path]):
     def with_file_name(self, name: str) -&gt; FsPath: ...
 
 </code></pre>
-<h2 id="ryryo3_glob-1"><a class="header" href="#ryryo3_glob-1"><code>ry.ryo3._glob</code></a></h2>
+<h2 id="ry.ryo3._glob"><a class="header" href="#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></h2>
 <pre><code class="language-python">"""ryo3-glob types"""
 
 from __future__ import annotations
@@ -5037,7 +5458,7 @@ class Pattern:
     def escape(pattern: str) -&gt; str: ...
 
 </code></pre>
-<h2 id="ryryo3_globset-1"><a class="header" href="#ryryo3_globset-1"><code>ry.ryo3._globset</code></a></h2>
+<h2 id="ry.ryo3._globset"><a class="header" href="#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></h2>
 <pre><code class="language-python">"""ryo3-globset types"""
 
 from __future__ import annotations
@@ -5124,7 +5545,7 @@ def globster(
 ) -&gt; Globster: ...
 
 </code></pre>
-<h2 id="ryryo3_heck-1"><a class="header" href="#ryryo3_heck-1"><code>ry.ryo3._heck</code></a></h2>
+<h2 id="ry.ryo3._heck"><a class="header" href="#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></h2>
 <pre><code class="language-python">"""ryo3-heck types"""
 
 from __future__ import annotations
@@ -5141,7 +5562,7 @@ def title_case(string: str) -&gt; str: ...
 def train_case(string: str) -&gt; str: ...
 
 </code></pre>
-<h2 id="ryryo3_jiff-1"><a class="header" href="#ryryo3_jiff-1"><code>ry.ryo3._jiff</code></a></h2>
+<h2 id="ry.ryo3._jiff"><a class="header" href="#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></h2>
 <pre><code class="language-python">"""jiff types"""
 
 import datetime as pydt
@@ -6739,7 +7160,7 @@ class TimeZoneDatabase:
     def from_concatenated_path(cls, path: str) -&gt; TimeZoneDatabase: ...
 
 </code></pre>
-<h2 id="ryryo3_jiter-1"><a class="header" href="#ryryo3_jiter-1"><code>ry.ryo3._jiter</code></a></h2>
+<h2 id="ry.ryo3._jiter"><a class="header" href="#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 import typing as t
@@ -6786,7 +7207,7 @@ def json_cache_clear() -&gt; None: ...
 def json_cache_usage() -&gt; int: ...
 
 </code></pre>
-<h2 id="ryryo3_quick_maths-1"><a class="header" href="#ryryo3_quick_maths-1"><code>ry.ryo3._quick_maths</code></a></h2>
+<h2 id="ry.ryo3._quick_maths"><a class="header" href="#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></h2>
 <pre><code class="language-python">"""ryo3-quick-maths types"""
 
 from __future__ import annotations
@@ -6814,7 +7235,7 @@ def quick_maths() -&gt; t.Literal[3]:
     """
 
 </code></pre>
-<h2 id="ryryo3_regex-1"><a class="header" href="#ryryo3_regex-1"><code>ry.ryo3._regex</code></a></h2>
+<h2 id="ry.ryo3._regex"><a class="header" href="#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></h2>
 <pre><code class="language-python">"""ryo3-regex types"""
 
 from __future__ import annotations
@@ -6845,7 +7266,7 @@ class Regex:
     def is_match(self, string: str) -&gt; bool: ...
 
 </code></pre>
-<h2 id="ryryo3_reqwest-1"><a class="header" href="#ryryo3_reqwest-1"><code>ry.ryo3._reqwest</code></a></h2>
+<h2 id="ry.ryo3._reqwest"><a class="header" href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></h2>
 <pre><code class="language-python">import typing as t
 from http import HTTPStatus
 
@@ -6952,7 +7373,7 @@ async def fetch(
 ) -&gt; Response: ...
 
 </code></pre>
-<h2 id="ryryo3_same_file-1"><a class="header" href="#ryryo3_same_file-1"><code>ry.ryo3._same_file</code></a></h2>
+<h2 id="ry.ryo3._same_file"><a class="header" href="#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></h2>
 <pre><code class="language-python">"""ryo3-same-file types"""
 
 from __future__ import annotations
@@ -6963,7 +7384,7 @@ from os import PathLike
 def is_same_file(a: PathLike[str], b: PathLike[str]) -&gt; bool: ...
 
 </code></pre>
-<h2 id="ryryo3_shlex-1"><a class="header" href="#ryryo3_shlex-1"><code>ry.ryo3._shlex</code></a></h2>
+<h2 id="ry.ryo3._shlex"><a class="header" href="#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></h2>
 <pre><code class="language-python">"""ryo3-shlex types"""
 
 from __future__ import annotations
@@ -6974,7 +7395,7 @@ def shplit(s: str) -&gt; list[str]:
     ...
 
 </code></pre>
-<h2 id="ryryo3_size-1"><a class="header" href="#ryryo3_size-1"><code>ry.ryo3._size</code></a></h2>
+<h2 id="ry.ryo3._size"><a class="header" href="#ry.ryo3._size"><code>ry.ryo3._size</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 from typing import Literal
@@ -7151,7 +7572,7 @@ class Size:
     def from_exbibytes(cls: type[Size], size: int | float) -&gt; Size: ...
 
 </code></pre>
-<h2 id="ryryo3_sqlformat-1"><a class="header" href="#ryryo3_sqlformat-1"><code>ry.ryo3._sqlformat</code></a></h2>
+<h2 id="ry.ryo3._sqlformat"><a class="header" href="#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 import typing as t
@@ -7193,7 +7614,7 @@ def sqlfmt(
 ) -&gt; str: ...
 
 </code></pre>
-<h2 id="ryryo3_std-1"><a class="header" href="#ryryo3_std-1"><code>ry.ryo3._std</code></a></h2>
+<h2 id="ry.ryo3._std"><a class="header" href="#ry.ryo3._std"><code>ry.ryo3._std</code></a></h2>
 <pre><code class="language-python">"""ryo3-std types"""
 
 from __future__ import annotations
@@ -7410,7 +7831,7 @@ def remove_file(path: FsPathLike) -&gt; None: ...
 def rename(from_path: FsPathLike, to_path: FsPathLike) -&gt; None: ...
 
 </code></pre>
-<h2 id="ryryo3_tokio-1"><a class="header" href="#ryryo3_tokio-1"><code>ry.ryo3._tokio</code></a></h2>
+<h2 id="ry.ryo3._tokio"><a class="header" href="#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></h2>
 <pre><code class="language-python">"""ryo3-tokio types"""
 
 from __future__ import annotations
@@ -7444,7 +7865,7 @@ async def asleep(seconds: float) -&gt; float:
     ...
 
 </code></pre>
-<h2 id="ryryo3_unindent-1"><a class="header" href="#ryryo3_unindent-1"><code>ry.ryo3._unindent</code></a></h2>
+<h2 id="ry.ryo3._unindent"><a class="header" href="#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></h2>
 <pre><code class="language-python">"""ryo3-unindent types"""
 
 from __future__ import annotations
@@ -7454,7 +7875,7 @@ def unindent(string: str) -&gt; str: ...
 def unindent_bytes(string: bytes) -&gt; bytes: ...
 
 </code></pre>
-<h2 id="ryryo3_url-1"><a class="header" href="#ryryo3_url-1"><code>ry.ryo3._url</code></a></h2>
+<h2 id="ry.ryo3._url"><a class="header" href="#ry.ryo3._url"><code>ry.ryo3._url</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
 from ipaddress import IPv4Address
@@ -7562,7 +7983,7 @@ class URL:
     ) -&gt; URL: ...
 
 </code></pre>
-<h2 id="ryryo3_walkdir-1"><a class="header" href="#ryryo3_walkdir-1"><code>ry.ryo3._walkdir</code></a></h2>
+<h2 id="ry.ryo3._walkdir"><a class="header" href="#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></h2>
 <pre><code class="language-python">"""ryo3-walkdir types"""
 
 from __future__ import annotations
@@ -7621,7 +8042,7 @@ def walkdir(
 ) -&gt; WalkdirGen: ...
 
 </code></pre>
-<h2 id="ryryo3_which-1"><a class="header" href="#ryryo3_which-1"><code>ry.ryo3._which</code></a></h2>
+<h2 id="ry.ryo3._which"><a class="header" href="#ry.ryo3._which"><code>ry.ryo3._which</code></a></h2>
 <pre><code class="language-python">"""ryo3-which types"""
 
 from __future__ import annotations
@@ -7636,31 +8057,336 @@ def which_all(cmd: str, path: None | str = None) -&gt; list[Path]: ...
 def which_re(regex: str | Regex, path: None | str = None) -&gt; list[Path]: ...
 
 </code></pre>
-<h2 id="ryryo3_zstd-1"><a class="header" href="#ryryo3_zstd-1"><code>ry.ryo3._zstd</code></a></h2>
-<pre><code class="language-python">"""ryo3-zstd types"""
-
-from __future__ import annotations
-
-from ry import Bytes
-from ry._types import Buffer
-
-# =============================================================================
-# ZSTD
-# =============================================================================
-
-
-def zstd_decode(input: Buffer) -&gt; Bytes: ...
-def zstd_encode(input: Buffer, level: int = 3) -&gt; Bytes: ...
-def zstd(input: Buffer, level: int = 3) -&gt; Bytes:
-    """Alias for zstd_encode"""
+<h2 id="ry.dirs"><a class="header" href="#ry.dirs"><code>ry.dirs</code></a></h2>
+<pre><code class="language-python">def audio() -&gt; str | None: ...
+def audio_dir() -&gt; str | None: ...
+def cache() -&gt; str | None: ...
+def cache_dir() -&gt; str | None: ...
+def config() -&gt; str | None: ...
+def config_dir() -&gt; str | None: ...
+def config_local() -&gt; str | None: ...
+def config_local_dir() -&gt; str | None: ...
+def data() -&gt; str | None: ...
+def data_dir() -&gt; str | None: ...
+def data_local() -&gt; str | None: ...
+def data_local_dir() -&gt; str | None: ...
+def desktop() -&gt; str | None: ...
+def desktop_dir() -&gt; str | None: ...
+def document() -&gt; str | None: ...
+def document_dir() -&gt; str | None: ...
+def download() -&gt; str | None: ...
+def download_dir() -&gt; str | None: ...
+def executable() -&gt; str | None: ...
+def executable_dir() -&gt; str | None: ...
+def font() -&gt; str | None: ...
+def font_dir() -&gt; str | None: ...
+def home() -&gt; str | None: ...
+def home_dir() -&gt; str | None: ...
+def picture() -&gt; str | None: ...
+def picture_dir() -&gt; str | None: ...
+def preference() -&gt; str | None: ...
+def preference_dir() -&gt; str | None: ...
+def public() -&gt; str | None: ...
+def public_dir() -&gt; str | None: ...
+def runtime() -&gt; str | None: ...
+def runtime_dir() -&gt; str | None: ...
+def state() -&gt; str | None: ...
+def state_dir() -&gt; str | None: ...
+def template() -&gt; str | None: ...
+def template_dir() -&gt; str | None: ...
+def video() -&gt; str | None: ...
+def video_dir() -&gt; str | None: ...
 
 </code></pre>
-<h2 id="ryryo3errors-1"><a class="header" href="#ryryo3errors-1"><code>ry.ryo3.errors</code></a></h2>
+<h2 id="ry.http"><a class="header" href="#ry.http"><code>ry.http</code></a></h2>
 <pre><code class="language-python">from __future__ import annotations
 
+import typing as t
 
-class FeatureNotEnabledError(RuntimeError):
-    """Raised when a feature is not enabled in the current build."""
+
+class Headers:
+    """python-ryo3-http `http::HeadersMap` wrapper"""
+
+    def __init__(self, headers: dict[str, str | t.Sequence[str]]) -&gt; None: ...
+
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def __dbg__(self) -&gt; str: ...
+
+    # =========================================================================
+    # MAGIC METHODS
+    # =========================================================================
+    def __len__(self) -&gt; int: ...
+    def __getitem__(self, key: str) -&gt; str: ...
+    def __setitem__(self, key: str, value: str) -&gt; None: ...
+    def __delitem__(self, key: str) -&gt; None: ...
+    def __contains__(self, key: str) -&gt; bool: ...
+    def __or__(self, other: Headers | dict[str, str]) -&gt; Headers: ...
+    def asdict(self) -&gt; dict[str, str | t.Sequence[str]]: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def append(self, key: str, value: str) -&gt; None: ...
+    def get(self, key: str) -&gt; str | None: ...
+    def get_all(self, key: str) -&gt; list[str]: ...
+    def keys_len(self) -&gt; int: ...
+    def len(self) -&gt; int: ...
+    def remove(self, key: str) -&gt; None: ...
+    def clear(self) -&gt; None: ...
+    def pop(self, key: str) -&gt; str: ...
+    def keys(self) -&gt; list[str]: ...
+    def update(self, headers: Headers | dict[str, str]) -&gt; None: ...
+
+
+class HttpStatus:
+    def __init__(self, code: int) -&gt; None: ...
+    def __int__(self) -&gt; int: ...
+    def __bool__(self) -&gt; bool: ...
+    def __str__(self) -&gt; str: ...
+    def __repr__(self) -&gt; str: ...
+    def __hash__(self) -&gt; int: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def __ne__(self, other: object) -&gt; bool: ...
+    def __lt__(self, other: HttpStatus | int) -&gt; bool: ...
+    def __le__(self, other: HttpStatus | int) -&gt; bool: ...
+    def __gt__(self, other: HttpStatus | int) -&gt; bool: ...
+    def __ge__(self, other: HttpStatus | int) -&gt; bool: ...
+    def reason(self) -&gt; str: ...
+    def is_informational(self) -&gt; bool: ...
+    def is_success(self) -&gt; bool: ...
+    def is_redirect(self) -&gt; bool: ...
+    def is_client_error(self) -&gt; bool: ...
+    def is_server_error(self) -&gt; bool: ...
+    def is_ok(self) -&gt; bool: ...
+    @property
+    def ok(self) -&gt; bool: ...
+
+    # =========================================================================
+    # CONST STATUS CODES
+    # =========================================================================
+    CONTINUE: HttpStatus  # 100 ~ Continue
+    SWITCHING_PROTOCOLS: HttpStatus  # 101 ~ Switching Protocols
+    PROCESSING: HttpStatus  # 102 ~ Processing
+    OK: HttpStatus  # 200 ~ OK
+    CREATED: HttpStatus  # 201 ~ Created
+    ACCEPTED: HttpStatus  # 202 ~ Accepted
+    NON_AUTHORITATIVE_INFORMATION: (
+        HttpStatus  # 203 ~ Non Authoritative Information
+    )
+    NO_CONTENT: HttpStatus  # 204 ~ No Content
+    RESET_CONTENT: HttpStatus  # 205 ~ Reset Content
+    PARTIAL_CONTENT: HttpStatus  # 206 ~ Partial Content
+    MULTI_STATUS: HttpStatus  # 207 ~ Multi-Status
+    ALREADY_REPORTED: HttpStatus  # 208 ~ Already Reported
+    IM_USED: HttpStatus  # 226 ~ IM Used
+    MULTIPLE_CHOICES: HttpStatus  # 300 ~ Multiple Choices
+    MOVED_PERMANENTLY: HttpStatus  # 301 ~ Moved Permanently
+    FOUND: HttpStatus  # 302 ~ Found
+    SEE_OTHER: HttpStatus  # 303 ~ See Other
+    NOT_MODIFIED: HttpStatus  # 304 ~ Not Modified
+    USE_PROXY: HttpStatus  # 305 ~ Use Proxy
+    TEMPORARY_REDIRECT: HttpStatus  # 307 ~ Temporary Redirect
+    PERMANENT_REDIRECT: HttpStatus  # 308 ~ Permanent Redirect
+    BAD_REQUEST: HttpStatus  # 400 ~ Bad Request
+    UNAUTHORIZED: HttpStatus  # 401 ~ Unauthorized
+    PAYMENT_REQUIRED: HttpStatus  # 402 ~ Payment Required
+    FORBIDDEN: HttpStatus  # 403 ~ Forbidden
+    NOT_FOUND: HttpStatus  # 404 ~ Not Found
+    METHOD_NOT_ALLOWED: HttpStatus  # 405 ~ Method Not Allowed
+    NOT_ACCEPTABLE: HttpStatus  # 406 ~ Not Acceptable
+    PROXY_AUTHENTICATION_REQUIRED: (
+        HttpStatus  # 407 ~ Proxy Authentication Required
+    )
+    REQUEST_TIMEOUT: HttpStatus  # 408 ~ Request Timeout
+    CONFLICT: HttpStatus  # 409 ~ Conflict
+    GONE: HttpStatus  # 410 ~ Gone
+    LENGTH_REQUIRED: HttpStatus  # 411 ~ Length Required
+    PRECONDITION_FAILED: HttpStatus  # 412 ~ Precondition Failed
+    PAYLOAD_TOO_LARGE: HttpStatus  # 413 ~ Payload Too Large
+    URI_TOO_LONG: HttpStatus  # 414 ~ URI Too Long
+    UNSUPPORTED_MEDIA_TYPE: HttpStatus  # 415 ~ Unsupported Media Type
+    RANGE_NOT_SATISFIABLE: HttpStatus  # 416 ~ Range Not Satisfiable
+    EXPECTATION_FAILED: HttpStatus  # 417 ~ Expectation Failed
+    IM_A_TEAPOT: HttpStatus  # 418 ~ I'm a teapot
+    MISDIRECTED_REQUEST: HttpStatus  # 421 ~ Misdirected Request
+    UNPROCESSABLE_ENTITY: HttpStatus  # 422 ~ Unprocessable Entity
+    LOCKED: HttpStatus  # 423 ~ Locked
+    FAILED_DEPENDENCY: HttpStatus  # 424 ~ Failed Dependency
+    TOO_EARLY: HttpStatus  # 425 ~ Too Early
+    UPGRADE_REQUIRED: HttpStatus  # 426 ~ Upgrade Required
+    PRECONDITION_REQUIRED: HttpStatus  # 428 ~ Precondition Required
+    TOO_MANY_REQUESTS: HttpStatus  # 429 ~ Too Many Requests
+    REQUEST_HEADER_FIELDS_TOO_LARGE: (
+        HttpStatus  # 431 ~ Request Header Fields Too Large
+    )
+    UNAVAILABLE_FOR_LEGAL_REASONS: (
+        HttpStatus  # 451 ~ Unavailable For Legal Reasons
+    )
+    INTERNAL_SERVER_ERROR: HttpStatus  # 500 ~ Internal Server Error
+    NOT_IMPLEMENTED: HttpStatus  # 501 ~ Not Implemented
+    BAD_GATEWAY: HttpStatus  # 502 ~ Bad Gateway
+    SERVICE_UNAVAILABLE: HttpStatus  # 503 ~ Service Unavailable
+    GATEWAY_TIMEOUT: HttpStatus  # 504 ~ Gateway Timeout
+    HTTP_VERSION_NOT_SUPPORTED: HttpStatus  # 505 ~ HTTP Version Not Supported
+    VARIANT_ALSO_NEGOTIATES: HttpStatus  # 506 ~ Variant Also Negotiates
+    INSUFFICIENT_STORAGE: HttpStatus  # 507 ~ Insufficient Storage
+    LOOP_DETECTED: HttpStatus  # 508 ~ Loop Detected
+    NOT_EXTENDED: HttpStatus  # 510 ~ Not Extended
+    NETWORK_AUTHENTICATION_REQUIRED: (
+        HttpStatus  # 511 ~ Network Authentication Required
+    )
+
+</code></pre>
+<h2 id="ry.xxhash"><a class="header" href="#ry.xxhash"><code>ry.xxhash</code></a></h2>
+<pre><code class="language-python">from __future__ import annotations
+
+import typing as t
+
+from ry._types import Buffer
+
+
+@t.final
+class Xxh32:
+    name: t.Literal["xxh32"]
+
+    def __init__(self, input: Buffer = ..., seed: int | None = ...) -&gt; None: ...
+    def update(self, input: Buffer) -&gt; None: ...
+    def digest(self) -&gt; bytes: ...
+    def hexdigest(self) -&gt; str: ...
+    def intdigest(self) -&gt; int: ...
+    def copy(self) -&gt; Xxh32: ...
+    def reset(self, seed: int | None = ...) -&gt; None: ...
+    @property
+    def seed(self) -&gt; int: ...
+
+
+@t.final
+class Xxh64:
+    name: t.Literal["xxh64"]
+
+    def __init__(
+        self, input: Buffer | None = None, seed: int | None = ...
+    ) -&gt; None: ...
+    def update(self, input: Buffer) -&gt; None: ...
+    def digest(self) -&gt; bytes: ...
+    def hexdigest(self) -&gt; str: ...
+    def intdigest(self) -&gt; int: ...
+    def copy(self) -&gt; Xxh32: ...
+    def reset(self, seed: int | None = ...) -&gt; None: ...
+    @property
+    def seed(self) -&gt; int: ...
+
+
+@t.final
+class Xxh3:
+    name: t.Literal["xxh3"]
+
+    def __init__(
+        self,
+        input: Buffer = ...,
+        seed: int | None = ...,
+        secret: bytes | None = ...,
+    ) -&gt; None: ...
+    def update(self, input: Buffer) -&gt; None: ...
+    def digest(self) -&gt; bytes: ...
+    def hexdigest(self) -&gt; str: ...
+    def intdigest(self) -&gt; int: ...
+    @property
+    def seed(self) -&gt; int: ...
+    def digest128(self) -&gt; bytes: ...
+    def hexdigest128(self) -&gt; str: ...
+    def intdigest128(self) -&gt; int: ...
+    def copy(self) -&gt; Xxh3: ...
+    def reset(self) -&gt; None: ...
+
+
+def xxh32(input: Buffer | None = None, seed: int | None = None) -&gt; Xxh32: ...
+def xxh64(input: Buffer | None = None, seed: int | None = None) -&gt; Xxh64: ...
+def xxh3(
+    input: Buffer | None = None,
+    seed: int | None = None,
+    secret: bytes | None = None,
+) -&gt; Xxh3: ...
+
+
+# xxh32
+def xxh32_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh32_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh32_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+
+
+# xxh64
+def xxh64_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh64_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh64_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+
+
+# xxh128
+def xxh128_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh128_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh128_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+
+
+# xxh3
+def xxh3_64_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh3_64_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+def xxh3_64_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+def xxh3_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh3_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+def xxh3_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+
+
+# xxh128
+def xxh3_128_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
+def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
+def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
+
+</code></pre>
+<h2 id="ry.zstd"><a class="header" href="#ry.zstd"><code>ry.zstd</code></a></h2>
+<pre><code class="language-python">from ry import Bytes
+from ry._types import Buffer
+
+__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
+BLOCKSIZELOG_MAX: int
+BLOCKSIZE_MAX: int
+CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
+CONTENTSIZE_ERROR: int
+CONTENTSIZE_UNKNOWN: int
+MAGICNUMBER: int
+MAGIC_DICTIONARY: int
+MAGIC_SKIPPABLE_MASK: int
+MAGIC_SKIPPABLE_START: int
+VERSION_MAJOR: int
+VERSION_MINOR: int
+VERSION_NUMBER: int
+VERSION_RELEASE: int
+
+
+# =============================================================================
+# PYFUNCTIONS
+# =============================================================================
+# __COMPRESSION__
+def compress(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def encode(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def zstd(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def zstd_compress(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+def zstd_encode(data: Buffer, level: int = CLEVEL_DEFAULT) -&gt; Bytes: ...
+
+
+# __DECOMPRESSION__
+def decode(data: Buffer) -&gt; Bytes: ...
+def decompress(data: Buffer) -&gt; Bytes: ...
+def unzstd(data: Buffer) -&gt; Bytes: ...
+def zstd_decode(data: Buffer) -&gt; Bytes: ...
+def zstd_decompress(data: Buffer) -&gt; Bytes: ...
+
+
+# __MAGIC__
+def is_zstd(data: Buffer) -&gt; bool: ...
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="food-4-thought"><a class="header" href="#food-4-thought">food-4-thought</a></h1>
@@ -7669,8 +8395,8 @@ class FeatureNotEnabledError(RuntimeError):
 <h1 id="rydev"><a class="header" href="#rydev"><code>ry.dev</code></a></h1>
 <p>For people who find <code>ry.dev</code> it is a module that exports all the things in ry as
 well as can be used as a repl; <code>python -m ry.dev</code> will start a repl (with
-ipython if installed else python-repl) with all of ry already imported. I (jesse)
-use this super often for testing things out.</p>
+ipython if installed else python-repl) with all of ry already imported. I
+(jesse) use this super often for testing things out.</p>
 <hr />
 <h2 id="string-bridge"><a class="header" href="#string-bridge">string-bridge?</a></h2>
 <p>The <code>jiter</code> crate uses a string-cache to store python-strings to avoid the
@@ -7679,8 +8405,8 @@ caching setup for other types of structs that often convert to strings might be
 worth considering?</p>
 <hr />
 <h2 id="naming"><a class="header" href="#naming">Naming</a></h2>
-<p>Coming up with names is hard… I (jesse) want to strike a balance between being clear
-but also close to the wrapped libraries…</p>
+<p>Coming up with names is hard… I (jesse) want to strike a balance between being
+clear but also close to the wrapped libraries…</p>
 <ul>
 <li>Should jiff’s <code>Zoned</code> be <code>Zoned</code> in python? or <code>ZonedDateTime</code>? (currently
 <code>ZonedDateTime</code>)</li>
@@ -7767,11 +8493,10 @@ conversions via the <code>jiff-02</code> feature flag, which is what is used now
 <code>datetime.timedelta</code>, so that is still hand rolled.</p>
 <hr />
 <h2 id="ry-vs-whenever"><a class="header" href="#ry-vs-whenever"><code>ry</code> vs <code>whenever</code></a></h2>
-<p>There is another library called <a href="https://github.com/ariebovenberg/whenever">
-<code>whenever</code></a> that provides a similar
-datetime
-library to that of <code>ryo3-jiff</code> (both <code>jiff</code> and <code>whenever</code> are based on the
-<a href="https://tc39.es/proposal-temporal/docs/">temporal</a> API).</p>
+<p>There is another library called
+<a href="https://github.com/ariebovenberg/whenever"> <code>whenever</code></a> that provides a similar
+datetime library to that of <code>ryo3-jiff</code> (both <code>jiff</code> and <code>whenever</code> are based on
+the <a href="https://tc39.es/proposal-temporal/docs/">temporal</a> API).</p>
 <p>No formal benchmarks between <code>ry</code> and <code>whenever</code> have been done, but I have
 copy-pasta-ed some of the benchmarks from the <code>whenever</code> repo and translated
 them to <code>ry</code> and the results were pretty similar; <code>whenever</code> is faster for some
@@ -7779,8 +8504,8 @@ things, <code>ry</code> is faster for others, but both are wildly more performan
 python’s built in <code>datetime</code> module and <code>pendulum</code> – differences in performance
 are almost all measured in nanoseconds.</p>
 <p>Big shoutout to “Mr. Dutch Airlines” guy
-(<a href="https://github.com/ariebovenberg">@ariebovenberg</a>) who wrote <code>whenever</code>!
-Love the name of the library too!</p>
+(<a href="https://github.com/ariebovenberg">@ariebovenberg</a>) who wrote <code>whenever</code>! Love
+the name of the library too!</p>
 
                     </main>
 
