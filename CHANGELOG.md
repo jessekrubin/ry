@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## v0.0.39 [unreleased]
+## v0.0.39 [2025-03-14]
 
-- TODO: more `to_py`
+- internal
+  - cleaned up several dependencies and features
 - `ryo3-zstd`
   - actually changed to use py buffer protocol this time... I dont know how it
     got missed before...
