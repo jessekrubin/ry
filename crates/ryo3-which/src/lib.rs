@@ -10,6 +10,7 @@ use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult};
 
 use std::env;
 use std::ffi::OsString;
+use std::path::PathBuf;
 
 use ::which as which_rs;
 use pyo3::prelude::*;
@@ -42,29 +43,18 @@ pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBu
 
 #[pyfunction]
 #[pyo3(signature= (cmd, path=None))]
-pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<String>> {
+pub fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<PathBuf>> {
     let search_path: Option<OsString> = match path {
         Some(p) => Some(OsString::from(p)),
         None => env::var_os("PATH"),
     };
-    let which_iter = which_rs::which_in_all(
-        cmd,
-        search_path,
-        env::current_dir().expect("which_all: current directory is not a valid path"),
-    )
-    .map_err(|_| {
+    let curdir = env::current_dir()?;
+    let which_iter = which_rs::which_in_all(cmd, search_path, curdir).map_err(|_| {
         PyErr::new::<pyo3::exceptions::PyOSError, _>(
             "which_all: current directory is not a valid path",
         )
     })?;
-    let which_vec = which_iter
-        .into_iter()
-        .map(|p| {
-            p.to_str()
-                .expect("which_all: path contains invalid unicode characters")
-                .to_string()
-        })
-        .collect::<Vec<String>>();
+    let which_vec = which_iter.into_iter().collect::<Vec<_>>();
     Ok(which_vec)
 }
 
