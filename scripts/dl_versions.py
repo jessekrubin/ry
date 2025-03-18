@@ -8,6 +8,8 @@ import asyncio
 import dataclasses
 import hashlib
 import json
+from collections.abc import Coroutine
+from typing import Any
 
 import ry
 
@@ -26,7 +28,7 @@ def md5_hash(s: ry.Bytes) -> str:
     return hashlib.md5(s).hexdigest()  # noqa: S324
 
 
-async def get_all_versions(package_name):
+async def get_all_versions(package_name: str) -> list[str]:
     """Fetch all available versions of a package from PyPI."""
     response = await ry.fetch(f"https://pypi.org/pypi/{package_name}/json")
     if response.status_code != 200:
@@ -88,7 +90,7 @@ async def download_dists(
             ry.create_dir_all(outdir)
             await asyncio.gather(*(download_file(pkg, outdir) for pkg in urls))
     else:
-        futs = []
+        futs: list[Coroutine[Any, Any, None]] = []
         for version, pkgs in wheels.items():
             outdir = f"dist/{version}"
             ry.create_dir_all(outdir)
@@ -96,7 +98,7 @@ async def download_dists(
         await asyncio.gather(*futs)
 
 
-async def main():
+async def main() -> None:
     wheels_data = await scrape_all_wheels(PACKAGE_NAME)
 
     # Save to a JSON file
