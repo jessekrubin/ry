@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.40 [unreleased]
+
+- scripts
+  - `dl_versions.py` script to download all versions of ry while ry is still
+    pre-1-point-oh and old version(s) are being nuked from pypi as needed
+- types
+  - fix types for few packages
+
+---
+
 ## v0.0.39 [2025-03-14]
 
 - internal
