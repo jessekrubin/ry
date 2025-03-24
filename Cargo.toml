@@ -186,7 +186,7 @@ walkdir = "2.4.0"
 which = { version = "7.0.2", features = [] }
 xxhash-rust = { version = "0.8.15", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 zstd = "0.13.2"
-zstd-safe = "7.2.3"
+zstd-safe = "7.2.4"
 
 [workspace.lints.rust]
 unsafe_code = "warn"
