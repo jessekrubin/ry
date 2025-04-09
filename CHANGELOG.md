@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.40 [unreleased]
+
+- Updated several dependencies ~ most notably `pyo3` to `0.24.1`
+- Fixed several new clippy lints that appear in CI stable rust builds
+
+___
+
+
 ## v0.0.39 [2025-03-14]
 
 - internal
