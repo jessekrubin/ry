@@ -1,9 +1,9 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
-
 use crate::bytes::PyBytes;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
+use std::fmt::Write;
 use std::hash::Hash;
 
 #[pymethods]
@@ -99,7 +99,7 @@ impl PyBytes {
             let bslice: &[u8] = self.as_ref();
             let mut s = String::with_capacity(bslice.len() * 2);
             for b in bslice {
-                s.push_str(&format!("{b:02x}"));
+                let _ = write!(s, "{b:02x}");
             }
             Ok(s)
         }
