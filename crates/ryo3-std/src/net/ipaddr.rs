@@ -1,8 +1,7 @@
-use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple, PyType};
+use pyo3::types::PyType;
 use ryo3_macros::err_py_not_impl;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 #[pyclass(name = "Ipv4Addr", module = "ry.ryo3")]
 pub struct PyIpv4Addr(pub std::net::Ipv4Addr);
@@ -72,7 +71,7 @@ impl From<PyIpv4Addr> for std::net::Ipv4Addr {
 
 static IPV4_ADDR_ERROR: &str = "Invalid IPv4 address, should be a u8, u32, str or bytes";
 
-fn extract_ipv4_from_single_ob<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Ipv4Addr> {
+fn extract_ipv4_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv4Addr> {
     // 32 bit fitting int
     if let Ok(addr) = ob.extract::<u32>() {
         return Ok(Ipv4Addr::from(addr));
@@ -93,8 +92,8 @@ fn extract_ipv4_from_single_ob<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Ipv4Addr
     ))
 }
 
-fn extract_ipv4<'py>(
-    a: &Bound<'py, PyAny>,
+fn extract_ipv4(
+    a: &Bound<'_, PyAny>,
     b: Option<u8>,
     c: Option<u8>,
     d: Option<u8>,
@@ -117,14 +116,14 @@ fn extract_ipv4<'py>(
             ));
         }
     }
-    return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
         IPV4_ADDR_ERROR,
-    ));
+    ))
 }
 
 static IPV6_ADDR_ERROR: &str = "Invalid IPv4 address, should be a [u8;16], u128, str or bytes";
 
-fn extract_ipv6_from_single_ob<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Ipv6Addr> {
+fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
     // 32 bit fitting int
     if let Ok(addr) = ob.extract::<u128>() {
         return Ok(Ipv6Addr::from(addr));
@@ -145,8 +144,8 @@ fn extract_ipv6_from_single_ob<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Ipv6Addr
     ))
 }
 
-fn extract_ipv6<'py>(
-    a: &Bound<'py, PyAny>,
+fn extract_ipv6(
+    a: &Bound<'_, PyAny>,
     b: Option<u16>,
     c: Option<u16>,
     d: Option<u16>,
@@ -173,9 +172,9 @@ fn extract_ipv6<'py>(
             ));
         }
     }
-    return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
         IPV6_ADDR_ERROR,
-    ));
+    ))
 }
 
 #[pymethods]
@@ -184,20 +183,20 @@ impl PyIpv4Addr {
     #[pyo3(
         signature = (a, b=None, c=None, d=None),
     )]
-    fn py_new<'py>(
-        a: &Bound<'py, PyAny>,
+    fn py_new(
+        a: &Bound<'_, PyAny>,
         b: Option<u8>,
         c: Option<u8>,
         d: Option<u8>,
     ) -> PyResult<Self> {
-        extract_ipv4(a, b, c, d).map(|addr| Self(addr))
+        extract_ipv4(a, b, c, d).map(Self)
     }
 
-    pub fn __repr__(&self) -> String {
+    #[must_use] pub fn __repr__(&self) -> String {
         format!("PyIpv4Addr({})", self.0)
     }
 
-    pub fn __str__(&self) -> String {
+    #[must_use] pub fn __str__(&self) -> String {
         self.0.to_string()
     }
     // ========================================================================
@@ -314,19 +313,19 @@ impl PyIpv4Addr {
     // CLASSMETHODS
     // ========================================================================
     #[classmethod]
-    fn parse<'py>(_cls: &Bound<'py, PyType>, s: &str) -> PyResult<Self> {
+    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         s.parse::<Ipv4Addr>()
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"))
-            .map(|addr| Self(addr))
+            .map(Self)
     }
 
     #[classmethod]
-    fn from_bits<'py>(_cls: &Bound<'py, PyType>, s: u32) -> PyResult<Self> {
+    fn from_bits(_cls: &Bound<'_, PyType>, s: u32) -> PyResult<Self> {
         Ok(Self(Ipv4Addr::from(s)))
     }
 
     #[classmethod]
-    fn from_octets<'py>(_cls: &Bound<'py, PyType>, a: u8, b: u8, c: u8, d: u8) -> PyResult<Self> {
+    fn from_octets(_cls: &Bound<'_, PyType>, a: u8, b: u8, c: u8, d: u8) -> PyResult<Self> {
         Ok(Self(Ipv4Addr::new(a, b, c, d)))
     }
 }
@@ -334,15 +333,15 @@ impl PyIpv4Addr {
 #[pymethods]
 impl PyIpv6Addr {
     #[new]
-    fn py_new<'py>(a: &Bound<'py, PyAny>) -> PyResult<Self> {
-        extract_ipv6_from_single_ob(a).map(|addr| Self(addr))
+    fn py_new(a: &Bound<'_, PyAny>) -> PyResult<Self> {
+        extract_ipv6_from_single_ob(a).map(Self)
     }
 
-    pub fn __repr__(&self) -> String {
+    #[must_use] pub fn __repr__(&self) -> String {
         format!("PyIpv4Addr({})", self.0)
     }
 
-    pub fn __str__(&self) -> String {
+    #[must_use] pub fn __str__(&self) -> String {
         self.0.to_string()
     }
     // ========================================================================
@@ -458,14 +457,14 @@ impl PyIpv6Addr {
     // CLASSMETHODS
     // ========================================================================
     #[classmethod]
-    fn parse<'py>(_cls: &Bound<'py, PyType>, s: &str) -> PyResult<Self> {
+    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         s.parse::<Ipv6Addr>()
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv6 address"))
-            .map(|addr| Self(addr))
+            .map(Self)
     }
 
     #[classmethod]
-    fn from_bits<'py>(_cls: &Bound<'py, PyType>, s: u128) -> PyResult<Self> {
+    fn from_bits(_cls: &Bound<'_, PyType>, s: u128) -> PyResult<Self> {
         Ok(Self(Ipv6Addr::from(s)))
     }
 
