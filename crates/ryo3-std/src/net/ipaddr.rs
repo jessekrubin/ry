@@ -156,7 +156,7 @@ impl PyIpv4Addr {
 
     #[must_use]
     pub fn __repr__(&self) -> String {
-        format!("PyIpv4Addr({})", self.0)
+        format!("Ipv4Addr('{}')", self.0)
     }
 
     #[must_use]
@@ -312,7 +312,7 @@ impl PyIpv6Addr {
 
     #[must_use]
     pub fn __repr__(&self) -> String {
-        format!("PyIpv4Addr({})", self.0)
+        format!("Ipv6Addr('{}')", self.0)
     }
 
     #[must_use]
