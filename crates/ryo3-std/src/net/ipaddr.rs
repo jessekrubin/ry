@@ -100,9 +100,9 @@ fn extract_ipv4(
 ) -> PyResult<Ipv4Addr> {
     // if bcd are not None then extract a as u8 or error...
     match (b, c, d) {
-        (Some(_), Some(_), Some(_)) => {
+        (Some(b), Some(c), Some(d)) => {
             if let Ok(addr) = a.extract::<u8>() {
-                return Ok(Ipv4Addr::new(addr, b.unwrap(), c.unwrap(), d.unwrap()));
+                return Ok(Ipv4Addr::new(addr, b, c, d));
             }
         }
         (None, None, None) => {
@@ -140,39 +140,6 @@ fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
     }
     // error
     Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-        IPV4_ADDR_ERROR,
-    ))
-}
-
-fn extract_ipv6(
-    a: &Bound<'_, PyAny>,
-    b: Option<u16>,
-    c: Option<u16>,
-    d: Option<u16>,
-    e: Option<u16>,
-    f: Option<u16>,
-    g: Option<u16>,
-    h: Option<u16>,
-) -> PyResult<Ipv6Addr> {
-    // if bcd are not None then extract a as u8 or error...
-    match (b, c, d, e, f, g, h) {
-        (Some(b), Some(c), Some(d), Some(e), Some(f), Some(g), Some(h)) => {
-            if let Ok(addr) = a.extract::<u16>() {
-                return Ok(Ipv6Addr::new(addr, b, c, d, e, f, g, h));
-            }
-        }
-        (None, None, None, None, None, None, None) => {
-            if let Ok(addr) = extract_ipv6_from_single_ob(a) {
-                return Ok(addr);
-            }
-        }
-        _ => {
-            return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                IPV6_ADDR_ERROR,
-            ));
-        }
-    }
-    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
         IPV6_ADDR_ERROR,
     ))
 }
@@ -183,43 +150,40 @@ impl PyIpv4Addr {
     #[pyo3(
         signature = (a, b=None, c=None, d=None),
     )]
-    fn py_new(
-        a: &Bound<'_, PyAny>,
-        b: Option<u8>,
-        c: Option<u8>,
-        d: Option<u8>,
-    ) -> PyResult<Self> {
+    fn py_new(a: &Bound<'_, PyAny>, b: Option<u8>, c: Option<u8>, d: Option<u8>) -> PyResult<Self> {
         extract_ipv4(a, b, c, d).map(Self)
     }
 
-    #[must_use] pub fn __repr__(&self) -> String {
+    #[must_use]
+    pub fn __repr__(&self) -> String {
         format!("PyIpv4Addr({})", self.0)
     }
 
-    #[must_use] pub fn __str__(&self) -> String {
+    #[must_use]
+    pub fn __str__(&self) -> String {
         self.0.to_string()
     }
     // ========================================================================
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
-        Ok(self.0 == other.0)
+    fn __eq__(&self, other: &PyIpv4Addr) -> bool {
+        self.0 == other.0
     }
-    fn __ne__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
-        Ok(self.0 != other.0)
+    fn __ne__(&self, other: &PyIpv4Addr) -> bool {
+        self.0 != other.0
     }
-    fn __lt__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
-        Ok(self.0 < other.0)
+    fn __lt__(&self, other: &PyIpv4Addr) -> bool {
+        self.0 < other.0
     }
-    fn __le__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
-        Ok(self.0 <= other.0)
+    fn __le__(&self, other: &PyIpv4Addr) -> bool {
+        self.0 <= other.0
     }
-    fn __gt__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
-        Ok(self.0 > other.0)
+    fn __gt__(&self, other: &PyIpv4Addr) -> bool {
+        self.0 > other.0
     }
-    fn __ge__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
-        Ok(self.0 >= other.0)
+    fn __ge__(&self, other: &PyIpv4Addr) -> bool {
+        self.0 >= other.0
     }
 
     // ========================================================================
@@ -243,10 +207,16 @@ impl PyIpv4Addr {
         Self(std::net::Ipv4Addr::UNSPECIFIED)
     }
 
+    #[classattr]
+    fn version() -> u8 {
+        4
+    }
+
     // ========================================================================
     // PROPERTIES
     // ========================================================================
 
+    #[expect(clippy::unused_self)]
     #[getter]
     fn is_benchmarking(&self) -> PyResult<bool> {
         err_py_not_impl!()
@@ -262,6 +232,7 @@ impl PyIpv4Addr {
         self.0.is_documentation()
     }
 
+    #[expect(clippy::unused_self)]
     #[getter]
     fn is_global(&self) -> PyResult<bool> {
         err_py_not_impl!()
@@ -287,11 +258,13 @@ impl PyIpv4Addr {
         self.0.is_private()
     }
 
+    #[expect(clippy::unused_self)]
     #[getter]
     fn is_reserved(&self) -> PyResult<bool> {
         err_py_not_impl!()
     }
 
+    #[expect(clippy::unused_self)]
     #[getter]
     fn is_shared(&self) -> PyResult<bool> {
         err_py_not_impl!()
@@ -305,8 +278,8 @@ impl PyIpv4Addr {
     // PY-CONVERSIONS
     // ========================================================================
 
-    fn to_py(&self) -> PyResult<std::net::Ipv4Addr> {
-        Ok(self.0)
+    fn to_py(&self) -> std::net::Ipv4Addr {
+        self.0
     }
 
     // ========================================================================
@@ -320,13 +293,13 @@ impl PyIpv4Addr {
     }
 
     #[classmethod]
-    fn from_bits(_cls: &Bound<'_, PyType>, s: u32) -> PyResult<Self> {
-        Ok(Self(Ipv4Addr::from(s)))
+    fn from_bits(_cls: &Bound<'_, PyType>, s: u32) -> Self {
+        Self(Ipv4Addr::from(s))
     }
 
     #[classmethod]
-    fn from_octets(_cls: &Bound<'_, PyType>, a: u8, b: u8, c: u8, d: u8) -> PyResult<Self> {
-        Ok(Self(Ipv4Addr::new(a, b, c, d)))
+    fn from_octets(_cls: &Bound<'_, PyType>, a: u8, b: u8, c: u8, d: u8) -> Self {
+        Self(Ipv4Addr::new(a, b, c, d))
     }
 }
 
@@ -337,34 +310,36 @@ impl PyIpv6Addr {
         extract_ipv6_from_single_ob(a).map(Self)
     }
 
-    #[must_use] pub fn __repr__(&self) -> String {
+    #[must_use]
+    pub fn __repr__(&self) -> String {
         format!("PyIpv4Addr({})", self.0)
     }
 
-    #[must_use] pub fn __str__(&self) -> String {
+    #[must_use]
+    pub fn __str__(&self) -> String {
         self.0.to_string()
     }
     // ========================================================================
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
-        Ok(self.0 == other.0)
+    fn __eq__(&self, other: &PyIpv6Addr) -> bool {
+        self.0 == other.0
     }
-    fn __ne__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
-        Ok(self.0 != other.0)
+    fn __ne__(&self, other: &PyIpv6Addr) -> bool {
+        self.0 != other.0
     }
-    fn __lt__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
-        Ok(self.0 < other.0)
+    fn __lt__(&self, other: &PyIpv6Addr) -> bool {
+        self.0 < other.0
     }
-    fn __le__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
-        Ok(self.0 <= other.0)
+    fn __le__(&self, other: &PyIpv6Addr) -> bool {
+        self.0 <= other.0
     }
-    fn __gt__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
-        Ok(self.0 > other.0)
+    fn __gt__(&self, other: &PyIpv6Addr) -> bool {
+        self.0 > other.0
     }
-    fn __ge__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
-        Ok(self.0 >= other.0)
+    fn __ge__(&self, other: &PyIpv6Addr) -> bool {
+        self.0 >= other.0
     }
 
     // ========================================================================
@@ -382,26 +357,29 @@ impl PyIpv6Addr {
         Self(std::net::Ipv6Addr::UNSPECIFIED)
     }
 
+    #[classattr]
+    fn version() -> u8 {
+        6
+    }
+
     // ========================================================================
     // PROPERTIES
     // ========================================================================
 
     #[getter]
-    fn version(&self) -> u8 {
-        6
-    }
-
-    #[getter]
+    #[expect(clippy::unused_self)]
     fn is_benchmarking(&self) -> PyResult<bool> {
         err_py_not_impl!()
     }
 
     #[getter]
+    #[expect(clippy::unused_self)]
     fn is_documentation(&self) -> PyResult<bool> {
         err_py_not_impl!()
     }
 
     #[getter]
+    #[expect(clippy::unused_self)]
     fn is_global(&self) -> PyResult<bool> {
         err_py_not_impl!()
     }
@@ -417,16 +395,19 @@ impl PyIpv6Addr {
     }
 
     #[getter]
+    #[expect(clippy::unused_self)]
     fn is_ipv4_mapped(&self) -> PyResult<bool> {
         err_py_not_impl!()
     }
 
     #[getter]
+    #[expect(clippy::unused_self)]
     fn is_unicast(&self) -> PyResult<bool> {
         err_py_not_impl!()
     }
 
     #[getter]
+    #[expect(clippy::unused_self)]
     fn is_unicast_global(&self) -> PyResult<bool> {
         err_py_not_impl!()
     }
@@ -449,8 +430,8 @@ impl PyIpv6Addr {
     // PY-CONVERSIONS
     // ========================================================================
 
-    fn to_py(&self) -> PyResult<std::net::Ipv6Addr> {
-        Ok(self.0)
+    fn to_py(&self) -> std::net::Ipv6Addr {
+        self.0
     }
 
     // ========================================================================
@@ -464,17 +445,7 @@ impl PyIpv6Addr {
     }
 
     #[classmethod]
-    fn from_bits(_cls: &Bound<'_, PyType>, s: u128) -> PyResult<Self> {
-        Ok(Self(Ipv6Addr::from(s)))
+    fn from_bits(_cls: &Bound<'_, PyType>, s: u128) -> Self {
+        Self(Ipv6Addr::from(s))
     }
-
-    //     Methods
-    // from_bits
-    // from_octets
-    // new
-    // octets
-    // parse_ascii
-    // to_bits
-    // to_ipv6_compatible
-    // to_ipv6_mapped
 }
