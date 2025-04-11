@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.40 [unreleased]
+## v0.0.40 [2025-04-11]
 
 - scripts
   - `dl_versions.py` script to download all versions of ry while ry is still
@@ -9,6 +9,8 @@
   - fix types for few packages
 - Updated several dependencies ~ most notably `pyo3` to `0.24.1`
 - Fixed several new clippy lints that appear in CI stable rust builds
+- `ryo3-std`
+  - `std::net` ipv4/ipv6 wrappers speed run impl
 
 ---
 
