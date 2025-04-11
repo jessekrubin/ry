@@ -7,6 +7,8 @@
     pre-1-point-oh and old version(s) are being nuked from pypi as needed
 - types
   - fix types for few packages
+- Updated several dependencies ~ most notably `pyo3` to `0.24.1`
+- Fixed several new clippy lints that appear in CI stable rust builds
 
 ---
 

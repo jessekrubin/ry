@@ -1,0 +1,481 @@
+use pyo3::basic::CompareOp;
+use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyTuple, PyType};
+use ryo3_macros::err_py_not_impl;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+#[pyclass(name = "Ipv4Addr", module = "ry.ryo3")]
+pub struct PyIpv4Addr(pub std::net::Ipv4Addr);
+
+#[pyclass(name = "Ipv6Addr", module = "ry.ryo3")]
+pub struct PyIpv6Addr(pub std::net::Ipv6Addr);
+
+// ===========================================================================
+// standard FROM impls
+// ===========================================================================
+
+impl From<std::net::Ipv6Addr> for PyIpv6Addr {
+    fn from(addr: std::net::Ipv6Addr) -> Self {
+        PyIpv6Addr(addr)
+    }
+}
+
+impl From<PyIpv6Addr> for std::net::Ipv6Addr {
+    fn from(addr: PyIpv6Addr) -> Self {
+        addr.0
+    }
+}
+impl From<std::net::Ipv4Addr> for PyIpv4Addr {
+    fn from(addr: std::net::Ipv4Addr) -> Self {
+        PyIpv4Addr(addr)
+    }
+}
+
+impl From<PyIpv4Addr> for std::net::Ipv4Addr {
+    fn from(addr: PyIpv4Addr) -> Self {
+        addr.0
+    }
+}
+
+// impl<'py> FromPyObject<'py> for JiffRoundMode {
+//     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+//         if let Ok(str_mode) = ob.extract::<&str>() {
+//             match str_mode.to_ascii_lowercase().replace('_', "-").as_str() {
+//                 "ceil" => Ok(Self(RoundMode::Ceil)),
+//                 "floor" => Ok(Self(RoundMode::Floor)),
+//                 "expand" => Ok(Self(RoundMode::Expand)),
+//                 "trunc" => Ok(Self(RoundMode::Trunc)),
+//                 "half-ceil" => Ok(Self(RoundMode::HalfCeil)),
+//                 "half-floor" => Ok(Self(RoundMode::HalfFloor)),
+//                 "half-expand" => Ok(Self(RoundMode::HalfExpand)),
+//                 "half-trunc" => Ok(Self(RoundMode::HalfTrunc)),
+//                 "half-even" => Ok(Self(RoundMode::HalfEven)),
+//                 _ => Err(PyValueError::new_err(JIFF_ROUND_MODE_ERROR)),
+//             }
+//         } else {
+//             Err(PyValueError::new_err(JIFF_ROUND_MODE_ERROR))
+//         }
+//     }
+// }
+
+// #[derive(FromPyObject)]
+// pub enum Ipv4NewArgs{
+//     /// u8 parts
+//     Parts(u8, u8, u8, u8),
+//     /// string
+//     Str(String),
+//     /// bytes
+//     Bytes(Vec<u8>),
+//     ///
+
+// }
+
+static IPV4_ADDR_ERROR: &str = "Invalid IPv4 address, should be a u8, u32, str or bytes";
+
+fn extract_ipv4_from_single_ob<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Ipv4Addr> {
+    // 32 bit fitting int
+    if let Ok(addr) = ob.extract::<u32>() {
+        return Ok(Ipv4Addr::from(addr));
+    }
+    // if is string then parse
+    if let Ok(addr) = ob.extract::<&str>() {
+        return addr
+            .parse()
+            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"));
+    }
+    // if is bytes then parse
+    if let Ok(addr) = ob.extract::<[u8; 4]>() {
+        return Ok(Ipv4Addr::from(addr));
+    }
+    // error
+    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+        IPV4_ADDR_ERROR,
+    ))
+}
+
+fn extract_ipv4<'py>(
+    a: &Bound<'py, PyAny>,
+    b: Option<u8>,
+    c: Option<u8>,
+    d: Option<u8>,
+) -> PyResult<Ipv4Addr> {
+    // if bcd are not None then extract a as u8 or error...
+    match (b, c, d) {
+        (Some(_), Some(_), Some(_)) => {
+            if let Ok(addr) = a.extract::<u8>() {
+                return Ok(Ipv4Addr::new(addr, b.unwrap(), c.unwrap(), d.unwrap()));
+            }
+        }
+        (None, None, None) => {
+            if let Ok(addr) = extract_ipv4_from_single_ob(a) {
+                return Ok(addr);
+            }
+        }
+        _ => {
+            return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                IPV4_ADDR_ERROR,
+            ));
+        }
+    }
+    return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+        IPV4_ADDR_ERROR,
+    ));
+}
+
+static IPV6_ADDR_ERROR: &str = "Invalid IPv4 address, should be a [u8;16], u128, str or bytes";
+
+fn extract_ipv6_from_single_ob<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Ipv6Addr> {
+    // 32 bit fitting int
+    if let Ok(addr) = ob.extract::<u128>() {
+        return Ok(Ipv6Addr::from(addr));
+    }
+    // if is string then parse
+    if let Ok(addr) = ob.extract::<&str>() {
+        return addr
+            .parse()
+            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"));
+    }
+    // if is bytes then parse
+    if let Ok(addr) = ob.extract::<[u8; 16]>() {
+        return Ok(Ipv6Addr::from(addr));
+    }
+    // error
+    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+        IPV4_ADDR_ERROR,
+    ))
+}
+
+fn extract_ipv6<'py>(
+    a: &Bound<'py, PyAny>,
+    b: Option<u16>,
+    c: Option<u16>,
+    d: Option<u16>,
+    e: Option<u16>,
+    f: Option<u16>,
+    g: Option<u16>,
+    h: Option<u16>,
+) -> PyResult<Ipv6Addr> {
+    // if bcd are not None then extract a as u8 or error...
+    match (b, c, d, e, f, g, h) {
+        (Some(b), Some(c), Some(d), Some(e), Some(f), Some(g), Some(h)) => {
+            if let Ok(addr) = a.extract::<u16>() {
+                return Ok(Ipv6Addr::new(addr, b, c, d, e, f, g, h));
+            }
+        }
+        (None, None, None, None, None, None, None) => {
+            if let Ok(addr) = extract_ipv6_from_single_ob(a) {
+                return Ok(addr);
+            }
+        }
+        _ => {
+            return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                IPV6_ADDR_ERROR,
+            ));
+        }
+    }
+    return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+        IPV6_ADDR_ERROR,
+    ));
+}
+
+#[pymethods]
+impl PyIpv4Addr {
+    #[new]
+    #[pyo3(
+        signature = (a, b=None, c=None, d=None),
+    )]
+    fn py_new<'py>(
+        a: &Bound<'py, PyAny>,
+        b: Option<u8>,
+        c: Option<u8>,
+        d: Option<u8>,
+    ) -> PyResult<Self> {
+        extract_ipv4(a, b, c, d).map(|addr| Self(addr))
+    }
+
+    pub fn __repr__(&self) -> String {
+        format!("PyIpv4Addr({})", self.0)
+    }
+
+    pub fn __str__(&self) -> String {
+        self.0.to_string()
+    }
+    // ========================================================================
+    // CMP
+    // ========================================================================
+
+    fn __eq__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
+        Ok(self.0 == other.0)
+    }
+    fn __ne__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
+        Ok(self.0 != other.0)
+    }
+    fn __lt__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
+        Ok(self.0 < other.0)
+    }
+    fn __le__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
+        Ok(self.0 <= other.0)
+    }
+    fn __gt__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
+        Ok(self.0 > other.0)
+    }
+    fn __ge__(&self, other: &PyIpv4Addr) -> PyResult<bool> {
+        Ok(self.0 >= other.0)
+    }
+
+    // ========================================================================
+    // CONSTANTS
+    // ========================================================================
+    #[expect(non_snake_case)]
+    #[classattr]
+    fn BROADCAST() -> Self {
+        Self(std::net::Ipv4Addr::BROADCAST)
+    }
+
+    #[expect(non_snake_case)]
+    #[classattr]
+    fn LOCALHOST() -> Self {
+        Self(std::net::Ipv4Addr::LOCALHOST)
+    }
+
+    #[expect(non_snake_case)]
+    #[classattr]
+    fn UNSPECIFIED() -> Self {
+        Self(std::net::Ipv4Addr::UNSPECIFIED)
+    }
+
+    // ========================================================================
+    // PROPERTIES
+    // ========================================================================
+
+    #[getter]
+    fn is_benchmarking(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_broadcast(&self) -> bool {
+        self.0.is_broadcast()
+    }
+
+    #[getter]
+    fn is_documentation(&self) -> bool {
+        self.0.is_documentation()
+    }
+
+    #[getter]
+    fn is_global(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_link_local(&self) -> bool {
+        self.0.is_link_local()
+    }
+
+    #[getter]
+    fn is_loopback(&self) -> bool {
+        self.0.is_loopback()
+    }
+
+    #[getter]
+    fn is_multicast(&self) -> bool {
+        self.0.is_multicast()
+    }
+
+    #[getter]
+    fn is_private(&self) -> bool {
+        self.0.is_private()
+    }
+
+    #[getter]
+    fn is_reserved(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_shared(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unspecified(&self) -> bool {
+        self.0.is_unspecified()
+    }
+    // ========================================================================
+    // PY-CONVERSIONS
+    // ========================================================================
+
+    fn to_py(&self) -> PyResult<std::net::Ipv4Addr> {
+        Ok(self.0)
+    }
+
+    // ========================================================================
+    // CLASSMETHODS
+    // ========================================================================
+    #[classmethod]
+    fn parse<'py>(_cls: &Bound<'py, PyType>, s: &str) -> PyResult<Self> {
+        s.parse::<Ipv4Addr>()
+            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"))
+            .map(|addr| Self(addr))
+    }
+
+    #[classmethod]
+    fn from_bits<'py>(_cls: &Bound<'py, PyType>, s: u32) -> PyResult<Self> {
+        Ok(Self(Ipv4Addr::from(s)))
+    }
+
+    #[classmethod]
+    fn from_octets<'py>(_cls: &Bound<'py, PyType>, a: u8, b: u8, c: u8, d: u8) -> PyResult<Self> {
+        Ok(Self(Ipv4Addr::new(a, b, c, d)))
+    }
+}
+
+#[pymethods]
+impl PyIpv6Addr {
+    #[new]
+    fn py_new<'py>(a: &Bound<'py, PyAny>) -> PyResult<Self> {
+        extract_ipv6_from_single_ob(a).map(|addr| Self(addr))
+    }
+
+    pub fn __repr__(&self) -> String {
+        format!("PyIpv4Addr({})", self.0)
+    }
+
+    pub fn __str__(&self) -> String {
+        self.0.to_string()
+    }
+    // ========================================================================
+    // CMP
+    // ========================================================================
+
+    fn __eq__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
+        Ok(self.0 == other.0)
+    }
+    fn __ne__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
+        Ok(self.0 != other.0)
+    }
+    fn __lt__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
+        Ok(self.0 < other.0)
+    }
+    fn __le__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
+        Ok(self.0 <= other.0)
+    }
+    fn __gt__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
+        Ok(self.0 > other.0)
+    }
+    fn __ge__(&self, other: &PyIpv6Addr) -> PyResult<bool> {
+        Ok(self.0 >= other.0)
+    }
+
+    // ========================================================================
+    // CONSTANTS
+    // ========================================================================
+    #[expect(non_snake_case)]
+    #[classattr]
+    fn LOCALHOST() -> Self {
+        Self(std::net::Ipv6Addr::LOCALHOST)
+    }
+
+    #[expect(non_snake_case)]
+    #[classattr]
+    fn UNSPECIFIED() -> Self {
+        Self(std::net::Ipv6Addr::UNSPECIFIED)
+    }
+
+    // ========================================================================
+    // PROPERTIES
+    // ========================================================================
+
+    #[getter]
+    fn version(&self) -> u8 {
+        6
+    }
+
+    #[getter]
+    fn is_benchmarking(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_documentation(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_global(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_loopback(&self) -> bool {
+        self.0.is_loopback()
+    }
+
+    #[getter]
+    fn is_multicast(&self) -> bool {
+        self.0.is_multicast()
+    }
+
+    #[getter]
+    fn is_ipv4_mapped(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unicast(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unicast_global(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unicast_link_local(&self) -> bool {
+        self.0.is_unicast_link_local()
+    }
+
+    #[getter]
+    fn is_unique_local(&self) -> bool {
+        self.0.is_unique_local()
+    }
+
+    #[getter]
+    fn is_unspecified(&self) -> bool {
+        self.0.is_unspecified()
+    }
+    // ========================================================================
+    // PY-CONVERSIONS
+    // ========================================================================
+
+    fn to_py(&self) -> PyResult<std::net::Ipv6Addr> {
+        Ok(self.0)
+    }
+
+    // ========================================================================
+    // CLASSMETHODS
+    // ========================================================================
+    #[classmethod]
+    fn parse<'py>(_cls: &Bound<'py, PyType>, s: &str) -> PyResult<Self> {
+        s.parse::<Ipv6Addr>()
+            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv6 address"))
+            .map(|addr| Self(addr))
+    }
+
+    #[classmethod]
+    fn from_bits<'py>(_cls: &Bound<'py, PyType>, s: u128) -> PyResult<Self> {
+        Ok(Self(Ipv6Addr::from(s)))
+    }
+
+    //     Methods
+    // from_bits
+    // from_octets
+    // new
+    // octets
+    // parse_ascii
+    // to_bits
+    // to_ipv6_compatible
+    // to_ipv6_mapped
+}
