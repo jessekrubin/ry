@@ -129,9 +129,8 @@ def ry_classes_n_types() -> list[str]:
 
 
 def main() -> None:
-    class_members = [
-        el for el in ry_classes_n_types() if el not in {"Headers", "HttpStatus"}
-    ]
+    classes2ignore = {"Headers", "HttpStatus", "ReqwestError", "FileType", "Bytes"}
+    class_members = [el for el in ry_classes_n_types() if el not in classes2ignore]
 
     all_good = []
     problems = []

@@ -7,7 +7,6 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
 use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::types::PathLike;
-use ryo3_macros::err_py_not_impl;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
@@ -556,15 +555,19 @@ impl PyFsPath {
     fn is_absolute(&self) -> bool {
         self.pth.is_absolute()
     }
+
     fn is_dir(&self) -> bool {
         self.pth.is_dir()
     }
+
     fn is_file(&self) -> bool {
         self.pth.is_file()
     }
+
     fn is_relative(&self) -> bool {
         self.pth.is_relative()
     }
+
     fn is_symlink(&self) -> bool {
         self.pth.is_symlink()
     }
@@ -573,9 +576,13 @@ impl PyFsPath {
         Self::from(self.pth.join(p))
     }
 
-    fn metadata(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
+        self.pth
+            .metadata()
+            .map(ryo3_std::PyMetadata::from)
+            .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
     }
+
     fn read_dir(&self) -> PyResult<PyFsPathReadDir> {
         let rd = std::fs::read_dir(self.path())
             .map(PyFsPathReadDir::from)
@@ -597,8 +604,11 @@ impl PyFsPath {
             .map(Self::from)
             .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
-    fn symlink_metadata(&self) -> PyResult<()> {
-        err_py_not_impl!()
+    fn symlink_metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
+        self.pth
+            .metadata()
+            .map(ryo3_std::PyMetadata::from)
+            .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
     }
 
     fn with_extension(&self, extension: String) -> Self {
@@ -631,11 +641,34 @@ impl PyFsPathReadDir {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
+
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyFsPath> {
         match slf.iter.next() {
             Some(Ok(entry)) => Some(PyFsPath::from(entry.path())),
             _ => None,
         }
+    }
+
+    fn collect(&mut self) -> Vec<PyFsPath> {
+        let mut paths = vec![];
+        for entry in self.iter.by_ref() {
+            match entry {
+                Ok(entry) => paths.push(PyFsPath::from(entry.path())),
+                Err(_) => break,
+            }
+        }
+        paths
+    }
+
+    fn take(&mut self, n: usize) -> Vec<PyFsPath> {
+        let mut paths = vec![];
+        for _ in 0..n {
+            match self.iter.next() {
+                Some(Ok(entry)) => paths.push(PyFsPath::from(entry.path())),
+                _ => break,
+            }
+        }
+        paths
     }
 }
 

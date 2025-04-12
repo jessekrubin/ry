@@ -104,6 +104,7 @@ lint.per-file-ignores."bench/**/*.py" = [
 ]
 lint.per-file-ignores."tests/**/*.py" = [
   "B011",
+  "B018",
   "DTZ001",
   "PL",
   "S101",

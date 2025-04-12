@@ -41,6 +41,7 @@ impl PyDuration {
     fn ZERO() -> Self {
         Self(Duration::ZERO)
     }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
@@ -77,6 +78,10 @@ impl PyDuration {
         Self(Duration::from_nanos(1))
     }
 
+    fn to_py(&self) -> Duration {
+        self.0
+    }
+
     fn __str__(&self) -> String {
         format!(
             "Duration(secs={}, nanos={})",
@@ -97,6 +102,18 @@ impl PyDuration {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
+    }
+
+    fn __bool__(&self) -> bool {
+        !self.0.is_zero()
+    }
+
+    fn __float__(&self) -> f64 {
+        self.0.as_secs_f64()
+    }
+
+    fn __int__(&self) -> u128 {
+        self.0.as_nanos()
     }
 
     fn dbg(&self) -> String {
