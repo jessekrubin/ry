@@ -1,6 +1,4 @@
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
-use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -18,6 +16,7 @@ impl PyAsyncFile {
     }
 
     #[pyo3(name = "__aexit__")]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn __aexit__<'py>(
         slf: PyRef<Self>,
         py: Python<'py>,
@@ -45,23 +44,21 @@ impl PyAsyncFile {
 
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let mut file = inner.lock().await;
-            match size {
-                Some(s) => {
-                    let mut buf = vec![0; s];
-                    file.read_exact(&mut buf).await.map_err(PyErr::from)?;
-                    let rybytes = ryo3_bytes::PyBytes::from(buf);
-                    return Ok(rybytes);
-                }
-                None => {
-                    let mut buf = vec![];
-                    file.read_to_end(&mut buf).await.map_err(PyErr::from)?;
-                    let rybytes = ryo3_bytes::PyBytes::from(buf);
-                    return Ok(rybytes);
-                }
+            if let Some(s) = size {
+                let mut buf = vec![0; s];
+                file.read_exact(&mut buf).await.map_err(PyErr::from)?;
+                let rybytes = ryo3_bytes::PyBytes::from(buf);
+                Ok(rybytes)
+            } else {
+                let mut buf = vec![];
+                file.read_to_end(&mut buf).await.map_err(PyErr::from)?;
+                let rybytes = ryo3_bytes::PyBytes::from(buf);
+                Ok(rybytes)
             }
         })
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     pub fn write<'py>(
         &mut self,
         py: Python<'py>,
@@ -123,11 +120,7 @@ impl PyAsyncFile {
 #[pyfunction(
     signature = (path, mode = None),
 )]
-pub fn aiopen<'py>(
-    py: Python<'py>,
-    path: String,
-    mode: Option<String>,
-) -> PyResult<Bound<'py, PyAny>> {
+pub fn aiopen(py: Python<'_>, path: String, mode: Option<String>) -> PyResult<Bound<'_, PyAny>> {
     // let file = aiopen_inner(path, mode);
 
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
@@ -164,45 +157,9 @@ pub fn aiopen<'py>(
         Ok(PyAsyncFile {
             inner: Arc::new(Mutex::new(file)),
         })
-        // let file = aiopen_inner(path, mode).await?;
-        // Ok(file)
     })
 }
 
-pub async fn aiopen_inner<'py>(path: &str, mode: Option<&str>) -> PyResult<PyAsyncFile> {
-    let mode = mode.unwrap_or("r");
-    let file = match mode {
-        "r" => File::open(path).await,
-        "w" => File::create(path).await,
-        "a" => tokio::fs::OpenOptions::new().append(true).open(path).await,
-        "r+" => {
-            tokio::fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .open(path)
-                .await
-        }
-        "w+" => {
-            tokio::fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(path)
-                .await
-        }
-        _ => {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "Unsupported mode: {mode}"
-            )))
-        }
-    }
-    .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
-
-    Ok(PyAsyncFile {
-        inner: Arc::new(Mutex::new(file)),
-    })
-}
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAsyncFile>()?;
     m.add_function(wrap_pyfunction!(aiopen, m)?)?;
