@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 
+pub mod aiopen;
 pub mod fs;
 pub mod time;
 
@@ -13,5 +14,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // fs
     fs::pymod_add(m)?;
+
+    aiopen::pymod_add(m)?;
     Ok(())
 }
