@@ -149,7 +149,7 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 pyo3 = { version = "0.24.2", features = ["macros"] }
 pyo3-build-config = "0.24.2"
 #pyo3 async runtimes
-pyo3-async-runtimes = { version = "0.24", features = ["tokio-runtime"] }
+pyo3-async-runtimes = { version = "0.24.0", features = ["tokio-runtime"] }
 #pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", features = ["tokio-runtime"] }
 
 # external
