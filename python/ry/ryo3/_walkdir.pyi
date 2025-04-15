@@ -30,14 +30,20 @@ class WalkDirEntry:
     @property
     def len(self) -> int: ...
 
-class WalkdirGen:
+T_walkdir = t.TypeVar(
+    "T_walkdir",
+    bound=WalkDirEntry | str,
+)
+
+class WalkdirGen(t.Generic[T_walkdir]):
     """walkdir::Walkdir iterable wrapper"""
-    def __next__(self) -> str: ...
-    def __iter__(self) -> t.Iterator[str]: ...
-    def collect(self) -> list[str]: ...
-    def take(self, n: int) -> list[str]: ...
+    def __next__(self) -> T_walkdir: ...
+    def __iter__(self) -> t.Iterator[T_walkdir]: ...
+    def collect(self) -> list[T_walkdir]: ...
+    def take(self, n: int) -> list[T_walkdir]: ...
     def __str__(self) -> str: ...
 
+@t.overload
 def walkdir(
     path: str | PathLike[str] | None = None,
     *,
@@ -49,4 +55,19 @@ def walkdir(
     follow_links: bool = False,
     same_file_system: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-) -> WalkdirGen: ...
+    objects: t.Literal[True],
+) -> WalkdirGen[WalkDirEntry]: ...
+@t.overload
+def walkdir(
+    path: str | PathLike[str] | None = None,
+    *,
+    objects: t.Literal[False] = False,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+) -> WalkdirGen[str]: ...
