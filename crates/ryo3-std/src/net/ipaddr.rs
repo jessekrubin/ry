@@ -13,7 +13,6 @@ pub struct PyIpv6Addr(pub std::net::Ipv6Addr);
 #[pyclass(name = "IpAddr", module = "ry.ryo3")]
 pub struct PyIpAddr(pub std::net::IpAddr);
 
-
 static IPV4_ADDR_ERROR: &str =
     "Invalid IPv4 address, should be a [u8; 4], u32, str, bytes (len=4), or ipaddress.IPv4Address";
 

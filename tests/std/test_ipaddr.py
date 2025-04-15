@@ -91,8 +91,6 @@ class TestIpAddrHypothesis:
             assert py_ip_from_rs_ip == py_ipaddr
             assert isinstance(py_ip_from_rs_ip, pyip.IPv6Address)
 
-        assert repr
-
 
 class TestIpv4Addr:
     def test_py_conversion(self) -> None:
