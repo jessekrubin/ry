@@ -99,6 +99,7 @@ from ._sqlformat import sqlfmt_params as sqlfmt_params
 from ._std import Duration as Duration
 from ._std import FileType as FileType
 from ._std import Instant as Instant
+from ._std import IpAddr as IpAddr
 from ._std import Ipv4Addr as Ipv4Addr
 from ._std import Ipv6Addr as Ipv6Addr
 from ._std import Metadata as Metadata
