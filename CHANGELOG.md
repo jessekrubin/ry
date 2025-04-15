@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.41 [unreleased]
+
+- `ryo3-std`
+  - `ry.IpAddr` added to handle both ipv4/ipv6
+- `ryo3-walkdir`
+  - added `objects` impl and example script
+---
+
 ## v0.0.40 [2025-04-11]
 
 - scripts
