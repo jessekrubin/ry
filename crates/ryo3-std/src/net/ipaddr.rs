@@ -13,38 +13,6 @@ pub struct PyIpv6Addr(pub std::net::Ipv6Addr);
 #[pyclass(name = "IpAddr", module = "ry.ryo3")]
 pub struct PyIpAddr(pub std::net::IpAddr);
 
-// impl<'py> FromPyObject<'py> for JiffRoundMode {
-//     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-//         if let Ok(str_mode) = ob.extract::<&str>() {
-//             match str_mode.to_ascii_lowercase().replace('_', "-").as_str() {
-//                 "ceil" => Ok(Self(RoundMode::Ceil)),
-//                 "floor" => Ok(Self(RoundMode::Floor)),
-//                 "expand" => Ok(Self(RoundMode::Expand)),
-//                 "trunc" => Ok(Self(RoundMode::Trunc)),
-//                 "half-ceil" => Ok(Self(RoundMode::HalfCeil)),
-//                 "half-floor" => Ok(Self(RoundMode::HalfFloor)),
-//                 "half-expand" => Ok(Self(RoundMode::HalfExpand)),
-//                 "half-trunc" => Ok(Self(RoundMode::HalfTrunc)),
-//                 "half-even" => Ok(Self(RoundMode::HalfEven)),
-//                 _ => Err(PyValueError::new_err(JIFF_ROUND_MODE_ERROR)),
-//             }
-//         } else {
-//             Err(PyValueError::new_err(JIFF_ROUND_MODE_ERROR))
-//         }
-//     }
-// }
-
-// #[derive(FromPyObject)]
-// pub enum Ipv4NewArgs{
-//     /// u8 parts
-//     Parts(u8, u8, u8, u8),
-//     /// string
-//     Str(String),
-//     /// bytes
-//     Bytes(Vec<u8>),
-//     ///
-
-// }
 
 static IPV4_ADDR_ERROR: &str =
     "Invalid IPv4 address, should be a [u8; 4], u32, str, bytes (len=4), or ipaddress.IPv4Address";
