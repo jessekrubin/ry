@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing as t
 
 import typing_extensions as te
@@ -9,8 +7,8 @@ from ry._types import Buffer
 # =============================================================================
 # JSON
 # =============================================================================
-JsonPrimitive = None | bool | int | float | str
-JsonValue = (
+JsonPrimitive: te.TypeAlias = None | bool | int | float | str
+JsonValue: te.TypeAlias = (
     JsonPrimitive
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]

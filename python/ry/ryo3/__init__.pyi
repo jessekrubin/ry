@@ -1,7 +1,5 @@
 """ry api ~ type annotations"""
 
-from __future__ import annotations
-
 import datetime as pydt
 import typing as t
 from os import PathLike
@@ -115,6 +113,7 @@ from ._std import is_symlink as is_symlink
 from ._std import metadata as metadata
 from ._std import read as read
 from ._std import read_bytes as read_bytes
+from ._std import read_dir as read_dir
 from ._std import read_stream as read_stream
 from ._std import read_text as read_text
 from ._std import remove_dir as remove_dir

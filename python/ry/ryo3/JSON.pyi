@@ -2,8 +2,10 @@
 
 from typing import Literal
 
-JsonPrimitive = None | bool | int | float | str
-JsonValue = (
+import typing_extensions
+
+JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
+JsonValue: typing_extensions.TypeAlias = (
     JsonPrimitive
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]

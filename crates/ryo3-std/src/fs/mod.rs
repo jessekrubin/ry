@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
@@ -178,6 +179,61 @@ impl PyPermissions {
     }
 }
 
+#[pyclass(name = "DirEntry", module = "ry.ryo3")]
+pub struct PyDirEntry(pub std::fs::DirEntry);
+
+impl From<std::fs::DirEntry> for PyDirEntry {
+    fn from(de: std::fs::DirEntry) -> Self {
+        Self(de)
+    }
+}
+
+#[pymethods]
+impl PyDirEntry {
+    pub fn __repr__(&self) -> PyResult<String> {
+        let path = self.0.path();
+        let pathstr = path.to_string_lossy();
+        let s = format!("DirEntry('{pathstr}')");
+        Ok(s)
+    }
+
+    #[must_use]
+    pub fn __fspath__(&self) -> OsString {
+        let p = self.0.path();
+        p.into_os_string()
+    }
+
+    #[getter]
+    pub fn path(&self) -> PyResult<PathBuf> {
+        let path = self.0.path();
+        Ok(path)
+    }
+
+    #[getter]
+    pub fn file_type(&self) -> PyResult<PyFileType> {
+        let file_type = self.0.file_type()?;
+        Ok(PyFileType::new(file_type))
+    }
+
+    #[getter]
+    pub fn metadata(&self) -> PyResult<PyMetadata> {
+        let metadata = self.0.metadata()?;
+        Ok(PyMetadata::new(metadata))
+    }
+
+    #[getter]
+    pub fn basename(&self) -> PyResult<OsString> {
+        let path = self.0.path();
+        let anme = path.file_name().ok_or_else(|| {
+            PyValueError::new_err(format!(
+                "basename - path: {} - no file name",
+                path.to_string_lossy()
+            ))
+        })?;
+        Ok(anme.to_os_string())
+    }
+}
+
 // ============================================================================
 // FUNCTIONS
 // ============================================================================
@@ -327,6 +383,66 @@ pub fn canonicalize(pth: PathLike) -> PyResult<()> {
     Ok(())
 }
 
+#[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
+pub fn read_dir(pth: PathLike) -> PyResult<PyReadDir> {
+    let pth = pth.as_ref();
+    let read_dir_res = std::fs::read_dir(pth);
+    match read_dir_res {
+        Ok(iter) => Ok(PyReadDir { iter }),
+        Err(e) => {
+            if pth.is_dir() {
+                let pth_str = pth.to_string_lossy();
+                Err(PyIsADirectoryError::new_err(format!(
+                    "read_stream - parent: {pth_str} - {e}"
+                )))
+            } else {
+                Err(e.into())
+            }
+        }
+    }
+}
+
+#[pyclass(name = "ReadDir", module = "ryo3")]
+pub struct PyReadDir {
+    iter: std::fs::ReadDir,
+}
+
+#[pymethods]
+impl PyReadDir {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyDirEntry> {
+        match slf.iter.next() {
+            Some(Ok(entry)) => Some(PyDirEntry::from(entry)),
+            _ => None,
+        }
+    }
+
+    fn collect(&mut self) -> Vec<PyDirEntry> {
+        let mut paths = vec![];
+        for entry in self.iter.by_ref() {
+            match entry {
+                Ok(entry) => paths.push(PyDirEntry::from(entry)),
+                Err(_) => break,
+            }
+        }
+        paths
+    }
+
+    fn take(&mut self, n: usize) -> Vec<PyDirEntry> {
+        let mut paths = vec![];
+        for _ in 0..n {
+            match self.iter.next() {
+                Some(Ok(entry)) => paths.push(PyDirEntry::from(entry)),
+                _ => break,
+            }
+        }
+        paths
+    }
+}
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
@@ -337,6 +453,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(metadata, m)?)?;
     m.add_function(wrap_pyfunction!(read, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
+    m.add_function(wrap_pyfunction!(read_dir, m)?)?;
     m.add_function(wrap_pyfunction!(read_stream, m)?)?;
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(remove_dir, m)?)?;

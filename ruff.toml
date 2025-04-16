@@ -16,6 +16,7 @@ lint.select = [
   "C",
   "DTZ",
   "E",
+  "PYI",
   "EM",
   "F",
   "FA",
@@ -52,6 +53,9 @@ lint.ignore = [
   "PLR0912",
   "PLR0913",
   "PLR0915",
+  # PYI annotations
+  "PYI011", # typed-argument-default-in-stub
+  "PYI021", # docstring-in-stub
   # type annotations union
   #  "UP007",
   # todo figure out if this is needed

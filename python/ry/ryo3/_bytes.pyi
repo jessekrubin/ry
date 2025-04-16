@@ -1,6 +1,8 @@
 import sys
 from typing import overload
 
+import typing_extensions
+
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
 else:
@@ -33,7 +35,6 @@ class Bytes(Buffer):
     def __getitem__(self, other: slice) -> Bytes: ...
     def __mul__(self, other: Buffer) -> int: ...
     def __len__(self) -> int: ...
-    def __repr__(self) -> str: ...
     def removeprefix(self, prefix: Buffer, /) -> Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -132,4 +133,4 @@ class Bytes(Buffer):
     def fromhex(cls, hexstr: str) -> Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
 
-BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
+BytesLike: typing_extensions.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes

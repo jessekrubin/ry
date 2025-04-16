@@ -1,7 +1,5 @@
 """ryo3-regex types"""
 
-from __future__ import annotations
-
 # =============================================================================
 # Regex
 # =============================================================================
@@ -22,6 +20,4 @@ class Regex:
         swap_greed: bool = False,
         unicode: bool = False,
     ) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
     def is_match(self, string: str) -> bool: ...
