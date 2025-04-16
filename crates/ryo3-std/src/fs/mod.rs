@@ -193,11 +193,11 @@ impl PyDirEntry {
     pub fn __repr__(&self) -> PyResult<String> {
         let path = self.0.path();
         let pathstr = path.to_string_lossy();
-        let s = format!("DirEntry('{}')", pathstr);
+        let s = format!("DirEntry('{pathstr}')");
         Ok(s)
     }
 
-    pub fn __fspath__(&self) -> OsString {
+    #[must_use] pub fn __fspath__(&self) -> OsString {
         let p = self.0.path();
         p.into_os_string()
     }

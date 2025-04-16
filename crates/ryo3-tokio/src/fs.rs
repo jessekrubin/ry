@@ -2,7 +2,7 @@
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
 use ryo3_bytes::PyBytes;
-use ryo3_std::{PyDirEntry, PyMetadata};
+use ryo3_std::PyMetadata;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -90,11 +90,11 @@ impl PyDirEntryAsync {
     pub fn __repr__(&self) -> PyResult<String> {
         let path = self.0.path();
         let pathstr = path.to_string_lossy();
-        let s = format!("DirEntryAsync('{}')", pathstr);
+        let s = format!("DirEntryAsync('{pathstr}')");
         Ok(s)
     }
 
-    pub fn __fspath__(&self) -> OsString {
+    #[must_use] pub fn __fspath__(&self) -> OsString {
         let p = self.0.path();
         p.into_os_string()
     }
@@ -200,9 +200,9 @@ impl RyReadDirAsync {
 }
 
 #[pyfunction]
-pub fn read_dir_async(_py: Python<'_>, _pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    pyo3_async_runtimes::tokio::future_into_py(_py, async move {
-        let readdir = tokio::fs::read_dir(_pth).await.map_err(PyErr::from)?;
+pub fn read_dir_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+    pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        let readdir = tokio::fs::read_dir(pth).await.map_err(PyErr::from)?;
         let ob = RyReadDirAsync {
             stream: Arc::new(Mutex::new(Box::pin(readdir))),
         };
