@@ -1,11 +1,8 @@
 import typing as t
-from http import HTTPStatus
 
 import ry
-
-if t.TYPE_CHECKING:
-    from ry.http import Headers
-    from ry.ryo3 import URL, Duration
+from ry.http import Headers, HttpStatus
+from ry.ryo3 import URL, Duration
 
 class HttpClient:
     def __init__(
@@ -72,7 +69,7 @@ class ReqwestError(Exception):
     def is_request(self) -> bool: ...
     def is_status(self) -> bool: ...
     def is_timeout(self) -> bool: ...
-    def status(self) -> HTTPStatus | None: ...
+    def status(self) -> HttpStatus | None: ...
     def url(self) -> URL | None: ...
 
 class Response:

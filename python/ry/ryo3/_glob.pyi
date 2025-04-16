@@ -1,28 +1,26 @@
 """ryo3-glob types"""
 
-from __future__ import annotations
-
 import typing as t
 from os import PathLike
 from pathlib import Path
 
 import typing_extensions as te
 
-T = t.TypeVar("T")
+_T = t.TypeVar("_T")
 
 class _MatchOptions(t.TypedDict, total=False):
     case_sensitive: bool
     require_literal_separator: bool
     require_literal_leading_dot: bool
 
-class GlobPaths(t.Generic[T]):
+class GlobPaths(t.Generic[_T]):
     """glob::Paths iterable wrapper"""
-    def __next__(self) -> T: ...
-    def __iter__(self) -> t.Iterator[T]: ...
+    def __next__(self) -> _T: ...
+    def __iter__(self) -> t.Iterator[_T]: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def collect(self) -> list[T]: ...
-    def take(self, n: int) -> list[T]: ...
+    def collect(self) -> list[_T]: ...
+    def take(self, n: int) -> list[_T]: ...
 
 def glob(
     pattern: str,

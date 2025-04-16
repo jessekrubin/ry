@@ -1,7 +1,5 @@
 """ry api ~ type annotations"""
 
-from __future__ import annotations
-
 import datetime as pydt
 import typing as t
 from os import PathLike

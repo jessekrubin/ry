@@ -94,7 +94,8 @@ impl PyDirEntryAsync {
         Ok(s)
     }
 
-    #[must_use] pub fn __fspath__(&self) -> OsString {
+    #[must_use]
+    pub fn __fspath__(&self) -> OsString {
         let p = self.0.path();
         p.into_os_string()
     }

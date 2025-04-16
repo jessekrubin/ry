@@ -15,11 +15,11 @@ from ry._types import (
 )
 from ry.ryo3 import Duration
 
-T = t.TypeVar("T")
+_T = t.TypeVar("_T")
 # =============================================================================
 # JIFF
 # =============================================================================
-JIFF_UNIT = t.Literal[
+JIFF_UNIT: te.TypeAlias = t.Literal[
     "year",
     "month",
     "week",
@@ -32,7 +32,7 @@ JIFF_UNIT = t.Literal[
     "nanosecond",
 ]
 
-JIFF_ROUND_MODE = t.Literal[
+JIFF_ROUND_MODE: te.TypeAlias = t.Literal[
     "ceil",
     "floor",
     "expand",
@@ -44,11 +44,11 @@ JIFF_ROUND_MODE = t.Literal[
     "half_even",
 ]
 
-WEEKDAY_STR = t.Literal[
+WEEKDAY_STR: te.TypeAlias = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 ]
 
-WEEKDAY_INT = t.Literal[
+WEEKDAY_INT: te.TypeAlias = t.Literal[
     1,  # Monday
     2,  # Tuesday
     3,  # Wednesday
@@ -719,11 +719,11 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def to_timespan(self) -> TimeSpan: ...
 
 # put in quotes to avoid ruff F821 - undefined name
-_TimeSpanArithmeticSingle = TimeSpan | Duration | SignedDuration
-_TimeSpanArithmeticTuple = tuple[
+_TimeSpanArithmeticSingle: te.TypeAlias = TimeSpan | Duration | SignedDuration
+_TimeSpanArithmeticTuple: te.TypeAlias = tuple[
     _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
 ]
-TimeSpanArithmetic = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
+TimeSpanArithmetic: te.TypeAlias = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
 
 class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     def __init__(
@@ -1436,11 +1436,11 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
     def until(self, other: Offset) -> TimeSpan: ...
 
 class JiffSeries(
-    t.Generic[T],
+    t.Generic[_T],
 ):
-    def __iter__(self) -> t.Iterator[T]: ...
-    def __next__(self) -> T: ...
-    def take(self, n: int) -> list[T]: ...
+    def __iter__(self) -> t.Iterator[_T]: ...
+    def __next__(self) -> _T: ...
+    def take(self, n: int) -> list[_T]: ...
 
 def date(year: int, month: int, day: int) -> Date: ...
 def time(

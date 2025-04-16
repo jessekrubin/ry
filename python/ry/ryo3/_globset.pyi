@@ -1,7 +1,5 @@
 """ryo3-globset types"""
 
-from __future__ import annotations
-
 from os import PathLike
 
 class Glob:

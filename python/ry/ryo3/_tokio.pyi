@@ -1,7 +1,5 @@
 """ryo4-tokio types"""
 
-from __future__ import annotations
-
 import pathlib
 from typing import NoReturn
 
@@ -49,4 +47,3 @@ async def read_dir_async(path: FsPathLike) -> ReadDirAsync: ...
 async def sleep_async(seconds: float) -> float: ...
 async def asleep(seconds: float) -> float:
     """Alias for sleep_async"""
-    ...

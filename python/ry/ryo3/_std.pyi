@@ -1,7 +1,5 @@
 """ryo3-std types"""
 
-from __future__ import annotations
-
 import datetime as pydt
 import ipaddress
 import pathlib

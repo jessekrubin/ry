@@ -1,7 +1,5 @@
 """ryo3-fspath types"""
 
-from __future__ import annotations
-
 import typing as t
 from os import PathLike
 from pathlib import Path

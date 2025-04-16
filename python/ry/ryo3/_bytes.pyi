@@ -1,6 +1,8 @@
 import sys
 from typing import overload
 
+import typing_extensions
+
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
 else:
@@ -132,4 +134,4 @@ class Bytes(Buffer):
     def fromhex(cls, hexstr: str) -> Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
 
-BytesLike = Buffer | bytes | bytearray | memoryview | Bytes
+BytesLike: typing_extensions.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes

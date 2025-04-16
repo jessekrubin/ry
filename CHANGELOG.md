@@ -4,8 +4,12 @@
 
 - `ryo3-std`
   - `ry.IpAddr` added to handle both ipv4/ipv6
+  - `ry.read_dir` implemented
 - `ryo3-walkdir`
   - added `objects` impl and example script
+- `ryo3-tokio`
+  - `ry.read_dir_async` implemented; also contains fancy async take/collect
+
 ---
 
 ## v0.0.40 [2025-04-11]
