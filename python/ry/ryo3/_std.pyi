@@ -266,6 +266,21 @@ class Ipv4Addr:
     @property
     def is_shared(self) -> t.NoReturn: ...
 
+    # ========================================================================
+    # CLASSMETHODS
+    # ========================================================================
+    @classmethod
+    def parse(cls, s: str) -> Ipv4Addr: ...
+    @classmethod
+    def from_bits(cls, bits: int) -> Ipv4Addr: ...
+    @classmethod
+    def from_octets(cls, b: bytes) -> Ipv4Addr: ...
+
+    # =======================================================================
+    # METHODS
+    # =======================================================================
+    def to_ipaddr(self) -> IpAddr: ...
+
 class Ipv6Addr:
     LOCALHOST: Ipv6Addr
     UNSPECIFIED: Ipv6Addr
@@ -312,6 +327,19 @@ class Ipv6Addr:
     def is_unicast(self) -> t.NoReturn: ...
     @property
     def is_unicast_global(self) -> t.NoReturn: ...
+
+    # ========================================================================
+    # CLASSMETHODS
+    # ========================================================================
+    @classmethod
+    def parse(cls, s: str) -> Ipv4Addr: ...
+    @classmethod
+    def from_bits(cls, bits: int) -> IpAddr: ...
+
+    # =======================================================================
+    # METHODS
+    # =======================================================================
+    def to_ipaddr(self) -> IpAddr: ...
 
 class IpAddr:
     BROADCAST: IpAddr
@@ -364,3 +392,8 @@ class IpAddr:
     def is_private(self) -> bool: ...
     @property
     def is_unspecified(self) -> bool: ...
+
+    # =======================================================================
+    # METHODS
+    # =======================================================================
+    def to_canonical(self) -> IpAddr: ...

@@ -124,7 +124,7 @@ impl RyTimeZone {
     }
 
     #[getter]
-    fn is_unknwon(&self) -> bool {
+    fn is_unknown(&self) -> bool {
         self.0.is_unknown()
     }
 

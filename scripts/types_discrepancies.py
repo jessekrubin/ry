@@ -73,6 +73,7 @@ IGNORED_MEMBERS = {
     "__ne__",
     # DEFO IGNORE
     "__add__",
+    "__str__",
     "__class__",
     "__setattr__",
     "__delattr__",

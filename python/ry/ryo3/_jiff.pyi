@@ -536,10 +536,6 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     def __eq__(self, other: object) -> bool: ...
 
     # =========================================================================
-    # STRING
-    # =========================================================================
-
-    # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
 
@@ -553,6 +549,8 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     # =========================================================================
     @property
     def name(self) -> str: ...
+    @property
+    def is_unknown(self) -> bool: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -903,10 +901,6 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     def from_second(cls, second: int) -> Timestamp: ...
 
     # =========================================================================
-    # STRING
-    # =========================================================================
-
-    # =========================================================================
     # OPERATORS/DUNDERS
     # =========================================================================
     def __add__(self, other: TimeSpan | SignedDuration | Duration) -> te.Self: ...
@@ -1235,10 +1229,6 @@ class ISOWeekDate:
     def __hash__(self) -> int: ...
 
     # =========================================================================
-    # STRING
-    # =========================================================================
-
-    # =========================================================================
     # CLASS METHODS
     # =========================================================================
     @classmethod
@@ -1459,3 +1449,5 @@ class TimeZoneDatabase:
     def from_dir(cls, path: str) -> TimeZoneDatabase: ...
     @classmethod
     def from_concatenated_path(cls, path: str) -> TimeZoneDatabase: ...
+    @classmethod
+    def bundled(cls) -> TimeZoneDatabase: ...
