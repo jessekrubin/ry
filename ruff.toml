@@ -56,7 +56,6 @@ lint.ignore = [
   # PYI annotations
   "PYI011", # typed-argument-default-in-stub
   "PYI021", # docstring-in-stub
-  "PYI029", #  [*] str-or-repr-defined-in-stub
   # type annotations union
   #  "UP007",
   # todo figure out if this is needed
