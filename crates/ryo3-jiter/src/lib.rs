@@ -10,7 +10,6 @@ use ::jiter::{
 use jiter::FloatMode;
 use pyo3::prelude::*;
 use pyo3::pybacked::{PyBackedBytes, PyBackedStr};
-use ryo3_bytes::{extract_bytes_ref, extract_bytes_ref_str};
 
 #[derive(FromPyObject)]
 pub enum BytesOrString {
@@ -39,7 +38,6 @@ pub fn parse_json_bytes<'py>(
     catch_duplicate_keys: bool,
     float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let data = extract_bytes_ref(data)?;
     let parse_builder = PythonParse {
         allow_inf_nan,
         cache_mode,
@@ -47,9 +45,26 @@ pub fn parse_json_bytes<'py>(
         catch_duplicate_keys,
         float_mode,
     };
-    parse_builder
-        .python_parse(py, data)
-        .map_err(|e| map_json_error(data, &e))
+    if let Ok(bytes) = data.extract::<&[u8]>() {
+        parse_builder
+            .python_parse(py, bytes)
+            .map_err(|e| map_json_error(bytes, &e))
+    } else if let Ok(custom) = data.downcast::<ryo3_bytes::PyBytes>() {
+        let pybytes = custom.get();
+        let json_bytes = pybytes.as_ref();
+        parse_builder
+            .python_parse(py, json_bytes)
+            .map_err(|e| map_json_error(json_bytes, &e))
+    } else if let Ok(pybytes) = data.extract::<ryo3_bytes::PyBytes>() {
+        let json_bytes = pybytes.as_ref();
+        parse_builder
+            .python_parse(py, json_bytes)
+            .map_err(|e| map_json_error(json_bytes, &e))
+    } else {
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "Expected bytes, bytearray, or pyo3-bytes object",
+        ))
+    }
 }
 
 #[pyfunction(
@@ -66,15 +81,14 @@ pub fn parse_json_bytes<'py>(
 )]
 pub fn parse_json<'py>(
     py: Python<'py>,
-    data: &'py Bound<'py, PyAny>,
+    data: &Bound<'py, PyAny>,
     allow_inf_nan: bool,
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
     float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let json_bytes: &'py [u8] = extract_bytes_ref_str(data)?;
-
+    // let data = extract_bytes_ref(data)?;
     let parse_builder = PythonParse {
         allow_inf_nan,
         cache_mode,
@@ -82,10 +96,76 @@ pub fn parse_json<'py>(
         catch_duplicate_keys,
         float_mode,
     };
-    parse_builder
-        .python_parse(py, json_bytes)
-        .map_err(|e| map_json_error(json_bytes, &e))
+    if let Ok(bytes) = data.extract::<&[u8]>() {
+        parse_builder
+            .python_parse(py, bytes)
+            .map_err(|e| map_json_error(bytes, &e))
+    } else if let Ok(custom) = data.downcast::<ryo3_bytes::PyBytes>() {
+        let pybytes = custom.get();
+        let json_bytes = pybytes.as_ref();
+        parse_builder
+            .python_parse(py, json_bytes)
+            .map_err(|e| map_json_error(json_bytes, &e))
+    } else if let Ok(pybytes) = data.extract::<ryo3_bytes::PyBytes>() {
+        let json_bytes = pybytes.as_ref();
+        parse_builder
+            .python_parse(py, json_bytes)
+            .map_err(|e| map_json_error(json_bytes, &e))
+    } else if let Ok(s) = data.extract::<&str>() {
+        let json_bytes = s.as_bytes();
+        parse_builder
+            .python_parse(py, json_bytes)
+            .map_err(|e| map_json_error(json_bytes, &e))
+    } else {
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "Expected bytes-like, bytearray, pyo3-bytes object or str",
+        ))
+    }
 }
+
+// #[pyfunction(
+//     signature = (
+//         data,
+//         /,
+//         *,
+//         allow_inf_nan = false,
+//         cache_mode = StringCacheMode::All,
+//         partial_mode = PartialMode::Off,
+//         catch_duplicate_keys = false,
+//         float_mode = FloatMode::Float
+//     )
+// )]
+// pub fn parse_jsonl<'py>(
+//     py: Python<'py>,
+//     data: &'py Bound<'py, PyAny>,
+//     allow_inf_nan: bool,
+//     cache_mode: StringCacheMode,
+//     partial_mode: PartialMode,
+//     catch_duplicate_keys: bool,
+//     float_mode: FloatMode,
+// ) -> PyResult<Bound<'py, PyAny>> {
+//     let json_bytes: &'py [u8] = extract_bytes_ref_str(data)?;
+//     let  parsed_lines= json_bytes
+//         .split(|b| *b == b'\n')
+//         .filter(|line| !line.is_empty()).map(|line| {
+//             let parse_builder = PythonParse {
+//                 allow_inf_nan,
+//                 cache_mode,
+//                 partial_mode,
+//                 catch_duplicate_keys,
+//                 float_mode,
+//             };
+//             parse_builder
+//                 .python_parse(py, line)
+//                 .map_err(|e| map_json_error(line, &e))
+//         })
+//         .collect::<Result<Vec<_>, _>>()?;
+
+//     let pylist = PyList::new(py, parsed_lines)?;
+//     // parse each line
+//     let a = pylist.into_bound_py_any(py);
+//     a
+// }
 
 #[pyfunction]
 pub fn json_cache_clear() {
