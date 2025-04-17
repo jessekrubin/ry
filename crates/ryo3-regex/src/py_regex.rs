@@ -1,12 +1,12 @@
 use crate::py_regex_options::PyRegexOptions;
 use pyo3::prelude::*;
 use regex::{Regex, RegexBuilder};
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 
-#[pyclass(name = "Regex", frozen, module = "ryo3")]
+#[pyclass(name = "Regex", frozen, module = "ry.ryo3")]
 #[derive(Clone, Debug)]
 pub struct PyRegex {
-    pub re: Regex,
+    pub re: std::sync::Arc<Regex>,
     pub options: Option<PyRegexOptions>,
 }
 
@@ -14,15 +14,23 @@ impl TryFrom<&str> for PyRegex {
     type Error = PyErr;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Regex::new(s).map(PyRegex::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
-        })
+        Regex::new(s)
+            .map(|re| PyRegex {
+                re: std::sync::Arc::new(re),
+                options: None,
+            })
+            .map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
+            })
     }
 }
 
 impl From<Regex> for PyRegex {
     fn from(re: Regex) -> Self {
-        PyRegex { re, options: None }
+        PyRegex {
+            re: std::sync::Arc::new(re),
+            options: None,
+        }
     }
 }
 
@@ -30,9 +38,14 @@ impl TryFrom<RegexBuilder> for PyRegex {
     type Error = PyErr;
 
     fn try_from(rb: RegexBuilder) -> Result<Self, Self::Error> {
-        rb.build().map(PyRegex::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
-        })
+        rb.build()
+            .map(|re| PyRegex {
+                re: std::sync::Arc::new(re),
+                options: None,
+            })
+            .map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
+            })
     }
 }
 
@@ -123,9 +136,6 @@ impl PyRegex {
         })
     }
 
-    fn __str__(&self) -> String {
-        format!("Regex('{}')", self.re)
-    }
     fn __repr__(&self) -> String {
         format!("Regex('{}')", self.re)
     }
@@ -142,15 +152,37 @@ impl PyRegex {
         self.re.find(text).map(|m| (m.start(), m.end()))
     }
 
-    fn findall(&self, text: &str) -> Vec<(usize, usize)> {
+    fn find_all(&self, text: &str) -> Vec<(usize, usize)> {
         self.re
             .find_iter(text)
             .map(|m| (m.start(), m.end()))
             .collect()
     }
 
-    fn replace(&self, text: &str, replace: &str) -> String {
-        self.re.replace(text, replace).to_string()
+    fn findall(&self, text: &str) -> Vec<(usize, usize)> {
+        self.find_all(text)
+    }
+
+    fn replace<'py>(&self, text: &'py str, replace: &str) -> Cow<'py, str> {
+        self.re.replace(text, replace)
+    }
+
+    fn replace_all(&self, text: &str, replace: &str) -> String {
+        self.re.replace_all(text, replace).to_string()
+    }
+
+    fn split(&self, text: &str) -> Vec<String> {
+        self.re
+            .split(text)
+            .map(std::string::ToString::to_string)
+            .collect()
+    }
+
+    fn splitn(&self, text: &str, n: usize) -> Vec<String> {
+        self.re
+            .splitn(text, n)
+            .map(std::string::ToString::to_string)
+            .collect()
     }
 }
 
