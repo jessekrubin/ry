@@ -2,6 +2,10 @@
 
 ## v0.0.41 [unreleased]
 
+- `ryo3-jiter`
+  - added `read_json` function to read from path-like obj
+- `ryo3-bytes`
+  - misc small improvements and tests
 - `ryo3-std`
   - `ry.IpAddr` added to handle both ipv4/ipv6
   - `ry.read_dir` implemented

@@ -1,5 +1,6 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
 use crate::bytes::PyBytes;
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
@@ -50,24 +51,8 @@ impl PyBytes {
         encoding: &str,
         errors: &str,
     ) -> PyResult<Bound<'py, PyString>> {
-        let a = slf.into_bound_py_any(py)?;
-        // ensure str is null-term
-        let encoding = {
-            let mut enc = encoding.to_owned();
-            if !enc.ends_with('\0') {
-                enc.push('\0');
-            }
-            enc
-        };
-        let errors = {
-            let mut err = errors.to_owned();
-            if !err.ends_with('\0') {
-                err.push('\0');
-            }
-            err
-        };
-        // this is screwy?
-        PyString::from_object(&a, &encoding, &errors)
+        let py_any = slf.into_bound_py_any(py)?;
+        PyString::from_object(&py_any, encoding, errors)
     }
 
     /// Create a string of hexadecimal numbers from a bytes object.
@@ -116,16 +101,66 @@ impl PyBytes {
     /// ```
     #[classmethod]
     fn fromhex(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        let s = s.replace(' ', "");
-        let mut bytes = Vec::new();
-        for i in 0..s.len() {
-            if i % 2 == 0 {
-                let byte = u8::from_str_radix(&s[i..i + 2], 16).map_err(|e| {
-                    pyo3::exceptions::PyValueError::new_err(format!("Invalid hex string: {e}"))
-                })?;
-                bytes.push(byte);
-            }
+        // filter out whitespace
+        let mut it = s.chars().filter(|c| !c.is_ascii_whitespace());
+        let mut bytes = Vec::with_capacity(s.len() / 2);
+        while let Some(char_a) = it.next() {
+            // second char
+            let char_b = it.next().ok_or_else(|| {
+                PyValueError::new_err("Odd-length hex string; missing final digit")
+            })?;
+            // convert and err if not hex
+            let a = hex_val(char_a)
+                .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_a}`")))?;
+            let b = hex_val(char_b)
+                .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_b}`")))?;
+            bytes.push(a << 4 | b);
         }
         Ok(Self::from(bytes))
+    }
+
+    // #[pyo3(signature = (keepends=false, filter_empty=true))]
+    // fn splitlines(&self, py: Python, keepends: bool, filter_empty: bool) -> PyResult<Vec<Self>> {
+    //     let bytes: &[u8] = self.as_ref();
+    //     if bytes.is_empty() {
+    //         return Ok(vec![]);
+    //     }
+    //     let is_break = |&b: &u8| matches!(b, b'\n' | b'\r' | b'\x0b' | b'\x0c');
+    //     // inclusive if keepends
+    //     // terminator if not keepends
+    //     // as impl iterator
+    //     let it: Box<dyn Iterator<Item=&[u8]>> = if keepends {
+    //         Box::new(bytes.split_inclusive(is_break))
+    //     } else {
+    //         Box::new(bytes.split(is_break))
+    //     };
+
+    //     if filter_empty {
+    //         let lines = it.filter(|line| !line.is_empty()).map(
+    //             |line | {
+    //                 PyBytes::from(line.to_vec())
+    //             }
+    //         )
+    //         .collect::<Vec<_>>();
+    //         Ok(lines)
+    //     } else {
+    //         let lines = it.map(
+    //             |line | {
+    //                 PyBytes::from(line.to_vec())
+    //             }
+    //         )
+    //         .collect::<Vec<_>>();
+    //         Ok(lines)
+    //     }
+    // }
+}
+
+#[inline]
+fn hex_val(c: char) -> Option<u8> {
+    match c {
+        '0'..='9' => Some((c as u8) - b'0'),
+        'a'..='f' => Some((c as u8) - b'a' + 10),
+        'A'..='F' => Some((c as u8) - b'A' + 10),
+        _ => None,
     }
 }

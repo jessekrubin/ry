@@ -225,6 +225,7 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._jiter import read_json as read_json
 from ._quick_maths import quick_maths as quick_maths
 from ._regex import Regex as Regex
 from ._reqwest import HttpClient as HttpClient
@@ -2503,6 +2504,7 @@ class TimeZoneDatabase:
 
 ```python
 import typing as t
+from os import PathLike
 
 import typing_extensions as te
 
@@ -2539,6 +2541,11 @@ def parse_json(
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def read_json(
+    p: str | PathLike[str],
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
@@ -2601,6 +2608,13 @@ class Regex:
         unicode: bool = False,
     ) -> None: ...
     def is_match(self, string: str) -> bool: ...
+    def find(self, string: str) -> str | None: ...
+    def find_all(self, string: str) -> list[tuple[int, int]]: ...
+    def findall(self, string: str) -> list[tuple[int, int]]: ...
+    def replace(self, string: str, replacement: str) -> str: ...
+    def replace_all(self, string: str, replacement: str) -> str: ...
+    def split(self, string: str) -> list[str]: ...
+    def splitn(self, string: str, n: int) -> list[str]: ...
 
 ```
 <h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
