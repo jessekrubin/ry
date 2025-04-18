@@ -180,15 +180,15 @@ pub fn parse_json<'py>(
         float_mode = FloatMode::Float
     )
 )]
-pub fn read_json<'py>(
-    py: Python<'py>,
+pub fn read_json(
+    py: Python<'_>,
     p: PathBuf,
     allow_inf_nan: bool,
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
     float_mode: FloatMode,
-) -> PyResult<Bound<'py, PyAny>> {
+) -> PyResult<Bound<'_, PyAny>> {
     let fbytes = std::fs::read(p)?;
     let parse_builder = PythonParse {
         allow_inf_nan,

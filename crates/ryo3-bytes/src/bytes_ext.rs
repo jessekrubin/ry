@@ -52,7 +52,7 @@ impl PyBytes {
         errors: &str,
     ) -> PyResult<Bound<'py, PyString>> {
         let py_any = slf.into_bound_py_any(py)?;
-        PyString::from_object(&py_any, &encoding, &errors)
+        PyString::from_object(&py_any, encoding, errors)
     }
 
     /// Create a string of hexadecimal numbers from a bytes object.
