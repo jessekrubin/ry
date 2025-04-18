@@ -4,6 +4,8 @@
 //! Provides jitter wrapper that uses `PyBackedStr` and `PyBackedBytes` and
 //! allows for parsing json from bytes or str (which jiter-python does not as
 //! of [2024-05-29])
+use std::path::PathBuf;
+
 use ::jiter::{
     cache_clear, cache_usage, map_json_error, PartialMode, PythonParse, StringCacheMode,
 };
@@ -166,6 +168,39 @@ pub fn parse_json<'py>(
 //     let a = pylist.into_bound_py_any(py);
 //     a
 // }
+#[pyfunction(
+    signature = (
+        p,
+        /,
+        *,
+        allow_inf_nan = false,
+        cache_mode = StringCacheMode::All,
+        partial_mode = PartialMode::Off,
+        catch_duplicate_keys = false,
+        float_mode = FloatMode::Float
+    )
+)]
+pub fn read_json<'py>(
+    py: Python<'py>,
+    p: PathBuf,
+    allow_inf_nan: bool,
+    cache_mode: StringCacheMode,
+    partial_mode: PartialMode,
+    catch_duplicate_keys: bool,
+    float_mode: FloatMode,
+) -> PyResult<Bound<'py, PyAny>> {
+    let fbytes = std::fs::read(p)?;
+    let parse_builder = PythonParse {
+        allow_inf_nan,
+        cache_mode,
+        partial_mode,
+        catch_duplicate_keys,
+        float_mode,
+    };
+    parse_builder
+        .python_parse(py, &fbytes)
+        .map_err(|e| map_json_error(&fbytes, &e))
+}
 
 #[pyfunction]
 pub fn json_cache_clear() {
@@ -183,5 +218,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_json, m)?)?;
     m.add_function(wrap_pyfunction!(json_cache_clear, m)?)?;
     m.add_function(wrap_pyfunction!(json_cache_usage, m)?)?;
+    m.add_function(wrap_pyfunction!(read_json, m)?)?;
     Ok(())
 }

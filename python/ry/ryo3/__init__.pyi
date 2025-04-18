@@ -78,6 +78,7 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._jiter import read_json as read_json
 from ._quick_maths import quick_maths as quick_maths
 from ._regex import Regex as Regex
 from ._reqwest import HttpClient as HttpClient

@@ -1,4 +1,5 @@
 import typing as t
+from os import PathLike
 
 import typing_extensions as te
 
@@ -33,6 +34,11 @@ def parse_json(
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def read_json(
+    p: str | PathLike[str],
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
