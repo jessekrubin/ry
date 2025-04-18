@@ -2,12 +2,12 @@
 use std::hash::Hasher;
 
 use ::fnv as fnv_rs;
-use pyo3::types::{PyModule, PyTuple};
+use pyo3::types::{PyModule, PyString, PyTuple};
 
 use pyo3::{intern, prelude::*, IntoPyObjectExt};
 use pyo3::{wrap_pyfunction, PyResult};
 
-#[pyclass(name = "FnvHasher", module = "ryo3")]
+#[pyclass(name = "FnvHasher", module = "ry.ryo3")]
 pub struct PyFnvHasher {
     pub hasher: fnv_rs::FnvHasher,
 }
@@ -37,6 +37,18 @@ impl PyFnvHasher {
         }
     }
 
+    #[classattr]
+    fn digest_size() -> usize {
+        8
+    }
+
+    #[classattr]
+    fn block_size() -> usize {
+        // well fnv ain't blocky and just does a byte at a time
+        // so i guess it's just 1?
+        1
+    }
+
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,
@@ -56,13 +68,17 @@ impl PyFnvHasher {
     }
 
     #[classattr]
-    fn name(py: Python<'_>) -> String {
-        let a = intern!(py, "fnv1a");
-        a.to_string()
+    fn name(py: Python<'_>) -> &Bound<'_, PyString> {
+        intern!(py, "fnv1a")
     }
 
-    fn digest(&self) -> u64 {
+    fn intdigest(&self) -> u64 {
         self.hasher.finish()
+    }
+
+    fn digest(&self) -> ryo3_bytes::PyBytes {
+        let bytes = Vec::from(self.hasher.finish().to_be_bytes());
+        ryo3_bytes::PyBytes::from(bytes)
     }
 
     fn hexdigest(&self) -> String {
