@@ -69,6 +69,7 @@ members = [
   "crates/ryo3-globset",
   "crates/ryo3-heck",
   "crates/ryo3-http",
+  "crates/ryo3-ignore",
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
   "crates/ryo3-regex",
@@ -125,6 +126,7 @@ ryo3-glob = { path = "./crates/ryo3-glob" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
 ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-http = { path = "./crates/ryo3-http" }
+ryo3-ignore = { path = "./crates/ryo3-ignore" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-regex = { path = "./crates/ryo3-regex" }
@@ -174,6 +176,7 @@ serde_json = "1.0.140"
 shlex = "1.3.0"
 size = "0.5.0"
 sqlformat = "0.3.5"
+ignore = "0.4.23"
 thiserror = "2.0.12"
 tokio = { version = "1.44.2", features = ["bytes", "fs", "macros", "parking_lot", "rt", "rt-multi-thread", "sync"] }
 tracing = "0.1.41"

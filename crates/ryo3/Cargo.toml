@@ -40,6 +40,7 @@ ryo3-glob = { workspace = true, optional = true }
 ryo3-globset = { workspace = true, optional = true }
 ryo3-heck = { workspace = true, optional = true }
 ryo3-http = { workspace = true, optional = true }
+ryo3-ignore = { workspace = true, optional = true }
 ryo3-jiff = { workspace = true, optional = true }
 ryo3-jiter = { workspace = true, optional = true }
 ryo3-regex = { workspace = true, optional = true }
@@ -69,6 +70,7 @@ all = [
   "globset",
   "heck",
   "http",
+  "ignore",
   "jiff",
   "jiter",
   "regex",
@@ -103,6 +105,7 @@ glob = ["dep:ryo3-glob"]
 globset = ["dep:ryo3-globset"]
 heck = ["dep:ryo3-heck"]
 http = ["dep:ryo3-http"]
+ignore = ["dep:ryo3-ignore"]
 jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
 regex = ["dep:ryo3-regex", "ryo3-which/regex"]

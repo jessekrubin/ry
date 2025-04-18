@@ -14,6 +14,12 @@ pub fn dirs_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 //     ryo3_http::pymod_add(m)?;
 //     Ok(())
 // }
+#[cfg(feature = "ignore")]
+#[pymodule(gil_used = false, submodule, name = "ignore")]
+pub fn ignore_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    ryo3_ignore::pymod_add(m)?;
+    Ok(())
+}
 
 #[cfg(feature = "jiter")]
 #[pymodule(gil_used = false, name = "JSON")]
@@ -42,6 +48,9 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "dirs")]
     m.add_wrapped(pyo3::wrap_pymodule!(dirs_module))?;
 
+    #[cfg(feature = "ignore")]
+    m.add_wrapped(pyo3::wrap_pymodule!(ignore_module))?;
+
     // #[cfg(feature = "http")]
     // m.add_wrapped(wrap_pymodule!(http))?;
 
@@ -68,6 +77,15 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // sys_modules.set_item(intern!(py, "ry.http"), m.getattr(intern!(py, "http"))?)?;
     // let attr = m.getattr(intern!(py, "http"))?;
     // attr.setattr(intern!(py, "__name__"), intern!(py, "ry.http"))?;
+
+    // ignore
+    sys_modules.set_item(
+        pyo3::intern!(py, "ry.ignore"),
+        m.getattr(pyo3::intern!(py, "ignore"))?,
+    )?;
+    let attr = m.getattr(pyo3::intern!(py, "ignore"))?;
+    attr.setattr(pyo3::intern!(py, "__name__"), pyo3::intern!(py, "ry.ignore"))?;
+
 
     // JSON
     sys_modules.set_item(
