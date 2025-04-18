@@ -51,24 +51,8 @@ impl PyBytes {
         encoding: &str,
         errors: &str,
     ) -> PyResult<Bound<'py, PyString>> {
-        let a = slf.into_bound_py_any(py)?;
-        // ensure str is null-term
-        // let encoding = {
-        //     let mut enc = encoding.to_owned();
-        //     if !enc.ends_with('\0') {
-        //         enc.push('\0');
-        //     }
-        //     enc
-        // };
-        // let errors = {
-        //     let mut err = errors.to_owned();
-        //     if !err.ends_with('\0') {
-        //         err.push('\0');
-        //     }
-        //     err
-        // };
-        // this is screwy?
-        PyString::from_object(&a, &encoding, &errors)
+        let py_any = slf.into_bound_py_any(py)?;
+        PyString::from_object(&py_any, &encoding, &errors)
     }
 
     /// Create a string of hexadecimal numbers from a bytes object.
