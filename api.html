@@ -279,6 +279,7 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._jiter import read_json as read_json
 from ._quick_maths import quick_maths as quick_maths
 from ._regex import Regex as Regex
 from ._reqwest import HttpClient as HttpClient
@@ -2529,6 +2530,7 @@ class TimeZoneDatabase:
 </code></pre>
 <h2 id="ry.ryo3._jiter"><a class="header" href="#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></h2>
 <pre><code class="language-python">import typing as t
+from os import PathLike
 
 import typing_extensions as te
 
@@ -2565,6 +2567,11 @@ def parse_json(
 ) -&gt; JsonValue: ...
 def parse_json_bytes(
     data: bytes,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -&gt; JsonValue: ...
+def read_json(
+    p: str | PathLike[str],
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -&gt; JsonValue: ...
@@ -2623,6 +2630,13 @@ class Regex:
         unicode: bool = False,
     ) -&gt; None: ...
     def is_match(self, string: str) -&gt; bool: ...
+    def find(self, string: str) -&gt; str | None: ...
+    def find_all(self, string: str) -&gt; list[tuple[int, int]]: ...
+    def findall(self, string: str) -&gt; list[tuple[int, int]]: ...
+    def replace(self, string: str, replacement: str) -&gt; str: ...
+    def replace_all(self, string: str, replacement: str) -&gt; str: ...
+    def split(self, string: str) -&gt; list[str]: ...
+    def splitn(self, string: str, n: int) -&gt; list[str]: ...
 
 </code></pre>
 <h2 id="ry.ryo3._reqwest"><a class="header" href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></h2>
