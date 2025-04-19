@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.41 [unreleased]
+## v0.0.41 [2025-04-18]
 
 - `ryo3-jiter`
   - added `read_json` function to read from path-like obj
