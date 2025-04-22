@@ -4,7 +4,11 @@
 
 - `ryo3-fnv`
   - align with hashlib style hashing
-- pyo3 version 0.24.2
+- deps-up
+  - pyo3 version 0.24.2
+  - brotli 8
+  - jiff patch
+
 
 ---
 
