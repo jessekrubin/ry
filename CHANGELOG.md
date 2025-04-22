@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.42 [unreleased]
+
+- `ryo3-fnv`
+  - align with hashlib style hashing
+- pyo3 version 0.24.2
+
+---
+
 ## v0.0.41 [2025-04-18]
 
 - `ryo3-jiter`
