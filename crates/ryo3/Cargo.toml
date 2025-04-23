@@ -51,6 +51,7 @@ ryo3-sqlformat = { workspace = true, optional = true }
 ryo3-tokio = { workspace = true, optional = true }
 ryo3-unindent = { workspace = true, optional = true }
 ryo3-url = { workspace = true, optional = true }
+ryo3-uuid = { workspace = true, optional = true }
 ryo3-walkdir = { workspace = true, optional = true }
 ryo3-which = { workspace = true, optional = true }
 ryo3-xxhash = { workspace = true, optional = true }
@@ -80,6 +81,7 @@ all = [
   "tokio",
   "unindent",
   "url",
+  "uuid",
   "walkdir",
   "which",
   "xxhash",
@@ -114,6 +116,7 @@ sqlformat = ["dep:ryo3-sqlformat"]
 tokio = ["dep:ryo3-tokio"]
 unindent = ["dep:ryo3-unindent"]
 url = ["dep:ryo3-url"]
+uuid = ["dep:ryo3-uuid"]
 walkdir = ["dep:ryo3-walkdir", "globset"]
 which = ["dep:ryo3-which"]
 xxhash = ["dep:ryo3-xxhash"]
