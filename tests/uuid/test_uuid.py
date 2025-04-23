@@ -37,3 +37,13 @@ def test_uuid_thing() -> None:
     assert len(uuids) == 7
     assert all(isinstance(u, ry.UUID) for u in uuids)
     assert all(str(u) == "12345678-1234-5678-1234-567812345678" for u in uuids)
+
+
+def test_fields() -> None:
+    # Test the fields property
+    u = ry.UUID("12345678-1234-5678-1234-567812345678")
+    assert isinstance(u.fields, tuple)
+    assert u.fields == (0x12345678, 0x1234, 0x5678, 0x12, 0x34, 0x567812345678)
+    assert u.int == 0x12345678123456781234567812345678
+    assert u.hex == "12345678123456781234567812345678"
+    assert u.urn == "urn:uuid:12345678-1234-5678-1234-567812345678"

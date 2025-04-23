@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
-use pyo3::exceptions::{PyNotImplementedError, PyValueError};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyNotImplemented, PyTuple};
+use pyo3::types::PyTuple;
 use ryo3_bytes::PyBytes;
 
 #[pyclass(name = "UUID", module = "ry.ryo3", frozen)]
@@ -24,8 +24,7 @@ fn get_version(uuid: u8) -> PyResult<uuid::Version> {
         7 => Ok(uuid::Version::SortRand),
         8 => Ok(uuid::Version::Custom),
         _ => Err(PyValueError::new_err(format!(
-            "Invalid UUID version: {}. Must be between 1 and 8.",
-            uuid
+            "Invalid UUID version: {uuid}. Must be between 1 and 8."
         ))),
     }
 }
@@ -53,7 +52,7 @@ impl PyUuid {
     ) -> PyResult<Self> {
         // get the version
         let _version = match version {
-            Some(v) => get_version(v).map(|v| Some(v))?,
+            Some(v) => get_version(v).map(Some)?,
             None => None,
         };
 
@@ -119,8 +118,8 @@ impl PyUuid {
     }
 
     #[getter]
-    fn urn(&self) -> PyResult<String> {
-        Ok(self.0.urn().to_string())
+    fn urn(&self) -> String {
+        self.0.urn().to_string()
     }
 
     fn to_py(&self) -> uuid::Uuid {
@@ -131,7 +130,7 @@ impl PyUuid {
     #[staticmethod]
     fn from_hex(hex: &str) -> PyResult<Self> {
         uuid::Uuid::parse_str(hex)
-            .map(|uuid| PyUuid(uuid))
+            .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
@@ -143,14 +142,14 @@ impl PyUuid {
     #[staticmethod]
     fn from_bytes(bytes: PyBytes) -> PyResult<Self> {
         uuid::Uuid::from_slice(bytes.as_ref())
-            .map(|uuid| PyUuid(uuid))
+            .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     #[staticmethod]
     fn from_bytes_le(bytes: PyBytes) -> PyResult<Self> {
         uuid::Uuid::from_slice_le(bytes.as_ref())
-            .map(|uuid| PyUuid(uuid))
+            .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
@@ -183,7 +182,7 @@ impl PyUuid {
     // The 14-bit sequence number.
 
     #[staticmethod]
-    fn from_fields<'py>(fields: &Bound<'py, PyTuple>) -> PyResult<Self> {
+    fn from_fields(fields: &Bound<'_, PyTuple>) -> PyResult<Self> {
         let fields = fields.extract::<(u32, u16, u16, u8, u8, u64)>()?;
         let time_low = u128::from(fields.0) << 96;
         let time_mid = u128::from(fields.1) << 80;
@@ -197,7 +196,8 @@ impl PyUuid {
         Ok(PyUuid(uuid))
     }
 
-    fn to_fields(&self) -> PyResult<(u32, u16, u16, u8, u8, u64)> {
+    #[getter]
+    fn fields(&self) -> (u32, u16, u16, u8, u8, u64) {
         let uuid = self.0;
         let time_low = uuid.as_u128() >> 96;
         let time_mid = (uuid.as_u128() >> 80) & 0xFFFF;
@@ -205,20 +205,29 @@ impl PyUuid {
         let clock_seq_hi_variant = (uuid.as_u128() >> 56) & 0xFF;
         let clock_seq_low = (uuid.as_u128() >> 48) & 0xFF;
         let node = uuid.as_u128() & 0xFFFFFFFFFFFF;
-        Ok((
+        (
             time_low as u32,
             time_mid as u16,
             time_hi_version as u16,
             clock_seq_hi_variant as u8,
             clock_seq_low as u8,
             node as u64,
-        ))
+        )
     }
 
     #[getter]
-    fn node(&self) -> PyResult<u64> {
-        let n = self.0.as_u128() & 0xFFFFFFFFFFFF;
-        Ok(n as u64)
+    fn node(&self) -> u64 {
+        (self.0.as_u128() & 0xFFFFFFFFFFFF) as u64
+    }
+
+    #[getter]
+    fn hex(&self) -> String {
+        self.0.simple().to_string()
+    }
+
+    #[getter]
+    fn int(&self) -> u128 {
+        self.0.as_u128()
     }
 
     #[getter]
