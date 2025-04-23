@@ -47,3 +47,10 @@ def test_fields() -> None:
     assert u.int == 0x12345678123456781234567812345678
     assert u.hex == "12345678123456781234567812345678"
     assert u.urn == "urn:uuid:12345678-1234-5678-1234-567812345678"
+
+
+def test_equality() -> None:
+    rs_u = ry.UUID("12345678-1234-5678-1234-567812345678")
+    py_u = rs_u.to_py()
+    assert rs_u == py_u
+    assert py_u == rs_u
