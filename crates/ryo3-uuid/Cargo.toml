@@ -1,0 +1,21 @@
+[package]
+name = "ryo3-uuid"
+description = "python + uuid (https://github.com/rust-lang/uuid)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = ["uuid"] }
+ryo3-bytes.workspace = true
+ryo3-macros.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true
