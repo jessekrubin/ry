@@ -18,3 +18,22 @@ def test_uuid4_func() -> None:
 def test_uuid_to_python() -> None:
     u = ry.UUID("12345678-1234-5678-1234-567812345678")
     assert u.to_py() == pyuuid.UUID("12345678-1234-5678-1234-567812345678")
+
+
+def test_uuid_thing() -> None:
+    # Test various ways to create UUIDs
+
+    uuids = [
+        ry.UUID("{12345678-1234-5678-1234-567812345678}"),
+        ry.UUID("12345678123456781234567812345678"),
+        ry.UUID("urn:uuid:12345678-1234-5678-1234-567812345678"),
+        ry.UUID(bytes=b"\x12\x34\x56\x78" * 4),
+        ry.UUID(
+            bytes_le=b"\x78\x56\x34\x12\x34\x12\x78\x56\x12\x34\x56\x78\x12\x34\x56\x78"
+        ),
+        ry.UUID(fields=(0x12345678, 0x1234, 0x5678, 0x12, 0x34, 0x567812345678)),
+        ry.UUID(int=0x12345678123456781234567812345678),
+    ]
+    assert len(uuids) == 7
+    assert all(isinstance(u, ry.UUID) for u in uuids)
+    assert all(str(u) == "12345678-1234-5678-1234-567812345678" for u in uuids)

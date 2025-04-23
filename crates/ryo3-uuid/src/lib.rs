@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 mod py_uuid;
-pub use py_uuid::{PyUuid, uuid4};
+pub use py_uuid::{uuid4, PyUuid};
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 
