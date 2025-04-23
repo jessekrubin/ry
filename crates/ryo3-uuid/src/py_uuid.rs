@@ -5,7 +5,7 @@ use pyo3::types::PyTuple;
 use ryo3_bytes::PyBytes;
 
 #[pyclass(name = "UUID", module = "ry.ryo3", frozen)]
-pub struct PyUuid(pub(crate) uuid::Uuid);
+pub struct PyUuid(pub uuid::Uuid);
 
 impl From<uuid::Uuid> for PyUuid {
     fn from(value: uuid::Uuid) -> Self {
@@ -87,14 +87,30 @@ impl PyUuid {
         self.0.as_u128()
     }
 
-    fn __richcmp__(&self, other: PyRef<PyUuid>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        match op {
-            pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
-            pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
-            pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
-            pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
-            pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
-            pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
+        if let Ok(rs_uuid) = other.downcast::<PyUuid>() {
+            let other = rs_uuid.get();
+
+            match op {
+                pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
+                pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
+                pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
+                pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
+                pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
+                pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
+            }
+            // return self.compare(rs_uuid, op);
+        } else {
+            let other = other.extract::<uuid::Uuid>()?;
+
+            match op {
+                pyo3::basic::CompareOp::Eq => Ok(self.0 == other),
+                pyo3::basic::CompareOp::Ne => Ok(self.0 != other),
+                pyo3::basic::CompareOp::Lt => Ok(self.0 < other),
+                pyo3::basic::CompareOp::Le => Ok(self.0 <= other),
+                pyo3::basic::CompareOp::Gt => Ok(self.0 > other),
+                pyo3::basic::CompareOp::Ge => Ok(self.0 >= other),
+            }
         }
     }
 
@@ -140,6 +156,7 @@ impl PyUuid {
     }
 
     #[staticmethod]
+    #[expect(clippy::needless_pass_by_value)]
     fn from_bytes(bytes: PyBytes) -> PyResult<Self> {
         uuid::Uuid::from_slice(bytes.as_ref())
             .map(PyUuid)
@@ -147,6 +164,7 @@ impl PyUuid {
     }
 
     #[staticmethod]
+    #[expect(clippy::needless_pass_by_value)]
     fn from_bytes_le(bytes: PyBytes) -> PyResult<Self> {
         uuid::Uuid::from_slice_le(bytes.as_ref())
             .map(PyUuid)
@@ -204,7 +222,7 @@ impl PyUuid {
         let time_hi_version = (uuid.as_u128() >> 64) & 0xFFFF;
         let clock_seq_hi_variant = (uuid.as_u128() >> 56) & 0xFF;
         let clock_seq_low = (uuid.as_u128() >> 48) & 0xFF;
-        let node = uuid.as_u128() & 0xFFFFFFFFFFFF;
+        let node = uuid.as_u128() & 0xFFFF_FFFF_FFFF;
         (
             time_low as u32,
             time_mid as u16,
@@ -217,7 +235,7 @@ impl PyUuid {
 
     #[getter]
     fn node(&self) -> u64 {
-        (self.0.as_u128() & 0xFFFFFFFFFFFF) as u64
+        (self.0.as_u128() & 0xFFFF_FFFF_FFFF) as u64
     }
 
     #[getter]
@@ -232,7 +250,7 @@ impl PyUuid {
 
     #[getter]
     fn time_low(&self) -> u32 {
-        u32::try_from((self.0.as_u128() >> 96) & 0xFFFFFFFF)
+        u32::try_from((self.0.as_u128() >> 96) & 0xFFFF_FFFF)
             .expect("time_low is not a u32 - should not happen")
     }
 
