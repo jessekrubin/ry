@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
-use pyo3::exceptions::PyValueError;
+
+use pyo3::exceptions::{PyNotImplementedError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use ryo3_bytes::PyBytes;
@@ -51,12 +52,12 @@ impl PyUuid {
         version: Option<u8>,
     ) -> PyResult<Self> {
         // get the version
-        let _version = match version {
+        let version = match version {
             Some(v) => get_version(v).map(Some)?,
             None => None,
         };
 
-        match (hex, bytes, bytes_le, fields, int) {
+        let py_uuid = match (hex, bytes, bytes_le, fields, int) {
             (Some(hex), None, None, None, None) => Self::from_hex(hex),
             (None, Some(bytes), None, None, None) => Self::from_bytes(bytes),
             (None, None, Some(bytes_le), None, None) => Self::from_bytes_le(bytes_le),
@@ -65,10 +66,19 @@ impl PyUuid {
             _ => Err(PyValueError::new_err(
                 "Only one of hex or bytes or fields or int can be provided.",
             )),
-        }
+        }?;
 
-        // let uuid = uuid::Uuid::parse_str(hex).map_err(|e| PyValueError::new_err(e.to_string()))?;
-        // Ok(PyUuid(uuid))
+        if let Some(v) = version {
+            let mut b = uuid::Builder::from_u128(py_uuid.0.as_u128());
+            b.set_version(v);
+            Ok(PyUuid(b.into_uuid()))
+        } else {
+            Ok(py_uuid)
+        }
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(py, vec![self.0.hyphenated().to_string()])
     }
 
     fn string(&self) -> String {
@@ -171,34 +181,16 @@ impl PyUuid {
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
-    // Field
-
-    // Meaning
-
-    // UUID.time_low
-    // The first 32 bits of the UUID.
-
-    // UUID.time_mid
-    // The next 16 bits of the UUID.
-
-    // UUID.time_hi_version
-    // The next 16 bits of the UUID.
-
-    // UUID.clock_seq_hi_variant
-    // The next 8 bits of the UUID.
-
-    // UUID.clock_seq_low
-    // The next 8 bits of the UUID.
-
-    // UUID.node
-    // The last 48 bits of the UUID.
-
-    // UUID.time
-    // The 60-bit timestamp.
-
-    // UUID.clock_seq
-    // The 14-bit sequence number.
-
+    // | Field                      | Meaning                          |
+    // |----------------------------|----------------------------------|
+    // | `UUID.time_low`            | The first 32 bits of the UUID.   |
+    // | `UUID.time_mid`            | The next 16 bits of the UUID.    |
+    // | `UUID.time_hi_version`     | The next 16 bits of the UUID.    |
+    // | `UUID.clock_seq_hi_variant`| The next 8 bits of the UUID.     |
+    // | `UUID.clock_seq_low`       | The next 8 bits of the UUID.     |
+    // | `UUID.node`                | The last 48 bits of the UUID.    |
+    // | `UUID.time`                | The 60-bit timestamp.            |
+    // | `UUID.clock_seq`           | The 14-bit sequence number.      |
     #[staticmethod]
     fn from_fields(fields: &Bound<'_, PyTuple>) -> PyResult<Self> {
         let fields = fields.extract::<(u32, u16, u16, u8, u8, u64)>()?;
@@ -212,6 +204,23 @@ impl PyUuid {
             time_low | time_mid | time_hi_version | clock_seq_hi_variant | clock_seq_low | node;
         let uuid = uuid::Uuid::from_u128(uuid);
         Ok(PyUuid(uuid))
+    }
+
+    #[getter]
+    fn __bytes__(&self) -> PyBytes {
+        let bytes = self.0.as_bytes().to_vec();
+        PyBytes::from(bytes)
+    }
+
+    #[getter]
+    fn bytes(&self) -> PyBytes {
+        self.__bytes__()
+    }
+
+    #[getter]
+    fn bytes_le(&self) -> PyBytes {
+        let bytes = self.0.to_bytes_le().to_vec();
+        PyBytes::from(bytes)
     }
 
     #[getter]
@@ -279,8 +288,61 @@ impl PyUuid {
     }
 }
 
+#[pyfunction(name = "getnode")]
+pub fn getnode() -> PyResult<u64> {
+    Err(PyNotImplementedError::new_err("not implemented"))
+}
+
+#[pyfunction]
+pub fn uuid1() -> PyResult<PyUuid> {
+    Err(PyNotImplementedError::new_err(
+        "UUID1 is not implemented yet",
+    ))
+}
+#[pyfunction]
+pub fn uuid2() -> PyResult<PyUuid> {
+    Err(PyNotImplementedError::new_err(
+        "UUID2 is not implemented yet",
+    ))
+}
+
+#[pyfunction]
+pub fn uuid3() -> PyResult<PyUuid> {
+    Err(PyNotImplementedError::new_err(
+        "UUID3 is not implemented yet",
+    ))
+}
+
 #[pyfunction]
 pub fn uuid4() -> PyResult<PyUuid> {
     let u = uuid::Uuid::new_v4();
     Ok(PyUuid(u))
+}
+
+#[pyfunction]
+pub fn uuid5() -> PyResult<PyUuid> {
+    Err(PyNotImplementedError::new_err(
+        "UUID5 is not implemented yet",
+    ))
+}
+
+#[pyfunction]
+pub fn uuid6() -> PyResult<PyUuid> {
+    Err(PyNotImplementedError::new_err(
+        "UUID6 is not implemented yet",
+    ))
+}
+
+#[pyfunction]
+pub fn uuid7() -> PyResult<PyUuid> {
+    Err(PyNotImplementedError::new_err(
+        "UUID7 is not implemented yet",
+    ))
+}
+
+#[pyfunction]
+pub fn uuid8() -> PyResult<PyUuid> {
+    Err(PyNotImplementedError::new_err(
+        "UUID8 is not implemented yet",
+    ))
 }
