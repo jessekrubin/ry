@@ -308,9 +308,9 @@ impl PyUuid {
 
     #[getter]
     fn time(&self) -> u64 {
-        let high = self.time_hi_version() as u64 & 0x0fff;
-        let mid = (self.time_mid()) as u64;
-        high.wrapping_shl(48) | mid.wrapping_shl(32) | self.time_low() as u64
+        let high = u64::from(self.time_hi_version()) & 0x0fff;
+        let mid = u64::from(self.time_mid());
+        high.wrapping_shl(48) | mid.wrapping_shl(32) | u64::from(self.time_low())
     }
 
     #[getter]
@@ -327,8 +327,8 @@ impl PyUuid {
 
     #[getter]
     fn clock_seq(&self) -> u16 {
-        let high = (self.clock_seq_hi_variant()) as u16 & 0x3f;
-        high.wrapping_shl(8) | self.clock_seq_low() as u16
+        let high = u16::from(self.clock_seq_hi_variant()) & 0x3f;
+        high.wrapping_shl(8) | u16::from(self.clock_seq_low())
     }
 
     #[getter]
