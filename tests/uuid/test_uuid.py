@@ -1,4 +1,8 @@
+import itertools
+import pickle
 import uuid as pyuuid
+
+import pytest
 
 import ry.dev as ry
 
@@ -7,6 +11,14 @@ def test_uuid_strings() -> None:
     u = ry.UUID("12345678-1234-5678-1234-567812345678")
     assert str(u) == "12345678-1234-5678-1234-567812345678"
     assert repr(u) == "UUID('12345678-1234-5678-1234-567812345678')"
+
+
+def test_pickle() -> None:
+    u = ry.UUID("12345678-1234-5678-1234-567812345678")
+    pickled = pickle.dumps(u)
+    unpickled = pickle.loads(pickled)  #
+    assert isinstance(unpickled, ry.UUID)
+    assert str(unpickled) == "12345678-1234-5678-1234-567812345678"
 
 
 def test_uuid4_func() -> None:
@@ -18,6 +30,30 @@ def test_uuid4_func() -> None:
 def test_uuid_to_python() -> None:
     u = ry.UUID("12345678-1234-5678-1234-567812345678")
     assert u.to_py() == pyuuid.UUID("12345678-1234-5678-1234-567812345678")
+
+
+def test_init() -> None:
+    # Test the UUID constructor
+    with pytest.raises(TypeError):
+        ry.UUID()
+
+
+def test_init_multiple_kwargs_invalid():
+    pyu = pyuuid.UUID("12345678-1234-5678-1234-567812345678")
+    init_kwargs = {
+        "hex": pyu.hex,
+        "bytes": pyu.bytes,
+        "bytes_le": pyu.bytes_le,
+        "fields": pyu.fields,
+        "int": pyu.int,
+    }
+    dicsts = [{k: v} for k, v in init_kwargs.items()]
+    init_kwargs_combinations = (
+        {**a, **b} for a, b in itertools.combinations(dicsts, 2)
+    )
+    for init_kwargs in init_kwargs_combinations:
+        with pytest.raises(TypeError):
+            ry.UUID(**init_kwargs)
 
 
 def test_uuid_thing() -> None:

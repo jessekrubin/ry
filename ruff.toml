@@ -113,6 +113,7 @@ lint.per-file-ignores."tests/**/*.py" = [
   "PL",
   "S101",
   "S103",
+  "S301",
   "S307",
   "S603",
   "T201",

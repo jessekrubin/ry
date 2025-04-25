@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 mod py_uuid;
+use crate::py_uuid::{RESERVED_FUTURE, RESERVED_MICROSOFT, RESERVED_NCS, RFC_4122};
 pub use py_uuid::{getnode, uuid1, uuid2, uuid3, uuid4, uuid5, uuid6, uuid7, uuid8, PyUuid};
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
@@ -16,6 +17,9 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(uuid7, m)?)?;
     m.add_function(wrap_pyfunction!(uuid8, m)?)?;
     m.add_function(wrap_pyfunction!(getnode, m)?)?;
-
+    m.add("RESERVED_NCS", RESERVED_NCS)?;
+    m.add("RFC_4122", RFC_4122)?;
+    m.add("RESERVED_MICROSOFT", RESERVED_MICROSOFT)?;
+    m.add("RESERVED_FUTURE", RESERVED_FUTURE)?;
     Ok(())
 }

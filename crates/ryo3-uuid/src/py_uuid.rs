@@ -1,10 +1,14 @@
 #![doc = include_str!("../README.md")]
 
-use pyo3::exceptions::{PyNotImplementedError, PyValueError};
+use pyo3::exceptions::{PyNotImplementedError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use ryo3_bytes::PyBytes;
-
+use std::hash::{DefaultHasher, Hash, Hasher};
+pub const RESERVED_NCS: &str = "reserved for NCS compatibility";
+pub const RFC_4122: &str = "specified in RFC 4122";
+pub const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
+pub const RESERVED_FUTURE: &str = "reserved for future definition";
 #[pyclass(name = "UUID", module = "ry.ryo3", frozen)]
 pub struct PyUuid(pub uuid::Uuid);
 
@@ -63,8 +67,9 @@ impl PyUuid {
             (None, None, Some(bytes_le), None, None) => Self::from_bytes_le(bytes_le),
             (None, None, None, Some(fields), None) => Self::from_fields(fields),
             (None, None, None, None, Some(int)) => Ok(Self::from_int(int)),
-            _ => Err(PyValueError::new_err(
-                "Only one of hex or bytes or fields or int can be provided.",
+            _ => Err(PyTypeError::new_err(
+                // taken from the python itself
+                "one of the hex, bytes, bytes_le, fields, or int arguments must be given",
             )),
         }?;
 
@@ -76,9 +81,38 @@ impl PyUuid {
             Ok(py_uuid)
         }
     }
+    #[classattr]
+    #[expect(non_snake_case)]
+    fn NAMESPACE_DNS() -> Self {
+        Self(uuid::Uuid::NAMESPACE_DNS)
+    }
+
+    #[classattr]
+    #[expect(non_snake_case)]
+    fn NAMESPACE_URL() -> Self {
+        Self(uuid::Uuid::NAMESPACE_URL)
+    }
+
+    #[classattr]
+    #[expect(non_snake_case)]
+    fn NAMESPACE_OID() -> Self {
+        Self(uuid::Uuid::NAMESPACE_OID)
+    }
+
+    #[classattr]
+    #[expect(non_snake_case)]
+    fn NAMESPACE_X500() -> Self {
+        Self(uuid::Uuid::NAMESPACE_X500)
+    }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(py, vec![self.0.hyphenated().to_string()])
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
     }
 
     fn string(&self) -> String {
@@ -286,6 +320,12 @@ impl PyUuid {
         u8::try_from((self.0.as_u128() >> 48) & 0xFF)
             .expect("clock_seq_low is not a u8 - should not happen")
     }
+
+    #[getter]
+    fn clock_seq(&self) -> u16 {
+        let clock_seq = (self.0.as_u128() >> 48) & 0xFFFF;
+        u16::try_from(clock_seq).expect("clock_seq is not a u16 - should not happen")
+    }
 }
 
 #[pyfunction(name = "getnode")]
@@ -341,8 +381,8 @@ pub fn uuid7() -> PyResult<PyUuid> {
 }
 
 #[pyfunction]
-pub fn uuid8() -> PyResult<PyUuid> {
-    Err(PyNotImplementedError::new_err(
-        "UUID8 is not implemented yet",
-    ))
+pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
+    uuid::Bytes::try_from(b.as_slice())
+        .map(|b| PyUuid::from(uuid::Uuid::new_v8(b)))
+        .map_err(|_| PyValueError::new_err("UUID8 must be 16 bytes long"))
 }
