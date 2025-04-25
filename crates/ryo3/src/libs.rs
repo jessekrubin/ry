@@ -42,8 +42,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_unindent::pymod_add(m)?;
     #[cfg(feature = "url")]
     ryo3_url::pymod_add(m)?;
-    #[cfg(feature = "uuid")]
-    ryo3_uuid::pymod_add(m)?;
     #[cfg(feature = "walkdir")]
     ryo3_walkdir::pymod_add(m)?;
     #[cfg(feature = "which")]

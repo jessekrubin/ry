@@ -5,11 +5,11 @@ use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use ryo3_bytes::PyBytes;
 use std::hash::{DefaultHasher, Hash, Hasher};
-pub const RESERVED_NCS: &str = "reserved for NCS compatibility";
-pub const RFC_4122: &str = "specified in RFC 4122";
-pub const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
-pub const RESERVED_FUTURE: &str = "reserved for future definition";
-#[pyclass(name = "UUID", module = "ry.ryo3", frozen)]
+pub(crate) const RESERVED_NCS: &str = "reserved for NCS compatibility";
+pub(crate) const RFC_4122: &str = "specified in RFC 4122";
+pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
+pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
+#[pyclass(name = "UUID", module = "ry.uuid", frozen)]
 pub struct PyUuid(pub uuid::Uuid);
 
 impl From<uuid::Uuid> for PyUuid {
@@ -83,25 +83,25 @@ impl PyUuid {
     }
     #[classattr]
     #[expect(non_snake_case)]
-    fn NAMESPACE_DNS() -> Self {
+    pub(crate) fn NAMESPACE_DNS() -> Self {
         Self(uuid::Uuid::NAMESPACE_DNS)
     }
 
     #[classattr]
     #[expect(non_snake_case)]
-    fn NAMESPACE_URL() -> Self {
+    pub(crate) fn NAMESPACE_URL() -> Self {
         Self(uuid::Uuid::NAMESPACE_URL)
     }
 
     #[classattr]
     #[expect(non_snake_case)]
-    fn NAMESPACE_OID() -> Self {
+    pub(crate) fn NAMESPACE_OID() -> Self {
         Self(uuid::Uuid::NAMESPACE_OID)
     }
 
     #[classattr]
     #[expect(non_snake_case)]
-    fn NAMESPACE_X500() -> Self {
+    pub(crate) fn NAMESPACE_X500() -> Self {
         Self(uuid::Uuid::NAMESPACE_X500)
     }
 
@@ -293,20 +293,24 @@ impl PyUuid {
 
     #[getter]
     fn time_low(&self) -> u32 {
-        u32::try_from((self.0.as_u128() >> 96) & 0xFFFF_FFFF)
-            .expect("time_low is not a u32 - should not happen")
+        self.int().wrapping_shr(96) as u32
     }
 
     #[getter]
     fn time_mid(&self) -> u16 {
-        u16::try_from((self.0.as_u128() >> 80) & 0xFFFF)
-            .expect("time_mid is not a u16 - should not happen")
+        ((self.int().wrapping_shr(80)) & 0xffff) as u16
     }
 
     #[getter]
     fn time_hi_version(&self) -> u16 {
-        u16::try_from((self.0.as_u128() >> 64) & 0xFFFF)
-            .expect("time_hi_version is not a u16 - should not happen")
+        ((self.int().wrapping_shr(64)) & 0xffff) as u16
+    }
+
+    #[getter]
+    fn time(&self) -> u64 {
+        let high = self.time_hi_version() as u64 & 0x0fff;
+        let mid = (self.time_mid()) as u64;
+        high.wrapping_shl(48) | mid.wrapping_shl(32) | self.time_low() as u64
     }
 
     #[getter]
@@ -323,8 +327,23 @@ impl PyUuid {
 
     #[getter]
     fn clock_seq(&self) -> u16 {
-        let clock_seq = (self.0.as_u128() >> 48) & 0xFFFF;
-        u16::try_from(clock_seq).expect("clock_seq is not a u16 - should not happen")
+        let high = (self.clock_seq_hi_variant()) as u16 & 0x3f;
+        high.wrapping_shl(8) | self.clock_seq_low() as u16
+    }
+
+    #[getter]
+    fn variant(&self) -> &str {
+        match self.0.get_variant() {
+            uuid::Variant::NCS => RESERVED_NCS,
+            uuid::Variant::RFC4122 => RFC_4122,
+            uuid::Variant::Microsoft => RESERVED_MICROSOFT,
+            uuid::Variant::Future => RESERVED_FUTURE,
+            _ => RESERVED_FUTURE,
+        }
+    }
+    #[getter]
+    fn is_nil(&self) -> bool {
+        self.0.is_nil()
     }
 }
 
@@ -381,6 +400,7 @@ pub fn uuid7() -> PyResult<PyUuid> {
 }
 
 #[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
 pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
     uuid::Bytes::try_from(b.as_slice())
         .map(|b| PyUuid::from(uuid::Uuid::new_v8(b)))

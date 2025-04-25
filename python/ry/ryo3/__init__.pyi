@@ -6,6 +6,7 @@ from os import PathLike
 
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
+from ry import uuid as uuid  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
 from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
@@ -29,7 +30,6 @@ from ._flate2 import gzip as gzip
 from ._flate2 import gzip_decode as gzip_decode
 from ._flate2 import gzip_encode as gzip_encode
 from ._flate2 import is_gzipped as is_gzipped
-from ._fnv import FnvHasher as FnvHasher
 from ._fnv import fnv1a as fnv1a
 from ._fspath import FsPath as FsPath
 from ._glob import Pattern as Pattern
