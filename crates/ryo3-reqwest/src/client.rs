@@ -5,7 +5,7 @@ use futures_core::Stream;
 use futures_util::StreamExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyString, PyTuple};
+use pyo3::types::{PyDict, PyTuple};
 use pyo3::{intern, IntoPyObjectExt};
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_ENCODING};
 use reqwest::StatusCode;
@@ -102,12 +102,12 @@ impl RyResponse {
     }
 
     #[getter]
-    fn version<'py>(&self, py: Python<'py>) -> HttpVersion {
+    fn version(&self) -> HttpVersion {
         HttpVersion(self.version)
     }
 
     #[getter]
-    fn http_version<'py>(&self, py: Python<'py>) -> HttpVersion {
+    fn http_version(&self) -> HttpVersion {
         HttpVersion(self.version)
     }
 
@@ -204,13 +204,11 @@ impl RyResponse {
     }
 
     #[getter]
-    fn content_encoding(&self) -> PyResult<Option<String>> {
-        // get the content encoding...
-        let encoding = self.headers.get(CONTENT_ENCODING).map(|en| {
+    fn content_encoding(&self) -> Option<String> {
+        self.headers.get(CONTENT_ENCODING).map(|en| {
             let s = en.to_str().expect("Invalid content encoding");
-            format!("{s}")
-        });
-        Ok(encoding)
+            s.to_string()
+        })
     }
 }
 
