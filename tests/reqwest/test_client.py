@@ -14,6 +14,7 @@ async def test_get(server: ReqtestServer) -> None:
     client = ry.HttpClient()
     response = await client.get(str(url) + "howdy")
     assert response.status_code == 200
+    assert response.version == "HTTP/1.1"
     res_text = await response.text()
     assert res_text == '{"howdy": "partner"}'
     # assert response.http_version == "HTTP/1.1"

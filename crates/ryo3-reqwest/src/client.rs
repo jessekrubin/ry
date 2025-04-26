@@ -5,11 +5,11 @@ use futures_core::Stream;
 use futures_util::StreamExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict, PyString, PyTuple};
 use pyo3::{intern, IntoPyObjectExt};
-use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue, CONTENT_ENCODING};
 use reqwest::StatusCode;
-use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
+use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macros::err_py_not_impl;
 use ryo3_url::{extract_url, PyUrl};
 use std::pin::Pin;
@@ -102,8 +102,13 @@ impl RyResponse {
     }
 
     #[getter]
-    fn version_str(&self) -> String {
-        format!("{:?}", self.version)
+    fn version<'py>(&self, py: Python<'py>) -> HttpVersion {
+        HttpVersion(self.version)
+    }
+
+    #[getter]
+    fn http_version<'py>(&self, py: Python<'py>) -> HttpVersion {
+        HttpVersion(self.version)
     }
 
     #[getter]
@@ -196,6 +201,16 @@ impl RyResponse {
         Ok(RyAsyncResponseIter {
             stream: Arc::new(Mutex::new(stream)),
         })
+    }
+
+    #[getter]
+    fn content_encoding(&self) -> PyResult<Option<String>> {
+        // get the content encoding...
+        let encoding = self.headers.get(CONTENT_ENCODING).map(|en| {
+            let s = en.to_str().expect("Invalid content encoding");
+            format!("{s}")
+        });
+        Ok(encoding)
     }
 }
 
@@ -391,19 +406,23 @@ impl RyHttpClient {
     }
 
     #[pyo3(
-      signature = (url, *, headers = None),
+      signature = (url, *, headers = None, timeout = None, ),
     )]
     fn get<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         headers: Option<PyHeadersLike>,
+        timeout: Option<&ryo3_std::PyDuration>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let url = extract_url(url)?;
         let mut req = self.client.get(url);
         // fing-fang-foom make de headers...
         if let Some(headers) = headers {
             req = req.headers(HeaderMap::try_from(headers)?);
+        }
+        if let Some(timeout) = timeout {
+            req = req.timeout(timeout.0);
         }
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()

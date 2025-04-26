@@ -125,6 +125,42 @@ async def loooooooong_response(
     yield {"type": "http.response.body", "body": b"", "more_body": False}
 
 
+async def upload_file(
+    scope: Scope, receive: Receive, send: Send
+) -> AsyncGenerator[uvt.ASGISendEvent]:
+    assert scope["method"] == "POST"
+    headers = {k.decode(): v.decode() for k, v in scope.get("headers", [])}
+    content_type = headers.get("content-type", "")
+
+    if not content_type.startswith("multipart/form-data"):
+        yield uvt.HTTPResponseStartEvent(
+            type="http.response.start",
+            status=400,
+            headers=[(b"content-type", b"text/plain")],
+        )
+        yield {"type": "http.response.body", "body": b"Expected multipart/form-data"}
+        return
+
+    body = b""
+    more_body = True
+    while more_body:
+        message = await receive()
+        body += message.get("body", b"")
+        more_body = message.get("more_body", False)
+    response_json = json.dumps(
+        {
+            "received_bytes": len(body),
+            "content_type": content_type,
+        }
+    ).encode()
+    yield uvt.HTTPResponseStartEvent(
+        type="http.response.start",
+        status=200,
+        headers=[(b"content-type", b"application/json")],
+    )
+    yield {"type": "http.response.body", "body": response_json}
+
+
 def router(
     scope: Scope, receive: Receive, send: Send
 ) -> Callable[[Scope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]]:
@@ -138,6 +174,8 @@ def router(
         return loooooooong_response
     elif scope["path"].startswith("/slow"):
         return slow_response
+    elif scope["path"].startswith("/upload"):
+        return upload_file
     else:
         return four_oh_four
 

@@ -114,3 +114,6 @@ check_untyped_defs = true
 [tool.pyright]
 include = [ 'ry', 'tests' ]
 reportUnnecessaryTypeIgnoreComment = true
+
+[tool.uv.workspace]
+members = ["flergen-geocode"]
