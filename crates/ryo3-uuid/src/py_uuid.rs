@@ -293,7 +293,8 @@ impl PyUuid {
 
     #[getter]
     fn time_low(&self) -> u32 {
-        self.int().wrapping_shr(96) as u32
+        u32::try_from(self.int().wrapping_shr(96))
+            .expect("time_low is not a u32 - should not happen")
     }
 
     #[getter]
@@ -337,10 +338,10 @@ impl PyUuid {
             uuid::Variant::NCS => RESERVED_NCS,
             uuid::Variant::RFC4122 => RFC_4122,
             uuid::Variant::Microsoft => RESERVED_MICROSOFT,
-            uuid::Variant::Future => RESERVED_FUTURE,
             _ => RESERVED_FUTURE,
         }
     }
+
     #[getter]
     fn is_nil(&self) -> bool {
         self.0.is_nil()
