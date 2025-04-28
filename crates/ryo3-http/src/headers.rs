@@ -301,4 +301,8 @@ impl PyHeaders {
 
         Ok(d)
     }
+
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.asdict(py)
+    }
 }

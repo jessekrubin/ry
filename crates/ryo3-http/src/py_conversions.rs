@@ -2,7 +2,7 @@
 //!
 //! TODO: figure out how to `intern!()` the strings...
 
-use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod};
+use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpVersion};
 use pyo3::exceptions::PyValueError;
 use pyo3::intern;
 use pyo3::prelude::*;
@@ -85,6 +85,85 @@ impl FromPyObject<'_> for HttpMethod {
     }
 }
 
+// ============================================================================
+// HTTP VERSION
+// ============================================================================
+impl<'py> IntoPyObject<'py> for &HttpVersion {
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyString;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let s = match self.0 {
+            http::Version::HTTP_09 => intern!(py, "HTTP/0.9"),
+            http::Version::HTTP_10 => intern!(py, "HTTP/1.0"),
+            http::Version::HTTP_11 => intern!(py, "HTTP/1.1"),
+            http::Version::HTTP_2 => intern!(py, "HTTP/2"),
+            http::Version::HTTP_3 => intern!(py, "HTTP/3"),
+            _ => unreachable!(),
+        };
+        let b = s.as_borrowed();
+        #[cfg(Py_LIMITED_API)]
+        {
+            Ok(b.into_any())
+        }
+        #[cfg(not(Py_LIMITED_API))]
+        {
+            Ok(b)
+        }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for HttpVersion {
+    #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    #[cfg(not(Py_LIMITED_API))]
+    type Target = PyString;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
+    }
+}
+
+const HTTP_VERSION_STRING: &str = "Invalid HTTP version ~ must be one of 'HTTP/0.9'|'0.9', 'HTTP/1.0'|'HTTP/1'|'1.0'|'1', 'HTTP/1.1'|'1.1', 'HTTP/2.0'|'HTTP/2'|'2.0'|'2'|'2.2', 'HTTP/3.0'|'HTTP/3'|'3.0'|'3'";
+impl FromPyObject<'_> for HttpVersion {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<HttpVersion> {
+        if let Ok(s) = ob.downcast::<PyString>() {
+            let s = s.to_string();
+            match s.as_str().to_ascii_uppercase().as_str() {
+                "HTTP/0.9" | "0.9" => Ok(HttpVersion(http::Version::HTTP_09)),
+                "HTTP/1.0" | "HTTP/1" | "1.0" | "1" => Ok(HttpVersion(http::Version::HTTP_10)),
+                "HTTP/1.1" | "1.1" => Ok(HttpVersion(http::Version::HTTP_11)),
+                "HTTP/2.0" | "HTTP/2" | "2.0" | "2" | "2.2" => {
+                    Ok(HttpVersion(http::Version::HTTP_2))
+                }
+                "HTTP/3" | "HTTP/3.0" | "3.0" | "3" => Ok(HttpVersion(http::Version::HTTP_3)),
+                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                    HTTP_VERSION_STRING,
+                )),
+            }
+        } else if let Ok(i) = ob.extract::<u8>() {
+            match i {
+                0 => Ok(HttpVersion(http::Version::HTTP_09)),
+                1 => Ok(HttpVersion(http::Version::HTTP_10)),
+                2 => Ok(HttpVersion(http::Version::HTTP_11)),
+                3 => Ok(HttpVersion(http::Version::HTTP_2)),
+                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                    "Invalid HTTP version: {i} (options: 0=HTTP/0.9, 1=HTTP/1.0, 2=HTTP/2.0, 3=HTTP/3.0)",
+                )),
+            }
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                "Invalid unit: {ob} (options: {HTTP_VERSION_STRING})"
+            )))
+        }
+    }
+}
 // ============================================================================
 // HttpHeaderName
 // ============================================================================

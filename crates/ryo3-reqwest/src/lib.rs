@@ -6,7 +6,9 @@ mod client;
 mod default_client;
 mod errors;
 mod fetch;
+mod form_data;
 mod pyo3_json_bytes;
+
 pub use crate::client::RyHttpClient;
 use crate::errors::RyReqwestError;
 use pyo3::prelude::*;

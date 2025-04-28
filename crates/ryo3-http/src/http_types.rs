@@ -13,6 +13,8 @@ pub struct HttpMethod(pub http::Method);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpStatusCode(pub http::StatusCode);
+#[derive(Debug, Clone, PartialEq)]
+pub struct HttpVersion(pub http::Version);
 
 // ============================================================================
 //  FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
@@ -57,6 +59,12 @@ impl From<http::Method> for HttpMethod {
 impl From<http::StatusCode> for HttpStatusCode {
     fn from(h: http::StatusCode) -> Self {
         HttpStatusCode(h)
+    }
+}
+
+impl From<http::Version> for HttpVersion {
+    fn from(h: http::Version) -> Self {
+        HttpVersion(h)
     }
 }
 
