@@ -141,10 +141,55 @@ def update_api_docs() -> None:
 
 
 def update_docs_examples() -> None:
-    pass
+    examples_root = REPO_ROOT / "examples"
+    assert examples_root.exists(), f"examples_root does not exist: {examples_root}"
+    files = ry.walkdir(examples_root, glob="**/*.py", files=True, dirs=False).collect()
+    assert files, f"No files found in {examples_root}"
+
+    def _build_part(filepath: FsPath) -> str:
+        # read the file
+        content = filepath.read_text()
+        # format it
+        formatted_content = ruff_format_pyi(content, line_length=80, indent_width=4)
+        return formatted_content
+
+    # format the files
+    toc = []
+
+    parts = []
+    for filepath in files:
+        p = ry.FsPath(filepath)
+        # read the file
+        content = p.read_text()
+        # format it
+
+        # add the toc entry
+        toc.append(f"- [{p.stem}](#{p.stem})")
+
+        formatted_content = ruff_format_pyi(content, line_length=80, indent_width=4)
+        parts.append(f"# {p.stem}\n\n```python\n{formatted_content}\n```\n")
+
+    # write the file
+    filepath = REPO_ROOT / "docs" / "src" / "examples.md"
+    assert filepath.exists(), f"examples.md does not exist: {filepath}"
+    with open(filepath, "w", newline="\n") as f:
+        f.write(
+            "\n".join(
+                [
+                    "# Examples",
+                    "",
+                    "## Table of Contents",
+                    *toc,
+                    "",
+                    "___",
+                    "",
+                    *parts,
+                ]
+            )
+        )
 
 
-def update_docs():
+def update_docs() -> None:
     update_api_docs()
     update_docs_examples()
 

@@ -44,8 +44,8 @@ def build_faux_types_pkg(strip_overload: bool = True) -> None:
         *(f"from .{filepath.stem} import *" for filepath in root_level_pyi_files),
     ]
     # write the __init__.pyi file
-    with open(__dirname / "ryo3types" / "__init__.pyi", "w") as f:
-        f.write("\n".join(base_init_pyi_lines))
+    with open(str(__dirname / "ryo3types" / "__init__.pyi"), "w") as init_file:
+        init_file.write("\n".join(base_init_pyi_lines))
 
     # for each file in ryo3types
     if strip_overload:
@@ -67,8 +67,8 @@ def build_faux_types_pkg(strip_overload: bool = True) -> None:
             if "from ry " in file_text:
                 new_file_string = new_file_string.replace("from ry ", "from ryo3types ")
             if new_file_string != file_text:
-                with open(filepath, "w") as f:
-                    f.write(new_file_string)
+                with open(filepath, "w") as fobj:
+                    fobj.write(new_file_string)
 
 
 def load_types(strip_overload: bool = True) -> griffe.Object | griffe.Alias:
