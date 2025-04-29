@@ -159,7 +159,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-04-29T23:01:58.218151508+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-04-29T23:49:06.585006126+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -781,22 +781,25 @@ def is_gzipped(input: Buffer) -&gt; bool: ...
 import typing as t
 
 from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
 
 
-# =============================================================================
-# FNV
-# =============================================================================
 class FnvHasher:
     name: t.Literal["fnv1a"]
+    digest_size: t.Literal[8]
+    block_size: t.Literal[1]
 
-    def __init__(self, input: Buffer | None = None) -&gt; None: ...
+    def __init__(
+        self, input: Buffer | None = None, key: int | None = None
+    ) -&gt; None: ...
     def update(self, input: Buffer) -&gt; None: ...
-    def digest(self) -&gt; int: ...
+    def digest(self) -&gt; Bytes: ...
+    def intdigest(self) -&gt; int: ...
     def hexdigest(self) -&gt; str: ...
     def copy(self) -&gt; FnvHasher: ...
 
 
-def fnv1a(input: Buffer) -&gt; FnvHasher: ...
+def fnv1a(input: Buffer, key: int | None = None) -&gt; FnvHasher: ...
 
 </code></pre>
 <h2 id="ry.ryo3._fspath"><a class="header" href="#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></h2>
@@ -2834,14 +2837,34 @@ class ReqwestError(Exception):
 
 
 class Response:
-    status_code: int
-
     @property
     def headers(self) -&gt; Headers: ...
     async def text(self) -&gt; str: ...
     async def json(self) -&gt; t.Any: ...
     async def bytes(self) -&gt; ry.Bytes: ...
     def bytes_stream(self) -&gt; ResponseStream: ...
+    @property
+    def url(self) -&gt; URL: ...
+    @property
+    def version(
+        self,
+    ) -&gt; t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def http_version(
+        self,
+    ) -&gt; t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def status(self) -&gt; int: ...
+    @property
+    def status_text(self) -&gt; str: ...
+    @property
+    def status_code(self) -&gt; HttpStatus: ...
+    @property
+    def redirected(self) -&gt; bool: ...
 
 
 class ResponseStream:
@@ -3652,6 +3675,7 @@ class URL:
     def has_host(self) -&gt; bool: ...
     def is_special(self) -&gt; bool: ...
     def join(self, *parts: str) -&gt; URL: ...
+    def make_relative(self, u: URL) -&gt; URL: ...
     def to_filepath(self) -&gt; str: ...
     def replace_fragment(self, fragment: str | None = None) -&gt; URL: ...
     def replace_host(self, host: str | None = None) -&gt; URL: ...
@@ -3831,21 +3855,29 @@ class Headers:
     def __delitem__(self, key: str) -&gt; None: ...
     def __contains__(self, key: str) -&gt; bool: ...
     def __or__(self, other: Headers | dict[str, str]) -&gt; Headers: ...
+    def __ror__(self, other: Headers | dict[str, str]) -&gt; Headers: ...
+    def __iter__(self) -&gt; t.Iterator[str]: ...
+    def __bool__(self) -&gt; bool: ...
+    def to_py(self) -&gt; dict[str, str | t.Sequence[str]]: ...
     def asdict(self) -&gt; dict[str, str | t.Sequence[str]]: ...
 
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
     def append(self, key: str, value: str) -&gt; None: ...
+    def clear(self) -&gt; None: ...
+    def contains_key(self, key: str) -&gt; bool: ...
     def get(self, key: str) -&gt; str | None: ...
     def get_all(self, key: str) -&gt; list[str]: ...
+    def insert(self, key: str, value: str) -&gt; None: ...
+    def is_empty(self) -&gt; bool: ...
+    def keys(self) -&gt; list[str]: ...
     def keys_len(self) -&gt; int: ...
     def len(self) -&gt; int: ...
-    def remove(self, key: str) -&gt; None: ...
-    def clear(self) -&gt; None: ...
     def pop(self, key: str) -&gt; str: ...
-    def keys(self) -&gt; list[str]: ...
+    def remove(self, key: str) -&gt; None: ...
     def update(self, headers: Headers | dict[str, str]) -&gt; None: ...
+    def values(self) -&gt; list[str]: ...
 
 
 class HttpStatus:
@@ -3859,12 +3891,26 @@ class HttpStatus:
     def __le__(self, other: HttpStatus | int) -&gt; bool: ...
     def __gt__(self, other: HttpStatus | int) -&gt; bool: ...
     def __ge__(self, other: HttpStatus | int) -&gt; bool: ...
+    def to_py(self) -&gt; int: ...
+    @property
     def reason(self) -&gt; str: ...
+    @property
+    def canonical_reason(self) -&gt; str: ...
+    @property
     def is_informational(self) -&gt; bool: ...
+    @property
     def is_success(self) -&gt; bool: ...
+    @property
     def is_redirect(self) -&gt; bool: ...
+    @property
+    def is_redirection(self) -&gt; bool: ...
+    @property
     def is_client_error(self) -&gt; bool: ...
+    @property
     def is_server_error(self) -&gt; bool: ...
+    @property
+    def is_error(self) -&gt; bool: ...
+    @property
     def is_ok(self) -&gt; bool: ...
     @property
     def ok(self) -&gt; bool: ...
@@ -5031,10 +5077,223 @@ problem (aka batman) w/ traits</li>
 </li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="examples"><a class="header" href="#examples">Examples</a></h1>
-<p><strong>TODO: Add examples</strong></p>
+<h2 id="table-of-contents-1"><a class="header" href="#table-of-contents-1">Table of Contents</a></h2>
+<ul>
+<li><a href="examples.html#fspath">fspath</a></li>
+<li><a href="examples.html#http_fetch">http_fetch</a></li>
+<li><a href="examples.html#walking">walking</a></li>
+</ul>
+<hr />
+<h1 id="fspath"><a class="header" href="#fspath">fspath</a></h1>
+<pre><code class="language-python">import ry
+
+# get current directory
+current_dir = ry.FsPath.cwd()
+
+# write file
+(current_dir / "test.txt").write_text("data!")
+
+# read file
+data = (current_dir / "test.txt").read_text()
+print(data)
+
+</code></pre>
+<h1 id="http_fetch"><a class="header" href="#http_fetch">http_fetch</a></h1>
+<pre><code class="language-python">"""Example of using the `ry.fetch` function to make http requests
+
+The stuff at the top of this file is a simple http server for example purposes
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from threading import Thread
+
+# =============================================================================
+import ry
+
+
+def _print_break() -&gt; None:
+    print("\n" + "=" * 79 + "\n")
+
+
+async def main(server_url: str = "http://127.0.0.1:8000") -&gt; None:
+    # -------------------------------------------------------------------------
+    # GET
+    # -------------------------------------------------------------------------
+    _print_break()
+    response = await ry.fetch(server_url)
+    print("Raw response:", response)
+    json_data = await response.json()
+    print("JSON data:\n", json.dumps(json_data, indent=2))
+
+    # **THE RESPONSE HAS BEEN CONSUMED**
+    # No you cannot get the json again.... You are responsible for storing
+    # The response has been consumed. This is how http requests really work.
+    # Libraries like requests, httpx, aiohttp, etc. store the response data
+    # in memory so you can access it multiple times, ry mirrors how fetch
+    # works in reqwest which is also kinda how fetch works in
+    # jawascript/interface-script.
+    try:
+        _json_data = await response.json()
+    except ValueError as e:
+        print("Error:", e)
+
+    # -------------------------------------------------------------------------
+    # POST
+    # -------------------------------------------------------------------------
+    _print_break()
+    post_response = await ry.fetch(
+        server_url, method="POST", body=b"post post post... dumb as a post"
+    )
+    print("Raw post response:", post_response)
+    post_response_data = await post_response.json()
+    print("JSON post response:\n", json.dumps(post_response_data, indent=2))
+
+    # -------------------------------------------------------------------------
+    # STREAMING
+    # -------------------------------------------------------------------------
+    _print_break()
+    long_body = "\n".join([f"dingo{i}" for i in range(1000)]).encode()
+    response = await ry.fetch(server_url, method="POST", body=long_body)
+
+    async for chunk in response.bytes_stream():
+        assert isinstance(chunk, ry.Bytes)  # tis a bytes
+        py_bytes = bytes(chunk)
+        assert isinstance(py_bytes, bytes)
+        assert py_bytes == chunk
+        print("chunk this! len =:", len(chunk))
+
+
+# -----------------------------------------------------------------------------
+# HTTP SERVER THAT DOES SUPER SIMPLE JSON RESPONSES
+# -----------------------------------------------------------------------------
+class HTTPRequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self) -&gt; None:
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        res_data = {
+            "path": self.path,
+            "method": "GET",
+            "data": {
+                "dog": "dingo",
+                "oreo": "mcflurry",
+            },
+        }
+        res_bytes = json.dumps(res_data).encode()
+        self.wfile.write(res_bytes)
+
+    def do_POST(self) -&gt; None:
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        body = self.rfile.read(int(self.headers["Content-Length"]))
+
+        res_data = {
+            "path": self.path,
+            "method": "POST",
+            "body": body.decode(),
+            "data": {
+                "dog": "dingo",
+                "oreo": "mcflurry",
+            },
+        }
+        res_bytes = json.dumps(res_data).encode()
+        self.wfile.write(res_bytes)
+
+
+def start_server(
+    host: str = "127.0.0.1", port: int = 8888, logging: bool = False
+) -&gt; HTTPServer:
+    class HttpRequestHandlerNoLog(HTTPRequestHandler):
+        def log_message(self, format, *args):  # type: ignore[no-untyped-def]
+            ...
+
+    server_address = (host, port)
+    handler = HttpRequestHandlerNoLog if not logging else HTTPRequestHandler
+    httpd = HTTPServer(server_address, handler)
+    Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd
+
+
+if __name__ == "__main__":
+    server = start_server(logging=True)
+    try:
+        asyncio.run(
+            main(server_url=f"http://{server.server_name}:{server.server_port}")
+        )
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt")
+    finally:
+        server.shutdown()
+
+</code></pre>
+<h1 id="walking"><a class="header" href="#walking">walking</a></h1>
+<pre><code class="language-python">"""
+ry.walkdir example
+"""
+
+from __future__ import annotations
+
+import os
+
+import ry
+
+PWD = os.path.dirname(os.path.abspath(__file__))
+
+
+def _print_br(s: str | None = None) -&gt; None:
+    print("_" * 79)
+    if s:
+        print(s)
+
+
+def main() -&gt; None:
+    dir2walk = PWD
+
+    _print_br("Walking the directory tree")
+    # Walking the directory tree
+    for filepath in ry.walkdir(dir2walk):
+        print(filepath)
+
+    _print_br("Walking the directory tree with entries")
+    # Walking the directory tree
+    for direntry in ry.walkdir(dir2walk, objects=True):
+        print(direntry, type(direntry))
+
+    _print_br("Walking the directory tree with depth 1")
+    # walking only files
+    for filepath in ry.walkdir(dir2walk, dirs=False):
+        print(filepath)
+        assert ry.FsPath(filepath).is_file()
+
+    # walking only directories
+    for filepath in ry.walkdir(dir2walk, files=False):
+        print(filepath)
+        assert ry.FsPath(filepath).is_dir()
+
+    # globset/globster
+    for filepath in ry.walkdir(
+        dir2walk,
+        glob=ry.globster(
+            [
+                "*.py",
+            ]
+        ),
+    ):
+        assert filepath.endswith(".py")
+
+
+if __name__ == "__main__":
+    main()
+
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api-2"><a class="header" href="#api-2">API</a></h1>
 <h1 id="api-3"><a class="header" href="#api-3">API</a></h1>
-<h2 id="table-of-contents-1"><a class="header" href="#table-of-contents-1">Table of Contents</a></h2>
+<h2 id="table-of-contents-2"><a class="header" href="#table-of-contents-2">Table of Contents</a></h2>
 <ul>
 <li><a href="api.html#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></li>
 <li><a href="api.html#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></li>
@@ -5534,22 +5793,25 @@ def is_gzipped(input: Buffer) -&gt; bool: ...
 import typing as t
 
 from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
 
 
-# =============================================================================
-# FNV
-# =============================================================================
 class FnvHasher:
     name: t.Literal["fnv1a"]
+    digest_size: t.Literal[8]
+    block_size: t.Literal[1]
 
-    def __init__(self, input: Buffer | None = None) -&gt; None: ...
+    def __init__(
+        self, input: Buffer | None = None, key: int | None = None
+    ) -&gt; None: ...
     def update(self, input: Buffer) -&gt; None: ...
-    def digest(self) -&gt; int: ...
+    def digest(self) -&gt; Bytes: ...
+    def intdigest(self) -&gt; int: ...
     def hexdigest(self) -&gt; str: ...
     def copy(self) -&gt; FnvHasher: ...
 
 
-def fnv1a(input: Buffer) -&gt; FnvHasher: ...
+def fnv1a(input: Buffer, key: int | None = None) -&gt; FnvHasher: ...
 
 </code></pre>
 <h2 id="ry.ryo3._fspath"><a class="header" href="#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></h2>
@@ -7587,14 +7849,34 @@ class ReqwestError(Exception):
 
 
 class Response:
-    status_code: int
-
     @property
     def headers(self) -&gt; Headers: ...
     async def text(self) -&gt; str: ...
     async def json(self) -&gt; t.Any: ...
     async def bytes(self) -&gt; ry.Bytes: ...
     def bytes_stream(self) -&gt; ResponseStream: ...
+    @property
+    def url(self) -&gt; URL: ...
+    @property
+    def version(
+        self,
+    ) -&gt; t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def http_version(
+        self,
+    ) -&gt; t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def status(self) -&gt; int: ...
+    @property
+    def status_text(self) -&gt; str: ...
+    @property
+    def status_code(self) -&gt; HttpStatus: ...
+    @property
+    def redirected(self) -&gt; bool: ...
 
 
 class ResponseStream:
@@ -8405,6 +8687,7 @@ class URL:
     def has_host(self) -&gt; bool: ...
     def is_special(self) -&gt; bool: ...
     def join(self, *parts: str) -&gt; URL: ...
+    def make_relative(self, u: URL) -&gt; URL: ...
     def to_filepath(self) -&gt; str: ...
     def replace_fragment(self, fragment: str | None = None) -&gt; URL: ...
     def replace_host(self, host: str | None = None) -&gt; URL: ...
@@ -8584,21 +8867,29 @@ class Headers:
     def __delitem__(self, key: str) -&gt; None: ...
     def __contains__(self, key: str) -&gt; bool: ...
     def __or__(self, other: Headers | dict[str, str]) -&gt; Headers: ...
+    def __ror__(self, other: Headers | dict[str, str]) -&gt; Headers: ...
+    def __iter__(self) -&gt; t.Iterator[str]: ...
+    def __bool__(self) -&gt; bool: ...
+    def to_py(self) -&gt; dict[str, str | t.Sequence[str]]: ...
     def asdict(self) -&gt; dict[str, str | t.Sequence[str]]: ...
 
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
     def append(self, key: str, value: str) -&gt; None: ...
+    def clear(self) -&gt; None: ...
+    def contains_key(self, key: str) -&gt; bool: ...
     def get(self, key: str) -&gt; str | None: ...
     def get_all(self, key: str) -&gt; list[str]: ...
+    def insert(self, key: str, value: str) -&gt; None: ...
+    def is_empty(self) -&gt; bool: ...
+    def keys(self) -&gt; list[str]: ...
     def keys_len(self) -&gt; int: ...
     def len(self) -&gt; int: ...
-    def remove(self, key: str) -&gt; None: ...
-    def clear(self) -&gt; None: ...
     def pop(self, key: str) -&gt; str: ...
-    def keys(self) -&gt; list[str]: ...
+    def remove(self, key: str) -&gt; None: ...
     def update(self, headers: Headers | dict[str, str]) -&gt; None: ...
+    def values(self) -&gt; list[str]: ...
 
 
 class HttpStatus:
@@ -8612,12 +8903,26 @@ class HttpStatus:
     def __le__(self, other: HttpStatus | int) -&gt; bool: ...
     def __gt__(self, other: HttpStatus | int) -&gt; bool: ...
     def __ge__(self, other: HttpStatus | int) -&gt; bool: ...
+    def to_py(self) -&gt; int: ...
+    @property
     def reason(self) -&gt; str: ...
+    @property
+    def canonical_reason(self) -&gt; str: ...
+    @property
     def is_informational(self) -&gt; bool: ...
+    @property
     def is_success(self) -&gt; bool: ...
+    @property
     def is_redirect(self) -&gt; bool: ...
+    @property
+    def is_redirection(self) -&gt; bool: ...
+    @property
     def is_client_error(self) -&gt; bool: ...
+    @property
     def is_server_error(self) -&gt; bool: ...
+    @property
+    def is_error(self) -&gt; bool: ...
+    @property
     def is_ok(self) -&gt; bool: ...
     @property
     def ok(self) -&gt; bool: ...
