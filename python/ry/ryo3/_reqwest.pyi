@@ -4,10 +4,6 @@ import ry
 from ry.http import Headers, HttpStatus
 from ry.ryo3 import URL, Duration
 
-HTTP_VERSION_STR: t.TypeAlias = t.Literal[
-    "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-]
-
 class HttpClient:
     def __init__(
         self,
@@ -75,8 +71,6 @@ class ReqwestError(Exception):
     def url(self) -> URL | None: ...
 
 class Response:
-    status_code: int
-
     @property
     def headers(self) -> Headers: ...
     async def text(self) -> str: ...
@@ -86,9 +80,13 @@ class Response:
     @property
     def url(self) -> URL: ...
     @property
-    def version(self) -> HTTP_VERSION_STR: ...
+    def version(
+        self,
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
-    def http_version(self) -> HTTP_VERSION_STR: ...
+    def http_version(
+        self,
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def status(self) -> int: ...
     @property
