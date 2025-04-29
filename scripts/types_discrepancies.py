@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import dataclasses
 import shutil
+from functools import lru_cache
 from pathlib import Path
-from shutil import copy2, copytree
 
 import griffe
 from rich import print  # noqa
@@ -13,14 +13,39 @@ import ry.dev as ry
 PWD = Path.cwd()
 __dirname = Path(__file__).parent
 
-TYPES_PATH = PWD / "python" / "ry" / "ryo3"
+TYPES_PATH = PWD / "python" / "ry"
 
 
-def load_types(strip_overload: bool = True) -> griffe.Object | griffe.Alias:
-    # copy file to ryo3-types.pyi
-    copytree(
-        TYPES_PATH, __dirname / "ryo3types", dirs_exist_ok=True, copy_function=copy2
+@lru_cache(maxsize=1)
+def build_faux_types_pkg(strip_overload: bool = True) -> None:
+    if (__dirname / "ryo3types").exists():
+        shutil.rmtree(__dirname / "ryo3types")
+
+    shutil.copytree(
+        TYPES_PATH,
+        __dirname / "ryo3types",
+        dirs_exist_ok=True,
+        copy_function=shutil.copy2,
     )
+
+    # delete all non pyi files in ryo3types
+    for f in ry.glob(str(__dirname / "ryo3types" / "**/*")):
+        if (
+            f.is_file()
+            and not str(f).endswith(".pyi")
+            and not str(f).endswith("_types.py")
+        ):
+            ry.remove_file(f)
+
+    root_level_pyi_files = ry.glob(str(__dirname / "ryo3types" / "*.pyi")).collect()
+
+    base_init_pyi_lines = [
+        "from .ryo3  import *",
+        *(f"from .{filepath.stem} import *" for filepath in root_level_pyi_files),
+    ]
+    # write the __init__.pyi file
+    with open(__dirname / "ryo3types" / "__init__.pyi", "w") as f:
+        f.write("\n".join(base_init_pyi_lines))
 
     # for each file in ryo3types
     if strip_overload:
@@ -28,6 +53,7 @@ def load_types(strip_overload: bool = True) -> griffe.Object | griffe.Alias:
             # replace `from ry import` with `from ry3types import`
             file_text = filepath.read_text()
 
+            new_file_string = file_text
             if "@t.overload" in file_text:
                 # remove all lines with overload
                 new_file_string = "\n".join(
@@ -35,8 +61,18 @@ def load_types(strip_overload: bool = True) -> griffe.Object | griffe.Alias:
                         lambda line: "@t.overload" not in line, file_text.split("\n")
                     )
                 )
+
+            if "from ry." in file_text:
+                new_file_string = new_file_string.replace("from ry.", "from ryo3types.")
+            if "from ry " in file_text:
+                new_file_string = new_file_string.replace("from ry ", "from ryo3types ")
+            if new_file_string != file_text:
                 with open(filepath, "w") as f:
                     f.write(new_file_string)
+
+
+def load_types(strip_overload: bool = True) -> griffe.Object | griffe.Alias:
+    build_faux_types_pkg(strip_overload=strip_overload)
 
     # get the dummy types thingy
     types_package = griffe.load("ryo3types")
@@ -133,7 +169,7 @@ def ry_classes_n_types() -> list[str]:
 
 
 def main() -> None:
-    classes2ignore = {"Headers", "HttpStatus", "ReqwestError"}
+    classes2ignore = {"ReqwestError"}
     class_members = [el for el in ry_classes_n_types() if el not in classes2ignore]
 
     all_good = []
