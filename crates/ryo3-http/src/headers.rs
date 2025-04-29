@@ -173,6 +173,11 @@ impl PyHeaders {
     }
 
     #[must_use]
+    pub fn __bool__(&self) -> bool {
+        !self.0.is_empty()
+    }
+
+    #[must_use]
     pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
         self.0
             .keys()
