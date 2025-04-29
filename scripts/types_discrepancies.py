@@ -76,6 +76,9 @@ IGNORED_MEMBERS = {
     "__str__",
     "__class__",
     "__setattr__",
+    "__getitem__",
+    "__release_buffer__",
+    "__rmul__",
     "__delattr__",
     "__dir__",
     "__doc__",
@@ -130,7 +133,7 @@ def ry_classes_n_types() -> list[str]:
 
 
 def main() -> None:
-    classes2ignore = {"Headers", "HttpStatus", "ReqwestError", "FileType", "Bytes"}
+    classes2ignore = {"Headers", "HttpStatus", "ReqwestError"}
     class_members = [el for el in ry_classes_n_types() if el not in classes2ignore]
 
     all_good = []

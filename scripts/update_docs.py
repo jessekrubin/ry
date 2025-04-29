@@ -140,6 +140,15 @@ def update_api_docs() -> None:
         )
 
 
+def update_docs_examples() -> None:
+    pass
+
+
+def update_docs():
+    update_api_docs()
+    update_docs_examples()
+
+
 def update_readme() -> None:
     assert RYO_PYI_DIRPATH.exists(), (
         f"RYO_PYI_DIRPATH does not exist: {RYO_PYI_DIRPATH}"
@@ -173,7 +182,7 @@ def update_readme() -> None:
 
 def main() -> None:
     update_readme()
-    update_api_docs()
+    update_docs()
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@
   - Got response type more inline with other python http-client libraries
 - `ryo3-http`
   - http version python conversions to/from string/int
+  - status code reason(s) interned
 - `ryo3-fnv`
   - align with hashlib style hashing
 - deps-up
