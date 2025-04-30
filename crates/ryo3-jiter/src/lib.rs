@@ -4,6 +4,10 @@
 //! Provides jitter wrapper that uses `PyBackedStr` and `PyBackedBytes` and
 //! allows for parsing json from bytes or str (which jiter-python does not as
 //! of [2024-05-29])
+
+mod jiter_options;
+mod json_bytes;
+
 use std::path::PathBuf;
 
 use ::jiter::{
@@ -12,6 +16,8 @@ use ::jiter::{
 use jiter::FloatMode;
 use pyo3::prelude::*;
 use pyo3::pybacked::{PyBackedBytes, PyBackedStr};
+pub use jiter_options::{JiterParseOptions};
+pub use json_bytes::JsonBytes;
 
 #[derive(FromPyObject)]
 pub enum BytesOrString {

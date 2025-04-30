@@ -15,6 +15,7 @@ categories.workspace = true
 pyo3 = { workspace = true, features = [] }
 jiter = { workspace = true, features = ["python"] }
 ryo3-bytes.workspace = true
+bytes.workspace = true
 
 [lints]
 workspace = true

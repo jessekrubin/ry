@@ -3,6 +3,7 @@ use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use bytes::Bytes;
 use futures_core::Stream;
 use futures_util::StreamExt;
+use jiter::{FloatMode, PartialMode, StringCacheMode};
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -174,16 +175,40 @@ impl RyResponse {
     }
 
     /// Return the response body as json (consumes the response)
-    fn json<'py>(&'py mut self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (
+        *,
+        allow_inf_nan = false,
+        cache_mode = StringCacheMode::All,
+        partial_mode = PartialMode::Off,
+        catch_duplicate_keys = false,
+        float_mode = FloatMode::Float
+        )
+    )]
+    fn json<'py>(
+        &'py mut self,
+        py: Python<'py>,
+        allow_inf_nan: bool,
+        cache_mode: StringCacheMode,
+        partial_mode: PartialMode,
+        catch_duplicate_keys: bool,
+        float_mode: FloatMode,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let response = self
             .res
             .take()
             .ok_or(PyValueError::new_err("Response already consumed"))?;
+        let options = ryo3_jiter::JiterParseOptions {
+            allow_inf_nan,
+            cache_mode,
+            partial_mode,
+            catch_duplicate_keys,
+            float_mode,
+        };
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             response
                 .bytes()
                 .await
-                .map(Pyo3JsonBytes::from)
+                .map(|bytes| ryo3_jiter::JsonBytes::new_with_options(bytes, options))
                 .map_err(map_reqwest_err)
         })
     }
