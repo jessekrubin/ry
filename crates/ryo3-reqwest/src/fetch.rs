@@ -2,7 +2,6 @@
 
 use crate::default_client::default_client;
 use crate::RyHttpClient;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 use ryo3_http::{HttpVersion, PyHeadersLike};
@@ -42,9 +41,8 @@ pub(crate) fn fetch<'py>(
     let client_ref: &RyHttpClient = if let Some(c) = client {
         c
     } else {
-        let guard = default_client()
-            .lock()
-            .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
+        let guard = default_client().lock();
+        // .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
         default_client_mut_guard = guard; // "stayin-alive" (ah ah ah ah, stayin-alive)
         &default_client_mut_guard
     };

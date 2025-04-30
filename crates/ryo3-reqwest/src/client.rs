@@ -3,7 +3,6 @@ use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use bytes::Bytes;
 use futures_core::Stream;
 use futures_util::StreamExt;
-use pyo3::exceptions::socket::timeout;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -260,6 +259,7 @@ fn parse_user_agent(user_agent: Option<String>) -> PyResult<HeaderValue> {
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
+#[expect(clippy::struct_excessive_bools)]
 pub struct ClientConfig {
     headers: Option<PyHeaders>,
     user_agent: Option<ryo3_http::HttpHeaderValue>,
