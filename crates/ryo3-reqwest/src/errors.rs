@@ -17,6 +17,7 @@ impl RyReqwestError {
     fn py_new<'py>(args: &Bound<'py, PyTuple>, kwargs: Option<&Bound<'py, PyDict>>) -> Self {
         Self(None)
     }
+
     fn __dbg__(&self) -> String {
         format!("{:?}", self.0)
     }
@@ -139,7 +140,7 @@ impl From<RyReqwestError> for PyErr {
     fn from(e: RyReqwestError) -> Self {
         // map_reqwest_err(e)
         if let Some(e) = e.0 {
-            PyErr::new::<RyReqwestError, _>(format!("{e:?}"))
+            PyErr::new::<RyReqwestError, _>(format!("{e} ~ {e:?}"))
         } else {
             PyErr::new::<RyReqwestError, _>("RyReqwestError(None)")
         }

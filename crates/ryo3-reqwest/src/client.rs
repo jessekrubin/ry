@@ -3,6 +3,7 @@ use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use bytes::Bytes;
 use futures_core::Stream;
 use futures_util::StreamExt;
+use pyo3::exceptions::socket::timeout;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -268,6 +269,8 @@ pub struct ClientConfig {
     gzip: bool,
     brotli: bool,
     deflate: bool,
+    zstd: bool,
+    http1_only: bool,
 }
 
 impl<'py> IntoPyObject<'py> for &ClientConfig {
@@ -285,6 +288,8 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
         dict.set_item(intern!(py, "gzip"), self.gzip)?;
         dict.set_item(intern!(py, "brotli"), self.brotli)?;
         dict.set_item(intern!(py, "deflate"), self.deflate)?;
+        dict.set_item(intern!(py, "zstd"), self.zstd)?;
+        dict.set_item(intern!(py, "http1_only"), self.http1_only)?;
         Ok(dict)
     }
 }
@@ -306,6 +311,12 @@ impl ClientConfig {
         }
         if let Some(connect_timeout) = &self.connect_timeout {
             client_builder = client_builder.connect_timeout(connect_timeout.0);
+        }
+        if self.http1_only {
+            client_builder = client_builder.http1_only();
+        }
+        if self.zstd {
+            client_builder = client_builder.zstd(true);
         }
         client_builder = client_builder
             .connection_verbose(false)
@@ -344,7 +355,9 @@ impl RyHttpClient {
             connect_timeout = None,
             gzip = true,
             brotli = true,
-            deflate = true
+            deflate = true,
+            zstd = true,
+            http1_only = false,
         )
     )]
     fn py_new(
@@ -356,6 +369,8 @@ impl RyHttpClient {
         gzip: Option<bool>,
         brotli: Option<bool>,
         deflate: Option<bool>,
+        zstd: Option<bool>,
+        http1_only: Option<bool>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -368,6 +383,8 @@ impl RyHttpClient {
             gzip: gzip.unwrap_or(true),
             brotli: brotli.unwrap_or(true),
             deflate: deflate.unwrap_or(true),
+            zstd: zstd.unwrap_or(true),
+            http1_only: http1_only.unwrap_or(false),
         };
         debug!("reqwest-client-config: {:#?}", client_cfg);
         let client_builder = client_cfg.client_builder();
@@ -562,37 +579,59 @@ impl RyHttpClient {
             *,
             method = None,
             body = None,
-            headers = None
+            headers = None,
+            query = None,
+            multipart = None,
+            form = None,
+            timeout = None,
+            version = None,
         )
     )]
+    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn fetch<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         method: Option<ryo3_http::HttpMethod>,
         body: Option<ryo3_bytes::PyBytes>,
-        headers: Option<Bound<'py, PyDict>>,
+        headers: Option<PyHeadersLike>,
+        query: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
+        form: Option<&Bound<'py, PyAny>>,
+        timeout: Option<&ryo3_std::PyDuration>,
+        version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let method = method.unwrap_or(ryo3_http::HttpMethod(reqwest::Method::GET));
         let url = extract_url(url)?;
+
         let mut req = self.client.request(method.0, url);
+        if let Some(ref version) = version {
+            req = req.version(version.0);
+        }
+        if let Some(_query) = query {
+            return err_py_not_impl!("query not implemented (yet)");
+        }
+        if let Some(_multipart) = multipart {
+            return err_py_not_impl!("multipart not implemented (yet)");
+        }
+        if let Some(_form) = form {
+            return err_py_not_impl!("form not implemented (yet)");
+        }
         if let Some(body) = body {
             let body_bytes = body.into_inner();
             req = req.body(body_bytes);
         }
         if let Some(headers) = headers {
-            let mut default_headers = HeaderMap::new();
-            for (k, v) in headers {
-                let k = k.to_string();
-                let v = v.to_string();
-                let header_name = reqwest::header::HeaderName::from_bytes(k.as_bytes())
-                    .map_err(|e| PyValueError::new_err(format!("header-name-error: {e}")))?;
-                let header_value = HeaderValue::from_str(&v)
-                    .map_err(|e| PyValueError::new_err(format!("header-value-error: {e}")))?;
-                default_headers.insert(header_name, header_value);
-            }
-            req = req.headers(default_headers);
+            let headers = HeaderMap::try_from(headers)?;
+            req = req.headers(headers);
         }
+        if let Some(timeout) = timeout {
+            req = req.timeout(timeout.0);
+        }
+        debug!("version: {:?}", version);
+
+        debug!("reqwest-client-fetch: {:#?}", req);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
