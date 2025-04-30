@@ -161,7 +161,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-04-29T23:49:06.585006126+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-04-30T20:21:10.476583708+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -221,14 +221,21 @@ into separate packages</li>
 </li>
 </ul>
 <h2 id="crate-bindings"><a class="header" href="#crate-bindings">Crate bindings</a></h2>
-<p>ryo3-std</p>
 <ul>
 <li>wrapped crates:
 <ul>
+<li><code>bytes</code></li>
+<li><code>dirs</code></li>
+<li><code>glob</code></li>
 <li><code>heck</code></li>
+<li><code>http</code></li>
 <li><code>jiter</code></li>
+<li><code>reqwest</code></li>
 <li><code>shlex</code></li>
+<li><code>size</code></li>
 <li><code>sqlformat</code></li>
+<li><code>tokio</code> (<code>fs</code> and <code>process</code>)</li>
+<li><code>unindent</code></li>
 <li><code>url</code></li>
 <li><code>which</code></li>
 <li>compression:
@@ -249,6 +256,8 @@ into separate packages</li>
 <ul>
 <li><code>globset</code> (formerly <a href="https://pypi.org/project/globsters/">globsters</a>)</li>
 <li><code>jiff</code></li>
+<li><code>regex</code> (WIP ~ very incomplete)</li>
+<li><code>same-file</code></li>
 <li><code>walkdir</code></li>
 </ul>
 </li>
@@ -261,13 +270,6 @@ into separate packages</li>
 <li>wrappers:
 <ul>
 <li><code>ignore</code></li>
-<li><code>http</code></li>
-<li><code>regex</code></li>
-<li><code>reqwest</code> (async http client / waiting on pyo3 asyncio to stabilize and for
-me to have more time)</li>
-<li><code>tokio</code> (<code>fs</code> and <code>process</code>)</li>
-<li><code>tracing</code> (could be nicer than python’s awful logging lib – currently a
-part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)</li>
 <li><code>tracing</code> (eg logging)</li>
 <li><code>uuid</code></li>
 </ul>
@@ -2765,9 +2767,14 @@ class Regex:
 <h2 id="ry.ryo3._reqwest"><a class="header" href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></h2>
 <pre><code class="language-python">import typing as t
 
+from typing_extensions import TypeAlias
+
 import ry
+from ry._types import Buffer
 from ry.http import Headers, HttpStatus
 from ry.ryo3 import URL, Duration
+
+HeadersLike: TypeAlias = Headers | dict[str, str]
 
 
 class HttpClient:
@@ -2784,42 +2791,42 @@ class HttpClient:
         deflate: bool = True,
     ) -&gt; None: ...
     async def get(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -&gt; Response: ...
     async def post(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -&gt; Response: ...
     async def put(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -&gt; Response: ...
     async def delete(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -&gt; Response: ...
     async def patch(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
+        body: Buffer | None = None,
         headers: dict[str, str] | None = None,
     ) -&gt; Response: ...
     async def head(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -&gt; Response: ...
     async def fetch(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -&gt; Response: ...
 
 
@@ -2879,8 +2886,8 @@ async def fetch(
     *,
     client: HttpClient | None = None,
     method: str = "GET",
-    body: bytes | None = None,
-    headers: dict[str, str] | None = None,
+    body: Buffer | None = None,
+    headers: HeadersLike | None = None,
 ) -&gt; Response: ...
 
 </code></pre>
@@ -3841,7 +3848,9 @@ def video_dir() -&gt; str | None: ...
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
-    def __init__(self, headers: dict[str, str | t.Sequence[str]]) -&gt; None: ...
+    def __init__(
+        self, headers: dict[str, str | t.Sequence[str]] | dict[str, str]
+    ) -&gt; None: ...
 
     # =========================================================================
     # STRING
