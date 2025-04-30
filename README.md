@@ -62,13 +62,19 @@ _(aka: questions that I have been asking myself)_
 
 ## Crate bindings
 
-ryo3-std
-
 - wrapped crates:
+  - `bytes`
+  - `dirs`
+  - `glob`
   - `heck`
+  - `http`
   - `jiter`
+  - `reqwest`
   - `shlex`
+  - `size`
   - `sqlformat`
+  - `tokio` (`fs` and `process`)
+  - `unindent`
   - `url`
   - `which`
   - compression:
@@ -82,6 +88,8 @@ ryo3-std
   - burnt-sushi:
     - `globset` (formerly [globsters](https://pypi.org/project/globsters/))
     - `jiff`
+    - `regex` (WIP ~ very incomplete)
+    - `same-file`
     - `walkdir`
 
 ### FUTURE?
@@ -89,13 +97,6 @@ ryo3-std
 - `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
 - wrappers:
   - `ignore`
-  - `http`
-  - `regex`
-  - `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for
-    me to have more time)
-  - `tokio` (`fs` and `process`)
-  - `tracing` (could be nicer than python's awful logging lib -- currently a
-    part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
   - `tracing` (eg logging)
   - `uuid`
 - organization
@@ -2625,9 +2626,14 @@ class Regex:
 ```python
 import typing as t
 
+from typing_extensions import TypeAlias
+
 import ry
+from ry._types import Buffer
 from ry.http import Headers, HttpStatus
 from ry.ryo3 import URL, Duration
+
+HeadersLike: TypeAlias = Headers | dict[str, str]
 
 
 class HttpClient:
@@ -2644,42 +2650,42 @@ class HttpClient:
         deflate: bool = True,
     ) -> None: ...
     async def get(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -> Response: ...
     async def post(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -> Response: ...
     async def put(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -> Response: ...
     async def delete(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -> Response: ...
     async def patch(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
+        body: Buffer | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def head(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -> Response: ...
     async def fetch(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -> Response: ...
 
 
@@ -2739,8 +2745,8 @@ async def fetch(
     *,
     client: HttpClient | None = None,
     method: str = "GET",
-    body: bytes | None = None,
-    headers: dict[str, str] | None = None,
+    body: Buffer | None = None,
+    headers: HeadersLike | None = None,
 ) -> Response: ...
 
 ```
@@ -3725,7 +3731,9 @@ import typing as t
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
-    def __init__(self, headers: dict[str, str | t.Sequence[str]]) -> None: ...
+    def __init__(
+        self, headers: dict[str, str | t.Sequence[str]] | dict[str, str]
+    ) -> None: ...
 
     # =========================================================================
     # STRING

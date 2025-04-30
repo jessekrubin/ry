@@ -139,22 +139,19 @@ impl FromPyObject<'_> for HttpVersion {
                 "HTTP/0.9" | "0.9" => Ok(HttpVersion(http::Version::HTTP_09)),
                 "HTTP/1.0" | "HTTP/1" | "1.0" | "1" => Ok(HttpVersion(http::Version::HTTP_10)),
                 "HTTP/1.1" | "1.1" => Ok(HttpVersion(http::Version::HTTP_11)),
-                "HTTP/2.0" | "HTTP/2" | "2.0" | "2" | "2.2" => {
-                    Ok(HttpVersion(http::Version::HTTP_2))
-                }
+                "HTTP/2.0" | "HTTP/2" | "2.0" | "2" => Ok(HttpVersion(http::Version::HTTP_2)),
                 "HTTP/3" | "HTTP/3.0" | "3.0" | "3" => Ok(HttpVersion(http::Version::HTTP_3)),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                    HTTP_VERSION_STRING,
-                )),
+                _ => Err(PyErr::new::<PyValueError, _>(HTTP_VERSION_STRING)),
             }
         } else if let Ok(i) = ob.extract::<u8>() {
             match i {
                 0 => Ok(HttpVersion(http::Version::HTTP_09)),
-                1 => Ok(HttpVersion(http::Version::HTTP_10)),
-                2 => Ok(HttpVersion(http::Version::HTTP_11)),
-                3 => Ok(HttpVersion(http::Version::HTTP_2)),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                    "Invalid HTTP version: {i} (options: 0=HTTP/0.9, 1=HTTP/1.0, 2=HTTP/2.0, 3=HTTP/3.0)",
+                10 => Ok(HttpVersion(http::Version::HTTP_10)),
+                1 | 11 => Ok(HttpVersion(http::Version::HTTP_11)),
+                2|20 => Ok(HttpVersion(http::Version::HTTP_2)),
+                3|30 => Ok(HttpVersion(http::Version::HTTP_3)),
+                _ => Err(PyErr::new::<PyValueError, _>(
+                    "Invalid HTTP version: {i} (options: 0= HTPP/0.0, 1 | 10 = HTTP/1.0, 11 = HTTP/1.1, 2 | 20 = HTTP/2.0, 3 | 30 = HTTP/3.0)"
                 )),
             }
         } else {

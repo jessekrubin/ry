@@ -26,13 +26,17 @@ futures-util.workspace = true
 ryo3-macros.workspace = true
 ryo3-std.workspace = true
 reqwest.workspace = true
+parking_lot.workspace = true
 
 
 [lints]
 workspace = true
 
 [features]
-default = []
+default = [
+  #  "parking-lot"
+]
+#parking-lot = ["parking_lot"]
 blocking = [
   "reqwest/blocking"
 ]

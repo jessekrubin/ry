@@ -3,7 +3,9 @@ import typing as t
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
-    def __init__(self, headers: dict[str, str | t.Sequence[str]]) -> None: ...
+    def __init__(
+        self, headers: dict[str, str | t.Sequence[str]] | dict[str, str]
+    ) -> None: ...
 
     # =========================================================================
     # STRING
