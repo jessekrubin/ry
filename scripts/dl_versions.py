@@ -100,6 +100,8 @@ async def download_dists(
 
 async def main() -> None:
     wheels_data = await scrape_all_wheels(PACKAGE_NAME)
+    print(ry.json_cache_usage())
+    return
 
     # Save to a JSON file
     with open(f"{PACKAGE_NAME}_wheels.json", "w") as f:
