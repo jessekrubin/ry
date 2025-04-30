@@ -82,17 +82,17 @@ async def download_dists(
 ) -> None:
     """Download the wheel files."""
 
-    outdir = "dist"
+    outdir = ry.FsPath("dist") / PACKAGE_NAME
     ry.create_dir_all(outdir)
     if by_version:
         for version, urls in wheels.items():
-            outdir = f"dist/{version}"
+            outdir = f"dist/{PACKAGE_NAME}/{version}"
             ry.create_dir_all(outdir)
             await asyncio.gather(*(download_file(pkg, outdir) for pkg in urls))
     else:
         futs: list[Coroutine[Any, Any, None]] = []
         for version, pkgs in wheels.items():
-            outdir = f"dist/{version}"
+            outdir = f"dist/{PACKAGE_NAME}/{version}"
             ry.create_dir_all(outdir)
             futs.extend(download_file(pkg, outdir) for pkg in pkgs)
         await asyncio.gather(*futs)

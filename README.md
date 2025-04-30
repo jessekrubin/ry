@@ -62,13 +62,19 @@ _(aka: questions that I have been asking myself)_
 
 ## Crate bindings
 
-ryo3-std
-
 - wrapped crates:
+  - `bytes`
+  - `dirs`
+  - `glob`
   - `heck`
+  - `http`
   - `jiter`
+  - `reqwest`
   - `shlex`
+  - `size`
   - `sqlformat`
+  - `tokio` (`fs` and `process`)
+  - `unindent`
   - `url`
   - `which`
   - compression:
@@ -82,6 +88,8 @@ ryo3-std
   - burnt-sushi:
     - `globset` (formerly [globsters](https://pypi.org/project/globsters/))
     - `jiff`
+    - `regex` (WIP ~ very incomplete)
+    - `same-file`
     - `walkdir`
 
 ### FUTURE?
@@ -89,13 +97,6 @@ ryo3-std
 - `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
 - wrappers:
   - `ignore`
-  - `http`
-  - `regex`
-  - `reqwest` (async http client / waiting on pyo3 asyncio to stabilize and for
-    me to have more time)
-  - `tokio` (`fs` and `process`)
-  - `tracing` (could be nicer than python's awful logging lib -- currently a
-    part of ry/ryo3 for my dev purposes - currently has impl thingy in utiles)
   - `tracing` (eg logging)
   - `uuid`
 - organization
