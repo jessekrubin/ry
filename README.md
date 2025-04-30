@@ -111,36 +111,36 @@ ryo3-std
 
 ## Table of Contents
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
-- [`ry.ryo3.errors`](#ry.ryo3.errors)
-- [`ry.ryo3.JSON`](#ry.ryo3.JSON)
-- [`ry.ryo3._brotli`](#ry.ryo3._brotli)
-- [`ry.ryo3._bytes`](#ry.ryo3._bytes)
-- [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
-- [`ry.ryo3._dev`](#ry.ryo3._dev)
-- [`ry.ryo3._flate2`](#ry.ryo3._flate2)
-- [`ry.ryo3._fnv`](#ry.ryo3._fnv)
-- [`ry.ryo3._fspath`](#ry.ryo3._fspath)
-- [`ry.ryo3._glob`](#ry.ryo3._glob)
 - [`ry.ryo3._globset`](#ry.ryo3._globset)
+- [`ry.ryo3._reqwest`](#ry.ryo3._reqwest)
+- [`ry.ryo3._dev`](#ry.ryo3._dev)
+- [`ry.ryo3._shlex`](#ry.ryo3._shlex)
+- [`ry.ryo3._fspath`](#ry.ryo3._fspath)
 - [`ry.ryo3._heck`](#ry.ryo3._heck)
-- [`ry.ryo3._jiff`](#ry.ryo3._jiff)
+- [`ry.ryo3._fnv`](#ry.ryo3._fnv)
+- [`ry.ryo3._std`](#ry.ryo3._std)
+- [`ry.ryo3._regex`](#ry.ryo3._regex)
+- [`ry.ryo3._flate2`](#ry.ryo3._flate2)
+- [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
+- [`ry.ryo3._tokio`](#ry.ryo3._tokio)
+- [`ry.ryo3.JSON`](#ry.ryo3.JSON)
+- [`ry.ryo3._sqlformat`](#ry.ryo3._sqlformat)
+- [`ry.ryo3._which`](#ry.ryo3._which)
+- [`ry.ryo3._unindent`](#ry.ryo3._unindent)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
-- [`ry.ryo3._regex`](#ry.ryo3._regex)
-- [`ry.ryo3._reqwest`](#ry.ryo3._reqwest)
+- [`ry.ryo3._glob`](#ry.ryo3._glob)
+- [`ry.ryo3._brotli`](#ry.ryo3._brotli)
+- [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3._same_file`](#ry.ryo3._same_file)
-- [`ry.ryo3._shlex`](#ry.ryo3._shlex)
-- [`ry.ryo3._size`](#ry.ryo3._size)
-- [`ry.ryo3._sqlformat`](#ry.ryo3._sqlformat)
-- [`ry.ryo3._std`](#ry.ryo3._std)
-- [`ry.ryo3._tokio`](#ry.ryo3._tokio)
-- [`ry.ryo3._unindent`](#ry.ryo3._unindent)
-- [`ry.ryo3._url`](#ry.ryo3._url)
+- [`ry.ryo3._jiff`](#ry.ryo3._jiff)
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
-- [`ry.ryo3._which`](#ry.ryo3._which)
+- [`ry.ryo3._url`](#ry.ryo3._url)
+- [`ry.ryo3._bytes`](#ry.ryo3._bytes)
+- [`ry.ryo3._size`](#ry.ryo3._size)
+- [`ry.xxhash`](#ry.xxhash)
 - [`ry.dirs`](#ry.dirs)
 - [`ry.http`](#ry.http)
-- [`ry.xxhash`](#ry.xxhash)
 - [`ry.zstd`](#ry.zstd)
 <h2 id="ry.ryo3.__init__"><code>ry.ryo3.__init__</code></h2>
 
@@ -333,235 +333,214 @@ def ls(
     """List directory contents - returns list of FsPath objects"""
 
 ```
-<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
+<h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
 
 ```python
-class FeatureNotEnabledError(RuntimeError):
-    """Raised when a feature is not enabled in the current build."""
+"""ryo3-globset types"""
 
-```
-<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
-
-```python
-"""ry.ryo3.JSON"""
-
-from typing import Literal
-
-import typing_extensions
-
-JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
-JsonValue: typing_extensions.TypeAlias = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
-)
+from os import PathLike
 
 
-def parse_json(
-    data: bytes | str,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def json_cache_clear() -> None: ...
-def json_cache_usage() -> int: ...
+class Glob:
+    """globset::Glob wrapper"""
 
-```
-<h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
-
-```python
-"""ryo3-brotli types"""
+    def __init__(
+        self,
+        pattern: str,
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def regex(self) -> str: ...
+    def is_match(self, path: str | PathLike[str]) -> bool: ...
+    def is_match_str(self, path: str) -> bool: ...
+    def __call__(self, path: str | PathLike[str]) -> bool: ...
+    def __invert__(self) -> Glob: ...
+    def globset(self) -> GlobSet: ...
+    def globster(self) -> Globster: ...
 
 
-# =============================================================================
-# BROTLI
-# =============================================================================
-def brotli_encode(
-    input: bytes, quality: int = 11, magic_number: bool = False
-) -> bytes: ...
-def brotli_decode(input: bytes) -> bytes: ...
-def brotli(
-    input: bytes, quality: int = 11, magic_number: bool = False
-) -> bytes:
-    """Alias for brotli_encode"""
+class GlobSet:
+    """globset::GlobSet wrapper"""
 
-```
-<h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
-
-```python
-import sys
-from typing import overload
-
-import typing_extensions
-
-if sys.version_info >= (3, 12):
-    from collections.abc import Buffer as Buffer
-else:
-    from typing_extensions import Buffer as Buffer
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str) -> bool: ...
+    def is_match_str(self, path: str) -> bool: ...
+    def matches(self, path: str) -> list[int]: ...
+    def __call__(self, path: str) -> bool: ...
+    def globster(self) -> Globster: ...
+    @property
+    def patterns(self) -> tuple[str, ...]: ...
 
 
-class Bytes(Buffer):
-    """
-    A buffer implementing the Python buffer protocol, allowing zero-copy access
-    to underlying Rust memory.
+class Globster:
+    """Globster is a matcher with claws!
 
-    You can pass this to `memoryview` for a zero-copy view into the underlying
-    data or to `bytes` to copy the underlying data into a Python `bytes`.
+    Note: The north american `Globster` is similar to the european `Globset`
+          but allows for negative patterns (prefixed with '!')
 
-    Many methods from the Python `bytes` class are implemented on this,
     """
 
-    def __init__(self, buf: Buffer = b"") -> None:
-        """Construct a new Bytes object.
-
-        This will be a zero-copy view on the Python byte slice.
-        """
-
-    def __add__(self, other: Buffer) -> Bytes: ...
-    def __buffer__(self, flags: int) -> memoryview[int]: ...
-    def __contains__(self, other: Buffer) -> bool: ...
-    def __eq__(self, other: object) -> bool: ...
-    @overload
-    def __getitem__(self, other: int) -> int: ...
-    @overload
-    def __getitem__(self, other: slice) -> Bytes: ...
-    def __mul__(self, other: Buffer) -> int: ...
-    def __len__(self) -> int: ...
-    def removeprefix(self, prefix: Buffer, /) -> Bytes:
-        """
-        If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
-        Otherwise, return the original binary data.
-        """
-
-    def removesuffix(self, suffix: Buffer, /) -> Bytes:
-        """
-        If the binary data ends with the suffix string and that suffix is not empty,
-        return `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
-        """
-
-    def isalnum(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are alphabetical ASCII characters or
-        ASCII decimal digits and the sequence is not empty, `False` otherwise.
-
-        Alphabetic ASCII characters are those byte values in the sequence
-        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`. ASCII decimal digits
-        are those byte values in the sequence `b'0123456789'`.
-        """
-
-    def isalpha(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are alphabetic ASCII characters and
-        the sequence is not empty, `False` otherwise.
-
-        Alphabetic ASCII characters are those byte values in the sequence
-        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`.
-        """
-
-    def isascii(self) -> bool:
-        """
-        Return `True` if the sequence is empty or all bytes in the sequence are ASCII,
-        `False` otherwise.
-
-        ASCII bytes are in the range `0-0x7F`.
-        """
-
-    def isdigit(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are ASCII decimal digits and the
-        sequence is not empty, `False` otherwise.
-
-        ASCII decimal digits are those byte values in the sequence `b'0123456789'`.
-        """
-
-    def islower(self) -> bool:
-        """
-        Return `True` if there is at least one lowercase ASCII character in the sequence
-        and no uppercase ASCII characters, `False` otherwise.
-        """
-
-    def isspace(self) -> bool:
-        """
-        Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
-        is not empty, `False` otherwise.
-
-        ASCII whitespace characters are those byte values
-        in the sequence `b' \t\n\r\x0b\f'` (space, tab, newline, carriage return,
-        vertical tab, form feed).
-        """
-
-    def isupper(self) -> bool:
-        """
-        Return `True` if there is at least one uppercase alphabetic ASCII character in
-        the sequence and no lowercase ASCII characters, `False` otherwise.
-        """
-
-    def lower(self) -> Bytes:
-        """
-        Return a copy of the sequence with all the uppercase ASCII characters converted
-        to their corresponding lowercase counterpart.
-        """
-
-    def upper(self) -> Bytes:
-        """
-        Return a copy of the sequence with all the lowercase ASCII characters converted
-        to their corresponding uppercase counterpart.
-        """
-
-    def to_bytes(self) -> bytes:
-        """Copy this buffer's contents into a Python `bytes` object."""
-
-    # =========================================================================
-    # IMPL IN RY
-    # =========================================================================
-
-    def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
-        """Decode the binary data using the given encoding."""
-
-    def hex(
-        self, sep: str | None = None, bytes_per_sep: int | None = None
-    ) -> str:
-        """Return a hexadecimal representation of the binary data."""
-
-    @classmethod
-    def fromhex(cls, hexstr: str) -> Bytes:
-        """Construct a `Bytes` object from a hexadecimal string."""
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str | PathLike[str]) -> bool: ...
+    def is_match_str(self, path: str) -> bool: ...
+    def __call__(self, path: str | PathLike[str]) -> bool: ...
+    @property
+    def patterns(self) -> tuple[str, ...]: ...
 
 
-BytesLike: typing_extensions.TypeAlias = (
-    Buffer | bytes | bytearray | memoryview | Bytes
-)
+def globster(
+    patterns: list[str] | tuple[str, ...],
+    /,
+    *,
+    case_insensitive: bool | None = None,
+    literal_separator: bool | None = None,
+    backslash_escape: bool | None = None,
+) -> Globster: ...
 
 ```
-<h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
+<h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
 
 ```python
-"""ryo3-bzip2 types"""
+import typing as t
 
-from ry._types import Buffer
+import ry
+from ry.http import Headers, HttpStatus
+from ry.ryo3 import URL, Duration
 
 
-# =============================================================================
-# BZIP2
-# =============================================================================
-def bzip2_encode(input: Buffer, quality: int = 9) -> bytes: ...
-def bzip2_decode(input: Buffer) -> bytes: ...
-def bzip2(input: Buffer, quality: int = 9) -> bytes:
-    """Alias for bzip2_encode"""
+class HttpClient:
+    def __init__(
+        self,
+        *,
+        headers: dict[str, str] | None = None,
+        user_agent: str | None = None,  # default ~ 'ry-reqwest/<VERSION> ...'
+        timeout: Duration | None = None,
+        connect_timeout: Duration | None = None,
+        read_timeout: Duration | None = None,
+        gzip: bool = True,
+        brotli: bool = True,
+        deflate: bool = True,
+    ) -> None: ...
+    async def get(
+        self, url: str | URL, *, headers: dict[str, str] | None = None
+    ) -> Response: ...
+    async def post(
+        self,
+        url: str | URL,
+        *,
+        body: bytes | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Response: ...
+    async def put(
+        self,
+        url: str | URL,
+        *,
+        body: bytes | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Response: ...
+    async def delete(
+        self, url: str | URL, *, headers: dict[str, str] | None = None
+    ) -> Response: ...
+    async def patch(
+        self,
+        url: str | URL,
+        *,
+        body: bytes | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Response: ...
+    async def head(
+        self, url: str | URL, *, headers: dict[str, str] | None = None
+    ) -> Response: ...
+    async def fetch(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        body: bytes | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Response: ...
+
+
+class ReqwestError(Exception):
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
+    def __dbg__(self) -> str: ...
+    def is_body(self) -> bool: ...
+    def is_builder(self) -> bool: ...
+    def is_connect(self) -> bool: ...
+    def is_decode(self) -> bool: ...
+    def is_redirect(self) -> bool: ...
+    def is_request(self) -> bool: ...
+    def is_status(self) -> bool: ...
+    def is_timeout(self) -> bool: ...
+    def status(self) -> HttpStatus | None: ...
+    def url(self) -> URL | None: ...
+
+
+class Response:
+    @property
+    def headers(self) -> Headers: ...
+    async def text(self) -> str: ...
+    async def json(self) -> t.Any: ...
+    async def bytes(self) -> ry.Bytes: ...
+    def bytes_stream(self) -> ResponseStream: ...
+    @property
+    def url(self) -> URL: ...
+    @property
+    def version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def http_version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def status(self) -> int: ...
+    @property
+    def status_text(self) -> str: ...
+    @property
+    def status_code(self) -> HttpStatus: ...
+    @property
+    def redirected(self) -> bool: ...
+
+
+class ResponseStream:
+    def __aiter__(self) -> ResponseStream: ...
+    async def __anext__(self) -> ry.Bytes: ...
+
+
+async def fetch(
+    url: str | URL,
+    *,
+    client: HttpClient | None = None,
+    method: str = "GET",
+    body: bytes | None = None,
+    headers: dict[str, str] | None = None,
+) -> Response: ...
 
 ```
 <h2 id="ry.ryo3._dev"><code>ry.ryo3._dev</code></h2>
@@ -592,58 +571,14 @@ def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
 
 ```
-<h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
+<h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
 
 ```python
-"""ryo3-flate2 types"""
-
-from ry import Bytes
-from ry._types import Buffer
+"""ryo3-shlex types"""
 
 
-# =============================================================================
-# GZIP
-# =============================================================================
-def gzip_encode(input: Buffer, quality: int = 9) -> Bytes: ...
-def gzip_decode(input: Buffer) -> Bytes: ...
-def gzip(input: Buffer, quality: int = 9) -> Bytes:
-    """Alias for gzip_encode"""
-
-
-def gunzip(input: Buffer) -> Bytes:
-    """Alias for gzip_decode"""
-
-
-def is_gzipped(input: Buffer) -> bool: ...
-
-```
-<h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
-
-```python
-"""ryo3-fnv types"""
-
-import typing as t
-
-from ry._types import Buffer
-from ry.ryo3._bytes import Bytes
-
-
-class FnvHasher:
-    name: t.Literal["fnv1a"]
-    digest_size: t.Literal[8]
-    block_size: t.Literal[1]
-
-    def __init__(
-        self, input: Buffer | None = None, key: int | None = None
-    ) -> None: ...
-    def update(self, input: Buffer) -> None: ...
-    def digest(self) -> Bytes: ...
-    def intdigest(self) -> int: ...
-    def hexdigest(self) -> str: ...
-    def copy(self) -> FnvHasher: ...
-
-
-def fnv1a(input: Buffer, key: int | None = None) -> FnvHasher: ...
+def shplit(s: str) -> list[str]:
+    """shlex::split wrapper much like python's stdlib shlex.split but faster"""
 
 ```
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -779,6 +714,801 @@ class FsPathReaddir:
     def take(self, n: int) -> list[FsPath]: ...
 
 ```
+<h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>
+
+```python
+"""ryo3-heck types"""
+
+
+def camel_case(string: str) -> str: ...
+def kebab_case(string: str) -> str: ...
+def pascal_case(string: str) -> str: ...
+def shouty_kebab_case(string: str) -> str: ...
+def shouty_snake_case(string: str) -> str: ...
+def snake_case(string: str) -> str: ...
+def snek_case(string: str) -> str: ...
+def title_case(string: str) -> str: ...
+def train_case(string: str) -> str: ...
+
+```
+<h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
+
+```python
+"""ryo3-fnv types"""
+
+import typing as t
+
+from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
+
+
+class FnvHasher:
+    name: t.Literal["fnv1a"]
+    digest_size: t.Literal[8]
+    block_size: t.Literal[1]
+
+    def __init__(
+        self, input: Buffer | None = None, key: int | None = None
+    ) -> None: ...
+    def update(self, input: Buffer) -> None: ...
+    def digest(self) -> Bytes: ...
+    def intdigest(self) -> int: ...
+    def hexdigest(self) -> str: ...
+    def copy(self) -> FnvHasher: ...
+
+
+def fnv1a(input: Buffer, key: int | None = None) -> FnvHasher: ...
+
+```
+<h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>
+
+```python
+"""ryo3-std types"""
+
+import datetime as pydt
+import ipaddress
+import pathlib
+import typing as t
+
+from ry import Bytes, FsPath
+from ry._types import Buffer, FsPathLike, ToPy
+
+
+# =============================================================================
+# STD::TIME
+# =============================================================================
+class Duration(ToPy[pydt.timedelta]):
+    ZERO: Duration
+    MIN: Duration
+    MAX: Duration
+    NANOSECOND: Duration
+    MICROSECOND: Duration
+    MILLISECOND: Duration
+    SECOND: Duration
+
+    def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: Duration) -> bool: ...
+    def __le__(self, other: Duration) -> bool: ...
+    def __gt__(self, other: Duration) -> bool: ...
+    def __ge__(self, other: Duration) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __richcmp__(
+        self, other: Duration | pydt.timedelta, op: int
+    ) -> bool: ...
+    def __bool__(self) -> bool: ...
+    def __float__(self) -> float: ...
+    def __int__(self) -> int: ...
+    def abs_diff(self, other: Duration) -> Duration: ...
+    def sleep(self) -> None: ...
+
+    # =========================================================================
+    # PYTHON_CONVERSIONS
+    # =========================================================================
+    @classmethod
+    def from_pytimedelta(
+        cls: type[Duration], td: pydt.timedelta
+    ) -> Duration: ...
+    def to_pytimedelta(self) -> pydt.timedelta: ...
+    def to_py(self) -> pydt.timedelta: ...
+
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def is_zero(self) -> bool: ...
+    @property
+    def nanos(self) -> int: ...
+    @property
+    def secs(self) -> int: ...
+    @property
+    def days(self) -> int: ...
+    @property
+    def seconds(self) -> int: ...
+    @property
+    def microseconds(self) -> int: ...
+    @property
+    def subsec_micros(self) -> int: ...
+    @property
+    def subsec_millis(self) -> int: ...
+    @property
+    def subsec_nanos(self) -> int: ...
+
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def from_hours(cls, hours: int) -> Duration: ...
+    @classmethod
+    def from_micros(cls, micros: int) -> Duration: ...
+    @classmethod
+    def from_millis(cls, millis: int) -> Duration: ...
+    @classmethod
+    def from_mins(cls, mins: int) -> Duration: ...
+    @classmethod
+    def from_nanos(cls, nanos: int) -> Duration: ...
+    @classmethod
+    def from_secs(cls, secs: int) -> Duration: ...
+    @classmethod
+    def from_secs_f32(cls, secs: float) -> Duration: ...
+    @classmethod
+    def from_secs_f64(cls, secs: float) -> Duration: ...
+    @classmethod
+    def from_days(cls, days: int) -> Duration: ...
+    @classmethod
+    def from_weeks(cls, weeks: int) -> Duration: ...
+    def as_micros(self) -> int: ...
+    def as_millis(self) -> int: ...
+    def as_nanos(self) -> int: ...
+    def as_secs(self) -> int: ...
+    def as_secs_f32(self) -> float: ...
+    def as_secs_f64(self) -> float: ...
+
+    # =========================================================================
+    # NOT IMPLEMENTED
+    # =========================================================================
+    def checked_add(self, other: Duration) -> Duration | None: ...
+    def checked_div(self, other: Duration) -> Duration | None: ...
+    def checked_mul(self, other: Duration) -> Duration | None: ...
+    def checked_sub(self, other: Duration) -> Duration | None: ...
+    def div_duration_f32(self, other: Duration) -> float: ...
+    def div_duration_f64(self, other: Duration) -> float: ...
+    def div_f32(self, other: float) -> Duration: ...
+    def div_f64(self, other: float) -> Duration: ...
+    def mul_f32(self, other: float) -> Duration: ...
+    def mul_f64(self, other: float) -> Duration: ...
+    def saturating_add(self, other: Duration) -> Duration: ...
+    def saturating_mul(self, other: Duration) -> Duration: ...
+    def saturating_sub(self, other: Duration) -> Duration: ...
+
+
+class Instant:
+    def __init__(self) -> None: ...
+    @classmethod
+    def now(cls) -> Instant: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: Instant) -> bool: ...
+    def __le__(self, other: Instant) -> bool: ...
+    def __gt__(self, other: Instant) -> bool: ...
+    def __ge__(self, other: Instant) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __add__(self, other: Duration) -> Instant: ...
+    @t.overload
+    def __sub__(self, other: Duration) -> Instant: ...
+    @t.overload
+    def __sub__(self, other: Instant) -> Duration: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def checked_add(self, other: Duration) -> Instant | None: ...
+    def checked_duration_since(self, earlier: Instant) -> Duration | None: ...
+    def checked_sub(self, other: Duration) -> Instant | None: ...
+    def duration_since(self, earlier: Instant) -> Duration: ...
+    def elapsed(self) -> Duration: ...
+    def saturating_duration_since(self, earlier: Instant) -> Duration: ...
+
+
+def instant() -> Instant: ...
+def sleep(seconds: float) -> float: ...
+
+
+# =============================================================================
+# STD::FS
+# =============================================================================
+class FileType:
+    @property
+    def is_dir(self) -> bool: ...
+    @property
+    def is_file(self) -> bool: ...
+    @property
+    def is_symlink(self) -> bool: ...
+
+
+class Metadata:
+    @property
+    def file_type(self) -> FileType: ...
+    @property
+    def len(self) -> int: ...
+    @property
+    def is_empty(self) -> bool: ...
+    @property
+    def modified(self) -> pydt.datetime: ...
+    @property
+    def accessed(self) -> pydt.datetime: ...
+    @property
+    def created(self) -> pydt.datetime: ...
+    @property
+    def is_dir(self) -> bool: ...
+    @property
+    def is_file(self) -> bool: ...
+    @property
+    def is_symlink(self) -> bool: ...
+
+
+class DirEntry:
+    def __fspath__(self) -> str: ...
+    @property
+    def path(self) -> pathlib.Path: ...
+    @property
+    def basename(self) -> str: ...
+    @property
+    def metadata(self) -> Metadata: ...
+    @property
+    def file_type(self) -> FileType: ...
+
+
+# ============================================================================
+# STD::FS ~ functions
+# =============================================================================
+def read(path: FsPathLike) -> Bytes: ...
+def read_bytes(path: FsPathLike) -> bytes: ...
+def read_dir(
+    path: FsPathLike,
+) -> t.Iterator[DirEntry]: ...
+def read_text(path: FsPathLike) -> str: ...
+def read_stream(
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    offset: int = 0,
+) -> t.Iterator[Bytes]: ...
+def write(path: FsPathLike, data: Buffer | str) -> int: ...
+def write_bytes(path: FsPathLike, data: bytes) -> int: ...
+def write_text(path: FsPathLike, data: str) -> int: ...
+def canonicalize(path: FsPathLike) -> FsPath: ...
+def copy(from_path: FsPathLike, to_path: FsPathLike) -> int: ...
+def create_dir(path: FsPathLike) -> None: ...
+def create_dir_all(path: FsPathLike) -> None: ...
+def exists(path: FsPathLike) -> bool: ...
+def is_dir(path: FsPathLike) -> bool: ...
+def is_file(path: FsPathLike) -> bool: ...
+def is_symlink(path: FsPathLike) -> bool: ...
+def metadata(path: FsPathLike) -> Metadata: ...
+def remove_dir(path: FsPathLike) -> None: ...
+def remove_dir_all(path: FsPathLike) -> None: ...
+def remove_file(path: FsPathLike) -> None: ...
+def rename(from_path: FsPathLike, to_path: FsPathLike) -> None: ...
+
+
+# =============================================================================
+# STD::NET
+# =============================================================================
+
+
+class Ipv4Addr:
+    BROADCAST: Ipv4Addr
+    LOCALHOST: Ipv4Addr
+    UNSPECIFIED: Ipv4Addr
+
+    @t.overload
+    def __init__(self, a: int, b: int, c: int, d: int) -> None: ...
+    @t.overload
+    def __init__(self, iplike: int | str | bytes | Ipv4Addr) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: Ipv4Addr) -> bool: ...
+    def __le__(self, other: Ipv4Addr) -> bool: ...
+    def __gt__(self, other: Ipv4Addr) -> bool: ...
+    def __ge__(self, other: Ipv4Addr) -> bool: ...
+    def __hash__(self) -> int: ...
+    def to_py(self) -> ipaddress.IPv4Address: ...
+
+    # ========================================================================
+    # PROPERTIES
+    # ========================================================================
+    @property
+    def version(self) -> int: ...
+    @property
+    def is_broadcast(self) -> bool: ...
+    @property
+    def is_documentation(self) -> bool: ...
+    @property
+    def is_link_local(self) -> bool: ...
+    @property
+    def is_loopback(self) -> bool: ...
+    @property
+    def is_multicast(self) -> bool: ...
+    @property
+    def is_private(self) -> bool: ...
+    @property
+    def is_unspecified(self) -> bool: ...
+    @property
+    def is_benchmarking(self) -> t.NoReturn: ...
+    @property
+    def is_global(self) -> t.NoReturn: ...
+    @property
+    def is_reserved(self) -> t.NoReturn: ...
+    @property
+    def is_shared(self) -> t.NoReturn: ...
+
+    # ========================================================================
+    # CLASSMETHODS
+    # ========================================================================
+    @classmethod
+    def parse(cls, s: str) -> Ipv4Addr: ...
+    @classmethod
+    def from_bits(cls, bits: int) -> Ipv4Addr: ...
+    @classmethod
+    def from_octets(cls, b: bytes) -> Ipv4Addr: ...
+
+    # =======================================================================
+    # METHODS
+    # =======================================================================
+    def to_ipaddr(self) -> IpAddr: ...
+
+
+class Ipv6Addr:
+    LOCALHOST: Ipv6Addr
+    UNSPECIFIED: Ipv6Addr
+
+    @t.overload
+    def __init__(
+        self, a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int
+    ) -> None: ...
+    @t.overload
+    def __init__(self, iplike: int | str | bytes | Ipv6Addr) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: Ipv6Addr) -> bool: ...
+    def __le__(self, other: Ipv6Addr) -> bool: ...
+    def __gt__(self, other: Ipv6Addr) -> bool: ...
+    def __ge__(self, other: Ipv6Addr) -> bool: ...
+    def __hash__(self) -> int: ...
+    def to_py(self) -> ipaddress.IPv6Address: ...
+
+    # ========================================================================
+    # PROPERTIES
+    # ========================================================================
+    @property
+    def version(self) -> int: ...
+    @property
+    def is_loopback(self) -> bool: ...
+    @property
+    def is_multicast(self) -> bool: ...
+    @property
+    def is_unicast_link_local(self) -> bool: ...
+    @property
+    def is_unique_local(self) -> bool: ...
+    @property
+    def is_unspecified(self) -> bool: ...
+    @property
+    def is_benchmarking(self) -> t.NoReturn: ...
+    @property
+    def is_documentation(self) -> t.NoReturn: ...
+    @property
+    def is_global(self) -> t.NoReturn: ...
+    @property
+    def is_ipv4_mapped(self) -> t.NoReturn: ...
+    @property
+    def is_unicast(self) -> t.NoReturn: ...
+    @property
+    def is_unicast_global(self) -> t.NoReturn: ...
+
+    # ========================================================================
+    # CLASSMETHODS
+    # ========================================================================
+    @classmethod
+    def parse(cls, s: str) -> Ipv4Addr: ...
+    @classmethod
+    def from_bits(cls, bits: int) -> IpAddr: ...
+
+    # =======================================================================
+    # METHODS
+    # =======================================================================
+    def to_ipaddr(self) -> IpAddr: ...
+
+
+class IpAddr:
+    BROADCAST: IpAddr
+    LOCALHOST_V4: IpAddr
+    UNSPECIFIED_V4: IpAddr
+    LOCALHOST_V6: IpAddr
+    UNSPECIFIED_V6: IpAddr
+
+    def __init__(
+        self,
+        iplike: int
+        | str
+        | bytes
+        | ipaddress.IPv4Address
+        | ipaddress.IPv6Address,
+    ) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: IpAddr) -> bool: ...
+    def __le__(self, other: IpAddr) -> bool: ...
+    def __gt__(self, other: IpAddr) -> bool: ...
+    def __ge__(self, other: IpAddr) -> bool: ...
+    def __hash__(self) -> int: ...
+    def to_py(self) -> ipaddress.IPv4Address | ipaddress.IPv6Address: ...
+    def to_ipv4(self) -> Ipv4Addr: ...
+    def to_ipv6(self) -> Ipv6Addr: ...
+
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def parse(cls, ip: str) -> IpAddr: ...
+
+    # ========================================================================
+    # PROPERTIES
+    # ========================================================================
+
+    @property
+    def version(self) -> int: ...
+    @property
+    def is_benchmarking(self) -> t.NoReturn: ...
+    @property
+    def is_ipv4(self) -> bool: ...
+    @property
+    def is_ipv6(self) -> bool: ...
+    @property
+    def is_broadcast(self) -> bool: ...
+    @property
+    def is_documentation(self) -> bool: ...
+    @property
+    def is_loopback(self) -> bool: ...
+    @property
+    def is_multicast(self) -> bool: ...
+    @property
+    def is_private(self) -> bool: ...
+    @property
+    def is_unspecified(self) -> bool: ...
+
+    # =======================================================================
+    # METHODS
+    # =======================================================================
+    def to_canonical(self) -> IpAddr: ...
+
+```
+<h2 id="ry.ryo3._regex"><code>ry.ryo3._regex</code></h2>
+
+```python
+"""ryo3-regex types"""
+
+# =============================================================================
+# Regex
+# =============================================================================
+
+
+class Regex:
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_insensitive: bool = False,
+        crlf: bool = False,
+        dot_matches_new_line: bool = False,
+        ignore_whitespace: bool = False,
+        line_terminator: str | None = None,
+        multi_line: bool = False,
+        octal: bool = False,
+        size_limit: int | None = None,
+        swap_greed: bool = False,
+        unicode: bool = False,
+    ) -> None: ...
+    def is_match(self, string: str) -> bool: ...
+    def find(self, string: str) -> str | None: ...
+    def find_all(self, string: str) -> list[tuple[int, int]]: ...
+    def findall(self, string: str) -> list[tuple[int, int]]: ...
+    def replace(self, string: str, replacement: str) -> str: ...
+    def replace_all(self, string: str, replacement: str) -> str: ...
+    def split(self, string: str) -> list[str]: ...
+    def splitn(self, string: str, n: int) -> list[str]: ...
+
+```
+<h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
+
+```python
+"""ryo3-flate2 types"""
+
+from ry import Bytes
+from ry._types import Buffer
+
+
+# =============================================================================
+# GZIP
+# =============================================================================
+def gzip_encode(input: Buffer, quality: int = 9) -> Bytes: ...
+def gzip_decode(input: Buffer) -> Bytes: ...
+def gzip(input: Buffer, quality: int = 9) -> Bytes:
+    """Alias for gzip_encode"""
+
+
+def gunzip(input: Buffer) -> Bytes:
+    """Alias for gzip_decode"""
+
+
+def is_gzipped(input: Buffer) -> bool: ...
+
+```
+<h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
+
+```python
+"""ryo3-bzip2 types"""
+
+from ry._types import Buffer
+
+
+# =============================================================================
+# BZIP2
+# =============================================================================
+def bzip2_encode(input: Buffer, quality: int = 9) -> bytes: ...
+def bzip2_decode(input: Buffer) -> bytes: ...
+def bzip2(input: Buffer, quality: int = 9) -> bytes:
+    """Alias for bzip2_encode"""
+
+```
+<h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
+
+```python
+"""ryo4-tokio types"""
+
+import pathlib
+from typing import NoReturn
+
+from ry import Bytes
+from ry._types import Buffer, FsPathLike
+from ry.ryo3._std import FileType, Metadata
+
+
+# =============================================================================
+# FS
+# =============================================================================
+async def copy_async(src: FsPathLike, dst: FsPathLike) -> None: ...
+async def create_dir_async(path: FsPathLike) -> None: ...
+async def metadata_async(path: FsPathLike) -> None: ...
+async def read_async(path: FsPathLike) -> Bytes: ...
+async def remove_dir_async(path: FsPathLike) -> None: ...
+async def remove_file_async(path: FsPathLike) -> None: ...
+async def rename_async(src: FsPathLike, dst: FsPathLike) -> None: ...
+async def write_async(path: FsPathLike, data: Buffer) -> None: ...
+
+
+class DirEntryAsync:
+    def __fspath__(self) -> str: ...
+    @property
+    def path(self) -> pathlib.Path: ...
+    @property
+    def basename(self) -> str: ...
+    @property
+    async def metadata(self) -> Metadata: ...
+    @property
+    async def file_type(self) -> FileType: ...
+
+
+class ReadDirAsync:
+    """Async iterator for read_dir_async"""
+
+    def __aiter__(self) -> ReadDirAsync: ...
+    async def __anext__(self) -> DirEntryAsync: ...
+    async def collect(self) -> list[DirEntryAsync]: ...
+    async def take(self, n: int) -> list[DirEntryAsync]: ...
+
+
+async def read_dir_async(path: FsPathLike) -> ReadDirAsync: ...
+
+
+# =============================================================================
+# SLEEP
+# =============================================================================
+async def sleep_async(seconds: float) -> float: ...
+async def asleep(seconds: float) -> float:
+    """Alias for sleep_async"""
+
+```
+<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
+
+```python
+"""ry.ryo3.JSON"""
+
+from typing import Literal
+
+import typing_extensions
+
+JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
+JsonValue: typing_extensions.TypeAlias = (
+    JsonPrimitive
+    | dict[str, JsonPrimitive | JsonValue]
+    | list[JsonPrimitive | JsonValue]
+)
+
+
+def parse_json(
+    data: bytes | str,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+) -> JsonValue: ...
+def parse_json_bytes(
+    data: bytes,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+) -> JsonValue: ...
+def json_cache_clear() -> None: ...
+def json_cache_usage() -> int: ...
+
+```
+<h2 id="ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></h2>
+
+```python
+import typing as t
+
+import typing_extensions
+
+# =============================================================================
+# SQLFORMAT
+# =============================================================================
+SqlfmtParamValue: typing_extensions.TypeAlias = str | int | float | bool
+_TSqlfmtParamValue_co = t.TypeVar(
+    "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
+)
+SqlfmtParamsLike: typing_extensions.TypeAlias = (
+    dict[str, _TSqlfmtParamValue_co]
+    | t.Sequence[tuple[str, _TSqlfmtParamValue_co]]
+    | t.Sequence[_TSqlfmtParamValue_co]
+)
+
+
+class SqlfmtQueryParams:
+    def __init__(
+        self, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    ) -> None: ...
+
+
+def sqlfmt_params(
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams,
+) -> SqlfmtQueryParams: ...
+def sqlfmt(
+    sql: str,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
+    *,
+    indent: int = 2,  # -1 or any negative value will use tabs
+    uppercase: bool | None = True,
+    lines_between_statements: int = 1,
+) -> str: ...
+
+```
+<h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
+
+```python
+"""ryo3-which types"""
+
+from pathlib import Path
+
+from ry.ryo3._regex import Regex
+
+
+def which(cmd: str, path: None | str = None) -> Path | None: ...
+def which_all(cmd: str, path: None | str = None) -> list[Path]: ...
+def which_re(regex: str | Regex, path: None | str = None) -> list[Path]: ...
+
+```
+<h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
+
+```python
+"""ryo3-unindent types"""
+
+
+def unindent(string: str) -> str: ...
+def unindent_bytes(string: bytes) -> bytes: ...
+
+```
+<h2 id="ry.ryo3._jiter"><code>ry.ryo3._jiter</code></h2>
+
+```python
+import typing as t
+from os import PathLike
+
+import typing_extensions as te
+
+from ry._types import Buffer
+
+# =============================================================================
+# JSON
+# =============================================================================
+JsonPrimitive: te.TypeAlias = None | bool | int | float | str
+JsonValue: te.TypeAlias = (
+    JsonPrimitive
+    | dict[str, JsonPrimitive | JsonValue]
+    | list[JsonPrimitive | JsonValue]
+)
+
+
+class JsonParseKwargs(t.TypedDict, total=False):
+    allow_inf_nan: bool
+    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: True"""
+    cache_mode: t.Literal[True, False, "all", "keys", "none"]
+    """Cache mode for JSON parsing ~ default: `all` """
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"]
+    """Partial mode for JSON parsing ~ default: False"""
+    catch_duplicate_keys: bool
+    """Catch duplicate keys in JSON objects ~ default: False"""
+    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool
+    """Mode for parsing JSON floats ~ default: False"""
+
+
+def parse_json(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def parse_json_bytes(
+    data: bytes,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def read_json(
+    p: str | PathLike[str],
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def json_cache_clear() -> None: ...
+def json_cache_usage() -> int: ...
+
+```
+<h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
+
+```python
+"""ryo3-quick-maths types"""
+
+import typing as t
+
+
+def quick_maths() -> t.Literal[3]:
+    """Performs quick-maths
+
+    Implements the algorithm for performing "quick-maths" as described by
+    Big Shaq in his PHD thesis, 2017, in which he states:
+
+    > "2 plus 2 is 4, minus one that's 3, quick maths." (Big Shaq et al., 2017)
+
+    Reference:
+        https://youtu.be/3M_5oYU-IsU?t=60
+
+    Example:
+        >>> import ry
+        >>> result = ry.quick_maths()
+        >>> assert result == 3
+
+    NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
+    """
+
+```
 <h2 id="ry.ryo3._glob"><code>ry.ryo3._glob</code></h2>
 
 ```python
@@ -840,107 +1570,41 @@ class Pattern:
     def pattern(self) -> str: ...
 
 ```
-<h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
+<h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
 
 ```python
-"""ryo3-globset types"""
+"""ryo3-brotli types"""
+
+
+# =============================================================================
+# BROTLI
+# =============================================================================
+def brotli_encode(
+    input: bytes, quality: int = 11, magic_number: bool = False
+) -> bytes: ...
+def brotli_decode(input: bytes) -> bytes: ...
+def brotli(
+    input: bytes, quality: int = 11, magic_number: bool = False
+) -> bytes:
+    """Alias for brotli_encode"""
+
+```
+<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
+
+```python
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build."""
+
+```
+<h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
+
+```python
+"""ryo3-same-file types"""
 
 from os import PathLike
 
 
-class Glob:
-    """globset::Glob wrapper"""
-
-    def __init__(
-        self,
-        pattern: str,
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def regex(self) -> str: ...
-    def is_match(self, path: str | PathLike[str]) -> bool: ...
-    def is_match_str(self, path: str) -> bool: ...
-    def __call__(self, path: str | PathLike[str]) -> bool: ...
-    def __invert__(self) -> Glob: ...
-    def globset(self) -> GlobSet: ...
-    def globster(self) -> Globster: ...
-
-
-class GlobSet:
-    """globset::GlobSet wrapper"""
-
-    def __init__(
-        self,
-        patterns: list[str],
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def is_empty(self) -> bool: ...
-    def is_match(self, path: str) -> bool: ...
-    def is_match_str(self, path: str) -> bool: ...
-    def matches(self, path: str) -> list[int]: ...
-    def __call__(self, path: str) -> bool: ...
-    def globster(self) -> Globster: ...
-    @property
-    def patterns(self) -> tuple[str, ...]: ...
-
-
-class Globster:
-    """Globster is a matcher with claws!
-
-    Note: The north american `Globster` is similar to the european `Globset`
-          but allows for negative patterns (prefixed with '!')
-
-    """
-
-    def __init__(
-        self,
-        patterns: list[str],
-        /,
-        *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
-    ) -> None: ...
-    def is_empty(self) -> bool: ...
-    def is_match(self, path: str | PathLike[str]) -> bool: ...
-    def is_match_str(self, path: str) -> bool: ...
-    def __call__(self, path: str | PathLike[str]) -> bool: ...
-    @property
-    def patterns(self) -> tuple[str, ...]: ...
-
-
-def globster(
-    patterns: list[str] | tuple[str, ...],
-    /,
-    *,
-    case_insensitive: bool | None = None,
-    literal_separator: bool | None = None,
-    backslash_escape: bool | None = None,
-) -> Globster: ...
-
-```
-<h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>
-
-```python
-"""ryo3-heck types"""
-
-
-def camel_case(string: str) -> str: ...
-def kebab_case(string: str) -> str: ...
-def pascal_case(string: str) -> str: ...
-def shouty_kebab_case(string: str) -> str: ...
-def shouty_snake_case(string: str) -> str: ...
-def snake_case(string: str) -> str: ...
-def snek_case(string: str) -> str: ...
-def title_case(string: str) -> str: ...
-def train_case(string: str) -> str: ...
+def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
 
 ```
 <h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
@@ -2503,266 +3167,336 @@ class TimeZoneDatabase:
     def bundled(cls) -> TimeZoneDatabase: ...
 
 ```
-<h2 id="ry.ryo3._jiter"><code>ry.ryo3._jiter</code></h2>
+<h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
 
 ```python
+"""ryo3-walkdir types"""
+
 import typing as t
 from os import PathLike
 
-import typing_extensions as te
+from ry import FileType, FsPath, Glob, GlobSet, Globster
 
-from ry._types import Buffer
 
-# =============================================================================
-# JSON
-# =============================================================================
-JsonPrimitive: te.TypeAlias = None | bool | int | float | str
-JsonValue: te.TypeAlias = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
+class WalkDirEntry:
+    def __fspath__(self) -> str: ...
+    @property
+    def path(self) -> FsPath: ...
+    @property
+    def file_name(self) -> str: ...
+    @property
+    def depth(self) -> int: ...
+    @property
+    def path_is_symlink(self) -> bool: ...
+    @property
+    def file_type(self) -> FileType: ...
+    @property
+    def is_dir(self) -> bool: ...
+    @property
+    def is_file(self) -> bool: ...
+    @property
+    def is_symlink(self) -> bool: ...
+    @property
+    def len(self) -> int: ...
+
+
+_T_walkdir = t.TypeVar(
+    "_T_walkdir",
+    bound=WalkDirEntry | str,
 )
 
 
-class JsonParseKwargs(t.TypedDict, total=False):
-    allow_inf_nan: bool
-    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: True"""
-    cache_mode: t.Literal[True, False, "all", "keys", "none"]
-    """Cache mode for JSON parsing ~ default: `all` """
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"]
-    """Partial mode for JSON parsing ~ default: False"""
-    catch_duplicate_keys: bool
-    """Catch duplicate keys in JSON objects ~ default: False"""
-    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool
-    """Mode for parsing JSON floats ~ default: False"""
+class WalkdirGen(t.Generic[_T_walkdir]):
+    """walkdir::Walkdir iterable wrapper"""
+
+    def __next__(self) -> _T_walkdir: ...
+    def __iter__(self) -> t.Iterator[_T_walkdir]: ...
+    def collect(self) -> list[_T_walkdir]: ...
+    def take(self, n: int) -> list[_T_walkdir]: ...
 
 
-def parse_json(
-    data: Buffer | bytes | str,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def read_json(
-    p: str | PathLike[str],
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def json_cache_clear() -> None: ...
-def json_cache_usage() -> int: ...
+@t.overload
+def walkdir(
+    path: str | PathLike[str] | None = None,
+    *,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+    objects: t.Literal[True],
+) -> WalkdirGen[WalkDirEntry]: ...
+@t.overload
+def walkdir(
+    path: str | PathLike[str] | None = None,
+    *,
+    objects: t.Literal[False] = False,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+) -> WalkdirGen[str]: ...
 
 ```
-<h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
+<h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
 
 ```python
-"""ryo3-quick-maths types"""
-
-import typing as t
+from ipaddress import IPv4Address, IPv6Address
 
 
-def quick_maths() -> t.Literal[3]:
-    """Performs quick-maths
+class URL:
+    def __init__(
+        self, url: str | URL, *, params: dict[str, str] | None = None
+    ) -> None: ...
 
-    Implements the algorithm for performing "quick-maths" as described by
-    Big Shaq in his PHD thesis, 2017, in which he states:
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def parse(cls, url: str) -> URL: ...
+    @classmethod
+    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
+    @classmethod
+    def from_directory_path(cls, path: str) -> URL: ...
 
-    > "2 plus 2 is 4, minus one that's 3, quick maths." (Big Shaq et al., 2017)
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __fspath__(self) -> str: ...
 
-    Reference:
-        https://youtu.be/3M_5oYU-IsU?t=60
+    # =========================================================================
+    # OPERATORS/DUNDER
+    # =========================================================================
+    def __eq__(self, other: object) -> bool: ...
+    def __ge__(self, other: URL) -> bool: ...
+    def __gt__(self, other: URL) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __le__(self, other: URL) -> bool: ...
+    def __lt__(self, other: URL) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __rtruediv__(self, relative: str) -> URL: ...
+    def __truediv__(self, relative: str) -> URL: ...
 
-    Example:
-        >>> import ry
-        >>> result = ry.quick_maths()
-        >>> assert result == 3
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def authority(self) -> str: ...
+    @property
+    def fragment(self) -> str | None: ...
+    @property
+    def host(self) -> str | None: ...
+    @property
+    def host_str(self) -> str | None: ...
+    @property
+    def netloc(self) -> str: ...
+    @property
+    def password(self) -> str | None: ...
+    @property
+    def path(self) -> str: ...
+    @property
+    def path_segments(self) -> tuple[str, ...]: ...
+    @property
+    def port(self) -> int | None: ...
+    @property
+    def port_or_known_default(self) -> int | None: ...
+    @property
+    def query(self) -> str | None: ...
+    @property
+    def query_pairs(self) -> list[tuple[str, str]]: ...
+    @property
+    def scheme(self) -> str: ...
+    @property
+    def username(self) -> str: ...
+    @property
+    def origin(self) -> str: ...
 
-    NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def has_authority(self) -> bool: ...
+    def has_host(self) -> bool: ...
+    def is_special(self) -> bool: ...
+    def join(self, *parts: str) -> URL: ...
+    def make_relative(self, u: URL) -> URL: ...
+    def to_filepath(self) -> str: ...
+    def replace_fragment(self, fragment: str | None = None) -> URL: ...
+    def replace_host(self, host: str | None = None) -> URL: ...
+    def replace_ip_host(self, host: IPv4Address | IPv6Address) -> URL: ...
+    def replace_password(self, password: str | None = None) -> URL: ...
+    def replace_path(self, path: str) -> URL: ...
+    def replace_port(self, port: int | None = None) -> URL: ...
+    def replace_query(self, query: str | None = None) -> URL: ...
+    def replace_scheme(self, scheme: str) -> URL: ...
+    def replace_username(self, username: str) -> URL: ...
+    def socket_addrs(self) -> None: ...
+    def replace(
+        self,
+        *,
+        fragment: str | None = None,
+        host: str | None = None,
+        ip_host: IPv4Address | None = None,
+        password: str | None = None,
+        path: str | None = None,
+        port: int | None = None,
+        query: str | None = None,
+        scheme: str | None = None,
+        username: str | None = None,
+    ) -> URL: ...
+
+```
+<h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
+
+```python
+import sys
+from typing import overload
+
+import typing_extensions
+
+if sys.version_info >= (3, 12):
+    from collections.abc import Buffer as Buffer
+else:
+    from typing_extensions import Buffer as Buffer
+
+
+class Bytes(Buffer):
+    """
+    A buffer implementing the Python buffer protocol, allowing zero-copy access
+    to underlying Rust memory.
+
+    You can pass this to `memoryview` for a zero-copy view into the underlying
+    data or to `bytes` to copy the underlying data into a Python `bytes`.
+
+    Many methods from the Python `bytes` class are implemented on this,
     """
 
-```
-<h2 id="ry.ryo3._regex"><code>ry.ryo3._regex</code></h2>
+    def __init__(self, buf: Buffer = b"") -> None:
+        """Construct a new Bytes object.
 
-```python
-"""ryo3-regex types"""
+        This will be a zero-copy view on the Python byte slice.
+        """
 
-# =============================================================================
-# Regex
-# =============================================================================
+    def __add__(self, other: Buffer) -> Bytes: ...
+    def __buffer__(self, flags: int) -> memoryview[int]: ...
+    def __contains__(self, other: Buffer) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    @overload
+    def __getitem__(self, other: int) -> int: ...
+    @overload
+    def __getitem__(self, other: slice) -> Bytes: ...
+    def __mul__(self, other: Buffer) -> int: ...
+    def __len__(self) -> int: ...
+    def removeprefix(self, prefix: Buffer, /) -> Bytes:
+        """
+        If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
+        Otherwise, return the original binary data.
+        """
 
+    def removesuffix(self, suffix: Buffer, /) -> Bytes:
+        """
+        If the binary data ends with the suffix string and that suffix is not empty,
+        return `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
+        """
 
-class Regex:
-    def __init__(
-        self,
-        pattern: str,
-        *,
-        case_insensitive: bool = False,
-        crlf: bool = False,
-        dot_matches_new_line: bool = False,
-        ignore_whitespace: bool = False,
-        line_terminator: str | None = None,
-        multi_line: bool = False,
-        octal: bool = False,
-        size_limit: int | None = None,
-        swap_greed: bool = False,
-        unicode: bool = False,
-    ) -> None: ...
-    def is_match(self, string: str) -> bool: ...
-    def find(self, string: str) -> str | None: ...
-    def find_all(self, string: str) -> list[tuple[int, int]]: ...
-    def findall(self, string: str) -> list[tuple[int, int]]: ...
-    def replace(self, string: str, replacement: str) -> str: ...
-    def replace_all(self, string: str, replacement: str) -> str: ...
-    def split(self, string: str) -> list[str]: ...
-    def splitn(self, string: str, n: int) -> list[str]: ...
+    def isalnum(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are alphabetical ASCII characters or
+        ASCII decimal digits and the sequence is not empty, `False` otherwise.
 
-```
-<h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
+        Alphabetic ASCII characters are those byte values in the sequence
+        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`. ASCII decimal digits
+        are those byte values in the sequence `b'0123456789'`.
+        """
 
-```python
-import typing as t
+    def isalpha(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are alphabetic ASCII characters and
+        the sequence is not empty, `False` otherwise.
 
-import ry
-from ry.http import Headers, HttpStatus
-from ry.ryo3 import URL, Duration
+        Alphabetic ASCII characters are those byte values in the sequence
+        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`.
+        """
 
+    def isascii(self) -> bool:
+        """
+        Return `True` if the sequence is empty or all bytes in the sequence are ASCII,
+        `False` otherwise.
 
-class HttpClient:
-    def __init__(
-        self,
-        *,
-        headers: dict[str, str] | None = None,
-        user_agent: str | None = None,  # default ~ 'ry-reqwest/<VERSION> ...'
-        timeout: Duration | None = None,
-        connect_timeout: Duration | None = None,
-        read_timeout: Duration | None = None,
-        gzip: bool = True,
-        brotli: bool = True,
-        deflate: bool = True,
-    ) -> None: ...
-    async def get(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
-    ) -> Response: ...
-    async def post(
-        self,
-        url: str | URL,
-        *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
-    ) -> Response: ...
-    async def put(
-        self,
-        url: str | URL,
-        *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
-    ) -> Response: ...
-    async def delete(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
-    ) -> Response: ...
-    async def patch(
-        self,
-        url: str | URL,
-        *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
-    ) -> Response: ...
-    async def head(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
-    ) -> Response: ...
-    async def fetch(
-        self,
-        url: str | URL,
-        *,
-        method: str = "GET",
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
-    ) -> Response: ...
+        ASCII bytes are in the range `0-0x7F`.
+        """
 
+    def isdigit(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are ASCII decimal digits and the
+        sequence is not empty, `False` otherwise.
 
-class ReqwestError(Exception):
-    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
-    def __dbg__(self) -> str: ...
-    def is_body(self) -> bool: ...
-    def is_builder(self) -> bool: ...
-    def is_connect(self) -> bool: ...
-    def is_decode(self) -> bool: ...
-    def is_redirect(self) -> bool: ...
-    def is_request(self) -> bool: ...
-    def is_status(self) -> bool: ...
-    def is_timeout(self) -> bool: ...
-    def status(self) -> HttpStatus | None: ...
-    def url(self) -> URL | None: ...
+        ASCII decimal digits are those byte values in the sequence `b'0123456789'`.
+        """
 
+    def islower(self) -> bool:
+        """
+        Return `True` if there is at least one lowercase ASCII character in the sequence
+        and no uppercase ASCII characters, `False` otherwise.
+        """
 
-class Response:
-    @property
-    def headers(self) -> Headers: ...
-    async def text(self) -> str: ...
-    async def json(self) -> t.Any: ...
-    async def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(self) -> ResponseStream: ...
-    @property
-    def url(self) -> URL: ...
-    @property
-    def version(
-        self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
-    @property
-    def http_version(
-        self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
-    @property
-    def status(self) -> int: ...
-    @property
-    def status_text(self) -> str: ...
-    @property
-    def status_code(self) -> HttpStatus: ...
-    @property
-    def redirected(self) -> bool: ...
+    def isspace(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
+        is not empty, `False` otherwise.
+
+        ASCII whitespace characters are those byte values
+        in the sequence `b' \t\n\r\x0b\f'` (space, tab, newline, carriage return,
+        vertical tab, form feed).
+        """
+
+    def isupper(self) -> bool:
+        """
+        Return `True` if there is at least one uppercase alphabetic ASCII character in
+        the sequence and no lowercase ASCII characters, `False` otherwise.
+        """
+
+    def lower(self) -> Bytes:
+        """
+        Return a copy of the sequence with all the uppercase ASCII characters converted
+        to their corresponding lowercase counterpart.
+        """
+
+    def upper(self) -> Bytes:
+        """
+        Return a copy of the sequence with all the lowercase ASCII characters converted
+        to their corresponding uppercase counterpart.
+        """
+
+    def to_bytes(self) -> bytes:
+        """Copy this buffer's contents into a Python `bytes` object."""
+
+    # =========================================================================
+    # IMPL IN RY
+    # =========================================================================
+
+    def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
+        """Decode the binary data using the given encoding."""
+
+    def hex(
+        self, sep: str | None = None, bytes_per_sep: int | None = None
+    ) -> str:
+        """Return a hexadecimal representation of the binary data."""
+
+    @classmethod
+    def fromhex(cls, hexstr: str) -> Bytes:
+        """Construct a `Bytes` object from a hexadecimal string."""
 
 
-class ResponseStream:
-    def __aiter__(self) -> ResponseStream: ...
-    async def __anext__(self) -> ry.Bytes: ...
-
-
-async def fetch(
-    url: str | URL,
-    *,
-    client: HttpClient | None = None,
-    method: str = "GET",
-    body: bytes | None = None,
-    headers: dict[str, str] | None = None,
-) -> Response: ...
-
-```
-<h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
-
-```python
-"""ryo3-same-file types"""
-
-from os import PathLike
-
-
-def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
-
-```
-<h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
-
-```python
-"""ryo3-shlex types"""
-
-
-def shplit(s: str) -> list[str]:
-    """shlex::split wrapper much like python's stdlib shlex.split but faster"""
+BytesLike: typing_extensions.TypeAlias = (
+    Buffer | bytes | bytearray | memoryview | Bytes
+)
 
 ```
 <h2 id="ry.ryo3._size"><code>ry.ryo3._size</code></h2>
@@ -2939,738 +3673,109 @@ class Size:
     def from_exbibytes(cls: type[Size], size: float) -> Size: ...
 
 ```
-<h2 id="ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></h2>
+<h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
 
 ```python
 import typing as t
 
-import typing_extensions
-
-# =============================================================================
-# SQLFORMAT
-# =============================================================================
-SqlfmtParamValue: typing_extensions.TypeAlias = str | int | float | bool
-_TSqlfmtParamValue_co = t.TypeVar(
-    "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
-)
-SqlfmtParamsLike: typing_extensions.TypeAlias = (
-    dict[str, _TSqlfmtParamValue_co]
-    | t.Sequence[tuple[str, _TSqlfmtParamValue_co]]
-    | t.Sequence[_TSqlfmtParamValue_co]
-)
+from ry._types import Buffer
 
 
-class SqlfmtQueryParams:
+@t.final
+class Xxh32:
+    name: t.Literal["xxh32"]
+
+    def __init__(self, input: Buffer = ..., seed: int | None = ...) -> None: ...
+    def update(self, input: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh32: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
+
+
+@t.final
+class Xxh64:
+    name: t.Literal["xxh64"]
+
     def __init__(
-        self, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        self, input: Buffer | None = None, seed: int | None = ...
     ) -> None: ...
+    def update(self, input: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh32: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
 
 
-def sqlfmt_params(
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams,
-) -> SqlfmtQueryParams: ...
-def sqlfmt(
-    sql: str,
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
-    | SqlfmtQueryParams
-    | None = None,
-    *,
-    indent: int = 2,  # -1 or any negative value will use tabs
-    uppercase: bool | None = True,
-    lines_between_statements: int = 1,
-) -> str: ...
-
-```
-<h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>
-
-```python
-"""ryo3-std types"""
-
-import datetime as pydt
-import ipaddress
-import pathlib
-import typing as t
-
-from ry import Bytes, FsPath
-from ry._types import Buffer, FsPathLike, ToPy
-
-
-# =============================================================================
-# STD::TIME
-# =============================================================================
-class Duration(ToPy[pydt.timedelta]):
-    ZERO: Duration
-    MIN: Duration
-    MAX: Duration
-    NANOSECOND: Duration
-    MICROSECOND: Duration
-    MILLISECOND: Duration
-    SECOND: Duration
-
-    def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __lt__(self, other: Duration) -> bool: ...
-    def __le__(self, other: Duration) -> bool: ...
-    def __gt__(self, other: Duration) -> bool: ...
-    def __ge__(self, other: Duration) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __richcmp__(
-        self, other: Duration | pydt.timedelta, op: int
-    ) -> bool: ...
-    def __bool__(self) -> bool: ...
-    def __float__(self) -> float: ...
-    def __int__(self) -> int: ...
-    def abs_diff(self, other: Duration) -> Duration: ...
-    def sleep(self) -> None: ...
-
-    # =========================================================================
-    # PYTHON_CONVERSIONS
-    # =========================================================================
-    @classmethod
-    def from_pytimedelta(
-        cls: type[Duration], td: pydt.timedelta
-    ) -> Duration: ...
-    def to_pytimedelta(self) -> pydt.timedelta: ...
-    def to_py(self) -> pydt.timedelta: ...
-
-    # =========================================================================
-    # PROPERTIES
-    # =========================================================================
-    @property
-    def is_zero(self) -> bool: ...
-    @property
-    def nanos(self) -> int: ...
-    @property
-    def secs(self) -> int: ...
-    @property
-    def days(self) -> int: ...
-    @property
-    def seconds(self) -> int: ...
-    @property
-    def microseconds(self) -> int: ...
-    @property
-    def subsec_micros(self) -> int: ...
-    @property
-    def subsec_millis(self) -> int: ...
-    @property
-    def subsec_nanos(self) -> int: ...
-
-    # =========================================================================
-    # CLASSMETHODS
-    # =========================================================================
-    @classmethod
-    def from_hours(cls, hours: int) -> Duration: ...
-    @classmethod
-    def from_micros(cls, micros: int) -> Duration: ...
-    @classmethod
-    def from_millis(cls, millis: int) -> Duration: ...
-    @classmethod
-    def from_mins(cls, mins: int) -> Duration: ...
-    @classmethod
-    def from_nanos(cls, nanos: int) -> Duration: ...
-    @classmethod
-    def from_secs(cls, secs: int) -> Duration: ...
-    @classmethod
-    def from_secs_f32(cls, secs: float) -> Duration: ...
-    @classmethod
-    def from_secs_f64(cls, secs: float) -> Duration: ...
-    @classmethod
-    def from_days(cls, days: int) -> Duration: ...
-    @classmethod
-    def from_weeks(cls, weeks: int) -> Duration: ...
-    def as_micros(self) -> int: ...
-    def as_millis(self) -> int: ...
-    def as_nanos(self) -> int: ...
-    def as_secs(self) -> int: ...
-    def as_secs_f32(self) -> float: ...
-    def as_secs_f64(self) -> float: ...
-
-    # =========================================================================
-    # NOT IMPLEMENTED
-    # =========================================================================
-    def checked_add(self, other: Duration) -> Duration | None: ...
-    def checked_div(self, other: Duration) -> Duration | None: ...
-    def checked_mul(self, other: Duration) -> Duration | None: ...
-    def checked_sub(self, other: Duration) -> Duration | None: ...
-    def div_duration_f32(self, other: Duration) -> float: ...
-    def div_duration_f64(self, other: Duration) -> float: ...
-    def div_f32(self, other: float) -> Duration: ...
-    def div_f64(self, other: float) -> Duration: ...
-    def mul_f32(self, other: float) -> Duration: ...
-    def mul_f64(self, other: float) -> Duration: ...
-    def saturating_add(self, other: Duration) -> Duration: ...
-    def saturating_mul(self, other: Duration) -> Duration: ...
-    def saturating_sub(self, other: Duration) -> Duration: ...
-
-
-class Instant:
-    def __init__(self) -> None: ...
-    @classmethod
-    def now(cls) -> Instant: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __lt__(self, other: Instant) -> bool: ...
-    def __le__(self, other: Instant) -> bool: ...
-    def __gt__(self, other: Instant) -> bool: ...
-    def __ge__(self, other: Instant) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __add__(self, other: Duration) -> Instant: ...
-    @t.overload
-    def __sub__(self, other: Duration) -> Instant: ...
-    @t.overload
-    def __sub__(self, other: Instant) -> Duration: ...
-
-    # =========================================================================
-    # INSTANCE METHODS
-    # =========================================================================
-    def checked_add(self, other: Duration) -> Instant | None: ...
-    def checked_duration_since(self, earlier: Instant) -> Duration | None: ...
-    def checked_sub(self, other: Duration) -> Instant | None: ...
-    def duration_since(self, earlier: Instant) -> Duration: ...
-    def elapsed(self) -> Duration: ...
-    def saturating_duration_since(self, earlier: Instant) -> Duration: ...
-
-
-def instant() -> Instant: ...
-def sleep(seconds: float) -> float: ...
-
-
-# =============================================================================
-# STD::FS
-# =============================================================================
-class FileType:
-    @property
-    def is_dir(self) -> bool: ...
-    @property
-    def is_file(self) -> bool: ...
-    @property
-    def is_symlink(self) -> bool: ...
-
-
-class Metadata:
-    @property
-    def file_type(self) -> FileType: ...
-    @property
-    def len(self) -> int: ...
-    @property
-    def is_empty(self) -> bool: ...
-    @property
-    def modified(self) -> pydt.datetime: ...
-    @property
-    def accessed(self) -> pydt.datetime: ...
-    @property
-    def created(self) -> pydt.datetime: ...
-    @property
-    def is_dir(self) -> bool: ...
-    @property
-    def is_file(self) -> bool: ...
-    @property
-    def is_symlink(self) -> bool: ...
-
-
-class DirEntry:
-    def __fspath__(self) -> str: ...
-    @property
-    def path(self) -> pathlib.Path: ...
-    @property
-    def basename(self) -> str: ...
-    @property
-    def metadata(self) -> Metadata: ...
-    @property
-    def file_type(self) -> FileType: ...
-
-
-# ============================================================================
-# STD::FS ~ functions
-# =============================================================================
-def read(path: FsPathLike) -> Bytes: ...
-def read_bytes(path: FsPathLike) -> bytes: ...
-def read_dir(
-    path: FsPathLike,
-) -> t.Iterator[DirEntry]: ...
-def read_text(path: FsPathLike) -> str: ...
-def read_stream(
-    path: FsPathLike,
-    chunk_size: int = 65536,
-    *,
-    offset: int = 0,
-) -> t.Iterator[Bytes]: ...
-def write(path: FsPathLike, data: Buffer | str) -> int: ...
-def write_bytes(path: FsPathLike, data: bytes) -> int: ...
-def write_text(path: FsPathLike, data: str) -> int: ...
-def canonicalize(path: FsPathLike) -> FsPath: ...
-def copy(from_path: FsPathLike, to_path: FsPathLike) -> int: ...
-def create_dir(path: FsPathLike) -> None: ...
-def create_dir_all(path: FsPathLike) -> None: ...
-def exists(path: FsPathLike) -> bool: ...
-def is_dir(path: FsPathLike) -> bool: ...
-def is_file(path: FsPathLike) -> bool: ...
-def is_symlink(path: FsPathLike) -> bool: ...
-def metadata(path: FsPathLike) -> Metadata: ...
-def remove_dir(path: FsPathLike) -> None: ...
-def remove_dir_all(path: FsPathLike) -> None: ...
-def remove_file(path: FsPathLike) -> None: ...
-def rename(from_path: FsPathLike, to_path: FsPathLike) -> None: ...
-
-
-# =============================================================================
-# STD::NET
-# =============================================================================
-
-
-class Ipv4Addr:
-    BROADCAST: Ipv4Addr
-    LOCALHOST: Ipv4Addr
-    UNSPECIFIED: Ipv4Addr
-
-    @t.overload
-    def __init__(self, a: int, b: int, c: int, d: int) -> None: ...
-    @t.overload
-    def __init__(self, iplike: int | str | bytes | Ipv4Addr) -> None: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __lt__(self, other: Ipv4Addr) -> bool: ...
-    def __le__(self, other: Ipv4Addr) -> bool: ...
-    def __gt__(self, other: Ipv4Addr) -> bool: ...
-    def __ge__(self, other: Ipv4Addr) -> bool: ...
-    def __hash__(self) -> int: ...
-    def to_py(self) -> ipaddress.IPv4Address: ...
-
-    # ========================================================================
-    # PROPERTIES
-    # ========================================================================
-    @property
-    def version(self) -> int: ...
-    @property
-    def is_broadcast(self) -> bool: ...
-    @property
-    def is_documentation(self) -> bool: ...
-    @property
-    def is_link_local(self) -> bool: ...
-    @property
-    def is_loopback(self) -> bool: ...
-    @property
-    def is_multicast(self) -> bool: ...
-    @property
-    def is_private(self) -> bool: ...
-    @property
-    def is_unspecified(self) -> bool: ...
-    @property
-    def is_benchmarking(self) -> t.NoReturn: ...
-    @property
-    def is_global(self) -> t.NoReturn: ...
-    @property
-    def is_reserved(self) -> t.NoReturn: ...
-    @property
-    def is_shared(self) -> t.NoReturn: ...
-
-    # ========================================================================
-    # CLASSMETHODS
-    # ========================================================================
-    @classmethod
-    def parse(cls, s: str) -> Ipv4Addr: ...
-    @classmethod
-    def from_bits(cls, bits: int) -> Ipv4Addr: ...
-    @classmethod
-    def from_octets(cls, b: bytes) -> Ipv4Addr: ...
-
-    # =======================================================================
-    # METHODS
-    # =======================================================================
-    def to_ipaddr(self) -> IpAddr: ...
-
-
-class Ipv6Addr:
-    LOCALHOST: Ipv6Addr
-    UNSPECIFIED: Ipv6Addr
-
-    @t.overload
-    def __init__(
-        self, a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int
-    ) -> None: ...
-    @t.overload
-    def __init__(self, iplike: int | str | bytes | Ipv6Addr) -> None: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __lt__(self, other: Ipv6Addr) -> bool: ...
-    def __le__(self, other: Ipv6Addr) -> bool: ...
-    def __gt__(self, other: Ipv6Addr) -> bool: ...
-    def __ge__(self, other: Ipv6Addr) -> bool: ...
-    def __hash__(self) -> int: ...
-    def to_py(self) -> ipaddress.IPv6Address: ...
-
-    # ========================================================================
-    # PROPERTIES
-    # ========================================================================
-    @property
-    def version(self) -> int: ...
-    @property
-    def is_loopback(self) -> bool: ...
-    @property
-    def is_multicast(self) -> bool: ...
-    @property
-    def is_unicast_link_local(self) -> bool: ...
-    @property
-    def is_unique_local(self) -> bool: ...
-    @property
-    def is_unspecified(self) -> bool: ...
-    @property
-    def is_benchmarking(self) -> t.NoReturn: ...
-    @property
-    def is_documentation(self) -> t.NoReturn: ...
-    @property
-    def is_global(self) -> t.NoReturn: ...
-    @property
-    def is_ipv4_mapped(self) -> t.NoReturn: ...
-    @property
-    def is_unicast(self) -> t.NoReturn: ...
-    @property
-    def is_unicast_global(self) -> t.NoReturn: ...
-
-    # ========================================================================
-    # CLASSMETHODS
-    # ========================================================================
-    @classmethod
-    def parse(cls, s: str) -> Ipv4Addr: ...
-    @classmethod
-    def from_bits(cls, bits: int) -> IpAddr: ...
-
-    # =======================================================================
-    # METHODS
-    # =======================================================================
-    def to_ipaddr(self) -> IpAddr: ...
-
-
-class IpAddr:
-    BROADCAST: IpAddr
-    LOCALHOST_V4: IpAddr
-    UNSPECIFIED_V4: IpAddr
-    LOCALHOST_V6: IpAddr
-    UNSPECIFIED_V6: IpAddr
+@t.final
+class Xxh3:
+    name: t.Literal["xxh3"]
 
     def __init__(
         self,
-        iplike: int
-        | str
-        | bytes
-        | ipaddress.IPv4Address
-        | ipaddress.IPv6Address,
+        input: Buffer = ...,
+        seed: int | None = ...,
+        secret: bytes | None = ...,
     ) -> None: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __lt__(self, other: IpAddr) -> bool: ...
-    def __le__(self, other: IpAddr) -> bool: ...
-    def __gt__(self, other: IpAddr) -> bool: ...
-    def __ge__(self, other: IpAddr) -> bool: ...
-    def __hash__(self) -> int: ...
-    def to_py(self) -> ipaddress.IPv4Address | ipaddress.IPv6Address: ...
-    def to_ipv4(self) -> Ipv4Addr: ...
-    def to_ipv6(self) -> Ipv6Addr: ...
-
-    # =========================================================================
-    # CLASSMETHODS
-    # =========================================================================
-    @classmethod
-    def parse(cls, ip: str) -> IpAddr: ...
-
-    # ========================================================================
-    # PROPERTIES
-    # ========================================================================
-
+    def update(self, input: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
     @property
-    def version(self) -> int: ...
-    @property
-    def is_benchmarking(self) -> t.NoReturn: ...
-    @property
-    def is_ipv4(self) -> bool: ...
-    @property
-    def is_ipv6(self) -> bool: ...
-    @property
-    def is_broadcast(self) -> bool: ...
-    @property
-    def is_documentation(self) -> bool: ...
-    @property
-    def is_loopback(self) -> bool: ...
-    @property
-    def is_multicast(self) -> bool: ...
-    @property
-    def is_private(self) -> bool: ...
-    @property
-    def is_unspecified(self) -> bool: ...
-
-    # =======================================================================
-    # METHODS
-    # =======================================================================
-    def to_canonical(self) -> IpAddr: ...
-
-```
-<h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
-
-```python
-"""ryo4-tokio types"""
-
-import pathlib
-from typing import NoReturn
-
-from ry import Bytes
-from ry._types import Buffer, FsPathLike
-from ry.ryo3._std import FileType, Metadata
+    def seed(self) -> int: ...
+    def digest128(self) -> bytes: ...
+    def hexdigest128(self) -> str: ...
+    def intdigest128(self) -> int: ...
+    def copy(self) -> Xxh3: ...
+    def reset(self) -> None: ...
 
 
-# =============================================================================
-# FS
-# =============================================================================
-async def copy_async(src: FsPathLike, dst: FsPathLike) -> None: ...
-async def create_dir_async(path: FsPathLike) -> None: ...
-async def metadata_async(path: FsPathLike) -> None: ...
-async def read_async(path: FsPathLike) -> Bytes: ...
-async def remove_dir_async(path: FsPathLike) -> None: ...
-async def remove_file_async(path: FsPathLike) -> None: ...
-async def rename_async(src: FsPathLike, dst: FsPathLike) -> None: ...
-async def write_async(path: FsPathLike, data: Buffer) -> None: ...
+def xxh32(input: Buffer | None = None, seed: int | None = None) -> Xxh32: ...
+def xxh64(input: Buffer | None = None, seed: int | None = None) -> Xxh64: ...
+def xxh3(
+    input: Buffer | None = None,
+    seed: int | None = None,
+    secret: bytes | None = None,
+) -> Xxh3: ...
 
 
-class DirEntryAsync:
-    def __fspath__(self) -> str: ...
-    @property
-    def path(self) -> pathlib.Path: ...
-    @property
-    def basename(self) -> str: ...
-    @property
-    async def metadata(self) -> Metadata: ...
-    @property
-    async def file_type(self) -> FileType: ...
+# xxh32
+def xxh32_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh32_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh32_intdigest(input: Buffer, seed: int | None = None) -> int: ...
 
 
-class ReadDirAsync:
-    """Async iterator for read_dir_async"""
-
-    def __aiter__(self) -> ReadDirAsync: ...
-    async def __anext__(self) -> DirEntryAsync: ...
-    async def collect(self) -> list[DirEntryAsync]: ...
-    async def take(self, n: int) -> list[DirEntryAsync]: ...
+# xxh64
+def xxh64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
 
 
-async def read_dir_async(path: FsPathLike) -> ReadDirAsync: ...
+# xxh128
+def xxh128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
 
 
-# =============================================================================
-# SLEEP
-# =============================================================================
-async def sleep_async(seconds: float) -> float: ...
-async def asleep(seconds: float) -> float:
-    """Alias for sleep_async"""
-
-```
-<h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
-
-```python
-"""ryo3-unindent types"""
+# xxh3
+def xxh3_64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+def xxh3_64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh3_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+def xxh3_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
 
 
-def unindent(string: str) -> str: ...
-def unindent_bytes(string: bytes) -> bytes: ...
-
-```
-<h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
-
-```python
-from ipaddress import IPv4Address, IPv6Address
-
-
-class URL:
-    def __init__(
-        self, url: str | URL, *, params: dict[str, str] | None = None
-    ) -> None: ...
-
-    # =========================================================================
-    # CLASSMETHODS
-    # =========================================================================
-    @classmethod
-    def parse(cls, url: str) -> URL: ...
-    @classmethod
-    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
-    @classmethod
-    def from_directory_path(cls, path: str) -> URL: ...
-
-    # =========================================================================
-    # STRING
-    # =========================================================================
-    def __fspath__(self) -> str: ...
-
-    # =========================================================================
-    # OPERATORS/DUNDER
-    # =========================================================================
-    def __eq__(self, other: object) -> bool: ...
-    def __ge__(self, other: URL) -> bool: ...
-    def __gt__(self, other: URL) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __le__(self, other: URL) -> bool: ...
-    def __lt__(self, other: URL) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __rtruediv__(self, relative: str) -> URL: ...
-    def __truediv__(self, relative: str) -> URL: ...
-
-    # =========================================================================
-    # PROPERTIES
-    # =========================================================================
-    @property
-    def authority(self) -> str: ...
-    @property
-    def fragment(self) -> str | None: ...
-    @property
-    def host(self) -> str | None: ...
-    @property
-    def host_str(self) -> str | None: ...
-    @property
-    def netloc(self) -> str: ...
-    @property
-    def password(self) -> str | None: ...
-    @property
-    def path(self) -> str: ...
-    @property
-    def path_segments(self) -> tuple[str, ...]: ...
-    @property
-    def port(self) -> int | None: ...
-    @property
-    def port_or_known_default(self) -> int | None: ...
-    @property
-    def query(self) -> str | None: ...
-    @property
-    def query_pairs(self) -> list[tuple[str, str]]: ...
-    @property
-    def scheme(self) -> str: ...
-    @property
-    def username(self) -> str: ...
-    @property
-    def origin(self) -> str: ...
-
-    # =========================================================================
-    # INSTANCE METHODS
-    # =========================================================================
-    def has_authority(self) -> bool: ...
-    def has_host(self) -> bool: ...
-    def is_special(self) -> bool: ...
-    def join(self, *parts: str) -> URL: ...
-    def make_relative(self, u: URL) -> URL: ...
-    def to_filepath(self) -> str: ...
-    def replace_fragment(self, fragment: str | None = None) -> URL: ...
-    def replace_host(self, host: str | None = None) -> URL: ...
-    def replace_ip_host(self, host: IPv4Address | IPv6Address) -> URL: ...
-    def replace_password(self, password: str | None = None) -> URL: ...
-    def replace_path(self, path: str) -> URL: ...
-    def replace_port(self, port: int | None = None) -> URL: ...
-    def replace_query(self, query: str | None = None) -> URL: ...
-    def replace_scheme(self, scheme: str) -> URL: ...
-    def replace_username(self, username: str) -> URL: ...
-    def socket_addrs(self) -> None: ...
-    def replace(
-        self,
-        *,
-        fragment: str | None = None,
-        host: str | None = None,
-        ip_host: IPv4Address | None = None,
-        password: str | None = None,
-        path: str | None = None,
-        port: int | None = None,
-        query: str | None = None,
-        scheme: str | None = None,
-        username: str | None = None,
-    ) -> URL: ...
-
-```
-<h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
-
-```python
-"""ryo3-walkdir types"""
-
-import typing as t
-from os import PathLike
-
-from ry import FileType, FsPath, Glob, GlobSet, Globster
-
-
-class WalkDirEntry:
-    def __fspath__(self) -> str: ...
-    @property
-    def path(self) -> FsPath: ...
-    @property
-    def file_name(self) -> str: ...
-    @property
-    def depth(self) -> int: ...
-    @property
-    def path_is_symlink(self) -> bool: ...
-    @property
-    def file_type(self) -> FileType: ...
-    @property
-    def is_dir(self) -> bool: ...
-    @property
-    def is_file(self) -> bool: ...
-    @property
-    def is_symlink(self) -> bool: ...
-    @property
-    def len(self) -> int: ...
-
-
-_T_walkdir = t.TypeVar(
-    "_T_walkdir",
-    bound=WalkDirEntry | str,
-)
-
-
-class WalkdirGen(t.Generic[_T_walkdir]):
-    """walkdir::Walkdir iterable wrapper"""
-
-    def __next__(self) -> _T_walkdir: ...
-    def __iter__(self) -> t.Iterator[_T_walkdir]: ...
-    def collect(self) -> list[_T_walkdir]: ...
-    def take(self, n: int) -> list[_T_walkdir]: ...
-
-
-@t.overload
-def walkdir(
-    path: str | PathLike[str] | None = None,
-    *,
-    files: bool = True,
-    dirs: bool = True,
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-    objects: t.Literal[True],
-) -> WalkdirGen[WalkDirEntry]: ...
-@t.overload
-def walkdir(
-    path: str | PathLike[str] | None = None,
-    *,
-    objects: t.Literal[False] = False,
-    files: bool = True,
-    dirs: bool = True,
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    same_file_system: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-) -> WalkdirGen[str]: ...
-
-```
-<h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
-
-```python
-"""ryo3-which types"""
-
-from pathlib import Path
-
-from ry.ryo3._regex import Regex
-
-
-def which(cmd: str, path: None | str = None) -> Path | None: ...
-def which_all(cmd: str, path: None | str = None) -> list[Path]: ...
-def which_re(regex: str | Regex, path: None | str = None) -> list[Path]: ...
+# xxh128
+def xxh3_128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
 
 ```
 <h2 id="ry.dirs"><code>ry.dirs</code></h2>
@@ -3875,111 +3980,6 @@ class HttpStatus:
     NETWORK_AUTHENTICATION_REQUIRED: (
         HttpStatus  # 511 ~ Network Authentication Required
     )
-
-```
-<h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
-
-```python
-import typing as t
-
-from ry._types import Buffer
-
-
-@t.final
-class Xxh32:
-    name: t.Literal["xxh32"]
-
-    def __init__(self, input: Buffer = ..., seed: int | None = ...) -> None: ...
-    def update(self, input: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh32: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
-
-
-@t.final
-class Xxh64:
-    name: t.Literal["xxh64"]
-
-    def __init__(
-        self, input: Buffer | None = None, seed: int | None = ...
-    ) -> None: ...
-    def update(self, input: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh32: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
-
-
-@t.final
-class Xxh3:
-    name: t.Literal["xxh3"]
-
-    def __init__(
-        self,
-        input: Buffer = ...,
-        seed: int | None = ...,
-        secret: bytes | None = ...,
-    ) -> None: ...
-    def update(self, input: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    @property
-    def seed(self) -> int: ...
-    def digest128(self) -> bytes: ...
-    def hexdigest128(self) -> str: ...
-    def intdigest128(self) -> int: ...
-    def copy(self) -> Xxh3: ...
-    def reset(self) -> None: ...
-
-
-def xxh32(input: Buffer | None = None, seed: int | None = None) -> Xxh32: ...
-def xxh64(input: Buffer | None = None, seed: int | None = None) -> Xxh64: ...
-def xxh3(
-    input: Buffer | None = None,
-    seed: int | None = None,
-    secret: bytes | None = None,
-) -> Xxh3: ...
-
-
-# xxh32
-def xxh32_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh32_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh32_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh64
-def xxh64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh128
-def xxh128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh3
-def xxh3_64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-def xxh3_64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh3_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-def xxh3_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-
-
-# xxh128
-def xxh3_128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
 
 ```
 <h2 id="ry.zstd"><code>ry.zstd</code></h2>

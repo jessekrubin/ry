@@ -90,6 +90,18 @@ async def test_client_headers_req(server: ReqtestServer) -> None:
     assert res_json["headers"]["babydog"] == "dingo"
 
 
+async def test_client_headers_obj_req(server: ReqtestServer) -> None:
+    """Test that headers are sent with the request and work good"""
+    url = server.url
+    client = ry.HttpClient()
+    headers = {"User-Agent": "ry-test", "babydog": "dingo"}
+    response = await client.get(str(url) + "echo", headers=ry.Headers(headers))
+    assert response.status_code == 200
+    res_json = await response.json()
+    assert res_json["headers"]["user-agent"] == "ry-test"
+    assert res_json["headers"]["babydog"] == "dingo"
+
+
 async def test_client_default_headers_get(server: ReqtestServer) -> None:
     """Test that default headers are sent with the request and work good"""
     url = server.url
