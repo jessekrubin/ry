@@ -27,6 +27,7 @@ ryo3-macros.workspace = true
 ryo3-std.workspace = true
 reqwest.workspace = true
 parking_lot.workspace = true
+serde = { version = "1.0.219", features = ["derive"] }
 
 
 [lints]

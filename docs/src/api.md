@@ -2522,7 +2522,7 @@ from typing_extensions import TypeAlias
 
 import ry
 from ry._types import Buffer
-from ry.http import Headers, HttpStatus
+from ry.http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3 import URL, Duration
 
 HeadersLike: TypeAlias = Headers | dict[str, str]
@@ -2578,6 +2578,11 @@ class HttpClient:
         method: str = "GET",
         body: Buffer | None = None,
         headers: HeadersLike | None = None,
+        query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+        multipart: t.Any,  # TODO
+        form: t.Any,  # TODO
+        timeout: Duration | None = None,
+        version: HttpVersionLike,
     ) -> Response: ...
 
 
@@ -2639,6 +2644,11 @@ async def fetch(
     method: str = "GET",
     body: Buffer | None = None,
     headers: HeadersLike | None = None,
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+    multipart: t.Any,  # TODO
+    form: t.Any,  # TODO
+    timeout: Duration | None = None,
+    version: HttpVersionLike,
 ) -> Response: ...
 
 ```
@@ -3618,6 +3628,18 @@ def video_dir() -> str | None: ...
 
 ```python
 import typing as t
+
+import typing_extensions
+
+# fmt: off
+HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
+    "HTTP/0.9", "0.9", 0,
+    "HTTP/1.0", "1.0", 1, 10,
+    "HTTP/1.1", "1.1", 11,
+    "HTTP/2.0", "2.0", 2, 20,
+    "HTTP/3.0", "3.0", 3, 30,
+]
+# fmt: on
 
 
 class Headers:

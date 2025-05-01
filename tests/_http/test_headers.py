@@ -4,6 +4,32 @@ from ry import Headers
 
 
 class TestHeadersObj:
+    def test_kwargs(self) -> None:
+        h = Headers(
+            **{
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
+        assert len(h) == 2
+        assert h["Content-Type"] == "application/json"
+        assert h["Accept"] == "application/json"
+
+    def test_kwargs_and_dictionary(self) -> None:
+        h = Headers(
+            {
+                "Content-Type": "application/json",
+            },
+            **{
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+            },
+        )
+        assert len(h) == 2
+        # kwargs overwrite dictionary
+        assert h["Content-Type"] == "application/x-www-form-urlencoded"
+        assert h["Accept"] == "application/json"
+
     def test_len_and_keys_len(self) -> None:
         h = Headers({"Content-Type": "application/json", "Accept": "application/json"})
         h.append("content-Type", "application/xml")

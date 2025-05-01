@@ -4,7 +4,7 @@ from typing_extensions import TypeAlias
 
 import ry
 from ry._types import Buffer
-from ry.http import Headers, HttpStatus
+from ry.http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3 import URL, Duration
 
 HeadersLike: TypeAlias = Headers | dict[str, str]
@@ -59,6 +59,11 @@ class HttpClient:
         method: str = "GET",
         body: Buffer | None = None,
         headers: HeadersLike | None = None,
+        query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+        multipart: t.Any,  # TODO
+        form: t.Any,  # TODO
+        timeout: Duration | None = None,
+        version: HttpVersionLike,
     ) -> Response: ...
 
 class ReqwestError(Exception):
@@ -112,4 +117,9 @@ async def fetch(
     method: str = "GET",
     body: Buffer | None = None,
     headers: HeadersLike | None = None,
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+    multipart: t.Any,  # TODO
+    form: t.Any,  # TODO
+    timeout: Duration | None = None,
+    version: HttpVersionLike,
 ) -> Response: ...

@@ -1843,6 +1843,7 @@ dependencies = [
  "ryo3-macros",
  "ryo3-std",
  "ryo3-url",
+ "serde",
  "tokio",
  "tracing",
 ]
