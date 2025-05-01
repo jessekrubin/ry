@@ -1,5 +1,17 @@
 import typing as t
 
+import typing_extensions
+
+# fmt: off
+HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
+    "HTTP/0.9", "0.9", 0,
+    "HTTP/1.0", "1.0", 1, 10,
+    "HTTP/1.1", "1.1", 11,
+    "HTTP/2.0", "2.0", 2, 20,
+    "HTTP/3.0", "3.0", 3, 30,
+]
+# fmt: on
+
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 

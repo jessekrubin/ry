@@ -5,13 +5,14 @@ use futures_core::Stream;
 use futures_util::StreamExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict, PyList, PyTuple};
 use pyo3::{intern, IntoPyObjectExt};
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_ENCODING};
 use reqwest::StatusCode;
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macros::err_py_not_impl;
 use ryo3_url::{extract_url, PyUrl};
+use serde::Serialize;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -609,8 +610,9 @@ impl RyHttpClient {
         if let Some(ref version) = version {
             req = req.version(version.0);
         }
-        if let Some(_query) = query {
-            return err_py_not_impl!("query not implemented (yet)");
+        if let Some(query) = query {
+            let q = QueryLike::extract_bound(query)?;
+            req = req.query(&q);
         }
         if let Some(_multipart) = multipart {
             return err_py_not_impl!("multipart not implemented (yet)");
@@ -629,8 +631,6 @@ impl RyHttpClient {
         if let Some(timeout) = timeout {
             req = req.timeout(timeout.0);
         }
-        debug!("version: {:?}", version);
-
         debug!("reqwest-client-fetch: {:#?}", req);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
@@ -638,5 +638,56 @@ impl RyHttpClient {
                 .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
+    }
+}
+
+#[derive(Serialize, FromPyObject)]
+#[serde(untagged)] // I think this is the way????????? but not sure....
+enum QueryValue {
+    Bool(bool),
+    I64(i64),
+    Float(f64),
+    String(String),
+}
+#[derive(Serialize)]
+struct QueryLike(Vec<(String, QueryValue)>);
+
+impl FromPyObject<'_> for QueryLike {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(pairs) = ob.downcast::<PyDict>() {
+            let mut vec = Vec::new();
+            for (k, v) in pairs.iter() {
+                if k.is_none() || v.is_none() {
+                    continue;
+                }
+                let k = k.extract::<String>()?;
+                let v = v.extract::<QueryValue>()?;
+                vec.push((k, v));
+            }
+            Ok(QueryLike(vec))
+        } else if let Ok(pairs) = ob.downcast::<PyTuple>() {
+            let mut vec = Vec::new();
+            for item in pairs.iter() {
+                if item.is_none() {
+                    continue;
+                }
+                let item = item.extract::<(String, QueryValue)>()?;
+                vec.push(item);
+            }
+            return Ok(QueryLike(vec));
+        } else if let Ok(pairs) = ob.downcast::<PyList>() {
+            let mut vec = Vec::new();
+            for item in pairs.iter() {
+                if item.is_none() {
+                    continue;
+                }
+                let item = item.extract::<(String, QueryValue)>()?;
+                vec.push(item);
+            }
+            return Ok(QueryLike(vec));
+        } else {
+            println!("Invalid query: {ob:?}");
+            Err(PyValueError::new_err("Invalid query"))
+        }
     }
 }

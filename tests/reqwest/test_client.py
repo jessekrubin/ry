@@ -17,17 +17,71 @@ async def test_get(server: ReqtestServer) -> None:
     assert response.version == "HTTP/1.1"
     res_text = await response.text()
     assert res_text == '{"howdy": "partner"}'
-    # assert response.http_version == "HTTP/1.1"
-    # assert response.headers
 
-    # async with ry.AsyncClient() as client:
-    #     response = await client.get(url)
-    # assert response.status_code == 200
-    # assert response.text == "Hello, world!"
-    # assert response.http_version == "HTTP/1.1"
-    # assert response.headers
-    # assert repr(response) == "<Response [200 OK]>"
-    # assert response.elapsed > timedelta(seconds=0)
+
+@pytest.mark.anyio
+async def test_get_query(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient()
+    query_params = {
+        "dog": "dingo",
+        "is-dingo": True,
+        "bluey-fam-size": 4,
+        "fraction-red-heelers": 2 / 4,
+    }
+    response = await client.fetch(str(url) + "howdy", query=query_params)
+    assert response.status_code == 200
+    assert response.version == "HTTP/1.1"
+    assert not response.redirected
+    assert response.status == 200
+    assert response.status_text == "OK"
+    assert response.status_code == ry.HttpStatus(200)
+    res_text = await response.text()
+    assert res_text == '{"howdy": "partner"}'
+
+    expected_query = "dog=dingo&is-dingo=true&bluey-fam-size=4&fraction-red-heelers=0.5"
+    assert response.url.query == expected_query
+
+    assert response.url.query_pairs == (
+        ("dog", "dingo"),
+        ("is-dingo", "true"),
+        ("bluey-fam-size", "4"),
+        ("fraction-red-heelers", "0.5"),
+    )
+
+
+@pytest.mark.anyio
+async def test_get_query_url_already_has_param(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient()
+    query_params = {
+        "dog": "dingo",
+        "is-dingo": True,
+        "bluey-fam-size": 4,
+        "fraction-red-heelers": 2 / 4,
+    }
+    response = await client.fetch(str(url) + "howdy?doggy=bruf", query=query_params)
+    assert response.status_code == 200
+    assert response.version == "HTTP/1.1"
+    assert not response.redirected
+    assert response.status == 200
+    assert response.status_text == "OK"
+    assert response.status_code == ry.HttpStatus(200)
+    res_text = await response.text()
+    assert res_text == '{"howdy": "partner"}'
+
+    expected_query = (
+        "doggy=bruf&dog=dingo&is-dingo=true&bluey-fam-size=4&fraction-red-heelers=0.5"
+    )
+    assert response.url.query == expected_query
+
+    assert response.url.query_pairs == (
+        ("doggy", "bruf"),
+        ("dog", "dingo"),
+        ("is-dingo", "true"),
+        ("bluey-fam-size", "4"),
+        ("fraction-red-heelers", "0.5"),
+    )
 
 
 @pytest.mark.anyio
@@ -68,14 +122,6 @@ async def test_get_stream(server: ReqtestServer) -> None:
     async for thing in response.bytes_stream():
         parts += thing
     assert parts == expected
-    # async with ry.AsyncClient() as client:
-    #     response = await client.get(url)
-    #     assert response.status_code == 200
-    #     assert response.text == "Hello, world!"
-    #     assert response.http_version == "HTTP/1.1"
-    #     assert response.headers
-    #     assert repr(response) == "<Response [200 OK]>"
-    #     assert response.elapsed > timedelta(seconds=0)
 
 
 async def test_client_headers_req(server: ReqtestServer) -> None:
