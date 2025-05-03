@@ -63,6 +63,36 @@ async def echo(
     yield {"type": "http.response.body", "body": json.dumps(data_body_dict).encode()}
 
 
+async def cookie_monster(
+    scope: Scope, receive: Receive, send: Send
+) -> AsyncGenerator[uvt.ASGISendEvent]:
+    """Route for testing cookies
+
+    This route will set a cookie and return the cookie in the response
+    """
+    assert scope["method"] == "GET"
+    headers = {k.decode(): v.decode() for k, v in scope.get("headers", [])}
+    cookie = headers.get("cookie", "")
+    cookie_dict = {}
+    if cookie:
+        for c in cookie.split(";"):
+            k, v = c.split("=")
+            cookie_dict[k.strip()] = v.strip()
+
+    yield uvt.HTTPResponseStartEvent(
+        type="http.response.start",
+        status=200,
+        headers=[
+            (b"content-type", b"application/json"),
+            (b"set-cookie", b"ryo3=ryo3; Path=/"),
+        ],
+    )
+    yield {
+        "type": "http.response.body",
+        "body": json.dumps(cookie_dict).encode(),
+    }
+
+
 async def four_oh_four(
     scope: Scope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
@@ -176,6 +206,8 @@ def router(
         return slow_response
     elif scope["path"].startswith("/upload"):
         return upload_file
+    elif scope["path"].startswith("/cookie"):
+        return cookie_monster
     else:
         return four_oh_four
 

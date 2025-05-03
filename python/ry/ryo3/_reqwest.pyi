@@ -14,6 +14,7 @@ class HttpClient:
         self,
         *,
         headers: dict[str, str] | None = None,
+        cookies: bool = False,
         user_agent: str | None = None,  # default ~ 'ry-reqwest/<VERSION> ...'
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,

@@ -17,7 +17,7 @@ use tokio::sync::Mutex;
 // clippy says this is too long and complicated to just sit in the struct def
 type AsyncResponseStreamInner =
     Arc<Mutex<Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send>>>>;
-#[pyclass(name = "ResponseStream", module = "ry.ryo3.reqwest")]
+#[pyclass(name = "ResponseStream", module = "ry.ryo3.reqwest", frozen)]
 pub struct RyResponseStream {
     pub(crate) stream: AsyncResponseStreamInner,
 }

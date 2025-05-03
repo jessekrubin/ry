@@ -70,11 +70,11 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
 impl ClientConfig {
     fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         let mut client_builder = client_builder
-            .gzip(false)
-            .brotli(true)
-            .deflate(false)
-            .zstd(false)
-            .cookie_store(true);
+            .gzip(self.gzip)
+            .brotli(self.brotli)
+            .deflate(self.deflate)
+            .zstd(self.zstd)
+            .cookie_store(self.cookies);
         if let Some(user_agent) = &self.user_agent {
             client_builder = client_builder.user_agent(user_agent.clone());
         }
@@ -146,6 +146,7 @@ impl RyHttpClient {
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
+        println!("cookies: {cookies:?}");
         let client_cfg = ClientConfig {
             headers,
             cookies,
