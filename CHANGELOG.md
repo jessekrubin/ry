@@ -7,6 +7,7 @@
   - Got response type more inline with other python http-client libraries
   - try `parking_lot` for default `reqwest` client mutex
   - include missing kwargs for fetch functions
+  -
 - `ryo3-http`
   - http version python conversions to/from string/int
   - status code reason(s) interned
@@ -16,7 +17,6 @@
   - pyo3 version 0.24.2
   - brotli 8
   - jiff patch
-
 
 ---
 
@@ -57,8 +57,8 @@
 - `ryo3-zstd`
   - actually changed to use py buffer protocol this time... I dont know how it
     got missed before...
-  - re-factored a decent bit and made submodule with future plans to expand encoding/decoding dictionary
-    support
+  - re-factored a decent bit and made submodule with future plans to expand
+    encoding/decoding dictionary support
   - submodule is `ry.zstd` and/or `ry.ryo3.zstd`
 
 ---

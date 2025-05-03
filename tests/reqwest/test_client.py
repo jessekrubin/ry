@@ -172,21 +172,21 @@ async def test_client_post(server: ReqtestServer) -> None:
 async def test_client_timeout_dev(server: ReqtestServer) -> None:
     url = server.url
     client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
-    try:
-        res = await client.get(str(url) + "slow")
-        print(res)
-        text = await res.text()
-        print(text)
-    except ry.ReqwestError as e:
-        assert "TimedOut" in str(e)
-        print("exception", e)
-        print("repr", repr(e))
-        print("str", str(e))
-        print("type", type(e))
-        print("dir", dir(e))
-        print("args", e.args)
-        print(e)
-        print(type(e))
+    res = await client.get(str(url) + "slow")
+    assert res.status_code == 200
+    with pytest.raises(ry.ReqwestError, match="TimedOut"):
+        _text = await res.text()
+
+
+async def test_client_timeout_get_both_same_time(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient()
+    res = await client.get(str(url) + "slow")
+    text_future = res.text()
+    with pytest.raises(ValueError):
+        _bytes_future = await res.bytes()
+    text = await text_future
+    assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
 
 
 async def test_client_timeout(server: ReqtestServer) -> None:
@@ -195,3 +195,55 @@ async def test_client_timeout(server: ReqtestServer) -> None:
     with pytest.raises(ry.ReqwestError):
         res = await client.get(str(url) + "slow")
         _text = await res.text()
+
+
+class TestCookies:
+    async def test_client_cookie_jar_cookies_disabled(
+        self, server: ReqtestServer
+    ) -> None:
+        """Test for cookies being set and sent back
+
+        Should not be set in the echo response, as cookies are not enabled
+        """
+
+        url = server.url
+        client = ry.HttpClient()
+        response = await client.get(str(url) + "cookies")
+        assert response.status_code == 200, f"response: {response}"
+        res_json = await response.json()
+
+        header_set_cookie = response.headers["set-cookie"]
+        assert header_set_cookie == "ryo3=ryo3; Path=/"
+
+        # send to echo endpoint
+        response = await client.get(str(url) + "echo")
+        assert response.status_code == 200, f"response: {response}"
+        res_json = await response.json()
+        assert "cookie" not in res_json["headers"] or res_json["headers"]["cookie"] in (
+            None,
+            "",
+        ), "cookie should not be set in the echo response"
+
+    async def test_client_cookie_jar_cookies_enabled(
+        self, server: ReqtestServer
+    ) -> None:
+        """Test for cookies being set and sent back
+
+        Should be set in the echo response, as cookies are enabled
+        """
+        url = server.url
+        client = ry.HttpClient(cookies=True)
+        response = await client.get(str(url) + "cookies")
+        assert response.status_code == 200, f"response: {response}"
+        res_json = await response.json()
+
+        header_set_cookie = response.headers["set-cookie"]
+        assert header_set_cookie == "ryo3=ryo3; Path=/", (
+            f"header_set_cookie: {header_set_cookie}"
+        )
+
+        # send to echo endpoint
+        response = await client.get(str(url) + "echo")
+        assert response.status_code == 200, f"response: {response}"
+        res_json = await response.json()
+        assert res_json["headers"]["cookie"] == "ryo3=ryo3", f"res_json: {res_json}"
