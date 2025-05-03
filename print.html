@@ -159,7 +159,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-05-01T03:38:26.168735516+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-05-03T04:18:15.120167404+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -186,9 +186,11 @@ uv add ry
 <p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a>
 directory for some quickstart examples.</p>
 <hr />
-<h2 id="what-and-why"><a class="header" href="#what-and-why">What and why?</a></h2>
-<p>This is a collection of pyo3-wrappers for rust crates I wish existed in python.</p>
-<p>It all started with me wanting a fast python <code>xxhash</code> and <code>fnv-64</code></p>
+<h2 id="what"><a class="header" href="#what">What?</a></h2>
+<p>This is a collection of pyo3-wrappers for popular rust crates.</p>
+<p>This project started when I need a fast hashes for <code>fnv</code> and then <code>xxhash</code> in
+python. I have been adding things as needed/wanted (by me) for general tools and
+data-mancing.</p>
 <h2 id="who"><a class="header" href="#who">Who?</a></h2>
 <ul>
 <li>jessekrubin <a href="mailto:jessekrubin@gmail.com">jessekrubin@gmail.com</a></li>
@@ -4182,8 +4184,6 @@ docs</li>
 <h2 id="see-also"><a class="header" href="#see-also">SEE ALSO</a></h2>
 <ul>
 <li>utiles (web-map tile utils): https://github.com/jessekrubin/utiles</li>
-<li>jsonc2json (jsonc to json converter):
-https://github.com/jessekrubin/jsonc2json</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">DEVELOPMENT</a></h1>
 <p><strong>OPEN TO PRS!</strong></p>
@@ -4312,6 +4312,7 @@ you if you’ve helped in any way!</p>
 <li>Got response type more inline with other python http-client libraries</li>
 <li>try <code>parking_lot</code> for default <code>reqwest</code> client mutex</li>
 <li>include missing kwargs for fetch functions</li>
+<li></li>
 </ul>
 </li>
 <li><code>ryo3-http</code>
@@ -4397,8 +4398,8 @@ pre-1-point-oh and old version(s) are being nuked from pypi as needed</li>
 <ul>
 <li>actually changed to use py buffer protocol this time… I dont know how it
 got missed before…</li>
-<li>re-factored a decent bit and made submodule with future plans to expand encoding/decoding dictionary
-support</li>
+<li>re-factored a decent bit and made submodule with future plans to expand
+encoding/decoding dictionary support</li>
 <li>submodule is <code>ry.zstd</code> and/or <code>ry.ryo3.zstd</code></li>
 </ul>
 </li>
