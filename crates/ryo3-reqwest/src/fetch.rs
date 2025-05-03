@@ -42,7 +42,6 @@ pub(crate) fn fetch<'py>(
         c
     } else {
         let guard = default_client().lock();
-        // .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
         default_client_mut_guard = guard; // "stayin-alive" (ah ah ah ah, stayin-alive)
         &default_client_mut_guard
     };

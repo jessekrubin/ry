@@ -172,21 +172,21 @@ async def test_client_post(server: ReqtestServer) -> None:
 async def test_client_timeout_dev(server: ReqtestServer) -> None:
     url = server.url
     client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
-    try:
-        res = await client.get(str(url) + "slow")
-        print(res)
-        text = await res.text()
-        print(text)
-    except ry.ReqwestError as e:
-        assert "TimedOut" in str(e)
-        print("exception", e)
-        print("repr", repr(e))
-        print("str", str(e))
-        print("type", type(e))
-        print("dir", dir(e))
-        print("args", e.args)
-        print(e)
-        print(type(e))
+    res = await client.get(str(url) + "slow")
+    assert res.status_code == 200
+    with pytest.raises(ry.ReqwestError, match="TimedOut"):
+        _text = await res.text()
+
+
+async def test_client_timeout_get_both_same_time(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient()
+    res = await client.get(str(url) + "slow")
+    text_future = res.text()
+    with pytest.raises(ValueError):
+        _bytes_future = await res.bytes()
+    text = await text_future
+    assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
 
 
 async def test_client_timeout(server: ReqtestServer) -> None:
