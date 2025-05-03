@@ -2,7 +2,7 @@ use reqwest::header::HeaderMap;
 use reqwest::StatusCode;
 
 #[derive(Debug, Clone)]
-pub(crate) struct RyResponseData {
+pub(crate) struct RyResponseHead {
     /// das status code
     pub status_code: StatusCode,
     /// das headers
@@ -16,7 +16,7 @@ pub(crate) struct RyResponseData {
     pub version: reqwest::Version,
 }
 
-impl RyResponseData {
+impl RyResponseHead {
     /// Create a new response from a reqwest response
     pub(crate) fn new(res: &reqwest::Response) -> Self {
         Self {
@@ -29,7 +29,7 @@ impl RyResponseData {
     }
 }
 
-impl From<&reqwest::Response> for RyResponseData {
+impl From<&reqwest::Response> for RyResponseHead {
     fn from(res: &reqwest::Response) -> Self {
         Self::new(res)
     }
