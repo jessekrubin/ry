@@ -33,11 +33,13 @@ directory for some quickstart examples.
 
 ---
 
-## What and why?
+## What?
 
-This is a collection of pyo3-wrappers for rust crates I wish existed in python.
+This is a collection of pyo3-wrappers for popular rust crates.
 
-It all started with me wanting a fast python `xxhash` and `fnv-64`
+This project started when I need a fast hashes for `fnv` and then `xxhash` in
+python. I have been adding things as needed/wanted (by me) for general tools and
+data-mancing.
 
 ## Who?
 
@@ -108,9 +110,11 @@ _(aka: questions that I have been asking myself)_
 ## API
 
 <!-- API-START -->
+
 # API
 
 ## Table of Contents
+
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
@@ -334,6 +338,7 @@ def ls(
     """List directory contents - returns list of FsPath objects"""
 
 ```
+
 <h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
 
 ```python
@@ -341,6 +346,7 @@ class FeatureNotEnabledError(RuntimeError):
     """Raised when a feature is not enabled in the current build."""
 
 ```
+
 <h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
 
 ```python
@@ -382,6 +388,7 @@ def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
 
 ```
+
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
 
 ```python
@@ -401,6 +408,7 @@ def brotli(
     """Alias for brotli_encode"""
 
 ```
+
 <h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
 
 ```python
@@ -548,6 +556,7 @@ BytesLike: typing_extensions.TypeAlias = (
 )
 
 ```
+
 <h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
 
 ```python
@@ -565,6 +574,7 @@ def bzip2(input: Buffer, quality: int = 9) -> bytes:
     """Alias for bzip2_encode"""
 
 ```
+
 <h2 id="ry.ryo3._dev"><code>ry.ryo3._dev</code></h2>
 
 ```python
@@ -593,6 +603,7 @@ def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
 
 ```
+
 <h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
 
 ```python
@@ -618,6 +629,7 @@ def gunzip(input: Buffer) -> Bytes:
 def is_gzipped(input: Buffer) -> bool: ...
 
 ```
+
 <h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
 
 ```python
@@ -647,6 +659,7 @@ class FnvHasher:
 def fnv1a(input: Buffer, key: int | None = None) -> FnvHasher: ...
 
 ```
+
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
 
 ```python
@@ -780,6 +793,7 @@ class FsPathReaddir:
     def take(self, n: int) -> list[FsPath]: ...
 
 ```
+
 <h2 id="ry.ryo3._glob"><code>ry.ryo3._glob</code></h2>
 
 ```python
@@ -841,6 +855,7 @@ class Pattern:
     def pattern(self) -> str: ...
 
 ```
+
 <h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
 
 ```python
@@ -927,6 +942,7 @@ def globster(
 ) -> Globster: ...
 
 ```
+
 <h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>
 
 ```python
@@ -944,6 +960,7 @@ def title_case(string: str) -> str: ...
 def train_case(string: str) -> str: ...
 
 ```
+
 <h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
 
 ```python
@@ -2504,6 +2521,7 @@ class TimeZoneDatabase:
     def bundled(cls) -> TimeZoneDatabase: ...
 
 ```
+
 <h2 id="ry.ryo3._jiter"><code>ry.ryo3._jiter</code></h2>
 
 ```python
@@ -2557,6 +2575,7 @@ def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
 
 ```
+
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
 
 ```python
@@ -2585,6 +2604,7 @@ def quick_maths() -> t.Literal[3]:
     """
 
 ```
+
 <h2 id="ry.ryo3._regex"><code>ry.ryo3._regex</code></h2>
 
 ```python
@@ -2621,6 +2641,7 @@ class Regex:
     def splitn(self, string: str, n: int) -> list[str]: ...
 
 ```
+
 <h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
 
 ```python
@@ -2760,6 +2781,7 @@ async def fetch(
 ) -> Response: ...
 
 ```
+
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
 
 ```python
@@ -2771,6 +2793,7 @@ from os import PathLike
 def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
 
 ```
+
 <h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
 
 ```python
@@ -2781,6 +2804,7 @@ def shplit(s: str) -> list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
 
 ```
+
 <h2 id="ry.ryo3._size"><code>ry.ryo3._size</code></h2>
 
 ```python
@@ -2955,6 +2979,7 @@ class Size:
     def from_exbibytes(cls: type[Size], size: float) -> Size: ...
 
 ```
+
 <h2 id="ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></h2>
 
 ```python
@@ -2997,6 +3022,7 @@ def sqlfmt(
 ) -> str: ...
 
 ```
+
 <h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>
 
 ```python
@@ -3421,6 +3447,7 @@ class IpAddr:
     def to_canonical(self) -> IpAddr: ...
 
 ```
+
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
 
 ```python
@@ -3479,6 +3506,7 @@ async def asleep(seconds: float) -> float:
     """Alias for sleep_async"""
 
 ```
+
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
 
 ```python
@@ -3489,6 +3517,7 @@ def unindent(string: str) -> str: ...
 def unindent_bytes(string: bytes) -> bytes: ...
 
 ```
+
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
 
 ```python
@@ -3596,6 +3625,7 @@ class URL:
     ) -> URL: ...
 
 ```
+
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
 
 ```python
@@ -3674,6 +3704,7 @@ def walkdir(
 ) -> WalkdirGen[str]: ...
 
 ```
+
 <h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
 
 ```python
@@ -3689,6 +3720,7 @@ def which_all(cmd: str, path: None | str = None) -> list[Path]: ...
 def which_re(regex: str | Regex, path: None | str = None) -> list[Path]: ...
 
 ```
+
 <h2 id="ry.dirs"><code>ry.dirs</code></h2>
 
 ```python
@@ -3732,6 +3764,7 @@ def video() -> str | None: ...
 def video_dir() -> str | None: ...
 
 ```
+
 <h2 id="ry.http"><code>ry.http</code></h2>
 
 ```python
@@ -3907,6 +3940,7 @@ class HttpStatus:
     )
 
 ```
+
 <h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
 
 ```python
@@ -4012,6 +4046,7 @@ def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
 def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
 
 ```
+
 <h2 id="ry.zstd"><code>ry.zstd</code></h2>
 
 ```python
@@ -4057,6 +4092,7 @@ def zstd_decompress(data: Buffer) -> Bytes: ...
 def is_zstd(data: Buffer) -> bool: ...
 
 ```
+
 <!-- API-END -->
 
 ---
@@ -4074,5 +4110,3 @@ def is_zstd(data: Buffer) -> bool: ...
 ## SEE ALSO
 
 - utiles (web-map tile utils): https://github.com/jessekrubin/utiles
-- jsonc2json (jsonc to json converter):
-  https://github.com/jessekrubin/jsonc2json
