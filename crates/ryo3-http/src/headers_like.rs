@@ -43,7 +43,7 @@ impl TryFrom<PyHeadersLike> for HeaderMap {
     type Error = PyErr;
     fn try_from(h: PyHeadersLike) -> Result<Self, Self::Error> {
         match h {
-            PyHeadersLike::Headers(h) => Ok(h.0),
+            PyHeadersLike::Headers(h) => Ok(h.0.lock().clone()),
             PyHeadersLike::Map(d) => {
                 let mut default_headers = HeaderMap::new();
                 for (k, v) in d {
@@ -88,7 +88,7 @@ impl TryFrom<PyHeadersLike> for PyHeaders {
             PyHeadersLike::Headers(h) => Ok(h),
             PyHeadersLike::Map(d) => {
                 let headers = PyHeadersLike::map2headers(&d)?;
-                Ok(PyHeaders(headers))
+                Ok(PyHeaders::from(headers))
             }
         }
     }
