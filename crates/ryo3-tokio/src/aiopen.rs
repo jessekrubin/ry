@@ -1,7 +1,8 @@
 use pyo3::prelude::*;
 use std::sync::Arc;
+use pyo3::types::PyDict;
 use tokio::fs::File;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::sync::Mutex;
 
 #[pyclass(name = "AsyncFile", module = "ry")]
@@ -118,16 +119,16 @@ impl PyAsyncFile {
 }
 
 #[pyfunction(
-    signature = (path, mode = None),
+    signature = (path, mode = None, **kwargs),
 )]
-pub fn aiopen(py: Python<'_>, path: String, mode: Option<String>) -> PyResult<Bound<'_, PyAny>> {
+pub fn aiopen<'py>(py: Python<'py>, path: String, mode: Option<String>, kwargs: Option<&Bound<'py, PyDict>>) -> PyResult<Bound<'py, PyAny>> {
     // let file = aiopen_inner(path, mode);
 
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
         let mode = mode.unwrap_or("r".to_string());
         let mod_ref = mode.as_str();
         let file = match mod_ref {
-            "r" => File::open(path).await,
+            "r" | "rb" => File::open(path).await,
             "w" => File::create(path).await,
             "a" => tokio::fs::OpenOptions::new().append(true).open(path).await,
             "r+" => {

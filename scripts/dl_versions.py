@@ -82,24 +82,26 @@ async def download_dists(
 ) -> None:
     """Download the wheel files."""
 
-    outdir = "dist"
+    outdir = ry.FsPath("dist") / PACKAGE_NAME
     ry.create_dir_all(outdir)
     if by_version:
         for version, urls in wheels.items():
-            outdir = f"dist/{version}"
-            ry.create_dir_all(outdir)
-            await asyncio.gather(*(download_file(pkg, outdir) for pkg in urls))
+            outdir_str = str(outdir / f"{version}")
+            ry.create_dir_all(outdir_str)
+            await asyncio.gather(*(download_file(pkg, outdir_str) for pkg in urls))
     else:
         futs: list[Coroutine[Any, Any, None]] = []
         for version, pkgs in wheels.items():
-            outdir = f"dist/{version}"
-            ry.create_dir_all(outdir)
-            futs.extend(download_file(pkg, outdir) for pkg in pkgs)
+            outdir_str = str(outdir / f"{version}")
+            ry.create_dir_all(outdir_str)
+            futs.extend(download_file(pkg, outdir_str) for pkg in pkgs)
         await asyncio.gather(*futs)
 
 
 async def main() -> None:
     wheels_data = await scrape_all_wheels(PACKAGE_NAME)
+    print(ry.json_cache_usage())
+    return
 
     # Save to a JSON file
     with open(f"{PACKAGE_NAME}_wheels.json", "w") as f:

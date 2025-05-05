@@ -9,10 +9,6 @@ ALL_BYTES = bytes(list(range(256)))
 ALL_BYTES_10X = ALL_BYTES * 10
 
 
-def test_benchmark_not_debug() -> None:
-    assert not ry.__build_profile__ == "release"
-
-
 class TestBytes2String:
     @pytest.mark.benchmark(group="bytes2str")
     def test_python_bytes_string(self, benchmark: BenchmarkFixture) -> None:

@@ -34,7 +34,7 @@ impl PyWalkDirEntry {
         self.0.depth()
     }
 
-    fn __str__(&self) -> PyResult<String> {
+    fn string(&self) -> PyResult<String> {
         self.0
             .path()
             .to_str()
@@ -47,8 +47,8 @@ impl PyWalkDirEntry {
     }
 
     fn __repr__(&self) -> String {
-        let s = self.__str__().unwrap_or_else(|_| String::from("???"));
-        format!("WalkDirEntry({s:?})")
+        let s = self.string().unwrap_or_else(|_| String::from("???"));
+        format!("WalkDirEntry('{s}')")
     }
 
     #[getter]

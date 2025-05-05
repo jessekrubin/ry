@@ -1,7 +1,5 @@
 """ry api ~ type annotations"""
 
-from __future__ import annotations
-
 import datetime as pydt
 import typing as t
 from os import PathLike
@@ -80,6 +78,7 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._jiter import read_json as read_json
 from ._quick_maths import quick_maths as quick_maths
 from ._regex import Regex as Regex
 from ._reqwest import HttpClient as HttpClient
@@ -99,6 +98,7 @@ from ._sqlformat import sqlfmt_params as sqlfmt_params
 from ._std import Duration as Duration
 from ._std import FileType as FileType
 from ._std import Instant as Instant
+from ._std import IpAddr as IpAddr
 from ._std import Ipv4Addr as Ipv4Addr
 from ._std import Ipv6Addr as Ipv6Addr
 from ._std import Metadata as Metadata
@@ -114,6 +114,7 @@ from ._std import is_symlink as is_symlink
 from ._std import metadata as metadata
 from ._std import read as read
 from ._std import read_bytes as read_bytes
+from ._std import read_dir as read_dir
 from ._std import read_stream as read_stream
 from ._std import read_text as read_text
 from ._std import remove_dir as remove_dir

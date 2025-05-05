@@ -8,6 +8,7 @@ use std::path::Path;
 
 #[pyclass(name = "WalkdirGen", module = "ryo3")]
 pub struct PyWalkdirGen {
+    objects: bool,
     iter: Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>,
 }
 
@@ -22,9 +23,16 @@ impl PyWalkdirGen {
     fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<Bound<PyAny>>> {
         let py = slf.py();
         if let Some(entry) = slf.iter.next() {
-            let path_str = entry.path().to_string_lossy().to_string();
-            let bound_py_any = Some(path_str.into_bound_py_any(py)).transpose();
-            bound_py_any
+            let bound_py_any = if slf.objects {
+                // if objects is true, we return a DirEntry object
+                let pyentry = walkdir_entry::PyWalkDirEntry::from(entry);
+                pyentry.into_bound_py_any(py)
+            } else {
+                let path_str = entry.path().to_string_lossy().to_string();
+                let anything = path_str.into_bound_py_any(py);
+                anything
+            }?;
+            Ok(Some(bound_py_any))
         } else {
             Ok(None)
         }
@@ -58,6 +66,7 @@ impl From<::walkdir::WalkDir> for PyWalkdirGen {
     fn from(wd: ::walkdir::WalkDir) -> Self {
         let wdit = wd.into_iter();
         Self {
+            objects: false,
             iter: Box::new(wdit.filter_map(Result::ok)),
         }
     }
@@ -124,11 +133,11 @@ pub fn walkdir(
     glob: Option<GlobsterLike>,      // default None
     objects: bool,                   // default false
 ) -> PyResult<PyWalkdirGen> {
-    if objects {
-        return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
-            "objects=True not yet implemented",
-        ));
-    }
+    // if objects {
+    //     return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+    //         "objects=True not yet implemented",
+    //     ));
+    // }
     let wd = build_walkdir(
         path.unwrap_or(PathLike::Str(String::from("."))).as_ref(),
         contents_first,
@@ -166,7 +175,10 @@ pub fn walkdir(
     } else {
         Box::new(filtered_iter) as Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>
     };
-    Ok(PyWalkdirGen { iter: final_iter })
+    Ok(PyWalkdirGen {
+        objects,
+        iter: final_iter,
+    })
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

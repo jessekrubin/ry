@@ -8,8 +8,8 @@ mod status_code;
 
 pub use headers::PyHeaders;
 pub use headers_like::PyHeadersLike;
-pub use http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpStatusCode};
-pub use status_code::PyHttpStatus;
+pub use http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpStatusCode, HttpVersion};
+pub use status_code::{status_code_pystring, PyHttpStatus};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyHeaders>()?;

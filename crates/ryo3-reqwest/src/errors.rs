@@ -5,6 +5,14 @@ use pyo3::PyErr;
 use ryo3_http::PyHttpStatus;
 use ryo3_url::PyUrl;
 
+/// macro for crate use only to return `Response already consumed` error
+#[macro_export]
+macro_rules! pyerr_response_already_consumed {
+    () => {
+        ::pyo3::exceptions::PyValueError::new_err("Response already consumed")
+    };
+}
+
 #[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError")]
 #[derive(Debug)]
 pub struct RyReqwestError(pub Option<reqwest::Error>);
@@ -17,6 +25,7 @@ impl RyReqwestError {
     fn py_new<'py>(args: &Bound<'py, PyTuple>, kwargs: Option<&Bound<'py, PyDict>>) -> Self {
         Self(None)
     }
+
     fn __dbg__(&self) -> String {
         format!("{:?}", self.0)
     }
@@ -36,7 +45,7 @@ impl RyReqwestError {
     // - with_url
     // - without_url
 
-    pub fn is_body(&self) -> bool {
+    fn is_body(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_body()
         } else {
@@ -44,7 +53,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn is_builder(&self) -> bool {
+    fn is_builder(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_builder()
         } else {
@@ -52,7 +61,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn is_connect(&self) -> bool {
+    fn is_connect(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_connect()
         } else {
@@ -60,7 +69,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn is_decode(&self) -> bool {
+    fn is_decode(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_decode()
         } else {
@@ -68,7 +77,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn is_redirect(&self) -> bool {
+    fn is_redirect(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_redirect()
         } else {
@@ -76,7 +85,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn is_request(&self) -> bool {
+    fn is_request(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_request()
         } else {
@@ -84,7 +93,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn is_status(&self) -> bool {
+    fn is_status(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_status()
         } else {
@@ -92,7 +101,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn is_timeout(&self) -> bool {
+    fn is_timeout(&self) -> bool {
         if let Some(e) = &self.0 {
             e.is_timeout()
         } else {
@@ -100,7 +109,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn status(&self) -> Option<PyHttpStatus> {
+    fn status(&self) -> Option<PyHttpStatus> {
         if let Some(e) = &self.0 {
             e.status().map(PyHttpStatus)
         } else {
@@ -108,7 +117,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn url(&self) -> Option<PyUrl> {
+    fn url(&self) -> Option<PyUrl> {
         if let Some(e) = &self.0 {
             e.url().map(|url| PyUrl(url.clone()))
         } else {
@@ -116,7 +125,7 @@ impl RyReqwestError {
         }
     }
 
-    pub fn with_url<'py>(mut slf: PyRefMut<'py, Self>, url: &PyUrl) -> PyRefMut<'py, Self> {
+    fn with_url<'py>(mut slf: PyRefMut<'py, Self>, url: &PyUrl) -> PyRefMut<'py, Self> {
         if let Some(e) = &mut slf.0 {
             let mut url = url.0.clone();
             e.url_mut().replace(&mut url);
@@ -124,7 +133,7 @@ impl RyReqwestError {
         slf
     }
 
-    pub fn without_url(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, Self> {
+    fn without_url(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, Self> {
         // take the error
         let err = slf.0.take();
         if let Some(e) = err {
@@ -137,9 +146,8 @@ impl RyReqwestError {
 
 impl From<RyReqwestError> for PyErr {
     fn from(e: RyReqwestError) -> Self {
-        // map_reqwest_err(e)
         if let Some(e) = e.0 {
-            PyErr::new::<RyReqwestError, _>(format!("{e:?}"))
+            PyErr::new::<RyReqwestError, _>(format!("{e} ~ {e:?}"))
         } else {
             PyErr::new::<RyReqwestError, _>("RyReqwestError(None)")
         }

@@ -1,7 +1,5 @@
 """ryo3-quick-maths types"""
 
-from __future__ import annotations
-
 import typing as t
 
 def quick_maths() -> t.Literal[3]:

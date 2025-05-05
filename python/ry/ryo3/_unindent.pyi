@@ -1,6 +1,4 @@
 """ryo3-unindent types"""
 
-from __future__ import annotations
-
 def unindent(string: str) -> str: ...
 def unindent_bytes(string: bytes) -> bytes: ...

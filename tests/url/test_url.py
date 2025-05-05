@@ -126,3 +126,24 @@ class TestJoinUrl:
         assert str(joined_multiple) == "http://example.com/foo/bar"
         joined_varargs = u / "foo/" / "bar"
         assert str(joined_varargs) == "http://example.com/foo/bar"
+
+
+@pytest.mark.parametrize(
+    "base_url_expected",
+    [
+        ("https://example.net/a/b.html", "https://example.net/a/c.png", "c.png"),
+        ("https://example.net/a/b/", "https://example.net/a/b/c.png", "c.png"),
+        ("https://example.net/a/b/", "https://example.net/a/d/c.png", "../d/c.png"),
+        (
+            "https://example.net/a/b.html?c=d",
+            "https://example.net/a/b.html?e=f",
+            "?e=f",
+        ),
+    ],
+)
+def test_url_relative(base_url_expected: tuple[str, str, str]) -> None:
+    base, url, expected = base_url_expected
+    base_url = ry.URL(base)
+    url_obj = ry.URL(url)
+    relative = base_url.make_relative(url_obj)
+    assert relative == expected

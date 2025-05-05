@@ -1,7 +1,5 @@
 """ryo3-flate2 types"""
 
-from __future__ import annotations
-
 from ry import Bytes
 from ry._types import Buffer
 

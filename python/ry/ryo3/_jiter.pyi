@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 import typing as t
+from os import PathLike
 
 import typing_extensions as te
 
@@ -9,8 +8,8 @@ from ry._types import Buffer
 # =============================================================================
 # JSON
 # =============================================================================
-JsonPrimitive = None | bool | int | float | str
-JsonValue = (
+JsonPrimitive: te.TypeAlias = None | bool | int | float | str
+JsonValue: te.TypeAlias = (
     JsonPrimitive
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]
@@ -35,6 +34,11 @@ def parse_json(
 ) -> JsonValue: ...
 def parse_json_bytes(
     data: bytes,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def read_json(
+    p: str | PathLike[str],
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...

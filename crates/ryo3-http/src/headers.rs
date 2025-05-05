@@ -10,6 +10,22 @@ use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
 #[derive(Clone, Debug, PartialEq)]
 pub struct PyHeaders(pub HeaderMap);
 
+impl PyHeaders {
+    fn extract_kwargs(kwargs: &Bound<'_, PyDict>) -> PyResult<HeaderMap> {
+        let mut hm = HeaderMap::new();
+        for (key, value) in kwargs.iter() {
+            let key = key
+                .extract::<HttpHeaderName>()
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+            let value = value
+                .extract::<HttpHeaderValue>()
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+            hm.insert(key.0, value.0);
+        }
+        Ok(hm)
+    }
+}
+
 impl From<HeaderMap> for PyHeaders {
     fn from(hm: HeaderMap) -> Self {
         Self(hm)
@@ -19,13 +35,28 @@ impl From<HeaderMap> for PyHeaders {
 #[pymethods]
 impl PyHeaders {
     #[new]
-    #[pyo3(signature = (d = None))]
-    fn py_new(_py: Python<'_>, d: Option<PyHeadersLike>) -> PyResult<Self> {
-        if let Some(d) = d {
-            let headers_map = HeaderMap::try_from(d)?;
-            Ok(Self(headers_map))
-        } else {
-            Ok(PyHeaders(HeaderMap::new()))
+    #[pyo3(signature = (d = None, **kwargs))]
+    fn py_new(
+        _py: Python<'_>,
+        d: Option<PyHeadersLike>,
+        kwargs: Option<&Bound<'_, PyDict>>,
+    ) -> PyResult<Self> {
+        match (d, kwargs) {
+            (Some(d), Some(kwargs)) => {
+                let mut headers_map = HeaderMap::try_from(d)?;
+                let kw_headers = PyHeaders::extract_kwargs(kwargs)?;
+                headers_map.extend(kw_headers);
+                Ok(PyHeaders(headers_map))
+            }
+            (Some(d), None) => {
+                let headers_map = HeaderMap::try_from(d)?;
+                Ok(PyHeaders(headers_map))
+            }
+            (None, Some(kwargs)) => {
+                let kw_headers = PyHeaders::extract_kwargs(kwargs)?;
+                Ok(PyHeaders(kw_headers))
+            }
+            (None, None) => Ok(PyHeaders(HeaderMap::new())),
         }
     }
 
@@ -173,6 +204,11 @@ impl PyHeaders {
     }
 
     #[must_use]
+    pub fn __bool__(&self) -> bool {
+        !self.0.is_empty()
+    }
+
+    #[must_use]
     pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
         self.0
             .keys()
@@ -300,5 +336,9 @@ impl PyHeaders {
         }
 
         Ok(d)
+    }
+
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.asdict(py)
     }
 }
