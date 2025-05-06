@@ -223,11 +223,11 @@ impl PyHeaders {
     }
 
     #[must_use]
-    pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
+    pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
         self.0
             .lock()
             .keys()
-            .map(|h| header_name_to_pystring(py, h))
+            .map(|h| header_name_to_pystring(py, h)).flatten()
             .collect()
     }
 
