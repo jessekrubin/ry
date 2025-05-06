@@ -159,7 +159,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-05-06T00:14:43.56997828+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-05-06T16:29:41.022182727+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -2782,6 +2782,7 @@ class HttpClient:
         self,
         *,
         headers: dict[str, str] | None = None,
+        cookies: bool = False,
         user_agent: str | None = None,  # default ~ 'ry-reqwest/&lt;VERSION&gt; ...'
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
@@ -4312,13 +4313,18 @@ you if you’ve helped in any way!</p>
 <li>Got response type more inline with other python http-client libraries</li>
 <li>try <code>parking_lot</code> for default <code>reqwest</code> client mutex</li>
 <li>include missing kwargs for fetch functions</li>
-<li></li>
+</ul>
+</li>
+<li><code>ryo3-glob</code>
+<ul>
+<li>freeze struct(s) to be frozen</li>
 </ul>
 </li>
 <li><code>ryo3-http</code>
 <ul>
 <li>http version python conversions to/from string/int</li>
 <li>status code reason(s) interned</li>
+<li>intern all standard http header-names</li>
 </ul>
 </li>
 <li><code>ryo3-fnv</code>
@@ -7824,6 +7830,7 @@ class HttpClient:
         self,
         *,
         headers: dict[str, str] | None = None,
+        cookies: bool = False,
         user_agent: str | None = None,  # default ~ 'ry-reqwest/&lt;VERSION&gt; ...'
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
