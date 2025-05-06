@@ -73,7 +73,7 @@ impl FromPyObject<'_> for HttpMethod {
                 "CONNECT" => Ok(HttpMethod(http::Method::CONNECT)),
                 "PATCH" => Ok(HttpMethod(http::Method::PATCH)),
                 "TRACE" => Ok(HttpMethod(http::Method::TRACE)),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                _ => Err(PyErr::new::<PyValueError, _>(format!(
                     "Invalid HTTP method: {s} (options: {HTTP_METHOD_STRINGS})"
                 ))),
             }
@@ -164,7 +164,6 @@ impl FromPyObject<'_> for HttpVersion {
 // ============================================================================
 // HttpHeaderName
 // ============================================================================
-
 pub(crate) fn header_name_to_pystring<'py>(
     py: Python<'py>,
     name: &http::HeaderName,
@@ -172,11 +171,6 @@ pub(crate) fn header_name_to_pystring<'py>(
     let s = name.as_str();
     PyString::new(py, s)
 }
-
-// pub(crate) fn pystring_to_header_name<'py>(py: Python<'py> , s:&Bound<'py, PyString>) -> PyResult<http::HeaderName> {
-//     http::HeaderName::from_bytes(s.as_bytes())
-//         .map_err(|e| PyValueError::new_err(format!("invalid-header-name: {e}")))
-// }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderName {
     #[cfg(Py_LIMITED_API)]
