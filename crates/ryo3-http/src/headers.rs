@@ -223,8 +223,7 @@ impl PyHeaders {
         self.0
             .lock()
             .keys()
-            .map(|h| header_name_to_pystring(py, h))
-            .flatten()
+            .flat_map(|h| header_name_to_pystring(py, h))
             .collect()
     }
 
@@ -323,7 +322,7 @@ impl PyHeaders {
 
         let inner = self.0.lock();
         for key in inner.keys() {
-            let key_pystr = header_name_to_pystring(py, &key)?;
+            let key_pystr = header_name_to_pystring(py, key)?;
             let values: Vec<_> = inner.get_all(key).iter().collect();
             if values.len() == 1 {
                 let v = values[0];
