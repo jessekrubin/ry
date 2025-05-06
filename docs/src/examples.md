@@ -1,12 +1,11 @@
 # Examples
 
 ## Table of Contents
-
 - [fspath](#fspath)
 - [http_fetch](#http_fetch)
 - [walking](#walking)
 
----
+___
 
 # fspath
 

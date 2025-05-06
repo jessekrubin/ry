@@ -121,12 +121,8 @@ impl PyHeaders {
     }
 
     #[must_use]
-    pub fn __iter__(&self) -> Vec<String> {
-        self.0
-            .lock()
-            .keys()
-            .map(|h| h.as_str().to_string())
-            .collect()
+    pub fn __iter__<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
+        self.keys(py)
     }
 
     // ========================================================================
@@ -223,11 +219,11 @@ impl PyHeaders {
     }
 
     #[must_use]
-    pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
+    pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
         self.0
             .lock()
             .keys()
-            .map(|h| header_name_to_pystring(py, h))
+            .flat_map(|h| header_name_to_pystring(py, h))
             .collect()
     }
 
@@ -326,16 +322,15 @@ impl PyHeaders {
 
         let inner = self.0.lock();
         for key in inner.keys() {
-            let key_str = key.as_str();
+            let key_pystr = header_name_to_pystring(py, key)?;
             let values: Vec<_> = inner.get_all(key).iter().collect();
-
             if values.len() == 1 {
                 let v = values[0];
                 if let Ok(vstr) = v.to_str() {
-                    d.set_item(key_str, vstr)?;
+                    d.set_item(key_pystr, vstr)?;
                 } else {
                     let pybytes = PyBytes::new(py, v.as_bytes());
-                    d.set_item(key_str, pybytes)?;
+                    d.set_item(key_pystr, pybytes)?;
                 }
             } else {
                 let py_list = PyList::empty(py);
@@ -347,7 +342,7 @@ impl PyHeaders {
                         py_list.append(pybytes)?;
                     }
                 }
-                d.set_item(key_str, py_list)?;
+                d.set_item(key_pystr, py_list)?;
             }
         }
 

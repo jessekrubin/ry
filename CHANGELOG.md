@@ -7,10 +7,12 @@
   - Got response type more inline with other python http-client libraries
   - try `parking_lot` for default `reqwest` client mutex
   - include missing kwargs for fetch functions
-  -
+- `ryo3-glob`
+  - freeze struct(s) to be frozen
 - `ryo3-http`
   - http version python conversions to/from string/int
   - status code reason(s) interned
+  - intern all standard http header-names
 - `ryo3-fnv`
   - align with hashlib style hashing
 - deps-up

@@ -2,14 +2,16 @@
 mod pattern;
 
 use crate::pattern::PyPattern;
+use parking_lot::Mutex;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::IntoPyObjectExt;
+use std::sync::Arc;
 
 #[pyclass]
-#[pyo3(name = "GlobPaths", module = "ry")]
+#[pyo3(name = "GlobPaths", module = "ry.ryo3", frozen)]
 pub struct PyGlobPaths {
-    inner: ::glob::Paths,
+    inner: Arc<Mutex<::glob::Paths>>,
     strict: bool,
 }
 
@@ -20,16 +22,15 @@ impl PyGlobPaths {
     }
 
     /// __next__ just pulls one item from the underlying iterator
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<Bound<PyAny>>> {
-        let py = slf.py();
-        while let Some(path) = slf.inner.next() {
+    fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
+        while let Some(path) = self.inner.lock().next() {
             match path {
                 Ok(path) => {
                     let pyany = path.into_bound_py_any(py)?;
                     return Ok(Some(pyany));
                 }
                 Err(e) => {
-                    if slf.strict {
+                    if self.strict {
                         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                             "{e}"
                         )));
@@ -40,10 +41,10 @@ impl PyGlobPaths {
         Ok(None)
     }
 
-    fn collect<'py>(&mut self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
         if self.strict {
             let mut results = Vec::new();
-            for path in self.inner.by_ref() {
+            for path in self.inner.lock().by_ref() {
                 match path {
                     Ok(path) => {
                         let py_any = path.into_bound_py_any(py)?;
@@ -59,6 +60,7 @@ impl PyGlobPaths {
             Ok(results)
         } else {
             self.inner
+                .lock()
                 .by_ref()
                 .flatten()
                 .map(|path| {
@@ -69,11 +71,11 @@ impl PyGlobPaths {
         }
     }
 
-    fn take<'py>(&mut self, py: Python<'py>, n: usize) -> PyResult<Vec<Bound<'py, PyAny>>> {
+    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Vec<Bound<'py, PyAny>>> {
         if self.strict {
             let mut results = Vec::new();
 
-            for path_result in self.inner.by_ref().take(n) {
+            for path_result in self.inner.lock().by_ref().take(n) {
                 let path = path_result
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
                 let el = path.into_bound_py_any(py)?;
@@ -83,6 +85,7 @@ impl PyGlobPaths {
             Ok(results)
         } else {
             self.inner
+                .lock()
                 .by_ref()
                 .take(n)
                 .flatten()
@@ -157,7 +160,7 @@ pub fn py_glob(
         },
     )
     .map(|paths| PyGlobPaths {
-        inner: paths,
+        inner: Arc::new(Mutex::new(paths)),
         strict,
     })
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
