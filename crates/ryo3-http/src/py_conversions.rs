@@ -4,9 +4,9 @@
 
 use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpVersion};
 use pyo3::exceptions::PyValueError;
-use pyo3::{intern, IntoPyObjectExt};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
+use pyo3::{intern, IntoPyObjectExt};
 
 impl<'py> IntoPyObject<'py> for &HttpMethod {
     #[cfg(Py_LIMITED_API)]
@@ -268,15 +268,11 @@ pub(crate) fn header_name_to_pystring<'py>(
     name: &http::HeaderName,
 ) -> PyResult<Bound<'py, PyAny>> {
     if let Some(s) = header_name_to_pystring_maybe(py, name) {
-        let a= s.into_bound_py_any(py);
-        a
-
-        // *s
+        s.into_bound_py_any(py)
     } else {
         let s = name.as_str();
         let s = PyString::new(py, s);
         s.into_bound_py_any(py)
-        // s.borrow()
     }
 }
 
