@@ -41,6 +41,21 @@ def test_walk_dir_dirpath_string_collect(tmp_path: Path) -> None:
     assert walkdir_paths_set == expected
 
 
+def test_walkdir_types(tmp_path: Path) -> None:
+    _dirtree = mk_dir_tree(tmp_path)
+    assert all(isinstance(e, str) for e in ry.walkdir(tmp_path))
+    assert all(isinstance(e, str) for e in ry.walkdir(tmp_path).collect())
+    assert all(isinstance(e, str) for e in ry.walkdir(tmp_path).take())
+
+    assert all(not isinstance(e, str) for e in ry.walkdir(tmp_path, objects=True))
+    assert all(
+        not isinstance(e, str) for e in ry.walkdir(tmp_path, objects=True).collect()
+    )
+    assert all(
+        not isinstance(e, str) for e in ry.walkdir(tmp_path, objects=True).take()
+    )
+
+
 def test_walk_dir_dirpath_pathlib_path(tmp_path: Path) -> None:
     dirtree = mk_dir_tree(tmp_path)
     walkdir_paths = [

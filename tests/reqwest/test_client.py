@@ -42,6 +42,7 @@ async def test_get_query(server: ReqtestServer) -> None:
     expected_query = "dog=dingo&is-dingo=true&bluey-fam-size=4&fraction-red-heelers=0.5"
     assert response.url.query == expected_query
 
+    assert isinstance(response.url.query_pairs, tuple)
     assert response.url.query_pairs == (
         ("dog", "dingo"),
         ("is-dingo", "true"),

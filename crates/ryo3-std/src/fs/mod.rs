@@ -1,7 +1,7 @@
 mod file_read_stream;
 use crate::fs::file_read_stream::{FileReadStream, PyFileReadStream};
 use pyo3::exceptions::{
-    PyIsADirectoryError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
+    PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError, PyValueError,
 };
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
@@ -9,6 +9,7 @@ use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::SystemTime;
 
 #[pyclass(name = "FileType", module = "ry", frozen)]
@@ -179,7 +180,7 @@ impl PyPermissions {
     }
 }
 
-#[pyclass(name = "DirEntry", module = "ry.ryo3")]
+#[pyclass(name = "DirEntry", module = "ry.ryo3", frozen)]
 pub struct PyDirEntry(pub std::fs::DirEntry);
 
 impl From<std::fs::DirEntry> for PyDirEntry {
@@ -248,7 +249,7 @@ pub fn read_stream(pth: PathLike, chunk_size: usize, offset: u64) -> PyResult<Py
     let pth = pth.as_ref();
     let file_read_stream_res = FileReadStream::new_with_offset(pth, chunk_size, offset);
     match file_read_stream_res {
-        Ok(file_read_stream) => Ok(PyFileReadStream { file_read_stream }),
+        Ok(file_read_stream) => Ok(PyFileReadStream::from(file_read_stream)),
         Err(e) => {
             if pth.is_dir() {
                 let pth_str = pth.to_string_lossy();
@@ -389,7 +390,10 @@ pub fn read_dir(pth: PathLike) -> PyResult<PyReadDir> {
     let pth = pth.as_ref();
     let read_dir_res = std::fs::read_dir(pth);
     match read_dir_res {
-        Ok(iter) => Ok(PyReadDir { iter }),
+        Ok(iter) => Ok(PyReadDir {
+            path: pth.to_path_buf(),
+            iter: Mutex::new(iter),
+        }),
         Err(e) => {
             if pth.is_dir() {
                 let pth_str = pth.to_string_lossy();
@@ -403,44 +407,63 @@ pub fn read_dir(pth: PathLike) -> PyResult<PyReadDir> {
     }
 }
 
-#[pyclass(name = "ReadDir", module = "ryo3")]
+#[pyclass(name = "ReadDir", module = "ry.ryo3", frozen)]
 pub struct PyReadDir {
-    iter: std::fs::ReadDir,
+    path: PathBuf,
+    iter: Mutex<std::fs::ReadDir>,
 }
 
 #[pymethods]
 impl PyReadDir {
+    fn __repr__(&self) -> String {
+        let path = self.path.to_string_lossy();
+        format!("ReadDir('{path}')")
+    }
+
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyDirEntry> {
-        match slf.iter.next() {
-            Some(Ok(entry)) => Some(PyDirEntry::from(entry)),
-            _ => None,
+    fn __next__(&self) -> PyResult<Option<PyDirEntry>> {
+        if let Ok(mut iter) = self.iter.lock() {
+            match iter.next() {
+                Some(Ok(entry)) => Ok(Some(PyDirEntry::from(entry))),
+                _ => Ok(None),
+            }
+        } else {
+            Err(PyRuntimeError::new_err("PyReadDir lock poisoned"))
         }
     }
 
-    fn collect(&mut self) -> Vec<PyDirEntry> {
+    fn collect(&self) -> PyResult<Vec<PyDirEntry>> {
         let mut paths = vec![];
-        for entry in self.iter.by_ref() {
+        let mut iter = self
+            .iter
+            .lock()
+            .map_err(|_| PyRuntimeError::new_err("PyReadDir lock poisoned"))?;
+        for entry in iter.by_ref() {
             match entry {
                 Ok(entry) => paths.push(PyDirEntry::from(entry)),
                 Err(_) => break,
             }
         }
-        paths
+        Ok(paths)
     }
 
-    fn take(&mut self, n: usize) -> Vec<PyDirEntry> {
+    #[pyo3(signature = (n = 1))]
+    fn take(&self, n: usize) -> PyResult<Vec<PyDirEntry>> {
         let mut paths = vec![];
-        for _ in 0..n {
-            match self.iter.next() {
-                Some(Ok(entry)) => paths.push(PyDirEntry::from(entry)),
-                _ => break,
+        let mut iter = self
+            .iter
+            .lock()
+            .map_err(|_| PyRuntimeError::new_err("PyReadDir lock poisoned"))?;
+        for entry in iter.by_ref().take(n) {
+            match entry {
+                Ok(entry) => paths.push(PyDirEntry::from(entry)),
+                Err(_) => break,
             }
         }
-        paths
+        Ok(paths)
     }
 }
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
