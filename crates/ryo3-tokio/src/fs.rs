@@ -76,12 +76,12 @@ pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<
     })
 }
 
-#[pyclass(name = "DirEntryAsync", module = "ry.ryo3")]
-pub struct PyDirEntryAsync(pub std::sync::Arc<tokio::fs::DirEntry>);
+#[pyclass(name = "DirEntryAsync", module = "ry.ryo3", frozen)]
+pub struct PyDirEntryAsync(pub Arc<tokio::fs::DirEntry>);
 
 impl From<tokio::fs::DirEntry> for PyDirEntryAsync {
     fn from(entry: tokio::fs::DirEntry) -> Self {
-        PyDirEntryAsync(std::sync::Arc::new(entry))
+        PyDirEntryAsync(Arc::new(entry))
     }
 }
 
@@ -140,7 +140,7 @@ impl PyDirEntryAsync {
 
 type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<tokio::fs::ReadDir>>>>;
 
-#[pyclass]
+#[pyclass(name = "ReadDirAsync", module = "ry.ryo3", frozen)]
 pub struct RyReadDirAsync {
     stream: AsyncResponseStreamInner,
 }

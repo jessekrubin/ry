@@ -19,6 +19,7 @@ ryo3-core.workspace = true
 ryo3-bytes.workspace = true
 same-file = { workspace = true, optional = true }
 ryo3-std.workspace = true
+parking_lot.workspace = true
 
 
 [lints]

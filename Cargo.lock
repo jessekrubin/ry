@@ -1740,6 +1740,7 @@ dependencies = [
 name = "ryo3-fspath"
 version = "0.0.42"
 dependencies = [
+ "parking_lot",
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
@@ -1926,6 +1927,7 @@ dependencies = [
 name = "ryo3-walkdir"
 version = "0.0.42"
 dependencies = [
+ "parking_lot",
  "pyo3",
  "ryo3-core",
  "ryo3-globset",
