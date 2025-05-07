@@ -179,7 +179,7 @@ impl PyPermissions {
     }
 }
 
-#[pyclass(name = "DirEntry", module = "ry.ryo3")]
+#[pyclass(name = "DirEntry", module = "ry.ryo3", frozen)]
 pub struct PyDirEntry(pub std::fs::DirEntry);
 
 impl From<std::fs::DirEntry> for PyDirEntry {

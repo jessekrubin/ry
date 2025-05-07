@@ -8,8 +8,7 @@ use pyo3::types::PyModule;
 use pyo3::IntoPyObjectExt;
 use std::sync::Arc;
 
-#[pyclass]
-#[pyo3(name = "GlobPaths", module = "ry.ryo3", frozen)]
+#[pyclass(name = "GlobPaths", module = "ry.ryo3", frozen)]
 pub struct PyGlobPaths {
     inner: Arc<Mutex<::glob::Paths>>,
     strict: bool,

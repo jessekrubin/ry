@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::{intern, IntoPyObjectExt};
 
-#[pyclass(name = "SizeFormatter", module = "ry")]
+#[pyclass(name = "SizeFormatter", module = "ry", frozen)]
 pub struct PySizeFormatter {
     formatter: size::fmt::SizeFormatter,
     base: Base,

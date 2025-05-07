@@ -4,13 +4,13 @@ use pyo3::types::PyType;
 use ryo3_macros::err_py_not_impl;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-#[pyclass(name = "Ipv4Addr", module = "ry.ryo3")]
+#[pyclass(name = "Ipv4Addr", module = "ry.ryo3", frozen)]
 pub struct PyIpv4Addr(pub std::net::Ipv4Addr);
 
-#[pyclass(name = "Ipv6Addr", module = "ry.ryo3")]
+#[pyclass(name = "Ipv6Addr", module = "ry.ryo3", frozen)]
 pub struct PyIpv6Addr(pub std::net::Ipv6Addr);
 
-#[pyclass(name = "IpAddr", module = "ry.ryo3")]
+#[pyclass(name = "IpAddr", module = "ry.ryo3", frozen)]
 pub struct PyIpAddr(pub std::net::IpAddr);
 
 static IPV4_ADDR_ERROR: &str =
