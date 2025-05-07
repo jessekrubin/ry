@@ -61,10 +61,10 @@ class HttpClient:
         body: Buffer | None = None,
         headers: HeadersLike | None = None,
         query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-        multipart: t.Any,  # TODO
-        form: t.Any,  # TODO
+        multipart: t.Any | None = None,  # TODO
+        form: t.Any | None = None,  # TODO
         timeout: Duration | None = None,
-        version: HttpVersionLike,
+        version: HttpVersionLike | None = None,
     ) -> Response: ...
 
 class ReqwestError(Exception):
@@ -119,8 +119,8 @@ async def fetch(
     body: Buffer | None = None,
     headers: HeadersLike | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-    multipart: t.Any,  # TODO
-    form: t.Any,  # TODO
+    multipart: t.Any = None,  # TODO
+    form: t.Any = None,  # TODO
     timeout: Duration | None = None,
-    version: HttpVersionLike,
+    version: HttpVersionLike | None = None,
 ) -> Response: ...
