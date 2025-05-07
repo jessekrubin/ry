@@ -6,7 +6,7 @@ use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
 
-#[pyclass(name = "WalkdirGen", module = "ryo3")]
+#[pyclass(name = "WalkdirGen", module = "ry.ryo3")]
 pub struct PyWalkdirGen {
     objects: bool,
     iter: Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>,
@@ -39,26 +39,47 @@ impl PyWalkdirGen {
     }
 
     /// Take n entries from the iterator
+    #[pyo3(signature = (n = 1))]
     fn take<'py>(&mut self, py: Python<'py>, n: usize) -> PyResult<Vec<Bound<'py, PyAny>>> {
-        self.iter
-            .by_ref()
-            .take(n)
-            .map(|entry| {
-                let path_str = entry.path().to_string_lossy().to_string();
-                path_str.into_bound_py_any(py)
-            })
-            .collect::<PyResult<Vec<_>>>()
+        if self.objects {
+            self.iter
+                .by_ref()
+                .take(n)
+                .map(|entry| walkdir_entry::PyWalkDirEntry::from(entry).into_bound_py_any(py))
+                .collect::<PyResult<Vec<_>>>()
+        } else {
+            self.iter
+                .by_ref()
+                .take(n)
+                .map(|entry| {
+                    let path_str = entry.path().to_string_lossy().to_string();
+                    path_str.into_bound_py_any(py)
+                })
+                .collect::<PyResult<Vec<_>>>()
+        }
     }
 
     /// Collect all the entries into a Vec<Bound<PyAny>>
     pub fn collect<'py>(&mut self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
-        let mut results = Vec::new();
-        for entry in self.iter.by_ref() {
-            let path_str = entry.path().to_string_lossy().to_string();
-            let py_any = path_str.into_bound_py_any(py)?;
-            results.push(py_any);
+        // if objects is true, we return a DirEntry object
+        // if objects is false, we return a string
+        if self.objects {
+            let mut results = Vec::new();
+            for entry in self.iter.by_ref() {
+                let pyentry = walkdir_entry::PyWalkDirEntry::from(entry);
+                let py_any = pyentry.into_bound_py_any(py)?;
+                results.push(py_any);
+            }
+            Ok(results)
+        } else {
+            let mut results = Vec::new();
+            for entry in self.iter.by_ref() {
+                let path_str = entry.path().to_string_lossy().to_string();
+                let py_any = path_str.into_bound_py_any(py)?;
+                results.push(py_any);
+            }
+            Ok(results)
         }
-        Ok(results)
     }
 }
 
