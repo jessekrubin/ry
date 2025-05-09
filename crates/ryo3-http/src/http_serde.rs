@@ -88,19 +88,19 @@ impl<'de> de::Visitor<'de> for HeaderMapVisitor {
 
         while let Some((key, value)) = map.next_entry::<String, HeaderValuesDe<String>>()? {
             let name = http::HeaderName::from_bytes(key.as_bytes())
-                .map_err(|e| de::Error::custom(format!("invalid header name '{}': {}", key, e)))?;
+                .map_err(|e| de::Error::custom(format!("invalid header name '{key}': {e}")))?;
 
             match value {
                 HeaderValuesDe::One(value) => {
                     let val = HeaderValue::from_str(&value).map_err(|e| {
-                        de::Error::custom(format!("invalid header value for '{}': {}", key, e))
+                        de::Error::custom(format!("invalid header value for '{key}': {e}"))
                     })?;
                     header_map.insert(name, val);
                 }
                 HeaderValuesDe::Many(values) => {
                     for value in values {
                         let val = HeaderValue::from_str(&value).map_err(|e| {
-                            de::Error::custom(format!("invalid header value for '{}': {}", key, e))
+                            de::Error::custom(format!("invalid header value for '{key}': {e}"))
                         })?;
                         header_map.append(name.clone(), val);
                     }
@@ -118,6 +118,6 @@ impl<'de> serde::Deserialize<'de> for HttpHeaderMap {
     {
         deserializer
             .deserialize_map(HeaderMapVisitor)
-            .map(|e| e.into())
+            .map(std::convert::Into::into)
     }
 }

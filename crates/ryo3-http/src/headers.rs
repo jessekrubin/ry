@@ -81,7 +81,7 @@ impl PyHeaders {
 impl Display for PyHeaders {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let inner = self.0.lock();
-        write!(f, "Headers({:?})", inner)
+        write!(f, "Headers({inner:?})")
     }
 }
 
@@ -156,6 +156,7 @@ impl PyHeaders {
         *(self.0.lock()) != *(other.0.lock())
     }
 
+    #[must_use]
     pub fn __contains__(&self, key: &str) -> bool {
         self.contains_key(key)
     }
@@ -221,19 +222,11 @@ impl PyHeaders {
         inner.len() == inner.keys_len()
     }
 
-    fn flatten(&self) -> PyResult<PyHeaders> {
-        let inner = self.inner();
-        let mut headers = HeaderMap::with_capacity(inner.len());
-        for (k, v) in inner.iter() {
-            headers.insert(k.clone(), v.clone());
-        }
-        Ok(PyHeaders::from(headers))
-    }
-
     pub fn clear(&self) {
         self.0.lock().clear();
     }
 
+    #[must_use]
     pub fn contains_key(&self, key: &str) -> bool {
         self.0.lock().contains_key(key)
     }
@@ -242,18 +235,14 @@ impl PyHeaders {
         self.0.lock().get(key).map(HttpHeaderValue::from)
     }
 
-    pub fn get_all(&self, key: HttpHeaderName) -> PyResult<Vec<String>> {
+    pub fn get_all(&self, key: &str) -> PyResult<Vec<String>> {
         // iterate and collect but filter out errors...
         let mut hvalues = vec![];
-        for v in self.0.lock().get_all(&key.0) {
+        for v in self.0.lock().get_all(key) {
             match v.to_str() {
                 Ok(s) => hvalues.push(s.to_string()),
                 Err(e) => {
-                    let emsg = format!(
-                        "header-value-error: {e} (key={key})",
-                        e = e,
-                        key = key.0.as_str(),
-                    );
+                    let emsg = format!("header-value-error: {e} (key={key})");
                     return Err(PyErr::new::<PyValueError, _>(emsg));
                 }
             }
