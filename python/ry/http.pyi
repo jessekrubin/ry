@@ -1,4 +1,5 @@
 import typing as t
+from collections.abc import Mapping
 
 import typing_extensions
 
@@ -12,11 +13,13 @@ HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
 ]
 # fmt: on
 
+_VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
+
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
     def __init__(
-        self, headers: dict[str, str | t.Sequence[str]] | dict[str, str]
+        self, headers: Mapping[str, _VT] | Headers | None = None, /, **kwargs: _VT
     ) -> None: ...
 
     # =========================================================================
@@ -38,6 +41,7 @@ class Headers:
     def __bool__(self) -> bool: ...
     def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
     def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
+    def stringify(self, *, fmt: bool = False) -> str: ...
 
     # =========================================================================
     # INSTANCE METHODS

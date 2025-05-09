@@ -1,14 +1,16 @@
-use crate::http_types::{HttpHeaderName, HttpHeaderValue};
+use crate::http_types::{HttpHeaderMap, HttpHeaderName, HttpHeaderValue};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
 use crate::PyHeadersLike;
 use http::header::HeaderMap;
-use parking_lot::Mutex;
-use pyo3::exceptions::PyRuntimeError;
+use parking_lot::lock_api::MutexGuard;
+use parking_lot::{Mutex, RawMutex};
+use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
+use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple, PyType};
+use std::fmt::Display;
 use std::sync::Arc;
 
-#[pyclass(name = "Headers", module = "ry", frozen)]
+#[pyclass(name = "Headers", module = "ry.ryo3", frozen)]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub Arc<Mutex<HeaderMap>>);
 
@@ -18,13 +20,68 @@ impl PyHeaders {
         for (key, value) in kwargs.iter() {
             let key = key
                 .extract::<HttpHeaderName>()
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+                .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
             let value = value
                 .extract::<HttpHeaderValue>()
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+                .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
             hm.insert(key.0, value.0);
         }
         Ok(hm)
+    }
+
+    fn inner(&self) -> MutexGuard<'_, RawMutex, HeaderMap> {
+        self.0.lock()
+    }
+
+    fn py_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let inner = self.inner();
+        if inner.is_empty() {
+            Ok(PyDict::new(py))
+        } else if inner.len() == inner.keys_len() {
+            // don't have to worry about duplicates bc of keys_len == len
+            let d = PyDict::new(py);
+            for (k, v) in inner.iter() {
+                let key_pystr = header_name_to_pystring(py, k)?;
+                let value_pystr = header_value_to_pystring(py, v)?;
+                d.set_item(key_pystr, value_pystr)?;
+            }
+            Ok(d)
+        } else {
+            // need to handle duplicates
+            let d = PyDict::new(py);
+            for key in inner.keys() {
+                let key_pystr = header_name_to_pystring(py, key)?;
+                let values: Vec<_> = inner.get_all(key).iter().collect();
+                if values.len() == 1 {
+                    let v = values[0];
+                    if let Ok(vstr) = v.to_str() {
+                        d.set_item(key_pystr, vstr)?;
+                    } else {
+                        let pybytes = PyBytes::new(py, v.as_bytes());
+                        d.set_item(key_pystr, pybytes)?;
+                    }
+                } else {
+                    let py_list = PyList::empty(py);
+                    for v in values {
+                        if let Ok(vstr) = v.to_str() {
+                            py_list.append(vstr)?;
+                        } else {
+                            let pybytes = PyBytes::new(py, v.as_bytes());
+                            py_list.append(pybytes)?;
+                        }
+                    }
+                    d.set_item(key_pystr, py_list)?;
+                }
+            }
+            Ok(d)
+        }
+    }
+}
+
+impl Display for PyHeaders {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let inner = self.0.lock();
+        write!(f, "Headers({inner:?})")
     }
 }
 
@@ -69,7 +126,7 @@ impl PyHeaders {
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let dict = self.asdict(py)?;
+        let dict = self.py_dict(py)?;
         PyTuple::new(py, vec![dict])
     }
 
@@ -80,13 +137,8 @@ impl PyHeaders {
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
-        format!("Headers({:?})", self.0)
-    }
-
-    #[must_use]
     pub fn __repr__(&self) -> String {
-        format!("Headers({:?})", self.0)
+        format!("{self}")
     }
 
     #[must_use]
@@ -104,7 +156,8 @@ impl PyHeaders {
         *(self.0.lock()) != *(other.0.lock())
     }
 
-    pub fn __contains__(&self, key: &str) -> PyResult<bool> {
+    #[must_use]
+    pub fn __contains__(&self, key: &str) -> bool {
         self.contains_key(key)
     }
 
@@ -113,7 +166,8 @@ impl PyHeaders {
     }
 
     pub fn __setitem__(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<()> {
-        self.insert(key, value)
+        self.insert(key, value)?;
+        Ok(())
     }
 
     pub fn __delitem__(&self, key: HttpHeaderName) {
@@ -162,17 +216,19 @@ impl PyHeaders {
             .map_err(|e| PyRuntimeError::new_err(format!("header-append-error: {e}")))
     }
 
+    #[getter]
+    fn is_flat(&self) -> bool {
+        let inner = self.inner();
+        inner.len() == inner.keys_len()
+    }
+
     pub fn clear(&self) {
         self.0.lock().clear();
     }
 
-    pub fn contains_key(&self, key: &str) -> PyResult<bool> {
-        let header_name = http::header::HeaderName::from_bytes(key.as_bytes()).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "header-name-error: {e} (key={key})"
-            ))
-        })?;
-        Ok(self.0.lock().contains_key(&header_name))
+    #[must_use]
+    pub fn contains_key(&self, key: &str) -> bool {
+        self.0.lock().contains_key(key)
     }
 
     pub fn get(&self, key: &str) -> Option<HttpHeaderValue> {
@@ -180,32 +236,30 @@ impl PyHeaders {
     }
 
     pub fn get_all(&self, key: &str) -> PyResult<Vec<String>> {
-        let hname = http::header::HeaderName::from_bytes(key.as_bytes()).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "header-name-error: {e} (key={key})"
-            ))
-        })?;
         // iterate and collect but filter out errors...
         let mut hvalues = vec![];
-        for v in self.0.lock().get_all(&hname) {
+        for v in self.0.lock().get_all(key) {
             match v.to_str() {
                 Ok(s) => hvalues.push(s.to_string()),
                 Err(e) => {
-                    return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                        "header-value-error: {e} (key={key})"
-                    )));
+                    let emsg = format!("header-value-error: {e} (key={key})");
+                    return Err(PyErr::new::<PyValueError, _>(emsg));
                 }
             }
         }
         Ok(hvalues)
     }
 
-    pub fn insert(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<()> {
+    pub fn insert(
+        &self,
+        key: HttpHeaderName,
+        value: HttpHeaderValue,
+    ) -> PyResult<Option<HttpHeaderValue>> {
         self.0
             .lock()
             .try_insert(key.0, value.0)
-            .map_err(|e| PyRuntimeError::new_err(format!("header-insert-error: {e}")))?;
-        Ok(())
+            .map_err(|e| PyRuntimeError::new_err(format!("header-insert-error: {e}")))
+            .map(|v| v.map(HttpHeaderValue::from))
     }
 
     #[must_use]
@@ -248,9 +302,8 @@ impl PyHeaders {
     pub fn values<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyString>>> {
         let mut vals = vec![];
         for v in self.0.lock().values() {
-            let pystr = header_value_to_pystring(py, v).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("header-value-error: {e}"))
-            })?;
+            let pystr = header_value_to_pystring(py, v)
+                .map_err(|e| PyErr::new::<PyValueError, _>(format!("header-value-error: {e}")))?;
             vals.push(pystr);
         }
         Ok(vals)
@@ -317,39 +370,52 @@ impl PyHeaders {
         Ok(PyHeaders::from(headers))
     }
 
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let d = PyDict::new(py);
-
-        let inner = self.0.lock();
-        for key in inner.keys() {
-            let key_pystr = header_name_to_pystring(py, key)?;
-            let values: Vec<_> = inner.get_all(key).iter().collect();
-            if values.len() == 1 {
-                let v = values[0];
-                if let Ok(vstr) = v.to_str() {
-                    d.set_item(key_pystr, vstr)?;
-                } else {
-                    let pybytes = PyBytes::new(py, v.as_bytes());
-                    d.set_item(key_pystr, pybytes)?;
-                }
-            } else {
-                let py_list = PyList::empty(py);
-                for v in values {
-                    if let Ok(vstr) = v.to_str() {
-                        py_list.append(vstr)?;
-                    } else {
-                        let pybytes = PyBytes::new(py, v.as_bytes());
-                        py_list.append(pybytes)?;
-                    }
-                }
-                d.set_item(key_pystr, py_list)?;
-            }
-        }
-
-        Ok(d)
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.py_dict(py)
     }
 
-    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        self.asdict(py)
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.to_py(py)
+    }
+
+    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.to_py(py)
+    }
+
+    #[cfg(feature = "json")]
+    #[pyo3(signature = (*, fmt=false))]
+    fn stringify(&self, fmt: bool) -> PyResult<String> {
+        {
+            let inner = self.0.lock();
+            if fmt {
+                let a = serde_json::to_string_pretty(&crate::http_serde::HttpHeaderMapRef(&inner))
+                    .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+                Ok(a)
+            } else {
+                let a = serde_json::to_string(&crate::http_serde::HttpHeaderMapRef(&inner))
+                    .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+                Ok(a)
+            }
+        }
+    }
+
+    #[cfg(not(feature = "json"))]
+    #[pyo3(signature = (*args, **kwargs))]
+    fn stringify(
+        &self,
+        args: &Bound<'_, PyTuple>,
+        kwargs: Option<&Bound<'_, PyDict>>,
+    ) -> PyResult<String> {
+        Err(::ryo3_core::FeatureNotEnabledError::new_err(
+            "ryo3-http: `json` feature not enabled",
+        ))
+    }
+
+    #[classmethod]
+    fn from_json(_cls: &Bound<'_, PyType>, json: &str) -> PyResult<Self> {
+        // let headers: crate::http_t=
+        serde_json::from_str::<HttpHeaderMap>(json)
+            .map(|e| Self::from(e.0))
+            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))
     }
 }

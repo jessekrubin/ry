@@ -12,9 +12,15 @@ repl:
 # dev run build + tests
 dev: develop test
 
+dev-uv: develop-uv pytest-uv
+
 # maturin develop
 develop:
     maturin develop
+
+# maturin develop (with uv)
+develop-uv:
+    uv run maturin develop --uv
 
 # maturin develop (shorthand)
 mat:
@@ -39,6 +45,10 @@ dev-rel:
 # run pytest
 pytest:
     pytest --benchmark-skip
+
+# run pytest
+pytest-uv:
+    uv run pytest --benchmark-skip
 
 # run pytest (printing captured output)
 pytestv:
