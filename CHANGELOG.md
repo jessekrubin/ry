@@ -11,6 +11,8 @@
   - freeze struct(s) to be frozen
 - `ryo3-http`
   - http version python conversions to/from string/int
+  - crude-ish serde implementation for `HeadersMap` for json
+    encoding/decoding... was a lot of googling
   - status code reason(s) interned
   - intern all standard http header-names
 - `ryo3-fnv`
