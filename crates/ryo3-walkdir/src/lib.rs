@@ -94,6 +94,7 @@ impl From<::walkdir::WalkDir> for PyWalkdirGen {
     }
 }
 
+#[expect(clippy::struct_excessive_bools)]
 struct WalkdirOptions {
     files: bool,
     dirs: bool,
