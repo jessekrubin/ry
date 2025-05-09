@@ -44,39 +44,8 @@ impl TryFrom<PyHeadersLike> for HeaderMap {
     fn try_from(h: PyHeadersLike) -> Result<Self, Self::Error> {
         match h {
             PyHeadersLike::Headers(h) => Ok(h.0.lock().clone()),
-            PyHeadersLike::Map(d) => {
-                let mut default_headers = HeaderMap::new();
-                for (k, v) in d {
-                    let k = k.to_string();
-                    match v {
-                        StringOrStrings::String(s) => {
-                            let header_name = http::header::HeaderName::from_bytes(k.as_bytes())
-                                .map_err(|e| {
-                                    PyValueError::new_err(format!("header-name-error: {e}"))
-                                })?;
-                            let header_value =
-                                http::header::HeaderValue::from_str(&s).map_err(|e| {
-                                    PyValueError::new_err(format!("header-value-error: {e}"))
-                                })?;
-                            default_headers.insert(header_name, header_value);
-                        }
-                        StringOrStrings::Strings(v) => {
-                            let header_name = http::header::HeaderName::from_bytes(k.as_bytes())
-                                .map_err(|e| {
-                                    PyValueError::new_err(format!("header-name-error: {e}"))
-                                })?;
-                            for s in v {
-                                let header_value = http::header::HeaderValue::from_str(&s)
-                                    .map_err(|e| {
-                                        PyValueError::new_err(format!("header-value-error: {e}"))
-                                    })?;
-                                default_headers.append(&header_name, header_value);
-                            }
-                        }
-                    }
-                }
-                Ok(default_headers)
-            }
+            PyHeadersLike::Map(d) => PyHeadersLike::map2headers(&d)
+                .map_err(|e| PyValueError::new_err(format!("header-map-error: {e}"))),
         }
     }
 }

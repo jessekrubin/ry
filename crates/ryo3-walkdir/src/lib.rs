@@ -94,31 +94,65 @@ impl From<::walkdir::WalkDir> for PyWalkdirGen {
     }
 }
 
-#[expect(clippy::too_many_arguments)]
-fn build_walkdir(
-    path: &Path,
-    contents_first: Option<bool>,    // false
-    min_depth: Option<usize>,        // default 0
-    max_depth: Option<usize>,        // default None
-    follow_links: Option<bool>,      // default false
-    follow_root_links: Option<bool>, // default true
-    same_file_system: Option<bool>,  // default false
-    sort_by_file_name: Option<bool>, // default false
-) -> ::walkdir::WalkDir {
-    let mut wd = ::walkdir::WalkDir::new(path)
-        .contents_first(contents_first.unwrap_or(false))
-        .follow_links(follow_links.unwrap_or(false))
-        .follow_root_links(follow_root_links.unwrap_or(true))
-        .same_file_system(same_file_system.unwrap_or(false))
-        .min_depth(min_depth.unwrap_or(0));
+struct WalkdirOptions {
+    files: bool,
+    dirs: bool,
+    contents_first: bool,
+    min_depth: usize,
+    max_depth: Option<usize>,
+    follow_links: bool,
+    follow_root_links: bool,
+    same_file_system: bool,
+    sort_by_file_name: bool,
+}
 
-    if let Some(max_depth) = max_depth {
-        wd = wd.max_depth(max_depth);
+impl Default for WalkdirOptions {
+    fn default() -> Self {
+        Self {
+            files: true,
+            dirs: true,
+            contents_first: false,
+            min_depth: 0,
+            max_depth: None,
+            follow_links: false,
+            follow_root_links: true,
+            same_file_system: false,
+            sort_by_file_name: false,
+        }
     }
-    if sort_by_file_name.unwrap_or(false) {
-        wd = wd.sort_by(|a, b| a.file_name().cmp(b.file_name()));
+}
+
+impl WalkdirOptions {
+    fn build_walkdir<T: AsRef<Path>>(&self, path: T) -> ::walkdir::WalkDir {
+        let mut wd = ::walkdir::WalkDir::new(path)
+            .contents_first(self.contents_first)
+            .follow_links(self.follow_links)
+            .follow_root_links(self.follow_root_links)
+            .same_file_system(self.same_file_system)
+            .min_depth(self.min_depth);
+
+        if let Some(max_depth) = self.max_depth {
+            wd = wd.max_depth(max_depth);
+        }
+        if self.sort_by_file_name {
+            wd = wd.sort_by(|a, b| a.file_name().cmp(b.file_name()));
+        }
+        wd
     }
-    wd
+
+    fn build_iter<T: AsRef<Path>>(&self, path: T) -> impl Iterator<Item = ::walkdir::DirEntry> {
+        let wd = self.build_walkdir(path.as_ref());
+        let dirs = self.dirs;
+        let files = self.files;
+        let predicate = move |entry: &::walkdir::DirEntry| {
+            let ftype = entry.file_type();
+            (ftype.is_file() && files) || (ftype.is_dir() && dirs)
+        };
+
+        wd.into_iter()
+            .filter_map(Result::ok)
+            .filter(move |entry: &::walkdir::DirEntry| predicate(entry))
+    }
 }
 
 #[expect(clippy::too_many_arguments)]
@@ -155,42 +189,46 @@ pub fn walkdir(
     glob: Option<GlobsterLike>,      // default None
     objects: bool,                   // default false
 ) -> PyResult<PyWalkdirGen> {
-    let wd = build_walkdir(
-        path.unwrap_or(PathLike::Str(String::from("."))).as_ref(),
-        contents_first,
-        min_depth,
-        max_depth,
-        follow_links,
-        follow_root_links,
-        same_file_system,
-        sort_by_file_name,
-    );
-
-    // convert the WalkDir into an iterator of `walkdir::DirEntry` filtering
-    // out any `Err`
-    let base_iter = wd.into_iter().filter_map(Result::ok);
-
-    // Apply .filter() for files/dirs.
-    let want_files = files.unwrap_or(true);
-    let want_dirs = dirs.unwrap_or(true);
-
-    let filtered_iter = base_iter.filter(move |entry: &::walkdir::DirEntry| {
-        let ftype = entry.file_type();
-        (ftype.is_file() && want_files) || (ftype.is_dir() && want_dirs)
-    });
-
-    // filter again if there is a glob...
     let walk_globster = match glob {
         Some(g) => Some(PyGlobster::try_from(&g)?),
         None => None,
     };
+    let opts = WalkdirOptions {
+        files: files.unwrap_or(true),
+        dirs: dirs.unwrap_or(true),
+        contents_first: contents_first.unwrap_or(false),
+        min_depth: min_depth.unwrap_or(0),
+        max_depth,
+        follow_links: follow_links.unwrap_or(false),
+        follow_root_links: follow_root_links.unwrap_or(true),
+        same_file_system: same_file_system.unwrap_or(false),
+        sort_by_file_name: sort_by_file_name.unwrap_or(false),
+    };
+    // let p = path.unwrap_or(PathLike::Str(String::from("."))).as_ref();
+    let wd_iter = opts.build_iter(path.unwrap_or(PathLike::Str(String::from("."))));
+    // let filtered_iter = opts.build_iter(path.unwrap_or(PathLike::Str(String::from("."))).as_ref());
+
+    // convert the WalkDir into an iterator of `walkdir::DirEntry` filtering
+    // out any `Err`
+    // let base_iter = wd.into_iter().filter_map(Result::ok);
+
+    // Apply .filter() for files/dirs.
+    // let want_files = files.unwrap_or(true);
+    // let want_dirs = dirs.unwrap_or(true);
+
+    // let filtered_iter = base_iter.filter(move |entry: &::walkdir::DirEntry| {
+    // let ftype = entry.file_type();
+    // (ftype.is_file() && want_files) || (ftype.is_dir() && want_dirs)
+    // });
+
+    // filter again if there is a glob...
 
     // this is the final iterator
     let final_iter = if let Some(gs) = walk_globster {
-        Box::new(filtered_iter.filter(move |entry| gs.is_match(entry.path())))
+        Box::new(wd_iter.filter(move |entry| gs.is_match(entry.path())))
             as Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>
     } else {
-        Box::new(filtered_iter) as Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>
+        Box::new(wd_iter) as Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>
     };
     Ok(PyWalkdirGen {
         objects,

@@ -411,18 +411,6 @@ impl PyFsPath {
         ))
     }
 
-    #[cfg(feature = "same-file")]
-    fn samefile(&self, other: PathBuf) -> PyResult<bool> {
-        Ok(same_file::is_same_file(self.path(), &other)?)
-    }
-
-    #[cfg(not(feature = "same-file"))]
-    fn samefile(&self, _other: PathBuf) -> PyResult<bool> {
-        Err(ryo3_core::FeatureNotEnabledError::new_err(
-            "`same-file` feature not enabled",
-        ))
-    }
-
     // ========================================================================
     // Methods from ::std::path::PathBuf
     // ========================================================================
@@ -589,21 +577,25 @@ impl PyFsPath {
             .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
         Ok(rd)
     }
+
     fn read_link(&self) -> PyResult<Self> {
         self.pth
             .read_link()
             .map(Self::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("read_link: {e}")))
     }
+
     fn starts_with(&self, p: PathLike) -> bool {
         self.pth.starts_with(p.as_ref())
     }
+
     fn strip_prefix(&self, p: PathLike) -> PyResult<PyFsPath> {
         self.pth
             .strip_prefix(p.as_ref())
             .map(Self::from)
             .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
+
     fn symlink_metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
         self.pth
             .metadata()
@@ -617,6 +609,26 @@ impl PyFsPath {
 
     fn with_file_name(&self, name: String) -> Self {
         Self::from(self.pth.with_file_name(name))
+    }
+
+    // ========================================================================
+    // FEATURES
+    // ========================================================================
+
+    // -------------------------------------------------------------------------
+    // `same-file` feature
+    // ------------------------------------------------------------------------
+
+    #[cfg(feature = "same-file")]
+    fn samefile(&self, other: PathBuf) -> PyResult<bool> {
+        Ok(same_file::is_same_file(self.path(), &other)?)
+    }
+
+    #[cfg(not(feature = "same-file"))]
+    fn samefile(&self, _other: PathBuf) -> PyResult<bool> {
+        Err(ryo3_core::FeatureNotEnabledError::new_err(
+            "`same-file` feature not enabled",
+        ))
     }
 }
 

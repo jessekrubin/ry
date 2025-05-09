@@ -1,9 +1,62 @@
 from __future__ import annotations
 
-from ry import Headers
+import json
+
+from ry import Headers, __version__
+
+HEADERS_DICT = {
+    "User-Agent": "ry-reqwest/" + __version__,
+    "Accept": "*/*",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+}
+
+HEADERS_OBJ = Headers(HEADERS_DICT)
+
+
+class TestHeadersJson:
+    def test_headers_json(self) -> None:
+        json_str = HEADERS_OBJ.stringify()
+        assert isinstance(json_str, str)
+        assert json_str == json.dumps(
+            HEADERS_OBJ.asdict(), sort_keys=True, separators=(",", ":")
+        )
+
+    def test_headers_json_fmt(self) -> None:
+        json_str = HEADERS_OBJ.stringify(fmt=True)
+        assert isinstance(json_str, str)
+        assert json_str == json.dumps(HEADERS_OBJ.asdict(), indent=2, sort_keys=True)
+
+    def test_round_trip(self) -> None:
+        # test round trip
+        json_str = HEADERS_OBJ.stringify()
+        assert isinstance(json_str, str)
+        assert json_str == json.dumps(
+            HEADERS_OBJ.asdict(), sort_keys=True, separators=(",", ":")
+        )
+        h = Headers(json.loads(json_str))
+        assert h == HEADERS_OBJ
+        assert len(h) == len(HEADERS_OBJ)
+        assert h.keys_len() == HEADERS_OBJ.keys_len()
+        assert h.stringify() == HEADERS_OBJ.stringify()
+
+        from_json = Headers(json.loads(json_str))
+        assert from_json == HEADERS_OBJ
+        assert len(from_json) == len(HEADERS_OBJ)
 
 
 class TestHeadersObj:
+    def test_headers_obj_repr(self) -> None:
+        h = Headers(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
+        evaled = eval(repr(h))
+        assert isinstance(evaled, Headers)
+        assert evaled == h
+
     def test_kwargs(self) -> None:
         h = Headers(
             **{
