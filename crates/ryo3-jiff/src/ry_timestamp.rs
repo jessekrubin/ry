@@ -148,6 +148,7 @@ impl RyTimestamp {
         other: RyTimestampArithmeticSub,
     ) -> PyResult<Bound<'py, PyAny>> {
         match other {
+            #[expect(clippy::arithmetic_side_effects)]
             RyTimestampArithmeticSub::Timestamp(other) => {
                 let span = self.0 - other.0;
                 let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;

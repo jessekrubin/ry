@@ -22,6 +22,8 @@ use ryo3_std::PyDuration;
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Sub;
+
 #[derive(Debug, Clone)]
 #[pyclass(name = "Date", module = "ry", frozen)]
 pub struct RyDate(pub(crate) Date);
@@ -134,10 +136,6 @@ impl RyDate {
         )
     }
 
-    fn sub_date(&self, other: &RyDate) -> RySpan {
-        RySpan::from(self.0 - other.0)
-    }
-
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -146,7 +144,7 @@ impl RyDate {
         match other {
             RyDateArithmeticSub::Date(other) => {
                 // cannot overflow...
-                let span = self.0 - other.0;
+                let span = self.0.sub(other.0);
                 let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
