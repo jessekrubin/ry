@@ -7,6 +7,8 @@
 #![deny(clippy::style)]
 #![deny(clippy::unwrap_used)]
 #![warn(clippy::must_use_candidate)]
+#![deny(clippy::missing_panics_doc)]
+#![deny(clippy::arithmetic_side_effects)]
 #![expect(clippy::missing_errors_doc)]
 
 pub mod pydatetime_conversions;

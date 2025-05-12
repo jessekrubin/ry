@@ -20,7 +20,21 @@ pub struct RySpan(pub(crate) Span);
 impl RySpan {
     #[expect(clippy::too_many_arguments)]
     #[new]
-    #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0, unchecked=false))]
+    #[pyo3(
+        signature = (
+            *,
+            years=0,
+            months=0,
+            weeks=0,
+            days=0,
+            hours=0,
+            minutes=0,
+            seconds=0,
+            milliseconds=0,
+            microseconds=0,
+            nanoseconds=0
+        )
+    )]
     fn py_new(
         years: i64,
         months: i64,
@@ -32,7 +46,6 @@ impl RySpan {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-        unchecked: bool,
     ) -> PyResult<Self> {
         timespan(
             years,
@@ -45,7 +58,6 @@ impl RySpan {
             milliseconds,
             microseconds,
             nanoseconds,
-            unchecked,
         )
     }
 
@@ -197,7 +209,6 @@ impl RySpan {
             milliseconds,
             microseconds,
             nanoseconds,
-            false,
         )
     }
 

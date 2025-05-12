@@ -32,8 +32,10 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 codegen-units = 1
+incremental = false
 strip = true
 debug = false
+panic = "abort"
 # __FAT_VS_THIN_LTO__?
 # tbd if this ought to be fat or thin, on one hand, 'thin' compiles MUCH faster
 # but on the other hand, I am an american...

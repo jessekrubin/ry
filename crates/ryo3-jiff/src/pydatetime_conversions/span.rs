@@ -2,6 +2,7 @@ use crate::{JiffSignedDuration, JiffSpan};
 use jiff::SpanRelativeTo;
 use pyo3::types::{PyAnyMethods, PyDelta, PyDeltaAccess};
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use std::ops::Neg;
 
 impl<'py> IntoPyObject<'py> for JiffSpan {
     #[cfg(Py_LIMITED_API)]
@@ -111,7 +112,7 @@ impl FromPyObject<'_> for JiffSpan {
         }
 
         if is_negative {
-            span = -span;
+            span = span.neg();
         }
 
         Ok(JiffSpan::from(span))
