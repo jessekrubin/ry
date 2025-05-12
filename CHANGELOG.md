@@ -2,6 +2,8 @@
 
 ## v0.0.43 [unreleased]
 
+- `ryo3-jiff`
+  - panic-able functions to create new/altered (time)spans moved to use `try_*`
 - fix: anyio marker flat issue in pytests for cicd
 
 ---
