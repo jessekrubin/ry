@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## v0.0.42 [unreleased]
+## v0.0.43 [unreleased]
+
+- fix: anyio marker flat issue in pytests for cicd
+
+---
+
+## v0.0.42 [2025-05-12]
 
 - panic=abort
   - panic is now (maybe will go back) `abort` for release builds
