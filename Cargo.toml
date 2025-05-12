@@ -149,7 +149,7 @@ pyo3-async-runtimes = { version = "0.24", features = ["tokio-runtime"] }
 #pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", features = ["tokio-runtime"] }
 
 # external
-ahash = "0.8.11"
+ahash = "0.8.12"
 anyhow = "1.0.75"
 brotli = "8.0.1"
 bytes = "1.10.1"

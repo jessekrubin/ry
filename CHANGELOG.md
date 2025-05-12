@@ -2,6 +2,9 @@
 
 ## v0.0.42 [unreleased]
 
+- panic=abort
+  - panic is now (maybe will go back) `abort` for release builds
+  - means smaller binaries and faster error handling (in theory)
 - `ryo3-reqwest`
   - more type fixes to response
   - Got response type more inline with other python http-client libraries
