@@ -2690,10 +2690,10 @@ class HttpClient:
         body: Buffer | None = None,
         headers: HeadersLike | None = None,
         query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-        multipart: t.Any,  # TODO
-        form: t.Any,  # TODO
+        multipart: t.Any | None = None,  # TODO
+        form: t.Any | None = None,  # TODO
         timeout: Duration | None = None,
-        version: HttpVersionLike,
+        version: HttpVersionLike | None = None,
     ) -> Response: ...
 
 
@@ -2756,10 +2756,10 @@ async def fetch(
     body: Buffer | None = None,
     headers: HeadersLike | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-    multipart: t.Any,  # TODO
-    form: t.Any,  # TODO
+    multipart: t.Any = None,  # TODO
+    form: t.Any = None,  # TODO
     timeout: Duration | None = None,
-    version: HttpVersionLike,
+    version: HttpVersionLike | None = None,
 ) -> Response: ...
 
 ```
@@ -3200,6 +3200,19 @@ class DirEntry:
     def file_type(self) -> FileType: ...
 
 
+_T = t.TypeVar("_T")
+
+
+class RyIterable(t.Generic[_T]):
+    def __iter__(self) -> t.Self: ...
+    def __next__(self) -> _T: ...
+    def collect(self) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
+
+
+class ReadDir(RyIterable[DirEntry]): ...
+
+
 # ============================================================================
 # STD::FS ~ functions
 # =============================================================================
@@ -3207,14 +3220,14 @@ def read(path: FsPathLike) -> Bytes: ...
 def read_bytes(path: FsPathLike) -> bytes: ...
 def read_dir(
     path: FsPathLike,
-) -> t.Iterator[DirEntry]: ...
+) -> ReadDir: ...
 def read_text(path: FsPathLike) -> str: ...
 def read_stream(
     path: FsPathLike,
     chunk_size: int = 65536,
     *,
     offset: int = 0,
-) -> t.Iterator[Bytes]: ...
+) -> RyIterable[Bytes]: ...
 def write(path: FsPathLike, data: Buffer | str) -> int: ...
 def write_bytes(path: FsPathLike, data: bytes) -> int: ...
 def write_text(path: FsPathLike, data: str) -> int: ...
@@ -3557,7 +3570,7 @@ class URL:
     @property
     def query(self) -> str | None: ...
     @property
-    def query_pairs(self) -> list[tuple[str, str]]: ...
+    def query_pairs(self) -> tuple[tuple[str, str], ...]: ...
     @property
     def scheme(self) -> str: ...
     @property
@@ -3644,7 +3657,7 @@ class WalkdirGen(t.Generic[_T_walkdir]):
     def __next__(self) -> _T_walkdir: ...
     def __iter__(self) -> t.Iterator[_T_walkdir]: ...
     def collect(self) -> list[_T_walkdir]: ...
-    def take(self, n: int) -> list[_T_walkdir]: ...
+    def take(self, n: int = 1) -> list[_T_walkdir]: ...
 
 
 @t.overload
@@ -3739,6 +3752,7 @@ def video_dir() -> str | None: ...
 
 ```python
 import typing as t
+from collections.abc import Mapping
 
 import typing_extensions
 
@@ -3752,12 +3766,17 @@ HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
 ]
 # fmt: on
 
+_VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
+
 
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
     def __init__(
-        self, headers: dict[str, str | t.Sequence[str]] | dict[str, str]
+        self,
+        headers: Mapping[str, _VT] | Headers | None = None,
+        /,
+        **kwargs: _VT,
     ) -> None: ...
 
     # =========================================================================
@@ -3779,6 +3798,7 @@ class Headers:
     def __bool__(self) -> bool: ...
     def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
     def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
+    def stringify(self, *, fmt: bool = False) -> str: ...
 
     # =========================================================================
     # INSTANCE METHODS
