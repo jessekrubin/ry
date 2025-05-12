@@ -2707,10 +2707,10 @@ class HttpClient:
         body: Buffer | None = None,
         headers: HeadersLike | None = None,
         query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-        multipart: t.Any,  # TODO
-        form: t.Any,  # TODO
+        multipart: t.Any | None = None,  # TODO
+        form: t.Any | None = None,  # TODO
         timeout: Duration | None = None,
-        version: HttpVersionLike,
+        version: HttpVersionLike | None = None,
     ) -&gt; Response: ...
 
 
@@ -2773,10 +2773,10 @@ async def fetch(
     body: Buffer | None = None,
     headers: HeadersLike | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-    multipart: t.Any,  # TODO
-    form: t.Any,  # TODO
+    multipart: t.Any = None,  # TODO
+    form: t.Any = None,  # TODO
     timeout: Duration | None = None,
-    version: HttpVersionLike,
+    version: HttpVersionLike | None = None,
 ) -&gt; Response: ...
 
 </code></pre>
@@ -3207,6 +3207,19 @@ class DirEntry:
     def file_type(self) -&gt; FileType: ...
 
 
+_T = t.TypeVar("_T")
+
+
+class RyIterable(t.Generic[_T]):
+    def __iter__(self) -&gt; t.Self: ...
+    def __next__(self) -&gt; _T: ...
+    def collect(self) -&gt; list[_T]: ...
+    def take(self, n: int = 1) -&gt; list[_T]: ...
+
+
+class ReadDir(RyIterable[DirEntry]): ...
+
+
 # ============================================================================
 # STD::FS ~ functions
 # =============================================================================
@@ -3214,14 +3227,14 @@ def read(path: FsPathLike) -&gt; Bytes: ...
 def read_bytes(path: FsPathLike) -&gt; bytes: ...
 def read_dir(
     path: FsPathLike,
-) -&gt; t.Iterator[DirEntry]: ...
+) -&gt; ReadDir: ...
 def read_text(path: FsPathLike) -&gt; str: ...
 def read_stream(
     path: FsPathLike,
     chunk_size: int = 65536,
     *,
     offset: int = 0,
-) -&gt; t.Iterator[Bytes]: ...
+) -&gt; RyIterable[Bytes]: ...
 def write(path: FsPathLike, data: Buffer | str) -&gt; int: ...
 def write_bytes(path: FsPathLike, data: bytes) -&gt; int: ...
 def write_text(path: FsPathLike, data: str) -&gt; int: ...
@@ -3558,7 +3571,7 @@ class URL:
     @property
     def query(self) -&gt; str | None: ...
     @property
-    def query_pairs(self) -&gt; list[tuple[str, str]]: ...
+    def query_pairs(self) -&gt; tuple[tuple[str, str], ...]: ...
     @property
     def scheme(self) -&gt; str: ...
     @property
@@ -3643,7 +3656,7 @@ class WalkdirGen(t.Generic[_T_walkdir]):
     def __next__(self) -&gt; _T_walkdir: ...
     def __iter__(self) -&gt; t.Iterator[_T_walkdir]: ...
     def collect(self) -&gt; list[_T_walkdir]: ...
-    def take(self, n: int) -&gt; list[_T_walkdir]: ...
+    def take(self, n: int = 1) -&gt; list[_T_walkdir]: ...
 
 
 @t.overload
@@ -3732,6 +3745,7 @@ def video_dir() -&gt; str | None: ...
 </code></pre>
 <h2 id="ry.http"><a class="header" href="#ry.http"><code>ry.http</code></a></h2>
 <pre><code class="language-python">import typing as t
+from collections.abc import Mapping
 
 import typing_extensions
 
@@ -3745,12 +3759,17 @@ HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
 ]
 # fmt: on
 
+_VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
+
 
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
     def __init__(
-        self, headers: dict[str, str | t.Sequence[str]] | dict[str, str]
+        self,
+        headers: Mapping[str, _VT] | Headers | None = None,
+        /,
+        **kwargs: _VT,
     ) -&gt; None: ...
 
     # =========================================================================
@@ -3772,6 +3791,7 @@ class Headers:
     def __bool__(self) -&gt; bool: ...
     def to_py(self) -&gt; dict[str, str | t.Sequence[str]]: ...
     def asdict(self) -&gt; dict[str, str | t.Sequence[str]]: ...
+    def stringify(self, *, fmt: bool = False) -&gt; str: ...
 
     # =========================================================================
     # INSTANCE METHODS
