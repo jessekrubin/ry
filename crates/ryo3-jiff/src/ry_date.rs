@@ -25,7 +25,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Date", module = "ry", frozen)]
+#[pyclass(name = "Date", module = "ry.ryo3", frozen)]
 pub struct RyDate(pub(crate) Date);
 
 #[pymethods]
@@ -459,7 +459,7 @@ impl From<Date> for RyDate {
     }
 }
 
-#[pyclass(name = "DateSeries", module = "ryo3")]
+#[pyclass(name = "DateSeries", module = "ry.ryo3")]
 pub struct RyDateSeries {
     pub(crate) series: jiff::civil::DateSeries,
 }

@@ -8,7 +8,7 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "URL", module = "ry", frozen)]
+#[pyclass(name = "URL", module = "ry.ryo3", frozen)]
 pub struct PyUrl(pub url::Url);
 
 impl PyUrl {

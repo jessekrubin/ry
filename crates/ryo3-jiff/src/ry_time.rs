@@ -16,7 +16,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 use std::str::FromStr;
-#[pyclass(name = "Time", module = "ry", frozen)]
+#[pyclass(name = "Time", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone)]
 pub struct RyTime(pub(crate) jiff::civil::Time);
 
@@ -444,7 +444,7 @@ impl From<JiffTime> for RyTime {
     }
 }
 
-#[pyclass(name = "TimeSeries", module = "ryo3")]
+#[pyclass(name = "TimeSeries", module = "ry.ryo3")]
 pub struct RyTimeSeries {
     pub(crate) series: jiff::civil::TimeSeries,
 }

@@ -3,7 +3,7 @@ use jiff::civil::DateTimeRound;
 use pyo3::prelude::*;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "DateTimeRound", module = "ryo3", frozen)]
+#[pyclass(name = "DateTimeRound", module = "ry.ryo3", frozen)]
 pub struct RyDateTimeRound {
     pub smallest: JiffUnit,
     pub mode: JiffRoundMode,

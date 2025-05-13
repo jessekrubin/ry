@@ -20,7 +20,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 #[derive(Debug, Clone)]
-#[pyclass(name = "DateTime", module = "ry", frozen)]
+#[pyclass(name = "DateTime", module = "ry.ryo3", frozen)]
 pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {
@@ -572,7 +572,7 @@ impl Display for RyDateTime {
     }
 }
 
-#[pyclass(name = "DateTimeSeries", module = "ryo3")]
+#[pyclass(name = "DateTimeSeries", module = "ry.ryo3")]
 pub struct RyDateTimeSeries {
     pub(crate) series: jiff::civil::DateTimeSeries,
 }

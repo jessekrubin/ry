@@ -23,7 +23,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTime", module = "ry", frozen)]
+#[pyclass(name = "ZonedDateTime", module = "ry.ryo3", frozen)]
 pub struct RyZoned(pub(crate) Zoned);
 
 #[pymethods]
