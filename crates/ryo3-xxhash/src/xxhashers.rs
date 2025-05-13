@@ -4,7 +4,7 @@ use xxhash_rust::xxh3::{Xxh3, Xxh3Builder};
 use xxhash_rust::xxh32::Xxh32;
 use xxhash_rust::xxh64::Xxh64;
 
-#[pyclass(name = "Xxh32", module = "ry.xxhash")]
+#[pyclass(name = "Xxh32", module = "ry.ryo3.xxhash")]
 pub struct PyXxh32 {
     seed: u32,
     pub hasher: Xxh32,
@@ -88,7 +88,7 @@ pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyResult<PyXx
 }
 
 /// Python-Xxh64 hasher
-#[pyclass(name = "Xxh64", module = "ry.xxhash")]
+#[pyclass(name = "Xxh64", module = "ry.ryo3.xxhash")]
 pub struct PyXxh64 {
     seed: u64,
     pub hasher: Xxh64,
@@ -173,7 +173,7 @@ pub fn xxh64(s: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<PyXx
     Ok(PyXxh64::py_new(s, seed))
 }
 
-#[pyclass(name = "Xxh3", module = "ry.xxhash")]
+#[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash")]
 pub struct PyXxh3 {
     seed: u64,
     pub hasher: Xxh3,
