@@ -133,44 +133,44 @@ impl RySpan {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn _years(&self, n: i64) -> Self {
-        Self::from(self.0.years(n))
+    fn _years(&self, n: i64) -> PyResult<Self> {
+        self.try_years(n)
     }
 
-    fn _months(&self, n: i64) -> Self {
-        Self::from(self.0.months(n))
+    fn _months(&self, n: i64) -> PyResult<Self> {
+        self.try_months(n)
     }
 
-    fn _weeks(&self, n: i64) -> Self {
-        Self::from(self.0.weeks(n))
+    fn _weeks(&self, n: i64) -> PyResult<Self> {
+        self.try_weeks(n)
     }
 
-    fn _days(&self, n: i64) -> Self {
-        Self::from(self.0.days(n))
+    fn _days(&self, n: i64) -> PyResult<Self> {
+        self.try_days(n)
     }
 
-    fn _hours(&self, n: i64) -> Self {
-        Self::from(self.0.hours(n))
+    fn _hours(&self, n: i64) -> PyResult<Self> {
+        self.try_hours(n)
     }
 
-    fn _minutes(&self, n: i64) -> Self {
-        Self::from(self.0.minutes(n))
+    fn _minutes(&self, n: i64) -> PyResult<Self> {
+        self.try_minutes(n)
     }
 
-    fn _seconds(&self, n: i64) -> Self {
-        Self::from(self.0.seconds(n))
+    fn _seconds(&self, n: i64) -> PyResult<Self> {
+        self.try_seconds(n)
     }
 
-    fn _milliseconds(&self, n: i64) -> Self {
-        Self::from(self.0.milliseconds(n))
+    fn _milliseconds(&self, n: i64) -> PyResult<Self> {
+        self.try_milliseconds(n)
     }
 
-    fn _microseconds(&self, n: i64) -> Self {
-        Self::from(self.0.microseconds(n))
+    fn _microseconds(&self, n: i64) -> PyResult<Self> {
+        self.try_microseconds(n)
     }
 
-    fn _nanoseconds(&self, n: i64) -> Self {
-        Self::from(self.0.nanoseconds(n))
+    fn _nanoseconds(&self, n: i64) -> PyResult<Self> {
+        self.try_nanoseconds(n)
     }
 
     #[expect(clippy::too_many_arguments)]
