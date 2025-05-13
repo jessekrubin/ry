@@ -1,14 +1,13 @@
-use crate::fs::PyDirEntryAsync;
 use pyo3::exceptions::PyStopAsyncIteration;
 use pyo3::prelude::*;
 
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs::File;
-use tokio::io::AsyncSeekExt;
-use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncSeekExt, BufStream};
 use tokio::sync::Mutex;
 
 #[derive(Debug, Clone, Copy)]
@@ -22,7 +21,7 @@ struct OpenOptions {
 }
 
 struct PyAsyncFileInner {
-    file: Option<BufReader<File>>,
+    file: Option<BufStream<File>>,
     path: PathBuf,
     open_options: OpenOptions,
 }
@@ -32,22 +31,6 @@ impl PyAsyncFileInner {
         let opts = &self.open_options;
         let mut open_opts = tokio::fs::OpenOptions::new();
         opts.apply_to(&mut open_opts);
-
-        // if opts.read {
-        //     open_opts.read(true);
-        // }
-        // if opts.write {
-        //     open_opts.write(false);
-        // }
-        // if opts.append {
-        //     open_opts.append(true);
-        // }
-        // if opts.create {
-        //     open_opts.create(true);
-        // }
-        // if opts.truncate {
-        //     open_opts.truncate(true);
-        // }
         let file_res = open_opts.open(&self.path).await;
         println!("res {:?}", file_res);
         let file = file_res.map_err(|e| {
@@ -58,15 +41,12 @@ impl PyAsyncFileInner {
             ))
         })?;
         println!("Opened file: {:?}", file);
-        self.file = Some(BufReader::new(file));
+        self.file = Some(BufStream::new(file));
         Ok(())
     }
 
     async fn close(&mut self) -> PyResult<()> {
-        let mut file = self
-            .file
-            .take()
-            .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))?;
+        let file = self.get_file_mut()?;
         file.flush()
             .await
             .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
@@ -74,10 +54,7 @@ impl PyAsyncFileInner {
     }
 
     async fn read_all(&mut self) -> PyResult<Vec<u8>> {
-        let file = self
-            .file
-            .as_mut()
-            .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))?;
+        let file = self.get_file_mut()?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)
             .await
@@ -86,20 +63,14 @@ impl PyAsyncFileInner {
     }
 
     async fn read(&mut self, buf: &mut [u8]) -> PyResult<usize> {
-        let file = self
-            .file
-            .as_mut()
-            .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))?;
+        let file = self.get_file_mut()?;
         file.read(buf)
             .await
             .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
     }
 
     async fn readline(&mut self) -> PyResult<Option<Vec<u8>>> {
-        let file = self
-            .file
-            .as_mut()
-            .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))?;
+        let file = self.get_file_mut()?;
         let mut buf = Vec::new();
         let bytes_read = file.read_until(b'\n', &mut buf).await.map_err(|e| {
             pyo3::exceptions::PyIOError::new_err(format!("Failed to read line: {}", e))
@@ -112,13 +83,16 @@ impl PyAsyncFileInner {
     }
 
     async fn write(&mut self, buf: &[u8]) -> PyResult<()> {
-        let file = self
-            .file
-            .as_mut()
-            .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))?;
+        let file = self.get_file_mut()?;
         file.write_all(buf)
             .await
             .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
+    }
+
+    fn get_file_mut(&mut self) -> PyResult<&mut BufStream<File>> {
+        self.file
+            .as_mut()
+            .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))
     }
 }
 
@@ -162,27 +136,8 @@ impl PyAsyncFile {
         })
     }
 
-    // fn open<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-    //     let inner = Arc::clone(&self.inner);
-    //     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-    //         let mut file = inner.lock().await;
-    //         if file.is_none() {
-    //             let f = File::open(file.as_ref()).await.map_err(PyErr::from)?;
-    //
-    //
-    //
-    //         }
-    //     })
-    // }
-
     fn __aenter__(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        // call the open method and replace the file
-        // // get the self ref...
-        // let pyf = slf.get();
-        // let inner = Arc::clone(&pyf.inner);
-
         let inner = Arc::clone(&slf.borrow(py).inner);
-
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let mut locked = inner.lock().await;
 
@@ -257,36 +212,6 @@ impl PyAsyncFile {
         })
     }
 
-    // fn __aiter__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-    //
-    // }
-    //     let inner = Arc::clone(&self.inner);
-    //
-    //     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-    //         let mut locked = inner.lock().await;
-    //         let inner_ref = locked
-    //             .as_mut()
-    //             .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))?;
-    //
-    //         let file = inner_ref
-    //             .file
-    //             .as_ref()
-    //             .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("File not opened"))?;
-    //
-    //         // Clone file handle to avoid consuming the original one
-    //         let file = file.try_clone().await.map_err(|e| {
-    //             pyo3::exceptions::PyIOError::new_err(format!("Failed to clone file: {}", e))
-    //         })?;
-    //
-    //         let reader = tokio::io::BufReader::new(file);
-    //         let lines = reader.lines();
-    //
-    //         Ok(PyAsyncLinesReader {
-    //             lines: Arc::new(Mutex::new(Some(lines))),
-    //         })
-    //     })
-    // }
-
     fn write<'py>(
         &self,
         py: Python<'py>,
@@ -326,37 +251,6 @@ impl PyAsyncFile {
                 println!("bytes {:?}", r);
                 let rybytes = ryo3_bytes::PyBytes::from(r);
                 Ok(rybytes)
-            }
-        })
-    }
-}
-
-#[pyclass]
-#[derive(Debug, Clone)]
-pub struct PyAsyncLinesReader {
-    lines: Arc<Mutex<Option<tokio::io::Lines<tokio::io::BufReader<File>>>>>,
-}
-
-#[pymethods]
-impl PyAsyncLinesReader {
-    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
-        this
-    }
-
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let stream = self.lines.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            let mut guard = stream.lock().await;
-            let lines = guard
-                .as_mut()
-                .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("Already consumed"))?;
-
-            let getline = lines.next_line().await.map_err(|e| {
-                pyo3::exceptions::PyIOError::new_err(format!("Failed to read line: {}", e))
-            })?;
-            match getline {
-                Some(line) => Ok(line),
-                None => Err(PyStopAsyncIteration::new_err("End of stream")),
             }
         })
     }
