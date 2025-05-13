@@ -19,7 +19,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Timestamp", module = "ry", frozen)]
+#[pyclass(name = "Timestamp", module = "ry.ryo3", frozen)]
 pub struct RyTimestamp(pub(crate) Timestamp);
 
 #[pymethods]
@@ -425,7 +425,7 @@ impl From<Timestamp> for RyTimestamp {
     }
 }
 
-#[pyclass(name = "TimestampSeries", module = "ryo3")]
+#[pyclass(name = "TimestampSeries", module = "ry.ryo3")]
 pub struct RyTimestampSeries {
     pub(crate) series: jiff::TimestampSeries,
 }

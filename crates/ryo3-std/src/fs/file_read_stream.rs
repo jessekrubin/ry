@@ -56,7 +56,7 @@ impl Iterator for FileReadStream {
     }
 }
 
-#[pyclass(name = "FileReadStream", module = "ryo3", frozen)]
+#[pyclass(name = "FileReadStream", module = "ry.ryo3", frozen)]
 pub struct PyFileReadStream {
     pub(crate) file_read_stream: Mutex<FileReadStream>,
 }

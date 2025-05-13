@@ -8,7 +8,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Instant", module = "ry", frozen)]
+#[pyclass(name = "Instant", module = "ry.ryo3", frozen)]
 pub struct PyInstant(pub Instant);
 
 impl From<Instant> for PyInstant {

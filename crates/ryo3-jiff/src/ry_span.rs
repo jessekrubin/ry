@@ -13,7 +13,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeSpan", module = "ry", frozen)]
+#[pyclass(name = "TimeSpan", module = "ry.ryo3", frozen)]
 pub struct RySpan(pub(crate) Span);
 
 #[pymethods]

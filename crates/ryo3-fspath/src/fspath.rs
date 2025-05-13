@@ -16,7 +16,7 @@ const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
 type ArcPathBuf = std::sync::Arc<PathBuf>;
 
-#[pyclass(name = "FsPath", module = "ry", frozen)]
+#[pyclass(name = "FsPath", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: ArcPathBuf,

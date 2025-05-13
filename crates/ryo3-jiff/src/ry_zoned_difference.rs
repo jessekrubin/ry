@@ -4,7 +4,7 @@ use jiff::Unit;
 use pyo3::prelude::*;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTimeDifference", module = "ryo3", frozen)]
+#[pyclass(name = "ZonedDateTimeDifference", module = "ry.ryo3", frozen)]
 pub struct RyZonedDifference {
     zoned: RyZoned,
     smallest: Option<Unit>,

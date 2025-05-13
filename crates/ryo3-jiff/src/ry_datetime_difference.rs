@@ -6,7 +6,7 @@ use jiff::civil::DateTimeDifference;
 use pyo3::prelude::*;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "DateTimeDifference", module = "ryo3", frozen)]
+#[pyclass(name = "DateTimeDifference", module = "ry.ryo3", frozen)]
 pub struct RyDateTimeDifference(pub(crate) DateTimeDifference);
 
 impl From<DateTimeDifference> for RyDateTimeDifference {

@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
-#[pyclass(name = "FileType", module = "ry", frozen)]
+#[pyclass(name = "FileType", module = "ry.ryo3", frozen)]
 pub struct PyFileType(pub std::fs::FileType);
 impl PyFileType {
     #[must_use]
@@ -58,7 +58,7 @@ impl PyFileType {
     }
 }
 
-#[pyclass(name = "Metadata", module = "ry", frozen)]
+#[pyclass(name = "Metadata", module = "ry.ryo3", frozen)]
 pub struct PyMetadata(pub std::fs::Metadata);
 
 impl From<std::fs::Metadata> for PyMetadata {
@@ -143,7 +143,7 @@ impl PyMetadata {
     }
 }
 
-#[pyclass(name = "Permissions", module = "ry", frozen)]
+#[pyclass(name = "Permissions", module = "ry.ryo3", frozen)]
 pub struct PyPermissions(pub std::fs::Permissions);
 
 impl From<std::fs::Permissions> for PyPermissions {

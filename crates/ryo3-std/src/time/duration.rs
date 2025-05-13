@@ -15,7 +15,7 @@ const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DA
 const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
 
 #[derive(Debug, Clone, PartialEq)]
-#[pyclass(name = "Duration", module = "ry", frozen)]
+#[pyclass(name = "Duration", module = "ry.ryo3", frozen)]
 pub struct PyDuration(pub Duration);
 
 #[pymethods]
