@@ -5,6 +5,8 @@
 - `ryo3-jiff`
   - panic-able functions to create new/altered (time)spans moved to use `try_*`
 - fix: anyio marker flat issue in pytests for cicd
+- `ryo3-uuid`
+  - added `uuid` wrapper for `uuid` crate; ty to the maintainers of `uuid-utils` and `fastuuid` for helping figure out some of the nitty gritty bits and bobs
 
 ---
 

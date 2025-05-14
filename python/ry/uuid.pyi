@@ -6,7 +6,6 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 """
 
 import builtins
-import sys
 import uuid as pyuuid
 from enum import Enum
 
@@ -98,6 +97,3 @@ RESERVED_NCS: str
 RFC_4122: str
 RESERVED_MICROSOFT: str
 RESERVED_FUTURE: str
-
-if sys.version_info >= (3, 12):
-    def main() -> None: ...

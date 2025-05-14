@@ -48,7 +48,7 @@ def test_init() -> None:
         ryuuid.UUID()
 
 
-def test_init_multiple_kwargs_invalid():
+def test_init_multiple_kwargs_invalid() -> None:
     pyu = pyuuid.UUID("12345678-1234-5678-1234-567812345678")
     init_kwargs = {
         "hex": pyu.hex,

@@ -1,6 +1,5 @@
 """ry api ~ type annotations"""
 
-import datetime as pydt
 import typing as t
 from os import PathLike
 
@@ -30,6 +29,7 @@ from ._flate2 import gzip as gzip
 from ._flate2 import gzip_decode as gzip_decode
 from ._flate2 import gzip_encode as gzip_encode
 from ._flate2 import is_gzipped as is_gzipped
+from ._fnv import FnvHasher as FnvHasher
 from ._fnv import fnv1a as fnv1a
 from ._fspath import FsPath as FsPath
 from ._glob import Pattern as Pattern
