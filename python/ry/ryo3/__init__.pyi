@@ -1,11 +1,11 @@
 """ry api ~ type annotations"""
 
-import datetime as pydt
 import typing as t
 from os import PathLike
 
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
+from ry import uuid as uuid  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
 from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
