@@ -159,7 +159,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-05-13T00:52:34.75810854+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-05-14T20:07:44.873655395+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -317,18 +317,19 @@ into separate packages</li>
 <li><a href="index.html#ry.ryo3._which"><code>ry.ryo3._which</code></a></li>
 <li><a href="index.html#ry.dirs"><code>ry.dirs</code></a></li>
 <li><a href="index.html#ry.http"><code>ry.http</code></a></li>
+<li><a href="index.html#ry.uuid"><code>ry.uuid</code></a></li>
 <li><a href="index.html#ry.xxhash"><code>ry.xxhash</code></a></li>
 <li><a href="index.html#ry.zstd"><code>ry.zstd</code></a></li>
 </ul>
 <h2 id="ry.ryo3.__init__"><a class="header" href="#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></h2>
 <pre><code class="language-python">"""ry api ~ type annotations"""
 
-import datetime as pydt
 import typing as t
 from os import PathLike
 
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
+from ry import uuid as uuid  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
 from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
@@ -4045,6 +4046,117 @@ class HttpStatus:
     )
 
 </code></pre>
+<h2 id="ry.uuid"><a class="header" href="#ry.uuid"><code>ry.uuid</code></a></h2>
+<pre><code class="language-python">"""ryo3-uuid types
+
+based on typeshed types for python's builtin uuid module
+
+REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
+"""
+
+import builtins
+import sys
+import uuid as pyuuid
+from enum import Enum
+
+from typing_extensions import TypeAlias
+
+from ry._types import Buffer
+
+_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
+
+
+class SafeUUID(Enum):
+    safe = 0
+    unsafe = -1
+    unknown = None
+
+
+class UUID:
+    # NAMESPACE_DNS: UUID
+    # NAMESPACE_URL: UUID
+    # NAMESPACE_OID: UUID
+    # NAMESPACE_X500: UUID
+
+    def __init__(
+        self,
+        hex: str | None = None,
+        bytes: bytes | None = None,
+        bytes_le: bytes | None = None,
+        fields: _FieldsType | None = None,
+        int: int | None = None,
+        version: int | None = None,
+        *,
+        is_safe: SafeUUID = ...,
+    ) -&gt; None: ...
+    @property
+    def is_safe(self) -&gt; SafeUUID: ...
+    @property
+    def bytes(self) -&gt; builtins.bytes: ...
+    @property
+    def bytes_le(self) -&gt; builtins.bytes: ...
+    @property
+    def clock_seq(self) -&gt; builtins.int: ...
+    @property
+    def clock_seq_hi_variant(self) -&gt; builtins.int: ...
+    @property
+    def clock_seq_low(self) -&gt; builtins.int: ...
+    @property
+    def fields(self) -&gt; _FieldsType: ...
+    @property
+    def hex(self) -&gt; str: ...
+    @property
+    def int(self) -&gt; builtins.int: ...
+    @property
+    def node(self) -&gt; builtins.int: ...
+    @property
+    def time(self) -&gt; builtins.int: ...
+    @property
+    def time_hi_version(self) -&gt; builtins.int: ...
+    @property
+    def time_low(self) -&gt; builtins.int: ...
+    @property
+    def time_mid(self) -&gt; builtins.int: ...
+    @property
+    def urn(self) -&gt; str: ...
+    @property
+    def variant(self) -&gt; str: ...
+    @property
+    def version(self) -&gt; builtins.int | None: ...
+    def __int__(self) -&gt; builtins.int: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def __lt__(self, other: UUID) -&gt; bool: ...
+    def __le__(self, other: UUID) -&gt; bool: ...
+    def __gt__(self, other: UUID) -&gt; bool: ...
+    def __ge__(self, other: UUID) -&gt; bool: ...
+    def __hash__(self) -&gt; builtins.int: ...
+    def to_py(self) -&gt; pyuuid.UUID: ...
+
+
+def getnode() -&gt; builtins.int: ...
+def uuid1(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
+def uuid3(namespace: UUID, name: str | bytes) -&gt; UUID: ...
+def uuid4() -&gt; UUID: ...
+def uuid5(namespace: UUID, name: str | bytes) -&gt; UUID: ...
+def uuid6(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
+def uuid7(timestamp: int | None = None) -&gt; UUID: ...
+def uuid8(data: Buffer) -&gt; UUID: ...
+
+
+NAMESPACE_DNS: UUID
+NAMESPACE_URL: UUID
+NAMESPACE_OID: UUID
+NAMESPACE_X500: UUID
+RESERVED_NCS: str
+RFC_4122: str
+RESERVED_MICROSOFT: str
+RESERVED_FUTURE: str
+
+if sys.version_info &gt;= (3, 12):
+
+    def main() -&gt; None: ...
+
+</code></pre>
 <h2 id="ry.xxhash"><a class="header" href="#ry.xxhash"><code>ry.xxhash</code></a></h2>
 <pre><code class="language-python">import typing as t
 
@@ -4333,6 +4445,11 @@ you if you’ve helped in any way!</p>
 </ul>
 </li>
 <li>fix: anyio marker flat issue in pytests for cicd</li>
+<li><code>ryo3-uuid</code>
+<ul>
+<li>added <code>uuid</code> wrapper for <code>uuid</code> crate; ty to the maintainers of <code>uuid-utils</code> and <code>fastuuid</code> for helping figure out some of the nitty gritty bits and bobs</li>
+</ul>
+</li>
 </ul>
 <hr />
 <h2 id="v0042-2025-05-12"><a class="header" href="#v0042-2025-05-12">v0.0.42 [2025-05-12]</a></h2>
@@ -5403,18 +5520,19 @@ if __name__ == "__main__":
 <li><a href="api.html#ry.ryo3._which"><code>ry.ryo3._which</code></a></li>
 <li><a href="api.html#ry.dirs"><code>ry.dirs</code></a></li>
 <li><a href="api.html#ry.http"><code>ry.http</code></a></li>
+<li><a href="api.html#ry.uuid"><code>ry.uuid</code></a></li>
 <li><a href="api.html#ry.xxhash"><code>ry.xxhash</code></a></li>
 <li><a href="api.html#ry.zstd"><code>ry.zstd</code></a></li>
 </ul>
 <h2 id="ry.ryo3.__init__"><a class="header" href="#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></h2>
 <pre><code class="language-python">"""ry api ~ type annotations"""
 
-import datetime as pydt
 import typing as t
 from os import PathLike
 
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
+from ry import uuid as uuid  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
 from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
@@ -9129,6 +9247,117 @@ class HttpStatus:
     NETWORK_AUTHENTICATION_REQUIRED: (
         HttpStatus  # 511 ~ Network Authentication Required
     )
+
+</code></pre>
+<h2 id="ry.uuid"><a class="header" href="#ry.uuid"><code>ry.uuid</code></a></h2>
+<pre><code class="language-python">"""ryo3-uuid types
+
+based on typeshed types for python's builtin uuid module
+
+REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
+"""
+
+import builtins
+import sys
+import uuid as pyuuid
+from enum import Enum
+
+from typing_extensions import TypeAlias
+
+from ry._types import Buffer
+
+_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
+
+
+class SafeUUID(Enum):
+    safe = 0
+    unsafe = -1
+    unknown = None
+
+
+class UUID:
+    # NAMESPACE_DNS: UUID
+    # NAMESPACE_URL: UUID
+    # NAMESPACE_OID: UUID
+    # NAMESPACE_X500: UUID
+
+    def __init__(
+        self,
+        hex: str | None = None,
+        bytes: bytes | None = None,
+        bytes_le: bytes | None = None,
+        fields: _FieldsType | None = None,
+        int: int | None = None,
+        version: int | None = None,
+        *,
+        is_safe: SafeUUID = ...,
+    ) -&gt; None: ...
+    @property
+    def is_safe(self) -&gt; SafeUUID: ...
+    @property
+    def bytes(self) -&gt; builtins.bytes: ...
+    @property
+    def bytes_le(self) -&gt; builtins.bytes: ...
+    @property
+    def clock_seq(self) -&gt; builtins.int: ...
+    @property
+    def clock_seq_hi_variant(self) -&gt; builtins.int: ...
+    @property
+    def clock_seq_low(self) -&gt; builtins.int: ...
+    @property
+    def fields(self) -&gt; _FieldsType: ...
+    @property
+    def hex(self) -&gt; str: ...
+    @property
+    def int(self) -&gt; builtins.int: ...
+    @property
+    def node(self) -&gt; builtins.int: ...
+    @property
+    def time(self) -&gt; builtins.int: ...
+    @property
+    def time_hi_version(self) -&gt; builtins.int: ...
+    @property
+    def time_low(self) -&gt; builtins.int: ...
+    @property
+    def time_mid(self) -&gt; builtins.int: ...
+    @property
+    def urn(self) -&gt; str: ...
+    @property
+    def variant(self) -&gt; str: ...
+    @property
+    def version(self) -&gt; builtins.int | None: ...
+    def __int__(self) -&gt; builtins.int: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def __lt__(self, other: UUID) -&gt; bool: ...
+    def __le__(self, other: UUID) -&gt; bool: ...
+    def __gt__(self, other: UUID) -&gt; bool: ...
+    def __ge__(self, other: UUID) -&gt; bool: ...
+    def __hash__(self) -&gt; builtins.int: ...
+    def to_py(self) -&gt; pyuuid.UUID: ...
+
+
+def getnode() -&gt; builtins.int: ...
+def uuid1(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
+def uuid3(namespace: UUID, name: str | bytes) -&gt; UUID: ...
+def uuid4() -&gt; UUID: ...
+def uuid5(namespace: UUID, name: str | bytes) -&gt; UUID: ...
+def uuid6(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
+def uuid7(timestamp: int | None = None) -&gt; UUID: ...
+def uuid8(data: Buffer) -&gt; UUID: ...
+
+
+NAMESPACE_DNS: UUID
+NAMESPACE_URL: UUID
+NAMESPACE_OID: UUID
+NAMESPACE_X500: UUID
+RESERVED_NCS: str
+RFC_4122: str
+RESERVED_MICROSOFT: str
+RESERVED_FUTURE: str
+
+if sys.version_info &gt;= (3, 12):
+
+    def main() -&gt; None: ...
 
 </code></pre>
 <h2 id="ry.xxhash"><a class="header" href="#ry.xxhash"><code>ry.xxhash</code></a></h2>
