@@ -9,7 +9,8 @@ pub(crate) const RESERVED_NCS: &str = "reserved for NCS compatibility";
 pub(crate) const RFC_4122: &str = "specified in RFC 4122";
 pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
 pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
-#[pyclass(name = "UUID", module = "ry.uuid", frozen)]
+
+#[pyclass(name = "UUID", module = "ry.uuid", frozen, weakref)]
 pub struct PyUuid(pub uuid::Uuid);
 
 impl From<uuid::Uuid> for PyUuid {
@@ -159,22 +160,23 @@ impl PyUuid {
     }
 
     #[getter]
-    fn version(&self) -> Option<u8> {
-        if let Some(v) = self.0.get_version() {
-            match v {
-                uuid::Version::Mac => Some(1),
-                uuid::Version::Dce => Some(2),
-                uuid::Version::Md5 => Some(3),
-                uuid::Version::Random => Some(4),
-                uuid::Version::Sha1 => Some(5),
-                uuid::Version::SortMac => Some(6),
-                uuid::Version::SortRand => Some(7),
-                uuid::Version::Custom => Some(8),
-                _ => None,
-            }
-        } else {
-            None
-        }
+    fn version(&self) -> usize {
+        self.0.get_version_num()
+        // if let Some(v) = self.0.get_version_num() {
+        //     match v {
+        //         uuid::Version::Mac => Some(1),
+        //         uuid::Version::Dce => Some(2),
+        //         uuid::Version::Md5 => Some(3),
+        //         uuid::Version::Random => Some(4),
+        //         uuid::Version::Sha1 => Some(5),
+        //         uuid::Version::SortMac => Some(6),
+        //         uuid::Version::SortRand => Some(7),
+        //         uuid::Version::Custom => Some(8),
+        //         _ => None,
+        //     }
+        // } else {
+        //     None
+        // }
     }
 
     #[getter]
@@ -241,20 +243,20 @@ impl PyUuid {
     }
 
     #[getter]
-    fn __bytes__(&self) -> PyBytes {
+    fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
         let bytes = self.0.as_bytes().to_vec();
-        PyBytes::from(bytes)
+        pyo3::types::PyBytes::new(py, &bytes)
     }
 
     #[getter]
-    fn bytes(&self) -> PyBytes {
-        self.__bytes__()
+    fn bytes<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        self.__bytes__(py)
     }
 
     #[getter]
-    fn bytes_le(&self) -> PyBytes {
+    fn bytes_le<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
         let bytes = self.0.to_bytes_le().to_vec();
-        PyBytes::from(bytes)
+        pyo3::types::PyBytes::new(py, &bytes)
     }
 
     #[getter]

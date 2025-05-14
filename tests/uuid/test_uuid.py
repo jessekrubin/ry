@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import itertools
 import pickle
 import uuid as pyuuid
+import weakref
 
 import pytest
 
@@ -19,6 +22,13 @@ def test_pickle() -> None:
     unpickled = pickle.loads(pickled)  #
     assert isinstance(unpickled, ryuuid.UUID)
     assert str(unpickled) == "12345678-1234-5678-1234-567812345678"
+
+
+def test_uuid_weakref() -> None:
+    # bpo-35701: check that weak referencing to a UUID object can be created
+    strong = ryuuid.uuid4()
+    weak = weakref.ref(strong)
+    assert isinstance(weak, weakref.ref)
 
 
 def test_uuid4_func() -> None:
@@ -56,9 +66,11 @@ def test_init_multiple_kwargs_invalid():
             ryuuid.UUID(**init_kwargs)  # type: ignore[arg-type]
 
 
-def test_uuid_thing() -> None:
-    # Test various ways to create UUIDs
+def test_create_uuid() -> None:
+    """Test the UUID constructor
 
+    Based on the python uuid docs: https://docs.python.org/3/library/uuid.html#uuid.UUID
+    """
     uuids = [
         ryuuid.UUID("{12345678-1234-5678-1234-567812345678}"),
         ryuuid.UUID("12345678123456781234567812345678"),
