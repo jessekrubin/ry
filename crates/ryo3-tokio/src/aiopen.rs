@@ -84,12 +84,21 @@ impl PyAsyncFileInner {
         Ok(())
     }
 
+    async fn tell (&mut self) -> PyResult<u64> {
+        let file = self.get_file_mut()?;
+        let pos = file
+            .stream_position()
+            .await
+            .map_err(|e| PyIOError::new_err(e.to_string()))?;
+        Ok(pos)
+    }
+
     async fn read_all(&mut self) -> PyResult<Vec<u8>> {
         let file = self.get_file_mut()?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)
             .await
-            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+            .map_err(|e| PyIOError::new_err(e.to_string()))?;
         Ok(buf)
     }
 
@@ -97,14 +106,14 @@ impl PyAsyncFileInner {
         let file = self.get_file_mut()?;
         file.read(buf)
             .await
-            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
+            .map_err(|e| PyIOError::new_err(e.to_string()))
     }
 
     async fn readline(&mut self) -> PyResult<Option<Vec<u8>>> {
         let file = self.get_file_mut()?;
         let mut buf = Vec::new();
         let bytes_read = file.read_until(b'\n', &mut buf).await.map_err(|e| {
-            pyo3::exceptions::PyIOError::new_err(format!("Failed to read line: {}", e))
+            PyIOError::new_err(format!("Failed to read line: {}", e))
         })?;
         if bytes_read == 0 {
             Ok(None)
@@ -221,6 +230,15 @@ impl PyAsyncFile {
         //     let out = py.allow_threads(|| runtime.block_on(seek(reader, pos)))?;
         //     out.into_py_any(py)
         // }
+    }
+
+    fn tell<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let mut locked = inner.lock().await;
+            let pos = locked.tell().await?;
+            Ok(pos)
+        })
     }
 
     fn flush<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
