@@ -84,7 +84,12 @@ def test_create_uuid() -> None:
     ]
     assert len(uuids) == 7
     assert all(isinstance(u, ryuuid.UUID) for u in uuids)
-    assert all(str(u) == "12345678-1234-5678-1234-567812345678" for u in uuids)
+
+    strings = [
+        (ix, str(u) == "12345678-1234-5678-1234-567812345678", str(u))
+        for ix, u in enumerate(uuids)
+    ]
+    assert all(s[1] for s in strings), f"UUIDs did not match expected string: {strings}"
 
 
 def test_fields() -> None:
