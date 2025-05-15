@@ -38,7 +38,7 @@ def py_ry_equal(
     assert pyu.variant == ryu.variant
     if pyu.version is not None:
         assert pyu.version == ryu.version
-    assert pyu == ryu
+    assert ryu == pyu
 
 
 @given(uuid_strategy)
