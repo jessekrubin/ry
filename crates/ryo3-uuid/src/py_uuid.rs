@@ -1,10 +1,13 @@
 #![doc = include_str!("../README.md")]
 
 use pyo3::exceptions::{PyNotImplementedError, PyTypeError, PyValueError};
+use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
+use pyo3::sync::GILOnceCell;
+use pyo3::types::{PyTuple, PyType};
 use ryo3_bytes::PyBytes;
 use std::hash::{DefaultHasher, Hash, Hasher};
+
 pub(crate) const RESERVED_NCS: &str = "reserved for NCS compatibility";
 pub(crate) const RFC_4122: &str = "specified in RFC 4122";
 pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
@@ -82,6 +85,7 @@ impl PyUuid {
             Ok(py_uuid)
         }
     }
+
     #[classattr]
     #[expect(non_snake_case)]
     pub(crate) fn NAMESPACE_DNS() -> Self {
@@ -144,17 +148,15 @@ impl PyUuid {
                 pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
                 pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
             }
-            // return self.compare(rs_uuid, op);
         } else {
-            let other = other.extract::<uuid::Uuid>()?;
-
+            let other = other.extract::<CPythonUuid>()?;
             match op {
-                pyo3::basic::CompareOp::Eq => Ok(self.0 == other),
-                pyo3::basic::CompareOp::Ne => Ok(self.0 != other),
-                pyo3::basic::CompareOp::Lt => Ok(self.0 < other),
-                pyo3::basic::CompareOp::Le => Ok(self.0 <= other),
-                pyo3::basic::CompareOp::Gt => Ok(self.0 > other),
-                pyo3::basic::CompareOp::Ge => Ok(self.0 >= other),
+                pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
+                pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
+                pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
+                pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
+                pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
+                pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
             }
         }
     }
@@ -393,4 +395,31 @@ pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
     uuid::Bytes::try_from(b.as_slice())
         .map(|b| PyUuid::from(uuid::Uuid::new_v8(b)))
         .map_err(|_| PyValueError::new_err("UUID8 must be 16 bytes long"))
+}
+
+// ----------------------------------------------------------------------------
+// python-uuid conversion fixed
+// ----------------------------------------------------------------------------
+// on Big Endian system the uuid conversion does not work as expected due to
+// the usage of `.to_le()`
+
+struct CPythonUuid(pub(crate) uuid::Uuid);
+fn get_uuid_cls(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
+    static UUID_CLS: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    UUID_CLS.import(py, "uuid", "UUID")
+}
+
+impl FromPyObject<'_> for CPythonUuid {
+    fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let py = obj.py();
+        let uuid_cls = get_uuid_cls(py)?;
+
+        if obj.is_instance(uuid_cls)? {
+            let uuid_int: u128 = obj.getattr(intern!(py, "int"))?.extract()?;
+            let bytes = uuid_int.to_be_bytes(); // Interpret as big-endian
+            Ok(CPythonUuid(uuid::Uuid::from_bytes(bytes)))
+        } else {
+            Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
+        }
+    }
 }
