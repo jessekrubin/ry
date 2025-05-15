@@ -185,7 +185,7 @@ impl PyUuid {
 
     #[staticmethod]
     fn from_int(int: u128) -> Self {
-        Self::from(uuid::Uuid::from_u128(int.to_le()))
+        Self::from(uuid::Uuid::from_bytes(int.to_be_bytes()))
     }
 
     #[staticmethod]
@@ -225,7 +225,7 @@ impl PyUuid {
         let node = u128::from(fields.5);
         let uuid =
             time_low | time_mid | time_hi_version | clock_seq_hi_variant | clock_seq_low | node;
-        let uuid = uuid::Uuid::from_u128(uuid.to_le());
+        let uuid = uuid::Uuid::from_u128(uuid);
         Ok(PyUuid(uuid))
     }
 
@@ -416,7 +416,7 @@ impl FromPyObject<'_> for CPythonUuid {
 
         if obj.is_instance(uuid_cls)? {
             let uuid_int: u128 = obj.getattr(intern!(py, "int"))?.extract()?;
-            let bytes = uuid_int.to_be_bytes(); // Interpret as big-endian
+            let bytes = uuid_int.to_be_bytes();
             Ok(CPythonUuid(uuid::Uuid::from_bytes(bytes)))
         } else {
             Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
