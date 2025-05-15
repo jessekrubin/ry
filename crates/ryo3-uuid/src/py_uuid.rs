@@ -223,7 +223,7 @@ impl PyUuid {
         let node = u128::from(fields.5);
         let uuid =
             time_low | time_mid | time_hi_version | clock_seq_hi_variant | clock_seq_low | node;
-        let uuid = uuid::Uuid::from_u128(uuid.to_le()); // 🧠 Fix here
+        let uuid = uuid::Uuid::from_u128(uuid.to_le());
         Ok(PyUuid(uuid))
     }
 
@@ -246,20 +246,19 @@ impl PyUuid {
 
     #[getter]
     fn fields(&self) -> (u32, u16, u16, u8, u8, u64) {
-        let le = self.0.as_u128().to_le();
-        let time_low = (le >> 96) as u32;
-        let time_mid = ((le >> 80) & 0xFFFF) as u16;
-        let time_hi_version = ((le >> 64) & 0xFFFF) as u16;
-        let clock_seq_hi_variant = ((le >> 56) & 0xFF) as u8;
-        let clock_seq_low = ((le >> 48) & 0xFF) as u8;
-        let node = le & 0xFFFF_FFFF_FFFF;
-
+        let uuid = self.0;
+        let time_low = uuid.as_u128() >> 96;
+        let time_mid = (uuid.as_u128() >> 80) & 0xFFFF;
+        let time_hi_version = (uuid.as_u128() >> 64) & 0xFFFF;
+        let clock_seq_hi_variant = (uuid.as_u128() >> 56) & 0xFF;
+        let clock_seq_low = (uuid.as_u128() >> 48) & 0xFF;
+        let node = uuid.as_u128() & 0xFFFF_FFFF_FFFF;
         (
-            time_low,
-            time_mid,
-            time_hi_version,
-            clock_seq_hi_variant,
-            clock_seq_low,
+            time_low as u32,
+            time_mid as u16,
+            time_hi_version as u16,
+            clock_seq_hi_variant as u8,
+            clock_seq_low as u8,
             node as u64,
         )
     }
