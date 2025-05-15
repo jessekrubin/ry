@@ -162,21 +162,6 @@ impl PyUuid {
     #[getter]
     fn version(&self) -> usize {
         self.0.get_version_num()
-        // if let Some(v) = self.0.get_version_num() {
-        //     match v {
-        //         uuid::Version::Mac => Some(1),
-        //         uuid::Version::Dce => Some(2),
-        //         uuid::Version::Md5 => Some(3),
-        //         uuid::Version::Random => Some(4),
-        //         uuid::Version::Sha1 => Some(5),
-        //         uuid::Version::SortMac => Some(6),
-        //         uuid::Version::SortRand => Some(7),
-        //         uuid::Version::Custom => Some(8),
-        //         _ => None,
-        //     }
-        // } else {
-        //     None
-        // }
     }
 
     #[getter]
