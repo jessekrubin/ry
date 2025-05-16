@@ -265,7 +265,7 @@ pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
 #[pyfunction]
 pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
     let fbytes = std::fs::read(s)?;
-    match std::str::from_utf8(&fbytes).map(|s| s.to_string()) {
+    match std::str::from_utf8(&fbytes).map(ToString::to_string) {
         Ok(s) => Ok(s),
         Err(e) => {
             let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;

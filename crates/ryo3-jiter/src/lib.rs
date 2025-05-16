@@ -35,7 +35,7 @@ impl Default for JiterParseOptions {
 }
 
 impl JiterParseOptions {
-    fn parser(&self) -> PythonParse {
+    fn parser(self) -> PythonParse {
         PythonParse {
             allow_inf_nan: self.allow_inf_nan,
             cache_mode: self.cache_mode,
@@ -45,13 +45,13 @@ impl JiterParseOptions {
         }
     }
 
-    fn parse<'py>(&self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
+    fn parse<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
         self.parser()
             .python_parse(py, data)
             .map_err(|e| map_json_error(data, &e))
     }
 
-    fn parse_lines<'py>(&self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
+    fn parse_lines<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
         let lines_iter = data.split(|b| *b == b'\n').filter(|line| !line.is_empty());
         let parsed_lines = lines_iter
             .map(|line| self.parse(py, line))
@@ -212,6 +212,7 @@ pub fn parse_jsonl<'py>(
         lines = false
     )
 )]
+#[expect(clippy::too_many_arguments)]
 pub fn read_json(
     py: Python<'_>,
     p: PathBuf,
