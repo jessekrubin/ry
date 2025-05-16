@@ -202,6 +202,7 @@ impl PyFsPath {
             None => String::new(),
         }
     }
+
     #[getter]
     fn parent(&self) -> Self {
         let p = self.path().parent();

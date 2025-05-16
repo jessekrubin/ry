@@ -150,9 +150,9 @@ pub fn py_glob(
     require_literal_leading_dot: bool,
     strict: bool,
 ) -> PyResult<PyGlobPaths> {
-    ::glob::glob_with(
+    glob::glob_with(
         pattern,
-        ::glob::MatchOptions {
+        glob::MatchOptions {
             case_sensitive,
             require_literal_separator,
             require_literal_leading_dot,
