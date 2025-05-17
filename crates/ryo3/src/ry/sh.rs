@@ -6,17 +6,6 @@ use ryo3_core::types::PathLike;
 use ryo3_fspath::PyFsPath;
 use std::fs::read_dir;
 
-#[pyfunction]
-pub fn pwd() -> PyResult<String> {
-    let current_dir = std::env::current_dir()?;
-    match current_dir.to_str() {
-        Some(s) => Ok(s.to_string()),
-        None => Err(PyOSError::new_err(
-            "pwd: current directory is not a valid UTF-8 string",
-        )),
-    }
-}
-
 // TODO: revisit needless pass by value
 /// Change the current working directory to the specified path
 #[pyfunction]
@@ -90,10 +79,36 @@ pub fn ls(
     }
 }
 
+#[pyfunction]
+pub fn mkdir(path: PathLike) -> PyResult<String> {
+    let path = path.as_ref();
+    match std::fs::create_dir(path) {
+        Ok(()) => Ok(path.to_string_lossy().to_string()),
+        Err(e) => {
+            let p_string = format!("{path:?}");
+            let emsg = format!("{e}: {p_string}");
+            let pye = PyFileNotFoundError::new_err(format!("mkdir: {emsg}"));
+            Err(pye)
+        }
+    }
+}
+
+#[pyfunction]
+pub fn pwd() -> PyResult<String> {
+    let current_dir = std::env::current_dir()?;
+    match current_dir.to_str() {
+        Some(s) => Ok(s.to_string()),
+        None => Err(PyOSError::new_err(
+            "pwd: current directory is not a valid UTF-8 string",
+        )),
+    }
+}
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(pwd, m)?)?;
     m.add_function(wrap_pyfunction!(cd, m)?)?;
     m.add_function(wrap_pyfunction!(ls, m)?)?;
+    m.add_function(wrap_pyfunction!(mkdir, m)?)?;
+    m.add_function(wrap_pyfunction!(pwd, m)?)?;
 
     #[cfg(feature = "dirs")]
     m.add_function(wrap_pyfunction!(ryo3_dirs::home, m)?)?;

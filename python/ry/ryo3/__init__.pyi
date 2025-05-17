@@ -182,3 +182,5 @@ def ls(
     objects: t.Literal[True] = True,
 ) -> list[FsPath]:
     """List directory contents - returns list of FsPath objects"""
+
+def mkdir(path: str | PathLike[str]) -> None: ...
