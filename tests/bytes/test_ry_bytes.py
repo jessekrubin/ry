@@ -57,7 +57,6 @@ def test_bytes_decode_default(
         "capitalize",
         "center",
         "count",
-        "endswith",
         "expandtabs",
         "find",
         "index",

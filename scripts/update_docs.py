@@ -157,8 +157,8 @@ def update_docs_examples() -> None:
     toc = []
 
     parts = []
-    for filepath in files:
-        p = ry.FsPath(filepath)
+    for file in files:
+        p = ry.FsPath(file)
         # read the file
         content = p.read_text()
         # format it

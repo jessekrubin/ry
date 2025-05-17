@@ -132,5 +132,9 @@ class Bytes(Buffer):
     @classmethod
     def fromhex(cls, hexstr: str) -> Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
+    def startswith(self, prefix: Buffer) -> bool:
+        """Return `True` if the binary data starts with the prefix string, `False` otherwise."""
+    def endswith(self, suffix: Buffer) -> bool:
+        """Return `True` if the binary data ends with the suffix string, `False` otherwise."""
 
 BytesLike: typing_extensions.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
