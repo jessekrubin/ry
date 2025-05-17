@@ -11,8 +11,10 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
 use tokio::io::{AsyncSeekExt, BufStream};
 use tokio::sync::Mutex;
+use tracing::warn;
 
 #[derive(Debug, Clone, Copy)]
+#[expect(clippy::struct_excessive_bools)]
 struct OpenOptions {
     append: bool,
     create: bool,
@@ -21,10 +23,11 @@ struct OpenOptions {
     truncate: bool,
     write: bool,
 }
+
 enum FileState {
     Closed,
     Open(BufStream<File>),
-    Consumed,
+    // Consumed,
 }
 struct PyAsyncFileInner {
     state: FileState,
@@ -69,12 +72,12 @@ impl PyAsyncFileInner {
         let bytes_read = file
             .read(&mut buf)
             .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to read: {}", e)))?;
+            .map_err(|e| PyIOError::new_err(format!("Failed to read: {e}")))?;
         buf.truncate(bytes_read);
         // seek back to the original position
         file.seek(SeekFrom::Start(pos))
             .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to seek: {}", e)))?;
+            .map_err(|e| PyIOError::new_err(format!("Failed to seek: {e}")))?;
         Ok(buf)
     }
 
@@ -89,6 +92,7 @@ impl PyAsyncFileInner {
     }
 
     // TODO fix this if we ever swap out bufstream for bufwriter/bufreader?
+    #[expect(clippy::unused_async)]
     async fn seekable(&mut self) -> PyResult<bool> {
         Ok(true)
     }
@@ -111,9 +115,6 @@ impl PyAsyncFileInner {
             }
             FileState::Closed => {
                 // Nothing to flush, no-op
-            }
-            FileState::Consumed => {
-                return Err(PyRuntimeError::new_err("File already closed"));
             }
         }
         Ok(())
@@ -150,7 +151,7 @@ impl PyAsyncFileInner {
         let bytes_read = file
             .read_until(b'\n', &mut buf)
             .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to read line: {}", e)))?;
+            .map_err(|e| PyIOError::new_err(format!("Failed to read line: {e}")))?;
         if bytes_read == 0 {
             Ok(None)
         } else {
@@ -158,8 +159,8 @@ impl PyAsyncFileInner {
         }
     }
 
-    async fn truncate(&mut self, size: Option<usize>) -> PyResult<usize> {
-        let mut file = self.get_file_mut()?;
+    async fn truncate(&mut self, size: Option<usize>) -> PyResult<u64> {
+        let file = self.get_file_mut()?;
 
         // MUST flush before truncating to avoid losing buffered data
         file.flush().await?;
@@ -169,13 +170,14 @@ impl PyAsyncFileInner {
             None => file.stream_position().await?,
         };
 
+        // the actual inner file wrapped by BufStream
         let inner_file = file.get_mut();
 
         inner_file
             .set_len(size)
             .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to truncate: {}", e)))?;
-        Ok(size as usize)
+            .map_err(|e| PyIOError::new_err(format!("Failed to truncate: {e}")))?;
+        Ok(size)
     }
 
     async fn write(&mut self, buf: &[u8]) -> PyResult<usize> {
@@ -186,6 +188,7 @@ impl PyAsyncFileInner {
         Ok(buf.len())
     }
 
+    #[expect(clippy::unused_async)]
     async fn writeable(&mut self) -> PyResult<bool> {
         Ok(self.open_options.write)
     }
@@ -204,9 +207,9 @@ impl PyAsyncFileInner {
         match self.state {
             FileState::Open(ref mut file) => Ok(file),
             FileState::Closed => Err(PyRuntimeError::new_err("File is closed; must open first")),
-            FileState::Consumed => Err(PyRuntimeError::new_err(
-                "File is consumed; cannot be used again",
-            )),
+            // FileState::Consumed => Err(PyRuntimeError::new_err(
+            //     "File is consumed; cannot be used again",
+            // )),
         }
     }
 
@@ -215,18 +218,15 @@ impl PyAsyncFileInner {
     }
 }
 
-#[pyclass(name = "AsyncFile", module = "ry", frozen)]
+#[pyclass(name = "AsyncFile", module = "ry.ryo3", frozen)]
 pub struct PyAsyncFile {
     inner: Arc<Mutex<PyAsyncFileInner>>,
-    options: OpenOptions,
 }
 
 impl PyAsyncFile {
     pub fn new<M: AsRef<str>>(p: PathBuf, mode: Option<M>) -> PyResult<Self> {
-        let path = PathBuf::from(p);
-        let mode: String = mode
-            .map(|m| m.as_ref().to_string())
-            .unwrap_or_else(|| "r".to_string());
+        let path = p;
+        let mode: String = mode.map_or_else(|| "r".to_string(), |m| m.as_ref().to_string());
         let open_options = OpenOptions::from_mode_string(&mode)?;
         let inner = PyAsyncFileInner {
             state: FileState::Closed,
@@ -235,7 +235,6 @@ impl PyAsyncFile {
         };
         Ok(PyAsyncFile {
             inner: Arc::new(Mutex::new(inner)),
-            options: open_options,
         })
     }
 }
@@ -259,7 +258,7 @@ impl PyAsyncFile {
 
     /// This is a coroutine that returns `self` when awaited... so you
     /// can `await` to open the file
-    fn __await__<'py>(slf: Py<Self>, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
         let inner = Arc::clone(&slf.borrow(py).inner);
 
         // Create an actual coroutine that returns `slf`, then call `__await__()` on it
@@ -316,10 +315,9 @@ impl PyAsyncFile {
                 }
                 FileState::Closed => {
                     // Nothing to flush, no-op
-                }
-                FileState::Consumed => {
-                    return Err(PyRuntimeError::new_err("File already closed"));
-                }
+                } // FileState::Consumed => {
+                  //     return Err(PyRuntimeError::new_err("File already closed"));
+                  // }
             }
 
             Ok(())
@@ -377,11 +375,11 @@ impl PyAsyncFile {
                 let n = file
                     .read(&mut buf)
                     .await
-                    .map_err(|e| PyIOError::new_err(format!("Failed to read: {}", e)))?;
+                    .map_err(|e| PyIOError::new_err(format!("Failed to read: {e}")))?;
                 buf.truncate(n);
                 Ok(ryo3_bytes::PyBytes::from(buf))
             } else {
-                let r = file.read_all().await.map_err(PyErr::from)?;
+                let r = file.read_all().await?;
                 Ok(ryo3_bytes::PyBytes::from(r))
             }
         })
@@ -391,7 +389,7 @@ impl PyAsyncFile {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut file = inner.lock().await;
-            let r = file.read_all().await.map_err(PyErr::from)?;
+            let r = file.read_all().await?;
             let rybytes = ryo3_bytes::PyBytes::from(r);
             Ok(rybytes)
         })
@@ -433,13 +431,17 @@ impl PyAsyncFile {
         whence: usize,
     ) -> PyResult<Bound<'py, PyAny>> {
         let pos = match whence {
-            0 => SeekFrom::Start(offset as _),
+            0 => {
+                let offset = offset
+                    .try_into()
+                    .map_err(|_| PyIOError::new_err("Offset out of range"))?;
+                SeekFrom::Start(offset)
+            }
             1 => SeekFrom::Current(offset as _),
             2 => SeekFrom::End(offset as _),
             other => {
                 return Err(PyIOError::new_err(format!(
-                    "Invalid value for whence in seek: {}",
-                    other
+                    "Invalid value for whence in seek: {other}"
                 )))
             }
         };
@@ -454,7 +456,6 @@ impl PyAsyncFile {
 
     fn seekable<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
-
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
             locked.seekable().await?;
@@ -492,10 +493,19 @@ impl PyAsyncFile {
             locked.write(data.as_ref()).await
         })
     }
+
+    fn writeable<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+        future_into_py(py, async move {
+            let mut locked = inner.lock().await;
+            locked.writeable().await?;
+            Ok(())
+        })
+    }
 }
 
 impl OpenOptions {
-    pub fn from_mode_string(mode: &str) -> PyResult<Self> {
+    pub(crate) fn from_mode_string(mode: &str) -> PyResult<Self> {
         use pyo3::exceptions::PyValueError;
 
         let mut opts = OpenOptions {
@@ -548,8 +558,7 @@ impl OpenOptions {
             }
             _ => {
                 return Err(PyValueError::new_err(format!(
-                    "Unsupported open mode: {:?}",
-                    mode
+                    "Unsupported open mode: {mode:?}"
                 )))
             }
         }
@@ -557,7 +566,7 @@ impl OpenOptions {
         Ok(opts)
     }
 
-    pub fn apply_to(self, open: &mut tokio::fs::OpenOptions) {
+    pub(crate) fn apply_to(self, open: &mut tokio::fs::OpenOptions) {
         open.read(self.read);
         open.write(self.write);
         open.append(self.append);
@@ -575,6 +584,9 @@ pub fn aiopen<'py>(
     mode: Option<String>,
     kwargs: Option<&Bound<'py, PyDict>>,
 ) -> PyResult<Bound<'py, PyAny>> {
+    if let Some(kwargs) = kwargs {
+        warn!("aiopen kwargs not impl: {kwargs:?}");
+    }
     PyAsyncFile::new(path, mode)?.into_bound_py_any(py)
 }
 

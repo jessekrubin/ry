@@ -12,7 +12,7 @@ from ry import AsyncFile, aiopen
 
 
 @pytest.mark.anyio
-async def test_write_and_read(tmp_path: Path):
+async def test_write_and_read(tmp_path: Path) -> None:
     f = AsyncFile(tmp_path / "file.txt", "w+")
     await f.open()
     await f.write(b"hello\nworld\n")
@@ -26,7 +26,7 @@ async def test_write_and_read(tmp_path: Path):
 
 
 @pytest.mark.anyio
-async def test_read_size(tmp_path: Path):
+async def test_read_size(tmp_path: Path) -> None:
     f = AsyncFile(tmp_path / "file.txt", "w+")
     await f.open()
     await f.write(b"1234567890")
@@ -41,7 +41,7 @@ async def test_read_size(tmp_path: Path):
 
 
 @pytest.mark.anyio
-async def test_async_iteration(tmp_path: Path):
+async def test_async_iteration(tmp_path: Path) -> None:
     temp_file_path = tmp_path / "test_file.txt"
     lines = b"line1\nline2\nline3\n"
     f = AsyncFile(temp_file_path, "w+")
@@ -249,7 +249,7 @@ async def test_staggered_read(
         expected = []
         with open(filename, mode="rb") as f:
             while True:
-                byte = f.read(1)
+                byte = ry.Bytes(f.read(1))
                 if byte:
                     expected.append(byte)
                 else:
@@ -405,7 +405,7 @@ async def test_simple_readall(tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio()
-async def test_file_async_context_aexit(aiopen_fixtures: FileFixtures):
+async def test_file_async_context_aexit(aiopen_fixtures: FileFixtures) -> None:
     test_file = aiopen_fixtures.test_file_path
     async with aiopen(test_file) as fp:
         pass
@@ -425,7 +425,7 @@ async def test_filetask_async_context_aexit(
     test_file = aiopen_fixtures.test_file_path
     file_ref = None
 
-    async def _process_test_file(file_ctx, sleep_time: float = 1.0):
+    async def _process_test_file(file_ctx: AsyncFile, sleep_time: float = 1.0) -> None:
         nonlocal file_ref
         async with file_ctx as fp:
             file_ref = file_ctx
@@ -444,5 +444,6 @@ async def test_filetask_async_context_aexit(
     try:
         await asyncio.wait_for(task, timeout=cancel_time)
     except asyncio.TimeoutError:
-        assert task.cancelled
+        assert task.cancelled  # type: ignore[truthy-function]
+    assert file_ref is not None
     assert file_ref.closed

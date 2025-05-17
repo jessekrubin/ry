@@ -18,6 +18,8 @@ pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
 ryo3-std.workspace = true
 tokio.workspace = true
+tracing.workspace = true
+log = "0.4.27"
 
 [lints]
 workspace = true

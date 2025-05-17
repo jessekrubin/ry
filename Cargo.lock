@@ -1889,11 +1889,13 @@ name = "ryo3-tokio"
 version = "0.0.43"
 dependencies = [
  "futures",
+ "log",
  "pyo3",
  "pyo3-async-runtimes",
  "ryo3-bytes",
  "ryo3-std",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

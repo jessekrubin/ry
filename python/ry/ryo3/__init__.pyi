@@ -125,6 +125,8 @@ from ._std import sleep as sleep
 from ._std import write as write
 from ._std import write_bytes as write_bytes
 from ._std import write_text as write_text
+from ._tokio import AsyncFile as AsyncFile
+from ._tokio import aiopen as aiopen
 from ._tokio import asleep as asleep
 from ._tokio import copy_async as copy_async
 from ._tokio import create_dir_async as create_dir_async
