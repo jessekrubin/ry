@@ -161,7 +161,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-05-15T22:40:42.74258519+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-05-17T07:43:37.743295821+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -451,16 +451,26 @@ from ._std import sleep as sleep
 from ._std import write as write
 from ._std import write_bytes as write_bytes
 from ._std import write_text as write_text
+from ._tokio import AsyncFile as AsyncFile
+from ._tokio import aiopen as aiopen
 from ._tokio import asleep as asleep
+from ._tokio import canonicalize_async as canonicalize_async
 from ._tokio import copy_async as copy_async
+from ._tokio import create_dir_all_async as create_dir_all_async
 from ._tokio import create_dir_async as create_dir_async
+from ._tokio import exists_async as exists_async
+from ._tokio import hard_link_async as hard_link_async
 from ._tokio import metadata_async as metadata_async
 from ._tokio import read_async as read_async
 from ._tokio import read_dir_async as read_dir_async
+from ._tokio import read_link_async as read_link_async
+from ._tokio import read_to_string_async as read_to_string_async
+from ._tokio import remove_dir_all_async as remove_dir_all_async
 from ._tokio import remove_dir_async as remove_dir_async
 from ._tokio import remove_file_async as remove_file_async
 from ._tokio import rename_async as rename_async
 from ._tokio import sleep_async as sleep_async
+from ._tokio import try_exists_async as try_exists_async
 from ._tokio import write_async as write_async
 from ._unindent import unindent as unindent
 from ._unindent import unindent_bytes as unindent_bytes
@@ -510,6 +520,9 @@ def ls(
     objects: t.Literal[True] = True,
 ) -&gt; list[FsPath]:
     """List directory contents - returns list of FsPath objects"""
+
+
+def mkdir(path: str | PathLike[str]) -&gt; None: ...
 
 </code></pre>
 <h2 id="ry.ryo3.errors"><a class="header" href="#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></h2>
@@ -711,6 +724,12 @@ class Bytes(Buffer):
     @classmethod
     def fromhex(cls, hexstr: str) -&gt; Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
+
+    def startswith(self, prefix: Buffer) -&gt; bool:
+        """Return `True` if the binary data starts with the prefix string, `False` otherwise."""
+
+    def endswith(self, suffix: Buffer) -&gt; bool:
+        """Return `True` if the binary data ends with the suffix string, `False` otherwise."""
 
 
 BytesLike: typing_extensions.TypeAlias = (
@@ -3573,7 +3592,11 @@ class IpAddr:
 <pre><code class="language-python">"""ryo4-tokio types"""
 
 import pathlib
-from typing import NoReturn
+import typing as t
+from collections.abc import Generator
+from types import TracebackType
+
+import typing_extensions as te
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike
@@ -3583,14 +3606,22 @@ from ry.ryo3._std import FileType, Metadata
 # =============================================================================
 # FS
 # =============================================================================
+async def canonicalize_async(path: FsPathLike) -&gt; FsPathLike: ...
 async def copy_async(src: FsPathLike, dst: FsPathLike) -&gt; None: ...
 async def create_dir_async(path: FsPathLike) -&gt; None: ...
+async def create_dir_all_async(path: FsPathLike) -&gt; None: ...
+async def hard_link_async(src: FsPathLike, dst: FsPathLike) -&gt; None: ...
 async def metadata_async(path: FsPathLike) -&gt; None: ...
 async def read_async(path: FsPathLike) -&gt; Bytes: ...
 async def remove_dir_async(path: FsPathLike) -&gt; None: ...
+async def remove_dir_all_async(path: FsPathLike) -&gt; None: ...
 async def remove_file_async(path: FsPathLike) -&gt; None: ...
+async def read_link_async(path: FsPathLike) -&gt; FsPathLike: ...
+async def read_to_string_async(path: FsPathLike) -&gt; str: ...
 async def rename_async(src: FsPathLike, dst: FsPathLike) -&gt; None: ...
 async def write_async(path: FsPathLike, data: Buffer) -&gt; None: ...
+async def try_exists_async(path: FsPathLike) -&gt; bool: ...
+async def exists_async(path: FsPathLike) -&gt; bool: ...
 
 
 class DirEntryAsync:
@@ -3623,6 +3654,45 @@ async def read_dir_async(path: FsPathLike) -&gt; ReadDirAsync: ...
 async def sleep_async(seconds: float) -&gt; float: ...
 async def asleep(seconds: float) -&gt; float:
     """Alias for sleep_async"""
+
+
+class AsyncFile:
+    def __init__(
+        self, path: FsPathLike, mode: str = "r", buffering: int = -1
+    ) -&gt; None: ...
+    def __aiter__(self) -&gt; te.Self: ...
+    def __await__(self) -&gt; Generator[t.Any, t.Any, te.Self]: ...
+    async def __anext__(self) -&gt; Bytes: ...
+    async def __aenter__(self) -&gt; te.Self: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -&gt; None: ...
+    async def open(self) -&gt; None: ...
+    async def close(self) -&gt; None: ...
+    async def flush(self) -&gt; None: ...
+    async def isatty(self) -&gt; bool: ...
+    async def read(self, size: int = ..., /) -&gt; Bytes: ...
+    async def readall(self) -&gt; Bytes: ...
+    async def peek(self, size: int = ..., /) -&gt; Bytes: ...
+    async def readline(self, size: int | None = ..., /) -&gt; Bytes: ...
+    async def readlines(self, hint: int = ..., /) -&gt; list[Bytes]: ...
+    async def seek(self, offset: int, whence: int = ..., /) -&gt; int: ...
+    async def seekable(self) -&gt; bool: ...
+    async def tell(self) -&gt; int: ...
+    async def truncate(self, size: int | None = ..., /) -&gt; int: ...
+    async def writable(self) -&gt; bool: ...
+    async def write(self, b: Buffer, /) -&gt; int: ...
+    def readable(self) -&gt; bool: ...
+    @property
+    def closed(self) -&gt; bool: ...
+
+
+def aiopen(
+    path: FsPathLike, mode: str = "r", buffering: int = -1
+) -&gt; AsyncFile: ...
 
 </code></pre>
 <h2 id="ry.ryo3._unindent"><a class="header" href="#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></h2>
@@ -4057,7 +4127,6 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 """
 
 import builtins
-import sys
 import uuid as pyuuid
 from enum import Enum
 
@@ -4153,10 +4222,6 @@ RESERVED_NCS: str
 RFC_4122: str
 RESERVED_MICROSOFT: str
 RESERVED_FUTURE: str
-
-if sys.version_info &gt;= (3, 12):
-
-    def main() -&gt; None: ...
 
 </code></pre>
 <h2 id="ry.xxhash"><a class="header" href="#ry.xxhash"><code>ry.xxhash</code></a></h2>
