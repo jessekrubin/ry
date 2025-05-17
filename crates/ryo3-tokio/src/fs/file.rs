@@ -1,8 +1,7 @@
 use pyo3::exceptions::{PyIOError, PyRuntimeError, PyStopAsyncIteration};
 use pyo3::prelude::*;
 
-use pyo3::types::PyDict;
-use pyo3::{intern, IntoPyObjectExt};
+use pyo3::intern;
 use pyo3_async_runtimes::tokio::future_into_py;
 use std::io::SeekFrom;
 use std::path::PathBuf;
@@ -11,7 +10,6 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
 use tokio::io::{AsyncSeekExt, BufStream};
 use tokio::sync::Mutex;
-use tracing::warn;
 
 #[derive(Debug, Clone, Copy)]
 #[expect(clippy::struct_excessive_bools)]
@@ -297,7 +295,7 @@ impl PyAsyncFile {
 
     #[pyo3(name = "__aexit__")]
     #[expect(clippy::needless_pass_by_value)]
-    pub fn __aexit__<'py>(
+    fn __aexit__<'py>(
         slf: PyRef<Self>,
         py: Python<'py>,
         _exc_type: PyObject,
@@ -365,7 +363,7 @@ impl PyAsyncFile {
     #[pyo3(
         signature = (size = None),
     )]
-    pub fn read<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    fn read<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -385,7 +383,7 @@ impl PyAsyncFile {
         })
     }
 
-    pub fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut file = inner.lock().await;
@@ -475,7 +473,7 @@ impl PyAsyncFile {
     #[pyo3(signature = (size = None))]
     fn truncate<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let mut locked = inner.lock().await;
             let size = locked.truncate(size).await?;
             Ok(size)
@@ -574,24 +572,4 @@ impl OpenOptions {
         open.truncate(self.truncate);
         open.create_new(self.create_new);
     }
-}
-#[pyfunction(
-    signature = (path, mode = None, **kwargs),
-)]
-pub fn aiopen<'py>(
-    py: Python<'py>,
-    path: PathBuf,
-    mode: Option<String>,
-    kwargs: Option<&Bound<'py, PyDict>>,
-) -> PyResult<Bound<'py, PyAny>> {
-    if let Some(kwargs) = kwargs {
-        warn!("aiopen kwargs not impl: {kwargs:?}");
-    }
-    PyAsyncFile::new(path, mode)?.into_bound_py_any(py)
-}
-
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyAsyncFile>()?;
-    m.add_function(wrap_pyfunction!(aiopen, m)?)?;
-    Ok(())
 }
