@@ -166,6 +166,8 @@ from ._std import sleep as sleep
 from ._std import write as write
 from ._std import write_bytes as write_bytes
 from ._std import write_text as write_text
+from ._tokio import AsyncFile as AsyncFile
+from ._tokio import aiopen as aiopen
 from ._tokio import asleep as asleep
 from ._tokio import copy_async as copy_async
 from ._tokio import create_dir_async as create_dir_async
@@ -225,6 +227,9 @@ def ls(
     objects: t.Literal[True] = True,
 ) -> list[FsPath]:
     """List directory contents - returns list of FsPath objects"""
+
+
+def mkdir(path: str | PathLike[str]) -> None: ...
 
 ```
 <h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
@@ -434,6 +439,12 @@ class Bytes(Buffer):
     @classmethod
     def fromhex(cls, hexstr: str) -> Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
+
+    def startswith(self, prefix: Buffer) -> bool:
+        """Return `True` if the binary data starts with the prefix string, `False` otherwise."""
+
+    def endswith(self, suffix: Buffer) -> bool:
+        """Return `True` if the binary data ends with the suffix string, `False` otherwise."""
 
 
 BytesLike: typing_extensions.TypeAlias = (
@@ -3334,7 +3345,11 @@ class IpAddr:
 """ryo4-tokio types"""
 
 import pathlib
-from typing import NoReturn
+import typing as t
+from collections.abc import Generator
+from types import TracebackType
+
+import typing_extensions as te
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike
@@ -3384,6 +3399,45 @@ async def read_dir_async(path: FsPathLike) -> ReadDirAsync: ...
 async def sleep_async(seconds: float) -> float: ...
 async def asleep(seconds: float) -> float:
     """Alias for sleep_async"""
+
+
+class AsyncFile:
+    def __init__(
+        self, path: FsPathLike, mode: str = "r", buffering: int = -1
+    ) -> None: ...
+    def __aiter__(self) -> te.Self: ...
+    def __await__(self) -> Generator[t.Any, t.Any, te.Self]: ...
+    async def __anext__(self) -> Bytes: ...
+    async def __aenter__(self) -> te.Self: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
+    async def open(self) -> None: ...
+    async def close(self) -> None: ...
+    async def flush(self) -> None: ...
+    async def isatty(self) -> bool: ...
+    async def read(self, size: int = ..., /) -> Bytes: ...
+    async def readall(self) -> Bytes: ...
+    async def peek(self, size: int = ..., /) -> Bytes: ...
+    async def readline(self, size: int | None = ..., /) -> Bytes: ...
+    async def readlines(self, hint: int = ..., /) -> list[Bytes]: ...
+    async def seek(self, offset: int, whence: int = ..., /) -> int: ...
+    async def seekable(self) -> bool: ...
+    async def tell(self) -> int: ...
+    async def truncate(self, size: int | None = ..., /) -> int: ...
+    async def writable(self) -> bool: ...
+    async def write(self, b: Buffer, /) -> int: ...
+    def readable(self) -> bool: ...
+    @property
+    def closed(self) -> bool: ...
+
+
+def aiopen(
+    path: FsPathLike, mode: str = "r", buffering: int = -1
+) -> AsyncFile: ...
 
 ```
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
@@ -3832,7 +3886,6 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 """
 
 import builtins
-import sys
 import uuid as pyuuid
 from enum import Enum
 
@@ -3928,10 +3981,6 @@ RESERVED_NCS: str
 RFC_4122: str
 RESERVED_MICROSOFT: str
 RESERVED_FUTURE: str
-
-if sys.version_info >= (3, 12):
-
-    def main() -> None: ...
 
 ```
 <h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
