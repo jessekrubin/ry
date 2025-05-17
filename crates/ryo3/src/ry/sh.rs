@@ -80,6 +80,7 @@ pub fn ls(
 }
 
 #[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
 pub fn mkdir(path: PathLike) -> PyResult<String> {
     let path = path.as_ref();
     match std::fs::create_dir(path) {
