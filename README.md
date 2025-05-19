@@ -1,6 +1,6 @@
 # ry
 
-ry = rust and python and bears, oh my!
+A growing collection of Python shims around Rust crates — fast, async-first, and ergonomic.
 
 [![PyPI](https://img.shields.io/pypi/v/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
@@ -17,14 +17,35 @@ ry = rust and python and bears, oh my!
 
 **THIS IS A WORK IN PROGRESS ~ FEEDBACK/PRs WELCOME!**
 
+## Highlights
+
+- **Async-first HTTP client**
+  Built on `reqwest`, with a `fetch`-like API. Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries, and native JSON parsing via `jiter`.
+
+- **Async file I/O**
+  Built on `tokio`, with an `AsyncFile` API modeled after `aiofiles`. Supports buffered reads/writes, truncation, streaming reads, and full `anyio` compatibility.
+
+- **(de)compression**
+  High-performance (de)compression for `zstd`, `brotli`, `gzip`, and `bzip2`.
+
+- **Datetime utilities via `jiff`**
+  Fast, accurate, timezone-aware datetime parsing and formatting, with `datetime` interop and much more
+
+- **Miscellaneous bindings**
+  Includes crates like `globset`, `walkdir`, `sqlformat`, `unindent`, `xxhash`, and more.
+
+- **Designed for ergonomics**
+  Async where it matters. Simple where possible. Python-native behavior with minimal friction.
+
 ## Install
 
 ```bash
 pip install ry
 uv add ry
-```
 
-**Check install:** `python -m ry`
+# check install
+python -m ry
+```
 
 ## Quickstart
 
@@ -35,11 +56,9 @@ directory for some quickstart examples.
 
 ## What?
 
-This is a collection of pyo3-wrappers for popular rust crates.
-
-This project started when I need a fast hashes for `fnv` and then `xxhash` in
-python. I have been adding things as needed/wanted (by me) for general tools and
-data-mancing.
+- `ry` -- the python package
+- `ryo3-*` -- the rust crates that are used by `ry` and possibly your own
+  `pyo3`-based python package
 
 ## Who?
 

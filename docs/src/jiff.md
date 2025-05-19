@@ -14,7 +14,7 @@ the `jiff` python api to be both ergonomic and performant.
 
 ## python-conversions
 
-The structs under `ryo3-jiff` are convertable to/from python's `datetime.*`
+The structs under `ryo3-jiff` are convertible to/from python's `datetime.*`
 types and the conversions are pretty well tested (ty hypothesis).
 
 ### `pyo3-v0.24.0` & `jiff-02`
