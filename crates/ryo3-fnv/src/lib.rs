@@ -81,20 +81,11 @@ impl PyFnvHasher {
     }
 
     fn intdigest(&self) -> u64 {
-<<<<<<< HEAD
-        self.hasher.finish()
-=======
         self.finish()
     }
 
     fn digest(&self) -> ryo3_bytes::PyBytes {
         let bytes = Vec::from(self.finish().to_be_bytes());
-        ryo3_bytes::PyBytes::from(bytes)
->>>>>>> main
-    }
-
-    fn digest(&self) -> ryo3_bytes::PyBytes {
-        let bytes = Vec::from(self.hasher.finish().to_be_bytes());
         ryo3_bytes::PyBytes::from(bytes)
     }
 
