@@ -14,7 +14,16 @@ categories.workspace = true
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
-xxhash-rust = { workspace = true, features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
+xxhash-rust = { workspace = true, features = [] }
 
 [lints]
 workspace = true
+
+[features]
+default = ["xxh3", "xxh32", "xxh64", "const_xxh3", "const_xxh32", "const_xxh64"]
+const_xxh3 = ["xxhash-rust/const_xxh3"]
+const_xxh32 = ["xxhash-rust/const_xxh32"]
+const_xxh64 = ["xxhash-rust/const_xxh64"]
+xxh3 = ["xxhash-rust/xxh3"]
+xxh32 = ["xxhash-rust/xxh32"]
+xxh64 = ["xxhash-rust/xxh64"]
