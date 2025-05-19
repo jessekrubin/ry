@@ -3,9 +3,9 @@ mod pattern;
 
 use crate::pattern::PyPattern;
 use parking_lot::Mutex;
-use pyo3::types::{PyModule, PyString, PyType, PyTypeMethods};
+use pyo3::types::{PyModule, PyType, PyTypeMethods};
 use pyo3::IntoPyObjectExt;
-use pyo3::{prelude::*, PyTypeInfo};
+use pyo3::prelude::*;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -16,7 +16,7 @@ enum GlobDType {
 }
 
 impl GlobDType {
-    fn into_bound_py_any<'py>(
+    fn dtype_into_bound_py_any<'py>(
         &self,
         py: Python<'py>,
         path: PathBuf,
@@ -59,7 +59,7 @@ impl PyGlobPaths {
         while let Some(path) = self.inner.lock().next() {
             match path {
                 Ok(path) => {
-                    let pyany = self.dtype.into_bound_py_any(py, path)?;
+                    let pyany = self.dtype.dtype_into_bound_py_any(py, path)?;
                     return Ok(Some(pyany));
 
                     //  path.into_bound_py_any(py)?;
@@ -83,7 +83,7 @@ impl PyGlobPaths {
             for path in self.inner.lock().by_ref() {
                 match path {
                     Ok(path) => {
-                        let any = self.dtype.into_bound_py_any(py, path)?;
+                        let any = self.dtype.dtype_into_bound_py_any(py, path)?;
                         results.push(any);
                     }
                     Err(e) => {
@@ -100,7 +100,7 @@ impl PyGlobPaths {
                 .by_ref()
                 .flatten()
                 .map(|path| {
-                    let py_any = self.dtype.into_bound_py_any(py, path)?;
+                    let py_any = self.dtype.dtype_into_bound_py_any(py, path)?;
                     Ok(py_any)
                 })
                 .collect::<PyResult<Vec<_>>>()
@@ -114,7 +114,7 @@ impl PyGlobPaths {
             for path_result in self.inner.lock().by_ref().take(n) {
                 let path = path_result
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
-                let el = self.dtype.into_bound_py_any(py, path)?;
+                let el = self.dtype.dtype_into_bound_py_any(py, path)?;
                 results.push(el);
             }
 
@@ -126,7 +126,7 @@ impl PyGlobPaths {
                 .take(n)
                 .flatten()
                 .map(|path| {
-                    let py_any = self.dtype.into_bound_py_any(py, path)?;
+                    let py_any = self.dtype.dtype_into_bound_py_any(py, path)?;
                     Ok(py_any)
                 })
                 .collect::<PyResult<Vec<_>>>()
@@ -181,8 +181,7 @@ impl PyGlobPaths {
         strict=true
     )
 )]
-pub fn py_glob<'py>(
-    py: Python<'py>,
+pub fn py_glob(
     pattern: &str,
     case_sensitive: bool,
     require_literal_separator: bool,
@@ -207,21 +206,27 @@ pub fn py_glob<'py>(
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
 }
 
-fn extract_dtype<'py>(dtype: Option<Bound<'py, PyType>>) -> PyResult<GlobDType> {
+fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
     match dtype {
         Some(dtype) => {
             let fully_qualified_name_pystr = dtype.fully_qualified_name()?;
             let fully_qualified_name = fully_qualified_name_pystr.to_string();
-            if fully_qualified_name == "ry.ryo3.FsPath" {
-                return Ok(GlobDType::FsPath);
-            } else if fully_qualified_name == "pathlib.Path" {
-                return Ok(GlobDType::PathBuf);
-            } else if fully_qualified_name == "str" {
-                return Ok(GlobDType::OsString);
-            } else {
-                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid dtype: {fully_qualified_name} not supported"
-                )));
+            match fully_qualified_name.as_str() {
+                "str" => {
+                    Ok(GlobDType::OsString)
+                }
+                "pathlib.Path" => {
+                    Ok(GlobDType::PathBuf)
+                }
+                "ry.ryo3.FsPath" => {
+                    Ok(GlobDType::FsPath)
+                }
+
+                _ => {
+                    Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                        "Invalid dtype: {fully_qualified_name} not supported"
+                    )))
+                }
             }
         }
         None => Ok(GlobDType::OsString),
