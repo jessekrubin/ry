@@ -17,6 +17,7 @@ ryo3-globset.workspace = true
 ryo3-core = { workspace = true }
 ryo3-std = { workspace = true }
 walkdir = { workspace = true }
+parking_lot.workspace = true
 
 [lints]
 workspace = true

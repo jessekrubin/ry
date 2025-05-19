@@ -8,7 +8,7 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "URL", module = "ry", frozen)]
+#[pyclass(name = "URL", module = "ry.ryo3", frozen)]
 pub struct PyUrl(pub url::Url);
 
 impl PyUrl {
@@ -47,10 +47,19 @@ impl PyUrl {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, url: &str) -> PyResult<Self> {
-        url::Url::parse(url).map(PyUrl).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-        })
+    #[pyo3(signature = (url, *, params = None))]
+    fn parse(
+        _cls: &Bound<'_, PyType>,
+        url: &str,
+        params: Option<&Bound<'_, PyDict>>,
+    ) -> PyResult<Self> {
+        if let Some(params) = params {
+            Self::parse_with_params(url, params)
+        } else {
+            url::Url::parse(url).map(PyUrl).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
+            })
+        }
     }
 
     #[classmethod]
@@ -87,6 +96,10 @@ impl PyUrl {
         }
     }
 
+    fn __len__(&self) -> usize {
+        self.0.as_str().len()
+    }
+
     #[pyo3(signature = (*parts))]
     fn join(&self, parts: &Bound<'_, PyTuple>) -> PyResult<Self> {
         let parts = parts.extract::<Vec<String>>()?;
@@ -117,6 +130,10 @@ impl PyUrl {
                 ))
             })
         }
+    }
+
+    fn make_relative(&self, other: &Self) -> Option<String> {
+        self.0.make_relative(&other.0)
     }
 
     fn __truediv__(&self, other: &str) -> PyResult<Self> {
@@ -347,11 +364,6 @@ impl PyUrl {
         Ok(PyUrl(url))
     }
 
-    // #[pyo3(signature = (fragment = None))]
-    // fn _set_fragment(&mut self, fragment: Option<&str>) {
-    //     self.0.set_fragment(fragment);
-    // }
-
     #[pyo3(signature = (fragment = None))]
     fn replace_fragment(&self, fragment: Option<&str>) -> Self {
         let mut url = self.0.clone();
@@ -416,57 +428,6 @@ impl PyUrl {
             .map_err(|()| py_value_error!("Err setting username (username={username:?})"))?;
         Ok(Self::from(url))
     }
-
-    // fn _set_fragment(&mut self, fragment: Option<&str>) {
-
-    // #[pyo3(signature = (host = None))]
-    // fn _set_host(&mut self, host: Option<&str>) -> PyResult<()> {
-    //     self.0
-    //         .set_host(host)
-    //         .map_err(|e| py_value_error!("{e} (host={host:?})"))
-    // }
-
-    // fn _set_ip_host(&mut self, ip_host: IpAddr) -> PyResult<()> {
-    //     self.0
-    //         .set_ip_host(ip_host)
-    //         .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))
-    // }
-
-    // #[pyo3(signature = (password = None))]
-    // fn _set_password(&mut self, password: Option<&str>) -> PyResult<()> {
-    //     self.0.set_password(password).map_err(|()| {
-    //         let pw_str = password.map_or_else(|| "<None>".to_string(), ToString::to_string);
-    //         py_value_error!("Err setting password (password={pw_str})")
-    //     })
-    // }
-
-    // fn _set_path(&mut self, path: &str) {
-    //     self.0.set_path(path);
-    // }
-
-    // #[pyo3(signature = (port = None))]
-    // fn _set_port(&mut self, port: Option<u16>) -> PyResult<()> {
-    //     self.0
-    //         .set_port(port)
-    //         .map_err(|()| py_value_error!("Err setting port (port={port:?})"))
-    // }
-
-    // #[pyo3(signature = (username = None))]
-    // fn _set_query(&mut self, username: Option<&str>) {
-    //     self.0.set_query(username);
-    // }
-
-    // fn _set_scheme(&mut self, scheme: &str) -> PyResult<()> {
-    //     self.0
-    //         .set_scheme(scheme)
-    //         .map_err(|()| py_value_error!("Err setting scheme (scheme={scheme})"))
-    // }
-
-    // fn _set_username(&mut self, username: &str) -> PyResult<()> {
-    //     self.0
-    //         .set_username(username)
-    //         .map_err(|()| py_value_error!("Err setting username (username={username:?})"))
-    // }
 
     #[expect(clippy::unused_self)]
     fn socket_addrs(&self) -> PyResult<()> {

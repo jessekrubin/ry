@@ -23,7 +23,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTime", module = "ry", frozen)]
+#[pyclass(name = "ZonedDateTime", module = "ry.ryo3", frozen)]
 pub struct RyZoned(pub(crate) Zoned);
 
 #[pymethods]
@@ -197,6 +197,7 @@ impl RyZoned {
         other: RyZonedArithmeticSub,
     ) -> PyResult<Bound<'py, PyAny>> {
         match other {
+            #[expect(clippy::arithmetic_side_effects)]
             RyZonedArithmeticSub::Zoned(other) => {
                 let span = &self.0 - &other.0;
                 let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;

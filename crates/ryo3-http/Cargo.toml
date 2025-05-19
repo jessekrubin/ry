@@ -13,11 +13,18 @@ categories.workspace = true
 
 [dependencies]
 http.workspace = true
+parking_lot.workspace = true
 pyo3 = { workspace = true, features = [] }
 ryo3-core.workspace = true
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 
 [build-dependencies]
 pyo3-build-config = {workspace = true}
 
 [lints]
 workspace = true
+
+[features]
+default = ["json"]
+json = ["dep:serde", "dep:serde_json"]

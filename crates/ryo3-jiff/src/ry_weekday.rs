@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-#[pyclass(name = "Weekday", module = "ryo3", frozen)]
+#[pyclass(name = "Weekday", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RyWeekday(pub(crate) jiff::civil::Weekday);
 

@@ -1,14 +1,20 @@
 import typing as t
 
+from typing_extensions import TypeAlias
+
 import ry
-from ry.http import Headers, HttpStatus
+from ry._types import Buffer
+from ry.http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3 import URL, Duration
+
+HeadersLike: TypeAlias = Headers | dict[str, str]
 
 class HttpClient:
     def __init__(
         self,
         *,
         headers: dict[str, str] | None = None,
+        cookies: bool = False,
         user_agent: str | None = None,  # default ~ 'ry-reqwest/<VERSION> ...'
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
@@ -18,42 +24,47 @@ class HttpClient:
         deflate: bool = True,
     ) -> None: ...
     async def get(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -> Response: ...
     async def post(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -> Response: ...
     async def put(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
     ) -> Response: ...
     async def delete(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -> Response: ...
     async def patch(
         self,
         url: str | URL,
         *,
-        body: bytes | None = None,
+        body: Buffer | None = None,
         headers: dict[str, str] | None = None,
     ) -> Response: ...
     async def head(
-        self, url: str | URL, *, headers: dict[str, str] | None = None
+        self, url: str | URL, *, headers: HeadersLike | None = None
     ) -> Response: ...
     async def fetch(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        body: bytes | None = None,
-        headers: dict[str, str] | None = None,
+        body: Buffer | None = None,
+        headers: HeadersLike | None = None,
+        query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+        multipart: t.Any | None = None,  # TODO
+        form: t.Any | None = None,  # TODO
+        timeout: Duration | None = None,
+        version: HttpVersionLike | None = None,
     ) -> Response: ...
 
 class ReqwestError(Exception):
@@ -71,14 +82,30 @@ class ReqwestError(Exception):
     def url(self) -> URL | None: ...
 
 class Response:
-    status_code: int
-
     @property
     def headers(self) -> Headers: ...
     async def text(self) -> str: ...
     async def json(self) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
     def bytes_stream(self) -> ResponseStream: ...
+    @property
+    def url(self) -> URL: ...
+    @property
+    def version(
+        self,
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    @property
+    def http_version(
+        self,
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    @property
+    def status(self) -> int: ...
+    @property
+    def status_text(self) -> str: ...
+    @property
+    def status_code(self) -> HttpStatus: ...
+    @property
+    def redirected(self) -> bool: ...
 
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
@@ -89,6 +116,11 @@ async def fetch(
     *,
     client: HttpClient | None = None,
     method: str = "GET",
-    body: bytes | None = None,
-    headers: dict[str, str] | None = None,
+    body: Buffer | None = None,
+    headers: HeadersLike | None = None,
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+    multipart: t.Any = None,  # TODO
+    form: t.Any = None,  # TODO
+    timeout: Duration | None = None,
+    version: HttpVersionLike | None = None,
 ) -> Response: ...

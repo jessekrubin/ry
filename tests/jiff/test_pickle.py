@@ -32,5 +32,5 @@ jiff_objects = [
 @pytest.mark.parametrize("obj", jiff_objects)
 def test_pickling(obj: t.Any) -> None:
     pickled = pickle.dumps(obj)
-    loaded = pickle.loads(pickled)  # noqa: S301
+    loaded = pickle.loads(pickled)
     assert loaded == obj

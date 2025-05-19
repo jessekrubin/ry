@@ -14,8 +14,9 @@ use pyo3::types::{PyDict, PyTuple, PyType};
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Sub;
 use std::str::FromStr;
-#[pyclass(name = "Time", module = "ry", frozen)]
+#[pyclass(name = "Time", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone)]
 pub struct RyTime(pub(crate) jiff::civil::Time);
 
@@ -148,7 +149,7 @@ impl RyTime {
     ) -> PyResult<Bound<'py, PyAny>> {
         match other {
             RyTimeArithmeticSub::Time(other) => {
-                let span = self.0 - other.0;
+                let span = self.0.sub(other.0);
                 let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
@@ -158,7 +159,7 @@ impl RyTime {
                 RyTime::from(t).into_pyobject(py).map(Bound::into_any)
             }
             RyTimeArithmeticSub::SignedDuration(other) => {
-                let t = self.0 - other.0;
+                let t = self.0.checked_sub(other.0).map_err(map_py_overflow_err)?;
                 RyTime::from(t).into_pyobject(py).map(Bound::into_any)
             }
         }
@@ -443,7 +444,7 @@ impl From<JiffTime> for RyTime {
     }
 }
 
-#[pyclass(name = "TimeSeries", module = "ryo3")]
+#[pyclass(name = "TimeSeries", module = "ry.ryo3")]
 pub struct RyTimeSeries {
     pub(crate) series: jiff::civil::TimeSeries,
 }

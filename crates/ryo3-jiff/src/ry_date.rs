@@ -1,6 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
-use crate::errors::map_py_value_err;
+use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_date_difference::{DateDifferenceArg, RyDateDifference};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
@@ -22,8 +22,10 @@ use ryo3_std::PyDuration;
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Sub;
+
 #[derive(Debug, Clone)]
-#[pyclass(name = "Date", module = "ry", frozen)]
+#[pyclass(name = "Date", module = "ry.ryo3", frozen)]
 pub struct RyDate(pub(crate) Date);
 
 #[pymethods]
@@ -134,10 +136,6 @@ impl RyDate {
         )
     }
 
-    fn sub_date(&self, other: &RyDate) -> RySpan {
-        RySpan::from(self.0 - other.0)
-    }
-
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -145,16 +143,18 @@ impl RyDate {
     ) -> PyResult<Bound<'py, PyAny>> {
         match other {
             RyDateArithmeticSub::Date(other) => {
-                let span = self.0 - other.0;
+                // cannot overflow...
+                let span = self.0.sub(other.0);
                 let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
                 Ok(obj)
             }
             RyDateArithmeticSub::Delta(other) => {
                 let t = match other {
-                    RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-                    RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-                };
+                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
+                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
+                }
+                .map_err(map_py_overflow_err)?;
                 Ok(RyDate::from(t).into_pyobject(py)?.into_any())
             }
         }
@@ -183,17 +183,17 @@ impl RyDate {
     fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(date) = other.downcast::<RySpan>() {
             let other = date.extract::<RySpan>()?;
-            let t = self.0 + other.0;
+            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
             return Ok(RyDate::from(t));
         }
         if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
             let other = signed_dur.extract::<RySignedDuration>()?;
-            let t = self.0 + other.0;
+            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
             return Ok(RyDate::from(t));
         }
         if let Ok(date) = other.downcast::<PyDuration>() {
             let other = date.extract::<PyDuration>()?;
-            let t = self.0 + other.0;
+            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
             return Ok(RyDate::from(t));
         }
         Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
@@ -459,7 +459,7 @@ impl From<Date> for RyDate {
     }
 }
 
-#[pyclass(name = "DateSeries", module = "ryo3")]
+#[pyclass(name = "DateSeries", module = "ry.ryo3")]
 pub struct RyDateSeries {
     pub(crate) series: jiff::civil::DateSeries,
 }

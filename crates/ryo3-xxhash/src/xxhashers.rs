@@ -4,7 +4,7 @@ use xxhash_rust::xxh3::{Xxh3, Xxh3Builder};
 use xxhash_rust::xxh32::Xxh32;
 use xxhash_rust::xxh64::Xxh64;
 
-#[pyclass(name = "xxh32", module = "ry.xxhash")]
+#[pyclass(name = "Xxh32", module = "ry.ryo3.xxhash")]
 pub struct PyXxh32 {
     seed: u32,
     pub hasher: Xxh32,
@@ -90,15 +90,15 @@ impl PyXxh32 {
     }
 }
 
-/// Create a new Xxh32 hasher
-// #[pyfunction]
-// #[pyo3(signature = (s = None, seed = 0))]
-// pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyResult<PyXxh32> {
-//     Ok(PyXxh32::py_new(s, seed))
-// }
+/// Create a new xxh32 hasher
+#[pyfunction]
+#[pyo3(signature = (s = None, seed = 0))]
+pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyResult<PyXxh32> {
+    Ok(PyXxh32::py_new(s, seed))
+}
 
 /// Python-Xxh64 hasher
-#[pyclass(name = "xxh64", module = "ry.xxhash")]
+#[pyclass(name = "Xxh64", module = "ry.ryo3.xxhash")]
 pub struct PyXxh64 {
     seed: u64,
     pub hasher: Xxh64,
@@ -187,13 +187,13 @@ impl PyXxh64 {
     }
 }
 
-// #[pyfunction]
-// #[pyo3(signature = (s = None, seed = 0))]
-// pub fn xxh64(s: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<PyXxh64> {
-//     Ok(PyXxh64::py_new(s, seed))
-// }
+#[pyfunction]
+#[pyo3(signature = (s = None, seed = 0))]
+pub fn xxh64(s: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<PyXxh64> {
+    Ok(PyXxh64::py_new(s, seed))
+}
 
-#[pyclass(name = "xxh3", module = "ry.xxhash")]
+#[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash")]
 pub struct PyXxh3 {
     seed: u64,
     pub hasher: Xxh3,
@@ -296,22 +296,22 @@ impl PyXxh3 {
     }
 }
 
-// #[pyfunction]
-// #[pyo3(signature = (s = None, seed = 0, secret = None))]
-// pub fn xxh3(
-//     s: Option<ryo3_bytes::PyBytes>,
-//     seed: Option<u64>,
-//     secret: Option<[u8; 192]>,
-// ) -> PyResult<PyXxh3> {
-//     Ok(PyXxh3::py_new(s, seed, secret))
-// }
+#[pyfunction]
+#[pyo3(signature = (s = None, seed = 0, secret = None))]
+pub fn xxh3(
+    s: Option<ryo3_bytes::PyBytes>,
+    seed: Option<u64>,
+    secret: Option<[u8; 192]>,
+) -> PyResult<PyXxh3> {
+    Ok(PyXxh3::py_new(s, seed, secret))
+}
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyXxh32>()?;
     m.add_class::<PyXxh64>()?;
     m.add_class::<PyXxh3>()?;
-    // m.add_function(wrap_pyfunction!(xxh32, m)?)?;
-    // m.add_function(wrap_pyfunction!(xxh64, m)?)?;
-    // m.add_function(wrap_pyfunction!(xxh3, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh32, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh64, m)?)?;
+    m.add_function(wrap_pyfunction!(xxh3, m)?)?;
     Ok(())
 }

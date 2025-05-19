@@ -12,7 +12,7 @@ use std::str::FromStr;
 /// Default value for the `literal_separator` parameter.
 const DEFAULT_BACKSLASH_ESCAPE: bool = cfg!(windows);
 
-#[pyclass(name = "Glob", frozen, module = "ryo3")]
+#[pyclass(name = "Glob", frozen, module = "ry.ryo3")]
 #[derive(Clone, Debug)]
 pub struct PyGlob {
     pattern: String,
@@ -132,7 +132,7 @@ impl PyGlob {
     }
 }
 
-#[pyclass(name = "GlobSet", frozen, module = "ryo3")]
+#[pyclass(name = "GlobSet", frozen, module = "ry.ryo3")]
 #[derive(Clone, Debug)]
 pub struct PyGlobSet {
     globset: globset::GlobSet,

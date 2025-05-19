@@ -22,6 +22,13 @@ pub fn json(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
+#[cfg(feature = "uuid")]
+#[pymodule(gil_used = false, name = "uuid")]
+pub fn uuid(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    ryo3_uuid::pymod_add(m)?;
+    Ok(())
+}
+
 #[cfg(feature = "xxhash")]
 #[pymodule(gil_used = false, submodule, name = "xxhash")]
 pub fn xxhash(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -47,6 +54,9 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     #[cfg(feature = "jiter")]
     m.add_wrapped(pyo3::wrap_pymodule!(json))?;
+
+    #[cfg(feature = "uuid")]
+    m.add_wrapped(pyo3::wrap_pymodule!(uuid))?;
 
     #[cfg(feature = "xxhash")]
     m.add_wrapped(pyo3::wrap_pymodule!(xxhash))?;
@@ -76,6 +86,14 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?;
     let attr = m.getattr(pyo3::intern!(py, "JSON"))?;
     attr.setattr(pyo3::intern!(py, "__name__"), pyo3::intern!(py, "ry.JSON"))?;
+
+    // uuid
+    sys_modules.set_item(
+        pyo3::intern!(py, "ry.uuid"),
+        m.getattr(pyo3::intern!(py, "uuid"))?,
+    )?;
+    let attr = m.getattr(pyo3::intern!(py, "uuid"))?;
+    attr.setattr(pyo3::intern!(py, "__name__"), pyo3::intern!(py, "ry.uuid"))?;
 
     // xxhash
     sys_modules.set_item(

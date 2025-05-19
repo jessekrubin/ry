@@ -27,6 +27,7 @@ pub fn time_to_pyobject<'py>(
 }
 
 #[cfg(not(Py_LIMITED_API))]
+#[expect(clippy::arithmetic_side_effects)]
 pub fn py_time_to_jiff_time(py_time: &impl PyTimeAccess) -> PyResult<jiff::civil::Time> {
     let hour = py_time.get_hour();
     let hour_i8 = i8::try_from(hour)

@@ -1,4 +1,5 @@
 //! `FsPath` struct python module
+use parking_lot::Mutex;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
@@ -15,7 +16,7 @@ const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
 type ArcPathBuf = std::sync::Arc<PathBuf>;
 
-#[pyclass(name = "FsPath", module = "ry", frozen)]
+#[pyclass(name = "FsPath", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: ArcPathBuf,
@@ -410,19 +411,6 @@ impl PyFsPath {
         ))
     }
 
-    fn samefile(&self, other: PathBuf) -> PyResult<bool> {
-        #[cfg(feature = "same-file")]
-        {
-            Ok(same_file::is_same_file(self.path(), &other)?)
-        }
-        #[cfg(not(feature = "same-file"))]
-        {
-            Err(ryo3_core::FeatureNotEnabledError::new_err(
-                "`same-file` feature not enabled",
-            ))
-        }
-    }
-
     // ========================================================================
     // Methods from ::std::path::PathBuf
     // ========================================================================
@@ -589,21 +577,25 @@ impl PyFsPath {
             .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
         Ok(rd)
     }
+
     fn read_link(&self) -> PyResult<Self> {
         self.pth
             .read_link()
             .map(Self::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("read_link: {e}")))
     }
+
     fn starts_with(&self, p: PathLike) -> bool {
         self.pth.starts_with(p.as_ref())
     }
+
     fn strip_prefix(&self, p: PathLike) -> PyResult<PyFsPath> {
         self.pth
             .strip_prefix(p.as_ref())
             .map(Self::from)
             .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
+
     fn symlink_metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
         self.pth
             .metadata()
@@ -618,6 +610,26 @@ impl PyFsPath {
     fn with_file_name(&self, name: String) -> Self {
         Self::from(self.pth.with_file_name(name))
     }
+
+    // ========================================================================
+    // FEATURES
+    // ========================================================================
+
+    // -------------------------------------------------------------------------
+    // `same-file` feature
+    // ------------------------------------------------------------------------
+
+    #[cfg(feature = "same-file")]
+    fn samefile(&self, other: PathBuf) -> PyResult<bool> {
+        Ok(same_file::is_same_file(self.path(), &other)?)
+    }
+
+    #[cfg(not(feature = "same-file"))]
+    fn samefile(&self, _other: PathBuf) -> PyResult<bool> {
+        Err(ryo3_core::FeatureNotEnabledError::new_err(
+            "`same-file` feature not enabled",
+        ))
+    }
 }
 
 impl<T> From<T> for PyFsPath
@@ -631,9 +643,9 @@ where
     }
 }
 
-#[pyclass(name = "FsPathReadDir", module = "ryo3")]
+#[pyclass(name = "FsPathReadDir", module = "ry.ryo3", frozen)]
 pub struct PyFsPathReadDir {
-    iter: std::fs::ReadDir,
+    iter: Mutex<std::fs::ReadDir>,
 }
 
 #[pymethods]
@@ -642,38 +654,40 @@ impl PyFsPathReadDir {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyFsPath> {
-        match slf.iter.next() {
+    fn __next__(&self) -> Option<PyFsPath> {
+        match self.iter.lock().next() {
             Some(Ok(entry)) => Some(PyFsPath::from(entry.path())),
             _ => None,
         }
     }
 
-    fn collect(&mut self) -> Vec<PyFsPath> {
+    fn collect(&self) -> Vec<PyFsPath> {
         let mut paths = vec![];
-        for entry in self.iter.by_ref() {
+        for entry in self.iter.lock().by_ref() {
             match entry {
                 Ok(entry) => paths.push(PyFsPath::from(entry.path())),
-                Err(_) => break,
+                Err(_e) => break, // TODO: handle error
             }
         }
         paths
     }
 
-    fn take(&mut self, n: usize) -> Vec<PyFsPath> {
-        let mut paths = vec![];
-        for _ in 0..n {
-            match self.iter.next() {
-                Some(Ok(entry)) => paths.push(PyFsPath::from(entry.path())),
-                _ => break,
-            }
-        }
-        paths
+    #[pyo3(signature = (n = 1))]
+    fn take(&self, n: usize) -> Vec<PyFsPath> {
+        self.iter
+            .lock()
+            .by_ref()
+            .take(n)
+            .filter_map(|entry| match entry {
+                Ok(entry) => Some(PyFsPath::from(entry.path())),
+                Err(_) => None,
+            })
+            .collect()
     }
 }
 
 impl From<std::fs::ReadDir> for PyFsPathReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
-        Self { iter }
+        Self { iter: iter.into() }
     }
 }

@@ -1,6 +1,52 @@
 # CHANGELOG
 
-## v0.0.41 [unreleased]
+## v0.0.44 [unreleased]
+
+- pyo3-v0.25.0
+
+
+---
+
+## v0.0.43 [2025-05-17]
+
+- `ryo3-jiff`
+  - panic-able functions to create new/altered (time)spans moved to use `try_*`
+- fix: anyio marker flat issue in pytests for cicd
+- `ryo3-uuid`
+  - added `uuid` wrapper for `uuid` crate; ty to the maintainers of `uuid-utils` and `fastuuid` for helping figure out some of the nitty gritty bits and bobs
+- `ryo3-tokio`
+  - `AsyncFile` and `aiopen` experiment(s) added for async file reading/writing etc
+
+---
+
+## v0.0.42 [2025-05-12]
+
+- panic=abort
+  - panic is now (maybe will go back) `abort` for release builds
+  - means smaller binaries and faster error handling (in theory)
+- `ryo3-reqwest`
+  - more type fixes to response
+  - Got response type more inline with other python http-client libraries
+  - try `parking_lot` for default `reqwest` client mutex
+  - include missing kwargs for fetch functions
+- `ryo3-glob`
+  - freeze struct(s) to be frozen
+- `ryo3-http`
+  - http version python conversions to/from string/int
+  - crude-ish serde implementation for `HeadersMap` for json
+    encoding/decoding... was a lot of googling
+  - status code reason(s) interned
+  - intern all standard http header-names
+- `ryo3-fnv`
+  - align with hashlib style hashing
+- deps-up
+  - pyo3 version 0.24.2
+  - brotli 8
+  - jiff patch
+
+---
+
+## v0.0.41 [2025-04-18]
 
 - `ryo3-jiter`
   - added `read_json` function to read from path-like obj
@@ -37,8 +83,8 @@
 - `ryo3-zstd`
   - actually changed to use py buffer protocol this time... I dont know how it
     got missed before...
-  - re-factored a decent bit and made submodule with future plans to expand encoding/decoding dictionary
-    support
+  - re-factored a decent bit and made submodule with future plans to expand
+    encoding/decoding dictionary support
   - submodule is `ry.zstd` and/or `ry.ryo3.zstd`
 
 ---

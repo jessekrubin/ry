@@ -1,11 +1,11 @@
 """ry api ~ type annotations"""
 
-import datetime as pydt
 import typing as t
 from os import PathLike
 
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
+from ry import uuid as uuid  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
 from ry import zstd as zstd  # noqa: RUF100
 from ry._types import Buffer as Buffer  # noqa: RUF100
@@ -125,16 +125,26 @@ from ._std import sleep as sleep
 from ._std import write as write
 from ._std import write_bytes as write_bytes
 from ._std import write_text as write_text
+from ._tokio import AsyncFile as AsyncFile
+from ._tokio import aiopen as aiopen
 from ._tokio import asleep as asleep
+from ._tokio import canonicalize_async as canonicalize_async
 from ._tokio import copy_async as copy_async
+from ._tokio import create_dir_all_async as create_dir_all_async
 from ._tokio import create_dir_async as create_dir_async
+from ._tokio import exists_async as exists_async
+from ._tokio import hard_link_async as hard_link_async
 from ._tokio import metadata_async as metadata_async
 from ._tokio import read_async as read_async
 from ._tokio import read_dir_async as read_dir_async
+from ._tokio import read_link_async as read_link_async
+from ._tokio import read_to_string_async as read_to_string_async
+from ._tokio import remove_dir_all_async as remove_dir_all_async
 from ._tokio import remove_dir_async as remove_dir_async
 from ._tokio import remove_file_async as remove_file_async
 from ._tokio import rename_async as rename_async
 from ._tokio import sleep_async as sleep_async
+from ._tokio import try_exists_async as try_exists_async
 from ._tokio import write_async as write_async
 from ._unindent import unindent as unindent
 from ._unindent import unindent_bytes as unindent_bytes
@@ -182,3 +192,5 @@ def ls(
     objects: t.Literal[True] = True,
 ) -> list[FsPath]:
     """List directory contents - returns list of FsPath objects"""
+
+def mkdir(path: str | PathLike[str]) -> None: ...

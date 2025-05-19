@@ -7,21 +7,21 @@ def test_glob_str_repr_methods() -> None:
     glob = ry.Glob("*.py")
     assert str(glob) == 'Glob("*.py")'
     assert repr(glob) == str(glob)
-    assert glob.__module__ == "ryo3"
+    assert glob.__module__ == "ry.ryo3"
 
 
 def test_globset_str_repr_methods() -> None:
     globset = ry.GlobSet(["*.py", "*.txt"])
     assert str(globset) == 'GlobSet(["*.py", "*.txt"])'
     assert str(globset) == repr(globset)
-    assert globset.__module__ == "ryo3"
+    assert globset.__module__ == "ry.ryo3"
 
 
 def test_globster_str_repr_methods() -> None:
     globset = ry.globster(["*.py", "*.txt"])
     assert str(globset) == 'Globster(["*.py", "*.txt"])'
     assert str(globset) == repr(globset)
-    assert globset.__module__ == "ryo3"
+    assert globset.__module__ == "ry.ryo3"
 
 
 def test_single_globster() -> None:

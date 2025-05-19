@@ -1,9 +1,11 @@
 use bytes::{Bytes, BytesMut};
-use pyo3::{pyclass, pymethods, PyRef, PyRefMut, PyResult};
+use pyo3::exceptions::PyRuntimeError;
+use pyo3::{pyclass, pymethods, PyRef, PyResult};
 use std::fs::File;
 use std::io;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
+use std::sync::Mutex;
 
 pub(crate) struct FileReadStream {
     file: File,
@@ -54,9 +56,17 @@ impl Iterator for FileReadStream {
     }
 }
 
-#[pyclass(name = "FileReadStream", module = "ryo3")]
+#[pyclass(name = "FileReadStream", module = "ry.ryo3", frozen)]
 pub struct PyFileReadStream {
-    pub(crate) file_read_stream: FileReadStream,
+    pub(crate) file_read_stream: Mutex<FileReadStream>,
+}
+
+impl From<FileReadStream> for PyFileReadStream {
+    fn from(file_read_stream: FileReadStream) -> Self {
+        Self {
+            file_read_stream: Mutex::new(file_read_stream),
+        }
+    }
 }
 
 #[pymethods]
@@ -65,12 +75,15 @@ impl PyFileReadStream {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<ryo3_bytes::PyBytes>> {
-        let b = slf.file_read_stream.next();
-        match b {
-            Some(Ok(b)) => Ok(Some(b.into())),
-            Some(Err(e)) => Err(e.into()),
-            None => Ok(None),
+    fn __next__(&self) -> PyResult<Option<ryo3_bytes::PyBytes>> {
+        if let Ok(mut inner) = self.file_read_stream.lock() {
+            match inner.next() {
+                Some(Ok(b)) => Ok(Some(b.into())),
+                Some(Err(e)) => Err(e.into()),
+                None => Ok(None),
+            }
+        } else {
+            Err(PyRuntimeError::new_err("lock error on file read stream"))
         }
     }
 }

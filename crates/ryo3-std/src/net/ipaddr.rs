@@ -4,13 +4,13 @@ use pyo3::types::PyType;
 use ryo3_macros::err_py_not_impl;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-#[pyclass(name = "Ipv4Addr", module = "ry.ryo3")]
+#[pyclass(name = "Ipv4Addr", module = "ry.ryo3", frozen)]
 pub struct PyIpv4Addr(pub std::net::Ipv4Addr);
 
-#[pyclass(name = "Ipv6Addr", module = "ry.ryo3")]
+#[pyclass(name = "Ipv6Addr", module = "ry.ryo3", frozen)]
 pub struct PyIpv6Addr(pub std::net::Ipv6Addr);
 
-#[pyclass(name = "IpAddr", module = "ry.ryo3")]
+#[pyclass(name = "IpAddr", module = "ry.ryo3", frozen)]
 pub struct PyIpAddr(pub std::net::IpAddr);
 
 static IPV4_ADDR_ERROR: &str =
@@ -34,7 +34,7 @@ fn extract_ipv4_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv4Addr> {
         return Ok(Ipv4Addr::from(addr));
     }
 
-    if let Ok(std::net::IpAddr::V4(addr)) = ob.extract::<std::net::IpAddr>() {
+    if let Ok(IpAddr::V4(addr)) = ob.extract::<IpAddr>() {
         return Ok(addr);
     }
     // error
@@ -91,7 +91,7 @@ fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
         return Ok(Ipv6Addr::from(addr));
     }
 
-    if let Ok(std::net::IpAddr::V6(addr)) = ob.extract::<std::net::IpAddr>() {
+    if let Ok(IpAddr::V6(addr)) = ob.extract::<IpAddr>() {
         return Ok(addr);
     }
     // error
@@ -632,49 +632,49 @@ impl PyIpAddr {
 // ===========================================================================
 // FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ===========================================================================
-impl From<std::net::Ipv4Addr> for PyIpv4Addr {
-    fn from(addr: std::net::Ipv4Addr) -> Self {
+impl From<Ipv4Addr> for PyIpv4Addr {
+    fn from(addr: Ipv4Addr) -> Self {
         PyIpv4Addr(addr)
     }
 }
 
-impl From<PyIpv4Addr> for std::net::Ipv4Addr {
+impl From<PyIpv4Addr> for Ipv4Addr {
     fn from(addr: PyIpv4Addr) -> Self {
         addr.0
     }
 }
 
-impl From<std::net::Ipv6Addr> for PyIpv6Addr {
-    fn from(addr: std::net::Ipv6Addr) -> Self {
+impl From<Ipv6Addr> for PyIpv6Addr {
+    fn from(addr: Ipv6Addr) -> Self {
         PyIpv6Addr(addr)
     }
 }
 
-impl From<PyIpv6Addr> for std::net::Ipv6Addr {
+impl From<PyIpv6Addr> for Ipv6Addr {
     fn from(addr: PyIpv6Addr) -> Self {
         addr.0
     }
 }
 
-impl From<std::net::IpAddr> for PyIpAddr {
-    fn from(addr: std::net::IpAddr) -> Self {
+impl From<IpAddr> for PyIpAddr {
+    fn from(addr: IpAddr) -> Self {
         PyIpAddr(addr)
     }
 }
 
-impl From<std::net::Ipv4Addr> for PyIpAddr {
-    fn from(addr: std::net::Ipv4Addr) -> Self {
-        PyIpAddr(std::net::IpAddr::V4(addr))
+impl From<Ipv4Addr> for PyIpAddr {
+    fn from(addr: Ipv4Addr) -> Self {
+        PyIpAddr(IpAddr::V4(addr))
     }
 }
 
-impl From<std::net::Ipv6Addr> for PyIpAddr {
-    fn from(addr: std::net::Ipv6Addr) -> Self {
-        PyIpAddr(std::net::IpAddr::V6(addr))
+impl From<Ipv6Addr> for PyIpAddr {
+    fn from(addr: Ipv6Addr) -> Self {
+        PyIpAddr(IpAddr::V6(addr))
     }
 }
 
-impl From<PyIpAddr> for std::net::IpAddr {
+impl From<PyIpAddr> for IpAddr {
     fn from(addr: PyIpAddr) -> Self {
         addr.0
     }

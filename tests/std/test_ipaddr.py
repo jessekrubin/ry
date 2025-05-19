@@ -53,19 +53,19 @@ class TestIpAddrHypothesis:
     ) -> None:
         ry_ip = ry.IpAddr(py_ipaddr)
         pickled = pickle.dumps(ry_ip)
-        unpickled = pickle.loads(pickled)  # noqa: S301
+        unpickled = pickle.loads(pickled)
         assert isinstance(unpickled, ry.IpAddr)
         assert ry_ip == unpickled
         if ry_ip.is_ipv4:
             ry_ipv4 = ry_ip.to_ipv4()
             pickled_ipv4 = pickle.dumps(ry_ipv4)
-            unpickled_ipv4 = pickle.loads(pickled_ipv4)  # noqa: S301
+            unpickled_ipv4 = pickle.loads(pickled_ipv4)
             assert isinstance(unpickled_ipv4, ry.Ipv4Addr)
             assert ry_ipv4 == unpickled_ipv4
         else:
             ry_ipv6 = ry_ip.to_ipv6()
             pickled_ipv6 = pickle.dumps(ry_ipv6)
-            unpickled_ipv6 = pickle.loads(pickled_ipv6)  # noqa: S301
+            unpickled_ipv6 = pickle.loads(pickled_ipv6)
             assert isinstance(unpickled_ipv6, ry.Ipv6Addr)
             assert ry_ipv6 == unpickled_ipv6
 

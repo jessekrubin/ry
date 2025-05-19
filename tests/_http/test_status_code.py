@@ -1,48 +1,8 @@
 from __future__ import annotations
 
-import dataclasses
-
 import pytest
 
 import ry
-
-
-@dataclasses.dataclass
-class HttpStatusMetadata:
-    code: int
-    reason: str
-    const_name: str
-
-
-def test_status_200() -> None:
-    s = ry.HttpStatus(200)
-    assert str(s) == "200"
-    assert int(s) == 200
-
-
-def _test_dev_status_code(num: int) -> None:
-    try:
-        s = ry.HttpStatus(num)
-    except ValueError:
-        return
-    assert str(s) == str(num)
-    assert int(s) == num
-    assert s == num
-    assert s == s
-    assert s == ry.HttpStatus(num)
-    try:
-        assert s != ry.HttpStatus(num + 1)
-    except ValueError:
-        pass
-    assert s != num + 1
-    assert s is not None
-    assert s != 0
-
-
-def test_dev_status_code() -> None:
-    for i in range(1000):
-        _test_dev_status_code(i)
-
 
 REASONS_MAP = {
     100: "Continue",
@@ -108,73 +68,33 @@ REASONS_MAP = {
     511: "Network Authentication Required",
 }
 
-CONST_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+
+@pytest.mark.parametrize(
+    "code, reason",
+    list(REASONS_MAP.items()),
+)
+def test_http_status_code(
+    code: int,
+    reason: str,
+) -> None:
+    s = ry.HttpStatus(code)
+    assert s == code
+    assert s == ry.HttpStatus(code)
+    assert s.canonical_reason == reason
+    assert s.reason == reason
+    assert isinstance(s.is_informational, bool)
+    assert isinstance(s.is_success, bool)
+    assert isinstance(s.is_redirect, bool)
+    assert isinstance(s.is_redirection, bool)
+    assert isinstance(s.is_client_error, bool)
+    assert isinstance(s.is_server_error, bool)
+    assert isinstance(s.is_error, bool)
+    assert isinstance(s.ok, bool)
+    assert isinstance(s.is_ok, bool)
+    assert isinstance(s.to_py(), int)
 
 
-def _reason2const_name(reason: str) -> str:
-    return "".join(
-        c
-        for c in reason.upper().replace(" ", "_").replace("-", "_")
-        if c in CONST_CHARS
-    )
-
-
-def _class_attr_names() -> list[HttpStatusMetadata]:
-    def _int2metadata(i: int) -> HttpStatusMetadata | None:
-        try:
-            status = ry.HttpStatus(i)
-            reason = status.reason()
-            if reason is None:
-                return None
-            return HttpStatusMetadata(
-                code=i,
-                reason=reason,
-                const_name=_reason2const_name(reason),
-            )
-        except ValueError:
-            return None
-
-    reasons = [
-        el for el in (_int2metadata(i) for i in range(100, 600)) if el is not None
-    ]
-    return sorted(reasons, key=lambda x: x.code)
-
-
-@pytest.mark.parametrize("status_meta", _class_attr_names())
-def test_class_attr_const(status_meta: HttpStatusMetadata) -> None:
-    const_status_code = getattr(ry.HttpStatus, status_meta.const_name)
-    assert const_status_code == status_meta.code
-
-
-class CODEGEN:
-    @staticmethod
-    def gen_status_code_rust_code() -> str:
-        class_attrs = _class_attr_names()
-
-        assert len(class_attrs) == len({m.const_name for m in class_attrs})
-        parts = []
-        for status_meta in class_attrs:
-            name = status_meta.const_name
-            string = "\n".join(
-                (
-                    "    #[allow(non_snake_case)]",
-                    "    #[classattr]",
-                    f"    fn {name}() -> PyHttpStatus {{",
-                    f"        PyHttpStatus(ryo3-http::StatusCode::{name})",
-                    "    }\n",
-                )
-            )
-            parts.append(string)
-        return "\n".join(parts)
-
-    @staticmethod
-    def gen_status_code_py_type_annotations() -> str:
-        parts = [
-            f"    {status_meta.const_name}: HttpStatus  # {status_meta.code} ~ {status_meta.reason}"
-            for status_meta in _class_attr_names()
-        ]
-        return "\n".join(parts)
-
-
-if __name__ == "__main__":
-    print(CODEGEN.gen_status_code_rust_code())
+def test_status_200() -> None:
+    s = ry.HttpStatus(200)
+    assert str(s) == "200"
+    assert int(s) == 200

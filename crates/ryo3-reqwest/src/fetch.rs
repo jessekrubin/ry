@@ -2,10 +2,9 @@
 
 use crate::default_client::default_client;
 use crate::RyHttpClient;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
+use ryo3_http::{HttpVersion, PyHeadersLike};
 
 // global fetch
 #[pyfunction]
@@ -16,27 +15,40 @@ use pyo3::IntoPyObjectExt;
         client = None,
         method = None,
         body = None,
-        headers = None
+        headers = None,
+        query = None,
+        multipart = None,
+        form = None,
+        timeout = None,
+        version = None,
     )
 )]
+#[expect(clippy::too_many_arguments)]
 pub(crate) fn fetch<'py>(
     py: Python<'py>,
     url: &Bound<'py, PyAny>,
-    client: Option<RyHttpClient>,
+    client: Option<&RyHttpClient>,
     method: Option<ryo3_http::HttpMethod>,
     body: Option<ryo3_bytes::PyBytes>,
-    headers: Option<Bound<'py, PyDict>>,
+    headers: Option<PyHeadersLike>,
+    query: Option<&Bound<'py, PyAny>>,
+    multipart: Option<&Bound<'py, PyAny>>,
+    form: Option<&Bound<'py, PyAny>>,
+    timeout: Option<&ryo3_std::PyDuration>,
+    version: Option<HttpVersion>,
 ) -> PyResult<Py<PyAny>> {
-    if let Some(client) = client {
-        let bound_pyany = client.fetch(py, url, method, body, headers)?;
-        bound_pyany.into_py_any(py)
+    let default_client_mut_guard;
+    let client_ref: &RyHttpClient = if let Some(c) = client {
+        c
     } else {
-        let client = default_client();
-        // boom lock that up!
-        let client = client
-            .lock()
-            .map_err(|e| PyValueError::new_err(format!("default-client-lock-err: {e}")))?;
-        let bound_pyany = client.fetch(py, url, method, body, headers)?;
-        bound_pyany.into_py_any(py)
-    }
+        let guard = default_client().lock();
+        default_client_mut_guard = guard; // "stayin-alive" (ah ah ah ah, stayin-alive)
+        &default_client_mut_guard
+    };
+
+    client_ref
+        .fetch(
+            py, url, method, body, headers, query, multipart, form, timeout, version,
+        )
+        .map(|x| x.into_py_any(py))?
 }

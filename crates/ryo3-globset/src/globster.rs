@@ -15,7 +15,7 @@ pub struct Globster {
     pub length: usize,
 }
 
-#[pyclass(name = "Globster", frozen, module = "ryo3")]
+#[pyclass(name = "Globster", frozen, module = "ry.ryo3")]
 #[derive(Clone, Debug)]
 pub struct PyGlobster(pub Globster);
 

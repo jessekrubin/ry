@@ -2,21 +2,33 @@
 //!
 //! Used for the py-conversions mod
 
+use http::{HeaderMap, HeaderValue};
 use std::ops::Deref;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct HttpHeaderName(pub http::HeaderName);
-#[derive(Debug, Clone, PartialEq)]
-pub struct HttpHeaderValue(pub http::HeaderValue);
+pub struct HttpHeaderMap(pub HeaderMap<HeaderValue>);
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpMethod(pub http::Method);
-
+#[derive(Debug, Clone, PartialEq)]
+pub struct HttpHeaderName(pub http::HeaderName);
+#[derive(Debug)]
+pub struct HttpHeaderNameRef<'a>(pub &'a http::HeaderName);
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpStatusCode(pub http::StatusCode);
+#[derive(Debug, Clone, PartialEq)]
+pub struct HttpHeaderValue(pub HeaderValue);
+#[derive(Debug, Clone, PartialEq)]
+pub struct HttpVersion(pub http::Version);
 
 // ============================================================================
 //  FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ============================================================================
+
+impl From<HeaderMap> for HttpHeaderMap {
+    fn from(h: HeaderMap) -> Self {
+        HttpHeaderMap(h)
+    }
+}
 
 impl From<HttpHeaderName> for http::HeaderName {
     fn from(h: HttpHeaderName) -> Self {
@@ -24,7 +36,7 @@ impl From<HttpHeaderName> for http::HeaderName {
     }
 }
 
-impl From<HttpHeaderValue> for http::HeaderValue {
+impl From<HttpHeaderValue> for HeaderValue {
     fn from(h: HttpHeaderValue) -> Self {
         h.0
     }
@@ -42,8 +54,8 @@ impl From<http::HeaderName> for HttpHeaderName {
     }
 }
 
-impl From<http::HeaderValue> for HttpHeaderValue {
-    fn from(h: http::HeaderValue) -> Self {
+impl From<HeaderValue> for HttpHeaderValue {
+    fn from(h: HeaderValue) -> Self {
         HttpHeaderValue(h)
     }
 }
@@ -60,10 +72,16 @@ impl From<http::StatusCode> for HttpStatusCode {
     }
 }
 
+impl From<http::Version> for HttpVersion {
+    fn from(h: http::Version) -> Self {
+        HttpVersion(h)
+    }
+}
+
 // impl from ref
-impl From<&http::HeaderValue> for HttpHeaderValue {
+impl From<&HeaderValue> for HttpHeaderValue {
     // clone should be totally fine bc the http lib uses the `Bytes` crate
-    fn from(h: &http::HeaderValue) -> Self {
+    fn from(h: &HeaderValue) -> Self {
         HttpHeaderValue(h.clone())
     }
 }
@@ -79,7 +97,7 @@ impl Deref for HttpHeaderName {
 }
 
 impl Deref for HttpHeaderValue {
-    type Target = http::HeaderValue;
+    type Target = HeaderValue;
     fn deref(&self) -> &Self::Target {
         &self.0
     }

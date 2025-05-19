@@ -13,14 +13,28 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeSpan", module = "ry", frozen)]
+#[pyclass(name = "TimeSpan", module = "ry.ryo3", frozen)]
 pub struct RySpan(pub(crate) Span);
 
 #[pymethods]
 impl RySpan {
     #[expect(clippy::too_many_arguments)]
     #[new]
-    #[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0, unchecked=false))]
+    #[pyo3(
+        signature = (
+            *,
+            years=0,
+            months=0,
+            weeks=0,
+            days=0,
+            hours=0,
+            minutes=0,
+            seconds=0,
+            milliseconds=0,
+            microseconds=0,
+            nanoseconds=0
+        )
+    )]
     fn py_new(
         years: i64,
         months: i64,
@@ -32,7 +46,6 @@ impl RySpan {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-        unchecked: bool,
     ) -> PyResult<Self> {
         timespan(
             years,
@@ -45,7 +58,6 @@ impl RySpan {
             milliseconds,
             microseconds,
             nanoseconds,
-            unchecked,
         )
     }
 
@@ -121,44 +133,44 @@ impl RySpan {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn _years(&self, n: i64) -> Self {
-        Self::from(self.0.years(n))
+    fn _years(&self, n: i64) -> PyResult<Self> {
+        self.try_years(n)
     }
 
-    fn _months(&self, n: i64) -> Self {
-        Self::from(self.0.months(n))
+    fn _months(&self, n: i64) -> PyResult<Self> {
+        self.try_months(n)
     }
 
-    fn _weeks(&self, n: i64) -> Self {
-        Self::from(self.0.weeks(n))
+    fn _weeks(&self, n: i64) -> PyResult<Self> {
+        self.try_weeks(n)
     }
 
-    fn _days(&self, n: i64) -> Self {
-        Self::from(self.0.days(n))
+    fn _days(&self, n: i64) -> PyResult<Self> {
+        self.try_days(n)
     }
 
-    fn _hours(&self, n: i64) -> Self {
-        Self::from(self.0.hours(n))
+    fn _hours(&self, n: i64) -> PyResult<Self> {
+        self.try_hours(n)
     }
 
-    fn _minutes(&self, n: i64) -> Self {
-        Self::from(self.0.minutes(n))
+    fn _minutes(&self, n: i64) -> PyResult<Self> {
+        self.try_minutes(n)
     }
 
-    fn _seconds(&self, n: i64) -> Self {
-        Self::from(self.0.seconds(n))
+    fn _seconds(&self, n: i64) -> PyResult<Self> {
+        self.try_seconds(n)
     }
 
-    fn _milliseconds(&self, n: i64) -> Self {
-        Self::from(self.0.milliseconds(n))
+    fn _milliseconds(&self, n: i64) -> PyResult<Self> {
+        self.try_milliseconds(n)
     }
 
-    fn _microseconds(&self, n: i64) -> Self {
-        Self::from(self.0.microseconds(n))
+    fn _microseconds(&self, n: i64) -> PyResult<Self> {
+        self.try_microseconds(n)
     }
 
-    fn _nanoseconds(&self, n: i64) -> Self {
-        Self::from(self.0.nanoseconds(n))
+    fn _nanoseconds(&self, n: i64) -> PyResult<Self> {
+        self.try_nanoseconds(n)
     }
 
     #[expect(clippy::too_many_arguments)]
@@ -197,7 +209,6 @@ impl RySpan {
             milliseconds,
             microseconds,
             nanoseconds,
-            false,
         )
     }
 

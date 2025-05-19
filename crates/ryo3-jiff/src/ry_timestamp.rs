@@ -19,7 +19,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Timestamp", module = "ry", frozen)]
+#[pyclass(name = "Timestamp", module = "ry.ryo3", frozen)]
 pub struct RyTimestamp(pub(crate) Timestamp);
 
 #[pymethods]
@@ -148,6 +148,7 @@ impl RyTimestamp {
         other: RyTimestampArithmeticSub,
     ) -> PyResult<Bound<'py, PyAny>> {
         match other {
+            #[expect(clippy::arithmetic_side_effects)]
             RyTimestampArithmeticSub::Timestamp(other) => {
                 let span = self.0 - other.0;
                 let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
@@ -424,7 +425,7 @@ impl From<Timestamp> for RyTimestamp {
     }
 }
 
-#[pyclass(name = "TimestampSeries", module = "ryo3")]
+#[pyclass(name = "TimestampSeries", module = "ry.ryo3")]
 pub struct RyTimestampSeries {
     pub(crate) series: jiff::TimestampSeries,
 }

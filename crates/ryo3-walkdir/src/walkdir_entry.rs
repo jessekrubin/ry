@@ -1,7 +1,7 @@
 //! python wrapper for `walkdir::DirEntry`
 use pyo3::prelude::*;
 
-#[pyclass(name = "WalkDirEntry", module = "ryo3", frozen)]
+#[pyclass(name = "WalkDirEntry", module = "ry.ryo3", frozen)]
 #[derive(Clone, Debug)]
 pub struct PyWalkDirEntry(walkdir::DirEntry);
 
