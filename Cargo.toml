@@ -168,7 +168,7 @@ globset = { version = "0.4.15", features = ["serde"] }
 heck = "0.5.0"
 http = "1.3.1"
 jiff = { version = "0.2.13", features = ["default", "serde"] }
-jiter = { version = "0.9.0", features = ["python"] }
+jiter = { version = "0.9.1", features = ["python"] }
 parking_lot = "0.12.3"
 regex = "1.11.1"
 reqwest = { version = "0.12.15", features = ["brotli", "charset", "cookies", "deflate", "gzip", "http2", "macos-system-configuration", "multipart", "rustls-tls-native-roots", "stream", "zstd"], default-features = false }
