@@ -1,6 +1,13 @@
 # CHANGELOG
 
-## v0.0.43 [unreleased]
+## v0.0.44 [unreleased]
+
+- pyo3-v0.25.0
+
+
+---
+
+## v0.0.43 [2025-05-17]
 
 - `ryo3-jiff`
   - panic-able functions to create new/altered (time)spans moved to use `try_*`
