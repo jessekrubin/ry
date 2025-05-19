@@ -15,7 +15,7 @@ A growing collection of Python shims around Rust crates — fast, async-first, a
 - `ryo3-*` is the collection of rust crates providing the shims used by ry and
   possibly your `pyo3` rust-python library
 
-**THIS IS A WORK IN PROGRESS ~ FEEDBACK/PRs WELCOME!**
+**⚠️ This is a work in progress — feedback and PRs are welcome.**
 
 ## Highlights
 
@@ -23,10 +23,10 @@ A growing collection of Python shims around Rust crates — fast, async-first, a
   Built on `reqwest`, with a `fetch`-like API. Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries, and native JSON parsing via `jiter`.
 
 - **Async file I/O**
-  Built on `tokio`, with an `AsyncFile` API modeled after `aiofiles`. Supports buffered reads/writes, truncation, streaming reads, and full `anyio` compatibility.
+  Built on `tokio`, with an `AsyncFile` API similar to `aiofiles` and `anyio`'s async-file api. Supports buffered reads/writes, truncation, streaming reads, and `anyio` compatibility.
 
 - **(de)compression**
-  High-performance (de)compression for `zstd`, `brotli`, `gzip`, and `bzip2`.
+  (de)compression tools for `zstd`, `brotli`, `gzip`, and `bzip2`.
 
 - **Datetime utilities via `jiff`**
   Fast, accurate, timezone-aware datetime parsing and formatting, with `datetime` interop and much more
@@ -36,6 +36,9 @@ A growing collection of Python shims around Rust crates — fast, async-first, a
 
 - **Designed for ergonomics**
   Async where it matters. Simple where possible. Python-native behavior with minimal friction.
+
+- **Type Annotationed**
+  Type annotations for all public APIs, with `mypy` support.
 
 ## Install
 
@@ -84,6 +87,7 @@ _(aka: questions that I have been asking myself)_
 ## Crate bindings
 
 - wrapped crates:
+  - `std` - many stdlib types and apis
   - `bytes`
   - `dirs`
   - `glob`
@@ -97,6 +101,7 @@ _(aka: questions that I have been asking myself)_
   - `tokio` (`fs` and `process`)
   - `unindent`
   - `url`
+  - `uuid`
   - `which`
   - compression:
     - `brotli`
@@ -112,17 +117,6 @@ _(aka: questions that I have been asking myself)_
     - `regex` (WIP ~ very incomplete)
     - `same-file`
     - `walkdir`
-
-### FUTURE?
-
-- `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
-- wrappers:
-  - `ignore`
-  - `tracing` (eg logging)
-  - `uuid`
-- organization
-  - split up the `ryo3` type annotations?
-  - chunk things into smaller sub-packages within the `ry` package?
 
 ---
 
