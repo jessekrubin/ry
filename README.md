@@ -11,10 +11,6 @@ A growing collection of Python shims around Rust crates — fast, async-first, a
 
 **DOCS:** [ryo3.dev](https://ryo3.dev) (WIP)
 
-- `ry` is a library of python shims/bindings to popular rust crates
-- `ryo3-*` is the collection of rust crates providing the shims used by ry and
-  possibly your `pyo3` rust-python library
-
 **⚠️ This is a work in progress — feedback and PRs are welcome.**
 
 ## Highlights
