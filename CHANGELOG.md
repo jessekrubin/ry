@@ -3,6 +3,8 @@
 ## v0.0.44 [unreleased]
 
 - pyo3-v0.25.0
+- `ryo3-xxhash`
+  - Align with `xxhash` pypi library w/ respect to naming conventions
 
 
 ---
