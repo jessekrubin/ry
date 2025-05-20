@@ -161,11 +161,11 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-05-19T23:30:43.772417714+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-05-20T23:10:47.34650211+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
-<p>ry = rust and python and bears, oh my!</p>
+<p>A growing collection of Python shims around Rust crates — fast, async-first, and ergonomic.</p>
 <p><a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/v/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI" /></a>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/pyversions/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Python Version" /></a>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/wheel/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Wheel" /></a>
@@ -173,26 +173,55 @@
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/status/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Status" /></a>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/l/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - License" /></a></p>
 <p><strong>DOCS:</strong> <a href="https://ryo3.dev">ryo3.dev</a> (WIP)</p>
+<p><strong>⚠️ This is a work in progress — feedback and PRs are welcome.</strong></p>
+<h2 id="highlights"><a class="header" href="#highlights">Highlights</a></h2>
 <ul>
-<li><code>ry</code> is a library of python shims/bindings to popular rust crates</li>
-<li><code>ryo3-*</code> is the collection of rust crates providing the shims used by ry and
-possibly your <code>pyo3</code> rust-python library</li>
+<li>
+<p><strong>Async-first HTTP client</strong>
+Built on <code>reqwest</code>, with a <code>fetch</code>-like API. Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries, and native JSON parsing via <code>jiter</code>.</p>
+</li>
+<li>
+<p><strong>Async file I/O</strong>
+Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to <code>aiofiles</code> and <code>anyio</code>’s async-file api. Supports buffered reads/writes, truncation, streaming reads, and <code>anyio</code> compatibility.</p>
+</li>
+<li>
+<p><strong>(de)compression</strong>
+(de)compression tools for <code>zstd</code>, <code>brotli</code>, <code>gzip</code>, and <code>bzip2</code>.</p>
+</li>
+<li>
+<p><strong>Datetime utilities via <code>jiff</code></strong>
+Fast, accurate, timezone-aware datetime parsing and formatting, with <code>datetime</code> interop and much more</p>
+</li>
+<li>
+<p><strong>Miscellaneous bindings</strong>
+Includes crates like <code>globset</code>, <code>walkdir</code>, <code>sqlformat</code>, <code>unindent</code>, <code>xxhash</code>, and more.</p>
+</li>
+<li>
+<p><strong>Designed for ergonomics</strong>
+Async where it matters. Simple where possible. Python-native behavior with minimal friction.</p>
+</li>
+<li>
+<p><strong>Type Annotationed</strong>
+Type annotations for all public APIs, with <code>mypy</code> support.</p>
+</li>
 </ul>
-<p><strong>THIS IS A WORK IN PROGRESS ~ FEEDBACK/PRs WELCOME!</strong></p>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
 <pre><code class="language-bash">pip install ry
 uv add ry
+
+# check install
+python -m ry
 </code></pre>
-<p><strong>Check install:</strong> <code>python -m ry</code></p>
 <h2 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h2>
 <p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a>
 directory for some quickstart examples.</p>
 <hr />
 <h2 id="what"><a class="header" href="#what">What?</a></h2>
-<p>This is a collection of pyo3-wrappers for popular rust crates.</p>
-<p>This project started when I need a fast hashes for <code>fnv</code> and then <code>xxhash</code> in
-python. I have been adding things as needed/wanted (by me) for general tools and
-data-mancing.</p>
+<ul>
+<li><code>ry</code> – the python package</li>
+<li><code>ryo3-*</code> – the rust crates that are used by <code>ry</code> and possibly your own
+<code>pyo3</code>-based python package</li>
+</ul>
 <h2 id="who"><a class="header" href="#who">Who?</a></h2>
 <ul>
 <li>jessekrubin <a href="mailto:jessekrubin@gmail.com">jessekrubin@gmail.com</a></li>
@@ -226,6 +255,7 @@ into separate packages</li>
 <ul>
 <li>wrapped crates:
 <ul>
+<li><code>std</code> - many stdlib types and apis</li>
 <li><code>bytes</code></li>
 <li><code>dirs</code></li>
 <li><code>glob</code></li>
@@ -239,6 +269,7 @@ into separate packages</li>
 <li><code>tokio</code> (<code>fs</code> and <code>process</code>)</li>
 <li><code>unindent</code></li>
 <li><code>url</code></li>
+<li><code>uuid</code></li>
 <li><code>which</code></li>
 <li>compression:
 <ul>
@@ -263,23 +294,6 @@ into separate packages</li>
 <li><code>walkdir</code></li>
 </ul>
 </li>
-</ul>
-</li>
-</ul>
-<h3 id="future"><a class="header" href="#future">FUTURE?</a></h3>
-<ul>
-<li><code>subprocess.redo</code> (subprocesses that are lessy finicky and support tee-ing)</li>
-<li>wrappers:
-<ul>
-<li><code>ignore</code></li>
-<li><code>tracing</code> (eg logging)</li>
-<li><code>uuid</code></li>
-</ul>
-</li>
-<li>organization
-<ul>
-<li>split up the <code>ryo3</code> type annotations?</li>
-<li>chunk things into smaller sub-packages within the <code>ry</code> package?</li>
 </ul>
 </li>
 </ul>
