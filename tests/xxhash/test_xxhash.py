@@ -9,32 +9,32 @@ from ._xxhash_fixtures import XXHASH_TEST_DATA, XXHashDataRecord, _bytes_from_re
 
 class TestXxh32Hasher:
     def test_xxh32_hasher_digest(self) -> None:
-        assert ry_xxh.xxh32(b"a").digest() == (1426945110).to_bytes(4, "big")
-        assert ry_xxh.xxh32(b"a", 0).digest() == (1426945110).to_bytes(4, "big")
-        assert ry_xxh.xxh32(b"a", 1).digest() == (4111757423).to_bytes(4, "big")
-        assert ry_xxh.xxh32(b"a", 2**32 - 1).digest() == (3443684653).to_bytes(4, "big")
+        assert ry_xxh.Xxh32(b"a").digest() == (1426945110).to_bytes(4, "big")
+        assert ry_xxh.Xxh32(b"a", 0).digest() == (1426945110).to_bytes(4, "big")
+        assert ry_xxh.Xxh32(b"a", 1).digest() == (4111757423).to_bytes(4, "big")
+        assert ry_xxh.Xxh32(b"a", 2**32 - 1).digest() == (3443684653).to_bytes(4, "big")
 
     def test_xxh32_hasher_intdigest(self) -> None:
-        assert ry_xxh.xxh32(b"a").intdigest() == 1426945110
-        assert ry_xxh.xxh32(b"a", 0).intdigest() == 1426945110
-        assert ry_xxh.xxh32(b"a", 1).intdigest() == 4111757423
-        assert ry_xxh.xxh32(b"a", 2**32 - 1).intdigest() == 3443684653
+        assert ry_xxh.Xxh32(b"a").intdigest() == 1426945110
+        assert ry_xxh.Xxh32(b"a", 0).intdigest() == 1426945110
+        assert ry_xxh.Xxh32(b"a", 1).intdigest() == 4111757423
+        assert ry_xxh.Xxh32(b"a", 2**32 - 1).intdigest() == 3443684653
 
     def test_xxh32_hasher_hexdigest(self) -> None:
-        assert ry_xxh.xxh32(b"a").hexdigest() == (1426945110).to_bytes(4, "big").hex()
+        assert ry_xxh.Xxh32(b"a").hexdigest() == (1426945110).to_bytes(4, "big").hex()
         assert (
-            ry_xxh.xxh32(b"a", 0).hexdigest() == (1426945110).to_bytes(4, "big").hex()
+            ry_xxh.Xxh32(b"a", 0).hexdigest() == (1426945110).to_bytes(4, "big").hex()
         )
         assert (
-            ry_xxh.xxh32(b"a", 1).hexdigest() == (4111757423).to_bytes(4, "big").hex()
+            ry_xxh.Xxh32(b"a", 1).hexdigest() == (4111757423).to_bytes(4, "big").hex()
         )
         assert (
-            ry_xxh.xxh32(b"a", 2**32 - 1).hexdigest()
+            ry_xxh.Xxh32(b"a", 2**32 - 1).hexdigest()
             == (3443684653).to_bytes(4, "big").hex()
         )
 
     def test_xxh32_hasher_copy(self) -> None:
-        h = ry_xxh.xxh32()
+        h = ry_xxh.Xxh32()
         h.update(b"hello")
         h2 = h.copy()
         assert h.digest() == h2.digest()
@@ -45,9 +45,9 @@ class TestXxh32Hasher:
         assert h.intdigest() != h2.intdigest()
         assert h.hexdigest() != h2.hexdigest()
 
-        assert h2.digest() == ry_xxh.xxh32(b"helloworld").digest()
-        assert h2.intdigest() == ry_xxh.xxh32(b"helloworld").intdigest()
-        assert h2.hexdigest() == ry_xxh.xxh32(b"helloworld").hexdigest()
+        assert h2.digest() == ry_xxh.Xxh32(b"helloworld").digest()
+        assert h2.intdigest() == ry_xxh.Xxh32(b"helloworld").intdigest()
+        assert h2.hexdigest() == ry_xxh.Xxh32(b"helloworld").hexdigest()
 
 
 def test_xxh32_digest() -> None:
@@ -190,20 +190,20 @@ def test_xxh32_hasher(rec: XXHashDataRecord) -> None:
     expected_ff = int(rec["xxh32_0xFFFFFFFF"], 16)
 
     # Check intdigest
-    assert ry_xxh.xxh32(data).intdigest() == expected_0
-    assert ry_xxh.xxh32(data, seed=1).intdigest() == expected_1
-    assert ry_xxh.xxh32(data, seed=2**32 - 1).intdigest() == expected_ff
+    assert ry_xxh.Xxh32(data).intdigest() == expected_0
+    assert ry_xxh.Xxh32(data, seed=1).intdigest() == expected_1
+    assert ry_xxh.Xxh32(data, seed=2**32 - 1).intdigest() == expected_ff
 
     # Check hexdigest
-    assert int(ry_xxh.xxh32(data).hexdigest(), 16) == expected_0
-    assert int(ry_xxh.xxh32(data, seed=1).hexdigest(), 16) == expected_1
-    assert int(ry_xxh.xxh32(data, seed=2**32 - 1).hexdigest(), 16) == expected_ff
+    assert int(ry_xxh.Xxh32(data).hexdigest(), 16) == expected_0
+    assert int(ry_xxh.Xxh32(data, seed=1).hexdigest(), 16) == expected_1
+    assert int(ry_xxh.Xxh32(data, seed=2**32 - 1).hexdigest(), 16) == expected_ff
 
     # Check digest
-    assert int.from_bytes(ry_xxh.xxh32(data).digest(), "big") == expected_0
-    assert int.from_bytes(ry_xxh.xxh32(data, seed=1).digest(), "big") == expected_1
+    assert int.from_bytes(ry_xxh.Xxh32(data).digest(), "big") == expected_0
+    assert int.from_bytes(ry_xxh.Xxh32(data, seed=1).digest(), "big") == expected_1
     assert (
-        int.from_bytes(ry_xxh.xxh32(data, seed=2**32 - 1).digest(), "big")
+        int.from_bytes(ry_xxh.Xxh32(data, seed=2**32 - 1).digest(), "big")
         == expected_ff
     )
 
