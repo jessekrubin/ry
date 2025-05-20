@@ -165,11 +165,15 @@ impl PyDuration {
         let maybe_duration = match other {
             PyDurationComparable::PyDuration(other) => self.0.checked_add(other.0),
             PyDurationComparable::Duration(other) => self.0.checked_add(other),
+            // PyDurationComparable::PyDuration(other) => PyDuration(self.0 + other.0),
+            // PyDurationComparable::Duration(other) => PyDuration(self.0 + other),
         };
         if let Some(duration) = maybe_duration {
             Ok(PyDuration(duration))
         } else {
-            Err(PyOverflowError::new_err("overflow in Duration addition"))
+            Err(pyo3::exceptions::PyOverflowError::new_err(
+                "overflow in Duration addition",
+            ))
         }
     }
 
@@ -181,50 +185,9 @@ impl PyDuration {
         if let Some(duration) = maybe_duration {
             Ok(PyDuration(duration))
         } else {
-            Err(PyOverflowError::new_err("overflow in Duration subtraction"))
-        }
-    }
-
-    fn __truediv__<'py>(
-        &self,
-        py: Python<'py>,
-        other: PyDurationArithmeticDiv,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        match other {
-            PyDurationArithmeticDiv::Int(other) => {
-                if other == 0 {
-                    return Err(PyZeroDivisionError::new_err("division by zero"));
-                }
-                self.0
-                    .checked_div(other)
-                    .map(Self::from)
-                    .ok_or_else(|| PyOverflowError::new_err("overflow in Duration division"))?
-                    .into_bound_py_any(py)
-            }
-            PyDurationArithmeticDiv::Float(other) => self.div_f64(other)?.into_bound_py_any(py),
-            PyDurationArithmeticDiv::PyDuration(other) => {
-                let result = self.0.div_duration_f64(other.0);
-                PyDuration::try_from_secs_f64(result)?.into_bound_py_any(py)
-            }
-            PyDurationArithmeticDiv::Duration(other) => {
-                let result = self.0.div_duration_f64(other);
-                PyDuration::try_from_secs_f64(result)?.into_bound_py_any(py)
-            }
-        }
-    }
-
-    fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(i) = other.extract::<u32>() {
-            self.0
-                .checked_mul(i)
-                .map(Self::from)
-                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration multiplication"))
-        } else if let Ok(f) = other.extract::<f64>() {
-            self.mul_f64(f)
-        } else {
-            return Err(PyTypeError::new_err(
-                "unsupported operand type(s); must be int | float",
-            ));
+            Err(pyo3::exceptions::PyOverflowError::new_err(
+                "overflow in Duration subtraction",
+            ))
         }
     }
 

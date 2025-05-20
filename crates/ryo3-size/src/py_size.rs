@@ -129,41 +129,45 @@ impl PySize {
             .ok_or_else(|| PyValueError::new_err("Overflow"))
     }
 
-    #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
     fn __mul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
         let base = self.0.bytes();
 
-        if self.0.bytes() == 0 {
-            return Ok(Self::from(0));
-        }
         let result_bytes: Option<i64> = match other {
             PySizeArithmetic::Size(s) => base.checked_mul(s.0.bytes()),
 
             PySizeArithmetic::Int64(i) => base.checked_mul(i),
 
             PySizeArithmetic::U64(u) => {
-                let lhs = i128::from(base);
-                let rhs = i128::from(u);
+                // Safely cast both operands to i128 before multiplication
+                let lhs = base as i128;
+                let rhs = u as i128;
 
                 let product = lhs
                     .checked_mul(rhs)
-                    .ok_or_else(|| PyOverflowError::new_err("Overflow in Size * u64"))?;
-                if (i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&product) {
-                    product.try_into().ok()
+                    .ok_or_else(|| PyValueError::new_err("Overflow in Size * u64"))?;
+
+                if !(i64::MIN as i128..=i64::MAX as i128).contains(&product) {
+                    return Err(PyValueError::new_err(
+                        "Overflow in Size * u64 (out of i64 range)",
+                    ));
+                }
+
+                if let Ok(result) = product.try_into() {
+                    Some(result)
                 } else {
                     None
                 }
             }
 
             PySizeArithmetic::Float64(f) => {
-                if !(f.is_finite()) {
-                    return Err(PyOverflowError::new_err(
+                if !f.is_finite() {
+                    return Err(PyValueError::new_err(
                         "Cannot multiply Size by NaN or infinite float",
                     ));
                 }
                 let result_f64 = (base as f64) * f;
                 if !result_f64.is_finite() {
-                    return Err(PyOverflowError::new_err("Overflow in Size * float"));
+                    return Err(PyValueError::new_err("Overflow in Size * float"));
                 }
                 let rounded = result_f64.round();
                 if rounded < i64::MIN as f64 || rounded > i64::MAX as f64 {
@@ -175,7 +179,7 @@ impl PySize {
             }
         };
         result_bytes
-            .ok_or_else(|| PyOverflowError::new_err("Overflow in Size * Size"))
+            .ok_or_else(|| PyValueError::new_err("Overflow in Size * Size"))
             .map(Self::from)
     }
 
