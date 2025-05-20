@@ -1,6 +1,6 @@
 # ry
 
-ry = rust and python and bears, oh my!
+A growing collection of Python shims around Rust crates — fast, async-first, and ergonomic.
 
 [![PyPI](https://img.shields.io/pypi/v/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
@@ -11,20 +11,40 @@ ry = rust and python and bears, oh my!
 
 **DOCS:** [ryo3.dev](https://ryo3.dev) (WIP)
 
-- `ry` is a library of python shims/bindings to popular rust crates
-- `ryo3-*` is the collection of rust crates providing the shims used by ry and
-  possibly your `pyo3` rust-python library
+**⚠️ This is a work in progress — feedback and PRs are welcome.**
 
-**THIS IS A WORK IN PROGRESS ~ FEEDBACK/PRs WELCOME!**
+## Highlights
+
+- **Async-first HTTP client**
+  Built on `reqwest`, with a `fetch`-like API. Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries, and native JSON parsing via `jiter`.
+
+- **Async file I/O**
+  Built on `tokio`, with an `AsyncFile` API similar to `aiofiles` and `anyio`'s async-file api. Supports buffered reads/writes, truncation, streaming reads, and `anyio` compatibility.
+
+- **(de)compression**
+  (de)compression tools for `zstd`, `brotli`, `gzip`, and `bzip2`.
+
+- **Datetime utilities via `jiff`**
+  Fast, accurate, timezone-aware datetime parsing and formatting, with `datetime` interop and much more
+
+- **Miscellaneous bindings**
+  Includes crates like `globset`, `walkdir`, `sqlformat`, `unindent`, `xxhash`, and more.
+
+- **Designed for ergonomics**
+  Async where it matters. Simple where possible. Python-native behavior with minimal friction.
+
+- **Type Annotationed**
+  Type annotations for all public APIs, with `mypy` support.
 
 ## Install
 
 ```bash
 pip install ry
 uv add ry
-```
 
-**Check install:** `python -m ry`
+# check install
+python -m ry
+```
 
 ## Quickstart
 
@@ -35,11 +55,9 @@ directory for some quickstart examples.
 
 ## What?
 
-This is a collection of pyo3-wrappers for popular rust crates.
-
-This project started when I need a fast hashes for `fnv` and then `xxhash` in
-python. I have been adding things as needed/wanted (by me) for general tools and
-data-mancing.
+- `ry` -- the python package
+- `ryo3-*` -- the rust crates that are used by `ry` and possibly your own
+  `pyo3`-based python package
 
 ## Who?
 
@@ -65,6 +83,7 @@ _(aka: questions that I have been asking myself)_
 ## Crate bindings
 
 - wrapped crates:
+  - `std` - many stdlib types and apis
   - `bytes`
   - `dirs`
   - `glob`
@@ -78,6 +97,7 @@ _(aka: questions that I have been asking myself)_
   - `tokio` (`fs` and `process`)
   - `unindent`
   - `url`
+  - `uuid`
   - `which`
   - compression:
     - `brotli`
@@ -93,17 +113,6 @@ _(aka: questions that I have been asking myself)_
     - `regex` (WIP ~ very incomplete)
     - `same-file`
     - `walkdir`
-
-### FUTURE?
-
-- `subprocess.redo` (subprocesses that are lessy finicky and support tee-ing)
-- wrappers:
-  - `ignore`
-  - `tracing` (eg logging)
-  - `uuid`
-- organization
-  - split up the `ryo3` type annotations?
-  - chunk things into smaller sub-packages within the `ry` package?
 
 ---
 
