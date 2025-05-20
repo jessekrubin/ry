@@ -3,7 +3,7 @@ use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyTuple, PyType};
-use std::ops::{Mul, Neg, Not};
+use std::ops::{Neg, Not};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Size", module = "ry.ryo3", frozen)]
@@ -129,6 +129,7 @@ impl PySize {
             .ok_or_else(|| PyValueError::new_err("Overflow"))
     }
 
+    #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
     fn __mul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
         let base = self.0.bytes();
 
@@ -139,24 +140,20 @@ impl PySize {
 
             PySizeArithmetic::U64(u) => {
                 // Safely cast both operands to i128 before multiplication
-                let lhs = base as i128;
-                let rhs = u as i128;
+                let lhs = i128::from(base);
+                let rhs = i128::from(u);
 
                 let product = lhs
                     .checked_mul(rhs)
                     .ok_or_else(|| PyValueError::new_err("Overflow in Size * u64"))?;
 
-                if !(i64::MIN as i128..=i64::MAX as i128).contains(&product) {
+                if !(i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&product) {
                     return Err(PyValueError::new_err(
                         "Overflow in Size * u64 (out of i64 range)",
                     ));
                 }
 
-                if let Ok(result) = product.try_into() {
-                    Some(result)
-                } else {
-                    None
-                }
+                product.try_into().ok()
             }
 
             PySizeArithmetic::Float64(f) => {
