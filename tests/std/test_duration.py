@@ -16,6 +16,16 @@ timedelta_negative_strategy = st.timedeltas(
 )
 
 
+class TestDurationOverflows:
+    @given(st.integers())
+    def test_duration_from_weeks(self, n: int) -> None:
+        try:
+            dur = ry.Duration.from_weeks(n)
+            assert isinstance(dur, ry.Duration)
+        except OverflowError:
+            pass
+
+
 class TestDurationPydeltaConversion:
     def test_duration_from_pydelta(self) -> None:
         pydelta = pydt.timedelta(days=1, hours=2, minutes=3, seconds=4, microseconds=5)

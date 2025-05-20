@@ -144,17 +144,33 @@ impl PyDuration {
         }
     }
 
-    fn __add__(&self, other: PyDurationComparable) -> PyDuration {
-        match other {
-            PyDurationComparable::PyDuration(other) => PyDuration(self.0 + other.0),
-            PyDurationComparable::Duration(other) => PyDuration(self.0 + other),
+    fn __add__(&self, other: PyDurationComparable) -> PyResult<PyDuration> {
+        let maybe_duration = match other {
+            PyDurationComparable::PyDuration(other) => self.0.checked_add(other.0),
+            PyDurationComparable::Duration(other) => self.0.checked_add(other),
+            // PyDurationComparable::PyDuration(other) => PyDuration(self.0 + other.0),
+            // PyDurationComparable::Duration(other) => PyDuration(self.0 + other),
+        };
+        if let Some(duration) = maybe_duration {
+            Ok(PyDuration(duration))
+        } else {
+            Err(pyo3::exceptions::PyOverflowError::new_err(
+                "overflow in Duration addition",
+            ))
         }
     }
 
-    fn __sub__(&self, other: PyDurationComparable) -> PyDuration {
-        match other {
-            PyDurationComparable::PyDuration(other) => PyDuration(self.0 - other.0),
-            PyDurationComparable::Duration(other) => PyDuration(self.0 - other),
+    fn __sub__(&self, other: PyDurationComparable) -> PyResult<PyDuration> {
+        let maybe_duration = match other {
+            PyDurationComparable::PyDuration(other) => self.0.checked_sub(other.0),
+            PyDurationComparable::Duration(other) => self.0.checked_sub(other),
+        };
+        if let Some(duration) = maybe_duration {
+            Ok(PyDuration(duration))
+        } else {
+            Err(pyo3::exceptions::PyOverflowError::new_err(
+                "overflow in Duration subtraction",
+            ))
         }
     }
 
@@ -269,6 +285,7 @@ impl PyDuration {
     fn from_nanos(_cls: &Bound<'_, PyType>, nanos: u64) -> Self {
         PyDuration(Duration::from_nanos(nanos))
     }
+
     #[classmethod]
     fn from_hours(_cls: &Bound<'_, PyType>, hours: u64) -> PyResult<Self> {
         if hours > u64::MAX / (60 * 60) {
