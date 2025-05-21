@@ -5,8 +5,12 @@ import datetime as pydt
 import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
+from hypothesis.strategies import DrawFn, SearchStrategy
 
 import ry
+from ry import Duration
+
+from ..strategies import MAX_U32, MAX_U64
 
 timedelta_positive_strategy = st.timedeltas(
     min_value=pydt.timedelta(0), max_value=pydt.timedelta(days=365 * 100)
@@ -14,6 +18,148 @@ timedelta_positive_strategy = st.timedeltas(
 timedelta_negative_strategy = st.timedeltas(
     min_value=pydt.timedelta(days=-365 * 100), max_value=pydt.timedelta(0)
 )
+
+
+def _duration_should_over_flow(
+    secs: int,
+    nanos: int,
+) -> bool:
+    return secs + (nanos // 1_000_000_000) > MAX_U64
+
+
+@st.composite
+def st_duration(draw: DrawFn) -> Duration:
+    secs = draw(st.integers(min_value=0, max_value=MAX_U64))
+    nanos = draw(st.integers(min_value=0, max_value=MAX_U32))
+    carry = nanos // 1_000_000_000
+    assume(secs + carry <= MAX_U64)
+    return Duration(secs, nanos)
+
+
+def st_duration_args() -> SearchStrategy[tuple[int, int]]:
+    """Strategy for `ry.Duration` constructor arguments"""
+    return st.tuples(
+        st.integers(min_value=0, max_value=MAX_U64),
+        st.integers(min_value=0, max_value=MAX_U32),
+    )
+
+
+@given(st_duration_args())
+def test_duration_new(duration_args: tuple[int, int]) -> None:
+    secs, nanos = duration_args
+    if _duration_should_over_flow(secs, nanos):
+        with pytest.raises(OverflowError):
+            ry.Duration(secs, nanos)
+    else:
+        dur = ry.Duration(secs, nanos)
+        assert isinstance(dur, ry.Duration)
+
+
+class TestDurationArithmetic:
+    def test_duration_div_number(self) -> None:
+        dur = ry.Duration(16, 0)
+        divided = dur / 2
+        assert isinstance(divided, ry.Duration)
+        assert divided == ry.Duration(8, 0)
+
+        divided = dur / 2.0
+        assert isinstance(divided, ry.Duration)
+        assert divided == ry.Duration(8, 0)
+
+    def test_duration_div_duration(self) -> None:
+        dur1 = ry.Duration(16, 0)
+        dur2 = ry.Duration(4, 0)
+        divided = dur1 / dur2
+        assert isinstance(divided, ry.Duration)
+        assert divided == ry.Duration(4, 0)
+
+    def test_duration_div_timedelta(self) -> None:
+        dur = ry.Duration(16, 0)
+        pydelta = pydt.timedelta(seconds=4)
+        divided = dur / pydelta
+        assert isinstance(divided, ry.Duration)
+        assert divided == ry.Duration(4, 0)
+
+    def test_duration_div_zero_raises_zero_division_error(self) -> None:
+        dur = ry.Duration(1, 0)
+        with pytest.raises(ZeroDivisionError):
+            _r = dur / 0
+        with pytest.raises(ZeroDivisionError):
+            _r = dur / 0.0
+        with pytest.raises(ZeroDivisionError):
+            dur.div_f32(0.0)
+        with pytest.raises(ZeroDivisionError):
+            dur.div_f64(0.0)
+
+    @given(st_duration(), st.floats())
+    def test_duration_div_f32(
+        self,
+        dur: Duration,
+        divisor: float,
+    ) -> None:
+        if divisor == 0:
+            with pytest.raises(ZeroDivisionError):
+                dur.div_f32(divisor)
+            return
+        if divisor < 0:
+            with pytest.raises((ValueError, ZeroDivisionError)):
+                dur.div_f32(divisor)
+            return
+        if (
+            divisor == float("nan")
+            or divisor == float("inf")
+            or divisor == float("-inf")
+        ):
+            with pytest.raises(ValueError):
+                dur.div_f32(divisor)
+            return
+
+        try:
+            divided = dur.div_f32(divisor)
+            assert isinstance(divided, ry.Duration)
+        except ValueError:
+            pass
+        except ZeroDivisionError:
+            pass
+
+    @given(st_duration(), st.floats())
+    def test_duration_div_f64(
+        self,
+        dur: Duration,
+        divisor: float,
+    ) -> None:
+        if divisor == 0:
+            with pytest.raises(ZeroDivisionError):
+                _dur = dur.div_f64(divisor)
+            return
+        if divisor < 0:
+            with pytest.raises((ValueError, ZeroDivisionError)):
+                _dur = dur.div_f64(divisor)
+            return
+        if (
+            divisor == float("nan")
+            or divisor == float("inf")
+            or divisor == float("-inf")
+        ):
+            with pytest.raises(ValueError):
+                dur.div_f64(divisor)
+            return
+        try:
+            divided = dur.div_f64(divisor)
+            assert isinstance(divided, ry.Duration)
+        except ValueError:
+            pass
+        except ZeroDivisionError:
+            pass
+
+
+@given(st_duration_args())
+def test_duration_constructor_safe(args: tuple[int, int]) -> None:
+    secs, nanos = args
+    carry = nanos // 1_000_000_000
+    assume(secs + carry <= MAX_U64)
+    dur = Duration(secs, nanos)
+    assert isinstance(dur, Duration)
 
 
 class TestDurationOverflows:
