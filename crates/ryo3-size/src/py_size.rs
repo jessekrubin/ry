@@ -1,13 +1,25 @@
 use crate::types::{Base, Style};
-use pyo3::exceptions::{PyTypeError, PyValueError};
+use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyTuple, PyType};
-use std::ops::{Mul, Neg, Not};
+use std::ops::{Neg, Not};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Size", module = "ry.ryo3", frozen)]
 pub struct PySize(size::Size);
+
+impl From<size::Size> for PySize {
+    fn from(size: size::Size) -> Self {
+        PySize(size)
+    }
+}
+
+impl From<i64> for PySize {
+    fn from(size: i64) -> Self {
+        PySize(size::Size::from_bytes(size))
+    }
+}
 
 #[pymethods]
 impl PySize {
@@ -100,35 +112,76 @@ impl PySize {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn __add__(&self, other: SizeWrapper) -> Self {
-        PySize(self.0 + other.0)
+    fn __add__(&self, other: SizeWrapper) -> PyResult<Self> {
+        self.0
+            .bytes()
+            .checked_add(other.0.bytes())
+            .map(Self::from)
+            .ok_or_else(|| PyValueError::new_err("Overflow"))
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn __sub__(&self, other: SizeWrapper) -> Self {
-        PySize(self.0 - other.0)
+    fn __sub__(&self, other: SizeWrapper) -> PyResult<Self> {
+        self.0
+            .bytes()
+            .checked_sub(other.0.bytes())
+            .map(Self::from)
+            .ok_or_else(|| PyValueError::new_err("Overflow"))
     }
 
-    fn __mul__(&self, other: PySizeArithmetic) -> Self {
-        match other {
-            PySizeArithmetic::Size(s) => PySize(self.0 * s.0.bytes()),
-            PySizeArithmetic::Float64(f) => PySize(self.0.mul(f)),
-            PySizeArithmetic::Int64(i) => PySize(self.0.mul(i)),
-            PySizeArithmetic::U64(u) => PySize(self.0.mul(u)),
+    #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+    fn __mul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
+        let base = self.0.bytes();
+
+        if self.0.bytes() == 0 {
+            return Ok(Self::from(0));
         }
+        let result_bytes: Option<i64> = match other {
+            PySizeArithmetic::Size(s) => base.checked_mul(s.0.bytes()),
+
+            PySizeArithmetic::Int64(i) => base.checked_mul(i),
+
+            PySizeArithmetic::U64(u) => {
+                let lhs = i128::from(base);
+                let rhs = i128::from(u);
+
+                let product = lhs
+                    .checked_mul(rhs)
+                    .ok_or_else(|| PyOverflowError::new_err("Overflow in Size * u64"))?;
+                if (i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&product) {
+                    product.try_into().ok()
+                } else {
+                    None
+                }
+            }
+
+            PySizeArithmetic::Float64(f) => {
+                if !(f.is_finite()) {
+                    return Err(PyOverflowError::new_err(
+                        "Cannot multiply Size by NaN or infinite float",
+                    ));
+                }
+                let result_f64 = (base as f64) * f;
+                if !result_f64.is_finite() {
+                    return Err(PyOverflowError::new_err("Overflow in Size * float"));
+                }
+                let rounded = result_f64.round();
+                if rounded < i64::MIN as f64 || rounded > i64::MAX as f64 {
+                    None
+                } else {
+                    let result = rounded as i64;
+                    Some(result)
+                }
+            }
+        };
+        result_bytes
+            .ok_or_else(|| PyOverflowError::new_err("Overflow in Size * Size"))
+            .map(Self::from)
     }
 
-    fn __rmul__(&self, other: PySizeArithmetic) -> Self {
+    fn __rmul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
         self.__mul__(other)
     }
-    //
-    // fn __truediv__(&self, other: PySizeArithmetic) -> Self {
-    //     PySize(other.rtruediv(self.0))
-    // }
-    //
-    // fn __floordiv__(&self, other: PySizeArithmetic) -> Self {
-    //     PySize(other.rtruediv(self.0))
-    // }
 
     #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
