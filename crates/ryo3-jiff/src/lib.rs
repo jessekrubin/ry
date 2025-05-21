@@ -10,6 +10,7 @@
 #![deny(clippy::missing_panics_doc)]
 #![deny(clippy::arithmetic_side_effects)]
 #![expect(clippy::missing_errors_doc)]
+extern crate core;
 
 pub mod pydatetime_conversions;
 

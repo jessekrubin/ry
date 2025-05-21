@@ -128,16 +128,8 @@ def update_api_docs() -> None:
     filepath = REPO_ROOT / "docs" / "src" / "API.md"
     assert filepath.exists(), f"API.md does not exist: {filepath}"
     api_content_formatted = get_api_content_readme()
-    with open(filepath, "w", newline="\n") as f:
-        f.write(
-            "\n".join(
-                [
-                    "# API",
-                    "",
-                    api_content_formatted,
-                ]
-            )
-        )
+    parts = [api_content_formatted]
+    ry.write_text(filepath, "\n".join(parts))
 
 
 def update_docs_examples() -> None:
@@ -226,7 +218,6 @@ def update_readme() -> None:
 
 
 def main() -> None:
-    update_readme()
     update_docs()
 
 

@@ -187,20 +187,15 @@ impl PyAsyncFileInner {
     }
 
     #[expect(clippy::unused_async)]
-    async fn writeable(&mut self) -> PyResult<bool> {
+    async fn writable(&mut self) -> PyResult<bool> {
         Ok(self.open_options.write)
     }
-    // fn get_file(&self) -> PyResult<&BufStream<File>> {
-    //     match self.state {
-    //         FileState::Open(ref file) => Ok(file),
-    //         FileState::Closed => Err(pyo3::exceptions::PyRuntimeError::new_err(
-    //             "File is closed; must open first",
-    //         )),
-    //         FileState::Consumed => Err(pyo3::exceptions::PyRuntimeError::new_err(
-    //             "File is consumed; cannot be used again",
-    //         )),
-    //     }
-    // }
+
+    #[expect(clippy::unused_async)]
+    async fn readable(&mut self) -> PyResult<bool> {
+        Ok(self.open_options.read)
+    }
+
     fn get_file_mut(&mut self) -> PyResult<&mut BufStream<File>> {
         match self.state {
             FileState::Open(ref mut file) => Ok(file),
@@ -383,6 +378,15 @@ impl PyAsyncFile {
         })
     }
 
+    fn readable<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+        future_into_py(py, async move {
+            let mut locked = inner.lock().await;
+            locked.readable().await?;
+            Ok(())
+        })
+    }
+
     fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
@@ -492,11 +496,11 @@ impl PyAsyncFile {
         })
     }
 
-    fn writeable<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn writable<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            locked.writeable().await?;
+            locked.writable().await?;
             Ok(())
         })
     }

@@ -107,18 +107,6 @@ impl PyDuration {
         Self(Duration::from_nanos(1))
     }
 
-    fn to_py(&self) -> Duration {
-        self.0
-    }
-
-    fn __str__(&self) -> String {
-        format!(
-            "Duration(secs={}, nanos={})",
-            self.0.as_secs(),
-            self.0.subsec_nanos()
-        )
-    }
-
     fn __repr__(&self) -> String {
         format!(
             "Duration(secs={}, nanos={})",
@@ -207,8 +195,11 @@ impl PyDuration {
                 if other == 0 {
                     return Err(PyZeroDivisionError::new_err("division by zero"));
                 }
-                let result = self.0.as_secs_f64() / other as f64;
-                PyDuration::try_from_secs_f64(result)?.into_bound_py_any(py)
+                self.0
+                    .checked_div(other)
+                    .map(Self::from)
+                    .ok_or_else(|| PyOverflowError::new_err("overflow in Duration division"))?
+                    .into_bound_py_any(py)
             }
             PyDurationArithmeticDiv::Float(other) => self.div_f64(other)?.into_bound_py_any(py),
             PyDurationArithmeticDiv::PyDuration(other) => {
@@ -222,9 +213,12 @@ impl PyDuration {
         }
     }
 
-    fn __mul__<'py>(&self, py: Python<'py>, other: Bound<'py, PyAny>) -> PyResult<Self> {
-        if let Ok(i) = other.extract::<i128>() {
-            Ok(self.saturating_mul(i as u32))
+    fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(i) = other.extract::<u32>() {
+            self.0
+                .checked_mul(i)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration multiplication"))
         } else if let Ok(f) = other.extract::<f64>() {
             self.mul_f64(f)
         } else {
@@ -312,10 +306,18 @@ impl PyDuration {
     // ========================================================================
     // PYTHON CONVERSIONS
     // ========================================================================
+
+    /// Convert to python `datetime.timedelta`
+    fn to_py(&self) -> Duration {
+        self.0
+    }
+
+    /// Convert to python `datetime.timedelta`
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         self.0.into_pyobject(py)
     }
 
+    /// Convert from python `datetime.timedelta`
     #[classmethod]
     fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> Self {
         PyDuration(delta)
@@ -537,7 +539,7 @@ enum PyDurationComparable {
 
 #[derive(Debug, Clone, FromPyObject)]
 enum PyDurationArithmeticDiv {
-    Int(i128),
+    Int(u32), // matches Duration::checked_mul
     Float(f64),
     PyDuration(PyDuration),
     Duration(Duration),
