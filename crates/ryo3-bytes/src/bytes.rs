@@ -5,12 +5,32 @@ use std::os::raw::c_int;
 use std::ptr::NonNull;
 
 use bytes::{Bytes, BytesMut};
+use macro_rules_attribute::apply;
 use pyo3::buffer::PyBuffer;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PySlice, PyTuple};
 use pyo3::{ffi, IntoPyObjectExt};
+// #[macro_use]
+// extern crate macro_rules_attribute;
+macro_rules! InjectSharedMethods {
+    (
+        $(#[$attr:meta])*
+        impl $name:ident $(<$($lt:tt),*>)? {
+            $($body:tt)*
+        }
+    ) => {
+        $(#[$attr])*
+        impl $name $(<$($lt),*>)? {
+            $($body)*
 
+            // Add your method(s) here
+            fn shared_method(&self) -> &'static str {
+                "hello from macro"
+            }
+        }
+    };
+}
 /// A wrapper around a [`bytes::Bytes`][].
 ///
 /// This implements both import and export via the Python buffer protocol.
@@ -152,6 +172,7 @@ impl From<BytesMut> for PyBytes {
 }
 
 #[pymethods]
+#[apply(InjectSharedMethods!)]
 impl PyBytes {
     // By setting the argument to PyBytes, this means that any buffer-protocol object is supported
     // here, since it will use the FromPyObject impl.

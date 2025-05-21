@@ -15,6 +15,7 @@ categories.workspace = true
 pyo3 = { workspace = true, features = [ "multiple-pymethods"] }
 bytes = { workspace = true }
 ahash = { workspace = true }
+macro_rules_attribute = "0.2.0"
 
 [lints]
 workspace = true
