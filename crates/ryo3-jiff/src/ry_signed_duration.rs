@@ -16,9 +16,7 @@ use std::str::FromStr;
 
 const NANOS_PER_SEC: i32 = 1_000_000_000;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
-#[derive(Debug, Clone, PartialOrd, PartialEq)]
+#[derive(Debug, Clone)]
 #[pyclass(name = "SignedDuration", module = "ry.ryo3", frozen)]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 

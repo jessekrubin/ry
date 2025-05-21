@@ -195,8 +195,11 @@ impl PyDuration {
                 if other == 0 {
                     return Err(PyZeroDivisionError::new_err("division by zero"));
                 }
-                let result = self.0.as_secs_f64() / other as f64;
-                PyDuration::try_from_secs_f64(result)?.into_bound_py_any(py)
+                self.0
+                    .checked_div(other)
+                    .map(Self::from)
+                    .ok_or_else(|| PyOverflowError::new_err("overflow in Duration division"))?
+                    .into_bound_py_any(py)
             }
             PyDurationArithmeticDiv::Float(other) => self.div_f64(other)?.into_bound_py_any(py),
             PyDurationArithmeticDiv::PyDuration(other) => {
@@ -210,9 +213,12 @@ impl PyDuration {
         }
     }
 
-    fn __mul__<'py>(&self, py: Python<'py>, other: Bound<'py, PyAny>) -> PyResult<Self> {
-        if let Ok(i) = other.extract::<i128>() {
-            Ok(self.saturating_mul(i as u32))
+    fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(i) = other.extract::<u32>() {
+            self.0
+                .checked_mul(i)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration multiplication"))
         } else if let Ok(f) = other.extract::<f64>() {
             self.mul_f64(f)
         } else {
@@ -533,7 +539,7 @@ enum PyDurationComparable {
 
 #[derive(Debug, Clone, FromPyObject)]
 enum PyDurationArithmeticDiv {
-    Int(i128),
+    Int(u32), // matches Duration::checked_mul
     Float(f64),
     PyDuration(PyDuration),
     Duration(Duration),
