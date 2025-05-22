@@ -98,7 +98,7 @@ impl PyRegex {
     ))]
     #[expect(clippy::too_many_arguments)]
     #[expect(clippy::fn_params_excessive_bools)]
-    pub fn py_new(
+    fn py_new(
         pattern: &str,
         // kwargs
         case_insensitive: bool,

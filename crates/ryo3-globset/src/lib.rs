@@ -271,6 +271,10 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
     }
 }
 
+// ============================================================================
+// NOTE: This has been removed/commented out because it conflicts with the
+//       `glob` function in the `ryo3-glob` crate
+//
 // #[pyfunction]
 // #[pyo3(
 //     signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)

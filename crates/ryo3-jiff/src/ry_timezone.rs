@@ -8,7 +8,7 @@ use jiff::Timestamp;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
-use ryo3_macros::err_py_not_impl;
+use ryo3_macro_rules::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -31,7 +31,7 @@ impl From<&TimeZone> for RyTimeZone {
 #[pymethods]
 impl RyTimeZone {
     #[new]
-    pub fn py_new(time_zone_name: &str) -> PyResult<Self> {
+    fn py_new(time_zone_name: &str) -> PyResult<Self> {
         if time_zone_name.is_empty() || time_zone_name.eq_ignore_ascii_case("unknown") {
             return Ok(Self::from(TimeZone::unknown()));
         }

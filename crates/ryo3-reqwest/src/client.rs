@@ -9,7 +9,7 @@ use pyo3::{intern, IntoPyObjectExt};
 use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
-use ryo3_macros::err_py_not_impl;
+use ryo3_macro_rules::err_py_not_impl;
 use ryo3_url::extract_url;
 use tracing::debug;
 
@@ -523,7 +523,7 @@ impl RyHttpClient {
         timeout: Option<&ryo3_std::PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let method = method.map_or_else(|| reqwest::Method::GET, |m| m.0);
+        let method = method.map_or_else(|| Method::GET, |m| m.0);
         let req = self.build_request(
             py, url, method, body, headers, query, multipart, form, timeout, version,
         )?;
@@ -533,6 +533,39 @@ impl RyHttpClient {
                 .map(RyResponse::from)
                 .map_err(map_reqwest_err)
         })
+    }
+
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            method = None,
+            body = None,
+            headers = None,
+            query = None,
+            multipart = None,
+            form = None,
+            timeout = None,
+            version = None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    pub fn __call__<'py>(
+        &'py self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+        method: Option<ryo3_http::HttpMethod>,
+        body: Option<ryo3_bytes::PyBytes>,
+        headers: Option<PyHeadersLike>,
+        query: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
+        form: Option<&Bound<'py, PyAny>>,
+        timeout: Option<&ryo3_std::PyDuration>,
+        version: Option<HttpVersion>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.fetch(
+            py, url, method, body, headers, query, multipart, form, timeout, version,
+        )
     }
 }
 

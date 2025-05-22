@@ -14,7 +14,7 @@ categories.workspace = true
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-dirs.workspace = true
-ryo3-macros.workspace = true
+ryo3-macro-rules.workspace = true
 ryo3-core.workspace = true
 ryo3-bytes.workspace = true
 same-file = { workspace = true, optional = true }

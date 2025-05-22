@@ -22,7 +22,7 @@ impl RyTimeZoneDatabase {
 #[pymethods]
 impl RyTimeZoneDatabase {
     #[new]
-    pub fn py_new() -> Self {
+    fn py_new() -> Self {
         RyTimeZoneDatabase::from(TimeZoneDatabase::from_env())
     }
 

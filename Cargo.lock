@@ -1594,9 +1594,9 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.20"
+version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+checksum = "8a0d197bd2c9dc6e53b84da9556a69ba4cdfab8619eb41a8bd1cc2027a0f6b1d"
 
 [[package]]
 name = "ry"
@@ -1710,7 +1710,7 @@ dependencies = [
  "flate2",
  "pyo3",
  "ryo3-bytes",
- "ryo3-macros",
+ "ryo3-macro-rules",
 ]
 
 [[package]]
@@ -1731,7 +1731,7 @@ dependencies = [
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-dirs",
- "ryo3-macros",
+ "ryo3-macro-rules",
  "ryo3-std",
  "same-file",
 ]
@@ -1782,7 +1782,7 @@ dependencies = [
  "jiff",
  "pyo3",
  "pyo3-build-config",
- "ryo3-macros",
+ "ryo3-macro-rules",
  "ryo3-std",
  "serde",
  "serde_json",
@@ -1798,7 +1798,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ryo3-macros"
+name = "ryo3-macro-rules"
 version = "0.0.44"
 dependencies = [
  "pyo3",
@@ -1833,7 +1833,7 @@ dependencies = [
  "reqwest",
  "ryo3-bytes",
  "ryo3-http",
- "ryo3-macros",
+ "ryo3-macro-rules",
  "ryo3-std",
  "ryo3-url",
  "serde",
@@ -1882,7 +1882,7 @@ dependencies = [
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
- "ryo3-macros",
+ "ryo3-macro-rules",
 ]
 
 [[package]]
@@ -1912,7 +1912,7 @@ name = "ryo3-url"
 version = "0.0.44"
 dependencies = [
  "pyo3",
- "ryo3-macros",
+ "ryo3-macro-rules",
  "url",
 ]
 
@@ -1922,7 +1922,7 @@ version = "0.0.44"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
- "ryo3-macros",
+ "ryo3-macro-rules",
  "uuid",
 ]
 

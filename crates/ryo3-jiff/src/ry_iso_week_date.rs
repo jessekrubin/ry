@@ -13,7 +13,7 @@ pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 #[pymethods]
 impl RyISOWeekDate {
     #[new]
-    pub fn py_new(year: i16, week: i8, weekday: JiffWeekday) -> PyResult<Self> {
+    fn py_new(year: i16, week: i8, weekday: JiffWeekday) -> PyResult<Self> {
         ISOWeekDate::new(year, week, weekday.0)
             .map(Self::from)
             .map_err(map_py_value_err)

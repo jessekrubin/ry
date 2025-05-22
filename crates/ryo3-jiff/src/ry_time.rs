@@ -27,7 +27,7 @@ pub struct RyTime(pub(crate) Time);
 impl RyTime {
     #[new]
     #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
-    pub fn py_new(
+    pub(crate) fn py_new(
         hour: Option<i8>,
         minute: Option<i8>,
         second: Option<i8>,

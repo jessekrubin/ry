@@ -20,7 +20,7 @@ impl RyZonedDifference {
        signature = (zoned_datetime, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     #[must_use]
-    pub fn py_new(
+    fn py_new(
         zoned_datetime: RyZoned,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,

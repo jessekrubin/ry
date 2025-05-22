@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::types::PyType;
-use ryo3_macros::err_py_not_impl;
+use ryo3_macro_rules::err_py_not_impl;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[pyclass(name = "Ipv4Addr", module = "ry.ryo3", frozen)]

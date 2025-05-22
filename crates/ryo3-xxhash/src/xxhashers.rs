@@ -1,5 +1,6 @@
-use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
-use pyo3::{intern, pyclass, pyfunction, pymethods, wrap_pyfunction, Bound, PyResult, Python};
+use pyo3::intern;
+use pyo3::prelude::*;
+use pyo3::types::{PyBytes, PyString};
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder};
 use xxhash_rust::xxh32::Xxh32;
 use xxhash_rust::xxh64::Xxh64;
@@ -154,6 +155,7 @@ impl PyXxh64 {
     fn seed(&self) -> PyResult<u64> {
         Ok(self.seed)
     }
+
     fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
         let digest = self.hasher.digest();
         Ok(PyBytes::new(py, &digest.to_be_bytes()))

@@ -21,7 +21,7 @@ impl From<Instant> for PyInstant {
 impl PyInstant {
     #[new]
     #[must_use]
-    pub fn py_new() -> Self {
+    fn py_new() -> Self {
         PyInstant(Instant::now())
     }
 

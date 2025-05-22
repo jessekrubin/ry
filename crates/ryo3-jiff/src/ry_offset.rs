@@ -20,7 +20,7 @@ pub struct RyOffset(pub(crate) Offset);
 impl RyOffset {
     #[new]
     #[pyo3(signature = (hours = None, seconds = None))]
-    pub fn new(hours: Option<i8>, seconds: Option<i32>) -> PyResult<Self> {
+    fn py_new(hours: Option<i8>, seconds: Option<i32>) -> PyResult<Self> {
         match (hours, seconds) {
             (Some(h), None) => Offset::from_hours(h)
                 .map(RyOffset::from)
@@ -74,14 +74,14 @@ impl RyOffset {
     }
 
     #[classmethod]
-    pub fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> PyResult<RyOffset> {
+    fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> PyResult<RyOffset> {
         Offset::from_hours(hours)
             .map(RyOffset::from)
             .map_err(map_py_value_err)
     }
 
     #[classmethod]
-    pub fn from_seconds(_cls: &Bound<'_, PyType>, seconds: i32) -> PyResult<Self> {
+    fn from_seconds(_cls: &Bound<'_, PyType>, seconds: i32) -> PyResult<Self> {
         Offset::from_seconds(seconds)
             .map(RyOffset::from)
             .map_err(map_py_value_err)
@@ -101,17 +101,17 @@ impl RyOffset {
     }
 
     #[must_use]
-    pub fn string(&self) -> String {
+    fn string(&self) -> String {
         self.0.to_string()
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         self.__repr__()
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    fn __repr__(&self) -> String {
         let s = self.0.seconds();
         // if it is hours then use hours for repr
         if s % 3600 == 0 {
@@ -123,12 +123,12 @@ impl RyOffset {
 
     #[getter]
     #[must_use]
-    pub fn seconds(&self) -> i32 {
+    fn seconds(&self) -> i32 {
         self.0.seconds()
     }
 
     #[must_use]
-    pub fn negate(&self) -> Self {
+    fn negate(&self) -> Self {
         RyOffset::from(self.0.negate())
     }
 
@@ -138,22 +138,22 @@ impl RyOffset {
 
     #[getter]
     #[must_use]
-    pub fn is_negative(&self) -> bool {
+    fn is_negative(&self) -> bool {
         self.0.is_negative()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_positive(&self) -> bool {
+    fn is_positive(&self) -> bool {
         !self.0.is_negative()
     }
 
     #[must_use]
-    pub fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
+    fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
 
-    pub fn to_timestamp(&self, datetime: &RyDateTime) -> PyResult<RyTimestamp> {
+    fn to_timestamp(&self, datetime: &RyDateTime) -> PyResult<RyTimestamp> {
         self.0
             .to_timestamp(datetime.0)
             .map(RyTimestamp::from)
@@ -161,25 +161,25 @@ impl RyOffset {
     }
 
     #[must_use]
-    pub fn until(&self, other: &RyOffset) -> RySpan {
+    fn until(&self, other: &RyOffset) -> RySpan {
         let s = self.0.until(other.0);
         RySpan::from(s)
     }
 
     #[must_use]
-    pub fn since(&self, other: &RyOffset) -> RySpan {
+    fn since(&self, other: &RyOffset) -> RySpan {
         let s = self.0.since(other.0);
         RySpan::from(s)
     }
 
     #[must_use]
-    pub fn duration_until(&self, other: &RyOffset) -> RySignedDuration {
+    fn duration_until(&self, other: &RyOffset) -> RySignedDuration {
         let s = self.0.duration_until(other.0);
         RySignedDuration::from(s)
     }
 
     #[must_use]
-    pub fn duration_since(&self, other: &RyOffset) -> RySignedDuration {
+    fn duration_since(&self, other: &RyOffset) -> RySignedDuration {
         let s = self.0.duration_since(other.0);
         RySignedDuration::from(s)
     }

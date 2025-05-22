@@ -235,7 +235,7 @@ impl PyAsyncFile {
 #[pymethods]
 impl PyAsyncFile {
     #[new]
-    pub fn py_new(p: PathBuf, mode: Option<&str>) -> PyResult<Self> {
+    fn py_new(p: PathBuf, mode: Option<&str>) -> PyResult<Self> {
         PyAsyncFile::new(p, mode)
     }
 

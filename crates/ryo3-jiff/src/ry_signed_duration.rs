@@ -40,7 +40,7 @@ impl RySignedDuration {
 impl RySignedDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
-    pub fn py_new(secs: i64, nanos: i32) -> PyResult<Self> {
+    fn py_new(secs: i64, nanos: i32) -> PyResult<Self> {
         #[expect(clippy::cast_lossless)]
         if !(-NANOS_PER_SEC < nanos && nanos < NANOS_PER_SEC) {
             let addsecs = nanos / NANOS_PER_SEC;

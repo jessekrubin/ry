@@ -3,6 +3,7 @@ use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use sqlformat::{self, QueryParams};
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 
 #[pyclass(name = "SqlfmtQueryParams", module = "ry.ryo3", frozen)]
@@ -19,26 +20,7 @@ impl PySqlfmtQueryParams {
     }
 
     fn __repr__(&self) -> String {
-        match &self.params {
-            QueryParams::Named(p) => {
-                // collect into string for display
-                let s = p
-                    .iter()
-                    .map(|(k, v)| format!("\"{k}\": \"{v}\""))
-                    .collect::<Vec<String>>()
-                    .join(", ");
-                format!("SqlfmtQueryParams({{{s}}})")
-            }
-            QueryParams::Indexed(p) => {
-                let s = p
-                    .iter()
-                    .map(|v| format!("\"{v}\""))
-                    .collect::<Vec<String>>()
-                    .join(", ");
-                format!("SqlfmtQueryParams([{s}])")
-            }
-            QueryParams::None => String::from("SqlfmtQueryParams(None)"),
-        }
+        format!("{self}")
     }
 
     fn __str__(&self) -> String {
@@ -99,6 +81,74 @@ impl PySqlfmtQueryParams {
     }
 }
 
+impl Display for PySqlfmtQueryParams {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("SqlfmtQueryParams(")?;
+        QueryParamsFormatter(&self.params).fmt(f)?;
+        f.write_str(")")
+    }
+}
+
+struct QueryParamsFormatter<'p>(pub &'p QueryParams);
+
+impl QueryParamsFormatter<'_> {
+    fn is_empty(&self) -> bool {
+        match &self.0 {
+            QueryParams::Named(p) => p.is_empty(),
+            QueryParams::Indexed(p) => p.is_empty(),
+            QueryParams::None => true,
+        }
+    }
+}
+
+impl Display for QueryParamsFormatter<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if self.is_empty() {
+            return f.write_str("None");
+        }
+        match &self.0 {
+            // ================================================================
+            // { "key": "value", ... }
+            // ================================================================
+            QueryParams::Named(map) => {
+                f.write_str("{")?;
+
+                let mut iter = map.iter();
+                if let Some((k, v)) = iter.next() {
+                    write!(f, r#""{k}": "{v}""#)?;
+                    for (k, v) in iter {
+                        f.write_str(", ")?; // two bytes only
+                        write!(f, r#""{k}": "{v}""#)?;
+                    }
+                }
+
+                f.write_str("}")
+            }
+
+            // ================================================================
+            // [ "value", ... ]
+            // ================================================================
+            QueryParams::Indexed(list) => {
+                f.write_str("[")?;
+
+                let mut iter = list.iter();
+                if let Some(v) = iter.next() {
+                    write!(f, r#""{v}""#)?;
+                    for v in iter {
+                        f.write_str(", ")?;
+                        write!(f, r#""{v}""#)?;
+                    }
+                }
+
+                f.write_str("]")
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            QueryParams::None => f.write_str("None"),
+        }
+    }
+}
+
 impl From<Vec<(String, String)>> for PySqlfmtQueryParams {
     fn from(p: Vec<(String, String)>) -> Self {
         let named_params = p.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
@@ -131,11 +181,11 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
                 match params {
                     PyQueryParamsLike::NamedMap(p) => {
                         let named_params = p
-                            .iter()
+                            .into_iter()
                             .map(|(k, v)| match v {
-                                PyQueryParamValue::PyString(s) => (k.clone(), s.clone()),
-                                PyQueryParamValue::PyInt(i) => (k.clone(), i.to_string()),
-                                PyQueryParamValue::PyFloat(f) => (k.clone(), f.to_string()),
+                                PyQueryParamValue::PyString(s) => (k, s),
+                                PyQueryParamValue::PyInt(i) => (k, i.to_string()),
+                                PyQueryParamValue::PyFloat(f) => (k, f.to_string()),
                             })
                             .collect();
                         let p = QueryParams::Named(named_params);
@@ -143,11 +193,11 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
                     }
                     PyQueryParamsLike::NamedVec(p) => {
                         let named_params = p
-                            .iter()
+                            .into_iter()
                             .map(|(k, v)| match v {
-                                PyQueryParamValue::PyString(s) => (k.clone(), s.clone()),
-                                PyQueryParamValue::PyInt(i) => (k.clone(), i.to_string()),
-                                PyQueryParamValue::PyFloat(f) => (k.clone(), f.to_string()),
+                                PyQueryParamValue::PyString(s) => (k, s),
+                                PyQueryParamValue::PyInt(i) => (k, i.to_string()),
+                                PyQueryParamValue::PyFloat(f) => (k, f.to_string()),
                             })
                             .collect();
                         let p = QueryParams::Named(named_params);
@@ -155,9 +205,9 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
                     }
                     PyQueryParamsLike::Indexed(p) => {
                         let strings: Vec<String> = p
-                            .iter()
+                            .into_iter()
                             .map(|v| match v {
-                                PyQueryParamValue::PyString(s) => s.clone(),
+                                PyQueryParamValue::PyString(s) => s,
                                 PyQueryParamValue::PyInt(i) => i.to_string(),
                                 PyQueryParamValue::PyFloat(f) => f.to_string(),
                             })
@@ -216,9 +266,9 @@ pub fn sqlfmt(
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_class::<PySqlfmtQueryParams>()?;
     m.add_function(wrap_pyfunction!(sqlfmt, m)?)?;
     m.add_function(wrap_pyfunction!(sqlfmt_params, m)?)?;
-    m.add_class::<PySqlfmtQueryParams>()?;
     Ok(())
 }
 

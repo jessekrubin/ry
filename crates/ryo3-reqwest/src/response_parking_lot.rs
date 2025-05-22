@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::CONTENT_ENCODING;
 use ryo3_http::{status_code_pystring, HttpVersion, PyHeaders, PyHttpStatus};
-use ryo3_macros::err_py_not_impl;
+use ryo3_macro_rules::err_py_not_impl;
 use ryo3_url::PyUrl;
 use std::sync::Arc;
 
@@ -47,7 +47,7 @@ impl From<reqwest::Response> for RyResponse {
 #[pymethods]
 impl RyResponse {
     #[new]
-    pub fn py_new() -> PyResult<Self> {
+    fn py_new() -> PyResult<Self> {
         err_py_not_impl!("Response::new")
     }
 

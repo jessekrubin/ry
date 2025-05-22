@@ -56,7 +56,7 @@ members = [
   "crates/ryo3",
   "crates/_ryo3-dev",
   "crates/_ryo3-quick-maths",
-  "crates/ryo3-macros",
+  "crates/ryo3-macro-rules",
   "crates/ryo3-core",
   "crates/ryo3-std",
   "crates/ryo3-fspath",
@@ -113,7 +113,7 @@ ryo3-dev = { path = "./crates/_ryo3-dev" }
 ryo3-core = { path = "./crates/ryo3-core" }
 ryo3-std = { path = "./crates/ryo3-std" }
 ryo3-fspath = { path = "./crates/ryo3-fspath" }
-ryo3-macros = { path = "./crates/ryo3-macros" }
+ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
 ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 # dev/future
 #ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }

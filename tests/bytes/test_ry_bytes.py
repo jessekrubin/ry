@@ -16,6 +16,35 @@ def test_bytes_pickling() -> None:
     assert loaded == b
 
 
+class TestBytesIsFns:
+    @given(
+        py_bytes=st.binary(),
+    )
+    @pytest.mark.parametrize(
+        "fn_name",
+        [
+            "isalnum",
+            "isalpha",
+            "isascii",
+            "isdigit",
+            "islower",
+            "isspace",
+            "istitle",
+            "isupper",
+        ],
+    )
+    def test_bytes_is_fns(
+        self,
+        fn_name: str,
+        py_bytes: bytes,
+    ) -> None:
+        """Test Bytes.is*() works like python bytes"""
+        ry_bytes = ry.Bytes(py_bytes)
+        py_res = getattr(py_bytes, fn_name)()
+        rs_res = getattr(ry_bytes, fn_name)()
+        assert py_res == rs_res, f"py: {py_res}, rs: {rs_res} ~ {py_bytes!r}, {fn_name}"
+
+
 @given(
     st.binary(),
 )
@@ -60,7 +89,6 @@ def test_bytes_decode_default(
         "expandtabs",
         "find",
         "index",
-        "istitle",
         "join",
         "ljust",
         "lstrip",

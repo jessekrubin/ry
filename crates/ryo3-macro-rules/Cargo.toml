@@ -1,6 +1,6 @@
 [package]
-name = "ryo3-macros"
-description = "ryo3-macros"
+name = "ryo3-macro-rules"
+description = "ryo3-macro-rules ~ macro_rules used by ryo3"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
