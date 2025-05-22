@@ -20,10 +20,10 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-#[pyclass(name = "DateTime", module = "ry.ryo3", frozen)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[pyclass(name = "DateTime", module = "ry.ryo3", frozen)]
 pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {

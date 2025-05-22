@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::types::PyType;
-use ryo3_macros::err_py_not_impl;
+use ryo3_macro_rules::err_py_not_impl;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[pyclass(name = "Ipv4Addr", module = "ry.ryo3", frozen)]
@@ -106,7 +106,12 @@ impl PyIpv4Addr {
     #[pyo3(
         signature = (a, b=None, c=None, d=None),
     )]
-    fn py_new(a: &Bound<'_, PyAny>, b: Option<u8>, c: Option<u8>, d: Option<u8>) -> PyResult<Self> {
+    pub fn py_new(
+        a: &Bound<'_, PyAny>,
+        b: Option<u8>,
+        c: Option<u8>,
+        d: Option<u8>,
+    ) -> PyResult<Self> {
         extract_ipv4(a, b, c, d).map(Self)
     }
 
@@ -272,7 +277,7 @@ impl PyIpv4Addr {
 #[pymethods]
 impl PyIpv6Addr {
     #[new]
-    fn py_new(a: &Bound<'_, PyAny>) -> PyResult<Self> {
+    pub fn py_new(a: &Bound<'_, PyAny>) -> PyResult<Self> {
         extract_ipv6_from_single_ob(a).map(Self)
     }
 
@@ -429,7 +434,7 @@ impl PyIpv6Addr {
 #[pymethods]
 impl PyIpAddr {
     #[new]
-    fn py_new(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+    pub fn py_new(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(ipv4) = extract_ipv4_from_single_ob(ob) {
             return Ok(Self(std::net::IpAddr::V4(ipv4)));
         }

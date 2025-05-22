@@ -9,7 +9,7 @@ use pyo3::{pyclass, pymethods, Bound, PyAny, PyRef, PyResult, Python};
 use reqwest::header::{HeaderMap, CONTENT_ENCODING};
 use reqwest::StatusCode;
 use ryo3_http::{status_code_pystring, HttpVersion, PyHeaders, PyHttpStatus};
-use ryo3_macros::err_py_not_impl;
+use ryo3_macro_rules::err_py_not_impl;
 use ryo3_url::PyUrl;
 use std::pin::Pin;
 use std::sync::Arc;

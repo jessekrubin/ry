@@ -101,7 +101,7 @@ impl From<HeaderMap> for PyHeaders {
 impl PyHeaders {
     #[new]
     #[pyo3(signature = (d = None, **kwargs))]
-    fn py_new(
+    pub fn py_new(
         _py: Python<'_>,
         d: Option<PyHeadersLike>,
         kwargs: Option<&Bound<'_, PyDict>>,

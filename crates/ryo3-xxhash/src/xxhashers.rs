@@ -1,5 +1,6 @@
-use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
-use pyo3::{intern, pyclass, pyfunction, pymethods, wrap_pyfunction, Bound, PyResult, Python};
+use pyo3::intern;
+use pyo3::prelude::*;
+use pyo3::types::{PyBytes, PyString};
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder};
 use xxhash_rust::xxh32::Xxh32;
 use xxhash_rust::xxh64::Xxh64;
@@ -14,7 +15,7 @@ pub struct PyXxh32 {
 impl PyXxh32 {
     #[new]
     #[pyo3(signature = (b = None, seed = None))]
-    fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
+    pub fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
         match b {
             Some(s) => {
                 let seed = seed.unwrap_or(0);
@@ -109,7 +110,7 @@ impl PyXxh64 {
     /// Create a new Xxh64 hasher
     #[new]
     #[pyo3(signature = (b = None, seed = 0))]
-    fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> Self {
+    pub fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> Self {
         match b {
             Some(s) => {
                 let mut hasher = Xxh64::new(seed.unwrap_or(0));
@@ -154,6 +155,7 @@ impl PyXxh64 {
     fn seed(&self) -> PyResult<u64> {
         Ok(self.seed)
     }
+
     fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
         let digest = self.hasher.digest();
         Ok(PyBytes::new(py, &digest.to_be_bytes()))
@@ -203,7 +205,7 @@ pub struct PyXxh3 {
 impl PyXxh3 {
     #[new]
     #[pyo3(signature = (b = None, seed = 0, secret = None))]
-    fn py_new(
+    pub fn py_new(
         b: Option<ryo3_bytes::PyBytes>,
         seed: Option<u64>,
         secret: Option<[u8; 192]>,

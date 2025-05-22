@@ -2,7 +2,7 @@ use crate::UrlLike;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple, PyType};
-use ryo3_macros::py_value_error;
+use ryo3_macro_rules::py_value_error;
 use std::hash::{Hash, Hasher};
 use std::net::IpAddr;
 use std::path::PathBuf;
@@ -34,7 +34,7 @@ impl PyUrl {
 impl PyUrl {
     #[new]
     #[pyo3(signature = (url, *, params = None))]
-    fn py_new(url: UrlLike, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+    pub fn py_new(url: UrlLike, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         if let Some(params) = params {
             Self::parse_with_params(url.0.as_str(), params)
         } else {

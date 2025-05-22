@@ -3,7 +3,7 @@ use flate2::write::GzEncoder;
 use flate2::Compression;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
-use ryo3_macros::py_value_error;
+use ryo3_macro_rules::py_value_error;
 use std::io::{Read, Write};
 
 pub fn rs_gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {

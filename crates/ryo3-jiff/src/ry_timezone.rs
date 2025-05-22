@@ -8,7 +8,7 @@ use jiff::Timestamp;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
 use pyo3::IntoPyObjectExt;
-use ryo3_macros::err_py_not_impl;
+use ryo3_macro_rules::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 

@@ -45,7 +45,7 @@ impl PyDuration {
 impl PyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
-    fn py_new(secs: u64, nanos: u32) -> PyResult<Self> {
+    pub fn py_new(secs: u64, nanos: u32) -> PyResult<Self> {
         let carry = nanos / 1_000_000_000;
         let nanos = nanos % 1_000_000_000;
 

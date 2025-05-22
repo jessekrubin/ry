@@ -2,7 +2,16 @@
 
 ## v0.0.44 [unreleased]
 
+- internal:
+  - renamed `ryo3-macros` to `ryo3-macro-rules`
+- docs
+  - Cleaned up `./README.md`
+  - Removed type-annotations from `./README.md`
 - pyo3-v0.25.0
+- py-types
+  - reqwest-request functions use `TypedDict` and `Unpack`
+- `ryo3-jiff`
+  - serde serialization features/support
 - `ryo3-xxhash`
   - Align with `xxhash` pypi library w/ respect to naming conventions
 

@@ -119,40 +119,87 @@ impl PyBytes {
         Ok(Self::from(bytes))
     }
 
-    // #[pyo3(signature = (keepends=false, filter_empty=true))]
-    // fn splitlines(&self, py: Python, keepends: bool, filter_empty: bool) -> PyResult<Vec<Self>> {
-    //     let bytes: &[u8] = self.as_ref();
-    //     if bytes.is_empty() {
-    //         return Ok(vec![]);
-    //     }
-    //     let is_break = |&b: &u8| matches!(b, b'\n' | b'\r' | b'\x0b' | b'\x0c');
-    //     // inclusive if keepends
-    //     // terminator if not keepends
-    //     // as impl iterator
-    //     let it: Box<dyn Iterator<Item=&[u8]>> = if keepends {
-    //         Box::new(bytes.split_inclusive(is_break))
-    //     } else {
-    //         Box::new(bytes.split(is_break))
-    //     };
+    /// Return True if B is a titlecased string and there is at least one
+    /// character in B, i.e. uppercase characters may only follow uncased
+    /// characters and lowercase characters only cased ones. Return False
+    /// otherwise.
+    ///
+    /// Impl based on cpython's implementation ([permalink](https://github.com/python/cpython/blob/main/Objects/bytes_methods.c#L201) / [maybe-outdated](https://github.com/python/cpython/blob/main/Objects/bytes_methods.c#L201))
+    ///
+    /// ```c
+    /// PyObject*
+    /// _Py_bytes_istitle(const char *cptr, Py_ssize_t len)
+    /// {
+    ///     const unsigned char *p
+    ///         = (const unsigned char *) cptr;
+    ///     const unsigned char *e;
+    ///     int cased, previous_is_cased;
+    ///
+    ///     if (len == 1) {
+    ///         if (Py_ISUPPER(*p)) {
+    ///             Py_RETURN_TRUE;
+    ///         }
+    ///         Py_RETURN_FALSE;
+    ///     }
+    ///
+    ///     /* Special case for empty strings */
+    ///     if (len == 0)
+    ///         Py_RETURN_FALSE;
+    ///
+    ///     e = p + len;
+    ///     cased = 0;
+    ///     previous_is_cased = 0;
+    ///     for (; p < e; p++) {
+    ///         const unsigned char ch = *p;
+    ///
+    ///         if (Py_ISUPPER(ch)) {
+    ///             if (previous_is_cased)
+    ///                 Py_RETURN_FALSE;
+    ///             previous_is_cased = 1;
+    ///             cased = 1;
+    ///         }
+    ///         else if (Py_ISLOWER(ch)) {
+    ///             if (!previous_is_cased)
+    ///                 Py_RETURN_FALSE;
+    ///             previous_is_cased = 1;
+    ///             cased = 1;
+    ///         }
+    ///         else
+    ///             previous_is_cased = 0;
+    ///     }
+    ///     return PyBool_FromLong(cased);
+    /// }
+    /// ```
+    fn istitle(&self) -> bool {
+        let bytes = self.as_slice();
+        if bytes.is_empty() {
+            return false;
+        }
+        if bytes.len() == 1 {
+            return bytes[0].is_ascii_uppercase();
+        }
+        let mut cased = false;
+        let mut previous_is_cased = false;
+        for &byte in bytes {
+            if byte.is_ascii_uppercase() {
+                if previous_is_cased {
+                    return false;
+                }
+                previous_is_cased = true;
+                cased = true;
+            } else if byte.is_ascii_lowercase() {
+                if !previous_is_cased {
+                    return false;
+                }
+                previous_is_cased = true;
+                cased = true;
+            } else {
+                previous_is_cased = false;
+            }
+        }
+        cased
+    }
 
-    //     if filter_empty {
-    //         let lines = it.filter(|line| !line.is_empty()).map(
-    //             |line | {
-    //                 PyBytes::from(line.to_vec())
-    //             }
-    //         )
-    //         .collect::<Vec<_>>();
-    //         Ok(lines)
-    //     } else {
-    //         let lines = it.map(
-    //             |line | {
-    //                 PyBytes::from(line.to_vec())
-    //             }
-    //         )
-    //         .collect::<Vec<_>>();
-    //         Ok(lines)
-    //     }
-    // }
     #[pyo3(signature = (prefix, /))]
     fn startswith(&self, prefix: PyBytes) -> bool {
         self.as_slice().starts_with(prefix.as_ref())

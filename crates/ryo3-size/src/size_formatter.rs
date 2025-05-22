@@ -14,7 +14,7 @@ pub struct PySizeFormatter {
 impl PySizeFormatter {
     #[new]
     #[pyo3(signature = (base = None, style = None))]
-    fn py_new(base: Option<Base>, style: Option<Style>) -> Self {
+    pub fn py_new(base: Option<Base>, style: Option<Style>) -> Self {
         let base = base.unwrap_or_default();
         let style = style.unwrap_or_default();
         let formatter = size::fmt::SizeFormatter::new()

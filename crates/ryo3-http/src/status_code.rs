@@ -13,7 +13,7 @@ pub struct PyHttpStatus(pub http::StatusCode);
 impl PyHttpStatus {
     #[new]
     #[pyo3(signature = (code))]
-    fn py_new(code: u16) -> PyResult<Self> {
+    pub fn py_new(code: u16) -> PyResult<Self> {
         Ok(Self(http::StatusCode::from_u16(code).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (code={code})"))
         })?))

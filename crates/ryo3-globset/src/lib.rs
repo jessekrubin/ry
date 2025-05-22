@@ -44,7 +44,7 @@ impl PyGlob {
     #[pyo3(
         signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
     )]
-    fn py_new(
+    pub fn py_new(
         pattern: String,
         case_insensitive: Option<bool>,
         literal_separator: Option<bool>,
@@ -145,7 +145,7 @@ impl PyGlobSet {
     #[pyo3(
         signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
     )]
-    fn py_new(
+    pub fn py_new(
         patterns: StringOrStrings,
         case_insensitive: Option<bool>,
         literal_separator: Option<bool>,

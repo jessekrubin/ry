@@ -14,7 +14,7 @@ categories.workspace = true
 [dependencies]
 ryo3-std = { workspace = true }
 pyo3 = { workspace = true, features = ["jiff-02"] }
-ryo3-macros.workspace = true
+ryo3-macro-rules.workspace = true
 jiff.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
 

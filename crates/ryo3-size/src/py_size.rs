@@ -24,7 +24,7 @@ impl From<i64> for PySize {
 #[pymethods]
 impl PySize {
     #[new]
-    fn py_new(size: i64) -> Self {
+    pub fn py_new(size: i64) -> Self {
         PySize(size::Size::from_bytes(size))
     }
 
