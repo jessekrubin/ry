@@ -16,7 +16,6 @@ def test_bytes_pickling() -> None:
     assert loaded == b
 
 
-# ['isalnum', 'isalpha', 'isascii', 'isdigit', 'islower', 'isspace', 'istitle', 'isupper']
 class TestBytesIsFns:
     @given(
         py_bytes=st.binary(),
@@ -43,7 +42,7 @@ class TestBytesIsFns:
         ry_bytes = ry.Bytes(py_bytes)
         py_res = getattr(py_bytes, fn_name)()
         rs_res = getattr(ry_bytes, fn_name)()
-        assert py_res == rs_res, f"py: {py_res}, rs: {rs_res} ~ {py_bytes}, {fn_name}"
+        assert py_res == rs_res, f"py: {py_res}, rs: {rs_res} ~ {py_bytes!r}, {fn_name}"
 
 
 @given(
