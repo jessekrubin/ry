@@ -2666,14 +2666,24 @@ class Regex:
 <h2 id="ry.ryo3._reqwest"><a class="header" href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></h2>
 <pre><code class="language-python">import typing as t
 
-from typing_extensions import TypeAlias
+import typing_extensions as te
 
 import ry
 from ry._types import Buffer
 from ry.http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3 import URL, Duration
 
-HeadersLike: TypeAlias = Headers | dict[str, str]
+HeadersLike: te.TypeAlias = Headers | dict[str, str]
+
+
+class RequestKwargs(t.TypedDict, total=False):
+    body: Buffer | None
+    headers: HeadersLike | None
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
+    multipart: t.Any
+    form: t.Any
+    timeout: Duration | None
+    version: HttpVersionLike | None
 
 
 class HttpClient:
@@ -2691,47 +2701,41 @@ class HttpClient:
         deflate: bool = True,
     ) -&gt; None: ...
     async def get(
-        self, url: str | URL, *, headers: HeadersLike | None = None
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -&gt; Response: ...
     async def post(
         self,
         url: str | URL,
-        *,
-        body: Buffer | None = None,
-        headers: HeadersLike | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -&gt; Response: ...
     async def put(
         self,
         url: str | URL,
-        *,
-        body: Buffer | None = None,
-        headers: HeadersLike | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -&gt; Response: ...
     async def delete(
-        self, url: str | URL, *, headers: HeadersLike | None = None
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -&gt; Response: ...
     async def patch(
         self,
         url: str | URL,
-        *,
-        body: Buffer | None = None,
-        headers: dict[str, str] | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -&gt; Response: ...
     async def head(
-        self, url: str | URL, *, headers: HeadersLike | None = None
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -&gt; Response: ...
     async def fetch(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        body: Buffer | None = None,
-        headers: HeadersLike | None = None,
-        query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-        multipart: t.Any | None = None,  # TODO
-        form: t.Any | None = None,  # TODO
-        timeout: Duration | None = None,
-        version: HttpVersionLike | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -&gt; Response: ...
 
 
@@ -2757,6 +2761,7 @@ class Response:
     async def json(self) -&gt; t.Any: ...
     async def bytes(self) -&gt; ry.Bytes: ...
     def bytes_stream(self) -&gt; ResponseStream: ...
+    def stream(self) -&gt; ResponseStream: ...
     @property
     def url(self) -&gt; URL: ...
     @property
@@ -2791,13 +2796,7 @@ async def fetch(
     *,
     client: HttpClient | None = None,
     method: str = "GET",
-    body: Buffer | None = None,
-    headers: HeadersLike | None = None,
-    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-    multipart: t.Any = None,  # TODO
-    form: t.Any = None,  # TODO
-    timeout: Duration | None = None,
-    version: HttpVersionLike | None = None,
+    **kwargs: te.Unpack[RequestKwargs],
 ) -&gt; Response: ...
 
 </code></pre>
@@ -3489,65 +3488,31 @@ from ry.ryo3._std import FileType, Metadata
 # FS
 # =============================================================================
 async def canonicalize_async(path: FsPathLike) -&gt; FsPathLike: ...
-
-
 async def copy_async(src: FsPathLike, dst: FsPathLike) -&gt; None: ...
-
-
 async def create_dir_async(path: FsPathLike) -&gt; None: ...
-
-
 async def create_dir_all_async(path: FsPathLike) -&gt; None: ...
-
-
 async def hard_link_async(src: FsPathLike, dst: FsPathLike) -&gt; None: ...
-
-
 async def metadata_async(path: FsPathLike) -&gt; None: ...
-
-
 async def read_async(path: FsPathLike) -&gt; Bytes: ...
-
-
 async def remove_dir_async(path: FsPathLike) -&gt; None: ...
-
-
 async def remove_dir_all_async(path: FsPathLike) -&gt; None: ...
-
-
 async def remove_file_async(path: FsPathLike) -&gt; None: ...
-
-
 async def read_link_async(path: FsPathLike) -&gt; FsPathLike: ...
-
-
 async def read_to_string_async(path: FsPathLike) -&gt; str: ...
-
-
 async def rename_async(src: FsPathLike, dst: FsPathLike) -&gt; None: ...
-
-
 async def write_async(path: FsPathLike, data: Buffer) -&gt; None: ...
-
-
 async def try_exists_async(path: FsPathLike) -&gt; bool: ...
-
-
 async def exists_async(path: FsPathLike) -&gt; bool: ...
 
 
 class DirEntryAsync:
     def __fspath__(self) -&gt; str: ...
-
     @property
     def path(self) -&gt; pathlib.Path: ...
-
     @property
     def basename(self) -&gt; str: ...
-
     @property
     async def metadata(self) -&gt; Metadata: ...
-
     @property
     async def file_type(self) -&gt; FileType: ...
 
@@ -3556,11 +3521,8 @@ class ReadDirAsync:
     """Async iterator for read_dir_async"""
 
     def __aiter__(self) -&gt; ReadDirAsync: ...
-
     async def __anext__(self) -&gt; DirEntryAsync: ...
-
     async def collect(self) -&gt; list[DirEntryAsync]: ...
-
     async def take(self, n: int) -&gt; list[DirEntryAsync]: ...
 
 
@@ -3571,8 +3533,6 @@ async def read_dir_async(path: FsPathLike) -&gt; ReadDirAsync: ...
 # SLEEP
 # =============================================================================
 async def sleep_async(seconds: float) -&gt; float: ...
-
-
 async def asleep(seconds: float) -&gt; float:
     """Alias for sleep_async"""
 
@@ -3581,56 +3541,32 @@ class AsyncFile:
     def __init__(
         self, path: FsPathLike, mode: str = "r", buffering: int = -1
     ) -&gt; None: ...
-
     def __aiter__(self) -&gt; te.Self: ...
-
     def __await__(self) -&gt; Generator[t.Any, t.Any, te.Self]: ...
-
     async def __anext__(self) -&gt; Bytes: ...
-
     async def __aenter__(self) -&gt; te.Self: ...
-
     async def __aexit__(
         self,
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -&gt; None: ...
-
-    async def open(self) -&gt; None: ...
-
     async def close(self) -&gt; None: ...
-
     async def flush(self) -&gt; None: ...
-
     async def isatty(self) -&gt; bool: ...
-
-    async def read(self, size: int = ..., /) -&gt; Bytes: ...
-
-    async def readall(self) -&gt; Bytes: ...
-
+    async def open(self) -&gt; None: ...
     async def peek(self, size: int = ..., /) -&gt; Bytes: ...
-
+    async def read(self, size: int = ..., /) -&gt; Bytes: ...
     async def readable(self) -&gt; bool: ...
-
+    async def readall(self) -&gt; Bytes: ...
     async def readline(self, size: int | None = ..., /) -&gt; Bytes: ...
-
     async def readlines(self, hint: int = ..., /) -&gt; list[Bytes]: ...
-
     async def seek(self, offset: int, whence: int = ..., /) -&gt; int: ...
-
     async def seekable(self) -&gt; bool: ...
-
     async def tell(self) -&gt; int: ...
-
     async def truncate(self, size: int | None = ..., /) -&gt; int: ...
-
     async def writable(self) -&gt; bool: ...
-
     async def write(self, b: Buffer, /) -&gt; int: ...
-
-    async def readable(self) -&gt; bool: ...
-
     @property
     def closed(self) -&gt; bool: ...
 
