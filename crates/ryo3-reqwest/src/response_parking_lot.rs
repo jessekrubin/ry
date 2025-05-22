@@ -173,6 +173,11 @@ impl RyResponse {
         })
     }
 
+    /// Return a response consuming async iterator over the response body
+    fn stream(&self) -> PyResult<RyResponseStream> {
+        self.bytes_stream()
+    }
+
     #[getter]
     fn content_encoding(&self) -> Option<String> {
         self.head.headers.get(CONTENT_ENCODING).map(|en| {

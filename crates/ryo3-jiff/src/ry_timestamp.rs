@@ -18,7 +18,9 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[pyclass(name = "Timestamp", module = "ry.ryo3", frozen)]
 pub struct RyTimestamp(pub(crate) Timestamp);
 

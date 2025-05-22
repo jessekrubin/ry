@@ -12,9 +12,19 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeSpan", module = "ry.ryo3", frozen)]
 pub struct RySpan(pub(crate) Span);
+
+impl PartialEq for RySpan {
+    fn eq(&self, other: &Self) -> bool {
+        let self_fieldwise = self.0.fieldwise();
+        let other_fieldwise = other.0.fieldwise();
+        self_fieldwise == other_fieldwise
+    }
+}
 
 #[pymethods]
 impl RySpan {
@@ -35,7 +45,7 @@ impl RySpan {
             nanoseconds=0
         )
     )]
-    fn py_new(
+    pub fn py_new(
         years: i64,
         months: i64,
         weeks: i64,
@@ -694,6 +704,7 @@ impl RySpan {
         }
     }
 }
+
 impl Display for RySpan {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

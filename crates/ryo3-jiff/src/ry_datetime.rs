@@ -19,8 +19,11 @@ use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-#[derive(Debug, Clone)]
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[pyclass(name = "DateTime", module = "ry.ryo3", frozen)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {
@@ -309,7 +312,7 @@ impl RyDateTime {
         RyDate::from(self.0.date())
     }
 
-    fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
+    pub(crate) fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
         self.0
             .in_tz(tz)
             .map(RyZoned::from)

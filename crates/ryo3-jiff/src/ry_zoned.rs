@@ -22,7 +22,9 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Debug, Clone, PartialEq)]
 #[pyclass(name = "ZonedDateTime", module = "ry.ryo3", frozen)]
 pub struct RyZoned(pub(crate) Zoned);
 
@@ -35,6 +37,7 @@ impl RyZoned {
         let tz = time_zone.0;
         Ok(RyZoned::from(Zoned::new(ts, tz)))
     }
+
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,

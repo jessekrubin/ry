@@ -13,12 +13,26 @@ categories.workspace = true
 
 [dependencies]
 ryo3-std = { workspace = true }
-pyo3 = { workspace = true, features = [ "jiff-02"] }
+pyo3 = { workspace = true, features = ["jiff-02"] }
 ryo3-macros.workspace = true
 jiff.workspace = true
+serde = { workspace = true, features = ["derive"], optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true
+serde = { workspace = true, features = ["derive"] }
 
 [build-dependencies]
-pyo3-build-config = {workspace = true}
+pyo3-build-config = { workspace = true }
+
+[features]
+default = [
+  "serde"
+]
+serde = [
+  "dep:serde",
+  "jiff/serde",
+]
 
 [lints]
 workspace = true

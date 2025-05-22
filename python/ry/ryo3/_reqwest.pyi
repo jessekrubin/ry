@@ -1,13 +1,22 @@
 import typing as t
 
-from typing_extensions import TypeAlias
+import typing_extensions as te
 
 import ry
 from ry._types import Buffer
 from ry.http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3 import URL, Duration
 
-HeadersLike: TypeAlias = Headers | dict[str, str]
+HeadersLike: te.TypeAlias = Headers | dict[str, str]
+
+class RequestKwargs(t.TypedDict, total=False):
+    body: Buffer | None
+    headers: HeadersLike | None
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
+    multipart: t.Any
+    form: t.Any
+    timeout: Duration | None
+    version: HttpVersionLike | None
 
 class HttpClient:
     def __init__(
@@ -24,47 +33,41 @@ class HttpClient:
         deflate: bool = True,
     ) -> None: ...
     async def get(
-        self, url: str | URL, *, headers: HeadersLike | None = None
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def post(
         self,
         url: str | URL,
-        *,
-        body: Buffer | None = None,
-        headers: HeadersLike | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def put(
         self,
         url: str | URL,
-        *,
-        body: Buffer | None = None,
-        headers: HeadersLike | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def delete(
-        self, url: str | URL, *, headers: HeadersLike | None = None
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def patch(
         self,
         url: str | URL,
-        *,
-        body: Buffer | None = None,
-        headers: dict[str, str] | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def head(
-        self, url: str | URL, *, headers: HeadersLike | None = None
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        body: Buffer | None = None,
-        headers: HeadersLike | None = None,
-        query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-        multipart: t.Any | None = None,  # TODO
-        form: t.Any | None = None,  # TODO
-        timeout: Duration | None = None,
-        version: HttpVersionLike | None = None,
+        **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
 
 class ReqwestError(Exception):
@@ -88,6 +91,7 @@ class Response:
     async def json(self) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
     def bytes_stream(self) -> ResponseStream: ...
+    def stream(self) -> ResponseStream: ...
     @property
     def url(self) -> URL: ...
     @property
@@ -116,11 +120,5 @@ async def fetch(
     *,
     client: HttpClient | None = None,
     method: str = "GET",
-    body: Buffer | None = None,
-    headers: HeadersLike | None = None,
-    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
-    multipart: t.Any = None,  # TODO
-    form: t.Any = None,  # TODO
-    timeout: Duration | None = None,
-    version: HttpVersionLike | None = None,
+    **kwargs: te.Unpack[RequestKwargs],
 ) -> Response: ...
