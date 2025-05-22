@@ -45,14 +45,16 @@ macro_rules! dirs_pyfunction (
     };
     ($name:ident, $dirs_fn:ident) => {
         #[pyfunction]
-        #[must_use] pub fn $name() -> Option<String> {
+        #[must_use]
+        pub fn $name() -> Option<String> {
             dirs::$dirs_fn().map(|p| {
                 p.to_string_lossy().to_string()
             })
         }
 
         #[pyfunction]
-        #[must_use] pub fn $dirs_fn() -> Option<String> {
+        #[must_use]
+        pub fn $dirs_fn() -> Option<String> {
             dirs::$dirs_fn().map(|p| {
                 p.to_string_lossy().to_string()
             })

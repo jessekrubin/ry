@@ -3,6 +3,7 @@ use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use sqlformat::{self, QueryParams};
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 
 #[pyclass(name = "SqlfmtQueryParams", module = "ry.ryo3", frozen)]
@@ -19,26 +20,7 @@ impl PySqlfmtQueryParams {
     }
 
     fn __repr__(&self) -> String {
-        match &self.params {
-            QueryParams::Named(p) => {
-                // collect into string for display
-                let s = p
-                    .iter()
-                    .map(|(k, v)| format!("\"{k}\": \"{v}\""))
-                    .collect::<Vec<String>>()
-                    .join(", ");
-                format!("SqlfmtQueryParams({{{s}}})")
-            }
-            QueryParams::Indexed(p) => {
-                let s = p
-                    .iter()
-                    .map(|v| format!("\"{v}\""))
-                    .collect::<Vec<String>>()
-                    .join(", ");
-                format!("SqlfmtQueryParams([{s}])")
-            }
-            QueryParams::None => String::from("SqlfmtQueryParams(None)"),
-        }
+        format!("{}", self)
     }
 
     fn __str__(&self) -> String {
@@ -96,6 +78,65 @@ impl PySqlfmtQueryParams {
             QueryParams::None => {}
         }
         hasher.finish()
+    }
+}
+
+impl Display for PySqlfmtQueryParams {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("SqlfmtQueryParams(")?;
+        let wrapped = QueryParamsFormatter(&self.params);
+        wrapped.fmt(f)?;
+        f.write_str(")")
+    }
+}
+
+struct QueryParamsFormatter<'p>(pub &'p QueryParams);
+
+impl Display for QueryParamsFormatter<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if self.0.is_empty() {
+            return Ok(());
+        }
+        match &self.0 {
+            // ================================================================
+            // { "key": "value", ... }
+            // ================================================================
+            QueryParams::Named(map) => {
+                f.write_str("{")?;
+
+                let mut iter = map.iter();
+                if let Some((k, v)) = iter.next() {
+                    write!(f, r#""{}": "{}""#, k, v)?;
+                    for (k, v) in iter {
+                        f.write_str(", ")?; // two bytes only
+                        write!(f, r#""{}": "{}""#, k, v)?;
+                    }
+                }
+
+                f.write_str("}")
+            }
+
+            // ================================================================
+            // [ "value", ... ]
+            // ================================================================
+            QueryParams::Indexed(list) => {
+                f.write_str("[")?;
+
+                let mut iter = list.iter();
+                if let Some(v) = iter.next() {
+                    write!(f, r#""{}""#, v)?;
+                    for v in iter {
+                        f.write_str(", ")?;
+                        write!(f, r#""{}""#, v)?;
+                    }
+                }
+
+                f.write_str("]")
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            QueryParams::None => f.write_str("None"),
+        }
     }
 }
 

@@ -11,6 +11,11 @@ repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
+# rlib type
+[lib]
+name = "ryo3-brotli"
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 brotli = { workspace = true }
