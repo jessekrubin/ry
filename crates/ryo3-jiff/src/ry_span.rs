@@ -45,7 +45,7 @@ impl RySpan {
             nanoseconds=0
         )
     )]
-    pub fn py_new(
+    fn py_new(
         years: i64,
         months: i64,
         weeks: i64,

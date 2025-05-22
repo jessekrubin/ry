@@ -31,7 +31,7 @@ impl From<&TimeZone> for RyTimeZone {
 #[pymethods]
 impl RyTimeZone {
     #[new]
-    pub fn py_new(time_zone_name: &str) -> PyResult<Self> {
+    fn py_new(time_zone_name: &str) -> PyResult<Self> {
         if time_zone_name.is_empty() || time_zone_name.eq_ignore_ascii_case("unknown") {
             return Ok(Self::from(TimeZone::unknown()));
         }

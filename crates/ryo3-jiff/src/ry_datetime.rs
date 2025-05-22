@@ -36,7 +36,7 @@ impl From<DateTime> for RyDateTime {
 impl RyDateTime {
     #[new]
     #[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
-    pub fn py_new(
+    pub(crate) fn py_new(
         year: i16,
         month: i8,
         day: i8,

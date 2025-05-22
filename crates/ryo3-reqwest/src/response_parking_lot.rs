@@ -47,7 +47,7 @@ impl From<reqwest::Response> for RyResponse {
 #[pymethods]
 impl RyResponse {
     #[new]
-    pub fn py_new() -> PyResult<Self> {
+    fn py_new() -> PyResult<Self> {
         err_py_not_impl!("Response::new")
     }
 

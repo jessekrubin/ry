@@ -28,7 +28,7 @@ impl From<FnvHasher> for PyFnvHasher {
 impl PyFnvHasher {
     #[new]
     #[pyo3(signature = (s = None, *, key = None))]
-    pub fn py_new(s: Option<ryo3_bytes::PyBytes>, key: Option<u64>) -> Self {
+    fn py_new(s: Option<ryo3_bytes::PyBytes>, key: Option<u64>) -> Self {
         match (key, s) {
             (Some(k), Some(s)) => {
                 let mut hasher = FnvHasher::with_key(k);

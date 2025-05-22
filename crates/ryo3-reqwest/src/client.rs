@@ -111,7 +111,7 @@ impl RyHttpClient {
             http1_only = false,
         )
     )]
-    pub fn py_new(
+    fn py_new(
         headers: Option<PyHeadersLike>,
         cookies: bool,
         user_agent: Option<String>,

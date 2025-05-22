@@ -15,7 +15,7 @@ pub struct PySqlfmtQueryParams {
 #[pymethods]
 impl PySqlfmtQueryParams {
     #[new]
-    pub fn py_new(params: PyQueryParamsLike) -> PyResult<Self> {
+    fn py_new(params: PyQueryParamsLike) -> PyResult<Self> {
         sqlfmt_params(Some(params))
     }
 

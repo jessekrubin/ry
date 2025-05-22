@@ -15,7 +15,7 @@ pub struct PyXxh32 {
 impl PyXxh32 {
     #[new]
     #[pyo3(signature = (b = None, seed = None))]
-    pub fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
+    fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
         match b {
             Some(s) => {
                 let seed = seed.unwrap_or(0);
@@ -110,7 +110,7 @@ impl PyXxh64 {
     /// Create a new Xxh64 hasher
     #[new]
     #[pyo3(signature = (b = None, seed = 0))]
-    pub fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> Self {
+    fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> Self {
         match b {
             Some(s) => {
                 let mut hasher = Xxh64::new(seed.unwrap_or(0));
@@ -205,7 +205,7 @@ pub struct PyXxh3 {
 impl PyXxh3 {
     #[new]
     #[pyo3(signature = (b = None, seed = 0, secret = None))]
-    pub fn py_new(
+    fn py_new(
         b: Option<ryo3_bytes::PyBytes>,
         seed: Option<u64>,
         secret: Option<[u8; 192]>,

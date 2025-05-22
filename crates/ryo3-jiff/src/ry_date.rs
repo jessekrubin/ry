@@ -33,7 +33,7 @@ pub struct RyDate(pub(crate) Date);
 #[pymethods]
 impl RyDate {
     #[new]
-    pub fn py_new(year: i16, month: i8, day: i8) -> PyResult<Self> {
+    pub(crate) fn py_new(year: i16, month: i8, day: i8) -> PyResult<Self> {
         Date::new(year, month, day).map(RyDate::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                 "{e} (year={year}, month={month}, day={day})",
@@ -299,9 +299,15 @@ impl RyDate {
         Ok(dict)
     }
 
-    fn series(&self, period: &RySpan) -> RyDateSeries {
-        RyDateSeries {
-            series: self.0.series(period.0),
+    fn series(&self, period: &RySpan) -> PyResult<RyDateSeries> {
+        if period.0.is_zero() {
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "period cannot be zero",
+            ))
+        } else {
+            Ok(RyDateSeries {
+                series: self.0.series(period.0),
+            })
         }
     }
 
@@ -328,15 +334,14 @@ impl RyDate {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
-    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let era_year = JiffEraYear(self.0.era_year());
-        let obj = era_year.into_pyobject(py)?;
-        Ok(obj.into_any())
+    fn era_year(&self) -> JiffEraYear {
+        JiffEraYear(self.0.era_year())
     }
 
     fn first_of_month(&self) -> RyDate {
         Self::from(self.0.first_of_month())
     }
+
     fn first_of_year(&self) -> RyDate {
         Self::from(self.0.first_of_year())
     }
@@ -344,15 +349,19 @@ impl RyDate {
     fn in_leap_year(&self) -> bool {
         self.0.in_leap_year()
     }
+
     fn last_of_month(&self) -> RyDate {
         Self::from(self.0.last_of_month())
     }
+
     fn last_of_year(&self) -> RyDate {
         Self::from(self.0.last_of_year())
     }
+
     fn tomorrow(&self) -> PyResult<Self> {
         self.0.tomorrow().map(From::from).map_err(map_py_value_err)
     }
+
     fn yesterday(&self) -> PyResult<Self> {
         self.0.yesterday().map(From::from).map_err(map_py_value_err)
     }

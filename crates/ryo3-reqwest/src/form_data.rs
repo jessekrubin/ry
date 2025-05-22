@@ -16,7 +16,7 @@
 // #[pymethods]
 // impl PyFormData {
 //     #[new]
-//     pub fn py_new() -> Self {
+//     fn py_new() -> Self {
 //         PyFormData {
 //             form: reqwest::multipart::Form::new(),
 //         }

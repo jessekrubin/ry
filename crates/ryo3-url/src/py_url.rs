@@ -34,7 +34,7 @@ impl PyUrl {
 impl PyUrl {
     #[new]
     #[pyo3(signature = (url, *, params = None))]
-    pub fn py_new(url: UrlLike, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+    fn py_new(url: UrlLike, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         if let Some(params) = params {
             Self::parse_with_params(url.0.as_str(), params)
         } else {

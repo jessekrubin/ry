@@ -106,12 +106,7 @@ impl PyIpv4Addr {
     #[pyo3(
         signature = (a, b=None, c=None, d=None),
     )]
-    pub fn py_new(
-        a: &Bound<'_, PyAny>,
-        b: Option<u8>,
-        c: Option<u8>,
-        d: Option<u8>,
-    ) -> PyResult<Self> {
+    fn py_new(a: &Bound<'_, PyAny>, b: Option<u8>, c: Option<u8>, d: Option<u8>) -> PyResult<Self> {
         extract_ipv4(a, b, c, d).map(Self)
     }
 
@@ -277,7 +272,7 @@ impl PyIpv4Addr {
 #[pymethods]
 impl PyIpv6Addr {
     #[new]
-    pub fn py_new(a: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn py_new(a: &Bound<'_, PyAny>) -> PyResult<Self> {
         extract_ipv6_from_single_ob(a).map(Self)
     }
 
@@ -434,7 +429,7 @@ impl PyIpv6Addr {
 #[pymethods]
 impl PyIpAddr {
     #[new]
-    pub fn py_new(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn py_new(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(ipv4) = extract_ipv4_from_single_ob(ob) {
             return Ok(Self(std::net::IpAddr::V4(ipv4)));
         }

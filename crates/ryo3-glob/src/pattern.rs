@@ -16,7 +16,7 @@ impl From<glob::Pattern> for PyPattern {
 #[pymethods]
 impl PyPattern {
     #[new]
-    pub fn py_new(pattern: &str) -> PyResult<Self> {
+    fn py_new(pattern: &str) -> PyResult<Self> {
         glob::Pattern::new(pattern)
             .map(PyPattern::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))

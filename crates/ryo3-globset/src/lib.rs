@@ -44,7 +44,7 @@ impl PyGlob {
     #[pyo3(
         signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
     )]
-    pub fn py_new(
+    fn py_new(
         pattern: String,
         case_insensitive: Option<bool>,
         literal_separator: Option<bool>,
@@ -145,7 +145,7 @@ impl PyGlobSet {
     #[pyo3(
         signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
     )]
-    pub fn py_new(
+    fn py_new(
         patterns: StringOrStrings,
         case_insensitive: Option<bool>,
         literal_separator: Option<bool>,
@@ -271,6 +271,10 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
     }
 }
 
+// ============================================================================
+// NOTE: This has been removed/commented out because it conflicts with the
+//       `glob` function in the `ryo3-glob` crate
+//
 // #[pyfunction]
 // #[pyo3(
 //     signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)

@@ -21,7 +21,7 @@ impl RyTimestampDifference {
        signature = (timestamp, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     #[must_use]
-    pub fn py_new(
+    fn py_new(
         timestamp: &RyTimestamp,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,

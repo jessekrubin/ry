@@ -32,10 +32,10 @@ pub struct RyZoned(pub(crate) Zoned);
 impl RyZoned {
     #[new]
     #[pyo3(signature = (timestamp, time_zone))]
-    pub fn py_new(timestamp: &RyTimestamp, time_zone: RyTimeZone) -> PyResult<Self> {
+    fn py_new(timestamp: &RyTimestamp, time_zone: RyTimeZone) -> Self {
         let ts = timestamp.0;
         let tz = time_zone.0;
-        Ok(RyZoned::from(Zoned::new(ts, tz)))
+        RyZoned::from(Zoned::new(ts, tz))
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

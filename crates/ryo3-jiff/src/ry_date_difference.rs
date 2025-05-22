@@ -22,7 +22,7 @@ impl RyDateDifference {
        signature = (date, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     #[must_use]
-    pub fn py_new(
+    fn py_new(
         date: &RyDate,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,

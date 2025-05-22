@@ -51,7 +51,7 @@ impl PyUuid {
             version=None
         )
     )]
-    pub fn py_new(
+    fn py_new(
         hex: Option<&str>,
         bytes: Option<PyBytes>,
         bytes_le: Option<PyBytes>,
