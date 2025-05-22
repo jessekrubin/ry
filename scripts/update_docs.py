@@ -109,7 +109,7 @@ def _gen_api_content_readme(
     headers = (
         f'<h2 id="{mod_name}"><code>{mod_name}</code></h2>\n' for mod_name, _ in parts
     )
-    type_stub_bodies = (f"```python\n{content}\n```" for _, content in parts)
+    type_stub_bodies = (f"```python\n{content}\n```\n" for _, content in parts)
     # zipper the headers and bodies into a single chain
 
     yield from it.chain.from_iterable(zip(headers, type_stub_bodies))
