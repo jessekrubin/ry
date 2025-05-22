@@ -26,28 +26,6 @@ use std::str::FromStr;
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct RyDateTime(pub(crate) DateTime);
 
-// impl Serialize for RyDateTime {
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: serde::Serializer,
-//     {
-//         serializer.serialize_str(&self.to_string())
-//     }
-// }
-//
-// impl Deserialize<'_> for RyDateTime {
-//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-//     where
-//         D: Deserializer<'_>
-//     {
-//
-//         let s = String::deserialize(deserializer)?;
-//         DateTime::from_str(&s)
-//             .map(RyDateTime)
-//             .map_err(serde::de::Error::custom)
-//     }
-// }
-
 impl From<DateTime> for RyDateTime {
     fn from(value: DateTime) -> Self {
         RyDateTime(value)
