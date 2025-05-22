@@ -24,8 +24,10 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
-#[derive(Debug, Clone)]
 #[pyclass(name = "Date", module = "ry.ryo3", frozen)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct RyDate(pub(crate) Date);
 
 #[pymethods]
@@ -63,7 +65,13 @@ impl RyDate {
         Self::from(z)
     }
 
-    fn at(&self, hour: i8, minute: i8, second: i8, subsec_nanosecond: i32) -> RyDateTime {
+    pub(crate) fn at(
+        &self,
+        hour: i8,
+        minute: i8,
+        second: i8,
+        subsec_nanosecond: i32,
+    ) -> RyDateTime {
         RyDateTime::from(self.0.at(hour, minute, second, subsec_nanosecond))
     }
 

@@ -16,9 +16,12 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 use std::str::FromStr;
+
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[pyclass(name = "Time", module = "ry.ryo3", frozen)]
-#[derive(Debug, Clone)]
-pub struct RyTime(pub(crate) jiff::civil::Time);
+pub struct RyTime(pub(crate) Time);
 
 #[pymethods]
 impl RyTime {
@@ -253,10 +256,12 @@ impl RyTime {
     // =====================================================================
     // PYTHON CONVERSIONS
     // =====================================================================
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> Time {
         self.to_pytime()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pytime(&self) -> Time {
         self.0
     }
@@ -346,6 +351,7 @@ impl RyTime {
         }
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(date.0))
     }

@@ -1784,6 +1784,8 @@ dependencies = [
  "pyo3-build-config",
  "ryo3-macros",
  "ryo3-std",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

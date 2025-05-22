@@ -16,7 +16,9 @@ use std::str::FromStr;
 
 const NANOS_PER_SEC: i32 = 1_000_000_000;
 
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Debug, Clone, PartialOrd, PartialEq)]
 #[pyclass(name = "SignedDuration", module = "ry.ryo3", frozen)]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
@@ -38,7 +40,7 @@ impl RySignedDuration {
 impl RySignedDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
-    fn py_new(secs: i64, nanos: i32) -> PyResult<Self> {
+    pub fn py_new(secs: i64, nanos: i32) -> PyResult<Self> {
         #[expect(clippy::cast_lossless)]
         if !(-NANOS_PER_SEC < nanos && nanos < NANOS_PER_SEC) {
             let addsecs = nanos / NANOS_PER_SEC;
