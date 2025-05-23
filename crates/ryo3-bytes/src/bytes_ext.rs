@@ -18,10 +18,6 @@ macro_rules! InjectSharedMethods {
         impl $name $(<$($lt),*>)? {
             $($body)*
 
-            // Add your method(s) here
-            fn shared_method(&self) -> &'static str {
-                "hello from macro"
-            }
 
             fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
                 let pybytes = pyo3::types::PyBytes::new(py, self.as_ref()).into_bound_py_any(py)?;

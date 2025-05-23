@@ -4,6 +4,7 @@ use std::fmt::Write;
 use std::os::raw::c_int;
 use std::ptr::NonNull;
 
+use crate::InjectSharedMethods;
 use bytes::{Bytes, BytesMut};
 use macro_rules_attribute::apply;
 use pyo3::buffer::PyBuffer;
@@ -11,7 +12,6 @@ use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PySlice, PyTuple};
 use pyo3::{ffi, IntoPyObjectExt};
-use crate::InjectSharedMethods;
 
 /// A wrapper around a [`bytes::Bytes`][].
 ///
