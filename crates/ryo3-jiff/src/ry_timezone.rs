@@ -28,15 +28,15 @@ impl From<&TimeZone> for RyTimeZone {
     }
 }
 
-impl Into<TimeZone> for RyTimeZone {
-    fn into(self) -> TimeZone {
-        (*self.0).clone()
+impl From<RyTimeZone> for TimeZone {
+    fn from(value: RyTimeZone) -> Self {
+        (*value.0).clone()
     }
 }
 
-impl Into<TimeZone> for &RyTimeZone {
-    fn into(self) -> TimeZone {
-        (*self.0).clone()
+impl From<&RyTimeZone> for TimeZone {
+    fn from(value: &RyTimeZone) -> Self {
+        (*value.0).clone()
     }
 }
 
