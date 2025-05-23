@@ -1,5 +1,6 @@
 mod date;
 mod datetime;
+mod era;
 mod era_year;
 mod offset;
 mod round_mode;
@@ -7,6 +8,8 @@ mod signed_duration;
 mod span;
 mod time;
 mod timezone;
+mod tz_disambiguation;
+mod tz_offset_conflict;
 mod unit;
 mod utils;
 mod weekday;

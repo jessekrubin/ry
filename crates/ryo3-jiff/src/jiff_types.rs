@@ -10,7 +10,6 @@ pub struct JiffDateTime(pub jiff::civil::DateTime);
 pub struct JiffZoned(pub jiff::Zoned);
 #[derive(Debug)]
 pub struct JiffSpan(pub jiff::Span);
-
 #[derive(Debug, Clone)]
 pub struct JiffTimeZone(pub jiff::tz::TimeZone);
 #[derive(Debug)]
@@ -26,11 +25,14 @@ pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JiffEra(pub(crate) jiff::civil::Era);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JiffEraYear(pub(crate) (i16, jiff::civil::Era));
+#[derive(Debug)]
+pub struct JiffTzDisambiguation(pub jiff::tz::Disambiguation);
+#[derive(Debug)]
+pub struct JiffTzOffsetConflict(pub jiff::tz::OffsetConflict);
 
 // ============================================================================
 impl From<jiff::civil::Date> for JiffDate {
@@ -48,6 +50,18 @@ impl From<jiff::civil::Time> for JiffTime {
 impl From<jiff::civil::DateTime> for JiffDateTime {
     fn from(value: jiff::civil::DateTime) -> Self {
         JiffDateTime(value)
+    }
+}
+
+impl From<jiff::civil::Era> for JiffEra {
+    fn from(value: jiff::civil::Era) -> Self {
+        JiffEra(value)
+    }
+}
+
+impl From<jiff::tz::Disambiguation> for JiffTzDisambiguation {
+    fn from(value: jiff::tz::Disambiguation) -> Self {
+        JiffTzDisambiguation(value)
     }
 }
 
@@ -90,6 +104,12 @@ impl From<jiff::Unit> for JiffUnit {
 impl From<jiff::civil::Weekday> for JiffWeekday {
     fn from(value: jiff::civil::Weekday) -> Self {
         JiffWeekday(value)
+    }
+}
+
+impl From<jiff::tz::OffsetConflict> for JiffTzOffsetConflict {
+    fn from(value: jiff::tz::OffsetConflict) -> Self {
+        JiffTzOffsetConflict(value)
     }
 }
 
