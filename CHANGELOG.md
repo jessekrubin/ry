@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.44 [unreleased]
+## v0.0.44 [2025-05-23]
 
 - internal:
   - renamed `ryo3-macros` to `ryo3-macro-rules`
