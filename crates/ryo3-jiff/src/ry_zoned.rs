@@ -553,6 +553,7 @@ impl RyZoned {
             disambiguation=None,
         )
     )]
+    #[expect(clippy::too_many_arguments)]
     fn replace(
         &self,
         obj: Option<Bound<'_, PyAny>>,
@@ -592,8 +593,7 @@ impl RyZoned {
                 builder = builder.offset(offset.0);
             } else {
                 return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                    "obj must be a Date, Time or Offset; given: {:?}",
-                    obj
+                    "obj must be a Date, Time or Offset; given: {obj}",
                 )));
             }
         }
