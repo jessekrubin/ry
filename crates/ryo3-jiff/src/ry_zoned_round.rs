@@ -37,7 +37,7 @@ impl RyZonedDateTimeRound {
 
     fn __repr__(&self) -> String {
         format!(
-            "DateTimeRound(smallest=\"{}\", mode=\"{}\", increment={})",
+            "ZonedDateTimeRound(smallest=\"{}\", mode=\"{}\", increment={})",
             self.smallest, self.mode, self.increment
         )
     }

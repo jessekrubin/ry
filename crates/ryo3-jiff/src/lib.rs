@@ -20,6 +20,7 @@ mod dev;
 mod api;
 mod delta_arithmetic_self;
 mod deprecations;
+mod difference_options;
 mod errors;
 mod functions;
 mod into_span_arithmetic;

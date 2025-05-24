@@ -12,7 +12,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned_round::RyZonedDateTimeRound;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
-    JiffWeekday, RyDate,
+    JiffWeekday, RyDate, RyZonedDifference,
 };
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;
@@ -520,6 +520,22 @@ impl RyZoned {
             .map_err(map_py_value_err)
     }
 
+    fn _since(&self, other: &RyZonedDifference) -> PyResult<RySpan> {
+        let diff = ZonedDifference::from(other.clone());
+        self.0
+            .since(diff)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn _until(&self, other: &RyZonedDifference) -> PyResult<RySpan> {
+        let diff = ZonedDifference::from(other.clone());
+        self.0
+            .until(diff)
+            .map(RySpan::from)
+            .map_err(map_py_value_err)
+    }
+
     fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {
         self.0.with_time_zone(tz.into()).into()
     }
@@ -578,14 +594,12 @@ impl RyZoned {
     ) -> PyResult<Self> {
         // start the builder
         let mut builder = self.0.with();
+
         if let Some(obj) = obj {
-            // if obj is a Zoned, use it as the base
             if let Ok(zoned) = obj.downcast::<RyDate>() {
-                // if obj is a Zoned, use it as the base
                 let date = zoned.extract::<RyDate>()?;
                 builder = builder.date(date.0);
             } else if let Ok(time) = obj.downcast::<RyTime>() {
-                // if obj is a Time, use it as the base
                 let time = time.extract::<RyTime>()?;
                 builder = builder.time(time.0);
             } else if let Ok(date) = obj.downcast::<RyOffset>() {

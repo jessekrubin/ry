@@ -19,17 +19,17 @@ impl From<DateTimeDifference> for RyDateTimeDifference {
 impl RyDateTimeDifference {
     #[new]
     #[pyo3(
-       signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
+       signature = (obj, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     #[must_use]
     fn py_new(
-        datetime: &RyDateTime,
+        obj: &RyDateTime,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> Self {
-        let mut diff = DateTimeDifference::new(datetime.0);
+        let mut diff = DateTimeDifference::new(obj.0);
         if let Some(smallest) = smallest {
             diff = diff.smallest(smallest.0);
         }
@@ -61,6 +61,7 @@ impl RyDateTimeDifference {
         RyDateTimeDifference(self.0.increment(increment))
     }
 }
+
 #[derive(Debug, Clone, FromPyObject)]
 #[expect(clippy::enum_variant_names)]
 pub(crate) enum IntoDateTimeDifferenceTuple {
@@ -93,6 +94,7 @@ impl From<IntoDateTimeDifferenceTuple> for DateTimeDifference {
         }
     }
 }
+
 impl From<IntoDateTimeDifference> for DateTimeDifference {
     fn from(val: IntoDateTimeDifference) -> Self {
         match val {

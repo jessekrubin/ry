@@ -19,17 +19,17 @@ impl From<TimeDifference> for RyTimeDifference {
 impl RyTimeDifference {
     #[new]
     #[pyo3(
-       signature = (time, *, smallest=None, largest = None, mode = None, increment = None),
+       signature = (obj, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     #[must_use]
     fn py_new(
-        time: &RyTime,
+        obj: &RyTime,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> Self {
-        let mut diff = TimeDifference::new(time.0);
+        let mut diff = TimeDifference::new(obj.0);
         if let Some(smallest) = smallest {
             diff = diff.smallest(smallest.0);
         }

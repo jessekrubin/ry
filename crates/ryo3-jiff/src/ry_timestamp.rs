@@ -9,7 +9,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffRoundMode, JiffUnit, RyOffset};
 use jiff::tz::TimeZone;
-use jiff::{Timestamp, TimestampRound, Zoned};
+use jiff::{Timestamp, TimestampDifference, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
@@ -337,15 +337,16 @@ impl RyTimestamp {
     }
 
     fn _since(&self, other: &RyTimestampDifference) -> PyResult<RySpan> {
+        // let d = TimestampDifference::from(other);
         self.0
-            .since(other.0)
+            .since(other)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
 
     fn _until(&self, other: &RyTimestampDifference) -> PyResult<RySpan> {
         self.0
-            .until(other.0)
+            .until(other)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }

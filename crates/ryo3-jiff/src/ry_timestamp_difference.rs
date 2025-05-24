@@ -1,16 +1,33 @@
+use crate::difference_options::DifferenceOptions;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffRoundMode, JiffUnit};
-use jiff::TimestampDifference;
-use pyo3::prelude::*;
+use jiff::{Timestamp, TimestampDifference};
+use pyo3::types::PyTuple;
+use pyo3::{prelude::*, IntoPyObjectExt};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 #[pyclass(name = "TimestampDifference", module = "ry.ryo3", frozen)]
-pub struct RyTimestampDifference(pub(crate) TimestampDifference);
+pub struct RyTimestampDifference {
+    obj: Timestamp,
+    options: DifferenceOptions,
+}
 
-impl From<TimestampDifference> for RyTimestampDifference {
-    fn from(value: TimestampDifference) -> Self {
-        RyTimestampDifference(value)
+// impl From<TimestampDifference> for RyTimestampDifference {
+//     fn from(value: TimestampDifference) -> Self {
+//         RyTimestampDifference {
+//             obj: value,
+//             options: DifferenceOptions::default(),
+//         }
+//     }
+// }
+
+impl From<(Timestamp, DifferenceOptions)> for RyTimestampDifference {
+    fn from(value: (Timestamp, DifferenceOptions)) -> Self {
+        RyTimestampDifference {
+            obj: value.0,
+            options: value.1,
+        }
     }
 }
 
@@ -18,17 +35,17 @@ impl From<TimestampDifference> for RyTimestampDifference {
 impl RyTimestampDifference {
     #[new]
     #[pyo3(
-       signature = (timestamp, *, smallest=None, largest = None, mode = None, increment = None),
+       signature = (obj, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     #[must_use]
     fn py_new(
-        timestamp: &RyTimestamp,
+        obj: &RyTimestamp,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> Self {
-        let mut d_diff = TimestampDifference::new(timestamp.0);
+        let mut d_diff = TimestampDifference::new(obj.0);
         if let Some(smallest) = smallest {
             d_diff = d_diff.smallest(smallest.0);
         }
@@ -41,23 +58,42 @@ impl RyTimestampDifference {
         if let Some(increment) = increment {
             d_diff = d_diff.increment(increment);
         }
-        RyTimestampDifference(d_diff)
+        RyTimestampDifference {
+            obj: obj.0,
+            options: DifferenceOptions::new(smallest, largest, mode, increment),
+        }
+    }
+
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::new(py, vec![RyTimestamp::from(self.obj)])?.into_py_any(py)?;
+        let kwargs = self.options.pydict(py)?.into_py_any(py)?;
+        PyTuple::new(py, vec![args, kwargs])
     }
 
     fn smallest(&self, unit: JiffUnit) -> Self {
-        RyTimestampDifference(self.0.smallest(unit.0))
+        (self.obj, self.options.smallest(unit)).into()
     }
 
     fn largest(&self, unit: JiffUnit) -> Self {
-        RyTimestampDifference(self.0.largest(unit.0))
+        (self.obj, self.options.largest(unit)).into()
     }
 
     fn mode(&self, mode: JiffRoundMode) -> Self {
-        RyTimestampDifference(self.0.mode(mode.0))
+        (self.obj, self.options.mode(mode)).into()
     }
 
     fn increment(&self, increment: i64) -> Self {
-        RyTimestampDifference(self.0.increment(increment))
+        (self.obj, self.options.increment(increment)).into()
+    }
+
+    fn __eq__(&self, other: &Self) -> PyResult<bool> {
+        Ok(self.obj == other.obj && self.options == other.options)
+    }
+}
+
+impl From<&RyTimestampDifference> for TimestampDifference {
+    fn from(value: &RyTimestampDifference) -> Self {
+        value.options.timestamp_diff(&RyTimestamp(value.obj))
     }
 }
 

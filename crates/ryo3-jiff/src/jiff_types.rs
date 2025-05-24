@@ -17,13 +17,13 @@ pub struct JiffOffset(pub jiff::tz::Offset);
 #[derive(Debug)]
 pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash)]
 pub struct JiffUnit(pub(crate) jiff::Unit);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash)]
 pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash)]
 pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JiffEra(pub(crate) jiff::civil::Era);

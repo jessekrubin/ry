@@ -7,7 +7,17 @@ import pytest
 
 import ry
 
-jiff_objects = [
+JIFF_DIFFERENCE_OBJECTS = [
+    ry.TimeDifference(ry.time(6, 27, 0, 0)),
+    ry.DateDifference(ry.date(2020, 8, 26)),
+    ry.DateTimeDifference(ry.datetime(2020, 8, 26, 6, 27, 0, 0)),
+    ry.TimestampDifference(ry.Timestamp.from_millisecond(1598438400000)),
+    ry.ZonedDateTimeDifference(
+        ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York")
+    ),
+]
+
+JIFF_OBJECTS = [
     # date
     ry.date(2020, 8, 26),
     # time
@@ -20,17 +30,23 @@ jiff_objects = [
     ry.Timestamp.from_millisecond(1598438400000),
     # Zoned
     ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
+    # TimeZone
+    ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York").tz,
     # signed-duration
     ry.SignedDuration(1, 1),
     # offset
     ry.Offset(1),
     # iso-week-date
     ry.date(2020, 8, 26).iso_week_date(),
+    # difference objects
+    *JIFF_DIFFERENCE_OBJECTS,
 ]
 
 
-@pytest.mark.parametrize("obj", jiff_objects)
+@pytest.mark.parametrize("obj", JIFF_OBJECTS)
 def test_pickling(obj: t.Any) -> None:
+    print(repr(obj))
+    print(type(obj))
     pickled = pickle.dumps(obj)
     loaded = pickle.loads(pickled)
     assert loaded == obj

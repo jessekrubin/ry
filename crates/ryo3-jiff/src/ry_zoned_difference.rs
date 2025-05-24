@@ -13,22 +13,43 @@ pub struct RyZonedDifference {
     increment: Option<i64>,
 }
 
+impl From<RyZonedDifference> for jiff::ZonedDifference<'static> {
+    fn from(value: RyZonedDifference) -> Self {
+        // Clone the underlying data to own it, avoiding lifetime issues
+        let zoned_owned = value.zoned.0.clone();
+        let mut diff = jiff::ZonedDifference::new(Box::leak(Box::new(zoned_owned)));
+        if let Some(smallest) = value.smallest {
+            diff = diff.smallest(smallest);
+        }
+        if let Some(largest) = value.largest {
+            diff = diff.largest(largest);
+        }
+        if let Some(mode) = value.mode {
+            diff = diff.mode(mode.0);
+        }
+        if let Some(increment) = value.increment {
+            diff = diff.increment(increment);
+        }
+        diff
+    }
+}
+
 #[pymethods]
 impl RyZonedDifference {
     #[new]
     #[pyo3(
-       signature = (zoned_datetime, *, smallest=None, largest = None, mode = None, increment = None),
+       signature = (obj, *, smallest=None, largest = None, mode = None, increment = None),
     )]
     #[must_use]
     fn py_new(
-        zoned_datetime: RyZoned,
+        obj: RyZoned,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> Self {
         Self {
-            zoned: zoned_datetime,
+            zoned: obj,
             smallest: smallest.map(|unit| unit.0),
             largest: largest.map(|unit| unit.0),
             mode,
