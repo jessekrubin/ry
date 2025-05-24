@@ -162,7 +162,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0044-unreleased"><a class="header" href="#v0044-unreleased">v0.0.44 [unreleased]</a></h2>
+<h2 id="v0044-2025-05-23"><a class="header" href="#v0044-2025-05-23">v0.0.44 [2025-05-23]</a></h2>
 <ul>
 <li>internal:
 <ul>
@@ -184,6 +184,17 @@
 <li><code>ryo3-jiff</code>
 <ul>
 <li>serde serialization features/support</li>
+<li><code>ry.ZonedDateTime.replace</code> method mirroring <code>ZonedWith</code> – <code>with</code> is a
+python keyword, so used <code>replace</code> instead</li>
+<li>example script based on jiff-docs examples</li>
+<li><code>test_jiff_examples_v2.py</code> test script (basis for example script)
+<ul>
+<li>Was tired/fried so I copy-pasta-ed the <code>ry/ryo3/_jiff.pyi</code> type
+annotations, the jiff-v2-docs-examples, and the jiff-v1-hand-translated
+<code>test_jiff_examples_v1.py</code> file into Chad-Gippity who was able to do most
+of the translation from <code>rust</code> to <code>ry</code>…</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><code>ryo3-xxhash</code>
@@ -203,12 +214,14 @@
 <li>fix: anyio marker flat issue in pytests for cicd</li>
 <li><code>ryo3-uuid</code>
 <ul>
-<li>added <code>uuid</code> wrapper for <code>uuid</code> crate; ty to the maintainers of <code>uuid-utils</code> and <code>fastuuid</code> for helping figure out some of the nitty gritty bits and bobs</li>
+<li>added <code>uuid</code> wrapper for <code>uuid</code> crate; ty to the maintainers of <code>uuid-utils</code>
+and <code>fastuuid</code> for helping figure out some of the nitty gritty bits and bobs</li>
 </ul>
 </li>
 <li><code>ryo3-tokio</code>
 <ul>
-<li><code>AsyncFile</code> and <code>aiopen</code> experiment(s) added for async file reading/writing etc</li>
+<li><code>AsyncFile</code> and <code>aiopen</code> experiment(s) added for async file reading/writing
+etc</li>
 </ul>
 </li>
 </ul>

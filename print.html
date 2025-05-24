@@ -159,7 +159,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-05-22T21:42:09.483078742+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-05-24T03:36:44.413494726+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -203,8 +203,7 @@ parsing and formatting, with <code>datetime</code> interop and much more</p>
 Python-native behavior with minimal friction.</p>
 </li>
 <li>
-<p><strong>Type Annotated</strong> Type annotations for all public APIs, with <code>mypy</code>
-support.</p>
+<p><strong>Type Annotated</strong> Type annotations for all public APIs, with <code>mypy</code> support.</p>
 </li>
 </ul>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
@@ -432,7 +431,7 @@ of tasks)</li>
 <p>If you want to be added to this list, please open an issue or PR! Happy to add
 you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0044-unreleased"><a class="header" href="#v0044-unreleased">v0.0.44 [unreleased]</a></h2>
+<h2 id="v0044-2025-05-23"><a class="header" href="#v0044-2025-05-23">v0.0.44 [2025-05-23]</a></h2>
 <ul>
 <li>internal:
 <ul>
@@ -454,6 +453,17 @@ you if you’ve helped in any way!</p>
 <li><code>ryo3-jiff</code>
 <ul>
 <li>serde serialization features/support</li>
+<li><code>ry.ZonedDateTime.replace</code> method mirroring <code>ZonedWith</code> – <code>with</code> is a
+python keyword, so used <code>replace</code> instead</li>
+<li>example script based on jiff-docs examples</li>
+<li><code>test_jiff_examples_v2.py</code> test script (basis for example script)
+<ul>
+<li>Was tired/fried so I copy-pasta-ed the <code>ry/ryo3/_jiff.pyi</code> type
+annotations, the jiff-v2-docs-examples, and the jiff-v1-hand-translated
+<code>test_jiff_examples_v1.py</code> file into Chad-Gippity who was able to do most
+of the translation from <code>rust</code> to <code>ry</code>…</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><code>ryo3-xxhash</code>
@@ -473,12 +483,14 @@ you if you’ve helped in any way!</p>
 <li>fix: anyio marker flat issue in pytests for cicd</li>
 <li><code>ryo3-uuid</code>
 <ul>
-<li>added <code>uuid</code> wrapper for <code>uuid</code> crate; ty to the maintainers of <code>uuid-utils</code> and <code>fastuuid</code> for helping figure out some of the nitty gritty bits and bobs</li>
+<li>added <code>uuid</code> wrapper for <code>uuid</code> crate; ty to the maintainers of <code>uuid-utils</code>
+and <code>fastuuid</code> for helping figure out some of the nitty gritty bits and bobs</li>
 </ul>
 </li>
 <li><code>ryo3-tokio</code>
 <ul>
-<li><code>AsyncFile</code> and <code>aiopen</code> experiment(s) added for async file reading/writing etc</li>
+<li><code>AsyncFile</code> and <code>aiopen</code> experiment(s) added for async file reading/writing
+etc</li>
 </ul>
 </li>
 </ul>
@@ -1302,15 +1314,7 @@ problem (aka batman) w/ traits</li>
 </ul>
 </li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="examples"><a class="header" href="#examples">Examples</a></h1>
-<h2 id="table-of-contents"><a class="header" href="#table-of-contents">Table of Contents</a></h2>
-<ul>
-<li><a href="examples.html#fspath">fspath</a></li>
-<li><a href="examples.html#http_fetch">http_fetch</a></li>
-<li><a href="examples.html#walking">walking</a></li>
-</ul>
-<hr />
-<h1 id="fspath"><a class="header" href="#fspath">fspath</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fspath"><a class="header" href="#fspath">fspath</a></h1>
 <pre><code class="language-python">import ry
 
 # get current directory
@@ -1457,6 +1461,173 @@ if __name__ == "__main__":
         server.shutdown()
 
 </code></pre>
+<h1 id="jiff_examples"><a class="header" href="#jiff_examples">jiff_examples</a></h1>
+<pre><code class="language-python">"""Jiff examples (v2)
+
+Translated jiff-examples from jiff-v2's docs
+
+REF: https://docs.rs/jiff/latest/jiff/#examples
+DATE: 2025-05-23
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+
+import ry
+
+
+def test_get_current_time_in_system_tz() -&gt; None:
+    now = ry.ZonedDateTime.now()
+    assert isinstance(now, ry.ZonedDateTime)
+    assert now.tz.name
+
+
+def test_print_current_time_rounded_to_second() -&gt; None:
+    rounded = ry.ZonedDateTime.now().round("second")
+    # nanoseconds should be zero after rounding to second
+    assert rounded.nanosecond == 0
+
+
+def test_print_todays_date_at_specific_time() -&gt; None:
+    zdt = ry.ZonedDateTime.now().replace(
+        hour=14, minute=0, second=0, nanosecond=0
+    )
+    assert zdt.hour == 14 and zdt.minute == 0 and zdt.second == 0
+    assert zdt.nanosecond == 0
+
+
+def test_print_current_unix_timestamp() -&gt; None:
+    ts = ry.Timestamp.now()
+    sec = ts.as_second()
+    ns = ts.as_nanosecond()
+    assert isinstance(sec, int) and sec &gt; 1_600_000_000
+    # nanosecond count divided by 1e9 should equal seconds
+    assert ns // 1_000_000_000 == sec
+
+
+def test_print_datetime_for_a_timestamp() -&gt; None:
+    ts = ry.Timestamp.from_millisecond(1_720_646_365_567)
+    zdt = ts.to_zoned(ry.TimeZone("America/New_York"))
+    assert zdt.string() == "2024-07-10T17:19:25.567-04:00[America/New_York]"
+    assert ts.string() == "2024-07-10T21:19:25.567Z"
+
+
+def test_create_zoned_datetime_from_civil_time() -&gt; None:
+    zdt = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
+    assert zdt.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+
+
+def test_change_an_instant_from_one_timezone_to_another() -&gt; None:
+    paris = ry.date(1918, 11, 11).at(11, 0, 0, 0).in_tz("Europe/Paris")
+    nyc = paris.in_tz("America/New_York")
+    assert nyc.string() == "1918-11-11T06:00:00-05:00[America/New_York]"
+
+
+def test_find_duration_between_two_zoned_datetimes() -&gt; None:
+    a = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+    b = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
+    span = b - a
+    assert str(span) == "PT29341H3M"
+    # until: specify largest unit via helper
+    span2 = a.until(b, largest="year")
+    assert str(span2) == "P3Y4M5DT12H3M"
+
+
+def test_add_duration_to_a_zoned_datetime() -&gt; None:
+    start = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+    span = ry.TimeSpan()._years(3)._months(4)._days(5)._hours(12)._minutes(3)
+    finish = start.checked_add(span)
+    assert finish.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+
+
+def test_dealing_with_ambiguity() -&gt; None:
+    gap = ry.date(2024, 3, 10).at(2, 30, 0, 0).in_tz("America/New_York")
+    assert gap.string() == "2024-03-10T03:30:00-04:00[America/New_York]"
+
+    fold = ry.date(2024, 11, 3).at(1, 30, 0, 0).in_tz("America/New_York")
+    assert fold.string() == "2024-11-03T01:30:00-04:00[America/New_York]"
+
+
+def test_parsing_a_span() -&gt; None:
+    iso = ry.TimeSpan.parse("P5y1w10dT5h59m")
+    expected = (
+        ry.TimeSpan()._years(5)._weeks(1)._days(10)._hours(5)._minutes(59)
+    )
+    assert iso == expected
+    assert str(iso) == "P5Y1W10DT5H59M"
+
+    friendly = ry.TimeSpan.parse(
+        "5 years, 1 week, 10 days, 5 hours, 59 minutes"
+    )
+    assert iso == friendly
+    assert friendly.string(human=True) == "5y 1w 10d 5h 59m"
+    assert str(friendly) == "P5Y1W10DT5H59M"
+
+
+def test_parsing_an_rfc2822_datetime_string() -&gt; None:
+    base = ry.ZonedDateTime.parse_rfc2822("Thu, 29 Feb 2024 05:34 -0500")
+    tas = base.in_tz("Australia/Tasmania")
+    kol = base.in_tz("Asia/Kolkata")
+    assert tas.format_rfc2822() == "Thu, 29 Feb 2024 21:34:00 +1100"
+    assert kol.format_rfc2822() == "Thu, 29 Feb 2024 16:04:00 +0530"
+
+
+def test_using_strftime_and_strptime() -&gt; None:
+    zdt = ry.ZonedDateTime.strptime(
+        "%A, %B %d, %Y at %I:%M%p %Q",
+        "Monday, July 15, 2024 at 5:30pm US/Eastern",
+    )
+    assert zdt.string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
+
+    tas = ry.date(2024, 7, 15).at(17, 30, 59, 0).in_tz("Australia/Tasmania")
+    formatted = tas.strftime("%A, %B %d, %Y at %-I:%M%P %Q")
+    assert formatted == "Monday, July 15, 2024 at 5:30pm Australia/Tasmania"
+
+
+@dataclass
+class Record:
+    timestamp: ry.Timestamp
+
+    def to_json(self) -&gt; str:
+        return json.dumps({"timestamp": self.timestamp.as_second()})
+
+    @classmethod
+    def from_json(cls, raw: str) -&gt; Record:
+        data = json.loads(raw)
+        return cls(timestamp=ry.Timestamp.from_second(data["timestamp"]))
+
+
+def test_serializing_and_deserializing_integer_timestamps() -&gt; None:
+    src = Record(timestamp=ry.Timestamp.from_second(1_517_644_800))
+    wire = src.to_json()
+    got = Record.from_json(wire)
+    assert got.timestamp == src.timestamp
+    assert wire == '{"timestamp": 1517644800}'
+
+
+def main() -&gt; None:
+    test_get_current_time_in_system_tz()
+    test_print_current_time_rounded_to_second()
+    test_print_todays_date_at_specific_time()
+    test_print_current_unix_timestamp()
+    test_print_datetime_for_a_timestamp()
+    test_create_zoned_datetime_from_civil_time()
+    test_change_an_instant_from_one_timezone_to_another()
+    test_find_duration_between_two_zoned_datetimes()
+    test_add_duration_to_a_zoned_datetime()
+    test_dealing_with_ambiguity()
+    test_parsing_a_span()
+    test_parsing_an_rfc2822_datetime_string()
+    test_using_strftime_and_strptime()
+    test_serializing_and_deserializing_integer_timestamps()
+
+
+if __name__ == "__main__":
+    main()
+
+</code></pre>
 <h1 id="walking"><a class="header" href="#walking">walking</a></h1>
 <pre><code class="language-python">"""
 ry.walkdir example
@@ -1518,7 +1689,7 @@ if __name__ == "__main__":
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
-<h2 id="table-of-contents-1"><a class="header" href="#table-of-contents-1">Table of Contents</a></h2>
+<h2 id="table-of-contents"><a class="header" href="#table-of-contents">Table of Contents</a></h2>
 <ul>
 <li><a href="api.html#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></li>
 <li><a href="api.html#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></li>
@@ -2928,6 +3099,7 @@ class DateTimeDifference:
 class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     def __init__(self, name: str) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
+    def __call__(self) -&gt; te.Self: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -3473,6 +3645,8 @@ class ZonedDateTime(
     def parse(cls: type[ZonedDateTime], s: str) -&gt; ZonedDateTime: ...
     @classmethod
     def from_rfc2822(cls: type[ZonedDateTime], s: str) -&gt; ZonedDateTime: ...
+    @classmethod
+    def parse_rfc2822(cls: type[ZonedDateTime], s: str) -&gt; ZonedDateTime: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -3508,11 +3682,17 @@ class ZonedDateTime(
     def subsec_nanosecond(self) -&gt; int: ...
     @property
     def weekday(self) -&gt; int: ...
+    @property
+    def timezone(self) -&gt; TimeZone: ...
+    @property
+    def tz(self) -&gt; TimeZone: ...
 
     # =========================================================================
-    # STRING
+    # STRING/FORMAT
     # =========================================================================
     def string(self) -&gt; str: ...
+    def to_rfc2822(self) -&gt; str: ...
+    def format_rfc2822(self) -&gt; str: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -3580,6 +3760,29 @@ class ZonedDateTime(
     def nth_weekday(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
     def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -&gt; Date: ...
     def offset(self) -&gt; Offset: ...
+    def replace(
+        self,
+        obj: Date | DateTime | Offset | None = None,
+        *,
+        date: Date | None = None,
+        time: Time | None = None,
+        year: int | None = None,
+        era_year: tuple[int, t.Literal["BCE", "CE"]] | None = None,
+        month: int | None = None,
+        day: int | None = None,
+        day_of_year: int | None = None,
+        day_of_year_no_leap: int | None = None,
+        hour: int | None = None,
+        minute: int | None = None,
+        second: int | None = None,
+        millisecond: int | None = None,
+        microsecond: int | None = None,
+        nanosecond: int | None = None,
+        subsec_nanosecond: int | None = None,
+        offset: Offset | None = None,
+        offset_conflict: t.Any = None,
+        disambiguation: t.Any = None,
+    ) -&gt; ZonedDateTime: ...
     def round(
         self,
         smallest: JIFF_UNIT | None = None,
@@ -3599,14 +3802,10 @@ class ZonedDateTime(
     ) -&gt; te.Self: ...
     def start_of_day(self) -&gt; ZonedDateTime: ...
     def time(self) -&gt; Time: ...
-    def time_zone(self) -&gt; TimeZone: ...
     def timestamp(self) -&gt; Timestamp: ...
-    def timezone(self) -&gt; TimeZone: ...
-    def to_rfc2822(self) -&gt; str: ...
     def tomorrow(self) -&gt; ZonedDateTime: ...
     def with_time_zone(self, tz: TimeZone) -&gt; ZonedDateTime: ...
     def yesterday(self) -&gt; ZonedDateTime: ...
-
     # =========================================================================
     # SINCE/UNTIL
     # =========================================================================
