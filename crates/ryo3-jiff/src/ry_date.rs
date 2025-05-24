@@ -94,13 +94,14 @@ impl RyDate {
         self.0.hash(&mut hasher);
         hasher.finish()
     }
+
     fn to_datetime(&self, time: &RyTime) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(time.0))
     }
 
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
-            .to_zoned(tz.0)
+            .to_zoned(tz.into())
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }

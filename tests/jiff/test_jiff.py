@@ -123,7 +123,7 @@ def test_zoned() -> None:
     assert zdt.string() == "2020-08-26T06:27:00-04:00[America/New_York]"
 
     zdt_fields = {
-        "tz": str(zdt.timezone()),
+        "tz": str(zdt.timezone),
         "year": zdt.year,
         "month": zdt.month,
         "day": zdt.day,

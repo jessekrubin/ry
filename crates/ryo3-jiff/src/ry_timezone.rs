@@ -14,17 +14,29 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", module = "ry.ryo3", frozen)]
-pub struct RyTimeZone(pub(crate) TimeZone);
+pub struct RyTimeZone(pub(crate) std::sync::Arc<TimeZone>);
 
 impl From<TimeZone> for RyTimeZone {
     fn from(value: TimeZone) -> Self {
-        RyTimeZone(value)
+        RyTimeZone(std::sync::Arc::new(value))
     }
 }
 
 impl From<&TimeZone> for RyTimeZone {
     fn from(value: &TimeZone) -> Self {
-        RyTimeZone(value.clone())
+        RyTimeZone(std::sync::Arc::new(value.clone()))
+    }
+}
+
+impl From<RyTimeZone> for TimeZone {
+    fn from(value: RyTimeZone) -> Self {
+        (*value.0).clone()
+    }
+}
+
+impl From<&RyTimeZone> for TimeZone {
+    fn from(value: &RyTimeZone) -> Self {
+        (*value.0).clone()
     }
 }
 
@@ -43,6 +55,10 @@ impl RyTimeZone {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    // =====================================================================
+    // DUNDERS
+    // =====================================================================
+
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,
@@ -50,32 +66,8 @@ impl RyTimeZone {
         )
     }
 
-    #[classmethod]
-    fn utc(_cls: &Bound<'_, PyType>) -> Self {
-        Self::from(TimeZone::fixed(Offset::UTC))
-    }
-
-    #[classmethod]
-    fn try_system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
-        TimeZone::try_system()
-            .map(RyTimeZone::from)
-            .map_err(map_py_value_err)
-    }
-
-    #[classmethod]
-    fn system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
-        TimeZone::try_system()
-            .map(RyTimeZone::from)
-            .map_err(map_py_value_err)
-    }
-
-    fn iana_name(&self) -> Option<&str> {
-        self.0.iana_name()
-    }
-
-    #[getter]
-    fn name(&self) -> Option<&str> {
-        self.iana_name()
+    fn __call__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
     }
 
     fn __repr__(&self) -> String {
@@ -116,18 +108,6 @@ impl RyTimeZone {
         hasher.finish()
     }
 
-    fn to_fixed_offset(&self) -> PyResult<RyOffset> {
-        self.0
-            .to_fixed_offset()
-            .map(RyOffset::from)
-            .map_err(map_py_value_err)
-    }
-
-    #[getter]
-    fn is_unknown(&self) -> bool {
-        self.0.is_unknown()
-    }
-
     fn __eq__(&self, other: TimeZoneEquality) -> bool {
         match other {
             TimeZoneEquality::TimeZone(other) => {
@@ -136,6 +116,10 @@ impl RyTimeZone {
             TimeZoneEquality::Str(other) => self.0.iana_name() == Some(other.as_str()),
         }
     }
+
+    // =====================================================================
+    // PY-CONVERSIONS
+    // =====================================================================
 
     fn to_py(&self) -> &TimeZone {
         &self.0
@@ -178,6 +162,29 @@ impl RyTimeZone {
             .map_err(map_py_value_err)
     }
 
+    #[classmethod]
+    fn utc(_cls: &Bound<'_, PyType>) -> Self {
+        Self::from(TimeZone::fixed(Offset::UTC))
+    }
+
+    #[classmethod]
+    fn try_system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        TimeZone::try_system()
+            .map(RyTimeZone::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[classmethod]
+    fn system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        TimeZone::try_system()
+            .map(RyTimeZone::from)
+            .map_err(map_py_value_err)
+    }
+
+    // =====================================================================
+    // INSTANCE METHODS
+    // =====================================================================
+
     fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
@@ -201,6 +208,31 @@ impl RyTimeZone {
             .to_zoned(datetime.0)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
+    }
+
+    fn iana_name(&self) -> Option<&str> {
+        self.0.iana_name()
+    }
+
+    fn to_fixed_offset(&self) -> PyResult<RyOffset> {
+        self.0
+            .to_fixed_offset()
+            .map(RyOffset::from)
+            .map_err(map_py_value_err)
+    }
+
+    // =====================================================================
+    // PROPERTIES
+    // =====================================================================
+
+    #[getter]
+    fn name(&self) -> Option<&str> {
+        self.iana_name()
+    }
+
+    #[getter]
+    fn is_unknown(&self) -> bool {
+        self.0.is_unknown()
     }
 
     // ===============

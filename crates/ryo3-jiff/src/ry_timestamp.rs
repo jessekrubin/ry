@@ -82,8 +82,8 @@ impl RyTimestamp {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn to_zoned(&self, time_zone: RyTimeZone) -> RyZoned {
-        RyZoned::from(Zoned::new(self.0, time_zone.0))
+    fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZoned {
+        RyZoned::from(Zoned::new(self.0, time_zone.into()))
     }
 
     #[classmethod]

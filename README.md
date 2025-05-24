@@ -38,8 +38,7 @@ ergonomic.
 - **Designed for ergonomics** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
 
-- **Type Annotated** Type annotations for all public APIs, with `mypy`
-  support.
+- **Type Annotated** Type annotations for all public APIs, with `mypy` support.
 
 ## Install
 

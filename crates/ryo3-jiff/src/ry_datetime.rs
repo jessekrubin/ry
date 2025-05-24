@@ -330,7 +330,7 @@ impl RyDateTime {
 
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
-            .to_zoned(tz.0)
+            .to_zoned(tz.into())
             .map(RyZoned::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
