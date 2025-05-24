@@ -12,9 +12,16 @@
   - reqwest-request functions use `TypedDict` and `Unpack`
 - `ryo3-jiff`
   - serde serialization features/support
+  - `ry.ZonedDateTime.replace` method mirroring `ZonedWith` -- `with` is a
+    python keyword, so used `replace` instead
+  - example script based on jiff-docs examples
+  - `test_jiff_examples_v2.py` test script (basis for example script)
+    - Was tired/fried so I copy-pasta-ed the `ry/ryo3/_jiff.pyi` type
+      annotations, the jiff-v2-docs-examples, and the jiff-v1-hand-translated
+      `test_jiff_examples_v1.py` file into Chad-Gippity who was able to do most
+      of the translation from `rust` to `ry`...
 - `ryo3-xxhash`
   - Align with `xxhash` pypi library w/ respect to naming conventions
-
 
 ---
 
@@ -24,9 +31,11 @@
   - panic-able functions to create new/altered (time)spans moved to use `try_*`
 - fix: anyio marker flat issue in pytests for cicd
 - `ryo3-uuid`
-  - added `uuid` wrapper for `uuid` crate; ty to the maintainers of `uuid-utils` and `fastuuid` for helping figure out some of the nitty gritty bits and bobs
+  - added `uuid` wrapper for `uuid` crate; ty to the maintainers of `uuid-utils`
+    and `fastuuid` for helping figure out some of the nitty gritty bits and bobs
 - `ryo3-tokio`
-  - `AsyncFile` and `aiopen` experiment(s) added for async file reading/writing etc
+  - `AsyncFile` and `aiopen` experiment(s) added for async file reading/writing
+    etc
 
 ---
 
