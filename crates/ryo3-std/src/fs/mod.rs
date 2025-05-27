@@ -1,5 +1,5 @@
 mod file_read_stream;
-use crate::fs::file_read_stream::{FileReadStream, PyFileReadStream};
+use crate::fs::file_read_stream::PyFileReadStream;
 use pyo3::exceptions::{
     PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError, PyValueError,
 };
@@ -240,27 +240,14 @@ impl PyDirEntry {
 // ============================================================================
 
 #[pyfunction]
-#[pyo3(signature = (pth, chunk_size = 65536, *, offset = 0))]
-#[expect(clippy::needless_pass_by_value)]
-pub fn read_stream(pth: PathLike, chunk_size: usize, offset: u64) -> PyResult<PyFileReadStream> {
-    if chunk_size == 0 {
-        return Err(PyValueError::new_err("chunk_size must be greater than 0"));
-    }
-    let pth = pth.as_ref();
-    let file_read_stream_res = FileReadStream::new_with_offset(pth, chunk_size, offset);
-    match file_read_stream_res {
-        Ok(file_read_stream) => Ok(PyFileReadStream::from(file_read_stream)),
-        Err(e) => {
-            if pth.is_dir() {
-                let pth_str = pth.to_string_lossy();
-                Err(PyIsADirectoryError::new_err(format!(
-                    "read_stream - parent: {pth_str} - {e}"
-                )))
-            } else {
-                Err(e.into())
-            }
-        }
-    }
+#[pyo3(signature = (pth, *, chunk_size = None, offset = 0, buffered = true))]
+pub fn read_stream(
+    pth: PathBuf,
+    chunk_size: Option<usize>,
+    offset: u64,
+    buffered: bool,
+) -> PyResult<PyFileReadStream> {
+    PyFileReadStream::py_new(pth, chunk_size, offset, buffered)
 }
 
 #[pyfunction]
@@ -278,9 +265,8 @@ pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
 #[pyfunction]
 pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
     let fbytes = std::fs::read(s)?;
-    let r = std::str::from_utf8(&fbytes);
-    match r {
-        Ok(s) => Ok(s.to_string()),
+    match std::str::from_utf8(&fbytes).map(ToString::to_string) {
+        Ok(s) => Ok(s),
         Err(e) => {
             let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
             Err(decode_err.into())
@@ -398,7 +384,7 @@ pub fn read_dir(pth: PathLike) -> PyResult<PyReadDir> {
             if pth.is_dir() {
                 let pth_str = pth.to_string_lossy();
                 Err(PyIsADirectoryError::new_err(format!(
-                    "read_stream - parent: {pth_str} - {e}"
+                    "read_dir - parent: {pth_str} - {e}"
                 )))
             } else {
                 Err(e.into())
@@ -469,6 +455,7 @@ impl PyReadDir {
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
+    m.add_class::<PyFileReadStream>()?;
     m.add_function(wrap_pyfunction!(canonicalize, m)?)?;
     m.add_function(wrap_pyfunction!(copy, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir, m)?)?;

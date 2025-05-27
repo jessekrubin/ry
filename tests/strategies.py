@@ -1,6 +1,9 @@
-from typing import Final
+from __future__ import annotations
+
+from typing import Any, Final
 
 from hypothesis import strategies as st
+from hypothesis.strategies import SearchStrategy
 
 # unsigned ──────────────────────────────────────────────────────────
 MIN_U8: Final = 0
@@ -48,3 +51,19 @@ st_i16 = st.integers(min_value=MIN_I16, max_value=MAX_I16)
 st_i32 = st.integers(min_value=MIN_I32, max_value=MAX_I32)
 st_i64 = st.integers(min_value=MIN_I64, max_value=MAX_I64)
 st_i128 = st.integers(min_value=MIN_I128, max_value=MAX_I128)
+
+
+def st_json(
+    *, finite_only: bool = True
+) -> SearchStrategy[list[Any] | dict[str, Any] | bool | int | float | str | None]:
+    """Helper function to describe JSON objects, with optional inf and nan.
+
+    Taken from hypothesis docs
+
+    REF: https://hypothesis.readthedocs.io/en/latest/tutorial/custom-strategies.html#writing-helper-functions
+    """
+    numbers = st.floats(allow_infinity=not finite_only, allow_nan=not finite_only)
+    return st.recursive(
+        st.none() | st.booleans() | st.integers() | numbers | st.text(),
+        extend=lambda xs: st.lists(xs) | st.dictionaries(st.text(), xs),
+    )
