@@ -4,6 +4,9 @@
 
 - `ryo3-std`
   - Buffering for `FileReadStream`
+- `ryo3-jiter`
+  - Add function `parse_jsonl` for parsing json lines
+  - Add `lines` kwarg to `read_json` for parsing/reading json lines
 
 ___
 
