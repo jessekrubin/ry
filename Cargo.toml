@@ -185,7 +185,7 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "default"] }
 unindent = "0.2.4"
 url = { version = "2.5.4", features = ["serde"] }
-uuid = { version = "1.16.0", features = ["v4", "v8"] }
+uuid = { version = "1.17.0", features = ["v4", "v8"] }
 walkdir = "2.5.0"
 which = { version = "7.0.3", features = [] }
 xxhash-rust = { version = "0.8.15", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
