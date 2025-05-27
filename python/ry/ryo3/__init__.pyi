@@ -96,6 +96,7 @@ from ._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
 from ._sqlformat import sqlfmt as sqlfmt
 from ._sqlformat import sqlfmt_params as sqlfmt_params
 from ._std import Duration as Duration
+from ._std import FileReadStream as FileReadStream
 from ._std import FileType as FileType
 from ._std import Instant as Instant
 from ._std import IpAddr as IpAddr
