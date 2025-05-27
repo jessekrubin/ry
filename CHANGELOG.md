@@ -2,6 +2,9 @@
 
 ## v0.0.45 [unreleased]
 
+- `ryo3-std`
+  - Buffering for `FileReadStream`
+
 ___
 
 ## v0.0.44 [2025-05-23]
