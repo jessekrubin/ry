@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -70,29 +72,43 @@ def test_parse_from_bytesio() -> None:
     ]
 
 
-# def test_parse_json_lines():
-#     data = [
-#         {
-#             "a": ix,
-#             "b": ix * 2,
-#             "c": ix * 3,
-#             "d": {
-#                 "deee": "d" * ix,
-#             },
-#         }
-#         for ix in range(10)
-#     ]
-#     print(data)
-#     json_lines_str = "\n".join(
-#         [
-#             json.dumps(
-#                 item,
-#                 separators=(",", ":"),
-#             )
-#             for item in data
-#         ]
-#     )
-#     print(json_lines_str)
-#     parse_json_l = ry.parse_jsonl(json_lines_str)
-#     print(parse_json_l)
-#     assert False
+def _stringify(data: Any) -> str:
+    return json.dumps(
+        data,
+        separators=(",", ":"),
+    )
+
+
+def _json_lines_data() -> tuple[list[dict[str, Any]], str]:
+    data = [
+        {
+            "a": ix,
+            "b": ix * 2,
+            "c": ix * 3,
+            "d": {
+                "deee": "d" * ix,
+            },
+        }
+        for ix in range(10)
+    ]
+    lines_str = "\n".join(
+        map(
+            _stringify,
+            data,
+        )
+    )
+    return data, lines_str
+
+
+def test_read_jsonl(tmp_path: Path) -> None:
+    data, json_lines_str = _json_lines_data()
+    with open(tmp_path / "test.jsonl", "w") as f:
+        f.write(json_lines_str)
+    parse_json_l = ry.read_json(tmp_path / "test.jsonl", lines=True)
+    assert parse_json_l == data
+
+
+def test_parse_json_lines() -> None:
+    data, json_lines_str = _json_lines_data()
+    parse_json_l = ry.parse_jsonl(json_lines_str)
+    assert parse_json_l == data

@@ -32,6 +32,11 @@ def parse_json(
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
+def parse_jsonl(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> list[JsonValue]: ...
 def parse_json_bytes(
     data: bytes,
     /,
@@ -40,6 +45,7 @@ def parse_json_bytes(
 def read_json(
     p: str | PathLike[str],
     /,
+    lines: bool = False,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
