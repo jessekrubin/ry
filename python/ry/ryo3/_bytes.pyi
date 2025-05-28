@@ -123,6 +123,12 @@ class Bytes(Buffer):
     # IMPL IN RY
     # =========================================================================
 
+    def istitle(self) -> bool:
+        """
+        Return `True` if the sequence is non-empty and contains only ASCII letters,
+        digits, underscores, and hyphens, and starts with an ASCII letter or underscore.
+        Otherwise, return `False`.
+        """
     def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
         """Decode the binary data using the given encoding."""
 

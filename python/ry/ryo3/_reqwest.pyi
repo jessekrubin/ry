@@ -69,6 +69,13 @@ class HttpClient:
         method: str = "GET",
         **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
+    async def __call__(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: te.Unpack[RequestKwargs],
+    ) -> Response: ...
 
 class ReqwestError(Exception):
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...

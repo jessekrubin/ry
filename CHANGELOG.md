@@ -7,7 +7,24 @@
 - `ryo3-jiter`
   - Add function `parse_jsonl` for parsing json lines
   - Add `lines` kwarg to `read_json` for parsing/reading json lines
+- `ryo3-jiff`
+  - `ZonedDateTime.__new__` takes more python-datetime like args/kwargs, old version of constructor moved to classmethod `ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -> ZonedDateTime`
+  - `zoned` top level function
+    - if `tz` is `None` then it uses the system timezone
+    - SIGNATURE
 
+    ```python
+    def zoned(
+        year: int,
+        month: int,
+        day: int,
+        hour: int = 0,
+        minute: int = 0,
+        second: int = 0,
+        nanosecond: int = 0,
+        tz: str | None = None,
+    ) -> ZonedDateTime: ...
+    ```
 ___
 
 ## v0.0.44 [2025-05-23]

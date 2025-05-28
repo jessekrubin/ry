@@ -18,6 +18,7 @@ pub mod pydatetime_conversions;
 mod dev;
 
 mod api;
+mod constants;
 mod delta_arithmetic_self;
 mod deprecations;
 mod errors;

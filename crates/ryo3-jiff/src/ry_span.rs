@@ -1,3 +1,4 @@
+use crate::constants::SPAN_PARSER;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
@@ -5,7 +6,6 @@ use crate::span_relative_to::RySpanRelativeTo;
 use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
-
 use pyo3::types::{PyDelta, PyDict, PyTuple, PyType};
 use pyo3::{intern, IntoPyObjectExt};
 use std::fmt::Display;
@@ -134,6 +134,14 @@ impl RySpan {
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         let jiff_span = JiffSpan(self.0);
         jiff_span.into_pyobject(py)
+    }
+
+    #[classmethod]
+    fn parse_common_iso(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        SPAN_PARSER
+            .parse_span(s)
+            .map(RySpan::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]

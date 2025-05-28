@@ -1,10 +1,15 @@
-use crate::ry_date::RyDate;
-use crate::ry_datetime::RyDateTime;
-use crate::ry_offset::RyOffset;
-use crate::ry_span::RySpan;
-use crate::ry_time::RyTime;
+use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::RyZoned;
+use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime};
+use jiff::civil::Date;
 use jiff::Span;
 use pyo3::prelude::*;
+
+#[pyfunction]
+#[must_use]
+pub fn offset(hours: i8) -> RyOffset {
+    RyOffset::from(jiff::tz::offset(hours))
+}
 
 #[pyfunction]
 pub fn date(year: i16, month: i8, day: i8) -> PyResult<RyDate> {
@@ -23,7 +28,74 @@ pub fn time(
 }
 
 #[pyfunction]
-#[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
+#[pyo3(signature = (year, month, day, hour=0, minute=0, second=0, nanosecond=0, tz=None))]
+#[expect(clippy::too_many_arguments)]
+pub fn zoned(
+    year: i16,
+    month: i8,
+    day: i8,
+    hour: i8,
+    minute: i8,
+    second: i8,
+    nanosecond: i32,
+    tz: Option<&str>,
+) -> PyResult<RyZoned> {
+    if let Some(tz) = tz {
+        // let a =
+        Date::new(year, month, day)
+            .map_err(map_py_value_err)?
+            .at(hour, minute, second, nanosecond)
+            .in_tz(tz)
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    } else {
+        let tz_system = jiff::tz::TimeZone::try_system().map_err(map_py_value_err)?;
+        Date::new(year, month, day)
+            .map_err(map_py_value_err)?
+            .at(hour, minute, second, nanosecond)
+            .to_zoned(tz_system)
+            .map(RyZoned::from)
+            .map_err(map_py_value_err)
+    }
+}
+
+// #[pyfunction]
+// #[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, nanosecond=0, tz=None))]
+// pub fn datetime<'py>(
+//     py: Python<'_>,
+//     year: i16,
+//     month: i8,
+//     day: i8,
+//     hour: i8,
+//     minute: i8,
+//     second: i8,
+//     nanosecond: i32,
+//     tz: Option<&str>,
+// ) -> PyResult<PyObject> {
+//     if let Some(tz) = tz {
+//         let zdt = Date::new(year, month, day)
+//             .and_then(|date| Ok(date.at(hour, minute, second, nanosecond)))
+//             .and_then(|date_time| date_time.in_tz(tz))
+//             .map(RyZoned::from)
+//             .map(|zdt| zdt.into_py_any(py))
+//             .map_err(map_py_value_err)?;
+//         zdt
+//     } else {
+//         RyDateTime::py_new(
+//             year,
+//             month,
+//             day,
+//             Some(hour),
+//             Some(minute),
+//             Some(second),
+//             Some(nanosecond),
+//         )?
+//         .into_py_any(py)
+//     }
+// }
+
+#[pyfunction]
+#[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, nanosecond=0))]
 pub fn datetime(
     year: i16,
     month: i8,
@@ -31,7 +103,7 @@ pub fn datetime(
     hour: i8,
     minute: i8,
     second: i8,
-    subsec_nanosecond: i32,
+    nanosecond: i32,
 ) -> PyResult<RyDateTime> {
     RyDateTime::py_new(
         year,
@@ -40,7 +112,7 @@ pub fn datetime(
         Some(hour),
         Some(minute),
         Some(second),
-        Some(subsec_nanosecond),
+        Some(nanosecond),
     )
 }
 
@@ -90,10 +162,4 @@ pub fn timespan(
     let span = apply_if_nonzero(span, nanoseconds, Span::try_nanoseconds, "nanoseconds")?;
 
     Ok(RySpan::from(span))
-}
-
-#[pyfunction]
-#[must_use]
-pub fn offset(hours: i8) -> RyOffset {
-    RyOffset::from(jiff::tz::offset(hours))
 }

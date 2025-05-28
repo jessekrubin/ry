@@ -34,18 +34,48 @@ pub struct RyZoned(pub(crate) Zoned);
 #[pymethods]
 impl RyZoned {
     #[new]
-    #[pyo3(signature = (timestamp, time_zone))]
-    fn py_new(timestamp: &RyTimestamp, time_zone: &RyTimeZone) -> Self {
-        let ts = timestamp.0;
-        RyZoned::from(Zoned::new(ts, time_zone.into()))
+    #[pyo3(signature = (year, month, day, hour=0, minute=0, second=0, nanosecond=0, tz=None))]
+    fn py_new(
+        year: i16,
+        month: i8,
+        day: i8,
+        hour: i8,
+        minute: i8,
+        second: i8,
+        nanosecond: i32,
+        tz: Option<&str>,
+    ) -> PyResult<Self> {
+        if let Some(tz) = tz {
+            // let a =
+            Date::new(year, month, day)
+                .map_err(map_py_value_err)?
+                .at(hour, minute, second, nanosecond)
+                .in_tz(tz)
+                .map(RyZoned::from)
+                .map_err(map_py_value_err)
+        } else {
+            let tz_system = jiff::tz::TimeZone::try_system().map_err(map_py_value_err)?;
+            Date::new(year, month, day)
+                .map_err(map_py_value_err)?
+                .at(hour, minute, second, nanosecond)
+                .to_zoned(tz_system)
+                .map(RyZoned::from)
+                .map_err(map_py_value_err)
+        }
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,
             vec![
-                self.timestamp().into_bound_py_any(py)?,
-                self.timezone().into_bound_py_any(py)?,
+                self.year().into_bound_py_any(py)?,
+                self.month().into_bound_py_any(py)?,
+                self.day().into_bound_py_any(py)?,
+                self.hour().into_bound_py_any(py)?,
+                self.minute().into_bound_py_any(py)?,
+                self.second().into_bound_py_any(py)?,
+                self.subsec_nanosecond().into_bound_py_any(py)?,
+                self.0.time_zone().iana_name().into_bound_py_any(py)?,
             ],
         )
     }
@@ -72,10 +102,21 @@ impl RyZoned {
     }
 
     #[classmethod]
+    #[pyo3(signature = (timestamp, time_zone))]
+    fn from_parts(
+        _cls: &Bound<'_, PyType>,
+        timestamp: &RyTimestamp,
+        time_zone: &RyTimeZone,
+    ) -> Self {
+        let ts = timestamp.0;
+        RyZoned::from(Zoned::new(ts, time_zone.into()))
+    }
+
+    #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Zoned::from_str(s)
             .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[classmethod]
