@@ -1,3 +1,4 @@
+use crate::constants::DATETIME_PARSER;
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
@@ -63,6 +64,14 @@ impl RyDate {
     fn today(_cls: &Bound<'_, PyType>) -> Self {
         let z = jiff::civil::Date::from(Zoned::now());
         Self::from(z)
+    }
+
+    #[classmethod]
+    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        DATETIME_PARSER
+            .parse_date(input)
+            .map(RyDate::from)
+            .map_err(map_py_value_err)
     }
 
     pub(crate) fn at(
@@ -258,7 +267,6 @@ impl RyDate {
     //     self.0 = t;
     //     Ok(())
     // }
-
     #[classmethod]
     fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> Self {
         Self(d)

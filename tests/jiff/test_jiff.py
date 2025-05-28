@@ -357,12 +357,6 @@ class TestTimespanFunction:
         with pytest.raises(OverflowError):
             ry.timespan(years=100, days=max_i64)
 
-    def test_timespan_overflow_unchecked(self) -> None:
-        max_i64 = 9_223_372_036_854_775_807
-
-        with pytest.raises((BaseException, Exception)):
-            ry.timespan(years=100, days=max_i64, unchecked=True)
-
 
 class TestTzOffset:
     def test_const_max(self) -> None:
@@ -544,3 +538,46 @@ class TestISOWeekDate:
         iwd1 = ry.ISOWeekDate(2024, 10, 7)
         iwd2 = ry.ISOWeekDate(2024, 10, 6)
         assert hash(iwd1) != hash(iwd2)
+
+
+class TestParse:
+    d = ry.date(2020, 8, 26)
+    dt = ry.date(2020, 8, 26).at(6, 27, 0, 0)
+    t = ry.time(6, 27, 0, 0)
+    zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+
+    def test_parse_date(self) -> None:
+        parsed_date = ry.Date.parse(self.d.string())
+        assert parsed_date == self.d
+
+    def test_parse_datetime(self) -> None:
+        parsed_datetime = ry.DateTime.parse(self.dt.string())
+        assert parsed_datetime == self.dt
+
+    def test_parse_time(self) -> None:
+        parsed_time = ry.Time.parse(self.t.string())
+        assert parsed_time == self.t
+
+    def test_parse_zoned_datetime(self) -> None:
+        parsed_zdt = ry.ZonedDateTime.parse(self.zdt.string())
+        assert parsed_zdt == self.zdt
+        assert parsed_zdt.timezone == self.zdt.timezone
+        assert parsed_zdt.date() == self.zdt.date()
+        assert parsed_zdt.time() == self.zdt.time()
+
+
+class TestJiffFunctions:
+    def test_jiff_date(self) -> None:
+        d = ry.date(2020, 2, 29)
+        assert d == ry.date(2020, 2, 29)
+
+    def test_jiff_datetime(self) -> None:
+        dt = ry.datetime(2020, 2, 29, 12, 30, 45)
+        assert dt == ry.datetime(2020, 2, 29, 12, 30, 45)
+
+    def test_jiff_zoned(self) -> None:
+        zdt = ry.zoned(2020, 2, 29, 12, 30, 45, tz="America/Los_Angeles")
+        assert isinstance(zdt, ry.ZonedDateTime)
+        assert zdt.date() == ry.date(2020, 2, 29)
+        assert zdt.time() == ry.time(12, 30, 45)
+        assert zdt.string() == "2020-02-29T12:30:45-08:00[America/Los_Angeles]"

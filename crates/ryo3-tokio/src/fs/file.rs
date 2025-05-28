@@ -1,4 +1,4 @@
-use pyo3::exceptions::{PyIOError, PyRuntimeError, PyStopAsyncIteration};
+use pyo3::exceptions::{PyIOError, PyNotImplementedError, PyRuntimeError, PyStopAsyncIteration};
 use pyo3::prelude::*;
 
 use pyo3::intern;
@@ -239,16 +239,6 @@ impl PyAsyncFile {
         PyAsyncFile::new(p, mode)
     }
 
-    fn open<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.open().await?;
-            Ok(())
-        })
-    }
-
     /// This is a coroutine that returns `self` when awaited... so you
     /// can `await` to open the file
     fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
@@ -271,21 +261,6 @@ impl PyAsyncFile {
             locked.open().await?;
             Ok(slf)
         })
-    }
-
-    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.close().await?;
-            Ok(())
-        })
-    }
-
-    #[getter]
-    fn closed(&self) -> bool {
-        let locked = self.inner.blocking_lock();
-        locked.is_closed()
     }
 
     #[pyo3(name = "__aexit__")]
@@ -325,9 +300,6 @@ impl PyAsyncFile {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            // let inner_ref = locked
-            //     .as_mut()
-            //     .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("Already consumed"))?;
             let line = locked.readline().await?;
             match line {
                 Some(line) => Ok(line),
@@ -336,11 +308,43 @@ impl PyAsyncFile {
         })
     }
 
+    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+        future_into_py(py, async move {
+            let mut locked = inner.lock().await;
+            locked.close().await?;
+            Ok(())
+        })
+    }
+
+    #[getter]
+    fn closed(&self) -> bool {
+        let locked = self.inner.blocking_lock();
+        locked.is_closed()
+    }
+
+    #[expect(clippy::unused_self)]
+    fn isatty<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        future_into_py::<_, PyObject>(py, async move {
+            Err(PyNotImplementedError::new_err("isatty() not implemented"))
+        })
+    }
+
     fn flush<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
             locked.flush().await?;
+            Ok(())
+        })
+    }
+
+    fn open<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+
+        future_into_py(py, async move {
+            let mut locked = inner.lock().await;
+            locked.open().await?;
             Ok(())
         })
     }

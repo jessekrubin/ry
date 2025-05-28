@@ -71,6 +71,7 @@ from ._jiff import datetime as datetime
 from ._jiff import offset as offset
 from ._jiff import time as time
 from ._jiff import timespan as timespan
+from ._jiff import zoned as zoned
 from ._jiter import JsonParseKwargs as JsonParseKwargs
 from ._jiter import JsonPrimitive as JsonPrimitive
 from ._jiter import JsonValue as JsonValue
@@ -168,6 +169,7 @@ __build_profile__: str
 __build_timestamp__: str
 __pkg_name__: str
 __description__: str
+__target__: str
 
 # =============================================================================
 # SH

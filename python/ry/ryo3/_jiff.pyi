@@ -116,7 +116,8 @@ class Date(ToPy[pydt.date], ToPyDate):
     ) -> Date: ...
     @classmethod
     def today(cls: type[Date]) -> Date: ...
-
+    @classmethod
+    def parse(cls: type[Date], s: str) -> Date: ...
     # =========================================================================
     # STRPTIME/STRFTIME
     # =========================================================================
@@ -745,6 +746,8 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     # =========================================================================
     @classmethod
     def parse(cls, s: str) -> TimeSpan: ...
+    @classmethod
+    def parse_common_iso(cls, s: str) -> TimeSpan: ...
 
     # =========================================================================
     # PROPERTIES
@@ -1026,8 +1029,17 @@ class TimestampDifference:
     def increment(self, increment: int) -> TimestampDifference: ...
 
 class ZonedDateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo):
-    def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -> None: ...
-
+    def __init__(
+        self,
+        year: int,
+        month: int,
+        day: int,
+        hour: int = 0,
+        minute: int = 0,
+        second: int = 0,
+        nanosecond: int = 0,
+        tz: str | None = None,
+    ) -> None: ...
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
@@ -1053,6 +1065,10 @@ class ZonedDateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyT
     def from_rfc2822(cls: type[ZonedDateTime], s: str) -> ZonedDateTime: ...
     @classmethod
     def parse_rfc2822(cls: type[ZonedDateTime], s: str) -> ZonedDateTime: ...
+    @classmethod
+    def from_parts(
+        cls: type[ZonedDateTime], timestamp: Timestamp, time_zone: TimeZone
+    ) -> ZonedDateTime: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -1441,6 +1457,16 @@ def datetime(
     second: int = 0,
     nanosecond: int = 0,
 ) -> DateTime: ...
+def zoned(
+    year: int,
+    month: int,
+    day: int,
+    hour: int = 0,
+    minute: int = 0,
+    second: int = 0,
+    nanosecond: int = 0,
+    tz: str | None = None,
+) -> ZonedDateTime: ...
 def timespan(
     *,
     years: int = 0,
@@ -1453,7 +1479,6 @@ def timespan(
     milliseconds: int = 0,
     microseconds: int = 0,
     nanoseconds: int = 0,
-    unchecked: bool = False,
 ) -> TimeSpan: ...
 def offset(hours: int) -> Offset: ...
 
