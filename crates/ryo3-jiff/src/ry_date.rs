@@ -19,13 +19,11 @@ use pyo3::{
     intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
     PyResult, Python,
 };
-use ryo3_macro_rules::py_value_error;
 use ryo3_std::PyDuration;
 use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
-use std::str::FromStr;
 
 #[pyclass(name = "Date", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

@@ -1,4 +1,4 @@
-use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::errors::map_py_value_err;
 use crate::RyZoned;
 use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime};
 use jiff::civil::Date;
@@ -58,41 +58,6 @@ pub fn zoned(
             .map_err(map_py_value_err)
     }
 }
-
-// #[pyfunction]
-// #[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, nanosecond=0, tz=None))]
-// pub fn datetime<'py>(
-//     py: Python<'_>,
-//     year: i16,
-//     month: i8,
-//     day: i8,
-//     hour: i8,
-//     minute: i8,
-//     second: i8,
-//     nanosecond: i32,
-//     tz: Option<&str>,
-// ) -> PyResult<PyObject> {
-//     if let Some(tz) = tz {
-//         let zdt = Date::new(year, month, day)
-//             .and_then(|date| Ok(date.at(hour, minute, second, nanosecond)))
-//             .and_then(|date_time| date_time.in_tz(tz))
-//             .map(RyZoned::from)
-//             .map(|zdt| zdt.into_py_any(py))
-//             .map_err(map_py_value_err)?;
-//         zdt
-//     } else {
-//         RyDateTime::py_new(
-//             year,
-//             month,
-//             day,
-//             Some(hour),
-//             Some(minute),
-//             Some(second),
-//             Some(nanosecond),
-//         )?
-//         .into_py_any(py)
-//     }
-// }
 
 #[pyfunction]
 #[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, nanosecond=0))]

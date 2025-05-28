@@ -323,10 +323,11 @@ impl PyAsyncFile {
         locked.is_closed()
     }
 
+    #[expect(clippy::unused_self)]
     fn isatty<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         future_into_py::<_, PyObject>(py, async move {
             Err(PyNotImplementedError::new_err(
-                "isatty() is not implemented for async files",
+                "isatty() not implemented"
             ))
         })
     }

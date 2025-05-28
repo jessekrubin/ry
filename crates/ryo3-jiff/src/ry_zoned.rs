@@ -35,6 +35,7 @@ pub struct RyZoned(pub(crate) Zoned);
 impl RyZoned {
     #[new]
     #[pyo3(signature = (year, month, day, hour=0, minute=0, second=0, nanosecond=0, tz=None))]
+    #[expect(clippy::too_many_arguments)]
     fn py_new(
         year: i16,
         month: i8,
