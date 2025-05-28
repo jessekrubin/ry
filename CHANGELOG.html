@@ -175,6 +175,8 @@
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0045-unreleased"><a class="header" href="#v0045-unreleased">v0.0.45 [unreleased]</a></h2>
 <ul>
+<li>added <code>__target__</code> to python package metadata in <code>ry.__about__</code> with the
+target triple of the current build</li>
 <li><code>ryo3-std</code>
 <ul>
 <li>Buffering for <code>FileReadStream</code></li>
@@ -184,6 +186,31 @@
 <ul>
 <li>Add function <code>parse_jsonl</code> for parsing json lines</li>
 <li>Add <code>lines</code> kwarg to <code>read_json</code> for parsing/reading json lines</li>
+</ul>
+</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>
+<p><code>ZonedDateTime.__new__</code> takes more python-datetime like args/kwargs, old version of constructor moved to classmethod <code>ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -&gt; ZonedDateTime</code></p>
+</li>
+<li>
+<p><code>zoned</code> top level function</p>
+<ul>
+<li>if <code>tz</code> is <code>None</code> then it uses the system timezone</li>
+<li>SIGNATURE</li>
+</ul>
+<pre><code class="language-python">def zoned(
+    year: int,
+    month: int,
+    day: int,
+    hour: int = 0,
+    minute: int = 0,
+    second: int = 0,
+    nanosecond: int = 0,
+    tz: str | None = None,
+) -&gt; ZonedDateTime: ...
+</code></pre>
+</li>
 </ul>
 </li>
 </ul>
