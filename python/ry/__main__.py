@@ -5,7 +5,7 @@ import os
 import sys
 
 from ry import ryo3
-from ry.__about__ import __authors__, __pkgroot__, __title__, __version__
+from ry.__about__ import __authors__, __pkgroot__, __target__, __title__, __version__
 
 
 def _ext_info() -> dict[str, str | int]:
@@ -16,6 +16,7 @@ def _ext_info() -> dict[str, str | int]:
         "fsize_str": ryo3.fmt_size(size),
         "build_profile": ryo3.__build_profile__,
         "build_timestamp": ryo3.__build_timestamp__,
+        "target": __target__,
     }
 
 

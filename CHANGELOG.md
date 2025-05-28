@@ -2,6 +2,8 @@
 
 ## v0.0.45 [unreleased]
 
+- added `__target__` to python package metadata in `ry.__about__` with the
+  target triple of the current build
 - `ryo3-std`
   - Buffering for `FileReadStream`
 - `ryo3-jiter`

@@ -13,4 +13,7 @@ fn main() {
         .expect("oh no, build time error");
     // build timestamp
     println!("cargo:rustc-env=BUILD_TIMESTAMP={}", build_ts);
+    // set the TARGET
+    let target = std::env::var("TARGET").expect("TARGET env var not found");
+    println!("cargo:rustc-env=TARGET={target}");
 }

@@ -169,6 +169,7 @@ __build_profile__: str
 __build_timestamp__: str
 __pkg_name__: str
 __description__: str
+__target__: str
 
 # =============================================================================
 # SH

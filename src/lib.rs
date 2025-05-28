@@ -12,6 +12,7 @@ const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BUILD_PROFILE: &str = env!("PROFILE");
 const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
+const TARGET: &str = env!("TARGET");
 
 // #[pyfunction]
 // pub fn python_main(ext_filepath: &str) -> PyResult<String> {
@@ -75,6 +76,8 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(intern!(py, "__build_profile__"), BUILD_PROFILE)?;
     m.add(intern!(py, "__build_timestamp__"), BUILD_TIMESTAMP)?;
     m.add(intern!(py, "__authors__"), AUTHORS)?;
+    m.add(intern!(py, "__target__"), TARGET)?;
+
     // register/add core lib from ryo3
     ryo3::ry::pymod_add(m)?;
 
