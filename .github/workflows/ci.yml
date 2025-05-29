@@ -268,3 +268,10 @@ jobs:
         with:
           command: upload
           args: --non-interactive --skip-existing wheels-*/*
+      - name: gh-release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          generate_release_notes: true
+          files: |
+            wheels-*/*
