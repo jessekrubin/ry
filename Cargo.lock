@@ -1306,6 +1306,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pythonize"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "597907139a488b22573158793aa7539df36ae863eba300c75f3a0d65fc475e27"
+dependencies = [
+ "pyo3",
+ "serde",
+]
+
+[[package]]
 name = "quinn"
 version = "0.11.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1620,6 +1630,7 @@ version = "0.0.46"
 dependencies = [
  "jiff",
  "pyo3",
+ "pythonize",
  "ryo3-brotli",
  "ryo3-bytes",
  "ryo3-bzip2",
@@ -1635,6 +1646,7 @@ dependencies = [
  "ryo3-http",
  "ryo3-jiff",
  "ryo3-jiter",
+ "ryo3-json",
  "ryo3-quick-maths",
  "ryo3-regex",
  "ryo3-reqwest",
@@ -1651,6 +1663,8 @@ dependencies = [
  "ryo3-which",
  "ryo3-xxhash",
  "ryo3-zstd",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1800,6 +1814,14 @@ dependencies = [
  "jiter",
  "pyo3",
  "ryo3-bytes",
+]
+
+[[package]]
+name = "ryo3-json"
+version = "0.0.45"
+dependencies = [
+ "pyo3",
+ "unindent",
 ]
 
 [[package]]

@@ -73,6 +73,7 @@ members = [
   "crates/ryo3-http",
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
+  "crates/ryo3-json",
   "crates/ryo3-regex",
   "crates/ryo3-reqwest",
   "crates/ryo3-same-file",
@@ -129,6 +130,7 @@ ryo3-globset = { path = "./crates/ryo3-globset" }
 ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-http = { path = "./crates/ryo3-http" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
+ryo3-json = { path = "./crates/ryo3-json" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-reqwest = { path = "./crates/ryo3-reqwest" }
