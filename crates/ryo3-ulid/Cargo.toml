@@ -1,0 +1,21 @@
+[package]
+name = "ryo3-ulid"
+description = "python + ulid crate (https://crates.io/crates/ulid)"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+pyo3 = { workspace = true, features = [] }
+ryo3-uuid.workspace = true
+uuid.workspace = true
+ulid.workspace = true
+
+[lints]
+workspace = true

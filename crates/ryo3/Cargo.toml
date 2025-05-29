@@ -50,6 +50,7 @@ ryo3-shlex = { workspace = true, optional = true }
 ryo3-size = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
 ryo3-tokio = { workspace = true, optional = true }
+ryo3-ulid = { workspace = true, optional = true }
 ryo3-unindent = { workspace = true, optional = true }
 ryo3-url = { workspace = true, optional = true }
 ryo3-uuid = { workspace = true, optional = true }
@@ -86,6 +87,7 @@ all = [
   "size",
   "sqlformat",
   "tokio",
+  "ulid",
   "unindent",
   "url",
   "uuid",
@@ -122,6 +124,7 @@ shlex = ["dep:ryo3-shlex"]
 size = ["dep:ryo3-size"]
 sqlformat = ["dep:ryo3-sqlformat"]
 tokio = ["dep:ryo3-tokio"]
+ulid = ["dep:ryo3-ulid"]
 unindent = ["dep:ryo3-unindent"]
 url = ["dep:ryo3-url"]
 uuid = ["dep:ryo3-uuid"]

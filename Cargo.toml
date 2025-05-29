@@ -81,6 +81,7 @@ members = [
   "crates/ryo3-size",
   "crates/ryo3-sqlformat",
   "crates/ryo3-tokio",
+  "crates/ryo3-ulid",
   "crates/ryo3-unindent",
   "crates/ryo3-url",
   "crates/ryo3-uuid",
@@ -139,6 +140,7 @@ ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-size = { path = "./crates/ryo3-size" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-tokio = { path = "./crates/ryo3-tokio" }
+ryo3-ulid = { path = "./crates/ryo3-ulid" }
 ryo3-unindent = { path = "./crates/ryo3-unindent" }
 ryo3-url = { path = "./crates/ryo3-url" }
 ryo3-uuid = { path = "./crates/ryo3-uuid" }
@@ -188,6 +190,7 @@ tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "d
 unindent = "0.2.4"
 url = { version = "2.5.4", features = ["serde"] }
 uuid = { version = "1.17.0", features = ["v4", "v8"] }
+ulid = { version = "1.2.1" }
 walkdir = "2.5.0"
 which = { version = "7.0.3", features = [] }
 xxhash-rust = { version = "0.8.15", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
