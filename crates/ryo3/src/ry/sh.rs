@@ -86,7 +86,7 @@ pub fn mkdir(path: PathLike) -> PyResult<String> {
     match std::fs::create_dir(path) {
         Ok(()) => Ok(path.to_string_lossy().to_string()),
         Err(e) => {
-            let p_string = format!("{path:?}");
+            let p_string = path.display();
             let emsg = format!("{e}: {p_string}");
             let pye = PyFileNotFoundError::new_err(format!("mkdir: {emsg}"));
             Err(pye)
