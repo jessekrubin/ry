@@ -73,7 +73,16 @@ mac: `Some($HOME)`
 "
 );
 
-dirs_pyfunction!(cache, cache_dir);
+dirs_pyfunction!(
+    cache,
+    cache_dir,
+    r"Return cache directory string or None.
+    lin: `Some($XDG_CACHE_HOME)` or `Some($HOME/.cache)`
+    win: `Some({FOLDERID_LocalAppData})`
+    mac: `Some($HOME/Library/Caches)`
+    "
+);
+
 dirs_pyfunction!(config, config_dir);
 dirs_pyfunction!(config_local, config_local_dir);
 dirs_pyfunction!(data, data_dir);
