@@ -406,9 +406,9 @@ pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
 
 pub struct CPythonUuid(pub(crate) uuid::Uuid);
 
-impl Into<uuid::Uuid> for CPythonUuid {
-    fn into(self) -> uuid::Uuid {
-        self.0
+impl From<CPythonUuid> for uuid::Uuid {
+    fn from(val: CPythonUuid) -> Self {
+        val.0
     }
 }
 

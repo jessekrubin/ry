@@ -1,7 +1,9 @@
 #![doc = include_str!("../README.md")]
 mod py_uuid;
 use crate::py_uuid::{RESERVED_FUTURE, RESERVED_MICROSOFT, RESERVED_NCS, RFC_4122};
-pub use py_uuid::{getnode, uuid1, uuid2, uuid3, uuid4, uuid5, uuid6, uuid7, uuid8, PyUuid, CPythonUuid};
+pub use py_uuid::{
+    getnode, uuid1, uuid2, uuid3, uuid4, uuid5, uuid6, uuid7, uuid8, CPythonUuid, PyUuid,
+};
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 

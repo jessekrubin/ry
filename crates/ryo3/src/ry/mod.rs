@@ -8,8 +8,8 @@ use pyo3::{Bound, PyResult};
 
 #[cfg(feature = "dev")]
 pub mod dev;
-#[cfg(feature = "dev")]
-pub mod dev_json;
+// #[cfg(feature = "dev")]
+// pub mod dev_json;
 pub mod sh;
 pub mod submodules;
 
