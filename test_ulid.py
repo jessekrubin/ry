@@ -18,6 +18,7 @@ from ry.ulid import ULID
 
 import ulid as pyulid
 
+
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -111,6 +112,7 @@ def assert_sorted(seq: list) -> None:
 #         with pytest.raises(TypeError):
 #             ulid1 < object()  # noqa: B015
 
+
 def test_comparison() -> None:
     with freeze_time() as frozen_time:
         ulid1 = ULID()
@@ -131,11 +133,9 @@ def test_comparison() -> None:
         #     f"ulid1: {ulid1}, ulid2: {ulid2}, "
         #     f"ulid1-int: {int(ulid1)}, ulid2-int: {int(ulid2)}"
         # )
-        if not ulid1 < ulid2 :
-
-
+        if not ulid1 < ulid2:
             print(
-                '\n'.join(
+                "\n".join(
                     [
                         "DATETIME",
                         f"ulid1-ts: {py_ulid1.datetime}",
@@ -150,7 +150,7 @@ def test_comparison() -> None:
                 )
             )
             print(
-                '\n'.join(
+                "\n".join(
                     [
                         "DATETIME",
                         f"ulid1-ts: {ulid1.datetime}",
@@ -260,8 +260,10 @@ Params = Union[bytes, str, int, float]
         (ULID.parse, []),  # invalid type
     ],
 )
-def test_ulid_invalid_input(constructor: Callable[[Params], ULID], value: Params) -> None:
-    if value == 'Z' * 26:
+def test_ulid_invalid_input(
+    constructor: Callable[[Params], ULID], value: Params
+) -> None:
+    if value == "Z" * 26:
         # rs ulid doesn't throw here?
         try:
             constructor(value)
@@ -306,6 +308,7 @@ def test_ulid_max_input(constructor: Callable[[Params], ULID], value: Params) ->
 
 def test_pydantic_protocol() -> None:
     import json
+
     ulid = ULID()
 
     class Model(BaseModel):
