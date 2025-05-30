@@ -150,7 +150,7 @@ ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
-pyo3 = { version = "0.25.0", features = ["macros"] }
+pyo3 = { version = "0.25.0", features = ["macros", "serde"] }
 pyo3-build-config = "0.25.0"
 #pyo3 async runtimes
 pyo3-async-runtimes = { version = "0.25.0", features = ["tokio-runtime"] }
