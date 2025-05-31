@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.45 [unreleased]
+## v0.0.45 [2025-05-30]
 
 - added `__target__` to python package metadata in `ry.__about__` with the
   target triple of the current build
@@ -10,8 +10,10 @@
   - Add function `parse_jsonl` for parsing json lines
   - Add `lines` kwarg to `read_json` for parsing/reading json lines
 - `ryo3-jiff`
+
   - `ZonedDateTime.__new__` takes more python-datetime like args/kwargs, old version of constructor moved to classmethod `ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -> ZonedDateTime`
   - `zoned` top level function
+
     - if `tz` is `None` then it uses the system timezone
     - SIGNATURE
 
@@ -27,7 +29,8 @@
         tz: str | None = None,
     ) -> ZonedDateTime: ...
     ```
-___
+
+---
 
 ## v0.0.44 [2025-05-23]
 
