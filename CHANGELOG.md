@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.0.46 [unreleased]
+
+- version 0.0.46
+
+---
+
 ## v0.0.45 [2025-05-30]
 
 - added `__target__` to python package metadata in `ry.__about__` with the
