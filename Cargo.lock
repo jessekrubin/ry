@@ -1820,7 +1820,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json"
-version = "0.0.45"
+version = "0.0.46"
 dependencies = [
  "pyo3",
  "unindent",
@@ -1930,7 +1930,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ulid"
-version = "0.0.45"
+version = "0.0.46"
 dependencies = [
  "pyo3",
  "ryo3-uuid",
