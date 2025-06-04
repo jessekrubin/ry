@@ -1,6 +1,7 @@
 # API
 
 ## Table of Contents
+
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
@@ -110,6 +111,7 @@ from ._jiff import datetime as datetime
 from ._jiff import offset as offset
 from ._jiff import time as time
 from ._jiff import timespan as timespan
+from ._jiff import zoned as zoned
 from ._jiter import JsonParseKwargs as JsonParseKwargs
 from ._jiter import JsonPrimitive as JsonPrimitive
 from ._jiter import JsonValue as JsonValue
@@ -117,6 +119,7 @@ from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
 from ._jiter import parse_json_bytes as parse_json_bytes
+from ._jiter import parse_jsonl as parse_jsonl
 from ._jiter import read_json as read_json
 from ._quick_maths import quick_maths as quick_maths
 from ._regex import Regex as Regex
@@ -135,6 +138,7 @@ from ._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
 from ._sqlformat import sqlfmt as sqlfmt
 from ._sqlformat import sqlfmt_params as sqlfmt_params
 from ._std import Duration as Duration
+from ._std import FileReadStream as FileReadStream
 from ._std import FileType as FileType
 from ._std import Instant as Instant
 from ._std import IpAddr as IpAddr
@@ -205,6 +209,7 @@ __build_profile__: str
 __build_timestamp__: str
 __pkg_name__: str
 __description__: str
+__target__: str
 
 
 # =============================================================================
@@ -437,6 +442,13 @@ class Bytes(Buffer):
     # =========================================================================
     # IMPL IN RY
     # =========================================================================
+
+    def istitle(self) -> bool:
+        """
+        Return `True` if the sequence is non-empty and contains only ASCII letters,
+        digits, underscores, and hyphens, and starts with an ASCII letter or underscore.
+        Otherwise, return `False`.
+        """
 
     def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
         """Decode the binary data using the given encoding."""
@@ -711,7 +723,9 @@ from pathlib import Path
 
 import typing_extensions as te
 
-_T = t.TypeVar("_T")
+from ._fspath import FsPath
+
+_T = t.TypeVar("_T", bound=str | Path | FsPath)
 
 
 class _MatchOptions(t.TypedDict, total=False):
@@ -724,16 +738,28 @@ class GlobPaths(t.Generic[_T]):
     """glob::Paths iterable wrapper"""
 
     def __next__(self) -> _T: ...
-    def __iter__(self) -> t.Iterator[_T]: ...
+    def __iter__(self) -> GlobPaths[_T]: ...
     def collect(self) -> list[_T]: ...
-    def take(self, n: int) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
 
 
+@t.overload
 def glob(
     pattern: str,
-    **kwargs: te.Unpack[_MatchOptions],
-) -> GlobPaths[Path]:
-    """Return glob iterable for paths matching the pattern."""
+    *,
+    case_sensitive: bool = False,
+    require_literal_separator: bool = False,
+    require_literal_leading_dot: bool = False,
+) -> GlobPaths[Path]: ...
+@t.overload
+def glob(
+    pattern: str,
+    *,
+    case_sensitive: bool = False,
+    require_literal_separator: bool = False,
+    require_literal_leading_dot: bool = False,
+    dtype: type[_T],
+) -> GlobPaths[_T]: ...
 
 
 class Pattern:
@@ -994,7 +1020,8 @@ class Date(ToPy[pydt.date], ToPyDate):
     ) -> Date: ...
     @classmethod
     def today(cls: type[Date]) -> Date: ...
-
+    @classmethod
+    def parse(cls: type[Date], s: str) -> Date: ...
     # =========================================================================
     # STRPTIME/STRFTIME
     # =========================================================================
@@ -1672,6 +1699,8 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     # =========================================================================
     @classmethod
     def parse(cls, s: str) -> TimeSpan: ...
+    @classmethod
+    def parse_common_iso(cls, s: str) -> TimeSpan: ...
 
     # =========================================================================
     # PROPERTIES
@@ -1968,8 +1997,17 @@ class TimestampDifference:
 class ZonedDateTime(
     ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo
 ):
-    def __init__(self, timestamp: Timestamp, time_zone: TimeZone) -> None: ...
-
+    def __init__(
+        self,
+        year: int,
+        month: int,
+        day: int,
+        hour: int = 0,
+        minute: int = 0,
+        second: int = 0,
+        nanosecond: int = 0,
+        tz: str | None = None,
+    ) -> None: ...
     # =========================================================================
     # PYTHON CONVERSIONS
     # =========================================================================
@@ -1997,6 +2035,10 @@ class ZonedDateTime(
     def from_rfc2822(cls: type[ZonedDateTime], s: str) -> ZonedDateTime: ...
     @classmethod
     def parse_rfc2822(cls: type[ZonedDateTime], s: str) -> ZonedDateTime: ...
+    @classmethod
+    def from_parts(
+        cls: type[ZonedDateTime], timestamp: Timestamp, time_zone: TimeZone
+    ) -> ZonedDateTime: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -2411,6 +2453,16 @@ def datetime(
     second: int = 0,
     nanosecond: int = 0,
 ) -> DateTime: ...
+def zoned(
+    year: int,
+    month: int,
+    day: int,
+    hour: int = 0,
+    minute: int = 0,
+    second: int = 0,
+    nanosecond: int = 0,
+    tz: str | None = None,
+) -> ZonedDateTime: ...
 def timespan(
     *,
     years: int = 0,
@@ -2423,7 +2475,6 @@ def timespan(
     milliseconds: int = 0,
     microseconds: int = 0,
     nanoseconds: int = 0,
-    unchecked: bool = False,
 ) -> TimeSpan: ...
 def offset(hours: int) -> Offset: ...
 
@@ -2497,6 +2548,11 @@ def parse_json(
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
+def parse_jsonl(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> list[JsonValue]: ...
 def parse_json_bytes(
     data: bytes,
     /,
@@ -2505,6 +2561,7 @@ def parse_json_bytes(
 def read_json(
     p: str | PathLike[str],
     /,
+    lines: bool = False,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
@@ -2648,6 +2705,13 @@ class HttpClient:
         **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: te.Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def __call__(
         self,
         url: str | URL,
         *,
@@ -2969,8 +3033,10 @@ import ipaddress
 import pathlib
 import typing as t
 
-from ry import Bytes, FsPath
+import typing_extensions as te
+
 from ry._types import Buffer, FsPathLike, ToPy
+from ry.ryo3._bytes import Bytes
 
 
 # =============================================================================
@@ -3168,13 +3234,28 @@ _T = t.TypeVar("_T")
 
 
 class RyIterable(t.Generic[_T]):
-    def __iter__(self) -> t.Self: ...
+    def __iter__(self) -> te.Self: ...
     def __next__(self) -> _T: ...
     def collect(self) -> list[_T]: ...
     def take(self, n: int = 1) -> list[_T]: ...
 
 
 class ReadDir(RyIterable[DirEntry]): ...
+
+
+class FileReadStream:
+    def __init__(
+        self,
+        path: FsPathLike,
+        *,
+        chunk_size: int = 65536,
+        offset: int = 0,
+        buffered: bool = True,
+    ) -> None: ...
+    def __iter__(self) -> te.Self: ...
+    def __next__(self) -> Bytes: ...
+    def collect(self) -> list[Bytes]: ...
+    def take(self, n: int = 1) -> list[Bytes]: ...
 
 
 # ============================================================================
@@ -3191,11 +3272,11 @@ def read_stream(
     chunk_size: int = 65536,
     *,
     offset: int = 0,
-) -> RyIterable[Bytes]: ...
+) -> FileReadStream: ...
 def write(path: FsPathLike, data: Buffer | str) -> int: ...
 def write_bytes(path: FsPathLike, data: bytes) -> int: ...
 def write_text(path: FsPathLike, data: str) -> int: ...
-def canonicalize(path: FsPathLike) -> FsPath: ...
+def canonicalize(path: FsPathLike) -> pathlib.Path: ...
 def copy(from_path: FsPathLike, to_path: FsPathLike) -> int: ...
 def create_dir(path: FsPathLike) -> None: ...
 def create_dir_all(path: FsPathLike) -> None: ...
@@ -3488,7 +3569,7 @@ class AsyncFile:
     ) -> None: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
-    async def isatty(self) -> bool: ...
+    async def isatty(self) -> te.NoReturn: ...
     async def open(self) -> None: ...
     async def peek(self, size: int = ..., /) -> Bytes: ...
     async def read(self, size: int = ..., /) -> Bytes: ...
@@ -3818,13 +3899,13 @@ class Headers:
     def __ror__(self, other: Headers | dict[str, str]) -> Headers: ...
     def __iter__(self) -> t.Iterator[str]: ...
     def __bool__(self) -> bool: ...
-    def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
-    def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
-    def stringify(self, *, fmt: bool = False) -> str: ...
 
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
+    def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
+    def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
+    def stringify(self, *, fmt: bool = False) -> str: ...
     def append(self, key: str, value: str) -> None: ...
     def clear(self) -> None: ...
     def contains_key(self, key: str) -> bool: ...
@@ -3839,6 +3920,8 @@ class Headers:
     def remove(self, key: str) -> None: ...
     def update(self, headers: Headers | dict[str, str]) -> None: ...
     def values(self) -> list[str]: ...
+    @property
+    def is_flat(self) -> bool: ...
 
 
 class HttpStatus:
@@ -3989,11 +4072,11 @@ class UUID:
     def __init__(
         self,
         hex: str | None = None,
-        bytes: bytes | None = None,
-        bytes_le: bytes | None = None,
+        bytes: builtins.bytes | None = None,
+        bytes_le: builtins.bytes | None = None,
         fields: _FieldsType | None = None,
-        int: int | None = None,
-        version: int | None = None,
+        int: builtins.int | None = None,
+        version: builtins.int | None = None,
         *,
         is_safe: SafeUUID = ...,
     ) -> None: ...
@@ -4043,9 +4126,9 @@ class UUID:
 
 def getnode() -> builtins.int: ...
 def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid3(namespace: UUID, name: str | bytes) -> UUID: ...
+def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
 def uuid4() -> UUID: ...
-def uuid5(namespace: UUID, name: str | bytes) -> UUID: ...
+def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
 def uuid6(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
 def uuid7(timestamp: int | None = None) -> UUID: ...
 def uuid8(data: Buffer) -> UUID: ...

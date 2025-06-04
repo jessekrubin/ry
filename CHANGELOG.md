@@ -3,6 +3,10 @@
 ## v0.0.46 [unreleased]
 
 - version 0.0.46
+- `ryo3-glob`
+  - add `dtype` kwarg that takes either `dtype=str | ry.FsPath | pathlib.Path`
+    as type of obj yielded by the iterable; something about this feels really
+    icky, the default may be changed to `str` (from `pathlib.Path`)
 
 ---
 
@@ -17,7 +21,9 @@
   - Add `lines` kwarg to `read_json` for parsing/reading json lines
 - `ryo3-jiff`
 
-  - `ZonedDateTime.__new__` takes more python-datetime like args/kwargs, old version of constructor moved to classmethod `ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -> ZonedDateTime`
+  - `ZonedDateTime.__new__` takes more python-datetime like args/kwargs, old
+    version of constructor moved to classmethod
+    `ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -> ZonedDateTime`
   - `zoned` top level function
 
     - if `tz` is `None` then it uses the system timezone

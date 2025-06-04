@@ -3,9 +3,9 @@ mod pattern;
 
 use crate::pattern::PyPattern;
 use parking_lot::Mutex;
+use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyType, PyTypeMethods};
 use pyo3::IntoPyObjectExt;
-use pyo3::prelude::*;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -107,6 +107,8 @@ impl PyGlobPaths {
         }
     }
 
+    /// Take `n` items from the iterator or 1 if `n` is not specified.
+    #[pyo3(signature = (n=1))]
     fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Vec<Bound<'py, PyAny>>> {
         if self.strict {
             let mut results = Vec::new();
@@ -212,24 +214,15 @@ fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
             let fully_qualified_name_pystr = dtype.fully_qualified_name()?;
             let fully_qualified_name = fully_qualified_name_pystr.to_string();
             match fully_qualified_name.as_str() {
-                "str" => {
-                    Ok(GlobDType::OsString)
-                }
-                "pathlib.Path" => {
-                    Ok(GlobDType::PathBuf)
-                }
-                "ry.ryo3.FsPath" => {
-                    Ok(GlobDType::FsPath)
-                }
-
-                _ => {
-                    Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                        "Invalid dtype: {fully_qualified_name} not supported"
-                    )))
-                }
+                "str" => Ok(GlobDType::OsString),
+                "pathlib.Path" => Ok(GlobDType::PathBuf),
+                "ry.ryo3.FsPath" => Ok(GlobDType::FsPath),
+                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Invalid dtype: {fully_qualified_name} not supported"
+                ))),
             }
         }
-        None => Ok(GlobDType::OsString),
+        None => Ok(GlobDType::PathBuf),
     }
 }
 

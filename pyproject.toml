@@ -116,4 +116,4 @@ include = [ 'ry', 'tests' ]
 reportUnnecessaryTypeIgnoreComment = true
 
 [tool.uv]
-package = false  # don't build package w/ uv
+package = false # don't build package w/ uv

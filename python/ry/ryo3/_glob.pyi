@@ -17,19 +17,29 @@ class _MatchOptions(t.TypedDict, total=False):
 
 class GlobPaths(t.Generic[_T]):
     """glob::Paths iterable wrapper"""
-    def __next__(self) -> _T: ...
-    def __iter__(self) -> t.Iterator[_T]: ...
-    def collect(self) -> list[_T]: ...
-    def take(self, n: int) -> list[_T]: ...
 
+    def __next__(self) -> _T: ...
+    def __iter__(self) -> GlobPaths[_T]: ...
+    def collect(self) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
+
+@t.overload
 def glob(
     pattern: str,
+    *,
     case_sensitive: bool = False,
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
-    dtype: type[_T] = str,
-) -> GlobPaths[_T]:
-    """Return glob iterable for paths matching the pattern."""
+) -> GlobPaths[Path]: ...
+@t.overload
+def glob(
+    pattern: str,
+    *,
+    case_sensitive: bool = False,
+    require_literal_separator: bool = False,
+    require_literal_leading_dot: bool = False,
+    dtype: type[_T],
+) -> GlobPaths[_T]: ...
 
 class Pattern:
     def __init__(self, pattern: str) -> None: ...
