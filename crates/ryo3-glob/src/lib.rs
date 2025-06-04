@@ -224,7 +224,7 @@ fn ry_fspath_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
     FSPATH_TYPE.import(py, "ry.ryo3", "FsPath")
 }
 
-fn extract_dtype<'py>(dtype: Option<Bound<'py, PyType>>) -> PyResult<GlobDType> {
+fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
     if let Some(dtype) = dtype {
         let py = dtype.py();
         if dtype.is(str_type(py)?) {
@@ -237,8 +237,7 @@ fn extract_dtype<'py>(dtype: Option<Bound<'py, PyType>>) -> PyResult<GlobDType> 
             // If you want the repr of the type in the error, you can call `dtype.repr()` here.
             let repr = dtype.repr()?.to_string_lossy().into_owned();
             Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "Invalid dtype: {} (only `str`, `pathlib.Path` or `ry.ryo3.FsPath` are supported)",
-                repr
+                "Invalid dtype: {repr} (only `str`, `pathlib.Path` or `ry.ryo3.FsPath` are supported)"
             )))
         }
     } else {
