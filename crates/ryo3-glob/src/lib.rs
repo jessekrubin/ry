@@ -4,7 +4,8 @@ mod pattern;
 use crate::pattern::PyPattern;
 use parking_lot::Mutex;
 use pyo3::prelude::*;
-use pyo3::types::{PyModule, PyType, PyTypeMethods};
+use pyo3::sync::GILOnceCell;
+use pyo3::types::{PyModule, PyType};
 use pyo3::IntoPyObjectExt;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -208,24 +209,43 @@ pub fn py_glob(
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
 }
 
-fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
-    match dtype {
-        Some(dtype) => {
-            let fully_qualified_name_pystr = dtype.fully_qualified_name()?;
-            let fully_qualified_name = fully_qualified_name_pystr.to_string();
-            match fully_qualified_name.as_str() {
-                "str" => Ok(GlobDType::OsString),
-                "pathlib.Path" => Ok(GlobDType::PathBuf),
-                "ry.ryo3.FsPath" => Ok(GlobDType::FsPath),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid dtype: {fully_qualified_name} not supported"
-                ))),
-            }
-        }
-        None => Ok(GlobDType::PathBuf),
-    }
+fn pathlib_path_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
+    static PATHLIB_PATH_TYPE: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    PATHLIB_PATH_TYPE.import(py, "pathlib", "Path")
 }
 
+fn str_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
+    static STR_TYPE: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    STR_TYPE.import(py, "builtins", "str")
+}
+
+fn ry_fspath_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
+    static FSPATH_TYPE: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    FSPATH_TYPE.import(py, "ry.ryo3", "FsPath")
+}
+
+fn extract_dtype<'py>(dtype: Option<Bound<'py, PyType>>) -> PyResult<GlobDType> {
+    if let Some(dtype) = dtype {
+        let py = dtype.py();
+        if dtype.is(str_type(py)?) {
+            Ok(GlobDType::OsString)
+        } else if dtype.is(pathlib_path_type(py)?) {
+            Ok(GlobDType::PathBuf)
+        } else if dtype.is(ry_fspath_type(py)?) {
+            Ok(GlobDType::FsPath)
+        } else {
+            // If you want the repr of the type in the error, you can call `dtype.repr()` here.
+            let repr = dtype.repr()?.to_string_lossy().into_owned();
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "Invalid dtype: {} (only `str`, `pathlib.Path` or `ry.ryo3.FsPath` are supported)",
+                repr
+            )))
+        }
+    } else {
+        // default to PathBuf when no dtype is provided
+        Ok(GlobDType::PathBuf)
+    }
+}
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyPattern>()?;
     m.add_function(wrap_pyfunction!(py_glob, m)?)?;
