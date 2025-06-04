@@ -4,6 +4,7 @@ use pyo3::sync::GILOnceCell;
 use pyo3::types::PyModule;
 use pyo3::{pyfunction, wrap_pyfunction, PyResult};
 use pythonize::depythonize;
+use crate::ry::pyany_serializer::SerializePyObject;
 
 #[pyfunction]
 pub fn stringify_v1<'py>(obj: Bound<'py, PyAny>) -> PyResult<String> {
@@ -69,6 +70,27 @@ pub fn stringify_v4<'py>(py: Python<'py>, obj: Bound<'py, PyAny>) -> PyResult<Bo
     r
 }
 
+#[pyfunction]
+pub fn stringify_v5<'py>(py: Python<'py>, obj: Bound<'py, PyAny>) -> PyResult<ryo3_bytes::PyBytes>
+ {
+    // static ORJSON: GILOnceCell<Py<PyAny>> = GILOnceCell::new();
+    // let a = ORJSON.import(py, "orjson", "dumps")?;
+    //
+    // let r = a.call1((obj,));
+    // r
+    let s = SerializePyObject::new(py, obj, None );
+    let s = serde_json::to_vec(&s).map_err(|e| PyOSError::new_err(format!("Failed to serialize: {e}")))?
+        ;
+    Ok(ryo3_bytes::PyBytes::from(s))
+
+
+
+    // s.map_err(|e| PyOSError::new_err(format!("Failed to jsonify: {e}")))
+
+
+
+}
+
 //     a.call(args, kwargs)
 //      static ZONE_INFO: GILOnceCell<Py< PyModule
 //      >> = GILOnceCell::new();
@@ -82,5 +104,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // m.add_function(wrap_pyfunction!(stringify_v2, m)?)?;
     m.add_function(wrap_pyfunction!(stringify_v3, m)?)?;
     m.add_function(wrap_pyfunction!(stringify_v4, m)?)?;
+    m.add_function(wrap_pyfunction!(stringify_v5, m)?)?;
     Ok(())
 }
