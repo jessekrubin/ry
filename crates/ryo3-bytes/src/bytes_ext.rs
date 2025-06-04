@@ -114,7 +114,7 @@ impl PyBytes {
                 .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_a}`")))?;
             let b = hex_val(char_b)
                 .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_b}`")))?;
-            bytes.push(a << 4 | b);
+            bytes.push((a << 4) | b);
         }
         Ok(Self::from(bytes))
     }

@@ -6,7 +6,9 @@ from pathlib import Path
 
 import typing_extensions as te
 
-_T = t.TypeVar("_T")
+from ._fspath import FsPath
+
+_T = t.TypeVar("_T", bound=str | Path | FsPath)
 
 class _MatchOptions(t.TypedDict, total=False):
     case_sensitive: bool
@@ -15,16 +17,29 @@ class _MatchOptions(t.TypedDict, total=False):
 
 class GlobPaths(t.Generic[_T]):
     """glob::Paths iterable wrapper"""
-    def __next__(self) -> _T: ...
-    def __iter__(self) -> t.Iterator[_T]: ...
-    def collect(self) -> list[_T]: ...
-    def take(self, n: int) -> list[_T]: ...
 
+    def __next__(self) -> _T: ...
+    def __iter__(self) -> GlobPaths[_T]: ...
+    def collect(self) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
+
+@t.overload
 def glob(
     pattern: str,
-    **kwargs: te.Unpack[_MatchOptions],
-) -> GlobPaths[Path]:
-    """Return glob iterable for paths matching the pattern."""
+    *,
+    case_sensitive: bool = False,
+    require_literal_separator: bool = False,
+    require_literal_leading_dot: bool = False,
+) -> GlobPaths[Path]: ...
+@t.overload
+def glob(
+    pattern: str,
+    *,
+    case_sensitive: bool = False,
+    require_literal_separator: bool = False,
+    require_literal_leading_dot: bool = False,
+    dtype: type[_T],
+) -> GlobPaths[_T]: ...
 
 class Pattern:
     def __init__(self, pattern: str) -> None: ...

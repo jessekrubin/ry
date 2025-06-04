@@ -29,7 +29,7 @@ def build_faux_types_pkg(strip_overload: bool = True) -> None:
     )
 
     # delete all non pyi files in ryo3types
-    for f in ry.glob(str(__dirname / "ryo3types" / "**/*")):
+    for f in ry.glob(str(__dirname / "ryo3types" / "**/*"), dtype=ry.FsPath):
         if (
             f.is_file()
             and not str(f).endswith(".pyi")

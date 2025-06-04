@@ -400,8 +400,8 @@ pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
 // ----------------------------------------------------------------------------
 // python-uuid conversion fixed
 // ----------------------------------------------------------------------------
-// on Big Endian system the uuid conversion does not work as expected due to
-// the usage of `.to_le()`
+// NOTE: As of today/now (2025-05-15) on Big-Endian system the uuid conversion
+//       does not work as expected due to the usage of `.to_le()`
 
 struct CPythonUuid(pub(crate) uuid::Uuid);
 fn get_uuid_cls(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {

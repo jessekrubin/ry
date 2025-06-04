@@ -1747,6 +1747,7 @@ dependencies = [
  "glob",
  "parking_lot",
  "pyo3",
+ "ryo3-fspath",
 ]
 
 [[package]]
