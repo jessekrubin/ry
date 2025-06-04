@@ -15,7 +15,6 @@ from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 import ry
 from ry.ulid import ULID
@@ -227,6 +226,11 @@ def test_ulid_max_input(constructor: Callable[[Params], ULID], value: Params) ->
 
 def test_pydantic_protocol() -> None:
     import json
+
+    try:
+        from pydantic import BaseModel, ValidationError
+    except ImportError:
+        pytest.skip("pydantic is not installed")
 
     ulid = ULID()
 
