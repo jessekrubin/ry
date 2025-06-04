@@ -1,22 +1,24 @@
-# import json
-import time
-import uuid
+"""
+ulid tests (adapted from `python-ulid`)
 
+ADAPTED FROM `python-ulid`'s TESTS; REF https://github.com/mdomke/python-ulid/blob/main/tests/test_ulid.py
+
+removed freezegun as it is not really needed nor does pyo3 stuff respsect it
+"""
+
+from __future__ import annotations
+
+import time
+import typing as t
+import uuid
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
-from typing import Optional
-from typing import Union
 import pytest
-from freezegun import freeze_time
+from pydantic import BaseModel, ValidationError
 
 import ry
-
-from pydantic import BaseModel
-from pydantic import ValidationError
 from ry.ulid import ULID
-
-import ulid as pyulid
 
 
 def utcnow() -> datetime:
@@ -27,13 +29,10 @@ def datetimes_almost_equal(a: datetime, b: datetime) -> None:
     assert a.replace(microsecond=0) == b.replace(microsecond=0)
 
 
-@freeze_time()
 def test_ulid() -> None:
     ulid = ULID()
-
-    t = time.time()
-    now = utcnow()
-
+    now = datetime.now(timezone.utc)
+    t = now.timestamp()
     assert len(ulid.bytes) == 16
     assert len(str(ulid)) == (10 + 16)
 
@@ -51,14 +50,13 @@ def test_ulid() -> None:
 
 @pytest.mark.parametrize("tick", [1, 60, 3600, 86400])
 def test_ulid_monotonic_sorting(tick: int) -> None:
-    ulids = []
-    initial_time = utcnow()
-    with freeze_time(initial_time) as frozen_time:
+    def _gen() -> t.Generator[ULID, None, None]:
+        initial_time = utcnow()
         for i in range(1, 11):
             dt = initial_time + timedelta(seconds=i * tick)
+            yield ULID.from_datetime(dt)
 
-            ulids.append(ULID.from_datetime(dt))
-            frozen_time.move_to(initial_time + timedelta(seconds=i * tick))
+    ulids = list(_gen())
 
     assert_sorted(ulids)
     assert_sorted([str(v) for v in ulids])
@@ -66,110 +64,32 @@ def test_ulid_monotonic_sorting(tick: int) -> None:
     assert_sorted([v.bytes for v in ulids])
 
 
-def assert_sorted(seq: list) -> None:
+def assert_sorted(seq: list[t.Any]) -> None:
     last = seq[0]
     for item in seq[1:]:
         assert last < item
         last = item
 
 
-# def test_comparison_py() -> None:
-#     with freeze_time() as frozen_time:
-#         ulid1 = pyulid.ULID()
-#         assert ulid1 == ulid1  # noqa: PLR0124
-#         assert ulid1 == int(ulid1)
-#         assert ulid1 == ulid1.bytes
-#         assert ulid1 == str(ulid1)
-#         assert (ulid1 == object()) is False
-
-#         frozen_time.tick()
-#         ulid2 = pyulid.ULID()
-#         print(
-#             f"ulid1-ts: {ulid1.datetime}, ulid2-ts: {ulid2.datetime}, "
-#             f"ulid1: {ulid1}, ulid2: {ulid2}, "
-#             f"ulid1-int: {int(ulid1)}, ulid2-int: {int(ulid2)}"
-#         )
-#         print(
-#             '\n'.join(
-#                 [
-#                     "DATETIME",
-#                     f"ulid1-ts: {ulid1.datetime}",
-#                     f"ulid2-ts: {ulid2.datetime}",
-#                     "ULID",
-#                     f"ulid1: {ulid1}",
-#                     f"ulid2: {ulid2}",
-#                     "INT",
-#                     f"ulid1-int: {int(ulid1)}",
-#                     f"ulid2-int: {int(ulid2)}",
-#                 ]
-#             )
-#         )
-#         assert False
-#         assert ulid1 < ulid2
-#         assert ulid1 < int(ulid2)
-#         assert ulid1 < ulid2.bytes
-#         assert ulid1 < str(ulid2)
-#         with pytest.raises(TypeError):
-#             ulid1 < object()  # noqa: B015
-
-
 def test_comparison() -> None:
-    with freeze_time() as frozen_time:
-        ulid1 = ULID()
-        py_ulid1 = pyulid.ULID()
-        assert ulid1 == ulid1  # noqa: PLR0124
-        assert ulid1 == int(ulid1)
-        assert ulid1 == ulid1.bytes
-        assert ulid1 == str(ulid1)
-        assert (ulid1 == object()) is False
+    now = utcnow()
+    ulid1 = ULID.from_datetime(now)
 
-        frozen_time.tick()
-        ulid2 = ULID()
-        py_ulid2 = pyulid.ULID()
-        # print(
-        #     f"ulid1-ts: {ulid1.datetime}, ulid2-ts: {ulid2.datetime}, "
-        # )
-        # print(
-        #     f"ulid1: {ulid1}, ulid2: {ulid2}, "
-        #     f"ulid1-int: {int(ulid1)}, ulid2-int: {int(ulid2)}"
-        # )
-        if not ulid1 < ulid2:
-            print(
-                "\n".join(
-                    [
-                        "DATETIME",
-                        f"ulid1-ts: {py_ulid1.datetime}",
-                        f"ulid2-ts: {py_ulid2.datetime}",
-                        "ULID",
-                        f"ulid1: {py_ulid1}",
-                        f"ulid2: {py_ulid2}",
-                        "INT",
-                        f"ulid1-int: {int(py_ulid1)}",
-                        f"ulid2-int: {int(py_ulid2)}",
-                    ]
-                )
-            )
-            print(
-                "\n".join(
-                    [
-                        "DATETIME",
-                        f"ulid1-ts: {ulid1.datetime}",
-                        f"ulid2-ts: {ulid2.datetime}",
-                        "ULID",
-                        f"ulid1: {ulid1}",
-                        f"ulid2: {ulid2}",
-                        "INT",
-                        f"ulid1-int: {int(ulid1)}",
-                        f"ulid2-int: {int(ulid2)}",
-                    ]
-                )
-            )
-        assert ulid1 < ulid2
-        assert ulid1 < int(ulid2)
-        assert ulid1 < ulid2.bytes
-        assert ulid1 < str(ulid2)
-        with pytest.raises(TypeError):
-            ulid1 < object()  # noqa: B015
+    assert ulid1 == ulid1
+    assert ulid1 == int(ulid1)
+    assert ulid1 == ulid1.bytes
+    assert ulid1 == str(ulid1)
+    assert (ulid1 == object()) is False
+
+    later = now + timedelta(milliseconds=1)
+    ulid2 = ULID.from_datetime(later)
+
+    assert ulid1 < ulid2
+    assert ulid1 < int(ulid2)
+    assert ulid1 < ulid2.bytes
+    assert ulid1 < str(ulid2)
+    with pytest.raises(TypeError):
+        _ = ulid1 < object()  # type: ignore[operator]
 
 
 def test_repr() -> None:
@@ -212,14 +132,14 @@ def test_hash() -> None:
     assert hash(ulid1) != hash(ulid2)
 
 
-@freeze_time()
 def test_ulid_from_time() -> None:
-    ulid1 = ULID.from_timestamp(time.time())
-    ulid2 = ULID.from_timestamp(time.time_ns() // 1000000)
-    ulid3 = ULID.from_datetime(utcnow())
-
     now = utcnow()
-    t = time.time()
+    t = now.timestamp()
+    t_ms = int(t * 1000)
+
+    ulid1 = ULID.from_timestamp(t)
+    ulid2 = ULID.from_timestamp(t_ms)
+    ulid3 = ULID.from_datetime(now)
 
     assert ulid1.timestamp == pytest.approx(t)
     datetimes_almost_equal(ulid1.datetime, now)
@@ -227,19 +147,18 @@ def test_ulid_from_time() -> None:
     assert ulid2.timestamp == pytest.approx(t)
     datetimes_almost_equal(ulid2.datetime, now)
 
-    assert ulid2.timestamp == pytest.approx(t)
+    assert ulid3.timestamp == pytest.approx(t)
     datetimes_almost_equal(ulid3.datetime, now)
 
 
-# @freeze_time()
-# def test_ulid_from_timestamp() -> None:
-#     t = time.time()
-#     ulid1 = ULID.from_timestamp(t)
-#     ulid2 = ULID.from_timestamp(int(t *MILLISECS_IN_SECS))
-#     assert ulid1.timestamp == ulid2.timestamp
+def test_ulid_from_timestamp() -> None:
+    ts = 1749067926.527876
+    ulid1 = ULID.from_timestamp(ts)
+    ulid2 = ULID.from_timestamp(int(ts * 1000))
+    assert ulid1.timestamp == ulid2.timestamp
 
 
-Params = Union[bytes, str, int, float]
+Params = t.Union[bytes, str, int, float]
 
 
 @pytest.mark.parametrize(
@@ -312,17 +231,18 @@ def test_pydantic_protocol() -> None:
     ulid = ULID()
 
     class Model(BaseModel):
-        ulid: Optional[ULID] = None
+        ulid: ULID | None = None
 
     for value in [ulid, str(ulid), int(ulid), bytes(ulid)]:
-        model = Model(ulid=value)
+        model = Model(ulid=value)  # type: ignore[arg-type]
         assert isinstance(model.ulid, ULID)
         assert model.ulid == ulid
 
     for value in [b"not-enough", "not-enough"]:
         with pytest.raises(ValidationError):
-            Model(ulid=value)
+            Model(ulid=value)  # type: ignore[arg-type]
 
+    model = Model(ulid=ulid)
     model_dict = model.model_dump()
     ulid_from_dict = model_dict["ulid"]
     assert ulid_from_dict == ulid
