@@ -33,7 +33,6 @@ impl GlobDType {
             }
             GlobDType::OsString => {
                 let os_string = path.into_os_string();
-                // let py_str = PyString::new(py, os_string.to_str().unwrap_or_default());
                 let any = os_string.into_bound_py_any(py)?;
                 Ok(any)
             }
