@@ -176,6 +176,13 @@
 <h2 id="v0046-unreleased"><a class="header" href="#v0046-unreleased">v0.0.46 [unreleased]</a></h2>
 <ul>
 <li>version 0.0.46</li>
+<li><code>ryo3-glob</code>
+<ul>
+<li>add <code>dtype</code> kwarg that takes either <code>dtype=str | ry.FsPath | pathlib.Path</code>
+as type of obj yielded by the iterable; something about this feels really
+icky, the default may be changed to <code>str</code> (from <code>pathlib.Path</code>)</li>
+</ul>
+</li>
 </ul>
 <hr />
 <h2 id="v0045-2025-05-30"><a class="header" href="#v0045-2025-05-30">v0.0.45 [2025-05-30]</a></h2>
@@ -201,7 +208,9 @@ target triple of the current build</p>
 <p><code>ryo3-jiff</code></p>
 <ul>
 <li>
-<p><code>ZonedDateTime.__new__</code> takes more python-datetime like args/kwargs, old version of constructor moved to classmethod <code>ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -&gt; ZonedDateTime</code></p>
+<p><code>ZonedDateTime.__new__</code> takes more python-datetime like args/kwargs, old
+version of constructor moved to classmethod
+<code>ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -&gt; ZonedDateTime</code></p>
 </li>
 <li>
 <p><code>zoned</code> top level function</p>
