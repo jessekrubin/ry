@@ -7,6 +7,8 @@
   - add `dtype` kwarg that takes either `dtype=str | ry.FsPath | pathlib.Path`
     as type of obj yielded by the iterable; something about this feels really
     icky, the default may be changed to `str` (from `pathlib.Path`)
+- `ryo3-ulid`
+  - Added mostly as a way to test how much pydantic + ry integration would be
 
 ---
 

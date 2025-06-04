@@ -67,7 +67,7 @@ impl PyUuid {
 
         let py_uuid = match (hex, bytes, bytes_le, fields, int) {
             (Some(hex), None, None, None, None) => Self::from_hex(hex),
-            (None, Some(bytes), None, None, None) => Self::from_bytes(bytes),
+            (None, Some(bytes), None, None, None) => Self::from_pybytes(bytes),
             (None, None, Some(bytes_le), None, None) => Self::from_bytes_le(bytes_le),
             (None, None, None, Some(fields), None) => Self::from_fields(fields),
             (None, None, None, None, Some(int)) => Ok(Self::from_int(int)),
@@ -189,8 +189,9 @@ impl PyUuid {
     }
 
     #[staticmethod]
+    #[pyo3(name = "from_bytes")]
     #[expect(clippy::needless_pass_by_value)]
-    fn from_bytes(bytes: PyBytes) -> PyResult<Self> {
+    fn from_pybytes(bytes: PyBytes) -> PyResult<Self> {
         uuid::Uuid::from_slice(bytes.as_ref())
             .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
@@ -403,7 +404,14 @@ pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
 // NOTE: As of today/now (2025-05-15) on Big-Endian system the uuid conversion
 //       does not work as expected due to the usage of `.to_le()`
 
-struct CPythonUuid(pub(crate) uuid::Uuid);
+pub struct CPythonUuid(pub(crate) uuid::Uuid);
+
+impl From<CPythonUuid> for uuid::Uuid {
+    fn from(val: CPythonUuid) -> Self {
+        val.0
+    }
+}
+
 fn get_uuid_cls(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
     static UUID_CLS: GILOnceCell<Py<PyType>> = GILOnceCell::new();
     UUID_CLS.import(py, "uuid", "UUID")
