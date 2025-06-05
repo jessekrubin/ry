@@ -48,9 +48,7 @@ def py_stringify(data):
 
 
 def oj_stringify(data):
-    return orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS).decode(
-        "utf-8"
-    )
+    return orjson.dumps(data).decode("utf-8")
 
 
 @pytest.mark.benchmark(group="stringify")

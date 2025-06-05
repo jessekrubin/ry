@@ -133,48 +133,51 @@ impl Serialize for SerializePyObject<'_> {
         if ob_type == lookup.none {
             serializer.serialize_str(self.none_value.unwrap_or("null"))
         } else if ob_type == lookup.bool {
-            serialize!(bool)
+            let py_bool= self.obj.downcast::<PyBool>().map_err(map_py_err)?;
+            let v: bool          = py_bool.is_true();
+            return serializer.serialize_bool(v);
         } else if ob_type == lookup.int {
-            serialize!(i64)
+            // serialize!(i64)
+            // 1. Downcast straight to PyInt (no generic Extract)
+            let py_int = self.obj.downcast::<PyInt>().map_err(map_py_err)?;
+            // 2. Pull out the raw i64 using PyInt’s fast C‐API path
+            let v: i64 = py_int.extract().map_err(map_py_err)?;
+            // 3. Call serde’s serialize_i64 directly
+            return serializer.serialize_i64(v);
         } else if ob_type == lookup.float {
-            serialize!(f64)
+            // serialize!(f64)
+            let py_float = self.obj.downcast::<PyFloat>().map_err(map_py_err)?;
+            let v: f64           = py_float.extract().map_err(map_py_err)?;
+            return serializer.serialize_f64(v);
         } else if ob_type == lookup.list {
             let py_list: &Bound<'_, PyList> = self.obj.downcast().map_err(map_py_err)?;
             let len = py_list.len();
-            let mut seq = serializer.serialize_seq(
-                Some(len)
-            )?;
+            let mut seq = serializer.serialize_seq(Some(len))?;
             for element in py_list {
-                if self.none_value.is_some() || !element.is_none() {
-                    seq.serialize_element(&self.with_obj(element))?
-                }
+                // if self.none_value.is_some() || !element.is_none() {
+                seq.serialize_element(&self.with_obj(element))?
+                // }
             }
             seq.end()
         } else if ob_type == lookup.tuple {
             let py_tuple: &Bound<'_, PyTuple> = self.obj.downcast().map_err(map_py_err)?;
             let len = py_tuple.len();
-            let mut seq = serializer.serialize_seq(
-                Some(len)
-            )?;
+            let mut seq = serializer.serialize_seq(Some(len))?;
             for element in py_tuple {
-                if self.none_value.is_some() || !element.is_none() {
-                    seq.serialize_element(&self.with_obj(element))?
-                }
+                // if self.none_value.is_some() || !element.is_none() {
+                seq.serialize_element(&self.with_obj(element))?
+                // }
             }
             seq.end()
         } else if ob_type == lookup.string {
             let py_str: &Bound<'_, PyString> = self.obj.downcast().map_err(map_py_err)?;
             let s = py_str.to_str().map_err(map_py_err)?;
             serializer.serialize_str(s)
-
         } else if ob_type == lookup.dict {
             let py_dict: &Bound<'_, PyDict> = self.obj.downcast().map_err(map_py_err)?;
             let mut m = serializer.serialize_map(Some(py_dict.len()))?;
             for (k, v) in py_dict {
-                m.serialize_entry (
-                    table_key(&k, self.none_value)?,
-                    &self.with_obj(v),
-                )?;
+                m.serialize_entry(table_key(&k, self.none_value)?, &self.with_obj(v))?;
             }
             m.end()
         }
@@ -225,8 +228,6 @@ fn table_key<'py, E: SerError>(
 ) -> Result<&'py str, E> {
     if let Ok(py_string) = key.downcast::<PyString>() {
         py_string.to_str().map_err(map_py_err)
-    } else if key.is_none() {
-        Ok(none_value.unwrap_or("null"))
     } else if let Ok(key) = key.extract::<bool>() {
         Ok(if key { "true" } else { "false" })
     } else {

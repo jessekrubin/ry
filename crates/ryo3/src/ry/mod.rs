@@ -22,7 +22,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     sh::pymod_add(m)?;
     libs::pymod_add(m)?;
     // register submodules
-    submodules::pymod_add(m)?;
+    // submodules::pymod_add(m)?;
     // dev submodule
     #[cfg(feature = "dev")]
     dev::pymod_add(m)?;
