@@ -1,7 +1,6 @@
 # API
 
 ## Table of Contents
-
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
@@ -32,6 +31,7 @@
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.dirs`](#ry.dirs)
 - [`ry.http`](#ry.http)
+- [`ry.ulid`](#ry.ulid)
 - [`ry.uuid`](#ry.uuid)
 - [`ry.xxhash`](#ry.xxhash)
 - [`ry.zstd`](#ry.zstd)
@@ -45,6 +45,7 @@ from os import PathLike
 
 from ry import dirs as dirs  # noqa: RUF100
 from ry import http as http  # noqa: RUF100
+from ry import ulid as ulid  # noqa: RUF100
 from ry import uuid as uuid  # noqa: RUF100
 from ry import xxhash as xxhash  # noqa: RUF100
 from ry import zstd as zstd  # noqa: RUF100
@@ -2770,6 +2771,13 @@ class Response:
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
     async def __anext__(self) -> ry.Bytes: ...
+    async def take(self, n: int = 1) -> list[ry.Bytes]: ...
+    @t.overload
+    async def collect(
+        self, join: t.Literal[False] = False
+    ) -> list[ry.Bytes]: ...
+    @t.overload
+    async def collect(self, join: t.Literal[True] = True) -> ry.Bytes: ...
 
 
 async def fetch(
@@ -4033,6 +4041,91 @@ class HttpStatus:
     NETWORK_AUTHENTICATION_REQUIRED: (
         HttpStatus  # 511 ~ Network Authentication Required
     )
+
+```
+
+<h2 id="ry.ulid"><code>ry.ulid</code></h2>
+
+```python
+import builtins
+import datetime as pydt
+import typing as t
+import uuid
+from collections.abc import Callable as Callable
+
+from pydantic import (
+    GetCoreSchemaHandler as GetCoreSchemaHandler,
+)
+from pydantic import (
+    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
+)
+from pydantic_core import CoreSchema as CoreSchema
+from ulid import base32 as base32
+from ulid import constants as constants
+
+
+class ULID:
+    def __init__(self, value: builtins.bytes | None = None) -> None: ...
+
+    # ----------------
+    # INSTANCE METHODS
+    # ----------------
+    def to_uuid(self) -> uuid.UUID: ...
+    def to_uuid4(self) -> uuid.UUID: ...
+
+    # -------
+    # DUNDERS
+    # -------
+    def __int__(self) -> int: ...
+    def __bytes__(self) -> builtins.bytes: ...
+    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+
+    # ----------
+    # PROPERTIES
+    # ----------
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def milliseconds(self) -> int: ...
+    @property
+    def timestamp(self) -> float: ...
+    @property
+    def datetime(self) -> pydt.datetime: ...
+    @property
+    def hex(self) -> str: ...
+
+    # -------------
+    # CLASS METHODS
+    # -------------
+    @classmethod
+    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
+    @classmethod
+    def from_timestamp(cls, value: float) -> ULID: ...
+    @classmethod
+    def from_uuid(cls, value: uuid.UUID) -> ULID: ...
+    @classmethod
+    def from_bytes(cls, bytes_: builtins.bytes) -> ULID: ...
+    @classmethod
+    def from_hex(cls, value: str) -> ULID: ...
+    @classmethod
+    def from_str(cls, string: str) -> ULID: ...
+    @classmethod
+    def from_int(cls, value: int) -> ULID: ...
+    @classmethod
+    def parse(cls, value: t.Any) -> ULID: ...
+
+    # --------
+    # PYDANTIC
+    # --------
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: t.Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema: ...
 
 ```
 
