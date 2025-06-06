@@ -113,16 +113,55 @@ async def test_get_json(server: ReqtestServer) -> None:
     assert headers_dict["content-type"] == "application/json"
 
 
-async def test_get_stream(server: ReqtestServer) -> None:
-    url = server.url
-    client = ry.HttpClient()
-    response = await client.get(str(url) + "long")
+class TestStream:
+    @pytest.mark.anyio
+    @staticmethod
+    async def test_get_stream(server: ReqtestServer) -> None:
+        url = server.url
+        client = ry.HttpClient()
+        response = await client.get(str(url) + "long")
 
-    expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
-    parts = b""
-    async for thing in response.bytes_stream():
-        parts += thing
-    assert parts == expected
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        parts = b""
+        async for thing in response.bytes_stream():
+            parts += thing
+        assert parts == expected
+
+    @pytest.mark.anyio
+    @staticmethod
+    async def test_get_stream_take_collect(server: ReqtestServer) -> None:
+        url = server.url
+        client = ry.HttpClient()
+        response = await client.get(str(url) + "long")
+
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        response_stream = response.bytes_stream()
+
+        take1 = await response_stream.take(1)
+        take2 = await response_stream.take(2)
+        assert len(take1) == 1
+        assert len(take2) == 2
+        rest = await response_stream.collect()
+        joined = b"".join(take1 + take2 + rest)
+        assert joined == expected
+        expected_len = len(expected) - (
+            sum(len(t) for t in take1) + sum(len(t) for t in take2)
+        )
+        rest_total_inner_len = sum(len(t) for t in rest)
+        assert rest_total_inner_len == expected_len
+
+    @pytest.mark.anyio
+    @staticmethod
+    async def test_get_stream_collect_join(server: ReqtestServer) -> None:
+        url = server.url
+        client = ry.HttpClient()
+        response = await client.get(str(url) + "long")
+
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        response_stream = response.bytes_stream()
+        collected = await response_stream.collect(True)
+        assert isinstance(collected, ry.Bytes)
+        assert collected == expected
 
 
 async def test_client_headers_req(server: ReqtestServer) -> None:

@@ -167,10 +167,7 @@ impl RyResponse {
     /// Return a response consuming async iterator over the response body
     fn bytes_stream(&self) -> PyResult<RyResponseStream> {
         let response = self.take_response()?;
-        let stream = Box::pin(response.bytes_stream());
-        Ok(RyResponseStream {
-            stream: Arc::new(tokio::sync::Mutex::new(stream)),
-        })
+        Ok(RyResponseStream::from_response(response))
     }
 
     /// Return a response consuming async iterator over the response body

@@ -172,9 +172,6 @@ impl RyResponse {
             .take()
             .ok_or_else(|| PyErr::new::<PyValueError, _>("response already consumed"))?;
 
-        let stream = Box::pin(res.bytes_stream());
-        Ok(RyResponseStream {
-            stream: Arc::new(Mutex::new(stream)),
-        })
+        Ok(RyResponseStream::from_response(res))
     }
 }
