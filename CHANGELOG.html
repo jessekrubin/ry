@@ -176,6 +176,21 @@
 <h2 id="v0046-unreleased"><a class="header" href="#v0046-unreleased">v0.0.46 [unreleased]</a></h2>
 <ul>
 <li>version 0.0.46</li>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li><code>ResponseStream</code>
+<ul>
+<li>Added <code>__repr__</code> method</li>
+<li>Added <code>async def take(self, n: int=1): ...</code> method returns n chunks as a
+list</li>
+<li>Added <code>async def collect(self: join = False) -&gt; ...:</code> method that collects
+the stream into a single <code>ry.Bytes</code> object if <code>join=True</code> or a list of
+<code>ry.Bytes</code> objects if <code>join=False</code></li>
+<li>Added <code>async def take(self, n: int=1): ...</code> which returns n chunks as a list</li>
+</ul>
+</li>
+</ul>
+</li>
 <li><code>ryo3-glob</code>
 <ul>
 <li>add <code>dtype</code> kwarg that takes either <code>dtype=str | ry.FsPath | pathlib.Path</code>
