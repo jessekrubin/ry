@@ -18,6 +18,8 @@
     icky, the default may be changed to `str` (from `pathlib.Path`)
 - `ryo3-ulid`
   - Added mostly as a way to test how much pydantic + ry integration would be
+- `ryo3-which`
+  - upgrade which to version 8
 
 ---
 
