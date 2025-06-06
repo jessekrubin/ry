@@ -192,7 +192,7 @@ url = { version = "2.5.4", features = ["serde"] }
 uuid = { version = "1.17.0", features = ["v4", "v8"] }
 ulid = { version = "1.2.1" }
 walkdir = "2.5.0"
-which = { version = "7.0.3", features = [] }
+which = { version = "8.0.0", features = [] }
 xxhash-rust = { version = "0.8.15", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
 zstd = "0.13.3"
 zstd-safe = "7.2.4"
