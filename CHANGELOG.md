@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.46 [unreleased]
+## v0.0.46 [2025-06-06]
 
 - version 0.0.46
 - `ryo3-reqwest`
@@ -11,7 +11,8 @@
     - Added `async def collect(self: join = False) -> ...:` method that collects
       the stream into a single `ry.Bytes` object if `join=True` or a list of
       `ry.Bytes` objects if `join=False`
-    - Added `async def take(self, n: int=1): ...` which returns n chunks as a list
+    - Added `async def take(self, n: int=1): ...` which returns n chunks as a
+      list
 - `ryo3-glob`
   - add `dtype` kwarg that takes either `dtype=str | ry.FsPath | pathlib.Path`
     as type of obj yielded by the iterable; something about this feels really
