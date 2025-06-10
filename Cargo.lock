@@ -1853,6 +1853,7 @@ dependencies = [
  "parking_lot",
  "pyo3",
  "pyo3-async-runtimes",
+ "pythonize",
  "reqwest",
  "ryo3-bytes",
  "ryo3-http",
@@ -1860,6 +1861,8 @@ dependencies = [
  "ryo3-std",
  "ryo3-url",
  "serde",
+ "serde_json",
+ "serde_urlencoded",
  "tokio",
  "tracing",
 ]

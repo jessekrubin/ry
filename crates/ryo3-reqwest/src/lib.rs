@@ -13,6 +13,7 @@ mod response_data;
 mod response_parking_lot;
 mod response_stream;
 mod response_tokio_mutex;
+mod urlencode;
 mod user_agent;
 
 pub use client::RyHttpClient;
@@ -21,10 +22,13 @@ use pyo3::prelude::*;
 // pub use response_tokio_mutex::RyResponse;
 pub use response_parking_lot::RyResponse;
 pub use response_stream::RyResponseStream;
+pub use urlencode::{url_decode, url_encode};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyHttpClient>()?;
     m.add_class::<RyReqwestError>()?;
     m.add_function(wrap_pyfunction!(fetch::fetch, m)?)?;
+    m.add_function(wrap_pyfunction!(urlencode::url_decode, m)?)?;
+    m.add_function(wrap_pyfunction!(urlencode::url_encode, m)?)?;
     Ok(())
 }

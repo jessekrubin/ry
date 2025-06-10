@@ -6,6 +6,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{intern, IntoPyObjectExt};
+use pythonize::depythonize;
 use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
@@ -72,8 +73,10 @@ impl RyHttpClient {
         if let Some(_multipart) = multipart {
             return err_py_not_impl!("multipart not implemented (yet)");
         }
-        if let Some(_form) = form {
-            return err_py_not_impl!("form not implemented (yet)");
+        if let Some(form) = form {
+            // TODO: use future py-any-serializer instead of `serde_json::Value`
+            let form_data_json: serde_json::Value = depythonize(form)?;
+            req = req.form(&form_data_json);
         }
         if let Some(body) = body {
             let body_bytes = body.into_inner();

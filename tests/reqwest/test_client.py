@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import typing as t
+
 import pytest
 
 import ry.dev as ry
@@ -111,6 +113,31 @@ async def test_get_json(server: ReqtestServer) -> None:
     assert headers["content-type"] == "application/json"
     headers_dict = dict(headers)
     assert headers_dict["content-type"] == "application/json"
+
+
+class TestFormData:
+    @pytest.mark.anyio
+    @staticmethod
+    @pytest.mark.parametrize(
+        "form_data",
+        [
+            {"dog": "dingo", "is-dingo": True, "bluey-fam-size": 4},
+            # [
+            #     ["dog", "dingo"],
+            #     ["is-dingo", "true"],
+            #     ["bluey-fam-size", "4"],
+            # ],
+        ],
+    )
+    async def test_post_form_data(server: ReqtestServer, form_data: t.Any) -> None:
+        url = server.url
+        client = ry.HttpClient()
+        response = await client.post(str(url) + "echo", form=form_data)
+        assert response.status_code == 200
+        res_json = await response.json()
+        body_str = res_json["body"]
+        decoded = ry.url_decode(body_str)
+        assert decoded == {"bluey-fam-size": "4", "dog": "dingo", "is-dingo": "true"}
 
 
 class TestStream:
