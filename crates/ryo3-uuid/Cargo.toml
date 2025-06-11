@@ -16,6 +16,17 @@ pyo3 = { workspace = true, features = ["uuid"] }
 ryo3-bytes.workspace = true
 ryo3-macro-rules.workspace = true
 uuid.workspace = true
+serde = { workspace = true, features = ["derive"], optional = true }
 
 [lints]
 workspace = true
+
+[features]
+default = [
+  "serde"
+]
+serde = [
+  "dep:serde",
+  "pyo3/serde",
+  "uuid/serde"
+]

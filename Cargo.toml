@@ -19,6 +19,7 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }
+serde_json = { workspace = true, features = ["indexmap", "alloc"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true
 

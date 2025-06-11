@@ -11,9 +11,9 @@ use pyo3::{Bound, PyResult};
 pub mod dev;
 #[cfg(feature = "dev")]
 pub mod dev_json;
+mod pyany_serializer;
 pub mod sh;
 pub mod submodules;
-mod pyany_serializer;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_std::pymod_add(m)?;

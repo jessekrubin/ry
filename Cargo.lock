@@ -1621,6 +1621,7 @@ dependencies = [
  "pyo3",
  "pyo3-build-config",
  "ryo3",
+ "serde_json",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1962,6 +1963,7 @@ dependencies = [
  "pyo3",
  "ryo3-bytes",
  "ryo3-macro-rules",
+ "serde",
  "uuid",
 ]
 
@@ -2093,6 +2095,7 @@ version = "1.0.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
 dependencies = [
+ "indexmap",
  "itoa",
  "memchr",
  "ryu",
@@ -2562,6 +2565,7 @@ checksum = "3cf4199d1e5d15ddd86a694e4d0dffa9c323ce759fea589f00fef9d81cc1931d"
 dependencies = [
  "getrandom 0.3.3",
  "js-sys",
+ "serde",
  "wasm-bindgen",
 ]
 

@@ -51,9 +51,9 @@ def oj_stringify(data):
     return orjson.dumps(data).decode("utf-8")
 
 
-@pytest.mark.benchmark(group="stringify")
-def test_python_stdlib(benchmark: BenchmarkFixture):
-    benchmark(lambda: py_stringify(data))
+# @pytest.mark.benchmark(group="stringify")
+# def test_python_stdlib(benchmark: BenchmarkFixture):
+#     benchmark(lambda: py_stringify(data))
 
 
 @pytest.mark.benchmark(group="stringify")
@@ -90,5 +90,11 @@ def test_orjson(benchmark: BenchmarkFixture):
     benchmark(lambda: oj_stringify(data))
 
 
+@pytest.mark.benchmark(group="stringify")
+def test_ry_stringify_v6(benchmark: BenchmarkFixture):
+    benchmark(lambda: ry.stringify_v6(data))
+
+
 if __name__ == "__main__":
     print(ry.stringify_v5(data).decode())
+    print(ry.stringify_v6(data).decode())

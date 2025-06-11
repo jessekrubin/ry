@@ -404,7 +404,8 @@ pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
 // NOTE: As of today/now (2025-05-15) on Big-Endian system the uuid conversion
 //       does not work as expected due to the usage of `.to_le()`
 
-pub struct CPythonUuid(pub(crate) uuid::Uuid);
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct CPythonUuid(pub uuid::Uuid);
 
 impl From<CPythonUuid> for uuid::Uuid {
     fn from(val: CPythonUuid) -> Self {

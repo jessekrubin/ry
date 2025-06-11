@@ -6,10 +6,11 @@ use serde::ser::{Error as SerError, Serialize, SerializeMap, SerializeSeq, Seria
 use pyo3::prelude::*;
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{
-    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDict, PyFloat, PyInt, PyList, PyNone,
-    PyString, PyTime, PyTuple,
+    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDict, PyFloat, PyInt, PyList, PyMapping,
+    PyNone, PyString, PyTime, PyTuple, PyType,
 };
 use pyo3::PyTypeInfo;
+// use ryo3_uuid::{CPythonUuid, PyUuid};
 
 #[derive(Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
@@ -32,10 +33,22 @@ pub struct PyTypeLookup {
     pub datetime: usize,
     pub date: usize,
     pub time: usize,
+    // uuid
+    // pub py_uuid: usize,
 }
 
 static TYPE_LOOKUP: GILOnceCell<PyTypeLookup> = GILOnceCell::new();
 
+fn get_uuid_ob_pointer(py: Python) -> usize {
+    let uuid_mod = py.import("uuid").expect("uuid to be importable");
+    // get a uuid how orjson does it...
+    let uuid_ob = uuid_mod
+        .getattr("NAMESPACE_DNS")
+        .expect("uuid.NAMESPACE_DNS to be available");
+    let uuid_type = uuid_ob.get_type();
+    let uuid_ob_ptr = uuid_type.as_type_ptr() as usize;
+    uuid_ob_ptr
+}
 impl PyTypeLookup {
     fn new(py: Python) -> Self {
         Self {
@@ -57,6 +70,8 @@ impl PyTypeLookup {
             datetime: PyDateTime::type_object_raw(py) as usize,
             date: PyDate::type_object_raw(py) as usize,
             time: PyTime::type_object_raw(py) as usize,
+            // uuid
+            // py_uuid: get_uuid_ob_pointer(py), // use uuid.NAMESPACE_DNS as a proxy for the uuid type
         }
     }
 
@@ -133,8 +148,8 @@ impl Serialize for SerializePyObject<'_> {
         if ob_type == lookup.none {
             serializer.serialize_str(self.none_value.unwrap_or("null"))
         } else if ob_type == lookup.bool {
-            let py_bool= self.obj.downcast::<PyBool>().map_err(map_py_err)?;
-            let v: bool          = py_bool.is_true();
+            let py_bool = self.obj.downcast::<PyBool>().map_err(map_py_err)?;
+            let v: bool = py_bool.is_true();
             return serializer.serialize_bool(v);
         } else if ob_type == lookup.int {
             // serialize!(i64)
@@ -147,7 +162,7 @@ impl Serialize for SerializePyObject<'_> {
         } else if ob_type == lookup.float {
             // serialize!(f64)
             let py_float = self.obj.downcast::<PyFloat>().map_err(map_py_err)?;
-            let v: f64           = py_float.extract().map_err(map_py_err)?;
+            let v: f64 = py_float.extract().map_err(map_py_err)?;
             return serializer.serialize_f64(v);
         } else if ob_type == lookup.list {
             let py_list: &Bound<'_, PyList> = self.obj.downcast().map_err(map_py_err)?;
@@ -212,6 +227,10 @@ impl Serialize for SerializePyObject<'_> {
         // }
         else if ob_type == lookup.bytes || ob_type == lookup.bytearray {
             serialize!(&[u8])
+        // } else if ob_type == lookup.py_uuid {
+        //     let uu = CPythonUuid::extract_bound(&self.obj)
+        //         .map_err(|e| serde_err!("Failed to extract CPythonUuid: {}", e))?;
+        //     let uu = uu.0;
         } else {
             serde_err!("{} is not serializable to TOML", any_repr(&self.obj))
         }
