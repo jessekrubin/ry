@@ -16,9 +16,10 @@ pub fn oj_dumps<'py>(
     kwargs: Option<&Bound<'py, PyDict>>,
 ) -> PyResult<Bound<'py, PyAny>> {
     let dumps = ORJSON_DUMPS.import(py, "orjson", "dumps").map_err(|e| {
-        PyImportError::new_err(
-            "orson module not found; install with `pip install orjson` or `uv add orjson`",
-        )
+        let emsg = format!(
+            "`orjson` not found/importable; install w/ `pip install orjson` or `uv add orjson` ~ ERR: {e}",
+        );
+        PyImportError::new_err(emsg)
     })?;
     if let Some(kwargs) = kwargs {
         dumps.call((obj,), Some(kwargs))

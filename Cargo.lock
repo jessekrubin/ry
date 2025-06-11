@@ -1876,6 +1876,7 @@ name = "ryo3-serde"
 version = "0.0.46"
 dependencies = [
  "pyo3",
+ "serde",
 ]
 
 [[package]]
