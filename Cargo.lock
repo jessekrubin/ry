@@ -1872,6 +1872,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryo3-serde"
+version = "0.0.46"
+dependencies = [
+ "pyo3",
+]
+
+[[package]]
 name = "ryo3-shlex"
 version = "0.0.46"
 dependencies = [

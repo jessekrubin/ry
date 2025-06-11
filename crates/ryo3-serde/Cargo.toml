@@ -1,0 +1,18 @@
+[package]
+name = "ryo3-serde"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "python + serde"
+
+[dependencies]
+pyo3 = { workspace = true, features = [] }
+
+[lints]
+workspace = true
