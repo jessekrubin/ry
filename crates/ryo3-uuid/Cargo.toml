@@ -14,8 +14,20 @@ categories.workspace = true
 [dependencies]
 pyo3 = { workspace = true, features = ["uuid"] }
 ryo3-bytes.workspace = true
-ryo3-macro-rules.workspace = true
 uuid.workspace = true
+serde = { workspace = true, optional = true, features = ["derive"] }
+
+[dev-dependencies]
+serde = { workspace = true, features = ["derive"] }
+
+[features]
+default = [
+  "serde"
+]
+serde = [
+  "dep:serde",
+  "uuid/serde",
+]
 
 [lints]
 workspace = true

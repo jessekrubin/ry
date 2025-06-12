@@ -14,6 +14,7 @@ description = "python + serde"
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 serde.workspace = true
+ryo3-uuid = { workspace = true, features = ["serde"] }
 
 [lints]
 workspace = true

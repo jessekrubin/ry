@@ -1,18 +1,17 @@
 //! Serializer for `PyAny`
 //!
 //! Based on a combination of `orjson`, `pythonize` and `rtoml`.
-use std::fmt;
-
 use pyo3::prelude::*;
 use serde::ser::{Error as SerError, Serialize, SerializeMap, SerializeSeq, Serializer};
+use std::fmt;
 
-use pyo3::prelude::*;
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{
     PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDict, PyFloat, PyInt, PyList, PyNone,
     PyString, PyTime, PyTuple,
 };
 use pyo3::PyTypeInfo;
+use ryo3_uuid::{uuid, PyUuid as RyUuid};
 
 pub enum PyObType {
     None,
@@ -28,7 +27,9 @@ pub enum PyObType {
     DateTime,
     Date,
     Time,
-    // Uuid, // not used yet
+    PyUuid, // not used yet
+    // ry-types
+    RyUuid,
 }
 
 #[derive(Clone)]
@@ -53,7 +54,8 @@ pub struct PyTypeLookup {
     pub date: usize,
     pub time: usize,
     // uuid
-    // pub py_uuid: usize,
+    pub py_uuid: usize,
+    pub ry_uuid: usize, // not used yet
 }
 
 static TYPE_LOOKUP: GILOnceCell<PyTypeLookup> = GILOnceCell::new();
@@ -65,9 +67,10 @@ fn get_uuid_ob_pointer(py: Python) -> usize {
         .getattr("NAMESPACE_DNS")
         .expect("uuid.NAMESPACE_DNS to be available");
     let uuid_type = uuid_ob.get_type();
-    let uuid_ob_ptr = uuid_type.as_type_ptr() as usize;
-    uuid_ob_ptr
+
+    uuid_type.as_type_ptr() as usize
 }
+
 impl PyTypeLookup {
     fn new(py: Python) -> Self {
         Self {
@@ -90,7 +93,8 @@ impl PyTypeLookup {
             date: PyDate::type_object_raw(py) as usize,
             time: PyTime::type_object_raw(py) as usize,
             // uuid
-            // py_uuid: get_uuid_ob_pointer(py), // use uuid.NAMESPACE_DNS as a proxy for the uuid type
+            py_uuid: get_uuid_ob_pointer(py), // use uuid.NAMESPACE_DNS as a proxy for the uuid type
+            ry_uuid: RyUuid::type_object_raw(py) as usize,
         }
     }
 
@@ -98,6 +102,7 @@ impl PyTypeLookup {
         TYPE_LOOKUP.get_or_init(py, || PyTypeLookup::new(py))
     }
 
+    #[must_use]
     pub fn obtype(&self, ob: &Bound<'_, PyAny>) -> Option<PyObType> {
         let ob_type = ob.get_type_ptr() as usize;
         if ob_type == self.none {
@@ -126,8 +131,8 @@ impl PyTypeLookup {
             Some(PyObType::Date)
         } else if ob_type == self.time {
             Some(PyObType::Time)
-        // } else if ob_type == self.py_uuid {
-        //     PyObType::Uuid
+        } else if ob_type == self.py_uuid {
+            Some(PyObType::PyUuid)
         } else {
             None
         }
@@ -140,6 +145,7 @@ pub struct SerializePyAny<'py> {
 }
 
 impl<'py> SerializePyAny<'py> {
+    #[must_use]
     pub fn new(py: Python<'py>, obj: Bound<'py, PyAny>, none_value: Option<&'py str>) -> Self {
         Self {
             obj,
@@ -170,6 +176,12 @@ impl<'py> SerializePyAny<'py> {
     }
 }
 
+pub struct SerializePyString<'py> {
+    obj: &'py Bound<'py, PyAny>,
+    none_value: Option<&'py str>,
+    ob_type_lookup: &'py PyTypeLookup,
+}
+
 // macro_rules! serde_err {
 //     ($msg:expr, $( $msg_args:expr ),+ ) => {
 //         Err(SerError::custom(format!($msg, $( $msg_args ),+ )))
@@ -178,6 +190,40 @@ impl<'py> SerializePyAny<'py> {
 macro_rules! serde_err {
     ($($arg:tt)*) => {
         Err(SerError::custom(format_args!($($arg)*)))
+    }
+}
+
+// impl Serialize for SerializePyString<'_> {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
+//     {
+//         let ptr = self.obj.as_ptr();
+//         if unsafe { PyUnicode_IS_ASCII(ptr) } != 0 {
+//             unsafe {
+//                 let bytes = {
+//                     std::slice::from_raw_parts(
+//                         pyo3::ffi::PyUnicode_1BYTE_DATA(ptr),
+//                         pyo3::ffi::PyUnicode_GET_LENGTH(ptr) as usize,
+//                     )
+//                 };
+//                 return serializer.serialize_str(std::str::from_utf8_unchecked(bytes));
+//             }
+//         } else {
+//             let py_str: &Bound<'_, PyString> = self.obj.downcast().map_err(map_py_err)?;
+//             let s = py_str.to_str().map_err(map_py_err)?;
+//             return serializer.serialize_str(s);
+//         }
+//     }
+// }
+impl Serialize for SerializePyString<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let py_str: &Bound<'_, PyString> = self.obj.downcast().map_err(map_py_err)?;
+        let s = py_str.to_str().map_err(map_py_err)?;
+        serializer.serialize_str(s)
     }
 }
 
@@ -218,14 +264,25 @@ impl Serialize for SerializePyAny<'_> {
             // serialize!(f64)
             let py_float = self.obj.downcast::<PyFloat>().map_err(map_py_err)?;
             let v: f64 = py_float.extract().map_err(map_py_err)?;
-            return serializer.serialize_f64(v);
+            let a = serializer.serialize_f64(v);
+            return a;
+        } else if ob_type == lookup.string {
+            let pystr_ser = SerializePyString {
+                obj: &self.obj,
+                none_value: self.none_value,
+                ob_type_lookup: self.ob_type_lookup,
+            };
+            return pystr_ser.serialize(serializer);
+            // let py_str: &Bound<'_, PyString> = self.obj.downcast().map_err(map_py_err)?;
+            // let s = py_str.to_str().map_err(map_py_err)?;
+            // return serializer.serialize_str(s);
         } else if ob_type == lookup.list {
             let py_list: &Bound<'_, PyList> = self.obj.downcast().map_err(map_py_err)?;
             let len = py_list.len();
             let mut seq = serializer.serialize_seq(Some(len))?;
             for element in py_list {
                 // if self.none_value.is_some() || !element.is_none() {
-                seq.serialize_element(&self.with_obj(element))?
+                seq.serialize_element(&self.with_obj(element))?;
                 // }
             }
             seq.end()
@@ -235,14 +292,10 @@ impl Serialize for SerializePyAny<'_> {
             let mut seq = serializer.serialize_seq(Some(len))?;
             for element in py_tuple {
                 // if self.none_value.is_some() || !element.is_none() {
-                seq.serialize_element(&self.with_obj(element))?
+                seq.serialize_element(&self.with_obj(element))?;
                 // }
             }
             seq.end()
-        } else if ob_type == lookup.string {
-            let py_str: &Bound<'_, PyString> = self.obj.downcast().map_err(map_py_err)?;
-            let s = py_str.to_str().map_err(map_py_err)?;
-            serializer.serialize_str(s)
         } else if ob_type == lookup.dict {
             let py_dict: &Bound<'_, PyDict> = self.obj.downcast().map_err(map_py_err)?;
             let mut m = serializer.serialize_map(Some(py_dict.len()))?;
@@ -255,39 +308,30 @@ impl Serialize for SerializePyAny<'_> {
             let dt_pystr = py_dt.str().map_err(map_py_err)?;
             let dt_str = dt_pystr.to_str().map_err(map_py_err)?;
             // TODO: use jiff to do all the date-time formatting
-            let iso_str = dt_str.replacen("+00:00", "Z", 1).replace(" ", "T");
+            let iso_str = dt_str.replacen("+00:00", "Z", 1).replace(' ', "T");
             serializer.serialize_str(iso_str.as_ref())
-            // match Datetime::from_str(&iso_str) {
-            //     Ok(dt) => dt.serialize(serializer),
-            //     Err(e) => serde_err!(
-            //         "unable to convert datetime string to TOML datetime object {:?}",
-            //         e
-            //     ),
-            // }
         } else if ob_type == lookup.date {
             let py_date: &Bound<'_, PyDate> = self.obj.downcast().map_err(map_py_err)?;
             let date_pystr = py_date.str().map_err(map_py_err)?;
             let date_str = date_pystr.to_str().map_err(map_py_err)?;
-            // match Datetime::from_str(date_str) {
-            //     Ok(dt) => dt.serialize(serializer),
-            //     Err(e) => serde_err!("unable to convert date string to TOML date object {:?}", e),
-            // }
             serializer.serialize_str(date_str)
         } else if ob_type == lookup.time {
             let py_time: &Bound<'_, PyTime> = self.obj.downcast().map_err(map_py_err)?;
             let time_pystr = py_time.str().map_err(map_py_err)?;
             let time_str = time_pystr.to_str().map_err(map_py_err)?;
-            // match Datetime::from_str(time_str) {
-            //     Ok(dt) => dt.serialize(serializer),
-            //     Err(e) => serde_err!("unable to convert time string to TOML time object {:?}", e),
-            // }
             serializer.serialize_str(time_str)
         } else if ob_type == lookup.bytes || ob_type == lookup.bytearray {
             serialize!(&[u8])
-        // } else if ob_type == lookup.py_uuid {
-        //     let uu = CPythonUuid::extract_bound(&self.obj)
-        //         .map_err(|e| serde_err!("Failed to extract CPythonUuid: {}", e))?;
-        //     let uu = uu.0;
+        } else if ob_type == lookup.ry_uuid {
+            let ry_uu = self.obj.downcast::<RyUuid>().map_err(map_py_err)?;
+            let uu = ry_uu.borrow().0;
+            serializer.serialize_str(&uu.hyphenated().to_string())
+        } else if ob_type == lookup.py_uuid {
+            let uu = ryo3_uuid::CPythonUuid::extract_bound(&self.obj)
+                // .map_err(|e| serde_err!("Failed to extract CPythonUuid: {}", e))
+                .map(|u| uuid::Uuid::from(u))
+                .map_err(|e| map_py_err(e))?;
+            serializer.serialize_str(&uu.hyphenated().to_string())
         } else {
             serde_err!("{} is not JSON-serializable", any_repr(&self.obj))
         }

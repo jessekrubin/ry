@@ -1879,6 +1879,7 @@ name = "ryo3-serde"
 version = "0.0.46"
 dependencies = [
  "pyo3",
+ "ryo3-uuid",
  "serde",
 ]
 
@@ -1964,7 +1965,7 @@ version = "0.0.46"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
- "ryo3-macro-rules",
+ "serde",
  "uuid",
 ]
 
@@ -2565,6 +2566,7 @@ checksum = "3cf4199d1e5d15ddd86a694e4d0dffa9c323ce759fea589f00fef9d81cc1931d"
 dependencies = [
  "getrandom 0.3.3",
  "js-sys",
+ "serde",
  "wasm-bindgen",
 ]
 

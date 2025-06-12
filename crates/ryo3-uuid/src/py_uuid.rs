@@ -14,7 +14,19 @@ pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibilit
 pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
 
 #[pyclass(name = "UUID", module = "ry.uuid", frozen, weakref)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    repr(transparent)
+)]
 pub struct PyUuid(pub uuid::Uuid);
+
+impl AsRef<uuid::Uuid> for PyUuid {
+    fn as_ref(&self) -> &uuid::Uuid {
+        &self.0
+    }
+}
 
 impl From<uuid::Uuid> for PyUuid {
     fn from(value: uuid::Uuid) -> Self {
