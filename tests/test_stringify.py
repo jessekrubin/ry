@@ -70,15 +70,18 @@ def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     except orjson.JSONDecodeError as e:
         raise AssertionError(f"Stringified JSON is not valid for orjson: {e}") from e
 
-    oj_parsed =  orjson.loads(oj_res)
+    oj_parsed = orjson.loads(oj_res)
     ry_parsed = ry.parse_json(json_bytes)
-    assert ry_parsed == oj_parsed, "Parsed JSON from ry.stringify does not match orjson parsed result"
+    assert ry_parsed == oj_parsed, (
+        "Parsed JSON from ry.stringify does not match orjson parsed result"
+    )
 
 
 @given(st_json_js(datetimes=True))
 def test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
     _test_stringify_json_orjson_compatible(data)
+
 
 @given(st_json_js(datetimes=True, finite_only=False))
 def test_stringify_json_orjson_compatible_inf_nan(data: t.Any) -> None:
