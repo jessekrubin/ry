@@ -255,9 +255,7 @@ impl Serialize for SerializePyAny<'_> {
             let dt_pystr = py_dt.str().map_err(map_py_err)?;
             let dt_str = dt_pystr.to_str().map_err(map_py_err)?;
             // TODO: use jiff to do all the date-time formatting
-            let iso_str = dt_str.replacen("+00:00", "Z", 1).replace(
-                " ", "T"
-            );
+            let iso_str = dt_str.replacen("+00:00", "Z", 1).replace(" ", "T");
             serializer.serialize_str(iso_str.as_ref())
             // match Datetime::from_str(&iso_str) {
             //     Ok(dt) => dt.serialize(serializer),
@@ -275,7 +273,6 @@ impl Serialize for SerializePyAny<'_> {
             //     Err(e) => serde_err!("unable to convert date string to TOML date object {:?}", e),
             // }
             serializer.serialize_str(date_str)
-
         } else if ob_type == lookup.time {
             let py_time: &Bound<'_, PyTime> = self.obj.downcast().map_err(map_py_err)?;
             let time_pystr = py_time.str().map_err(map_py_err)?;
