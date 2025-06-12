@@ -1815,7 +1815,10 @@ name = "ryo3-json"
 version = "0.0.46"
 dependencies = [
  "pyo3",
- "unindent",
+ "ryo3-bytes",
+ "ryo3-serde",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

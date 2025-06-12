@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-// mod pyany_serialize;
+pub mod ser;
 
 use pyo3::prelude::*;
 use pyo3::types::PyModule;

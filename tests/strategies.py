@@ -54,7 +54,11 @@ st_i128 = st.integers(min_value=MIN_I128, max_value=MAX_I128)
 
 
 def st_json(
-    *, finite_only: bool = True
+    *,
+    finite_only: bool = True,
+    min_int: int | None = None,
+    max_int: int | None = None,
+    datetimes: bool = False,
 ) -> SearchStrategy[list[Any] | dict[str, Any] | bool | int | float | str | None]:
     """Helper function to describe JSON objects, with optional inf and nan.
 
@@ -63,7 +67,36 @@ def st_json(
     REF: https://hypothesis.readthedocs.io/en/latest/tutorial/custom-strategies.html#writing-helper-functions
     """
     numbers = st.floats(allow_infinity=not finite_only, allow_nan=not finite_only)
+    if datetimes:
+        return st.recursive(
+            st.none()
+            | st.booleans()
+            | st.integers(min_value=min_int, max_value=max_int)
+            | numbers
+            | st.text()
+            | st.datetimes()
+            | st.dates()
+            | st.times(),
+            extend=lambda xs: st.lists(xs) | st.dictionaries(st.text(), xs),
+        )
+
     return st.recursive(
-        st.none() | st.booleans() | st.integers() | numbers | st.text(),
+        st.none()
+        | st.booleans()
+        | st.integers(min_value=min_int, max_value=max_int)
+        | numbers
+        | st.text(),
         extend=lambda xs: st.lists(xs) | st.dictionaries(st.text(), xs),
+    )
+
+
+def st_json_js(
+    *, finite_only: bool = True, datetimes: bool = False
+) -> SearchStrategy[str]:
+    """Helper function to describe JSON strings, with optional inf and nan."""
+    return st_json(
+        datetimes=datetimes,
+        finite_only=finite_only,
+        max_int=9_007_199_254_740_991,
+        min_int=-9_007_199_254_740_991,
     )
