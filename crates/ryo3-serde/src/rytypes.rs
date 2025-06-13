@@ -3,10 +3,10 @@ use crate::errors::map_py_err;
 use crate::ser::SerializePyAny;
 use pyo3::prelude::*;
 use ryo3_uuid::PyUuid as RyUuid;
-use serde::ser::{Serialize, SerializeMap, SerializeSeq};
+use serde::ser::Serialize;
 
-#[inline(always)]
-pub(crate) fn ry_uuid<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn ry_uuid<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {

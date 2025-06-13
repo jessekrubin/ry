@@ -10,7 +10,7 @@ use crate::pytypes::{
     bool_, byteslike, date, datetime, dict, float, int, list, none, py_uuid, str, time, tuple,
 };
 use crate::rytypes::ry_uuid;
-use crate::type_cache::PyTypeCache;
+use crate::type_cache::{PyObType, PyTypeCache};
 use pyo3::types::PyString;
 
 pub struct SerializePyAny<'py> {
@@ -102,67 +102,62 @@ impl Serialize for SerializePyAny<'_> {
                 }
             };
         }
-
         let lookup = self.ob_type_lookup;
-        let ob_type_ptr = self.obj.get_type_ptr() as usize;
-        // if let Some(ob_type) = lookup.obtype(&self.obj) {
-        //     match ob_type {
-        //         PyObType::None => none(self, serializer),
-        //
-        //         PyObType::Bool => bool(self, serializer),
-        //         PyObType::Int => int(self, serializer),
-        //         PyObType::Float => float(self, serializer),
-        //         PyObType::String => str(self, serializer),
-        //         PyObType::List =>  list(self, serializer),
-        //         PyObType::Tuple =>  tuple(self, serializer),
-        //         PyObType::Dict =>  dict(self, serializer),
-        //         PyObType::DateTime =>  datetime(self, serializer),
-        //         PyObType::Date =>  date(self, serializer),
-        //         PyObType::Time =>  time(self, serializer),
-        //         PyObType::Bytes | PyObType::ByteArray => byteslike(self, serializer),
-        //         PyObType::PyUuid => py_uuid(self, serializer),
-        //         PyObType::RyUuid => {
-        //             let ry_uu = self.obj.downcast::<RyUuid>().map_err(map_py_err)?;
-        //             return ry_uu.borrow().serialize(serializer);
-        //         }
-        //     }
-        // } else {
-        //     serde_err!("{} is not JSON-serializable", any_repr(&self.obj))
-        // }
+        if let Some(ob_type) = lookup.obtype(&self.obj) {
+            match ob_type {
+                PyObType::None => none(self, serializer),
+                PyObType::Bool => bool_(self, serializer),
+                PyObType::Int => int(self, serializer),
+                PyObType::Float => float(self, serializer),
+                PyObType::String => str(self, serializer),
+                PyObType::List => list(self, serializer),
+                PyObType::Tuple => tuple(self, serializer),
+                PyObType::Dict => dict(self, serializer),
+                PyObType::DateTime => datetime(self, serializer),
+                PyObType::Date => date(self, serializer),
+                PyObType::Time => time(self, serializer),
+                PyObType::Bytes | PyObType::ByteArray => byteslike(self, serializer),
+                PyObType::PyUuid => py_uuid(self, serializer),
+                PyObType::RyUuid => ry_uuid(self, serializer),
+            }
+        } else {
+            serde_err!("{} is not json-serializable", any_repr(&self.obj))
+        }
         //
         // // ugly but this seems to be just marginally faster than a guarded match, also allows for custom cases
         // // if we wanted to add them
-        if ob_type_ptr == lookup.none {
-            none(self, serializer)
-        } else if ob_type_ptr == lookup.bool {
-            bool_(self, serializer)
-        } else if ob_type_ptr == lookup.int {
-            int(self, serializer)
-        } else if ob_type_ptr == lookup.float {
-            float(self, serializer)
-        } else if ob_type_ptr == lookup.string {
-            str(self, serializer)
-        } else if ob_type_ptr == lookup.list {
-            list(self, serializer)
-        } else if ob_type_ptr == lookup.tuple {
-            tuple(self, serializer)
-        } else if ob_type_ptr == lookup.dict {
-            dict(self, serializer)
-        } else if ob_type_ptr == lookup.datetime {
-            datetime(self, serializer)
-        } else if ob_type_ptr == lookup.date {
-            date(self, serializer)
-        } else if ob_type_ptr == lookup.time {
-            time(self, serializer)
-        } else if ob_type_ptr == lookup.bytes || ob_type_ptr == lookup.bytearray {
-            byteslike(self, serializer)
-        } else if ob_type_ptr == lookup.py_uuid {
-            py_uuid(self, serializer)
-        } else if ob_type_ptr == lookup.ry_uuid {
-            ry_uuid(self, serializer)
-        } else {
-            serde_err!("{} is not JSON-serializable", any_repr(&self.obj))
-        }
+        // let ob_type_ptr = self.obj.get_type_ptr() as usize;
+        // if ob_type_ptr == lookup.none {
+        //     none(self, serializer)
+        // } else if ob_type_ptr == lookup.bool {
+        //     bool_(self, serializer)
+        // } else if ob_type_ptr == lookup.int {
+        //     int(self, serializer)
+        // } else if ob_type_ptr == lookup.float {
+        //     float(self, serializer)
+        // } else if ob_type_ptr == lookup.string {
+        //     str(self, serializer)
+        // } else if ob_type_ptr == lookup.list {
+        //     list(self, serializer)
+        // } else if ob_type_ptr == lookup.tuple {
+        //     tuple(self, serializer)
+        // } else if ob_type_ptr == lookup.dict {
+        //     dict(self, serializer)
+        // } else if ob_type_ptr == lookup.datetime {
+        //     datetime(self, serializer)
+        // } else if ob_type_ptr == lookup.date {
+        //     date(self, serializer)
+        // } else if ob_type_ptr == lookup.time {
+        //     time(self, serializer)
+        // } else if ob_type_ptr == lookup.bytes || ob_type_ptr == lookup.bytearray {
+        //     byteslike(self, serializer)
+        // } else if ob_type_ptr == lookup.py_uuid {
+        //     py_uuid(self, serializer)
+        // } else if ob_type_ptr == lookup.ry_uuid {
+        //     ry_uuid(self, serializer)
+        // } else {
+        //     serde_err!("{} is not JSON-serializable", any_repr(&self.obj))
+        // }
     }
 }
 

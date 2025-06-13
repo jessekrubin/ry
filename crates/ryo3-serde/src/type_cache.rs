@@ -7,7 +7,7 @@ use pyo3::types::{
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
 use ryo3_uuid::PyUuid as RyUuid;
 
-pub enum PyObType {
+pub(crate) enum PyObType {
     None,
     Int,
     Bool,
@@ -28,7 +28,7 @@ pub enum PyObType {
 
 #[derive(Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct PyTypeCache {
+pub(crate) struct PyTypeCache {
     pub none: usize,
     // numeric types
     pub int: usize,
@@ -81,44 +81,49 @@ impl PyTypeCache {
         }
     }
 
-    pub fn cached(py: Python<'_>) -> &PyTypeCache {
+    pub(crate) fn cached(py: Python<'_>) -> &PyTypeCache {
         TYPE_LOOKUP.get_or_init(py, || PyTypeCache::new(py))
     }
 
-    #[must_use]
-    pub fn obtype(&self, ob: &Bound<'_, PyAny>) -> Option<PyObType> {
-        let ob_type = ob.get_type_ptr() as usize;
-        if ob_type == self.none {
+    pub(crate) fn ptr2type(&self, ptr: usize) -> Option<PyObType> {
+        if ptr == self.none {
             Some(PyObType::None)
-        } else if ob_type == self.int {
+        } else if ptr == self.int {
             Some(PyObType::Int)
-        } else if ob_type == self.bool {
+        } else if ptr == self.bool {
             Some(PyObType::Bool)
-        } else if ob_type == self.float {
+        } else if ptr == self.float {
             Some(PyObType::Float)
-        } else if ob_type == self.string {
+        } else if ptr == self.string {
             Some(PyObType::String)
-        } else if ob_type == self.bytes {
+        } else if ptr == self.bytes {
             Some(PyObType::Bytes)
-        } else if ob_type == self.bytearray {
+        } else if ptr == self.bytearray {
             Some(PyObType::ByteArray)
-        } else if ob_type == self.list {
+        } else if ptr == self.list {
             Some(PyObType::List)
-        } else if ob_type == self.tuple {
+        } else if ptr == self.tuple {
             Some(PyObType::Tuple)
-        } else if ob_type == self.dict {
+        } else if ptr == self.dict {
             Some(PyObType::Dict)
-        } else if ob_type == self.datetime {
+        } else if ptr == self.datetime {
             Some(PyObType::DateTime)
-        } else if ob_type == self.date {
+        } else if ptr == self.date {
             Some(PyObType::Date)
-        } else if ob_type == self.time {
+        } else if ptr == self.time {
             Some(PyObType::Time)
-        } else if ob_type == self.py_uuid {
+        } else if ptr == self.py_uuid {
             Some(PyObType::PyUuid)
+        } else if ptr == self.ry_uuid {
+            Some(PyObType::RyUuid)
         } else {
             None
         }
+    }
+
+    #[must_use]
+    pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> Option<PyObType> {
+        self.ptr2type(ob.get_type_ptr() as usize)
     }
 }
 

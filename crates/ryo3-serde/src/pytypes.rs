@@ -10,8 +10,8 @@ use pyo3::Bound;
 use ryo3_uuid::uuid;
 use serde::ser::{Error as SerError, Serialize, SerializeMap, SerializeSeq};
 
-#[inline(always)]
-pub(crate) fn none<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn none<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -23,8 +23,8 @@ where
     }
 }
 
-#[inline(always)]
-pub(crate) fn bool_<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn bool_<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -33,8 +33,8 @@ where
     serializer.serialize_bool(v)
 }
 
-#[inline(always)]
-pub(crate) fn int<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn int<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -47,8 +47,8 @@ where
     serializer.serialize_i64(v)
 }
 
-#[inline(always)]
-pub(crate) fn float<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn float<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -56,8 +56,8 @@ where
     serializer.serialize_f64(v)
 }
 
-#[inline(always)]
-pub(crate) fn str<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn str<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -66,8 +66,8 @@ where
     serializer.serialize_str(s)
 }
 
-#[inline(always)]
-pub(crate) fn byteslike<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn byteslike<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -80,8 +80,8 @@ where
 // ============================================================================
 // LIST
 // ============================================================================
-#[inline(always)]
-pub(crate) fn list<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn list<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -101,8 +101,9 @@ where
 // ============================================================================
 // TUPLE
 // ============================================================================
-#[inline(always)]
-pub(crate) fn tuple<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+#[expect(clippy::similar_names)]
+pub(crate) fn tuple<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -133,8 +134,8 @@ fn mapping_key<'py, E: SerError>(key: &'py Bound<'py, PyAny>) -> Result<&'py str
     }
 }
 
-#[inline(always)]
-pub(crate) fn dict<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn dict<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -153,23 +154,22 @@ where
 // ============================================================================
 // uuid.UUID
 // ============================================================================
-#[inline(always)]
-pub(crate) fn py_uuid<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn py_uuid<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
     let uu = ryo3_uuid::CPythonUuid::extract_bound(&ser.obj)
         // .map_err(|e| serde_err!("Failed to extract CPythonUuid: {}", e))
-        .map(|u| uuid::Uuid::from(u))
-        .map_err(|e| map_py_err(e))?;
+        .map(uuid::Uuid::from)
+        .map_err(map_py_err)?;
     serializer.serialize_str(&uu.hyphenated().to_string())
 }
 
 // ============================================================================
 // datetime.date
 // ============================================================================
-#[inline(always)]
-pub(crate) fn date<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+pub(crate) fn date<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -182,8 +182,8 @@ where
 // ============================================================================
 // datetime.datetime
 // ============================================================================
-#[inline(always)]
-pub(crate) fn datetime<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn datetime<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -198,8 +198,8 @@ where
 // ============================================================================
 // datetime.time
 // ============================================================================
-#[inline(always)]
-pub(crate) fn time<'py, S>(ser: &SerializePyAny<'py>, serializer: S) -> Result<S::Ok, S::Error>
+#[inline]
+pub(crate) fn time<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
