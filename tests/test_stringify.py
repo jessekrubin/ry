@@ -112,17 +112,61 @@ def test_inf_nan_neginf():
     assert parsed == dict.fromkeys(data)
 
 
+def test_typed_dict():
+    """Test that `ry.stringify` handles TypedDicts correctly."""
+    from typing import TypedDict
+
+    class Point(TypedDict):
+        x: int
+        y: int
+
+    data = {
+        "point": Point(x=1, y=2),
+        "point2": Point(x=3, y=4),
+    }
+    json_bytes = ry.stringify(data)
+    parsed = ry.parse_json(json_bytes)
+    assert parsed == {
+        "point": {"x": 1, "y": 2},
+        "point2": {"x": 3, "y": 4},
+    }
+
+
+# def test_namedtuples():
+#     """Test that `ry.stringify` handles namedtuples correctly."""
+#     from collections import namedtuple
+#
+#     Point = namedtuple("Point", ["x", "y"])
+#     data = {
+#         "point": Point(1, 2),
+#         "point2": Point(3, 4),
+#     }
+#     ojres = oj_stringify(data)
+#     print(ojres)
+#     json_bytes = ry.stringify(data)
+#     parsed = ry.parse_json(json_bytes)
+#     assert parsed == {
+#         "point": {"x": 1, "y": 2},
+#         "point2": {"x": 3, "y": 4},
+#     }
+
+
 def test_uuid():
     """Test that stringify_json handles inf, nan, and -inf correctly."""
     data = {
         "py_uuid": pyuuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
         "ry_uuid": ry.uuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
+        # as keys - different namespaces bc diff keys
+        pyuuid.NAMESPACE_DNS: "py",
+        ry.uuid.NAMESPACE_URL: "ry",
     }
     json_bytes = ry.stringify(data)
     parsed = ry.parse_json(json_bytes)
     assert parsed == {
         "py_uuid": "88475448-f091-42ef-b574-2452952931c1",
         "ry_uuid": "88475448-f091-42ef-b574-2452952931c1",
+        str(pyuuid.NAMESPACE_DNS): "py",
+        str(ry.uuid.NAMESPACE_URL): "ry",
     }
 
 

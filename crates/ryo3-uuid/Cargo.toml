@@ -12,7 +12,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["uuid"] }
+pyo3 = { workspace = true, features = ["uuid", "serde"] }
 ryo3-bytes.workspace = true
 uuid.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }

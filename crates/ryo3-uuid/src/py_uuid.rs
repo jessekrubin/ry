@@ -15,12 +15,18 @@ pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
 
 #[pyclass(name = "UUID", module = "ry.uuid", frozen, weakref)]
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    repr(transparent)
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 pub struct PyUuid(pub uuid::Uuid);
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for PyUuid {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        uuid::Uuid::deserialize(deserializer).map(PyUuid::from)
+    }
+}
 
 impl AsRef<uuid::Uuid> for PyUuid {
     fn as_ref(&self) -> &uuid::Uuid {

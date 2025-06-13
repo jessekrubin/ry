@@ -1938,6 +1938,7 @@ version = "0.0.46"
 dependencies = [
  "pyo3",
  "ryo3-uuid",
+ "serde",
  "ulid",
  "uuid",
 ]
@@ -2507,6 +2508,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "470dbf6591da1b39d43c14523b2b469c86879a53e8b758c8e090a470fe7b1fbe"
 dependencies = [
  "rand",
+ "serde",
  "web-time",
 ]
 
