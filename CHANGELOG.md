@@ -2,6 +2,7 @@
 
 ## v0.0.47 [unreleased]
 
+- pyo3 v0.25.1
 - `ryo3-serde` (wip)
   - serializers for `PyAny` and more
   - this should theoretically allow for serializing any python object
