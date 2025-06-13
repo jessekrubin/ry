@@ -28,7 +28,7 @@ pub fn dumps<'py>(
     }
 }
 
-#[pymodule(gil_used = false)]
+#[pymodule(gil_used = false, name = "oj", submodule, module = "ry.ryo3")]
 pub fn oj(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(dumps, m)?)?;
     Ok(())

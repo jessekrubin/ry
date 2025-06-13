@@ -4,6 +4,7 @@
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
+- [`ry.ryo3.sh`](#ry.ryo3.sh)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
@@ -39,24 +40,6 @@
 
 ```python
 """ry api ~ type annotations"""
-
-import typing as t
-from os import PathLike
-
-from ry import dirs as dirs  # noqa: RUF100
-from ry import http as http  # noqa: RUF100
-from ry import ulid as ulid  # noqa: RUF100
-from ry import uuid as uuid  # noqa: RUF100
-from ry import xxhash as xxhash  # noqa: RUF100
-from ry import zstd as zstd  # noqa: RUF100
-from ry._types import Buffer as Buffer  # noqa: RUF100
-from ry.http import Headers as Headers  # noqa: RUF100
-from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
-from ry.zstd import is_zstd as is_zstd
-from ry.zstd import zstd_compress as zstd_compress
-from ry.zstd import zstd_decode as zstd_decode
-from ry.zstd import zstd_decompress as zstd_decompress
-from ry.zstd import zstd_encode as zstd_encode
 
 from ._brotli import brotli as brotli
 from ._brotli import brotli_decode as brotli_decode
@@ -200,6 +183,12 @@ from ._which import which as which
 from ._which import which_all as which_all
 from ._which import which_re as which_re
 from .errors import FeatureNotEnabledError as FeatureNotEnabledError
+from .JSON import stringify as stringify
+from .sh import cd as cd
+from .sh import home as home
+from .sh import ls as ls
+from .sh import mkdir as mkdir
+from .sh import pwd as pwd
 
 # =============================================================================
 # CONSTANTS
@@ -212,10 +201,72 @@ __pkg_name__: str
 __description__: str
 __target__: str
 
+```
 
-# =============================================================================
-# SH
-# =============================================================================
+<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
+
+```python
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build."""
+
+```
+
+<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
+
+```python
+"""ry.ryo3.JSON"""
+
+from typing import Any, Literal
+
+import typing_extensions
+
+from ry.ryo3._bytes import Bytes
+
+JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
+JsonValue: typing_extensions.TypeAlias = (
+    JsonPrimitive
+    | dict[str, JsonPrimitive | JsonValue]
+    | list[JsonPrimitive | JsonValue]
+)
+
+
+def stringify(
+    data: Any, *, fmt: bool = False, sort_keys: bool = False
+) -> Bytes: ...
+def parse_json(
+    data: bytes | str,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+) -> JsonValue: ...
+def parse_json_bytes(
+    data: bytes,
+    /,
+    *,
+    allow_inf_nan: bool = True,
+    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
+    catch_duplicate_keys: bool = False,
+    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+) -> JsonValue: ...
+def json_cache_clear() -> None: ...
+def json_cache_usage() -> int: ...
+
+```
+
+<h2 id="ry.ryo3.sh"><code>ry.ryo3.sh</code></h2>
+
+```python
+import typing as t
+from os import PathLike
+
+from ry.ryo3._fspath import FsPath
+
+
 def pwd() -> str: ...
 def home() -> str: ...
 def cd(path: str | PathLike[str]) -> None: ...
@@ -242,56 +293,6 @@ def ls(
 
 
 def mkdir(path: str | PathLike[str]) -> None: ...
-
-```
-
-<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
-
-```python
-class FeatureNotEnabledError(RuntimeError):
-    """Raised when a feature is not enabled in the current build."""
-
-```
-
-<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
-
-```python
-"""ry.ryo3.JSON"""
-
-from typing import Literal
-
-import typing_extensions
-
-JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
-JsonValue: typing_extensions.TypeAlias = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
-)
-
-
-def parse_json(
-    data: bytes | str,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def json_cache_clear() -> None: ...
-def json_cache_usage() -> int: ...
 
 ```
 

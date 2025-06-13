@@ -1,23 +1,5 @@
 """ry api ~ type annotations"""
 
-import typing as t
-from os import PathLike
-
-from ry import dirs as dirs  # noqa: RUF100
-from ry import http as http  # noqa: RUF100
-from ry import ulid as ulid  # noqa: RUF100
-from ry import uuid as uuid  # noqa: RUF100
-from ry import xxhash as xxhash  # noqa: RUF100
-from ry import zstd as zstd  # noqa: RUF100
-from ry._types import Buffer as Buffer  # noqa: RUF100
-from ry.http import Headers as Headers  # noqa: RUF100
-from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
-from ry.zstd import is_zstd as is_zstd
-from ry.zstd import zstd_compress as zstd_compress
-from ry.zstd import zstd_decode as zstd_decode
-from ry.zstd import zstd_decompress as zstd_decompress
-from ry.zstd import zstd_encode as zstd_encode
-
 from ._brotli import brotli as brotli
 from ._brotli import brotli_decode as brotli_decode
 from ._brotli import brotli_encode as brotli_encode
@@ -160,6 +142,12 @@ from ._which import which as which
 from ._which import which_all as which_all
 from ._which import which_re as which_re
 from .errors import FeatureNotEnabledError as FeatureNotEnabledError
+from .JSON import stringify as stringify
+from .sh import cd as cd
+from .sh import home as home
+from .sh import ls as ls
+from .sh import mkdir as mkdir
+from .sh import pwd as pwd
 
 # =============================================================================
 # CONSTANTS
@@ -171,31 +159,3 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
-
-# =============================================================================
-# SH
-# =============================================================================
-def pwd() -> str: ...
-def home() -> str: ...
-def cd(path: str | PathLike[str]) -> None: ...
-@t.overload
-def ls(
-    path: str | PathLike[str] | None = None,  # defaults to '.' if None
-    *,
-    absolute: bool = False,
-    sort: bool = False,
-    objects: t.Literal[False] = False,
-) -> list[str]:
-    """List directory contents - returns list of strings"""
-
-@t.overload
-def ls(
-    path: str | PathLike[str] | None = None,  # defaults to '.' if None
-    *,
-    absolute: bool = False,
-    sort: bool = False,
-    objects: t.Literal[True] = True,
-) -> list[FsPath]:
-    """List directory contents - returns list of FsPath objects"""
-
-def mkdir(path: str | PathLike[str]) -> None: ...

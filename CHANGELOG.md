@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## v0.0.47 [unreleased]
+
+- `ryo3-serde` (wip)
+  - serializers for `PyAny` and more
+  - this should theoretically allow for serializing any python object
+    that is `serde` serializable with almost any `serde` serializer... that is
+    the goal
+- `ryo3-json`
+  - Where json stuff + ry is going to live in the near future (may consolodate
+    `ryo3-jiter` into this newer crate)
+  - `ry.stringify()` uses `ryo3-serde` + `serde_json` to write json bytes/bufs
+    and it is pretty fast, faster than ujson and rapidjson (not tested yyjson),
+    BUT orjson is still fastest (read a bunch of their code and it is remarkably
+    advanced and optimized)
+
+---
+
 ## v0.0.46 [2025-06-06]
 
 - version 0.0.46
