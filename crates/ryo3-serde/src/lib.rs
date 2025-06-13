@@ -3,9 +3,9 @@
 mod any_repr;
 mod errors;
 mod macro_rules;
+pub mod pyser;
 mod pytypes;
 mod rytypes;
-pub mod ser;
 mod type_cache;
 
 use pyo3::prelude::*;

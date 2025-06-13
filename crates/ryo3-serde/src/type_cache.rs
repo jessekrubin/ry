@@ -1,8 +1,9 @@
+use pyo3::ffi::setentry;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{
-    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDict, PyFloat, PyInt, PyList, PyNone,
-    PyString, PyTime, PyTuple,
+    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDict, PyFloat, PyFrozenSet, PyInt, PyList,
+    PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
 use ryo3_uuid::PyUuid as RyUuid;
@@ -18,6 +19,8 @@ pub(crate) enum PyObType {
     List,
     Tuple,
     Dict,
+    Set,
+    Frozenset,
     DateTime,
     Date,
     Time,
@@ -43,6 +46,9 @@ pub(crate) struct PyTypeCache {
     pub tuple: usize,
     // mapping types
     pub dict: usize,
+    // set & frozenset
+    pub set: usize,
+    pub frozenset: usize,
     // datetime types
     pub datetime: usize,
     pub date: usize,
@@ -71,6 +77,9 @@ impl PyTypeCache {
             tuple: PyTuple::type_object_raw(py) as usize,
             // mapping types
             dict: PyDict::type_object_raw(py) as usize,
+            // set & frozenset\
+            set: PySet::type_object_raw(py) as usize,
+            frozenset: PyFrozenSet::type_object_raw(py) as usize,
             // datetime types
             datetime: PyDateTime::type_object_raw(py) as usize,
             date: PyDate::type_object_raw(py) as usize,
@@ -116,6 +125,10 @@ impl PyTypeCache {
             Some(PyObType::PyUuid)
         } else if ptr == self.ry_uuid {
             Some(PyObType::RyUuid)
+        } else if ptr == self.set {
+            Some(PyObType::Set)
+        } else if ptr == self.frozenset {
+            Some(PyObType::Frozenset)
         } else {
             None
         }

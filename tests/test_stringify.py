@@ -132,23 +132,43 @@ def test_typed_dict():
     }
 
 
-# def test_namedtuples():
-#     """Test that `ry.stringify` handles namedtuples correctly."""
-#     from collections import namedtuple
-#
-#     Point = namedtuple("Point", ["x", "y"])
-#     data = {
-#         "point": Point(1, 2),
-#         "point2": Point(3, 4),
-#     }
-#     ojres = oj_stringify(data)
-#     print(ojres)
-#     json_bytes = ry.stringify(data)
-#     parsed = ry.parse_json(json_bytes)
-#     assert parsed == {
-#         "point": {"x": 1, "y": 2},
-#         "point2": {"x": 3, "y": 4},
-#     }
+def test_namedtuples() -> None:
+    """Test that `ry.stringify` handles namedtuples correctly."""
+
+    class Point(t.NamedTuple):
+        x: int
+        y: int
+
+    data = {
+        "point": Point(1, 2),
+        "point2": Point(3, 4),
+    }
+    # ojres = oj_stringify(data)
+    # print(ojres)
+    json_bytes = ry.stringify(data)
+    parsed = ry.parse_json(json_bytes)
+    assert parsed == {
+        "point": [1, 2],
+        "point2": [3, 4],
+    }
+
+
+def test_set_and_frozenset():
+    """Test that `ry.stringify` handles sets correctly."""
+    data = {
+        "set": {1, 2, 3},
+        "frozenset": frozenset({"a", "b", "c"}),
+    }
+    json_bytes = ry.stringify(data)
+    parsed = ry.parse_json(json_bytes)
+    assert isinstance(parsed["set"], list), "Set should be converted to a list"
+    assert isinstance(parsed["frozenset"], list), (
+        "Frozenset should be converted to a list"
+    )
+    assert set(parsed["set"]) == {1, 2, 3}, "Should be eq to original set"
+    assert set(parsed["frozenset"]) == {"a", "b", "c"}, (
+        "Should be eq to original frozenset"
+    )
 
 
 def test_uuid():
