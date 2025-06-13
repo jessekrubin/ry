@@ -1,15 +1,12 @@
 #![doc = include_str!("../README.md")]
 
+mod any_repr;
+mod errors;
+mod macro_rules;
+mod pytypes;
+mod rytypes;
 pub mod ser;
 mod type_cache;
-mod py_datetime;
-mod scalars;
-mod errors;
-mod sequence;
-mod mapping;
-mod any_repr;
-mod macro_rules;
-mod py_uuid;
 
 use pyo3::prelude::*;
 use pyo3::types::PyModule;

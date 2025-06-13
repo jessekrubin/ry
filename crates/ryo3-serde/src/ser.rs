@@ -2,18 +2,16 @@
 //!
 //! Based on a combination of `orjson`, `pythonize` and `rtoml`.
 use pyo3::prelude::*;
-use serde::ser::{Error as SerError, Serialize, SerializeMap, SerializeSeq, Serializer};
+use serde::ser::{Error as SerError, Serialize, Serializer};
 use std::fmt;
 
 use crate::any_repr::any_repr;
-use crate::mapping::dict;
-use crate::py_datetime::{date, datetime, time};
-use crate::py_uuid::py_uuid;
-use crate::scalars::{bool, byteslike, float, int, none, str};
-use crate::sequence::{list, tuple};
-use crate::type_cache::{PyObType, PyTypeCache};
+use crate::pytypes::{
+    bool_, byteslike, date, datetime, dict, float, int, list, none, py_uuid, str, time, tuple,
+};
+use crate::rytypes::ry_uuid;
+use crate::type_cache::PyTypeCache;
 use pyo3::types::PyString;
-use ryo3_uuid::PyUuid as RyUuid;
 
 pub struct SerializePyAny<'py> {
     pub(crate) obj: Bound<'py, PyAny>,
@@ -137,7 +135,7 @@ impl Serialize for SerializePyAny<'_> {
         if ob_type_ptr == lookup.none {
             none(self, serializer)
         } else if ob_type_ptr == lookup.bool {
-            bool(self, serializer)
+            bool_(self, serializer)
         } else if ob_type_ptr == lookup.int {
             int(self, serializer)
         } else if ob_type_ptr == lookup.float {
@@ -161,8 +159,7 @@ impl Serialize for SerializePyAny<'_> {
         } else if ob_type_ptr == lookup.py_uuid {
             py_uuid(self, serializer)
         } else if ob_type_ptr == lookup.ry_uuid {
-            let ry_uu = self.obj.downcast::<RyUuid>().map_err(map_py_err)?;
-            ry_uu.borrow().serialize(serializer)
+            ry_uuid(self, serializer)
         } else {
             serde_err!("{} is not JSON-serializable", any_repr(&self.obj))
         }
@@ -171,23 +168,4 @@ impl Serialize for SerializePyAny<'_> {
 
 fn map_py_err<I: fmt::Display, O: SerError>(err: I) -> O {
     O::custom(err.to_string())
-}
-
-fn mapping_key<'py, E: SerError>(key: &'py Bound<'py, PyAny>) -> Result<&'py str, E> {
-    if let Ok(py_string) = key.downcast::<PyString>() {
-        py_string.to_str().map_err(map_py_err)
-    } else if let Ok(key) = key.extract::<bool>() {
-        Ok(if key { "true" } else { "false" })
-    } else {
-        let key_repr = any_repr(key);
-        serde_err!("{} is not JSON-serializable as map-key", key_repr)
-    }
-}
-
-fn pystr(obj: &Bound<'_, PyAny>) -> PyResult<String> {
-    // call the `__str__` fn on the object
-    // call '__str__' on the object and convert it to a string
-
-    // let a=
-    obj.str().map(|s| s.extract())?
 }
