@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as pydt
 from typing import Any, Final
 
 from hypothesis import strategies as st
@@ -52,6 +53,19 @@ st_i32 = st.integers(min_value=MIN_I32, max_value=MAX_I32)
 st_i64 = st.integers(min_value=MIN_I64, max_value=MAX_I64)
 st_i128 = st.integers(min_value=MIN_I128, max_value=MAX_I128)
 
+JsonSearchStrategy = SearchStrategy[
+    list[Any]
+    | dict[str, Any]
+    | bool
+    | int
+    | float
+    | str
+    | None
+    | pydt.time
+    | pydt.date
+    | pydt.datetime
+]
+
 
 def st_json(
     *,
@@ -59,7 +73,7 @@ def st_json(
     min_int: int | None = None,
     max_int: int | None = None,
     datetimes: bool = False,
-) -> SearchStrategy[list[Any] | dict[str, Any] | bool | int | float | str | None]:
+) -> JsonSearchStrategy:
     """Helper function to describe JSON objects, with optional inf and nan.
 
     Taken from hypothesis docs
@@ -92,7 +106,7 @@ def st_json(
 
 def st_json_js(
     *, finite_only: bool = True, datetimes: bool = False
-) -> SearchStrategy[str]:
+) -> JsonSearchStrategy:
     """Helper function to describe JSON strings, with optional inf and nan."""
     return st_json(
         datetimes=datetimes,

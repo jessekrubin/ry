@@ -1817,7 +1817,6 @@ dependencies = [
  "pyo3",
  "ryo3-bytes",
  "ryo3-serde",
- "serde",
  "serde_json",
 ]
 

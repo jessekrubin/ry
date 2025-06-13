@@ -10,7 +10,7 @@ static ORJSON_DUMPS: GILOnceCell<Py<PyAny>> = GILOnceCell::new();
 #[pyfunction(
     signature = (obj, **kwargs)
 )]
-pub fn oj_dumps<'py>(
+pub fn dumps<'py>(
     py: Python<'py>,
     obj: Bound<'py, PyAny>,
     kwargs: Option<&Bound<'py, PyDict>>,
@@ -28,7 +28,8 @@ pub fn oj_dumps<'py>(
     }
 }
 
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(oj_dumps, m)?)?;
+#[pymodule(gil_used = false)]
+pub fn oj(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(dumps, m)?)?;
     Ok(())
 }

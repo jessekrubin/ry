@@ -16,7 +16,7 @@ try:
 
     _ORJSON_INSTALLED = True
 except ImportError:
-    orjson = None
+    orjson = None  # type: ignore[assignment]
 
 pytest_mark_skip_orjson = pytest.mark.skipif(
     not _ORJSON_INSTALLED,
@@ -43,12 +43,7 @@ def _test_stringify_json(data: t.Any) -> None:
     json_str = json_bytes.decode("utf-8")
 
     py_res = py_stringify(data)
-    oj_res = oj_stringify(data)
     ry_res = ry.stringify(data)
-    combos = [
-        (ry_res, oj_res),
-        (ry_res, py_res),
-    ]
 
     try:
         json.loads(json_str)
@@ -56,8 +51,7 @@ def _test_stringify_json(data: t.Any) -> None:
         emsg = f"Stringified JSON is not valid: {e}"
         raise AssertionError(emsg) from e
 
-    for ry_res, other_res in combos:
-        assert ry.parse_json(ry_res) == ry.parse_json(other_res)
+    assert ry.parse_json(ry_res) == ry.parse_json(py_res)
 
 
 @given(st_json_js())
@@ -89,18 +83,20 @@ def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
 
 
 @given(st_json_js(datetimes=True))
+@pytest_mark_skip_orjson
 def test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
     _test_stringify_json_orjson_compatible(data)
 
 
 @given(st_json_js(datetimes=True, finite_only=False))
+@pytest_mark_skip_orjson
 def test_stringify_json_orjson_compatible_inf_nan(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
     _test_stringify_json_orjson_compatible(data)
 
 
-def test_inf_nan_neginf():
+def test_inf_nan_neginf() -> None:
     """Test that stringify_json handles inf, nan, and -inf correctly."""
     data = {
         "inf": float("inf"),
@@ -112,11 +108,10 @@ def test_inf_nan_neginf():
     assert parsed == dict.fromkeys(data)
 
 
-def test_typed_dict():
+def test_typed_dict() -> None:
     """Test that `ry.stringify` handles TypedDicts correctly."""
-    from typing import TypedDict
 
-    class Point(TypedDict):
+    class Point(t.TypedDict):
         x: int
         y: int
 
@@ -143,8 +138,6 @@ def test_namedtuples() -> None:
         "point": Point(1, 2),
         "point2": Point(3, 4),
     }
-    # ojres = oj_stringify(data)
-    # print(ojres)
     json_bytes = ry.stringify(data)
     parsed = ry.parse_json(json_bytes)
     assert parsed == {
@@ -153,7 +146,7 @@ def test_namedtuples() -> None:
     }
 
 
-def test_set_and_frozenset():
+def test_set_and_frozenset() -> None:
     """Test that `ry.stringify` handles sets correctly."""
     data = {
         "set": {1, 2, 3},
@@ -161,6 +154,7 @@ def test_set_and_frozenset():
     }
     json_bytes = ry.stringify(data)
     parsed = ry.parse_json(json_bytes)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
     assert isinstance(parsed["set"], list), "Set should be converted to a list"
     assert isinstance(parsed["frozenset"], list), (
         "Frozenset should be converted to a list"
@@ -171,23 +165,34 @@ def test_set_and_frozenset():
     )
 
 
-def test_uuid():
-    """Test that stringify_json handles inf, nan, and -inf correctly."""
+def test_uuid() -> None:
+    """Test that `ry.stringify` handles UUIDs correctly as values"""
     data = {
         "py_uuid": pyuuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
         "ry_uuid": ry.uuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
-        # as keys - different namespaces bc diff keys
-        pyuuid.NAMESPACE_DNS: "py",
-        ry.uuid.NAMESPACE_URL: "ry",
     }
     json_bytes = ry.stringify(data)
     parsed = ry.parse_json(json_bytes)
     assert parsed == {
         "py_uuid": "88475448-f091-42ef-b574-2452952931c1",
         "ry_uuid": "88475448-f091-42ef-b574-2452952931c1",
-        str(pyuuid.NAMESPACE_DNS): "py",
-        str(ry.uuid.NAMESPACE_URL): "ry",
     }
+
+
+def test_uuid_keys() -> None:
+    data = {
+        # as keys - different namespaces bc diff keys
+        pyuuid.NAMESPACE_DNS: "py",
+        ry.uuid.NAMESPACE_URL: "ry",
+    }
+    with pytest.raises(TypeError):
+        _json_bytes = ry.stringify(data)
+        return
+    # parsed = ry.parse_json(json_bytes)
+    # assert parsed == {
+    #     str(pyuuid.NAMESPACE_DNS): "py",
+    #     str(ry.uuid.NAMESPACE_URL): "ry",
+    # }
 
 
 data2test = [

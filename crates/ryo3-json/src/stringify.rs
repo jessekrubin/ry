@@ -1,17 +1,16 @@
-use pyo3::exceptions::{PyTypeError, PyValueError};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use ryo3_serde::SerializePyAny;
-use serde_json::Error as SerdeJsonError;
 
-fn map_serde_json_err(e: SerdeJsonError) -> PyErr {
+fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     PyTypeError::new_err(format!("Failed to serialize: {e}"))
 }
 
 #[pyfunction(
     signature = (obj, fmt = false, sort_keys = false, append_newline = false)
 )]
-pub(crate) fn stringify<'py>(
-    py: Python<'py>,
+pub(crate) fn stringify(
+    py: Python<'_>,
     obj: Bound<'_, PyAny>,
     fmt: bool,
     sort_keys: bool,
