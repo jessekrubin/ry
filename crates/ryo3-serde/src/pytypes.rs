@@ -1,12 +1,11 @@
 use crate::errors::pyerr2sererr;
 
 use crate::any_repr::any_repr;
-use crate::pyser::SerializePyAny;
+use crate::py_serialize::SerializePyAny;
 use crate::serde_err;
 use pyo3::prelude::*;
 use pyo3::types::{
-    PyBool, PyDate, PyDateTime, PyDict, PyFrozenSet, PyInt, PyIterator, PyMapping, PySet, PyString,
-    PyTime,
+    PyBool, PyDate, PyDateTime, PyDict, PyFrozenSet, PyInt, PyIterator, PySet, PyString, PyTime,
 };
 use pyo3::types::{PyList, PyTuple};
 use pyo3::Bound;
@@ -84,6 +83,7 @@ where
 // LIST
 // ============================================================================
 #[inline]
+#[expect(clippy::similar_names)]
 pub(crate) fn list<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
@@ -178,6 +178,7 @@ where
 }
 
 #[inline]
+#[expect(clippy::similar_names)]
 pub(crate) fn frozenset<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,

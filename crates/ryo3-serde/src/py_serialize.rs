@@ -12,7 +12,6 @@ use crate::pytypes::{
 };
 use crate::rytypes::ry_uuid;
 use crate::type_cache::{PyObType, PyTypeCache};
-use pyo3::prelude::*;
 use pyo3::types::{PyMapping, PySequence};
 use pyo3::Bound;
 use serde::ser::SerializeSeq;
@@ -85,17 +84,17 @@ impl Serialize for SerializePyAny<'_> {
 // ===========================================================================
 // PySequence ~ PySequence ~ PySequence ~ PySequence ~ PySequence ~ PySequence
 // ===========================================================================
-pub struct SerializePySequence<'a, 'py> {
+struct SerializePySequence<'a, 'py> {
     seq: &'a Bound<'py, PySequence>,
 }
 
 impl<'a, 'py> SerializePySequence<'a, 'py> {
-    pub fn new(seq: &'a Bound<'py, PySequence>) -> Self {
+    fn new(seq: &'a Bound<'py, PySequence>) -> Self {
         Self { seq }
     }
 }
 
-impl<'a, 'py> Serialize for SerializePySequence<'a, 'py> {
+impl Serialize for SerializePySequence<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -114,17 +113,17 @@ impl<'a, 'py> Serialize for SerializePySequence<'a, 'py> {
 // PyMapping ~ PyMapping ~ PyMapping ~ PyMapping ~ PyMapping ~ PyMapping
 // ===========================================================================
 
-pub struct SerializePyMapping<'a, 'py> {
+struct SerializePyMapping<'a, 'py> {
     mapping: &'a Bound<'py, PyMapping>,
 }
 
 impl<'a, 'py> SerializePyMapping<'a, 'py> {
-    pub fn new(mapping: &'a Bound<'py, PyMapping>) -> Self {
+    fn new(mapping: &'a Bound<'py, PyMapping>) -> Self {
         Self { mapping }
     }
 }
 
-impl<'a, 'py> Serialize for SerializePyMapping<'a, 'py> {
+impl Serialize for SerializePyMapping<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

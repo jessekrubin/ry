@@ -1,6 +1,6 @@
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use ryo3_serde::pyser::SerializePyAny;
+use ryo3_serde::SerializePyAny;
 use serde_json::Error as SerdeJsonError;
 
 fn map_serde_json_err(e: SerdeJsonError) -> PyErr {

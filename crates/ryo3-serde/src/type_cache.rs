@@ -1,4 +1,3 @@
-use pyo3::ffi::setentry;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{
