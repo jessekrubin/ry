@@ -123,41 +123,6 @@ impl Serialize for SerializePyAny<'_> {
         } else {
             serde_err!("{} is not json-serializable", any_repr(&self.obj))
         }
-        //
-        // // ugly but this seems to be just marginally faster than a guarded match, also allows for custom cases
-        // // if we wanted to add them
-        // let ob_type_ptr = self.obj.get_type_ptr() as usize;
-        // if ob_type_ptr == lookup.none {
-        //     none(self, serializer)
-        // } else if ob_type_ptr == lookup.bool {
-        //     bool_(self, serializer)
-        // } else if ob_type_ptr == lookup.int {
-        //     int(self, serializer)
-        // } else if ob_type_ptr == lookup.float {
-        //     float(self, serializer)
-        // } else if ob_type_ptr == lookup.string {
-        //     str(self, serializer)
-        // } else if ob_type_ptr == lookup.list {
-        //     list(self, serializer)
-        // } else if ob_type_ptr == lookup.tuple {
-        //     tuple(self, serializer)
-        // } else if ob_type_ptr == lookup.dict {
-        //     dict(self, serializer)
-        // } else if ob_type_ptr == lookup.datetime {
-        //     datetime(self, serializer)
-        // } else if ob_type_ptr == lookup.date {
-        //     date(self, serializer)
-        // } else if ob_type_ptr == lookup.time {
-        //     time(self, serializer)
-        // } else if ob_type_ptr == lookup.bytes || ob_type_ptr == lookup.bytearray {
-        //     byteslike(self, serializer)
-        // } else if ob_type_ptr == lookup.py_uuid {
-        //     py_uuid(self, serializer)
-        // } else if ob_type_ptr == lookup.ry_uuid {
-        //     ry_uuid(self, serializer)
-        // } else {
-        //     serde_err!("{} is not JSON-serializable", any_repr(&self.obj))
-        // }
     }
 }
 
