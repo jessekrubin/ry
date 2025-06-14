@@ -41,6 +41,20 @@
 ```python
 """ry api ~ type annotations"""
 
+from ry import dirs as dirs  # noqa: RUF100
+from ry import http as http  # noqa: RUF100
+from ry import ulid as ulid  # noqa: RUF100
+from ry import uuid as uuid  # noqa: RUF100
+from ry import xxhash as xxhash  # noqa: RUF100
+from ry import zstd as zstd  # noqa: RUF100
+from ry._types import Buffer as Buffer  # noqa: RUF100
+from ry.http import Headers as Headers  # noqa: RUF100
+from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.zstd import is_zstd as is_zstd
+from ry.zstd import zstd_compress as zstd_compress
+from ry.zstd import zstd_decode as zstd_decode
+from ry.zstd import zstd_decompress as zstd_decompress
+from ry.zstd import zstd_encode as zstd_encode
 from ._brotli import brotli as brotli
 from ._brotli import brotli_decode as brotli_decode
 from ._brotli import brotli_encode as brotli_encode
@@ -4066,7 +4080,7 @@ from ulid import constants as constants
 
 
 class ULID:
-    def __init__(self, value: builtins.bytes | None = None) -> None: ...
+    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
 
     # ----------------
     # INSTANCE METHODS

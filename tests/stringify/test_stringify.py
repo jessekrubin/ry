@@ -226,7 +226,7 @@ EXPECTED = {
     "date": "2020-08-26",
     "datetime": "2020-08-26T06:27:00",
     "+signed_duration": "PT3S",
-    "-signed_duration": "PT-3S",
+    "-signed_duration": "-PT3S",
     "time": "06:27:00",
     "timespan": "P1W",
     "timestamp": "2020-08-26T10:40:00Z",
@@ -238,6 +238,7 @@ def test_stringify_ry_types() -> None:
     """Test that `stringify` handles ry types correctly."""
     res = ry.stringify(RYTYPES_JSON_SER, fmt=True)
     parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
 
     def _format_different() -> str:
         different_vals = {
