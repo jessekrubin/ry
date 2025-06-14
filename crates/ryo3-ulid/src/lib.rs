@@ -25,7 +25,18 @@ fn gen_new() -> PyResult<Ulid> {
 }
 
 #[pyclass(name = "ULID", module = "ry.ulid", frozen, weakref)]
-pub struct PyUlid(pub ulid::Ulid);
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
+pub struct PyUlid(pub Ulid);
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for PyUlid {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ulid::deserialize(deserializer).map(PyUlid)
+    }
+}
 
 impl PyUlid {
     fn to_u128(&self) -> u128 {
@@ -60,14 +71,23 @@ impl PyUlid {
 impl PyUlid {
     #[new]
     #[pyo3(signature = (value = None))]
-    pub fn py_new(value: Option<&[u8]>) -> PyResult<Self> {
+    pub fn py_new(value: Option<Bound<'_, PyAny>>) -> PyResult<Self> {
         if let Some(value) = value {
-            let b: [u8; 16] = value
-                .try_into()
-                .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
-
-            let u = ulid::Ulid::from_bytes(b);
-            Ok(PyUlid(u))
+            // IF IS BYTES
+            if let Ok(b) = value.downcast::<PyBytes>() {
+                let slice = b.as_bytes();
+                let b: [u8; 16] = slice
+                    .try_into()
+                    .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
+                Ok(Self::from_bytes(b))
+            } else if let Ok(str) = value.downcast::<pyo3::types::PyString>() {
+                let cs = str.to_str()?;
+                Self::from_string(cs)
+            } else {
+                Err(PyTypeError::new_err(
+                    "Expected a ULID string (26 or 32 characters) or bytes (16 bytes)",
+                ))
+            }
         } else {
             let ulid = gen_new()?;
             Ok(PyUlid(ulid))
@@ -131,7 +151,7 @@ impl PyUlid {
             let slice = pybytes.as_bytes();
             match slice.len() {
                 16 => {
-                    let ulid = ulid::Ulid::from_bytes(
+                    let ulid = Ulid::from_bytes(
                         slice
                             .try_into()
                             .expect("never to happen; checked lenght above"),
@@ -159,12 +179,12 @@ impl PyUlid {
     }
 
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        pyo3::types::PyBytes::new(py, &self.0.to_bytes())
+        PyBytes::new(py, &self.0.to_bytes())
     }
 
     #[staticmethod]
     fn from_bytes(bytes: [u8; 16]) -> Self {
-        let ulid = ulid::Ulid::from_bytes(bytes);
+        let ulid = Ulid::from_bytes(bytes);
         PyUlid(ulid)
     }
 
@@ -175,22 +195,30 @@ impl PyUlid {
     #[staticmethod]
     fn from_hex(hexstr: &str) -> PyResult<Self> {
         let b = Self::hex2bytes(hexstr)?;
-        let ul = ulid::Ulid::from_bytes(b);
+        let ul = Ulid::from_bytes(b);
         Ok(PyUlid(ul))
     }
 
     #[staticmethod]
     fn from_int(bytes: u128) -> Self {
         let b = bytes.to_be_bytes();
-        let ul = ulid::Ulid::from_bytes(b);
+        let ul = Ulid::from_bytes(b);
         PyUlid(ul)
     }
 
     #[staticmethod]
-    fn from_string(s: &str) -> PyResult<Self> {
-        ulid::Ulid::from_string(s)
-            .map(Self::from)
-            .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))
+    fn from_string(cs: &str) -> PyResult<Self> {
+        if cs.len() == 26 {
+            let ulid = Ulid::from_string(cs)
+                .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
+            Ok(PyUlid(ulid))
+        } else if cs.len() == 32 {
+            Self::from_hex(cs)
+        } else {
+            Err(PyValueError::new_err(
+                "ULID string must be either 26 or 32 characters long",
+            ))
+        }
     }
 
     #[staticmethod]
@@ -206,7 +234,7 @@ impl PyUlid {
         } else {
             let millis = (value * 1000.0) as u64;
             let dt = SystemTime::UNIX_EPOCH + std::time::Duration::from_millis(millis);
-            Ok(PyUlid(ulid::Ulid::from_datetime(dt)))
+            Ok(PyUlid(Ulid::from_datetime(dt)))
         }
     }
 
@@ -216,7 +244,7 @@ impl PyUlid {
         let dt = dt.ok_or_else(|| {
             PyOverflowError::new_err("Timestamp exceeds the maximum value for SystemTime")
         })?;
-        Ok(PyUlid(ulid::Ulid::from_datetime(dt)))
+        Ok(PyUlid(Ulid::from_datetime(dt)))
     }
 
     #[staticmethod]
@@ -238,7 +266,7 @@ impl PyUlid {
 
     #[staticmethod]
     fn from_datetime(bytes: SystemTime) -> Self {
-        Self::from(ulid::Ulid::from_datetime(bytes))
+        Self::from(Ulid::from_datetime(bytes))
     }
 
     #[staticmethod]
@@ -249,16 +277,15 @@ impl PyUlid {
         PyUlid(ul)
     }
 
-    fn to_uuid(&self) -> ryo3_uuid::PyUuid {
+    fn to_uuid(&self) -> PyUuid {
         let b = self.0.to_bytes();
-        ryo3_uuid::PyUuid::from(uuid::Uuid::from_bytes(b))
+        ryo3_uuid::PyUuid::from(Uuid::from_bytes(b))
     }
 
     fn to_uuid4(&self) -> PyUuid {
         let mut b = uuid::Builder::from_u128(self.to_u128());
         b.set_version(uuid::Version::Random);
-        let u = b.into_uuid();
-        PyUuid::from(u)
+        PyUuid::from(b.into_uuid())
     }
 
     #[staticmethod]
@@ -266,7 +293,7 @@ impl PyUlid {
         if let Ok(pyint) = other.downcast::<pyo3::types::PyInt>() {
             let i = pyint.extract::<u128>()?;
             if let Ok(smaller_int) = u64::try_from(i) {
-                let ulid = ulid::Ulid::from_datetime(
+                let ulid = Ulid::from_datetime(
                     SystemTime::UNIX_EPOCH + std::time::Duration::from_millis(smaller_int),
                 );
                 return Ok(PyUlid(ulid));
@@ -285,7 +312,7 @@ impl PyUlid {
                     return Ok(PyUlid(ul));
                 }
                 26 => {
-                    let ulid = ulid::Ulid::from_string(cs)
+                    let ulid = Ulid::from_string(cs)
                         .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
                     return Ok(PyUlid(ulid));
                 }
@@ -455,13 +482,13 @@ impl PyUlid {
     }
 }
 
-impl From<ulid::Ulid> for PyUlid {
-    fn from(ulid: ulid::Ulid) -> Self {
+impl From<Ulid> for PyUlid {
+    fn from(ulid: Ulid) -> Self {
         PyUlid(ulid)
     }
 }
 
-pub struct UuidLike(pub(crate) uuid::Uuid);
+pub struct UuidLike(pub(crate) Uuid);
 
 impl FromPyObject<'_> for UuidLike {
     fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {

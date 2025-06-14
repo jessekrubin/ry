@@ -29,6 +29,11 @@ class ToPy(Protocol[T_co]):
     def to_py(self) -> T_co: ...
 
 
+# protocol for function defining __json__() -> bytes / buffer:
+class Stringify(Protocol):
+    def __json__(self) -> Buffer | bytes | str: ...
+
+
 # =============================================================================
 # JIFF
 # =============================================================================

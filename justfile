@@ -140,6 +140,14 @@ ruffix:
 clippy:
     cargo clippy
 
+# run clippy with feature-powerset via cargo-hack
+clippy-features:
+    cargo hack --feature-powerset clippy --package ryo3-uuid
+    cargo hack --feature-powerset clippy --package ryo3-ulid
+    cargo hack --feature-powerset clippy --package ryo3-jiff
+    cargo hack --feature-powerset clippy --package ryo3-which
+    cargo hack --feature-powerset clippy --package ryo3-which
+
 # lint python and rust
 lint: ruff clippy
 

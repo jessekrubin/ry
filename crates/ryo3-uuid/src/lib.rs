@@ -6,6 +6,7 @@ pub use py_uuid::{
 };
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
+pub use uuid;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("NAMESPACE_DNS", PyUuid::NAMESPACE_DNS())?;

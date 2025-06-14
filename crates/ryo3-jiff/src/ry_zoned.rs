@@ -55,7 +55,7 @@ impl RyZoned {
                 .map(RyZoned::from)
                 .map_err(map_py_value_err)
         } else {
-            let tz_system = jiff::tz::TimeZone::try_system().map_err(map_py_value_err)?;
+            let tz_system = TimeZone::try_system().map_err(map_py_value_err)?;
             Date::new(year, month, day)
                 .map_err(map_py_value_err)?
                 .at(hour, minute, second, nanosecond)

@@ -16,6 +16,16 @@ pyo3 = { workspace = true, features = [] }
 ryo3-uuid.workspace = true
 uuid.workspace = true
 ulid.workspace = true
+serde = { workspace = true, optional = true, features = ["derive"] }
+
+[features]
+default = [
+  "serde"
+]
+serde = [
+  "dep:serde",
+  "ulid/serde",
+]
 
 [lints]
 workspace = true
