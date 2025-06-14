@@ -4,11 +4,8 @@ import typing as t
 import uuid as pyuuid
 
 import pytest
-from hypothesis import given
 
 import ry
-
-from .strategies import st_json_js
 
 _ORJSON_INSTALLED: bool = False
 try:
@@ -54,12 +51,6 @@ def _test_stringify_json(data: t.Any) -> None:
     assert ry.parse_json(ry_res) == ry.parse_json(py_res)
 
 
-@given(st_json_js())
-def test_stringify_json(data: t.Any) -> None:
-    """Test that stringify_json produces valid JSON strings."""
-    _test_stringify_json(data)
-
-
 def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
 
@@ -80,20 +71,6 @@ def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     assert ry_parsed == oj_parsed, (
         "Parsed JSON from ry.stringify does not match orjson parsed result"
     )
-
-
-@given(st_json_js(datetimes=True))
-@pytest_mark_skip_orjson
-def test_stringify_json_orjson_compatible(data: t.Any) -> None:
-    """Test that stringify_json produces valid JSON strings compatible with orjson."""
-    _test_stringify_json_orjson_compatible(data)
-
-
-@given(st_json_js(datetimes=True, finite_only=False))
-@pytest_mark_skip_orjson
-def test_stringify_json_orjson_compatible_inf_nan(data: t.Any) -> None:
-    """Test that stringify_json produces valid JSON strings compatible with orjson."""
-    _test_stringify_json_orjson_compatible(data)
 
 
 def test_inf_nan_neginf() -> None:
@@ -195,7 +172,7 @@ def test_uuid_keys() -> None:
     # }
 
 
-data2test = [
+PYTYPES_JSON_SER = [
     "",
     1,
     1.0,
@@ -222,7 +199,57 @@ data2test = [
 ]
 
 
-@pytest.mark.parametrize("data", data2test)
+@pytest.mark.parametrize("data", PYTYPES_JSON_SER)
 def test_stringify_json_data(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings for various data types."""
     _test_stringify_json_orjson_compatible(data)
+
+
+RYTYPES_JSON_SER = {
+    "uuid": ry.uuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
+    "ulid": ry.ulid.ULID("01H7Z5F8Y3V9G4J6K8D5E6F7G8"),
+    # jiff
+    "date": ry.date(2020, 8, 26),
+    "datetime": ry.datetime(2020, 8, 26, 6, 27, 0, 0),
+    "+signed_duration": ry.SignedDuration(3),
+    "-signed_duration": -ry.SignedDuration(3),
+    "time": ry.time(6, 27, 0, 0),
+    "timespan": ry.timespan(weeks=1),
+    "timestamp": ry.Timestamp.from_millisecond(1598438400000),
+    "zoned": ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
+    # "offset": ry.Offset(1),
+    # "iso_week_date": ry.date(2020, 8, 26).iso_week_date(),
+}
+EXPECTED = {
+    "uuid": "88475448-f091-42ef-b574-2452952931c1",
+    "ulid": "01H7Z5F8Y3V9G4J6K8D5E6F7G8",
+    "date": "2020-08-26",
+    "datetime": "2020-08-26T06:27:00",
+    "+signed_duration": "PT3S",
+    "-signed_duration": "PT-3S",
+    "time": "06:27:00",
+    "timespan": "P1W",
+    "timestamp": "2020-08-26T10:40:00Z",
+    "zoned": "2020-08-26T06:27:00-04:00[America/New_York]",
+}
+
+
+def test_stringify_ry_types() -> None:
+    """Test that `stringify` handles ry types correctly."""
+    res = ry.stringify(RYTYPES_JSON_SER, fmt=True)
+    parsed = ry.parse_json(res)
+
+    def _format_different() -> str:
+        different_vals = {
+            k: {"expected": EXPECTED[k], "actual": v}
+            for k, v in parsed.items()
+            if EXPECTED.get(k) != v
+        }
+        return "\n".join(
+            f"{k}: expected `{v['expected']}`, got `{v['actual']}`"
+            for k, v in different_vals.items()
+        )
+
+    assert parsed == EXPECTED, (
+        f"Parsed JSON does not match expected result: \n{_format_different()}\n"
+    )

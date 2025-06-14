@@ -12,9 +12,22 @@ repository.workspace = true
 description = "python + serde"
 
 [dependencies]
-pyo3 = { workspace = true, features = [] }
+pyo3 = { workspace = true, features = ["uuid"] }
 serde.workspace = true
-ryo3-uuid = { workspace = true, features = ["serde"] }
+uuid = { workspace = true, features = ["serde"] }
+ryo3-uuid = { workspace = true, optional = true, features = ["serde"] }
+ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
+ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
+
+[features]
+default = [
+  "ry"
+]
+ry = [
+  "ryo3-uuid",
+  "ryo3-ulid",
+  "ryo3-jiff",
+]
 
 [lints]
 workspace = true

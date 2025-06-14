@@ -1878,8 +1878,11 @@ name = "ryo3-serde"
 version = "0.0.46"
 dependencies = [
  "pyo3",
+ "ryo3-jiff",
+ "ryo3-ulid",
  "ryo3-uuid",
  "serde",
+ "uuid",
 ]
 
 [[package]]

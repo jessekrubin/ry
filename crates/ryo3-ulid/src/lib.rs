@@ -71,14 +71,23 @@ impl PyUlid {
 impl PyUlid {
     #[new]
     #[pyo3(signature = (value = None))]
-    pub fn py_new(value: Option<&[u8]>) -> PyResult<Self> {
+    pub fn py_new(value: Option<Bound<'_, PyAny>>) -> PyResult<Self> {
         if let Some(value) = value {
-            let b: [u8; 16] = value
-                .try_into()
-                .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
-
-            let u = Ulid::from_bytes(b);
-            Ok(PyUlid(u))
+            // IF IS BYTES
+            if let Ok(b) = value.downcast::<PyBytes>() {
+                let slice = b.as_bytes();
+                let b: [u8; 16] = slice
+                    .try_into()
+                    .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
+                Ok(Self::from_bytes(b))
+            } else if let Ok(str) = value.downcast::<pyo3::types::PyString>() {
+                let cs = str.to_str()?;
+                Self::from_string(cs)
+            } else {
+                Err(PyTypeError::new_err(
+                    "Expected a ULID string (26 or 32 characters) or bytes (16 bytes)",
+                ))
+            }
         } else {
             let ulid = gen_new()?;
             Ok(PyUlid(ulid))
@@ -198,10 +207,18 @@ impl PyUlid {
     }
 
     #[staticmethod]
-    fn from_string(s: &str) -> PyResult<Self> {
-        Ulid::from_string(s)
-            .map(Self::from)
-            .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))
+    fn from_string(cs: &str) -> PyResult<Self> {
+        if cs.len() == 26 {
+            let ulid = Ulid::from_string(cs)
+                .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
+            Ok(PyUlid(ulid))
+        } else if cs.len() == 32 {
+            Self::from_hex(cs)
+        } else {
+            Err(PyValueError::new_err(
+                "ULID string must be either 26 or 32 characters long",
+            ))
+        }
     }
 
     #[staticmethod]

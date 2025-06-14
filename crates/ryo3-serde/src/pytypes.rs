@@ -9,7 +9,6 @@ use pyo3::types::{
 };
 use pyo3::types::{PyList, PyTuple};
 use pyo3::Bound;
-use ryo3_uuid::uuid;
 use serde::ser::{Error as SerError, Serialize, SerializeMap, SerializeSeq};
 
 #[inline]
@@ -205,10 +204,7 @@ pub(crate) fn py_uuid<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::O
 where
     S: serde::Serializer,
 {
-    let uu = ryo3_uuid::CPythonUuid::extract_bound(&ser.obj)
-        // .map_err(|e| serde_err!("Failed to extract CPythonUuid: {}", e))
-        .map(uuid::Uuid::from)
-        .map_err(pyerr2sererr)?;
+    let uu: uuid::Uuid = ser.obj.extract().map_err(pyerr2sererr)?;
     serializer.serialize_str(&uu.hyphenated().to_string())
 }
 

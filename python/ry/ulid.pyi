@@ -15,7 +15,7 @@ from ulid import base32 as base32
 from ulid import constants as constants
 
 class ULID:
-    def __init__(self, value: builtins.bytes | None = None) -> None: ...
+    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
 
     # ----------------
     # INSTANCE METHODS

@@ -10,7 +10,14 @@ use crate::pytypes::{
     bool_, byteslike, date, datetime, dict, float, frozenset, int, list, none, py_uuid, set, str,
     time, tuple,
 };
+#[cfg(feature = "ryo3-ulid")]
+use crate::rytypes::ry_ulid;
+#[cfg(feature = "ryo3-uuid")]
 use crate::rytypes::ry_uuid;
+#[cfg(feature = "ryo3-jiff")]
+use crate::rytypes::{
+    ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_zoned,
+};
 use crate::type_cache::{PyObType, PyTypeCache};
 use pyo3::types::{PyMapping, PySequence};
 use pyo3::Bound;
@@ -69,7 +76,24 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::Time => time(self, serializer),
                 PyObType::Bytes | PyObType::ByteArray => byteslike(self, serializer),
                 PyObType::PyUuid => py_uuid(self, serializer),
+                #[cfg(feature = "ryo3-uuid")]
                 PyObType::RyUuid => ry_uuid(self, serializer),
+                #[cfg(feature = "ryo3-ulid")]
+                PyObType::RyUlid => ry_ulid(self, serializer), // ulid is treated as a uuid for now
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyDate => ry_date(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyDateTime => ry_datetime(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RySignedDuration => ry_signed_duration(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyTime => ry_time(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyTimeSpan => ry_span(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyTimestamp => ry_timestamp(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyZoned => ry_zoned(self, serializer),
             }
         } else if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
             SerializePyMapping::new(py_map).serialize(serializer)
