@@ -47,6 +47,15 @@ def test_ulid() -> None:
     datetimes_almost_equal(ulid.datetime, now)
 
 
+def test_ulid_repr() -> None:
+    ulid = ULID()
+    assert isinstance(repr(ulid), str)
+    assert repr(ulid).startswith("ULID(")
+    assert repr(ulid).endswith(")")
+    # evaling the repr should return an equiv ULID
+    assert eval(repr(ulid)) == ulid
+
+
 @pytest.mark.parametrize("tick", [1, 60, 3600, 86400])
 def test_ulid_monotonic_sorting(tick: int) -> None:
     def _gen() -> t.Generator[ULID, None, None]:
