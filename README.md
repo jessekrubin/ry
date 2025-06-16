@@ -14,7 +14,7 @@ ergonomic.
 
 **API:** [ryo3.dev/api](https://ryo3.dev/api)
 
-**⚠️ This is a work in progress — feedback and PRs are welcome.**
+**This is a work in progress — feedback and PRs are welcome.**
 
 ## Highlights
 
