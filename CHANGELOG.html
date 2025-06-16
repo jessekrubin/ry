@@ -173,6 +173,29 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0047-unreleased"><a class="header" href="#v0047-unreleased">v0.0.47 [unreleased]</a></h2>
+<ul>
+<li>pyo3 v0.25.1</li>
+<li><code>ryo3-serde</code> (wip)
+<ul>
+<li>serializers for <code>PyAny</code> and more</li>
+<li>this should theoretically allow for serializing any python object
+that is <code>serde</code> serializable with almost any <code>serde</code> serializer… that is
+the goal</li>
+</ul>
+</li>
+<li><code>ryo3-json</code>
+<ul>
+<li>Where json stuff + ry is going to live in the near future (may consolodate
+<code>ryo3-jiter</code> into this newer crate)</li>
+<li><code>ry.stringify()</code> uses <code>ryo3-serde</code> + <code>serde_json</code> to write json bytes/bufs
+and it is pretty fast, faster than ujson and rapidjson (not tested yyjson),
+BUT orjson is still fastest (read a bunch of their code and it is remarkably
+advanced and optimized)</li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0046-2025-06-06"><a class="header" href="#v0046-2025-06-06">v0.0.46 [2025-06-06]</a></h2>
 <ul>
 <li>version 0.0.46</li>
