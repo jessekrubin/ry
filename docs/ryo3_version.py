@@ -1,6 +1,7 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
+#     "orjson",
 #     "ry",
 # ]
 # ///
@@ -14,8 +15,9 @@ Replaces:
 """
 
 import datetime
-import json
 import sys
+
+import orjson
 
 
 def _tokens():
@@ -55,10 +57,11 @@ def replace_section_content(section):
 def main():
     for line in sys.stdin:
         if line:
-            [_context, book] = json.loads(line)
-            for section in book["sections"]:
-                replace_section_content(section)
-            json.dump(book, fp=sys.stdout)
+            [_context, book] = orjson.loads(line)
+            # for section in book["sections"]:
+            #     replace_section_content(section)
+            b = orjson.dumps(book, option=orjson.OPT_APPEND_NEWLINE)
+            sys.stdout.buffer.write(b)
 
 
 if __name__ == "__main__":
