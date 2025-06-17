@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.48 [unreleased]
+
+- `ryo3-json`
+  - `pybytes` bool kwargs to return `builtins.bytes` if `True` and `ry.Bytes` if
+    `False`; default is `False`
+
+---
+
 ## v0.0.47 [2025-06-17]
 
 - pyo3 v0.25.1

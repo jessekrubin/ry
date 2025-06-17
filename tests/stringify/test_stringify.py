@@ -31,6 +31,21 @@ def oj_stringify(data: t.Any) -> bytes:
     return orjson.dumps(data)
 
 
+def test_stringify_pybytes_output() -> None:
+    data = {
+        "key": "val",
+        "list": [1, 2, 3],
+        "dict": {"a": 1, "b": 2},
+    }
+    rs_bytes = ry.stringify(data)
+    assert isinstance(rs_bytes, ry.Bytes), "Result should be a `ry.Bytes`"
+    py_bytes = ry.stringify(data, pybytes=True)
+    assert isinstance(py_bytes, bytes), "Result should be a `bytes`"
+    parsed_py = ry.parse_json(py_bytes)
+    parsed_rs = ry.parse_json(rs_bytes)
+    assert parsed_py == parsed_rs
+
+
 def _test_stringify_json(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings."""
 
