@@ -17,7 +17,7 @@ use pyo3::prelude::*;
 
 #[pyfunction]
 #[pyo3(signature= (cmd, path=None))]
-pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<std::path::PathBuf>> {
+pub fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<PathBuf>> {
     if let Some(p) = path {
         // get current directory w/o unwrapping
         match env::current_dir() {

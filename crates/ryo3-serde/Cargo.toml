@@ -15,18 +15,20 @@ description = "python + serde"
 pyo3 = { workspace = true, features = ["uuid"] }
 serde.workspace = true
 uuid = { workspace = true, features = ["serde"] }
-ryo3-uuid = { workspace = true, optional = true, features = ["serde"] }
-ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
 ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
+ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
+ryo3-url = { workspace = true, optional = true, features = ["serde"] }
+ryo3-uuid = { workspace = true, optional = true, features = ["serde"] }
 
 [features]
 default = [
   "ry"
 ]
 ry = [
-  "ryo3-uuid",
-  "ryo3-ulid",
   "ryo3-jiff",
+  "ryo3-ulid",
+  "ryo3-url",
+  "ryo3-uuid",
 ]
 
 [lints]

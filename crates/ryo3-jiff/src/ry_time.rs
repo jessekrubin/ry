@@ -80,11 +80,11 @@ impl RyTime {
 
     #[classmethod]
     fn midnight(_cls: &Bound<'_, PyType>) -> Self {
-        Self(jiff::civil::Time::midnight())
+        Self(Time::midnight())
     }
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        jiff::civil::Time::from_str(s)
+        Time::from_str(s)
             .map(crate::RyTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
@@ -95,7 +95,7 @@ impl RyTime {
 
     #[classmethod]
     fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
-        jiff::civil::Time::strptime(format, input)
+        Time::strptime(format, input)
             .map(crate::RyTime::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
@@ -438,8 +438,8 @@ impl Display for RyTime {
         write!(f, "Time<{}>", self.0)
     }
 }
-impl From<jiff::civil::Time> for RyTime {
-    fn from(value: jiff::civil::Time) -> Self {
+impl From<Time> for RyTime {
+    fn from(value: Time) -> Self {
         Self(value)
     }
 }

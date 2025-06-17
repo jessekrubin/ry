@@ -191,7 +191,7 @@ tokio = { version = "1.45.1", features = ["bytes", "fs", "macros", "parking_lot"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "default"] }
 unindent = "0.2.4"
-url = { version = "2.5.4", features = ["serde"] }
+url = { version = "2.5.4" }
 uuid = { version = "1.17.0", features = ["v4", "v8"] }
 ulid = { version = "1.2.1" }
 walkdir = "2.5.0"

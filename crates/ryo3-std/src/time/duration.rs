@@ -407,7 +407,7 @@ impl PyDuration {
         let interval = match interval {
             Some(interval) => {
                 if interval > 1000 {
-                    return Err(pyo3::exceptions::PyValueError::new_err(
+                    return Err(PyValueError::new_err(
                         "interval must be less than or equal to 1000",
                     ));
                 }

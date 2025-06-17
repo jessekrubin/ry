@@ -8,6 +8,7 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "URL", module = "ry.ryo3", frozen)]
 pub struct PyUrl(pub url::Url);
 
@@ -27,6 +28,16 @@ impl PyUrl {
             .map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
             })
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for PyUrl {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        url::Url::deserialize(deserializer).map(PyUrl)
     }
 }
 

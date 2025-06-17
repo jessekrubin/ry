@@ -37,6 +37,11 @@ pub(crate) enum PyObType {
     #[cfg(feature = "ryo3-ulid")]
     RyUlid, // ulid is treated as a uuid for now
     // -----------------------------------------------------------------------
+    // URL
+    // -----------------------------------------------------------------------
+    #[cfg(feature = "ryo3-url")]
+    RyUrl,
+    // -----------------------------------------------------------------------
     // JIFF
     // -----------------------------------------------------------------------
     #[cfg(feature = "ryo3-jiff")]
@@ -81,10 +86,13 @@ pub(crate) struct PyTypeCache {
     pub time: usize,
     // uuid
     pub py_uuid: usize,
+    // ------------------------------------------------------------------------
     #[cfg(feature = "ryo3-uuid")]
     pub ry_uuid: usize,
     #[cfg(feature = "ryo3-ulid")]
     pub ry_ulid: usize,
+    #[cfg(feature = "ryo3-url")]
+    pub ry_url: usize,
     #[cfg(feature = "ryo3-jiff")]
     pub ry_date: usize,
     #[cfg(feature = "ryo3-jiff")]
@@ -144,6 +152,11 @@ impl PyTypeCache {
             #[cfg(feature = "ryo3-ulid")]
             ry_ulid: ryo3_ulid::PyUlid::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
+            // URL
+            // ----------------------------------------------------------------
+            #[cfg(feature = "ryo3-url")]
+            ry_url: ryo3_url::PyUrl::type_object_raw(py) as usize,
+            // ----------------------------------------------------------------
             // JIFF
             // ----------------------------------------------------------------
             #[cfg(feature = "ryo3-jiff")]
@@ -198,6 +211,11 @@ impl PyTypeCache {
             // -----------------------------------------------------------------
             #[cfg(feature = "ryo3-ulid")]
             x if x == self.ry_ulid => Some(PyObType::RyUlid),
+            // -----------------------------------------------------------------
+            // URL
+            // -----------------------------------------------------------------
+            #[cfg(feature = "ryo3-url")]
+            x if x == self.ry_url => Some(PyObType::RyUrl),
             // -----------------------------------------------------------------
             // JIFF
             // -----------------------------------------------------------------

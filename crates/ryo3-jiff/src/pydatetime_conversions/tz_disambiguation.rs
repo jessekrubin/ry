@@ -1,4 +1,5 @@
 use crate::jiff_types::JiffTzDisambiguation;
+use jiff::tz;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 
@@ -9,10 +10,10 @@ impl FromPyObject<'_> for JiffTzDisambiguation {
         if let Ok(s) = ob.downcast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
-                "compatible" => Ok(::jiff::tz::Disambiguation::Compatible.into()),
-                "earlier" => Ok(::jiff::tz::Disambiguation::Earlier.into()),
-                "later" => Ok(::jiff::tz::Disambiguation::Later.into()),
-                "reject" => Ok(::jiff::tz::Disambiguation::Reject.into()),
+                "compatible" => Ok(tz::Disambiguation::Compatible.into()),
+                "earlier" => Ok(tz::Disambiguation::Earlier.into()),
+                "later" => Ok(tz::Disambiguation::Later.into()),
+                "reject" => Ok(tz::Disambiguation::Reject.into()),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid era: {s} (options: {JIFF_ERA_STRINGS})"
                 ))),

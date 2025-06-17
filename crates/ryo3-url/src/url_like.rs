@@ -5,9 +5,9 @@ use pyo3::{Bound, FromPyObject, PyAny, PyErr, PyResult};
 
 pub struct UrlLike(pub url::Url);
 
-impl FromPyObject<'_> for crate::UrlLike {
+impl FromPyObject<'_> for UrlLike {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        crate::extract_url(ob).map(crate::UrlLike)
+        extract_url(ob).map(UrlLike)
     }
 }
 

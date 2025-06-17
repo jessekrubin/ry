@@ -12,6 +12,8 @@ use crate::pytypes::{
 };
 #[cfg(feature = "ryo3-ulid")]
 use crate::rytypes::ry_ulid;
+#[cfg(feature = "ryo3-url")]
+use crate::rytypes::ry_url;
 #[cfg(feature = "ryo3-uuid")]
 use crate::rytypes::ry_uuid;
 #[cfg(feature = "ryo3-jiff")]
@@ -80,6 +82,8 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::RyUuid => ry_uuid(self, serializer),
                 #[cfg(feature = "ryo3-ulid")]
                 PyObType::RyUlid => ry_ulid(self, serializer), // ulid is treated as a uuid for now
+                #[cfg(feature = "ryo3-url")]
+                PyObType::RyUrl => ry_url(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
                 PyObType::RyDate => ry_date(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
