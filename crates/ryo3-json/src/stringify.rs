@@ -1,5 +1,6 @@
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
+use pyo3::IntoPyObjectExt;
 use ryo3_serde::SerializePyAny;
 
 fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
@@ -7,15 +8,16 @@ fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
 }
 
 #[pyfunction(
-    signature = (obj, fmt = false, sort_keys = false, append_newline = false)
+    signature = (obj, fmt = false, sort_keys = false, append_newline = false, pybytes = false)
 )]
-pub(crate) fn stringify(
-    py: Python<'_>,
-    obj: Bound<'_, PyAny>,
+pub(crate) fn stringify<'py>(
+    py: Python<'py>,
+    obj: Bound<'py, PyAny>,
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
-) -> PyResult<ryo3_bytes::PyBytes> {
+    pybytes: bool,
+) -> PyResult<Bound<'py, PyAny>> {
     if sort_keys {
         // TODO: This is a very hacky way of handling sorting the keys...
         //       ideally this would be part of the serialization process
@@ -34,7 +36,11 @@ pub(crate) fn stringify(
         if append_newline {
             bytes.push(b'\n');
         }
-        Ok(ryo3_bytes::PyBytes::from(bytes))
+        if pybytes {
+            pyo3::types::PyBytes::new(py, &bytes).into_bound_py_any(py)
+        } else {
+            ryo3_bytes::PyBytes::from(bytes).into_bound_py_any(py)
+        }
     } else {
         let s = SerializePyAny::new(py, obj, None);
         // 4k seeeems is a reasonable default size for JSON serialization?
@@ -47,6 +53,10 @@ pub(crate) fn stringify(
         if append_newline {
             bytes.push(b'\n');
         }
-        Ok(ryo3_bytes::PyBytes::from(bytes))
+        if pybytes {
+            pyo3::types::PyBytes::new(py, &bytes).into_bound_py_any(py)
+        } else {
+            ryo3_bytes::PyBytes::from(bytes).into_bound_py_any(py)
+        }
     }
 }

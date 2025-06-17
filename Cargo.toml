@@ -51,6 +51,20 @@ inherits = "release"
 lto = "fat"
 
 
+[workspace.package]
+version = "0.0.48"
+authors = [
+  "Jesse K. Rubin <jessekrubin@gmail.com>",
+  # hopefully you will contribute!
+]
+documentation = "https://github.com/jessekrubin/ry"
+edition = "2021"
+homepage = "https://github.com/jessekrubin/ry"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/jessekrubin/ry"
+keywords = ["python", "pyo3", "ryo3"]
+categories = ["api-bindings"]
+
 [workspace]
 resolver = "2"
 members = [
@@ -92,20 +106,6 @@ members = [
   "crates/ryo3-xxhash",
   "crates/ryo3-zstd",
 ]
-
-[workspace.package]
-version = "0.0.47"
-authors = [
-  "Jesse K. Rubin <jessekrubin@gmail.com>",
-  # hopefully you will contribute!
-]
-documentation = "https://github.com/jessekrubin/ry"
-edition = "2021"
-homepage = "https://github.com/jessekrubin/ry"
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/jessekrubin/ry"
-keywords = ["python", "pyo3", "ryo3"]
-categories = ["api-bindings"]
 
 [workspace.dependencies]
 # ======
