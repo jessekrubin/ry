@@ -7,6 +7,7 @@ fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     PyTypeError::new_err(format!("Failed to serialize: {e}"))
 }
 
+#[expect(clippy::fn_params_excessive_bools)]
 #[pyfunction(
     signature = (obj, fmt = false, sort_keys = false, append_newline = false, pybytes = false)
 )]
