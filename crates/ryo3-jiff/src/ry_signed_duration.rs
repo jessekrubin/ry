@@ -181,9 +181,7 @@ impl RySignedDuration {
         let maybe_dur = self.0.checked_add(other.0);
         match maybe_dur {
             Some(dur) => Ok(RySignedDuration(dur)),
-            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
-                "overflow",
-            )),
+            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
 
@@ -191,9 +189,7 @@ impl RySignedDuration {
         let dur = self.0.checked_sub(other.0);
         match dur {
             Some(dur) => Ok(RySignedDuration(dur)),
-            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
-                "overflow",
-            )),
+            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
 
@@ -201,9 +197,7 @@ impl RySignedDuration {
         let dur = self.0.checked_mul(other);
         match dur {
             Some(dur) => Ok(RySignedDuration(dur)),
-            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
-                "overflow",
-            )),
+            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
 
@@ -215,9 +209,7 @@ impl RySignedDuration {
         let dur = self.0.checked_div(other);
         match dur {
             Some(dur) => Ok(RySignedDuration(dur)),
-            None => Err(PyErr::new::<pyo3::exceptions::PyOverflowError, _>(
-                "overflow",
-            )),
+            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
 

@@ -36,18 +36,18 @@ impl FromPyObject<'_> for JiffTimeZone {
         if let Ok(s) = ob.downcast::<PyString>() {
             let str = s.to_string();
             if str.ends_with("/etc/localtime") {
-                return Ok(JiffTimeZone(jiff::tz::TimeZone::system()));
+                return Ok(JiffTimeZone(TimeZone::system()));
             }
-            let tz = jiff::tz::TimeZone::get(str.as_str())
+            let tz = TimeZone::get(str.as_str())
                 .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
             let jtz = JiffTimeZone(tz);
             Ok(jtz)
         } else {
             let name = ob.to_string();
             if name.ends_with("/etc/localtime") {
-                return Ok(JiffTimeZone(jiff::tz::TimeZone::system()));
+                return Ok(JiffTimeZone(TimeZone::system()));
             }
-            let tz = jiff::tz::TimeZone::get(name.as_str())
+            let tz = TimeZone::get(name.as_str())
                 .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
             let jtz = JiffTimeZone(tz);
             Ok(jtz)

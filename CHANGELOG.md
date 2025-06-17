@@ -1,13 +1,12 @@
 # CHANGELOG
 
-## v0.0.47 [unreleased]
+## v0.0.47 [2025-06-17]
 
 - pyo3 v0.25.1
 - `ryo3-serde` (wip)
   - serializers for `PyAny` and more
-  - this should theoretically allow for serializing any python object
-    that is `serde` serializable with almost any `serde` serializer... that is
-    the goal
+  - this should theoretically allow for serializing any python object that is
+    `serde` serializable with almost any `serde` serializer... that is the goal
 - `ryo3-json`
   - Where json stuff + ry is going to live in the near future (may consolodate
     `ryo3-jiter` into this newer crate)

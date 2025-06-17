@@ -1,4 +1,4 @@
-use crate::http_types::{HttpHeaderMap, HttpHeaderName, HttpHeaderValue};
+use crate::http_types::{HttpHeaderName, HttpHeaderValue};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
 use crate::PyHeadersLike;
 use http::header::HeaderMap;
@@ -400,6 +400,8 @@ impl PyHeaders {
     }
 
     #[cfg(not(feature = "json"))]
+    #[expect(clippy::unused_self)]
+    #[expect(unused_variables)]
     #[pyo3(signature = (*args, **kwargs))]
     fn stringify(
         &self,
@@ -411,11 +413,20 @@ impl PyHeaders {
         ))
     }
 
+    #[cfg(feature = "json")]
     #[classmethod]
     fn from_json(_cls: &Bound<'_, PyType>, json: &str) -> PyResult<Self> {
         // let headers: crate::http_t=
-        serde_json::from_str::<HttpHeaderMap>(json)
+        serde_json::from_str::<crate::HttpHeaderMap>(json)
             .map(|e| Self::from(e.0))
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))
+    }
+
+    #[cfg(not(feature = "json"))]
+    #[classmethod]
+    fn from_json(_cls: &Bound<'_, PyType>, _json: &str) -> PyResult<Self> {
+        Err(::ryo3_core::FeatureNotEnabledError::new_err(
+            "ryo3-http: `json` feature not enabled",
+        ))
     }
 }
