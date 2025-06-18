@@ -8,7 +8,6 @@ removed freezegun as it is not really needed nor does pyo3 stuff respsect it
 
 from __future__ import annotations
 
-import time
 import typing as t
 import uuid
 from collections.abc import Callable
@@ -174,7 +173,13 @@ Params = t.Union[bytes, str, int, float]
     [
         (ULID, b"sdf"),  # invalid length
         (ULID.from_timestamp, b"not-a-timestamp"),  # invalid type
-        (ULID.from_datetime, time.time()),  # invalid type
+        # NOTE [2025-06-18]:
+        #   pytest-xdist freaks (the fuck) out collecting the tests if we call
+        #   `time.time()`, so the "datetime" input param has been replaced with
+        #   the ret-value of `time.time()` at the `time.time()` of writing this
+        #   semi-incoherent comment
+        #   PREV-VERSION: `(ULID.from_datetime, time.time())`,  # invalid type
+        (ULID.from_datetime, 1750259472.6533403),  # invalid type
         (ULID.from_bytes, b"not-enough"),  # invalid length
         (ULID.from_bytes, 123),  # invalid type
         (ULID.from_str, "not-enough"),  # invalid length

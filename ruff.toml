@@ -135,8 +135,6 @@ lint.per-file-ignores."scripts/**" = [
   "T201",
 ]
 lint.unfixable = [
-  # Don't touch unused imports
-  "F401",
 ]
 lint.flake8-tidy-imports.ban-relative-imports = "all"
 lint.isort.known-first-party = ["ry"]
