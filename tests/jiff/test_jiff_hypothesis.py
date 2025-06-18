@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
+import typing as t
 
 import pytest
 from hypothesis import assume, given
@@ -20,6 +21,9 @@ from .strategies import (
     timedelta_positive_strategy,
     timezone_strategy,
 )
+
+if t.TYPE_CHECKING:
+    from ry.ryo3._jiff import JIFF_ROUND_MODE, JIFF_UNIT
 
 
 @given(date_tuple_strategy)
@@ -72,16 +76,32 @@ def test_datetime_difference(dt1: ry.DateTime, dt2: ry.DateTime) -> None:
     assert dt1_plus_duration == dt2
 
 
-# @given(datetime_strategy,
-#        st.sampled_from(["second", "minute", "hour", "day", "month", "year"]),
-#        st.sampled_from(["floor", "ceil", "round"]),
-#        st.integers(min_value=1, max_value=1000))
-# def test_datetime_rounding(dt: ry.DateTime, unit: str, mode: str, increment: int) -> None:
-#     """Test that rounding a datetime with various options works correctly"""
-#     options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)
-#     rounded_dt = dt.round(options)
-#     # Since rounding may not produce the original datetime, test that the rounded datetime is valid
-#     assert isinstance(rounded_dt, ry.DateTime)
+@given(
+    datetime_strategy,
+    st.sampled_from(["second", "minute", "hour", "day", "month", "year"]),
+    st.sampled_from(
+        [
+            "half_even",
+            "half_ceil",
+            "half_floor",
+            "half_expand",
+            "half_trunc",
+        ]
+    ),
+    st.integers(min_value=1, max_value=1000),
+)
+def test_datetime_rounding(
+    dt: ry.DateTime, unit: JIFF_UNIT, mode: JIFF_ROUND_MODE, increment: int
+) -> None:
+    """Test that rounding a datetime with various options works correctly"""
+    try:
+        options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)
+        rounded_dt = dt._round(options)
+        # Since rounding may not produce the original datetime, test that the rounded datetime is valid
+        assert isinstance(rounded_dt, ry.DateTime)
+
+    except ValueError as _ve:  # can fail
+        ...
 
 
 @given(datetime_strategy, timezone_strategy)
@@ -149,7 +169,6 @@ def test_duration_addition_cancellation(duration: ry.SignedDuration) -> None:
 def test_invalid_date_creation(year: int, month: int, day: int) -> None:
     assume(not (-9999 <= year <= 9999 and 1 <= month <= 12 and 1 <= day <= 31))
     try:
-        # pydt.date(year, month, day)
         ry.date(year, month, day)
     # TODO: figure out if should be OverflowError or ValueError
     except (ValueError, OverflowError):

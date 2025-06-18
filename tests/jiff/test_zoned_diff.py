@@ -49,36 +49,38 @@ class TestZonedUntil:
         span = zdt1.until(zdt2, largest="year")
         assert str(span) == "P23Y1M24DT12H5M29.9999965S"
 
-    # def test_zoned_until_rounding_the_result(self) ->None:
-    #     """
-    #     ```rust
-    #     use jiff::{civil::date, Unit, ToSpan, ZonedDifference};
-    #
-    #     let zdt1 = date(1995, 12, 07).at(3, 24, 30, 3500).in_tz("America/New_York")?;
-    #     let zdt2 = date(2019, 01, 31).at(15, 30, 0, 0).in_tz("America/New_York")?;
-    #
-    #     let span = zdt1.until(
-    #         ZonedDifference::from(&zdt2).smallest(Unit::Second),
-    #     )?;
-    #     assert_eq!(span, 202_956.hours().minutes(5).seconds(29));
-    #
-    #     // We can combine smallest and largest units too!
-    #     let span = zdt1.until(
-    #         ZonedDifference::from(&zdt2)
-    #             .smallest(Unit::Second)
-    #             .largest(Unit::Year),
-    #     )?;
-    #     assert_eq!(span, 23.years().months(1).days(24).hours(12).minutes(5).seconds(29));
-    #     ```
-    #     """
-    #     zdt1 = ry.date(1995, 12, 7).at(3, 24, 30, 3500).in_tz("America/New_York")
-    #     zdt2 = ry.date(2019, 1, 31).at(15, 30, 0, 0).in_tz("America/New_York")
-    #
-    #     span = zdt1.until(ry.ZonedDifference.from(zdt2).smallest('second'))
-    #     assert span == ry.timespan(hours=202_956, minutes=5, seconds=29)
-    #
-    #     span = zdt1.until(ry.ZonedDifference.from(zdt2).smallest('second').largest('year'))
-    #     assert span == ry.timespan(years=23, months=1, days=24, hours=12, minutes=5, seconds=29)
+    def test_zoned_until_rounding_the_result(self) -> None:
+        """
+        ```rust
+        use jiff::{civil::date, Unit, ToSpan, ZonedDifference};
+
+        let zdt1 = date(1995, 12, 07).at(3, 24, 30, 3500).in_tz("America/New_York")?;
+        let zdt2 = date(2019, 01, 31).at(15, 30, 0, 0).in_tz("America/New_York")?;
+
+        let span = zdt1.until(
+            ZonedDifference::from(&zdt2).smallest(Unit::Second),
+        )?;
+        assert_eq!(span, 202_956.hours().minutes(5).seconds(29));
+
+        // We can combine smallest and largest units too!
+        let span = zdt1.until(
+            ZonedDifference::from(&zdt2)
+                .smallest(Unit::Second)
+                .largest(Unit::Year),
+        )?;
+        assert_eq!(span, 23.years().months(1).days(24).hours(12).minutes(5).seconds(29));
+        ```
+        """
+        zdt1 = ry.date(1995, 12, 7).at(3, 24, 30, 3500).in_tz("America/New_York")
+        zdt2 = ry.date(2019, 1, 31).at(15, 30, 0, 0).in_tz("America/New_York")
+
+        span = zdt1.until(zdt2, smallest="second")
+        assert span == ry.timespan(hours=202_956, minutes=5, seconds=29)
+
+        span = zdt1.until(zdt2, smallest="second", largest="year")
+        assert span == ry.timespan(
+            years=23, months=1, days=24, hours=12, minutes=5, seconds=29
+        )
 
     def test_units_biggers_than_days_inhibit_reversibility(self) -> None:
         """

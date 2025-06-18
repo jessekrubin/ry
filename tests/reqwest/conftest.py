@@ -290,18 +290,7 @@ def server() -> Iterator[ReqtestServer]:
         loop="asyncio",
     )
     srv = ReqtestServer(config=cfg)
-
-    # start in thread …
     with serve_in_thread(srv) as running:
-        # cfg.port is still 0; fetch the *actual* bound port
         bound_port = running.servers[0].sockets[0].getsockname()[1]
         running.config.port = bound_port  # make .url work
         yield running
-
-
-# Every worker gets its own random port; no c
-# @pytest.fixture(scope="session")
-# def server() -> Iterator[ReqtestServer]:
-#     config = Config(app=reqtest_server, lifespan="off", loop="asyncio")
-#     server = ReqtestServer(config=config)
-#     yield from serve_in_thread(server)

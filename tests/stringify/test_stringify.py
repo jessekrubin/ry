@@ -179,12 +179,6 @@ def test_uuid_keys() -> None:
     }
     with pytest.raises(TypeError):
         _json_bytes = ry.stringify(data)
-        return
-    # parsed = ry.parse_json(json_bytes)
-    # assert parsed == {
-    #     str(pyuuid.NAMESPACE_DNS): "py",
-    #     str(ry.uuid.NAMESPACE_URL): "ry",
-    # }
 
 
 PYTYPES_JSON_SER = [
@@ -236,8 +230,6 @@ RYTYPES_JSON_SER = {
     "timespan": ry.timespan(weeks=1),
     "timestamp": ry.Timestamp.from_millisecond(1598438400000),
     "zoned": ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
-    # "offset": ry.Offset(1),
-    # "iso_week_date": ry.date(2020, 8, 26).iso_week_date(),
 }
 EXPECTED = {
     "uuid": "88475448-f091-42ef-b574-2452952931c1",
@@ -273,4 +265,50 @@ def test_stringify_ry_types() -> None:
 
     assert parsed == EXPECTED, (
         f"Parsed JSON does not match expected result: \n{_format_different()}\n"
+    )
+
+
+def test_stringify_some_mapping() -> None:
+    """Test that `stringify` handles some mapping types correctly."""
+    data = {
+        "key1": "value1",
+        "key2": "value2",
+        "key3": "value3",
+    }
+
+    class SomeMapping(t.Mapping[str, str]):
+        def __init__(self, data: dict[str, str]) -> None:
+            self._data = data
+
+        def __getitem__(self, key: str) -> str:
+            return self._data[key]
+
+        def __iter__(self) -> t.Iterator[str]:
+            return iter(self._data)
+
+        def __len__(self) -> int:
+            return len(self._data)
+
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    assert parsed == data, (
+        f"Parsed JSON does not match original data: {parsed} != {data}"
+    )
+
+
+def test_stringify_deque() -> None:
+    """Test that `stringify` handles deque correctly."""
+    from collections import deque
+
+    data = {
+        "key1": "value1",
+        "key2": "value2",
+        "key3": deque(["a", "b", "c"]),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    assert parsed["key3"] == ["a", "b", "c"], (
+        f"Parsed JSON does not match original deque: {parsed['key3']} != ['a', 'b', 'c']"
     )

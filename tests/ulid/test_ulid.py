@@ -34,7 +34,6 @@ def test_ulid() -> None:
     assert len(ulid.bytes) == 16
     assert len(str(ulid)) == (10 + 16)
 
-    # assert all(c in base32.ENCODE for c in str(ulid))
     assert isinstance(ulid.to_uuid(), uuid.UUID) or isinstance(
         ulid.to_uuid4(), ry.uuid.UUID
     )

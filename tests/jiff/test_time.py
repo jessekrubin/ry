@@ -35,9 +35,6 @@ def test_time_until() -> None:
     span = t1.until(t2)
     assert span.string() == "PT12H5M29.9999965S"
 
-    # span = t1.until((ry.JiffUnit.Minute, t2))
-    # assert span.string() == "PT725m29.9999965s"
-
 
 class TestTimeSeries:
     def test_time_series_jiff_example(self) -> None:

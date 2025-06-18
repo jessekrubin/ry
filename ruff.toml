@@ -7,7 +7,12 @@ include = [
   "bench/**/*.{py,pyi}",
   "examples/**/*.{py,pyi}",
 ]
-
+lint.task-tags = [
+  # defaults
+  "TODO", "FIXME", "XXX",
+  # typos
+  "typos",
+]
 format.docstring-code-format = true
 lint.select = [
   "A",
@@ -16,6 +21,7 @@ lint.select = [
   "C",
   "DTZ",
   "E",
+  "ERA001",
   "PYI",
   "EM",
   "F",

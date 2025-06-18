@@ -60,7 +60,6 @@ def test_parse_url_readme() -> None:
     assert list(u.path_segments) == ["rust-lang", "rust", "issues"]
 
     assert u.query == "labels=E-easy&state=open"
-    # assert u[ry.Position.BeforePath:] == "/rust-lang/rust/issues?labels=E-easy&state=open"
     assert u.fragment is None
 
 

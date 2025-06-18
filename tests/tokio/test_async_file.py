@@ -111,9 +111,7 @@ class TestAsyncFileAiopen:
         self, aiopen_fixtures: FileFixtures, mode: str, buffering: int
     ) -> None:
         """Test iterating over lines from a file."""
-        from ry import aiopen
 
-        # filename = path.join(path.dirname(__file__), "resources", "multiline_file.txt")
         async with aiopen(
             aiopen_fixtures.multiline_file_path, mode=mode, buffering=buffering
         ) as file:
@@ -159,29 +157,31 @@ class TestAsyncFileAiopen:
         assert actual == expected
 
 
-# @pytest.mark.anyio()
-# @pytest.mark.parametrize("mode", ["rb+", "wb", "ab"])
-# @pytest.mark.parametrize("buffering", [-1, 0])
-# async def test_simple_flush(mode: str, buffering: int, tmp_path: Path) -> None:
-#     """Test flushing to a file."""
-#     filename = "file.bin"
-#
-#     full_file = tmp_path.joinpath(filename)
-#
-#     if "r" in mode:
-#         full_file.touch()  # Read modes want it to already exist.
-#
-#     async with aiopen(str(full_file), mode=mode, buffering=buffering) as file:
-#         await file.write(b"0")  # Shouldn't flush.
-#
-#         if buffering == -1:
-#             assert full_file.read_bytes() == b""
-#         else:
-#             assert full_file.read_bytes() == b"0"
-#
-#         await file.flush()
-#
-#         assert full_file.read_bytes() == b"0"
+@pytest.mark.anyio()
+@pytest.mark.parametrize("mode", ["rb+", "wb", "ab"])
+@pytest.mark.parametrize("buffering", [-1, 0])
+async def test_simple_flush(mode: str, buffering: int, tmp_path: Path) -> None:
+    """Test flushing to a file."""
+    filename = "file.bin"
+
+    full_file = tmp_path.joinpath(filename)
+
+    if "r" in mode:
+        full_file.touch()  # Read modes want it to already exist.
+
+    if buffering == 0:
+        pytest.skip("not supported by the current implementation of aiopen")
+    async with aiopen(str(full_file), mode=mode, buffering=buffering) as file:
+        await file.write(b"0")  # Shouldn't flush.
+
+        if buffering == -1:
+            assert full_file.read_bytes() == b""
+        else:
+            assert full_file.read_bytes() == b"0"
+
+        await file.flush()
+
+        assert full_file.read_bytes() == b"0"
 
 
 @pytest.mark.anyio()
@@ -311,22 +311,6 @@ async def test_simple_close_no_ctx_mgr(
     await file.close()
 
     assert file.closed
-
-
-# @pytest.mark.anyio()
-# @pytest.mark.parametrize("mode", ["rb", "rb+", "ab+"])
-# @pytest.mark.parametrize("buffering", [-1, 0])
-# async def test_simple_readinto(mode: str, buffering: int) -> None:
-#     """Test the readinto functionality."""
-#     filename = path.join(path.dirname(__file__), "resources", "multiline_file.txt")
-#     async with aiopen(filename, mode=mode, buffering=buffering) as file:
-#         await file.seek(0)  # Needed for the append mode.
-#
-#         array = bytearray(4)
-#         bytes_read = await file.readinto(array)
-#
-#         assert bytes_read == 4
-#         assert array == open(filename, mode="rb").read(4)
 
 
 # TODO: FIGURE OUT WHY "ab+" DONT WORK ON WINDOWS
