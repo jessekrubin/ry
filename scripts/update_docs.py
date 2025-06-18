@@ -43,10 +43,7 @@ def get_types_dictionary() -> dict[str, str]:
         ry.FsPath, ry.walkdir(RYO_PYI_DIRPATH, glob="**/*.pyi", files=True, dirs=False)
     ):
         module_name = filepath2module(pyi_filepath)
-        types_dict[
-            module_name
-            # pyi_filepath.file_name()
-        ] = pyi_filepath.read_text()
+        types_dict[module_name] = pyi_filepath.read_text()
     return types_dict
 
 
