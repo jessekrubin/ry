@@ -222,6 +222,7 @@ impl JiffRoundMode {
         }
     }
 }
+
 impl Display for JiffRoundMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = self.static_str();

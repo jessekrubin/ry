@@ -21,10 +21,10 @@ class SafeUUID(Enum):
     unknown = None
 
 class UUID:
-    # NAMESPACE_DNS: UUID
-    # NAMESPACE_URL: UUID
-    # NAMESPACE_OID: UUID
-    # NAMESPACE_X500: UUID
+    NAMESPACE_DNS: UUID
+    NAMESPACE_URL: UUID
+    NAMESPACE_OID: UUID
+    NAMESPACE_X500: UUID
 
     def __init__(
         self,

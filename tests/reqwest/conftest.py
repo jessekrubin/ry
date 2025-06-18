@@ -6,6 +6,7 @@ Test-server is based on but not the same as the test-server in the httpx tests
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import threading
 import time
@@ -266,6 +267,7 @@ class ReqtestServer(Server):
             await self.startup()
 
 
+@contextlib.contextmanager
 def serve_in_thread(server: ReqtestServer) -> Iterator[ReqtestServer]:
     thread = threading.Thread(target=server.run)
     thread.start()
@@ -280,6 +282,15 @@ def serve_in_thread(server: ReqtestServer) -> Iterator[ReqtestServer]:
 
 @pytest.fixture(scope="session")
 def server() -> Iterator[ReqtestServer]:
-    config = Config(app=reqtest_server, lifespan="off", loop="asyncio")
-    server = ReqtestServer(config=config)
-    yield from serve_in_thread(server)
+    cfg = Config(
+        app=reqtest_server,
+        host="127.0.0.1",
+        port=0,  # ← ask OS for a free port
+        lifespan="off",
+        loop="asyncio",
+    )
+    srv = ReqtestServer(config=cfg)
+    with serve_in_thread(srv) as running:
+        bound_port = running.servers[0].sockets[0].getsockname()[1]
+        running.config.port = bound_port  # make .url work
+        yield running

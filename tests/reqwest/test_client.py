@@ -107,7 +107,6 @@ async def test_get_json(server: ReqtestServer) -> None:
     assert res_json == {"howdy": "partner"}
     headers = response.headers
     assert isinstance(headers, ry.Headers)
-    # assert isinstance(headers, dict)
     assert headers["content-type"] == "application/json"
     headers_dict = dict(headers)
     assert headers_dict["content-type"] == "application/json"

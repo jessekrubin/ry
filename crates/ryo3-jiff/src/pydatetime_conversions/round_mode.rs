@@ -41,7 +41,9 @@ impl<'py> IntoPyObject<'py> for &JiffRoundMode {
         Ok(PyString::new(py, s))
     }
 }
-const JIFF_ROUND_MODE_ERROR: &str = "Invalid round mode, should be `'ceil'`, `'floor'`, `'expand'`, `'trunc'`, `'half_ceil'`, `'half_floor'`, `'half_expand'`, `'half_trunc'` or `'half_even'`";
+
+const JIFF_ROUND_MODE_ACCEPTED: &str = "'ceil', 'floor', 'expand', 'trunc', 'half_ceil', 'half_floor', 'half_expand', 'half_trunc', 'half_even' (case-insensitive; underscores and hyphens are interchangeable)";
+
 impl<'py> FromPyObject<'py> for JiffRoundMode {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(str_mode) = ob.extract::<&str>() {
@@ -55,10 +57,14 @@ impl<'py> FromPyObject<'py> for JiffRoundMode {
                 "half-expand" => Ok(Self(RoundMode::HalfExpand)),
                 "half-trunc" => Ok(Self(RoundMode::HalfTrunc)),
                 "half-even" => Ok(Self(RoundMode::HalfEven)),
-                _ => Err(PyValueError::new_err(JIFF_ROUND_MODE_ERROR)),
+                _ => Err(PyValueError::new_err(format!(
+                    "Invalid round mode: {str_mode} (options: {JIFF_ROUND_MODE_ACCEPTED})"
+                ))),
             }
         } else {
-            Err(PyValueError::new_err(JIFF_ROUND_MODE_ERROR))
+            Err(PyValueError::new_err(
+                format!("Invalid type for round mode, expected a string (options: {JIFF_ROUND_MODE_ACCEPTED})")
+            ))
         }
     }
 }

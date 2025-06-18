@@ -108,7 +108,6 @@ class TestIpv4Addr:
 
     def test_new_ipv4(self) -> None:
         rust_like = ry.Ipv4Addr(192, 168, 0, 1)
-        # from_py = pyip.IPv4Address("192.168.0.1")
         from_str = ry.Ipv4Addr("192.168.0.1")
         from_int = ry.Ipv4Addr(3232235521)
         from_bytes = ry.Ipv4Addr(b"\xc0\xa8\x00\x01")
