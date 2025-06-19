@@ -1,6 +1,6 @@
 """ry.ryo3.JSON"""
 
-from typing import Any, Callable, Literal, overload
+from typing import Any, Callable, Literal, TypeVar, overload
 
 import typing_extensions
 
@@ -29,7 +29,7 @@ def stringify(
     default: Callable[[Any], Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
-    pybytes: bool = ...,
+    pybytes: bool = False,
 ) -> Bytes: ...
 def parse_json(
     data: bytes | str,
