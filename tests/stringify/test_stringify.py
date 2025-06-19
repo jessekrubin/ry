@@ -330,3 +330,49 @@ def test_stringify_deque() -> None:
     assert parsed["key3"] == ["a", "b", "c"], (
         f"Parsed JSON does not match original deque: {parsed['key3']} != ['a', 'b', 'c']"
     )
+
+
+class TestStringifyDefault:
+    class SomeSTupidCustomType:
+        value: str
+
+        def __init__(self, value: str) -> None:
+            self.value = value
+
+        def __repr__(self) -> str:
+            return f"{self.__class__.__name__}({self.value})"
+
+    def test_stringify_custom_type_no_default_throws_err(self) -> None:
+        """Test that stringify raises an error for custom types without a default."""
+
+        with pytest.raises(TypeError, match="Failed to serialize"):
+            ry.stringify(self.SomeSTupidCustomType("test"))
+
+    def test_stringify_custom_type_with_default(self) -> None:
+        """Test that stringify works for custom types with a default."""
+
+        def _default_fn(obj: t.Any) -> t.Any:
+            if isinstance(obj, self.SomeSTupidCustomType):
+                return obj.value
+            msg = f"Cannot serialize {obj}"
+            raise TypeError(msg)
+
+        data = {
+            "key1": "value1",
+            "key2": self.SomeSTupidCustomType("test"),
+        }
+        res = ry.stringify(data, default=_default_fn, fmt=True)
+        parsed = ry.parse_json(res)
+        assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+        assert parsed["key2"] == "test", (
+            f"Parsed JSON does not match original custom type: {parsed['key2']} != 'test'"
+        )
+
+    def test_stringify_default_is_not_callable(self) -> None:
+        """Test that stringify raises an error if default is not callable."""
+        data = {
+            "key1": "value1",
+            "key2": self.SomeSTupidCustomType("test"),
+        }
+        with pytest.raises(TypeError, match="'str' is not callable"):
+            ry.stringify(data, default="poopy::not-a-callable", fmt=True)

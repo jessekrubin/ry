@@ -1,6 +1,7 @@
 //! Serializer for `PyAny`
 //!
 //! Based on a combination of `orjson`, `pythonize` and `rtoml`.
+
 use pyo3::prelude::*;
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
@@ -24,21 +25,35 @@ use crate::rytypes::{
 use crate::rytypes::{ry_headers, ry_http_status};
 
 use crate::type_cache::{PyObType, PyTypeCache};
-use pyo3::types::{PyMapping, PySequence};
+use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
 use pyo3::Bound;
 use serde::ser::SerializeSeq;
+
 pub struct SerializePyAny<'py> {
     pub(crate) obj: Bound<'py, PyAny>,
     pub(crate) none_value: Option<&'py str>,
+    default: Option<&'py Bound<'py, PyAny>>,
     ob_type_lookup: &'py PyTypeCache,
+}
+
+macro_rules! serde_err {
+    ($($arg:tt)*) => {
+        Err(SerError::custom(format_args!($($arg)*)))
+    }
 }
 
 impl<'py> SerializePyAny<'py> {
     #[must_use]
-    pub fn new(py: Python<'py>, obj: Bound<'py, PyAny>, none_value: Option<&'py str>) -> Self {
+    pub fn new(
+        py: Python<'py>,
+        obj: Bound<'py, PyAny>,
+        default: Option<&'py Bound<'py, PyAny>>,
+    ) -> Self {
+        // callable...
         Self {
             obj,
-            none_value,
+            none_value: None,
+            default,
             ob_type_lookup: PyTypeCache::cached(py),
         }
     }
@@ -47,14 +62,9 @@ impl<'py> SerializePyAny<'py> {
         Self {
             obj,
             none_value: self.none_value,
+            default: self.default,
             ob_type_lookup: self.ob_type_lookup,
         }
-    }
-}
-
-macro_rules! serde_err {
-    ($($arg:tt)*) => {
-        Err(SerError::custom(format_args!($($arg)*)))
     }
 }
 
@@ -115,9 +125,13 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::RyZoned => ry_zoned(self, serializer),
             }
         } else if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
-            SerializePyMapping::new(py_map).serialize(serializer)
+            SerializePyMapping::new(py_map, self.default).serialize(serializer)
         } else if let Ok(py_seq) = self.obj.downcast::<PySequence>() {
-            SerializePySequence::new(py_seq).serialize(serializer)
+            SerializePySequence::new(py_seq, self.default).serialize(serializer)
+        } else if let Some(default) = self.default {
+            // call the default transformer fn and attempt to then serialize the result
+            let r = default.call1((&self.obj,)).map_err(pyerr2sererr)?;
+            self.with_obj(r).serialize(serializer)
         } else {
             serde_err!("{} is not json-serializable", any_repr(&self.obj))
         }
@@ -129,11 +143,12 @@ impl Serialize for SerializePyAny<'_> {
 // ===========================================================================
 struct SerializePySequence<'a, 'py> {
     seq: &'a Bound<'py, PySequence>,
+    default: Option<&'py Bound<'py, PyAny>>,
 }
 
 impl<'a, 'py> SerializePySequence<'a, 'py> {
-    fn new(seq: &'a Bound<'py, PySequence>) -> Self {
-        Self { seq }
+    fn new(seq: &'a Bound<'py, PySequence>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+        Self { seq, default }
     }
 }
 
@@ -146,7 +161,7 @@ impl Serialize for SerializePySequence<'_, '_> {
         let mut seq = serializer.serialize_seq(Some(len))?;
         for i in 0..len {
             let item = self.seq.get_item(i).map_err(pyerr2sererr)?;
-            let item_ser = SerializePyAny::new(self.seq.py(), item, None);
+            let item_ser = SerializePyAny::new(self.seq.py(), item, self.default);
             seq.serialize_element(&item_ser)?;
         }
         seq.end()
@@ -158,11 +173,12 @@ impl Serialize for SerializePySequence<'_, '_> {
 
 struct SerializePyMapping<'a, 'py> {
     mapping: &'a Bound<'py, PyMapping>,
+    default: Option<&'py Bound<'py, PyAny>>,
 }
 
 impl<'a, 'py> SerializePyMapping<'a, 'py> {
-    fn new(mapping: &'a Bound<'py, PyMapping>) -> Self {
-        Self { mapping }
+    fn new(mapping: &'a Bound<'py, PyMapping>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+        Self { mapping, default }
     }
 }
 
@@ -179,7 +195,7 @@ impl Serialize for SerializePyMapping<'_, '_> {
             for k in keys {
                 let k = crate::pytypes::mapping_key(&k)?;
                 let val = self.mapping.get_item(k).map_err(pyerr2sererr)?;
-                let v = SerializePyAny::new(py, val, None);
+                let v = SerializePyAny::new(py, val, self.default);
                 m.serialize_entry(k, &v).map_err(pyerr2sererr)?;
             }
             m.end()
