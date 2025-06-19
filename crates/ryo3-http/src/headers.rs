@@ -10,7 +10,7 @@ use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple, PyType};
 use std::fmt::Display;
 use std::sync::Arc;
 
-#[pyclass(name = "Headers", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Headers", module = "ry.ryo3", frozen, mapping)]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub Arc<Mutex<HeaderMap>>);
 

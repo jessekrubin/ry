@@ -42,6 +42,13 @@ pub(crate) enum PyObType {
     #[cfg(feature = "ryo3-url")]
     RyUrl,
     // -----------------------------------------------------------------------
+    // HTTP
+    // -----------------------------------------------------------------------
+    #[cfg(feature = "ryo3-http")]
+    RyHttpStatus,
+    #[cfg(feature = "ryo3-http")]
+    RyHeaders,
+    // -----------------------------------------------------------------------
     // JIFF
     // -----------------------------------------------------------------------
     #[cfg(feature = "ryo3-jiff")]
@@ -87,12 +94,23 @@ pub(crate) struct PyTypeCache {
     // uuid
     pub py_uuid: usize,
     // ------------------------------------------------------------------------
+    // RY-TYPES
+    // ------------------------------------------------------------------------
+    // __ryo3_uuid__
     #[cfg(feature = "ryo3-uuid")]
     pub ry_uuid: usize,
+    // __ryo3_ulid__
     #[cfg(feature = "ryo3-ulid")]
     pub ry_ulid: usize,
+    // __ryo3_url__
     #[cfg(feature = "ryo3-url")]
     pub ry_url: usize,
+    // __ryo3_http__
+    #[cfg(feature = "ryo3-http")]
+    pub ry_http_status: usize,
+    #[cfg(feature = "ryo3-http")]
+    pub ry_headers: usize,
+    // __ryo3_jiff__
     #[cfg(feature = "ryo3-jiff")]
     pub ry_date: usize,
     #[cfg(feature = "ryo3-jiff")]
@@ -157,6 +175,13 @@ impl PyTypeCache {
             #[cfg(feature = "ryo3-url")]
             ry_url: ryo3_url::PyUrl::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
+            // HTTP
+            // ----------------------------------------------------------------
+            #[cfg(feature = "ryo3-http")]
+            ry_http_status: ryo3_http::PyHttpStatus::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-http")]
+            ry_headers: ryo3_http::PyHeaders::type_object_raw(py) as usize,
+            // ----------------------------------------------------------------
             // JIFF
             // ----------------------------------------------------------------
             #[cfg(feature = "ryo3-jiff")]
@@ -216,6 +241,15 @@ impl PyTypeCache {
             // -----------------------------------------------------------------
             #[cfg(feature = "ryo3-url")]
             x if x == self.ry_url => Some(PyObType::RyUrl),
+
+            // -----------------------------------------------------------------
+            // HTTP
+            // -----------------------------------------------------------------
+            #[cfg(feature = "ryo3-http")]
+            x if x == self.ry_http_status => Some(PyObType::RyHttpStatus),
+            #[cfg(feature = "ryo3-http")]
+            x if x == self.ry_headers => Some(PyObType::RyHeaders),
+
             // -----------------------------------------------------------------
             // JIFF
             // -----------------------------------------------------------------

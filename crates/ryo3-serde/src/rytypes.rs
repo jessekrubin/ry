@@ -45,4 +45,7 @@ ry_type_serializers! {
     #[cfg(feature = "ryo3-jiff")]  ry_signed_duration => ryo3_jiff::RySignedDuration;
     #[cfg(feature = "ryo3-jiff")]  ry_timestamp => ryo3_jiff::RyTimestamp;
     #[cfg(feature = "ryo3-jiff")]  ry_zoned => ryo3_jiff::RyZoned;
+    // http
+    #[cfg(feature = "ryo3-http")]  ry_headers => ryo3_http::PyHeaders;
+    #[cfg(feature = "ryo3-http")]  ry_http_status => ryo3_http::PyHttpStatus;
 }

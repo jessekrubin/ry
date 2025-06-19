@@ -1,12 +1,12 @@
 #![doc = include_str!("../README.md")]
-use pyo3::prelude::*;
+use pyo3::{prelude::*, types::PyMapping};
 mod headers;
 mod headers_like;
 mod http_types;
 mod py_conversions;
 mod status_code;
 
-#[cfg(feature = "json")]
+#[cfg(feature = "serde")]
 mod http_serde;
 
 pub use headers::PyHeaders;
@@ -19,6 +19,9 @@ pub use status_code::{status_code_pystring, PyHttpStatus};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyHeaders>()?;
+    // PyHeaders::type_object_raw(py)
+    // let pyheaders_type = m.py().::<PyHeaders>();
+    PyMapping::register::<PyHeaders>(m.py())?;
     m.add_class::<PyHttpStatus>()?;
     Ok(())
 }
