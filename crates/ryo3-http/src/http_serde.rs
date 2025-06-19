@@ -1,12 +1,44 @@
 use crate::http_types::{HttpHeaderMap, HttpHeaderNameRef};
+use crate::{PyHeaders, PyHttpStatus};
 use http::{HeaderMap, HeaderValue};
 use serde::ser::SerializeSeq;
 use serde::{de, Deserializer};
 use std::fmt;
 
+impl<'de> serde::Deserialize<'de> for PyHttpStatus {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let code = u16::deserialize(deserializer)?;
+        PyHttpStatus::py_new(code).map_err(serde::de::Error::custom)
+    }
+}
+
+impl serde::Serialize for PyHttpStatus {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_u16(self.0.as_u16())
+    }
+}
+
 // ============================================================================
 // HEADERS-MAP serde impls
 // ============================================================================
+
+impl serde::Serialize for PyHeaders {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let header_map = self.0.lock();
+        let header_map_ref = HttpHeaderMapRef(&header_map);
+        header_map_ref.serialize(serializer)
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct HeaderValuesRef<'a>(http::header::GetAll<'a, HeaderValue>);
 

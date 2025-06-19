@@ -20,6 +20,9 @@ use crate::rytypes::ry_uuid;
 use crate::rytypes::{
     ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_zoned,
 };
+#[cfg(feature = "ryo3-http")]
+use crate::rytypes::{ry_headers, ry_http_status};
+
 use crate::type_cache::{PyObType, PyTypeCache};
 use pyo3::types::{PyMapping, PySequence};
 use pyo3::Bound;
@@ -78,12 +81,24 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::Time => time(self, serializer),
                 PyObType::Bytes | PyObType::ByteArray => byteslike(self, serializer),
                 PyObType::PyUuid => py_uuid(self, serializer),
+                // ------------------------------------------------------------
+                // RY-TYPES
+                // ------------------------------------------------------------
+                // __UUID__
                 #[cfg(feature = "ryo3-uuid")]
                 PyObType::RyUuid => ry_uuid(self, serializer),
+                // __ULID__
                 #[cfg(feature = "ryo3-ulid")]
                 PyObType::RyUlid => ry_ulid(self, serializer), // ulid is treated as a uuid for now
+                // __URL__
                 #[cfg(feature = "ryo3-url")]
                 PyObType::RyUrl => ry_url(self, serializer),
+                // __HTTP__
+                #[cfg(feature = "ryo3-http")]
+                PyObType::RyHeaders => ry_headers(self, serializer),
+                #[cfg(feature = "ryo3-http")]
+                PyObType::RyHttpStatus => ry_http_status(self, serializer),
+                // __JIFF__
                 #[cfg(feature = "ryo3-jiff")]
                 PyObType::RyDate => ry_date(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]

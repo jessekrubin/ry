@@ -221,6 +221,15 @@ RYTYPES_JSON_SER = {
     "ulid": ry.ulid.ULID("01H7Z5F8Y3V9G4J6K8D5E6F7G8"),
     # url ~ ryo3-url
     "url": ry.URL("https://example.com"),
+    # http
+    "headers": ry.Headers(
+        {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-Content-Type-Options": "nosniff",
+        }
+    ),
+    "http-status": ry.HttpStatus(200),
     # jiff ~ ryo3-jiff
     "date": ry.date(2020, 8, 26),
     "datetime": ry.datetime(2020, 8, 26, 6, 27, 0, 0),
@@ -235,6 +244,12 @@ EXPECTED = {
     "uuid": "88475448-f091-42ef-b574-2452952931c1",
     "ulid": "01H7Z5F8Y3V9G4J6K8D5E6F7G8",
     "url": "https://example.com/",
+    "headers": {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "x-content-type-options": "nosniff",
+    },
+    "http-status": 200,
     "date": "2020-08-26",
     "datetime": "2020-08-26T06:27:00",
     "+signed_duration": "PT3S",
@@ -254,7 +269,10 @@ def test_stringify_ry_types() -> None:
 
     def _format_different() -> str:
         different_vals = {
-            k: {"expected": EXPECTED[k], "actual": v}
+            k: {
+                "expected": EXPECTED.get(k, f"Expected value for {k} not found"),
+                "actual": v,
+            }
             for k, v in parsed.items()
             if EXPECTED.get(k) != v
         }

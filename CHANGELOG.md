@@ -5,6 +5,8 @@
 - `ryo3-json`
   - `pybytes` bool kwargs to return `builtins.bytes` if `True` and `ry.Bytes` if
     `False`; default is `False`
+- `ryo3-serde`
+  - support for types defined in `ryo3-http`
 
 ---
 
