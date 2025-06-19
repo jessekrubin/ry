@@ -375,4 +375,4 @@ class TestStringifyDefault:
             "key2": self.SomeSTupidCustomType("test"),
         }
         with pytest.raises(TypeError, match="'str' is not callable"):
-            ry.stringify(data, default="poopy::not-a-callable", fmt=True)
+            ry.stringify(data, default="poopy::not-a-callable", fmt=True)  # type: ignore[call-overload]
