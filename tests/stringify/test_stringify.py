@@ -28,6 +28,9 @@ def py_stringify(data: t.Any) -> bytes:
 
 def oj_stringify(data: t.Any) -> bytes:
     """Convert data to a JSON string using orjson."""
+    if orjson is None:
+        msg = "orjson is not installed, cannot use oj_stringify"
+        raise ImportError(msg)
     return orjson.dumps(data)
 
 
