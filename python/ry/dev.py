@@ -25,6 +25,15 @@ for _k in dir(ryo3):
 if __name__ == "__main__":
     import json
 
+    try:
+        import rich
+        from rich import inspect
+        from rich import print as pprint
+    except ImportError:
+        from pprint import pprint
+
+        rich = inspect = None
+
     from ry.__main__ import _lib_info
 
     def _banner() -> str:
@@ -40,13 +49,24 @@ if __name__ == "__main__":
 
     # locals
     local = globals()
+    local.update(
+        {
+            "inspect": inspect,
+            "pprint": pprint,
+            "rich": rich,
+        }
+    )
     # try to do das IPython first and 4-most...!
     try:
         import IPython
 
         IPython.InteractiveShell.banner1 = _banner()  # type: ignore[attr-defined,assignment]
-        IPython.start_ipython(argv=[], user_ns=local)  # type: ignore[no-untyped-call]
+        rich = None
 
+        ipython_argv = ["--no-tip"]
+        if rich is not None:
+            ipython_argv.extend(["--ext", "rich"])
+        IPython.start_ipython(argv=ipython_argv, user_ns=local)  # type: ignore[no-untyped-call]
     except ImportError:
         import code
 
