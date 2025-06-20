@@ -100,6 +100,9 @@ lint.exclude = [
   "node_modules",
   "venv",
 ]
+lint.per-file-ignores."python/ry/JSON.pyi" = [
+  "N999",
+]
 # Tests can use magic values, assertions, and relative imports
 lint.per-file-ignores."bench/**/*.py" = [
   "B011",

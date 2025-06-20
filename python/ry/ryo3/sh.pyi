@@ -22,7 +22,7 @@ def ls(
     *,
     absolute: bool = False,
     sort: bool = False,
-    objects: t.Literal[True] = True,
+    objects: t.Literal[True],
 ) -> list[FsPath]:
     """List directory contents - returns list of FsPath objects"""
 

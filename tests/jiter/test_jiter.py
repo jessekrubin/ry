@@ -14,7 +14,7 @@ try:
 
     _NUMPY_AVAILABLE = True
 except ImportError:
-    np = None
+    np = None  # type: ignore[assignment]
 
 
 def test_parse_bytes() -> None:

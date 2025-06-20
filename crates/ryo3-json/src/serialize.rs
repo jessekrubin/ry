@@ -103,7 +103,7 @@ macro_rules! stringify_fn {
         #[pyfunction(
             signature = (obj, *, default = None, fmt = false, sort_keys = false, append_newline = false, pybytes = false)
         )]
-        pub(crate) fn $name<'py>(
+        pub fn $name<'py>(
             py: Python<'py>,
             obj: Bound<'py, PyAny>,
             default: Option<&'py Bound<'py, PyAny>>,
@@ -126,3 +126,4 @@ macro_rules! stringify_fn {
 }
 
 stringify_fn!(stringify);
+stringify_fn!(dumps);
