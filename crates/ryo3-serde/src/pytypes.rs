@@ -114,9 +114,7 @@ where
     let len = py_tuple.len();
     let mut seq = serializer.serialize_seq(Some(len))?;
     for element in py_tuple {
-        // if self.none_value.is_some() || !element.is_none() {
         seq.serialize_element(&ser.with_obj(element))?;
-        // }
     }
     seq.end()
 }
