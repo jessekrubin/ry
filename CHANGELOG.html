@@ -184,6 +184,11 @@
 <li><code>ryo3-serde</code>
 <ul>
 <li>support for types defined in <code>ryo3-http</code></li>
+<li>support for <code>default</code> kwarg that is passed to the serde serializer; like w/
+the stdlib-json and orjson serializers, this allows for serializing types
+that are not natively supported by ry/serde and if failure should occur, it
+should raise a <code>TypeError</code> or <code>ValueError</code> instead of returning <code>None</code> by
+default</li>
 </ul>
 </li>
 </ul>
