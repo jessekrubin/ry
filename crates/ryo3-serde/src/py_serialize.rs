@@ -89,7 +89,9 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::DateTime => datetime(self, serializer),
                 PyObType::Date => date(self, serializer),
                 PyObType::Time => time(self, serializer),
-                PyObType::Bytes | PyObType::ByteArray => byteslike(self, serializer),
+                PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
+                    byteslike(self, serializer)
+                }
                 PyObType::PyUuid => py_uuid(self, serializer),
                 // ------------------------------------------------------------
                 // RY-TYPES

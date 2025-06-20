@@ -2,7 +2,7 @@ use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{
     PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDict, PyFloat, PyFrozenSet, PyInt, PyList,
-    PyNone, PySet, PyString, PyTime, PyTuple,
+    PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
 
@@ -14,6 +14,7 @@ pub(crate) enum PyObType {
     String,
     Bytes,
     ByteArray,
+    MemoryView,
     List,
     Tuple,
     Dict,
@@ -77,8 +78,10 @@ pub(crate) struct PyTypeCache {
     pub float: usize,
     // string types
     pub string: usize,
+    // bytes types
     pub bytes: usize,
     pub bytearray: usize,
+    pub memoryview: usize,
     // sequence types
     pub list: usize,
     pub tuple: usize,
@@ -139,8 +142,10 @@ impl PyTypeCache {
             float: PyFloat::type_object_raw(py) as usize,
             // string types
             string: PyString::type_object_raw(py) as usize,
+            // bytes types
             bytes: PyBytes::type_object_raw(py) as usize,
             bytearray: PyByteArray::type_object_raw(py) as usize,
+            memoryview: PyMemoryView::type_object_raw(py) as usize, // memoryview is a generic type, not a specific one
             // sequence types
             list: PyList::type_object_raw(py) as usize,
             tuple: PyTuple::type_object_raw(py) as usize,
@@ -214,6 +219,7 @@ impl PyTypeCache {
             x if x == self.string => Some(PyObType::String),
             x if x == self.bytes => Some(PyObType::Bytes),
             x if x == self.bytearray => Some(PyObType::ByteArray),
+            x if x == self.memoryview => Some(PyObType::MemoryView),
             x if x == self.list => Some(PyObType::List),
             x if x == self.tuple => Some(PyObType::Tuple),
             x if x == self.dict => Some(PyObType::Dict),
