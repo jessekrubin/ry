@@ -7,6 +7,11 @@
     `False`; default is `False`
 - `ryo3-serde`
   - support for types defined in `ryo3-http`
+  - support for `default` kwarg that is passed to the serde serializer; like w/
+    the stdlib-json and orjson serializers, this allows for serializing types
+    that are not natively supported by ry/serde and if failure should occur, it
+    should raise a `TypeError` or `ValueError` instead of returning `None` by
+    default
 
 ---
 

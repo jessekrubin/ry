@@ -158,6 +158,7 @@ from ._which import which_all as which_all
 from ._which import which_re as which_re
 from .errors import FeatureNotEnabledError as FeatureNotEnabledError
 from .JSON import stringify as stringify
+from .orjson import orjson_default as orjson_default
 from .sh import cd as cd
 from .sh import home as home
 from .sh import ls as ls

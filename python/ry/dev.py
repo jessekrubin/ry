@@ -30,9 +30,9 @@ if __name__ == "__main__":
         from rich import inspect
         from rich import print as pprint
     except ImportError:
-        from pprint import pprint
+        from pprint import pprint  # type: ignore[assignment]
 
-        rich = inspect = None
+        rich = inspect = None  # type: ignore[assignment]
 
     from ry.__main__ import _lib_info
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         import IPython
 
         IPython.InteractiveShell.banner1 = _banner()  # type: ignore[attr-defined,assignment]
-        rich = None
+        rich = None  # type: ignore[assignment]
 
         ipython_argv = ["--no-tip"]
         if rich is not None:
