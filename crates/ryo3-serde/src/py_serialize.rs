@@ -9,7 +9,7 @@ use crate::any_repr::any_repr;
 use crate::errors::pyerr2sererr;
 use crate::pytypes::{
     bool_, byteslike, date, datetime, dict, float, frozenset, int, list, none, py_uuid, set, str,
-    time, tuple,
+    time, timedelta, tuple,
 };
 #[cfg(feature = "ryo3-ulid")]
 use crate::rytypes::ry_ulid;
@@ -19,11 +19,10 @@ use crate::rytypes::ry_url;
 use crate::rytypes::ry_uuid;
 #[cfg(feature = "ryo3-jiff")]
 use crate::rytypes::{
-    ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_zoned,
+    ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_timezone, ry_zoned,
 };
 #[cfg(feature = "ryo3-http")]
 use crate::rytypes::{ry_headers, ry_http_status};
-
 use crate::type_cache::{PyObType, PyTypeCache};
 use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
 use pyo3::Bound;
@@ -89,6 +88,7 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::DateTime => datetime(self, serializer),
                 PyObType::Date => date(self, serializer),
                 PyObType::Time => time(self, serializer),
+                PyObType::Timedelta => timedelta(self, serializer),
                 PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
                     byteslike(self, serializer)
                 }
@@ -123,6 +123,8 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::RyTimeSpan => ry_span(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
                 PyObType::RyTimestamp => ry_timestamp(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyTimeZone => ry_timezone(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
                 PyObType::RyZoned => ry_zoned(self, serializer),
             }

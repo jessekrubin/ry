@@ -6,6 +6,7 @@ use crate::serde_err;
 use pyo3::prelude::*;
 use pyo3::types::{
     PyBool, PyDate, PyDateTime, PyDict, PyFrozenSet, PyInt, PyIterator, PySet, PyString, PyTime,
+    PyTzInfoAccess,
 };
 use pyo3::types::{PyList, PyTuple};
 use pyo3::Bound;
@@ -224,6 +225,26 @@ where
 // ============================================================================
 // datetime.datetime
 // ============================================================================
+#[cfg(feature = "jiff")]
+#[inline]
+pub(crate) fn datetime<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let py_dt: &Bound<'_, PyDateTime> = ser.obj.downcast().map_err(pyerr2sererr)?;
+    // has tz?
+    // let has_tzinfo = dt.get_tzinfo().is_some();
+    if let Some(_tzinfo) = py_dt.get_tzinfo() {
+        let zdt: jiff::Zoned = py_dt.extract().map_err(pyerr2sererr)?;
+        zdt.serialize(serializer)
+    } else {
+        // if no tzinfo, use jiff to serialize
+        let dt: jiff::civil::DateTime = py_dt.extract().map_err(pyerr2sererr)?;
+        dt.serialize(serializer)
+    }
+}
+
+#[cfg(not(feature = "jiff"))]
 #[inline]
 pub(crate) fn datetime<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -250,3 +271,54 @@ where
     let time_str = time_pystr.to_str().map_err(pyerr2sererr)?;
     serializer.serialize_str(time_str)
 }
+
+// ============================================================================
+// datetime.timedelta
+// ============================================================================
+#[cfg(feature = "jiff")]
+#[inline]
+pub(crate) fn timedelta<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let py_timedelta: &Bound<'_, pyo3::types::PyDelta> =
+        ser.obj.downcast().map_err(pyerr2sererr)?;
+    let signed_duration: jiff::SignedDuration = py_timedelta.extract().map_err(pyerr2sererr)?;
+    signed_duration.serialize(serializer)
+}
+
+#[cfg(not(feature = "jiff"))]
+#[inline]
+pub(crate) fn timedelta<S>(_ser: &SerializePyAny<'_>, _serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    Err(SerError::custom(
+        "timedelta serialization requires the jiff feature",
+    ))
+}
+
+// ============================================================================
+// datetime.tzinfo
+// ============================================================================
+// #[cfg(feature = "jiff")]
+// #[inline]
+// pub(crate) fn tzinfo<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
+// where
+//     S: serde::Serializer,
+// {
+//     println!("{:?}", ser.obj);
+//     let tz: jiff::tz::TimeZone = ser.obj.extract().map_err(pyerr2sererr)?;
+//     jiff::fmt::serde::tz::required::serialize(&tz, serializer)
+// }
+//
+// #[cfg(not(feature = "jiff"))]
+// #[inline]
+// pub(crate) fn tzinfo<S>(_ser: &SerializePyAny<'_>, _serializer: S) -> Result<S::Ok, S::Error>
+// where
+//     S: serde::Serializer,
+// {
+//     Err(SerError::custom(
+//         "tzinfo serialization requires the jiff feature",
+//     ))
+// }

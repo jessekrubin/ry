@@ -1,13 +1,22 @@
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{
-    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDict, PyFloat, PyFrozenSet, PyInt, PyList,
-    PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
+    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyFloat, PyFrozenSet, PyInt,
+    PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
 
 pub(crate) enum PyObType {
+    // ========================================================================
+    // PY-TYPES
+    // ========================================================================
+    // ------------------------------------------------------------------------
+    // SINGLETONS
+    // ------------------------------------------------------------------------
     None,
+    // ------------------------------------------------------------------------
+    // BUILTINS
+    // ------------------------------------------------------------------------
     Int,
     Bool,
     Float,
@@ -20,9 +29,17 @@ pub(crate) enum PyObType {
     Dict,
     Set,
     Frozenset,
+    // ------------------------------------------------------------------------
+    // PY-DATETIME
+    // ------------------------------------------------------------------------
     DateTime,
     Date,
     Time,
+    Timedelta,
+
+    // ------------------------------------------------------------------------
+    // UUID
+    // ------------------------------------------------------------------------
     PyUuid,
     // ========================================================================
     // RY-TYPES
@@ -59,9 +76,11 @@ pub(crate) enum PyObType {
     #[cfg(feature = "ryo3-jiff")]
     RySignedDuration,
     #[cfg(feature = "ryo3-jiff")]
+    RyTime,
+    #[cfg(feature = "ryo3-jiff")]
     RyTimeSpan,
     #[cfg(feature = "ryo3-jiff")]
-    RyTime,
+    RyTimeZone,
     #[cfg(feature = "ryo3-jiff")]
     RyTimestamp,
     #[cfg(feature = "ryo3-jiff")]
@@ -94,6 +113,7 @@ pub(crate) struct PyTypeCache {
     pub datetime: usize,
     pub date: usize,
     pub time: usize,
+    pub timedelta: usize,
     // uuid
     pub py_uuid: usize,
     // ------------------------------------------------------------------------
@@ -127,6 +147,8 @@ pub(crate) struct PyTypeCache {
     #[cfg(feature = "ryo3-jiff")]
     pub ry_timestamp: usize,
     #[cfg(feature = "ryo3-jiff")]
+    pub ry_timezone: usize,
+    #[cfg(feature = "ryo3-jiff")]
     pub ry_zoned: usize,
 }
 
@@ -158,6 +180,7 @@ impl PyTypeCache {
             datetime: PyDateTime::type_object_raw(py) as usize,
             date: PyDate::type_object_raw(py) as usize,
             time: PyTime::type_object_raw(py) as usize,
+            timedelta: PyDelta::type_object_raw(py) as usize,
             // uuid
             py_uuid: get_uuid_ob_pointer(py), // use uuid.NAMESPACE_DNS as a proxy for the uuid type
 
@@ -202,6 +225,8 @@ impl PyTypeCache {
             #[cfg(feature = "ryo3-jiff")]
             ry_timestamp: ryo3_jiff::RyTimestamp::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-jiff")]
+            ry_timezone: ryo3_jiff::RyTimeZone::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-jiff")]
             ry_zoned: ryo3_jiff::RyZoned::type_object_raw(py) as usize,
         }
     }
@@ -225,9 +250,12 @@ impl PyTypeCache {
             x if x == self.dict => Some(PyObType::Dict),
             x if x == self.set => Some(PyObType::Set),
             x if x == self.frozenset => Some(PyObType::Frozenset),
+            // py-datetime
             x if x == self.datetime => Some(PyObType::DateTime),
             x if x == self.date => Some(PyObType::Date),
             x if x == self.time => Some(PyObType::Time),
+            x if x == self.timedelta => Some(PyObType::Timedelta),
+            // py-uuid
             x if x == self.py_uuid => Some(PyObType::PyUuid),
             // =================================================================
             // RY-TYPES
@@ -271,6 +299,8 @@ impl PyTypeCache {
             x if x == self.ry_timespan => Some(PyObType::RyTimeSpan),
             #[cfg(feature = "ryo3-jiff")]
             x if x == self.ry_timestamp => Some(PyObType::RyTimestamp),
+            #[cfg(feature = "ryo3-jiff")]
+            x if x == self.ry_timezone => Some(PyObType::RyTimeZone),
             #[cfg(feature = "ryo3-jiff")]
             x if x == self.ry_zoned => Some(PyObType::RyZoned),
             _ => None,

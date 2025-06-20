@@ -1877,6 +1877,7 @@ dependencies = [
 name = "ryo3-serde"
 version = "0.0.48"
 dependencies = [
+ "jiff",
  "pyo3",
  "ryo3-http",
  "ryo3-jiff",

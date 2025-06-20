@@ -47,28 +47,28 @@ pub fn signed_duration_from_pyobject<'py>(
     _py: Python<'py>,
     obj: &Bound<'py, PyAny>,
 ) -> PyResult<SignedDuration> {
+    let delta = obj.downcast::<PyDelta>()?;
     #[cfg(not(Py_LIMITED_API))]
     let (days, seconds, microseconds) = {
-        let delta = obj.downcast::<PyDelta>()?;
         (
-            delta.get_days(),
-            delta.get_seconds(),
+            i64::from(delta.get_days()),
+            i64::from(delta.get_seconds()),
             delta.get_microseconds(),
         )
     };
-    #[cfg(Py_LIMITED_API)]
-    let (days, seconds, microseconds): (i32, i32, i32) = {
-        (
-            obj.getattr("days")?.extract()?,
-            obj.getattr("seconds")?.extract()?,
-            obj.getattr("microseconds")?.extract()?,
-        )
-    };
 
-    // Convert to i64 to handle negative durations
-    let days = i64::from(days);
-    let seconds = i64::from(seconds);
-    let microseconds = i64::from(microseconds);
+    #[cfg(Py_LIMITED_API)]
+    let (days, seconds, microseconds) = {
+        let py = delta.py();
+        let days = delta.getattr(pyo3::intern!(py, "days"))?.extract::<i64>()?;
+        let seconds = delta
+            .getattr(pyo3::intern!(py, "seconds"))?
+            .extract::<i64>()?;
+        let microseconds = obj
+            .getattr(pyo3::intern!(py, "microseconds"))?
+            .extract::<i32>()?;
+        (days, seconds, microseconds)
+    };
 
     // Calculate total seconds
     let total_seconds = days
@@ -80,18 +80,6 @@ pub fn signed_duration_from_pyobject<'py>(
     let nanoseconds = microseconds
         .checked_mul(1_000)
         .ok_or_else(|| PyErr::new::<PyOverflowError, _>("Overflow in nanoseconds calculation"))?;
-
-    // Check if total_seconds fits in i64
-    if !(i64::MIN..=i64::MAX).contains(&total_seconds) {
-        return Err(PyErr::new::<PyOverflowError, _>(
-            "Duration too large to represent",
-        ));
-    }
-
-    // Ensure nanoseconds is within i32 range
-    let nanoseconds = i32::try_from(nanoseconds)
-        .map_err(|_| PyErr::new::<PyOverflowError, _>("Nanoseconds out of range"))?;
-
     Ok(SignedDuration::new(total_seconds, nanoseconds))
 }
 
