@@ -117,7 +117,14 @@ def test_stringify_datetimes_tz(dt: pydt.datetime) -> None:
     if tzn is not None and tzn == "build/etc/localtime":
         # Skip UTC timezone for now, as it is not handled by orjson
         # TODO: handle this
-        pytest.skip("Skipping test for UTC timezone")
+        return
+
+    #  if has tz
+    if dt.tzinfo is not None:
+        try:
+            ry.ZonedDateTime.from_pydatetime(dt)
+        except ValueError:
+            return
     ry_json = ry.stringify(dt, pybytes=True).decode().strip('"')
     oj_json = oj_stringify(dt).decode().strip('"')
     assert ry.DateTime.parse(ry_json) == ry.DateTime.parse(oj_json)
