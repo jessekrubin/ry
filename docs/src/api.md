@@ -4,6 +4,7 @@
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
+- [`ry.ryo3.orjson`](#ry.ryo3.orjson)
 - [`ry.ryo3.sh`](#ry.ryo3.sh)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
@@ -32,6 +33,7 @@
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.dirs`](#ry.dirs)
 - [`ry.http`](#ry.http)
+- [`ry.JSON`](#ry.JSON)
 - [`ry.ulid`](#ry.ulid)
 - [`ry.uuid`](#ry.uuid)
 - [`ry.xxhash`](#ry.xxhash)
@@ -55,6 +57,7 @@ from ry.zstd import zstd_compress as zstd_compress
 from ry.zstd import zstd_decode as zstd_decode
 from ry.zstd import zstd_decompress as zstd_decompress
 from ry.zstd import zstd_encode as zstd_encode
+
 from ._brotli import brotli as brotli
 from ._brotli import brotli_decode as brotli_decode
 from ._brotli import brotli_encode as brotli_encode
@@ -116,7 +119,6 @@ from ._jiter import JsonValue as JsonValue
 from ._jiter import json_cache_clear as json_cache_clear
 from ._jiter import json_cache_usage as json_cache_usage
 from ._jiter import parse_json as parse_json
-from ._jiter import parse_json_bytes as parse_json_bytes
 from ._jiter import parse_jsonl as parse_jsonl
 from ._jiter import read_json as read_json
 from ._quick_maths import quick_maths as quick_maths
@@ -198,6 +200,7 @@ from ._which import which_all as which_all
 from ._which import which_re as which_re
 from .errors import FeatureNotEnabledError as FeatureNotEnabledError
 from .JSON import stringify as stringify
+from .orjson import orjson_default as orjson_default
 from .sh import cd as cd
 from .sh import home as home
 from .sh import ls as ls
@@ -230,11 +233,15 @@ class FeatureNotEnabledError(RuntimeError):
 ```python
 """ry.ryo3.JSON"""
 
-from typing import Any, Literal
+import builtins
+from typing import Any, Callable, Literal, overload
 
 import typing_extensions
+import typing_extensions as te
 
+from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
+from ry.ryo3._jiter import JsonParseKwargs
 
 JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
 JsonValue: typing_extensions.TypeAlias = (
@@ -244,31 +251,62 @@ JsonValue: typing_extensions.TypeAlias = (
 )
 
 
+@overload
 def stringify(
-    data: Any, *, fmt: bool = False, sort_keys: bool = False
+    data: Any,
+    *,
+    default: Callable[[Any], Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    pybytes: Literal[True],
+) -> bytes: ...
+@overload
+def stringify(
+    data: Any,
+    *,
+    default: Callable[[Any], Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    pybytes: Literal[False] = False,
 ) -> Bytes: ...
-def parse_json(
-    data: bytes | str,
+def parse(
+    data: Buffer | bytes | str,
     /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
+    **kwargs: te.Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    *,
-    allow_inf_nan: bool = True,
-    cache_mode: Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-    float_mode: Literal["float", "decimal", "lossless-float"] | bool = False,
-) -> JsonValue: ...
-def json_cache_clear() -> None: ...
-def json_cache_usage() -> int: ...
+def cache_clear() -> None: ...
+def cache_usage() -> int: ...
+
+
+loads = parse
+dumps = stringify
+
+```
+
+<h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
+
+```python
+"""orjson + ry types
+
+orjson-types: https://github.com/ijl/orjson/blob/master/pysrc/orjson/__init__.pyi
+"""
+
+import typing as t
+
+import orjson
+
+
+def orjson_default(obj: t.Any) -> orjson.Fragment:
+    """Fn to be used with `orjson.dumps` to serialize ry-compatible types
+
+    Example:
+        >>> import orjson
+        >>> from ry import orjson_default, Date
+        >>> data = {"key": "value", "date": Date(2023, 10, 1)}
+        >>> orjson.dumps(data, default=orjson_default)
+        b'{"key":"value","date":"2023-10-01"}'
+
+    """
 
 ```
 
@@ -301,7 +339,7 @@ def ls(
     *,
     absolute: bool = False,
     sort: bool = False,
-    objects: t.Literal[True] = True,
+    objects: t.Literal[True],
 ) -> list[FsPath]:
     """List directory contents - returns list of FsPath objects"""
 
@@ -362,7 +400,7 @@ class Bytes(Buffer):
         """
 
     def __add__(self, other: Buffer) -> Bytes: ...
-    def __buffer__(self, flags: int) -> memoryview[int]: ...
+    def __buffer__(self, flags: int) -> memoryview: ...
     def __contains__(self, other: Buffer) -> bool: ...
     def __eq__(self, other: object) -> bool: ...
     @overload
@@ -2569,11 +2607,6 @@ def parse_jsonl(
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> list[JsonValue]: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
 def read_json(
     p: str | PathLike[str],
     /,
@@ -2663,15 +2696,14 @@ from ry._types import Buffer
 from ry.http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3 import URL, Duration
 
-HeadersLike: te.TypeAlias = Headers | dict[str, str]
-
 
 class RequestKwargs(t.TypedDict, total=False):
     body: Buffer | None
-    headers: HeadersLike | None
+    headers: Headers | dict[str, str] | None
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
-    multipart: t.Any
+    json: t.Any
     form: t.Any
+    multipart: t.Any
     timeout: Duration | None
     version: HttpVersionLike | None
 
@@ -2711,6 +2743,11 @@ class HttpClient:
         **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
     async def patch(
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def options(
         self,
         url: str | URL,
         **kwargs: te.Unpack[RequestKwargs],
@@ -4059,6 +4096,20 @@ class HttpStatus:
 
 ```
 
+<h2 id="ry.JSON"><code>ry.JSON</code></h2>
+
+```python
+"""ry.JSON"""
+
+from ry.ryo3.JSON import cache_clear as cache_clear
+from ry.ryo3.JSON import cache_usage as cache_usage
+from ry.ryo3.JSON import dumps as dumps
+from ry.ryo3.JSON import loads as loads
+from ry.ryo3.JSON import parse as parse
+from ry.ryo3.JSON import stringify as stringify
+
+```
+
 <h2 id="ry.ulid"><code>ry.ulid</code></h2>
 
 ```python
@@ -4172,10 +4223,10 @@ class SafeUUID(Enum):
 
 
 class UUID:
-    # NAMESPACE_DNS: UUID
-    # NAMESPACE_URL: UUID
-    # NAMESPACE_OID: UUID
-    # NAMESPACE_X500: UUID
+    NAMESPACE_DNS: UUID
+    NAMESPACE_URL: UUID
+    NAMESPACE_OID: UUID
+    NAMESPACE_X500: UUID
 
     def __init__(
         self,

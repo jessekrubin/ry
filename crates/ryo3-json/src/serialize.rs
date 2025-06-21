@@ -10,6 +10,7 @@ fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
 #[expect(clippy::struct_excessive_bools)]
 struct JsonSerializer<'py> {
     default: Option<&'py Bound<'py, PyAny>>,
+
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
@@ -52,12 +53,12 @@ impl<'py> JsonSerializer<'py> {
         Ok(())
     }
 
-    fn serialize(&self, py: Python<'py>, obj: Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn serialize(&self, py: Python<'py>, obj: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         if self.sort_keys {
             // TODO: This is a very hacky way of handling sorting the keys...
             //       ideally this would be part of the serialization process
             //       I think
-            let s = SerializePyAny::new(py, obj, self.default);
+            let s = SerializePyAny::new(obj, self.default);
             let mut bytes: Vec<u8> = Vec::with_capacity(4096);
             let value = serde_json::to_value(&s).map_err(|e| {
                 PyTypeError::new_err(format!("Failed to (de)serialize to json-value: {e}"))
@@ -77,7 +78,7 @@ impl<'py> JsonSerializer<'py> {
                 ryo3_bytes::PyBytes::from(bytes).into_bound_py_any(py)
             }
         } else {
-            let s = SerializePyAny::new(py, obj, self.default);
+            let s = SerializePyAny::new(obj, self.default);
             // 4k seeeems is a reasonable default size for JSON serialization?
             let mut bytes: Vec<u8> = Vec::with_capacity(4096);
             if self.fmt {
@@ -103,9 +104,9 @@ macro_rules! stringify_fn {
         #[pyfunction(
             signature = (obj, *, default = None, fmt = false, sort_keys = false, append_newline = false, pybytes = false)
         )]
-        pub(crate) fn $name<'py>(
+        pub fn $name<'py>(
             py: Python<'py>,
-            obj: Bound<'py, PyAny>,
+            obj: &Bound<'py, PyAny>,
             default: Option<&'py Bound<'py, PyAny>>,
             fmt: bool,
             sort_keys: bool,
@@ -126,3 +127,4 @@ macro_rules! stringify_fn {
 }
 
 stringify_fn!(stringify);
+stringify_fn!(dumps);

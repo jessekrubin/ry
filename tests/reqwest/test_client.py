@@ -208,6 +208,16 @@ async def test_client_post(server: ReqtestServer) -> None:
     assert res_json["body"] == "BABOOM"
 
 
+async def test_client_post_json(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient()
+    response = await client.post(str(url) + "echo", json={"body": "BABOOM"})
+    assert response.status_code == 200
+    res_json = await response.json()
+    assert res_json["headers"]["content-type"] == "application/json"
+    assert res_json["body"] == '{"body":"BABOOM"}'
+
+
 async def test_client_timeout_dev(server: ReqtestServer) -> None:
     url = server.url
     client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))

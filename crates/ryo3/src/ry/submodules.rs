@@ -18,7 +18,12 @@ pub fn dirs_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(feature = "jiter")]
 #[pymodule(gil_used = false, name = "JSON")]
 pub fn json(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    ryo3_jiter::pymod_add(m)?;
+    m.add_function(wrap_pyfunction!(ryo3_json::stringify, m)?)?;
+    m.add_function(wrap_pyfunction!(ryo3_json::dumps, m)?)?;
+    m.add_function(wrap_pyfunction!(ryo3_jiter::parse, m)?)?;
+    m.add_function(wrap_pyfunction!(ryo3_jiter::loads, m)?)?;
+    m.add_function(wrap_pyfunction!(ryo3_jiter::cache_clear, m)?)?;
+    m.add_function(wrap_pyfunction!(ryo3_jiter::cache_usage, m)?)?;
     Ok(())
 }
 

@@ -17,13 +17,8 @@ except ImportError:
     ...
 
 REPO_ROOT = Path(__file__).parent.parent
-JSON_STRING = REPO_ROOT.read_text(encoding="utf-8")
+JSON_STRING = (REPO_ROOT / "package.json").read_text(encoding="utf-8")
 JSON_BYTES = JSON_STRING.encode()
-
-
-@pytest.mark.benchmark(group="parse_bytes")
-def test_benchmark_parse_bytes(benchmark: BenchmarkFixture):
-    benchmark(ry.parse_json_bytes, JSON_BYTES)
 
 
 @pytest.mark.benchmark(group="parse_bytes")

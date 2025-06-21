@@ -37,11 +37,6 @@ def parse_jsonl(
     /,
     **kwargs: te.Unpack[JsonParseKwargs],
 ) -> list[JsonValue]: ...
-def parse_json_bytes(
-    data: bytes,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
 def read_json(
     p: str | PathLike[str],
     /,

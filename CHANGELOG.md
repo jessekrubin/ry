@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.48 [unreleased]
+## v0.0.48 [2025-06-20]
 
 - `ryo3-json`
   - `pybytes` bool kwargs to return `builtins.bytes` if `True` and `ry.Bytes` if
@@ -12,6 +12,10 @@
     that are not natively supported by ry/serde and if failure should occur, it
     should raise a `TypeError` or `ValueError` instead of returning `None` by
     default
+- `ryo3-reqwest`
+  - `json` kwarg added to request builders that auto-serializes via
+    `ryo3-serde`; also because it uses the `reqwest::RequestBuilder` it auto
+    sets the `Content-Type` header to `application/json`
 
 ---
 

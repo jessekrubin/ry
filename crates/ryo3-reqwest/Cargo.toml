@@ -28,6 +28,9 @@ ryo3-std.workspace = true
 reqwest.workspace = true
 parking_lot.workspace = true
 serde.workspace = true
+ryo3-json.workspace = true
+serde_json.workspace = true
+ryo3-serde.workspace = true
 
 
 [lints]

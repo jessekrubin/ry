@@ -9,28 +9,29 @@ use crate::any_repr::any_repr;
 use crate::errors::pyerr2sererr;
 use crate::pytypes::{
     bool_, byteslike, date, datetime, dict, float, frozenset, int, list, none, py_uuid, set, str,
-    time, tuple,
+    time, timedelta, tuple,
 };
-#[cfg(feature = "ryo3-ulid")]
-use crate::rytypes::ry_ulid;
-#[cfg(feature = "ryo3-url")]
-use crate::rytypes::ry_url;
-#[cfg(feature = "ryo3-uuid")]
-use crate::rytypes::ry_uuid;
-#[cfg(feature = "ryo3-jiff")]
-use crate::rytypes::{
-    ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_zoned,
-};
-#[cfg(feature = "ryo3-http")]
-use crate::rytypes::{ry_headers, ry_http_status};
-
+#[cfg(feature = "ry")]
+use crate::rytypes;
+// #[cfg(feature = "ryo3-ulid")]
+// use crate::rytypes::ry_ulid;
+// #[cfg(feature = "ryo3-url")]
+// use crate::rytypes::ry_url;
+// #[cfg(feature = "ryo3-uuid")]
+// use crate::rytypes::ry_uuid;
+// #[cfg(feature = "ryo3-jiff")]
+// use crate::rytypes::{
+//     ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_timezone, ry_zoned,
+// };
+// #[cfg(feature = "ryo3-http")]
+// use crate::rytypes::{ry_headers, ry_http_status};
 use crate::type_cache::{PyObType, PyTypeCache};
 use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
 use pyo3::Bound;
 use serde::ser::SerializeSeq;
 
 pub struct SerializePyAny<'py> {
-    pub(crate) obj: Bound<'py, PyAny>,
+    pub(crate) obj: &'py Bound<'py, PyAny>,
     pub(crate) none_value: Option<&'py str>,
     default: Option<&'py Bound<'py, PyAny>>,
     ob_type_lookup: &'py PyTypeCache,
@@ -44,12 +45,8 @@ macro_rules! serde_err {
 
 impl<'py> SerializePyAny<'py> {
     #[must_use]
-    pub fn new(
-        py: Python<'py>,
-        obj: Bound<'py, PyAny>,
-        default: Option<&'py Bound<'py, PyAny>>,
-    ) -> Self {
-        // callable...
+    pub fn new(obj: &'py Bound<'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+        let py = obj.py();
         Self {
             obj,
             none_value: None,
@@ -58,7 +55,7 @@ impl<'py> SerializePyAny<'py> {
         }
     }
 
-    pub(crate) fn with_obj(&self, obj: Bound<'py, PyAny>) -> Self {
+    pub(crate) fn with_obj(&self, obj: &'py Bound<'py, PyAny>) -> Self {
         Self {
             obj,
             none_value: self.none_value,
@@ -74,7 +71,7 @@ impl Serialize for SerializePyAny<'_> {
         S: Serializer,
     {
         let lookup = self.ob_type_lookup;
-        if let Some(ob_type) = lookup.obtype(&self.obj) {
+        if let Some(ob_type) = lookup.obtype(self.obj) {
             match ob_type {
                 PyObType::None => none(self, serializer),
                 PyObType::Bool => bool_(self, serializer),
@@ -89,40 +86,45 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::DateTime => datetime(self, serializer),
                 PyObType::Date => date(self, serializer),
                 PyObType::Time => time(self, serializer),
-                PyObType::Bytes | PyObType::ByteArray => byteslike(self, serializer),
+                PyObType::Timedelta => timedelta(self, serializer),
+                PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
+                    byteslike(self, serializer)
+                }
                 PyObType::PyUuid => py_uuid(self, serializer),
                 // ------------------------------------------------------------
                 // RY-TYPES
                 // ------------------------------------------------------------
                 // __UUID__
                 #[cfg(feature = "ryo3-uuid")]
-                PyObType::RyUuid => ry_uuid(self, serializer),
+                PyObType::RyUuid => rytypes::ry_uuid(self, serializer),
                 // __ULID__
                 #[cfg(feature = "ryo3-ulid")]
-                PyObType::RyUlid => ry_ulid(self, serializer), // ulid is treated as a uuid for now
+                PyObType::RyUlid => rytypes::ry_ulid(self, serializer), // ulid is treated as a uuid for now
                 // __URL__
                 #[cfg(feature = "ryo3-url")]
-                PyObType::RyUrl => ry_url(self, serializer),
+                PyObType::RyUrl => rytypes::ry_url(self, serializer),
                 // __HTTP__
                 #[cfg(feature = "ryo3-http")]
-                PyObType::RyHeaders => ry_headers(self, serializer),
+                PyObType::RyHeaders => rytypes::ry_headers(self, serializer),
                 #[cfg(feature = "ryo3-http")]
-                PyObType::RyHttpStatus => ry_http_status(self, serializer),
+                PyObType::RyHttpStatus => rytypes::ry_http_status(self, serializer),
                 // __JIFF__
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyDate => ry_date(self, serializer),
+                PyObType::RyDate => rytypes::ry_date(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyDateTime => ry_datetime(self, serializer),
+                PyObType::RyDateTime => rytypes::ry_datetime(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RySignedDuration => ry_signed_duration(self, serializer),
+                PyObType::RySignedDuration => rytypes::ry_signed_duration(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyTime => ry_time(self, serializer),
+                PyObType::RyTime => rytypes::ry_time(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyTimeSpan => ry_span(self, serializer),
+                PyObType::RyTimeSpan => rytypes::ry_span(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyTimestamp => ry_timestamp(self, serializer),
+                PyObType::RyTimestamp => rytypes::ry_timestamp(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyZoned => ry_zoned(self, serializer),
+                PyObType::RyTimeZone => rytypes::ry_timezone(self, serializer),
+                #[cfg(feature = "ryo3-jiff")]
+                PyObType::RyZoned => rytypes::ry_zoned(self, serializer),
             }
         } else if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
             SerializePyMapping::new(py_map, self.default).serialize(serializer)
@@ -131,9 +133,9 @@ impl Serialize for SerializePyAny<'_> {
         } else if let Some(default) = self.default {
             // call the default transformer fn and attempt to then serialize the result
             let r = default.call1((&self.obj,)).map_err(pyerr2sererr)?;
-            self.with_obj(r).serialize(serializer)
+            self.with_obj(&r).serialize(serializer)
         } else {
-            serde_err!("{} is not json-serializable", any_repr(&self.obj))
+            serde_err!("{} is not json-serializable", any_repr(self.obj))
         }
     }
 }
@@ -161,7 +163,7 @@ impl Serialize for SerializePySequence<'_, '_> {
         let mut seq = serializer.serialize_seq(Some(len))?;
         for i in 0..len {
             let item = self.seq.get_item(i).map_err(pyerr2sererr)?;
-            let item_ser = SerializePyAny::new(self.seq.py(), item, self.default);
+            let item_ser = SerializePyAny::new(&item, self.default);
             seq.serialize_element(&item_ser)?;
         }
         seq.end()
@@ -190,12 +192,11 @@ impl Serialize for SerializePyMapping<'_, '_> {
         let len = self.mapping.len().ok();
         if let Some(len) = len {
             let mut m = serializer.serialize_map(Some(len))?;
-            let py = self.mapping.py();
             let keys = self.mapping.keys().map_err(pyerr2sererr)?;
             for k in keys {
                 let k = crate::pytypes::mapping_key(&k)?;
                 let val = self.mapping.get_item(k).map_err(pyerr2sererr)?;
-                let v = SerializePyAny::new(py, val, self.default);
+                let v = SerializePyAny::new(&val, self.default);
                 m.serialize_entry(k, &v).map_err(pyerr2sererr)?;
             }
             m.end()

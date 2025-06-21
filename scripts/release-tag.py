@@ -1,6 +1,8 @@
 import subprocess
 import sys
 
+import tomllib
+
 import ry
 
 _GIT = ry.which("git")
@@ -55,7 +57,6 @@ def push_tag(tag_name: str) -> None:
 def _version() -> str:
     with open("Cargo.toml") as f:
         txt = f.read()
-    import tomllib
 
     data = tomllib.loads(txt)
     try:

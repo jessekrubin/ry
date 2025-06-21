@@ -6,9 +6,7 @@
 //! of [2024-05-29])
 use std::path::PathBuf;
 
-use ::jiter::{
-    cache_clear, cache_usage, map_json_error, FloatMode, PartialMode, PythonParse, StringCacheMode,
-};
+use ::jiter::{map_json_error, FloatMode, PartialMode, PythonParse, StringCacheMode};
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 use pyo3::IntoPyObjectExt;
@@ -19,7 +17,6 @@ pub struct JiterParseOptions {
     pub cache_mode: StringCacheMode,
     pub partial_mode: PartialMode,
     pub catch_duplicate_keys: bool,
-    pub float_mode: FloatMode,
 }
 
 impl Default for JiterParseOptions {
@@ -29,7 +26,6 @@ impl Default for JiterParseOptions {
             cache_mode: StringCacheMode::All,
             partial_mode: PartialMode::Off,
             catch_duplicate_keys: false,
-            float_mode: FloatMode::Float,
         }
     }
 }
@@ -41,7 +37,7 @@ impl JiterParseOptions {
             cache_mode: self.cache_mode,
             partial_mode: self.partial_mode,
             catch_duplicate_keys: self.catch_duplicate_keys,
-            float_mode: self.float_mode,
+            float_mode: FloatMode::Float,
         }
     }
 
@@ -70,51 +66,6 @@ impl JiterParseOptions {
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-        float_mode = FloatMode::Float
-    )
-)]
-pub fn parse_json_bytes<'py>(
-    py: Python<'py>,
-    data: &Bound<'py, PyAny>,
-    allow_inf_nan: bool,
-    cache_mode: StringCacheMode,
-    partial_mode: PartialMode,
-    catch_duplicate_keys: bool,
-    float_mode: FloatMode,
-) -> PyResult<Bound<'py, PyAny>> {
-    let options = JiterParseOptions {
-        allow_inf_nan,
-        cache_mode,
-        partial_mode,
-        catch_duplicate_keys,
-        float_mode,
-    };
-    if let Ok(bytes) = data.extract::<&[u8]>() {
-        options.parse(py, bytes)
-    } else if let Ok(custom) = data.downcast::<ryo3_bytes::PyBytes>() {
-        let pybytes = custom.get();
-        let json_bytes = pybytes.as_ref();
-        options.parse(py, json_bytes)
-    } else if let Ok(pybytes) = data.extract::<ryo3_bytes::PyBytes>() {
-        let json_bytes = pybytes.as_ref();
-        options.parse(py, json_bytes)
-    } else {
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "Expected bytes, bytearray, or pyo3-bytes object",
-        ))
-    }
-}
-
-#[pyfunction(
-    signature = (
-        data,
-        /,
-        *,
-        allow_inf_nan = false,
-        cache_mode = StringCacheMode::All,
-        partial_mode = PartialMode::Off,
-        catch_duplicate_keys = false,
-        float_mode = FloatMode::Float
     )
 )]
 pub fn parse_json<'py>(
@@ -124,14 +75,12 @@ pub fn parse_json<'py>(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
     let options = JiterParseOptions {
         allow_inf_nan,
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        float_mode,
     };
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse(py, bytes)
@@ -161,7 +110,6 @@ pub fn parse_json<'py>(
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-        float_mode = FloatMode::Float
     )
 )]
 pub fn parse_jsonl<'py>(
@@ -171,14 +119,12 @@ pub fn parse_jsonl<'py>(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
     let options = JiterParseOptions {
         allow_inf_nan,
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        float_mode,
     };
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse_lines(py, bytes)
@@ -199,6 +145,34 @@ pub fn parse_jsonl<'py>(
     }
 }
 
+// creates a function with the given name for use in root module ('parse_json`)
+macro_rules! py_parse_fn {
+    ($name:ident) => {
+        #[pyfunction(
+            signature = (data, /, *, allow_inf_nan = false, cache_mode = StringCacheMode::All, partial_mode = PartialMode::Off, catch_duplicate_keys = false)
+        )]
+        pub fn $name<'py>(
+            py: Python<'py>,
+            data: &Bound<'py, PyAny>,
+            allow_inf_nan: bool,
+            cache_mode: StringCacheMode,
+            partial_mode: PartialMode,
+            catch_duplicate_keys: bool,
+        ) -> PyResult<Bound<'py, PyAny>> {
+            parse_json(
+                py,
+                data,
+                allow_inf_nan,
+                cache_mode,
+                partial_mode,
+                catch_duplicate_keys,
+            )
+        }
+    };
+}
+py_parse_fn!(parse);
+py_parse_fn!(loads);
+
 #[pyfunction(
     signature = (
         p,
@@ -208,11 +182,9 @@ pub fn parse_jsonl<'py>(
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-        float_mode = FloatMode::Float,
         lines = false
     )
 )]
-#[expect(clippy::too_many_arguments)]
 pub fn read_json(
     py: Python<'_>,
     p: PathBuf,
@@ -220,7 +192,6 @@ pub fn read_json(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    float_mode: FloatMode,
     lines: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
     let fbytes = std::fs::read(p)?;
@@ -229,7 +200,6 @@ pub fn read_json(
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        float_mode,
     };
     if lines {
         options.parse_lines(py, &fbytes)
@@ -238,19 +208,31 @@ pub fn read_json(
     }
 }
 
-#[pyfunction]
-pub fn json_cache_clear() {
-    cache_clear();
+macro_rules! py_cache_clear_fn {
+    ($name:ident) => {
+        #[pyfunction]
+        pub fn $name() {
+            ::jiter::cache_clear();
+        }
+    };
 }
 
-#[pyfunction]
-#[must_use]
-pub fn json_cache_usage() -> usize {
-    cache_usage()
+py_cache_clear_fn!(json_cache_clear);
+py_cache_clear_fn!(cache_clear);
+
+macro_rules! py_cache_usage_fn {
+    ($name:ident) => {
+        #[pyfunction]
+        #[must_use]
+        pub fn $name() -> usize {
+            ::jiter::cache_usage()
+        }
+    };
 }
+py_cache_usage_fn!(json_cache_usage);
+py_cache_usage_fn!(cache_usage);
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(parse_json_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(parse_json, m)?)?;
     m.add_function(wrap_pyfunction!(parse_jsonl, m)?)?;
     m.add_function(wrap_pyfunction!(json_cache_clear, m)?)?;
