@@ -95,7 +95,7 @@ where
     } else {
         let mut seq = serializer.serialize_seq(Some(len))?;
         for element in py_list {
-            seq.serialize_element(&ser.with_obj(element))?;
+            seq.serialize_element(&ser.with_obj(&element))?;
         }
         seq.end()
     }
@@ -114,7 +114,7 @@ where
     let len = py_tuple.len();
     let mut seq = serializer.serialize_seq(Some(len))?;
     for element in py_tuple {
-        seq.serialize_element(&ser.with_obj(element))?;
+        seq.serialize_element(&ser.with_obj(&element))?;
     }
     seq.end()
 }
@@ -147,7 +147,7 @@ where
     }
     let mut m = serializer.serialize_map(Some(len))?;
     for (k, v) in py_dict {
-        m.serialize_entry(mapping_key(&k)?, &ser.with_obj(v))?;
+        m.serialize_entry(mapping_key(&k)?, &ser.with_obj(&v))?;
     }
     m.end()
 }
@@ -170,7 +170,7 @@ where
     let mut seq = serializer.serialize_seq(Some(len))?;
     for element in py_iter {
         let pyany = element.map_err(pyerr2sererr)?;
-        seq.serialize_element(&ser.with_obj(pyany))?;
+        seq.serialize_element(&ser.with_obj(&pyany))?;
     }
     seq.end()
 }
@@ -191,7 +191,7 @@ where
     let mut seq = serializer.serialize_seq(Some(len))?;
     for element in py_iter {
         let pyany = element.map_err(pyerr2sererr)?;
-        seq.serialize_element(&ser.with_obj(pyany))?;
+        seq.serialize_element(&ser.with_obj(&pyany))?;
     }
     seq.end()
 }
