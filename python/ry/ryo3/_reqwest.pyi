@@ -56,6 +56,11 @@ class HttpClient:
         url: str | URL,
         **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
+    async def options(
+        self,
+        url: str | URL,
+        **kwargs: te.Unpack[RequestKwargs],
+    ) -> Response: ...
     async def head(
         self,
         url: str | URL,
