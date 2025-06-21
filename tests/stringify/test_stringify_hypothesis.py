@@ -127,7 +127,16 @@ def test_stringify_datetimes_tz(dt: pydt.datetime) -> None:
             return
     ry_json = ry.stringify(dt, pybytes=True).decode().strip('"')
     oj_json = oj_stringify(dt).decode().strip('"')
-    assert ry.DateTime.parse(ry_json) == ry.DateTime.parse(oj_json)
+    pydatetime_oj = pydt.datetime.fromisoformat(oj_json)
+
+    # strip trailing [...] if present
+    def _strip_trailing_tzname(dt_str: str) -> str:
+        if dt_str.endswith("]"):
+            return dt_str[: dt_str.rfind("[")].strip()
+        return dt_str
+
+    pydatetime_ry = pydt.datetime.fromisoformat(_strip_trailing_tzname(ry_json))
+    assert pydatetime_ry == pydatetime_oj
 
 
 @given(st.dates())
