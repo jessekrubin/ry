@@ -1,3 +1,4 @@
+import datetime as pydt
 import json
 import typing as t
 
@@ -107,15 +108,18 @@ def test_stringify_datetimes(data: t.Any) -> None:
 
 @given(st.datetimes(timezones=st.timezones()))
 @pytest_mark_skip_orjson
-def test_stringify_datetimes_tz(data: t.Any) -> None:
+def test_stringify_datetimes_tz(dt: pydt.datetime) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
     # strip the quotes
     # if the timezone is "build/etc/localtime", skip for now
     # TODO: fix...
-    if data.tzinfo is not None and data.tzinfo.zone == "build/etc/localtime":
-        pytest.skip("Skipping test for localtime timezone")
-    ry_json = ry.stringify(data, pybytes=True).decode().strip('"')
-    oj_json = oj_stringify(data).decode().strip('"')
+    tzn = dt.tzname()
+    if tzn is not None and tzn == "build/etc/localtime":
+        # Skip UTC timezone for now, as it is not handled by orjson
+        # TODO: handle this
+        pytest.skip("Skipping test for UTC timezone")
+    ry_json = ry.stringify(dt, pybytes=True).decode().strip('"')
+    oj_json = oj_stringify(dt).decode().strip('"')
     assert ry.DateTime.parse(ry_json) == ry.DateTime.parse(oj_json)
 
 

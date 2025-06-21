@@ -11,18 +11,20 @@ use crate::pytypes::{
     bool_, byteslike, date, datetime, dict, float, frozenset, int, list, none, py_uuid, set, str,
     time, timedelta, tuple,
 };
-#[cfg(feature = "ryo3-ulid")]
-use crate::rytypes::ry_ulid;
-#[cfg(feature = "ryo3-url")]
-use crate::rytypes::ry_url;
-#[cfg(feature = "ryo3-uuid")]
-use crate::rytypes::ry_uuid;
-#[cfg(feature = "ryo3-jiff")]
-use crate::rytypes::{
-    ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_timezone, ry_zoned,
-};
-#[cfg(feature = "ryo3-http")]
-use crate::rytypes::{ry_headers, ry_http_status};
+#[cfg(feature = "ry")]
+use crate::rytypes;
+// #[cfg(feature = "ryo3-ulid")]
+// use crate::rytypes::ry_ulid;
+// #[cfg(feature = "ryo3-url")]
+// use crate::rytypes::ry_url;
+// #[cfg(feature = "ryo3-uuid")]
+// use crate::rytypes::ry_uuid;
+// #[cfg(feature = "ryo3-jiff")]
+// use crate::rytypes::{
+//     ry_date, ry_datetime, ry_signed_duration, ry_span, ry_time, ry_timestamp, ry_timezone, ry_zoned,
+// };
+// #[cfg(feature = "ryo3-http")]
+// use crate::rytypes::{ry_headers, ry_http_status};
 use crate::type_cache::{PyObType, PyTypeCache};
 use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
 use pyo3::Bound;
@@ -69,7 +71,7 @@ impl Serialize for SerializePyAny<'_> {
         S: Serializer,
     {
         let lookup = self.ob_type_lookup;
-        if let Some(ob_type) = lookup.obtype(&self.obj) {
+        if let Some(ob_type) = lookup.obtype(self.obj) {
             match ob_type {
                 PyObType::None => none(self, serializer),
                 PyObType::Bool => bool_(self, serializer),
@@ -94,35 +96,35 @@ impl Serialize for SerializePyAny<'_> {
                 // ------------------------------------------------------------
                 // __UUID__
                 #[cfg(feature = "ryo3-uuid")]
-                PyObType::RyUuid => ry_uuid(self, serializer),
+                PyObType::RyUuid => rytypes::ry_uuid(self, serializer),
                 // __ULID__
                 #[cfg(feature = "ryo3-ulid")]
-                PyObType::RyUlid => ry_ulid(self, serializer), // ulid is treated as a uuid for now
+                PyObType::RyUlid => rytypes::ry_ulid(self, serializer), // ulid is treated as a uuid for now
                 // __URL__
                 #[cfg(feature = "ryo3-url")]
-                PyObType::RyUrl => ry_url(self, serializer),
+                PyObType::RyUrl => rytypes::ry_url(self, serializer),
                 // __HTTP__
                 #[cfg(feature = "ryo3-http")]
-                PyObType::RyHeaders => ry_headers(self, serializer),
+                PyObType::RyHeaders => rytypes::ry_headers(self, serializer),
                 #[cfg(feature = "ryo3-http")]
-                PyObType::RyHttpStatus => ry_http_status(self, serializer),
+                PyObType::RyHttpStatus => rytypes::ry_http_status(self, serializer),
                 // __JIFF__
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyDate => ry_date(self, serializer),
+                PyObType::RyDate => rytypes::ry_date(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyDateTime => ry_datetime(self, serializer),
+                PyObType::RyDateTime => rytypes::ry_datetime(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RySignedDuration => ry_signed_duration(self, serializer),
+                PyObType::RySignedDuration => rytypes::ry_signed_duration(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyTime => ry_time(self, serializer),
+                PyObType::RyTime => rytypes::ry_time(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyTimeSpan => ry_span(self, serializer),
+                PyObType::RyTimeSpan => rytypes::ry_span(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyTimestamp => ry_timestamp(self, serializer),
+                PyObType::RyTimestamp => rytypes::ry_timestamp(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyTimeZone => ry_timezone(self, serializer),
+                PyObType::RyTimeZone => rytypes::ry_timezone(self, serializer),
                 #[cfg(feature = "ryo3-jiff")]
-                PyObType::RyZoned => ry_zoned(self, serializer),
+                PyObType::RyZoned => rytypes::ry_zoned(self, serializer),
             }
         } else if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
             SerializePyMapping::new(py_map, self.default).serialize(serializer)
@@ -133,7 +135,7 @@ impl Serialize for SerializePyAny<'_> {
             let r = default.call1((&self.obj,)).map_err(pyerr2sererr)?;
             self.with_obj(&r).serialize(serializer)
         } else {
-            serde_err!("{} is not json-serializable", any_repr(&self.obj))
+            serde_err!("{} is not json-serializable", any_repr(self.obj))
         }
     }
 }

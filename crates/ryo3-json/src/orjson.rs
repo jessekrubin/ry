@@ -41,9 +41,11 @@ pub fn fragment<'py>(py: Python<'py>, obj: Bound<'py, PyAny>) -> PyResult<Bound<
 
 /// Function to be used as/with `orjson.dumps(obj, default=orjson_default)`
 #[pyfunction]
-pub fn orjson_default<'py>(py: Python<'py>, obj: Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+pub fn orjson_default<'py>(
+    py: Python<'py>,
+    obj: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     // serialize (MAKING SURE IT IS A PYBYTES) and make an `orjson.Fragment`
-    println!("orjson_default called with: {obj:?}");
     crate::serialize::stringify(py, obj, None, false, false, false, true)
         .map_err(|e| PyImportError::new_err(format!("Failed to serialize with orjson: {e}")))
         .and_then(|v| fragment(py, v))

@@ -7,14 +7,13 @@ from ry._types import Buffer
 from ry.http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3 import URL, Duration
 
-HeadersLike: te.TypeAlias = Headers | dict[str, str]
-
 class RequestKwargs(t.TypedDict, total=False):
     body: Buffer | None
-    headers: HeadersLike | None
+    headers: Headers | dict[str, str] | None
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
-    multipart: t.Any
+    json: t.Any
     form: t.Any
+    multipart: t.Any
     timeout: Duration | None
     version: HttpVersionLike | None
 

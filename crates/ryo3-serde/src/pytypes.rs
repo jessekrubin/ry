@@ -68,6 +68,16 @@ where
     serializer.serialize_str(s)
 }
 
+// #[inline]
+// pub(crate) fn str<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
+// where
+//     S: serde::Serializer,
+// {
+//     let py_str = ser.obj.extract::<PyBackedStr>().map_err(pyerr2sererr)?;
+//     let s: &str = py_str.as_ref();
+//     serializer.serialize_str(s)
+// }
+
 #[inline]
 pub(crate) fn byteslike<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where

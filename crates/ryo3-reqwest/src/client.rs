@@ -2,7 +2,7 @@ use crate::errors::map_reqwest_err;
 use crate::query_like::QueryLike;
 use crate::user_agent::parse_user_agent;
 use crate::RyResponse;
-use pyo3::exceptions::{PyTypeError, PyValueError};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{intern, IntoPyObjectExt};
@@ -57,19 +57,25 @@ impl RyHttpClient {
         Ok(Self { client, cfg })
     }
 
-    #[expect(clippy::too_many_arguments)]
-    #[expect(clippy::needless_pass_by_value)]
+    // TODO: replace this with custom python-y builder pattern that does not
+    //       crudely wrap the reqwest::RequestBuilder
     fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
-        let url = extract_url(&options.url)?;
+        let url = extract_url(options.url)?;
         let mut req = self.client.request(options.method, url);
         if let Some(ref version) = options.version {
             req = req.version(version.0);
+        }
+        if let Some(headers) = options.headers {
+            let headers = HeaderMap::try_from(headers)?;
+            req = req.headers(headers);
+        }
+        if let Some(timeout) = options.timeout {
+            req = req.timeout(timeout.0);
         }
         if let Some(query) = options.query {
             let q = QueryLike::extract_bound(query)?;
             req = req.query(&q);
         }
-
         if let Some(json) = options.json {
             let wrapped = ryo3_serde::SerializePyAny::new(json, None);
             req = req.json(&wrapped);
@@ -83,13 +89,6 @@ impl RyHttpClient {
         if let Some(body) = options.body {
             let body_bytes = body.into_inner();
             req = req.body(body_bytes);
-        }
-        if let Some(headers) = options.headers {
-            let headers = HeaderMap::try_from(headers)?;
-            req = req.headers(headers);
-        }
-        if let Some(timeout) = options.timeout {
-            req = req.timeout(timeout.0);
         }
         debug!("reqwest-client-fetch: {:#?}", req);
         Ok(req)

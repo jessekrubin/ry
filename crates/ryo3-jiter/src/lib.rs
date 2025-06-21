@@ -17,7 +17,6 @@ pub struct JiterParseOptions {
     pub cache_mode: StringCacheMode,
     pub partial_mode: PartialMode,
     pub catch_duplicate_keys: bool,
-    pub float_mode: FloatMode,
 }
 
 impl Default for JiterParseOptions {
@@ -27,7 +26,6 @@ impl Default for JiterParseOptions {
             cache_mode: StringCacheMode::All,
             partial_mode: PartialMode::Off,
             catch_duplicate_keys: false,
-            float_mode: FloatMode::Float,
         }
     }
 }
@@ -39,7 +37,7 @@ impl JiterParseOptions {
             cache_mode: self.cache_mode,
             partial_mode: self.partial_mode,
             catch_duplicate_keys: self.catch_duplicate_keys,
-            float_mode: self.float_mode,
+            float_mode: FloatMode::Float,
         }
     }
 
@@ -68,7 +66,6 @@ impl JiterParseOptions {
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-        float_mode = FloatMode::Float
     )
 )]
 pub fn parse_json<'py>(
@@ -78,14 +75,12 @@ pub fn parse_json<'py>(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
     let options = JiterParseOptions {
         allow_inf_nan,
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        float_mode,
     };
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse(py, bytes)
@@ -115,7 +110,6 @@ pub fn parse_json<'py>(
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-        float_mode = FloatMode::Float
     )
 )]
 pub fn parse_jsonl<'py>(
@@ -125,14 +119,12 @@ pub fn parse_jsonl<'py>(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    float_mode: FloatMode,
 ) -> PyResult<Bound<'py, PyAny>> {
     let options = JiterParseOptions {
         allow_inf_nan,
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        float_mode,
     };
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse_lines(py, bytes)
@@ -157,18 +149,8 @@ pub fn parse_jsonl<'py>(
 macro_rules! py_parse_fn {
     ($name:ident) => {
         #[pyfunction(
-                                                            signature = (
-                                                                data,
-                                                                /,
-                                                                *,
-                                                                allow_inf_nan = false,
-                                                                cache_mode = StringCacheMode::All,
-                                                                partial_mode = PartialMode::Off,
-                                                                catch_duplicate_keys = false,
-                                                                float_mode = FloatMode::Float,
-                                                                lines = false
-                                                            )
-                                                        )]
+            signature = (data, /, *, allow_inf_nan = false, cache_mode = StringCacheMode::All, partial_mode = PartialMode::Off, catch_duplicate_keys = false)
+        )]
         pub fn $name<'py>(
             py: Python<'py>,
             data: &Bound<'py, PyAny>,
@@ -176,30 +158,15 @@ macro_rules! py_parse_fn {
             cache_mode: StringCacheMode,
             partial_mode: PartialMode,
             catch_duplicate_keys: bool,
-            float_mode: FloatMode,
-            lines: bool,
         ) -> PyResult<Bound<'py, PyAny>> {
-            if lines {
-                parse_jsonl(
-                    py,
-                    data,
-                    allow_inf_nan,
-                    cache_mode,
-                    partial_mode,
-                    catch_duplicate_keys,
-                    float_mode,
-                )
-            } else {
-                parse_json(
-                    py,
-                    data,
-                    allow_inf_nan,
-                    cache_mode,
-                    partial_mode,
-                    catch_duplicate_keys,
-                    float_mode,
-                )
-            }
+            parse_json(
+                py,
+                data,
+                allow_inf_nan,
+                cache_mode,
+                partial_mode,
+                catch_duplicate_keys,
+            )
         }
     };
 }
@@ -215,11 +182,9 @@ py_parse_fn!(loads);
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-        float_mode = FloatMode::Float,
         lines = false
     )
 )]
-#[expect(clippy::too_many_arguments)]
 pub fn read_json(
     py: Python<'_>,
     p: PathBuf,
@@ -227,7 +192,6 @@ pub fn read_json(
     cache_mode: StringCacheMode,
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
-    float_mode: FloatMode,
     lines: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
     let fbytes = std::fs::read(p)?;
@@ -236,7 +200,6 @@ pub fn read_json(
         cache_mode,
         partial_mode,
         catch_duplicate_keys,
-        float_mode,
     };
     if lines {
         options.parse_lines(py, &fbytes)
