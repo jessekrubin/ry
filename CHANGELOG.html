@@ -173,7 +173,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0048-unreleased"><a class="header" href="#v0048-unreleased">v0.0.48 [unreleased]</a></h2>
+<h2 id="v0048-2025-06-24"><a class="header" href="#v0048-2025-06-24">v0.0.48 [2025-06-24]</a></h2>
 <ul>
 <li><code>ryo3-json</code>
 <ul>
@@ -189,6 +189,13 @@ the stdlib-json and orjson serializers, this allows for serializing types
 that are not natively supported by ry/serde and if failure should occur, it
 should raise a <code>TypeError</code> or <code>ValueError</code> instead of returning <code>None</code> by
 default</li>
+</ul>
+</li>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li><code>json</code> kwarg added to request builders that auto-serializes via
+<code>ryo3-serde</code>; also because it uses the <code>reqwest::RequestBuilder</code> it auto
+sets the <code>Content-Type</code> header to <code>application/json</code></li>
 </ul>
 </li>
 </ul>
