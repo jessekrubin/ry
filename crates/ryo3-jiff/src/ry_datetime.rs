@@ -327,7 +327,7 @@ impl RyDateTime {
 
     /// Return string in the form `YYYY-MM-DD HH:MM:SS.ssssss`
     fn isoformat(&self) -> String {
-        if self.0.microsecond() == 0 {
+        if self.0.subsec_nanosecond() == 0 {
             ISOFORMAT_PRINTER_NO_MICROS.datetime_to_string(&self.0)
         } else {
             ISOFORMAT_PRINTER.datetime_to_string(&self.0)
