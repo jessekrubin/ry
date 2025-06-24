@@ -1,5 +1,6 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::RyDateTime;
 use crate::RySignedDuration;
@@ -123,6 +124,14 @@ impl RyTime {
             self.0.second(),
             self.0.nanosecond()
         )
+    }
+
+    fn isoformat(&self) -> String {
+        if self.0.subsec_nanosecond() == 0 {
+            ISOFORMAT_PRINTER_NO_MICROS.time_to_string(&self.0)
+        } else {
+            ISOFORMAT_PRINTER.time_to_string(&self.0)
+        }
     }
 
     // ========================================================================
@@ -266,9 +275,10 @@ impl RyTime {
         self.0
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
-    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: Time) -> Self {
-        Self(py_time)
+    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: JiffTime) -> Self {
+        RyTime::from(py_time.0)
     }
 
     // =====================================================================

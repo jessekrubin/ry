@@ -1,6 +1,7 @@
 use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::map_py_value_err;
+use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_datetime_difference::{DateTimeDifferenceArg, RyDateTimeDifference};
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
@@ -326,7 +327,11 @@ impl RyDateTime {
 
     /// Return string in the form `YYYY-MM-DD HH:MM:SS.ssssss`
     fn isoformat(&self) -> String {
-        self.0.to_string()
+        if self.0.microsecond() == 0 {
+            ISOFORMAT_PRINTER_NO_MICROS.datetime_to_string(&self.0)
+        } else {
+            ISOFORMAT_PRINTER.datetime_to_string(&self.0)
+        }
     }
 
     fn iso_week_date(&self) -> RyISOWeekDate {

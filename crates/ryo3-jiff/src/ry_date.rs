@@ -98,6 +98,7 @@ impl RyDate {
     fn day(&self) -> i8 {
         self.0.day()
     }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
@@ -124,6 +125,10 @@ impl RyDate {
             CompareOp::Gt => self.0 > other.0,
             CompareOp::Ge => self.0 >= other.0,
         }
+    }
+
+    fn isoformat(&self) -> String {
+        self.0.to_string()
     }
 
     fn string(&self) -> String {
