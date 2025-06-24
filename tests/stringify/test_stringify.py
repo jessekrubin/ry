@@ -28,6 +28,9 @@ def py_stringify(data: t.Any) -> bytes:
 
 def oj_stringify(data: t.Any) -> bytes:
     """Convert data to a JSON string using orjson."""
+    if orjson is None:
+        msg = "orjson is not installed, cannot use oj_stringify"
+        raise ImportError(msg)
     return orjson.dumps(data)
 
 
@@ -70,8 +73,12 @@ def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
 
     json_bytes = ry.stringify(data)
+    try:
+        oj_res = oj_stringify(data)
+    except TypeError as _e:
+        return  # orjson does not support this data type, skip the test
+
     assert isinstance(json_bytes, ry.Bytes), "Result should be a `ry.Bytes`"
-    oj_res = oj_stringify(data)
 
     json_str = json_bytes.decode("utf-8")
 
@@ -200,10 +207,12 @@ PYTYPES_JSON_SER = [
         "inf": float("inf"),
         "nan": float("nan"),
         "neg_inf": float("-inf"),
-        "datetime": pydt.datetime(2023, 10, 1, 12, 0, 0),
-        "date": pydt.date(2023, 10, 1),
-        "time": pydt.time(12, 0, 0),
         "list": [1, 2, 3],
+        "date": pydt.date(2023, 10, 1),
+        "datetime": pydt.datetime(2023, 10, 1, 12, 0, 0),
+        "time": pydt.time(12, 0, 0),
+        "timedelta": pydt.timedelta(days=1, seconds=3600),
+        # TODO: add tzinfo/timezone? "tzinfo": pydt.datetime.now(pydt.timezone.utc).tzinfo,
     },
 ]
 
@@ -238,6 +247,7 @@ RYTYPES_JSON_SER = {
     "time": ry.time(6, 27, 0, 0),
     "timespan": ry.timespan(weeks=1),
     "timestamp": ry.Timestamp.from_millisecond(1598438400000),
+    "timezone": ry.TimeZone("America/New_York"),
     "zoned": ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
 }
 EXPECTED = {
@@ -257,6 +267,7 @@ EXPECTED = {
     "time": "06:27:00",
     "timespan": "P1W",
     "timestamp": "2020-08-26T10:40:00Z",
+    "timezone": "America/New_York",
     "zoned": "2020-08-26T06:27:00-04:00[America/New_York]",
 }
 

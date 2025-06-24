@@ -3,6 +3,7 @@ import typing as t
 
 import pytest
 from hypothesis import given
+from hypothesis import strategies as st
 
 import ry
 
@@ -80,15 +81,43 @@ def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     )
 
 
-@given(st_json_js(datetimes=True))
+@given(st_json_js(datetimes=False))
 @pytest_mark_skip_orjson
 def test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
     _test_stringify_json_orjson_compatible(data)
 
 
-@given(st_json_js(datetimes=True, finite_only=False))
+@given(st_json_js(datetimes=False, finite_only=False))
 @pytest_mark_skip_orjson
 def test_stringify_json_orjson_compatible_inf_nan(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
     _test_stringify_json_orjson_compatible(data)
+
+
+@given(st.datetimes())
+@pytest_mark_skip_orjson
+def test_stringify_datetimes(data: t.Any) -> None:
+    """Test that stringify_json produces valid JSON strings compatible with orjson."""
+    # strip the quotes
+    ry_json = ry.stringify(data, pybytes=True).decode().strip('"')
+    oj_json = oj_stringify(data).decode().strip('"')
+    assert ry.DateTime.parse(ry_json) == ry.DateTime.parse(oj_json)
+
+
+@given(st.dates())
+@pytest_mark_skip_orjson
+def test_stringify_dates(data: t.Any) -> None:
+    """Test orjson/ry.stringify for dates."""
+    ry_json = ry.stringify(data, pybytes=True).decode().strip('"')
+    oj_json = oj_stringify(data).decode().strip('"')
+    assert ry.Date.parse(ry_json) == ry.Date.parse(oj_json)
+
+
+@given(st.times())
+@pytest_mark_skip_orjson
+def test_stringify_times(data: t.Any) -> None:
+    """Test orjson/ry.stringify for dates."""
+    ry_json = ry.stringify(data, pybytes=True).decode().strip('"')
+    oj_json = oj_stringify(data).decode().strip('"')
+    assert ry.Time.parse(ry_json) == ry.Time.parse(oj_json)

@@ -11,7 +11,7 @@ impl FromPyObject<'_> for UrlLike {
     }
 }
 
-pub fn extract_url(ob: &Bound<PyAny>) -> PyResult<url::Url> {
+pub fn extract_url(ob: &Bound<'_, PyAny>) -> PyResult<url::Url> {
     if let Ok(url) = ob.downcast::<PyUrl>() {
         let url = url.borrow();
         Ok(url.0.clone())

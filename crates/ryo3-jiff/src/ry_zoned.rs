@@ -155,6 +155,10 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    fn isoformat(&self) -> String {
+        self.0.datetime().to_string()
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,

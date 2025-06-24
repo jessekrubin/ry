@@ -36,6 +36,19 @@ pub struct ClientConfig {
     http1_only: bool,
 }
 
+struct RequestKwargs<'py> {
+    url: &'py Bound<'py, PyAny>,
+    method: Method,
+    body: Option<ryo3_bytes::PyBytes>,
+    headers: Option<PyHeadersLike>,
+    query: Option<&'py Bound<'py, PyAny>>,
+    json: Option<&'py Bound<'py, PyAny>>,
+    multipart: Option<&'py Bound<'py, PyAny>>,
+    form: Option<&'py Bound<'py, PyAny>>,
+    timeout: Option<&'py ryo3_std::PyDuration>,
+    version: Option<HttpVersion>,
+}
+
 impl RyHttpClient {
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
@@ -44,47 +57,38 @@ impl RyHttpClient {
         Ok(Self { client, cfg })
     }
 
-    #[expect(clippy::too_many_arguments)]
-    #[expect(clippy::needless_pass_by_value)]
-    fn build_request<'py>(
-        &'py self,
-        _py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        method: Method,
-        body: Option<ryo3_bytes::PyBytes>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
-        version: Option<HttpVersion>,
-    ) -> PyResult<RequestBuilder> {
-        // let method = method.unwrap_or(ryo3_http::HttpMethod(reqwest::Method::GET));
-        let url = extract_url(url)?;
-        let mut req = self.client.request(method, url);
-        if let Some(ref version) = version {
+    // TODO: replace this with custom python-y builder pattern that does not
+    //       crudely wrap the reqwest::RequestBuilder
+    fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
+        let url = extract_url(options.url)?;
+        let mut req = self.client.request(options.method, url);
+        if let Some(ref version) = options.version {
             req = req.version(version.0);
         }
-        if let Some(query) = query {
-            let q = QueryLike::extract_bound(query)?;
-            req = req.query(&q);
-        }
-        if let Some(_multipart) = multipart {
-            return err_py_not_impl!("multipart not implemented (yet)");
-        }
-        if let Some(_form) = form {
-            return err_py_not_impl!("form not implemented (yet)");
-        }
-        if let Some(body) = body {
-            let body_bytes = body.into_inner();
-            req = req.body(body_bytes);
-        }
-        if let Some(headers) = headers {
+        if let Some(headers) = options.headers {
             let headers = HeaderMap::try_from(headers)?;
             req = req.headers(headers);
         }
-        if let Some(timeout) = timeout {
+        if let Some(timeout) = options.timeout {
             req = req.timeout(timeout.0);
+        }
+        if let Some(query) = options.query {
+            let q = QueryLike::extract_bound(query)?;
+            req = req.query(&q);
+        }
+        if let Some(json) = options.json {
+            let wrapped = ryo3_serde::SerializePyAny::new(json, None);
+            req = req.json(&wrapped);
+        }
+        if let Some(_multipart) = options.multipart {
+            return err_py_not_impl!("multipart not implemented (yet)");
+        }
+        if let Some(_form) = options.form {
+            return err_py_not_impl!("form not implemented (yet)");
+        }
+        if let Some(body) = options.body {
+            let body_bytes = body.into_inner();
+            req = req.body(body_bytes);
         }
         debug!("reqwest-client-fetch: {:#?}", req);
         Ok(req)
@@ -180,8 +184,9 @@ impl RyHttpClient {
             body = None,
             headers = None,
             query = None,
-            multipart = None,
+            json = None,
             form = None,
+            multipart = None,
             timeout = None,
             version = None,
         )
@@ -194,23 +199,25 @@ impl RyHttpClient {
         body: Option<ryo3_bytes::PyBytes>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
         timeout: Option<&ryo3_std::PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.build_request(
-            py,
+        let opts = RequestKwargs {
             url,
-            Method::GET,
+            method: Method::GET,
             body,
             headers,
             query,
+            json,
             multipart,
             form,
             timeout,
             version,
-        )?;
+        };
+        let req = self.build_request(opts)?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -226,8 +233,9 @@ impl RyHttpClient {
             body = None,
             headers = None,
             query = None,
-            multipart = None,
+            json = None,
             form = None,
+            multipart = None,
             timeout = None,
             version = None,
         )
@@ -240,23 +248,25 @@ impl RyHttpClient {
         body: Option<ryo3_bytes::PyBytes>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
         timeout: Option<&ryo3_std::PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.build_request(
-            py,
+        let opts = RequestKwargs {
             url,
-            Method::POST,
+            method: Method::POST,
             body,
             headers,
             query,
+            json,
             multipart,
             form,
             timeout,
             version,
-        )?;
+        };
+        let req = self.build_request(opts)?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -272,8 +282,9 @@ impl RyHttpClient {
             body = None,
             headers = None,
             query = None,
-            multipart = None,
+            json = None,
             form = None,
+            multipart = None,
             timeout = None,
             version = None,
         )
@@ -286,23 +297,25 @@ impl RyHttpClient {
         body: Option<ryo3_bytes::PyBytes>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
         timeout: Option<&ryo3_std::PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.build_request(
-            py,
+        let opts = RequestKwargs {
             url,
-            Method::PUT,
+            method: Method::PUT,
             body,
             headers,
             query,
+            json,
             multipart,
             form,
             timeout,
             version,
-        )?;
+        };
+        let req = self.build_request(opts)?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -318,146 +331,9 @@ impl RyHttpClient {
             body = None,
             headers = None,
             query = None,
-            multipart = None,
+            json = None,
             form = None,
-            timeout = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    pub fn delete<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
-        version: Option<HttpVersion>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.build_request(
-            py,
-            url,
-            Method::DELETE,
-            body,
-            headers,
-            query,
-            multipart,
-            form,
-            timeout,
-            version,
-        )?;
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            req.send()
-                .await
-                .map(RyResponse::from)
-                .map_err(map_reqwest_err)
-        })
-    }
-
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
             multipart = None,
-            form = None,
-            timeout = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    pub fn head<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
-        version: Option<HttpVersion>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.build_request(
-            py,
-            url,
-            Method::HEAD,
-            body,
-            headers,
-            query,
-            multipart,
-            form,
-            timeout,
-            version,
-        )?;
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            req.send()
-                .await
-                .map(RyResponse::from)
-                .map_err(map_reqwest_err)
-        })
-    }
-
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            multipart = None,
-            form = None,
-            timeout = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    pub fn options<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
-        version: Option<HttpVersion>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.build_request(
-            py,
-            url,
-            Method::OPTIONS,
-            body,
-            headers,
-            query,
-            multipart,
-            form,
-            timeout,
-            version,
-        )?;
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            req.send()
-                .await
-                .map(RyResponse::from)
-                .map_err(map_reqwest_err)
-        })
-    }
-
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            multipart = None,
-            form = None,
             timeout = None,
             version = None,
         )
@@ -470,23 +346,172 @@ impl RyHttpClient {
         body: Option<ryo3_bytes::PyBytes>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
         timeout: Option<&ryo3_std::PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let req = self.build_request(
-            py,
+        let opts = RequestKwargs {
             url,
-            Method::PATCH,
+            method: Method::PATCH,
             body,
             headers,
             query,
+            json,
             multipart,
             form,
             timeout,
             version,
-        )?;
+        };
+        let req = self.build_request(opts)?;
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            req.send()
+                .await
+                .map(RyResponse::from)
+                .map_err(map_reqwest_err)
+        })
+    }
+
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            body = None,
+            headers = None,
+            query = None,
+            json = None,
+            form = None,
+            multipart = None,
+            timeout = None,
+            version = None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    pub fn delete<'py>(
+        &'py self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+        body: Option<ryo3_bytes::PyBytes>,
+        headers: Option<PyHeadersLike>,
+        query: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
+        form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
+        timeout: Option<&ryo3_std::PyDuration>,
+        version: Option<HttpVersion>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let opts = RequestKwargs {
+            url,
+            method: Method::DELETE,
+            body,
+            headers,
+            query,
+            json,
+            multipart,
+            form,
+            timeout,
+            version,
+        };
+        let req = self.build_request(opts)?;
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            req.send()
+                .await
+                .map(RyResponse::from)
+                .map_err(map_reqwest_err)
+        })
+    }
+
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            body = None,
+            headers = None,
+            query = None,
+            json = None,
+            form = None,
+            multipart = None,
+            timeout = None,
+            version = None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    pub fn head<'py>(
+        &'py self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+        body: Option<ryo3_bytes::PyBytes>,
+        headers: Option<PyHeadersLike>,
+        query: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
+        form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
+        timeout: Option<&ryo3_std::PyDuration>,
+        version: Option<HttpVersion>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let opts = RequestKwargs {
+            url,
+            method: Method::HEAD,
+            body,
+            headers,
+            query,
+            json,
+            multipart,
+            form,
+            timeout,
+            version,
+        };
+        let req = self.build_request(opts)?;
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            req.send()
+                .await
+                .map(RyResponse::from)
+                .map_err(map_reqwest_err)
+        })
+    }
+
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            body = None,
+            headers = None,
+            query = None,
+            json = None,
+            form = None,
+            multipart = None,
+            timeout = None,
+            version = None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    pub fn options<'py>(
+        &'py self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+        body: Option<ryo3_bytes::PyBytes>,
+        headers: Option<PyHeadersLike>,
+        query: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
+        form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
+        timeout: Option<&ryo3_std::PyDuration>,
+        version: Option<HttpVersion>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let opts = RequestKwargs {
+            url,
+            method: Method::OPTIONS,
+            body,
+            headers,
+            query,
+            json,
+            multipart,
+            form,
+            timeout,
+            version,
+        };
+        let req = self.build_request(opts)?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -503,8 +528,9 @@ impl RyHttpClient {
             body = None,
             headers = None,
             query = None,
-            multipart = None,
+            json = None,
             form = None,
+            multipart = None,
             timeout = None,
             version = None,
         )
@@ -518,15 +544,28 @@ impl RyHttpClient {
         body: Option<ryo3_bytes::PyBytes>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
         timeout: Option<&ryo3_std::PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let method = method.map_or_else(|| Method::GET, |m| m.0);
-        let req = self.build_request(
-            py, url, method, body, headers, query, multipart, form, timeout, version,
-        )?;
+        let opts = RequestKwargs {
+            url,
+            method,
+            body,
+            headers,
+            query,
+            json,
+            multipart,
+            form,
+            timeout,
+            version,
+        };
+
+        let req = self.build_request(opts)?;
+        debug!("reqwest-client-fetch: {:#?}", req);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
@@ -543,8 +582,9 @@ impl RyHttpClient {
             body = None,
             headers = None,
             query = None,
-            multipart = None,
+            json = None,
             form = None,
+            multipart = None,
             timeout = None,
             version = None,
         )
@@ -558,13 +598,14 @@ impl RyHttpClient {
         body: Option<ryo3_bytes::PyBytes>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
         timeout: Option<&ryo3_std::PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.fetch(
-            py, url, method, body, headers, query, multipart, form, timeout, version,
+            py, url, method, body, headers, query, json, form, multipart, timeout, version,
         )
     }
 }

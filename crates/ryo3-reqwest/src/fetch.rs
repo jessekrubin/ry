@@ -7,8 +7,7 @@ use pyo3::IntoPyObjectExt;
 use ryo3_http::{HttpVersion, PyHeadersLike};
 
 // global fetch
-#[pyfunction]
-#[pyo3(
+#[pyfunction(
     signature = (
         url,
         *,
@@ -17,8 +16,9 @@ use ryo3_http::{HttpVersion, PyHeadersLike};
         body = None,
         headers = None,
         query = None,
-        multipart = None,
+        json = None,
         form = None,
+        multipart = None,
         timeout = None,
         version = None,
     )
@@ -32,8 +32,9 @@ pub(crate) fn fetch<'py>(
     body: Option<ryo3_bytes::PyBytes>,
     headers: Option<PyHeadersLike>,
     query: Option<&Bound<'py, PyAny>>,
-    multipart: Option<&Bound<'py, PyAny>>,
+    json: Option<&Bound<'py, PyAny>>,
     form: Option<&Bound<'py, PyAny>>,
+    multipart: Option<&Bound<'py, PyAny>>,
     timeout: Option<&ryo3_std::PyDuration>,
     version: Option<HttpVersion>,
 ) -> PyResult<Py<PyAny>> {
@@ -48,7 +49,7 @@ pub(crate) fn fetch<'py>(
 
     client_ref
         .fetch(
-            py, url, method, body, headers, query, multipart, form, timeout, version,
+            py, url, method, body, headers, query, json, multipart, form, timeout, version,
         )
         .map(|x| x.into_py_any(py))?
 }
