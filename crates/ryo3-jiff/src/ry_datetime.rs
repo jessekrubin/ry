@@ -324,6 +324,11 @@ impl RyDateTime {
         self.in_tz(tz)
     }
 
+    /// Return string in the form `YYYY-MM-DD HH:MM:SS.ssssss`
+    fn isoformat(&self) -> String {
+        self.0.to_string()
+    }
+
     fn iso_week_date(&self) -> RyISOWeekDate {
         RyISOWeekDate::from(self.0.iso_week_date())
     }
