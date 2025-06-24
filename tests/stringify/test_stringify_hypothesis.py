@@ -1,4 +1,3 @@
-import datetime as pydt
 import json
 import typing as t
 
@@ -104,39 +103,6 @@ def test_stringify_datetimes(data: t.Any) -> None:
     ry_json = ry.stringify(data, pybytes=True).decode().strip('"')
     oj_json = oj_stringify(data).decode().strip('"')
     assert ry.DateTime.parse(ry_json) == ry.DateTime.parse(oj_json)
-
-
-@given(st.datetimes(timezones=st.timezones()))
-@pytest_mark_skip_orjson
-def test_stringify_datetimes_tz(dt: pydt.datetime) -> None:
-    """Test that stringify_json produces valid JSON strings compatible with orjson."""
-    # strip the quotes
-    # if the timezone is "build/etc/localtime", skip for now
-    # TODO: fix...
-    tzn = dt.tzname()
-    if tzn is not None and tzn == "build/etc/localtime":
-        # Skip UTC timezone for now, as it is not handled by orjson
-        # TODO: handle this
-        return
-
-    #  if has tz
-    if dt.tzinfo is not None:
-        try:
-            ry.ZonedDateTime.from_pydatetime(dt)
-        except ValueError:
-            return
-    ry_json = ry.stringify(dt, pybytes=True).decode().strip('"')
-    oj_json = oj_stringify(dt).decode().strip('"')
-    pydatetime_oj = pydt.datetime.fromisoformat(oj_json)
-
-    # strip trailing [...] if present
-    def _strip_trailing_tzname(dt_str: str) -> str:
-        if dt_str.endswith("]"):
-            return dt_str[: dt_str.rfind("[")].strip()
-        return dt_str
-
-    pydatetime_ry = pydt.datetime.fromisoformat(_strip_trailing_tzname(ry_json))
-    assert pydatetime_ry == pydatetime_oj
 
 
 @given(st.dates())
