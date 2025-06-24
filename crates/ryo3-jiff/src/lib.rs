@@ -24,6 +24,7 @@ mod deprecations;
 mod errors;
 mod functions;
 mod into_span_arithmetic;
+mod isoformat;
 mod jiff_types;
 mod ry_date;
 mod ry_date_difference;

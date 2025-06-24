@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.49 [unreleased]
+
+- `ryo3-jiff`
+  - `isoformat` methods aligned with python's `datetime` library methods
+
+---
+
 ## v0.0.48 [2025-06-24]
 
 - `ryo3-json`

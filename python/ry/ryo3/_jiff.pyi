@@ -86,6 +86,7 @@ class Date(ToPy[pydt.date], ToPyDate):
     # STRING
     # =========================================================================
     def string(self) -> str: ...
+    def isoformat(self) -> str: ...
 
     # =========================================================================
     # PYTHON_CONVERSIONS
@@ -233,6 +234,7 @@ class Time(ToPy[pydt.time], ToPyTime):
     # STRING
     # =========================================================================
     def string(self) -> str: ...
+    def isoformat(self) -> str: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
