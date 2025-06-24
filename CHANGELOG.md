@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.48 [2025-06-20]
+## v0.0.48 [2025-06-24]
 
 - `ryo3-json`
   - `pybytes` bool kwargs to return `builtins.bytes` if `True` and `ry.Bytes` if
