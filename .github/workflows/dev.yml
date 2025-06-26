@@ -30,38 +30,13 @@ jobs:
           'workflow_dispatch'
       - run: just ci
 
-  dev-test-linux-x86_64:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      matrix:
-        target: [ x86_64 ]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          args: --release --out dist --find-interpreter
-          sccache: "true"
-      - name: pytest
-        if: ${{ startsWith(matrix.target, 'x86_64') }}
-        shell: bash
-        run: |
-          set -e
-          pip install ry --find-links dist --force-reinstall
-          pip install -r requirements.dev.txt
-          pip install pytest
-          pytest
 
   test-python:
     name: test-python-${{ matrix.python-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         target: [ x86_64 ]
         python-version: [ "3.10", "pypy3.10" ]
@@ -80,8 +55,35 @@ jobs:
           uv sync
       - name: install ry
         run: |
-          uv pip install -e .
+          uv -v pip install -e .
         env:
           RUST_BACKTRACE: 1
       - run: uv pip freeze
       - run: uv run pytest
+
+#  dev-test-linux-x86_64:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#    strategy:
+#      matrix:
+#        target: [ x86_64 ]
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-python@v5
+#        with:
+#          python-version: "3.10"
+#      - name: Build wheels
+#        uses: PyO3/maturin-action@v1
+#        with:
+#          target: ${{ matrix.target }}
+#          args: --release --out dist --find-interpreter
+#          sccache: "true"
+#      - name: pytest
+#        if: ${{ startsWith(matrix.target, 'x86_64') }}
+#        shell: bash
+#        run: |
+#          set -e
+#          pip install ry --find-links dist --force-reinstall
+#          pip install -r requirements.dev.txt
+#          pip install pytest
+#          pytest
