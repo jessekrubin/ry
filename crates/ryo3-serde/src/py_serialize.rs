@@ -30,9 +30,11 @@ use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
 use pyo3::Bound;
 use serde::ser::SerializeSeq;
 
+type Depth = u8;
+const MAX_DEPTH: Depth = 255;
 pub struct SerializePyAny<'py> {
     pub(crate) obj: &'py Bound<'py, PyAny>,
-    pub(crate) none_value: Option<&'py str>,
+    pub(crate) depth: Depth,
     default: Option<&'py Bound<'py, PyAny>>,
     ob_type_lookup: &'py PyTypeCache,
 }
@@ -49,18 +51,33 @@ impl<'py> SerializePyAny<'py> {
         let py = obj.py();
         Self {
             obj,
-            none_value: None,
+            default,
+            depth: 0,
+            ob_type_lookup: PyTypeCache::cached(py),
+        }
+    }
+
+    #[must_use]
+    pub fn new_with_depth(
+        obj: &'py Bound<'py, PyAny>,
+        default: Option<&'py Bound<'py, PyAny>>,
+        depth: Depth,
+    ) -> Self {
+        let py = obj.py();
+        Self {
+            obj,
             default,
             ob_type_lookup: PyTypeCache::cached(py),
+            depth,
         }
     }
 
     pub(crate) fn with_obj(&self, obj: &'py Bound<'py, PyAny>) -> Self {
         Self {
             obj,
-            none_value: self.none_value,
-            default: self.default,
             ob_type_lookup: self.ob_type_lookup,
+            default: self.default,
+            depth: self.depth + 1,
         }
     }
 }
@@ -70,10 +87,14 @@ impl Serialize for SerializePyAny<'_> {
     where
         S: Serializer,
     {
+        if self.depth == MAX_DEPTH {
+            return Err(SerError::custom("recursion"));
+        }
+
         let lookup = self.ob_type_lookup;
         if let Some(ob_type) = lookup.obtype(self.obj) {
             match ob_type {
-                PyObType::None => none(self, serializer),
+                PyObType::None | PyObType::Ellipsis => none(self, serializer),
                 PyObType::Bool => bool_(self, serializer),
                 PyObType::Int => int(self, serializer),
                 PyObType::Float => float(self, serializer),
@@ -127,9 +148,11 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::RyZoned => rytypes::ry_zoned(self, serializer),
             }
         } else if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
-            SerializePyMapping::new(py_map, self.default).serialize(serializer)
+            SerializePyMapping::new_with_depth(py_map, self.default, self.depth + 1)
+                .serialize(serializer)
         } else if let Ok(py_seq) = self.obj.downcast::<PySequence>() {
-            SerializePySequence::new(py_seq, self.default).serialize(serializer)
+            SerializePySequence::new_with_depth(py_seq, self.default, self.depth + 1)
+                .serialize(serializer)
         } else if let Some(default) = self.default {
             // call the default transformer fn and attempt to then serialize the result
             let r = default.call1((&self.obj,)).map_err(pyerr2sererr)?;
@@ -145,12 +168,21 @@ impl Serialize for SerializePyAny<'_> {
 // ===========================================================================
 struct SerializePySequence<'a, 'py> {
     seq: &'a Bound<'py, PySequence>,
+    depth: Depth,
     default: Option<&'py Bound<'py, PyAny>>,
 }
 
 impl<'a, 'py> SerializePySequence<'a, 'py> {
-    fn new(seq: &'a Bound<'py, PySequence>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
-        Self { seq, default }
+    fn new_with_depth(
+        seq: &'a Bound<'py, PySequence>,
+        default: Option<&'py Bound<'py, PyAny>>,
+        depth: Depth,
+    ) -> Self {
+        Self {
+            seq,
+            depth,
+            default,
+        }
     }
 }
 
@@ -163,7 +195,7 @@ impl Serialize for SerializePySequence<'_, '_> {
         let mut seq = serializer.serialize_seq(Some(len))?;
         for i in 0..len {
             let item = self.seq.get_item(i).map_err(pyerr2sererr)?;
-            let item_ser = SerializePyAny::new(&item, self.default);
+            let item_ser = SerializePyAny::new_with_depth(&item, self.default, self.depth + 1);
             seq.serialize_element(&item_ser)?;
         }
         seq.end()
@@ -175,12 +207,21 @@ impl Serialize for SerializePySequence<'_, '_> {
 
 struct SerializePyMapping<'a, 'py> {
     mapping: &'a Bound<'py, PyMapping>,
+    depth: Depth,
     default: Option<&'py Bound<'py, PyAny>>,
 }
 
 impl<'a, 'py> SerializePyMapping<'a, 'py> {
-    fn new(mapping: &'a Bound<'py, PyMapping>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
-        Self { mapping, default }
+    fn new_with_depth(
+        mapping: &'a Bound<'py, PyMapping>,
+        default: Option<&'py Bound<'py, PyAny>>,
+        depth: Depth,
+    ) -> Self {
+        Self {
+            mapping,
+            depth,
+            default,
+        }
     }
 }
 
@@ -196,7 +237,7 @@ impl Serialize for SerializePyMapping<'_, '_> {
             for k in keys {
                 let k = crate::pytypes::mapping_key(&k)?;
                 let val = self.mapping.get_item(k).map_err(pyerr2sererr)?;
-                let v = SerializePyAny::new(&val, self.default);
+                let v = SerializePyAny::new_with_depth(&val, self.default, self.depth + 1);
                 m.serialize_entry(k, &v).map_err(pyerr2sererr)?;
             }
             m.end()
