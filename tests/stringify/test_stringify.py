@@ -218,6 +218,7 @@ PYTYPES_JSON_SER = [
 
 
 @pytest.mark.parametrize("data", PYTYPES_JSON_SER)
+@pytest_mark_skip_orjson
 def test_stringify_json_data(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings for various data types."""
     _test_stringify_json_orjson_compatible(data)
