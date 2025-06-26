@@ -5,6 +5,8 @@
 - `ryo3-serde`
   - Fixed recursive serialization w/ max depth of 255 (aligning with `orjson`)
   - support `PyEllipsis` for `None` values in serialization
+- `ryo3-json`
+  - `minify` function to remove whitespace/newlines from json-string/bytes
 - `ryo3-jiff`
   - `isoformat` methods aligned with python's `datetime` library methods
 
