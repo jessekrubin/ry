@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-        target: [x86_64]
+        target: [ x86_64 ]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -56,3 +56,25 @@ jobs:
           pip install -r requirements.dev.txt
           pip install pytest
           pytest
+
+  test-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        target: [ x86_64 ]
+        python-version: [ "3.10", "pypy3.10" ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: install deps
+        run: |
+          uv sync
+      - name: install ry
+        run: |
+          uv pip install -e .
+      - run: uv pip freeze
+      - run: uv run pytest
