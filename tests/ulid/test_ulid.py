@@ -24,7 +24,10 @@ def utcnow() -> datetime:
 
 
 def datetimes_almost_equal(a: datetime, b: datetime) -> None:
-    assert a.replace(microsecond=0) == b.replace(microsecond=0)
+    dt = abs((a - b).total_seconds())
+    assert dt < 0.01, (
+        f"Expected {a} and {b} to be almost equal, but they differ by {dt} seconds"
+    )
 
 
 def test_ulid() -> None:
