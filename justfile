@@ -43,6 +43,9 @@ dev-rel:
     maturin develop --release
 
 # run pytest
+doctest:
+    pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" python
+
 pytest:
     pytest --benchmark-skip
 
