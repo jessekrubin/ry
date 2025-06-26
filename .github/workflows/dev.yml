@@ -21,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: install-rust-stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: setup-rust-cache
+        uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
         with:
           tool: just
-      - uses: Swatinem/rust-cache@v2
-        if:
-          github.event_name != 'release' && github.event_name !=
-          'workflow_dispatch'
       - run: just ci
 
 
