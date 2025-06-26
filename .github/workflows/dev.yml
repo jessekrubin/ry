@@ -76,5 +76,7 @@ jobs:
       - name: install ry
         run: |
           uv pip install -e .
+        env:
+          RUST_
       - run: uv pip freeze
       - run: uv run pytest
