@@ -1,8 +1,8 @@
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{
-    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyFloat, PyFrozenSet, PyInt,
-    PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
+    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis, PyFloat,
+    PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
 
@@ -14,6 +14,7 @@ pub(crate) enum PyObType {
     // SINGLETONS
     // ------------------------------------------------------------------------
     None,
+    Ellipsis,
     // ------------------------------------------------------------------------
     // BUILTINS
     // ------------------------------------------------------------------------
@@ -91,6 +92,7 @@ pub(crate) enum PyObType {
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub(crate) struct PyTypeCache {
     pub none: usize,
+    pub ellipsis: usize,
     // numeric types
     pub int: usize,
     pub bool: usize,
@@ -158,6 +160,7 @@ impl PyTypeCache {
     fn new(py: Python) -> Self {
         Self {
             none: PyNone::type_object_raw(py) as usize,
+            ellipsis: PyEllipsis::type_object_raw(py) as usize,
             // numeric types
             int: PyInt::type_object_raw(py) as usize,
             bool: PyBool::type_object_raw(py) as usize,
@@ -238,6 +241,7 @@ impl PyTypeCache {
     pub(crate) fn ptr2type(&self, ptr: usize) -> Option<PyObType> {
         match ptr {
             x if x == self.none => Some(PyObType::None),
+            x if x == self.ellipsis => Some(PyObType::Ellipsis),
             x if x == self.int => Some(PyObType::Int),
             x if x == self.bool => Some(PyObType::Bool),
             x if x == self.float => Some(PyObType::Float),

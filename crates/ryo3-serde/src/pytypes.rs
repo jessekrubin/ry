@@ -13,16 +13,16 @@ use pyo3::Bound;
 use serde::ser::{Error as SerError, Serialize, SerializeMap, SerializeSeq};
 
 #[inline]
-pub(crate) fn none<S>(ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
+pub(crate) fn none<S>(_ser: &SerializePyAny<'_>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
-    if let Some(none_value) = ser.none_value {
-        serializer.serialize_str(none_value)
-    } else {
-        // if no none_value is set, serialize as None
-        serializer.serialize_none()
-    }
+    // if let Some(none_value) = ser.none_value {
+    //     serializer.serialize_str(none_value)
+    // } else {
+    // if no none_value is set, serialize as None
+    serializer.serialize_none()
+    // }
 }
 
 #[inline]

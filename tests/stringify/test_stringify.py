@@ -34,6 +34,19 @@ def oj_stringify(data: t.Any) -> bytes:
     return orjson.dumps(data)
 
 
+def test_stringify_recursive() -> None:
+    """Test that stringify raises `RecursionError` for recursive data structures."""
+    a = {
+        "k": "v",
+    }
+    b = {
+        "a": a,
+    }
+    a["b"] = b
+    with pytest.raises(RecursionError, match="Recursion limit reached"):
+        _r = ry.stringify(a)
+
+
 def test_stringify_pybytes_output() -> None:
     data = {
         "key": "val",
@@ -93,6 +106,14 @@ def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     assert ry_parsed == oj_parsed, (
         "Parsed JSON from ry.stringify does not match orjson parsed result"
     )
+
+
+def test_ellipsis() -> None:
+    """Test that stringify_json raises TypeError for Ellipsis."""
+    data = {"key": Ellipsis}
+    res = ry.stringify(data)
+    assert isinstance(res, ry.Bytes), "Result should be a `ry.Bytes`"
+    assert res == b'{"key":null}', "Ellipsis should be serialized as null"
 
 
 def test_inf_nan_neginf() -> None:

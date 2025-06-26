@@ -2,6 +2,9 @@
 
 ## v0.0.49 [unreleased]
 
+- `ryo3-serde`
+  - Fixed recursive serialization w/ max depth of 255 (aligning with `orjson`)
+  - support `PyEllipsis` for `None` values in serialization
 - `ryo3-jiff`
   - `isoformat` methods aligned with python's `datetime` library methods
 
