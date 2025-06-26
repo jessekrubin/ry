@@ -61,7 +61,7 @@ fn warn_debug_build(_py: Python) -> PyResult<()> {
 #[pyo3(name = "ryo3")]
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     lager::tracing_init()
-        .map_err(|e| PyRuntimeError::new_err(format!("Failed to initialize logging: {}", e)))?;
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to initialize logging: {e}")))?;
     let ti = std::time::Instant::now();
     #[cfg(debug_assertions)]
     warn_debug_build(m.py())?;

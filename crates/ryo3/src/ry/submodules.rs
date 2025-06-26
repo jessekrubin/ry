@@ -15,18 +15,18 @@ pub fn dirs_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 //     Ok(())
 // }
 
-#[cfg(feature = "jiter")]
-#[pymodule(gil_used = false, name = "JSON")]
-pub fn json(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(ryo3_json::stringify, m)?)?;
-    m.add_function(wrap_pyfunction!(ryo3_json::dumps, m)?)?;
-    m.add_function(wrap_pyfunction!(ryo3_jiter::parse, m)?)?;
-    m.add_function(wrap_pyfunction!(ryo3_jiter::loads, m)?)?;
-    m.add_function(wrap_pyfunction!(ryo3_jiter::cache_clear, m)?)?;
-    m.add_function(wrap_pyfunction!(ryo3_jiter::cache_usage, m)?)?;
-    Ok(())
-}
-
+// #[cfg(feature = "jiter")]
+// #[pymodule(gil_used = false, name = "JSON")]
+// pub fn json(m: &Bound<'_, PyModule>) -> PyResult<()> {
+//     m.add_function(wrap_pyfunction!(ryo3_json::stringify, m)?)?;
+//     m.add_function(wrap_pyfunction!(ryo3_json::dumps, m)?)?;
+//     m.add_function(wrap_pyfunction!(ryo3_jiter::parse, m)?)?;
+//     m.add_function(wrap_pyfunction!(ryo3_jiter::loads, m)?)?;
+//     m.add_function(wrap_pyfunction!(ryo3_jiter::cache_clear, m)?)?;
+//     m.add_function(wrap_pyfunction!(ryo3_jiter::cache_usage, m)?)?;
+//     Ok(())
+// }
+//
 #[cfg(feature = "uuid")]
 #[pymodule(gil_used = false, name = "uuid")]
 pub fn uuid(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -57,15 +57,20 @@ pub fn zstd(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
+    // renaming
+    let sys = PyModule::import(py, intern!(py, "sys"))?;
+    let sys_modules = sys
+        .getattr(intern!(py, "modules"))?
+        .downcast_into::<PyDict>()?;
+
+    #[cfg(feature = "jiter")]
+    m.add_wrapped(pyo3::wrap_pymodule!(ryo3_json::json_py_module))?;
+    sys_modules.set_item(intern!(py, "ry.JSON"), m.getattr(intern!(py, "JSON"))?)?;
+    let attr = m.getattr(intern!(py, "JSON"))?;
+    attr.setattr(intern!(py, "__name__"), intern!(py, "ry.JSON"))?;
 
     #[cfg(feature = "dirs")]
     m.add_wrapped(pyo3::wrap_pymodule!(dirs_module))?;
-
-    // #[cfg(feature = "http")]
-    // m.add_wrapped(wrap_pymodule!(http))?;
-
-    #[cfg(feature = "jiter")]
-    m.add_wrapped(pyo3::wrap_pymodule!(json))?;
 
     #[cfg(feature = "ulid")]
     m.add_wrapped(pyo3::wrap_pymodule!(ulid))?;
@@ -75,12 +80,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     #[cfg(feature = "xxhash")]
     m.add_wrapped(pyo3::wrap_pymodule!(xxhash))?;
-
-    // renaming
-    let sys = PyModule::import(py, intern!(py, "sys"))?;
-    let sys_modules = sys
-        .getattr(intern!(py, "modules"))?
-        .downcast_into::<PyDict>()?;
 
     sys_modules.set_item(intern!(py, "ry.dirs"), m.getattr(intern!(py, "dirs"))?)?;
     let attr = m.getattr(intern!(py, "dirs"))?;
@@ -103,8 +102,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // uuid
     sys_modules.set_item(intern!(py, "ry.uuid"), m.getattr(intern!(py, "uuid"))?)?;
-    let attr = m.getattr(intern!(py, "uuid"))?;
-    attr.setattr(intern!(py, "__name__"), intern!(py, "ry.uuid"))?;
+    m.getattr(intern!(py, "uuid"))
+        .and_then(|attr| attr.setattr(intern!(py, "__name__"), intern!(py, "ry.uuid")))?;
 
     // xxhash
     sys_modules.set_item(intern!(py, "ry.xxhash"), m.getattr(intern!(py, "xxhash"))?)?;

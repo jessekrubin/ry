@@ -1,6 +1,5 @@
 """ry.ryo3.JSON"""
 
-import builtins
 from typing import Any, Callable, Literal, overload
 
 import typing_extensions
@@ -16,6 +15,31 @@ JsonValue: typing_extensions.TypeAlias = (
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]
 )
+
+def minify(data: Buffer) -> Bytes:
+    """Return minified json data (remove whitespace, newlines)
+
+    Args:
+        data: The JSON data to minify.
+
+    Returns:
+        Minified JSON data as a `Bytes` object.
+
+    Examples:
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.minify(json_str))
+        b'{"key":"value","number":123,"bool":true}'
+
+    """
 
 @overload
 def stringify(

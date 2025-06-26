@@ -15,7 +15,9 @@ description = "json ~ rust-python-json"
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes = { workspace = true }
 ryo3-serde = { workspace = true }
+ryo3-jiter = { workspace = true }
 serde_json.workspace = true
+serde-transcode.workspace = true
 
 [lints]
 workspace = true
