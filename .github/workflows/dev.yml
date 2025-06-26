@@ -77,6 +77,6 @@ jobs:
         run: |
           uv pip install -e .
         env:
-          RUST_
+          RUST_BACKTRACE: 1
       - run: uv pip freeze
       - run: uv run pytest
