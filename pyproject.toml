@@ -48,8 +48,9 @@ urls.Source = "https://github.com/jessekrubin/ry"
 dev = [
   "anyio>=4.8",
   "hypothesis>=6.124.2",
-  "maturin[patchelf]>=1.8.6",
+  "maturin>=1.8.6",
   "mypy>=1.14.1",
+  "orjson>=3.10.18; implementation_name == 'cpython'",
   "pytest>=8.3.5",
   "pytest-asyncio>=0.25.2",
   "pytest-benchmark>=5.1",
