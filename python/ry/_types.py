@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import sys
 from os import PathLike
 from typing import Protocol, TypedDict, TypeVar
@@ -32,6 +33,27 @@ class ToPy(Protocol[T_co]):
 # protocol for function defining __json__() -> bytes / buffer:
 class Stringify(Protocol):
     def __json__(self) -> Buffer | bytes | str: ...
+
+
+# =============================================================================
+# STD
+# =============================================================================
+class FileTypeDict(TypedDict):
+    is_dir: bool
+    is_file: bool
+    is_symlink: bool
+
+
+class MetadataDict(TypedDict):
+    is_dir: bool
+    is_file: bool
+    is_symlink: bool
+    len: int
+    readonly: bool
+    file_type: FileTypeDict | None
+    accessed: dt.datetime
+    created: dt.datetime
+    modified: dt.datetime
 
 
 # =============================================================================

@@ -3,6 +3,8 @@
 import typing as t
 from os import PathLike
 
+import typing_extensions as te
+
 from ry import FileType, FsPath, Glob, GlobSet, Globster
 
 class WalkDirEntry:
@@ -33,6 +35,9 @@ _T_walkdir = t.TypeVar(
 
 class WalkdirGen(t.Generic[_T_walkdir]):
     """walkdir::Walkdir iterable wrapper"""
+    def __init__(
+        self,
+    ) -> te.NoReturn: ...
     def __next__(self) -> _T_walkdir: ...
     def __iter__(self) -> t.Iterator[_T_walkdir]: ...
     def collect(self) -> list[_T_walkdir]: ...

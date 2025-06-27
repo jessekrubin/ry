@@ -44,11 +44,6 @@ impl PyHttpStatus {
     }
 
     #[must_use]
-    pub fn _canonical_reason_orig(&self) -> Option<&'static str> {
-        self.0.canonical_reason()
-    }
-
-    #[must_use]
     #[getter]
     pub fn canonical_reason<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
         status_code_pystring(py, self.0.as_u16())

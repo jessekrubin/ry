@@ -173,4 +173,3 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
-__file__: str

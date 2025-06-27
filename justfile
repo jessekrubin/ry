@@ -9,6 +9,9 @@
 repl:
     python -m ry.dev
 
+repl-uv:
+    uv run python -m ry.dev
+
 # dev run build + tests
 dev: develop test
 
@@ -150,6 +153,7 @@ clippy:
 
 # run clippy with feature-powerset via cargo-hack
 clippy-features:
+    cargo hack --feature-powerset clippy --package ryo3-fspath
     cargo hack --feature-powerset clippy --package ryo3-http
     cargo hack --feature-powerset clippy --package ryo3-jiff
     cargo hack --feature-powerset clippy --package ryo3-ulid
