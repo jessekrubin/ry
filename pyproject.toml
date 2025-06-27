@@ -54,7 +54,7 @@ dev = [
   "orjson>=3.10.18; implementation_name == 'cpython'",
   "pydantic>=2.11.7",
   "pytest>=8.3.5",
-  "pytest-asyncio>=0.25.2",
+  "pytest-asyncio>=1.0.0",
   "pytest-benchmark>=5.1",
   "rich>=14.0.0",
   "ruff>=0.11.12",
@@ -121,3 +121,6 @@ reportUnnecessaryTypeIgnoreComment = true
 
 [tool.uv]
 package = false # don't build package w/ uv
+
+[tool.uv.sources]
+ry = { workspace = true }

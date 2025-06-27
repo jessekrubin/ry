@@ -12,7 +12,12 @@ repl:
 # dev run build + tests
 dev: develop test
 
+# dev run build + tests (with uv)
 dev-uv: develop-uv pytest-uv
+
+# uv sync
+sync:
+    uv sync --inexact
 
 # maturin develop
 develop:
