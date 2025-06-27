@@ -1,5 +1,6 @@
 import datetime as pydt
 import json
+import sys
 import typing as t
 import uuid as pyuuid
 
@@ -409,3 +410,120 @@ class TestStringifyDefault:
         }
         with pytest.raises(TypeError, match="'str' is not callable"):
             ry.stringify(data, default="poopy::not-a-callable", fmt=True)  # type: ignore[call-overload]
+
+
+def test_stringify_dataclass() -> None:
+    """Test that `stringify` handles dataclasses correctly."""
+    from dataclasses import dataclass
+
+    @dataclass
+    class Point:
+        x: int
+        y: int
+
+    data = {
+        "point1": Point(1, 2),
+        "point2": Point(3, 4),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    assert parsed == {
+        "point1": {"x": 1, "y": 2},
+        "point2": {"x": 3, "y": 4},
+    }, f"Parsed JSON does not match original data: {parsed} != {data}"
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="dataclass(slots=True) is python3.10+ (IIRC -jesse)",
+)
+def test_stringify_dataclass_with_slots_kwarg() -> None:
+    """Test that `stringify` handles dataclasses with slots correctly."""
+    from dataclasses import dataclass
+
+    @dataclass(slots=True)
+    class Point:
+        x: int
+        y: int
+
+    data = {
+        "point1": Point(1, 2),
+        "point2": Point(3, 4),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    assert parsed == {
+        "point1": {"x": 1, "y": 2},
+        "point2": {"x": 3, "y": 4},
+    }, f"Parsed JSON does not match original data: {parsed} != {data}"
+
+
+def test_stringify_dataclass_with_slots_manually_added() -> None:
+    """Test that `stringify` handles dataclasses with slots manually added correctly."""
+    from dataclasses import dataclass
+
+    @dataclass
+    class Point:
+        x: int
+        y: int
+
+        __slots__ = ("x", "y")
+
+    data = {
+        "point1": Point(1, 2),
+        "point2": Point(3, 4),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    assert parsed == {
+        "point1": {"x": 1, "y": 2},
+        "point2": {"x": 3, "y": 4},
+    }, f"Parsed JSON does not match original data: {parsed} != {data}"
+
+
+def test_stringify_dataclass_nested() -> None:
+    """Test that `stringify` handles nested dataclasses correctly."""
+    from dataclasses import dataclass
+
+    @dataclass
+    class Point:
+        x: int
+        y: int
+
+    @dataclass
+    class Shape:
+        name: str
+        point: Point
+
+    data = {
+        "shape1": Shape("circle", Point(1, 2)),
+        "shape2": Shape("square", Point(3, 4)),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    assert parsed == {
+        "shape1": {"name": "circle", "point": {"x": 1, "y": 2}},
+        "shape2": {"name": "square", "point": {"x": 3, "y": 4}},
+    }
+
+
+def test_stringify_string_subclass() -> None:
+    """Test that `stringify` handles string subclasses correctly."""
+
+    class MyString(str):
+        pass
+
+    data = {
+        "key1": "value1",
+        "key2": MyString("my_string_value"),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    assert parsed["key2"] == "my_string_value", (
+        f"Parsed JSON does not match original string subclass: {parsed['key2']} != 'my_string_value'"
+    )
