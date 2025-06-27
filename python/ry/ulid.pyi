@@ -11,8 +11,6 @@ from pydantic import (
     ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
 )
 from pydantic_core import CoreSchema as CoreSchema
-from ulid import base32 as base32
-from ulid import constants as constants
 
 class ULID:
     def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
