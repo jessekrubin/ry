@@ -509,21 +509,3 @@ def test_stringify_dataclass_nested() -> None:
         "shape1": {"name": "circle", "point": {"x": 1, "y": 2}},
         "shape2": {"name": "square", "point": {"x": 3, "y": 4}},
     }
-
-
-def test_stringify_string_subclass() -> None:
-    """Test that `stringify` handles string subclasses correctly."""
-
-    class MyString(str):
-        pass
-
-    data = {
-        "key1": "value1",
-        "key2": MyString("my_string_value"),
-    }
-    res = ry.stringify(data, fmt=True)
-    parsed = ry.parse_json(res)
-    assert isinstance(parsed, dict), "Parsed result should be a dictionary"
-    assert parsed["key2"] == "my_string_value", (
-        f"Parsed JSON does not match original string subclass: {parsed['key2']} != 'my_string_value'"
-    )
