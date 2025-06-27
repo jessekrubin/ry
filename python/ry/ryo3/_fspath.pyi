@@ -6,6 +6,7 @@ from pathlib import Path
 
 from ry._types import Buffer, ToPy
 from ry.ryo3._bytes import Bytes
+from ry.ryo3._regex import Regex
 from ry.ryo3._std import Metadata
 
 # =============================================================================
@@ -113,10 +114,20 @@ class FsPath(ToPy[Path]):
     def with_file_name(self, name: str) -> FsPath: ...
 
     # =========================================================================
-    # MISC
+    # FEATURE: `same-file`
     # =========================================================================
     def samefile(self, other: PathLike[str] | str | FsPath) -> bool: ...
     def symlink_metadata(self) -> Metadata: ...
+
+    # =========================================================================
+    # FEATURE: `which` & `which-regex`
+    # =========================================================================
+    @staticmethod
+    def which(cmd: str, path: str) -> FsPath | None: ...
+    @staticmethod
+    def which_all(cmd: str, path: str) -> list[FsPath]: ...
+    @staticmethod
+    def which_re(regex: str | Regex, path: str) -> FsPath | None: ...
 
 class FsPathReaddir:
     def __init__(self) -> t.NoReturn: ...

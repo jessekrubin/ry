@@ -42,7 +42,7 @@ def test_stringify_recursive() -> None:
     b = {
         "a": a,
     }
-    a["b"] = b
+    a["b"] = b  # type: ignore[assignment]
     with pytest.raises(RecursionError, match="Recursion limit reached"):
         _r = ry.stringify(a)
 

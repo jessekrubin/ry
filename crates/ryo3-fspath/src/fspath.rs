@@ -8,6 +8,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
 use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::types::PathLike;
+use std::ffi::OsStr;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
@@ -65,7 +66,7 @@ impl PyFsPath {
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let os_str = self.pth.as_os_str();
+        let os_str = self.path().as_os_str();
         PyTuple::new(py, vec![os_str])
     }
 
@@ -97,13 +98,13 @@ impl PyFsPath {
 
     fn __hash__(&self) -> u64 {
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        self.pth.hash(&mut hasher);
+        self.path().hash(&mut hasher);
         hasher.finish()
     }
 
     fn __richcmp__(&self, other: PathLike, op: CompareOp) -> bool {
         let o = other.as_ref();
-        let p = self.pth.as_path();
+        let p = self.path();
         match op {
             CompareOp::Eq => {
                 // start by comparing as paths
@@ -129,17 +130,17 @@ impl PyFsPath {
     }
 
     fn absolute(&self) -> PyResult<Self> {
-        let p = self.pth.canonicalize()?;
+        let p = self.path().canonicalize()?;
         Ok(PyFsPath::from(p))
     }
 
     fn resolve(&self) -> PyResult<Self> {
-        let p = self.pth.canonicalize()?;
+        let p = self.path().canonicalize()?;
         Ok(PyFsPath::from(p))
     }
 
-    fn __fspath__(&self) -> String {
-        self.pth.to_string_lossy().to_string()
+    fn __fspath__(&self) -> &OsStr {
+        self.path().as_os_str()
     }
 
     fn clone(&self) -> Self {
@@ -149,7 +150,7 @@ impl PyFsPath {
     }
 
     fn __truediv__(&self, other: PathLike) -> Self {
-        Self::from(self.pth.join(other.as_ref()))
+        Self::from(self.path().join(other.as_ref()))
     }
 
     fn __rtruediv__(&self, other: PathLike) -> Self {
@@ -165,7 +166,7 @@ impl PyFsPath {
 
     #[getter]
     fn root(&self) -> Option<Self> {
-        self.pth
+        self.path()
             .components()
             .next()
             .map(|p| Self::from(p.as_os_str()))
@@ -421,22 +422,22 @@ impl PyFsPath {
     //  - PathBuf.set_file_name
     // REMOVED FOR `frozen`
     // fn _push(mut slf: PyRefMut<'_, Self>, path: PathLike) -> PyRefMut<'_, PyFsPath> {
-    //     slf.pth.push(path);
+    //     slf.path().push(path);
     //     slf
     // }
     //
     // fn _pop(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, PyFsPath> {
-    //     slf.pth.pop();
+    //     slf.path().pop();
     //     slf
     // }
     //
     // fn _set_extension(mut slf: PyRefMut<'_, Self>, ext: String) -> PyRefMut<'_, PyFsPath> {
-    //     slf.pth.set_extension(ext);
+    //     slf.path().set_extension(ext);
     //     slf
     // }
     //
     // fn _set_file_name(mut slf: PyRefMut<'_, Self>, name: String) -> PyRefMut<'_, PyFsPath> {
-    //     slf.pth.set_file_name(name);
+    //     slf.path().set_file_name(name);
     //     slf
     // }
 
@@ -480,18 +481,18 @@ impl PyFsPath {
     //  - Path.as_mut_os_str
     //  - Path.as_os_str
     fn ancestors<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parents: Vec<Self> = self.pth.ancestors().map(PyFsPath::from).collect();
+        let parents: Vec<Self> = self.path().ancestors().map(PyFsPath::from).collect();
         PyTuple::new(py, parents)
     }
 
     fn canonicalize(&self) -> PyResult<Self> {
-        let p = self.pth.canonicalize()?;
+        let p = self.path().canonicalize()?;
         Ok(PyFsPath::from(p))
     }
 
     fn components<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let parts = self
-            .pth
+            .path()
             .components()
             .map(|c| c.as_os_str().to_string_lossy().to_string())
             .collect::<Vec<String>>();
@@ -499,73 +500,73 @@ impl PyFsPath {
     }
 
     fn display(&self) -> String {
-        self.pth.display().to_string()
+        self.path().display().to_string()
     }
 
     fn ends_with(&self, path: PathLike) -> bool {
-        self.pth.ends_with(path.as_ref())
+        self.path().ends_with(path.as_ref())
     }
 
     fn exists(&self) -> PyResult<bool> {
-        self.pth
+        self.path()
             .try_exists()
             .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
     }
 
     fn extension(&self) -> Option<String> {
-        self.pth
+        self.path()
             .extension()
             .map(|e| e.to_string_lossy().to_string())
     }
 
     fn file_name(&self) -> Option<String> {
-        self.pth
+        self.path()
             .file_name()
             .map(|s| s.to_string_lossy().to_string())
     }
 
     fn file_prefix(&self) -> Option<String> {
-        self.pth
+        self.path()
             .file_stem()
             .map(|s| s.to_string_lossy().to_string())
     }
 
     fn file_stem(&self) -> Option<String> {
-        self.pth
+        self.path()
             .file_stem()
             .map(|s| s.to_string_lossy().to_string())
     }
 
     fn has_root(&self) -> bool {
-        self.pth.has_root()
+        self.path().has_root()
     }
 
     fn is_absolute(&self) -> bool {
-        self.pth.is_absolute()
+        self.path().is_absolute()
     }
 
     fn is_dir(&self) -> bool {
-        self.pth.is_dir()
+        self.path().is_dir()
     }
 
     fn is_file(&self) -> bool {
-        self.pth.is_file()
+        self.path().is_file()
     }
 
     fn is_relative(&self) -> bool {
-        self.pth.is_relative()
+        self.path().is_relative()
     }
 
     fn is_symlink(&self) -> bool {
-        self.pth.is_symlink()
+        self.path().is_symlink()
     }
 
     fn join(&self, p: PathLike) -> PyFsPath {
-        Self::from(self.pth.join(p))
+        Self::from(self.path().join(p))
     }
 
     fn metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
-        self.pth
+        self.path()
             .metadata()
             .map(ryo3_std::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
@@ -579,36 +580,36 @@ impl PyFsPath {
     }
 
     fn read_link(&self) -> PyResult<Self> {
-        self.pth
+        self.path()
             .read_link()
             .map(Self::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("read_link: {e}")))
     }
 
     fn starts_with(&self, p: PathLike) -> bool {
-        self.pth.starts_with(p.as_ref())
+        self.path().starts_with(p.as_ref())
     }
 
     fn strip_prefix(&self, p: PathLike) -> PyResult<PyFsPath> {
-        self.pth
+        self.path()
             .strip_prefix(p.as_ref())
             .map(Self::from)
             .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
 
     fn symlink_metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
-        self.pth
+        self.path()
             .metadata()
             .map(ryo3_std::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
     }
 
     fn with_extension(&self, extension: String) -> Self {
-        Self::from(self.pth.with_extension(extension))
+        Self::from(self.path().with_extension(extension))
     }
 
     fn with_file_name(&self, name: String) -> Self {
-        Self::from(self.pth.with_file_name(name))
+        Self::from(self.path().with_file_name(name))
     }
 
     // ========================================================================
@@ -628,6 +629,59 @@ impl PyFsPath {
     fn samefile(&self, _other: PathBuf) -> PyResult<bool> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`same-file` feature not enabled",
+        ))
+    }
+
+    // -------------------------------------------------------------------------
+    // `which` feature
+    // -------------------------------------------------------------------------
+    #[cfg(feature = "which")]
+    #[staticmethod]
+    #[pyo3(signature = (cmd, path=None))]
+    fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<Self>> {
+        ryo3_which::which(cmd, path).map(|opt| opt.map(PyFsPath::from))
+    }
+
+    #[cfg(not(feature = "which"))]
+    #[staticmethod]
+    #[pyo3(signature = (_cmd, _path=None))]
+    fn which(_cmd: &str, _path: Option<&str>) -> PyResult<Option<Self>> {
+        Err(ryo3_core::FeatureNotEnabledError::new_err(
+            "`which` feature not enabled",
+        ))
+    }
+
+    #[cfg(feature = "which")]
+    #[staticmethod]
+    #[pyo3(signature = (cmd, path=None))]
+    fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<Self>> {
+        ryo3_which::which_all(cmd, path)
+            .map(|opt| opt.into_iter().map(PyFsPath::from).collect::<Vec<_>>())
+    }
+
+    #[cfg(not(feature = "which"))]
+    #[staticmethod]
+    #[pyo3(signature = (_cmd, _path=None))]
+    fn which_all(_cmd: &str, _path: Option<&str>) -> PyResult<Vec<Self>> {
+        Err(ryo3_core::FeatureNotEnabledError::new_err(
+            "`which` feature not enabled",
+        ))
+    }
+
+    #[cfg(feature = "which-regex")]
+    #[staticmethod]
+    #[pyo3(signature = (regex, path=None))]
+    fn which_re(regex: &Bound<'_, PyAny>, path: Option<&str>) -> PyResult<Vec<Self>> {
+        ryo3_which::which_re(regex, path)
+            .map(|opt| opt.into_iter().map(PyFsPath::from).collect::<Vec<_>>())
+    }
+
+    #[cfg(not(feature = "which-regex"))]
+    #[staticmethod]
+    #[pyo3(signature = (_regex, _path=None))]
+    fn which_re(_regex: &Bound<'_, PyAny>, _path: Option<&str>) -> PyResult<Vec<Self>> {
+        Err(ryo3_core::FeatureNotEnabledError::new_err(
+            "`which` feature not enabled",
         ))
     }
 }

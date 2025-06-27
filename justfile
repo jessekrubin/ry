@@ -9,10 +9,18 @@
 repl:
     python -m ry.dev
 
+repl-uv:
+    uv run python -m ry.dev
+
 # dev run build + tests
 dev: develop test
 
+# dev run build + tests (with uv)
 dev-uv: develop-uv pytest-uv
+
+# uv sync
+sync:
+    uv sync --inexact
 
 # maturin develop
 develop:
@@ -145,6 +153,7 @@ clippy:
 
 # run clippy with feature-powerset via cargo-hack
 clippy-features:
+    cargo hack --feature-powerset clippy --package ryo3-fspath
     cargo hack --feature-powerset clippy --package ryo3-http
     cargo hack --feature-powerset clippy --package ryo3-jiff
     cargo hack --feature-powerset clippy --package ryo3-ulid

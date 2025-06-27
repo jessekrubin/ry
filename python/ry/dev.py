@@ -63,7 +63,7 @@ if __name__ == "__main__":
         IPython.InteractiveShell.banner1 = _banner()  # type: ignore[attr-defined,assignment]
         rich = None  # type: ignore[assignment]
 
-        ipython_argv = ["--no-tip"]
+        ipython_argv = []
         if rich is not None:
             ipython_argv.extend(["--ext", "rich"])
         IPython.start_ipython(argv=ipython_argv, user_ns=local)  # type: ignore[no-untyped-call]

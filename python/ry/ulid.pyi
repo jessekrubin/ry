@@ -1,18 +1,12 @@
 import builtins
 import datetime as pydt
-import typing as t
 import uuid
 from collections.abc import Callable as Callable
+from typing import Any
 
-from pydantic import (
-    GetCoreSchemaHandler as GetCoreSchemaHandler,
-)
-from pydantic import (
-    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
-)
+from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
+from pydantic import ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler
 from pydantic_core import CoreSchema as CoreSchema
-from ulid import base32 as base32
-from ulid import constants as constants
 
 class ULID:
     def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
@@ -67,12 +61,12 @@ class ULID:
     @classmethod
     def from_int(cls, value: int) -> ULID: ...
     @classmethod
-    def parse(cls, value: t.Any) -> ULID: ...
+    def parse(cls, value: Any) -> ULID: ...
 
     # --------
     # PYDANTIC
     # --------
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, source: t.Any, handler: GetCoreSchemaHandler
+        cls, source: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema: ...

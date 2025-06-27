@@ -9,6 +9,8 @@
   - `minify` function to remove whitespace/newlines from json-string/bytes
 - `ryo3-jiff`
   - `isoformat` methods aligned with python's `datetime` library methods
+- `ryo3-fspath`
+  - `which` feature allowing `FsPath.which` and `FsPath.which_all`
 
 ---
 

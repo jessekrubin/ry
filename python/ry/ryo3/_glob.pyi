@@ -6,7 +6,7 @@ from pathlib import Path
 
 import typing_extensions as te
 
-from ._fspath import FsPath
+from ry.ryo3._fspath import FsPath
 
 _T = t.TypeVar("_T", bound=str | Path | FsPath)
 

@@ -3,8 +3,8 @@ use crate::fs::file_read_stream::PyFileReadStream;
 use pyo3::exceptions::{
     PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError, PyValueError,
 };
-use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyDict};
+use pyo3::{intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
 use std::ffi::OsString;
@@ -56,6 +56,14 @@ impl PyFileType {
         );
         Ok(repr)
     }
+
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let file_type_dict = pyo3::types::PyDict::new(py);
+        file_type_dict.set_item(intern!(py, "is_dir"), self.is_dir())?;
+        file_type_dict.set_item(intern!(py, "is_file"), self.is_file())?;
+        file_type_dict.set_item(intern!(py, "is_symlink"), self.is_symlink())?;
+        Ok(file_type_dict)
+    }
 }
 
 #[pyclass(name = "Metadata", module = "ry.ryo3", frozen)]
@@ -76,6 +84,35 @@ impl PyMetadata {
 
 #[pymethods]
 impl PyMetadata {
+    fn __repr__(&self) -> String {
+        format!(
+            "Metadata<is_dir={}, is_file={}, is_symlink={}, len={}, readonly={}>",
+            self.0.is_dir(),
+            self.0.is_file(),
+            self.0.file_type().is_symlink(),
+            self.0.len(),
+            self.0.permissions().readonly(),
+        )
+    }
+
+    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let metadata_dict = PyDict::new(py);
+        metadata_dict.set_item(intern!(py, "is_dir"), self.is_dir())?;
+        metadata_dict.set_item(intern!(py, "is_file"), self.is_file())?;
+        metadata_dict.set_item(intern!(py, "is_symlink"), self.is_symlink())?;
+        metadata_dict.set_item(intern!(py, "len"), self.len())?;
+        metadata_dict.set_item(intern!(py, "readonly"), self.readonly())?;
+        if let Ok(ft) = self.file_type().to_py(py) {
+            metadata_dict.set_item(intern!(py, "file_type"), ft)?;
+        } else {
+            metadata_dict.set_item(intern!(py, "file_type"), py.None())?;
+        }
+        metadata_dict.set_item(intern!(py, "accessed"), self.accessed()?)?;
+        metadata_dict.set_item(intern!(py, "created"), self.created()?)?;
+        metadata_dict.set_item(intern!(py, "modified"), self.modified()?)?;
+        Ok(metadata_dict)
+    }
+
     #[getter]
     pub fn accessed(&self) -> PyResult<SystemTime> {
         let accessed = self.0.accessed()?;
@@ -177,6 +214,10 @@ impl PyPermissions {
 
     fn __eq__(&self, other: &PyPermissions) -> bool {
         self.0 == other.0
+    }
+
+    fn __ne__(&self, other: &PyPermissions) -> bool {
+        self.0 != other.0
     }
 }
 
