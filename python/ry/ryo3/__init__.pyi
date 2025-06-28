@@ -96,6 +96,9 @@ from ry.ryo3._std import IpAddr as IpAddr
 from ry.ryo3._std import Ipv4Addr as Ipv4Addr
 from ry.ryo3._std import Ipv6Addr as Ipv6Addr
 from ry.ryo3._std import Metadata as Metadata
+from ry.ryo3._std import SocketAddr as SocketAddr
+from ry.ryo3._std import SocketAddrV4 as SocketAddrV4
+from ry.ryo3._std import SocketAddrV6 as SocketAddrV6
 from ry.ryo3._std import canonicalize as canonicalize
 from ry.ryo3._std import copy as copy
 from ry.ryo3._std import create_dir as create_dir

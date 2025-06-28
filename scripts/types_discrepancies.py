@@ -153,6 +153,7 @@ def compare_member(toget: str) -> MembersComparison:
     types_info = types_package.get_member(toget)
 
     actual_members = set(dir(ry_actual_members))
+    print(types_info)
     types_members = set(types_info.members)
     # get missing in types, as well as missing in actual
     missing_from_types = (actual_members - types_members) - IGNORED_MEMBERS
