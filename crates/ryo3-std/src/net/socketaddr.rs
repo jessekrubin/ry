@@ -25,8 +25,13 @@ impl PySocketAddrV4 {
         Ok(PySocketAddrV4(sa))
     }
 
+    fn __str__(&self) -> String {
+        self.0.to_string()
+    }
+
     fn __repr__(&self) -> String {
-        format!("SocketAddrV4({}, {})", self.0.ip(), self.port())
+        let py_ip = PyIpv4Addr::from(self.0.ip());
+        format!("SocketAddrV4({}, {})", py_ip.__repr__(), self.port())
     }
 
     fn __richcmp__(&self, other: &PySocketAddrV4, op: pyo3::basic::CompareOp) -> PyResult<bool> {
@@ -166,7 +171,8 @@ impl PySocketAddrV6 {
     }
 
     fn __repr__(&self) -> String {
-        format!("SocketAddrV6({}, {})", self.0.ip(), self.port())
+        let py_ip = PyIpv6Addr::from(self.0.ip());
+        format!("SocketAddrV6({}, {})", py_ip.__repr__(), self.port())
     }
 
     fn __richcmp__(&self, other: &PySocketAddrV6, op: pyo3::basic::CompareOp) -> PyResult<bool> {
@@ -261,8 +267,8 @@ impl PySocketAddrV6 {
 
     #[getter]
     #[expect(clippy::unused_self)]
-    fn is_ipv4_mapped(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+    fn is_ipv4_mapped(&self) -> bool {
+        self.to_ipaddrv6().is_ipv4_mapped()
     }
 
     #[getter]
@@ -323,7 +329,11 @@ impl PySocketAddr {
     }
 
     fn __repr__(&self) -> String {
-        format!("SocketAddr({}, {})", self.0.ip(), self.port())
+        let py_str = match self.0.ip() {
+            IpAddr::V4(ipv4) => PyIpv4Addr::from(ipv4).__repr__(),
+            IpAddr::V6(ipv6) => PyIpv6Addr::from(ipv6).__repr__(),
+        };
+        format!("SocketAddr({}, {})", py_str, self.port())
     }
 
     fn __richcmp__(&self, other: &PySocketAddr, op: pyo3::basic::CompareOp) -> PyResult<bool> {

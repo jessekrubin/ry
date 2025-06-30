@@ -395,9 +395,11 @@ impl PyIpv6Addr {
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_ipv4_mapped(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+    pub(crate) fn is_ipv4_mapped(&self) -> bool {
+        match self.0.octets() {
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _a, _b, _c, _d] => true,
+            _ => false,
+        }
     }
 
     #[getter]

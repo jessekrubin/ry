@@ -426,7 +426,14 @@ class IpAddr(
     UNSPECIFIED_V6: IpAddr
 
     def __init__(
-        self, iplike: int | str | bytes | ipaddress.IPv4Address | ipaddress.IPv6Address
+        self,
+        iplike: int
+        | str
+        | bytes
+        | Ipv4Addr
+        | Ipv6Addr
+        | ipaddress.IPv4Address
+        | ipaddress.IPv6Address,
     ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...

@@ -153,8 +153,28 @@ def compare_member(toget: str) -> MembersComparison:
     types_info = types_package.get_member(toget)
 
     actual_members = set(dir(ry_actual_members))
-    print(types_info)
-    types_members = set(types_info.members)
+
+    # print(types_info, types_info.bases)
+    def get_all_members_and_bases(obj: griffe.Object | griffe.Alias) -> set[str]:
+        """Get all members and bases of a griffe object."""
+        members = {
+            *obj.members,  # type: ignore
+            *obj.inherited_members,  # type: ignore
+        }
+        # set(obj.inherited_members)
+        for base in obj.bases:
+            try:
+                # sub = types_package.get_member(base.name)
+                sub = get_all_members_and_bases(base)
+                print(sub)
+                members.update(sub)
+            except AttributeError as e:
+                ...
+        return members
+
+    # types_members = set(types_info.members)
+    types_members = get_all_members_and_bases(types_info)
+    # set(types_info.members)
     # get missing in types, as well as missing in actual
     missing_from_types = (actual_members - types_members) - IGNORED_MEMBERS
     missing_from_actual = (types_members - actual_members) - IGNORED_MEMBERS
@@ -177,6 +197,8 @@ def main() -> None:
     problems = []
 
     for member in class_members:
+        if "Ip" not in member:
+            continue
         res = compare_member(member)
         if not res.missing_from_actual and not res.missing_from_types:
             all_good.append(res)
