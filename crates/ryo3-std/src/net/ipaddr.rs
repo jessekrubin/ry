@@ -248,6 +248,7 @@ impl PyIpv4Addr {
         self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pyipaddress(&self) -> Ipv4Addr {
         self.0
     }
@@ -396,16 +397,15 @@ impl PyIpv6Addr {
 
     #[getter]
     pub(crate) fn is_ipv4_mapped(&self) -> bool {
-        match self.0.octets() {
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _a, _b, _c, _d] => true,
-            _ => false,
-        }
+        matches!(
+            self.0.octets(),
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _, _, _, _]
+        )
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_unicast(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+    fn is_unicast(&self) -> bool {
+        !(self.0.is_multicast())
     }
 
     #[getter]
@@ -692,7 +692,6 @@ impl PyIpAddr {
 // IpAddrLike
 // ========================================================================
 #[derive(FromPyObject, Clone, Debug)]
-// #[derive(Clone, Debug)
 pub(crate) enum IpAddrLike {
     Ryv4(PyIpv4Addr),
     Ryv6(PyIpv6Addr),
@@ -707,13 +706,13 @@ impl IpAddrLike {
             IpAddrLike::Ryv4(addr) => Ok(addr.0),
             IpAddrLike::Ry(addr) => match addr.0 {
                 IpAddr::V4(addr) => Ok(addr),
-                _ => Err(pyo3::exceptions::PyTypeError::new_err(
+                IpAddr::V6(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv4 address",
                 )),
             },
             IpAddrLike::Py(addr) => match addr {
                 IpAddr::V4(addr) => Ok(*addr),
-                _ => Err(pyo3::exceptions::PyTypeError::new_err(
+                IpAddr::V6(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv4 address",
                 )),
             },
@@ -731,13 +730,13 @@ impl IpAddrLike {
             IpAddrLike::Ryv6(addr) => Ok(addr.0),
             IpAddrLike::Ry(addr) => match addr.0 {
                 IpAddr::V6(addr) => Ok(addr),
-                _ => Err(pyo3::exceptions::PyTypeError::new_err(
+                IpAddr::V4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv6 address",
                 )),
             },
             IpAddrLike::Py(addr) => match addr {
                 IpAddr::V6(addr) => Ok(*addr),
-                _ => Err(pyo3::exceptions::PyTypeError::new_err(
+                IpAddr::V4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv6 address",
                 )),
             },

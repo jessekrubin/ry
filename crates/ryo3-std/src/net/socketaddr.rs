@@ -19,6 +19,7 @@ pub struct PySocketAddr(pub(crate) SocketAddr);
 #[pymethods]
 impl PySocketAddrV4 {
     #[new]
+    #[expect(clippy::needless_pass_by_value)]
     pub(crate) fn py_new(ip: IpAddrLike, port: u16) -> PyResult<Self> {
         let ipv4 = ip.get_ipv4()?;
         let sa = SocketAddrV4::new(ipv4, port);
@@ -34,14 +35,14 @@ impl PySocketAddrV4 {
         format!("SocketAddrV4({}, {})", py_ip.__repr__(), self.port())
     }
 
-    fn __richcmp__(&self, other: &PySocketAddrV4, op: pyo3::basic::CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &PySocketAddrV4, op: pyo3::basic::CompareOp) -> bool {
         match op {
-            pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
-            pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
-            pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
-            pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
-            pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
-            pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
+            pyo3::basic::CompareOp::Eq => self.0 == other.0,
+            pyo3::basic::CompareOp::Ne => self.0 != other.0,
+            pyo3::basic::CompareOp::Lt => self.0 < other.0,
+            pyo3::basic::CompareOp::Le => self.0 <= other.0,
+            pyo3::basic::CompareOp::Gt => self.0 > other.0,
+            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -89,6 +90,7 @@ impl PySocketAddrV4 {
     }
 
     #[getter]
+    #[expect(clippy::unused_self)]
     fn version(&self) -> u8 {
         4
     }
@@ -175,14 +177,14 @@ impl PySocketAddrV6 {
         format!("SocketAddrV6({}, {})", py_ip.__repr__(), self.port())
     }
 
-    fn __richcmp__(&self, other: &PySocketAddrV6, op: pyo3::basic::CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &PySocketAddrV6, op: pyo3::basic::CompareOp) -> bool {
         match op {
-            pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
-            pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
-            pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
-            pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
-            pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
-            pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
+            pyo3::basic::CompareOp::Eq => self.0 == other.0,
+            pyo3::basic::CompareOp::Ne => self.0 != other.0,
+            pyo3::basic::CompareOp::Lt => self.0 < other.0,
+            pyo3::basic::CompareOp::Le => self.0 <= other.0,
+            pyo3::basic::CompareOp::Gt => self.0 > other.0,
+            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -230,6 +232,7 @@ impl PySocketAddrV6 {
     }
 
     #[getter]
+    #[expect(clippy::unused_self)]
     fn version(&self) -> u8 {
         6
     }
@@ -303,6 +306,7 @@ impl PySocketAddrV6 {
 impl PySocketAddr {
     #[new]
     #[pyo3(signature = (ip, port, flowinfo = None, scope_id = None))]
+    #[expect(clippy::needless_pass_by_value)]
     pub(crate) fn py_new(
         ip: IpAddrLike,
         port: u16,
@@ -336,14 +340,14 @@ impl PySocketAddr {
         format!("SocketAddr({}, {})", py_str, self.port())
     }
 
-    fn __richcmp__(&self, other: &PySocketAddr, op: pyo3::basic::CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &PySocketAddr, op: pyo3::basic::CompareOp) -> bool {
         match op {
-            pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
-            pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
-            pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
-            pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
-            pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
-            pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
+            pyo3::basic::CompareOp::Eq => self.0 == other.0,
+            pyo3::basic::CompareOp::Ne => self.0 != other.0,
+            pyo3::basic::CompareOp::Lt => self.0 < other.0,
+            pyo3::basic::CompareOp::Le => self.0 <= other.0,
+            pyo3::basic::CompareOp::Gt => self.0 > other.0,
+            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
         }
     }
 
