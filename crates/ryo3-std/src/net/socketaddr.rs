@@ -162,6 +162,7 @@ impl PySocketAddrV4 {
 impl PySocketAddrV6 {
     #[new]
     #[pyo3(signature = (ip, port, flowinfo = 0, scope_id = 0))]
+    #[expect(clippy::needless_pass_by_value)]
     fn py_new(ip: IpAddrLike, port: u16, flowinfo: u32, scope_id: u32) -> PyResult<Self> {
         let ipv6 = ip.get_ipv6()?;
         let sa = SocketAddrV6::new(ipv6, port, flowinfo, scope_id);
@@ -269,7 +270,6 @@ impl PySocketAddrV6 {
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
     fn is_ipv4_mapped(&self) -> bool {
         self.to_ipaddrv6().is_ipv4_mapped()
     }

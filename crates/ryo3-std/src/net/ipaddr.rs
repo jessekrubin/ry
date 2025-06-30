@@ -1,3 +1,4 @@
+#![expect(clippy::trivially_copy_pass_by_ref)]
 use crate::net::{PySocketAddrV4, PySocketAddrV6};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
@@ -244,6 +245,7 @@ impl PyIpv4Addr {
     // PY-CONVERSIONS
     // ========================================================================
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> Ipv4Addr {
         self.0
     }
@@ -253,28 +255,22 @@ impl PyIpv4Addr {
         self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_ipaddr(&self) -> PyIpAddr {
         PyIpAddr::from(self.0)
     }
 
-    fn to_socketaddr_v4(&self, port: u16) -> PyResult<PySocketAddrV4> {
-        Ok(PySocketAddrV4::from(SocketAddrV4::new(self.0, port)))
+    #[expect(clippy::wrong_self_convention)]
+    fn to_socketaddr_v4(&self, port: u16) -> PySocketAddrV4 {
+        PySocketAddrV4::from(SocketAddrV4::new(self.0, port))
     }
+
     #[pyo3(signature = (port, flowinfo = 0, scope_id = 0))]
-    fn to_socketaddr_v6(
-        &self,
-        port: u16,
-        flowinfo: u32,
-        scope_id: u32,
-    ) -> PyResult<PySocketAddrV6> {
+    #[expect(clippy::wrong_self_convention)]
+    fn to_socketaddr_v6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
         // IPv4 addresses can be converted to IPv6-mapped addresses
         let ipv6_mapped = self.0.to_ipv6_mapped();
-        Ok(PySocketAddrV6::from(SocketAddrV6::new(
-            ipv6_mapped,
-            port,
-            flowinfo,
-            scope_id,
-        )))
+        PySocketAddrV6::from(SocketAddrV6::new(ipv6_mapped, port, flowinfo, scope_id))
     }
 
     // ========================================================================
@@ -432,17 +428,22 @@ impl PyIpv6Addr {
     // PY-CONVERSIONS
     // ========================================================================
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> Ipv6Addr {
         self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pyipaddress(&self) -> Ipv6Addr {
         self.0
     }
+
+    #[expect(clippy::wrong_self_convention)]
     fn to_ipaddr(&self) -> PyIpAddr {
         PyIpAddr::from(self.0)
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_socketaddr_v4(&self, port: u16) -> PyResult<PySocketAddrV4> {
         if let Some(addr) = self.0.to_ipv4() {
             Ok(PySocketAddrV4::from(SocketAddrV4::new(addr, port)))
@@ -454,15 +455,9 @@ impl PyIpv6Addr {
     }
 
     #[pyo3(signature = (port, flowinfo = 0, scope_id = 0))]
-    fn to_socketaddr_v6(
-        &self,
-        port: u16,
-        flowinfo: u32,
-        scope_id: u32,
-    ) -> PyResult<PySocketAddrV6> {
-        Ok(PySocketAddrV6::from(SocketAddrV6::new(
-            self.0, port, flowinfo, scope_id,
-        )))
+    #[expect(clippy::wrong_self_convention)]
+    fn to_socketaddr_v6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
+        PySocketAddrV6::from(SocketAddrV6::new(self.0, port, flowinfo, scope_id))
     }
 
     // ========================================================================
@@ -640,10 +635,12 @@ impl PyIpAddr {
     // ========================================================================
     // PY-CONVERSIONS
     // ========================================================================
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> IpAddr {
         self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pyipaddress(&self) -> IpAddr {
         self.0
     }
@@ -661,10 +658,12 @@ impl PyIpAddr {
     // ========================================================================
     // METHODS
     // ========================================================================
+    #[expect(clippy::wrong_self_convention)]
     fn to_canonical(&self) -> Self {
         Self::from(self.0.to_canonical())
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_ipv4(&self) -> PyResult<PyIpv4Addr> {
         match self.0 {
             IpAddr::V4(addr) => Ok(PyIpv4Addr::from(addr)),
@@ -680,6 +679,7 @@ impl PyIpAddr {
         }
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_ipv6(&self) -> PyIpv6Addr {
         match self.0 {
             IpAddr::V4(addr) => PyIpv6Addr::from(addr.to_ipv6_mapped()),
@@ -719,7 +719,7 @@ impl IpAddrLike {
             IpAddrLike::Str(s) => s.parse().map_err(|_| {
                 pyo3::exceptions::PyTypeError::new_err("Expected a valid IPv4 address string")
             }),
-            _ => Err(pyo3::exceptions::PyTypeError::new_err(
+            IpAddrLike::Ryv6(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                 "Expected an IPv4 address",
             )),
         }
@@ -743,7 +743,7 @@ impl IpAddrLike {
             IpAddrLike::Str(s) => s.parse().map_err(|_| {
                 pyo3::exceptions::PyTypeError::new_err("Expected a valid IPv6 address string")
             }),
-            _ => Err(pyo3::exceptions::PyTypeError::new_err(
+            IpAddrLike::Ryv4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                 "Expected an IPv6 address",
             )),
         }
