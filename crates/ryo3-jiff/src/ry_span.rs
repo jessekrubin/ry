@@ -18,6 +18,17 @@ use std::str::FromStr;
 #[pyclass(name = "TimeSpan", module = "ry.ryo3", frozen)]
 pub struct RySpan(pub(crate) Span);
 
+impl RySpan {
+    pub(crate) fn assert_non_zero(&self) -> PyResult<()> {
+        if self.0.is_zero() {
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "Span cannot be zero",
+            ))
+        } else {
+            Ok(())
+        }
+    }
+}
 impl PartialEq for RySpan {
     fn eq(&self, other: &Self) -> bool {
         let self_fieldwise = self.0.fieldwise();

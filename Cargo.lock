@@ -1790,6 +1790,7 @@ name = "ryo3-jiff"
 version = "0.0.49"
 dependencies = [
  "jiff",
+ "parking_lot",
  "pyo3",
  "pyo3-build-config",
  "ryo3-macro-rules",

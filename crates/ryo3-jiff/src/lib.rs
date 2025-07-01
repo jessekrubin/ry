@@ -48,6 +48,7 @@ mod ry_zoned_difference;
 mod ry_zoned_round;
 #[cfg(feature = "serde")]
 mod serde;
+mod series;
 mod span_relative_to;
 mod test;
 

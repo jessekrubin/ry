@@ -10,17 +10,16 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::series::RyDateSeries;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
-    PyResult, Python,
+    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python,
 };
 use ryo3_std::PyDuration;
-use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -319,9 +318,7 @@ impl RyDate {
                 "period cannot be zero",
             ))
         } else {
-            Ok(RyDateSeries {
-                series: self.0.series(period.0),
-            })
+            Ok(RyDateSeries::from(self.0.series(period.0)))
         }
     }
 
@@ -487,26 +484,6 @@ impl Display for RyDate {
 impl From<Date> for RyDate {
     fn from(value: Date) -> Self {
         RyDate(value)
-    }
-}
-
-#[pyclass(name = "DateSeries", module = "ry.ryo3")]
-pub struct RyDateSeries {
-    pub(crate) series: jiff::civil::DateSeries,
-}
-
-#[pymethods]
-impl RyDateSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDate> {
-        slf.series.next().map(RyDate::from)
-    }
-
-    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyDate> {
-        slf.series.borrow_mut().take(n).map(RyDate::from).collect()
     }
 }
 

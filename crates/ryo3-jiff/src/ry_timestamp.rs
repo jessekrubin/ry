@@ -7,13 +7,13 @@ use crate::ry_timestamp_difference::{RyTimestampDifference, TimestampDifferenceA
 use crate::ry_timestamp_round::RyTimestampRound;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::series::RyTimestampSeries;
 use crate::{JiffRoundMode, JiffUnit, RyOffset};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
-use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -243,10 +243,9 @@ impl RyTimestamp {
         self.0.subsec_millisecond()
     }
 
-    fn series(&self, period: &RySpan) -> RyTimestampSeries {
-        RyTimestampSeries {
-            series: self.0.series(period.0),
-        }
+    fn series(&self, period: &RySpan) -> PyResult<RyTimestampSeries> {
+        period.assert_non_zero()?;
+        Ok(self.0.series(period.0).into())
     }
 
     #[getter]
@@ -424,30 +423,6 @@ impl Display for RyTimestamp {
 impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
         RyTimestamp(value)
-    }
-}
-
-#[pyclass(name = "TimestampSeries", module = "ry.ryo3")]
-pub struct RyTimestampSeries {
-    pub(crate) series: jiff::TimestampSeries,
-}
-
-#[pymethods]
-impl RyTimestampSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTimestamp> {
-        slf.series.next().map(RyTimestamp::from)
-    }
-
-    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyTimestamp> {
-        slf.series
-            .borrow_mut()
-            .take(n)
-            .map(RyTimestamp::from)
-            .collect()
     }
 }
 

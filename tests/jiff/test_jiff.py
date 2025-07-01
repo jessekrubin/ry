@@ -157,7 +157,6 @@ def test_zoned() -> None:
         "minute": ry_datetime.minute,
         "second": ry_datetime.second,
         "nanosecond": ry_datetime.nanosecond,
-        "subsec_nanosecond": ry_datetime.subsec_nanosecond,
     }
     dt_dictionary = {
         "year": 2020,
@@ -167,7 +166,6 @@ def test_zoned() -> None:
         "minute": 27,
         "second": 0,
         "nanosecond": 0,
-        "subsec_nanosecond": 0,
     }
     assert dt_fields == dt_dictionary
     assert ry_datetime.asdict() == {
@@ -177,7 +175,7 @@ def test_zoned() -> None:
         "hour": 6,
         "minute": 27,
         "second": 0,
-        "subsec_nanosecond": 0,
+        "nanosecond": 0,
     }
 
     ry_time = zdt.time()
