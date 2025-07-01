@@ -89,12 +89,16 @@ impl PySocketAddrV4 {
         Ok(PySocketAddrV4(SocketAddrV4::new(ip, port)))
     }
 
-    #[getter]
-    #[expect(clippy::unused_self)]
-    fn version(&self) -> u8 {
+    #[classattr]
+    fn version() -> u8 {
         4
     }
 
+    // ip getter
+    #[getter]
+    fn ip(&self) -> PyIpv4Addr {
+        PyIpv4Addr::from(self.0.ip())
+    }
     // ========================================================================
     // Ipv4 forwarded
     // ========================================================================
@@ -208,6 +212,11 @@ impl PySocketAddrV6 {
     }
 
     #[getter]
+    fn ip(&self) -> PyIpv6Addr {
+        PyIpv6Addr::from(self.0.ip())
+    }
+
+    #[getter]
     fn port(&self) -> u16 {
         self.0.port()
     }
@@ -232,9 +241,8 @@ impl PySocketAddrV6 {
         Ok(PySocketAddrV6(SocketAddrV6::new(ip, port, 0, 0)))
     }
 
-    #[getter]
-    #[expect(clippy::unused_self)]
-    fn version(&self) -> u8 {
+    #[classattr]
+    fn version() -> u8 {
         6
     }
 
@@ -379,6 +387,11 @@ impl PySocketAddr {
         PyIpAddr::from(self.0.ip())
     }
 
+    #[getter]
+    fn ip(&self) -> PyIpAddr {
+        PyIpAddr::from(self.0.ip())
+    }
+
     fn to_pyipaddress(&self) -> IpAddr {
         match self.0.ip() {
             IpAddr::V4(addr) => IpAddr::V4(addr),
@@ -455,5 +468,74 @@ impl PySocketAddr {
     #[getter]
     fn is_unspecified(&self) -> bool {
         self.0.ip().is_unspecified()
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_global(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_ipv4_mapped(&self) -> bool {
+        match self.0.ip() {
+            IpAddr::V6(addr) => {
+                matches!(
+                    addr.octets(),
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _, _, _, _]
+                )
+            }
+            IpAddr::V4(_) => false,
+        }
+    }
+
+    #[getter]
+    fn is_link_local(&self) -> bool {
+        match self.0.ip() {
+            IpAddr::V4(addr) => addr.is_link_local(),
+            IpAddr::V6(_) => false,
+        }
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_reserved(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_shared(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unicast(&self) -> bool {
+        match self.0.ip() {
+            IpAddr::V4(addr) => !addr.is_multicast(),
+            IpAddr::V6(addr) => !addr.is_multicast(),
+        }
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_unicast_global(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unicast_link_local(&self) -> bool {
+        match self.0.ip() {
+            IpAddr::V4(_) => false,
+            IpAddr::V6(addr) => addr.is_unicast_link_local(),
+        }
+    }
+
+    #[getter]
+    fn is_unique_local(&self) -> bool {
+        match self.0.ip() {
+            IpAddr::V4(_) => false,
+            IpAddr::V6(addr) => addr.is_unique_local(),
+        }
     }
 }

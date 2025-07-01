@@ -5,19 +5,59 @@ import pytest
 import ry
 from ry import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6
 
+IP_ADDR_OBJECTS: list[Ipv4Addr | Ipv6Addr | IpAddr] = [
+    Ipv4Addr(192, 168, 0, 1),
+    Ipv6Addr("::1"),
+    IpAddr(Ipv4Addr(192, 168, 0, 1)),
+    IpAddr(Ipv6Addr("::1")),
+]
+
+SOCKET_ADDR_OBJECTS: list[SocketAddrV4 | SocketAddrV6 | SocketAddr] = [
+    SocketAddrV4(Ipv4Addr(192, 168, 0, 1), 8080),
+    SocketAddrV6(Ipv6Addr("::1"), 8080),
+    SocketAddr(Ipv4Addr(192, 168, 0, 1), 8080),
+    SocketAddr(Ipv6Addr("::1"), 8080),
+]
+
+STD_NET_OBJECTS: list[
+    Ipv4Addr | Ipv6Addr | SocketAddrV4 | SocketAddrV6 | IpAddr | SocketAddr
+] = [
+    *IP_ADDR_OBJECTS,
+    *SOCKET_ADDR_OBJECTS,
+]
+
+
+class TestIpConstants:
+    def test_constants_ipv4(self) -> None:
+        """
+        Test that the constants in the ry module are defined.
+        """
+        assert ry.Ipv4Addr.LOCALHOST == Ipv4Addr(127, 0, 0, 1)
+        assert ry.Ipv4Addr.UNSPECIFIED == Ipv4Addr(0, 0, 0, 0)
+        assert ry.Ipv4Addr.BROADCAST == Ipv4Addr(255, 255, 255, 255)
+
+    def test_constants_ipv6(self) -> None:
+        """
+        Test that the constants in the ry module are defined.
+        """
+        assert ry.Ipv6Addr.LOCALHOST == Ipv6Addr("::1")
+        assert ry.Ipv6Addr.UNSPECIFIED == Ipv6Addr("::")
+
+    def test_constants_ipaddr(self) -> None:
+        """
+        Test that the constants in the ry module are defined.
+        """
+        assert ry.IpAddr.LOCALHOST_V4 == Ipv4Addr(127, 0, 0, 1).to_ipaddr()
+        assert ry.IpAddr.LOCALHOST_V6 == Ipv6Addr("::1").to_ipaddr()
+
+        assert ry.IpAddr.UNSPECIFIED_V4 == Ipv4Addr(0, 0, 0, 0).to_ipaddr()
+        assert ry.IpAddr.UNSPECIFIED_V6 == Ipv6Addr("::").to_ipaddr()
+        assert ry.IpAddr.BROADCAST == Ipv4Addr.BROADCAST.to_ipaddr()
+
 
 @pytest.mark.parametrize(
     "obj",
-    [
-        Ipv4Addr(192, 168, 0, 1),
-        Ipv6Addr("::1"),
-        SocketAddrV4(Ipv4Addr(192, 168, 0, 1), 8080),
-        SocketAddrV6(Ipv6Addr("::1"), 8080),
-        IpAddr(Ipv4Addr(192, 168, 0, 1)),
-        IpAddr(Ipv6Addr("::1")),
-        SocketAddr(Ipv4Addr(192, 168, 0, 1), 8080),
-        SocketAddr(Ipv6Addr("::1"), 8080),
-    ],
+    STD_NET_OBJECTS,
 )
 def test_addr_repr(obj: ry.IpAddr | ry.SocketAddrV4 | ry.SocketAddrV6) -> None:
     """
@@ -63,3 +103,20 @@ class TestSocketAddrV4:
     def test_v4_repr(self) -> None:
         sock = self.sock_v4
         assert repr(sock) == "SocketAddrV4(Ipv4Addr('192.168.0.1'), 8080)"
+
+
+def test_ip2socket_v4() -> None:
+    """
+    Test that IpAddr can be converted to SocketAddrV4 and SocketAddrV6.
+    """
+    ip_v4 = ry.Ipv4Addr(192, 168, 0, 1)
+
+    sock_v4 = ip_v4.to_socketaddr_v4(8080)
+    assert isinstance(sock_v4, ry.SocketAddrV4)
+
+
+def test_ip2socket_v6() -> None:
+    ip_v6 = ry.Ipv6Addr("::1")
+    sock_v6 = ip_v6.to_socketaddr_v6(8080)
+    assert isinstance(sock_v6, ry.SocketAddrV6)
+    assert sock_v6.ip == ip_v6

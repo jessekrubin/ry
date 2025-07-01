@@ -137,18 +137,23 @@ impl PyIpv4Addr {
     fn __eq__(&self, other: &PyIpv4Addr) -> bool {
         self.0 == other.0
     }
+
     fn __ne__(&self, other: &PyIpv4Addr) -> bool {
         self.0 != other.0
     }
+
     fn __lt__(&self, other: &PyIpv4Addr) -> bool {
         self.0 < other.0
     }
+
     fn __le__(&self, other: &PyIpv4Addr) -> bool {
         self.0 <= other.0
     }
+
     fn __gt__(&self, other: &PyIpv4Addr) -> bool {
         self.0 > other.0
     }
+
     fn __ge__(&self, other: &PyIpv4Addr) -> bool {
         self.0 >= other.0
     }
@@ -630,6 +635,75 @@ impl PyIpAddr {
     #[getter]
     fn is_unspecified(&self) -> bool {
         self.0.is_unspecified()
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_global(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_ipv4_mapped(&self) -> bool {
+        match self.0 {
+            IpAddr::V6(addr) => {
+                matches!(
+                    addr.octets(),
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _, _, _, _]
+                )
+            }
+            IpAddr::V4(_) => false,
+        }
+    }
+
+    #[getter]
+    fn is_link_local(&self) -> bool {
+        match self.0 {
+            IpAddr::V4(addr) => addr.is_link_local(),
+            IpAddr::V6(_) => false,
+        }
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_reserved(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_shared(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unicast(&self) -> bool {
+        match self.0 {
+            IpAddr::V4(addr) => !addr.is_multicast(),
+            IpAddr::V6(addr) => !addr.is_multicast(),
+        }
+    }
+
+    #[getter]
+    #[expect(clippy::unused_self)]
+    fn is_unicast_global(&self) -> PyResult<bool> {
+        err_py_not_impl!()
+    }
+
+    #[getter]
+    fn is_unicast_link_local(&self) -> bool {
+        match self.0 {
+            IpAddr::V4(_) => false,
+            IpAddr::V6(addr) => addr.is_unicast_link_local(),
+        }
+    }
+
+    #[getter]
+    fn is_unique_local(&self) -> bool {
+        match self.0 {
+            IpAddr::V4(_) => false,
+            IpAddr::V6(addr) => addr.is_unique_local(),
+        }
     }
 
     // ========================================================================
