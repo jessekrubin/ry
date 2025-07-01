@@ -9,6 +9,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::series::RyDateTimeSeries;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use jiff::Zoned;
@@ -16,7 +17,6 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple, PyType};
 use pyo3::{intern, IntoPyObjectExt};
-use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -373,10 +373,10 @@ impl RyDateTime {
         Self::from(d)
     }
 
-    fn series(&self, period: &RySpan) -> RyDateTimeSeries {
-        RyDateTimeSeries {
-            series: self.0.series(period.0),
-        }
+    fn series(&self, period: &RySpan) -> PyResult<RyDateTimeSeries> {
+        period.assert_non_zero()?;
+        let s = self.0.series(period.0);
+        Ok(RyDateTimeSeries::from(s))
     }
 
     fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
@@ -582,30 +582,6 @@ impl RyDateTime {
 impl Display for RyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
-    }
-}
-
-#[pyclass(name = "DateTimeSeries", module = "ry.ryo3")]
-pub struct RyDateTimeSeries {
-    pub(crate) series: jiff::civil::DateTimeSeries,
-}
-
-#[pymethods]
-impl RyDateTimeSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDateTime> {
-        slf.series.next().map(RyDateTime::from)
-    }
-
-    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyDateTime> {
-        slf.series
-            .borrow_mut()
-            .take(n)
-            .map(RyDateTime::from)
-            .collect()
     }
 }
 

@@ -2,6 +2,7 @@ use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
+use crate::series::RyTimeSeries;
 use crate::RyDateTime;
 use crate::RySignedDuration;
 use crate::RySpan;
@@ -310,9 +311,10 @@ impl RyTime {
         Ok(dict)
     }
 
-    fn series(&self, period: &RySpan) -> RyTimeSeries {
-        let ser = self.0.series(period.0);
-        RyTimeSeries { series: ser }
+    fn series(&self, period: &RySpan) -> PyResult<RyTimeSeries> {
+        period.assert_non_zero()?;
+        let s = self.0.series(period.0);
+        Ok(RyTimeSeries::from(s))
     }
 
     fn duration_since(&self, other: &Self) -> RySignedDuration {
@@ -457,26 +459,6 @@ impl From<Time> for RyTime {
 impl From<JiffTime> for RyTime {
     fn from(value: JiffTime) -> Self {
         Self(value.0)
-    }
-}
-
-#[pyclass(name = "TimeSeries", module = "ry.ryo3")]
-pub struct RyTimeSeries {
-    pub(crate) series: jiff::civil::TimeSeries,
-}
-
-#[pymethods]
-impl RyTimeSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTime> {
-        slf.series.next().map(RyTime::from)
-    }
-
-    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyTime> {
-        slf.series.borrow_mut().take(n).map(RyTime::from).collect()
     }
 }
 
