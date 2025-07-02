@@ -117,10 +117,12 @@ def st_json_js(
     )
 
 
+_OK_TIMEZONE_NAMES = set(zoneinfo.available_timezones())
+
+
 def st_timezones(*, no_cache: bool = False) -> SearchStrategy[zoneinfo.ZoneInfo]:
     return st.timezones(no_cache=no_cache).filter(
-        lambda tz: str(tz)
-        not in {
-            "build/etc/localtime",
-        }
+        # weird aliases are super (fucking) annoying and totally not useful
+        # unless your hair is too long need a trim
+        lambda tz: str(tz) in _OK_TIMEZONE_NAMES
     )

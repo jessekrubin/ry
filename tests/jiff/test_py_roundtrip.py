@@ -64,6 +64,7 @@ def test_zoned_datetime_roundtrip(dt: pydt.datetime) -> None:
     ry_zdt = ry.ZonedDateTime.from_pydatetime(dt)
     roundtrip_date = ry_zdt.to_py()
     # get the input tz offset
+    assert dt.tzinfo is not None, "Expected datetime to have a timezone"
     tz_utcoffset = dt.tzinfo.utcoffset(dt)
     roundtrip_tz_utcoffset = roundtrip_date.tzinfo.utcoffset(roundtrip_date)
     assert roundtrip_tz_utcoffset == tz_utcoffset, (
