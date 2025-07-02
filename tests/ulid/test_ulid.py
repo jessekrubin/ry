@@ -14,6 +14,7 @@ from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
 import pytest
+import typing_extensions as te
 
 import ry
 from ry.ulid import ULID
@@ -288,6 +289,56 @@ def test_pydantic_protocol() -> None:
         "minLength": 16,
         "type": "string",
         "format": "binary",
+    } in model_json_schema["properties"]["ulid"]["anyOf"]
+    assert {
+        "type": "null",
+    } in model_json_schema["properties"]["ulid"]["anyOf"]
+
+
+def test_pydantic_protocol_strict() -> None:
+    import json
+
+    from pydantic import BaseModel, Field, ValidationError
+
+    ulid = ULID()
+
+    class Model(BaseModel):
+        ulid: te.Annotated[ry.ulid.ULID | None, Field(strict=True)]
+
+        model_config = {
+            "arbitrary_types_allowed": True,
+            "strict": True,
+        }
+
+    strict_ok_inputs = [ulid, str(ulid)]
+    for value in strict_ok_inputs:
+        model = Model(ulid=value)  # type: ignore[arg-type]
+        assert isinstance(model.ulid, ULID)
+        assert model.ulid == ulid
+
+    for value in [int(ulid), bytes(ulid)]:
+        with pytest.raises(ValidationError):
+            Model(ulid=value)  # type: ignore[arg-type]
+        model = Model(ulid=ulid)
+    model_dict = model.model_dump()
+    ulid_from_dict = model_dict["ulid"]
+    assert ulid_from_dict == ulid
+    assert isinstance(ulid_from_dict, ULID)
+    assert Model(**model_dict) == model
+
+    model_json = model.model_dump_json()
+    assert isinstance(json.loads(model_json)["ulid"], str)
+    assert Model.model_validate_json(model_json) == model
+
+    model_json_schema = model.model_json_schema()
+    assert "properties" in model_json_schema
+    assert "ulid" in model_json_schema["properties"]
+    assert "anyOf" in model_json_schema["properties"]["ulid"]
+    assert {
+        "maxLength": 26,
+        "minLength": 26,
+        "pattern": "[A-Z0-9]{26}",
+        "type": "string",
     } in model_json_schema["properties"]["ulid"]["anyOf"]
     assert {
         "type": "null",
