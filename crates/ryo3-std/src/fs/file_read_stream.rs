@@ -69,8 +69,8 @@ pub(crate) enum FileReadStreamWrapper {
 impl FileReadStreamWrapper {
     fn seek_to(&mut self, offset: u64) -> io::Result<u64> {
         match self {
-            FileReadStreamWrapper::Unbuffered(ref mut stream) => stream.seek_to(offset),
-            FileReadStreamWrapper::Buffered(ref mut stream) => stream.seek_to(offset),
+            FileReadStreamWrapper::Unbuffered(stream) => stream.seek_to(offset),
+            FileReadStreamWrapper::Buffered( stream) => stream.seek_to(offset),
         }
     }
 }
