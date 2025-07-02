@@ -417,7 +417,25 @@ impl PyUlid {
         bytes_schema_kwargs.set_item(intern!(py, "min_length"), 16)?;
         bytes_schema_kwargs.set_item(intern!(py, "max_length"), 16)?;
 
-        let union_schema = core_schema.call_method1(
+        // actual validator functions
+        let pydantic_validate = cls.getattr(intern!(py, "_pydantic_validate"))?;
+        let pydantic_validate_strict = cls.getattr(intern!(py, "_pydantic_validate_strict"))?;
+
+        let to_string_ser_schema_kwargs = PyDict::new(py);
+        to_string_ser_schema_kwargs
+            .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
+        let to_string_ser_schema = core_schema.call_method(
+            intern!(py, "to_string_ser_schema"),
+            (),
+            Some(&to_string_ser_schema_kwargs),
+        )?;
+
+        let no_info_wrap_validator_function_kwargs = PyDict::new(py);
+        no_info_wrap_validator_function_kwargs
+            .set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
+
+        // LAX union schema (allows ULID, string, bytes)
+        let lax_union_schema = core_schema.call_method1(
             intern!(py, "union_schema"),
             (vec![
                 core_schema
@@ -435,27 +453,39 @@ impl PyUlid {
             ],),
         )?;
 
-        let to_string_ser_schema_kwargs = PyDict::new(py);
-        to_string_ser_schema_kwargs
-            .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        let to_string_ser_schema = core_schema.call_method(
-            intern!(py, "to_string_ser_schema"),
-            (),
-            Some(&to_string_ser_schema_kwargs),
+        let strict_union = core_schema.call_method1(
+            intern!(py, "union_schema"),
+            (vec![
+                core_schema
+                    .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
+                core_schema.call_method(
+                    intern!(py, "str_schema"),
+                    (),
+                    Some(&str_schema_kwargs), // still allow canonical string
+                )?,
+            ],),
         )?;
 
-        let pydantic_validate = cls.getattr(intern!(py, "_pydantic_validate"))?;
-
-        let no_info_wrap_validator_function_kwargs = PyDict::new(py);
-        no_info_wrap_validator_function_kwargs
-            .set_item(intern!(py, "serialization"), to_string_ser_schema)?;
-        let no_info_wrap_validator_function = core_schema.call_method(
+        let strict_schema = core_schema.call_method(
             intern!(py, "no_info_wrap_validator_function"),
-            (pydantic_validate, union_schema),
+            (pydantic_validate_strict, strict_union),
             Some(&no_info_wrap_validator_function_kwargs),
         )?;
 
-        Ok(no_info_wrap_validator_function)
+        let ulid_schema_kwargs = PyDict::new(py);
+        ulid_schema_kwargs.set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
+
+        let lax_schema = core_schema.call_method(
+            intern!(py, "no_info_wrap_validator_function"),
+            (pydantic_validate, lax_union_schema),
+            Some(&no_info_wrap_validator_function_kwargs),
+        )?;
+        let ulid_schema = core_schema.call_method(
+            intern!(py, "lax_or_strict_schema"),
+            (lax_schema, strict_schema),
+            Some(&ulid_schema_kwargs),
+        )?;
+        Ok(ulid_schema)
     }
 
     #[classmethod]
@@ -475,6 +505,25 @@ impl PyUlid {
             cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
         } else {
             Err(PyTypeError::new_err("Unrecognized format for ULID"))
+        }?;
+        handler.call1((ulid,))
+    }
+
+    #[classmethod]
+    fn _pydantic_validate_strict<'py>(
+        cls: &Bound<'py, PyType>,
+        value: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        let ulid = if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            cls.call_method1(intern!(py, "from_str"), (pystr,))
+        } else if let Ok(pyulid) = value.downcast::<Self>() {
+            pyulid.into_bound_py_any(py)
+        } else {
+            Err(PyValueError::new_err(
+                "Unrecognized format for ULID (strict)",
+            ))
         }?;
         handler.call1((ulid,))
     }
