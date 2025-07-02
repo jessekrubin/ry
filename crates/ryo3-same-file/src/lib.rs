@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{wrap_pyfunction, PyResult};
+use pyo3::{PyResult, wrap_pyfunction};
 use ryo3_core::types::PathLike;
 
 /// Return `True` if pathlike points to same file

@@ -1,6 +1,6 @@
+use crate::PyHeadersLike;
 use crate::http_types::{HttpHeaderName, HttpHeaderValue};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
-use crate::PyHeadersLike;
 use http::header::HeaderMap;
 use parking_lot::lock_api::MutexGuard;
 use parking_lot::{Mutex, RawMutex};

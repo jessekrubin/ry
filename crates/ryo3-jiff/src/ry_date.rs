@@ -12,12 +12,12 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
-use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
+use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python,
+    Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python, intern, pyclass, pymethods,
 };
 use ryo3_std::PyDuration;
 use std::fmt::Display;

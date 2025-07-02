@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{wrap_pyfunction, PyResult};
+use pyo3::{PyResult, wrap_pyfunction};
 
 // | Function name      | Value on Linux/Redox                                                   | Value on Windows                  | Value on macOS                              |
 // |--------------------| ---------------------------------------------------------------------- |-----------------------------------| ------------------------------------------- |

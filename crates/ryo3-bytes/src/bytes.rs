@@ -9,7 +9,7 @@ use pyo3::buffer::PyBuffer;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PySlice, PyTuple};
-use pyo3::{ffi, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, ffi};
 
 /// A wrapper around a [`bytes::Bytes`][].
 ///

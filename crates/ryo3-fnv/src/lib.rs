@@ -3,8 +3,8 @@ use std::hash::Hasher;
 
 use pyo3::types::{PyModule, PyString, PyTuple};
 
-use pyo3::{intern, prelude::*, IntoPyObjectExt};
-use pyo3::{wrap_pyfunction, PyResult};
+use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use pyo3::{PyResult, wrap_pyfunction};
 
 use fnv::FnvHasher;
 use std::sync::Mutex;

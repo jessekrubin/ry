@@ -3,7 +3,7 @@
 mod walkdir_entry;
 
 use parking_lot::Mutex;
-use pyo3::{prelude::*, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, prelude::*};
 use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;

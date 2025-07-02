@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 use pyo3::types::{PyModule, PyModuleMethods};
-use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult};
+use pyo3::{Bound, PyResult, pyfunction, wrap_pyfunction};
 
 #[pyfunction(signature = (string), text_signature = "(string: str) -> list[str] | None")]
 #[must_use]

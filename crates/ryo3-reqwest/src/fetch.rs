@@ -1,9 +1,9 @@
 //! python `reqwest` based `fetch` implementation
 
-use crate::default_client::default_client;
 use crate::RyHttpClient;
-use pyo3::prelude::*;
+use crate::default_client::default_client;
 use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
 use ryo3_http::{HttpVersion, PyHeadersLike};
 
 // global fetch

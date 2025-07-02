@@ -1,9 +1,9 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
 use crate::bytes::PyBytes;
+use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyTuple, PyType};
-use pyo3::IntoPyObjectExt;
 use std::fmt::Write;
 use std::hash::Hash;
 

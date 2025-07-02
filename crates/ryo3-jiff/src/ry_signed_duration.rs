@@ -1,14 +1,14 @@
+use crate::JiffSignedDuration;
 use crate::errors::map_py_value_err;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::ry_span::RySpan;
-use crate::JiffSignedDuration;
 use jiff::{SignedDuration, Span};
 use pyo3::prelude::*;
 
+use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError};
 use pyo3::types::{PyDelta, PyTuple, PyType};
-use pyo3::IntoPyObjectExt;
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Mul;

@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 use pyo3::exceptions::{PyOverflowError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::types::{PyBytes, PyDict, PyModule, PyType};
-use pyo3::{intern, prelude::*, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use ryo3_uuid::{CPythonUuid, PyUuid};
 use std::fmt::Write;
 use std::hash::{DefaultHasher, Hash, Hasher};

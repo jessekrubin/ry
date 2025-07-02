@@ -28,7 +28,7 @@ use crate::rytypes;
 use crate::type_cache::{PyObType, PyTypeCache};
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{PyAnyMethods, PyDict, PyMapping, PySequence, PyString};
-use pyo3::{intern, Bound};
+use pyo3::{Bound, intern};
 use serde::ser::SerializeSeq;
 
 type Depth = u8;
