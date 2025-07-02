@@ -1,12 +1,11 @@
 use crate::pydatetime_conversions::timezone::timezone2pyobect;
 use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
-use crate::JiffZoned;
+use crate::{JiffTimeZone, JiffZoned};
 use jiff::civil::DateTime;
-use jiff::tz::TimeZone;
 use jiff::Zoned;
-use pyo3::exceptions::{PyTypeError, PyValueError};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyTzInfo, PyTzInfoAccess};
+use pyo3::types::{PyDateTime, PyTimeAccess, PyTzInfo, PyTzInfoAccess};
 
 pub fn zoned2pyobect<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
     // let tz = self.offset().fix().into_pyobject(py)?;
@@ -91,32 +90,28 @@ impl FromPyObject<'_> for JiffZoned {
         let dt = dt.downcast::<PyDateTime>()?;
         #[cfg(Py_LIMITED_API)]
         check_type(dt, &DatetimeTypes::get(dt.py()).datetime, "PyDateTime")?;
+        let tzinfo = dt.get_tzinfo().map_or_else(
+            || {
+                Err(PyErr::new::<PyValueError, _>(
+                    "expected a datetime with non-None tzinfo",
+                ))
+            },
+            |tz| tz.extract::<JiffTimeZone>(),
+        )?;
+        let jiff_time = py_time_to_jiff_time(dt)?;
+        let jiff_date = date_from_pyobject(dt)?;
+        let datetime = DateTime::from_parts(jiff_date, jiff_time);
+        let zoned = tzinfo.0.into_ambiguous_zoned(datetime);
 
         #[cfg(not(Py_LIMITED_API))]
-        let tzinfo = dt.get_tzinfo();
+        let fold = dt.get_fold();
+
         #[cfg(Py_LIMITED_API)]
-        let tzinfo: Option<Bound<'_, PyAny>> = dt.getattr(intern!(dt.py(), "tzinfo"))?.extract()?;
-
-        let Some(tzinfo) = tzinfo else {
-            return Err(PyTypeError::new_err(
-                "expected a datetime with non-None tzinfo",
-            ));
-        };
-        let tz = tzinfo.to_string();
-
-        let tz_str = if tz.ends_with("/etc/localtime") {
-            let systz = TimeZone::system();
-            let systz_thing = systz.iana_name().unwrap_or("UTC").to_string();
-            systz_thing
+        let fold = dt.getattr(intern!(dt.py(), "fold"))?.extract::<usize>()? > 0;
+        if fold {
+            Ok(JiffZoned::from(zoned.later()?))
         } else {
-            tz
-        };
-        let jiff_date = date_from_pyobject(dt)?;
-        let jiff_time = py_time_to_jiff_time(dt)?;
-        let dt = DateTime::from_parts(jiff_date, jiff_time);
-        let zdt = dt
-            .in_tz(&tz_str)
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-        Ok(JiffZoned(zdt))
+            Ok(JiffZoned::from(zoned.earlier()?))
+        }
     }
 }

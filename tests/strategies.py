@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
+import zoneinfo
 from typing import Any, Final
 
 from hypothesis import strategies as st
@@ -113,4 +114,13 @@ def st_json_js(
         finite_only=finite_only,
         max_int=9_007_199_254_740_991,
         min_int=-9_007_199_254_740_991,
+    )
+
+
+def st_timezones(*, no_cache: bool = False) -> SearchStrategy[zoneinfo.ZoneInfo]:
+    return st.timezones(no_cache=no_cache).filter(
+        lambda tz: str(tz)
+        not in {
+            "build/etc/localtime",
+        }
     )

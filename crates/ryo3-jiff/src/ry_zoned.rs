@@ -12,7 +12,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned_round::RyZonedDateTimeRound;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
-    JiffWeekday, RyDate,
+    JiffWeekday, JiffZoned, RyDate,
 };
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;
@@ -227,8 +227,8 @@ impl RyZoned {
     }
 
     #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: Zoned) -> Self {
-        Self::from(d)
+    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: JiffZoned) -> Self {
+        Self::from(d.0)
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {

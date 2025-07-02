@@ -4,6 +4,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
+use crate::JiffOffset;
 use jiff::tz::{Offset, OffsetArithmetic};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
@@ -96,8 +97,9 @@ impl RyOffset {
     }
 
     #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: Offset) -> Self {
-        Self::from(d)
+    #[expect(clippy::needless_pass_by_value)]
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: JiffOffset) -> Self {
+        RyOffset::from(d.0)
     }
 
     #[must_use]
@@ -231,6 +233,12 @@ impl RyOffset {
 impl From<Offset> for RyOffset {
     fn from(value: Offset) -> Self {
         RyOffset(value)
+    }
+}
+
+impl From<JiffOffset> for RyOffset {
+    fn from(value: JiffOffset) -> Self {
+        Self::from(value.0)
     }
 }
 
