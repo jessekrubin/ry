@@ -3,6 +3,7 @@ use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
+use crate::JiffTimeZone;
 use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
 use pyo3::prelude::*;
@@ -130,8 +131,8 @@ impl RyTimeZone {
     }
 
     #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: TimeZone) -> Self {
-        Self::from(d)
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: JiffTimeZone) -> Self {
+        Self::from(d.0)
     }
 
     // =====================================================================

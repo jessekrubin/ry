@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
+import zoneinfo
 from typing import Any, Final
 
 from hypothesis import strategies as st
@@ -113,4 +114,15 @@ def st_json_js(
         finite_only=finite_only,
         max_int=9_007_199_254_740_991,
         min_int=-9_007_199_254_740_991,
+    )
+
+
+_OK_TIMEZONE_NAMES = set(zoneinfo.available_timezones())
+
+
+def st_timezones(*, no_cache: bool = False) -> SearchStrategy[zoneinfo.ZoneInfo]:
+    return st.timezones(no_cache=no_cache).filter(
+        # weird aliases are super (fucking) annoying and totally not useful
+        # unless your hair is too long need a trim
+        lambda tz: str(tz) in _OK_TIMEZONE_NAMES
     )
