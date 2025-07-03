@@ -18,7 +18,6 @@ mod dev;
 
 mod api;
 mod constants;
-mod delta_arithmetic_self;
 mod deprecations;
 mod errors;
 mod functions;
@@ -49,8 +48,8 @@ mod ry_zoned_round;
 mod serde;
 mod series;
 mod span_relative_to;
-mod test;
 mod spanish;
+mod test;
 
 pub use api::*;
 pub use jiff_types::*;

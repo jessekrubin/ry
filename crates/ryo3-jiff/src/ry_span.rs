@@ -11,7 +11,6 @@ use pyo3::{IntoPyObjectExt, intern};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-use ryo3_std::PyDuration;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
