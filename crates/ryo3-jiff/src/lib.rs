@@ -10,7 +10,6 @@
 #![deny(clippy::missing_panics_doc)]
 #![deny(clippy::arithmetic_side_effects)]
 #![expect(clippy::missing_errors_doc)]
-#![cfg_attr(feature = "serde", expect(clippy::unsafe_derive_deserialize))]
 extern crate core;
 
 pub mod pydatetime_conversions;

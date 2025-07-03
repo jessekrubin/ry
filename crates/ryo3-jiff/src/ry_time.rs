@@ -18,7 +18,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 use std::str::FromStr;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[pyclass(name = "Time", module = "ry.ryo3", frozen)]
