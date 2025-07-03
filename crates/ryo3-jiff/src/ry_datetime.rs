@@ -204,7 +204,6 @@ impl RyDateTime {
         py: Python<'py>,
         other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        #[expect(clippy::arithmetic_side_effects)]
         if let Ok(ob) = other.downcast::<Self>() {
             let span = self.0.sub(ob.get().0);
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
@@ -219,7 +218,6 @@ impl RyDateTime {
     fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
-
 
     fn checked_sub<'py>(
         &self,

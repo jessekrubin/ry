@@ -10,9 +10,9 @@ use crate::{JiffRoundMode, JiffTime, JiffUnit};
 use jiff::Zoned;
 use jiff::civil::{Time, TimeRound};
 use pyo3::basic::CompareOp;
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple, PyType};
+use pyo3::{IntoPyObjectExt, intern};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -157,23 +157,16 @@ impl RyTime {
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
-        other: RyTimeArithmeticSub,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        match other {
-            RyTimeArithmeticSub::Time(other) => {
-                let span = self.0.sub(other.0);
-                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-                Ok(obj)
-            }
-            RyTimeArithmeticSub::Span(other) => {
-                let t = self.0.checked_sub(other.0).map_err(map_py_overflow_err)?;
-
-                RyTime::from(t).into_pyobject(py).map(Bound::into_any)
-            }
-            RyTimeArithmeticSub::SignedDuration(other) => {
-                let t = self.0.checked_sub(other.0).map_err(map_py_overflow_err)?;
-                RyTime::from(t).into_pyobject(py).map(Bound::into_any)
-            }
+        if let Ok(ob) = other.downcast::<Self>() {
+            let span = self.0.sub(ob.get().0);
+            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
+            Ok(obj)
+        } else {
+            let spanish = Spanish::try_from(other)?;
+            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
+            RyTime::from(z).into_bound_py_any(py)
         }
     }
 
@@ -200,7 +193,7 @@ impl RyTime {
     fn checked_sub<'py>(
         &self,
         py: Python<'py>,
-        other: RyTimeArithmeticSub,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
@@ -304,12 +297,12 @@ impl RyTime {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
-    fn saturating_add<'py>(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.saturating_add(spanish)))
     }
 
-    fn saturating_sub<'py>(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.saturating_sub(spanish)))
     }
@@ -421,11 +414,4 @@ impl From<JiffTime> for RyTime {
     fn from(value: JiffTime) -> Self {
         Self(value.0)
     }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum RyTimeArithmeticSub {
-    Time(RyTime),
-    Span(RySpan),
-    SignedDuration(RySignedDuration),
 }

@@ -11,10 +11,10 @@ use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffUnit, RyOffset};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
+use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
-use pyo3::IntoPyObjectExt;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -145,36 +145,12 @@ impl RyTimestamp {
         self.0.as_nanosecond().hash(&mut hasher);
         hasher.finish()
     }
-    //
-    // fn __sub__<'py>(
-    //     &self,
-    //     py: Python<'py>,
-    //     other: RyTimestampArithmeticSub,
-    // ) -> PyResult<Bound<'py, PyAny>> {
-    //     match other {
-    //         #[expect(clippy::arithmetic_side_effects)]
-    //         RyTimestampArithmeticSub::Timestamp(other) => {
-    //             let span = self.0.sub(other.0);
-    //             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-    //             Ok(obj)
-    //         }
-    //         RyTimestampArithmeticSub::Delta(other) => {
-    //             let t = match other {
-    //                 RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-    //                 RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-    //                 RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-    //             }
-    //             .map_err(map_py_overflow_err)?;
-    //             RyTimestamp::from(t).into_pyobject(py).map(Bound::into_any)
-    //         }
-    //     }
-    // }
+
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
         other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        #[expect(clippy::arithmetic_side_effects)]
         if let Ok(ob) = other.downcast::<Self>() {
             let span = self.0.sub(ob.get().0);
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;

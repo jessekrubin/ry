@@ -12,14 +12,14 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
-use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
+use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr,
-    PyResult, Python,
+    Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, Python, intern, pyclass,
+    pymethods,
 };
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -211,12 +211,12 @@ impl RyDate {
         self.__add__(other)
     }
 
-    fn saturating_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.saturating_add(spanish)))
     }
 
-    fn saturating_sub<'py>(&self, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.saturating_sub(spanish)))
     }
