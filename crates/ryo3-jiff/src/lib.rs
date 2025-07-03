@@ -50,6 +50,7 @@ mod serde;
 mod series;
 mod span_relative_to;
 mod test;
+mod spanish;
 
 pub use api::*;
 pub use jiff_types::*;

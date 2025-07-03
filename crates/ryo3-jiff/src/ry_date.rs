@@ -11,6 +11,7 @@ use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
+use crate::spanish::Spanish;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
@@ -66,6 +67,14 @@ impl RyDate {
     }
 
     #[classmethod]
+    fn from_str(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        DATETIME_PARSER
+            .parse_date(input)
+            .map(RyDate::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
         DATETIME_PARSER
             .parse_date(input)
@@ -73,14 +82,9 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
-    pub(crate) fn at(
-        &self,
-        hour: i8,
-        minute: i8,
-        second: i8,
-        subsec_nanosecond: i32,
-    ) -> RyDateTime {
-        RyDateTime::from(self.0.at(hour, minute, second, subsec_nanosecond))
+    #[pyo3(signature = (hour, minute, second, nanosecond=0))]
+    pub(crate) fn at(&self, hour: i8, minute: i8, second: i8, nanosecond: i32) -> RyDateTime {
+        RyDateTime::from(self.0.at(hour, minute, second, nanosecond))
     }
 
     #[getter]
@@ -203,25 +207,20 @@ impl RyDate {
     // }
 
     fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(date) = other.downcast::<RySpan>() {
-            let other = date.extract::<RySpan>()?;
-            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
-            return Ok(RyDate::from(t));
-        }
-        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
-            let other = signed_dur.extract::<RySignedDuration>()?;
-            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
-            return Ok(RyDate::from(t));
-        }
-        if let Ok(date) = other.downcast::<PyDuration>() {
-            let other = date.extract::<PyDuration>()?;
-            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
-            return Ok(RyDate::from(t));
-        }
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "unsupported operand type(s) for +: 'Date' and 'other'",
-        ))
+        let spanish = Spanish::try_from(other)?;
+        spanish.date_add(&self.0).map(RyDate::from)
     }
+
+    fn add_v1(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        // This is a deprecated method, use `__add__` instead.
+        self.__add__(other)
+    }
+
+    fn add_v2<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        spanish.date_add(&self.0).map(RyDate::from)
+    }
+
     fn checked_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
