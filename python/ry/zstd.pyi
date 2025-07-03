@@ -1,37 +1,41 @@
-from ry import Bytes
-from ry._types import Buffer
+from ry.ryo3.zstd import BLOCKSIZE_MAX as BLOCKSIZE_MAX
+from ry.ryo3.zstd import BLOCKSIZELOG_MAX as BLOCKSIZELOG_MAX
+from ry.ryo3.zstd import CLEVEL_DEFAULT as CLEVEL_DEFAULT
+from ry.ryo3.zstd import CONTENTSIZE_ERROR as CONTENTSIZE_ERROR
+from ry.ryo3.zstd import CONTENTSIZE_UNKNOWN as CONTENTSIZE_UNKNOWN
+from ry.ryo3.zstd import MAGIC_DICTIONARY as MAGIC_DICTIONARY
+from ry.ryo3.zstd import MAGIC_SKIPPABLE_MASK as MAGIC_SKIPPABLE_MASK
+from ry.ryo3.zstd import MAGIC_SKIPPABLE_START as MAGIC_SKIPPABLE_START
+from ry.ryo3.zstd import MAGICNUMBER as MAGICNUMBER
+from ry.ryo3.zstd import VERSION_MAJOR as VERSION_MAJOR
+from ry.ryo3.zstd import VERSION_MINOR as VERSION_MINOR
+from ry.ryo3.zstd import VERSION_NUMBER as VERSION_NUMBER
+from ry.ryo3.zstd import VERSION_RELEASE as VERSION_RELEASE
+from ry.ryo3.zstd import __zstd_version__ as __zstd_version__
+from ry.ryo3.zstd import compress as compress
+from ry.ryo3.zstd import decode as decode
+from ry.ryo3.zstd import decompress as decompress
+from ry.ryo3.zstd import is_zstd as is_zstd
+from ry.ryo3.zstd import unzstd as unzstd
 
-__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
-BLOCKSIZELOG_MAX: int
-BLOCKSIZE_MAX: int
-CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
-CONTENTSIZE_ERROR: int
-CONTENTSIZE_UNKNOWN: int
-MAGICNUMBER: int
-MAGIC_DICTIONARY: int
-MAGIC_SKIPPABLE_MASK: int
-MAGIC_SKIPPABLE_START: int
-VERSION_MAJOR: int
-VERSION_MINOR: int
-VERSION_NUMBER: int
-VERSION_RELEASE: int
-
-# =============================================================================
-# PYFUNCTIONS
-# =============================================================================
-# __COMPRESSION__
-def compress(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def encode(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def zstd(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def zstd_compress(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def zstd_encode(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-
-# __DECOMPRESSION__
-def decode(data: Buffer) -> Bytes: ...
-def decompress(data: Buffer) -> Bytes: ...
-def unzstd(data: Buffer) -> Bytes: ...
-def zstd_decode(data: Buffer) -> Bytes: ...
-def zstd_decompress(data: Buffer) -> Bytes: ...
-
-# __MAGIC__
-def is_zstd(data: Buffer) -> bool: ...
+__all__ = (
+    "BLOCKSIZELOG_MAX",
+    "BLOCKSIZE_MAX",
+    "CLEVEL_DEFAULT",
+    "CONTENTSIZE_ERROR",
+    "CONTENTSIZE_UNKNOWN",
+    "MAGICNUMBER",
+    "MAGIC_DICTIONARY",
+    "MAGIC_SKIPPABLE_MASK",
+    "MAGIC_SKIPPABLE_START",
+    "VERSION_MAJOR",
+    "VERSION_MINOR",
+    "VERSION_NUMBER",
+    "VERSION_RELEASE",
+    "__zstd_version__",
+    "compress",
+    "decode",
+    "decompress",
+    "is_zstd",
+    "unzstd",
+)

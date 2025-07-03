@@ -61,7 +61,11 @@ async def echo(
         },
         "body": body.decode(),
     }
-    yield {"type": "http.response.body", "body": json.dumps(data_body_dict).encode()}
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=json.dumps(data_body_dict).encode(),
+        more_body=False,
+    )
 
 
 async def cookie_monster(
@@ -88,10 +92,10 @@ async def cookie_monster(
             (b"set-cookie", b"ryo3=ryo3; Path=/"),
         ],
     )
-    yield {
-        "type": "http.response.body",
-        "body": json.dumps(cookie_dict).encode(),
-    }
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=json.dumps({"message": "Cookie set", "cookie": cookie_dict}).encode(),
+    )
 
 
 async def four_oh_four(
@@ -102,7 +106,11 @@ async def four_oh_four(
         status=404,
         headers=[(b"content-type", b"text/plain")],
     )
-    yield {"type": "http.response.body", "body": b"Not Found"}
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=b"Not Found",
+        more_body=False,
+    )
 
 
 async def five_hundred(
@@ -113,7 +121,11 @@ async def five_hundred(
         status=500,
         headers=[(b"content-type", b"text/plain")],
     )
-    yield {"type": "http.response.body", "body": b"Internal Server Error"}
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=b"Internal Server Error",
+        more_body=False,
+    )
 
 
 async def howdy(
@@ -124,7 +136,10 @@ async def howdy(
         status=200,
         headers=[(b"content-type", b"application/json")],
     )
-    yield {"type": "http.response.body", "body": b'{"howdy": "partner"}'}
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=b'{"howdy": "partner"}',
+    )
 
 
 async def slow_response(
@@ -137,9 +152,18 @@ async def slow_response(
     )
     for i in range(10):
         body_chunk = f"howdy partner {i}\n".encode()
-        yield {"type": "http.response.body", "body": body_chunk, "more_body": True}
+        yield uvt.HTTPResponseBodyEvent(
+            type="http.response.body",
+            body=body_chunk,
+            more_body=True,
+        )
+
         await aiosleep(0.2)
-    yield {"type": "http.response.body", "body": b"", "more_body": False}
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=b"",
+        more_body=False,
+    )
 
 
 async def loooooooong_response(
@@ -152,8 +176,16 @@ async def loooooooong_response(
     )
     for i in range(100):
         body_chunk = f"howdy partner {i}\n".encode()
-        yield {"type": "http.response.body", "body": body_chunk, "more_body": True}
-    yield {"type": "http.response.body", "body": b"", "more_body": False}
+        yield uvt.HTTPResponseBodyEvent(
+            type="http.response.body",
+            body=body_chunk,
+            more_body=True,
+        )
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=b"",
+        more_body=False,
+    )
 
 
 async def upload_file(
@@ -169,7 +201,11 @@ async def upload_file(
             status=400,
             headers=[(b"content-type", b"text/plain")],
         )
-        yield {"type": "http.response.body", "body": b"Expected multipart/form-data"}
+        yield uvt.HTTPResponseBodyEvent(
+            type="http.response.body",
+            body=b"",
+            more_body=False,
+        )
         return
 
     body = b""
@@ -189,7 +225,11 @@ async def upload_file(
         status=200,
         headers=[(b"content-type", b"application/json")],
     )
-    yield {"type": "http.response.body", "body": response_json}
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=response_json,
+        more_body=False,
+    )
 
 
 def router(

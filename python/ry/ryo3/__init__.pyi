@@ -3,7 +3,6 @@
 from ry import dirs as dirs  # noqa: RUF100
 from ry import ulid as ulid  # noqa: RUF100
 from ry import uuid as uuid  # noqa: RUF100
-from ry import xxhash as xxhash  # noqa: RUF100
 from ry import zstd as zstd  # noqa: RUF100
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
@@ -147,6 +146,11 @@ from ry.ryo3._walkdir import walkdir as walkdir
 from ry.ryo3._which import which as which
 from ry.ryo3._which import which_all as which_all
 from ry.ryo3._which import which_re as which_re
+from ry.ryo3._zstd import is_zstd as is_zstd
+from ry.ryo3._zstd import zstd_compress as zstd_compress
+from ry.ryo3._zstd import zstd_decode as zstd_decode
+from ry.ryo3._zstd import zstd_decompress as zstd_decompress
+from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
 from ry.ryo3.JSON import stringify as stringify
 from ry.ryo3.orjson import orjson_default as orjson_default
@@ -155,11 +159,6 @@ from ry.ryo3.sh import home as home
 from ry.ryo3.sh import ls as ls
 from ry.ryo3.sh import mkdir as mkdir
 from ry.ryo3.sh import pwd as pwd
-from ry.zstd import is_zstd as is_zstd
-from ry.zstd import zstd_compress as zstd_compress
-from ry.zstd import zstd_decode as zstd_decode
-from ry.zstd import zstd_decompress as zstd_decompress
-from ry.zstd import zstd_encode as zstd_encode
 
 # =============================================================================
 # CONSTANTS

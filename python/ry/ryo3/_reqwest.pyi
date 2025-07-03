@@ -4,8 +4,9 @@ import typing_extensions as te
 
 import ry
 from ry._types import Buffer
-from ry.http import Headers, HttpStatus, HttpVersionLike
-from ry.ryo3 import URL, Duration
+from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
+from ry.ryo3._std import Duration
+from ry.ryo3._url import URL
 
 class RequestKwargs(t.TypedDict, total=False):
     body: Buffer | None

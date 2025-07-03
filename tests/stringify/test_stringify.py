@@ -300,6 +300,7 @@ def test_stringify_ry_types() -> None:
     res = ry.stringify(RYTYPES_JSON_SER, fmt=True)
     parsed = ry.parse_json(res)
     assert isinstance(parsed, dict), "Parsed result should be a dictionary"
+    parsed_dict: dict[str, t.Any] = t.cast(dict[str, t.Any], parsed)
 
     def _format_different() -> str:
         different_vals = {
@@ -307,7 +308,7 @@ def test_stringify_ry_types() -> None:
                 "expected": EXPECTED.get(k, f"Expected value for {k} not found"),
                 "actual": v,
             }
-            for k, v in parsed.items()
+            for k, v in parsed_dict.items()
             if EXPECTED.get(k) != v
         }
         return "\n".join(
@@ -315,7 +316,7 @@ def test_stringify_ry_types() -> None:
             for k, v in different_vals.items()
         )
 
-    assert parsed == EXPECTED, (
+    assert parsed_dict == EXPECTED, (
         f"Parsed JSON does not match expected result: \n{_format_different()}\n"
     )
 
