@@ -1,8 +1,8 @@
 use parking_lot::Mutex;
+use pyo3::PyErr;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::PyErr;
 use ryo3_http::PyHttpStatus;
 use ryo3_url::PyUrl;
 use std::sync::Arc;

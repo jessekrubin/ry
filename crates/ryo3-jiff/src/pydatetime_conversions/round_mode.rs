@@ -62,9 +62,9 @@ impl<'py> FromPyObject<'py> for JiffRoundMode {
                 ))),
             }
         } else {
-            Err(PyValueError::new_err(
-                format!("Invalid type for round mode, expected a string (options: {JIFF_ROUND_MODE_ACCEPTED})")
-            ))
+            Err(PyValueError::new_err(format!(
+                "Invalid type for round mode, expected a string (options: {JIFF_ROUND_MODE_ACCEPTED})"
+            )))
         }
     }
 }

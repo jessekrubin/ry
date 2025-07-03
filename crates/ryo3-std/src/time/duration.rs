@@ -3,7 +3,7 @@ use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError, PyZeroDivisio
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDelta, PyTuple, PyType};
 use pyo3::{
-    pyclass, pymethods, Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python,
+    Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
 };
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};

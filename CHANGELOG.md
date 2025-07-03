@@ -2,6 +2,8 @@
 
 ## v0.0.49 [unreleased]
 
+- workspace
+  - set rust edition to 2024
 - `ryo3-serde`
   - Fixed recursive serialization w/ max depth of 255 (aligning with `orjson`)
   - support `PyEllipsis` for `None` values in serialization
@@ -9,7 +11,8 @@
   - `minify` function to remove whitespace/newlines from json-string/bytes
 - `ryo3-jiff`
   - `isoformat` methods aligned with python's `datetime` library methods
-  - Freeze (make pyclass frozen) for all jiff types (changed `*Series` iterables)
+  - Freeze (make pyclass frozen) for all jiff types (changed `*Series`
+    iterables)
 - `ryo3-fspath`
   - `which` feature allowing `FsPath.which` and `FsPath.which_all`
 

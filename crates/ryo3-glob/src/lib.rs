@@ -3,10 +3,10 @@ mod pattern;
 
 use crate::pattern::PyPattern;
 use parking_lot::Mutex;
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{PyModule, PyType};
-use pyo3::IntoPyObjectExt;
 use std::path::PathBuf;
 use std::sync::Arc;
 

@@ -1,6 +1,6 @@
+use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
-use flate2::Compression;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use ryo3_macro_rules::py_value_error;

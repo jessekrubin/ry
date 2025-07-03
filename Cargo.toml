@@ -58,7 +58,7 @@ authors = [
   # hopefully you will contribute!
 ]
 documentation = "https://github.com/jessekrubin/ry"
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/jessekrubin/ry"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"

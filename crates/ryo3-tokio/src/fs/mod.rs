@@ -1,10 +1,10 @@
 //! python `tokio::fs` module
 pub use crate::fs::file::PyAsyncFile;
 use crate::fs::read_dir::RyReadDirAsync;
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
-use pyo3::IntoPyObjectExt;
 use ryo3_bytes::PyBytes;
 use ryo3_std::PyMetadata;
 use std::path::PathBuf;

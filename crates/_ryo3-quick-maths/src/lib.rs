@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{wrap_pyfunction, PyResult};
+use pyo3::{PyResult, wrap_pyfunction};
 
 /// 2 + 2 that's 4, minus 1 that's 3, quick maths
 ///

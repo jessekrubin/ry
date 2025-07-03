@@ -42,9 +42,8 @@ impl<'py> IntoPyObject<'py> for &JiffUnit {
     }
 }
 
-const JIFF_UNIT_STRINGS: &str =
-    "'year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'";
-const JIFF_UNIT_OPTIONS: &str =  "0='year', 1='month', 2='week', 3='day', 4='hour', 5='minute', 6='second', 7='millisecond', 8='microsecond', 9='nanosecond'";
+const JIFF_UNIT_STRINGS: &str = "'year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'";
+const JIFF_UNIT_OPTIONS: &str = "0='year', 1='month', 2='week', 3='day', 4='hour', 5='minute', 6='second', 7='millisecond', 8='microsecond', 9='nanosecond'";
 
 impl FromPyObject<'_> for JiffUnit {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffUnit> {

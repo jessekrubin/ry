@@ -1,11 +1,11 @@
-use pyo3::prelude::*;
 use pyo3::PyResult;
+use pyo3::prelude::*;
 
-use ::jiter::{map_json_error, PythonParse};
+use ::jiter::{PythonParse, map_json_error};
 use bytes::Bytes;
+use pyo3::Bound;
 use pyo3::exceptions::PyValueError;
 use pyo3::types::{PyBytes, PyDict};
-use pyo3::Bound;
 use reqwest::StatusCode;
 use ryo3_url::PyUrl;
 

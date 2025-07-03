@@ -6,7 +6,7 @@ use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpVersion
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
-use pyo3::{intern, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, intern};
 
 impl<'py> IntoPyObject<'py> for &HttpMethod {
     #[cfg(Py_LIMITED_API)]
@@ -148,10 +148,10 @@ impl FromPyObject<'_> for HttpVersion {
                 0 => Ok(HttpVersion(http::Version::HTTP_09)),
                 10 => Ok(HttpVersion(http::Version::HTTP_10)),
                 1 | 11 => Ok(HttpVersion(http::Version::HTTP_11)),
-                2|20 => Ok(HttpVersion(http::Version::HTTP_2)),
-                3|30 => Ok(HttpVersion(http::Version::HTTP_3)),
+                2 | 20 => Ok(HttpVersion(http::Version::HTTP_2)),
+                3 | 30 => Ok(HttpVersion(http::Version::HTTP_3)),
                 _ => Err(PyErr::new::<PyValueError, _>(
-                    "Invalid HTTP version: {i} (options: 0= HTPP/0.0, 1 | 10 = HTTP/1.0, 11 = HTTP/1.1, 2 | 20 = HTTP/2.0, 3 | 30 = HTTP/3.0)"
+                    "Invalid HTTP version: {i} (options: 0= HTPP/0.0, 1 | 10 = HTTP/1.0, 11 = HTTP/1.1, 2 | 20 = HTTP/2.0, 3 | 30 = HTTP/3.0)",
                 )),
             }
         } else {

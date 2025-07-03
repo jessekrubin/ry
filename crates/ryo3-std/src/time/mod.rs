@@ -1,5 +1,5 @@
-use crate::time::instant::PyInstant;
 use crate::PyDuration;
+use crate::time::instant::PyInstant;
 use pyo3::prelude::*;
 
 pub mod duration;

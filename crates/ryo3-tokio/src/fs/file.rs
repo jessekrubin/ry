@@ -448,7 +448,7 @@ impl PyAsyncFile {
             other => {
                 return Err(PyIOError::new_err(format!(
                     "Invalid value for whence in seek: {other}"
-                )))
+                )));
             }
         };
         let inner = Arc::clone(&self.inner);
@@ -565,7 +565,7 @@ impl OpenOptions {
             _ => {
                 return Err(PyValueError::new_err(format!(
                     "Unsupported open mode: {mode:?}"
-                )))
+                )));
             }
         }
 

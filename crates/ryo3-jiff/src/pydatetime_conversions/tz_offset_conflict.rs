@@ -2,8 +2,7 @@ use crate::jiff_types::JiffTzOffsetConflict;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 
-const JIFF_TZ_OFFSET_CONFLICTS: &str =
-    "'always-offset', 'always-timezone', 'prefer-offset', 'reject' (case-insensitive; underscores and hyphens are interchangeable)";
+const JIFF_TZ_OFFSET_CONFLICTS: &str = "'always-offset', 'always-timezone', 'prefer-offset', 'reject' (case-insensitive; underscores and hyphens are interchangeable)";
 impl FromPyObject<'_> for JiffTzOffsetConflict {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffTzOffsetConflict> {
         // downcast to string...

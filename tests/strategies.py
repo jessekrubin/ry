@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as pydt
 import zoneinfo
+from functools import lru_cache
 from typing import Any, Final
 
 from hypothesis import strategies as st
@@ -117,12 +118,20 @@ def st_json_js(
     )
 
 
-_OK_TIMEZONE_NAMES = set(zoneinfo.available_timezones())
+@lru_cache(maxsize=1)
+def _ok_timezone_names() -> set[str]:
+    """Get a set of valid timezone names."""
+    # zoneinfo.available_timezones() returns a set of valid timezone names
+    # that can be used with zoneinfo.ZoneInfo
+    return {el for el in zoneinfo.available_timezones() if el != "build/etc/localtime"}
 
 
 def st_timezones(*, no_cache: bool = False) -> SearchStrategy[zoneinfo.ZoneInfo]:
-    return st.timezones(no_cache=no_cache).filter(
-        # weird aliases are super (fucking) annoying and totally not useful
-        # unless your hair is too long need a trim
-        lambda tz: str(tz) in _OK_TIMEZONE_NAMES
-    )
+    # weird aliases are super (fucking) annoying and totally not useful
+    # unless your hair is too long need a trim
+
+    def _filterfn(tz: zoneinfo.ZoneInfo) -> bool:
+        """Filter function to ensure only valid timezones are returned."""
+        return str(tz) in _ok_timezone_names()
+
+    return st.timezones(no_cache=no_cache).filter(_filterfn)

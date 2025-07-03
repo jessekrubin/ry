@@ -3,13 +3,13 @@ use crate::errors::pyerr2sererr;
 use crate::any_repr::any_repr;
 use crate::py_serialize::SerializePyAny;
 use crate::serde_err;
+use pyo3::Bound;
 use pyo3::prelude::*;
 use pyo3::types::{
     PyBool, PyDate, PyDateTime, PyDict, PyFrozenSet, PyInt, PyIterator, PySet, PyString, PyTime,
     PyTzInfoAccess,
 };
 use pyo3::types::{PyList, PyTuple};
-use pyo3::Bound;
 use serde::ser::{Error as SerError, Serialize, SerializeMap, SerializeSeq};
 
 #[inline]

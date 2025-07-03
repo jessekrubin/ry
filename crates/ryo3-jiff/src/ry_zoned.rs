@@ -17,10 +17,10 @@ use crate::{
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedDifference, ZonedRound};
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyTuple, PyType};
-use pyo3::IntoPyObjectExt;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;

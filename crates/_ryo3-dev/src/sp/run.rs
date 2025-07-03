@@ -1,4 +1,4 @@
-use std::io::{self, stderr, stdout, Read, Write};
+use std::io::{self, Read, Write, stderr, stdout};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread::{self};

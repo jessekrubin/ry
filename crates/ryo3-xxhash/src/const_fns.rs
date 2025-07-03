@@ -1,8 +1,8 @@
 #![allow(clippy::needless_pass_by_value)]
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods};
-use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult, Python};
-use xxhash_rust::const_xxh3::xxh3_128_with_seed as const_xxh3_128_with_seed;
+use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
 use xxhash_rust::const_xxh3::xxh3_64_with_seed as const_xxh3_64_with_seed;
+use xxhash_rust::const_xxh3::xxh3_128_with_seed as const_xxh3_128_with_seed;
 use xxhash_rust::const_xxh32::xxh32 as const_xxh32;
 use xxhash_rust::const_xxh64::xxh64 as const_xxh64;
 

@@ -24,17 +24,19 @@ pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bou
 #[expect(clippy::cast_possible_wrap)]
 #[cfg(not(any(PyPy, GraalPy)))]
 unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
-    // disabled on everything except tier-1 platforms because of a crash in the built wheels from CI,
-    // see https://github.com/pydantic/jiter/pull/175
-    let ptr = pyo3::ffi::PyUnicode_New(s.len() as isize, 127);
-    debug_assert_eq!(
-        pyo3::ffi::PyUnicode_KIND(ptr),
-        pyo3::ffi::PyUnicode_1BYTE_KIND
-    );
-    let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
-    core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
-    core::ptr::write(data_ptr.add(s.len()), 0);
-    Bound::from_owned_ptr(py, ptr).downcast_into_unchecked()
+    unsafe {
+        // disabled on everything except tier-1 platforms because of a crash in the built wheels from CI,
+        // see https://github.com/pydantic/jiter/pull/175
+        let ptr = pyo3::ffi::PyUnicode_New(s.len() as isize, 127);
+        debug_assert_eq!(
+            pyo3::ffi::PyUnicode_KIND(ptr),
+            pyo3::ffi::PyUnicode_1BYTE_KIND
+        );
+        let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
+        core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
+        core::ptr::write(data_ptr.add(s.len()), 0);
+        Bound::from_owned_ptr(py, ptr).downcast_into_unchecked()
+    }
 }
 
 // unoptimized version (albeit not that much slower) on other platforms

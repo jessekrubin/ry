@@ -15,7 +15,7 @@ pub use http_types::{
     HttpHeaderMap, HttpHeaderName, HttpHeaderNameRef, HttpHeaderValue, HttpMethod, HttpStatusCode,
     HttpVersion,
 };
-pub use status_code::{status_code_pystring, PyHttpStatus};
+pub use status_code::{PyHttpStatus, status_code_pystring};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyHeaders>()?;
