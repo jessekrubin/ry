@@ -234,19 +234,21 @@ impl PyBytes {
         view: *mut ffi::Py_buffer,
         flags: c_int,
     ) -> PyResult<()> {
-        let bytes = slf.0.as_ref();
-        let ret = ffi::PyBuffer_FillInfo(
-            view,
-            slf.as_ptr() as *mut _,
-            bytes.as_ptr() as *mut _,
-            bytes.len().try_into().unwrap(),
-            1, // read only
-            flags,
-        );
-        if ret == -1 {
-            return Err(PyErr::fetch(slf.py()));
+        unsafe {
+            let bytes = slf.0.as_ref();
+            let ret = ffi::PyBuffer_FillInfo(
+                view,
+                slf.as_ptr() as *mut _,
+                bytes.as_ptr() as *mut _,
+                bytes.len().try_into()?,
+                1, // read only
+                flags,
+            );
+            if ret == -1 {
+                return Err(PyErr::fetch(slf.py()));
+            }
+            Ok(())
         }
-        Ok(())
     }
 
     // Comment from david hewitt on discord:
