@@ -9,20 +9,18 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::cast_possible_wrap)]
 mod pyo3_bytes;
-mod ry_bytes;
-
+mod ryo3_bytes;
 use pyo3::intern;
 use pyo3::prelude::*;
 pub use pyo3_bytes::Pyo3Bytes;
-pub mod bytes;
+pub use ryo3_bytes::PyBytes;
+// pub mod bytes;
 // pub mod bytes_dev;
 mod anybytes;
-mod bytes_ext;
+// mod bytes_ext;
 mod bytes_like;
 
-pub use crate::bytes::PyBytes;
 pub use bytes_like::{extract_bytes_ref, extract_bytes_ref_str};
-pub use ry_bytes::RyBytes;
 
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
