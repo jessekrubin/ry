@@ -186,20 +186,7 @@ impl RyDate {
         self.__sub__(py, other)
     }
 
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-    //     };
-    //     self.0 = t;
-    //     Ok(())
-    // }
-
-    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         self.0
             .checked_add(spanish)
@@ -207,7 +194,7 @@ impl RyDate {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -221,15 +208,6 @@ impl RyDate {
         Ok(Self::from(self.0.saturating_sub(spanish)))
     }
 
-    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-    //     };
-    //     self.0 = t;
-    //     Ok(())
-    // }
     #[classmethod]
     fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> Self {
         Self(d)

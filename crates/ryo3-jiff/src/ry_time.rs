@@ -170,18 +170,6 @@ impl RyTime {
         }
     }
 
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-    //     };
-    //     self.0 = t;
-    //     Ok(())
-    // }
     fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         self.0

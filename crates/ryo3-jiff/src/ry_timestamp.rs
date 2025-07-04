@@ -162,20 +162,6 @@ impl RyTimestamp {
         }
     }
 
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-    //     }
-    //     .map_err(map_py_overflow_err)?;
-    //     self.0 = t;
-    //     Ok(())
-    // }
-
     fn checked_sub<'py>(
         &self,
         py: Python<'py>,
@@ -183,6 +169,7 @@ impl RyTimestamp {
     ) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
+
     fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         self.0
@@ -190,19 +177,7 @@ impl RyTimestamp {
             .map(RyTimestamp::from)
             .map_err(map_py_overflow_err)
     }
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
-    //     }
-    //     .map_err(map_py_overflow_err)?;
-    //     self.0 = t;
-    //     Ok(())
-    // }
+
     fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
