@@ -112,7 +112,7 @@ class TestZonedUntil:
 
         span = zdt1.until(zdt2, largest="month")
         assert span == ry.timespan(months=1, days=29)
-        maybe_original = zdt2.checked_sub(span)
+        maybe_original = zdt2 - span
         assert maybe_original == ry.date(2024, 3, 3).at(0, 0, 0, 0).in_tz(
             "America/New_York"
         )

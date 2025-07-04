@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.49 [unreleased]
+## v0.0.49 [2025-07-04] (fourth o july)
 
 - workspace
   - set rust edition to 2024
@@ -10,6 +10,7 @@
 - `ryo3-json`
   - `minify` function to remove whitespace/newlines from json-string/bytes
 - `ryo3-jiff`
+  - internal refactoring
   - `isoformat` methods aligned with python's `datetime` library methods
   - Freeze (make pyclass frozen) for all jiff types (changed `*Series`
     iterables)
