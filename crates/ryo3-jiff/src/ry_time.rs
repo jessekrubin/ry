@@ -1,18 +1,18 @@
 use crate::RyDateTime;
 use crate::RySignedDuration;
 use crate::RySpan;
-use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::series::RyTimeSeries;
+use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
 use jiff::Zoned;
 use jiff::civil::{Time, TimeRound};
 use pyo3::basic::CompareOp;
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple, PyType};
+use pyo3::{IntoPyObjectExt, intern};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -157,70 +157,31 @@ impl RyTime {
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
-        other: RyTimeArithmeticSub,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        match other {
-            RyTimeArithmeticSub::Time(other) => {
-                let span = self.0.sub(other.0);
-                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-                Ok(obj)
-            }
-            RyTimeArithmeticSub::Span(other) => {
-                let t = self.0.checked_sub(other.0).map_err(map_py_overflow_err)?;
-
-                RyTime::from(t).into_pyobject(py).map(Bound::into_any)
-            }
-            RyTimeArithmeticSub::SignedDuration(other) => {
-                let t = self.0.checked_sub(other.0).map_err(map_py_overflow_err)?;
-                RyTime::from(t).into_pyobject(py).map(Bound::into_any)
-            }
+        if let Ok(ob) = other.downcast::<Self>() {
+            let span = self.0.sub(ob.get().0);
+            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
+            Ok(obj)
+        } else {
+            let spanish = Spanish::try_from(other)?;
+            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
+            RyTime::from(z).into_bound_py_any(py)
         }
     }
 
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-    //     };
-    //     self.0 = t;
-    //     Ok(())
-    // }
-
-    fn __add__(&self, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
-            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
-        }
-        .map_err(map_py_overflow_err)?;
-        Ok(RyTime::from(t))
-    }
-
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
-    //     }
-    //     .map_err(map_py_overflow_err)?;
-    //     self.0 = t;
-    //     Ok(())
-    // }
-    fn checked_add(&self, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        self.__add__(other)
+    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        self.0
+            .checked_add(spanish)
+            .map(RyTime::from)
+            .map_err(map_py_overflow_err)
     }
 
     fn checked_sub<'py>(
         &self,
         py: Python<'py>,
-        other: RyTimeArithmeticSub,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
@@ -324,42 +285,24 @@ impl RyTime {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
-    fn saturating_add(&self, other: RyDeltaArithmeticSelf) -> RyTime {
-        match other {
-            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.saturating_add(other.0)),
-            RyDeltaArithmeticSelf::SignedDuration(other) => {
-                Self::from(self.0.saturating_add(other.0))
-            }
-            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.saturating_add(other.0)),
-        }
-    }
-    fn saturating_sub(&self, other: RyDeltaArithmeticSelf) -> RyTime {
-        match other {
-            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.saturating_sub(other.0)),
-            RyDeltaArithmeticSelf::SignedDuration(other) => {
-                Self::from(self.0.saturating_sub(other.0))
-            }
-            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.saturating_sub(other.0)),
-        }
-    }
-    fn wrapping_add(&self, other: RyDeltaArithmeticSelf) -> RyTime {
-        match other {
-            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.wrapping_add(other.0)),
-            RyDeltaArithmeticSelf::SignedDuration(other) => {
-                Self::from(self.0.wrapping_add(other.0))
-            }
-            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.wrapping_add(other.0)),
-        }
+    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(Self::from(self.0.saturating_add(spanish)))
     }
 
-    fn wrapping_sub(&self, other: RyDeltaArithmeticSelf) -> RyTime {
-        match other {
-            RyDeltaArithmeticSelf::Span(other) => Self::from(self.0.wrapping_sub(other.0)),
-            RyDeltaArithmeticSelf::SignedDuration(other) => {
-                Self::from(self.0.wrapping_sub(other.0))
-            }
-            RyDeltaArithmeticSelf::Duration(other) => Self::from(self.0.wrapping_sub(other.0)),
-        }
+    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(Self::from(self.0.saturating_sub(spanish)))
+    }
+
+    fn wrapping_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<RyTime> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(Self::from(self.0.wrapping_add(spanish)))
+    }
+
+    fn wrapping_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<RyTime> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(Self::from(self.0.wrapping_sub(spanish)))
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -459,11 +402,4 @@ impl From<JiffTime> for RyTime {
     fn from(value: JiffTime) -> Self {
         Self(value.0)
     }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum RyTimeArithmeticSub {
-    Time(RyTime),
-    Span(RySpan),
-    SignedDuration(RySignedDuration),
 }

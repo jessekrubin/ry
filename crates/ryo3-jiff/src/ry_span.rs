@@ -377,16 +377,7 @@ impl RySpan {
     }
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
-        self.0.get_years().hash(&mut hasher);
-        self.0.get_months().hash(&mut hasher);
-        self.0.get_weeks().hash(&mut hasher);
-        self.0.get_days().hash(&mut hasher);
-        self.0.get_hours().hash(&mut hasher);
-        self.0.get_minutes().hash(&mut hasher);
-        self.0.get_seconds().hash(&mut hasher);
-        self.0.get_milliseconds().hash(&mut hasher);
-        self.0.get_microseconds().hash(&mut hasher);
-        self.0.get_nanoseconds().hash(&mut hasher);
+        self.0.fieldwise().hash(&mut hasher);
         hasher.finish()
     }
 
