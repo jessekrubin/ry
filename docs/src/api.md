@@ -2,10 +2,13 @@
 
 ## Table of Contents
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
+- [`ry.ryo3.dirs`](#ry.ryo3.dirs)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
 - [`ry.ryo3.orjson`](#ry.ryo3.orjson)
 - [`ry.ryo3.sh`](#ry.ryo3.sh)
+- [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
+- [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
@@ -16,6 +19,7 @@
 - [`ry.ryo3._glob`](#ry.ryo3._glob)
 - [`ry.ryo3._globset`](#ry.ryo3._globset)
 - [`ry.ryo3._heck`](#ry.ryo3._heck)
+- [`ry.ryo3._http`](#ry.ryo3._http)
 - [`ry.ryo3._jiff`](#ry.ryo3._jiff)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
@@ -31,8 +35,8 @@
 - [`ry.ryo3._url`](#ry.ryo3._url)
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
 - [`ry.ryo3._which`](#ry.ryo3._which)
+- [`ry.ryo3._zstd`](#ry.ryo3._zstd)
 - [`ry.dirs`](#ry.dirs)
-- [`ry.http`](#ry.http)
 - [`ry.JSON`](#ry.JSON)
 - [`ry.ulid`](#ry.ulid)
 - [`ry.uuid`](#ry.uuid)
@@ -43,169 +47,163 @@
 ```python
 """ry api ~ type annotations"""
 
-from ry import dirs as dirs  # noqa: RUF100
-from ry import http as http  # noqa: RUF100
 from ry import ulid as ulid  # noqa: RUF100
 from ry import uuid as uuid  # noqa: RUF100
-from ry import xxhash as xxhash  # noqa: RUF100
-from ry import zstd as zstd  # noqa: RUF100
-from ry._types import Buffer as Buffer  # noqa: RUF100
-from ry.http import Headers as Headers  # noqa: RUF100
-from ry.http import HttpStatus as HttpStatus  # noqa: RUF100
-from ry.zstd import is_zstd as is_zstd
-from ry.zstd import zstd_compress as zstd_compress
-from ry.zstd import zstd_decode as zstd_decode
-from ry.zstd import zstd_decompress as zstd_decompress
-from ry.zstd import zstd_encode as zstd_encode
-
-from ._brotli import brotli as brotli
-from ._brotli import brotli_decode as brotli_decode
-from ._brotli import brotli_encode as brotli_encode
-from ._bytes import Bytes as Bytes
-from ._bzip2 import bzip2 as bzip2
-from ._bzip2 import bzip2_decode as bzip2_decode
-from ._bzip2 import bzip2_encode as bzip2_encode
-from ._flate2 import gunzip as gunzip
-from ._flate2 import gzip as gzip
-from ._flate2 import gzip_decode as gzip_decode
-from ._flate2 import gzip_encode as gzip_encode
-from ._flate2 import is_gzipped as is_gzipped
-from ._fnv import FnvHasher as FnvHasher
-from ._fnv import fnv1a as fnv1a
-from ._fspath import FsPath as FsPath
-from ._glob import Pattern as Pattern
-from ._glob import glob as glob
-from ._globset import Glob as Glob
-from ._globset import GlobSet as GlobSet
-from ._globset import Globster as Globster
-from ._globset import globster as globster
-from ._heck import camel_case as camel_case
-from ._heck import kebab_case as kebab_case
-from ._heck import pascal_case as pascal_case
-from ._heck import shouty_kebab_case as shouty_kebab_case
-from ._heck import shouty_snake_case as shouty_snake_case
-from ._heck import snake_case as snake_case
-from ._heck import snek_case as snek_case
-from ._heck import title_case as title_case
-from ._heck import train_case as train_case
-from ._jiff import Date as Date
-from ._jiff import DateDifference as DateDifference
-from ._jiff import DateTime as DateTime
-from ._jiff import DateTimeDifference as DateTimeDifference
-from ._jiff import DateTimeRound as DateTimeRound
-from ._jiff import ISOWeekDate as ISOWeekDate
-from ._jiff import Offset as Offset
-from ._jiff import SignedDuration as SignedDuration
-from ._jiff import Time as Time
-from ._jiff import TimeDifference as TimeDifference
-from ._jiff import TimeSpan as TimeSpan
-from ._jiff import Timestamp as Timestamp
-from ._jiff import TimestampDifference as TimestampDifference
-from ._jiff import TimestampRound as TimestampRound
-from ._jiff import TimeZone as TimeZone
-from ._jiff import TimeZoneDatabase as TimeZoneDatabase
-from ._jiff import ZonedDateTime as ZonedDateTime
-from ._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
-from ._jiff import ZonedDateTimeRound as ZonedDateTimeRound
-from ._jiff import date as date
-from ._jiff import datetime as datetime
-from ._jiff import offset as offset
-from ._jiff import time as time
-from ._jiff import timespan as timespan
-from ._jiff import zoned as zoned
-from ._jiter import JsonParseKwargs as JsonParseKwargs
-from ._jiter import JsonPrimitive as JsonPrimitive
-from ._jiter import JsonValue as JsonValue
-from ._jiter import json_cache_clear as json_cache_clear
-from ._jiter import json_cache_usage as json_cache_usage
-from ._jiter import parse_json as parse_json
-from ._jiter import parse_jsonl as parse_jsonl
-from ._jiter import read_json as read_json
-from ._quick_maths import quick_maths as quick_maths
-from ._regex import Regex as Regex
-from ._reqwest import HttpClient as HttpClient
-from ._reqwest import ReqwestError as ReqwestError
-from ._reqwest import Response as Response
-from ._reqwest import ResponseStream as ResponseStream
-from ._reqwest import fetch as fetch
-from ._same_file import is_same_file as is_same_file
-from ._shlex import shplit as shplit
-from ._size import Size as Size
-from ._size import SizeFormatter as SizeFormatter
-from ._size import fmt_size as fmt_size
-from ._size import parse_size as parse_size
-from ._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
-from ._sqlformat import sqlfmt as sqlfmt
-from ._sqlformat import sqlfmt_params as sqlfmt_params
-from ._std import Duration as Duration
-from ._std import FileReadStream as FileReadStream
-from ._std import FileType as FileType
-from ._std import Instant as Instant
-from ._std import IpAddr as IpAddr
-from ._std import Ipv4Addr as Ipv4Addr
-from ._std import Ipv6Addr as Ipv6Addr
-from ._std import Metadata as Metadata
-from ._std import canonicalize as canonicalize
-from ._std import copy as copy
-from ._std import create_dir as create_dir
-from ._std import create_dir_all as create_dir_all
-from ._std import exists as exists
-from ._std import instant as instant
-from ._std import is_dir as is_dir
-from ._std import is_file as is_file
-from ._std import is_symlink as is_symlink
-from ._std import metadata as metadata
-from ._std import read as read
-from ._std import read_bytes as read_bytes
-from ._std import read_dir as read_dir
-from ._std import read_stream as read_stream
-from ._std import read_text as read_text
-from ._std import remove_dir as remove_dir
-from ._std import remove_dir_all as remove_dir_all
-from ._std import remove_file as remove_file
-from ._std import rename as rename
-from ._std import sleep as sleep
-from ._std import write as write
-from ._std import write_bytes as write_bytes
-from ._std import write_text as write_text
-from ._tokio import AsyncFile as AsyncFile
-from ._tokio import aiopen as aiopen
-from ._tokio import asleep as asleep
-from ._tokio import canonicalize_async as canonicalize_async
-from ._tokio import copy_async as copy_async
-from ._tokio import create_dir_all_async as create_dir_all_async
-from ._tokio import create_dir_async as create_dir_async
-from ._tokio import exists_async as exists_async
-from ._tokio import hard_link_async as hard_link_async
-from ._tokio import metadata_async as metadata_async
-from ._tokio import read_async as read_async
-from ._tokio import read_dir_async as read_dir_async
-from ._tokio import read_link_async as read_link_async
-from ._tokio import read_to_string_async as read_to_string_async
-from ._tokio import remove_dir_all_async as remove_dir_all_async
-from ._tokio import remove_dir_async as remove_dir_async
-from ._tokio import remove_file_async as remove_file_async
-from ._tokio import rename_async as rename_async
-from ._tokio import sleep_async as sleep_async
-from ._tokio import try_exists_async as try_exists_async
-from ._tokio import write_async as write_async
-from ._unindent import unindent as unindent
-from ._unindent import unindent_bytes as unindent_bytes
-from ._url import URL as URL
-from ._walkdir import WalkDirEntry as WalkDirEntry
-from ._walkdir import WalkdirGen as WalkdirGen
-from ._walkdir import walkdir as walkdir
-from ._which import which as which
-from ._which import which_all as which_all
-from ._which import which_re as which_re
-from .errors import FeatureNotEnabledError as FeatureNotEnabledError
-from .JSON import stringify as stringify
-from .orjson import orjson_default as orjson_default
-from .sh import cd as cd
-from .sh import home as home
-from .sh import ls as ls
-from .sh import mkdir as mkdir
-from .sh import pwd as pwd
+from ry.ryo3._brotli import brotli as brotli
+from ry.ryo3._brotli import brotli_decode as brotli_decode
+from ry.ryo3._brotli import brotli_encode as brotli_encode
+from ry.ryo3._bytes import Bytes as Bytes
+from ry.ryo3._bzip2 import bzip2 as bzip2
+from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
+from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
+from ry.ryo3._flate2 import gunzip as gunzip
+from ry.ryo3._flate2 import gzip as gzip
+from ry.ryo3._flate2 import gzip_decode as gzip_decode
+from ry.ryo3._flate2 import gzip_encode as gzip_encode
+from ry.ryo3._flate2 import is_gzipped as is_gzipped
+from ry.ryo3._fnv import FnvHasher as FnvHasher
+from ry.ryo3._fnv import fnv1a as fnv1a
+from ry.ryo3._fspath import FsPath as FsPath
+from ry.ryo3._glob import Pattern as Pattern
+from ry.ryo3._glob import glob as glob
+from ry.ryo3._globset import Glob as Glob
+from ry.ryo3._globset import GlobSet as GlobSet
+from ry.ryo3._globset import Globster as Globster
+from ry.ryo3._globset import globster as globster
+from ry.ryo3._heck import camel_case as camel_case
+from ry.ryo3._heck import kebab_case as kebab_case
+from ry.ryo3._heck import pascal_case as pascal_case
+from ry.ryo3._heck import shouty_kebab_case as shouty_kebab_case
+from ry.ryo3._heck import shouty_snake_case as shouty_snake_case
+from ry.ryo3._heck import snake_case as snake_case
+from ry.ryo3._heck import snek_case as snek_case
+from ry.ryo3._heck import title_case as title_case
+from ry.ryo3._heck import train_case as train_case
+from ry.ryo3._http import Headers as Headers  # noqa: RUF100
+from ry.ryo3._http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.ryo3._jiff import Date as Date
+from ry.ryo3._jiff import DateDifference as DateDifference
+from ry.ryo3._jiff import DateTime as DateTime
+from ry.ryo3._jiff import DateTimeDifference as DateTimeDifference
+from ry.ryo3._jiff import DateTimeRound as DateTimeRound
+from ry.ryo3._jiff import ISOWeekDate as ISOWeekDate
+from ry.ryo3._jiff import Offset as Offset
+from ry.ryo3._jiff import SignedDuration as SignedDuration
+from ry.ryo3._jiff import Time as Time
+from ry.ryo3._jiff import TimeDifference as TimeDifference
+from ry.ryo3._jiff import TimeSpan as TimeSpan
+from ry.ryo3._jiff import Timestamp as Timestamp
+from ry.ryo3._jiff import TimestampDifference as TimestampDifference
+from ry.ryo3._jiff import TimestampRound as TimestampRound
+from ry.ryo3._jiff import TimeZone as TimeZone
+from ry.ryo3._jiff import TimeZoneDatabase as TimeZoneDatabase
+from ry.ryo3._jiff import ZonedDateTime as ZonedDateTime
+from ry.ryo3._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
+from ry.ryo3._jiff import ZonedDateTimeRound as ZonedDateTimeRound
+from ry.ryo3._jiff import date as date
+from ry.ryo3._jiff import datetime as datetime
+from ry.ryo3._jiff import offset as offset
+from ry.ryo3._jiff import time as time
+from ry.ryo3._jiff import timespan as timespan
+from ry.ryo3._jiff import zoned as zoned
+from ry.ryo3._jiter import JsonParseKwargs as JsonParseKwargs
+from ry.ryo3._jiter import JsonPrimitive as JsonPrimitive
+from ry.ryo3._jiter import JsonValue as JsonValue
+from ry.ryo3._jiter import json_cache_clear as json_cache_clear
+from ry.ryo3._jiter import json_cache_usage as json_cache_usage
+from ry.ryo3._jiter import parse_json as parse_json
+from ry.ryo3._jiter import parse_jsonl as parse_jsonl
+from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._quick_maths import quick_maths as quick_maths
+from ry.ryo3._regex import Regex as Regex
+from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import ReqwestError as ReqwestError
+from ry.ryo3._reqwest import Response as Response
+from ry.ryo3._reqwest import ResponseStream as ResponseStream
+from ry.ryo3._reqwest import fetch as fetch
+from ry.ryo3._same_file import is_same_file as is_same_file
+from ry.ryo3._shlex import shplit as shplit
+from ry.ryo3._size import Size as Size
+from ry.ryo3._size import SizeFormatter as SizeFormatter
+from ry.ryo3._size import fmt_size as fmt_size
+from ry.ryo3._size import parse_size as parse_size
+from ry.ryo3._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
+from ry.ryo3._sqlformat import sqlfmt as sqlfmt
+from ry.ryo3._sqlformat import sqlfmt_params as sqlfmt_params
+from ry.ryo3._std import Duration as Duration
+from ry.ryo3._std import FileReadStream as FileReadStream
+from ry.ryo3._std import FileType as FileType
+from ry.ryo3._std import Instant as Instant
+from ry.ryo3._std import IpAddr as IpAddr
+from ry.ryo3._std import Ipv4Addr as Ipv4Addr
+from ry.ryo3._std import Ipv6Addr as Ipv6Addr
+from ry.ryo3._std import Metadata as Metadata
+from ry.ryo3._std import canonicalize as canonicalize
+from ry.ryo3._std import copy as copy
+from ry.ryo3._std import create_dir as create_dir
+from ry.ryo3._std import create_dir_all as create_dir_all
+from ry.ryo3._std import exists as exists
+from ry.ryo3._std import instant as instant
+from ry.ryo3._std import is_dir as is_dir
+from ry.ryo3._std import is_file as is_file
+from ry.ryo3._std import is_symlink as is_symlink
+from ry.ryo3._std import metadata as metadata
+from ry.ryo3._std import read as read
+from ry.ryo3._std import read_bytes as read_bytes
+from ry.ryo3._std import read_dir as read_dir
+from ry.ryo3._std import read_stream as read_stream
+from ry.ryo3._std import read_text as read_text
+from ry.ryo3._std import remove_dir as remove_dir
+from ry.ryo3._std import remove_dir_all as remove_dir_all
+from ry.ryo3._std import remove_file as remove_file
+from ry.ryo3._std import rename as rename
+from ry.ryo3._std import sleep as sleep
+from ry.ryo3._std import write as write
+from ry.ryo3._std import write_bytes as write_bytes
+from ry.ryo3._std import write_text as write_text
+from ry.ryo3._tokio import AsyncFile as AsyncFile
+from ry.ryo3._tokio import aiopen as aiopen
+from ry.ryo3._tokio import asleep as asleep
+from ry.ryo3._tokio import canonicalize_async as canonicalize_async
+from ry.ryo3._tokio import copy_async as copy_async
+from ry.ryo3._tokio import create_dir_all_async as create_dir_all_async
+from ry.ryo3._tokio import create_dir_async as create_dir_async
+from ry.ryo3._tokio import exists_async as exists_async
+from ry.ryo3._tokio import hard_link_async as hard_link_async
+from ry.ryo3._tokio import metadata_async as metadata_async
+from ry.ryo3._tokio import read_async as read_async
+from ry.ryo3._tokio import read_dir_async as read_dir_async
+from ry.ryo3._tokio import read_link_async as read_link_async
+from ry.ryo3._tokio import read_to_string_async as read_to_string_async
+from ry.ryo3._tokio import remove_dir_all_async as remove_dir_all_async
+from ry.ryo3._tokio import remove_dir_async as remove_dir_async
+from ry.ryo3._tokio import remove_file_async as remove_file_async
+from ry.ryo3._tokio import rename_async as rename_async
+from ry.ryo3._tokio import sleep_async as sleep_async
+from ry.ryo3._tokio import try_exists_async as try_exists_async
+from ry.ryo3._tokio import write_async as write_async
+from ry.ryo3._unindent import unindent as unindent
+from ry.ryo3._unindent import unindent_bytes as unindent_bytes
+from ry.ryo3._url import URL as URL
+from ry.ryo3._walkdir import WalkDirEntry as WalkDirEntry
+from ry.ryo3._walkdir import WalkdirGen as WalkdirGen
+from ry.ryo3._walkdir import walkdir as walkdir
+from ry.ryo3._which import which as which
+from ry.ryo3._which import which_all as which_all
+from ry.ryo3._which import which_re as which_re
+from ry.ryo3._zstd import is_zstd as is_zstd
+from ry.ryo3._zstd import zstd_compress as zstd_compress
+from ry.ryo3._zstd import zstd_decode as zstd_decode
+from ry.ryo3._zstd import zstd_decompress as zstd_decompress
+from ry.ryo3._zstd import zstd_encode as zstd_encode
+from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
+from ry.ryo3.JSON import stringify as stringify
+from ry.ryo3.orjson import orjson_default as orjson_default
+from ry.ryo3.sh import cd as cd
+from ry.ryo3.sh import home as home
+from ry.ryo3.sh import ls as ls
+from ry.ryo3.sh import mkdir as mkdir
+from ry.ryo3.sh import pwd as pwd
 
 # =============================================================================
 # CONSTANTS
@@ -217,6 +215,50 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
+
+```
+
+<h2 id="ry.ryo3.dirs"><code>ry.ryo3.dirs</code></h2>
+
+```python
+def audio() -> str | None: ...
+def audio_dir() -> str | None: ...
+def cache() -> str | None: ...
+def cache_dir() -> str | None: ...
+def config() -> str | None: ...
+def config_dir() -> str | None: ...
+def config_local() -> str | None: ...
+def config_local_dir() -> str | None: ...
+def data() -> str | None: ...
+def data_dir() -> str | None: ...
+def data_local() -> str | None: ...
+def data_local_dir() -> str | None: ...
+def desktop() -> str | None: ...
+def desktop_dir() -> str | None: ...
+def document() -> str | None: ...
+def document_dir() -> str | None: ...
+def download() -> str | None: ...
+def download_dir() -> str | None: ...
+def executable() -> str | None: ...
+def executable_dir() -> str | None: ...
+def font() -> str | None: ...
+def font_dir() -> str | None: ...
+def home() -> str | None: ...
+def home_dir() -> str | None: ...
+def picture() -> str | None: ...
+def picture_dir() -> str | None: ...
+def preference() -> str | None: ...
+def preference_dir() -> str | None: ...
+def public() -> str | None: ...
+def public_dir() -> str | None: ...
+def runtime() -> str | None: ...
+def runtime_dir() -> str | None: ...
+def state() -> str | None: ...
+def state_dir() -> str | None: ...
+def template() -> str | None: ...
+def template_dir() -> str | None: ...
+def video() -> str | None: ...
+def video_dir() -> str | None: ...
 
 ```
 
@@ -233,7 +275,6 @@ class FeatureNotEnabledError(RuntimeError):
 ```python
 """ry.ryo3.JSON"""
 
-import builtins
 from typing import Any, Callable, Literal, overload
 
 import typing_extensions
@@ -249,6 +290,32 @@ JsonValue: typing_extensions.TypeAlias = (
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]
 )
+
+
+def minify(data: Buffer) -> Bytes:
+    """Return minified json data (remove whitespace, newlines)
+
+    Args:
+        data: The JSON data to minify.
+
+    Returns:
+        Minified JSON data as a `Bytes` object.
+
+    Examples:
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.minify(json_str))
+        b'{"key":"value","number":123,"bool":true}'
+
+    """
 
 
 @overload
@@ -345,6 +412,166 @@ def ls(
 
 
 def mkdir(path: str | PathLike[str]) -> None: ...
+
+```
+
+<h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
+
+```python
+import typing as t
+
+from ry._types import Buffer
+
+
+@t.final
+class Xxh32:
+    name: t.Literal["xxh32"]
+    digest_size: t.Literal[4]
+    block_size: t.Literal[16]
+
+    def __init__(self, input: Buffer = ..., seed: int | None = ...) -> None: ...
+    def update(self, input: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh32: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
+
+
+@t.final
+class Xxh64:
+    name: t.Literal["xxh64"]
+    digest_size: t.Literal[8]
+    block_size: t.Literal[32]
+
+    def __init__(
+        self, input: Buffer | None = None, seed: int | None = ...
+    ) -> None: ...
+    def update(self, input: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh64: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
+
+
+@t.final
+class Xxh3:
+    name: t.Literal["xxh3"]
+    digest_size: int  # xxh3_64: 8, xxh3_128: 16
+    block_size: int  # xxh3_64: 32, xxh3_128: 64
+
+    def __init__(
+        self,
+        input: Buffer = ...,
+        seed: int | None = ...,
+        secret: bytes | None = ...,
+    ) -> None: ...
+    def update(self, input: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    @property
+    def seed(self) -> int: ...
+    def digest128(self) -> bytes: ...
+    def hexdigest128(self) -> str: ...
+    def intdigest128(self) -> int: ...
+    def copy(self) -> Xxh3: ...
+    def reset(self) -> None: ...
+
+
+# constructor aliases
+def xxh32(input: Buffer | None = None, seed: int | None = None) -> Xxh32: ...
+def xxh64(input: Buffer | None = None, seed: int | None = None) -> Xxh64: ...
+def xxh3(
+    input: Buffer | None = None,
+    seed: int | None = None,
+    secret: bytes | None = None,
+) -> Xxh3: ...
+
+
+# -----------------------------------------------------------------------------
+# ONE-SHOT FUNCTIONS
+# -----------------------------------------------------------------------------
+
+
+# xxh32
+def xxh32_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh32_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh32_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh64
+def xxh64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh128
+def xxh128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh3
+def xxh3_64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+def xxh3_64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+def xxh3_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+def xxh3_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+
+
+# xxh128
+def xxh3_128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
+def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+
+```
+
+<h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
+
+```python
+from ry import Bytes
+from ry._types import Buffer
+
+__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
+BLOCKSIZELOG_MAX: int
+BLOCKSIZE_MAX: int
+CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
+CONTENTSIZE_ERROR: int
+CONTENTSIZE_UNKNOWN: int
+MAGICNUMBER: int
+MAGIC_DICTIONARY: int
+MAGIC_SKIPPABLE_MASK: int
+MAGIC_SKIPPABLE_START: int
+VERSION_MAJOR: int
+VERSION_MINOR: int
+VERSION_NUMBER: int
+VERSION_RELEASE: int
+
+
+# =============================================================================
+# PYFUNCTIONS
+# =============================================================================
+# __COMPRESSION__
+def compress(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
+def encode(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
+def zstd(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
+
+
+# __DECOMPRESSION__
+def decode(data: Buffer) -> Bytes: ...
+def decompress(data: Buffer) -> Bytes: ...
+def unzstd(data: Buffer) -> Bytes: ...
+
+
+# __MAGIC__
+def is_zstd(data: Buffer) -> bool: ...
 
 ```
 
@@ -643,6 +870,7 @@ from pathlib import Path
 
 from ry._types import Buffer, ToPy
 from ry.ryo3._bytes import Bytes
+from ry.ryo3._regex import Regex
 from ry.ryo3._std import Metadata
 
 
@@ -751,10 +979,20 @@ class FsPath(ToPy[Path]):
     def with_file_name(self, name: str) -> FsPath: ...
 
     # =========================================================================
-    # MISC
+    # FEATURE: `same-file`
     # =========================================================================
     def samefile(self, other: PathLike[str] | str | FsPath) -> bool: ...
     def symlink_metadata(self) -> Metadata: ...
+
+    # =========================================================================
+    # FEATURE: `which` & `which-regex`
+    # =========================================================================
+    @staticmethod
+    def which(cmd: str, path: str) -> FsPath | None: ...
+    @staticmethod
+    def which_all(cmd: str, path: str) -> list[FsPath]: ...
+    @staticmethod
+    def which_re(regex: str | Regex, path: str) -> FsPath | None: ...
 
 
 class FsPathReaddir:
@@ -777,7 +1015,7 @@ from pathlib import Path
 
 import typing_extensions as te
 
-from ._fspath import FsPath
+from ry.ryo3._fspath import FsPath
 
 _T = t.TypeVar("_T", bound=str | Path | FsPath)
 
@@ -947,6 +1185,191 @@ def train_case(string: str) -> str: ...
 
 ```
 
+<h2 id="ry.ryo3._http"><code>ry.ryo3._http</code></h2>
+
+```python
+import typing as t
+from collections.abc import Mapping
+
+import typing_extensions
+
+# fmt: off
+HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
+    "HTTP/0.9", "0.9", 0,
+    "HTTP/1.0", "1.0", 1, 10,
+    "HTTP/1.1", "1.1", 11,
+    "HTTP/2.0", "2.0", 2, 20,
+    "HTTP/3.0", "3.0", 3, 30,
+]
+# fmt: on
+
+_VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
+
+
+class Headers:
+    """python-ryo3-http `http::HeadersMap` wrapper"""
+
+    def __init__(
+        self,
+        headers: Mapping[str, _VT] | Headers | None = None,
+        /,
+        **kwargs: _VT,
+    ) -> None: ...
+
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __dbg__(self) -> str: ...
+
+    # =========================================================================
+    # MAGIC METHODS
+    # =========================================================================
+    def __len__(self) -> int: ...
+    def __getitem__(self, key: str) -> str: ...
+    def __setitem__(self, key: str, value: str) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...
+    def __or__(self, other: Headers | dict[str, str]) -> Headers: ...
+    def __ror__(self, other: Headers | dict[str, str]) -> Headers: ...
+    def __iter__(self) -> t.Iterator[str]: ...
+    def __bool__(self) -> bool: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
+    def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
+    def stringify(self, *, fmt: bool = False) -> str: ...
+    def append(self, key: str, value: str) -> None: ...
+    def clear(self) -> None: ...
+    def contains_key(self, key: str) -> bool: ...
+    def get(self, key: str) -> str | None: ...
+    def get_all(self, key: str) -> list[str]: ...
+    def insert(self, key: str, value: str) -> None: ...
+    def is_empty(self) -> bool: ...
+    def keys(self) -> list[str]: ...
+    def keys_len(self) -> int: ...
+    def len(self) -> int: ...
+    def pop(self, key: str) -> str: ...
+    def remove(self, key: str) -> None: ...
+    def update(self, headers: Headers | dict[str, str]) -> None: ...
+    def values(self) -> list[str]: ...
+    @property
+    def is_flat(self) -> bool: ...
+
+
+class HttpStatus:
+    def __init__(self, code: int) -> None: ...
+    def __int__(self) -> int: ...
+    def __bool__(self) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: HttpStatus | int) -> bool: ...
+    def __le__(self, other: HttpStatus | int) -> bool: ...
+    def __gt__(self, other: HttpStatus | int) -> bool: ...
+    def __ge__(self, other: HttpStatus | int) -> bool: ...
+    def to_py(self) -> int: ...
+    @property
+    def reason(self) -> str: ...
+    @property
+    def canonical_reason(self) -> str: ...
+    @property
+    def is_informational(self) -> bool: ...
+    @property
+    def is_success(self) -> bool: ...
+    @property
+    def is_redirect(self) -> bool: ...
+    @property
+    def is_redirection(self) -> bool: ...
+    @property
+    def is_client_error(self) -> bool: ...
+    @property
+    def is_server_error(self) -> bool: ...
+    @property
+    def is_error(self) -> bool: ...
+    @property
+    def is_ok(self) -> bool: ...
+    @property
+    def ok(self) -> bool: ...
+
+    # =========================================================================
+    # CONST STATUS CODES
+    # =========================================================================
+    CONTINUE: HttpStatus  # 100 ~ Continue
+    SWITCHING_PROTOCOLS: HttpStatus  # 101 ~ Switching Protocols
+    PROCESSING: HttpStatus  # 102 ~ Processing
+    OK: HttpStatus  # 200 ~ OK
+    CREATED: HttpStatus  # 201 ~ Created
+    ACCEPTED: HttpStatus  # 202 ~ Accepted
+    NON_AUTHORITATIVE_INFORMATION: (
+        HttpStatus  # 203 ~ Non Authoritative Information
+    )
+    NO_CONTENT: HttpStatus  # 204 ~ No Content
+    RESET_CONTENT: HttpStatus  # 205 ~ Reset Content
+    PARTIAL_CONTENT: HttpStatus  # 206 ~ Partial Content
+    MULTI_STATUS: HttpStatus  # 207 ~ Multi-Status
+    ALREADY_REPORTED: HttpStatus  # 208 ~ Already Reported
+    IM_USED: HttpStatus  # 226 ~ IM Used
+    MULTIPLE_CHOICES: HttpStatus  # 300 ~ Multiple Choices
+    MOVED_PERMANENTLY: HttpStatus  # 301 ~ Moved Permanently
+    FOUND: HttpStatus  # 302 ~ Found
+    SEE_OTHER: HttpStatus  # 303 ~ See Other
+    NOT_MODIFIED: HttpStatus  # 304 ~ Not Modified
+    USE_PROXY: HttpStatus  # 305 ~ Use Proxy
+    TEMPORARY_REDIRECT: HttpStatus  # 307 ~ Temporary Redirect
+    PERMANENT_REDIRECT: HttpStatus  # 308 ~ Permanent Redirect
+    BAD_REQUEST: HttpStatus  # 400 ~ Bad Request
+    UNAUTHORIZED: HttpStatus  # 401 ~ Unauthorized
+    PAYMENT_REQUIRED: HttpStatus  # 402 ~ Payment Required
+    FORBIDDEN: HttpStatus  # 403 ~ Forbidden
+    NOT_FOUND: HttpStatus  # 404 ~ Not Found
+    METHOD_NOT_ALLOWED: HttpStatus  # 405 ~ Method Not Allowed
+    NOT_ACCEPTABLE: HttpStatus  # 406 ~ Not Acceptable
+    PROXY_AUTHENTICATION_REQUIRED: (
+        HttpStatus  # 407 ~ Proxy Authentication Required
+    )
+    REQUEST_TIMEOUT: HttpStatus  # 408 ~ Request Timeout
+    CONFLICT: HttpStatus  # 409 ~ Conflict
+    GONE: HttpStatus  # 410 ~ Gone
+    LENGTH_REQUIRED: HttpStatus  # 411 ~ Length Required
+    PRECONDITION_FAILED: HttpStatus  # 412 ~ Precondition Failed
+    PAYLOAD_TOO_LARGE: HttpStatus  # 413 ~ Payload Too Large
+    URI_TOO_LONG: HttpStatus  # 414 ~ URI Too Long
+    UNSUPPORTED_MEDIA_TYPE: HttpStatus  # 415 ~ Unsupported Media Type
+    RANGE_NOT_SATISFIABLE: HttpStatus  # 416 ~ Range Not Satisfiable
+    EXPECTATION_FAILED: HttpStatus  # 417 ~ Expectation Failed
+    IM_A_TEAPOT: HttpStatus  # 418 ~ I'm a teapot
+    MISDIRECTED_REQUEST: HttpStatus  # 421 ~ Misdirected Request
+    UNPROCESSABLE_ENTITY: HttpStatus  # 422 ~ Unprocessable Entity
+    LOCKED: HttpStatus  # 423 ~ Locked
+    FAILED_DEPENDENCY: HttpStatus  # 424 ~ Failed Dependency
+    TOO_EARLY: HttpStatus  # 425 ~ Too Early
+    UPGRADE_REQUIRED: HttpStatus  # 426 ~ Upgrade Required
+    PRECONDITION_REQUIRED: HttpStatus  # 428 ~ Precondition Required
+    TOO_MANY_REQUESTS: HttpStatus  # 429 ~ Too Many Requests
+    REQUEST_HEADER_FIELDS_TOO_LARGE: (
+        HttpStatus  # 431 ~ Request Header Fields Too Large
+    )
+    UNAVAILABLE_FOR_LEGAL_REASONS: (
+        HttpStatus  # 451 ~ Unavailable For Legal Reasons
+    )
+    INTERNAL_SERVER_ERROR: HttpStatus  # 500 ~ Internal Server Error
+    NOT_IMPLEMENTED: HttpStatus  # 501 ~ Not Implemented
+    BAD_GATEWAY: HttpStatus  # 502 ~ Bad Gateway
+    SERVICE_UNAVAILABLE: HttpStatus  # 503 ~ Service Unavailable
+    GATEWAY_TIMEOUT: HttpStatus  # 504 ~ Gateway Timeout
+    HTTP_VERSION_NOT_SUPPORTED: HttpStatus  # 505 ~ HTTP Version Not Supported
+    VARIANT_ALSO_NEGOTIATES: HttpStatus  # 506 ~ Variant Also Negotiates
+    INSUFFICIENT_STORAGE: HttpStatus  # 507 ~ Insufficient Storage
+    LOOP_DETECTED: HttpStatus  # 508 ~ Loop Detected
+    NOT_EXTENDED: HttpStatus  # 510 ~ Not Extended
+    NETWORK_AUTHENTICATION_REQUIRED: (
+        HttpStatus  # 511 ~ Network Authentication Required
+    )
+
+```
+
 <h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
 
 ```python
@@ -1044,6 +1467,7 @@ class Date(ToPy[pydt.date], ToPyDate):
     # STRING
     # =========================================================================
     def string(self) -> str: ...
+    def isoformat(self) -> str: ...
 
     # =========================================================================
     # PYTHON_CONVERSIONS
@@ -1076,6 +1500,8 @@ class Date(ToPy[pydt.date], ToPyDate):
     def today(cls: type[Date]) -> Date: ...
     @classmethod
     def parse(cls: type[Date], s: str) -> Date: ...
+    @classmethod
+    def from_str(cls: type[Date], s: str) -> Date: ...
     # =========================================================================
     # STRPTIME/STRFTIME
     # =========================================================================
@@ -1203,6 +1629,7 @@ class Time(ToPy[pydt.time], ToPyTime):
     # STRING
     # =========================================================================
     def string(self) -> str: ...
+    def isoformat(self) -> str: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -1266,9 +1693,6 @@ class Time(ToPy[pydt.time], ToPyTime):
     def astuple(self) -> tuple[int, int, int, int]: ...
     def asdict(self) -> TimeTypedDict: ...
     def series(self, span: TimeSpan) -> JiffSeries[Time]: ...
-    def checked_add(
-        self, other: TimeSpan | SignedDuration | Duration
-    ) -> Time: ...
     @t.overload
     def checked_sub(self, other: Time) -> TimeSpan: ...
     @t.overload
@@ -1355,6 +1779,7 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
         nanosecond: int = 0,
     ) -> None: ...
     def string(self) -> str: ...
+    def isoformat(self) -> str: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME/PARSE
@@ -2139,6 +2564,7 @@ class ZonedDateTime(
     def string(self) -> str: ...
     def to_rfc2822(self) -> str: ...
     def format_rfc2822(self) -> str: ...
+    def isoformat(self) -> str: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -2693,8 +3119,9 @@ import typing_extensions as te
 
 import ry
 from ry._types import Buffer
-from ry.http import Headers, HttpStatus, HttpVersionLike
-from ry.ryo3 import URL, Duration
+from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
+from ry.ryo3._std import Duration
+from ry.ryo3._url import URL
 
 
 class RequestKwargs(t.TypedDict, total=False):
@@ -3095,7 +3522,7 @@ import typing as t
 
 import typing_extensions as te
 
-from ry._types import Buffer, FsPathLike, ToPy
+from ry._types import Buffer, FileTypeDict, FsPathLike, MetadataDict, ToPy
 from ry.ryo3._bytes import Bytes
 
 
@@ -3249,15 +3676,25 @@ def sleep(seconds: float) -> float: ...
 # STD::FS
 # =============================================================================
 class FileType:
+    def __init__(self, *args, **kwargs) -> te.NoReturn: ...
     @property
     def is_dir(self) -> bool: ...
     @property
     def is_file(self) -> bool: ...
     @property
     def is_symlink(self) -> bool: ...
+    def to_py(self) -> FileTypeDict: ...
+
+
+class Permissions:
+    @property
+    def readonly(self) -> bool: ...
+    def __eq__(self, value: object) -> bool: ...
+    def __ne__(self, value: object) -> bool: ...
 
 
 class Metadata:
+    def __init__(self) -> te.NoReturn: ...
     @property
     def file_type(self) -> FileType: ...
     @property
@@ -3276,6 +3713,11 @@ class Metadata:
     def is_file(self) -> bool: ...
     @property
     def is_symlink(self) -> bool: ...
+    @property
+    def permissions(self) -> Permissions: ...
+    @property
+    def readonly(self) -> bool: ...
+    def to_py(self) -> MetadataDict: ...
 
 
 class DirEntry:
@@ -3780,6 +4222,8 @@ class URL:
 import typing as t
 from os import PathLike
 
+import typing_extensions as te
+
 from ry import FileType, FsPath, Glob, GlobSet, Globster
 
 
@@ -3814,6 +4258,9 @@ _T_walkdir = t.TypeVar(
 class WalkdirGen(t.Generic[_T_walkdir]):
     """walkdir::Walkdir iterable wrapper"""
 
+    def __init__(
+        self,
+    ) -> te.NoReturn: ...
     def __next__(self) -> _T_walkdir: ...
     def __iter__(self) -> t.Iterator[_T_walkdir]: ...
     def collect(self) -> list[_T_walkdir]: ...
@@ -3867,232 +4314,109 @@ def which_re(regex: str | Regex, path: None | str = None) -> list[Path]: ...
 
 ```
 
-<h2 id="ry.dirs"><code>ry.dirs</code></h2>
+<h2 id="ry.ryo3._zstd"><code>ry.ryo3._zstd</code></h2>
 
 ```python
-def audio() -> str | None: ...
-def audio_dir() -> str | None: ...
-def cache() -> str | None: ...
-def cache_dir() -> str | None: ...
-def config() -> str | None: ...
-def config_dir() -> str | None: ...
-def config_local() -> str | None: ...
-def config_local_dir() -> str | None: ...
-def data() -> str | None: ...
-def data_dir() -> str | None: ...
-def data_local() -> str | None: ...
-def data_local_dir() -> str | None: ...
-def desktop() -> str | None: ...
-def desktop_dir() -> str | None: ...
-def document() -> str | None: ...
-def document_dir() -> str | None: ...
-def download() -> str | None: ...
-def download_dir() -> str | None: ...
-def executable() -> str | None: ...
-def executable_dir() -> str | None: ...
-def font() -> str | None: ...
-def font_dir() -> str | None: ...
-def home() -> str | None: ...
-def home_dir() -> str | None: ...
-def picture() -> str | None: ...
-def picture_dir() -> str | None: ...
-def preference() -> str | None: ...
-def preference_dir() -> str | None: ...
-def public() -> str | None: ...
-def public_dir() -> str | None: ...
-def runtime() -> str | None: ...
-def runtime_dir() -> str | None: ...
-def state() -> str | None: ...
-def state_dir() -> str | None: ...
-def template() -> str | None: ...
-def template_dir() -> str | None: ...
-def video() -> str | None: ...
-def video_dir() -> str | None: ...
+"""ry.ryo3 root level zstd exports"""
+
+from ry.ryo3.zstd import compress as zstd_compress
+from ry.ryo3.zstd import decode as zstd_decode
+from ry.ryo3.zstd import decompress as zstd_decompress
+from ry.ryo3.zstd import encode as zstd_encode
+from ry.ryo3.zstd import is_zstd as is_zstd
+
+__all__ = (
+    "is_zstd",
+    "zstd_compress",
+    "zstd_decode",
+    "zstd_decompress",
+    "zstd_encode",
+)
 
 ```
 
-<h2 id="ry.http"><code>ry.http</code></h2>
+<h2 id="ry.dirs"><code>ry.dirs</code></h2>
 
 ```python
-import typing as t
-from collections.abc import Mapping
+from ry.ryo3.dirs import audio as audio
+from ry.ryo3.dirs import audio_dir as audio_dir
+from ry.ryo3.dirs import cache as cache
+from ry.ryo3.dirs import cache_dir as cache_dir
+from ry.ryo3.dirs import config as config
+from ry.ryo3.dirs import config_dir as config_dir
+from ry.ryo3.dirs import config_local as config_local
+from ry.ryo3.dirs import config_local_dir as config_local_dir
+from ry.ryo3.dirs import data as data
+from ry.ryo3.dirs import data_dir as data_dir
+from ry.ryo3.dirs import data_local as data_local
+from ry.ryo3.dirs import data_local_dir as data_local_dir
+from ry.ryo3.dirs import desktop as desktop
+from ry.ryo3.dirs import desktop_dir as desktop_dir
+from ry.ryo3.dirs import document as document
+from ry.ryo3.dirs import document_dir as document_dir
+from ry.ryo3.dirs import download as download
+from ry.ryo3.dirs import download_dir as download_dir
+from ry.ryo3.dirs import executable as executable
+from ry.ryo3.dirs import executable_dir as executable_dir
+from ry.ryo3.dirs import font as font
+from ry.ryo3.dirs import font_dir as font_dir
+from ry.ryo3.dirs import home as home
+from ry.ryo3.dirs import home_dir as home_dir
+from ry.ryo3.dirs import picture as picture
+from ry.ryo3.dirs import picture_dir as picture_dir
+from ry.ryo3.dirs import preference as preference
+from ry.ryo3.dirs import preference_dir as preference_dir
+from ry.ryo3.dirs import public as public
+from ry.ryo3.dirs import public_dir as public_dir
+from ry.ryo3.dirs import runtime as runtime
+from ry.ryo3.dirs import runtime_dir as runtime_dir
+from ry.ryo3.dirs import state as state
+from ry.ryo3.dirs import state_dir as state_dir
+from ry.ryo3.dirs import template as template
+from ry.ryo3.dirs import template_dir as template_dir
+from ry.ryo3.dirs import video as video
+from ry.ryo3.dirs import video_dir as video_dir
 
-import typing_extensions
-
-# fmt: off
-HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
-    "HTTP/0.9", "0.9", 0,
-    "HTTP/1.0", "1.0", 1, 10,
-    "HTTP/1.1", "1.1", 11,
-    "HTTP/2.0", "2.0", 2, 20,
-    "HTTP/3.0", "3.0", 3, 30,
-]
-# fmt: on
-
-_VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
-
-
-class Headers:
-    """python-ryo3-http `http::HeadersMap` wrapper"""
-
-    def __init__(
-        self,
-        headers: Mapping[str, _VT] | Headers | None = None,
-        /,
-        **kwargs: _VT,
-    ) -> None: ...
-
-    # =========================================================================
-    # STRING
-    # =========================================================================
-    def __dbg__(self) -> str: ...
-
-    # =========================================================================
-    # MAGIC METHODS
-    # =========================================================================
-    def __len__(self) -> int: ...
-    def __getitem__(self, key: str) -> str: ...
-    def __setitem__(self, key: str, value: str) -> None: ...
-    def __delitem__(self, key: str) -> None: ...
-    def __contains__(self, key: str) -> bool: ...
-    def __or__(self, other: Headers | dict[str, str]) -> Headers: ...
-    def __ror__(self, other: Headers | dict[str, str]) -> Headers: ...
-    def __iter__(self) -> t.Iterator[str]: ...
-    def __bool__(self) -> bool: ...
-
-    # =========================================================================
-    # INSTANCE METHODS
-    # =========================================================================
-    def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
-    def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
-    def stringify(self, *, fmt: bool = False) -> str: ...
-    def append(self, key: str, value: str) -> None: ...
-    def clear(self) -> None: ...
-    def contains_key(self, key: str) -> bool: ...
-    def get(self, key: str) -> str | None: ...
-    def get_all(self, key: str) -> list[str]: ...
-    def insert(self, key: str, value: str) -> None: ...
-    def is_empty(self) -> bool: ...
-    def keys(self) -> list[str]: ...
-    def keys_len(self) -> int: ...
-    def len(self) -> int: ...
-    def pop(self, key: str) -> str: ...
-    def remove(self, key: str) -> None: ...
-    def update(self, headers: Headers | dict[str, str]) -> None: ...
-    def values(self) -> list[str]: ...
-    @property
-    def is_flat(self) -> bool: ...
-
-
-class HttpStatus:
-    def __init__(self, code: int) -> None: ...
-    def __int__(self) -> int: ...
-    def __bool__(self) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    def __lt__(self, other: HttpStatus | int) -> bool: ...
-    def __le__(self, other: HttpStatus | int) -> bool: ...
-    def __gt__(self, other: HttpStatus | int) -> bool: ...
-    def __ge__(self, other: HttpStatus | int) -> bool: ...
-    def to_py(self) -> int: ...
-    @property
-    def reason(self) -> str: ...
-    @property
-    def canonical_reason(self) -> str: ...
-    @property
-    def is_informational(self) -> bool: ...
-    @property
-    def is_success(self) -> bool: ...
-    @property
-    def is_redirect(self) -> bool: ...
-    @property
-    def is_redirection(self) -> bool: ...
-    @property
-    def is_client_error(self) -> bool: ...
-    @property
-    def is_server_error(self) -> bool: ...
-    @property
-    def is_error(self) -> bool: ...
-    @property
-    def is_ok(self) -> bool: ...
-    @property
-    def ok(self) -> bool: ...
-
-    # =========================================================================
-    # CONST STATUS CODES
-    # =========================================================================
-    CONTINUE: HttpStatus  # 100 ~ Continue
-    SWITCHING_PROTOCOLS: HttpStatus  # 101 ~ Switching Protocols
-    PROCESSING: HttpStatus  # 102 ~ Processing
-    OK: HttpStatus  # 200 ~ OK
-    CREATED: HttpStatus  # 201 ~ Created
-    ACCEPTED: HttpStatus  # 202 ~ Accepted
-    NON_AUTHORITATIVE_INFORMATION: (
-        HttpStatus  # 203 ~ Non Authoritative Information
-    )
-    NO_CONTENT: HttpStatus  # 204 ~ No Content
-    RESET_CONTENT: HttpStatus  # 205 ~ Reset Content
-    PARTIAL_CONTENT: HttpStatus  # 206 ~ Partial Content
-    MULTI_STATUS: HttpStatus  # 207 ~ Multi-Status
-    ALREADY_REPORTED: HttpStatus  # 208 ~ Already Reported
-    IM_USED: HttpStatus  # 226 ~ IM Used
-    MULTIPLE_CHOICES: HttpStatus  # 300 ~ Multiple Choices
-    MOVED_PERMANENTLY: HttpStatus  # 301 ~ Moved Permanently
-    FOUND: HttpStatus  # 302 ~ Found
-    SEE_OTHER: HttpStatus  # 303 ~ See Other
-    NOT_MODIFIED: HttpStatus  # 304 ~ Not Modified
-    USE_PROXY: HttpStatus  # 305 ~ Use Proxy
-    TEMPORARY_REDIRECT: HttpStatus  # 307 ~ Temporary Redirect
-    PERMANENT_REDIRECT: HttpStatus  # 308 ~ Permanent Redirect
-    BAD_REQUEST: HttpStatus  # 400 ~ Bad Request
-    UNAUTHORIZED: HttpStatus  # 401 ~ Unauthorized
-    PAYMENT_REQUIRED: HttpStatus  # 402 ~ Payment Required
-    FORBIDDEN: HttpStatus  # 403 ~ Forbidden
-    NOT_FOUND: HttpStatus  # 404 ~ Not Found
-    METHOD_NOT_ALLOWED: HttpStatus  # 405 ~ Method Not Allowed
-    NOT_ACCEPTABLE: HttpStatus  # 406 ~ Not Acceptable
-    PROXY_AUTHENTICATION_REQUIRED: (
-        HttpStatus  # 407 ~ Proxy Authentication Required
-    )
-    REQUEST_TIMEOUT: HttpStatus  # 408 ~ Request Timeout
-    CONFLICT: HttpStatus  # 409 ~ Conflict
-    GONE: HttpStatus  # 410 ~ Gone
-    LENGTH_REQUIRED: HttpStatus  # 411 ~ Length Required
-    PRECONDITION_FAILED: HttpStatus  # 412 ~ Precondition Failed
-    PAYLOAD_TOO_LARGE: HttpStatus  # 413 ~ Payload Too Large
-    URI_TOO_LONG: HttpStatus  # 414 ~ URI Too Long
-    UNSUPPORTED_MEDIA_TYPE: HttpStatus  # 415 ~ Unsupported Media Type
-    RANGE_NOT_SATISFIABLE: HttpStatus  # 416 ~ Range Not Satisfiable
-    EXPECTATION_FAILED: HttpStatus  # 417 ~ Expectation Failed
-    IM_A_TEAPOT: HttpStatus  # 418 ~ I'm a teapot
-    MISDIRECTED_REQUEST: HttpStatus  # 421 ~ Misdirected Request
-    UNPROCESSABLE_ENTITY: HttpStatus  # 422 ~ Unprocessable Entity
-    LOCKED: HttpStatus  # 423 ~ Locked
-    FAILED_DEPENDENCY: HttpStatus  # 424 ~ Failed Dependency
-    TOO_EARLY: HttpStatus  # 425 ~ Too Early
-    UPGRADE_REQUIRED: HttpStatus  # 426 ~ Upgrade Required
-    PRECONDITION_REQUIRED: HttpStatus  # 428 ~ Precondition Required
-    TOO_MANY_REQUESTS: HttpStatus  # 429 ~ Too Many Requests
-    REQUEST_HEADER_FIELDS_TOO_LARGE: (
-        HttpStatus  # 431 ~ Request Header Fields Too Large
-    )
-    UNAVAILABLE_FOR_LEGAL_REASONS: (
-        HttpStatus  # 451 ~ Unavailable For Legal Reasons
-    )
-    INTERNAL_SERVER_ERROR: HttpStatus  # 500 ~ Internal Server Error
-    NOT_IMPLEMENTED: HttpStatus  # 501 ~ Not Implemented
-    BAD_GATEWAY: HttpStatus  # 502 ~ Bad Gateway
-    SERVICE_UNAVAILABLE: HttpStatus  # 503 ~ Service Unavailable
-    GATEWAY_TIMEOUT: HttpStatus  # 504 ~ Gateway Timeout
-    HTTP_VERSION_NOT_SUPPORTED: HttpStatus  # 505 ~ HTTP Version Not Supported
-    VARIANT_ALSO_NEGOTIATES: HttpStatus  # 506 ~ Variant Also Negotiates
-    INSUFFICIENT_STORAGE: HttpStatus  # 507 ~ Insufficient Storage
-    LOOP_DETECTED: HttpStatus  # 508 ~ Loop Detected
-    NOT_EXTENDED: HttpStatus  # 510 ~ Not Extended
-    NETWORK_AUTHENTICATION_REQUIRED: (
-        HttpStatus  # 511 ~ Network Authentication Required
-    )
+__all__ = (
+    "audio",
+    "audio_dir",
+    "cache",
+    "cache_dir",
+    "config",
+    "config_dir",
+    "config_local",
+    "config_local_dir",
+    "data",
+    "data_dir",
+    "data_local",
+    "data_local_dir",
+    "desktop",
+    "desktop_dir",
+    "document",
+    "document_dir",
+    "download",
+    "download_dir",
+    "executable",
+    "executable_dir",
+    "font",
+    "font_dir",
+    "home",
+    "home_dir",
+    "picture",
+    "picture_dir",
+    "preference",
+    "preference_dir",
+    "public",
+    "public_dir",
+    "runtime",
+    "runtime_dir",
+    "state",
+    "state_dir",
+    "template",
+    "template_dir",
+    "video",
+    "video_dir",
+)
 
 ```
 
@@ -4108,6 +4432,15 @@ from ry.ryo3.JSON import loads as loads
 from ry.ryo3.JSON import parse as parse
 from ry.ryo3.JSON import stringify as stringify
 
+__all__ = (
+    "cache_clear",
+    "cache_usage",
+    "dumps",
+    "loads",
+    "parse",
+    "stringify",
+)
+
 ```
 
 <h2 id="ry.ulid"><code>ry.ulid</code></h2>
@@ -4115,19 +4448,15 @@ from ry.ryo3.JSON import stringify as stringify
 ```python
 import builtins
 import datetime as pydt
-import typing as t
 import uuid
 from collections.abc import Callable as Callable
+from typing import Any
 
-from pydantic import (
-    GetCoreSchemaHandler as GetCoreSchemaHandler,
-)
+from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
 from pydantic import (
     ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
 )
 from pydantic_core import CoreSchema as CoreSchema
-from ulid import base32 as base32
-from ulid import constants as constants
 
 
 class ULID:
@@ -4183,14 +4512,14 @@ class ULID:
     @classmethod
     def from_int(cls, value: int) -> ULID: ...
     @classmethod
-    def parse(cls, value: t.Any) -> ULID: ...
+    def parse(cls, value: Any) -> ULID: ...
 
     # --------
     # PYDANTIC
     # --------
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, source: t.Any, handler: GetCoreSchemaHandler
+        cls, source: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema: ...
 
 ```
@@ -4307,147 +4636,103 @@ RESERVED_FUTURE: str
 <h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
 
 ```python
-import typing as t
+from ry.ryo3.xxhash import Xxh3 as Xxh3
+from ry.ryo3.xxhash import Xxh32 as Xxh32
+from ry.ryo3.xxhash import Xxh64 as Xxh64
+from ry.ryo3.xxhash import xxh3 as xxh3
+from ry.ryo3.xxhash import xxh3_64_digest as xxh3_64_digest
+from ry.ryo3.xxhash import xxh3_64_hexdigest as xxh3_64_hexdigest
+from ry.ryo3.xxhash import xxh3_64_intdigest as xxh3_64_intdigest
+from ry.ryo3.xxhash import xxh3_128_digest as xxh3_128_digest
+from ry.ryo3.xxhash import xxh3_128_hexdigest as xxh3_128_hexdigest
+from ry.ryo3.xxhash import xxh3_128_intdigest as xxh3_128_intdigest
+from ry.ryo3.xxhash import xxh3_digest as xxh3_digest
+from ry.ryo3.xxhash import xxh3_hexdigest as xxh3_hexdigest
+from ry.ryo3.xxhash import xxh3_intdigest as xxh3_intdigest
+from ry.ryo3.xxhash import xxh32 as xxh32
+from ry.ryo3.xxhash import xxh32_digest as xxh32_digest
+from ry.ryo3.xxhash import xxh32_hexdigest as xxh32_hexdigest
+from ry.ryo3.xxhash import xxh32_intdigest as xxh32_intdigest
+from ry.ryo3.xxhash import xxh64 as xxh64
+from ry.ryo3.xxhash import xxh64_digest as xxh64_digest
+from ry.ryo3.xxhash import xxh64_hexdigest as xxh64_hexdigest
+from ry.ryo3.xxhash import xxh64_intdigest as xxh64_intdigest
+from ry.ryo3.xxhash import xxh128_digest as xxh128_digest
+from ry.ryo3.xxhash import xxh128_hexdigest as xxh128_hexdigest
+from ry.ryo3.xxhash import xxh128_intdigest as xxh128_intdigest
 
-from ry._types import Buffer
-
-
-@t.final
-class Xxh32:
-    name: t.Literal["xxh32"]
-    digest_size: t.Literal[4]
-    block_size: t.Literal[16]
-
-    def __init__(self, input: Buffer = ..., seed: int | None = ...) -> None: ...
-    def update(self, input: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh32: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
-
-
-@t.final
-class Xxh64:
-    name: t.Literal["xxh64"]
-    digest_size: t.Literal[8]
-    block_size: t.Literal[32]
-
-    def __init__(
-        self, input: Buffer | None = None, seed: int | None = ...
-    ) -> None: ...
-    def update(self, input: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh64: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
-
-
-@t.final
-class Xxh3:
-    name: t.Literal["xxh3"]
-    digest_size: int  # xxh3_64: 8, xxh3_128: 16
-    block_size: int  # xxh3_64: 32, xxh3_128: 64
-
-    def __init__(
-        self,
-        input: Buffer = ...,
-        seed: int | None = ...,
-        secret: bytes | None = ...,
-    ) -> None: ...
-    def update(self, input: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    @property
-    def seed(self) -> int: ...
-    def digest128(self) -> bytes: ...
-    def hexdigest128(self) -> str: ...
-    def intdigest128(self) -> int: ...
-    def copy(self) -> Xxh3: ...
-    def reset(self) -> None: ...
-
-
-def xxh32_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh32_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh32_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh64
-def xxh64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh128
-def xxh128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh3
-def xxh3_64_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_64_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-def xxh3_64_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-def xxh3_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-def xxh3_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-
-
-# xxh128
-def xxh3_128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
-def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
+__all__ = (
+    "Xxh3",
+    "Xxh32",
+    "Xxh64",
+    "xxh3",
+    "xxh3_64_digest",
+    "xxh3_64_hexdigest",
+    "xxh3_64_intdigest",
+    "xxh3_128_digest",
+    "xxh3_128_hexdigest",
+    "xxh3_128_intdigest",
+    "xxh3_digest",
+    "xxh3_hexdigest",
+    "xxh3_intdigest",
+    "xxh32",
+    "xxh32_digest",
+    "xxh32_hexdigest",
+    "xxh32_intdigest",
+    "xxh64",
+    "xxh64_digest",
+    "xxh64_hexdigest",
+    "xxh64_intdigest",
+    "xxh128_digest",
+    "xxh128_hexdigest",
+    "xxh128_intdigest",
+)
 
 ```
 
 <h2 id="ry.zstd"><code>ry.zstd</code></h2>
 
 ```python
-from ry import Bytes
-from ry._types import Buffer
+from ry.ryo3.zstd import BLOCKSIZE_MAX as BLOCKSIZE_MAX
+from ry.ryo3.zstd import BLOCKSIZELOG_MAX as BLOCKSIZELOG_MAX
+from ry.ryo3.zstd import CLEVEL_DEFAULT as CLEVEL_DEFAULT
+from ry.ryo3.zstd import CONTENTSIZE_ERROR as CONTENTSIZE_ERROR
+from ry.ryo3.zstd import CONTENTSIZE_UNKNOWN as CONTENTSIZE_UNKNOWN
+from ry.ryo3.zstd import MAGIC_DICTIONARY as MAGIC_DICTIONARY
+from ry.ryo3.zstd import MAGIC_SKIPPABLE_MASK as MAGIC_SKIPPABLE_MASK
+from ry.ryo3.zstd import MAGIC_SKIPPABLE_START as MAGIC_SKIPPABLE_START
+from ry.ryo3.zstd import MAGICNUMBER as MAGICNUMBER
+from ry.ryo3.zstd import VERSION_MAJOR as VERSION_MAJOR
+from ry.ryo3.zstd import VERSION_MINOR as VERSION_MINOR
+from ry.ryo3.zstd import VERSION_NUMBER as VERSION_NUMBER
+from ry.ryo3.zstd import VERSION_RELEASE as VERSION_RELEASE
+from ry.ryo3.zstd import __zstd_version__ as __zstd_version__
+from ry.ryo3.zstd import compress as compress
+from ry.ryo3.zstd import decode as decode
+from ry.ryo3.zstd import decompress as decompress
+from ry.ryo3.zstd import is_zstd as is_zstd
+from ry.ryo3.zstd import unzstd as unzstd
 
-__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
-BLOCKSIZELOG_MAX: int
-BLOCKSIZE_MAX: int
-CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
-CONTENTSIZE_ERROR: int
-CONTENTSIZE_UNKNOWN: int
-MAGICNUMBER: int
-MAGIC_DICTIONARY: int
-MAGIC_SKIPPABLE_MASK: int
-MAGIC_SKIPPABLE_START: int
-VERSION_MAJOR: int
-VERSION_MINOR: int
-VERSION_NUMBER: int
-VERSION_RELEASE: int
-
-
-# =============================================================================
-# PYFUNCTIONS
-# =============================================================================
-# __COMPRESSION__
-def compress(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def encode(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def zstd(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def zstd_compress(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def zstd_encode(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-
-
-# __DECOMPRESSION__
-def decode(data: Buffer) -> Bytes: ...
-def decompress(data: Buffer) -> Bytes: ...
-def unzstd(data: Buffer) -> Bytes: ...
-def zstd_decode(data: Buffer) -> Bytes: ...
-def zstd_decompress(data: Buffer) -> Bytes: ...
-
-
-# __MAGIC__
-def is_zstd(data: Buffer) -> bool: ...
+__all__ = (
+    "BLOCKSIZELOG_MAX",
+    "BLOCKSIZE_MAX",
+    "CLEVEL_DEFAULT",
+    "CONTENTSIZE_ERROR",
+    "CONTENTSIZE_UNKNOWN",
+    "MAGICNUMBER",
+    "MAGIC_DICTIONARY",
+    "MAGIC_SKIPPABLE_MASK",
+    "MAGIC_SKIPPABLE_START",
+    "VERSION_MAJOR",
+    "VERSION_MINOR",
+    "VERSION_NUMBER",
+    "VERSION_RELEASE",
+    "__zstd_version__",
+    "compress",
+    "decode",
+    "decompress",
+    "is_zstd",
+    "unzstd",
+)
 
 ```
