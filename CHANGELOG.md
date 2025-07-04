@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.50 [unreleased]
+
+---
+
 ## v0.0.49 [2025-07-04] (fourth o july)
 
 - workspace
