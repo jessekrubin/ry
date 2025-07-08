@@ -200,6 +200,38 @@ impl PyBytes {
         cased
     }
 
+    fn title(&self) -> Self {
+        let bytes = self.as_slice();
+        if bytes.is_empty() {
+            return Self::from(vec![]);
+        }
+        let mut result = Vec::with_capacity(bytes.len());
+        let mut previous_is_cased = false;
+
+        for &byte in bytes {
+            if byte.is_ascii_uppercase() {
+                if previous_is_cased {
+                    result.push(byte.to_ascii_lowercase());
+                } else {
+                    result.push(byte);
+                }
+                previous_is_cased = true;
+            } else if byte.is_ascii_lowercase() {
+                if previous_is_cased {
+                    result.push(byte);
+                } else {
+                    result.push(byte.to_ascii_uppercase());
+                }
+
+                previous_is_cased = true;
+            } else {
+                result.push(byte);
+                previous_is_cased = false;
+            }
+        }
+        Self::from(result)
+    }
+
     #[pyo3(signature = (prefix, /))]
     fn startswith(&self, prefix: PyBytes) -> bool {
         self.as_slice().starts_with(prefix.as_ref())
@@ -208,6 +240,186 @@ impl PyBytes {
     #[pyo3(signature = (suffix, /))]
     fn endswith(&self, suffix: PyBytes) -> bool {
         self.as_slice().ends_with(suffix.as_ref())
+    }
+
+    fn capitalize(&self) -> Self {
+        let b = self.as_slice();
+        if b.is_empty() {
+            return Self::from(vec![]);
+        }
+        let mut bytes = self.as_slice().to_vec();
+        if let Some(first) = bytes.first_mut() {
+            *first = first.to_ascii_uppercase();
+        }
+        for byte in &mut bytes[1..] {
+            *byte = byte.to_ascii_lowercase();
+        }
+        Self::from(bytes)
+    }
+
+    fn swapcase(&self) -> Self {
+        let b = self.as_slice();
+        if b.is_empty() {
+            return Self::from(vec![]);
+        }
+        let b = self
+            .as_slice()
+            .iter()
+            .map(|byte| {
+                if byte.is_ascii_uppercase() {
+                    byte.to_ascii_lowercase()
+                } else if byte.is_ascii_lowercase() {
+                    byte.to_ascii_uppercase()
+                } else {
+                    *byte
+                }
+            })
+            .collect::<Vec<u8>>();
+        Self::from(b)
+    }
+
+    // ======================
+    // CPYTHON IMPLEMENTATION
+    // ======================
+    // static PyObject *
+    // stringlib_expandtabs_impl(PyObject *self, int tabsize)
+    // /*[clinic end generated code: output=069cb7fae72e4c2b input=3c6d3b12aa3ccbea]*/
+    // {
+    //     const char *e, *p;
+    //     char *q;
+    //     Py_ssize_t i, j;
+    //     PyObject *u;
+
+    //     /* First pass: determine size of output string */
+    //     i = j = 0;
+    //     e = STRINGLIB_STR(self) + STRINGLIB_LEN(self);
+    //     for (p = STRINGLIB_STR(self); p < e; p++) {
+    //         if (*p == '\t') {
+    //             if (tabsize > 0) {
+    //                 Py_ssize_t incr = tabsize - (j % tabsize);
+    //                 if (j > PY_SSIZE_T_MAX - incr)
+    //                     goto overflow;
+    //                 j += incr;
+    //             }
+    //         }
+    //         else {
+    //             if (j > PY_SSIZE_T_MAX - 1)
+    //                 goto overflow;
+    //             j++;
+    //             if (*p == '\n' || *p == '\r') {
+    //                 if (i > PY_SSIZE_T_MAX - j)
+    //                     goto overflow;
+    //                 i += j;
+    //                 j = 0;
+    //             }
+    //         }
+    //     }
+
+    //     if (i > PY_SSIZE_T_MAX - j)
+    //         goto overflow;
+
+    //     /* Second pass: create output string and fill it */
+    //     u = STRINGLIB_NEW(NULL, i + j);
+    //     if (!u)
+    //         return NULL;
+
+    //     j = 0;
+    //     q = STRINGLIB_STR(u);
+
+    //     for (p = STRINGLIB_STR(self); p < e; p++) {
+    //         if (*p == '\t') {
+    //             if (tabsize > 0) {
+    //                 i = tabsize - (j % tabsize);
+    //                 j += i;
+    //                 while (i--)
+    //                     *q++ = ' ';
+    //             }
+    //         }
+    //         else {
+    //             j++;
+    //             *q++ = *p;
+    //             if (*p == '\n' || *p == '\r')
+    //                 j = 0;
+    //         }
+    //     }
+
+    //     return u;
+    //   overflow:
+    //     PyErr_SetString(PyExc_OverflowError, "result too long");
+    //     return NULL;
+    // }
+    #[pyo3(signature = (tabsize = 8))]
+    fn expandtabs(&self, tabsize: usize) -> Self {
+        let b = self.as_slice();
+        if b.is_empty() || tabsize == 0 {
+            return Self::from(b.to_vec());
+        }
+
+        let mut col = 0usize;
+        let mut out = Vec::with_capacity(b.len()); // meh -- guess len
+
+        for &byte in b {
+            match byte {
+                b'\t' => {
+                    let pad = tabsize - (col % tabsize);
+                    out.extend(std::iter::repeat(b' ').take(pad));
+                    col += pad;
+                }
+                b'\n' | b'\r' | 0x0C => {
+                    out.push(byte);
+                    col = 0;
+                }
+                _ => {
+                    out.push(byte);
+                    col += 1;
+                }
+            }
+        }
+        Self::from(out)
+    }
+
+    #[pyo3(signature = (bin=None))]
+    fn strip(&self, bin: Option<PyBytes>) -> Self {
+        let b = self.as_slice();
+        if b.is_empty() {
+            return Self::from(vec![]);
+        }
+        if let Some(bin) = bin {
+            let strip_bytes = bin.as_slice();
+            if strip_bytes.is_empty() {
+                return Self::from(b.to_vec());
+            }
+            let table = &mut [false; 256];
+            for &b in strip_bytes {
+                table[b as usize] = true;
+            }
+
+            let start = match b.iter().position(|&b| !table[b as usize]) {
+                Some(i) => i,
+                None => return Self::from(Vec::new()),
+            };
+            if start == b.len() {
+                return Self::from(Vec::new());
+            }
+            let end = b
+                .iter()
+                .rposition(|&b| !table[b as usize])
+                .map_or(b.len(), |ix| ix + 1);
+            Self::from(b[start..end].to_vec())
+        } else {
+            // must do manually to match python behavior
+            let is_ascii_whitespace =
+                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
+            let starting_ix_opt = b.iter().position(|x| !is_ascii_whitespace(x));
+            let starting_ix = match starting_ix_opt {
+                Some(i) => i,
+                None => return Self::from(Vec::new()), // all bytes were stripped
+            };
+
+            let ending_ix = b.iter().rposition(|x| !is_ascii_whitespace(x)).unwrap() + 1;
+
+            Self::from(b[starting_ix..ending_ix].to_vec())
+        }
     }
 }
 

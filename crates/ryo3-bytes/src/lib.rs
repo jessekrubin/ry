@@ -10,7 +10,6 @@
 #![allow(clippy::cast_possible_wrap)]
 mod pyo3_bytes;
 mod ry_bytes;
-
 use pyo3::intern;
 use pyo3::prelude::*;
 pub use pyo3_bytes::Pyo3Bytes;
