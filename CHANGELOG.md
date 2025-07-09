@@ -2,6 +2,13 @@
 
 ## v0.0.50 [unreleased]
 
+- `ryo3-bytes`
+  - Added (bc I need them) more python compat methods:
+    - `title()`
+    - `swapcase()`
+    - `expandtabs()`
+    - `strip()`
+
 ---
 
 ## v0.0.49 [2025-07-04] (fourth o july)
