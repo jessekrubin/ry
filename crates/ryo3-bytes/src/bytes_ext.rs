@@ -393,10 +393,8 @@ impl PyBytes {
             for &b in strip_bytes {
                 table[b as usize] = true;
             }
-
-            let start = match b.iter().position(|&b| !table[b as usize]) {
-                Some(i) => i,
-                None => return Self::from(Vec::new()),
+            let Some(start) = b.iter().position(|&b| !table[b as usize]) else {
+                return Self::from(Vec::new());
             };
             if start == b.len() {
                 return Self::from(Vec::new());
@@ -411,9 +409,8 @@ impl PyBytes {
             let is_ascii_whitespace =
                 |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
             let starting_ix_opt = b.iter().position(|x| !is_ascii_whitespace(x));
-            let starting_ix = match starting_ix_opt {
-                Some(i) => i,
-                None => return Self::from(Vec::new()), // all bytes were stripped
+            let Some(starting_ix) = starting_ix_opt else {
+                return Self::from(Vec::new());
             };
 
             let ending_ix = b.iter().rposition(|x| !is_ascii_whitespace(x)).unwrap() + 1;
