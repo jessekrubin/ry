@@ -237,12 +237,7 @@ impl RySignedDuration {
         self.0.subsec_micros()
     }
 
-    fn __richcmp__<'py>(
-        &self,
-        py: Python<'py>,
-        other: RySignedDurationComparable<'py>,
-        op: CompareOp,
-    ) -> PyResult<bool> {
+    fn __richcmp__(&self, other: RySignedDurationComparable<'_>, op: CompareOp) -> PyResult<bool> {
         match other {
             RySignedDurationComparable::RySignedDuration(other) => match op {
                 CompareOp::Eq => Ok(self.0 == other.0),
@@ -253,7 +248,7 @@ impl RySignedDuration {
                 CompareOp::Ge => Ok(self.0 >= other.0),
             },
             RySignedDurationComparable::PyDelta(other) => {
-                let other = signed_duration_from_pyobject(py, &other)?;
+                let other = signed_duration_from_pyobject(&other)?;
                 match op {
                     CompareOp::Eq => Ok(self.0 == other),
                     CompareOp::Ne => Ok(self.0 != other),
