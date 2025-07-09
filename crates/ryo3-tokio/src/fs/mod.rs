@@ -93,7 +93,6 @@ pub fn read_to_string_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, 
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
         tokio::fs::read_to_string(pth)
             .await
-            .map(|s| s.to_string())
             .map_err(PyErr::from)
     })
 }
