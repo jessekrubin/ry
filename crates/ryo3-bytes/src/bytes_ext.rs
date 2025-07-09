@@ -362,7 +362,7 @@ impl PyBytes {
             match byte {
                 b'\t' => {
                     let pad = tabsize - (col % tabsize);
-                    out.extend(std::iter::repeat(b' ').take(pad));
+                    out.extend(std::iter::repeat_n(b' ', pad));
                     col += pad;
                 }
                 b'\n' | b'\r' | 0x0C => {
