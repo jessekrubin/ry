@@ -101,11 +101,7 @@ impl From<HeaderMap> for PyHeaders {
 impl PyHeaders {
     #[new]
     #[pyo3(signature = (d = None, **kwargs))]
-    fn py_new(
-        _py: Python<'_>,
-        d: Option<PyHeadersLike>,
-        kwargs: Option<&Bound<'_, PyDict>>,
-    ) -> PyResult<Self> {
+    fn py_new(d: Option<PyHeadersLike>, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         match (d, kwargs) {
             (Some(d), Some(kwargs)) => {
                 let mut headers_map = HeaderMap::try_from(d)?;
