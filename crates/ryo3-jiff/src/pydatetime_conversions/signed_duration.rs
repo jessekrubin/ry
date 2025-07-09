@@ -43,10 +43,7 @@ pub fn signed_duration_to_pyobject<'py>(
     }
 }
 
-pub fn signed_duration_from_pyobject<'py>(
-    _py: Python<'py>,
-    obj: &Bound<'py, PyAny>,
-) -> PyResult<SignedDuration> {
+pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedDuration> {
     let delta = obj.downcast::<PyDelta>()?;
     #[cfg(not(Py_LIMITED_API))]
     let (days, seconds, microseconds) = {
@@ -112,7 +109,7 @@ impl<'py> IntoPyObject<'py> for &JiffSignedDuration {
 
 impl FromPyObject<'_> for JiffSignedDuration {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffSignedDuration> {
-        let sdur: SignedDuration = signed_duration_from_pyobject(ob.py(), ob)?;
+        let sdur: SignedDuration = signed_duration_from_pyobject(ob)?;
         Ok(JiffSignedDuration(sdur))
     }
 }
