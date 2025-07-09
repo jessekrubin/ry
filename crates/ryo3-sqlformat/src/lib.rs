@@ -215,7 +215,7 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
                         let p = QueryParams::Indexed(strings);
                         PySqlfmtQueryParams { params: p }
                     }
-                    PyQueryParamsLike::PyQueryParams(p) => PySqlfmtQueryParams { params: p.params },
+                    PyQueryParamsLike::PyQueryParams(p) => p,
                 }
             };
             Ok(py_params)

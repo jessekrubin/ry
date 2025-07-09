@@ -91,9 +91,7 @@ pub fn read_link_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny
 #[pyfunction]
 pub fn read_to_string_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::read_to_string(pth)
-            .await
-            .map_err(PyErr::from)
+        tokio::fs::read_to_string(pth).await.map_err(PyErr::from)
     })
 }
 
