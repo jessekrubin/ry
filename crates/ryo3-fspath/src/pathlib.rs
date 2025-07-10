@@ -12,5 +12,5 @@ pub(crate) fn path2pathlib<T: AsRef<Path>>(py: Python<'_>, path: T) -> PyResult<
     static PATHLIB: GILOnceCell<Py<PyType>> = GILOnceCell::new();
     PATHLIB
         .import(py, "pathlib", "Path")?
-        .call1((path.as_os_str()))
+        .call1((path.as_ref().as_os_str(),))
 }
