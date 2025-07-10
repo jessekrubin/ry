@@ -2,10 +2,11 @@
 use parking_lot::Mutex;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
-    PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError, PyValueError,
+    PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
+    PyValueError,
 };
-use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
+use pyo3::{intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::types::PathLike;
 use std::ffi::OsStr;
@@ -332,12 +333,12 @@ impl PyFsPath {
         Self::from(p)
     }
 
-    pub fn read(&self) -> PyResult<ryo3_bytes::PyBytes> {
+    fn read(&self) -> PyResult<ryo3_bytes::PyBytes> {
         let fbytes = std::fs::read(self.path())?;
         Ok(fbytes.into())
     }
 
-    pub fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
+    fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
         let fbytes = std::fs::read(self.path());
         match fbytes {
             Ok(b) => Ok(PyBytes::new(py, &b).into()),
@@ -350,7 +351,7 @@ impl PyFsPath {
         }
     }
 
-    pub fn read_text(&self, py: Python<'_>) -> PyResult<String> {
+    fn read_text(&self, py: Python<'_>) -> PyResult<String> {
         let bvec = std::fs::read(self.path()).map_err(|e| {
             let pathstr = self.string();
             PyFileNotFoundError::new_err(format!("read_text - path: {pathstr} - {e}"))
@@ -365,7 +366,7 @@ impl PyFsPath {
         }
     }
 
-    pub fn write(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+    fn write(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
         let b = extract_bytes_ref(b)?;
         let write_res = std::fs::write(self.path(), b);
         match write_res {
@@ -379,11 +380,11 @@ impl PyFsPath {
         }
     }
 
-    pub fn write_bytes(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+    fn write_bytes(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
         self.write(b)
     }
 
-    pub fn write_text(&self, t: &str) -> PyResult<()> {
+    fn write_text(&self, t: &str) -> PyResult<()> {
         let write_result = std::fs::write(self.path(), t);
         match write_result {
             Ok(()) => Ok(()),
@@ -396,7 +397,136 @@ impl PyFsPath {
         }
     }
 
-    pub fn as_uri(&self) -> PyResult<String> {
+    #[pyo3(signature = (mode =  0o777, parents = false, exist_ok = false))]
+    #[allow(unused_variables)]
+    fn mkdir(&self, mode: u32, parents: bool, exist_ok: bool) -> PyResult<()> {
+        let path = self.path();
+
+        let exists = path.exists();
+        if !exist_ok && exists {
+            return Err(PyFileExistsError::new_err(format!(
+                "mkdir - parent: {} - directory already exists",
+                self.string()
+            )));
+        }
+        if parents {
+            std::fs::create_dir_all(path).map_err(|e| {
+                let fspath = self.string();
+                PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
+            })?;
+        } else {
+            std::fs::create_dir(path).map_err(|e| {
+                let fspath = self.string();
+                PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
+            })?;
+        }
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(path)
+                .map_err(|e| {
+                    PyFileNotFoundError::new_err(format!("mkdir - parent: {} - {e}", self.string()))
+                })?
+                .permissions();
+            perms.set_mode(mode);
+            std::fs::set_permissions(path, perms).map_err(|e| {
+                let fspath = self.string();
+                PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
+            })?;
+        }
+        Ok(())
+    }
+
+    #[pyo3(signature = (recursive = false))]
+    fn rmdir(&self, recursive: bool) -> PyResult<()> {
+        if !self.exists()? {
+            return Err(PyFileNotFoundError::new_err(format!(
+                "rmdir - parent: {} - directory does not exist",
+                self.string()
+            )));
+        }
+        if !self.is_dir() {
+            return Err(PyNotADirectoryError::new_err(format!(
+                "rmdir - parent: {} - not a directory",
+                self.string()
+            )));
+        }
+        if recursive {
+            std::fs::remove_dir_all(self.path()).map_err(|e| {
+                let fspath = self.string();
+                PyNotADirectoryError::new_err(format!("rmdir - parent: {fspath} - {e}"))
+            })?;
+        } else {
+            std::fs::remove_dir(self.path()).map_err(|e| {
+                let fspath = self.string();
+                PyNotADirectoryError::new_err(format!("rmdir - parent: {fspath} - {e}"))
+            })?;
+        }
+        Ok(())
+    }
+
+    #[pyo3(signature = (missing_ok = false, recursive = false))]
+    fn unlink(&self, missing_ok: bool, recursive: bool) -> PyResult<()> {
+        if !self.exists()? {
+            if missing_ok {
+                return Ok(());
+            }
+            return Err(PyFileNotFoundError::new_err(format!(
+                "unlink - parent: {} - file does not exist",
+                self.string()
+            )));
+        }
+        if self.is_dir() {
+            self.rmdir(recursive)?;
+        } else {
+            std::fs::remove_file(self.path()).map_err(|e| {
+                let fspath = self.string();
+                PyNotADirectoryError::new_err(format!("unlink - parent: {fspath} - {e}"))
+            })?;
+        }
+        Ok(())
+    }
+
+    fn rename(&self, new_path: PathLike) -> PyResult<Self> {
+        if new_path.as_ref() == self.path() {
+            return Ok(self.clone());
+        }
+        let new_path = new_path.as_ref();
+        if new_path.exists() {
+            return Err(PyFileExistsError::new_err(format!(
+                "rename - parent: {} - destination already exists",
+                self.string()
+            )));
+        }
+        std::fs::rename(self.path(), new_path).map_err(|e| {
+            let fspath = self.string();
+            PyNotADirectoryError::new_err(format!("rename - parent: {fspath} - {e}"))
+        })?;
+        Ok(PyFsPath::from(new_path))
+    }
+
+    fn replace(&self, new_path: PathLike) -> PyResult<Self> {
+        if new_path.as_ref() == self.path() {
+            return Ok(self.clone());
+        }
+        let new_path = new_path.as_ref();
+        if new_path.exists() {
+            // nuke file/dir
+            if new_path.is_dir() {
+                std::fs::remove_dir_all(new_path)?;
+            } else {
+                std::fs::remove_file(new_path)?;
+            }
+        }
+        std::fs::rename(self.path(), new_path).map_err(|e| {
+            let fspath = self.string();
+            PyNotADirectoryError::new_err(format!("replace - parent: {fspath} - {e}"))
+        })?;
+        Ok(PyFsPath::from(new_path))
+    }
+
+    fn as_uri(&self) -> PyResult<String> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "as_uri not implemented",
         ))
@@ -406,40 +536,26 @@ impl PyFsPath {
         self.read_dir()
     }
 
+    #[pyo3(signature = (
+        *args,
+        **kwargs
+    ))]
+    fn open<'py>(
+        &self,
+        py: Python<'py>,
+        args: &Bound<'py, PyTuple>,
+        kwargs: Option<&Bound<'py, pyo3::types::PyDict>>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        // forward to python's built-in open function
+        let pypathlib_ob = crate::pathlib::path2pathlib(py, self.path())?;
+        pypathlib_ob.call_method(intern!(py, "open"), args, kwargs)
+    }
+
     fn relative_to(&self, _other: PathLike) -> PyResult<PyFsPath> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "relative_to not implemented",
         ))
     }
-
-    // ========================================================================
-    // Methods from ::std::path::PathBuf
-    // ========================================================================
-    //  - PathBuf.add_extension
-    //  - PathBuf.pop
-    //  - PathBuf.push
-    //  - PathBuf.set_extension
-    //  - PathBuf.set_file_name
-    // REMOVED FOR `frozen`
-    // fn _push(mut slf: PyRefMut<'_, Self>, path: PathLike) -> PyRefMut<'_, PyFsPath> {
-    //     slf.path().push(path);
-    //     slf
-    // }
-    //
-    // fn _pop(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, PyFsPath> {
-    //     slf.path().pop();
-    //     slf
-    // }
-    //
-    // fn _set_extension(mut slf: PyRefMut<'_, Self>, ext: String) -> PyRefMut<'_, PyFsPath> {
-    //     slf.path().set_extension(ext);
-    //     slf
-    // }
-    //
-    // fn _set_file_name(mut slf: PyRefMut<'_, Self>, name: String) -> PyRefMut<'_, PyFsPath> {
-    //     slf.path().set_file_name(name);
-    //     slf
-    // }
 
     // ========================================================================
     // Methods from ::std::path::Path (Deref<Target=PathBuf>)
@@ -461,17 +577,16 @@ impl PyFsPath {
     //  - [x] Path.is_relative
     //  - [x] Path.is_symlink
     //  - [ ] Path.iter
-    //  - [ ] Path.join
-    //  - [ ] Path.metadata
-    //  - [ ] Path.read_dir
-    //  - [ ] Path.read_link
-    //  - [ ] Path.starts_with
-    //  - [ ] Path.strip_prefix
-    //  - [ ] Path.symlink_metadata
-    //  - [ ] Path.try_exists
-    //  - [ ] Path.with_added_extension
-    //  - [ ] Path.with_extension
-    //  - [ ] Path.with_file_name
+    //  - [x] Path.join
+    //  - [x] Path.metadata
+    //  - [x] Path.read_dir
+    //  - [x] Path.read_link
+    //  - [x] Path.starts_with
+    //  - [x] Path.strip_prefix
+    //  - [x] Path.symlink_metadata
+    //  - [ ] Path.with_added_extension - unstable
+    //  - [x] Path.with_extension
+    //  - [x] Path.with_file_name
     // __PYTHON_IMPL__ (implemented to adhere to pathlib.Path)
     //  - [x] Path.parent
     // __PATH_NOT_PYTHONABLE__

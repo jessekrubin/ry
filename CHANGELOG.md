@@ -8,6 +8,9 @@
     - `swapcase()`
     - `expandtabs()`
     - `strip()`
+- `ryo3-fspath`
+  - Added `open` method that forwards to `open` method of `pathlib.Path`
+  - Added `mkdir` method that mimics `mkdir` method of `pathlib.Path`
 
 ---
 
