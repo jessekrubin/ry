@@ -1,7 +1,9 @@
 """ryo3-globset types"""
 
+import typing as t
 from os import PathLike
 
+@t.final
 class Glob:
     """globset::Glob wrapper"""
 
@@ -22,6 +24,7 @@ class Glob:
     def globset(self) -> GlobSet: ...
     def globster(self) -> Globster: ...
 
+@t.final
 class GlobSet:
     """globset::GlobSet wrapper"""
 
@@ -43,6 +46,7 @@ class GlobSet:
     @property
     def patterns(self) -> tuple[str, ...]: ...
 
+@t.final
 class Globster:
     """Globster is a matcher with claws!
 

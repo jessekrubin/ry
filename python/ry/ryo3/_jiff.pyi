@@ -75,6 +75,7 @@ class ToPyTimeDelta(Protocol):
 class ToPyTzInfo(Protocol):
     def to_pytzinfo(self) -> pydt.tzinfo: ...
 
+@t.final
 class Date(ToPy[pydt.date], ToPyDate):
     MIN: Date
     MAX: Date
@@ -205,6 +206,7 @@ class Date(ToPy[pydt.date], ToPyDate):
     @t.overload
     def checked_sub(self, other: TimeSpan | SignedDuration | Duration) -> Date: ...
 
+@t.final
 class DateDifference:
     def __init__(
         self,
@@ -220,6 +222,7 @@ class DateDifference:
     def mode(self, mode: JIFF_ROUND_MODE) -> DateDifference: ...
     def increment(self, increment: int) -> DateDifference: ...
 
+@t.final
 class Time(ToPy[pydt.time], ToPyTime):
     MIN: Time
     MAX: Time
@@ -343,6 +346,7 @@ class Time(ToPy[pydt.time], ToPyTime):
         increment: int | None = None,
     ) -> TimeSpan: ...
 
+@t.final
 class TimeDifference:
     def __init__(
         self,
@@ -358,6 +362,7 @@ class TimeDifference:
     def mode(self, mode: JIFF_ROUND_MODE) -> TimeDifference: ...
     def increment(self, increment: int) -> TimeDifference: ...
 
+@t.final
 class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     MIN: DateTime
     MAX: DateTime
@@ -520,6 +525,7 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
         increment: int | None = None,
     ) -> TimeSpan: ...
 
+@t.final
 class DateTimeDifference:
     def __init__(
         self,
@@ -535,6 +541,7 @@ class DateTimeDifference:
     def mode(self, mode: JIFF_ROUND_MODE) -> DateTimeDifference: ...
     def increment(self, increment: int) -> DateTimeDifference: ...
 
+@t.final
 class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     def __init__(self, name: str) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -590,6 +597,7 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
     def to_ambiguous_timestamp(self) -> t.NoReturn: ...
     def to_ambiguous_zoned(self) -> t.NoReturn: ...
 
+@t.final
 class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
     MIN: SignedDuration
     MAX: SignedDuration
@@ -716,6 +724,7 @@ _TimeSpanArithmeticTuple: te.TypeAlias = tuple[
 ]
 TimeSpanArithmetic: te.TypeAlias = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
 
+@t.final
 class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     def __init__(
         self,
@@ -881,6 +890,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     def _microseconds(self, microseconds: int) -> te.Self: ...
     def _nanoseconds(self, nanoseconds: int) -> te.Self: ...
 
+@t.final
 class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     """
     A representation of a timestamp with second and nanosecond precision.
@@ -1017,6 +1027,7 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     ) -> Timestamp: ...
     def _round(self, options: TimestampRound) -> Timestamp: ...
 
+@t.final
 class TimestampDifference:
     def __init__(
         self,
@@ -1032,6 +1043,7 @@ class TimestampDifference:
     def mode(self, mode: JIFF_ROUND_MODE) -> TimestampDifference: ...
     def increment(self, increment: int) -> TimestampDifference: ...
 
+@t.final
 class ZonedDateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo):
     def __init__(
         self,
@@ -1245,6 +1257,7 @@ class ZonedDateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyT
         increment: int | None = None,
     ) -> TimeSpan: ...
 
+@t.final
 class ZonedDateTimeDifference:
     def __init__(
         self,
@@ -1260,6 +1273,7 @@ class ZonedDateTimeDifference:
     def mode(self, mode: JIFF_ROUND_MODE) -> ZonedDateTimeDifference: ...
     def increment(self, increment: int) -> ZonedDateTimeDifference: ...
 
+@t.final
 class ISOWeekDate:
     MIN: ISOWeekDate
     MAX: ISOWeekDate
@@ -1302,6 +1316,7 @@ class ISOWeekDate:
     # =========================================================================
     def date(self) -> Date: ...
 
+@t.final
 class TimestampRound:
     def __init__(
         self,
@@ -1323,6 +1338,7 @@ class TimestampRound:
         increment: int | None,
     ) -> TimestampRound: ...
 
+@t.final
 class DateTimeRound:
     def __init__(
         self,
@@ -1344,6 +1360,7 @@ class DateTimeRound:
         increment: int | None,
     ) -> DateTimeRound: ...
 
+@t.final
 class ZonedDateTimeRound:
     def __init__(
         self,
@@ -1365,6 +1382,7 @@ class ZonedDateTimeRound:
         increment: int | None,
     ) -> DateTimeRound: ...
 
+@t.final
 class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
     MIN: Offset
     MAX: Offset
@@ -1490,6 +1508,7 @@ def offset(hours: int) -> Offset: ...
 # =============================================================================
 # TIMEZONE-DATABASE
 # =============================================================================
+@t.final
 class TimeZoneDatabase:
     def __init__(self) -> None:
         """Defaults to using the `self.from_env`"""

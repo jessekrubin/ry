@@ -272,7 +272,7 @@ def rename(from_path: FsPathLike, to_path: FsPathLike) -> None: ...
 # =============================================================================
 # STD::NET
 # =============================================================================
-
+@t.final
 class Ipv4Addr:
     BROADCAST: Ipv4Addr
     LOCALHOST: Ipv4Addr

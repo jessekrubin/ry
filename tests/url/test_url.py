@@ -66,7 +66,7 @@ def test_parse_url_readme() -> None:
 def test_inheritance() -> None:
     with pytest.raises(TypeError):
 
-        class MyURL(ry.URL):
+        class MyURL(ry.URL):  # type: ignore[misc]
             pass
 
 

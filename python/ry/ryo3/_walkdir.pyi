@@ -7,6 +7,7 @@ import typing_extensions as te
 
 from ry import FileType, FsPath, Glob, GlobSet, Globster
 
+@t.final
 class WalkDirEntry:
     def __fspath__(self) -> str: ...
     @property
@@ -33,6 +34,7 @@ _T_walkdir = t.TypeVar(
     bound=WalkDirEntry | str,
 )
 
+@t.final
 class WalkdirGen(t.Generic[_T_walkdir]):
     """walkdir::Walkdir iterable wrapper"""
     def __init__(
