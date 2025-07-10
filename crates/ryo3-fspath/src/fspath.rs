@@ -380,6 +380,23 @@ impl PyFsPath {
         }
     }
 
+    fn write_bytes(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+        self.write(b)
+    }
+
+    fn write_text(&self, t: &str) -> PyResult<()> {
+        let write_result = std::fs::write(self.path(), t);
+        match write_result {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                let fspath = self.string();
+                Err(PyNotADirectoryError::new_err(format!(
+                    "write_bytes - parent: {fspath} - {e}"
+                )))
+            }
+        }
+    }
+
     #[pyo3(signature = (mode =  0o777, parents = false, exist_ok = false))]
     #[allow(unused_variables)]
     fn mkdir(&self, mode: u32, parents: bool, exist_ok: bool) -> PyResult<()> {
@@ -419,23 +436,6 @@ impl PyFsPath {
             })?;
         }
         Ok(())
-    }
-
-    fn write_bytes(&self, b: &Bound<'_, PyAny>) -> PyResult<usize> {
-        self.write(b)
-    }
-
-    fn write_text(&self, t: &str) -> PyResult<()> {
-        let write_result = std::fs::write(self.path(), t);
-        match write_result {
-            Ok(()) => Ok(()),
-            Err(e) => {
-                let fspath = self.string();
-                Err(PyNotADirectoryError::new_err(format!(
-                    "write_bytes - parent: {fspath} - {e}"
-                )))
-            }
-        }
     }
 
     #[pyo3(signature = (recursive = false))]
