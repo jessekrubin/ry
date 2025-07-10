@@ -406,22 +406,17 @@ impl PyFsPath {
 
         #[cfg(unix)]
         {
-            if let Some(mode) = mode {
-                use std::os::unix::fs::PermissionsExt;
-                let mut perms = std::fs::metadata(path)
-                    .map_err(|e| {
-                        PyFileNotFoundError::new_err(format!(
-                            "mkdir - parent: {} - {e}",
-                            self.string()
-                        ))
-                    })?
-                    .permissions();
-                perms.set_mode(mode);
-                std::fs::set_permissions(path, perms).map_err(|e| {
-                    let fspath = self.string();
-                    PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
-                })?;
-            }
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(path)
+                .map_err(|e| {
+                    PyFileNotFoundError::new_err(format!("mkdir - parent: {} - {e}", self.string()))
+                })?
+                .permissions();
+            perms.set_mode(mode);
+            std::fs::set_permissions(path, perms).map_err(|e| {
+                let fspath = self.string();
+                PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
+            })?;
         }
         Ok(())
     }
