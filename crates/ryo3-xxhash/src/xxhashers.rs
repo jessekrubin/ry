@@ -217,7 +217,7 @@ impl PyXxh3 {
         };
         match b {
             Some(s) => {
-                let mut hasher = h.clone();
+                let mut hasher = h;
                 hasher.update(s.as_ref());
                 Self { seed, hasher }
             }
