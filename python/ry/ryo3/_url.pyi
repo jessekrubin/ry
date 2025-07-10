@@ -1,5 +1,7 @@
+import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
+@t.final
 class URL:
     def __init__(
         self, url: str | URL, *, params: dict[str, str] | None = None

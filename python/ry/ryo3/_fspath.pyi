@@ -12,6 +12,7 @@ from ry.ryo3._std import Metadata
 # =============================================================================
 # FSPATH
 # =============================================================================
+@t.final
 class FsPath(ToPy[Path]):
     def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
     def __fspath__(self) -> str: ...

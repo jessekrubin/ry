@@ -18,6 +18,7 @@ class RequestKwargs(t.TypedDict, total=False):
     timeout: Duration | None
     version: HttpVersionLike | None
 
+@t.final
 class HttpClient:
     def __init__(
         self,
@@ -82,6 +83,7 @@ class HttpClient:
         **kwargs: te.Unpack[RequestKwargs],
     ) -> Response: ...
 
+@t.final
 class ReqwestError(Exception):
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
     def __dbg__(self) -> str: ...
@@ -96,6 +98,7 @@ class ReqwestError(Exception):
     def status(self) -> HttpStatus | None: ...
     def url(self) -> URL | None: ...
 
+@t.final
 class Response:
     @property
     def headers(self) -> Headers: ...
@@ -123,6 +126,7 @@ class Response:
     @property
     def redirected(self) -> bool: ...
 
+@t.final
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
     async def __anext__(self) -> ry.Bytes: ...
