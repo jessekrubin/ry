@@ -83,7 +83,3 @@ pub fn py_date_to_jiff_date(py_date: &impl pyo3::types::PyDateAccess) -> PyResul
 pub fn py_date_to_jiff_date(py_date: &Bound<'_, PyAny>) -> PyResult<JiffDate> {
     Ok(JiffDate::from(py_date_to_date(py_date)?))
 }
-
-// pub fn date_from_pyobject(py_date: &impl pyo3::types::PyDateAccess) -> PyResult<Date> {
-//     py_date_to_date(py_date)
-// }

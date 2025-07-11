@@ -1,8 +1,6 @@
 use crate::JiffTime;
 use pyo3::prelude::*;
 use pyo3::types::PyTime;
-// #[cfg(not(Py_LIMITED_API))]
-// use pyo3::types::PyTimeAccess;
 
 pub fn time_to_pyobject<'py>(
     py: Python<'py>,
@@ -72,9 +70,6 @@ pub fn py_time_to_jiff_time(py_time: &Bound<'_, PyAny>) -> PyResult<jiff::civil:
 }
 
 impl<'py> IntoPyObject<'py> for JiffTime {
-    // #[cfg(Py_LIMITED_API)]
-    // type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -85,9 +80,6 @@ impl<'py> IntoPyObject<'py> for JiffTime {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffTime {
-    // #[cfg(Py_LIMITED_API)]
-    // type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

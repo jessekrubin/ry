@@ -9,14 +9,8 @@ use pyo3::types::{PyBytes, PyString};
 use pyo3::{IntoPyObjectExt, intern};
 
 impl<'py> IntoPyObject<'py> for &HttpMethod {
-    // #[cfg(Py_LIMITED_API)]
-    // type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
-    // #[cfg(not(Py_LIMITED_API))]
     type Output = Borrowed<'py, 'py, Self::Target>;
-    // #[cfg(Py_LIMITED_API)]
-    // type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
@@ -35,21 +29,11 @@ impl<'py> IntoPyObject<'py> for &HttpMethod {
             )),
         }?;
         let b = s.as_borrowed();
-        // #[cfg(Py_LIMITED_API)]
-        // {
-        // Ok(b.into_any())
-        // }
-        // #[cfg(not(Py_LIMITED_API))]
-        // {
         Ok(b)
-        // }
     }
 }
 
 impl<'py> IntoPyObject<'py> for HttpMethod {
-    // #[cfg(Py_LIMITED_API)]
-    // type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
@@ -92,9 +76,6 @@ impl FromPyObject<'_> for HttpMethod {
 // HTTP VERSION
 // ============================================================================
 impl<'py> IntoPyObject<'py> for &HttpVersion {
-    // #[cfg(Py_LIMITED_API)]
-    // type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
@@ -109,22 +90,11 @@ impl<'py> IntoPyObject<'py> for &HttpVersion {
             _ => unreachable!(),
         };
         let b = s.as_borrowed();
-        // #[cfg(Py_LIMITED_API)]
-        // {
-        //     Ok(b.into_any())
-        // }
-        // #[cfg(not(Py_LIMITED_API))]
-        // {
-        //     Ok(b)
-        // }
         Ok(b)
     }
 }
 
 impl<'py> IntoPyObject<'py> for HttpVersion {
-    // #[cfg(Py_LIMITED_API)]
-    // type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;

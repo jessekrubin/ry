@@ -9,52 +9,6 @@ use pyo3::types::PyTimeAccess;
 use pyo3::types::{PyDateTime, PyTzInfoAccess};
 
 pub fn zoned2pyobect<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
-    // // let tz = self.offset().fix().into_pyobject(py)?;
-    // let tz = z.time_zone();
-    // let pytz = timezone2pyobect(py, tz)?;
-    // // let pytz = JiffTimeZone(tz.clone()).into_pyobject(py)?;
-    // // downcast to tz
-    // let tz = pytz.downcast::<PyTzInfo>()?;
-
-    // let year = i32::from(z.year());
-    // let m_u8 =
-    //     u8::try_from(z.month()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-    // let d_u8 = u8::try_from(z.day()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-    // let hour_u8 =
-    //     u8::try_from(z.hour()).map_err(|e| PyErr::new::<PyValueError, _>(format!("hour: {e}")))?;
-    // let minute_u8 = u8::try_from(z.minute())
-    //     .map_err(|e| PyErr::new::<PyValueError, _>(format!("minute: {e}")))?;
-    // let second_u8 = u8::try_from(z.second())
-    //     .map_err(|e| PyErr::new::<PyValueError, _>(format!("second: {e}")))?;
-    // let microsecond_u32 = u32::try_from(z.microsecond())
-    //     .map_err(|e| PyErr::new::<PyValueError, _>(format!("microsecond: {e}")))?;
-
-    // #[cfg(not(Py_LIMITED_API))]
-    // let datetime = PyDateTime::new(
-    //     py,
-    //     year,
-    //     m_u8,
-    //     d_u8,
-    //     hour_u8,
-    //     minute_u8,
-    //     second_u8,
-    //     microsecond_u32,
-    //     Some(tz),
-    // )?;
-
-    // #[cfg(Py_LIMITED_API)]
-    // let datetime = PyDateTime::new(
-    //     py,
-    //     year,
-    //     m_u8,
-    //     d_u8,
-    //     hour_u8,
-    //     minute_u8,
-    //     second_u8,
-    //     microsecond_u32,
-    //     Some(tz),
-    // );
-    // Ok(datetime)
     z.into_pyobject(py)
 }
 

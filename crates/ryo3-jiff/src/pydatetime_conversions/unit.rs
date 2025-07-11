@@ -14,9 +14,6 @@ impl<'py> IntoPyObject<'py> for JiffUnit {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffUnit {
-    // #[cfg(Py_LIMITED_API)]
-    // type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = std::convert::Infallible; // the conversion error type, has to be convertible to `PyErr`
