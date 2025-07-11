@@ -11,7 +11,6 @@ mod timezone;
 mod tz_disambiguation;
 mod tz_offset_conflict;
 mod unit;
-mod utils;
 mod weekday;
 mod zoned;
 

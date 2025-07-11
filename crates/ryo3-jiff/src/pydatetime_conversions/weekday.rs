@@ -1,6 +1,8 @@
 use crate::JiffWeekday;
 use pyo3::prelude::*;
-use pyo3::types::{PyInt, PyString};
+#[cfg(not(Py_LIMITED_API))]
+use pyo3::types::PyInt;
+use pyo3::types::PyString;
 
 impl<'py> IntoPyObject<'py> for JiffWeekday {
     #[cfg(Py_LIMITED_API)]

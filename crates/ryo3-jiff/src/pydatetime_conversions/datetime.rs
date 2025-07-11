@@ -4,52 +4,53 @@ use jiff::civil::DateTime;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDateTime, PyTzInfoAccess};
-use std::convert::From;
-fn datetime_to_pyobject<'a>(
-    py: Python<'a>,
-    datetime: &DateTime,
-) -> PyResult<Bound<'a, PyDateTime>> {
-    let year = i32::from(datetime.year());
-    let m_u8 = u8::try_from(datetime.month())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
-    let d_u8 = u8::try_from(datetime.day())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
-    let hour_u8 = u8::try_from(datetime.hour())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("hour: {e}")))?;
-    let minute_u8 = u8::try_from(datetime.minute())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("minute: {e}")))?;
-    let second_u8 = u8::try_from(datetime.second())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("second: {e}")))?;
-    let microsecond_u32 = u32::try_from(datetime.microsecond()).map_err(|e| {
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("microsecond: {e}"))
-    })?;
-    #[cfg(not(Py_LIMITED_API))]
-    let py_datetime = PyDateTime::new(
-        py,
-        year,
-        m_u8,
-        d_u8,
-        hour_u8,
-        minute_u8,
-        second_u8,
-        microsecond_u32,
-        None,
-    )?;
 
-    #[cfg(Py_LIMITED_API)]
-    let py_datetime = DatetimeTypes::try_get(py).and_then(|dt| {
-        dt.datetime.bind(py).call1((
-            year,
-            m_u8,
-            d_u8,
-            hour_u8,
-            minute_u8,
-            second_u8,
-            microsecond_u32,
-        ))
-    })?;
-    Ok(py_datetime)
-}
+// fn datetime_to_pyobject<'a>(
+//     py: Python<'a>,
+//     datetime: &DateTime,
+// ) -> PyResult<Bound<'a, PyDateTime>> {
+//     let year = i32::from(datetime.year());
+//     let m_u8 = u8::try_from(datetime.month())
+//         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+//     let d_u8 = u8::try_from(datetime.day())
+//         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+//     let hour_u8 = u8::try_from(datetime.hour())
+//         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("hour: {e}")))?;
+//     let minute_u8 = u8::try_from(datetime.minute())
+//         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("minute: {e}")))?;
+//     let second_u8 = u8::try_from(datetime.second())
+//         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("second: {e}")))?;
+//     let microsecond_u32 = u32::try_from(datetime.microsecond()).map_err(|e| {
+//         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("microsecond: {e}"))
+//     })?;
+//     #[cfg(not(Py_LIMITED_API))]
+//     let py_datetime = PyDateTime::new(
+//         py,
+//         year,
+//         m_u8,
+//         d_u8,
+//         hour_u8,
+//         minute_u8,
+//         second_u8,
+//         microsecond_u32,
+//         None,
+//     )?;
+
+//     #[cfg(Py_LIMITED_API)]
+//     let py_datetime = DatetimeTypes::try_get(py).and_then(|dt| {
+//         dt.datetime.bind(py).call1((
+//             year,
+//             m_u8,
+//             d_u8,
+//             hour_u8,
+//             minute_u8,
+//             second_u8,
+//             microsecond_u32,
+//         ))
+//     })?;
+//     Ok(py_datetime)
+// }
+
 impl<'py> IntoPyObject<'py> for JiffDateTime {
     #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
@@ -59,7 +60,7 @@ impl<'py> IntoPyObject<'py> for JiffDateTime {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        datetime_to_pyobject(py, &self.0)
+        (&self).into_pyobject(py)
     }
 }
 
@@ -73,15 +74,13 @@ impl<'py> IntoPyObject<'py> for &JiffDateTime {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        datetime_to_pyobject(py, &self.0)
+        self.0.into_pyobject(py)
     }
 }
+
 impl FromPyObject<'_> for JiffDateTime {
     fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<JiffDateTime> {
-        #[cfg(not(Py_LIMITED_API))]
         let dt = dt.downcast::<PyDateTime>()?;
-        #[cfg(Py_LIMITED_API)]
-        check_type(dt, &DatetimeTypes::get(dt.py()).datetime, "PyDateTime")?;
 
         // If the user tries to convert a timezone aware datetime into a naive one,
         // we return a hard error. We could silently remove tzinfo, or assume local timezone
@@ -89,7 +88,7 @@ impl FromPyObject<'_> for JiffDateTime {
         #[cfg(not(Py_LIMITED_API))]
         let has_tzinfo = dt.get_tzinfo().is_some();
         #[cfg(Py_LIMITED_API)]
-        let has_tzinfo = !dt.getattr(intern!(dt.py(), "tzinfo"))?.is_none();
+        let has_tzinfo = !dt.getattr(pyo3::intern!(dt.py(), "tzinfo"))?.is_none();
         if has_tzinfo {
             return Err(PyTypeError::new_err("expected a datetime without tzinfo"));
         }

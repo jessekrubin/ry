@@ -37,7 +37,7 @@ pub fn signed_duration_to_pyobject<'py>(
     }
     #[cfg(Py_LIMITED_API)]
     {
-        Err(PyErr::new::<PyNotImplementedError, _>(
+        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
             "not implemented for Py_LIMITED_API",
         ))
     }

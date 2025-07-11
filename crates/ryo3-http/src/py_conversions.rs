@@ -13,7 +13,10 @@ impl<'py> IntoPyObject<'py> for &HttpMethod {
     type Target = PyAny;
     #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
+    #[cfg(not(Py_LIMITED_API))]
     type Output = Borrowed<'py, 'py, Self::Target>;
+    #[cfg(Py_LIMITED_API)]
+    type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {

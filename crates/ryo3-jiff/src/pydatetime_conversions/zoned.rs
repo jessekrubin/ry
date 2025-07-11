@@ -86,10 +86,7 @@ impl<'py> IntoPyObject<'py> for JiffZoned {
 
 impl FromPyObject<'_> for JiffZoned {
     fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<JiffZoned> {
-        #[cfg(not(Py_LIMITED_API))]
         let dt = dt.downcast::<PyDateTime>()?;
-        #[cfg(Py_LIMITED_API)]
-        check_type(dt, &DatetimeTypes::get(dt.py()).datetime, "PyDateTime")?;
         let tzinfo = dt.get_tzinfo().map_or_else(
             || {
                 Err(PyErr::new::<PyValueError, _>(
@@ -107,7 +104,10 @@ impl FromPyObject<'_> for JiffZoned {
         let fold = dt.get_fold();
 
         #[cfg(Py_LIMITED_API)]
-        let fold = dt.getattr(intern!(dt.py(), "fold"))?.extract::<usize>()? > 0;
+        let fold = dt
+            .getattr(pyo3::intern!(dt.py(), "fold"))?
+            .extract::<usize>()?
+            > 0;
         if fold {
             Ok(JiffZoned::from(zoned.later()?))
         } else {

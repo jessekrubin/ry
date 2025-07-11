@@ -1,15 +1,15 @@
 use crate::JiffUnit;
 use jiff::Unit;
-use pyo3::prelude::*;
 use pyo3::types::PyString;
+use pyo3::{intern, prelude::*};
 
 impl<'py> IntoPyObject<'py> for JiffUnit {
     #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
     #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = std::convert::Infallible;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
@@ -21,24 +21,31 @@ impl<'py> IntoPyObject<'py> for &JiffUnit {
     type Target = PyAny;
     #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = std::convert::Infallible; // the conversion error type, has to be convertible to `PyErr`
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            Unit::Year => "year",
-            Unit::Month => "month",
-            Unit::Week => "week",
-            Unit::Day => "day",
-            Unit::Hour => "hour",
-            Unit::Minute => "minute",
-            Unit::Second => "second",
-            Unit::Millisecond => "millisecond",
-            Unit::Microsecond => "microsecond",
-            Unit::Nanosecond => "nanosecond",
+            Unit::Year => intern!(py, "year"),
+            Unit::Month => intern!(py, "month"),
+            Unit::Week => intern!(py, "week"),
+            Unit::Day => intern!(py, "day"),
+            Unit::Hour => intern!(py, "hour"),
+            Unit::Minute => intern!(py, "minute"),
+            Unit::Second => intern!(py, "second"),
+            Unit::Millisecond => intern!(py, "millisecond"),
+            Unit::Microsecond => intern!(py, "microsecond"),
+            Unit::Nanosecond => intern!(py, "nanosecond"),
         };
-
-        s.into_pyobject(py)
+        let b = s.as_borrowed();
+        #[cfg(Py_LIMITED_API)]
+        {
+            Ok(b.into_any())
+        }
+        #[cfg(not(Py_LIMITED_API))]
+        {
+            Ok(b)
+        }
     }
 }
 
@@ -51,16 +58,16 @@ impl FromPyObject<'_> for JiffUnit {
         if let Ok(s) = ob.downcast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
-                "year" => Ok(JiffUnit(Unit::Year)),
-                "month" => Ok(JiffUnit(Unit::Month)),
-                "week" => Ok(JiffUnit(Unit::Week)),
-                "day" => Ok(JiffUnit(Unit::Day)),
-                "hour" => Ok(JiffUnit(Unit::Hour)),
-                "minute" => Ok(JiffUnit(Unit::Minute)),
-                "second" => Ok(JiffUnit(Unit::Second)),
-                "millisecond" => Ok(JiffUnit(Unit::Millisecond)),
-                "microsecond" => Ok(JiffUnit(Unit::Microsecond)),
-                "nanosecond" => Ok(JiffUnit(Unit::Nanosecond)),
+                "year" | "y" => Ok(JiffUnit(Unit::Year)),
+                "month" | "mo" => Ok(JiffUnit(Unit::Month)),
+                "week" | "w" => Ok(JiffUnit(Unit::Week)),
+                "day" | "d" => Ok(JiffUnit(Unit::Day)),
+                "hour" | "h" => Ok(JiffUnit(Unit::Hour)),
+                "minute" | "m" => Ok(JiffUnit(Unit::Minute)),
+                "second" | "s" => Ok(JiffUnit(Unit::Second)),
+                "millisecond" | "ms" => Ok(JiffUnit(Unit::Millisecond)),
+                "microsecond" | "µs" => Ok(JiffUnit(Unit::Microsecond)),
+                "nanosecond" | "ns" => Ok(JiffUnit(Unit::Nanosecond)),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid unit: {s} (options: {JIFF_UNIT_STRINGS})"
                 ))),
