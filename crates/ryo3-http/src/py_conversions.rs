@@ -122,9 +122,9 @@ impl<'py> IntoPyObject<'py> for &HttpVersion {
 }
 
 impl<'py> IntoPyObject<'py> for HttpVersion {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;

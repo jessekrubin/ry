@@ -1893,6 +1893,7 @@ version = "0.0.50"
 dependencies = [
  "jiff",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-http",
  "ryo3-jiff",
  "ryo3-ulid",

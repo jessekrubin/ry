@@ -15,7 +15,6 @@ pub fn signed_duration_to_pyobject<'py>(
 ) -> PyResult<Bound<'py, PyDelta>> {
     duration.into_pyobject(py)
 
-
     // let total_micros = duration.as_micros();
     // // total_microseconds(duration)?;
 
