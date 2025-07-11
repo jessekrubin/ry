@@ -54,9 +54,9 @@ use pyo3::types::PyTzInfoAccess;
 // }
 
 impl<'py> IntoPyObject<'py> for JiffDateTime {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyDateTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -67,9 +67,9 @@ impl<'py> IntoPyObject<'py> for JiffDateTime {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffDateTime {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyDateTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

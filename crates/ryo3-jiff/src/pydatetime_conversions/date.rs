@@ -81,7 +81,6 @@ pub fn py_date_to_jiff_date(py_date: &impl pyo3::types::PyDateAccess) -> PyResul
 
 #[cfg(Py_LIMITED_API)]
 pub fn py_date_to_jiff_date(py_date: &Bound<'_, PyAny>) -> PyResult<JiffDate> {
-    let py = py_date.py();
     Ok(JiffDate::from(py_date_to_date(py_date)?))
 }
 

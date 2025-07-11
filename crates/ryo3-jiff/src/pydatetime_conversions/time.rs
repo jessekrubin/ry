@@ -72,9 +72,9 @@ pub fn py_time_to_jiff_time(py_time: &Bound<'_, PyAny>) -> PyResult<jiff::civil:
 }
 
 impl<'py> IntoPyObject<'py> for JiffTime {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -85,9 +85,9 @@ impl<'py> IntoPyObject<'py> for JiffTime {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffTime {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

@@ -4,9 +4,9 @@ use jiff::Zoned;
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyTzInfoAccess};
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyTimeAccess;
+use pyo3::types::{PyDateTime, PyTzInfoAccess};
 
 pub fn zoned2pyobect<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
     // // let tz = self.offset().fix().into_pyobject(py)?;
@@ -70,7 +70,6 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
 }
 
 impl<'py> IntoPyObject<'py> for JiffZoned {
-
     type Target = PyDateTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

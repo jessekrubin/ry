@@ -4,9 +4,9 @@ use pyo3::types::PyAnyMethods;
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
 
 impl<'py> IntoPyObject<'py> for JiffSpan {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = pyo3::types::PyDelta;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -17,9 +17,9 @@ impl<'py> IntoPyObject<'py> for JiffSpan {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffSpan {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = pyo3::types::PyDelta;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

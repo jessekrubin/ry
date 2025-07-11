@@ -47,9 +47,9 @@ impl<'py> IntoPyObject<'py> for &HttpMethod {
 }
 
 impl<'py> IntoPyObject<'py> for HttpMethod {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;

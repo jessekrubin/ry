@@ -7,43 +7,44 @@ use pyo3::types::PyDelta;
 use pyo3::types::PyDeltaAccess;
 
 use pyo3::exceptions::PyOverflowError;
-use std::convert::TryInto;
 const SECONDS_PER_DAY: i64 = 86_400;
-const MICROS_PER_DAY: i128 = 86_400_000_000;
 
 pub fn signed_duration_to_pyobject<'py>(
     py: Python<'py>,
     duration: &SignedDuration,
 ) -> PyResult<Bound<'py, PyDelta>> {
-    let total_micros = duration.as_micros();
-    // total_microseconds(duration)?;
+    duration.into_pyobject(py)
 
-    let days = total_micros.div_euclid(MICROS_PER_DAY);
-    let remainder = total_micros.rem_euclid(MICROS_PER_DAY);
-    let seconds = remainder.div_euclid(1_000_000);
-    let microseconds = remainder.rem_euclid(1_000_000);
 
-    let days_i32: i32 = days
-        .try_into()
-        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in days conversion"))?;
-    let seconds_i32: i32 = seconds
-        .try_into()
-        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in seconds conversion"))?;
-    let microseconds_i32: i32 = microseconds
-        .try_into()
-        .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in microseconds conversion"))?;
+    // let total_micros = duration.as_micros();
+    // // total_microseconds(duration)?;
 
-    #[cfg(not(Py_LIMITED_API))]
-    {
-        // `normalize = false` because we've already normalized the values.
-        PyDelta::new(py, days_i32, seconds_i32, microseconds_i32, false)
-    }
-    #[cfg(Py_LIMITED_API)]
-    {
-        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
-            "not implemented for Py_LIMITED_API",
-        ))
-    }
+    // let days = total_micros.div_euclid(MICROS_PER_DAY);
+    // let remainder = total_micros.rem_euclid(MICROS_PER_DAY);
+    // let seconds = remainder.div_euclid(1_000_000);
+    // let microseconds = remainder.rem_euclid(1_000_000);
+
+    // let days_i32: i32 = days
+    //     .try_into()
+    //     .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in days conversion"))?;
+    // let seconds_i32: i32 = seconds
+    //     .try_into()
+    //     .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in seconds conversion"))?;
+    // let microseconds_i32: i32 = microseconds
+    //     .try_into()
+    //     .map_err(|_| PyErr::new::<PyOverflowError, _>("Overflow in microseconds conversion"))?;
+
+    // #[cfg(not(Py_LIMITED_API))]
+    // {
+    //     // `normalize = false` because we've already normalized the values.
+    //     PyDelta::new(py, days_i32, seconds_i32, microseconds_i32, false)
+    // }
+    // #[cfg(Py_LIMITED_API)]
+    // {
+    //     Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+    //         "not implemented for Py_LIMITED_API",
+    //     ))
+    // }
 }
 
 pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedDuration> {
@@ -84,9 +85,9 @@ pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedD
 }
 
 impl<'py> IntoPyObject<'py> for JiffSignedDuration {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyDelta;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -97,9 +98,9 @@ impl<'py> IntoPyObject<'py> for JiffSignedDuration {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffSignedDuration {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyDelta;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
