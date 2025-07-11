@@ -1,65 +1,64 @@
-use crate::pydatetime_conversions::timezone::timezone2pyobect;
-use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
+use crate::pydatetime_conversions::{py_date_to_date, py_time_to_jiff_time};
 use crate::{JiffTimeZone, JiffZoned};
 use jiff::Zoned;
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyTimeAccess, PyTzInfo, PyTzInfoAccess};
+use pyo3::types::{PyDateTime, PyTzInfoAccess};
+#[cfg(not(Py_LIMITED_API))]
+use pyo3::types::PyTimeAccess;
 
 pub fn zoned2pyobect<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
-    // let tz = self.offset().fix().into_pyobject(py)?;
-    let tz = z.time_zone();
-    let pytz = timezone2pyobect(py, tz)?;
-    // let pytz = JiffTimeZone(tz.clone()).into_pyobject(py)?;
-    // downcast to tz
-    let tz = pytz.downcast::<PyTzInfo>()?;
+    // // let tz = self.offset().fix().into_pyobject(py)?;
+    // let tz = z.time_zone();
+    // let pytz = timezone2pyobect(py, tz)?;
+    // // let pytz = JiffTimeZone(tz.clone()).into_pyobject(py)?;
+    // // downcast to tz
+    // let tz = pytz.downcast::<PyTzInfo>()?;
 
-    let year = i32::from(z.year());
-    let m_u8 =
-        u8::try_from(z.month()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-    let d_u8 = u8::try_from(z.day()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-    let hour_u8 =
-        u8::try_from(z.hour()).map_err(|e| PyErr::new::<PyValueError, _>(format!("hour: {e}")))?;
-    let minute_u8 = u8::try_from(z.minute())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("minute: {e}")))?;
-    let second_u8 = u8::try_from(z.second())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("second: {e}")))?;
-    let microsecond_u32 = u32::try_from(z.microsecond())
-        .map_err(|e| PyErr::new::<PyValueError, _>(format!("microsecond: {e}")))?;
+    // let year = i32::from(z.year());
+    // let m_u8 =
+    //     u8::try_from(z.month()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+    // let d_u8 = u8::try_from(z.day()).map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+    // let hour_u8 =
+    //     u8::try_from(z.hour()).map_err(|e| PyErr::new::<PyValueError, _>(format!("hour: {e}")))?;
+    // let minute_u8 = u8::try_from(z.minute())
+    //     .map_err(|e| PyErr::new::<PyValueError, _>(format!("minute: {e}")))?;
+    // let second_u8 = u8::try_from(z.second())
+    //     .map_err(|e| PyErr::new::<PyValueError, _>(format!("second: {e}")))?;
+    // let microsecond_u32 = u32::try_from(z.microsecond())
+    //     .map_err(|e| PyErr::new::<PyValueError, _>(format!("microsecond: {e}")))?;
 
-    #[cfg(not(Py_LIMITED_API))]
-    let datetime = PyDateTime::new(
-        py,
-        year,
-        m_u8,
-        d_u8,
-        hour_u8,
-        minute_u8,
-        second_u8,
-        microsecond_u32,
-        Some(tz),
-    )?;
+    // #[cfg(not(Py_LIMITED_API))]
+    // let datetime = PyDateTime::new(
+    //     py,
+    //     year,
+    //     m_u8,
+    //     d_u8,
+    //     hour_u8,
+    //     minute_u8,
+    //     second_u8,
+    //     microsecond_u32,
+    //     Some(tz),
+    // )?;
 
-    #[cfg(Py_LIMITED_API)]
-    let datetime = PyDateTime::new(
-        py,
-        year,
-        m_u8,
-        d_u8,
-        hour_u8,
-        minute_u8,
-        second_u8,
-        microsecond_u32,
-        Some(tz),
-    );
-    Ok(datetime)
+    // #[cfg(Py_LIMITED_API)]
+    // let datetime = PyDateTime::new(
+    //     py,
+    //     year,
+    //     m_u8,
+    //     d_u8,
+    //     hour_u8,
+    //     minute_u8,
+    //     second_u8,
+    //     microsecond_u32,
+    //     Some(tz),
+    // );
+    // Ok(datetime)
+    z.into_pyobject(py)
 }
 
 impl<'py> IntoPyObject<'py> for &JiffZoned {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyDateTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -71,9 +70,7 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
 }
 
 impl<'py> IntoPyObject<'py> for JiffZoned {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+
     type Target = PyDateTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -96,7 +93,7 @@ impl FromPyObject<'_> for JiffZoned {
             |tz| tz.extract::<JiffTimeZone>(),
         )?;
         let jiff_time = py_time_to_jiff_time(dt)?;
-        let jiff_date = date_from_pyobject(dt)?;
+        let jiff_date = py_date_to_date(dt)?;
         let datetime = DateTime::from_parts(jiff_date, jiff_time);
         let zoned = tzinfo.0.into_ambiguous_zoned(datetime);
 

@@ -18,9 +18,9 @@ impl<'py> IntoPyObject<'py> for JiffRoundMode {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffRoundMode {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
+    // #[cfg(Py_LIMITED_API)]
+    // type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
@@ -39,15 +39,15 @@ impl<'py> IntoPyObject<'py> for &JiffRoundMode {
             RoundMode::HalfEven => intern!(py, "half-even"),
             _ => intern!(py, "unknown"),
         };
-        let b = s.as_borrowed();
-        #[cfg(Py_LIMITED_API)]
-        {
-            Ok(b.into_any())
-        }
-        #[cfg(not(Py_LIMITED_API))]
-        {
-            Ok(b)
-        }
+        // let b = s.as_borrowed();
+        // #[cfg(Py_LIMITED_API)]
+        // {
+        //     Ok(b.into_any())
+        // }
+        // #[cfg(not(Py_LIMITED_API))]
+        // {
+        Ok(s.as_borrowed())
+        // }
     }
 }
 

@@ -1,9 +1,11 @@
 use crate::jiff_types::JiffDateTime;
-use crate::pydatetime_conversions::{date_from_pyobject, py_time_to_jiff_time};
+use crate::pydatetime_conversions::{py_date_to_date, py_time_to_jiff_time};
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyTzInfoAccess};
+use pyo3::types::PyDateTime;
+#[cfg(not(Py_LIMITED_API))]
+use pyo3::types::PyTzInfoAccess;
 
 // fn datetime_to_pyobject<'a>(
 //     py: Python<'a>,
@@ -92,7 +94,7 @@ impl FromPyObject<'_> for JiffDateTime {
         if has_tzinfo {
             return Err(PyTypeError::new_err("expected a datetime without tzinfo"));
         }
-        let jiff_date = date_from_pyobject(dt)?;
+        let jiff_date = py_date_to_date(dt)?;
         let jiff_time = py_time_to_jiff_time(dt)?;
         let dt = DateTime::from_parts(jiff_date, jiff_time);
         // ::new(date_from_pyobject(dt)?, py_time_to_jiff_time(dt)?);

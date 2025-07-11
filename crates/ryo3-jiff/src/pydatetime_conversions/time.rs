@@ -1,6 +1,8 @@
 use crate::JiffTime;
 use pyo3::prelude::*;
-use pyo3::types::{PyTime, PyTimeAccess};
+use pyo3::types::PyTime;
+// #[cfg(not(Py_LIMITED_API))]
+// use pyo3::types::PyTimeAccess;
 
 pub fn time_to_pyobject<'py>(
     py: Python<'py>,
@@ -21,7 +23,9 @@ pub fn time_to_pyobject<'py>(
 
 #[cfg(not(Py_LIMITED_API))]
 #[expect(clippy::arithmetic_side_effects)]
-pub fn py_time_to_jiff_time(py_time: &impl PyTimeAccess) -> PyResult<jiff::civil::Time> {
+pub fn py_time_to_jiff_time(
+    py_time: &impl pyo3::types::PyTimeAccess,
+) -> PyResult<jiff::civil::Time> {
     let hour = py_time.get_hour();
     let hour_i8 = i8::try_from(hour)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("hour: {e}")))?;
@@ -65,10 +69,6 @@ pub fn py_time_to_jiff_time(py_time: &Bound<'_, PyAny>) -> PyResult<jiff::civil:
         jiff::civil::Time::new(hour_i8, minute_i8, second_i8, subsec_nanosecond)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?,
     )
-}
-
-pub fn time_from_pyobject(py_date: &impl PyTimeAccess) -> PyResult<jiff::civil::Time> {
-    py_time_to_jiff_time(py_date)
 }
 
 impl<'py> IntoPyObject<'py> for JiffTime {

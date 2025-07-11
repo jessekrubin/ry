@@ -1,7 +1,10 @@
 use crate::JiffSignedDuration;
 use jiff::SignedDuration;
 use pyo3::prelude::*;
-use pyo3::types::{PyDelta, PyDeltaAccess};
+use pyo3::types::PyDelta;
+
+#[cfg(not(Py_LIMITED_API))]
+use pyo3::types::PyDeltaAccess;
 
 use pyo3::exceptions::PyOverflowError;
 use std::convert::TryInto;
