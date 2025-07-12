@@ -33,10 +33,7 @@ impl FromPyObject<'_> for JiffOffset {
     /// Note that the conversion will result in precision lost in microseconds as chrono offset
     /// does not supports microseconds.
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffOffset> {
-        #[cfg(not(Py_LIMITED_API))]
         let ob = ob.downcast::<PyTzInfo>()?;
-        #[cfg(Py_LIMITED_API)]
-        check_type(ob, &DatetimeTypes::get(ob.py()).tzinfo, "PyTzInfo")?;
 
         // Passing Python's None to the `utcoffset` function will only
         // work for timezones defined as fixed offsets in Python.

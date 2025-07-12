@@ -1,6 +1,6 @@
 use crate::JiffTime;
 use pyo3::prelude::*;
-use pyo3::types::{PyTime, PyTimeAccess};
+use pyo3::types::PyTime;
 
 pub fn time_to_pyobject<'py>(
     py: Python<'py>,
@@ -15,20 +15,15 @@ pub fn time_to_pyobject<'py>(
     let microsecond_u32 = u32::try_from(time.microsecond()).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("microsecond: {e}"))
     })?;
-    #[cfg(not(Py_LIMITED_API))]
     let time = PyTime::new(py, hour_u8, minute_u8, second_u8, microsecond_u32, None)?;
-    #[cfg(Py_LIMITED_API)]
-    let time = DatetimeTypes::try_get(py).and_then(|dt| {
-        dt.time
-            .bind(py)
-            .call1((hour_u8, minute_u8, second_u8, microsecond_u32))
-    })?;
     Ok(time)
 }
 
 #[cfg(not(Py_LIMITED_API))]
 #[expect(clippy::arithmetic_side_effects)]
-pub fn py_time_to_jiff_time(py_time: &impl PyTimeAccess) -> PyResult<jiff::civil::Time> {
+pub fn py_time_to_jiff_time(
+    py_time: &impl pyo3::types::PyTimeAccess,
+) -> PyResult<jiff::civil::Time> {
     let hour = py_time.get_hour();
     let hour_i8 = i8::try_from(hour)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("hour: {e}")))?;
@@ -54,6 +49,7 @@ pub fn py_time_to_jiff_time(py_time: &impl PyTimeAccess) -> PyResult<jiff::civil
 
 #[cfg(Py_LIMITED_API)]
 pub fn py_time_to_jiff_time(py_time: &Bound<'_, PyAny>) -> PyResult<jiff::civil::Time> {
+    use pyo3::intern;
     let hour_i8 = py_time
         .getattr(intern!(py_time.py(), "hour"))?
         .extract::<i8>()?;
@@ -73,14 +69,7 @@ pub fn py_time_to_jiff_time(py_time: &Bound<'_, PyAny>) -> PyResult<jiff::civil:
     )
 }
 
-pub fn time_from_pyobject(py_date: &impl PyTimeAccess) -> PyResult<jiff::civil::Time> {
-    py_time_to_jiff_time(py_date)
-}
-
 impl<'py> IntoPyObject<'py> for JiffTime {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -91,9 +80,6 @@ impl<'py> IntoPyObject<'py> for JiffTime {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffTime {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -103,6 +89,7 @@ impl<'py> IntoPyObject<'py> for &JiffTime {
         time_to_pyobject(py, &self.0)
     }
 }
+
 impl FromPyObject<'_> for JiffTime {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffTime> {
         #[cfg(not(Py_LIMITED_API))]
@@ -112,7 +99,6 @@ impl FromPyObject<'_> for JiffTime {
         }
         #[cfg(Py_LIMITED_API)]
         {
-            check_type(ob, &DatetimeTypes::get(ob.py()).time, "PyTime")?;
             py_time_to_jiff_time(ob).map(JiffTime::from)
         }
     }

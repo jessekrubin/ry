@@ -9,9 +9,6 @@ use pyo3::types::{PyBytes, PyString};
 use pyo3::{IntoPyObjectExt, intern};
 
 impl<'py> IntoPyObject<'py> for &HttpMethod {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
@@ -32,21 +29,11 @@ impl<'py> IntoPyObject<'py> for &HttpMethod {
             )),
         }?;
         let b = s.as_borrowed();
-        #[cfg(Py_LIMITED_API)]
-        {
-            Ok(b.into_any())
-        }
-        #[cfg(not(Py_LIMITED_API))]
-        {
-            Ok(b)
-        }
+        Ok(b)
     }
 }
 
 impl<'py> IntoPyObject<'py> for HttpMethod {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
@@ -89,9 +76,6 @@ impl FromPyObject<'_> for HttpMethod {
 // HTTP VERSION
 // ============================================================================
 impl<'py> IntoPyObject<'py> for &HttpVersion {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
@@ -106,21 +90,11 @@ impl<'py> IntoPyObject<'py> for &HttpVersion {
             _ => unreachable!(),
         };
         let b = s.as_borrowed();
-        #[cfg(Py_LIMITED_API)]
-        {
-            Ok(b.into_any())
-        }
-        #[cfg(not(Py_LIMITED_API))]
-        {
-            Ok(b)
-        }
+        Ok(b)
     }
 }
 
 impl<'py> IntoPyObject<'py> for HttpVersion {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = PyErr;
@@ -344,9 +318,6 @@ pub(crate) fn header_value_to_pystring<'py>(
 }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderValue {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
@@ -357,9 +328,6 @@ impl<'py> IntoPyObject<'py> for &HttpHeaderValue {
 }
 
 impl<'py> IntoPyObject<'py> for HttpHeaderValue {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

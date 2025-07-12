@@ -47,7 +47,6 @@ impl RyZoned {
         tz: Option<&str>,
     ) -> PyResult<Self> {
         if let Some(tz) = tz {
-            // let a =
             Date::new(year, month, day)
                 .map_err(map_py_value_err)?
                 .at(hour, minute, second, nanosecond)

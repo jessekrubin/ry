@@ -1,16 +1,13 @@
 use crate::JiffRoundMode;
 use jiff::RoundMode;
 use pyo3::exceptions::PyValueError;
-use pyo3::prelude::*;
 use pyo3::types::PyString;
+use pyo3::{intern, prelude::*};
 
 impl<'py> IntoPyObject<'py> for JiffRoundMode {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = std::convert::Infallible;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
@@ -18,27 +15,25 @@ impl<'py> IntoPyObject<'py> for JiffRoundMode {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffRoundMode {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = std::convert::Infallible; // the conversion error type, has to be convertible to `PyErr`
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
+
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            RoundMode::Ceil => "ceil",
-            RoundMode::Floor => "floor",
-            RoundMode::Expand => "expand",
-            RoundMode::Trunc => "trunc",
-            RoundMode::HalfCeil => "half-ceil",
-            RoundMode::HalfFloor => "half-floor",
-            RoundMode::HalfExpand => "half-expand",
-            RoundMode::HalfTrunc => "half-trunc",
-            RoundMode::HalfEven => "half-even",
-            _ => "unknown",
+            RoundMode::Ceil => intern!(py, "ceil"),
+            RoundMode::Floor => intern!(py, "floor"),
+            RoundMode::Expand => intern!(py, "expand"),
+            RoundMode::Trunc => intern!(py, "trunc"),
+            RoundMode::HalfCeil => intern!(py, "half-ceil"),
+            RoundMode::HalfFloor => intern!(py, "half-floor"),
+            RoundMode::HalfExpand => intern!(py, "half-expand"),
+            RoundMode::HalfTrunc => intern!(py, "half-trunc"),
+            RoundMode::HalfEven => intern!(py, "half-even"),
+            _ => intern!(py, "unknown"),
         };
-        Ok(PyString::new(py, s))
+        Ok(s.as_borrowed())
     }
 }
 

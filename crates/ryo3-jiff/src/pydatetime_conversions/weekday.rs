@@ -1,11 +1,9 @@
 use crate::JiffWeekday;
 use pyo3::prelude::*;
-use pyo3::types::{PyInt, PyString};
+use pyo3::types::PyInt;
+use pyo3::types::PyString;
 
 impl<'py> IntoPyObject<'py> for JiffWeekday {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyInt;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -16,9 +14,6 @@ impl<'py> IntoPyObject<'py> for JiffWeekday {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffWeekday {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyInt;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
