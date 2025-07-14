@@ -128,22 +128,22 @@ impl PyIpv4Addr {
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpv4Addr) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
-    fn __ne__(&self, other: &PyIpv4Addr) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
-    fn __lt__(&self, other: &PyIpv4Addr) -> bool {
+    fn __lt__(&self, other: &Self) -> bool {
         self.0 < other.0
     }
-    fn __le__(&self, other: &PyIpv4Addr) -> bool {
+    fn __le__(&self, other: &Self) -> bool {
         self.0 <= other.0
     }
-    fn __gt__(&self, other: &PyIpv4Addr) -> bool {
+    fn __gt__(&self, other: &Self) -> bool {
         self.0 > other.0
     }
-    fn __ge__(&self, other: &PyIpv4Addr) -> bool {
+    fn __ge__(&self, other: &Self) -> bool {
         self.0 >= other.0
     }
 
@@ -294,22 +294,22 @@ impl PyIpv6Addr {
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpv6Addr) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
-    fn __ne__(&self, other: &PyIpv6Addr) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
-    fn __lt__(&self, other: &PyIpv6Addr) -> bool {
+    fn __lt__(&self, other: &Self) -> bool {
         self.0 < other.0
     }
-    fn __le__(&self, other: &PyIpv6Addr) -> bool {
+    fn __le__(&self, other: &Self) -> bool {
         self.0 <= other.0
     }
-    fn __gt__(&self, other: &PyIpv6Addr) -> bool {
+    fn __gt__(&self, other: &Self) -> bool {
         self.0 > other.0
     }
-    fn __ge__(&self, other: &PyIpv6Addr) -> bool {
+    fn __ge__(&self, other: &Self) -> bool {
         self.0 >= other.0
     }
 
@@ -460,22 +460,22 @@ impl PyIpAddr {
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpAddr) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
-    fn __ne__(&self, other: &PyIpAddr) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
-    fn __lt__(&self, other: &PyIpAddr) -> bool {
+    fn __lt__(&self, other: &Self) -> bool {
         self.0 < other.0
     }
-    fn __le__(&self, other: &PyIpAddr) -> bool {
+    fn __le__(&self, other: &Self) -> bool {
         self.0 <= other.0
     }
-    fn __gt__(&self, other: &PyIpAddr) -> bool {
+    fn __gt__(&self, other: &Self) -> bool {
         self.0 > other.0
     }
-    fn __ge__(&self, other: &PyIpAddr) -> bool {
+    fn __ge__(&self, other: &Self) -> bool {
         self.0 >= other.0
     }
 
@@ -633,7 +633,7 @@ impl PyIpAddr {
 // ===========================================================================
 impl From<std::net::Ipv4Addr> for PyIpv4Addr {
     fn from(addr: std::net::Ipv4Addr) -> Self {
-        PyIpv4Addr(addr)
+        Self(addr)
     }
 }
 
@@ -645,7 +645,7 @@ impl From<PyIpv4Addr> for std::net::Ipv4Addr {
 
 impl From<std::net::Ipv6Addr> for PyIpv6Addr {
     fn from(addr: std::net::Ipv6Addr) -> Self {
-        PyIpv6Addr(addr)
+        Self(addr)
     }
 }
 
@@ -657,19 +657,19 @@ impl From<PyIpv6Addr> for std::net::Ipv6Addr {
 
 impl From<std::net::IpAddr> for PyIpAddr {
     fn from(addr: std::net::IpAddr) -> Self {
-        PyIpAddr(addr)
+        Self(addr)
     }
 }
 
 impl From<std::net::Ipv4Addr> for PyIpAddr {
     fn from(addr: std::net::Ipv4Addr) -> Self {
-        PyIpAddr(std::net::IpAddr::V4(addr))
+        Self(std::net::IpAddr::V4(addr))
     }
 }
 
 impl From<std::net::Ipv6Addr> for PyIpAddr {
     fn from(addr: std::net::Ipv6Addr) -> Self {
-        PyIpAddr(std::net::IpAddr::V6(addr))
+        Self(std::net::IpAddr::V6(addr))
     }
 }
 

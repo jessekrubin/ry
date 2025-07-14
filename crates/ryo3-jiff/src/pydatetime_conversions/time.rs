@@ -91,11 +91,11 @@ impl<'py> IntoPyObject<'py> for &JiffTime {
 }
 
 impl FromPyObject<'_> for JiffTime {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffTime> {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         #[cfg(not(Py_LIMITED_API))]
         {
             let time = ob.downcast::<PyTime>()?;
-            py_time_to_jiff_time(time).map(JiffTime::from)
+            py_time_to_jiff_time(time).map(Self::from)
         }
         #[cfg(Py_LIMITED_API)]
         {

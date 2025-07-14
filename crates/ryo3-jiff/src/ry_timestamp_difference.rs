@@ -10,7 +10,7 @@ pub struct RyTimestampDifference(pub(crate) TimestampDifference);
 
 impl From<TimestampDifference> for RyTimestampDifference {
     fn from(value: TimestampDifference) -> Self {
-        RyTimestampDifference(value)
+        Self(value)
     }
 }
 
@@ -41,23 +41,23 @@ impl RyTimestampDifference {
         if let Some(increment) = increment {
             d_diff = d_diff.increment(increment);
         }
-        RyTimestampDifference(d_diff)
+        Self(d_diff)
     }
 
     fn smallest(&self, unit: JiffUnit) -> Self {
-        RyTimestampDifference(self.0.smallest(unit.0))
+        Self(self.0.smallest(unit.0))
     }
 
     fn largest(&self, unit: JiffUnit) -> Self {
-        RyTimestampDifference(self.0.largest(unit.0))
+        Self(self.0.largest(unit.0))
     }
 
     fn mode(&self, mode: JiffRoundMode) -> Self {
-        RyTimestampDifference(self.0.mode(mode.0))
+        Self(self.0.mode(mode.0))
     }
 
     fn increment(&self, increment: i64) -> Self {
-        RyTimestampDifference(self.0.increment(increment))
+        Self(self.0.increment(increment))
     }
 }
 
@@ -70,12 +70,8 @@ pub(crate) enum IntoTimestampDifferenceTuple {
 impl From<IntoTimestampDifferenceTuple> for TimestampDifference {
     fn from(val: IntoTimestampDifferenceTuple) -> Self {
         match val {
-            IntoTimestampDifferenceTuple::UnitTimestamp(unit, date) => {
-                TimestampDifference::from((unit.0, date.0))
-            }
-            IntoTimestampDifferenceTuple::UnitZoned(unit, zoned) => {
-                TimestampDifference::from((unit.0, zoned.0))
-            }
+            IntoTimestampDifferenceTuple::UnitTimestamp(unit, date) => Self::from((unit.0, date.0)),
+            IntoTimestampDifferenceTuple::UnitZoned(unit, zoned) => Self::from((unit.0, zoned.0)),
         }
     }
 }
@@ -95,8 +91,8 @@ impl TimestampDifferenceArg {
         increment: Option<i64>,
     ) -> TimestampDifference {
         let mut diff = match self {
-            TimestampDifferenceArg::Zoned(zoned) => TimestampDifference::from(zoned.0),
-            TimestampDifferenceArg::Timestamp(date) => TimestampDifference::from(date.0),
+            Self::Zoned(zoned) => TimestampDifference::from(zoned.0),
+            Self::Timestamp(date) => TimestampDifference::from(date.0),
         };
         if let Some(smallest) = smallest {
             diff = diff.smallest(smallest.0);

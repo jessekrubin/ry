@@ -29,10 +29,10 @@ impl<'py> IntoPyObject<'py> for &JiffDate {
 }
 
 impl FromPyObject<'_> for JiffDate {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffDate> {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         let py_date = ob.downcast::<PyDate>()?;
         let date = py_date_to_date(py_date)?;
-        Ok(JiffDate::from(date))
+        Ok(Self::from(date))
     }
 }
 pub fn date_to_pyobject<'a>(py: Python<'a>, d: &Date) -> PyResult<Bound<'a, PyDate>> {

@@ -40,7 +40,7 @@ impl RyTime {
             second.unwrap_or(0),
             nanosecond.unwrap_or(0),
         )
-        .map(crate::RyTime::from)
+        .map(Self::from)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -86,7 +86,7 @@ impl RyTime {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Time::from_str(s)
-            .map(crate::RyTime::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -97,7 +97,7 @@ impl RyTime {
     #[classmethod]
     fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
         Time::strptime(format, input)
-            .map(crate::RyTime::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -166,7 +166,7 @@ impl RyTime {
         } else {
             let spanish = Spanish::try_from(other)?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            RyTime::from(z).into_bound_py_any(py)
+            Self::from(z).into_bound_py_any(py)
         }
     }
 
@@ -174,7 +174,7 @@ impl RyTime {
         let spanish = Spanish::try_from(other)?;
         self.0
             .checked_add(spanish)
-            .map(RyTime::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -239,7 +239,7 @@ impl RyTime {
     #[expect(clippy::needless_pass_by_value)]
     #[classmethod]
     fn from_pytime(_cls: &Bound<'_, PyType>, py_time: JiffTime) -> Self {
-        RyTime::from(py_time.0)
+        Self::from(py_time.0)
     }
 
     // =====================================================================
@@ -295,12 +295,12 @@ impl RyTime {
         Ok(Self::from(self.0.saturating_sub(spanish)))
     }
 
-    fn wrapping_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<RyTime> {
+    fn wrapping_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.wrapping_add(spanish)))
     }
 
-    fn wrapping_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<RyTime> {
+    fn wrapping_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.wrapping_sub(spanish)))
     }
@@ -329,7 +329,7 @@ impl RyTime {
         }
         self.0
             .round(timeround)
-            .map(RyTime::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 

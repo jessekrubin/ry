@@ -37,79 +37,79 @@ pub struct JiffTzOffsetConflict(pub jiff::tz::OffsetConflict);
 // ============================================================================
 impl From<jiff::civil::Date> for JiffDate {
     fn from(value: jiff::civil::Date) -> Self {
-        JiffDate(value)
+        Self(value)
     }
 }
 
 impl From<jiff::civil::Time> for JiffTime {
     fn from(value: jiff::civil::Time) -> Self {
-        JiffTime(value)
+        Self(value)
     }
 }
 
 impl From<jiff::civil::DateTime> for JiffDateTime {
     fn from(value: jiff::civil::DateTime) -> Self {
-        JiffDateTime(value)
+        Self(value)
     }
 }
 
 impl From<jiff::civil::Era> for JiffEra {
     fn from(value: jiff::civil::Era) -> Self {
-        JiffEra(value)
+        Self(value)
     }
 }
 
 impl From<jiff::tz::Disambiguation> for JiffTzDisambiguation {
     fn from(value: jiff::tz::Disambiguation) -> Self {
-        JiffTzDisambiguation(value)
+        Self(value)
     }
 }
 
 impl From<jiff::Zoned> for JiffZoned {
     fn from(value: jiff::Zoned) -> Self {
-        JiffZoned(value)
+        Self(value)
     }
 }
 
 impl From<jiff::Span> for JiffSpan {
     fn from(value: jiff::Span) -> Self {
-        JiffSpan(value)
+        Self(value)
     }
 }
 
 impl From<jiff::tz::TimeZone> for JiffTimeZone {
     fn from(value: jiff::tz::TimeZone) -> Self {
-        JiffTimeZone(value)
+        Self(value)
     }
 }
 
 impl From<jiff::tz::Offset> for JiffOffset {
     fn from(value: jiff::tz::Offset) -> Self {
-        JiffOffset(value)
+        Self(value)
     }
 }
 
 impl From<jiff::SignedDuration> for JiffSignedDuration {
     fn from(value: jiff::SignedDuration) -> Self {
-        JiffSignedDuration(value)
+        Self(value)
     }
 }
 
 impl From<jiff::Unit> for JiffUnit {
     fn from(value: jiff::Unit) -> Self {
-        JiffUnit(value)
+        Self(value)
     }
 }
 
 impl From<jiff::civil::Weekday> for JiffWeekday {
     fn from(value: jiff::civil::Weekday) -> Self {
-        JiffWeekday(value)
+        Self(value)
     }
 }
 
 impl From<jiff::tz::OffsetConflict> for JiffTzOffsetConflict {
     fn from(value: jiff::tz::OffsetConflict) -> Self {
-        JiffTzOffsetConflict(value)
+        Self(value)
     }
 }
 

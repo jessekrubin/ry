@@ -151,14 +151,14 @@ impl RySpan {
     fn parse_common_iso(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         SPAN_PARSER
             .parse_span(s)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Span::from_str(s)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -242,37 +242,37 @@ impl RySpan {
     }
 
     fn try_years(&self, n: i64) -> PyResult<Self> {
-        self.0.try_years(n).map(RySpan::from).map_err(|e| {
+        self.0.try_years(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_years: {e}"))
         })
     }
 
     fn try_months(&self, n: i64) -> PyResult<Self> {
-        self.0.try_months(n).map(RySpan::from).map_err(|e| {
+        self.0.try_months(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_months: {e}"))
         })
     }
 
     fn try_weeks(&self, n: i64) -> PyResult<Self> {
-        self.0.try_weeks(n).map(RySpan::from).map_err(|e| {
+        self.0.try_weeks(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_weeks: {e}"))
         })
     }
 
     fn try_days(&self, n: i64) -> PyResult<Self> {
-        self.0.try_days(n).map(RySpan::from).map_err(|e| {
+        self.0.try_days(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_days: {e}"))
         })
     }
 
     fn try_hours(&self, n: i64) -> PyResult<Self> {
-        self.0.try_hours(n).map(RySpan::from).map_err(|e| {
+        self.0.try_hours(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("Failed at try_hours: {e}"))
         })
     }
 
     fn try_minutes(&self, n: i64) -> PyResult<Self> {
-        self.0.try_minutes(n).map(RySpan::from).map_err(|e| {
+        self.0.try_minutes(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
                 "Failed at try_minutes: {e}"
             ))
@@ -280,7 +280,7 @@ impl RySpan {
     }
 
     fn try_seconds(&self, n: i64) -> PyResult<Self> {
-        self.0.try_seconds(n).map(RySpan::from).map_err(|e| {
+        self.0.try_seconds(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
                 "Failed at try_seconds: {e}"
             ))
@@ -288,7 +288,7 @@ impl RySpan {
     }
 
     fn try_milliseconds(&self, n: i64) -> PyResult<Self> {
-        self.0.try_milliseconds(n).map(RySpan::from).map_err(|e| {
+        self.0.try_milliseconds(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
                 "Failed at try_milliseconds: {e}"
             ))
@@ -296,7 +296,7 @@ impl RySpan {
     }
 
     fn try_microseconds(&self, n: i64) -> PyResult<Self> {
-        self.0.try_microseconds(n).map(RySpan::from).map_err(|e| {
+        self.0.try_microseconds(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
                 "Failed at try_microseconds: {e}"
             ))
@@ -304,7 +304,7 @@ impl RySpan {
     }
 
     fn try_nanoseconds(&self, n: i64) -> PyResult<Self> {
-        self.0.try_nanoseconds(n).map(RySpan::from).map_err(|e| {
+        self.0.try_nanoseconds(n).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
                 "Failed at try_nanoseconds: {e}"
             ))
@@ -436,7 +436,7 @@ impl RySpan {
         let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_add(span_arithmetic)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -446,7 +446,7 @@ impl RySpan {
 
         self.0
             .checked_add(span_arithmetic)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -455,7 +455,7 @@ impl RySpan {
         let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -464,14 +464,14 @@ impl RySpan {
         let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
     fn __mul__(&self, rhs: i64) -> PyResult<Self> {
         self.0
             .checked_mul(rhs)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -614,7 +614,7 @@ impl RySpan {
         relative: Option<SpanCompareRelative>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
-    ) -> PyResult<RySpan> {
+    ) -> PyResult<Self> {
         if let Some(SpanCompareRelative::Zoned(z)) = relative {
             let mut span_round: SpanRound = SpanRound::new();
             if let Some(smallest) = smallest {
@@ -633,7 +633,7 @@ impl RySpan {
             return self
                 .0
                 .round(span_round)
-                .map(RySpan::from)
+                .map(Self::from)
                 .map_err(map_py_value_err);
         }
         let mut span_round: SpanRound = SpanRound::new();
@@ -665,7 +665,7 @@ impl RySpan {
 
         self.0
             .round(span_round)
-            .map(RySpan::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 

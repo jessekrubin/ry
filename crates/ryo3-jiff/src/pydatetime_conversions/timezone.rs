@@ -38,7 +38,7 @@ impl<'py> FromPyObject<'py> for JiffTimeZone {
         if ob.hasattr(attr)? {
             let tz_pystr = ob.getattr(attr)?.extract::<PyBackedStr>()?;
             let tz_str = tz_pystr.to_string();
-            Ok(JiffTimeZone(TimeZone::get(&tz_str)?))
+            Ok(Self(TimeZone::get(&tz_str)?))
         } else {
             Ok(ob.extract::<JiffOffset>()?.0.to_time_zone().into())
         }

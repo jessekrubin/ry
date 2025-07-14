@@ -75,8 +75,8 @@ impl<'py> IntoPyObject<'py> for &JiffSignedDuration {
 }
 
 impl FromPyObject<'_> for JiffSignedDuration {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffSignedDuration> {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         let sdur: SignedDuration = signed_duration_from_pyobject(ob)?;
-        Ok(JiffSignedDuration(sdur))
+        Ok(Self(sdur))
     }
 }

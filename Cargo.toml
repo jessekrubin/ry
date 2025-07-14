@@ -227,6 +227,9 @@ module_name_repetitions = "allow"
 multiple_crate_versions = "allow"
 
 # nursery
+use_self = "warn"
+
+# nursery
 # as_ptr_cast_mut = 'allow'
 # derive_partial_eq_without_eq = "allow"
 # equatable_if_let = "allow"

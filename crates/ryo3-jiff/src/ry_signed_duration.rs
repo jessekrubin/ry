@@ -25,13 +25,13 @@ pub struct RySignedDuration(pub(crate) SignedDuration);
 impl RySignedDuration {
     fn py_try_from_secs_f32(secs: f32) -> PyResult<Self> {
         SignedDuration::try_from_secs_f32(secs)
-            .map(RySignedDuration::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     fn py_try_from_secs_f64(secs: f64) -> PyResult<Self> {
         SignedDuration::try_from_secs_f64(secs)
-            .map(RySignedDuration::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 }
@@ -92,7 +92,7 @@ impl RySignedDuration {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
-            .map(RySignedDuration::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -132,7 +132,7 @@ impl RySignedDuration {
     fn __abs__(&self) -> Self {
         Self(self.0.abs())
     }
-    fn abs(&self) -> RySignedDuration {
+    fn abs(&self) -> Self {
         self.__abs__()
     }
     fn unsigned_abs(&self) -> PyDuration {
@@ -177,18 +177,18 @@ impl RySignedDuration {
         hasher.finish()
     }
 
-    fn __add__(&self, other: &RySignedDuration) -> PyResult<Self> {
+    fn __add__(&self, other: &Self) -> PyResult<Self> {
         let maybe_dur = self.0.checked_add(other.0);
         match maybe_dur {
-            Some(dur) => Ok(RySignedDuration(dur)),
+            Some(dur) => Ok(Self(dur)),
             None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
 
-    fn __sub__(&self, other: &RySignedDuration) -> PyResult<Self> {
+    fn __sub__(&self, other: &Self) -> PyResult<Self> {
         let dur = self.0.checked_sub(other.0);
         match dur {
-            Some(dur) => Ok(RySignedDuration(dur)),
+            Some(dur) => Ok(Self(dur)),
             None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
@@ -196,7 +196,7 @@ impl RySignedDuration {
     fn __mul__(&self, other: i32) -> PyResult<Self> {
         let dur = self.0.checked_mul(other);
         match dur {
-            Some(dur) => Ok(RySignedDuration(dur)),
+            Some(dur) => Ok(Self(dur)),
             None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
@@ -208,18 +208,15 @@ impl RySignedDuration {
     fn __div__(&self, other: i32) -> PyResult<Self> {
         let dur = self.0.checked_div(other);
         match dur {
-            Some(dur) => Ok(RySignedDuration(dur)),
+            Some(dur) => Ok(Self(dur)),
             None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
         }
     }
 
     fn __neg__(&self) -> PyResult<Self> {
-        self.0
-            .checked_neg()
-            .map(RySignedDuration::from)
-            .ok_or_else(|| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>("negation does not exist")
-            })
+        self.0.checked_neg().map(Self::from).ok_or_else(|| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>("negation does not exist")
+        })
     }
 
     #[getter]
@@ -375,7 +372,7 @@ impl RySignedDuration {
         self.0.div_duration_f64(other.0)
     }
 
-    fn div_f32(&self, n: f32) -> PyResult<RySignedDuration> {
+    fn div_f32(&self, n: f32) -> PyResult<Self> {
         let secs = self.as_secs_f32().mul(n);
         Self::py_try_from_secs_f32(secs)
     }
@@ -385,24 +382,24 @@ impl RySignedDuration {
         Self::py_try_from_secs_f64(secs)
     }
 
-    fn mul_f32(&self, n: f32) -> RySignedDuration {
+    fn mul_f32(&self, n: f32) -> Self {
         Self::from(self.0.mul_f32(n))
     }
-    fn mul_f64(&self, n: f64) -> RySignedDuration {
+    fn mul_f64(&self, n: f64) -> Self {
         Self::from(self.0.mul_f64(n))
     }
-    fn saturating_add(&self, other: &Self) -> RySignedDuration {
+    fn saturating_add(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_add(other.0))
     }
-    fn saturating_mul(&self, other: i32) -> RySignedDuration {
+    fn saturating_mul(&self, other: i32) -> Self {
         Self::from(self.0.saturating_mul(other))
     }
 
-    fn saturating_sub(&self, other: &Self) -> RySignedDuration {
+    fn saturating_sub(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_sub(other.0))
     }
 
-    fn checked_neg(&self) -> Option<RySignedDuration> {
+    fn checked_neg(&self) -> Option<Self> {
         self.0.checked_neg().map(Self::from)
     }
 

@@ -24,7 +24,7 @@ impl FromStr for PyGlobster {
 
     fn from_str(pattern: &str) -> PyResult<Self> {
         let patterns = vec![pattern.to_string()];
-        PyGlobster::py_new(patterns, None, None, None)
+        Self::py_new(patterns, None, None, None)
     }
 }
 
@@ -32,7 +32,7 @@ impl TryFrom<Vec<String>> for PyGlobster {
     type Error = PyErr;
 
     fn try_from(patterns: Vec<String>) -> PyResult<Self> {
-        PyGlobster::py_new(patterns, None, None, None)
+        Self::py_new(patterns, None, None, None)
     }
 }
 

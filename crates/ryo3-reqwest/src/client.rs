@@ -169,11 +169,11 @@ impl RyHttpClient {
         Ok(kwargs)
     }
 
-    fn __eq__(&self, other: &RyHttpClient) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.cfg == other.cfg
     }
 
-    fn __ne__(&self, other: &RyHttpClient) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.cfg != other.cfg
     }
 

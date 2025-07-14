@@ -6,7 +6,7 @@ pub struct PyCompressionLevel(pub CompressionLevel);
 
 impl Default for PyCompressionLevel {
     fn default() -> Self {
-        PyCompressionLevel(::zstd::DEFAULT_COMPRESSION_LEVEL)
+        Self(::zstd::DEFAULT_COMPRESSION_LEVEL)
     }
 }
 
@@ -14,7 +14,7 @@ impl TryFrom<i32> for PyCompressionLevel {
     type Error = ();
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if (1..=22).contains(&value) {
-            Ok(PyCompressionLevel(value))
+            Ok(Self(value))
         } else {
             Err(())
         }
@@ -35,9 +35,9 @@ impl FromPyObject<'_> for PyCompressionLevel {
                     "Invalid compression level: {level}. Must be between 1 and 22."
                 )));
             }
-            Ok(PyCompressionLevel(level))
+            Ok(Self(level))
         } else {
-            Ok(PyCompressionLevel(::zstd::DEFAULT_COMPRESSION_LEVEL))
+            Ok(Self(::zstd::DEFAULT_COMPRESSION_LEVEL))
         }
     }
 }

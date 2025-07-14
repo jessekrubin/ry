@@ -132,12 +132,12 @@ impl PyFsPath {
 
     fn absolute(&self) -> PyResult<Self> {
         let p = self.path().canonicalize()?;
-        Ok(PyFsPath::from(p))
+        Ok(Self::from(p))
     }
 
     fn resolve(&self) -> PyResult<Self> {
         let p = self.path().canonicalize()?;
-        Ok(PyFsPath::from(p))
+        Ok(Self::from(p))
     }
 
     fn __fspath__(&self) -> &OsStr {
@@ -156,7 +156,7 @@ impl PyFsPath {
 
     fn __rtruediv__(&self, other: PathLike) -> Self {
         let p = other.as_ref().join(self.path());
-        PyFsPath::from(p)
+        Self::from(p)
     }
 
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
@@ -225,7 +225,7 @@ impl PyFsPath {
     // TODO - implement ad iterator not tuple
     #[getter]
     fn parents<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parents: Vec<Self> = self.path().ancestors().map(PyFsPath::from).collect();
+        let parents: Vec<Self> = self.path().ancestors().map(Self::from).collect();
         PyTuple::new(py, parents)
     }
 
@@ -249,7 +249,7 @@ impl PyFsPath {
 
     fn with_name(&self, name: String) -> Self {
         let p = self.path().with_file_name(name);
-        PyFsPath::from(p)
+        Self::from(p)
     }
 
     #[getter]
@@ -503,7 +503,7 @@ impl PyFsPath {
             let fspath = self.string();
             PyNotADirectoryError::new_err(format!("rename - parent: {fspath} - {e}"))
         })?;
-        Ok(PyFsPath::from(new_path))
+        Ok(Self::from(new_path))
     }
 
     fn replace(&self, new_path: PathLike) -> PyResult<Self> {
@@ -523,7 +523,7 @@ impl PyFsPath {
             let fspath = self.string();
             PyNotADirectoryError::new_err(format!("replace - parent: {fspath} - {e}"))
         })?;
-        Ok(PyFsPath::from(new_path))
+        Ok(Self::from(new_path))
     }
 
     fn as_uri(&self) -> PyResult<String> {
@@ -551,7 +551,7 @@ impl PyFsPath {
         pypathlib_ob.call_method(intern!(py, "open"), args, kwargs)
     }
 
-    fn relative_to(&self, _other: PathLike) -> PyResult<PyFsPath> {
+    fn relative_to(&self, _other: PathLike) -> PyResult<Self> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "relative_to not implemented",
         ))
@@ -596,13 +596,13 @@ impl PyFsPath {
     //  - Path.as_mut_os_str
     //  - Path.as_os_str
     fn ancestors<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parents: Vec<Self> = self.path().ancestors().map(PyFsPath::from).collect();
+        let parents: Vec<Self> = self.path().ancestors().map(Self::from).collect();
         PyTuple::new(py, parents)
     }
 
     fn canonicalize(&self) -> PyResult<Self> {
         let p = self.path().canonicalize()?;
-        Ok(PyFsPath::from(p))
+        Ok(Self::from(p))
     }
 
     fn components<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -676,7 +676,7 @@ impl PyFsPath {
         self.path().is_symlink()
     }
 
-    fn join(&self, p: PathLike) -> PyFsPath {
+    fn join(&self, p: PathLike) -> Self {
         Self::from(self.path().join(p))
     }
 
@@ -705,7 +705,7 @@ impl PyFsPath {
         self.path().starts_with(p.as_ref())
     }
 
-    fn strip_prefix(&self, p: PathLike) -> PyResult<PyFsPath> {
+    fn strip_prefix(&self, p: PathLike) -> PyResult<Self> {
         self.path()
             .strip_prefix(p.as_ref())
             .map(Self::from)
@@ -754,7 +754,7 @@ impl PyFsPath {
     #[staticmethod]
     #[pyo3(signature = (cmd, path=None))]
     fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<Self>> {
-        ryo3_which::which(cmd, path).map(|opt| opt.map(PyFsPath::from))
+        ryo3_which::which(cmd, path).map(|opt| opt.map(Self::from))
     }
 
     #[cfg(not(feature = "which"))]
@@ -771,7 +771,7 @@ impl PyFsPath {
     #[pyo3(signature = (cmd, path=None))]
     fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<Self>> {
         ryo3_which::which_all(cmd, path)
-            .map(|opt| opt.into_iter().map(PyFsPath::from).collect::<Vec<_>>())
+            .map(|opt| opt.into_iter().map(Self::from).collect::<Vec<_>>())
     }
 
     #[cfg(not(feature = "which"))]
@@ -788,7 +788,7 @@ impl PyFsPath {
     #[pyo3(signature = (regex, path=None))]
     fn which_re(regex: &Bound<'_, PyAny>, path: Option<&str>) -> PyResult<Vec<Self>> {
         ryo3_which::which_re(regex, path)
-            .map(|opt| opt.into_iter().map(PyFsPath::from).collect::<Vec<_>>())
+            .map(|opt| opt.into_iter().map(Self::from).collect::<Vec<_>>())
     }
 
     #[cfg(not(feature = "which-regex"))]
@@ -806,7 +806,7 @@ where
     T: AsRef<Path>,
 {
     fn from(p: T) -> Self {
-        PyFsPath {
+        Self {
             pth: ArcPathBuf::new(p.as_ref().to_path_buf()),
         }
     }

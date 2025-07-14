@@ -23,16 +23,16 @@ impl GlobDType {
         path: PathBuf,
     ) -> PyResult<Bound<'py, PyAny>> {
         match self {
-            GlobDType::FsPath => {
+            Self::FsPath => {
                 let fspath = ryo3_fspath::PyFsPath::from(path);
                 let any = fspath.into_bound_py_any(py)?;
                 Ok(any)
             }
-            GlobDType::PathBuf => {
+            Self::PathBuf => {
                 let any = path.into_bound_py_any(py)?;
                 Ok(any)
             }
-            GlobDType::OsString => {
+            Self::OsString => {
                 let os_string = path.into_os_string();
                 let any = os_string.into_bound_py_any(py)?;
                 Ok(any)

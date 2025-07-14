@@ -15,7 +15,7 @@ pub struct PyRegexOptions {
 
 impl Default for PyRegexOptions {
     fn default() -> Self {
-        PyRegexOptions {
+        Self {
             case_insensitive: false,
             crlf: false,
             dot_matches_new_line: false,

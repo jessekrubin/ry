@@ -51,7 +51,7 @@ impl RyZoned {
                 .map_err(map_py_value_err)?
                 .at(hour, minute, second, nanosecond)
                 .in_tz(tz)
-                .map(RyZoned::from)
+                .map(Self::from)
                 .map_err(map_py_value_err)
         } else {
             let tz_system = TimeZone::try_system().map_err(map_py_value_err)?;
@@ -59,7 +59,7 @@ impl RyZoned {
                 .map_err(map_py_value_err)?
                 .at(hour, minute, second, nanosecond)
                 .to_zoned(tz_system)
-                .map(RyZoned::from)
+                .map(Self::from)
                 .map_err(map_py_value_err)
         }
     }
@@ -86,7 +86,7 @@ impl RyZoned {
         if let Some(tz) = tz {
             Zoned::now()
                 .in_tz(tz)
-                .map(RyZoned::from)
+                .map(Self::from)
                 .map_err(map_py_value_err)
         } else {
             Ok(Self::from(Zoned::now()))
@@ -97,7 +97,7 @@ impl RyZoned {
     fn utcnow(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
         Zoned::now()
             .in_tz("UTC")
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -109,34 +109,32 @@ impl RyZoned {
         time_zone: &RyTimeZone,
     ) -> Self {
         let ts = timestamp.0;
-        RyZoned::from(Zoned::new(ts, time_zone.into()))
+        Self::from(Zoned::new(ts, time_zone.into()))
     }
 
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        Zoned::from_str(s)
-            .map(RyZoned::from)
-            .map_err(map_py_value_err)
+        Zoned::from_str(s).map(Self::from).map_err(map_py_value_err)
     }
 
     #[classmethod]
     fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
         Zoned::strptime(format, input)
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[classmethod]
     fn parse_rfc2822(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
         ::jiff::fmt::rfc2822::parse(input)
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[staticmethod]
     fn from_rfc2822(s: &str) -> PyResult<Self> {
         jiff::fmt::rfc2822::parse(s)
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -233,7 +231,7 @@ impl RyZoned {
     fn in_tz(&self, tz: &str) -> PyResult<Self> {
         self.0
             .in_tz(tz)
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -249,7 +247,7 @@ impl RyZoned {
     fn inutc(&self) -> PyResult<Self> {
         self.0
             .in_tz("UTC")
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -259,7 +257,7 @@ impl RyZoned {
         other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         #[expect(clippy::arithmetic_side_effects)]
-        if let Ok(zoned) = other.downcast::<RyZoned>() {
+        if let Ok(zoned) = other.downcast::<Self>() {
             // if other is a Zoned, return a Span
             let span = &self.0 - &zoned.get().0;
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
@@ -267,7 +265,7 @@ impl RyZoned {
         } else {
             let spanish = Spanish::try_from(other)?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            RyZoned::from(z).into_bound_py_any(py)
+            Self::from(z).into_bound_py_any(py)
         }
     }
 
@@ -275,7 +273,7 @@ impl RyZoned {
         let spanish = Spanish::try_from(other)?;
         self.0
             .checked_add(spanish)
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -322,35 +320,29 @@ impl RyZoned {
         }
         self.0
             .round(zdt_round)
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn _round(&self, dt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
         self.0
             .round(dt_round.round)
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn tomorrow(&self) -> PyResult<Self> {
-        self.0
-            .tomorrow()
-            .map(RyZoned::from)
-            .map_err(map_py_value_err)
+        self.0.tomorrow().map(Self::from).map_err(map_py_value_err)
     }
 
     fn yesterday(&self) -> PyResult<Self> {
-        self.0
-            .yesterday()
-            .map(RyZoned::from)
-            .map_err(map_py_value_err)
+        self.0.yesterday().map(Self::from).map_err(map_py_value_err)
     }
 
     fn end_of_day(&self) -> PyResult<Self> {
         self.0
             .end_of_day()
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -361,14 +353,14 @@ impl RyZoned {
     fn last_of_month(&self) -> PyResult<Self> {
         self.0
             .last_of_month()
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     fn last_of_year(&self) -> PyResult<Self> {
         self.0
             .last_of_year()
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -405,14 +397,14 @@ impl RyZoned {
     fn first_of_month(&self) -> PyResult<Self> {
         self.0
             .first_of_month()
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     fn first_of_year(&self) -> PyResult<Self> {
         self.0
             .first_of_year()
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -437,7 +429,7 @@ impl RyZoned {
     fn start_of_day(&self) -> PyResult<Self> {
         self.0
             .start_of_day()
-            .map(RyZoned::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -501,7 +493,7 @@ impl RyZoned {
             .map_err(map_py_value_err)
     }
 
-    fn with_time_zone(&self, tz: &RyTimeZone) -> RyZoned {
+    fn with_time_zone(&self, tz: &RyTimeZone) -> Self {
         self.0.with_time_zone(tz.into()).into()
     }
 
@@ -635,7 +627,7 @@ impl RyZoned {
             builder = builder.disambiguation(disambiguation.0);
         }
         // finally build, mapping any error back to Python
-        builder.build().map(RyZoned::from).map_err(map_py_value_err)
+        builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
     // -----------------------------------------------------------------------
@@ -722,6 +714,6 @@ impl Display for RyZoned {
 }
 impl From<Zoned> for RyZoned {
     fn from(value: Zoned) -> Self {
-        RyZoned(value)
+        Self(value)
     }
 }

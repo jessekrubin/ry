@@ -1,13 +1,14 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::unwrap_used)]
-#![allow(clippy::unused_self)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::ptr_as_ptr)]
-#![allow(clippy::needless_pass_by_value)]
-#![allow(clippy::similar_names)]
-#![allow(clippy::cast_possible_wrap)]
+#![expect(clippy::doc_markdown)]
+#![expect(clippy::unwrap_used)]
+#![expect(clippy::unused_self)]
+#![expect(clippy::cast_sign_loss)]
+#![expect(clippy::ptr_as_ptr)]
+#![expect(clippy::needless_pass_by_value)]
+#![expect(clippy::similar_names)]
+#![expect(clippy::cast_possible_wrap)]
+#![expect(clippy::use_self)]
 mod pyo3_bytes;
 mod ry_bytes;
 use pyo3::intern;

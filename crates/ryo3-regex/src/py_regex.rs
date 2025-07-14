@@ -15,7 +15,7 @@ impl TryFrom<&str> for PyRegex {
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         Regex::new(s)
-            .map(|re| PyRegex {
+            .map(|re| Self {
                 re: std::sync::Arc::new(re),
                 options: None,
             })
@@ -27,7 +27,7 @@ impl TryFrom<&str> for PyRegex {
 
 impl From<Regex> for PyRegex {
     fn from(re: Regex) -> Self {
-        PyRegex {
+        Self {
             re: std::sync::Arc::new(re),
             options: None,
         }
@@ -39,7 +39,7 @@ impl TryFrom<RegexBuilder> for PyRegex {
 
     fn try_from(rb: RegexBuilder) -> Result<Self, Self::Error> {
         rb.build()
-            .map(|re| PyRegex {
+            .map(|re| Self {
                 re: std::sync::Arc::new(re),
                 options: None,
             })
@@ -131,7 +131,7 @@ impl PyRegex {
         if let Some(size_limit) = size_limit {
             builder.size_limit(size_limit);
         }
-        builder.build().map(PyRegex::from).map_err(|e| {
+        builder.build().map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
         })
     }
@@ -140,7 +140,7 @@ impl PyRegex {
         format!("Regex('{}')", self.re)
     }
 
-    fn __eq__(&self, other: &PyRegex) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.re.as_str() == other.re.as_str()
     }
 

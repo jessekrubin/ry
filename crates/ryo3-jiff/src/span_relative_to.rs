@@ -12,18 +12,18 @@ pub(crate) enum RySpanRelativeTo {
 
 impl From<RyZoned> for RySpanRelativeTo {
     fn from(z: RyZoned) -> Self {
-        RySpanRelativeTo::Zoned(z)
+        Self::Zoned(z)
     }
 }
 
 impl From<RyDate> for RySpanRelativeTo {
     fn from(d: RyDate) -> Self {
-        RySpanRelativeTo::Date(d)
+        Self::Date(d)
     }
 }
 
 impl From<RyDateTime> for RySpanRelativeTo {
     fn from(dt: RyDateTime) -> Self {
-        RySpanRelativeTo::DateTime(dt)
+        Self::DateTime(dt)
     }
 }

@@ -35,7 +35,7 @@ impl<'py> IntoPyObject<'py> for JiffZoned {
 }
 
 impl FromPyObject<'_> for JiffZoned {
-    fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<JiffZoned> {
+    fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<Self> {
         let dt = dt.downcast::<PyDateTime>()?;
         let tzinfo = dt.get_tzinfo().map_or_else(
             || {
@@ -59,9 +59,9 @@ impl FromPyObject<'_> for JiffZoned {
             .extract::<usize>()?
             > 0;
         if fold {
-            Ok(JiffZoned::from(zoned.later()?))
+            Ok(Self::from(zoned.later()?))
         } else {
-            Ok(JiffZoned::from(zoned.earlier()?))
+            Ok(Self::from(zoned.earlier()?))
         }
     }
 }

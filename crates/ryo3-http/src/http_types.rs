@@ -26,7 +26,7 @@ pub struct HttpVersion(pub http::Version);
 
 impl From<HeaderMap> for HttpHeaderMap {
     fn from(h: HeaderMap) -> Self {
-        HttpHeaderMap(h)
+        Self(h)
     }
 }
 
@@ -50,31 +50,31 @@ impl From<HttpMethod> for http::Method {
 
 impl From<http::HeaderName> for HttpHeaderName {
     fn from(h: http::HeaderName) -> Self {
-        HttpHeaderName(h)
+        Self(h)
     }
 }
 
 impl From<HeaderValue> for HttpHeaderValue {
     fn from(h: HeaderValue) -> Self {
-        HttpHeaderValue(h)
+        Self(h)
     }
 }
 
 impl From<http::Method> for HttpMethod {
     fn from(h: http::Method) -> Self {
-        HttpMethod(h)
+        Self(h)
     }
 }
 
 impl From<http::StatusCode> for HttpStatusCode {
     fn from(h: http::StatusCode) -> Self {
-        HttpStatusCode(h)
+        Self(h)
     }
 }
 
 impl From<http::Version> for HttpVersion {
     fn from(h: http::Version) -> Self {
-        HttpVersion(h)
+        Self(h)
     }
 }
 
@@ -82,7 +82,7 @@ impl From<http::Version> for HttpVersion {
 impl From<&HeaderValue> for HttpHeaderValue {
     // clone should be totally fine bc the http lib uses the `Bytes` crate
     fn from(h: &HeaderValue) -> Self {
-        HttpHeaderValue(h.clone())
+        Self(h.clone())
     }
 }
 

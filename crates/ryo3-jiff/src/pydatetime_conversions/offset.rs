@@ -32,7 +32,7 @@ impl FromPyObject<'_> for JiffOffset {
     ///
     /// Note that the conversion will result in precision lost in microseconds as chrono offset
     /// does not supports microseconds.
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffOffset> {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         let ob = ob.downcast::<PyTzInfo>()?;
 
         // Passing Python's None to the `utcoffset` function will only
@@ -53,6 +53,6 @@ impl FromPyObject<'_> for JiffOffset {
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
         let o = Offset::from_seconds(total_seconds)
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-        Ok(JiffOffset::from(o))
+        Ok(Self::from(o))
     }
 }
