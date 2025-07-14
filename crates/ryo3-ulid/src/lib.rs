@@ -90,7 +90,7 @@ impl PyUlid {
             }
         } else {
             let ulid = gen_new()?;
-            Ok(PyUlid(ulid))
+            Ok(Self(ulid))
         }
     }
 
@@ -137,7 +137,7 @@ impl PyUlid {
                 pyo3::basic::CompareOp::Gt => Ok(this_str.as_str() > cs),
                 pyo3::basic::CompareOp::Ge => Ok(this_str.as_str() >= cs),
             };
-        } else if let Ok(rs_ulid) = other.downcast::<PyUlid>() {
+        } else if let Ok(rs_ulid) = other.downcast::<Self>() {
             let other = rs_ulid.borrow().0;
             match op {
                 pyo3::basic::CompareOp::Eq => Ok(self.0 == other),
@@ -185,7 +185,7 @@ impl PyUlid {
     #[staticmethod]
     fn from_bytes(bytes: [u8; 16]) -> Self {
         let ulid = Ulid::from_bytes(bytes);
-        PyUlid(ulid)
+        Self(ulid)
     }
 
     fn to_bytes<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
@@ -196,14 +196,14 @@ impl PyUlid {
     fn from_hex(hexstr: &str) -> PyResult<Self> {
         let b = Self::hex2bytes(hexstr)?;
         let ul = Ulid::from_bytes(b);
-        Ok(PyUlid(ul))
+        Ok(Self(ul))
     }
 
     #[staticmethod]
     fn from_int(bytes: u128) -> Self {
         let b = bytes.to_be_bytes();
         let ul = Ulid::from_bytes(b);
-        PyUlid(ul)
+        Self(ul)
     }
 
     #[staticmethod]
@@ -211,7 +211,7 @@ impl PyUlid {
         if cs.len() == 26 {
             let ulid = Ulid::from_string(cs)
                 .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
-            Ok(PyUlid(ulid))
+            Ok(Self(ulid))
         } else if cs.len() == 32 {
             Self::from_hex(cs)
         } else {
@@ -223,7 +223,7 @@ impl PyUlid {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        PyUlid::from_string(s)
+        Self::from_string(s)
     }
 
     #[staticmethod]
@@ -234,7 +234,7 @@ impl PyUlid {
         } else {
             let millis = (value * 1000.0) as u64;
             let dt = SystemTime::UNIX_EPOCH + std::time::Duration::from_millis(millis);
-            Ok(PyUlid(Ulid::from_datetime(dt)))
+            Ok(Self(Ulid::from_datetime(dt)))
         }
     }
 
@@ -244,7 +244,7 @@ impl PyUlid {
         let dt = dt.ok_or_else(|| {
             PyOverflowError::new_err("Timestamp exceeds the maximum value for SystemTime")
         })?;
-        Ok(PyUlid(Ulid::from_datetime(dt)))
+        Ok(Self(Ulid::from_datetime(dt)))
     }
 
     #[staticmethod]
@@ -274,7 +274,7 @@ impl PyUlid {
     fn from_uuid(uu: UuidLike) -> Self {
         let uu = uu.0;
         let ul = Ulid::from_bytes(*uu.as_bytes());
-        PyUlid(ul)
+        Self(ul)
     }
 
     fn to_uuid(&self) -> PyUuid {
@@ -296,7 +296,7 @@ impl PyUlid {
                 let ulid = Ulid::from_datetime(
                     SystemTime::UNIX_EPOCH + std::time::Duration::from_millis(smaller_int),
                 );
-                return Ok(PyUlid(ulid));
+                return Ok(Self(ulid));
             }
             // If the integer is too large, we treat it as a ULID.
             Ok(Self::from_int(i))
@@ -309,12 +309,12 @@ impl PyUlid {
                     let uu = Uuid::parse_str(cs)
                         .map_err(|e| PyValueError::new_err(format!("Invalid UUID string: {e}")))?;
                     let ul = Ulid::from_bytes(*uu.as_bytes());
-                    return Ok(PyUlid(ul));
+                    return Ok(Self(ul));
                 }
                 26 => {
                     let ulid = Ulid::from_string(cs)
                         .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
-                    return Ok(PyUlid(ulid));
+                    return Ok(Self(ulid));
                 }
                 32 => {
                     return Self::from_hex(cs);
@@ -331,9 +331,9 @@ impl PyUlid {
         else if other.is_instance_of::<pyo3::types::PyFloat>() {
             let f = other.extract::<f64>()?;
             return Self::from_timestamp_seconds(f);
-        } else if let Ok(rs_ulid) = other.downcast::<PyUlid>() {
+        } else if let Ok(rs_ulid) = other.downcast::<Self>() {
             let inner = rs_ulid.borrow().0;
-            return Ok(PyUlid(inner));
+            return Ok(Self(inner));
         } else if other.is_instance_of::<PyBytes>() {
             let pybytes = other.downcast::<PyBytes>()?;
             let b = pybytes.extract::<[u8; 16]>()?;
@@ -422,11 +422,11 @@ impl PyUlid {
             (vec![
                 core_schema.call_method1(
                     intern!(py, "is_instance_schema"),
-                    (py.get_type::<PyUlid>(),),
+                    (py.get_type::<Self>(),),
                 )?,
                 core_schema.call_method1(
                     intern!(py, "no_info_plain_validator_function"),
-                    (py.get_type::<PyUlid>(),),
+                    (py.get_type::<Self>(),),
                 )?,
                 core_schema.call_method(intern!(py, "str_schema"), (), Some(&str_schema_kwargs))?,
                 core_schema.call_method(
@@ -471,7 +471,7 @@ impl PyUlid {
             cls.call_method1(intern!(py, "from_int"), (pyint,))
         } else if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             cls.call_method1(intern!(py, "from_str"), (pystr,))
-        } else if let Ok(pyulid) = value.downcast::<PyUlid>() {
+        } else if let Ok(pyulid) = value.downcast::<Self>() {
             pyulid.into_bound_py_any(py)
         } else if let Ok(pybytes) = value.downcast::<PyBytes>() {
             cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
@@ -484,7 +484,7 @@ impl PyUlid {
 
 impl From<Ulid> for PyUlid {
     fn from(ulid: Ulid) -> Self {
-        PyUlid(ulid)
+        Self(ulid)
     }
 }
 
@@ -493,9 +493,9 @@ pub struct UuidLike(pub(crate) Uuid);
 impl FromPyObject<'_> for UuidLike {
     fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(uuid_like) = obj.downcast::<PyUuid>() {
-            return Ok(UuidLike(uuid_like.borrow().0));
+            return Ok(Self(uuid_like.borrow().0));
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
-            return Ok(UuidLike(py_uuid.into()));
+            return Ok(Self(py_uuid.into()));
         }
         Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
     }
