@@ -420,10 +420,8 @@ impl PyUlid {
         let union_schema = core_schema.call_method1(
             intern!(py, "union_schema"),
             (vec![
-                core_schema.call_method1(
-                    intern!(py, "is_instance_schema"),
-                    (py.get_type::<Self>(),),
-                )?,
+                core_schema
+                    .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
                 core_schema.call_method1(
                     intern!(py, "no_info_plain_validator_function"),
                     (py.get_type::<Self>(),),
