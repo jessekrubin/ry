@@ -151,9 +151,9 @@ impl RyReqwestError {
 impl From<RyReqwestError> for PyErr {
     fn from(e: RyReqwestError) -> Self {
         if let Some(e) = e.0.lock().take() {
-            PyErr::new::<RyReqwestError, _>(format!("{e} ~ {e:?}"))
+            Self::new::<RyReqwestError, _>(format!("{e} ~ {e:?}"))
         } else {
-            PyErr::new::<RyReqwestError, _>("RyReqwestError(None)")
+            Self::new::<RyReqwestError, _>("RyReqwestError(None)")
         }
     }
 }
