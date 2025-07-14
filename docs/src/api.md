@@ -7,6 +7,8 @@
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
 - [`ry.ryo3.orjson`](#ry.ryo3.orjson)
 - [`ry.ryo3.sh`](#ry.ryo3.sh)
+- [`ry.ryo3.ulid`](#ry.ryo3.ulid)
+- [`ry.ryo3.uuid`](#ry.ryo3.uuid)
 - [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
 - [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
@@ -413,6 +415,198 @@ def ls(
 
 
 def mkdir(path: str | PathLike[str]) -> None: ...
+
+```
+
+<h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
+
+```python
+import builtins
+import datetime as pydt
+import uuid
+from collections.abc import Callable as Callable
+from typing import Any
+
+from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
+from pydantic import (
+    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
+)
+from pydantic_core import CoreSchema as CoreSchema
+
+
+class ULID:
+    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
+
+    # ----------------
+    # INSTANCE METHODS
+    # ----------------
+    def to_uuid(self) -> uuid.UUID: ...
+    def to_uuid4(self) -> uuid.UUID: ...
+
+    # -------
+    # DUNDERS
+    # -------
+    def __int__(self) -> int: ...
+    def __bytes__(self) -> builtins.bytes: ...
+    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+
+    # ----------
+    # PROPERTIES
+    # ----------
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def milliseconds(self) -> int: ...
+    @property
+    def timestamp(self) -> float: ...
+    @property
+    def datetime(self) -> pydt.datetime: ...
+    @property
+    def hex(self) -> str: ...
+
+    # -------------
+    # CLASS METHODS
+    # -------------
+    @classmethod
+    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
+    @classmethod
+    def from_timestamp(cls, value: float) -> ULID: ...
+    @classmethod
+    def from_uuid(cls, value: uuid.UUID) -> ULID: ...
+    @classmethod
+    def from_bytes(cls, bytes_: builtins.bytes) -> ULID: ...
+    @classmethod
+    def from_hex(cls, value: str) -> ULID: ...
+    @classmethod
+    def from_str(cls, string: str) -> ULID: ...
+    @classmethod
+    def from_int(cls, value: int) -> ULID: ...
+    @classmethod
+    def parse(cls, value: Any) -> ULID: ...
+
+    # --------
+    # PYDANTIC
+    # --------
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema: ...
+
+```
+
+<h2 id="ry.ryo3.uuid"><code>ry.ryo3.uuid</code></h2>
+
+```python
+"""ryo3-uuid types
+
+based on typeshed types for python's builtin uuid module
+
+REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
+"""
+
+import builtins
+import uuid as pyuuid
+from enum import Enum
+from typing import Any
+
+from typing_extensions import TypeAlias
+
+from ry._types import Buffer
+
+_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
+
+
+class SafeUUID(Enum):
+    safe = 0
+    unsafe = -1
+    unknown = None
+
+
+class UUID:
+    NAMESPACE_DNS: UUID
+    NAMESPACE_URL: UUID
+    NAMESPACE_OID: UUID
+    NAMESPACE_X500: UUID
+
+    def __init__(
+        self,
+        hex: str | None = None,
+        bytes: builtins.bytes | None = None,
+        bytes_le: builtins.bytes | None = None,
+        fields: _FieldsType | None = None,
+        int: builtins.int | None = None,
+        version: builtins.int | None = None,
+        *,
+        is_safe: SafeUUID = ...,
+    ) -> None: ...
+    @property
+    def is_safe(self) -> SafeUUID: ...
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def bytes_le(self) -> builtins.bytes: ...
+    @property
+    def clock_seq(self) -> builtins.int: ...
+    @property
+    def clock_seq_hi_variant(self) -> builtins.int: ...
+    @property
+    def clock_seq_low(self) -> builtins.int: ...
+    @property
+    def fields(self) -> _FieldsType: ...
+    @property
+    def hex(self) -> str: ...
+    @property
+    def int(self) -> builtins.int: ...
+    @property
+    def node(self) -> builtins.int: ...
+    @property
+    def time(self) -> builtins.int: ...
+    @property
+    def time_hi_version(self) -> builtins.int: ...
+    @property
+    def time_low(self) -> builtins.int: ...
+    @property
+    def time_mid(self) -> builtins.int: ...
+    @property
+    def urn(self) -> str: ...
+    @property
+    def variant(self) -> str: ...
+    @property
+    def version(self) -> builtins.int | None: ...
+    def __int__(self) -> builtins.int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: UUID) -> bool: ...
+    def __le__(self, other: UUID) -> bool: ...
+    def __gt__(self, other: UUID) -> bool: ...
+    def __ge__(self, other: UUID) -> bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def to_py(self) -> pyuuid.UUID: ...
+
+
+def getnode() -> builtins.int: ...
+def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
+def uuid2(*args: Any, **kwargs: Any) -> UUID: ...
+def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
+def uuid4() -> UUID: ...
+def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
+def uuid6(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
+def uuid7(timestamp: int | None = None) -> UUID: ...
+def uuid8(data: Buffer) -> UUID: ...
+
+
+NAMESPACE_DNS: UUID
+NAMESPACE_URL: UUID
+NAMESPACE_OID: UUID
+NAMESPACE_X500: UUID
+RESERVED_NCS: str
+RFC_4122: str
+RESERVED_MICROSOFT: str
+RESERVED_FUTURE: str
 
 ```
 
@@ -4559,190 +4753,56 @@ __all__ = (
 <h2 id="ry.ulid"><code>ry.ulid</code></h2>
 
 ```python
-import builtins
-import datetime as pydt
-import uuid
-from collections.abc import Callable as Callable
-from typing import Any
+from ry.ryo3.ulid import ULID
 
-from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
-from pydantic import (
-    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
-)
-from pydantic_core import CoreSchema as CoreSchema
-
-
-class ULID:
-    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
-
-    # ----------------
-    # INSTANCE METHODS
-    # ----------------
-    def to_uuid(self) -> uuid.UUID: ...
-    def to_uuid4(self) -> uuid.UUID: ...
-
-    # -------
-    # DUNDERS
-    # -------
-    def __int__(self) -> int: ...
-    def __bytes__(self) -> builtins.bytes: ...
-    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-
-    # ----------
-    # PROPERTIES
-    # ----------
-    @property
-    def bytes(self) -> builtins.bytes: ...
-    @property
-    def milliseconds(self) -> int: ...
-    @property
-    def timestamp(self) -> float: ...
-    @property
-    def datetime(self) -> pydt.datetime: ...
-    @property
-    def hex(self) -> str: ...
-
-    # -------------
-    # CLASS METHODS
-    # -------------
-    @classmethod
-    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
-    @classmethod
-    def from_timestamp(cls, value: float) -> ULID: ...
-    @classmethod
-    def from_uuid(cls, value: uuid.UUID) -> ULID: ...
-    @classmethod
-    def from_bytes(cls, bytes_: builtins.bytes) -> ULID: ...
-    @classmethod
-    def from_hex(cls, value: str) -> ULID: ...
-    @classmethod
-    def from_str(cls, string: str) -> ULID: ...
-    @classmethod
-    def from_int(cls, value: int) -> ULID: ...
-    @classmethod
-    def parse(cls, value: Any) -> ULID: ...
-
-    # --------
-    # PYDANTIC
-    # --------
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema: ...
+__all__ = ("ULID",)
 
 ```
 
 <h2 id="ry.uuid"><code>ry.uuid</code></h2>
 
 ```python
-"""ryo3-uuid types
+from ry.ryo3.uuid import (
+    NAMESPACE_DNS,
+    NAMESPACE_OID,
+    NAMESPACE_URL,
+    NAMESPACE_X500,
+    RESERVED_FUTURE,
+    RESERVED_MICROSOFT,
+    RESERVED_NCS,
+    RFC_4122,
+    UUID,
+    getnode,
+    uuid1,
+    uuid2,
+    uuid3,
+    uuid4,
+    uuid5,
+    uuid6,
+    uuid7,
+    uuid8,
+)
 
-based on typeshed types for python's builtin uuid module
-
-REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
-"""
-
-import builtins
-import uuid as pyuuid
-from enum import Enum
-
-from typing_extensions import TypeAlias
-
-from ry._types import Buffer
-
-_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
-
-
-class SafeUUID(Enum):
-    safe = 0
-    unsafe = -1
-    unknown = None
-
-
-class UUID:
-    NAMESPACE_DNS: UUID
-    NAMESPACE_URL: UUID
-    NAMESPACE_OID: UUID
-    NAMESPACE_X500: UUID
-
-    def __init__(
-        self,
-        hex: str | None = None,
-        bytes: builtins.bytes | None = None,
-        bytes_le: builtins.bytes | None = None,
-        fields: _FieldsType | None = None,
-        int: builtins.int | None = None,
-        version: builtins.int | None = None,
-        *,
-        is_safe: SafeUUID = ...,
-    ) -> None: ...
-    @property
-    def is_safe(self) -> SafeUUID: ...
-    @property
-    def bytes(self) -> builtins.bytes: ...
-    @property
-    def bytes_le(self) -> builtins.bytes: ...
-    @property
-    def clock_seq(self) -> builtins.int: ...
-    @property
-    def clock_seq_hi_variant(self) -> builtins.int: ...
-    @property
-    def clock_seq_low(self) -> builtins.int: ...
-    @property
-    def fields(self) -> _FieldsType: ...
-    @property
-    def hex(self) -> str: ...
-    @property
-    def int(self) -> builtins.int: ...
-    @property
-    def node(self) -> builtins.int: ...
-    @property
-    def time(self) -> builtins.int: ...
-    @property
-    def time_hi_version(self) -> builtins.int: ...
-    @property
-    def time_low(self) -> builtins.int: ...
-    @property
-    def time_mid(self) -> builtins.int: ...
-    @property
-    def urn(self) -> str: ...
-    @property
-    def variant(self) -> str: ...
-    @property
-    def version(self) -> builtins.int | None: ...
-    def __int__(self) -> builtins.int: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __lt__(self, other: UUID) -> bool: ...
-    def __le__(self, other: UUID) -> bool: ...
-    def __gt__(self, other: UUID) -> bool: ...
-    def __ge__(self, other: UUID) -> bool: ...
-    def __hash__(self) -> builtins.int: ...
-    def to_py(self) -> pyuuid.UUID: ...
-
-
-def getnode() -> builtins.int: ...
-def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
-def uuid4() -> UUID: ...
-def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
-def uuid6(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid7(timestamp: int | None = None) -> UUID: ...
-def uuid8(data: Buffer) -> UUID: ...
-
-
-NAMESPACE_DNS: UUID
-NAMESPACE_URL: UUID
-NAMESPACE_OID: UUID
-NAMESPACE_X500: UUID
-RESERVED_NCS: str
-RFC_4122: str
-RESERVED_MICROSOFT: str
-RESERVED_FUTURE: str
+__all__ = (
+    "NAMESPACE_DNS",
+    "NAMESPACE_OID",
+    "NAMESPACE_URL",
+    "NAMESPACE_X500",
+    "RESERVED_FUTURE",
+    "RESERVED_MICROSOFT",
+    "RESERVED_NCS",
+    "RFC_4122",
+    "UUID",
+    "getnode",
+    "uuid1",
+    "uuid2",
+    "uuid3",
+    "uuid4",
+    "uuid5",
+    "uuid6",
+    "uuid7",
+    "uuid8",
+)
 
 ```
 
