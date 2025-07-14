@@ -52,7 +52,7 @@ lto = "fat"
 
 
 [workspace.package]
-version = "0.0.50"
+version = "0.0.51"
 authors = [
   "Jesse K. Rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
