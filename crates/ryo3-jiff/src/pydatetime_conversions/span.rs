@@ -30,9 +30,9 @@ impl<'py> IntoPyObject<'py> for &JiffSpan {
 }
 
 impl FromPyObject<'_> for JiffSpan {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffSpan> {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         let signed_duration = ob.extract::<JiffSignedDuration>()?;
         let span: Span = signed_duration.0.try_into()?;
-        Ok(JiffSpan::from(span))
+        Ok(Self::from(span))
     }
 }

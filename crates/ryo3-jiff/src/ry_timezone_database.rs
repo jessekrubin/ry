@@ -23,7 +23,7 @@ impl RyTimeZoneDatabase {
 impl RyTimeZoneDatabase {
     #[new]
     fn py_new() -> Self {
-        RyTimeZoneDatabase::from(TimeZoneDatabase::from_env())
+        Self::from(TimeZoneDatabase::from_env())
     }
 
     fn __str__(&self) -> String {
@@ -75,31 +75,31 @@ impl RyTimeZoneDatabase {
 
     #[classmethod]
     fn bundled(_cls: &Bound<'_, PyType>) -> Self {
-        RyTimeZoneDatabase::from(TimeZoneDatabase::bundled())
+        Self::from(TimeZoneDatabase::bundled())
     }
 
     #[classmethod]
     fn from_env(_cls: &Bound<'_, PyType>) -> Self {
-        RyTimeZoneDatabase::from(TimeZoneDatabase::from_env())
+        Self::from(TimeZoneDatabase::from_env())
     }
 
     #[classmethod]
     fn from_dir(_cls: &Bound<'_, PyType>, path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_dir(path)
-            .map(RyTimeZoneDatabase::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
     }
 
     #[classmethod]
     fn from_concatenated_path(_cls: &Bound<'_, PyType>, path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_concatenated_path(path)
-            .map(RyTimeZoneDatabase::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
     }
 }
 
 impl From<TimeZoneDatabase> for RyTimeZoneDatabase {
     fn from(db: TimeZoneDatabase) -> Self {
-        RyTimeZoneDatabase { inner: Some(db) }
+        Self { inner: Some(db) }
     }
 }

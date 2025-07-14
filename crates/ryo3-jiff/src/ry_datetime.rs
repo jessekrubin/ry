@@ -30,7 +30,7 @@ pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {
     fn from(value: DateTime) -> Self {
-        RyDateTime(value)
+        Self(value)
     }
 }
 
@@ -56,7 +56,7 @@ impl RyDateTime {
             second.unwrap_or(0),
             subsec_nanosecond.unwrap_or(0),
         )
-        .map(RyDateTime::from)
+        .map(Self::from)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -99,7 +99,7 @@ impl RyDateTime {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         DateTime::from_str(s)
-            .map(RyDateTime::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -195,7 +195,7 @@ impl RyDateTime {
         let spanish = Spanish::try_from(other)?;
         self.0
             .checked_add(spanish)
-            .map(RyDateTime::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -211,7 +211,7 @@ impl RyDateTime {
         } else {
             let spanish = Spanish::try_from(other)?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            RyDateTime::from(z).into_bound_py_any(py)
+            Self::from(z).into_bound_py_any(py)
         }
     }
 
@@ -277,11 +277,11 @@ impl RyDateTime {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn first_of_month(&self) -> RyDateTime {
-        RyDateTime::from(self.0.first_of_month())
+    fn first_of_month(&self) -> Self {
+        Self::from(self.0.first_of_month())
     }
-    fn last_of_month(&self) -> RyDateTime {
-        RyDateTime::from(self.0.last_of_month())
+    fn last_of_month(&self) -> Self {
+        Self::from(self.0.last_of_month())
     }
 
     fn to_py(&self) -> DateTime {
@@ -344,14 +344,14 @@ impl RyDateTime {
         }
         self.0
             .round(dt_round)
-            .map(RyDateTime::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn _round(&self, dt_round: &RyDateTimeRound) -> PyResult<Self> {
         self.0
             .round(dt_round.round)
-            .map(RyDateTime::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -380,8 +380,8 @@ impl RyDateTime {
     }
 
     /// Returns the end of the day DateTime
-    fn end_of_day(&self) -> RyDateTime {
-        RyDateTime::from(self.0.end_of_day())
+    fn end_of_day(&self) -> Self {
+        Self::from(self.0.end_of_day())
     }
 
     /// Return the era year as a tuple (era, year)
@@ -391,8 +391,8 @@ impl RyDateTime {
         Ok(obj.into_any())
     }
 
-    fn first_of_year(&self) -> RyDateTime {
-        RyDateTime::from(self.0.first_of_year())
+    fn first_of_year(&self) -> Self {
+        Self::from(self.0.first_of_year())
     }
 
     #[classmethod]
@@ -402,10 +402,10 @@ impl RyDateTime {
     fn in_leap_year(&self) -> bool {
         self.0.in_leap_year()
     }
-    fn last_of_year(&self) -> RyDateTime {
-        RyDateTime::from(self.0.last_of_year())
+    fn last_of_year(&self) -> Self {
+        Self::from(self.0.last_of_year())
     }
-    fn start_of_day(&self) -> RyDateTime {
+    fn start_of_day(&self) -> Self {
         Self::from(self.0.start_of_day())
     }
     fn strftime(&self, format: &str) -> String {
@@ -415,7 +415,7 @@ impl RyDateTime {
     #[classmethod]
     fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
         DateTime::strptime(s, format)
-            .map(RyDateTime::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -469,17 +469,11 @@ impl RyDateTime {
     }
 
     fn tomorrow(&self) -> PyResult<Self> {
-        self.0
-            .tomorrow()
-            .map(RyDateTime::from)
-            .map_err(map_py_value_err)
+        self.0.tomorrow().map(Self::from).map_err(map_py_value_err)
     }
 
     fn yesterday(&self) -> PyResult<Self> {
-        self.0
-            .yesterday()
-            .map(RyDateTime::from)
-            .map_err(map_py_value_err)
+        self.0.yesterday().map(Self::from).map_err(map_py_value_err)
     }
 
     fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {

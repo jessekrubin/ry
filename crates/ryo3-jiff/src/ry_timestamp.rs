@@ -34,7 +34,7 @@ impl RyTimestamp {
         let s = second.unwrap_or(0);
         let ns = nanosecond.unwrap_or(0);
         Timestamp::new(s, ns)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -73,14 +73,14 @@ impl RyTimestamp {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Timestamp::from_str(s)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
-    fn from_millisecond(_cls: &Bound<'_, PyType>, millisecond: i64) -> PyResult<RyTimestamp> {
+    fn from_millisecond(_cls: &Bound<'_, PyType>, millisecond: i64) -> PyResult<Self> {
         Timestamp::from_millisecond(millisecond)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -89,12 +89,9 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn from_pydatetime<'py>(
-        _cls: &Bound<'py, PyType>,
-        dt: &Bound<'py, PyAny>,
-    ) -> PyResult<RyTimestamp> {
+    fn from_pydatetime<'py>(_cls: &Bound<'py, PyType>, dt: &Bound<'py, PyAny>) -> PyResult<Self> {
         let ts = dt.extract::<Timestamp>()?;
-        Ok(RyTimestamp(ts))
+        Ok(Self(ts))
     }
 
     fn to_py(&self) -> Timestamp {
@@ -158,7 +155,7 @@ impl RyTimestamp {
         } else {
             let spanish = Spanish::try_from(other)?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            RyTimestamp::from(z).into_bound_py_any(py)
+            Self::from(z).into_bound_py_any(py)
         }
     }
 
@@ -174,7 +171,7 @@ impl RyTimestamp {
         let spanish = Spanish::try_from(other)?;
         self.0
             .checked_add(spanish)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -230,23 +227,23 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn from_microsecond(_cls: &Bound<'_, PyType>, microsecond: i64) -> PyResult<RyTimestamp> {
+    fn from_microsecond(_cls: &Bound<'_, PyType>, microsecond: i64) -> PyResult<Self> {
         Timestamp::from_microsecond(microsecond)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
-    fn from_nanosecond(_cls: &Bound<'_, PyType>, nanosecond: i128) -> PyResult<RyTimestamp> {
+    fn from_nanosecond(_cls: &Bound<'_, PyType>, nanosecond: i128) -> PyResult<Self> {
         Timestamp::from_nanosecond(nanosecond)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
-    fn from_second(_cls: &Bound<'_, PyType>, second: i64) -> PyResult<RyTimestamp> {
+    fn from_second(_cls: &Bound<'_, PyType>, second: i64) -> PyResult<Self> {
         Timestamp::from_second(second)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
     fn signum(&self) -> i8 {
@@ -257,9 +254,9 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<RyTimestamp> {
+    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
         Timestamp::strptime(s, format)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -318,11 +315,11 @@ impl RyTimestamp {
         dwo.to_string()
     }
 
-    fn duration_since(&self, other: &RyTimestamp) -> RySignedDuration {
+    fn duration_since(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_since(other.0))
     }
 
-    fn duration_until(&self, other: &RyTimestamp) -> RySignedDuration {
+    fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
@@ -334,7 +331,7 @@ impl RyTimestamp {
         smallest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
-    ) -> PyResult<RyTimestamp> {
+    ) -> PyResult<Self> {
         let mut ts_round = TimestampRound::new();
         if let Some(smallest) = smallest {
             ts_round = ts_round.smallest(smallest.0);
@@ -347,14 +344,14 @@ impl RyTimestamp {
         }
         self.0
             .round(ts_round)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, opts: &RyTimestampRound) -> PyResult<RyTimestamp> {
+    fn _round(&self, opts: &RyTimestampRound) -> PyResult<Self> {
         self.0
             .round(opts.round)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -378,6 +375,6 @@ impl Display for RyTimestamp {
 }
 impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
-        RyTimestamp(value)
+        Self(value)
     }
 }

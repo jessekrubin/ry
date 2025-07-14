@@ -19,13 +19,13 @@ pub struct RyTimeZone(pub(crate) std::sync::Arc<TimeZone>);
 
 impl From<TimeZone> for RyTimeZone {
     fn from(value: TimeZone) -> Self {
-        RyTimeZone(std::sync::Arc::new(value))
+        Self(std::sync::Arc::new(value))
     }
 }
 
 impl From<&TimeZone> for RyTimeZone {
     fn from(value: &TimeZone) -> Self {
-        RyTimeZone(std::sync::Arc::new(value.clone()))
+        Self(std::sync::Arc::new(value.clone()))
     }
 }
 
@@ -52,7 +52,7 @@ impl RyTimeZone {
             return Ok(Self::from(TimeZone::fixed(Offset::UTC)));
         }
         TimeZone::get(time_zone_name)
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -147,19 +147,19 @@ impl RyTimeZone {
     #[classmethod]
     fn posix(_cls: &Bound<'_, PyType>, string: &str) -> PyResult<Self> {
         TimeZone::posix(string)
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[classmethod]
-    fn get(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<RyTimeZone> {
+    fn get(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
     }
 
     #[classmethod]
-    fn tzif(_cls: &Bound<'_, PyType>, name: &str, data: &[u8]) -> PyResult<RyTimeZone> {
+    fn tzif(_cls: &Bound<'_, PyType>, name: &str, data: &[u8]) -> PyResult<Self> {
         TimeZone::tzif(name, data)
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -171,14 +171,14 @@ impl RyTimeZone {
     #[classmethod]
     fn try_system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
         TimeZone::try_system()
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[classmethod]
     fn system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
         TimeZone::try_system()
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 

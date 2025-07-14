@@ -42,14 +42,10 @@ impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
 impl From<Spanish<'_>> for TimestampArithmetic {
     fn from(val: Spanish<'_>) -> Self {
         match val.inner {
-            RySpanishObject::Span(span) => TimestampArithmetic::from(span.get().0),
-            RySpanishObject::Duration(duration) => TimestampArithmetic::from(duration.get().0),
-            RySpanishObject::SignedDuration(signed_duration) => {
-                TimestampArithmetic::from(signed_duration.get().0)
-            }
-            RySpanishObject::PyTimeDelta(signed_duration) => {
-                TimestampArithmetic::from(signed_duration)
-            }
+            RySpanishObject::Span(span) => Self::from(span.get().0),
+            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
+            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
         }
     }
 }
@@ -57,12 +53,10 @@ impl From<Spanish<'_>> for TimestampArithmetic {
 impl From<Spanish<'_>> for ZonedArithmetic {
     fn from(val: Spanish<'_>) -> Self {
         match val.inner {
-            RySpanishObject::Span(span) => ZonedArithmetic::from(span.get().0),
-            RySpanishObject::Duration(duration) => ZonedArithmetic::from(duration.get().0),
-            RySpanishObject::SignedDuration(signed_duration) => {
-                ZonedArithmetic::from(signed_duration.get().0)
-            }
-            RySpanishObject::PyTimeDelta(signed_duration) => ZonedArithmetic::from(signed_duration),
+            RySpanishObject::Span(span) => Self::from(span.get().0),
+            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
+            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
         }
     }
 }
@@ -70,12 +64,10 @@ impl From<Spanish<'_>> for ZonedArithmetic {
 impl From<Spanish<'_>> for DateArithmetic {
     fn from(val: Spanish<'_>) -> Self {
         match val.inner {
-            RySpanishObject::Span(span) => DateArithmetic::from(span.get().0),
-            RySpanishObject::Duration(duration) => DateArithmetic::from(duration.get().0),
-            RySpanishObject::SignedDuration(signed_duration) => {
-                DateArithmetic::from(signed_duration.get().0)
-            }
-            RySpanishObject::PyTimeDelta(signed_duration) => DateArithmetic::from(signed_duration),
+            RySpanishObject::Span(span) => Self::from(span.get().0),
+            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
+            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
         }
     }
 }
@@ -83,14 +75,10 @@ impl From<Spanish<'_>> for DateArithmetic {
 impl From<Spanish<'_>> for DateTimeArithmetic {
     fn from(val: Spanish<'_>) -> Self {
         match val.inner {
-            RySpanishObject::Span(span) => DateTimeArithmetic::from(span.get().0),
-            RySpanishObject::Duration(duration) => DateTimeArithmetic::from(duration.get().0),
-            RySpanishObject::SignedDuration(signed_duration) => {
-                DateTimeArithmetic::from(signed_duration.get().0)
-            }
-            RySpanishObject::PyTimeDelta(signed_duration) => {
-                DateTimeArithmetic::from(signed_duration)
-            }
+            RySpanishObject::Span(span) => Self::from(span.get().0),
+            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
+            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
         }
     }
 }
@@ -98,12 +86,10 @@ impl From<Spanish<'_>> for DateTimeArithmetic {
 impl From<Spanish<'_>> for TimeArithmetic {
     fn from(val: Spanish<'_>) -> Self {
         match val.inner {
-            RySpanishObject::Span(span) => TimeArithmetic::from(span.get().0),
-            RySpanishObject::Duration(duration) => TimeArithmetic::from(duration.get().0),
-            RySpanishObject::SignedDuration(signed_duration) => {
-                TimeArithmetic::from(signed_duration.get().0)
-            }
-            RySpanishObject::PyTimeDelta(signed_duration) => TimeArithmetic::from(signed_duration),
+            RySpanishObject::Span(span) => Self::from(span.get().0),
+            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
+            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
         }
     }
 }

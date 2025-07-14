@@ -40,21 +40,21 @@ const JIFF_UNIT_STRINGS: &str = "'year', 'month', 'week', 'day', 'hour', 'minute
 const JIFF_UNIT_OPTIONS: &str = "0='year', 1='month', 2='week', 3='day', 4='hour', 5='minute', 6='second', 7='millisecond', 8='microsecond', 9='nanosecond'";
 
 impl FromPyObject<'_> for JiffUnit {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffUnit> {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
         if let Ok(s) = ob.downcast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
-                "year" => Ok(JiffUnit(Unit::Year)),
-                "month" => Ok(JiffUnit(Unit::Month)),
-                "week" => Ok(JiffUnit(Unit::Week)),
-                "day" => Ok(JiffUnit(Unit::Day)),
-                "hour" => Ok(JiffUnit(Unit::Hour)),
-                "minute" => Ok(JiffUnit(Unit::Minute)),
-                "second" => Ok(JiffUnit(Unit::Second)),
-                "millisecond" => Ok(JiffUnit(Unit::Millisecond)),
-                "microsecond" => Ok(JiffUnit(Unit::Microsecond)),
-                "nanosecond" => Ok(JiffUnit(Unit::Nanosecond)),
+                "year" => Ok(Self(Unit::Year)),
+                "month" => Ok(Self(Unit::Month)),
+                "week" => Ok(Self(Unit::Week)),
+                "day" => Ok(Self(Unit::Day)),
+                "hour" => Ok(Self(Unit::Hour)),
+                "minute" => Ok(Self(Unit::Minute)),
+                "second" => Ok(Self(Unit::Second)),
+                "millisecond" => Ok(Self(Unit::Millisecond)),
+                "microsecond" => Ok(Self(Unit::Microsecond)),
+                "nanosecond" => Ok(Self(Unit::Nanosecond)),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid unit: {s} (options: {JIFF_UNIT_STRINGS})"
                 ))),
@@ -62,16 +62,16 @@ impl FromPyObject<'_> for JiffUnit {
         } else {
             let i = ob.extract::<i64>()?;
             match i {
-                0 => Ok(JiffUnit(Unit::Year)),
-                1 => Ok(JiffUnit(Unit::Month)),
-                2 => Ok(JiffUnit(Unit::Week)),
-                3 => Ok(JiffUnit(Unit::Day)),
-                4 => Ok(JiffUnit(Unit::Hour)),
-                5 => Ok(JiffUnit(Unit::Minute)),
-                6 => Ok(JiffUnit(Unit::Second)),
-                7 => Ok(JiffUnit(Unit::Millisecond)),
-                8 => Ok(JiffUnit(Unit::Microsecond)),
-                9 => Ok(JiffUnit(Unit::Nanosecond)),
+                0 => Ok(Self(Unit::Year)),
+                1 => Ok(Self(Unit::Month)),
+                2 => Ok(Self(Unit::Week)),
+                3 => Ok(Self(Unit::Day)),
+                4 => Ok(Self(Unit::Hour)),
+                5 => Ok(Self(Unit::Minute)),
+                6 => Ok(Self(Unit::Second)),
+                7 => Ok(Self(Unit::Millisecond)),
+                8 => Ok(Self(Unit::Microsecond)),
+                9 => Ok(Self(Unit::Nanosecond)),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid unit: {i} (options: {JIFF_UNIT_OPTIONS})"
                 ))),

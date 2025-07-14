@@ -11,7 +11,7 @@ pub struct RyDateTimeDifference(pub(crate) DateTimeDifference);
 
 impl From<DateTimeDifference> for RyDateTimeDifference {
     fn from(value: DateTimeDifference) -> Self {
-        RyDateTimeDifference(value)
+        Self(value)
     }
 }
 
@@ -42,23 +42,23 @@ impl RyDateTimeDifference {
         if let Some(increment) = increment {
             diff = diff.increment(increment);
         }
-        RyDateTimeDifference(diff)
+        Self(diff)
     }
 
     fn smallest(&self, unit: JiffUnit) -> Self {
-        RyDateTimeDifference(self.0.smallest(unit.0))
+        Self(self.0.smallest(unit.0))
     }
 
     fn largest(&self, unit: JiffUnit) -> Self {
-        RyDateTimeDifference(self.0.largest(unit.0))
+        Self(self.0.largest(unit.0))
     }
 
     fn mode(&self, mode: JiffRoundMode) -> Self {
-        RyDateTimeDifference(self.0.mode(mode.0))
+        Self(self.0.mode(mode.0))
     }
 
     fn increment(&self, increment: i64) -> Self {
-        RyDateTimeDifference(self.0.increment(increment))
+        Self(self.0.increment(increment))
     }
 }
 #[derive(Debug, Clone, FromPyObject)]
@@ -81,15 +81,11 @@ pub(crate) enum IntoDateTimeDifference {
 impl From<IntoDateTimeDifferenceTuple> for DateTimeDifference {
     fn from(val: IntoDateTimeDifferenceTuple) -> Self {
         match val {
-            IntoDateTimeDifferenceTuple::UnitDate(unit, date) => {
-                DateTimeDifference::from((unit.0, date.0))
-            }
+            IntoDateTimeDifferenceTuple::UnitDate(unit, date) => Self::from((unit.0, date.0)),
             IntoDateTimeDifferenceTuple::UnitDateTime(unit, date_time) => {
-                DateTimeDifference::from((unit.0, date_time.0))
+                Self::from((unit.0, date_time.0))
             }
-            IntoDateTimeDifferenceTuple::UnitZoned(unit, zoned) => {
-                DateTimeDifference::from((unit.0, zoned.0))
-            }
+            IntoDateTimeDifferenceTuple::UnitZoned(unit, zoned) => Self::from((unit.0, zoned.0)),
         }
     }
 }
@@ -97,9 +93,9 @@ impl From<IntoDateTimeDifference> for DateTimeDifference {
     fn from(val: IntoDateTimeDifference) -> Self {
         match val {
             IntoDateTimeDifference::RyDateTimeDifference(d_diff) => d_diff.0,
-            IntoDateTimeDifference::Zoned(zoned) => DateTimeDifference::from(zoned.0),
-            IntoDateTimeDifference::Date(date) => DateTimeDifference::from(date.0),
-            IntoDateTimeDifference::DateTime(date) => DateTimeDifference::from(date.0),
+            IntoDateTimeDifference::Zoned(zoned) => Self::from(zoned.0),
+            IntoDateTimeDifference::Date(date) => Self::from(date.0),
+            IntoDateTimeDifference::DateTime(date) => Self::from(date.0),
             IntoDateTimeDifference::DateTimeDifferenceTuple(tuple) => tuple.into(),
         }
     }
@@ -125,9 +121,9 @@ impl DateTimeDifferenceArg {
         increment: Option<i64>,
     ) -> DateTimeDifference {
         let mut diff = match self {
-            DateTimeDifferenceArg::Zoned(other) => DateTimeDifference::from(other.0),
-            DateTimeDifferenceArg::DateTime(other) => DateTimeDifference::from(other.0),
-            DateTimeDifferenceArg::Date(other) => DateTimeDifference::from(other.0),
+            Self::Zoned(other) => DateTimeDifference::from(other.0),
+            Self::DateTime(other) => DateTimeDifference::from(other.0),
+            Self::Date(other) => DateTimeDifference::from(other.0),
         };
         if let Some(smallest) = smallest {
             diff = diff.smallest(smallest.0);

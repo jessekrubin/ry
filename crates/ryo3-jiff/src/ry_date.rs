@@ -35,7 +35,7 @@ pub struct RyDate(pub(crate) Date);
 impl RyDate {
     #[new]
     pub(crate) fn py_new(year: i16, month: i8, day: i8) -> PyResult<Self> {
-        Date::new(year, month, day).map(RyDate::from).map_err(|e| {
+        Date::new(year, month, day).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                 "{e} (year={year}, month={month}, day={day})",
             ))
@@ -70,7 +70,7 @@ impl RyDate {
     fn from_str(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
         DATETIME_PARSER
             .parse_date(input)
-            .map(RyDate::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -78,7 +78,7 @@ impl RyDate {
     fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
         DATETIME_PARSER
             .parse_date(input)
-            .map(RyDate::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -119,7 +119,7 @@ impl RyDate {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn __richcmp__(&self, other: &RyDate, op: CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,
             CompareOp::Ne => self.0 != other.0,
@@ -174,7 +174,7 @@ impl RyDate {
         } else {
             let spanish = Spanish::try_from(other)?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            RyDate::from(z).into_bound_py_any(py)
+            Self::from(z).into_bound_py_any(py)
         }
     }
 
@@ -190,7 +190,7 @@ impl RyDate {
         let spanish = Spanish::try_from(other)?;
         self.0
             .checked_add(spanish)
-            .map(RyDate::from)
+            .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
@@ -286,11 +286,11 @@ impl RyDate {
         JiffEraYear(self.0.era_year())
     }
 
-    fn first_of_month(&self) -> RyDate {
+    fn first_of_month(&self) -> Self {
         Self::from(self.0.first_of_month())
     }
 
-    fn first_of_year(&self) -> RyDate {
+    fn first_of_year(&self) -> Self {
         Self::from(self.0.first_of_year())
     }
 
@@ -298,11 +298,11 @@ impl RyDate {
         self.0.in_leap_year()
     }
 
-    fn last_of_month(&self) -> RyDate {
+    fn last_of_month(&self) -> Self {
         Self::from(self.0.last_of_month())
     }
 
-    fn last_of_year(&self) -> RyDate {
+    fn last_of_year(&self) -> Self {
         Self::from(self.0.last_of_year())
     }
 
@@ -420,6 +420,6 @@ impl Display for RyDate {
 
 impl From<Date> for RyDate {
     fn from(value: Date) -> Self {
-        RyDate(value)
+        Self(value)
     }
 }
