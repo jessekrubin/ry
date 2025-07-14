@@ -8,7 +8,7 @@ use xxhash_rust::xxh64::Xxh64;
 #[pyclass(name = "Xxh32", module = "ry.ryo3.xxhash")]
 pub struct PyXxh32 {
     seed: u32,
-    pub hasher: Xxh32,
+    hasher: Xxh32,
 }
 
 #[pymethods]
@@ -100,7 +100,7 @@ pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyXxh32 {
 #[pyclass(name = "Xxh64", module = "ry.ryo3.xxhash")]
 pub struct PyXxh64 {
     seed: u64,
-    pub hasher: Xxh64,
+    hasher: Xxh64,
 }
 
 #[pymethods]
@@ -194,7 +194,7 @@ pub fn xxh64(s: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<PyXx
 #[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash")]
 pub struct PyXxh3 {
     seed: u64,
-    pub hasher: Xxh3,
+    hasher: Xxh3,
 }
 
 #[pymethods]

@@ -1,7 +1,9 @@
 # CHANGELOG
 
-## v0.0.50 [unreleased]
+## v0.0.50 [2025-07-14]
 
+- internal
+  - clippy lint fixes `unused_self` (all but `ryo3-bytes` which needs its own cleanup)
 - `ryo3-bytes`
   - Added (bc I need them) more python compat methods:
     - `title()`
