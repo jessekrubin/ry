@@ -120,8 +120,8 @@ impl PyHttpStatus {
     }
 
     pub fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        if let Ok(status_downcast_gucci) = other.downcast::<PyHttpStatus>() {
-            let status = status_downcast_gucci.extract::<PyHttpStatus>()?;
+        if let Ok(status_downcast_gucci) = other.downcast::<Self>() {
+            let status = status_downcast_gucci.extract::<Self>()?;
             match op {
                 CompareOp::Eq => Ok(self.0 == status.0),
                 CompareOp::Ne => Ok(self.0 != status.0),
@@ -160,368 +160,368 @@ impl PyHttpStatus {
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn CONTINUE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::CONTINUE)
+    fn CONTINUE() -> Self {
+        Self(http::StatusCode::CONTINUE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn SWITCHING_PROTOCOLS() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::SWITCHING_PROTOCOLS)
+    fn SWITCHING_PROTOCOLS() -> Self {
+        Self(http::StatusCode::SWITCHING_PROTOCOLS)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PROCESSING() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PROCESSING)
+    fn PROCESSING() -> Self {
+        Self(http::StatusCode::PROCESSING)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn OK() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::OK)
+    fn OK() -> Self {
+        Self(http::StatusCode::OK)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn CREATED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::CREATED)
+    fn CREATED() -> Self {
+        Self(http::StatusCode::CREATED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn ACCEPTED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::ACCEPTED)
+    fn ACCEPTED() -> Self {
+        Self(http::StatusCode::ACCEPTED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NON_AUTHORITATIVE_INFORMATION() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NON_AUTHORITATIVE_INFORMATION)
+    fn NON_AUTHORITATIVE_INFORMATION() -> Self {
+        Self(http::StatusCode::NON_AUTHORITATIVE_INFORMATION)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NO_CONTENT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NO_CONTENT)
+    fn NO_CONTENT() -> Self {
+        Self(http::StatusCode::NO_CONTENT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn RESET_CONTENT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::RESET_CONTENT)
+    fn RESET_CONTENT() -> Self {
+        Self(http::StatusCode::RESET_CONTENT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PARTIAL_CONTENT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PARTIAL_CONTENT)
+    fn PARTIAL_CONTENT() -> Self {
+        Self(http::StatusCode::PARTIAL_CONTENT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn MULTI_STATUS() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::MULTI_STATUS)
+    fn MULTI_STATUS() -> Self {
+        Self(http::StatusCode::MULTI_STATUS)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn ALREADY_REPORTED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::ALREADY_REPORTED)
+    fn ALREADY_REPORTED() -> Self {
+        Self(http::StatusCode::ALREADY_REPORTED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn IM_USED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::IM_USED)
+    fn IM_USED() -> Self {
+        Self(http::StatusCode::IM_USED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn MULTIPLE_CHOICES() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::MULTIPLE_CHOICES)
+    fn MULTIPLE_CHOICES() -> Self {
+        Self(http::StatusCode::MULTIPLE_CHOICES)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn MOVED_PERMANENTLY() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::MOVED_PERMANENTLY)
+    fn MOVED_PERMANENTLY() -> Self {
+        Self(http::StatusCode::MOVED_PERMANENTLY)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn FOUND() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::FOUND)
+    fn FOUND() -> Self {
+        Self(http::StatusCode::FOUND)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn SEE_OTHER() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::SEE_OTHER)
+    fn SEE_OTHER() -> Self {
+        Self(http::StatusCode::SEE_OTHER)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NOT_MODIFIED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NOT_MODIFIED)
+    fn NOT_MODIFIED() -> Self {
+        Self(http::StatusCode::NOT_MODIFIED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn USE_PROXY() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::USE_PROXY)
+    fn USE_PROXY() -> Self {
+        Self(http::StatusCode::USE_PROXY)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn TEMPORARY_REDIRECT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::TEMPORARY_REDIRECT)
+    fn TEMPORARY_REDIRECT() -> Self {
+        Self(http::StatusCode::TEMPORARY_REDIRECT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PERMANENT_REDIRECT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PERMANENT_REDIRECT)
+    fn PERMANENT_REDIRECT() -> Self {
+        Self(http::StatusCode::PERMANENT_REDIRECT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn BAD_REQUEST() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::BAD_REQUEST)
+    fn BAD_REQUEST() -> Self {
+        Self(http::StatusCode::BAD_REQUEST)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn UNAUTHORIZED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::UNAUTHORIZED)
+    fn UNAUTHORIZED() -> Self {
+        Self(http::StatusCode::UNAUTHORIZED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PAYMENT_REQUIRED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PAYMENT_REQUIRED)
+    fn PAYMENT_REQUIRED() -> Self {
+        Self(http::StatusCode::PAYMENT_REQUIRED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn FORBIDDEN() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::FORBIDDEN)
+    fn FORBIDDEN() -> Self {
+        Self(http::StatusCode::FORBIDDEN)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NOT_FOUND() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NOT_FOUND)
+    fn NOT_FOUND() -> Self {
+        Self(http::StatusCode::NOT_FOUND)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn METHOD_NOT_ALLOWED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::METHOD_NOT_ALLOWED)
+    fn METHOD_NOT_ALLOWED() -> Self {
+        Self(http::StatusCode::METHOD_NOT_ALLOWED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NOT_ACCEPTABLE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NOT_ACCEPTABLE)
+    fn NOT_ACCEPTABLE() -> Self {
+        Self(http::StatusCode::NOT_ACCEPTABLE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PROXY_AUTHENTICATION_REQUIRED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PROXY_AUTHENTICATION_REQUIRED)
+    fn PROXY_AUTHENTICATION_REQUIRED() -> Self {
+        Self(http::StatusCode::PROXY_AUTHENTICATION_REQUIRED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn REQUEST_TIMEOUT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::REQUEST_TIMEOUT)
+    fn REQUEST_TIMEOUT() -> Self {
+        Self(http::StatusCode::REQUEST_TIMEOUT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn CONFLICT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::CONFLICT)
+    fn CONFLICT() -> Self {
+        Self(http::StatusCode::CONFLICT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn GONE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::GONE)
+    fn GONE() -> Self {
+        Self(http::StatusCode::GONE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn LENGTH_REQUIRED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::LENGTH_REQUIRED)
+    fn LENGTH_REQUIRED() -> Self {
+        Self(http::StatusCode::LENGTH_REQUIRED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PRECONDITION_FAILED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PRECONDITION_FAILED)
+    fn PRECONDITION_FAILED() -> Self {
+        Self(http::StatusCode::PRECONDITION_FAILED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PAYLOAD_TOO_LARGE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PAYLOAD_TOO_LARGE)
+    fn PAYLOAD_TOO_LARGE() -> Self {
+        Self(http::StatusCode::PAYLOAD_TOO_LARGE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn URI_TOO_LONG() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::URI_TOO_LONG)
+    fn URI_TOO_LONG() -> Self {
+        Self(http::StatusCode::URI_TOO_LONG)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn UNSUPPORTED_MEDIA_TYPE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::UNSUPPORTED_MEDIA_TYPE)
+    fn UNSUPPORTED_MEDIA_TYPE() -> Self {
+        Self(http::StatusCode::UNSUPPORTED_MEDIA_TYPE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn RANGE_NOT_SATISFIABLE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::RANGE_NOT_SATISFIABLE)
+    fn RANGE_NOT_SATISFIABLE() -> Self {
+        Self(http::StatusCode::RANGE_NOT_SATISFIABLE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn EXPECTATION_FAILED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::EXPECTATION_FAILED)
+    fn EXPECTATION_FAILED() -> Self {
+        Self(http::StatusCode::EXPECTATION_FAILED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn IM_A_TEAPOT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::IM_A_TEAPOT)
+    fn IM_A_TEAPOT() -> Self {
+        Self(http::StatusCode::IM_A_TEAPOT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn MISDIRECTED_REQUEST() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::MISDIRECTED_REQUEST)
+    fn MISDIRECTED_REQUEST() -> Self {
+        Self(http::StatusCode::MISDIRECTED_REQUEST)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn UNPROCESSABLE_ENTITY() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::UNPROCESSABLE_ENTITY)
+    fn UNPROCESSABLE_ENTITY() -> Self {
+        Self(http::StatusCode::UNPROCESSABLE_ENTITY)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn LOCKED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::LOCKED)
+    fn LOCKED() -> Self {
+        Self(http::StatusCode::LOCKED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn FAILED_DEPENDENCY() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::FAILED_DEPENDENCY)
+    fn FAILED_DEPENDENCY() -> Self {
+        Self(http::StatusCode::FAILED_DEPENDENCY)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn TOO_EARLY() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::TOO_EARLY)
+    fn TOO_EARLY() -> Self {
+        Self(http::StatusCode::TOO_EARLY)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn UPGRADE_REQUIRED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::UPGRADE_REQUIRED)
+    fn UPGRADE_REQUIRED() -> Self {
+        Self(http::StatusCode::UPGRADE_REQUIRED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn PRECONDITION_REQUIRED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::PRECONDITION_REQUIRED)
+    fn PRECONDITION_REQUIRED() -> Self {
+        Self(http::StatusCode::PRECONDITION_REQUIRED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn TOO_MANY_REQUESTS() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::TOO_MANY_REQUESTS)
+    fn TOO_MANY_REQUESTS() -> Self {
+        Self(http::StatusCode::TOO_MANY_REQUESTS)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn REQUEST_HEADER_FIELDS_TOO_LARGE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE)
+    fn REQUEST_HEADER_FIELDS_TOO_LARGE() -> Self {
+        Self(http::StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn UNAVAILABLE_FOR_LEGAL_REASONS() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS)
+    fn UNAVAILABLE_FOR_LEGAL_REASONS() -> Self {
+        Self(http::StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn INTERNAL_SERVER_ERROR() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::INTERNAL_SERVER_ERROR)
+    fn INTERNAL_SERVER_ERROR() -> Self {
+        Self(http::StatusCode::INTERNAL_SERVER_ERROR)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NOT_IMPLEMENTED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NOT_IMPLEMENTED)
+    fn NOT_IMPLEMENTED() -> Self {
+        Self(http::StatusCode::NOT_IMPLEMENTED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn BAD_GATEWAY() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::BAD_GATEWAY)
+    fn BAD_GATEWAY() -> Self {
+        Self(http::StatusCode::BAD_GATEWAY)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn SERVICE_UNAVAILABLE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::SERVICE_UNAVAILABLE)
+    fn SERVICE_UNAVAILABLE() -> Self {
+        Self(http::StatusCode::SERVICE_UNAVAILABLE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn GATEWAY_TIMEOUT() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::GATEWAY_TIMEOUT)
+    fn GATEWAY_TIMEOUT() -> Self {
+        Self(http::StatusCode::GATEWAY_TIMEOUT)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn HTTP_VERSION_NOT_SUPPORTED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::HTTP_VERSION_NOT_SUPPORTED)
+    fn HTTP_VERSION_NOT_SUPPORTED() -> Self {
+        Self(http::StatusCode::HTTP_VERSION_NOT_SUPPORTED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn VARIANT_ALSO_NEGOTIATES() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::VARIANT_ALSO_NEGOTIATES)
+    fn VARIANT_ALSO_NEGOTIATES() -> Self {
+        Self(http::StatusCode::VARIANT_ALSO_NEGOTIATES)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn INSUFFICIENT_STORAGE() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::INSUFFICIENT_STORAGE)
+    fn INSUFFICIENT_STORAGE() -> Self {
+        Self(http::StatusCode::INSUFFICIENT_STORAGE)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn LOOP_DETECTED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::LOOP_DETECTED)
+    fn LOOP_DETECTED() -> Self {
+        Self(http::StatusCode::LOOP_DETECTED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NOT_EXTENDED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NOT_EXTENDED)
+    fn NOT_EXTENDED() -> Self {
+        Self(http::StatusCode::NOT_EXTENDED)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
-    fn NETWORK_AUTHENTICATION_REQUIRED() -> PyHttpStatus {
-        PyHttpStatus(http::StatusCode::NETWORK_AUTHENTICATION_REQUIRED)
+    fn NETWORK_AUTHENTICATION_REQUIRED() -> Self {
+        Self(http::StatusCode::NETWORK_AUTHENTICATION_REQUIRED)
     }
 }
 
