@@ -17,7 +17,7 @@ pub struct RyReadDirAsync {
 }
 impl From<ReadDir> for RyReadDirAsync {
     fn from(readdir: ReadDir) -> Self {
-        RyReadDirAsync {
+        Self {
             stream: Arc::new(Mutex::new(Box::pin(readdir))),
         }
     }
@@ -83,7 +83,7 @@ pub struct PyDirEntryAsync(pub Arc<tokio::fs::DirEntry>);
 
 impl From<tokio::fs::DirEntry> for PyDirEntryAsync {
     fn from(entry: tokio::fs::DirEntry) -> Self {
-        PyDirEntryAsync(Arc::new(entry))
+        Self(Arc::new(entry))
     }
 }
 
