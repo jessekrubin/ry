@@ -234,8 +234,8 @@ impl PyTypeCache {
         }
     }
 
-    pub(crate) fn cached(py: Python<'_>) -> &PyTypeCache {
-        TYPE_LOOKUP.get_or_init(py, || PyTypeCache::new(py))
+    pub(crate) fn cached(py: Python<'_>) -> &Self {
+        TYPE_LOOKUP.get_or_init(py, || Self::new(py))
     }
 
     pub(crate) fn ptr2type(&self, ptr: usize) -> Option<PyObType> {
