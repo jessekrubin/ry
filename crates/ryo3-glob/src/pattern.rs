@@ -9,7 +9,7 @@ pub struct PyPattern(pub(crate) glob::Pattern);
 
 impl From<glob::Pattern> for PyPattern {
     fn from(value: glob::Pattern) -> Self {
-        PyPattern(value)
+        Self(value)
     }
 }
 
@@ -18,7 +18,7 @@ impl PyPattern {
     #[new]
     fn py_new(pattern: &str) -> PyResult<Self> {
         glob::Pattern::new(pattern)
-            .map(PyPattern::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
