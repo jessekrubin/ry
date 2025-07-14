@@ -71,8 +71,8 @@ impl PyGlob {
         }
     }
 
-    fn __invert__(&self) -> PyGlob {
-        PyGlob {
+    fn __invert__(&self) -> Self {
+        Self {
             pattern: self.pattern.clone(),
             glob: self.glob.clone(),
             matcher: self.matcher.clone(),
@@ -265,8 +265,8 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
             GlobsterLike::Glob(glob) => glob.globster(),
             GlobsterLike::GlobSet(globset) => Ok(globset.globster()),
             GlobsterLike::Globster(globster) => Ok(globster.clone()),
-            GlobsterLike::Strings(patterns) => PyGlobster::try_from(patterns.clone()),
-            GlobsterLike::Str(s) => PyGlobster::from_str(s),
+            GlobsterLike::Strings(patterns) => Self::try_from(patterns.clone()),
+            GlobsterLike::Str(s) => Self::from_str(s),
         }
     }
 }
