@@ -23,7 +23,7 @@ pub struct PyDuration(pub Duration);
 
 impl From<Duration> for PyDuration {
     fn from(d: Duration) -> Self {
-        PyDuration(d)
+        Self(d)
     }
 }
 
@@ -52,7 +52,7 @@ impl PyDuration {
         let secs = secs
             .checked_add(u64::from(carry))
             .ok_or_else(|| PyOverflowError::new_err("overflow in Duration::new"))?;
-        Ok(PyDuration(Duration::new(secs, nanos)))
+        Ok(Self(Duration::new(secs, nanos)))
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -161,25 +161,25 @@ impl PyDuration {
         }
     }
 
-    fn __add__(&self, other: PyDurationComparable) -> PyResult<PyDuration> {
+    fn __add__(&self, other: PyDurationComparable) -> PyResult<Self> {
         let maybe_duration = match other {
             PyDurationComparable::PyDuration(other) => self.0.checked_add(other.0),
             PyDurationComparable::Duration(other) => self.0.checked_add(other),
         };
         if let Some(duration) = maybe_duration {
-            Ok(PyDuration(duration))
+            Ok(Self(duration))
         } else {
             Err(PyOverflowError::new_err("overflow in Duration addition"))
         }
     }
 
-    fn __sub__(&self, other: PyDurationComparable) -> PyResult<PyDuration> {
+    fn __sub__(&self, other: PyDurationComparable) -> PyResult<Self> {
         let maybe_duration = match other {
             PyDurationComparable::PyDuration(other) => self.0.checked_sub(other.0),
             PyDurationComparable::Duration(other) => self.0.checked_sub(other),
         };
         if let Some(duration) = maybe_duration {
-            Ok(PyDuration(duration))
+            Ok(Self(duration))
         } else {
             Err(PyOverflowError::new_err("overflow in Duration subtraction"))
         }
@@ -204,11 +204,11 @@ impl PyDuration {
             PyDurationArithmeticDiv::Float(other) => self.div_f64(other)?.into_bound_py_any(py),
             PyDurationArithmeticDiv::PyDuration(other) => {
                 let result = self.0.div_duration_f64(other.0);
-                PyDuration::try_from_secs_f64(result)?.into_bound_py_any(py)
+                Self::try_from_secs_f64(result)?.into_bound_py_any(py)
             }
             PyDurationArithmeticDiv::Duration(other) => {
                 let result = self.0.div_duration_f64(other);
-                PyDuration::try_from_secs_f64(result)?.into_bound_py_any(py)
+                Self::try_from_secs_f64(result)?.into_bound_py_any(py)
             }
         }
     }
@@ -320,7 +320,7 @@ impl PyDuration {
     /// Convert from python `datetime.timedelta`
     #[classmethod]
     fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> Self {
-        PyDuration(delta)
+        Self(delta)
     }
 
     // ========================================================================
@@ -330,22 +330,22 @@ impl PyDuration {
     /// Create a new `Duration` from the specified number of seconds.
     #[classmethod]
     fn from_secs(_cls: &Bound<'_, PyType>, secs: u64) -> Self {
-        PyDuration(Duration::from_secs(secs))
+        Self(Duration::from_secs(secs))
     }
 
     #[classmethod]
     fn from_millis(_cls: &Bound<'_, PyType>, millis: u64) -> Self {
-        PyDuration(Duration::from_millis(millis))
+        Self(Duration::from_millis(millis))
     }
 
     #[classmethod]
     fn from_micros(_cls: &Bound<'_, PyType>, micros: u64) -> Self {
-        PyDuration(Duration::from_micros(micros))
+        Self(Duration::from_micros(micros))
     }
 
     #[classmethod]
     fn from_nanos(_cls: &Bound<'_, PyType>, nanos: u64) -> Self {
-        PyDuration(Duration::from_nanos(nanos))
+        Self(Duration::from_nanos(nanos))
     }
 
     #[classmethod]
@@ -353,7 +353,7 @@ impl PyDuration {
         if hours > u64::MAX / (60 * 60) {
             Err(PyOverflowError::new_err("overflow in Duration::from_hours"))
         } else {
-            Ok(PyDuration(Duration::from_secs(hours * 60 * 60)))
+            Ok(Self(Duration::from_secs(hours * 60 * 60)))
         }
     }
 
@@ -390,12 +390,12 @@ impl PyDuration {
 
     #[classmethod]
     fn from_secs_f32(_cls: &Bound<'_, PyType>, secs: f32) -> PyResult<Self> {
-        PyDuration::try_from_secs_f32(secs)
+        Self::try_from_secs_f32(secs)
     }
 
     #[classmethod]
     fn from_secs_f64(_cls: &Bound<'_, PyType>, secs: f64) -> PyResult<Self> {
-        PyDuration::try_from_secs_f64(secs)
+        Self::try_from_secs_f64(secs)
     }
 
     // ========================================================================
@@ -455,10 +455,10 @@ impl PyDuration {
     //     Ok(())
     // }
 
-    fn abs_diff(&self, other: PyDurationComparable) -> PyDuration {
+    fn abs_diff(&self, other: PyDurationComparable) -> Self {
         match other {
-            PyDurationComparable::PyDuration(other) => PyDuration(self.0.abs_diff(other.0)),
-            PyDurationComparable::Duration(other) => PyDuration(self.0.abs_diff(other)),
+            PyDurationComparable::PyDuration(other) => Self(self.0.abs_diff(other.0)),
+            PyDurationComparable::Duration(other) => Self(self.0.abs_diff(other)),
         }
     }
 
@@ -486,7 +486,7 @@ impl PyDuration {
         self.0.div_duration_f64(other.0)
     }
 
-    fn div_f32(&self, n: f32) -> PyResult<PyDuration> {
+    fn div_f32(&self, n: f32) -> PyResult<Self> {
         if n == 0.0 {
             return Err(PyZeroDivisionError::new_err("division by zero"));
         }
@@ -494,10 +494,10 @@ impl PyDuration {
             return Err(PyValueError::new_err("invalid value"));
         }
         let result = self.0.as_secs_f32().div(n);
-        PyDuration::try_from_secs_f32(result)
+        Self::try_from_secs_f32(result)
     }
 
-    fn div_f64(&self, n: f64) -> PyResult<PyDuration> {
+    fn div_f64(&self, n: f64) -> PyResult<Self> {
         if n == 0.0 {
             return Err(PyZeroDivisionError::new_err("division by zero"));
         }
@@ -505,28 +505,28 @@ impl PyDuration {
             return Err(PyValueError::new_err("invalid value"));
         }
         let result = self.0.as_secs_f64().div(n);
-        PyDuration::try_from_secs_f64(result)
+        Self::try_from_secs_f64(result)
     }
 
-    fn mul_f32(&self, n: f32) -> PyResult<PyDuration> {
+    fn mul_f32(&self, n: f32) -> PyResult<Self> {
         let result = self.0.as_secs_f32().mul(n);
-        PyDuration::try_from_secs_f32(result)
+        Self::try_from_secs_f32(result)
     }
 
-    fn mul_f64(&self, n: f64) -> PyResult<PyDuration> {
+    fn mul_f64(&self, n: f64) -> PyResult<Self> {
         let result = self.0.as_secs_f64().mul(n);
-        PyDuration::try_from_secs_f64(result)
+        Self::try_from_secs_f64(result)
     }
 
-    fn saturating_add(&self, other: &Self) -> PyDuration {
+    fn saturating_add(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_add(other.0))
     }
 
-    fn saturating_mul(&self, other: u32) -> PyDuration {
+    fn saturating_mul(&self, other: u32) -> Self {
         Self::from(self.0.saturating_mul(other))
     }
 
-    fn saturating_sub(&self, other: &Self) -> PyDuration {
+    fn saturating_sub(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_sub(other.0))
     }
 }

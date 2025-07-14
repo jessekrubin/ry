@@ -22,13 +22,13 @@ impl PyInstant {
     #[new]
     #[must_use]
     fn py_new() -> Self {
-        PyInstant(Instant::now())
+        Self(Instant::now())
     }
 
     #[classmethod]
     #[must_use]
     pub fn now(_cls: &Bound<'_, PyType>) -> Self {
-        PyInstant(Instant::now())
+        Self(Instant::now())
     }
 
     #[must_use]
@@ -94,7 +94,7 @@ impl PyInstant {
                 let inst = self.0.checked_sub(other.0);
                 match inst {
                     Some(i) => {
-                        let pyinstant = PyInstant::from(i);
+                        let pyinstant = Self::from(i);
                         pyinstant.into_bound_py_any(py)
                     }
                     None => Err(PyErr::new::<PyOverflowError, _>("instant-sub-overflow")),
