@@ -21,7 +21,7 @@ pub struct JiterParseOptions {
 
 impl Default for JiterParseOptions {
     fn default() -> Self {
-        JiterParseOptions {
+        Self {
             allow_inf_nan: false,
             cache_mode: StringCacheMode::All,
             partial_mode: PartialMode::Off,
