@@ -96,6 +96,6 @@ impl PyWalkDirEntry {
 
 impl From<walkdir::DirEntry> for PyWalkDirEntry {
     fn from(de: walkdir::DirEntry) -> Self {
-        PyWalkDirEntry(de)
+        Self(de)
     }
 }
