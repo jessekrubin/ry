@@ -8,6 +8,7 @@
 #![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::similar_names)]
 #![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::use_self)]
 mod pyo3_bytes;
 mod ry_bytes;
 use pyo3::intern;
