@@ -7,7 +7,8 @@
 - `ryo3-jiff`
   - Renamed `checked_add` and `checked_sub` to `add` and `sub` where the
     checked_version can error; did not remove where the checked version returns
-    an `Option` type (`ry.SignedDuration`)
+    an `Option` type (`ry.SignedDuration`). `.checked_add` may return later as
+    a method that returns an `Option` type for all types (tbd).
   - Added `replace` methods to `Date`, `DateTime` and `Time` structs
 
 ---
