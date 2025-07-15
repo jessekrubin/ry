@@ -226,7 +226,7 @@ impl PyAsyncFile {
             path,
             open_options,
         };
-        Ok(PyAsyncFile {
+        Ok(Self {
             inner: Arc::new(Mutex::new(inner)),
         })
     }
@@ -236,7 +236,7 @@ impl PyAsyncFile {
 impl PyAsyncFile {
     #[new]
     fn py_new(p: PathBuf, mode: Option<&str>) -> PyResult<Self> {
-        PyAsyncFile::new(p, mode)
+        Self::new(p, mode)
     }
 
     /// This is a coroutine that returns `self` when awaited... so you
@@ -448,7 +448,7 @@ impl PyAsyncFile {
             other => {
                 return Err(PyIOError::new_err(format!(
                     "Invalid value for whence in seek: {other}"
-                )))
+                )));
             }
         };
         let inner = Arc::clone(&self.inner);
@@ -514,7 +514,7 @@ impl OpenOptions {
     pub(crate) fn from_mode_string(mode: &str) -> PyResult<Self> {
         use pyo3::exceptions::PyValueError;
 
-        let mut opts = OpenOptions {
+        let mut opts = Self {
             read: false,
             write: false,
             append: false,
@@ -565,7 +565,7 @@ impl OpenOptions {
             _ => {
                 return Err(PyValueError::new_err(format!(
                     "Unsupported open mode: {mode:?}"
-                )))
+                )));
             }
         }
 

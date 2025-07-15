@@ -1,14 +1,39 @@
 # CHANGELOG
 
-## v0.0.49 [unreleased]
+## v0.0.51 [unreleased]
 
+---
+
+## v0.0.50 [2025-07-14]
+
+- internal
+  - clippy lint fixes `unused_self` (all but `ryo3-bytes` which needs its own cleanup)
+- `ryo3-bytes`
+  - Added (bc I need them) more python compat methods:
+    - `title()`
+    - `swapcase()`
+    - `expandtabs()`
+    - `strip()`
+- `ryo3-fspath`
+  - Added `open` method that forwards to `open` method of `pathlib.Path`
+  - Added `mkdir` method that mimics `mkdir` method of `pathlib.Path`
+
+---
+
+## v0.0.49 [2025-07-04] (fourth o july)
+
+- workspace
+  - set rust edition to 2024
 - `ryo3-serde`
   - Fixed recursive serialization w/ max depth of 255 (aligning with `orjson`)
   - support `PyEllipsis` for `None` values in serialization
 - `ryo3-json`
   - `minify` function to remove whitespace/newlines from json-string/bytes
 - `ryo3-jiff`
+  - internal refactoring
   - `isoformat` methods aligned with python's `datetime` library methods
+  - Freeze (make pyclass frozen) for all jiff types (changed `*Series`
+    iterables)
 - `ryo3-fspath`
   - `which` feature allowing `FsPath.which` and `FsPath.which_all`
 

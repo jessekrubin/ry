@@ -1,9 +1,9 @@
-from typing import Literal
+import typing as t
 
-import typing_extensions
+import typing_extensions as te
 
-FORMAT_SIZE_BASE: typing_extensions.TypeAlias = Literal[2, 10]  # default=2
-FORMAT_SIZE_STYLE: typing_extensions.TypeAlias = Literal[  # default="default"
+FORMAT_SIZE_BASE: te.TypeAlias = t.Literal[2, 10]  # default=2
+FORMAT_SIZE_STYLE: te.TypeAlias = t.Literal[  # default="default"
     "default",
     "abbreviated",
     "abbreviated_lowercase",
@@ -27,7 +27,7 @@ def parse_size(s: str) -> int:
     Raises:
         ValueError: If string is not a valid human-readable bytes-size string.
     """
-
+@t.final
 class SizeFormatter:
     """Human-readable bytes-size formatter."""
 
@@ -44,6 +44,7 @@ class SizeFormatter:
     def __call__(self, n: int) -> str:
         """Return human-readable string representation of bytes-size."""
 
+@t.final
 class Size:
     """Bytes-size object."""
 

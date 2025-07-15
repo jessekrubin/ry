@@ -1,12 +1,12 @@
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_data::RyResponseHead;
-use crate::{pyerr_response_already_consumed, RyResponseStream};
+use crate::{RyResponseStream, pyerr_response_already_consumed};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::CONTENT_ENCODING;
-use ryo3_http::{status_code_pystring, HttpVersion, PyHeaders, PyHttpStatus};
+use ryo3_http::{HttpVersion, PyHeaders, PyHttpStatus, status_code_pystring};
 use ryo3_macro_rules::err_py_not_impl;
 use ryo3_url::PyUrl;
 use std::sync::Arc;

@@ -24,7 +24,7 @@ impl<'de> serde::Deserialize<'de> for PyUuid {
     where
         D: serde::Deserializer<'de>,
     {
-        uuid::Uuid::deserialize(deserializer).map(PyUuid::from)
+        uuid::Uuid::deserialize(deserializer).map(Self::from)
     }
 }
 
@@ -36,7 +36,7 @@ impl AsRef<uuid::Uuid> for PyUuid {
 
 impl From<uuid::Uuid> for PyUuid {
     fn from(value: uuid::Uuid) -> Self {
-        PyUuid(value)
+        Self(value)
     }
 }
 
@@ -98,7 +98,7 @@ impl PyUuid {
         if let Some(v) = version {
             let mut b = uuid::Builder::from_u128(py_uuid.0.as_u128());
             b.set_version(v);
-            Ok(PyUuid(b.into_uuid()))
+            Ok(Self(b.into_uuid()))
         } else {
             Ok(py_uuid)
         }
@@ -155,7 +155,7 @@ impl PyUuid {
     }
 
     fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        if let Ok(rs_uuid) = other.downcast::<PyUuid>() {
+        if let Ok(rs_uuid) = other.downcast::<Self>() {
             let other = rs_uuid.get();
 
             match op {
@@ -245,7 +245,7 @@ impl PyUuid {
         let uuid =
             time_low | time_mid | time_hi_version | clock_seq_hi_variant | clock_seq_low | node;
         let uuid = uuid::Uuid::from_u128(uuid);
-        Ok(PyUuid(uuid))
+        Ok(Self(uuid))
     }
 
     #[getter]
@@ -443,7 +443,7 @@ impl FromPyObject<'_> for CPythonUuid {
         if obj.is_instance(uuid_cls)? {
             let uuid_int: u128 = obj.getattr(intern!(py, "int"))?.extract()?;
             let bytes = uuid_int.to_be_bytes();
-            Ok(CPythonUuid(uuid::Uuid::from_bytes(bytes)))
+            Ok(Self(uuid::Uuid::from_bytes(bytes)))
         } else {
             Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
         }

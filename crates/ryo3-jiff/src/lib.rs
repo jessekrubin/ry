@@ -10,7 +10,6 @@
 #![deny(clippy::missing_panics_doc)]
 #![deny(clippy::arithmetic_side_effects)]
 #![expect(clippy::missing_errors_doc)]
-#![cfg_attr(feature = "serde", expect(clippy::unsafe_derive_deserialize))]
 extern crate core;
 
 pub mod pydatetime_conversions;
@@ -19,7 +18,6 @@ mod dev;
 
 mod api;
 mod constants;
-mod delta_arithmetic_self;
 mod deprecations;
 mod errors;
 mod functions;
@@ -48,7 +46,9 @@ mod ry_zoned_difference;
 mod ry_zoned_round;
 #[cfg(feature = "serde")]
 mod serde;
+mod series;
 mod span_relative_to;
+mod spanish;
 mod test;
 
 pub use api::*;

@@ -1,10 +1,10 @@
 //! python `tokio::fs` module
 pub use crate::fs::file::PyAsyncFile;
 use crate::fs::read_dir::RyReadDirAsync;
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
-use pyo3::IntoPyObjectExt;
 use ryo3_bytes::PyBytes;
 use ryo3_std::PyMetadata;
 use std::path::PathBuf;
@@ -91,10 +91,7 @@ pub fn read_link_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny
 #[pyfunction]
 pub fn read_to_string_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::read_to_string(pth)
-            .await
-            .map(|s| s.to_string())
-            .map_err(PyErr::from)
+        tokio::fs::read_to_string(pth).await.map_err(PyErr::from)
     })
 }
 

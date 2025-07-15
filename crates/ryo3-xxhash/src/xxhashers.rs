@@ -8,7 +8,7 @@ use xxhash_rust::xxh64::Xxh64;
 #[pyclass(name = "Xxh32", module = "ry.ryo3.xxhash")]
 pub struct PyXxh32 {
     seed: u32,
-    pub hasher: Xxh32,
+    hasher: Xxh32,
 }
 
 #[pymethods]
@@ -30,12 +30,12 @@ impl PyXxh32 {
         }
     }
 
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("xxh32<{:x}>", self.hasher.digest()))
+    fn __str__(&self) -> String {
+        self.__repr__()
     }
 
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("xxh32<{:x}>", self.hasher.digest()))
+    fn __repr__(&self) -> String {
+        format!("xxh32<{:x}>", self.hasher.digest())
     }
 
     #[classattr]
@@ -54,55 +54,53 @@ impl PyXxh32 {
     }
 
     #[getter]
-    fn seed(&self) -> PyResult<u32> {
-        Ok(self.seed)
+    fn seed(&self) -> u32 {
+        self.seed
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
         let digest = self.hasher.digest();
-        Ok(PyBytes::new(py, &digest.to_be_bytes()))
+        PyBytes::new(py, &digest.to_be_bytes())
     }
 
-    fn intdigest(&self) -> PyResult<u32> {
-        Ok(self.hasher.digest())
+    fn intdigest(&self) -> u32 {
+        self.hasher.digest()
     }
 
-    fn hexdigest(&self) -> PyResult<String> {
-        Ok(format!("{:08x}", self.hasher.digest()))
+    fn hexdigest(&self) -> String {
+        format!("{:08x}", self.hasher.digest())
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&mut self, s: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&mut self, s: ryo3_bytes::PyBytes) {
         self.hasher.update(s.as_ref());
-        Ok(())
     }
 
-    fn copy(&self) -> PyResult<Self> {
-        Ok(Self {
+    fn copy(&self) -> Self {
+        Self {
             hasher: self.hasher.clone(),
             seed: self.seed,
-        })
+        }
     }
 
     #[pyo3(signature = (seed = None))]
-    fn reset(&mut self, seed: Option<u32>) -> PyResult<()> {
+    fn reset(&mut self, seed: Option<u32>) {
         self.hasher.reset(seed.unwrap_or(self.seed));
-        Ok(())
     }
 }
 
 /// Create a new xxh32 hasher
 #[pyfunction]
 #[pyo3(signature = (s = None, seed = 0))]
-pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyResult<PyXxh32> {
-    Ok(PyXxh32::py_new(s, seed))
+pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyXxh32 {
+    PyXxh32::py_new(s, seed)
 }
 
 /// Python-Xxh64 hasher
 #[pyclass(name = "Xxh64", module = "ry.ryo3.xxhash")]
 pub struct PyXxh64 {
     seed: u64,
-    pub hasher: Xxh64,
+    hasher: Xxh64,
 }
 
 #[pymethods]
@@ -126,13 +124,13 @@ impl PyXxh64 {
     }
 
     /// Return the string representation of the hasher
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("xxh64<{:x}>", self.hasher.digest()))
+    fn __str__(&self) -> String {
+        format!("xxh64<{:x}>", self.hasher.digest())
     }
 
     /// Return the string representation of the hasher
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("xxh64<{:x}>", self.hasher.digest()))
+    fn __repr__(&self) -> String {
+        format!("xxh64<{:x}>", self.hasher.digest())
     }
 
     /// Return the name of the hasher ('xxh64')
@@ -152,40 +150,38 @@ impl PyXxh64 {
     }
 
     #[getter]
-    fn seed(&self) -> PyResult<u64> {
-        Ok(self.seed)
+    fn seed(&self) -> u64 {
+        self.seed
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
         let digest = self.hasher.digest();
-        Ok(PyBytes::new(py, &digest.to_be_bytes()))
+        PyBytes::new(py, &digest.to_be_bytes())
     }
 
-    fn intdigest(&self) -> PyResult<u64> {
-        Ok(self.hasher.digest())
+    fn intdigest(&self) -> u64 {
+        self.hasher.digest()
     }
 
-    fn hexdigest(&self) -> PyResult<String> {
-        Ok(format!("{:016x}", self.hasher.digest()))
+    fn hexdigest(&self) -> String {
+        format!("{:016x}", self.hasher.digest())
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&mut self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&mut self, b: ryo3_bytes::PyBytes) {
         self.hasher.update(b.as_ref());
-        Ok(())
     }
 
-    fn copy(&self) -> PyResult<Self> {
-        Ok(Self {
+    fn copy(&self) -> Self {
+        Self {
             hasher: self.hasher.clone(),
             seed: self.seed,
-        })
+        }
     }
 
     #[pyo3(signature = (seed = None))]
-    fn reset(&mut self, seed: Option<u64>) -> PyResult<()> {
+    fn reset(&mut self, seed: Option<u64>) {
         self.hasher.reset(seed.unwrap_or(self.seed));
-        Ok(())
     }
 }
 
@@ -198,7 +194,7 @@ pub fn xxh64(s: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<PyXx
 #[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash")]
 pub struct PyXxh3 {
     seed: u64,
-    pub hasher: Xxh3,
+    hasher: Xxh3,
 }
 
 #[pymethods]
@@ -217,7 +213,7 @@ impl PyXxh3 {
         };
         match b {
             Some(s) => {
-                let mut hasher = h.clone();
+                let mut hasher = h;
                 hasher.update(s.as_ref());
                 Self { seed, hasher }
             }
@@ -225,12 +221,12 @@ impl PyXxh3 {
         }
     }
 
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("xxh3<{:x}>", self.hasher.digest()))
+    fn __str__(&self) -> String {
+        format!("xxh3<{:x}>", self.hasher.digest())
     }
 
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("xxh3<{:x}>", self.hasher.digest()))
+    fn __repr__(&self) -> String {
+        format!("xxh3<{:x}>", self.hasher.digest())
     }
 
     #[classattr]
@@ -249,52 +245,50 @@ impl PyXxh3 {
     }
 
     #[getter]
-    fn seed(&self) -> PyResult<u64> {
-        Ok(self.seed)
+    fn seed(&self) -> u64 {
+        self.seed
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
         let digest = self.hasher.digest();
-        Ok(PyBytes::new(py, &digest.to_be_bytes()))
+        PyBytes::new(py, &digest.to_be_bytes())
     }
 
-    fn intdigest(&self) -> PyResult<u64> {
-        Ok(self.hasher.digest())
+    fn intdigest(&self) -> u64 {
+        self.hasher.digest()
     }
 
-    fn hexdigest(&self) -> PyResult<String> {
-        Ok(format!("{:016x}", self.hasher.digest()))
+    fn hexdigest(&self) -> String {
+        format!("{:016x}", self.hasher.digest())
     }
 
-    fn digest128<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+    fn digest128<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
         let digest = self.hasher.digest128();
-        Ok(PyBytes::new(py, &digest.to_be_bytes()))
+        PyBytes::new(py, &digest.to_be_bytes())
     }
 
-    fn intdigest128(&self) -> PyResult<u128> {
-        Ok(self.hasher.digest128())
+    fn intdigest128(&self) -> u128 {
+        self.hasher.digest128()
     }
 
-    fn hexdigest128(&self) -> PyResult<String> {
-        Ok(format!("{:032x}", self.hasher.digest128()))
+    fn hexdigest128(&self) -> String {
+        format!("{:032x}", self.hasher.digest128())
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&mut self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&mut self, b: ryo3_bytes::PyBytes) {
         self.hasher.update(b.as_ref());
-        Ok(())
     }
 
-    fn copy(&self) -> PyResult<Self> {
-        Ok(Self {
+    fn copy(&self) -> Self {
+        Self {
             hasher: self.hasher.clone(),
             seed: self.seed,
-        })
+        }
     }
 
-    fn reset(&mut self) -> PyResult<()> {
+    fn reset(&mut self) {
         self.hasher.reset();
-        Ok(())
     }
 }
 
@@ -304,8 +298,8 @@ pub fn xxh3(
     s: Option<ryo3_bytes::PyBytes>,
     seed: Option<u64>,
     secret: Option<[u8; 192]>,
-) -> PyResult<PyXxh3> {
-    Ok(PyXxh3::py_new(s, seed, secret))
+) -> PyXxh3 {
+    PyXxh3::py_new(s, seed, secret)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

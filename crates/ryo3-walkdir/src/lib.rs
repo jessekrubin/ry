@@ -3,7 +3,7 @@
 mod walkdir_entry;
 
 use parking_lot::Mutex;
-use pyo3::{prelude::*, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, prelude::*};
 use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
@@ -141,7 +141,10 @@ impl WalkdirOptions {
         wd
     }
 
-    fn build_iter<T: AsRef<Path>>(&self, path: T) -> impl Iterator<Item = ::walkdir::DirEntry> {
+    fn build_iter<T: AsRef<Path>>(
+        &self,
+        path: T,
+    ) -> impl Iterator<Item = ::walkdir::DirEntry> + use<T> {
         let wd = self.build_walkdir(path.as_ref());
         let dirs = self.dirs;
         let files = self.files;

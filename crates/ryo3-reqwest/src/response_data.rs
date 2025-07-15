@@ -1,5 +1,5 @@
-use reqwest::header::HeaderMap;
 use reqwest::StatusCode;
+use reqwest::header::HeaderMap;
 
 #[derive(Debug, Clone)]
 pub(crate) struct RyResponseHead {

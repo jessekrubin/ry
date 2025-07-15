@@ -1,7 +1,7 @@
 use bytes::{Bytes, BytesMut};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::{pyclass, pymethods, PyRef, PyResult};
+use pyo3::{PyRef, PyResult, pyclass, pymethods};
 use ryo3_core::py_bool2str;
 use std::fs::File;
 use std::io::{self, BufReader, Read, Seek, SeekFrom};
@@ -69,8 +69,8 @@ pub(crate) enum FileReadStreamWrapper {
 impl FileReadStreamWrapper {
     fn seek_to(&mut self, offset: u64) -> io::Result<u64> {
         match self {
-            FileReadStreamWrapper::Unbuffered(ref mut stream) => stream.seek_to(offset),
-            FileReadStreamWrapper::Buffered(ref mut stream) => stream.seek_to(offset),
+            Self::Unbuffered(stream) => stream.seek_to(offset),
+            Self::Buffered(stream) => stream.seek_to(offset),
         }
     }
 }
@@ -80,8 +80,8 @@ impl Iterator for FileReadStreamWrapper {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            FileReadStreamWrapper::Unbuffered(stream) => stream.next(),
-            FileReadStreamWrapper::Buffered(stream) => stream.next(),
+            Self::Unbuffered(stream) => stream.next(),
+            Self::Buffered(stream) => stream.next(),
         }
     }
 }

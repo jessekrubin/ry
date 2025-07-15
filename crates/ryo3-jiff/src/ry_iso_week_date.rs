@@ -1,7 +1,7 @@
 use crate::errors::map_py_value_err;
 use crate::{JiffWeekday, RyDate};
-use jiff::civil::ISOWeekDate;
 use jiff::Zoned;
+use jiff::civil::ISOWeekDate;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -115,27 +115,27 @@ impl RyISOWeekDate {
     // DUNDERS/OPERATORS
     // ========================================================================
 
-    fn __eq__(&self, other: &RyISOWeekDate) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
 
-    fn __ne__(&self, other: &RyISOWeekDate) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
 
-    fn __lt__(&self, other: &RyISOWeekDate) -> bool {
+    fn __lt__(&self, other: &Self) -> bool {
         self.0 < other.0
     }
 
-    fn __le__(&self, other: &RyISOWeekDate) -> bool {
+    fn __le__(&self, other: &Self) -> bool {
         self.0 <= other.0
     }
 
-    fn __gt__(&self, other: &RyISOWeekDate) -> bool {
+    fn __gt__(&self, other: &Self) -> bool {
         self.0 > other.0
     }
 
-    fn __ge__(&self, other: &RyISOWeekDate) -> bool {
+    fn __ge__(&self, other: &Self) -> bool {
         self.0 >= other.0
     }
 

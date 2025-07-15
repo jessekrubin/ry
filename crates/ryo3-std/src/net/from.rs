@@ -7,25 +7,25 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 // ==========================================================================
 impl From<&Ipv4Addr> for PyIpv4Addr {
     fn from(addr: &Ipv4Addr) -> Self {
-        PyIpv4Addr(*addr)
+        Self(*addr)
     }
 }
 
 impl From<Ipv4Addr> for PyIpv4Addr {
     fn from(addr: Ipv4Addr) -> Self {
-        PyIpv4Addr(addr)
+        Self(addr)
     }
 }
 
 impl From<PySocketAddrV4> for PyIpv4Addr {
     fn from(addr: PySocketAddrV4) -> Self {
-        PyIpv4Addr(*addr.0.ip())
+        Self(*addr.0.ip())
     }
 }
 
-impl From<&PySocketAddrV4> for PySocketAddrV4 {
-    fn from(addr: &PySocketAddrV4) -> Self {
-        PySocketAddrV4(addr.0)
+impl From<&Self> for PySocketAddrV4 {
+    fn from(addr: &Self) -> Self {
+        Self(addr.0)
     }
 }
 
@@ -34,18 +34,18 @@ impl From<&PySocketAddrV4> for PySocketAddrV4 {
 // ==========================================================================
 impl From<&Ipv6Addr> for PyIpv6Addr {
     fn from(addr: &Ipv6Addr) -> Self {
-        PyIpv6Addr(*addr)
+        Self(*addr)
     }
 }
 impl From<Ipv6Addr> for PyIpv6Addr {
     fn from(addr: Ipv6Addr) -> Self {
-        PyIpv6Addr(addr)
+        Self(addr)
     }
 }
 
 impl From<PySocketAddrV6> for PyIpv6Addr {
     fn from(addr: PySocketAddrV6) -> Self {
-        PyIpv6Addr(*addr.0.ip())
+        Self(*addr.0.ip())
     }
 }
 
@@ -54,53 +54,53 @@ impl From<PySocketAddrV6> for PyIpv6Addr {
 // ==========================================================================
 impl From<&IpAddr> for PyIpAddr {
     fn from(addr: &IpAddr) -> Self {
-        PyIpAddr(*addr)
+        Self(*addr)
     }
 }
 
 impl From<IpAddr> for PyIpAddr {
     fn from(addr: IpAddr) -> Self {
-        PyIpAddr(addr)
+        Self(addr)
     }
 }
 
 impl From<Ipv4Addr> for PyIpAddr {
     fn from(addr: Ipv4Addr) -> Self {
-        PyIpAddr(IpAddr::V4(addr))
+        Self(IpAddr::V4(addr))
     }
 }
 
 impl From<Ipv6Addr> for PyIpAddr {
     fn from(addr: Ipv6Addr) -> Self {
-        PyIpAddr(IpAddr::V6(addr))
+        Self(IpAddr::V6(addr))
     }
 }
 
 impl From<SocketAddrV4> for PyIpAddr {
     fn from(addr: SocketAddrV4) -> Self {
-        PyIpAddr(IpAddr::V4(*addr.ip()))
+        Self(IpAddr::V4(*addr.ip()))
     }
 }
 
 impl From<&PySocketAddr> for PyIpAddr {
     fn from(addr: &PySocketAddr) -> Self {
-        PyIpAddr(addr.0.ip())
+        Self(addr.0.ip())
     }
 }
 impl From<PySocketAddr> for PyIpAddr {
     fn from(addr: PySocketAddr) -> Self {
-        PyIpAddr(addr.0.ip())
+        Self(addr.0.ip())
     }
 }
 
 impl From<PySocketAddrV4> for PyIpAddr {
     fn from(addr: PySocketAddrV4) -> Self {
-        PyIpAddr::from(addr.0)
+        Self::from(addr.0)
     }
 }
 impl From<PySocketAddrV6> for PyIpAddr {
     fn from(addr: PySocketAddrV6) -> Self {
-        PyIpAddr(IpAddr::V6(*addr.0.ip()))
+        Self(IpAddr::V6(*addr.0.ip()))
     }
 }
 
@@ -149,7 +149,7 @@ impl From<PyIpAddr> for IpAddr {
 // ==========================================================================
 impl From<SocketAddrV4> for PySocketAddrV4 {
     fn from(addr: SocketAddrV4) -> Self {
-        PySocketAddrV4(addr)
+        Self(addr)
     }
 }
 
@@ -158,7 +158,7 @@ impl From<SocketAddrV4> for PySocketAddrV4 {
 // ==========================================================================
 impl From<SocketAddrV6> for PySocketAddrV6 {
     fn from(addr: SocketAddrV6) -> Self {
-        PySocketAddrV6(addr)
+        Self(addr)
     }
 }
 
@@ -168,6 +168,6 @@ impl From<SocketAddrV6> for PySocketAddrV6 {
 
 impl From<SocketAddr> for PySocketAddr {
     fn from(addr: SocketAddr) -> Self {
-        PySocketAddr(addr)
+        Self(addr)
     }
 }

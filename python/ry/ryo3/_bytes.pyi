@@ -142,5 +142,31 @@ class Bytes(Buffer):
         """Return `True` if the binary data starts with the prefix string, `False` otherwise."""
     def endswith(self, suffix: Buffer) -> bool:
         """Return `True` if the binary data ends with the suffix string, `False` otherwise."""
+    def capitalize(self) -> Bytes:
+        """
+        Return a copy of the sequence with the first byte converted to uppercase and
+        all other bytes converted to lowercase.
+        """
+    def strip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with leading and trailing bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from both ends.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+    def expandtabs(self, tabsize: int = 8) -> Bytes:
+        """
+        Return a copy of the sequence with all ASCII tab characters replaced by spaces.
+        The number of spaces is determined by the `tabsize` parameter.
+        """
+    def title(self) -> Bytes:
+        """
+        Return a copy of the sequence with the first byte of each word converted to
+        uppercase and all other bytes converted to lowercase.
+        """
+    def swapcase(self) -> Bytes:
+        """
+        Return a copy of the sequence with all uppercase ASCII characters converted to
+        their corresponding lowercase counterpart and vice versa.
+        """
 
 BytesLike: typing_extensions.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes

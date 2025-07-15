@@ -1,3 +1,4 @@
+use crate::JiffOffset;
 use crate::errors::map_py_value_err;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
@@ -5,10 +6,10 @@ use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use jiff::tz::{Offset, OffsetArithmetic};
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyTuple, PyType};
-use pyo3::IntoPyObjectExt;
 use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -23,10 +24,10 @@ impl RyOffset {
     fn py_new(hours: Option<i8>, seconds: Option<i32>) -> PyResult<Self> {
         match (hours, seconds) {
             (Some(h), None) => Offset::from_hours(h)
-                .map(RyOffset::from)
+                .map(Self::from)
                 .map_err(map_py_value_err),
             (None, Some(s)) => Offset::from_seconds(s)
-                .map(RyOffset::from)
+                .map(Self::from)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
             _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
                 "Offset() takes either hours or seconds",
@@ -47,43 +48,43 @@ impl RyOffset {
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
-        RyOffset::from(Offset::MIN)
+        Self::from(Offset::MIN)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
     fn MAX() -> Self {
-        RyOffset::from(Offset::MAX)
+        Self::from(Offset::MAX)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {
-        RyOffset::from(Offset::ZERO)
+        Self::from(Offset::ZERO)
     }
 
     #[expect(non_snake_case)]
     #[classattr]
     fn UTC() -> Self {
-        RyOffset::from(Offset::UTC)
+        Self::from(Offset::UTC)
     }
 
     #[classmethod]
     fn utc(_cls: &Bound<'_, PyType>) -> Self {
-        RyOffset::from(Offset::UTC)
+        Self::from(Offset::UTC)
     }
 
     #[classmethod]
-    fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> PyResult<RyOffset> {
+    fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> PyResult<Self> {
         Offset::from_hours(hours)
-            .map(RyOffset::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[classmethod]
     fn from_seconds(_cls: &Bound<'_, PyType>, seconds: i32) -> PyResult<Self> {
         Offset::from_seconds(seconds)
-            .map(RyOffset::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -96,8 +97,9 @@ impl RyOffset {
     }
 
     #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: Offset) -> Self {
-        Self::from(d)
+    #[expect(clippy::needless_pass_by_value)]
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: JiffOffset) -> Self {
+        Self::from(d.0)
     }
 
     #[must_use]
@@ -129,7 +131,7 @@ impl RyOffset {
 
     #[must_use]
     fn negate(&self) -> Self {
-        RyOffset::from(self.0.negate())
+        Self::from(self.0.negate())
     }
 
     fn __neg__(&self) -> Self {
@@ -161,25 +163,25 @@ impl RyOffset {
     }
 
     #[must_use]
-    fn until(&self, other: &RyOffset) -> RySpan {
+    fn until(&self, other: &Self) -> RySpan {
         let s = self.0.until(other.0);
         RySpan::from(s)
     }
 
     #[must_use]
-    fn since(&self, other: &RyOffset) -> RySpan {
+    fn since(&self, other: &Self) -> RySpan {
         let s = self.0.since(other.0);
         RySpan::from(s)
     }
 
     #[must_use]
-    fn duration_until(&self, other: &RyOffset) -> RySignedDuration {
+    fn duration_until(&self, other: &Self) -> RySignedDuration {
         let s = self.0.duration_until(other.0);
         RySignedDuration::from(s)
     }
 
     #[must_use]
-    fn duration_since(&self, other: &RyOffset) -> RySignedDuration {
+    fn duration_since(&self, other: &Self) -> RySignedDuration {
         let s = self.0.duration_since(other.0);
         RySignedDuration::from(s)
     }
@@ -230,7 +232,13 @@ impl RyOffset {
 
 impl From<Offset> for RyOffset {
     fn from(value: Offset) -> Self {
-        RyOffset(value)
+        Self(value)
+    }
+}
+
+impl From<JiffOffset> for RyOffset {
+    fn from(value: JiffOffset) -> Self {
+        Self::from(value.0)
     }
 }
 
@@ -244,9 +252,9 @@ enum IntoOffsetArithmetic {
 impl From<IntoOffsetArithmetic> for OffsetArithmetic {
     fn from(val: IntoOffsetArithmetic) -> Self {
         match val {
-            IntoOffsetArithmetic::Duration(d) => OffsetArithmetic::from(d.0),
-            IntoOffsetArithmetic::SignedDuration(d) => OffsetArithmetic::from(d.0),
-            IntoOffsetArithmetic::Span(s) => OffsetArithmetic::from(s.0),
+            IntoOffsetArithmetic::Duration(d) => Self::from(d.0),
+            IntoOffsetArithmetic::SignedDuration(d) => Self::from(d.0),
+            IntoOffsetArithmetic::Span(s) => Self::from(s.0),
         }
     }
 }

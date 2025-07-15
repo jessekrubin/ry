@@ -212,11 +212,11 @@ impl PyPermissions {
         }
     }
 
-    fn __eq__(&self, other: &PyPermissions) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
 
-    fn __ne__(&self, other: &PyPermissions) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
 }

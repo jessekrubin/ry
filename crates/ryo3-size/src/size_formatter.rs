@@ -1,7 +1,7 @@
 use crate::types::{Base, Style};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3::{intern, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, intern};
 
 #[pyclass(name = "SizeFormatter", module = "ry.ryo3", frozen)]
 pub struct PySizeFormatter {
@@ -20,14 +20,14 @@ impl PySizeFormatter {
         let formatter = size::fmt::SizeFormatter::new()
             .with_base(base.0)
             .with_style(style.0);
-        PySizeFormatter {
+        Self {
             formatter,
             base,
             style,
         }
     }
 
-    fn __eq__(&self, other: &PySizeFormatter) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.base == other.base && self.style == other.style
     }
 

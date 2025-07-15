@@ -45,6 +45,120 @@ class TestBytesIsFns:
         assert py_res == rs_res, f"py: {py_res}, rs: {rs_res} ~ {py_bytes!r}, {fn_name}"
 
 
+@given(st.binary())
+def test_bytes_capitalize(
+    b: bytes,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    py_capitalize = b.capitalize()
+    ry_capitalize = ry_bytes.capitalize()
+    assert ry_capitalize == py_capitalize, (
+        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
+    )
+
+
+@given(st.binary())
+def test_bytes_swapcase(
+    b: bytes,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    py_capitalize = b.swapcase()
+    ry_capitalize = ry_bytes.swapcase()
+    assert ry_capitalize == py_capitalize, (
+        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
+    )
+
+
+@given(st.binary())
+def test_bytes_title(
+    b: bytes,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    py_capitalize = b.title()
+    ry_capitalize = ry_bytes.title()
+    assert ry_capitalize == py_capitalize, (
+        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
+    )
+
+
+@given(st.binary())
+def test_bytes_expandtabs(
+    b: bytes,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    py_capitalize = b.expandtabs()
+    ry_capitalize = ry_bytes.expandtabs()
+    assert ry_capitalize == py_capitalize, (
+        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
+    )
+
+
+@given(st.binary())
+def test_bytes_strip_no_arg(
+    b: bytes,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    py_capitalize = b.strip()
+    ry_capitalize = ry_bytes.strip()
+    assert ry_capitalize == py_capitalize, (
+        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    "b",
+    [
+        # bytes with thing in middle
+        *(bytes([i]) + b"howdy" + bytes([i]) for i in range(256)),
+        # just raw byte
+        *(bytes([i]) for i in range(256)),
+    ],
+)
+def test_bytes_strip_no_arg_all_bytes(
+    b: bytes,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    py_capitalize = b.strip()
+    ry_capitalize = ry_bytes.strip()
+    assert ry_capitalize == py_capitalize, (
+        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    "bytes2strip",
+    [
+        b" ",
+        b"\n",
+        b"\t",
+        b" \n\t",
+        b"\n\t ",
+        b" \n\t ",
+    ],
+)
+@pytest.mark.parametrize(
+    "bytes2strip_from",
+    [
+        b"  \n\t  ",
+        b" \n\t  ",
+        b"\n\t  ",
+        b" \n\t",
+        b"\n\t",
+    ],
+)
+def test_bytes_strip_with_arg(
+    bytes2strip: bytes,
+    bytes2strip_from: bytes,
+) -> None:
+    """Test Bytes.strip() works like python bytes with an argument"""
+    ry_bytes = ry.Bytes(bytes2strip_from)
+    py_capitalize = bytes2strip_from.strip(bytes2strip)
+    ry_capitalize = ry_bytes.strip(bytes2strip)
+    assert ry_capitalize == py_capitalize, (
+        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {bytes2strip_from!r}"
+    )
+
+
 @given(
     st.binary(),
 )
@@ -83,10 +197,10 @@ def test_bytes_decode_default(
         "__iter__",
         "__mod__",
         "__rmod__",
-        "capitalize",
+        # "capitalize",
         "center",
         "count",
-        "expandtabs",
+        # "expandtabs",
         "find",
         "index",
         "join",
@@ -102,9 +216,9 @@ def test_bytes_decode_default(
         "rsplit",
         "rstrip",
         "split",
-        "strip",
-        "swapcase",
-        "title",
+        # "strip",
+        # "swapcase",
+        # "title",
         "translate",
         "zfill",
     ],

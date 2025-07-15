@@ -1,13 +1,14 @@
+use crate::JiffTimeZone;
 use crate::errors::map_py_value_err;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
-use jiff::tz::{Offset, TimeZone};
 use jiff::Timestamp;
+use jiff::tz::{Offset, TimeZone};
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
-use pyo3::IntoPyObjectExt;
 use ryo3_macro_rules::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -18,13 +19,13 @@ pub struct RyTimeZone(pub(crate) std::sync::Arc<TimeZone>);
 
 impl From<TimeZone> for RyTimeZone {
     fn from(value: TimeZone) -> Self {
-        RyTimeZone(std::sync::Arc::new(value))
+        Self(std::sync::Arc::new(value))
     }
 }
 
 impl From<&TimeZone> for RyTimeZone {
     fn from(value: &TimeZone) -> Self {
-        RyTimeZone(std::sync::Arc::new(value.clone()))
+        Self(std::sync::Arc::new(value.clone()))
     }
 }
 
@@ -51,7 +52,7 @@ impl RyTimeZone {
             return Ok(Self::from(TimeZone::fixed(Offset::UTC)));
         }
         TimeZone::get(time_zone_name)
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -130,8 +131,8 @@ impl RyTimeZone {
     }
 
     #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: TimeZone) -> Self {
-        Self::from(d)
+    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: JiffTimeZone) -> Self {
+        Self::from(d.0)
     }
 
     // =====================================================================
@@ -146,19 +147,19 @@ impl RyTimeZone {
     #[classmethod]
     fn posix(_cls: &Bound<'_, PyType>, string: &str) -> PyResult<Self> {
         TimeZone::posix(string)
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[classmethod]
-    fn get(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<RyTimeZone> {
+    fn get(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
     }
 
     #[classmethod]
-    fn tzif(_cls: &Bound<'_, PyType>, name: &str, data: &[u8]) -> PyResult<RyTimeZone> {
+    fn tzif(_cls: &Bound<'_, PyType>, name: &str, data: &[u8]) -> PyResult<Self> {
         TimeZone::tzif(name, data)
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
@@ -170,14 +171,14 @@ impl RyTimeZone {
     #[classmethod]
     fn try_system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
         TimeZone::try_system()
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[classmethod]
     fn system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
         TimeZone::try_system()
-            .map(RyTimeZone::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 

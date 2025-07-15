@@ -1,6 +1,6 @@
+use crate::PyHeadersLike;
 use crate::http_types::{HttpHeaderName, HttpHeaderValue};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
-use crate::PyHeadersLike;
 use http::header::HeaderMap;
 use parking_lot::lock_api::MutexGuard;
 use parking_lot::{Mutex, RawMutex};
@@ -101,27 +101,23 @@ impl From<HeaderMap> for PyHeaders {
 impl PyHeaders {
     #[new]
     #[pyo3(signature = (d = None, **kwargs))]
-    fn py_new(
-        _py: Python<'_>,
-        d: Option<PyHeadersLike>,
-        kwargs: Option<&Bound<'_, PyDict>>,
-    ) -> PyResult<Self> {
+    fn py_new(d: Option<PyHeadersLike>, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         match (d, kwargs) {
             (Some(d), Some(kwargs)) => {
                 let mut headers_map = HeaderMap::try_from(d)?;
-                let kw_headers = PyHeaders::extract_kwargs(kwargs)?;
+                let kw_headers = Self::extract_kwargs(kwargs)?;
                 headers_map.extend(kw_headers);
-                Ok(PyHeaders::from(headers_map))
+                Ok(Self::from(headers_map))
             }
             (Some(d), None) => {
                 let headers_map = HeaderMap::try_from(d)?;
-                Ok(PyHeaders::from(headers_map))
+                Ok(Self::from(headers_map))
             }
             (None, Some(kwargs)) => {
-                let kw_headers = PyHeaders::extract_kwargs(kwargs)?;
-                Ok(PyHeaders::from(kw_headers))
+                let kw_headers = Self::extract_kwargs(kwargs)?;
+                Ok(Self::from(kw_headers))
             }
-            (None, None) => Ok(PyHeaders::from(HeaderMap::new())),
+            (None, None) => Ok(Self::from(HeaderMap::new())),
         }
     }
 
@@ -147,12 +143,12 @@ impl PyHeaders {
     }
 
     #[must_use]
-    pub fn __eq__(&self, other: &PyHeaders) -> bool {
+    pub fn __eq__(&self, other: &Self) -> bool {
         *(self.0.lock()) == *(other.0.lock())
     }
 
     #[must_use]
-    pub fn __ne__(&self, other: &PyHeaders) -> bool {
+    pub fn __ne__(&self, other: &Self) -> bool {
         *(self.0.lock()) != *(other.0.lock())
     }
 
@@ -349,7 +345,7 @@ impl PyHeaders {
         Ok(())
     }
 
-    pub fn __or__(&self, other: PyHeadersLike) -> PyResult<PyHeaders> {
+    pub fn __or__(&self, other: PyHeadersLike) -> PyResult<Self> {
         let mut headers = self.0.clone().lock().clone();
         match other {
             PyHeadersLike::Headers(other) => {
@@ -367,7 +363,7 @@ impl PyHeaders {
                 }
             }
         }
-        Ok(PyHeaders::from(headers))
+        Ok(Self::from(headers))
     }
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {

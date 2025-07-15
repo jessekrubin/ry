@@ -2,7 +2,7 @@ use crate::http_types::{HttpHeaderMap, HttpHeaderNameRef};
 use crate::{PyHeaders, PyHttpStatus};
 use http::{HeaderMap, HeaderValue};
 use serde::ser::SerializeSeq;
-use serde::{de, Deserializer};
+use serde::{Deserializer, de};
 use std::fmt;
 
 impl<'de> serde::Deserialize<'de> for PyHttpStatus {
@@ -11,7 +11,7 @@ impl<'de> serde::Deserialize<'de> for PyHttpStatus {
         D: serde::Deserializer<'de>,
     {
         let code = u16::deserialize(deserializer)?;
-        PyHttpStatus::py_new(code).map_err(serde::de::Error::custom)
+        Self::py_new(code).map_err(serde::de::Error::custom)
     }
 }
 

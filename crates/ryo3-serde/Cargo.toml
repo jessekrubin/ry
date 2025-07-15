@@ -22,6 +22,9 @@ ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
 ryo3-url = { workspace = true, optional = true, features = ["serde"] }
 ryo3-uuid = { workspace = true, optional = true, features = ["serde"] }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [features]
 default = [
   "ry"

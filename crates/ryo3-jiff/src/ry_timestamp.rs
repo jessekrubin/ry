@@ -1,4 +1,3 @@
-use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_signed_duration::RySignedDuration;
@@ -7,18 +6,21 @@ use crate::ry_timestamp_difference::{RyTimestampDifference, TimestampDifferenceA
 use crate::ry_timestamp_round::RyTimestampRound;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::series::RyTimestampSeries;
+use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffUnit, RyOffset};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
+use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
-use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Sub;
 use std::str::FromStr;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[pyclass(name = "Timestamp", module = "ry.ryo3", frozen)]
@@ -32,7 +34,7 @@ impl RyTimestamp {
         let s = second.unwrap_or(0);
         let ns = nanosecond.unwrap_or(0);
         Timestamp::new(s, ns)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -71,14 +73,14 @@ impl RyTimestamp {
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Timestamp::from_str(s)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
-    fn from_millisecond(_cls: &Bound<'_, PyType>, millisecond: i64) -> PyResult<RyTimestamp> {
+    fn from_millisecond(_cls: &Bound<'_, PyType>, millisecond: i64) -> PyResult<Self> {
         Timestamp::from_millisecond(millisecond)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -87,12 +89,9 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn from_pydatetime<'py>(
-        _cls: &Bound<'py, PyType>,
-        dt: &Bound<'py, PyAny>,
-    ) -> PyResult<RyTimestamp> {
+    fn from_pydatetime<'py>(_cls: &Bound<'py, PyType>, dt: &Bound<'py, PyAny>) -> PyResult<Self> {
         let ts = dt.extract::<Timestamp>()?;
-        Ok(RyTimestamp(ts))
+        Ok(Self(ts))
     }
 
     fn to_py(&self) -> Timestamp {
@@ -147,75 +146,37 @@ impl RyTimestamp {
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
-        other: RyTimestampArithmeticSub,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        match other {
-            #[expect(clippy::arithmetic_side_effects)]
-            RyTimestampArithmeticSub::Timestamp(other) => {
-                let span = self.0 - other.0;
-                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-                Ok(obj)
-            }
-            RyTimestampArithmeticSub::Delta(other) => {
-                let t = match other {
-                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-                }
-                .map_err(map_py_overflow_err)?;
-                RyTimestamp::from(t).into_pyobject(py).map(Bound::into_any)
-            }
+        if let Ok(ob) = other.downcast::<Self>() {
+            let span = self.0.sub(ob.get().0);
+            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
+            Ok(obj)
+        } else {
+            let spanish = Spanish::try_from(other)?;
+            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
+            Self::from(z).into_bound_py_any(py)
         }
     }
-
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-    //     }
-    //     .map_err(map_py_overflow_err)?;
-    //     self.0 = t;
-    //     Ok(())
-    // }
 
     fn checked_sub<'py>(
         &self,
         py: Python<'py>,
-        other: RyTimestampArithmeticSub,
+        other: &'py Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
 
-    fn __add__(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
-            RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
-        }
-        .map_err(map_py_overflow_err)?;
-        Ok(Self::from(t))
+    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        self.0
+            .checked_add(spanish)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0.checked_add(other.0),
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_add(other.0),
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0.checked_add(other.0),
-    //     }
-    //     .map_err(map_py_overflow_err)?;
-    //     self.0 = t;
-    //     Ok(())
-    // }
-
-    fn checked_add(&self, py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        self.__add__(py, other)
+    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
     }
 
     fn as_second(&self) -> i64 {
@@ -243,10 +204,9 @@ impl RyTimestamp {
         self.0.subsec_millisecond()
     }
 
-    fn series(&self, period: &RySpan) -> RyTimestampSeries {
-        RyTimestampSeries {
-            series: self.0.series(period.0),
-        }
+    fn series(&self, period: &RySpan) -> PyResult<RyTimestampSeries> {
+        period.assert_non_zero()?;
+        Ok(self.0.series(period.0).into())
     }
 
     #[getter]
@@ -267,23 +227,23 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn from_microsecond(_cls: &Bound<'_, PyType>, microsecond: i64) -> PyResult<RyTimestamp> {
+    fn from_microsecond(_cls: &Bound<'_, PyType>, microsecond: i64) -> PyResult<Self> {
         Timestamp::from_microsecond(microsecond)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
-    fn from_nanosecond(_cls: &Bound<'_, PyType>, nanosecond: i128) -> PyResult<RyTimestamp> {
+    fn from_nanosecond(_cls: &Bound<'_, PyType>, nanosecond: i128) -> PyResult<Self> {
         Timestamp::from_nanosecond(nanosecond)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     #[classmethod]
-    fn from_second(_cls: &Bound<'_, PyType>, second: i64) -> PyResult<RyTimestamp> {
+    fn from_second(_cls: &Bound<'_, PyType>, second: i64) -> PyResult<Self> {
         Timestamp::from_second(second)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
     fn signum(&self) -> i8 {
@@ -294,9 +254,9 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<RyTimestamp> {
+    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
         Timestamp::strptime(s, format)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
@@ -355,11 +315,11 @@ impl RyTimestamp {
         dwo.to_string()
     }
 
-    fn duration_since(&self, other: &RyTimestamp) -> RySignedDuration {
+    fn duration_since(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_since(other.0))
     }
 
-    fn duration_until(&self, other: &RyTimestamp) -> RySignedDuration {
+    fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
@@ -371,7 +331,7 @@ impl RyTimestamp {
         smallest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
-    ) -> PyResult<RyTimestamp> {
+    ) -> PyResult<Self> {
         let mut ts_round = TimestampRound::new();
         if let Some(smallest) = smallest {
             ts_round = ts_round.smallest(smallest.0);
@@ -384,34 +344,26 @@ impl RyTimestamp {
         }
         self.0
             .round(ts_round)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, opts: &RyTimestampRound) -> PyResult<RyTimestamp> {
+    fn _round(&self, opts: &RyTimestampRound) -> PyResult<Self> {
         self.0
             .round(opts.round)
-            .map(RyTimestamp::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn saturating_add(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_add(other.0),
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_add(other.0),
-            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_add(other.0),
-        }
-        .map_err(map_py_value_err)?;
+    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        let t = self.0.saturating_add(spanish).map_err(map_py_value_err)?;
         Ok(Self::from(t))
     }
 
-    fn saturating_sub(&self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<Self> {
-        let t = match other {
-            RyDeltaArithmeticSelf::Span(other) => self.0.saturating_sub(other.0),
-            RyDeltaArithmeticSelf::SignedDuration(other) => self.0.saturating_sub(other.0),
-            RyDeltaArithmeticSelf::Duration(other) => self.0.saturating_sub(other.0),
-        }
-        .map_err(map_py_value_err)?;
+    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        let t = self.0.saturating_sub(spanish).map_err(map_py_value_err)?;
         Ok(Self::from(t))
     }
 }
@@ -423,36 +375,6 @@ impl Display for RyTimestamp {
 }
 impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
-        RyTimestamp(value)
+        Self(value)
     }
-}
-
-#[pyclass(name = "TimestampSeries", module = "ry.ryo3")]
-pub struct RyTimestampSeries {
-    pub(crate) series: jiff::TimestampSeries,
-}
-
-#[pymethods]
-impl RyTimestampSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyTimestamp> {
-        slf.series.next().map(RyTimestamp::from)
-    }
-
-    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyTimestamp> {
-        slf.series
-            .borrow_mut()
-            .take(n)
-            .map(RyTimestamp::from)
-            .collect()
-    }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum RyTimestampArithmeticSub {
-    Timestamp(RyTimestamp),
-    Delta(RyDeltaArithmeticSelf),
 }

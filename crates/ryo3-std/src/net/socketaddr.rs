@@ -1,5 +1,5 @@
-use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use crate::net::PyIpv6Addr;
+use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use ryo3_macro_rules::err_py_not_impl;
@@ -23,7 +23,7 @@ impl PySocketAddrV4 {
     pub(crate) fn py_new(ip: IpAddrLike, port: u16) -> PyResult<Self> {
         let ipv4 = ip.get_ipv4()?;
         let sa = SocketAddrV4::new(ipv4, port);
-        Ok(PySocketAddrV4(sa))
+        Ok(Self(sa))
     }
 
     fn __str__(&self) -> String {
@@ -35,7 +35,7 @@ impl PySocketAddrV4 {
         format!("SocketAddrV4({}, {})", py_ip.__repr__(), self.port())
     }
 
-    fn __richcmp__(&self, other: &PySocketAddrV4, op: pyo3::basic::CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
         match op {
             pyo3::basic::CompareOp::Eq => self.0 == other.0,
             pyo3::basic::CompareOp::Ne => self.0 != other.0,
@@ -86,7 +86,7 @@ impl PySocketAddrV4 {
         let port = port_part
             .parse::<u16>()
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid port number"))?;
-        Ok(PySocketAddrV4(SocketAddrV4::new(ip, port)))
+        Ok(Self(SocketAddrV4::new(ip, port)))
     }
 
     #[classattr]
@@ -170,7 +170,7 @@ impl PySocketAddrV6 {
     fn py_new(ip: IpAddrLike, port: u16, flowinfo: u32, scope_id: u32) -> PyResult<Self> {
         let ipv6 = ip.get_ipv6()?;
         let sa = SocketAddrV6::new(ipv6, port, flowinfo, scope_id);
-        Ok(PySocketAddrV6(sa))
+        Ok(Self(sa))
     }
 
     fn __str__(&self) -> String {
@@ -182,7 +182,7 @@ impl PySocketAddrV6 {
         format!("SocketAddrV6({}, {})", py_ip.__repr__(), self.port())
     }
 
-    fn __richcmp__(&self, other: &PySocketAddrV6, op: pyo3::basic::CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
         match op {
             pyo3::basic::CompareOp::Eq => self.0 == other.0,
             pyo3::basic::CompareOp::Ne => self.0 != other.0,
@@ -238,7 +238,7 @@ impl PySocketAddrV6 {
         let port = port_part
             .parse::<u16>()
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid port number"))?;
-        Ok(PySocketAddrV6(SocketAddrV6::new(ip, port, 0, 0)))
+        Ok(Self(SocketAddrV6::new(ip, port, 0, 0)))
     }
 
     #[classattr]
@@ -325,13 +325,13 @@ impl PySocketAddr {
         match ip {
             IpAddr::V4(ipv4) => {
                 let sa = SocketAddr::V4(SocketAddrV4::new(ipv4, port));
-                Ok(PySocketAddr(sa))
+                Ok(Self(sa))
             }
             IpAddr::V6(ipv6) => {
                 let flowinfo = flowinfo.unwrap_or(0);
                 let scope_id = scope_id.unwrap_or(0);
                 let sa = SocketAddr::V6(SocketAddrV6::new(ipv6, port, flowinfo, scope_id));
-                Ok(PySocketAddr(sa))
+                Ok(Self(sa))
             }
         }
     }
@@ -348,7 +348,7 @@ impl PySocketAddr {
         format!("SocketAddr({}, {})", py_str, self.port())
     }
 
-    fn __richcmp__(&self, other: &PySocketAddr, op: pyo3::basic::CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
         match op {
             pyo3::basic::CompareOp::Eq => self.0 == other.0,
             pyo3::basic::CompareOp::Ne => self.0 != other.0,
@@ -380,7 +380,7 @@ impl PySocketAddr {
         let port = port_part
             .parse::<u16>()
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid port number"))?;
-        Ok(PySocketAddr(SocketAddr::new(ip, port)))
+        Ok(Self(SocketAddr::new(ip, port)))
     }
 
     fn to_ipaddr(&self) -> PyIpAddr {

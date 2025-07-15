@@ -1,11 +1,11 @@
+use crate::RyResponse;
 use crate::errors::map_reqwest_err;
 use crate::query_like::QueryLike;
 use crate::user_agent::parse_user_agent;
-use crate::RyResponse;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{intern, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
@@ -169,11 +169,11 @@ impl RyHttpClient {
         Ok(kwargs)
     }
 
-    fn __eq__(&self, other: &RyHttpClient) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.cfg == other.cfg
     }
 
-    fn __ne__(&self, other: &RyHttpClient) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.cfg != other.cfg
     }
 

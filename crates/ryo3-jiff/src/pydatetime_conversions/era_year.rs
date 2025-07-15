@@ -2,7 +2,7 @@ use crate::JiffEraYear;
 use jiff::civil::Era;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3::{intern, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, intern};
 
 impl<'py> IntoPyObject<'py> for &JiffEraYear {
     #[cfg(Py_LIMITED_API)]

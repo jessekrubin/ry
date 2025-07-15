@@ -1,9 +1,10 @@
-use crate::JiffTimeZone;
+use crate::{JiffOffset, JiffTimeZone};
 use jiff::tz::TimeZone;
-use pyo3::exceptions::PyValueError;
+use pyo3::intern;
 use pyo3::prelude::*;
+use pyo3::pybacked::PyBackedStr;
 use pyo3::sync::GILOnceCell;
-use pyo3::types::{PyString, PyType};
+use pyo3::types::{PyType, PyTzInfo};
 
 pub fn timezone2pyobect<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyAny>> {
     static ZONE_INFO: GILOnceCell<Py<PyType>> = GILOnceCell::new();
@@ -30,27 +31,16 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZone {
     }
 }
 
-impl FromPyObject<'_> for JiffTimeZone {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<JiffTimeZone> {
-        // if it is a string we go w/ that
-        if let Ok(s) = ob.downcast::<PyString>() {
-            let str = s.to_string();
-            if str.ends_with("/etc/localtime") {
-                return Ok(JiffTimeZone(TimeZone::system()));
-            }
-            let tz = TimeZone::get(str.as_str())
-                .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-            let jtz = JiffTimeZone(tz);
-            Ok(jtz)
+impl<'py> FromPyObject<'py> for JiffTimeZone {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let ob = ob.downcast::<PyTzInfo>()?;
+        let attr = intern!(ob.py(), "key");
+        if ob.hasattr(attr)? {
+            let tz_pystr = ob.getattr(attr)?.extract::<PyBackedStr>()?;
+            let tz_str = tz_pystr.to_string();
+            Ok(Self(TimeZone::get(&tz_str)?))
         } else {
-            let name = ob.to_string();
-            if name.ends_with("/etc/localtime") {
-                return Ok(JiffTimeZone(TimeZone::system()));
-            }
-            let tz = TimeZone::get(name.as_str())
-                .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-            let jtz = JiffTimeZone(tz);
-            Ok(jtz)
+            Ok(ob.extract::<JiffOffset>()?.0.to_time_zone().into())
         }
     }
 }

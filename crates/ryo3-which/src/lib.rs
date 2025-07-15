@@ -6,7 +6,7 @@ mod which_regex;
 pub use which_regex::which_re;
 
 use pyo3::types::{PyModule, PyModuleMethods};
-use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult};
+use pyo3::{Bound, PyResult, pyfunction, wrap_pyfunction};
 
 use std::env;
 use std::ffi::OsString;

@@ -5,6 +5,7 @@ import typing as t
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
+@t.final
 class FnvHasher:
     name: t.Literal["fnv1a"]
     digest_size: t.Literal[8]

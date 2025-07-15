@@ -1,6 +1,6 @@
 use crate::compression_level::PyCompressionLevel;
-use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
 
 fn rs_zstd_compress_oneshot(data: &[u8], level: Option<PyCompressionLevel>) -> PyResult<Vec<u8>> {
     ::zstd::stream::encode_all(data, level.unwrap_or_default().into()).map_err(|e| {

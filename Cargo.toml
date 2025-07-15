@@ -14,7 +14,7 @@ categories.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "ry"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
@@ -52,13 +52,13 @@ lto = "fat"
 
 
 [workspace.package]
-version = "0.0.49"
+version = "0.0.51"
 authors = [
   "Jesse K. Rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
 ]
 documentation = "https://github.com/jessekrubin/ry"
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/jessekrubin/ry"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"
@@ -209,6 +209,8 @@ unreachable_pub = "warn"
 # groups
 cargo = { level = "warn", priority = -2 }
 all = { level = "warn", priority = -2 }
+# periodically check nursery lints
+# nursery = { level = "warn", priority = -2 }
 pedantic = { level = "warn", priority = -2 }
 correctness = { level = "warn", priority = 2 }
 panic = { level = "warn", priority = -1 }
@@ -223,3 +225,21 @@ missing_errors_doc = "allow"
 module_name_repetitions = "allow"
 # cargo allowed
 multiple_crate_versions = "allow"
+
+# nursery
+use_self = "warn"
+
+# nursery
+# as_ptr_cast_mut = 'allow'
+# derive_partial_eq_without_eq = "allow"
+# equatable_if_let = "allow"
+# literal_string_with_formatting_args = "allow"
+# missing_const_for_fn = "allow"
+# option_if_let_else = "allow"
+# or_fun_call = "allow"
+# redundant_pub_crate = "allow"
+# significant_drop_in_scrutinee = "allow"
+# significant_drop_tightening = "allow"
+# needless_pass_by_ref_mut = "allow"
+# cognitive_complexity = "allow"
+# use_self = "allow"

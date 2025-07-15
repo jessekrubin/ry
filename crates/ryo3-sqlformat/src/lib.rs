@@ -35,7 +35,7 @@ impl PySqlfmtQueryParams {
         }
     }
 
-    fn __eq__(&self, other: &PySqlfmtQueryParams) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         match (&self.params, &other.params) {
             (QueryParams::Named(p1), QueryParams::Named(p2)) => {
                 // make 2 vecccccs o refs...
@@ -54,7 +54,7 @@ impl PySqlfmtQueryParams {
         }
     }
 
-    fn __ne__(&self, other: &PySqlfmtQueryParams) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         !self.__eq__(other)
     }
 
@@ -153,7 +153,7 @@ impl From<Vec<(String, String)>> for PySqlfmtQueryParams {
     fn from(p: Vec<(String, String)>) -> Self {
         let named_params = p.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
         let p = QueryParams::Named(named_params);
-        PySqlfmtQueryParams { params: p }
+        Self { params: p }
     }
 }
 
@@ -215,7 +215,7 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
                         let p = QueryParams::Indexed(strings);
                         PySqlfmtQueryParams { params: p }
                     }
-                    PyQueryParamsLike::PyQueryParams(p) => PySqlfmtQueryParams { params: p.params },
+                    PyQueryParamsLike::PyQueryParams(p) => p,
                 }
             };
             Ok(py_params)

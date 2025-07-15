@@ -1,5 +1,4 @@
 use crate::constants::DATETIME_PARSER;
-use crate::delta_arithmetic_self::RyDeltaArithmeticSelf;
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_date_difference::{DateDifferenceArg, RyDateDifference};
@@ -10,32 +9,33 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
+use crate::series::RyDateSeries;
+use crate::spanish::Spanish;
 use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
-use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
+use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple, PyType};
+use pyo3::prelude::PyAnyMethods;
+use pyo3::types::{PyDict, PyDictMethods, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyRef, PyRefMut,
-    PyResult, Python,
+    Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, Python, intern, pyclass,
+    pymethods,
 };
-use ryo3_std::PyDuration;
-use std::borrow::BorrowMut;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
-#[pyclass(name = "Date", module = "ry.ryo3", frozen)]
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[pyclass(name = "Date", module = "ry.ryo3", frozen)]
 pub struct RyDate(pub(crate) Date);
 
 #[pymethods]
 impl RyDate {
     #[new]
     pub(crate) fn py_new(year: i16, month: i8, day: i8) -> PyResult<Self> {
-        Date::new(year, month, day).map(RyDate::from).map_err(|e| {
+        Date::new(year, month, day).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                 "{e} (year={year}, month={month}, day={day})",
             ))
@@ -67,21 +67,24 @@ impl RyDate {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
         DATETIME_PARSER
             .parse_date(input)
-            .map(RyDate::from)
+            .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    pub(crate) fn at(
-        &self,
-        hour: i8,
-        minute: i8,
-        second: i8,
-        subsec_nanosecond: i32,
-    ) -> RyDateTime {
-        RyDateTime::from(self.0.at(hour, minute, second, subsec_nanosecond))
+    #[classmethod]
+    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        DATETIME_PARSER
+            .parse_date(input)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[pyo3(signature = (hour, minute, second, nanosecond=0))]
+    pub(crate) fn at(&self, hour: i8, minute: i8, second: i8, nanosecond: i32) -> RyDateTime {
+        RyDateTime::from(self.0.at(hour, minute, second, nanosecond))
     }
 
     #[getter]
@@ -116,7 +119,7 @@ impl RyDate {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn __richcmp__(&self, other: &RyDate, op: CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,
             CompareOp::Ne => self.0 != other.0,
@@ -162,116 +165,49 @@ impl RyDate {
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
-        other: RyDateArithmeticSub,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        match other {
-            RyDateArithmeticSub::Date(other) => {
-                // cannot overflow...
-                let span = self.0.sub(other.0);
-                let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-                Ok(obj)
-            }
-            RyDateArithmeticSub::Delta(other) => {
-                let t = match other {
-                    RyDeltaArithmeticSelf::Span(other) => self.0.checked_sub(other.0),
-                    RyDeltaArithmeticSelf::SignedDuration(other) => self.0.checked_sub(other.0),
-                    RyDeltaArithmeticSelf::Duration(other) => self.0.checked_sub(other.0),
-                }
-                .map_err(map_py_overflow_err)?;
-                Ok(RyDate::from(t).into_pyobject(py)?.into_any())
-            }
+        if let Ok(ob) = other.downcast::<Self>() {
+            let span = self.0.sub(ob.get().0);
+            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
+            Ok(obj)
+        } else {
+            let spanish = Spanish::try_from(other)?;
+            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
+            Self::from(z).into_bound_py_any(py)
         }
     }
+
     fn checked_sub<'py>(
         &self,
         py: Python<'py>,
-        other: RyDateArithmeticSub,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
 
-    // ----------------------------
-    // incompatible with `frozen`
-    // ----------------------------
-    // fn __isub__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 - other.0,
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0 - other.0,
-    //     };
-    //     self.0 = t;
-    //     Ok(())
-    // }
-
-    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(date) = other.downcast::<RySpan>() {
-            let other = date.extract::<RySpan>()?;
-            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
-            return Ok(RyDate::from(t));
-        }
-        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
-            let other = signed_dur.extract::<RySignedDuration>()?;
-            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
-            return Ok(RyDate::from(t));
-        }
-        if let Ok(date) = other.downcast::<PyDuration>() {
-            let other = date.extract::<PyDuration>()?;
-            let t = self.0.checked_add(other.0).map_err(map_py_overflow_err)?;
-            return Ok(RyDate::from(t));
-        }
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "unsupported operand type(s) for +: 'Date' and 'other'",
-        ))
+    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        self.0
+            .checked_add(spanish)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
-    fn checked_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+
+    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
 
-    fn saturating_add<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
-        if let Ok(date) = other.downcast::<RySpan>() {
-            let other = date.extract::<RySpan>()?;
-            return Ok(RyDate::from(self.0.saturating_add(other.0)));
-        }
-        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
-            let other = signed_dur.extract::<RySignedDuration>()?;
-            return Ok(RyDate::from(self.0.saturating_add(other.0)));
-        }
-        if let Ok(date) = other.downcast::<PyDuration>() {
-            let other = date.extract::<PyDuration>()?;
-            return Ok(RyDate::from(self.0.saturating_add(other.0)));
-        }
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "unsupported operand type(s) for +: 'Date' and 'other'",
-        ))
+    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(Self::from(self.0.saturating_add(spanish)))
     }
 
-    fn saturating_sub<'py>(&self, _py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Self> {
-        if let Ok(date) = other.downcast::<RySpan>() {
-            let other = date.extract::<RySpan>()?;
-            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
-        }
-        if let Ok(signed_dur) = other.downcast::<RySignedDuration>() {
-            let other = signed_dur.extract::<RySignedDuration>()?;
-            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
-        }
-        if let Ok(date) = other.downcast::<PyDuration>() {
-            let other = date.extract::<PyDuration>()?;
-            return Ok(RyDate::from(self.0.saturating_sub(other.0)));
-        }
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "unsupported operand type(s) for +: 'Date' and 'other'",
-        ))
+    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(Self::from(self.0.saturating_sub(spanish)))
     }
 
-    // fn __iadd__(&mut self, _py: Python<'_>, other: RyDeltaArithmeticSelf) -> PyResult<()> {
-    //     let t = match other {
-    //         RyDeltaArithmeticSelf::Span(other) => self.0 + other.0,
-    //         RyDeltaArithmeticSelf::SignedDuration(other) => self.0 + other.0,
-    //         RyDeltaArithmeticSelf::Duration(other) => self.0 + other.0,
-    //     };
-    //     self.0 = t;
-    //     Ok(())
-    // }
     #[classmethod]
     fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> Self {
         Self(d)
@@ -319,9 +255,7 @@ impl RyDate {
                 "period cannot be zero",
             ))
         } else {
-            Ok(RyDateSeries {
-                series: self.0.series(period.0),
-            })
+            Ok(RyDateSeries::from(self.0.series(period.0)))
         }
     }
 
@@ -352,11 +286,11 @@ impl RyDate {
         JiffEraYear(self.0.era_year())
     }
 
-    fn first_of_month(&self) -> RyDate {
+    fn first_of_month(&self) -> Self {
         Self::from(self.0.first_of_month())
     }
 
-    fn first_of_year(&self) -> RyDate {
+    fn first_of_year(&self) -> Self {
         Self::from(self.0.first_of_year())
     }
 
@@ -364,11 +298,11 @@ impl RyDate {
         self.0.in_leap_year()
     }
 
-    fn last_of_month(&self) -> RyDate {
+    fn last_of_month(&self) -> Self {
         Self::from(self.0.last_of_month())
     }
 
-    fn last_of_year(&self) -> RyDate {
+    fn last_of_year(&self) -> Self {
         Self::from(self.0.last_of_year())
     }
 
@@ -486,32 +420,6 @@ impl Display for RyDate {
 
 impl From<Date> for RyDate {
     fn from(value: Date) -> Self {
-        RyDate(value)
+        Self(value)
     }
-}
-
-#[pyclass(name = "DateSeries", module = "ry.ryo3")]
-pub struct RyDateSeries {
-    pub(crate) series: jiff::civil::DateSeries,
-}
-
-#[pymethods]
-impl RyDateSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<RyDate> {
-        slf.series.next().map(RyDate::from)
-    }
-
-    fn take(mut slf: PyRefMut<'_, Self>, n: usize) -> Vec<RyDate> {
-        slf.series.borrow_mut().take(n).map(RyDate::from).collect()
-    }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum RyDateArithmeticSub {
-    Date(RyDate),
-    Delta(RyDeltaArithmeticSelf),
 }

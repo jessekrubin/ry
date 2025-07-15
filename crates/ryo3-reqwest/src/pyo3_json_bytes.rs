@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use jiter::{map_json_error, PythonParse};
+use jiter::{PythonParse, map_json_error};
 use pyo3::prelude::*;
 pub(crate) struct Pyo3JsonBytes(pub Bytes);
 

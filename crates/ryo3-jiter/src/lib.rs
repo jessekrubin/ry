@@ -6,10 +6,10 @@
 //! of [2024-05-29])
 use std::path::PathBuf;
 
-use ::jiter::{map_json_error, FloatMode, PartialMode, PythonParse, StringCacheMode};
+use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_error};
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
-use pyo3::IntoPyObjectExt;
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiterParseOptions {
@@ -21,7 +21,7 @@ pub struct JiterParseOptions {
 
 impl Default for JiterParseOptions {
     fn default() -> Self {
-        JiterParseOptions {
+        Self {
             allow_inf_nan: false,
             cache_mode: StringCacheMode::All,
             partial_mode: PartialMode::Off,

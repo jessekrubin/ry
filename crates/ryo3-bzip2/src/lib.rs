@@ -1,9 +1,9 @@
 #![doc = include_str!("../README.md")]
 use std::io::{Read, Write};
 
+use ::bzip2::Compression;
 use ::bzip2::read::BzDecoder;
 use ::bzip2::write::BzEncoder;
-use ::bzip2::Compression;
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;

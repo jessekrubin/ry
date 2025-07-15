@@ -134,7 +134,7 @@ impl PyUrl {
                 base
             }
             .join(&relative_path)
-            .map(PyUrl::from)
+            .map(Self::from)
             .map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "{e} (relative={relative_path})"
@@ -148,19 +148,19 @@ impl PyUrl {
     }
 
     fn __truediv__(&self, other: &str) -> PyResult<Self> {
-        self.0.join(other).map(PyUrl::from).map_err(|e| {
+        self.0.join(other).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (relative={other})"))
         })
     }
 
     fn __rtruediv__(&self, other: &str) -> PyResult<Self> {
-        self.0.join(other).map(PyUrl::from).map_err(|e| {
+        self.0.join(other).map(Self::from).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (relative={other})"))
         })
     }
 
     fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        if let Ok(other) = other.downcast::<PyUrl>() {
+        if let Ok(other) = other.downcast::<Self>() {
             let other = other.borrow();
             match op {
                 CompareOp::Eq => Ok(self.0 == other.0),
@@ -292,7 +292,7 @@ impl PyUrl {
     #[classmethod]
     fn from_directory_path(_cls: &Bound<'_, PyType>, path: &str) -> PyResult<Self> {
         url::Url::from_directory_path(path)
-            .map(PyUrl::from)
+            .map(Self::from)
             .map_err(|_e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "invalid path (path={path})"
@@ -372,14 +372,14 @@ impl PyUrl {
             url.set_username(username)
                 .map_err(|()| py_value_error!("Err setting username (username={username:?})"))?;
         }
-        Ok(PyUrl(url))
+        Ok(Self(url))
     }
 
     #[pyo3(signature = (fragment = None))]
     fn replace_fragment(&self, fragment: Option<&str>) -> Self {
         let mut url = self.0.clone();
         url.set_fragment(fragment);
-        PyUrl(url)
+        Self(url)
     }
 
     #[pyo3(signature = (host = None))]
@@ -387,14 +387,14 @@ impl PyUrl {
         let mut url = self.0.clone();
         url.set_host(host)
             .map_err(|e| py_value_error!("{e} (host={host:?})"))?;
-        Ok(PyUrl(url))
+        Ok(Self(url))
     }
 
     fn replace_ip_host(&self, ip_host: IpAddr) -> PyResult<Self> {
         let mut url = self.0.clone();
         url.set_ip_host(ip_host)
             .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))?;
-        Ok(PyUrl(url))
+        Ok(Self(url))
     }
 
     #[pyo3(signature = (password = None))]
@@ -402,7 +402,7 @@ impl PyUrl {
         let mut url = self.0.clone();
         url.set_password(password)
             .map_err(|()| py_value_error!("Err setting password (password={password:?})"))?;
-        Ok(PyUrl(url))
+        Ok(Self(url))
     }
 
     fn replace_path(&self, path: &str) -> Self {

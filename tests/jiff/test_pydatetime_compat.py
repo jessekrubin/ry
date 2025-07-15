@@ -43,3 +43,16 @@ def test_time_asdict() -> None:
         "second": 30,
         "nanosecond": 0,
     } == rytime.asdict()
+
+
+def test_datetime_as_dict() -> None:
+    rytime = ry.datetime(2020, 8, 26, 10, 20, 30)
+    assert {
+        "year": 2020,
+        "month": 8,
+        "day": 26,
+        "hour": 10,
+        "minute": 20,
+        "second": 30,
+        "nanosecond": 0,
+    } == rytime.asdict()

@@ -134,27 +134,27 @@ impl PyIpv4Addr {
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpv4Addr) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
 
-    fn __ne__(&self, other: &PyIpv4Addr) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
 
-    fn __lt__(&self, other: &PyIpv4Addr) -> bool {
+    fn __lt__(&self, other: &Self) -> bool {
         self.0 < other.0
     }
 
-    fn __le__(&self, other: &PyIpv4Addr) -> bool {
+    fn __le__(&self, other: &Self) -> bool {
         self.0 <= other.0
     }
 
-    fn __gt__(&self, other: &PyIpv4Addr) -> bool {
+    fn __gt__(&self, other: &Self) -> bool {
         self.0 > other.0
     }
 
-    fn __ge__(&self, other: &PyIpv4Addr) -> bool {
+    fn __ge__(&self, other: &Self) -> bool {
         self.0 >= other.0
     }
 
@@ -325,22 +325,22 @@ impl PyIpv6Addr {
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpv6Addr) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
-    fn __ne__(&self, other: &PyIpv6Addr) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
-    fn __lt__(&self, other: &PyIpv6Addr) -> bool {
+    fn __lt__(&self, other: &Self) -> bool {
         self.0 < other.0
     }
-    fn __le__(&self, other: &PyIpv6Addr) -> bool {
+    fn __le__(&self, other: &Self) -> bool {
         self.0 <= other.0
     }
-    fn __gt__(&self, other: &PyIpv6Addr) -> bool {
+    fn __gt__(&self, other: &Self) -> bool {
         self.0 > other.0
     }
-    fn __ge__(&self, other: &PyIpv6Addr) -> bool {
+    fn __ge__(&self, other: &Self) -> bool {
         self.0 >= other.0
     }
 
@@ -516,22 +516,22 @@ impl PyIpAddr {
     // CMP
     // ========================================================================
 
-    fn __eq__(&self, other: &PyIpAddr) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
     }
-    fn __ne__(&self, other: &PyIpAddr) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         self.0 != other.0
     }
-    fn __lt__(&self, other: &PyIpAddr) -> bool {
+    fn __lt__(&self, other: &Self) -> bool {
         self.0 < other.0
     }
-    fn __le__(&self, other: &PyIpAddr) -> bool {
+    fn __le__(&self, other: &Self) -> bool {
         self.0 <= other.0
     }
-    fn __gt__(&self, other: &PyIpAddr) -> bool {
+    fn __gt__(&self, other: &Self) -> bool {
         self.0 > other.0
     }
-    fn __ge__(&self, other: &PyIpAddr) -> bool {
+    fn __ge__(&self, other: &Self) -> bool {
         self.0 >= other.0
     }
 
@@ -777,23 +777,23 @@ pub(crate) enum IpAddrLike {
 impl IpAddrLike {
     pub(crate) fn get_ipv4(&self) -> PyResult<Ipv4Addr> {
         match self {
-            IpAddrLike::Ryv4(addr) => Ok(addr.0),
-            IpAddrLike::Ry(addr) => match addr.0 {
+            Self::Ryv4(addr) => Ok(addr.0),
+            Self::Ry(addr) => match addr.0 {
                 IpAddr::V4(addr) => Ok(addr),
                 IpAddr::V6(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv4 address",
                 )),
             },
-            IpAddrLike::Py(addr) => match addr {
+            Self::Py(addr) => match addr {
                 IpAddr::V4(addr) => Ok(*addr),
                 IpAddr::V6(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv4 address",
                 )),
             },
-            IpAddrLike::Str(s) => s.parse().map_err(|_| {
+            Self::Str(s) => s.parse().map_err(|_| {
                 pyo3::exceptions::PyTypeError::new_err("Expected a valid IPv4 address string")
             }),
-            IpAddrLike::Ryv6(_) => Err(pyo3::exceptions::PyTypeError::new_err(
+            Self::Ryv6(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                 "Expected an IPv4 address",
             )),
         }
@@ -801,23 +801,23 @@ impl IpAddrLike {
 
     pub(crate) fn get_ipv6(&self) -> PyResult<Ipv6Addr> {
         match self {
-            IpAddrLike::Ryv6(addr) => Ok(addr.0),
-            IpAddrLike::Ry(addr) => match addr.0 {
+            Self::Ryv6(addr) => Ok(addr.0),
+            Self::Ry(addr) => match addr.0 {
                 IpAddr::V6(addr) => Ok(addr),
                 IpAddr::V4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv6 address",
                 )),
             },
-            IpAddrLike::Py(addr) => match addr {
+            Self::Py(addr) => match addr {
                 IpAddr::V6(addr) => Ok(*addr),
                 IpAddr::V4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                     "Expected an IPv6 address",
                 )),
             },
-            IpAddrLike::Str(s) => s.parse().map_err(|_| {
+            Self::Str(s) => s.parse().map_err(|_| {
                 pyo3::exceptions::PyTypeError::new_err("Expected a valid IPv6 address string")
             }),
-            IpAddrLike::Ryv4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
+            Self::Ryv4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
                 "Expected an IPv6 address",
             )),
         }
@@ -825,11 +825,11 @@ impl IpAddrLike {
 
     pub(crate) fn get_ip(&self) -> PyResult<IpAddr> {
         match self {
-            IpAddrLike::Ryv4(addr) => Ok(IpAddr::V4(addr.0)),
-            IpAddrLike::Ryv6(addr) => Ok(IpAddr::V6(addr.0)),
-            IpAddrLike::Ry(addr) => Ok(addr.0),
-            IpAddrLike::Py(addr) => Ok(*addr),
-            IpAddrLike::Str(s) => s.parse().map_err(|_| {
+            Self::Ryv4(addr) => Ok(IpAddr::V4(addr.0)),
+            Self::Ryv6(addr) => Ok(IpAddr::V6(addr.0)),
+            Self::Ry(addr) => Ok(addr.0),
+            Self::Py(addr) => Ok(*addr),
+            Self::Str(s) => s.parse().map_err(|_| {
                 pyo3::exceptions::PyTypeError::new_err("Expected a valid IP address string")
             }),
         }

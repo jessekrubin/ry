@@ -13,6 +13,7 @@ from ry.ryo3._bytes import Bytes
 # =============================================================================
 # STD::TIME
 # =============================================================================
+@t.final
 class Duration(ToPy[pydt.timedelta]):
     ZERO: Duration
     MIN: Duration
@@ -119,6 +120,7 @@ class Duration(ToPy[pydt.timedelta]):
     def saturating_mul(self, other: Duration) -> Duration: ...
     def saturating_sub(self, other: Duration) -> Duration: ...
 
+@t.final
 class Instant:
     def __init__(self) -> None: ...
     @classmethod
@@ -152,7 +154,9 @@ def sleep(seconds: float) -> float: ...
 # =============================================================================
 # STD::FS
 # =============================================================================
+@t.final
 class FileType:
+    def __init__(self, *args: te.Never, **kwargs: te.Never) -> te.NoReturn: ...
     @property
     def is_dir(self) -> bool: ...
     @property
@@ -161,12 +165,14 @@ class FileType:
     def is_symlink(self) -> bool: ...
     def to_py(self) -> FileTypeDict: ...
 
+@t.final
 class Permissions:
     @property
     def readonly(self) -> bool: ...
     def __eq__(self, value: object) -> bool: ...
     def __ne__(self, value: object) -> bool: ...
 
+@t.final
 class Metadata:
     def __init__(self) -> te.NoReturn: ...
     @property
@@ -193,6 +199,7 @@ class Metadata:
     def readonly(self) -> bool: ...
     def to_py(self) -> MetadataDict: ...
 
+@t.final
 class DirEntry:
     def __fspath__(self) -> str: ...
     @property
@@ -212,8 +219,10 @@ class RyIterable(t.Generic[_T]):
     def collect(self) -> list[_T]: ...
     def take(self, n: int = 1) -> list[_T]: ...
 
+@t.final
 class ReadDir(RyIterable[DirEntry]): ...
 
+@t.final
 class FileReadStream:
     def __init__(
         self,

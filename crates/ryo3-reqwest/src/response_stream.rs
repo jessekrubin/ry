@@ -1,7 +1,7 @@
 use crate::errors::map_reqwest_err;
 use bytes::{Bytes, BytesMut};
-use futures_util::stream::{BoxStream, Fuse};
 use futures_util::StreamExt;
+use futures_util::stream::{BoxStream, Fuse};
 use pyo3::exceptions::PyStopAsyncIteration;
 use pyo3::prelude::*;
 use reqwest::StatusCode;

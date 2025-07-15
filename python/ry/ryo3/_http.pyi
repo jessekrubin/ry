@@ -15,6 +15,7 @@ HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
 
 _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 
+@t.final
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
@@ -63,6 +64,7 @@ class Headers:
     @property
     def is_flat(self) -> bool: ...
 
+@t.final
 class HttpStatus:
     def __init__(self, code: int) -> None: ...
     def __int__(self) -> int: ...

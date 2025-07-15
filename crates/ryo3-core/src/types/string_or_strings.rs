@@ -7,7 +7,7 @@ pub enum StringOrStrings {
 }
 
 impl From<StringOrStrings> for Vec<String> {
-    fn from(sos: StringOrStrings) -> Vec<String> {
+    fn from(sos: StringOrStrings) -> Self {
         match sos {
             StringOrStrings::String(s) => vec![s],
             StringOrStrings::Strings(v) => v,

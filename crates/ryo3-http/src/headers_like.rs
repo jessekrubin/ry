@@ -57,7 +57,7 @@ impl TryFrom<PyHeadersLike> for PyHeaders {
             PyHeadersLike::Headers(h) => Ok(h),
             PyHeadersLike::Map(d) => {
                 let headers = PyHeadersLike::map2headers(&d)?;
-                Ok(PyHeaders::from(headers))
+                Ok(Self::from(headers))
             }
         }
     }

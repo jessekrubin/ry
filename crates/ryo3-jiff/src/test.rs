@@ -39,7 +39,7 @@ fn test_deserialize_and_serialize() {
 
     let serialized = serde_json::to_string_pretty(&s).unwrap();
 
-    println!("Serialized: {}", serialized);
+    println!("Serialized: {serialized}");
     let deserialized: Stuff = serde_json::from_str(&serialized).unwrap();
     assert_eq!(s, deserialized);
 }

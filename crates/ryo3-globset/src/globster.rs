@@ -1,8 +1,8 @@
-use crate::{PyGlobPatternsString, DEFAULT_BACKSLASH_ESCAPE};
+use crate::{DEFAULT_BACKSLASH_ESCAPE, PyGlobPatternsString};
 use globset::{GlobBuilder, GlobSetBuilder};
 use pyo3::exceptions::PyValueError;
 use pyo3::types::PyTuple;
-use pyo3::{pyclass, pymethods, Bound, PyErr, PyResult, Python};
+use pyo3::{Bound, PyErr, PyResult, Python, pyclass, pymethods};
 use ryo3_core::types::PathLike;
 use std::path::Path;
 use std::str::FromStr;
@@ -24,7 +24,7 @@ impl FromStr for PyGlobster {
 
     fn from_str(pattern: &str) -> PyResult<Self> {
         let patterns = vec![pattern.to_string()];
-        PyGlobster::py_new(patterns, None, None, None)
+        Self::py_new(patterns, None, None, None)
     }
 }
 
@@ -32,7 +32,7 @@ impl TryFrom<Vec<String>> for PyGlobster {
     type Error = PyErr;
 
     fn try_from(patterns: Vec<String>) -> PyResult<Self> {
-        PyGlobster::py_new(patterns, None, None, None)
+        Self::py_new(patterns, None, None, None)
     }
 }
 
