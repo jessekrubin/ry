@@ -2,6 +2,9 @@
 
 ## v0.0.51 [unreleased]
 
+- `ryo3-ulid`
+  - strict + lax ulid parsing for pydantic
+
 ---
 
 ## v0.0.50 [2025-07-14]
