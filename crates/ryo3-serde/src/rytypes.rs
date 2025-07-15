@@ -5,6 +5,10 @@ use crate::py_serialize::SerializePyAny;
 use pyo3::prelude::*;
 use serde::ser::Serialize;
 
+// THE FOLLOWING MACRO WAS WRITTEN BY FUGUE-STATE-JESSE (NOT AN LLM).
+// I (NORMAL JESSE) HAVE NO CLUE HOW IT WORKS :(
+// UNFORTUNATELY, FUGUE-STATE-JESSE ONLY APPEARS AT RANDOM, SO YOU HAVE TO ASK
+// HIM IF/WHEN HE RE-APPEARS...
 macro_rules! ry_type_serializers {
     ( $(
         $( #[$meta:meta] )*          // feature gate(s)
