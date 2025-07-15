@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.51 [unreleased]
+
+---
+
 ## v0.0.50 [2025-07-14]
 
 - internal
