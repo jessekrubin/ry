@@ -4,6 +4,11 @@
 
 - `ryo3-ulid`
   - strict + lax ulid parsing for pydantic
+- `ryo3-jiff`
+  - Renamed `checked_add` and `checked_sub` to `add` and `sub` where the
+    checked_version can error; did not remove where the checked version returns
+    an `Option` type (`ry.SignedDuration`)
+  - Added `replace` methods to `Date`, `DateTime` and `Time` structs
 
 ---
 

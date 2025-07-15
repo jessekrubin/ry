@@ -159,14 +159,6 @@ impl RyTimestamp {
         }
     }
 
-    fn checked_sub<'py>(
-        &self,
-        py: Python<'py>,
-        other: &'py Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.__sub__(py, other)
-    }
-
     fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         self.0
@@ -175,8 +167,16 @@ impl RyTimestamp {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
+    }
+
+    fn sub<'py>(
+        &self,
+        py: Python<'py>,
+        other: &'py Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
     }
 
     fn as_second(&self) -> i64 {

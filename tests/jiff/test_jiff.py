@@ -428,7 +428,7 @@ class TestTzOffset:
     def test_checked_add(self) -> None:
         offset = ry.Offset.from_hours(-8)
         span = ry.timespan(hours=1)
-        assert offset.checked_add(span) == ry.Offset.from_hours(-7)
+        assert offset.add(span) == ry.Offset.from_hours(-7)
         signed_duration = span.to_signed_duration(
             ry.Date(
                 year=2024,
@@ -436,20 +436,20 @@ class TestTzOffset:
                 day=13,  # OOOOH friday the 13th
             )
         )
-        assert offset.checked_add(signed_duration) == ry.Offset.from_hours(-7)
+        assert offset.add(signed_duration) == ry.Offset.from_hours(-7)
         duration = ry.Duration(secs=3600)
-        assert offset.checked_add(duration) == ry.Offset.from_hours(-7)
+        assert offset.add(duration) == ry.Offset.from_hours(-7)
 
     def test_checked_sub(self) -> None:
         offset = ry.Offset.from_hours(-8)
         span = ry.timespan(hours=1)
-        assert offset.checked_sub(span) == ry.Offset.from_hours(-9)
+        assert offset.sub(span) == ry.Offset.from_hours(-9)
         signed_duration = span.to_signed_duration(
             ry.Date(year=2024, month=12, day=13)  # OOOOH friday the 13th (again)
         )
-        assert offset.checked_sub(signed_duration) == ry.Offset.from_hours(-9)
+        assert offset.sub(signed_duration) == ry.Offset.from_hours(-9)
         duration = ry.Duration(secs=3600)
-        assert offset.checked_sub(duration) == ry.Offset.from_hours(-9)
+        assert offset.sub(duration) == ry.Offset.from_hours(-9)
 
     def test_saturating_add(self) -> None:
         offset = ry.Offset.from_hours(25)

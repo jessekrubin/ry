@@ -441,7 +441,7 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn checked_add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = (&other).into();
 
         self.0
@@ -460,7 +460,7 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn checked_sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
@@ -475,7 +475,7 @@ impl RySpan {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_mul(&self, rhs: i64) -> PyResult<Self> {
+    fn mul(&self, rhs: i64) -> PyResult<Self> {
         self.__mul__(rhs)
     }
 

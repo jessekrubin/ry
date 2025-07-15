@@ -178,11 +178,11 @@ impl RyTime {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_sub<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn add<'py>(&self, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn sub<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
 
@@ -248,6 +248,24 @@ impl RyTime {
 
     fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
         RyDateTime::from(self.0.on(year, month, day))
+    }
+
+    #[pyo3(signature = (hour=None, minute=None, second=None, nanosecond=None))]
+    fn replace(
+        &self,
+        hour: Option<i8>,
+        minute: Option<i8>,
+        second: Option<i8>,
+        nanosecond: Option<i32>,
+    ) -> PyResult<Self> {
+        Time::new(
+            hour.unwrap_or(self.0.hour()),
+            minute.unwrap_or(self.0.minute()),
+            second.unwrap_or(self.0.second()),
+            nanosecond.unwrap_or(self.0.subsec_nanosecond()),
+        )
+        .map(Self::from)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

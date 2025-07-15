@@ -99,35 +99,33 @@ def test_negative_spans() -> None:
     assert span.string() == "-P5D"
 
 
-class TestSpanCheckedAdd:
+class TestSpanAdd:
     """From the checked_add doctests"""
 
     def test_checked_add_root(self) -> None:
         span1 = ry.timespan(days=2, hours=23)
         span2 = ry.timespan(hours=2)
-        assert span1.checked_add(span2) == ry.timespan(days=3, hours=1)
+        assert span1.add(span2) == ry.timespan(days=3, hours=1)
 
     def test_example_rebalancing(self) -> None:
         span1 = ry.timespan(days=2, hours=23)
         span2 = ry.timespan(hours=2)
-        assert span1.checked_add(span2) == ry.timespan(days=3, hours=1)
+        assert span1.add(span2) == ry.timespan(days=3, hours=1)
 
     def test_checked_add_with_relative_datetime(self) -> None:
         span1 = ry.timespan(months=1, days=15)
         span2 = ry.timespan(days=15)
-        assert span1.checked_add((span2, ry.Date(2008, 3, 1))) == ry.timespan(months=2)
+        assert span1.add((span2, ry.Date(2008, 3, 1))) == ry.timespan(months=2)
 
         span1 = ry.timespan(months=1, days=15)
         span2 = ry.timespan(days=15)
-        assert span1.checked_add((span2, ry.Date(2008, 4, 1))) == ry.timespan(
-            months=1, days=30
-        )
+        assert span1.add((span2, ry.Date(2008, 4, 1))) == ry.timespan(months=1, days=30)
 
     def test_adding_spans_with_calendar_units(self) -> None:
         span1 = ry.timespan(months=1, days=15)
         span2 = ry.timespan(days=15)
         with pytest.raises(OverflowError):
-            span1.checked_add(span2)
+            span1.add(span2)
 
     def test_adding_spans_with_calendar_units_with_relative_datetime(
         self,
@@ -135,18 +133,16 @@ class TestSpanCheckedAdd:
         # with relative datetime
         span1 = ry.timespan(months=1, days=15)
         span2 = ry.timespan(days=15)
-        assert span1.checked_add((span2, ry.Date(2008, 3, 1))) == ry.timespan(months=2)
+        assert span1.add((span2, ry.Date(2008, 3, 1))) == ry.timespan(months=2)
 
         # but 1 month from April 1 is 30 days!
         span1 = ry.timespan(months=1, days=15)
         span2 = ry.timespan(days=15)
-        assert span1.checked_add((span2, ry.Date(2008, 4, 1))) == ry.timespan(
-            months=1, days=30
-        )
+        assert span1.add((span2, ry.Date(2008, 4, 1))) == ry.timespan(months=1, days=30)
 
     def test_error_on_overflow(self) -> None:
         with pytest.raises(OverflowError):
-            ry.timespan(years=19_998).checked_add(ry.timespan(years=1))
+            ry.timespan(years=19_998).add(ry.timespan(years=1))
 
 
 class TestSpanCompare:

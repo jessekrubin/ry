@@ -1,10 +1,11 @@
 use crate::JiffOffset;
-use crate::errors::map_py_value_err;
+use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
+use crate::spanish::Spanish;
 use jiff::tz::{Offset, OffsetArithmetic};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
@@ -202,23 +203,32 @@ impl RyOffset {
             CompareOp::Ge => self.0 >= other.0,
         }
     }
+    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        self.0
+            .checked_add(spanish)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
+    }
+
+    fn __sub__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        self.0
+            .checked_sub(spanish)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
+    }
+
+    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        self.__sub__(other)
+    }
 
     fn to_timezone(&self) -> RyTimeZone {
         RyTimeZone::from(self.0.to_time_zone())
-    }
-
-    fn checked_add(&self, other: IntoOffsetArithmetic) -> PyResult<Self> {
-        self.0
-            .checked_add(other)
-            .map(Self::from)
-            .map_err(map_py_value_err)
-    }
-
-    fn checked_sub(&self, other: IntoOffsetArithmetic) -> PyResult<Self> {
-        self.0
-            .checked_sub(other)
-            .map(Self::from)
-            .map_err(map_py_value_err)
     }
 
     fn saturating_add(&self, other: IntoOffsetArithmetic) -> Self {
