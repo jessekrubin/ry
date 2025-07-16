@@ -192,7 +192,13 @@ class Date(ToPy[pydt.date], ToPyDate):
     def nth_weekday(self, nth: int, weekday: WEEKDAY) -> Date: ...
     def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -> Date: ...
     def replace(
-        self, year: int | None = None, month: int | None = None, day: int | None = None
+        self,
+        year: int | None = None,
+        month: int | None = None,
+        day: int | None = None,
+        era_year: tuple[int, t.Literal["BCE", "CE"]] | None = None,
+        day_of_year: int | None = None,
+        day_of_year_no_leap: int | None = None,
     ) -> Date: ...
     def series(self, span: TimeSpan) -> JiffSeries[Date]: ...
     def to_datetime(self, t: Time) -> DateTime: ...
@@ -362,7 +368,10 @@ class Time(ToPy[pydt.time], ToPyTime):
         hour: int | None = None,
         minute: int | None = None,
         second: int | None = None,
+        millisecond: int | None = None,
+        microsecond: int | None = None,
         nanosecond: int | None = None,
+        subsec_nanosecond: int | None = None,
     ) -> Time: ...
     def round(
         self,
@@ -1635,6 +1644,8 @@ def timespan(
     nanoseconds: int = 0,
 ) -> TimeSpan: ...
 def offset(hours: int) -> Offset: ...
+def now() -> ZonedDateTime: ...
+def utcnow() -> ZonedDateTime: ...
 
 # =============================================================================
 # TIMEZONE-DATABASE

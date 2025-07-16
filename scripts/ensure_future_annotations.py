@@ -24,7 +24,11 @@ def file_string_is_empty(string: str) -> bool:
 for file in REPO_ROOT.joinpath("tests").resolve().glob("**/*.py"):
     echo("=" * 80)
     echo(file)
-    string = file.read_text()
+    with open(
+        file,
+        encoding="utf-8",
+    ) as f:
+        string = f.read()
     has_future_annotations = FROM_FUTURE_IMPORT_ANNOTATIONS in string
     file_is_empty = file_string_is_empty(string)
     if not has_future_annotations and not file_is_empty:

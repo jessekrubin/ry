@@ -129,8 +129,12 @@ justfilefmt:
 justfilefmtc:
     just --check --fmt --unstable
 
+# format markdown
+mdfmt:
+    prettier --prose-wrap=always -w CHANGELOG.md
+
 # format
-fmt: cargo-fmt fmtpy justfilefmt
+fmt: cargo-fmt fmtpy justfilefmt mdfmt
 
 # format check
 fmtc: cargo-fmtc fmtcpy justfilefmtc

@@ -56,9 +56,11 @@ from ry.ryo3._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
 from ry.ryo3._jiff import ZonedDateTimeRound as ZonedDateTimeRound
 from ry.ryo3._jiff import date as date
 from ry.ryo3._jiff import datetime as datetime
+from ry.ryo3._jiff import now as now
 from ry.ryo3._jiff import offset as offset
 from ry.ryo3._jiff import time as time
 from ry.ryo3._jiff import timespan as timespan
+from ry.ryo3._jiff import utcnow as utcnow
 from ry.ryo3._jiff import zoned as zoned
 from ry.ryo3._jiter import JsonParseKwargs as JsonParseKwargs
 from ry.ryo3._jiter import JsonPrimitive as JsonPrimitive

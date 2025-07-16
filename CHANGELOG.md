@@ -11,7 +11,8 @@
     method that returns an `Option` type for all types (tbd). This is also meant
     to pave the way for `add`/`sub` functions with a more familiar api akin to
     `whenever`, `pendulum`, `arrow`, `insert-other-datetime-lib-here`
-  - Added `replace` methods to `Date`, `DateTime` and `Time` structs
+  - Added `replace` methods to `Date`, `DateTime` and `Time` structs that use
+    the underlying jiff `with` functions
 
 ---
 
