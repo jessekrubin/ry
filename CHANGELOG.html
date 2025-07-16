@@ -189,13 +189,25 @@
 <li>strict + lax ulid parsing for pydantic</li>
 </ul>
 </li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>Renamed <code>checked_add</code> and <code>checked_sub</code> to <code>add</code> and <code>sub</code> where the
+checked_version can error; did not remove where the checked version returns
+an <code>Option</code> type (<code>ry.SignedDuration</code>). <code>.checked_add</code> may return later as a
+method that returns an <code>Option</code> type for all types (tbd). This is also meant
+to pave the way for <code>add</code>/<code>sub</code> functions with a more familiar api akin to
+<code>whenever</code>, <code>pendulum</code>, <code>arrow</code>, <code>insert-other-datetime-lib-here</code></li>
+<li>Added <code>replace</code> methods to <code>Date</code>, <code>DateTime</code> and <code>Time</code> structs</li>
+</ul>
+</li>
 </ul>
 <hr />
 <h2 id="v0050-2025-07-14"><a class="header" href="#v0050-2025-07-14">v0.0.50 [2025-07-14]</a></h2>
 <ul>
 <li>internal
 <ul>
-<li>clippy lint fixes <code>unused_self</code> (all but <code>ryo3-bytes</code> which needs its own cleanup)</li>
+<li>clippy lint fixes <code>unused_self</code> (all but <code>ryo3-bytes</code> which needs its own
+cleanup)</li>
 </ul>
 </li>
 <li><code>ryo3-bytes</code>
