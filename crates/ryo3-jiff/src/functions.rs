@@ -1,8 +1,8 @@
 use crate::RyZoned;
 use crate::errors::map_py_value_err;
 use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime};
-use jiff::Span;
 use jiff::civil::Date;
+use jiff::{Span, Zoned};
 use pyo3::prelude::*;
 
 #[pyfunction]
@@ -25,6 +25,28 @@ pub fn time(
     nanosecond: Option<i32>,
 ) -> PyResult<RyTime> {
     RyTime::py_new(hour, minute, second, nanosecond)
+}
+
+#[pyfunction]
+#[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, nanosecond=0))]
+pub fn datetime(
+    year: i16,
+    month: i8,
+    day: i8,
+    hour: i8,
+    minute: i8,
+    second: i8,
+    nanosecond: i32,
+) -> PyResult<RyDateTime> {
+    RyDateTime::py_new(
+        year,
+        month,
+        day,
+        Some(hour),
+        Some(minute),
+        Some(second),
+        Some(nanosecond),
+    )
 }
 
 #[pyfunction]
@@ -59,26 +81,20 @@ pub fn zoned(
     }
 }
 
+/// Return ZondeDateTime for the current time in the system's local timezone.
 #[pyfunction]
-#[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, nanosecond=0))]
-pub fn datetime(
-    year: i16,
-    month: i8,
-    day: i8,
-    hour: i8,
-    minute: i8,
-    second: i8,
-    nanosecond: i32,
-) -> PyResult<RyDateTime> {
-    RyDateTime::py_new(
-        year,
-        month,
-        day,
-        Some(hour),
-        Some(minute),
-        Some(second),
-        Some(nanosecond),
-    )
+#[must_use]
+pub fn now() -> RyZoned {
+    RyZoned(Zoned::now())
+}
+
+/// Return ZonedDateTime for the current time in UTC.
+#[pyfunction]
+pub fn utcnow() -> PyResult<RyZoned> {
+    Zoned::now()
+        .in_tz("UTC")
+        .map(RyZoned::from)
+        .map_err(map_py_value_err)
 }
 
 #[expect(clippy::too_many_arguments)]

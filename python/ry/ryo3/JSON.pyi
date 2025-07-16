@@ -1,20 +1,12 @@
 """ry.ryo3.JSON"""
 
-from typing import Any, Callable, Literal, overload
+import typing as t
 
-import typing_extensions
 import typing_extensions as te
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import JsonParseKwargs
-
-JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
-JsonValue: typing_extensions.TypeAlias = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
-)
+from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
 def minify(data: Buffer) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
@@ -72,45 +64,45 @@ def fmt(data: Buffer) -> Bytes:
 
     """
 
-@overload
+@t.overload
 def stringify(
-    data: Any,
+    data: t.Any,
     *,
-    default: Callable[[Any], Any] | None = None,
+    default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
-    pybytes: Literal[True],
+    pybytes: t.Literal[True],
 ) -> bytes: ...
-@overload
+@t.overload
 def stringify(
-    data: Any,
+    data: t.Any,
     *,
-    default: Callable[[Any], Any] | None = None,
+    default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
-    pybytes: Literal[False] = False,
+    pybytes: t.Literal[False] = False,
 ) -> Bytes: ...
-@overload
+@t.overload
 def dumps(
-    data: Any,
+    data: t.Any,
     *,
-    default: Callable[[Any], Any] | None = None,
+    default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
-    pybytes: Literal[True],
+    pybytes: t.Literal[True],
 ) -> bytes: ...
-@overload
+@t.overload
 def dumps(
-    data: Any,
+    data: t.Any,
     *,
-    default: Callable[[Any], Any] | None = None,
+    default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
-    pybytes: Literal[False] = False,
+    pybytes: t.Literal[False] = False,
 ) -> Bytes: ...
 def loads(
     data: Buffer | bytes | str,

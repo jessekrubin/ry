@@ -11,7 +11,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
+use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
@@ -199,13 +199,47 @@ impl RyDate {
         Ok(Self::from(self.0.saturating_sub(spanish)))
     }
 
-    #[pyo3(signature = (year=None, month=None, day=None))]
-    fn replace(&self, year: Option<i16>, month: Option<i8>, day: Option<i8>) -> PyResult<Self> {
-        Self::py_new(
-            year.unwrap_or(self.year()),
-            month.unwrap_or(self.month()),
-            day.unwrap_or(self.day()),
+    #[pyo3(
+        signature = (
+            *,
+            year=None,
+            era_year=None,
+            month=None,
+            day=None,
+            day_of_year=None,
+            day_of_year_no_leap=None,
         )
+    )]
+    fn replace(
+        &self,
+        year: Option<i16>,
+        era_year: Option<(i16, JiffEra)>,
+        month: Option<i8>,
+        day: Option<i8>,
+        day_of_year: Option<i16>,
+        day_of_year_no_leap: Option<i16>,
+    ) -> PyResult<Self> {
+        let mut builder = self.0.with();
+        if let Some(y) = year {
+            builder = builder.year(y);
+        }
+        if let Some(ey) = era_year {
+            builder = builder.era_year(ey.0, (ey.1).0);
+        }
+        if let Some(m) = month {
+            builder = builder.month(m);
+        }
+        if let Some(d) = day {
+            builder = builder.day(d);
+        }
+        if let Some(doy) = day_of_year {
+            builder = builder.day_of_year(doy);
+        }
+        if let Some(doy) = day_of_year_no_leap {
+            builder = builder.day_of_year_no_leap(doy);
+        }
+        // finally build, mapping any error back to Python
+        builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
     #[classmethod]

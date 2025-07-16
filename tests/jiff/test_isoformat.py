@@ -1,9 +1,15 @@
 import datetime as pydt
 
-from hypothesis import assume, given
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 import ry
+
+from ..strategies import st_timezones
+
+deadline = 30 * 1000  # milliseconds
+settings.register_profile("slow", max_examples=10_000, deadline=deadline)
+settings.load_profile("slow")
 
 
 @given(st.datetimes(timezones=st.none()))
@@ -32,20 +38,18 @@ def test_time_isoformat(d: pydt.time) -> None:
     assert ry_isoformat == py_isoformat, f"py: {py_isoformat}\nry: {ry_isoformat}"
 
 
-@given(st.datetimes(timezones=st.timezones()))
+@given(st.datetimes(timezones=st_timezones()))
+@settings(max_examples=20_000, deadline=None)
 def test_zoned_datetime_isoformat(dt: pydt.datetime) -> None:
-    """Test that datetime.isoformat() produces the expected string."""
+    """Test that ZondedDateTime.isoformat() produces the expected string."""
 
     assume(dt.tzinfo is not None)  # Ensure the datetime is timezone-aware
+    py_isoformat = dt.isoformat()
+    ry_dt = ry.ZonedDateTime.from_pydatetime(dt)
+    ry_isoformat = ry_dt.isoformat()
+    is_eq = ry_isoformat == py_isoformat
+    ry_prefix_ok = py_isoformat.startswith(ry_isoformat)
 
-    try:
-        if dt.tzname() != "build/etc/localtime":
-            py_isoformat = dt.isoformat()
-            ry_dt = ry.ZonedDateTime.from_pydatetime(dt)
-            ry_isoformat = ry_dt.isoformat()
-            assert ry_isoformat == py_isoformat or py_isoformat.startswith(
-                ry_isoformat
-            ), f"py: {py_isoformat}\nry: {ry_isoformat}"
-
-    except ValueError as _e:
-        ...
+    assert ry_isoformat == py_isoformat or py_isoformat.startswith(ry_isoformat), (
+        f"py: {py_isoformat}\nry: {ry_isoformat}\nis_eq: {is_eq}\nry_prefix_ok: {ry_prefix_ok}\n"
+    )

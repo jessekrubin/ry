@@ -49,12 +49,14 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyTimestampRound>()?;
 
     // functions
+    m.add_function(wrap_pyfunction!(now, m)?)?;
+    m.add_function(wrap_pyfunction!(utcnow, m)?)?;
     m.add_function(wrap_pyfunction!(date, m)?)?;
-    m.add_function(wrap_pyfunction!(time, m)?)?;
     m.add_function(wrap_pyfunction!(datetime, m)?)?;
-    m.add_function(wrap_pyfunction!(zoned, m)?)?;
     m.add_function(wrap_pyfunction!(offset, m)?)?;
+    m.add_function(wrap_pyfunction!(time, m)?)?;
     m.add_function(wrap_pyfunction!(timespan, m)?)?;
+    m.add_function(wrap_pyfunction!(zoned, m)?)?;
 
     // okee-dokey
     Ok(())
