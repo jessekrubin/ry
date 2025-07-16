@@ -143,7 +143,7 @@ impl RyDate {
     }
 
     fn __repr__(&self) -> String {
-        format!("{}", self)
+        format!("{self}")
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
