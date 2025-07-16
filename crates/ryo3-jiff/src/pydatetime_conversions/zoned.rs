@@ -58,7 +58,7 @@ impl FromPyObject<'_> for JiffZoned {
             .getattr(pyo3::intern!(dt.py(), "fold"))?
             .extract::<usize>()?
             > 0;
-        if !fold {
+        if fold {
             Ok(Self::from(zoned.later()?))
         } else {
             Ok(Self::from(zoned.earlier()?))
