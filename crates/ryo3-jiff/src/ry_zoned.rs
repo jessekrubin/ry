@@ -1,5 +1,6 @@
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_offset::RyOffset;
@@ -153,7 +154,22 @@ impl RyZoned {
     }
 
     fn isoformat(&self) -> String {
-        self.0.datetime().to_string()
+        let offset = self.0.offset();
+        let ts = self.0.timestamp();
+
+        if self.0.datetime().subsec_nanosecond() == 0 {
+            ISOFORMAT_PRINTER.timestamp_with_offset_to_string(&ts, offset)
+        } else {
+            ISOFORMAT_PRINTER_NO_MICROS.timestamp_with_offset_to_string(&ts, offset)
+        }
+
+        // if
+        // if dt.subsec_nanosecond() == 0 {
+        //     ISOFORMAT_PRINTER_NO_MICROS.datetime_to_string(&dt)
+        // } else {
+        //     ISOFORMAT_PRINTER.datetime_to_string(&dt)
+        // }
+        // self.0.to_string()
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -708,6 +724,7 @@ impl Display for RyZoned {
         write!(f, "{}", self.0)
     }
 }
+
 impl From<Zoned> for RyZoned {
     fn from(value: Zoned) -> Self {
         Self(value)
