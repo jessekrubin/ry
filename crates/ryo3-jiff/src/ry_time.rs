@@ -178,7 +178,7 @@ impl RyTime {
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: &Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
 

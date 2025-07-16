@@ -62,21 +62,6 @@ impl RyTimestampDifference {
 }
 
 #[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum IntoTimestampDifferenceTuple {
-    UnitTimestamp(JiffUnit, RyTimestamp),
-    UnitZoned(JiffUnit, RyZoned),
-}
-
-impl From<IntoTimestampDifferenceTuple> for TimestampDifference {
-    fn from(val: IntoTimestampDifferenceTuple) -> Self {
-        match val {
-            IntoTimestampDifferenceTuple::UnitTimestamp(unit, date) => Self::from((unit.0, date.0)),
-            IntoTimestampDifferenceTuple::UnitZoned(unit, zoned) => Self::from((unit.0, zoned.0)),
-        }
-    }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum TimestampDifferenceArg {
     Zoned(RyZoned),
     Timestamp(RyTimestamp),

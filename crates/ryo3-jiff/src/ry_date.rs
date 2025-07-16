@@ -143,12 +143,7 @@ impl RyDate {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Date(year={}, month={}, day={})",
-            self.year(),
-            self.month(),
-            self.day()
-        )
+        format!("{}", self)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -419,7 +414,13 @@ impl RyDate {
 
 impl Display for RyDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Date<{}>", self.0)
+        write!(
+            f,
+            "Date(year={}, month={}, day={})",
+            self.year(),
+            self.month(),
+            self.day()
+        )
     }
 }
 

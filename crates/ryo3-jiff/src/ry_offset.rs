@@ -6,12 +6,11 @@ use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
-use jiff::tz::{Offset, OffsetArithmetic};
+use jiff::tz::Offset;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyTuple, PyType};
-use ryo3_std::PyDuration;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
@@ -231,12 +230,14 @@ impl RyOffset {
         RyTimeZone::from(self.0.to_time_zone())
     }
 
-    fn saturating_add(&self, other: IntoOffsetArithmetic) -> Self {
-        Self::from(self.0.saturating_add(other))
+    fn saturating_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(self.0.saturating_add(spanish).into())
     }
 
-    fn saturating_sub(&self, other: IntoOffsetArithmetic) -> Self {
-        Self::from(self.0.saturating_sub(other))
+    fn saturating_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+        let spanish = Spanish::try_from(other)?;
+        Ok(self.0.saturating_sub(spanish).into())
     }
 }
 
@@ -249,22 +250,5 @@ impl From<Offset> for RyOffset {
 impl From<JiffOffset> for RyOffset {
     fn from(value: JiffOffset) -> Self {
         Self::from(value.0)
-    }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-enum IntoOffsetArithmetic {
-    Duration(PyDuration),
-    SignedDuration(RySignedDuration),
-    Span(RySpan),
-}
-
-impl From<IntoOffsetArithmetic> for OffsetArithmetic {
-    fn from(val: IntoOffsetArithmetic) -> Self {
-        match val {
-            IntoOffsetArithmetic::Duration(d) => Self::from(d.0),
-            IntoOffsetArithmetic::SignedDuration(d) => Self::from(d.0),
-            IntoOffsetArithmetic::Span(s) => Self::from(s.0),
-        }
     }
 }
