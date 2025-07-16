@@ -92,6 +92,31 @@ def stringify(
     append_newline: bool = False,
     pybytes: Literal[False] = False,
 ) -> Bytes: ...
+@overload
+def dumps(
+    data: Any,
+    *,
+    default: Callable[[Any], Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: Literal[True],
+) -> bytes: ...
+@overload
+def dumps(
+    data: Any,
+    *,
+    default: Callable[[Any], Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: Literal[False] = False,
+) -> Bytes: ...
+def loads(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
 def parse(
     data: Buffer | bytes | str,
     /,
@@ -99,6 +124,3 @@ def parse(
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
-
-loads = parse
-dumps = stringify

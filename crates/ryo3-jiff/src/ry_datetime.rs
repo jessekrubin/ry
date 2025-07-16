@@ -268,7 +268,7 @@ impl RyDateTime {
         RyISOWeekDate::from(self.0.iso_week_date())
     }
 
-    fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
+    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.into())
             .map(RyZoned::from)
