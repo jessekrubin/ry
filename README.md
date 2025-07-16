@@ -1,6 +1,6 @@
 # ry
 
-A growing collection of Python shims around Rust crates — fast, async-first, and
+A growing collection of Python shims around Rust crates; fast, async-first, and
 ergonomic.
 
 [![PyPI](https://img.shields.io/pypi/v/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)

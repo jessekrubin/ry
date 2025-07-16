@@ -321,6 +321,38 @@ def minify(data: Buffer) -> Bytes:
     """
 
 
+def fmt(data: Buffer) -> Bytes:
+    """Return minified json data (remove whitespace, newlines)
+
+    Args:
+        data: The JSON data to minify.
+
+    Returns:
+        Minified JSON data as a `Bytes` object.
+
+    Examples:
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.fmt(json_str)).decode()
+        '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
+        >>> print(bytes(JSON.fmt(json_str)).decode())
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+
+    """
+
+
 @overload
 def stringify(
     data: Any,
@@ -328,6 +360,7 @@ def stringify(
     default: Callable[[Any], Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
+    append_newline: bool = False,
     pybytes: Literal[True],
 ) -> bytes: ...
 @overload
@@ -337,6 +370,7 @@ def stringify(
     default: Callable[[Any], Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
+    append_newline: bool = False,
     pybytes: Literal[False] = False,
 ) -> Bytes: ...
 def parse(

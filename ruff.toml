@@ -6,6 +6,7 @@ include = [
   "tests/**/*.{py,pyi}",
   "bench/**/*.{py,pyi}",
   "examples/**/*.{py,pyi}",
+  "docs/ryo3_version.py",
 ]
 lint.task-tags = [
   # defaults
