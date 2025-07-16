@@ -4,13 +4,22 @@
 
 - `ryo3-ulid`
   - strict + lax ulid parsing for pydantic
+- `ryo3-jiff`
+  - Renamed `checked_add` and `checked_sub` to `add` and `sub` where the
+    checked_version can error; did not remove where the checked version returns
+    an `Option` type (`ry.SignedDuration`). `.checked_add` may return later as a
+    method that returns an `Option` type for all types (tbd). This is also meant
+    to pave the way for `add`/`sub` functions with a more familiar api akin to
+    `whenever`, `pendulum`, `arrow`, `insert-other-datetime-lib-here`
+  - Added `replace` methods to `Date`, `DateTime` and `Time` structs
 
 ---
 
 ## v0.0.50 [2025-07-14]
 
 - internal
-  - clippy lint fixes `unused_self` (all but `ryo3-bytes` which needs its own cleanup)
+  - clippy lint fixes `unused_self` (all but `ryo3-bytes` which needs its own
+    cleanup)
 - `ryo3-bytes`
   - Added (bc I need them) more python compat methods:
     - `title()`

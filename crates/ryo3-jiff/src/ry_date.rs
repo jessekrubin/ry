@@ -143,12 +143,7 @@ impl RyDate {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Date(year={}, month={}, day={})",
-            self.year(),
-            self.month(),
-            self.day()
-        )
+        format!("{self}")
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -178,14 +173,6 @@ impl RyDate {
         }
     }
 
-    fn checked_sub<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.__sub__(py, other)
-    }
-
     fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         self.0
@@ -194,8 +181,12 @@ impl RyDate {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
+    }
+
+    fn sub<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
     }
 
     fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -206,6 +197,15 @@ impl RyDate {
     fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.saturating_sub(spanish)))
+    }
+
+    #[pyo3(signature = (year=None, month=None, day=None))]
+    fn replace(&self, year: Option<i16>, month: Option<i8>, day: Option<i8>) -> PyResult<Self> {
+        Self::py_new(
+            year.unwrap_or(self.year()),
+            month.unwrap_or(self.month()),
+            day.unwrap_or(self.day()),
+        )
     }
 
     #[classmethod]
@@ -414,7 +414,13 @@ impl RyDate {
 
 impl Display for RyDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Date<{}>", self.0)
+        write!(
+            f,
+            "Date(year={}, month={}, day={})",
+            self.year(),
+            self.month(),
+            self.day()
+        )
     }
 }
 

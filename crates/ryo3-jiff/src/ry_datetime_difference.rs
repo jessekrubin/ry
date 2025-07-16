@@ -61,46 +61,6 @@ impl RyDateTimeDifference {
         Self(self.0.increment(increment))
     }
 }
-#[derive(Debug, Clone, FromPyObject)]
-#[expect(clippy::enum_variant_names)]
-pub(crate) enum IntoDateTimeDifferenceTuple {
-    UnitDate(JiffUnit, RyDate),
-    UnitDateTime(JiffUnit, RyDateTime),
-    UnitZoned(JiffUnit, RyZoned),
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum IntoDateTimeDifference {
-    RyDateTimeDifference(RyDateTimeDifference),
-    Zoned(RyZoned),
-    Date(RyDate),
-    DateTime(RyDateTime),
-    DateTimeDifferenceTuple(IntoDateTimeDifferenceTuple),
-}
-
-impl From<IntoDateTimeDifferenceTuple> for DateTimeDifference {
-    fn from(val: IntoDateTimeDifferenceTuple) -> Self {
-        match val {
-            IntoDateTimeDifferenceTuple::UnitDate(unit, date) => Self::from((unit.0, date.0)),
-            IntoDateTimeDifferenceTuple::UnitDateTime(unit, date_time) => {
-                Self::from((unit.0, date_time.0))
-            }
-            IntoDateTimeDifferenceTuple::UnitZoned(unit, zoned) => Self::from((unit.0, zoned.0)),
-        }
-    }
-}
-impl From<IntoDateTimeDifference> for DateTimeDifference {
-    fn from(val: IntoDateTimeDifference) -> Self {
-        match val {
-            IntoDateTimeDifference::RyDateTimeDifference(d_diff) => d_diff.0,
-            IntoDateTimeDifference::Zoned(zoned) => Self::from(zoned.0),
-            IntoDateTimeDifference::Date(date) => Self::from(date.0),
-            IntoDateTimeDifference::DateTime(date) => Self::from(date.0),
-            IntoDateTimeDifference::DateTimeDifferenceTuple(tuple) => tuple.into(),
-        }
-    }
-}
-
 // ============================================================================
 // Date/DateTime/Zoned
 // ============================================================================

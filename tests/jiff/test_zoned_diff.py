@@ -119,7 +119,7 @@ class TestZonedUntil:
 
         span = zdt1.until(zdt2)
         assert span == ry.timespan(hours=1439)
-        is_original = zdt2.checked_sub(span)
+        is_original = zdt2.sub(span)
         assert is_original == zdt1
 
 

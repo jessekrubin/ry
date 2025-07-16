@@ -8,7 +8,7 @@ use jiff::Timestamp;
 use jiff::tz::{Offset, TimeZone};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::{PyString, PyTuple, PyType};
 use ryo3_macro_rules::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -109,12 +109,16 @@ impl RyTimeZone {
         hasher.finish()
     }
 
-    fn __eq__(&self, other: TimeZoneEquality) -> bool {
-        match other {
-            TimeZoneEquality::TimeZone(other) => {
-                self.0.eq(&other.0) || self.0.iana_name() == other.0.iana_name()
-            }
-            TimeZoneEquality::Str(other) => self.0.iana_name() == Some(other.as_str()),
+    fn __eq__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<bool> {
+        if let Ok(other) = other.downcast::<Self>() {
+            Ok(self.0.eq(&other.get().0))
+        } else if let Ok(other) = other.downcast::<PyString>() {
+            let other_str = other.extract::<&str>()?;
+            Ok(self.0.iana_name() == Some(other_str))
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "Expected a RyTimeZone or a string",
+            ))
         }
     }
 
@@ -248,10 +252,4 @@ impl RyTimeZone {
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-enum TimeZoneEquality {
-    TimeZone(RyTimeZone),
-    Str(String),
 }

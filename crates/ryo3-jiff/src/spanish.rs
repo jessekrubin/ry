@@ -2,6 +2,7 @@
 
 use crate::{RySignedDuration, RySpan};
 use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
+use jiff::tz::OffsetArithmetic;
 use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
@@ -84,6 +85,17 @@ impl From<Spanish<'_>> for DateTimeArithmetic {
 }
 
 impl From<Spanish<'_>> for TimeArithmetic {
+    fn from(val: Spanish<'_>) -> Self {
+        match val.inner {
+            RySpanishObject::Span(span) => Self::from(span.get().0),
+            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
+            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+        }
+    }
+}
+
+impl From<Spanish<'_>> for OffsetArithmetic {
     fn from(val: Spanish<'_>) -> Self {
         match val.inner {
             RySpanishObject::Span(span) => Self::from(span.get().0),

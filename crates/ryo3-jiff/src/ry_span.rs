@@ -441,7 +441,7 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn checked_add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = (&other).into();
 
         self.0
@@ -460,7 +460,7 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn checked_sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
@@ -475,7 +475,7 @@ impl RySpan {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_mul(&self, rhs: i64) -> PyResult<Self> {
+    fn mul(&self, rhs: i64) -> PyResult<Self> {
         self.__mul__(rhs)
     }
 
@@ -545,15 +545,16 @@ impl RySpan {
     // ========================================================================
     // PROPERTIES
     // ========================================================================
-
     #[getter]
     fn is_negative(&self) -> bool {
         self.0.is_negative()
     }
+
     #[getter]
     fn is_positive(&self) -> bool {
         self.0.is_positive()
     }
+
     #[getter]
     fn is_zero(&self) -> bool {
         self.0.is_zero()
@@ -563,38 +564,47 @@ impl RySpan {
     fn years(&self) -> i16 {
         self.0.get_years()
     }
+
     #[getter]
     fn months(&self) -> i32 {
         self.0.get_months()
     }
+
     #[getter]
     fn weeks(&self) -> i32 {
         self.0.get_weeks()
     }
+
     #[getter]
     fn days(&self) -> i32 {
         self.0.get_days()
     }
+
     #[getter]
     fn hours(&self) -> i32 {
         self.0.get_hours()
     }
+
     #[getter]
     fn minutes(&self) -> i64 {
         self.0.get_minutes()
     }
+
     #[getter]
     fn seconds(&self) -> i64 {
         self.0.get_seconds()
     }
+
     #[getter]
     fn milliseconds(&self) -> i64 {
         self.0.get_milliseconds()
     }
+
     #[getter]
     fn microseconds(&self) -> i64 {
         self.0.get_microseconds()
     }
+
     #[getter]
     fn nanoseconds(&self) -> i64 {
         self.0.get_nanoseconds()

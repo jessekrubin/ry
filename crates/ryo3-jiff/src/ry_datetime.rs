@@ -10,7 +10,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateTimeSeries;
 use crate::spanish::Spanish;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
+use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate, RyDateTimeRound};
 use jiff::Zoned;
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use pyo3::basic::CompareOp;
@@ -86,6 +86,7 @@ impl RyDateTime {
     fn MAX() -> Self {
         Self(DateTime::MAX)
     }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {
@@ -96,6 +97,7 @@ impl RyDateTime {
     fn now(_cls: &Bound<'_, PyType>) -> Self {
         Self::from(DateTime::from(Zoned::now()))
     }
+
     #[classmethod]
     fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         DateTime::from_str(s)
@@ -215,15 +217,11 @@ impl RyDateTime {
         }
     }
 
-    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
 
-    fn checked_sub<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn sub<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
 
@@ -321,6 +319,114 @@ impl RyDateTime {
         dict.set_item(intern!(py, "second"), self.0.second())?;
         dict.set_item(intern!(py, "nanosecond"), self.0.subsec_nanosecond())?;
         Ok(dict)
+    }
+
+    #[pyo3(
+        signature = (
+            obj=None,
+            *,
+            date=None,
+            time=None,
+            year=None,
+            era_year=None,
+            month=None,
+            day=None,
+            day_of_year=None,
+            day_of_year_no_leap=None,
+            hour=None,
+            minute=None,
+            second=None,
+            millisecond=None,
+            microsecond=None,
+            nanosecond=None,
+            subsec_nanosecond=None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    fn replace(
+        &self,
+        obj: Option<Bound<'_, PyAny>>,
+        date: Option<RyDate>,
+        time: Option<RyTime>,
+        year: Option<i16>,
+        era_year: Option<(i16, JiffEra)>,
+        month: Option<i8>,
+        day: Option<i8>,
+        day_of_year: Option<i16>,
+        day_of_year_no_leap: Option<i16>,
+        hour: Option<i8>,
+        minute: Option<i8>,
+        second: Option<i8>,
+        millisecond: Option<i16>,
+        microsecond: Option<i16>,
+        nanosecond: Option<i16>,
+        subsec_nanosecond: Option<i32>,
+    ) -> PyResult<Self> {
+        // start the builder
+        let mut builder = self.0.with();
+        if let Some(obj) = obj {
+            // if obj is a Zoned, use it as the base
+            if let Ok(zoned) = obj.downcast::<RyDate>() {
+                // if obj is a Zoned, use it as the base
+                let date = zoned.extract::<RyDate>()?;
+                builder = builder.date(date.0);
+            } else if let Ok(time) = obj.downcast::<RyTime>() {
+                // if obj is a Time, use it as the base
+                let time = time.extract::<RyTime>()?;
+                builder = builder.time(time.0);
+            } else {
+                return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                    "obj must be a Date, Time or Offset; given: {obj}",
+                )));
+            }
+        }
+        // only override if the Option is Some
+        if let Some(date) = date {
+            builder = builder.date(date.0);
+        }
+        if let Some(time) = time {
+            builder = builder.time(time.0);
+        }
+        if let Some(y) = year {
+            builder = builder.year(y);
+        }
+        if let Some(ey) = era_year {
+            builder = builder.era_year(ey.0, (ey.1).0);
+        }
+        if let Some(m) = month {
+            builder = builder.month(m);
+        }
+        if let Some(d) = day {
+            builder = builder.day(d);
+        }
+        if let Some(doy) = day_of_year {
+            builder = builder.day_of_year(doy);
+        }
+        if let Some(doy) = day_of_year_no_leap {
+            builder = builder.day_of_year_no_leap(doy);
+        }
+        if let Some(h) = hour {
+            builder = builder.hour(h);
+        }
+        if let Some(min) = minute {
+            builder = builder.minute(min);
+        }
+        if let Some(sec) = second {
+            builder = builder.second(sec);
+        }
+        if let Some(us) = microsecond {
+            builder = builder.microsecond(us);
+        }
+        if let Some(ms) = millisecond {
+            builder = builder.millisecond(ms);
+        }
+        if let Some(ns) = nanosecond {
+            builder = builder.nanosecond(ns);
+        }
+        if let Some(subns) = subsec_nanosecond {
+            builder = builder.subsec_nanosecond(subns);
+        }
+        builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
     #[pyo3(
