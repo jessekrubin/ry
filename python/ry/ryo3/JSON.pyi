@@ -61,8 +61,15 @@ def fmt(data: Buffer) -> Bytes:
           "number": 123,
           "bool": true
         }
-        >>> bytes(JSON.fmt(json_str))
-        b'{"key":"value","number":123,"bool":true}'
+        >>> bytes(JSON.fmt(json_str)).decode()
+        '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
+        >>> print(bytes(JSON.fmt(json_str)).decode())
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+
     """
 
 @overload
