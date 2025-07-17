@@ -147,13 +147,22 @@ class MembersComparison:
     missing_from_actual: tuple[str, ...]
 
 
+def get_members(obj: griffe.Object | griffe.Alias) -> set[str]:
+    """Get all members of a griffe object."""
+    return {
+        *obj.members,
+        *obj.inherited_members,
+    }
+
+
 def compare_member(toget: str) -> MembersComparison:
     types_package = load_types()
     ry_actual_members = getattr(ry, toget)
     types_info = types_package.get_member(toget)
 
     actual_members = set(dir(ry_actual_members))
-    types_members = set(types_info.members)
+
+    types_members = get_members(types_info)
     # get missing in types, as well as missing in actual
     missing_from_types = (actual_members - types_members) - IGNORED_MEMBERS
     missing_from_actual = (types_members - actual_members) - IGNORED_MEMBERS

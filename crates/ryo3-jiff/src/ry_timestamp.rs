@@ -71,10 +71,15 @@ impl RyTimestamp {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Timestamp::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[classmethod]
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     #[classmethod]
@@ -125,10 +130,6 @@ impl RyTimestamp {
         self.0.to_string()
     }
 
-    fn __str__(&self) -> String {
-        format!("Timestamp<{}>", self.string())
-    }
-
     fn __repr__(&self) -> String {
         format!(
             "Timestamp({:?}, {:?})",
@@ -136,6 +137,7 @@ impl RyTimestamp {
             self.0.subsec_nanosecond()
         )
     }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         // use nanosecond as hash as it is lossless
@@ -194,12 +196,15 @@ impl RyTimestamp {
     fn as_nanosecond(&self) -> i128 {
         self.0.as_nanosecond()
     }
+
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
+
     fn subsec_microsecond(&self) -> i32 {
         self.0.subsec_microsecond()
     }
+
     fn subsec_millisecond(&self) -> i32 {
         self.0.subsec_millisecond()
     }

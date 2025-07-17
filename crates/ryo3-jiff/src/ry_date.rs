@@ -75,11 +75,8 @@ impl RyDate {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        DATETIME_PARSER
-            .parse_date(input)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond=0))]

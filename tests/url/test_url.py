@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-import ry.dev as ry
+import ry as ry
 
 
 def test_parse_error() -> None:

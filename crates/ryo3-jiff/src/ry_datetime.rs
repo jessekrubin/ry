@@ -99,10 +99,15 @@ impl RyDateTime {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         DateTime::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[classmethod]
+    fn parse(cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        Self::from_str(cls, s)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {

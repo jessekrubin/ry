@@ -114,8 +114,13 @@ impl RyZoned {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Zoned::from_str(s).map(Self::from).map_err(map_py_value_err)
+    }
+
+    #[classmethod]
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     #[classmethod]
@@ -156,20 +161,11 @@ impl RyZoned {
     fn isoformat(&self) -> String {
         let offset = self.0.offset();
         let ts = self.0.timestamp();
-
         if self.0.datetime().subsec_nanosecond() == 0 {
             ISOFORMAT_PRINTER.timestamp_with_offset_to_string(&ts, offset)
         } else {
             ISOFORMAT_PRINTER_NO_MICROS.timestamp_with_offset_to_string(&ts, offset)
         }
-
-        // if
-        // if dt.subsec_nanosecond() == 0 {
-        //     ISOFORMAT_PRINTER_NO_MICROS.datetime_to_string(&dt)
-        // } else {
-        //     ISOFORMAT_PRINTER.datetime_to_string(&dt)
-        // }
-        // self.0.to_string()
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -192,8 +188,24 @@ impl RyZoned {
     }
 
     fn __repr__(&self) -> String {
+        // #[pyo3(signature = (year, month, day, hour=0, minute=0, second=0, nanosecond=0, tz=None))]
+        let tz_name = self.0.time_zone().iana_name();
         // representable format
-        format!("ZonedDateTime.parse(\"{}\")", self.0)
+        if let Some(tz_name) = tz_name {
+            format!(
+                "ZonedDateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, nanosecond={}, tz=\"{}\")",
+                self.0.year(),
+                self.0.month(),
+                self.0.day(),
+                self.0.hour(),
+                self.0.minute(),
+                self.0.second(),
+                self.0.subsec_nanosecond(),
+                tz_name
+            )
+        } else {
+            format!("ZonedDateTime.parse(\"{}\")", self.0)
+        }
     }
 
     fn __hash__(&self) -> u64 {

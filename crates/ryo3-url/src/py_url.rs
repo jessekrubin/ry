@@ -57,6 +57,13 @@ impl PyUrl {
         PyTuple::new(py, vec![self.0.to_string()])
     }
 
+    #[staticmethod]
+    fn from_str(url: &str) -> PyResult<Self> {
+        url::Url::parse(url).map(PyUrl).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
+        })
+    }
+
     #[classmethod]
     #[pyo3(signature = (url, *, params = None))]
     fn parse(
