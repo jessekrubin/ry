@@ -252,3 +252,26 @@ impl From<JiffOffset> for RyOffset {
         Self::from(value.0)
     }
 }
+
+pub(crate) fn print_isoformat_offset<W: std::fmt::Write>(
+    offset: &Offset,
+    w: &mut W,
+) -> std::fmt::Result {
+    if offset.is_zero() {
+        return write!(w, "+00:00");
+    }
+    // total number of seconds
+    let sign = if offset.is_negative() { "-" } else { "+" };
+    let total_seconds = offset.seconds();
+    // calculate hours and minutes, and seconds
+    let hours = total_seconds.abs() / 3600;
+    let minutes = (total_seconds.abs() % 3600) / 60;
+    let seconds = total_seconds.abs() % 60;
+
+    // write the formatted string
+    if seconds == 0 {
+        write!(w, "{sign}{hours:02}:{minutes:02}")
+    } else {
+        write!(w, "{sign}{hours:02}:{minutes:02}:{seconds:02}")
+    }
+}

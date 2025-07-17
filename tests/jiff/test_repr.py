@@ -27,12 +27,26 @@ JIFF_OBJECTS = [
     ry.date(2020, 8, 26).iso_week_date(),
 ]
 
+reprs = [
+    "Date(year=2020, month=8, day=26)",
+    "Time(hour=6, minute=27, second=0, nanosecond=0)",
+    "DateTime(year=2020, month=8, day=26, hour=6, minute=27, second=0, subsec_nanosecond=0)",
+    "TimeSpan(weeks=1)",
+    "Timestamp(1598438400, 0)",
+    'ZonedDateTime.parse("2020-08-26T06:27:00-04:00[America/New_York]")',
+    "SignedDuration(secs=1, nanos=1)",
+    "Offset(hours=1)",
+    "ISOWeekDate(2020, 35, 'wednesday')",
+]
+for thing in JIFF_OBJECTS:
+    print(repr(thing))
+
 
 @pytest.mark.parametrize("obj", JIFF_OBJECTS)
 def test_reprs(obj: t.Any) -> None:
     repr_str = repr(obj)
     # eval the repr string
-    assert eval("ry." + repr_str) == obj
+    assert eval("ry." + repr_str) == obj, f"Repr string: `{repr_str}`"
 
 
 def test_reprs_simple() -> None:
