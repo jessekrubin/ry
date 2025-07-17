@@ -3,7 +3,7 @@
 use crate::{RySignedDuration, RySpan};
 use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
 use jiff::tz::OffsetArithmetic;
-use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
+use jiff::{SignedDuration, Span, TimestampArithmetic, ZonedArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
 use ryo3_std::PyDuration;
@@ -37,6 +37,24 @@ impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
             ));
         };
         Ok(Spanish { inner })
+    }
+}
+
+impl TryFrom<Spanish<'_>> for Span {
+    type Error = PyErr;
+    fn try_from(val: Spanish<'_>) -> Result<Self, Self::Error> {
+        match val.inner {
+            RySpanishObject::Span(span) => Ok(span.get().0),
+            RySpanishObject::Duration(duration) => Span::try_from(duration.get().0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
+            RySpanishObject::SignedDuration(signed_duration) => {
+                let sd = signed_duration.get().0;
+                Span::try_from(sd)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            }
+            RySpanishObject::PyTimeDelta(signed_duration) => Span::try_from(signed_duration)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
+        }
     }
 }
 
