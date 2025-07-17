@@ -142,6 +142,10 @@ impl RyTimeZone {
     // =====================================================================
     // CLASS METHODS
     // =====================================================================
+    #[classmethod]
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
+    }
 
     #[classmethod]
     fn fixed(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {

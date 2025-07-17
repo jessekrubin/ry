@@ -84,20 +84,6 @@ class TestSignedDurationAbs:
 
 
 class TestSignedDurationStrings:
-    """use jiff::SignedDuration;
-
-    let duration: SignedDuration = "PT2h30m".parse()?;
-    assert_eq!(duration.to_string(), "PT2H30M");
-
-    // Or use the "friendly" format by invoking the alternate:
-    assert_eq!(format!("{duration:#}"), "2h 30m");
-
-    // Parsing automatically supports both the ISO 8601 and "friendly" formats:
-    let duration: SignedDuration = "2h 30m".parse()?;
-    assert_eq!(duration, SignedDuration::new(2 * 60 * 60 + 30 * 60, 0));
-    let duration: SignedDuration = "2 hours, 30 minutes".parse()?;
-    assert_eq!(duration, SignedDuration::new(2 * 60 * 60 + 30 * 60, 0));"""
-
     def test_signed_duration_string(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
         assert sd.string() == "PT2H30M"

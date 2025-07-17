@@ -6,6 +6,29 @@ import pytest
 
 import ry
 
+JIFF_UNITS = [
+    "nanosecond",
+    "microsecond",
+    "millisecond",
+    "second",
+    "minute",
+    "hour",
+    "day",
+    "month",
+    "year",
+]
+
+JIFF_ROUND_MODES = [
+    "ceil",
+    "floor",
+    "expand",
+    "trunc",
+    "half_ceil",
+    "half_floor",
+    "half_expand",
+    "half_trunc",
+    "half_even",
+]
 # ====================
 # Zoned
 # ====================
@@ -291,35 +314,6 @@ class TestTimeSpanProperties:
         assert self.ts.nanoseconds == 5_000_000
 
 
-# ====================
-# round mode
-# ====================
-
-JIFF_UNITS = [
-    "nanosecond",
-    "microsecond",
-    "millisecond",
-    "second",
-    "minute",
-    "hour",
-    "day",
-    "month",
-    "year",
-]
-
-JIFF_ROUND_MODES = [
-    "ceil",
-    "floor",
-    "expand",
-    "trunc",
-    "half_ceil",
-    "half_floor",
-    "half_expand",
-    "half_trunc",
-    "half_even",
-]
-
-
 class TestDateTime:
     d = ry.date(2020, 8, 26).at(6, 27, 0, 0)
 
@@ -549,7 +543,7 @@ class TestParse:
         assert parsed_date == self.d
 
     def test_parse_datetime(self) -> None:
-        parsed_datetime = ry.DateTime.parse(self.dt.string())
+        parsed_datetime = ry.DateTime.from_str(self.dt.string())
         assert parsed_datetime == self.dt
 
     def test_parse_time(self) -> None:

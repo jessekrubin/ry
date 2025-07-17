@@ -5,8 +5,9 @@ import typing as t
 import pytest
 
 import ry
+from ry._types import FromStr
 
-JIFF_OBJECTS = [
+JIFF_OBJECTS: list[FromStr] = [
     # date
     ry.date(2020, 8, 26),
     # time
@@ -21,23 +22,15 @@ JIFF_OBJECTS = [
     ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
     # signed-duration
     ry.SignedDuration(1, 1),
-    # offset
-    ry.Offset(1),
-    # iso-week-date
-    ry.date(2020, 8, 26).iso_week_date(),
 ]
 
 
 @pytest.mark.parametrize("obj", JIFF_OBJECTS)
-def test_reprs(obj: t.Any) -> None:
-    repr_str = repr(obj)
-    # eval the repr string
-    assert eval("ry." + repr_str) == obj
-
-
-def test_reprs_simple() -> None:
-    d = ry.date(2020, 8, 26)
-    assert repr(d) == "Date(year=2020, month=8, day=26)"
-
-    t = ry.time(6, 27, 0, 0)
-    assert repr(t) == "Time(hour=6, minute=27, second=0, nanosecond=0)"
+def test_from_string(obj: t.Any) -> None:
+    string = obj.string()
+    print(f"Testing from_str for {obj} with string: {string}")
+    cls = obj.__class__
+    roundtrip_from_str = cls.from_str(string)
+    roundtrip_parse = cls.parse(string)
+    assert roundtrip_from_str == obj, f"Expected {obj} but got {roundtrip_from_str}"
+    assert roundtrip_parse == obj, f"Expected {obj} but got {roundtrip_parse}"

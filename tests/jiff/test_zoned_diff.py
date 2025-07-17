@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import ry.dev as ry
+import ry
 
 
 class TestZonedUntil:

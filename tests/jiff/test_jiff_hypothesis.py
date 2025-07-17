@@ -7,7 +7,7 @@ import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
 
-import ry.dev as ry
+import ry
 
 from .strategies import (
     date_tuple_strategy,

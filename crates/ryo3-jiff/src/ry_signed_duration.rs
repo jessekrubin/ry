@@ -90,10 +90,15 @@ impl RySignedDuration {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[classmethod]
+    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(_cls, input)
     }
 
     #[getter]
@@ -148,10 +153,6 @@ impl RySignedDuration {
         }
     }
 
-    fn __str__(&self) -> String {
-        self.__repr__()
-    }
-
     fn __float__(&self) -> f64 {
         self.0.as_secs_f64()
     }
@@ -171,6 +172,7 @@ impl RySignedDuration {
             self.0.subsec_nanos()
         )
     }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);

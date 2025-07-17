@@ -5,7 +5,7 @@ import functools
 
 import pytest
 
-import ry.dev as ry
+import ry
 
 
 def test_span_fn_no_positionals_allowed() -> None:
