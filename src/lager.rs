@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use tracing::debug;
 use tracing::level_filters::LevelFilter;
-
+use tracing_log::LogTracer;
 /// List of environment variables to check for logging level
 const LOG_ENV_VARS: [&str; 3] = ["RYLOG", "RY_LOG", "RUST_LOG"];
 
@@ -55,6 +55,7 @@ fn env_log_level() -> LevelFilter {
 
 pub fn tracing_init() -> Result<(), Box<dyn std::error::Error>> {
     // use "RY_LOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
+    LogTracer::init()?;
     let env_log_level = env_log_level();
     debug!(
         "tracing_init - env_filter_directives_string: {}",

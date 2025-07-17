@@ -51,14 +51,13 @@ dev = [
   "ipython>=8.18.1",
   "maturin>=1.8.6",
   "mypy>=1.14.1",
-  "orjson>=3.10.18; implementation_name == 'cpython'",
+  "orjson>=3.10.18; implementation_name=='cpython'",
   "pydantic>=2.11.7",
   "pytest>=8.3.5",
   "pytest-asyncio>=1.0.0",
   "pytest-benchmark>=5.1",
   "rich>=14.0.0",
   "ruff>=0.11.12",
-  "tomli>=2.2.1",
   "tzdata>=2025.2",
   "uvicorn>=0.34",
 ]
@@ -121,6 +120,9 @@ reportUnnecessaryTypeIgnoreComment = true
 
 [tool.uv]
 package = false # don't build package w/ uv
+# UV problemo: https://github.com/astral-sh/setup-uv/issues/489
+# BUG IN UV: https://github.com/astral-sh/setup-uv/issues/489#issuecomment-3085384851
+required-version = ">=0.7.0"
 
 [tool.uv.sources]
 ry = { workspace = true }

@@ -2,12 +2,11 @@ anyio
 hypothesis
 maturin
 mypy
-orjson
+orjson==3.10.18
 pydantic
 pytest
 pytest-asyncio
 pytest-benchmark
 ruff
-tomli
 tzdata
 uvicorn
