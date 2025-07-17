@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-07-16T21:59:17.517217211+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-07-17T02:35:00.210396565+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -2032,9 +2032,11 @@ from ry.ryo3._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
 from ry.ryo3._jiff import ZonedDateTimeRound as ZonedDateTimeRound
 from ry.ryo3._jiff import date as date
 from ry.ryo3._jiff import datetime as datetime
+from ry.ryo3._jiff import now as now
 from ry.ryo3._jiff import offset as offset
 from ry.ryo3._jiff import time as time
 from ry.ryo3._jiff import timespan as timespan
+from ry.ryo3._jiff import utcnow as utcnow
 from ry.ryo3._jiff import zoned as zoned
 from ry.ryo3._jiter import JsonParseKwargs as JsonParseKwargs
 from ry.ryo3._jiter import JsonPrimitive as JsonPrimitive
@@ -2196,21 +2198,13 @@ def video_dir() -&gt; str | None: ...
 <h2 id="ry.ryo3.JSON"><a class="header" href="#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3.JSON"""
 
-from typing import Any, Callable, Literal, overload
+import typing as t
 
-import typing_extensions
 import typing_extensions as te
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import JsonParseKwargs
-
-JsonPrimitive: typing_extensions.TypeAlias = None | bool | int | float | str
-JsonValue: typing_extensions.TypeAlias = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
-)
+from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
 
 def minify(data: Buffer) -&gt; Bytes:
@@ -2271,26 +2265,51 @@ def fmt(data: Buffer) -&gt; Bytes:
     """
 
 
-@overload
+@t.overload
 def stringify(
-    data: Any,
+    data: t.Any,
     *,
-    default: Callable[[Any], Any] | None = None,
+    default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
-    pybytes: Literal[True],
+    pybytes: t.Literal[True],
 ) -&gt; bytes: ...
-@overload
+@t.overload
 def stringify(
-    data: Any,
+    data: t.Any,
     *,
-    default: Callable[[Any], Any] | None = None,
+    default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
-    pybytes: Literal[False] = False,
+    pybytes: t.Literal[False] = False,
 ) -&gt; Bytes: ...
+@t.overload
+def dumps(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[True],
+) -&gt; bytes: ...
+@t.overload
+def dumps(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False] = False,
+) -&gt; Bytes: ...
+def loads(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -&gt; JsonValue: ...
 def parse(
     data: Buffer | bytes | str,
     /,
@@ -2298,10 +2317,6 @@ def parse(
 ) -&gt; JsonValue: ...
 def cache_clear() -&gt; None: ...
 def cache_usage() -&gt; int: ...
-
-
-loads = parse
-dumps = stringify
 
 </code></pre>
 <h2 id="ry.ryo3.orjson"><a class="header" href="#ry.ryo3.orjson"><code>ry.ryo3.orjson</code></a></h2>
@@ -3528,16 +3543,21 @@ class HttpStatus:
 
 import datetime as pydt
 import typing as t
-from typing import Protocol
 
 import typing_extensions as te
 
 from ry._types import (
     DateTimeTypedDict,
     DateTypedDict,
+    FromStr,
     TimeSpanTypedDict,
     TimeTypedDict,
     ToPy,
+    ToPyDate,
+    ToPyDateTime,
+    ToPyTime,
+    ToPyTimeDelta,
+    ToPyTzInfo,
 )
 from ry.ryo3 import Duration
 
@@ -3587,26 +3607,6 @@ WEEKDAY_INT: te.TypeAlias = t.Literal[
 WEEKDAY: te.TypeAlias = WEEKDAY_STR | WEEKDAY_INT
 
 
-class ToPyDate(Protocol):
-    def to_pydate(self) -&gt; pydt.date: ...
-
-
-class ToPyTime(Protocol):
-    def to_pytime(self) -&gt; pydt.time: ...
-
-
-class ToPyDateTime(Protocol):
-    def to_pydatetime(self) -&gt; pydt.datetime: ...
-
-
-class ToPyTimeDelta(Protocol):
-    def to_pytimedelta(self) -&gt; pydt.timedelta: ...
-
-
-class ToPyTzInfo(Protocol):
-    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
-
-
 @t.final
 class Date(ToPy[pydt.date], ToPyDate):
     MIN: Date
@@ -3651,9 +3651,9 @@ class Date(ToPy[pydt.date], ToPyDate):
     @classmethod
     def today(cls: type[Date]) -&gt; Date: ...
     @classmethod
-    def parse(cls: type[Date], s: str) -&gt; Date: ...
-    @classmethod
     def from_str(cls: type[Date], s: str) -&gt; Date: ...
+    @classmethod
+    def parse(cls: type[Date], s: str) -&gt; Date: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -3720,6 +3720,7 @@ class Date(ToPy[pydt.date], ToPyDate):
     def iso_week_date(self) -&gt; ISOWeekDate: ...
     def in_leap_year(self) -&gt; bool: ...
     def in_tz(self, tz: str) -&gt; ZonedDateTime: ...
+    @te.deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: str) -&gt; ZonedDateTime: ...
     def last_of_month(self) -&gt; Date: ...
     def last_of_year(self) -&gt; Date: ...
@@ -3730,6 +3731,9 @@ class Date(ToPy[pydt.date], ToPyDate):
         year: int | None = None,
         month: int | None = None,
         day: int | None = None,
+        era_year: tuple[int, t.Literal["BCE", "CE"]] | None = None,
+        day_of_year: int | None = None,
+        day_of_year_no_leap: int | None = None,
     ) -&gt; Date: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[Date]: ...
     def to_datetime(self, t: Time) -&gt; DateTime: ...
@@ -3767,24 +3771,7 @@ class Date(ToPy[pydt.date], ToPyDate):
 
 
 @t.final
-class DateDifference:
-    def __init__(
-        self,
-        date: Date,
-        *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int | None = None,
-    ) -&gt; None: ...
-    def smallest(self, unit: JIFF_UNIT) -&gt; DateDifference: ...
-    def largest(self, unit: JIFF_UNIT) -&gt; DateDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; DateDifference: ...
-    def increment(self, increment: int) -&gt; DateDifference: ...
-
-
-@t.final
-class Time(ToPy[pydt.time], ToPyTime):
+class Time(ToPy[pydt.time], ToPyTime, FromStr):
     MIN: Time
     MAX: Time
 
@@ -3844,6 +3831,8 @@ class Time(ToPy[pydt.time], ToPyTime):
     @classmethod
     def now(cls: type[Time]) -&gt; Time: ...
     @classmethod
+    def from_str(cls: type[Time], s: str) -&gt; Time: ...
+    @classmethod
     def parse(cls: type[Time], s: str) -&gt; Time: ...
 
     # =========================================================================
@@ -3888,6 +3877,7 @@ class Time(ToPy[pydt.time], ToPyTime):
     def wrapping_sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -&gt; Time: ...
+
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
@@ -3901,7 +3891,10 @@ class Time(ToPy[pydt.time], ToPyTime):
         hour: int | None = None,
         minute: int | None = None,
         second: int | None = None,
+        millisecond: int | None = None,
+        microsecond: int | None = None,
         nanosecond: int | None = None,
+        subsec_nanosecond: int | None = None,
     ) -&gt; Time: ...
     def round(
         self,
@@ -3938,24 +3931,7 @@ class Time(ToPy[pydt.time], ToPyTime):
 
 
 @t.final
-class TimeDifference:
-    def __init__(
-        self,
-        date: Time,
-        *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int | None = None,
-    ) -&gt; None: ...
-    def smallest(self, unit: JIFF_UNIT) -&gt; TimeDifference: ...
-    def largest(self, unit: JIFF_UNIT) -&gt; TimeDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; TimeDifference: ...
-    def increment(self, increment: int) -&gt; TimeDifference: ...
-
-
-@t.final
-class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
+class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     MIN: DateTime
     MAX: DateTime
     ZERO: DateTime
@@ -3979,6 +3955,8 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     def strftime(self, format: str) -&gt; str: ...
     @classmethod
     def strptime(cls: type[DateTime], format: str, string: str) -&gt; DateTime: ...
+    @classmethod
+    def from_str(cls: type[DateTime], s: str) -&gt; DateTime: ...
     @classmethod
     def parse(cls: type[DateTime], s: str) -&gt; DateTime: ...
 
@@ -4055,6 +4033,7 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     def first_of_year(self) -&gt; DateTime: ...
     def in_leap_year(self) -&gt; bool: ...
     def in_tz(self, tz: str) -&gt; ZonedDateTime: ...
+    @te.deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: str) -&gt; ZonedDateTime: ...
     def iso_week_date(self) -&gt; ISOWeekDate: ...
     def last_of_month(self) -&gt; DateTime: ...
@@ -4151,24 +4130,7 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
 
 
 @t.final
-class DateTimeDifference:
-    def __init__(
-        self,
-        date: DateTime,
-        *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int | None = None,
-    ) -&gt; None: ...
-    def smallest(self, unit: JIFF_UNIT) -&gt; DateTimeDifference: ...
-    def largest(self, unit: JIFF_UNIT) -&gt; DateTimeDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; DateTimeDifference: ...
-    def increment(self, increment: int) -&gt; DateTimeDifference: ...
-
-
-@t.final
-class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
+class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     def __init__(self, name: str) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
     def __call__(self) -&gt; te.Self: ...
@@ -4179,6 +4141,8 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
 
     def to_py(self) -&gt; pydt.tzinfo: ...
     def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
+    @classmethod
+    def from_str(cls, s: str) -&gt; TimeZone: ...
     @classmethod
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -&gt; TimeZone: ...
 
@@ -4225,7 +4189,7 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo):
 
 
 @t.final
-class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
+class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     MIN: SignedDuration
     MAX: SignedDuration
     ZERO: SignedDuration
@@ -4275,6 +4239,8 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta):
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
+    @classmethod
+    def from_str(cls: type[SignedDuration], s: str) -&gt; SignedDuration: ...
     @classmethod
     def parse(cls: type[SignedDuration], s: str) -&gt; SignedDuration: ...
     @classmethod
@@ -4362,7 +4328,7 @@ TimeSpanArithmetic: te.TypeAlias = (
 
 
 @t.final
-class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
+class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def __init__(
         self,
         years: int = 0,
@@ -4394,6 +4360,8 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     # =========================================================================
     # CLASS METHODS
     # =========================================================================
+    @classmethod
+    def from_str(cls, s: str) -&gt; TimeSpan: ...
     @classmethod
     def parse(cls, s: str) -&gt; TimeSpan: ...
     @classmethod
@@ -4516,10 +4484,6 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
     def try_milliseconds(self, milliseconds: int) -&gt; te.Self: ...
     def try_microseconds(self, microseconds: int) -&gt; te.Self: ...
     def try_nanoseconds(self, nanoseconds: int) -&gt; te.Self: ...
-
-    # -------------------------------------------------------------------------
-    # PANIC-INDUCING METHODS
-    # -------------------------------------------------------------------------
     def _years(self, years: int) -&gt; te.Self: ...
     def _months(self, months: int) -&gt; te.Self: ...
     def _weeks(self, weeks: int) -&gt; te.Self: ...
@@ -4533,7 +4497,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta):
 
 
 @t.final
-class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
+class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     """
     A representation of a timestamp with second and nanosecond precision.
     """
@@ -4551,6 +4515,8 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     # =========================================================================
     @classmethod
     def now(cls) -&gt; Timestamp: ...
+    @classmethod
+    def from_str(cls, s: str) -&gt; Timestamp: ...
     @classmethod
     def parse(cls, s: str) -&gt; Timestamp: ...
     @classmethod
@@ -4638,6 +4604,7 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
     def as_second(self) -&gt; int: ...
     def display_with_offset(self, offset: Offset) -&gt; str: ...
     def in_tz(self, tz: str) -&gt; ZonedDateTime: ...
+    @te.deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: str) -&gt; ZonedDateTime:
         """Deprecated ~ use `in_tz`"""
 
@@ -4685,25 +4652,8 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime):
 
 
 @t.final
-class TimestampDifference:
-    def __init__(
-        self,
-        date: Timestamp,
-        *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int | None = None,
-    ) -&gt; None: ...
-    def smallest(self, unit: JIFF_UNIT) -&gt; TimestampDifference: ...
-    def largest(self, unit: JIFF_UNIT) -&gt; TimestampDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; TimestampDifference: ...
-    def increment(self, increment: int) -&gt; TimestampDifference: ...
-
-
-@t.final
 class ZonedDateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo, FromStr
 ):
     def __init__(
         self,
@@ -4739,6 +4689,8 @@ class ZonedDateTime(
     ) -&gt; ZonedDateTime: ...
     @classmethod
     def utcnow(cls: type[ZonedDateTime]) -&gt; ZonedDateTime: ...
+    @classmethod
+    def from_str(cls: type[ZonedDateTime], s: str) -&gt; ZonedDateTime: ...
     @classmethod
     def parse(cls: type[ZonedDateTime], s: str) -&gt; ZonedDateTime: ...
     @classmethod
@@ -4869,6 +4821,7 @@ class ZonedDateTime(
     def first_of_year(self) -&gt; ZonedDateTime: ...
     def in_leap_year(self) -&gt; bool: ...
     def in_tz(self, tz: str) -&gt; te.Self: ...
+    @te.deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: str) -&gt; te.Self: ...
     def inutc(self) -&gt; ZonedDateTime: ...
     def last_of_month(self) -&gt; ZonedDateTime: ...
@@ -4938,23 +4891,6 @@ class ZonedDateTime(
 
 
 @t.final
-class ZonedDateTimeDifference:
-    def __init__(
-        self,
-        date: ZonedDateTime,
-        *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int | None = None,
-    ) -&gt; None: ...
-    def smallest(self, unit: JIFF_UNIT) -&gt; ZonedDateTimeDifference: ...
-    def largest(self, unit: JIFF_UNIT) -&gt; ZonedDateTimeDifference: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; ZonedDateTimeDifference: ...
-    def increment(self, increment: int) -&gt; ZonedDateTimeDifference: ...
-
-
-@t.final
 class ISOWeekDate:
     MIN: ISOWeekDate
     MAX: ISOWeekDate
@@ -4996,75 +4932,6 @@ class ISOWeekDate:
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -&gt; Date: ...
-
-
-@t.final
-class TimestampRound:
-    def __init__(
-        self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int = 1,
-    ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; TimestampRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -&gt; TimestampRound: ...
-    def increment(self, increment: int) -&gt; TimestampRound: ...
-    def _smallest(self) -&gt; JIFF_UNIT: ...
-    def _mode(self) -&gt; JIFF_ROUND_MODE: ...
-    def _increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
-    ) -&gt; TimestampRound: ...
-
-
-@t.final
-class DateTimeRound:
-    def __init__(
-        self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int = 1,
-    ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; DateTimeRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -&gt; DateTimeRound: ...
-    def increment(self, increment: int) -&gt; DateTimeRound: ...
-    def _smallest(self) -&gt; JIFF_UNIT: ...
-    def _mode(self) -&gt; JIFF_ROUND_MODE: ...
-    def _increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
-    ) -&gt; DateTimeRound: ...
-
-
-@t.final
-class ZonedDateTimeRound:
-    def __init__(
-        self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int = 1,
-    ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -&gt; DateTimeRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -&gt; DateTimeRound: ...
-    def increment(self, increment: int) -&gt; DateTimeRound: ...
-    def _smallest(self) -&gt; JIFF_UNIT: ...
-    def _mode(self) -&gt; JIFF_ROUND_MODE: ...
-    def _increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
-    ) -&gt; DateTimeRound: ...
 
 
 @t.final
@@ -5159,6 +5026,118 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
     def until(self, other: Offset) -&gt; TimeSpan: ...
 
 
+# =============================================================================
+# DIFFERENCE
+# =============================================================================
+class _Difference(t.Generic[_T]):
+    def __init__(
+        self,
+        date: _T,
+        *,
+        smallest: JIFF_UNIT | None = None,
+        largest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
+        increment: int | None = None,
+    ) -&gt; None: ...
+    def smallest(self, unit: JIFF_UNIT) -&gt; te.Self: ...
+    def largest(self, unit: JIFF_UNIT) -&gt; te.Self: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -&gt; te.Self: ...
+    def increment(self, increment: int) -&gt; te.Self: ...
+
+
+@t.final
+class DateDifference(_Difference[Date]): ...
+
+
+@t.final
+class DateTimeDifference(_Difference[DateTime]): ...
+
+
+@t.final
+class TimeDifference(_Difference[Time]): ...
+
+
+@t.final
+class TimestampDifference(_Difference[Timestamp]): ...
+
+
+@t.final
+class ZonedDateTimeDifference(_Difference[ZonedDateTime]): ...
+
+
+# =============================================================================
+# ROUND
+# =============================================================================
+@t.final
+class TimestampRound:
+    def __init__(
+        self,
+        smallest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
+        increment: int = 1,
+    ) -&gt; None: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -&gt; TimestampRound: ...
+    def smallest(self, smallest: JIFF_UNIT) -&gt; TimestampRound: ...
+    def increment(self, increment: int) -&gt; TimestampRound: ...
+    def _smallest(self) -&gt; JIFF_UNIT: ...
+    def _mode(self) -&gt; JIFF_ROUND_MODE: ...
+    def _increment(self) -&gt; int: ...
+    def replace(
+        self,
+        smallest: JIFF_UNIT | None,
+        mode: JIFF_ROUND_MODE | None,
+        increment: int | None,
+    ) -&gt; TimestampRound: ...
+
+
+@t.final
+class DateTimeRound:
+    def __init__(
+        self,
+        smallest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
+        increment: int = 1,
+    ) -&gt; None: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -&gt; DateTimeRound: ...
+    def smallest(self, smallest: JIFF_UNIT) -&gt; DateTimeRound: ...
+    def increment(self, increment: int) -&gt; DateTimeRound: ...
+    def _smallest(self) -&gt; JIFF_UNIT: ...
+    def _mode(self) -&gt; JIFF_ROUND_MODE: ...
+    def _increment(self) -&gt; int: ...
+    def replace(
+        self,
+        smallest: JIFF_UNIT | None,
+        mode: JIFF_ROUND_MODE | None,
+        increment: int | None,
+    ) -&gt; DateTimeRound: ...
+
+
+@t.final
+class ZonedDateTimeRound:
+    def __init__(
+        self,
+        smallest: JIFF_UNIT | None = None,
+        mode: JIFF_ROUND_MODE | None = None,
+        increment: int = 1,
+    ) -&gt; None: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def mode(self, mode: JIFF_ROUND_MODE) -&gt; ZonedDateTimeRound: ...
+    def smallest(self, smallest: JIFF_UNIT) -&gt; ZonedDateTimeRound: ...
+    def increment(self, increment: int) -&gt; ZonedDateTimeRound: ...
+    def _smallest(self) -&gt; JIFF_UNIT: ...
+    def _mode(self) -&gt; JIFF_ROUND_MODE: ...
+    def _increment(self) -&gt; int: ...
+    def replace(
+        self,
+        smallest: JIFF_UNIT | None,
+        mode: JIFF_ROUND_MODE | None,
+        increment: int | None,
+    ) -&gt; ZonedDateTimeRound: ...
+
+
+@t.type_check_only
 class JiffSeries(
     t.Generic[_T],
 ):
@@ -5204,6 +5183,8 @@ def timespan(
     nanoseconds: int = 0,
 ) -&gt; TimeSpan: ...
 def offset(hours: int) -&gt; Offset: ...
+def now() -&gt; ZonedDateTime: ...
+def utcnow() -&gt; ZonedDateTime: ...
 
 
 # =============================================================================
