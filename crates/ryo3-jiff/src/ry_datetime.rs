@@ -106,8 +106,8 @@ impl RyDateTime {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        Self::from_str(_cls, s)
+    fn parse(cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        Self::from_str(cls, s)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {

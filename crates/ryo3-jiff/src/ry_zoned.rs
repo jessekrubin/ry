@@ -119,8 +119,8 @@ impl RyZoned {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        Self::from_str(_cls, input)
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     #[classmethod]
@@ -161,20 +161,11 @@ impl RyZoned {
     fn isoformat(&self) -> String {
         let offset = self.0.offset();
         let ts = self.0.timestamp();
-
         if self.0.datetime().subsec_nanosecond() == 0 {
             ISOFORMAT_PRINTER.timestamp_with_offset_to_string(&ts, offset)
         } else {
             ISOFORMAT_PRINTER_NO_MICROS.timestamp_with_offset_to_string(&ts, offset)
         }
-
-        // if
-        // if dt.subsec_nanosecond() == 0 {
-        //     ISOFORMAT_PRINTER_NO_MICROS.datetime_to_string(&dt)
-        // } else {
-        //     ISOFORMAT_PRINTER.datetime_to_string(&dt)
-        // }
-        // self.0.to_string()
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -213,7 +204,7 @@ impl RyZoned {
                 tz_name
             )
         } else {
-            format!("ZonedDateTime.parse(\"{}\")", self.0.to_string())
+            format!("ZonedDateTime.parse(\"{}\")", self.0)
         }
     }
 

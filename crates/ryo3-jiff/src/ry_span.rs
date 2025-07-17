@@ -163,8 +163,8 @@ impl RySpan {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        Self::from_str(_cls, input)
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     fn _years(&self, n: i64) -> PyResult<Self> {
