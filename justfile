@@ -131,10 +131,14 @@ justfilefmtc:
 
 # format markdown
 mdfmt:
-    prettier --prose-wrap=always -w CHANGELOG.md
+    prettier --cache --prose-wrap=always -w CHANGELOG.md
+
+# pyproject-fmt
+pyprojectfmt:
+    pyproject-fmt . --keep-full-version
 
 # format
-fmt: cargo-fmt fmtpy justfilefmt mdfmt
+fmt: cargo-fmt fmtpy justfilefmt mdfmt pyprojectfmt
 
 # format check
 fmtc: cargo-fmtc fmtcpy justfilefmtc

@@ -8,6 +8,5 @@ pytest
 pytest-asyncio
 pytest-benchmark
 ruff
-tomli
 tzdata
 uvicorn
