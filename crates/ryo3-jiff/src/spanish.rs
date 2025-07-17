@@ -45,14 +45,14 @@ impl TryFrom<Spanish<'_>> for Span {
     fn try_from(val: Spanish<'_>) -> Result<Self, Self::Error> {
         match val.inner {
             RySpanishObject::Span(span) => Ok(span.get().0),
-            RySpanishObject::Duration(duration) => Span::try_from(duration.get().0)
+            RySpanishObject::Duration(duration) => Self::try_from(duration.get().0)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
             RySpanishObject::SignedDuration(signed_duration) => {
                 let sd = signed_duration.get().0;
-                Span::try_from(sd)
+                Self::try_from(sd)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
             }
-            RySpanishObject::PyTimeDelta(signed_duration) => Span::try_from(signed_duration)
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::try_from(signed_duration)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
         }
     }
