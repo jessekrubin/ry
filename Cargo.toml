@@ -20,6 +20,7 @@ crate-type = ["cdylib", "rlib"]
 pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }
 tracing.workspace = true
+tracing-log = {workspace = true}
 tracing-subscriber.workspace = true
 
 [build-dependencies]
@@ -190,6 +191,7 @@ sqlformat = "0.3.5"
 thiserror = "2.0.12"
 tokio = { version = "1.45.1", features = ["bytes", "fs", "macros", "parking_lot", "rt", "rt-multi-thread", "sync", "io-util"] }
 tracing = "0.1.41"
+tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "default"] }
 unindent = "0.2.4"
 url = { version = "2.5.4" }

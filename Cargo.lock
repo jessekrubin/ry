@@ -1621,6 +1621,7 @@ dependencies = [
  "pyo3-build-config",
  "ryo3",
  "tracing",
+ "tracing-log",
  "tracing-subscriber",
 ]
 
