@@ -120,6 +120,9 @@ reportUnnecessaryTypeIgnoreComment = true
 
 [tool.uv]
 package = false # don't build package w/ uv
+# UV problemo: https://github.com/astral-sh/setup-uv/issues/489
+# BUG IN UV: https://github.com/astral-sh/setup-uv/issues/489#issuecomment-3085384851
+required-version = ">=0.7.0"
 
 [tool.uv.sources]
 ry = { workspace = true }
