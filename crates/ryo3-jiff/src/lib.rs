@@ -17,6 +17,7 @@ pub mod pydatetime_conversions;
 mod dev;
 
 mod api;
+mod civil;
 mod constants;
 mod deprecations;
 mod errors;
@@ -50,6 +51,7 @@ mod series;
 mod span_relative_to;
 mod spanish;
 mod test;
+mod tz;
 
 pub use api::*;
 pub use jiff_types::*;
