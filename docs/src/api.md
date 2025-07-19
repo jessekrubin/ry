@@ -23,6 +23,7 @@
 - [`ry.ryo3._heck`](#ry.ryo3._heck)
 - [`ry.ryo3._http`](#ry.ryo3._http)
 - [`ry.ryo3._jiff`](#ry.ryo3._jiff)
+- [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
 - [`ry.ryo3._regex`](#ry.ryo3._regex)
@@ -492,18 +493,6 @@ class ULID:
     def to_uuid(self) -> uuid.UUID: ...
     def to_uuid4(self) -> uuid.UUID: ...
 
-    # -------
-    # DUNDERS
-    # -------
-    def __int__(self) -> int: ...
-    def __bytes__(self) -> builtins.bytes: ...
-    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-
     # ----------
     # PROPERTIES
     # ----------
@@ -545,6 +534,18 @@ class ULID:
     def __get_pydantic_core_schema__(
         cls, source: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema: ...
+
+    # -------
+    # DUNDERS
+    # -------
+    def __bytes__(self) -> builtins.bytes: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __int__(self) -> int: ...
+    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
 
 ```
 
@@ -627,14 +628,14 @@ class UUID:
     def variant(self) -> str: ...
     @property
     def version(self) -> builtins.int | None: ...
-    def __int__(self) -> builtins.int: ...
-    def __eq__(self, other: object) -> bool: ...
+    def to_py(self) -> pyuuid.UUID: ...
     def __lt__(self, other: UUID) -> bool: ...
     def __le__(self, other: UUID) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
     def __gt__(self, other: UUID) -> bool: ...
     def __ge__(self, other: UUID) -> bool: ...
     def __hash__(self) -> builtins.int: ...
-    def to_py(self) -> pyuuid.UUID: ...
+    def __int__(self) -> builtins.int: ...
 
 
 def getnode() -> builtins.int: ...
@@ -1491,10 +1492,10 @@ def train_case(string: str) -> str: ...
 import typing as t
 from collections.abc import Mapping
 
-import typing_extensions
+import typing_extensions as te
 
 # fmt: off
-HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
+HTTP_VERSION_LIKE: te.TypeAlias = t.Literal[
     "HTTP/0.9", "0.9", 0,
     "HTTP/1.0", "1.0", 1, 10,
     "HTTP/1.1", "1.1", 11,
@@ -1503,6 +1504,91 @@ HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
 ]
 # fmt: on
 
+_STANDARD_HEADER: te.TypeAlias = t.Literal[
+    "accept",
+    "accept-charset",
+    "accept-encoding",
+    "accept-language",
+    "accept-ranges",
+    "access-control-allow-credentials",
+    "access-control-allow-headers",
+    "access-control-allow-methods",
+    "access-control-allow-origin",
+    "access-control-expose-headers",
+    "access-control-max-age",
+    "access-control-request-headers",
+    "access-control-request-method",
+    "age",
+    "allow",
+    "alt-svc",
+    "authorization",
+    "cache-control",
+    "cache-status",
+    "cdn-cache-control",
+    "connection",
+    "content-disposition",
+    "content-encoding",
+    "content-language",
+    "content-length",
+    "content-location",
+    "content-range",
+    "content-security-policy",
+    "content-security-policy-report-only",
+    "content-type",
+    "cookie",
+    "dnt",
+    "date",
+    "etag",
+    "expect",
+    "expires",
+    "forwarded",
+    "from",
+    "host",
+    "if-match",
+    "if-modified-since",
+    "if-none-match",
+    "if-range",
+    "if-unmodified-since",
+    "last-modified",
+    "link",
+    "location",
+    "max-forwards",
+    "origin",
+    "pragma",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "public-key-pins",
+    "public-key-pins-report-only",
+    "range",
+    "referer",
+    "referrer-policy",
+    "refresh",
+    "retry-after",
+    "sec-websocket-accept",
+    "sec-websocket-extensions",
+    "sec-websocket-key",
+    "sec-websocket-protocol",
+    "sec-websocket-version",
+    "server",
+    "set-cookie",
+    "strict-transport-security",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "user-agent",
+    "upgrade",
+    "upgrade-insecure-requests",
+    "vary",
+    "via",
+    "warning",
+    "www-authenticate",
+    "x-content-type-options",
+    "x-dns-prefetch-control",
+    "x-frame-options",
+    "x-xss-protection",
+]
+
+_HeaderName: te.TypeAlias = _STANDARD_HEADER | str
 _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 
 
@@ -1512,7 +1598,7 @@ class Headers:
 
     def __init__(
         self,
-        headers: Mapping[str, _VT] | Headers | None = None,
+        headers: Mapping[_HeaderName, _VT] | Headers | None = None,
         /,
         **kwargs: _VT,
     ) -> None: ...
@@ -1526,13 +1612,13 @@ class Headers:
     # MAGIC METHODS
     # =========================================================================
     def __len__(self) -> int: ...
-    def __getitem__(self, key: str) -> str: ...
-    def __setitem__(self, key: str, value: str) -> None: ...
-    def __delitem__(self, key: str) -> None: ...
-    def __contains__(self, key: str) -> bool: ...
+    def __getitem__(self, key: _HeaderName) -> str: ...
+    def __setitem__(self, key: _HeaderName, value: str) -> None: ...
+    def __delitem__(self, key: _HeaderName) -> None: ...
+    def __contains__(self, key: _HeaderName) -> bool: ...
     def __or__(self, other: Headers | dict[str, str]) -> Headers: ...
     def __ror__(self, other: Headers | dict[str, str]) -> Headers: ...
-    def __iter__(self) -> t.Iterator[str]: ...
+    def __iter__(self) -> t.Iterator[_HeaderName]: ...
     def __bool__(self) -> bool: ...
 
     # =========================================================================
@@ -1541,18 +1627,18 @@ class Headers:
     def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
     def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
     def stringify(self, *, fmt: bool = False) -> str: ...
-    def append(self, key: str, value: str) -> None: ...
+    def append(self, key: _HeaderName, value: str) -> None: ...
     def clear(self) -> None: ...
-    def contains_key(self, key: str) -> bool: ...
-    def get(self, key: str) -> str | None: ...
-    def get_all(self, key: str) -> list[str]: ...
-    def insert(self, key: str, value: str) -> None: ...
+    def contains_key(self, key: _HeaderName) -> bool: ...
+    def get(self, key: _HeaderName) -> str | None: ...
+    def get_all(self, key: _HeaderName) -> list[str]: ...
+    def insert(self, key: _HeaderName, value: str) -> None: ...
     def is_empty(self) -> bool: ...
     def keys(self) -> list[str]: ...
     def keys_len(self) -> int: ...
     def len(self) -> int: ...
-    def pop(self, key: str) -> str: ...
-    def remove(self, key: str) -> None: ...
+    def pop(self, key: _HeaderName) -> str: ...
+    def remove(self, key: _HeaderName) -> None: ...
     def update(self, headers: Headers | dict[str, str]) -> None: ...
     def values(self) -> list[str]: ...
     @property
@@ -1696,11 +1782,11 @@ from ry._types import (
     ToPyTzInfo,
 )
 from ry.ryo3 import Duration
+from ry.ryo3._jiff_tz import TZDB_NAMES
 
 _T = t.TypeVar("_T")
-# =============================================================================
-# JIFF
-# =============================================================================
+
+TZ_NAME: te.TypeAlias = TZDB_NAMES | str
 JIFF_UNIT: te.TypeAlias = t.Literal[
     "year",
     "month",
@@ -1855,9 +1941,9 @@ class Date(ToPy[pydt.date], ToPyDate):
     def first_of_year(self) -> Date: ...
     def iso_week_date(self) -> ISOWeekDate: ...
     def in_leap_year(self) -> bool: ...
-    def in_tz(self, tz: str) -> ZonedDateTime: ...
+    def in_tz(self, tz: TZ_NAME) -> ZonedDateTime: ...
     @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: str) -> ZonedDateTime: ...
+    def intz(self, tz: TZ_NAME) -> ZonedDateTime: ...
     def last_of_month(self) -> Date: ...
     def last_of_year(self) -> Date: ...
     def nth_weekday(self, nth: int, weekday: WEEKDAY) -> Date: ...
@@ -2267,7 +2353,7 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 @t.final
 class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
-    def __init__(self, name: str) -> None: ...
+    def __init__(self, name: TZ_NAME) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __call__(self) -> te.Self: ...
 
@@ -2278,7 +2364,7 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     def to_py(self) -> pydt.tzinfo: ...
     def to_pytzinfo(self) -> pydt.tzinfo: ...
     @classmethod
-    def from_str(cls, s: str) -> TimeZone: ...
+    def from_str(cls, s: TZ_NAME) -> TimeZone: ...
     @classmethod
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -> TimeZone: ...
 
@@ -2296,9 +2382,9 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     @classmethod
     def fixed(cls: type[TimeZone], offset: Offset) -> TimeZone: ...
     @classmethod
-    def get(cls: type[TimeZone], name: str) -> TimeZone: ...
+    def get(cls: type[TimeZone], name: TZ_NAME) -> TimeZone: ...
     @classmethod
-    def posix(cls: type[TimeZone], name: str) -> TimeZone: ...
+    def posix(cls: type[TimeZone], name: TZ_NAME) -> TimeZone: ...
     @classmethod
     def system(cls: type[TimeZone]) -> TimeZone: ...
     @classmethod
@@ -2739,9 +2825,9 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def as_nanosecond(self) -> int: ...
     def as_second(self) -> int: ...
     def display_with_offset(self, offset: Offset) -> str: ...
-    def in_tz(self, tz: str) -> ZonedDateTime: ...
+    def in_tz(self, tz: TZ_NAME) -> ZonedDateTime: ...
     @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: str) -> ZonedDateTime:
+    def intz(self, tz: TZ_NAME) -> ZonedDateTime:
         """Deprecated ~ use `in_tz`"""
 
     def is_zero(self) -> bool: ...
@@ -2956,9 +3042,9 @@ class ZonedDateTime(
     def first_of_month(self) -> ZonedDateTime: ...
     def first_of_year(self) -> ZonedDateTime: ...
     def in_leap_year(self) -> bool: ...
-    def in_tz(self, tz: str) -> te.Self: ...
+    def in_tz(self, tz: TZ_NAME) -> te.Self: ...
     @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: str) -> te.Self: ...
+    def intz(self, tz: TZ_NAME) -> te.Self: ...
     def inutc(self) -> ZonedDateTime: ...
     def last_of_month(self) -> ZonedDateTime: ...
     def last_of_year(self) -> ZonedDateTime: ...
@@ -3332,15 +3418,15 @@ class TimeZoneDatabase:
         """Defaults to using the `self.from_env`"""
 
     @t.overload
-    def get(self, name: str, err: t.Literal[False]) -> TimeZone | None:
+    def get(self, name: TZ_NAME, err: t.Literal[False]) -> TimeZone | None:
         """Returns TimeZone or None if the timezone is not found"""
 
     @t.overload
-    def get(self, name: str, err: t.Literal[True] = True) -> TimeZone:
+    def get(self, name: TZ_NAME, err: t.Literal[True] = True) -> TimeZone:
         """Returns TimeZone, if not found raises a ValueError"""
 
     def available(self) -> list[str]: ...
-    def __getitem__(self, name: str) -> TimeZone: ...
+    def __getitem__(self, name: TZ_NAME) -> TimeZone: ...
     def __len__(self) -> int: ...
     def is_definitively_empty(self) -> bool: ...
     @classmethod
@@ -3351,6 +3437,616 @@ class TimeZoneDatabase:
     def from_concatenated_path(cls, path: str) -> TimeZoneDatabase: ...
     @classmethod
     def bundled(cls) -> TimeZoneDatabase: ...
+
+```
+
+<h2 id="ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></h2>
+
+```python
+from typing import Literal
+
+from typing_extensions import TypeAlias
+
+TZDB_NAMES: TypeAlias = Literal[
+    "Africa/Abidjan",
+    "Africa/Accra",
+    "Africa/Addis_Ababa",
+    "Africa/Algiers",
+    "Africa/Asmara",
+    "Africa/Asmera",
+    "Africa/Bamako",
+    "Africa/Bangui",
+    "Africa/Banjul",
+    "Africa/Bissau",
+    "Africa/Blantyre",
+    "Africa/Brazzaville",
+    "Africa/Bujumbura",
+    "Africa/Cairo",
+    "Africa/Casablanca",
+    "Africa/Ceuta",
+    "Africa/Conakry",
+    "Africa/Dakar",
+    "Africa/Dar_es_Salaam",
+    "Africa/Djibouti",
+    "Africa/Douala",
+    "Africa/El_Aaiun",
+    "Africa/Freetown",
+    "Africa/Gaborone",
+    "Africa/Harare",
+    "Africa/Johannesburg",
+    "Africa/Juba",
+    "Africa/Kampala",
+    "Africa/Khartoum",
+    "Africa/Kigali",
+    "Africa/Kinshasa",
+    "Africa/Lagos",
+    "Africa/Libreville",
+    "Africa/Lome",
+    "Africa/Luanda",
+    "Africa/Lubumbashi",
+    "Africa/Lusaka",
+    "Africa/Malabo",
+    "Africa/Maputo",
+    "Africa/Maseru",
+    "Africa/Mbabane",
+    "Africa/Mogadishu",
+    "Africa/Monrovia",
+    "Africa/Nairobi",
+    "Africa/Ndjamena",
+    "Africa/Niamey",
+    "Africa/Nouakchott",
+    "Africa/Ouagadougou",
+    "Africa/Porto-Novo",
+    "Africa/Sao_Tome",
+    "Africa/Timbuktu",
+    "Africa/Tripoli",
+    "Africa/Tunis",
+    "Africa/Windhoek",
+    "America/Adak",
+    "America/Anchorage",
+    "America/Anguilla",
+    "America/Antigua",
+    "America/Araguaina",
+    "America/Argentina/Buenos_Aires",
+    "America/Argentina/Catamarca",
+    "America/Argentina/ComodRivadavia",
+    "America/Argentina/Cordoba",
+    "America/Argentina/Jujuy",
+    "America/Argentina/La_Rioja",
+    "America/Argentina/Mendoza",
+    "America/Argentina/Rio_Gallegos",
+    "America/Argentina/Salta",
+    "America/Argentina/San_Juan",
+    "America/Argentina/San_Luis",
+    "America/Argentina/Tucuman",
+    "America/Argentina/Ushuaia",
+    "America/Aruba",
+    "America/Asuncion",
+    "America/Atikokan",
+    "America/Atka",
+    "America/Bahia",
+    "America/Bahia_Banderas",
+    "America/Barbados",
+    "America/Belem",
+    "America/Belize",
+    "America/Blanc-Sablon",
+    "America/Boa_Vista",
+    "America/Bogota",
+    "America/Boise",
+    "America/Buenos_Aires",
+    "America/Cambridge_Bay",
+    "America/Campo_Grande",
+    "America/Cancun",
+    "America/Caracas",
+    "America/Catamarca",
+    "America/Cayenne",
+    "America/Cayman",
+    "America/Chicago",
+    "America/Chihuahua",
+    "America/Ciudad_Juarez",
+    "America/Coral_Harbour",
+    "America/Cordoba",
+    "America/Costa_Rica",
+    "America/Coyhaique",
+    "America/Creston",
+    "America/Cuiaba",
+    "America/Curacao",
+    "America/Danmarkshavn",
+    "America/Dawson",
+    "America/Dawson_Creek",
+    "America/Denver",
+    "America/Detroit",
+    "America/Dominica",
+    "America/Edmonton",
+    "America/Eirunepe",
+    "America/El_Salvador",
+    "America/Ensenada",
+    "America/Fort_Nelson",
+    "America/Fort_Wayne",
+    "America/Fortaleza",
+    "America/Glace_Bay",
+    "America/Godthab",
+    "America/Goose_Bay",
+    "America/Grand_Turk",
+    "America/Grenada",
+    "America/Guadeloupe",
+    "America/Guatemala",
+    "America/Guayaquil",
+    "America/Guyana",
+    "America/Halifax",
+    "America/Havana",
+    "America/Hermosillo",
+    "America/Indiana/Indianapolis",
+    "America/Indiana/Knox",
+    "America/Indiana/Marengo",
+    "America/Indiana/Petersburg",
+    "America/Indiana/Tell_City",
+    "America/Indiana/Vevay",
+    "America/Indiana/Vincennes",
+    "America/Indiana/Winamac",
+    "America/Indianapolis",
+    "America/Inuvik",
+    "America/Iqaluit",
+    "America/Jamaica",
+    "America/Jujuy",
+    "America/Juneau",
+    "America/Kentucky/Louisville",
+    "America/Kentucky/Monticello",
+    "America/Knox_IN",
+    "America/Kralendijk",
+    "America/La_Paz",
+    "America/Lima",
+    "America/Los_Angeles",
+    "America/Louisville",
+    "America/Lower_Princes",
+    "America/Maceio",
+    "America/Managua",
+    "America/Manaus",
+    "America/Marigot",
+    "America/Martinique",
+    "America/Matamoros",
+    "America/Mazatlan",
+    "America/Mendoza",
+    "America/Menominee",
+    "America/Merida",
+    "America/Metlakatla",
+    "America/Mexico_City",
+    "America/Miquelon",
+    "America/Moncton",
+    "America/Monterrey",
+    "America/Montevideo",
+    "America/Montreal",
+    "America/Montserrat",
+    "America/Nassau",
+    "America/New_York",
+    "America/Nipigon",
+    "America/Nome",
+    "America/Noronha",
+    "America/North_Dakota/Beulah",
+    "America/North_Dakota/Center",
+    "America/North_Dakota/New_Salem",
+    "America/Nuuk",
+    "America/Ojinaga",
+    "America/Panama",
+    "America/Pangnirtung",
+    "America/Paramaribo",
+    "America/Phoenix",
+    "America/Port-au-Prince",
+    "America/Port_of_Spain",
+    "America/Porto_Acre",
+    "America/Porto_Velho",
+    "America/Puerto_Rico",
+    "America/Punta_Arenas",
+    "America/Rainy_River",
+    "America/Rankin_Inlet",
+    "America/Recife",
+    "America/Regina",
+    "America/Resolute",
+    "America/Rio_Branco",
+    "America/Rosario",
+    "America/Santa_Isabel",
+    "America/Santarem",
+    "America/Santiago",
+    "America/Santo_Domingo",
+    "America/Sao_Paulo",
+    "America/Scoresbysund",
+    "America/Shiprock",
+    "America/Sitka",
+    "America/St_Barthelemy",
+    "America/St_Johns",
+    "America/St_Kitts",
+    "America/St_Lucia",
+    "America/St_Thomas",
+    "America/St_Vincent",
+    "America/Swift_Current",
+    "America/Tegucigalpa",
+    "America/Thule",
+    "America/Thunder_Bay",
+    "America/Tijuana",
+    "America/Toronto",
+    "America/Tortola",
+    "America/Vancouver",
+    "America/Virgin",
+    "America/Whitehorse",
+    "America/Winnipeg",
+    "America/Yakutat",
+    "America/Yellowknife",
+    "Antarctica/Casey",
+    "Antarctica/Davis",
+    "Antarctica/DumontDUrville",
+    "Antarctica/Macquarie",
+    "Antarctica/Mawson",
+    "Antarctica/McMurdo",
+    "Antarctica/Palmer",
+    "Antarctica/Rothera",
+    "Antarctica/South_Pole",
+    "Antarctica/Syowa",
+    "Antarctica/Troll",
+    "Antarctica/Vostok",
+    "Arctic/Longyearbyen",
+    "Asia/Aden",
+    "Asia/Almaty",
+    "Asia/Amman",
+    "Asia/Anadyr",
+    "Asia/Aqtau",
+    "Asia/Aqtobe",
+    "Asia/Ashgabat",
+    "Asia/Ashkhabad",
+    "Asia/Atyrau",
+    "Asia/Baghdad",
+    "Asia/Bahrain",
+    "Asia/Baku",
+    "Asia/Bangkok",
+    "Asia/Barnaul",
+    "Asia/Beirut",
+    "Asia/Bishkek",
+    "Asia/Brunei",
+    "Asia/Calcutta",
+    "Asia/Chita",
+    "Asia/Choibalsan",
+    "Asia/Chongqing",
+    "Asia/Chungking",
+    "Asia/Colombo",
+    "Asia/Dacca",
+    "Asia/Damascus",
+    "Asia/Dhaka",
+    "Asia/Dili",
+    "Asia/Dubai",
+    "Asia/Dushanbe",
+    "Asia/Famagusta",
+    "Asia/Gaza",
+    "Asia/Harbin",
+    "Asia/Hebron",
+    "Asia/Ho_Chi_Minh",
+    "Asia/Hong_Kong",
+    "Asia/Hovd",
+    "Asia/Irkutsk",
+    "Asia/Istanbul",
+    "Asia/Jakarta",
+    "Asia/Jayapura",
+    "Asia/Jerusalem",
+    "Asia/Kabul",
+    "Asia/Kamchatka",
+    "Asia/Karachi",
+    "Asia/Kashgar",
+    "Asia/Kathmandu",
+    "Asia/Katmandu",
+    "Asia/Khandyga",
+    "Asia/Kolkata",
+    "Asia/Krasnoyarsk",
+    "Asia/Kuala_Lumpur",
+    "Asia/Kuching",
+    "Asia/Kuwait",
+    "Asia/Macao",
+    "Asia/Macau",
+    "Asia/Magadan",
+    "Asia/Makassar",
+    "Asia/Manila",
+    "Asia/Muscat",
+    "Asia/Nicosia",
+    "Asia/Novokuznetsk",
+    "Asia/Novosibirsk",
+    "Asia/Omsk",
+    "Asia/Oral",
+    "Asia/Phnom_Penh",
+    "Asia/Pontianak",
+    "Asia/Pyongyang",
+    "Asia/Qatar",
+    "Asia/Qostanay",
+    "Asia/Qyzylorda",
+    "Asia/Rangoon",
+    "Asia/Riyadh",
+    "Asia/Saigon",
+    "Asia/Sakhalin",
+    "Asia/Samarkand",
+    "Asia/Seoul",
+    "Asia/Shanghai",
+    "Asia/Singapore",
+    "Asia/Srednekolymsk",
+    "Asia/Taipei",
+    "Asia/Tashkent",
+    "Asia/Tbilisi",
+    "Asia/Tehran",
+    "Asia/Tel_Aviv",
+    "Asia/Thimbu",
+    "Asia/Thimphu",
+    "Asia/Tokyo",
+    "Asia/Tomsk",
+    "Asia/Ujung_Pandang",
+    "Asia/Ulaanbaatar",
+    "Asia/Ulan_Bator",
+    "Asia/Urumqi",
+    "Asia/Ust-Nera",
+    "Asia/Vientiane",
+    "Asia/Vladivostok",
+    "Asia/Yakutsk",
+    "Asia/Yangon",
+    "Asia/Yekaterinburg",
+    "Asia/Yerevan",
+    "Atlantic/Azores",
+    "Atlantic/Bermuda",
+    "Atlantic/Canary",
+    "Atlantic/Cape_Verde",
+    "Atlantic/Faeroe",
+    "Atlantic/Faroe",
+    "Atlantic/Jan_Mayen",
+    "Atlantic/Madeira",
+    "Atlantic/Reykjavik",
+    "Atlantic/South_Georgia",
+    "Atlantic/St_Helena",
+    "Atlantic/Stanley",
+    "Australia/ACT",
+    "Australia/Adelaide",
+    "Australia/Brisbane",
+    "Australia/Broken_Hill",
+    "Australia/Canberra",
+    "Australia/Currie",
+    "Australia/Darwin",
+    "Australia/Eucla",
+    "Australia/Hobart",
+    "Australia/LHI",
+    "Australia/Lindeman",
+    "Australia/Lord_Howe",
+    "Australia/Melbourne",
+    "Australia/North",
+    "Australia/NSW",
+    "Australia/Perth",
+    "Australia/Queensland",
+    "Australia/South",
+    "Australia/Sydney",
+    "Australia/Tasmania",
+    "Australia/Victoria",
+    "Australia/West",
+    "Australia/Yancowinna",
+    "Brazil/Acre",
+    "Brazil/DeNoronha",
+    "Brazil/East",
+    "Brazil/West",
+    "Canada/Atlantic",
+    "Canada/Central",
+    "Canada/Eastern",
+    "Canada/Mountain",
+    "Canada/Newfoundland",
+    "Canada/Pacific",
+    "Canada/Saskatchewan",
+    "Canada/Yukon",
+    "CET",
+    "Chile/Continental",
+    "Chile/EasterIsland",
+    "CST6CDT",
+    "Cuba",
+    "EET",
+    "Egypt",
+    "Eire",
+    "EST",
+    "EST5EDT",
+    "Etc/GMT",
+    "Etc/GMT+0",
+    "Etc/GMT+1",
+    "Etc/GMT+10",
+    "Etc/GMT+11",
+    "Etc/GMT+12",
+    "Etc/GMT+2",
+    "Etc/GMT+3",
+    "Etc/GMT+4",
+    "Etc/GMT+5",
+    "Etc/GMT+6",
+    "Etc/GMT+7",
+    "Etc/GMT+8",
+    "Etc/GMT+9",
+    "Etc/GMT-0",
+    "Etc/GMT-1",
+    "Etc/GMT-10",
+    "Etc/GMT-11",
+    "Etc/GMT-12",
+    "Etc/GMT-13",
+    "Etc/GMT-14",
+    "Etc/GMT-2",
+    "Etc/GMT-3",
+    "Etc/GMT-4",
+    "Etc/GMT-5",
+    "Etc/GMT-6",
+    "Etc/GMT-7",
+    "Etc/GMT-8",
+    "Etc/GMT-9",
+    "Etc/GMT0",
+    "Etc/Greenwich",
+    "Etc/UCT",
+    "Etc/Universal",
+    "Etc/UTC",
+    "Etc/Zulu",
+    "Europe/Amsterdam",
+    "Europe/Andorra",
+    "Europe/Astrakhan",
+    "Europe/Athens",
+    "Europe/Belfast",
+    "Europe/Belgrade",
+    "Europe/Berlin",
+    "Europe/Bratislava",
+    "Europe/Brussels",
+    "Europe/Bucharest",
+    "Europe/Budapest",
+    "Europe/Busingen",
+    "Europe/Chisinau",
+    "Europe/Copenhagen",
+    "Europe/Dublin",
+    "Europe/Gibraltar",
+    "Europe/Guernsey",
+    "Europe/Helsinki",
+    "Europe/Isle_of_Man",
+    "Europe/Istanbul",
+    "Europe/Jersey",
+    "Europe/Kaliningrad",
+    "Europe/Kiev",
+    "Europe/Kirov",
+    "Europe/Kyiv",
+    "Europe/Lisbon",
+    "Europe/Ljubljana",
+    "Europe/London",
+    "Europe/Luxembourg",
+    "Europe/Madrid",
+    "Europe/Malta",
+    "Europe/Mariehamn",
+    "Europe/Minsk",
+    "Europe/Monaco",
+    "Europe/Moscow",
+    "Europe/Nicosia",
+    "Europe/Oslo",
+    "Europe/Paris",
+    "Europe/Podgorica",
+    "Europe/Prague",
+    "Europe/Riga",
+    "Europe/Rome",
+    "Europe/Samara",
+    "Europe/San_Marino",
+    "Europe/Sarajevo",
+    "Europe/Saratov",
+    "Europe/Simferopol",
+    "Europe/Skopje",
+    "Europe/Sofia",
+    "Europe/Stockholm",
+    "Europe/Tallinn",
+    "Europe/Tirane",
+    "Europe/Tiraspol",
+    "Europe/Ulyanovsk",
+    "Europe/Uzhgorod",
+    "Europe/Vaduz",
+    "Europe/Vatican",
+    "Europe/Vienna",
+    "Europe/Vilnius",
+    "Europe/Volgograd",
+    "Europe/Warsaw",
+    "Europe/Zagreb",
+    "Europe/Zaporozhye",
+    "Europe/Zurich",
+    "Factory",
+    "GB",
+    "GB-Eire",
+    "GMT",
+    "GMT+0",
+    "GMT-0",
+    "GMT0",
+    "Greenwich",
+    "Hongkong",
+    "HST",
+    "Iceland",
+    "Indian/Antananarivo",
+    "Indian/Chagos",
+    "Indian/Christmas",
+    "Indian/Cocos",
+    "Indian/Comoro",
+    "Indian/Kerguelen",
+    "Indian/Mahe",
+    "Indian/Maldives",
+    "Indian/Mauritius",
+    "Indian/Mayotte",
+    "Indian/Reunion",
+    "Iran",
+    "Israel",
+    "Jamaica",
+    "Japan",
+    "Kwajalein",
+    "Libya",
+    "MET",
+    "Mexico/BajaNorte",
+    "Mexico/BajaSur",
+    "Mexico/General",
+    "MST",
+    "MST7MDT",
+    "Navajo",
+    "NZ",
+    "NZ-CHAT",
+    "Pacific/Apia",
+    "Pacific/Auckland",
+    "Pacific/Bougainville",
+    "Pacific/Chatham",
+    "Pacific/Chuuk",
+    "Pacific/Easter",
+    "Pacific/Efate",
+    "Pacific/Enderbury",
+    "Pacific/Fakaofo",
+    "Pacific/Fiji",
+    "Pacific/Funafuti",
+    "Pacific/Galapagos",
+    "Pacific/Gambier",
+    "Pacific/Guadalcanal",
+    "Pacific/Guam",
+    "Pacific/Honolulu",
+    "Pacific/Johnston",
+    "Pacific/Kanton",
+    "Pacific/Kiritimati",
+    "Pacific/Kosrae",
+    "Pacific/Kwajalein",
+    "Pacific/Majuro",
+    "Pacific/Marquesas",
+    "Pacific/Midway",
+    "Pacific/Nauru",
+    "Pacific/Niue",
+    "Pacific/Norfolk",
+    "Pacific/Noumea",
+    "Pacific/Pago_Pago",
+    "Pacific/Palau",
+    "Pacific/Pitcairn",
+    "Pacific/Pohnpei",
+    "Pacific/Ponape",
+    "Pacific/Port_Moresby",
+    "Pacific/Rarotonga",
+    "Pacific/Saipan",
+    "Pacific/Samoa",
+    "Pacific/Tahiti",
+    "Pacific/Tarawa",
+    "Pacific/Tongatapu",
+    "Pacific/Truk",
+    "Pacific/Wake",
+    "Pacific/Wallis",
+    "Pacific/Yap",
+    "Poland",
+    "Portugal",
+    "PRC",
+    "PST8PDT",
+    "ROC",
+    "ROK",
+    "Singapore",
+    "Turkey",
+    "UCT",
+    "Universal",
+    "US/Alaska",
+    "US/Aleutian",
+    "US/Arizona",
+    "US/Central",
+    "US/East-Indiana",
+    "US/Eastern",
+    "US/Hawaii",
+    "US/Indiana-Starke",
+    "US/Michigan",
+    "US/Mountain",
+    "US/Pacific",
+    "US/Samoa",
+    "UTC",
+    "W-SU",
+    "WET",
+    "Zulu",
+]
 
 ```
 
@@ -3487,7 +4183,7 @@ import typing_extensions as te
 
 import ry
 from ry._types import Buffer
-from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
+from ry.ryo3._http import HTTP_VERSION_LIKE, Headers, HttpStatus
 from ry.ryo3._std import Duration
 from ry.ryo3._url import URL
 
@@ -3500,7 +4196,7 @@ class RequestKwargs(t.TypedDict, total=False):
     form: t.Any
     multipart: t.Any
     timeout: Duration | None
-    version: HttpVersionLike | None
+    version: HTTP_VERSION_LIKE | None
 
 
 @t.final
@@ -4421,10 +5117,10 @@ class DirEntryAsync:
 class ReadDirAsync:
     """Async iterator for read_dir_async"""
 
-    def __aiter__(self) -> ReadDirAsync: ...
-    async def __anext__(self) -> DirEntryAsync: ...
     async def collect(self) -> list[DirEntryAsync]: ...
     async def take(self, n: int) -> list[DirEntryAsync]: ...
+    def __aiter__(self) -> ReadDirAsync: ...
+    async def __anext__(self) -> DirEntryAsync: ...
 
 
 async def read_dir_async(path: FsPathLike) -> ReadDirAsync: ...
@@ -4438,20 +5134,13 @@ async def asleep(seconds: float) -> float:
     """Alias for sleep_async"""
 
 
+# =============================================================================
+# ASYNC-FILE
+# =============================================================================
 @t.final
 class AsyncFile:
     def __init__(
         self, path: FsPathLike, mode: str = "r", buffering: int = -1
-    ) -> None: ...
-    def __aiter__(self) -> te.Self: ...
-    def __await__(self) -> Generator[t.Any, t.Any, te.Self]: ...
-    async def __anext__(self) -> Bytes: ...
-    async def __aenter__(self) -> te.Self: ...
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
     ) -> None: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
@@ -4471,6 +5160,16 @@ class AsyncFile:
     async def write(self, b: Buffer, /) -> int: ...
     @property
     def closed(self) -> bool: ...
+    def __await__(self) -> Generator[t.Any, t.Any, te.Self]: ...
+    def __aiter__(self) -> te.Self: ...
+    async def __anext__(self) -> Bytes: ...
+    async def __aenter__(self) -> te.Self: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
 
 
 def aiopen(
