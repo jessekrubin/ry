@@ -25,5 +25,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // dev submodule
     #[cfg(feature = "dev")]
     dev::pymod_add(m)?;
+
+    ryo3_toml::pymod_add(m)?;
+
     Ok(())
 }
