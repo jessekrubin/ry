@@ -2,7 +2,7 @@
 use crate::bytes::PyBytes;
 use crate::python_bytes_methods::PythonBytesMethods;
 use pyo3::prelude::*;
-use pyo3::types::{PyString, PyTuple, PyType};
+use pyo3::types::{PyString, PyType};
 
 impl PythonBytesMethods for PyBytes {}
 

@@ -77,7 +77,7 @@ impl PyBytes {
     ///     - If start > stop, the slice is empty
     ///
     /// This is NOT exposed to Python under the `#[pymethods]` impl
-    fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<PyBytes> {
+    fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<Self> {
         let bytes_length = self.0.len() as isize;
         let (start, stop, step) = {
             let slice_indices = slice.indices(bytes_length)?;
@@ -91,19 +91,19 @@ impl PyBytes {
         };
 
         if new_capacity == 0 {
-            return Ok(PyBytes(Bytes::new()));
+            return Ok(Self(Bytes::new()));
         }
         if step == 1 {
             // if start < 0  and stop > len and step == 1 just copy?
             if start < 0 && stop >= bytes_length {
                 let out = self.0.slice(..);
-                let py_bytes = PyBytes(out);
+                let py_bytes = Self(out);
                 return Ok(py_bytes);
             }
 
             if start >= 0 && stop <= bytes_length && start < stop {
                 let out = self.0.slice(start as usize..stop as usize);
-                let py_bytes = PyBytes(out);
+                let py_bytes = Self(out);
                 return Ok(py_bytes);
             }
             // fall through to the general case here...
@@ -116,7 +116,7 @@ impl PyBytes {
                     .step_by(step as usize)
                     .map(|i| self.0[i as usize]),
             );
-            Ok(PyBytes(new_buf.freeze()))
+            Ok(Self(new_buf.freeze()))
         } else {
             // backward
             let mut new_buf = BytesMut::with_capacity(new_capacity);
@@ -126,7 +126,7 @@ impl PyBytes {
                     .step_by((-step) as usize)
                     .map(|i| self.0[i as usize]),
             );
-            Ok(PyBytes(new_buf.freeze()))
+            Ok(Self(new_buf.freeze()))
         }
     }
 }
@@ -139,19 +139,19 @@ impl From<PyBytes> for Bytes {
 
 impl From<Vec<u8>> for PyBytes {
     fn from(value: Vec<u8>) -> Self {
-        PyBytes(value.into())
+        Self(value.into())
     }
 }
 
 impl From<Bytes> for PyBytes {
     fn from(value: Bytes) -> Self {
-        PyBytes(value)
+        Self(value)
     }
 }
 
 impl From<BytesMut> for PyBytes {
     fn from(value: BytesMut) -> Self {
-        PyBytes(value.into())
+        Self(value.into())
     }
 }
 
@@ -161,7 +161,7 @@ impl PyBytes {
     // here, since it will use the FromPyObject impl.
     #[new]
     #[pyo3(signature = (buf = PyBytes(Bytes::new())), text_signature = "(buf = b'')")]
-    fn py_new(buf: PyBytes) -> Self {
+    fn py_new(buf: Self) -> Self {
         buf
     }
 
@@ -181,7 +181,7 @@ impl PyBytes {
         format!("{self:?}")
     }
 
-    fn __add__(&self, other: PyBytes) -> PyBytes {
+    fn __add__(&self, other: Self) -> Self {
         let total_length = self.0.len() + other.0.len();
         let mut new_buffer = BytesMut::with_capacity(total_length);
         new_buffer.extend_from_slice(&self.0);
@@ -189,13 +189,13 @@ impl PyBytes {
         new_buffer.into()
     }
 
-    fn __contains__(&self, item: PyBytes) -> bool {
+    fn __contains__(&self, item: Self) -> bool {
         self.0
             .windows(item.0.len())
             .any(|window| window == item.as_slice())
     }
 
-    fn __eq__(&self, other: PyBytes) -> bool {
+    fn __eq__(&self, other: Self) -> bool {
         self.0.as_ref() == other.0.as_ref()
     }
 
@@ -224,7 +224,7 @@ impl PyBytes {
         }
     }
 
-    fn __mul__(&self, value: usize) -> PyBytes {
+    fn __mul__(&self, value: usize) -> Self {
         let mut out_buf = BytesMut::with_capacity(self.0.len() * value);
         (0..value).for_each(|_| out_buf.extend_from_slice(self.0.as_ref()));
         out_buf.into()
@@ -266,7 +266,7 @@ impl PyBytes {
     /// If the binary data starts with the prefix string, return bytes[len(prefix):]. Otherwise,
     /// return a copy of the original binary data:
     #[pyo3(signature = (prefix, /))]
-    fn removeprefix(&self, prefix: PyBytes) -> PyBytes {
+    fn removeprefix(&self, prefix: Self) -> Self {
         if self.0.starts_with(prefix.as_ref()) {
             self.0.slice(prefix.0.len()..).into()
         } else {
@@ -277,7 +277,7 @@ impl PyBytes {
     /// If the binary data ends with the suffix string and that suffix is not empty, return
     /// `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
     #[pyo3(signature = (suffix, /))]
-    fn removesuffix(&self, suffix: PyBytes) -> PyBytes {
+    fn removesuffix(&self, suffix: Self) -> Self {
         if self.0.ends_with(suffix.as_ref()) {
             self.0.slice(0..self.0.len() - suffix.0.len()).into()
         } else {
@@ -396,13 +396,13 @@ impl PyBytes {
 
     /// Return a copy of the sequence with all the uppercase ASCII characters converted to their
     /// corresponding lowercase counterpart.
-    fn lower(&self) -> PyBytes {
+    fn lower(&self) -> Self {
         self.0.to_ascii_lowercase().into()
     }
 
     /// Return a copy of the sequence with all the lowercase ASCII characters converted to their
     /// corresponding uppercase counterpart.
-    fn upper(&self) -> PyBytes {
+    fn upper(&self) -> Self {
         self.0.to_ascii_uppercase().into()
     }
 
@@ -539,12 +539,12 @@ impl PyBytes {
     }
 
     #[pyo3(signature = (prefix, /))]
-    fn startswith(&self, prefix: PyBytes) -> bool {
+    fn startswith(&self, prefix: Self) -> bool {
         self.as_slice().starts_with(prefix.as_ref())
     }
 
     #[pyo3(signature = (suffix, /))]
-    fn endswith(&self, suffix: PyBytes) -> bool {
+    fn endswith(&self, suffix: Self) -> bool {
         self.as_slice().ends_with(suffix.as_ref())
     }
 
@@ -562,7 +562,7 @@ impl PyBytes {
     }
 
     #[pyo3(signature = (bin=None))]
-    fn strip(&self, bin: Option<PyBytes>) -> Self {
+    fn strip(&self, bin: Option<Self>) -> Self {
         if let Some(bin) = bin {
             self.py_strip(Some(bin.as_ref()))
         } else {

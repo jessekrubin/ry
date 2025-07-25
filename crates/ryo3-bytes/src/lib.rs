@@ -7,7 +7,7 @@
 #![expect(clippy::needless_pass_by_value)]
 #![expect(clippy::similar_names)]
 #![expect(clippy::cast_possible_wrap)]
-#![expect(clippy::use_self)]
+// #![expect(clippy::use_self)]
 use pyo3::intern;
 use pyo3::prelude::*;
 mod anybytes;
