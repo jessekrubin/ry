@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.51 [unreleased]
+## v0.0.51 [2025-07-25]
 
 - `ryo3-bytes`
   - Separated `pyo3-bytes` and `ryo3-bytes`

@@ -19,8 +19,8 @@ ergonomic.
 ## Highlights
 
 - **Async-first HTTP client** Built on `reqwest`, with a `fetch`-like API.
-  Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries,
-  and native JSON parsing via `jiter`.
+  Supports streaming, zero-copy IO via the buffer protocol, timeouts,
+  redirect-following, and native JSON parsing via `jiter`.
 
 - **Async file I/O** Built on `tokio`, with an `AsyncFile` API similar to
   `aiofiles` and `anyio`'s async-file api. Supports buffered reads/writes,
@@ -39,6 +39,8 @@ ergonomic.
   Python-native behavior with minimal friction.
 
 - **Type Annotated** Type annotations for all public APIs, with `mypy` support.
+
+- **Performant** Speed without ever calling itself “blazingly fast.” [^1]
 
 ## Install
 
@@ -133,3 +135,10 @@ _(aka: questions that I have been asking myself)_
 ## SEE ALSO
 
 - utiles (web-map tile utils): https://github.com/jessekrubin/utiles
+
+## FOOTNOTES
+
+[^1]:
+    Release‑version benchmarks of `ry` (via `pytest‑benchmark`) showed no real
+    performance variance, regardless of whether “blazing fast” appeared in
+    README/docs.
