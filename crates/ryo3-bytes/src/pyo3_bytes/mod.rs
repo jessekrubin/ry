@@ -8,6 +8,15 @@
 //!
 //! A separate version of this struct/python-type is in this crate as well
 //! and does not require the `multiple-pymethods` feature.
+#![expect(clippy::doc_markdown)]
+#![expect(clippy::unwrap_used)]
+#![expect(clippy::unused_self)]
+#![expect(clippy::cast_sign_loss)]
+#![expect(clippy::ptr_as_ptr)]
+#![expect(clippy::needless_pass_by_value)]
+#![expect(clippy::similar_names)]
+#![expect(clippy::cast_possible_wrap)]
+#![expect(clippy::use_self)]
 mod bytes;
 mod bytes_ext;
 pub use bytes::PyBytes;
