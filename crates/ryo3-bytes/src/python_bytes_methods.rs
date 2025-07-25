@@ -1,21 +1,13 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
-use crate::bytes::PyBytes;
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyValueError;
-use pyo3::prelude::*;
-use pyo3::types::{PyString, PyTuple, PyType};
+use pyo3::types::{PyString, PyType};
+use pyo3::{PyClass, prelude::*};
 use std::fmt::Write;
 use std::hash::Hash;
-
-#[pymethods]
-impl PyBytes {
-    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let pybytes = pyo3::types::PyBytes::new(py, self.as_ref()).into_bound_py_any(py)?;
-        PyTuple::new(py, vec![pybytes])
-    }
-
+pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyClass {
     /// Hash bytes
-    fn __hash__(&self) -> u64 {
+    fn py_hash(&self) -> u64 {
         // STD-HASHER VERSION
         // let mut hasher = std::collections::hash_map::DefaultHasher::new();
         // let bref: &[u8] = self.as_ref();
@@ -29,23 +21,7 @@ impl PyBytes {
         hasher.finish()
     }
 
-    /// Decode the bytes using the codec registered for encoding.
-    ///
-    ///   encoding
-    ///     The encoding with which to decode the bytes.
-    ///   errors
-    ///     The error handling scheme to use for the handling of decoding errors.
-    ///     The default is 'strict' meaning that decoding errors raise a
-    ///     UnicodeDecodeError. Other possible values are 'ignore' and 'replace'
-    ///     as well as any other name registered with codecs.register_error that
-    ///     can handle UnicodeDecodeErrors.
-    ///
-    /// ## python-signature
-    /// ```python
-    /// (encoding='utf-8', errors='strict')
-    /// ```
-    #[pyo3(signature = (encoding="utf-8", errors="strict"))]
-    fn decode<'py>(
+    fn py_decode<'py>(
         slf: PyRef<'py, Self>,
         py: Python<'py>,
         encoding: &str,
@@ -55,68 +31,58 @@ impl PyBytes {
         PyString::from_object(&py_any, encoding, errors)
     }
 
-    /// Create a string of hexadecimal numbers from a bytes object.
-    ///
-    ///   sep
-    ///     An optional single character or byte to separate hex bytes.
-    ///   bytes_per_sep
-    ///     How many bytes between separators.  Positive values count from the
-    ///     right, negative values count from the left.
-    ///
-    /// Example:
-    /// >>> value = b'\xb9\x01\xef'
-    /// >>> value.hex()
-    /// 'b901ef'
-    /// >>> value.hex(':')
-    /// 'b9:01:ef'
-    /// >>> value.hex(':', 2)
-    /// 'b9:01ef'
-    /// >>> value.hex(':', -2)
-    /// 'b901:ef'
-    #[pyo3(signature = (sep=None, bytes_per_sep=None))]
-    fn hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
-        // TODO handle sep and bytes_per_sep
-        if sep.is_some() || bytes_per_sep.is_some() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "Not implemented (yet)",
-            ))
-        } else {
-            let bslice: &[u8] = self.as_ref();
-            let mut s = String::with_capacity(bslice.len() * 2);
-            for b in bslice {
-                let _ = write!(s, "{b:02x}");
-            }
-            Ok(s)
+    fn py_capitalize(&self) -> Self {
+        let b = self.as_ref();
+        if b.is_empty() {
+            return Self::from(vec![]);
         }
+        let mut bytes = self.as_ref().to_vec();
+        if let Some(first) = bytes.first_mut() {
+            *first = first.to_ascii_uppercase();
+        }
+        for byte in &mut bytes[1..] {
+            *byte = byte.to_ascii_lowercase();
+        }
+        Self::from(bytes)
     }
 
-    /// Create a bytes object from a string of hexadecimal numbers.
-    ///
-    /// Spaces between two numbers are accepted.
-    /// Example: bytes.fromhex('B9 01EF') -> b'\\xb9\\x01\\xef'.
-    ///
-    /// ## python-signature
-    /// ```python
-    /// (string, /)
-    /// ```
-    #[classmethod]
-    fn fromhex(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        // filter out whitespace
-        let mut it = s.chars().filter(|c| !c.is_ascii_whitespace());
-        let mut bytes = Vec::with_capacity(s.len() / 2);
-        while let Some(char_a) = it.next() {
-            // second char
-            let char_b = it.next().ok_or_else(|| {
-                PyValueError::new_err("Odd-length hex string; missing final digit")
-            })?;
-            // convert and err if not hex
-            let a = hex_val(char_a)
-                .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_a}`")))?;
-            let b = hex_val(char_b)
-                .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_b}`")))?;
-            bytes.push((a << 4) | b);
+    fn py_strip(&self, bin: Option<&[u8]>) -> Self {
+        let b = self.as_ref();
+        if b.is_empty() {
+            return Self::from(vec![]);
         }
-        Ok(Self::from(bytes))
+        if let Some(bin) = bin {
+            if bin.is_empty() {
+                return Self::from(b.to_vec());
+            }
+            let table = &mut [false; 256];
+            for &b in bin {
+                table[b as usize] = true;
+            }
+            let Some(start) = b.iter().position(|&b| !table[b as usize]) else {
+                return Self::from(Vec::new());
+            };
+            if start == b.len() {
+                return Self::from(Vec::new());
+            }
+            let end = b
+                .iter()
+                .rposition(|&b| !table[b as usize])
+                .map_or(b.len(), |ix| ix + 1);
+            Self::from(b[start..end].to_vec())
+        } else {
+            // must do manually to match python behavior
+            let is_ascii_whitespace =
+                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
+            let starting_ix_opt = b.iter().position(|x| !is_ascii_whitespace(x));
+            let Some(starting_ix) = starting_ix_opt else {
+                return Self::from(Vec::new());
+            };
+
+            let ending_ix = b.iter().rposition(|x| !is_ascii_whitespace(x)).unwrap() + 1;
+
+            Self::from(b[starting_ix..ending_ix].to_vec())
+        }
     }
 
     /// Return True if B is a titlecased string and there is at least one
@@ -170,8 +136,8 @@ impl PyBytes {
     ///     return PyBool_FromLong(cased);
     /// }
     /// ```
-    fn istitle(&self) -> bool {
-        let bytes = self.as_slice();
+    fn py_istitle(&self) -> bool {
+        let bytes = self.as_ref();
         if bytes.is_empty() {
             return false;
         }
@@ -200,8 +166,9 @@ impl PyBytes {
         cased
     }
 
-    fn title(&self) -> Self {
-        let bytes = self.as_slice();
+    /// Return a copy of the bytes with only its first character capitalized
+    fn py_title(&self) -> Self {
+        let bytes = self.as_ref();
         if bytes.is_empty() {
             return Self::from(vec![]);
         }
@@ -232,50 +199,43 @@ impl PyBytes {
         Self::from(result)
     }
 
-    #[pyo3(signature = (prefix, /))]
-    fn startswith(&self, prefix: PyBytes) -> bool {
-        self.as_slice().starts_with(prefix.as_ref())
+    /// Create a bytes object from a string of hexadecimal numbers.
+    ///
+    /// Spaces between two numbers are accepted.
+    /// Example: bytes.fromhex('B9 01EF') -> b'\\xb9\\x01\\xef'.
+    ///
+    /// ## python-signature
+    /// ```python
+    /// (string, /)
+    /// ```
+    fn py_fromhex(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        // filter out whitespace
+        let mut it = s.chars().filter(|c| !c.is_ascii_whitespace());
+        let mut bytes = Vec::with_capacity(s.len() / 2);
+        while let Some(char_a) = it.next() {
+            // second char
+            let char_b = it.next().ok_or_else(|| {
+                PyValueError::new_err("Odd-length hex string; missing final digit")
+            })?;
+            // convert and err if not hex
+            let a = hex_val(char_a)
+                .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_a}`")))?;
+            let b = hex_val(char_b)
+                .ok_or_else(|| PyValueError::new_err(format!("Invalid hex digit `{char_b}`")))?;
+            bytes.push((a << 4) | b);
+        }
+        Ok(Self::from(bytes))
     }
 
-    #[pyo3(signature = (suffix, /))]
-    fn endswith(&self, suffix: PyBytes) -> bool {
-        self.as_slice().ends_with(suffix.as_ref())
-    }
-
-    fn capitalize(&self) -> Self {
-        let b = self.as_slice();
-        if b.is_empty() {
-            return Self::from(vec![]);
+    fn py_hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
+        if sep.is_some() || bytes_per_sep.is_some() {
+            Err(pyo3::exceptions::PyNotImplementedError::new_err(
+                "Not implemented (yet)",
+            ))
+        } else {
+            let s = hex_encode(self.as_ref());
+            Ok(s)
         }
-        let mut bytes = self.as_slice().to_vec();
-        if let Some(first) = bytes.first_mut() {
-            *first = first.to_ascii_uppercase();
-        }
-        for byte in &mut bytes[1..] {
-            *byte = byte.to_ascii_lowercase();
-        }
-        Self::from(bytes)
-    }
-
-    fn swapcase(&self) -> Self {
-        let b = self.as_slice();
-        if b.is_empty() {
-            return Self::from(vec![]);
-        }
-        let b = self
-            .as_slice()
-            .iter()
-            .map(|byte| {
-                if byte.is_ascii_uppercase() {
-                    byte.to_ascii_lowercase()
-                } else if byte.is_ascii_lowercase() {
-                    byte.to_ascii_uppercase()
-                } else {
-                    *byte
-                }
-            })
-            .collect::<Vec<u8>>();
-        Self::from(b)
     }
 
     // ======================
@@ -314,18 +274,14 @@ impl PyBytes {
     //             }
     //         }
     //     }
-
     //     if (i > PY_SSIZE_T_MAX - j)
     //         goto overflow;
-
     //     /* Second pass: create output string and fill it */
     //     u = STRINGLIB_NEW(NULL, i + j);
     //     if (!u)
     //         return NULL;
-
     //     j = 0;
     //     q = STRINGLIB_STR(u);
-
     //     for (p = STRINGLIB_STR(self); p < e; p++) {
     //         if (*p == '\t') {
     //             if (tabsize > 0) {
@@ -342,15 +298,13 @@ impl PyBytes {
     //                 j = 0;
     //         }
     //     }
-
     //     return u;
     //   overflow:
     //     PyErr_SetString(PyExc_OverflowError, "result too long");
     //     return NULL;
     // }
-    #[pyo3(signature = (tabsize = 8))]
-    fn expandtabs(&self, tabsize: usize) -> Self {
-        let b = self.as_slice();
+    fn py_expandtabs(&self, tabsize: usize) -> Self {
+        let b = self.as_ref();
         if b.is_empty() || tabsize == 0 {
             return Self::from(b.to_vec());
         }
@@ -365,7 +319,7 @@ impl PyBytes {
                     out.extend(std::iter::repeat_n(b' ', pad));
                     col += pad;
                 }
-                b'\n' | b'\r' | 0x0C => {
+                b'\n' | b'\r' => {
                     out.push(byte);
                     col = 0;
                 }
@@ -378,45 +332,23 @@ impl PyBytes {
         Self::from(out)
     }
 
-    #[pyo3(signature = (bin=None))]
-    fn strip(&self, bin: Option<PyBytes>) -> Self {
-        let b = self.as_slice();
+    fn py_swapcase(&self) -> Self {
+        let b = self.as_ref();
         if b.is_empty() {
             return Self::from(vec![]);
         }
-        if let Some(bin) = bin {
-            let strip_bytes = bin.as_slice();
-            if strip_bytes.is_empty() {
-                return Self::from(b.to_vec());
-            }
-            let table = &mut [false; 256];
-            for &b in strip_bytes {
-                table[b as usize] = true;
-            }
-            let Some(start) = b.iter().position(|&b| !table[b as usize]) else {
-                return Self::from(Vec::new());
-            };
-            if start == b.len() {
-                return Self::from(Vec::new());
-            }
-            let end = b
-                .iter()
-                .rposition(|&b| !table[b as usize])
-                .map_or(b.len(), |ix| ix + 1);
-            Self::from(b[start..end].to_vec())
-        } else {
-            // must do manually to match python behavior
-            let is_ascii_whitespace =
-                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
-            let starting_ix_opt = b.iter().position(|x| !is_ascii_whitespace(x));
-            let Some(starting_ix) = starting_ix_opt else {
-                return Self::from(Vec::new());
-            };
 
-            let ending_ix = b.iter().rposition(|x| !is_ascii_whitespace(x)).unwrap() + 1;
-
-            Self::from(b[starting_ix..ending_ix].to_vec())
+        let mut out = Vec::with_capacity(b.len()); // meh -- guess len
+        for &byte in b {
+            if byte.is_ascii_uppercase() {
+                out.push(byte.to_ascii_lowercase());
+            } else if byte.is_ascii_lowercase() {
+                out.push(byte.to_ascii_uppercase());
+            } else {
+                out.push(byte);
+            }
         }
+        Self::from(out)
     }
 }
 
@@ -428,4 +360,12 @@ fn hex_val(c: char) -> Option<u8> {
         'A'..='F' => Some((c as u8) - b'A' + 10),
         _ => None,
     }
+}
+
+#[inline]
+fn hex_encode(bytes: &[u8]) -> String {
+    bytes.iter().fold(String::new(), |mut output, b| {
+        let _ = write!(output, "{b:02x}");
+        output
+    })
 }
