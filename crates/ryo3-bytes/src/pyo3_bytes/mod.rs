@@ -9,7 +9,6 @@
 //! A separate version of this struct/python-type is in this crate as well
 //! and does not require the `multiple-pymethods` feature.
 #![expect(clippy::doc_markdown)]
-#![expect(clippy::unwrap_used)]
 #![expect(clippy::unused_self)]
 #![expect(clippy::cast_sign_loss)]
 #![expect(clippy::ptr_as_ptr)]
