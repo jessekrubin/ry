@@ -53,7 +53,7 @@ impl AsRef<[u8]> for PyBytes {
 }
 
 impl PyBytes {
-    /// Construct a new [PyBytes]
+    /// Construct a new [`PyBytes`]
     pub fn new(buffer: Bytes) -> Self {
         Self(buffer)
     }
@@ -580,10 +580,10 @@ impl<'py> FromPyObject<'py> for PyBytes {
     }
 }
 
-/// A wrapper around a PyBuffer that applies a custom destructor that checks if the Python
+/// A wrapper around a `PyBuffer` that applies a custom destructor that checks if the Python
 /// interpreter is still initialized before freeing the buffer memory.
 ///
-/// This also implements AsRef<[u8]> because that is required for Bytes::from_owner
+/// This also implements `AsRef`<[u8]> because that is required for `Bytes::from_owner`
 #[derive(Debug)]
 struct PyBytesWrapper(Option<PyBuffer<u8>>);
 
