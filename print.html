@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-07-21T23:04:23.443048985+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-07-26T00:17:29.48929399+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -196,35 +196,22 @@ ergonomic.</p>
 <p><strong>This is a work in progress — feedback and PRs are welcome.</strong></p>
 <h2 id="highlights"><a class="header" href="#highlights">Highlights</a></h2>
 <ul>
-<li>
-<p><strong>Async-first HTTP client</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
-Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries,
-and native JSON parsing via <code>jiter</code>.</p>
-</li>
-<li>
-<p><strong>Async file I/O</strong> Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to
+<li><strong>Async-first HTTP client:</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
+Supports streaming, zero-copy IO via the buffer protocol, timeouts,
+redirect-following, and native JSON parsing via <code>jiter</code>.</li>
+<li><strong>Async file I/O:</strong> Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to
 <code>aiofiles</code> and <code>anyio</code>’s async-file api. Supports buffered reads/writes,
-truncation, streaming reads, and <code>anyio</code> compatibility.</p>
-</li>
-<li>
-<p><strong>(de)compression</strong> (de)compression tools for <code>zstd</code>, <code>brotli</code>, <code>gzip</code>, and
-<code>bzip2</code>.</p>
-</li>
-<li>
-<p><strong>Datetime utilities via <code>jiff</code></strong> Fast, accurate, timezone-aware datetime
-parsing and formatting, with <code>datetime</code> interop and much more</p>
-</li>
-<li>
-<p><strong>Miscellaneous bindings</strong> Includes crates like <code>globset</code>, <code>walkdir</code>,
-<code>sqlformat</code>, <code>unindent</code>, <code>xxhash</code>, and more.</p>
-</li>
-<li>
-<p><strong>Designed for ergonomics</strong> Async where it matters. Simple where possible.
-Python-native behavior with minimal friction.</p>
-</li>
-<li>
-<p><strong>Type Annotated</strong> Type annotations for all public APIs, with <code>mypy</code> support.</p>
-</li>
+truncation, streaming reads, and <code>anyio</code> compatibility.</li>
+<li><strong>(de)compression:</strong> (de)compression tools for <code>zstd</code>, <code>brotli</code>, <code>gzip</code>, and
+<code>bzip2</code>.</li>
+<li><strong>Datetime utilities via <code>jiff</code>:</strong> Fast, accurate, timezone-aware datetime
+parsing and formatting, with <code>datetime</code> interop and much more</li>
+<li><strong>Miscellaneous bindings:</strong> Includes crates like <code>globset</code>, <code>walkdir</code>,
+<code>sqlformat</code>, <code>unindent</code>, <code>xxhash</code>, and more.</li>
+<li><strong>Designed for ergonomics:</strong> Async where it matters. Simple where possible.
+Python-native behavior with minimal friction.</li>
+<li><strong>Type Annotated:</strong> Type annotations for all public APIs, with <code>mypy</code> support.</li>
+<li><strong>Performant:</strong> Speed without “blazingly fast.” <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></li>
 </ul>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
 <pre><code class="language-bash">pip install ry
@@ -332,7 +319,13 @@ docs</li>
 <ul>
 <li>utiles (web-map tile utils): https://github.com/jessekrubin/utiles</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">DEVELOPMENT</a></h1>
+<hr>
+<ol class="footnote-definition"><li id="footnote-1">
+<p>Release‑version benchmarks of <code>ry</code> (via <code>pytest‑benchmark</code>) showed no real
+performance variance, regardless of whether “blazing fast” appeared in
+README/docs. <a href="#fr-1-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">DEVELOPMENT</a></h1>
 <p><strong>OPEN TO PRS!</strong></p>
 <h2 id="goals"><a class="header" href="#goals">goals</a></h2>
 <ol>
@@ -451,8 +444,23 @@ of tasks)</li>
 <p>If you want to be added to this list, please open an issue or PR! Happy to add
 you if you’ve helped in any way!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0051-unreleased"><a class="header" href="#v0051-unreleased">v0.0.51 [unreleased]</a></h2>
+<h2 id="v0051-2025-07-25"><a class="header" href="#v0051-2025-07-25">v0.0.51 [2025-07-25]</a></h2>
 <ul>
+<li><code>ryo3-bytes</code>
+<ul>
+<li>Separated <code>pyo3-bytes</code> and <code>ryo3-bytes</code>
+<ul>
+<li><code>pyo3-bytes</code> mirrors the official <code>pyo3-bytes</code> crate + extra methods, BUT
+it requires the <code>multiple-pymethods</code> feature to be enabled</li>
+<li><code>ryo3-bytes</code> is a crammed together version of the <code>pyo3-bytes</code>
+implementation and extra methods and does NOT require the
+<code>multiple-pymethods</code> feature to be enabled</li>
+</ul>
+</li>
+<li>Made <code>PythonBytesMethods</code> trait for the methods that are shared between
+<code>pyo3-bytes</code> and <code>ryo3-bytes</code></li>
+</ul>
+</li>
 <li><code>ryo3-ulid</code>
 <ul>
 <li>strict + lax ulid parsing for pydantic</li>

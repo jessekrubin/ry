@@ -182,8 +182,23 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0051-unreleased"><a class="header" href="#v0051-unreleased">v0.0.51 [unreleased]</a></h2>
+<h2 id="v0051-2025-07-25"><a class="header" href="#v0051-2025-07-25">v0.0.51 [2025-07-25]</a></h2>
 <ul>
+<li><code>ryo3-bytes</code>
+<ul>
+<li>Separated <code>pyo3-bytes</code> and <code>ryo3-bytes</code>
+<ul>
+<li><code>pyo3-bytes</code> mirrors the official <code>pyo3-bytes</code> crate + extra methods, BUT
+it requires the <code>multiple-pymethods</code> feature to be enabled</li>
+<li><code>ryo3-bytes</code> is a crammed together version of the <code>pyo3-bytes</code>
+implementation and extra methods and does NOT require the
+<code>multiple-pymethods</code> feature to be enabled</li>
+</ul>
+</li>
+<li>Made <code>PythonBytesMethods</code> trait for the methods that are shared between
+<code>pyo3-bytes</code> and <code>ryo3-bytes</code></li>
+</ul>
+</li>
 <li><code>ryo3-ulid</code>
 <ul>
 <li>strict + lax ulid parsing for pydantic</li>

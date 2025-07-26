@@ -181,7 +181,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-07-21T23:04:23.443048985+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-07-26T00:17:29.48929399+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -198,35 +198,22 @@ ergonomic.</p>
 <p><strong>This is a work in progress — feedback and PRs are welcome.</strong></p>
 <h2 id="highlights"><a class="header" href="#highlights">Highlights</a></h2>
 <ul>
-<li>
-<p><strong>Async-first HTTP client</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
-Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries,
-and native JSON parsing via <code>jiter</code>.</p>
-</li>
-<li>
-<p><strong>Async file I/O</strong> Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to
+<li><strong>Async-first HTTP client:</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
+Supports streaming, zero-copy IO via the buffer protocol, timeouts,
+redirect-following, and native JSON parsing via <code>jiter</code>.</li>
+<li><strong>Async file I/O:</strong> Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to
 <code>aiofiles</code> and <code>anyio</code>’s async-file api. Supports buffered reads/writes,
-truncation, streaming reads, and <code>anyio</code> compatibility.</p>
-</li>
-<li>
-<p><strong>(de)compression</strong> (de)compression tools for <code>zstd</code>, <code>brotli</code>, <code>gzip</code>, and
-<code>bzip2</code>.</p>
-</li>
-<li>
-<p><strong>Datetime utilities via <code>jiff</code></strong> Fast, accurate, timezone-aware datetime
-parsing and formatting, with <code>datetime</code> interop and much more</p>
-</li>
-<li>
-<p><strong>Miscellaneous bindings</strong> Includes crates like <code>globset</code>, <code>walkdir</code>,
-<code>sqlformat</code>, <code>unindent</code>, <code>xxhash</code>, and more.</p>
-</li>
-<li>
-<p><strong>Designed for ergonomics</strong> Async where it matters. Simple where possible.
-Python-native behavior with minimal friction.</p>
-</li>
-<li>
-<p><strong>Type Annotated</strong> Type annotations for all public APIs, with <code>mypy</code> support.</p>
-</li>
+truncation, streaming reads, and <code>anyio</code> compatibility.</li>
+<li><strong>(de)compression:</strong> (de)compression tools for <code>zstd</code>, <code>brotli</code>, <code>gzip</code>, and
+<code>bzip2</code>.</li>
+<li><strong>Datetime utilities via <code>jiff</code>:</strong> Fast, accurate, timezone-aware datetime
+parsing and formatting, with <code>datetime</code> interop and much more</li>
+<li><strong>Miscellaneous bindings:</strong> Includes crates like <code>globset</code>, <code>walkdir</code>,
+<code>sqlformat</code>, <code>unindent</code>, <code>xxhash</code>, and more.</li>
+<li><strong>Designed for ergonomics:</strong> Async where it matters. Simple where possible.
+Python-native behavior with minimal friction.</li>
+<li><strong>Type Annotated:</strong> Type annotations for all public APIs, with <code>mypy</code> support.</li>
+<li><strong>Performant:</strong> Speed without “blazingly fast.” <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></li>
 </ul>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
 <pre><code class="language-bash">pip install ry
@@ -334,7 +321,13 @@ docs</li>
 <ul>
 <li>utiles (web-map tile utils): https://github.com/jessekrubin/utiles</li>
 </ul>
-
+<hr>
+<ol class="footnote-definition"><li id="footnote-1">
+<p>Release‑version benchmarks of <code>ry</code> (via <code>pytest‑benchmark</code>) showed no real
+performance variance, regardless of whether “blazing fast” appeared in
+README/docs. <a href="#fr-1-1">↩</a></p>
+</li>
+</ol>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
