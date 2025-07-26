@@ -12,9 +12,12 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = [ "multiple-pymethods"] }
+pyo3 = { workspace = true, features = [] }
 bytes = { workspace = true }
 ahash = { workspace = true }
+
+[features]
+multiple-pymethods = ["pyo3/multiple-pymethods"]
 
 [lints]
 workspace = true

@@ -148,3 +148,12 @@ class TestSizeObj:
         assert int(Size.from_gib(1)) == 1024 * 1024 * 1024
         assert int(Size.from_tib(1)) == 1024 * 1024 * 1024 * 1024
         assert int(Size.from_pib(1)) == 1024 * 1024 * 1024 * 1024 * 1024
+
+
+def test_weird_off_by_one_multiplication() -> None:
+    si = 94906265
+    i = 94906267
+    expected = si * i
+    size_obj = Size(si)
+    result = size_obj * i
+    assert result == expected, f"Expected {expected}, got {result} for si={si}, i={i}"

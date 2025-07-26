@@ -6,6 +6,26 @@ from hypothesis import strategies as st
 
 import ry
 
+_BYTES_ALL = bytes(range(256))
+_BYTES_ALNUM = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+_BYTES_ALPHA = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+_BYTES_ASCII = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f"
+_BYTES_DIGIT = b"0123456789"
+_BYTES_LOWER = b"abcdefghijklmnopqrstuvwxyz"
+_BYTES_SPACE = b"\t\n\x0b\x0c\r "
+_BYTES_UPPER = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+_BYTES_TYPES = (
+    _BYTES_ALL,
+    _BYTES_ALNUM,
+    _BYTES_ALPHA,
+    _BYTES_ASCII,
+    _BYTES_DIGIT,
+    _BYTES_LOWER,
+    _BYTES_SPACE,
+    _BYTES_UPPER,
+)
+
 
 def test_bytes_pickling() -> None:
     b = ry.Bytes(b"asdf")
@@ -50,11 +70,9 @@ def test_bytes_capitalize(
     b: bytes,
 ) -> None:
     ry_bytes = ry.Bytes(b)
-    py_capitalize = b.capitalize()
-    ry_capitalize = ry_bytes.capitalize()
-    assert ry_capitalize == py_capitalize, (
-        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
-    )
+    py_res = b.capitalize()
+    rs_res = ry_bytes.capitalize()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @given(st.binary())
@@ -62,11 +80,9 @@ def test_bytes_swapcase(
     b: bytes,
 ) -> None:
     ry_bytes = ry.Bytes(b)
-    py_capitalize = b.swapcase()
-    ry_capitalize = ry_bytes.swapcase()
-    assert ry_capitalize == py_capitalize, (
-        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
-    )
+    py_res = b.swapcase()
+    rs_res = ry_bytes.swapcase()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @given(st.binary())
@@ -74,11 +90,9 @@ def test_bytes_title(
     b: bytes,
 ) -> None:
     ry_bytes = ry.Bytes(b)
-    py_capitalize = b.title()
-    ry_capitalize = ry_bytes.title()
-    assert ry_capitalize == py_capitalize, (
-        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
-    )
+    py_res = b.title()
+    rs_res = ry_bytes.title()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @given(st.binary())
@@ -86,11 +100,25 @@ def test_bytes_expandtabs(
     b: bytes,
 ) -> None:
     ry_bytes = ry.Bytes(b)
-    py_capitalize = b.expandtabs()
-    ry_capitalize = ry_bytes.expandtabs()
-    assert ry_capitalize == py_capitalize, (
-        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
-    )
+    py_res = b.expandtabs()
+    rs_res = ry_bytes.expandtabs()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+
+@pytest.mark.parametrize(
+    "b",
+    [
+        b"\x0c\t",
+        *_BYTES_TYPES,
+    ],
+)
+def test_bytes_expandtabs_ext(
+    b: bytes,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    py_res = b.expandtabs()
+    rs_res = ry_bytes.expandtabs()
+    assert rs_res.to_bytes() == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @given(st.binary())
@@ -98,11 +126,9 @@ def test_bytes_strip_no_arg(
     b: bytes,
 ) -> None:
     ry_bytes = ry.Bytes(b)
-    py_capitalize = b.strip()
-    ry_capitalize = ry_bytes.strip()
-    assert ry_capitalize == py_capitalize, (
-        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
-    )
+    py_res = b.strip()
+    rs_res = ry_bytes.strip()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @pytest.mark.parametrize(
@@ -118,11 +144,9 @@ def test_bytes_strip_no_arg_all_bytes(
     b: bytes,
 ) -> None:
     ry_bytes = ry.Bytes(b)
-    py_capitalize = b.strip()
-    ry_capitalize = ry_bytes.strip()
-    assert ry_capitalize == py_capitalize, (
-        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {b!r}"
-    )
+    py_res = b.strip()
+    rs_res = ry_bytes.strip()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @pytest.mark.parametrize(
@@ -152,11 +176,9 @@ def test_bytes_strip_with_arg(
 ) -> None:
     """Test Bytes.strip() works like python bytes with an argument"""
     ry_bytes = ry.Bytes(bytes2strip_from)
-    py_capitalize = bytes2strip_from.strip(bytes2strip)
-    ry_capitalize = ry_bytes.strip(bytes2strip)
-    assert ry_capitalize == py_capitalize, (
-        f"py: {py_capitalize!r}, rs: {ry_capitalize!r} ~ {bytes2strip_from!r}"
-    )
+    py_res = bytes2strip_from.strip(bytes2strip)
+    rs_res = ry_bytes.strip(bytes2strip)
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {bytes2strip_from!r}"
 
 
 @given(
@@ -197,10 +219,8 @@ def test_bytes_decode_default(
         "__iter__",
         "__mod__",
         "__rmod__",
-        # "capitalize",
         "center",
         "count",
-        # "expandtabs",
         "find",
         "index",
         "join",

@@ -18,27 +18,22 @@ ergonomic.
 
 ## Highlights
 
-- **Async-first HTTP client** Built on `reqwest`, with a `fetch`-like API.
-  Supports streaming, zero-copy IO via the buffer protocol, timeouts, retries,
-  and native JSON parsing via `jiter`.
-
-- **Async file I/O** Built on `tokio`, with an `AsyncFile` API similar to
+- **Async-first HTTP client:** Built on `reqwest`, with a `fetch`-like API.
+  Supports streaming, zero-copy IO via the buffer protocol, timeouts,
+  redirect-following, and native JSON parsing via `jiter`.
+- **Async file I/O:** Built on `tokio`, with an `AsyncFile` API similar to
   `aiofiles` and `anyio`'s async-file api. Supports buffered reads/writes,
   truncation, streaming reads, and `anyio` compatibility.
-
-- **(de)compression** (de)compression tools for `zstd`, `brotli`, `gzip`, and
+- **(de)compression:** (de)compression tools for `zstd`, `brotli`, `gzip`, and
   `bzip2`.
-
-- **Datetime utilities via `jiff`** Fast, accurate, timezone-aware datetime
+- **Datetime utilities via `jiff`:** Fast, accurate, timezone-aware datetime
   parsing and formatting, with `datetime` interop and much more
-
-- **Miscellaneous bindings** Includes crates like `globset`, `walkdir`,
+- **Miscellaneous bindings:** Includes crates like `globset`, `walkdir`,
   `sqlformat`, `unindent`, `xxhash`, and more.
-
-- **Designed for ergonomics** Async where it matters. Simple where possible.
+- **Designed for ergonomics:** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
-
-- **Type Annotated** Type annotations for all public APIs, with `mypy` support.
+- **Type Annotated:** Type annotations for all public APIs, with `mypy` support.
+- **Performant:** Speed without “blazingly fast.” [^1]
 
 ## Install
 
@@ -133,3 +128,8 @@ _(aka: questions that I have been asking myself)_
 ## SEE ALSO
 
 - utiles (web-map tile utils): https://github.com/jessekrubin/utiles
+
+[^1]:
+    Release‑version benchmarks of `ry` (via `pytest‑benchmark`) showed no real
+    performance variance, regardless of whether “blazing fast” appeared in
+    README/docs.

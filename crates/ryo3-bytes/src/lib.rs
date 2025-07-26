@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-#![expect(clippy::doc_markdown)]
 #![expect(clippy::unwrap_used)]
 #![expect(clippy::unused_self)]
 #![expect(clippy::cast_sign_loss)]
@@ -8,14 +7,18 @@
 #![expect(clippy::needless_pass_by_value)]
 #![expect(clippy::similar_names)]
 #![expect(clippy::cast_possible_wrap)]
-#![expect(clippy::use_self)]
+// #![expect(clippy::use_self)]
 use pyo3::intern;
 use pyo3::prelude::*;
 mod anybytes;
 pub mod bytes;
-mod bytes_ext;
 mod bytes_like;
 
+#[cfg(feature = "multiple-pymethods")]
+mod pyo3_bytes;
+
+mod python_bytes_methods;
+mod ryo3_bytes;
 pub use crate::bytes::PyBytes;
 pub use bytes_like::{extract_bytes_ref, extract_bytes_ref_str};
 

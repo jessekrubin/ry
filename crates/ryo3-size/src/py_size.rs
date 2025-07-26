@@ -17,7 +17,7 @@ impl From<size::Size> for PySize {
 
 impl From<i64> for PySize {
     fn from(size: i64) -> Self {
-        Self(size::Size::from_bytes(size))
+        Self(size::Size::from_const(size))
     }
 }
 
@@ -403,7 +403,7 @@ impl PySizeIntermediate {
 #[derive(Debug, Clone, FromPyObject)]
 enum PySizeArithmetic {
     Size(PySize),
-    Float64(f64),
     Int64(i64),
     U64(u64),
+    Float64(f64), // must make float last
 }

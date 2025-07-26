@@ -1,7 +1,16 @@
 # CHANGELOG
 
-## v0.0.51 [unreleased]
+## v0.0.51 [2025-07-25]
 
+- `ryo3-bytes`
+  - Separated `pyo3-bytes` and `ryo3-bytes`
+    - `pyo3-bytes` mirrors the official `pyo3-bytes` crate + extra methods, BUT
+      it requires the `multiple-pymethods` feature to be enabled
+    - `ryo3-bytes` is a crammed together version of the `pyo3-bytes`
+      implementation and extra methods and does NOT require the
+      `multiple-pymethods` feature to be enabled
+  - Made `PythonBytesMethods` trait for the methods that are shared between
+    `pyo3-bytes` and `ryo3-bytes`
 - `ryo3-ulid`
   - strict + lax ulid parsing for pydantic
 - `ryo3-jiff`
