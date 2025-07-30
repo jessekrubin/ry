@@ -1,7 +1,7 @@
 [build-system]
 build-backend = "maturin"
 
-requires = [ "maturin>=1,<2" ]
+requires = ["maturin>=1,<2"]
 
 [project]
 name = "ry"
@@ -39,14 +39,13 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Programming Language :: Rust",
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
-dynamic = [ "readme", "version" ]
+dynamic = ["readme", "version"]
 
 urls.Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/jessekrubin/ry"
@@ -74,7 +73,7 @@ dev = [
 [tool.maturin]
 python-source = "python"
 strip = true
-features = [ "pyo3/extension-module" ]
+features = ["pyo3/extension-module"]
 module-name = "ry.ryo3"
 bindings = "pyo3"
 
@@ -124,7 +123,7 @@ ignore_missing_imports = true
 check_untyped_defs = true
 
 [tool.pyright]
-include = [ 'ry', 'tests' ]
+include = ['ry', 'tests']
 reportUnnecessaryTypeIgnoreComment = true
 
 [tool.uv]

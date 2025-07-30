@@ -2,6 +2,12 @@
 
 ## v0.0.52 [unreleased]
 
+- `ryo3-bytes`
+  - internal refactoring
+- `ryo3-xxhash`
+  - all xxhash-ing classes are now `frozen` pyclasses
+    [#259](https://github.com/jessekrubin/ry/issues/259)
+
 ---
 
 ## v0.0.51 [2025-07-25]
@@ -400,40 +406,40 @@
 
 ```python
 IntoDateDifference = (
-  DateDifference
-  | Date
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Date]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    DateDifference
+    | Date
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoTimeDifference = (
-  TimeDifference
-  | Time
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Time]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    TimeDifference
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoDateTimeDifference = (
-  DateTimeDifference
-  | Date
-  | Time
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Date]
-  | tuple[JIFF_UNIT_STRING, Time]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    DateTimeDifference
+    | Date
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoTimestampDifference = (
-  TimestampDifference
-  | Timestamp
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Timestamp]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    TimestampDifference
+    | Timestamp
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Timestamp]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 ```
 
