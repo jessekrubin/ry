@@ -14,11 +14,9 @@ request a size increase while the project remains pre-`0.1.0`.
 
 `ry` builds are performed with github cicd, and published builds for versions
 `0.44.0` are uploaded to github
-[releases](https://github.com/jessekrubin/ry/releases) , BUT publishing releases
+[releases](https://github.com/jessekrubin/ry/releases), **but** publishing releases
 was not previously a part of the cicd workflow.
 
-The script for downloading wheels is located at
-[ry-dist-archives/scripts/dl_versions.py](https://github.com/jessekrubin/ry-dist-archives/blob/main/scripts/dl_versions.py).
-[`scripts/dl_versions.py`](scripts/dl_versions.py). It serves as a good example
-of how to use `ry`'s HTTP client, JSON parsing and dumping, and async file I/O
+The script for downloading wheels is located at [ry-dist-archives/scripts/dl_versions.py](https://github.com/jessekrubin/ry-dist-archives/blob/main/scripts/dl_versions.py).
+It serves as a good example of how to use `ry`'s HTTP client, JSON parsing and dumping, and async file I/O
 tools.
