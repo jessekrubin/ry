@@ -1,7 +1,6 @@
 # API
 
 ## Table of Contents
-
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.dirs`](#ry.ryo3.dirs)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
@@ -222,7 +221,6 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
-
 ```
 
 <h2 id="ry.ryo3.dirs"><code>ry.ryo3.dirs</code></h2>
@@ -266,7 +264,6 @@ def template() -> str | None: ...
 def template_dir() -> str | None: ...
 def video() -> str | None: ...
 def video_dir() -> str | None: ...
-
 ```
 
 <h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
@@ -274,7 +271,6 @@ def video_dir() -> str | None: ...
 ```python
 class FeatureNotEnabledError(RuntimeError):
     """Raised when a feature is not enabled in the current build."""
-
 ```
 
 <h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
@@ -401,7 +397,6 @@ def parse(
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
-
 ```
 
 <h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
@@ -428,7 +423,6 @@ def orjson_default(obj: t.Any) -> orjson.Fragment:
         b'{"key":"value","date":"2023-10-01"}'
 
     """
-
 ```
 
 <h2 id="ry.ryo3.sh"><code>ry.ryo3.sh</code></h2>
@@ -466,7 +460,6 @@ def ls(
 
 
 def mkdir(path: str | PathLike[str]) -> None: ...
-
 ```
 
 <h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
@@ -547,7 +540,6 @@ class ULID:
     def __int__(self) -> int: ...
     def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
     def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-
 ```
 
 <h2 id="ry.ryo3.uuid"><code>ry.ryo3.uuid</code></h2>
@@ -658,7 +650,6 @@ RESERVED_NCS: str
 RFC_4122: str
 RESERVED_MICROSOFT: str
 RESERVED_FUTURE: str
-
 ```
 
 <h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
@@ -776,7 +767,6 @@ def xxh3_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
 def xxh3_128_digest(input: Buffer, seed: int | None = None) -> bytes: ...
 def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -> int: ...
 def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -> str: ...
-
 ```
 
 <h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
@@ -818,7 +808,6 @@ def unzstd(data: Buffer) -> Bytes: ...
 
 # __MAGIC__
 def is_zstd(data: Buffer) -> bool: ...
-
 ```
 
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
@@ -838,7 +827,6 @@ def brotli(
     input: bytes, quality: int = 11, magic_number: bool = False
 ) -> bytes:
     """Alias for brotli_encode"""
-
 ```
 
 <h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
@@ -1030,7 +1018,6 @@ class Bytes(Buffer):
 BytesLike: typing_extensions.TypeAlias = (
     Buffer | bytes | bytearray | memoryview | Bytes
 )
-
 ```
 
 <h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
@@ -1048,7 +1035,6 @@ def bzip2_encode(input: Buffer, quality: int = 9) -> bytes: ...
 def bzip2_decode(input: Buffer) -> bytes: ...
 def bzip2(input: Buffer, quality: int = 9) -> bytes:
     """Alias for bzip2_encode"""
-
 ```
 
 <h2 id="ry.ryo3._dev"><code>ry.ryo3._dev</code></h2>
@@ -1077,7 +1063,6 @@ def run(
 def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
 def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
-
 ```
 
 <h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
@@ -1103,7 +1088,6 @@ def gunzip(input: Buffer) -> Bytes:
 
 
 def is_gzipped(input: Buffer) -> bool: ...
-
 ```
 
 <h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
@@ -1134,7 +1118,6 @@ class FnvHasher:
 
 
 def fnv1a(input: Buffer, key: int | None = None) -> FnvHasher: ...
-
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -1297,7 +1280,6 @@ class FsPathReaddir:
     def __next__(self) -> FsPath: ...
     def collect(self) -> list[FsPath]: ...
     def take(self, n: int) -> list[FsPath]: ...
-
 ```
 
 <h2 id="ry.ryo3._glob"><code>ry.ryo3._glob</code></h2>
@@ -1375,7 +1357,6 @@ class Pattern:
     def escape(pattern: str) -> str: ...
     @property
     def pattern(self) -> str: ...
-
 ```
 
 <h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
@@ -1466,7 +1447,6 @@ def globster(
     literal_separator: bool | None = None,
     backslash_escape: bool | None = None,
 ) -> Globster: ...
-
 ```
 
 <h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>
@@ -1484,7 +1464,6 @@ def snake_case(string: str) -> str: ...
 def snek_case(string: str) -> str: ...
 def title_case(string: str) -> str: ...
 def train_case(string: str) -> str: ...
-
 ```
 
 <h2 id="ry.ryo3._http"><code>ry.ryo3._http</code></h2>
@@ -1756,7 +1735,6 @@ class HttpStatus:
     NETWORK_AUTHENTICATION_REQUIRED: (
         HttpStatus  # 511 ~ Network Authentication Required
     )
-
 ```
 
 <h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
@@ -3438,7 +3416,6 @@ class TimeZoneDatabase:
     def from_concatenated_path(cls, path: str) -> TimeZoneDatabase: ...
     @classmethod
     def bundled(cls) -> TimeZoneDatabase: ...
-
 ```
 
 <h2 id="ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></h2>
@@ -4048,7 +4025,6 @@ TZDB_NAMES: TypeAlias = Literal[
     "WET",
     "Zulu",
 ]
-
 ```
 
 <h2 id="ry.ryo3._jiter"><code>ry.ryo3._jiter</code></h2>
@@ -4103,7 +4079,6 @@ def read_json(
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
-
 ```
 
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
@@ -4132,7 +4107,6 @@ def quick_maths() -> t.Literal[3]:
 
     NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
     """
-
 ```
 
 <h2 id="ry.ryo3._regex"><code>ry.ryo3._regex</code></h2>
@@ -4172,7 +4146,6 @@ class Regex:
     def replace_all(self, string: str, replacement: str) -> str: ...
     def split(self, string: str) -> list[str]: ...
     def splitn(self, string: str, n: int) -> list[str]: ...
-
 ```
 
 <h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
@@ -4335,7 +4308,6 @@ async def fetch(
     method: str = "GET",
     **kwargs: te.Unpack[RequestKwargs],
 ) -> Response: ...
-
 ```
 
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
@@ -4347,7 +4319,6 @@ from os import PathLike
 
 
 def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
-
 ```
 
 <h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
@@ -4358,7 +4329,6 @@ def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
 
 def shplit(s: str) -> list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
-
 ```
 
 <h2 id="ry.ryo3._size"><code>ry.ryo3._size</code></h2>
@@ -4535,7 +4505,6 @@ class Size:
     def from_exabytes(cls: type[Size], size: float) -> Size: ...
     @classmethod
     def from_exbibytes(cls: type[Size], size: float) -> Size: ...
-
 ```
 
 <h2 id="ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></h2>
@@ -4578,7 +4547,6 @@ def sqlfmt(
     uppercase: bool | None = True,
     lines_between_statements: int = 1,
 ) -> str: ...
-
 ```
 
 <h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>
@@ -5060,7 +5028,6 @@ class IpAddr:
     # METHODS
     # =======================================================================
     def to_canonical(self) -> IpAddr: ...
-
 ```
 
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
@@ -5176,7 +5143,6 @@ class AsyncFile:
 def aiopen(
     path: FsPathLike, mode: str = "r", buffering: int = -1
 ) -> AsyncFile: ...
-
 ```
 
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
@@ -5187,7 +5153,6 @@ def aiopen(
 
 def unindent(string: str) -> str: ...
 def unindent_bytes(string: bytes) -> bytes: ...
-
 ```
 
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
@@ -5297,7 +5262,6 @@ class URL:
         scheme: str | None = None,
         username: str | None = None,
     ) -> URL: ...
-
 ```
 
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
@@ -5383,7 +5347,6 @@ def walkdir(
     same_file_system: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
 ) -> WalkdirGen[str]: ...
-
 ```
 
 <h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
@@ -5399,7 +5362,6 @@ from ry.ryo3._regex import Regex
 def which(cmd: str, path: None | str = None) -> Path | None: ...
 def which_all(cmd: str, path: None | str = None) -> list[Path]: ...
 def which_re(regex: str | Regex, path: None | str = None) -> list[Path]: ...
-
 ```
 
 <h2 id="ry.ryo3._zstd"><code>ry.ryo3._zstd</code></h2>
@@ -5420,7 +5382,6 @@ __all__ = (
     "zstd_decompress",
     "zstd_encode",
 )
-
 ```
 
 <h2 id="ry.dirs"><code>ry.dirs</code></h2>
@@ -5505,7 +5466,6 @@ __all__ = (
     "video",
     "video_dir",
 )
-
 ```
 
 <h2 id="ry.JSON"><code>ry.JSON</code></h2>
@@ -5528,7 +5488,6 @@ __all__ = (
     "parse",
     "stringify",
 )
-
 ```
 
 <h2 id="ry.ulid"><code>ry.ulid</code></h2>
@@ -5537,7 +5496,6 @@ __all__ = (
 from ry.ryo3.ulid import ULID
 
 __all__ = ("ULID",)
-
 ```
 
 <h2 id="ry.uuid"><code>ry.uuid</code></h2>
@@ -5584,7 +5542,6 @@ __all__ = (
     "uuid7",
     "uuid8",
 )
-
 ```
 
 <h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
@@ -5641,7 +5598,6 @@ __all__ = (
     "xxh128_hexdigest",
     "xxh128_intdigest",
 )
-
 ```
 
 <h2 id="ry.zstd"><code>ry.zstd</code></h2>
@@ -5688,5 +5644,4 @@ __all__ = (
     "is_zstd",
     "unzstd",
 )
-
 ```

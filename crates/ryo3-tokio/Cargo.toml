@@ -1,25 +1,25 @@
 [package]
 name = "ryo3-tokio"
-description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
 
 [dependencies]
 futures = "0.3.31"
+log = "0.4.27"
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
 ryo3-std.workspace = true
 tokio.workspace = true
 tracing.workspace = true
-log = "0.4.27"
 
 [lints]
 workspace = true

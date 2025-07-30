@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-flate2"
-description = "python + flate2 (https://github.com/rust-lang/flate2-rs)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + flate2 (https://github.com/rust-lang/flate2-rs)"
 
 [dependencies]
 flate2 = { workspace = true }

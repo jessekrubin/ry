@@ -129,7 +129,6 @@ _(aka: questions that I have been asking myself)_
 
 - utiles (web-map tile utils): https://github.com/jessekrubin/utiles
 
-[^1]:
-    Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
+[^1]: Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
     performance variance, regardless of whether "blazingly fast" appeared in the
     README or docs.

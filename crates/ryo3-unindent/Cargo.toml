@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-unindent"
-description = "python + unindent crate (https://crates.io/crates/unindent)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + unindent crate (https://crates.io/crates/unindent)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }

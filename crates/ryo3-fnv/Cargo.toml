@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-fnv"
-description = "python + fnv (https://github.com/servo/rust-fnv)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + fnv (https://github.com/servo/rust-fnv)"
 
 [dependencies]
 fnv = { workspace = true }

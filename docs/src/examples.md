@@ -12,7 +12,6 @@ current_dir = ry.FsPath.cwd()
 # read file
 data = (current_dir / "test.txt").read_text()
 print(data)
-
 ```
 
 # http_fetch
@@ -148,7 +147,6 @@ if __name__ == "__main__":
         print("KeyboardInterrupt")
     finally:
         server.shutdown()
-
 ```
 
 # jiff_examples
@@ -318,7 +316,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 ```
 
 # walking
@@ -381,5 +378,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 ```

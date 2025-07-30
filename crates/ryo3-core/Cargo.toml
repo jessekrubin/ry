@@ -1,21 +1,21 @@
 [package]
 name = "ryo3-core"
-description = "ryo3-core ~ common/shared utils/tools/things"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "ryo3-core ~ common/shared utils/tools/things"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 
 [build-dependencies]
-pyo3-build-config = {workspace = true}
+pyo3-build-config = { workspace = true }
 
 [lints]
 workspace = true
