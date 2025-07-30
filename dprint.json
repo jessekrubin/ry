@@ -8,7 +8,9 @@
   "markdown": {},
   "toml": {},
   "dockerfile": {},
-  "ruff": {},
+  "ruff": {
+    "lineLength": 80,
+  },
   "includes": [
     "**/*.{ts,tsx,mts,cts,cjs,mjs,js,jsx,json,md,toml,Dockerfile,dockerfile}",
     "./**/{dockerfile,Dockerfile}"
@@ -24,7 +26,8 @@
     "**/node_modules",
     "**/temp",
     "**/tmp",
-    "**/target"
+    "**/target",
+    "**/pyproject.toml"
   ],
   "plugins": [
     "https://plugins.dprint.dev/typescript-0.95.9.wasm",
