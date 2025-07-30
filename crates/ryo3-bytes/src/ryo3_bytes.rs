@@ -290,64 +290,33 @@ impl PyBytes {
     /// those byte values in the sequence b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.
     /// ASCII decimal digits are those byte values in the sequence b'0123456789'.
     fn isalnum(&self) -> bool {
-        if self.0.is_empty() {
-            return false;
-        }
-
-        for c in self.0.as_ref() {
-            if !c.is_ascii_alphanumeric() {
-                return false;
-            }
-        }
-        true
+        (!self.0.is_empty()) && self.0.as_ref().iter().all(|c| c.is_ascii_alphanumeric())
     }
 
     /// Return True if all bytes in the sequence are alphabetic ASCII characters and the sequence
     /// is not empty, False otherwise. Alphabetic ASCII characters are those byte values in the
     /// sequence b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.
     fn isalpha(&self) -> bool {
-        if self.0.is_empty() {
-            return false;
-        }
-
-        for c in self.0.as_ref() {
-            if !c.is_ascii_alphabetic() {
-                return false;
-            }
-        }
-        true
+        (!self.0.is_empty()) && self.0.as_ref().iter().all(|c| c.is_ascii_alphabetic())
     }
 
     /// Return True if the sequence is empty or all bytes in the sequence are ASCII, False
     /// otherwise. ASCII bytes are in the range 0-0x7F.
     fn isascii(&self) -> bool {
-        for c in self.0.as_ref() {
-            if !c.is_ascii() {
-                return false;
-            }
-        }
-        true
+        self.0.as_ref().iter().all(|c| c.is_ascii())
     }
 
     /// Return True if all bytes in the sequence are ASCII decimal digits and the sequence is not
     /// empty, False otherwise. ASCII decimal digits are those byte values in the sequence
     /// b'0123456789'.
     fn isdigit(&self) -> bool {
-        if self.0.is_empty() {
-            return false;
-        }
-
-        for c in self.0.as_ref() {
-            if !c.is_ascii_digit() {
-                return false;
-            }
-        }
-        true
+        return (!self.0.is_empty()) && self.0.as_ref().iter().all(|c| c.is_ascii_digit());
     }
 
     /// Return True if there is at least one lowercase ASCII character in the sequence and no
     /// uppercase ASCII characters, False otherwise.
     fn islower(&self) -> bool {
+        // better version
         let mut has_lower = false;
         for c in self.0.as_ref() {
             if c.is_ascii_uppercase() {
@@ -365,17 +334,10 @@ impl PyBytes {
     /// empty, False otherwise. ASCII whitespace characters are those byte values in the sequence
     /// b' \t\n\r\x0b\f' (space, tab, newline, carriage return, vertical tab, form feed).
     fn isspace(&self) -> bool {
-        if self.0.is_empty() {
-            return false;
-        }
-
-        for c in self.0.as_ref() {
-            // Also check for vertical tab
-            if !(c.is_ascii_whitespace() || *c == b'\x0b') {
-                return false;
-            }
-        }
-        true
+        !self.0.is_empty()
+            && self.0.as_ref().iter().all(|c| {
+                c.is_ascii_whitespace() || *c == b'\x0b' // Also check for vertical tab
+            })
     }
 
     /// Return True if there is at least one uppercase alphabetic ASCII character in the sequence
