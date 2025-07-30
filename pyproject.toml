@@ -5,10 +5,18 @@ requires = [ "maturin>=1,<2" ]
 
 [project]
 name = "ry"
-description = "ry = rust + python kitchen sink utils (WIP)"
+description = "ry = rust + python"
 keywords = [
+  "datetime",
+  "http",
+  "jiff",
+  "json",
   "pyo3",
+  "reqwest",
   "rust",
+  "tokio",
+  "xxhash",
+  "zstd",
 ]
 license = "MIT OR Apache-2.0"
 maintainers = [

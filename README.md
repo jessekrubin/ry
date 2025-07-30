@@ -14,7 +14,7 @@ ergonomic.
 
 **API:** [ryo3.dev/api](https://ryo3.dev/api)
 
-**This is a work in progress — feedback and PRs are welcome.**
+**This is a work in progress ~ feedback and PRs are welcome.**
 
 ## Highlights
 
@@ -33,7 +33,7 @@ ergonomic.
 - **Designed for ergonomics:** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
 - **Type Annotated:** Type annotations for all public APIs, with `mypy` support.
-- **Performant:** Speed without “blazingly fast.” [^1]
+- **Performant:** Speed without 'blazingly fast.' [^1]
 
 ## Install
 
@@ -130,6 +130,6 @@ _(aka: questions that I have been asking myself)_
 - utiles (web-map tile utils): https://github.com/jessekrubin/utiles
 
 [^1]:
-    Release‑version benchmarks of `ry` (via `pytest‑benchmark`) showed no real
-    performance variance, regardless of whether “blazing fast” appeared in
-    README/docs.
+    Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
+    performance variance, regardless of whether "blazingly fast" appeared in the
+    README or docs.

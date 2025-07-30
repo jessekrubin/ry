@@ -6,6 +6,7 @@
 
 ---
 
+- [ARCHIVES](./archives.md)
 - [CHANGELOG](./CHANGELOG.md)
 
 ---
