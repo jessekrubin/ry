@@ -290,27 +290,27 @@ impl PyBytes {
     /// those byte values in the sequence b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.
     /// ASCII decimal digits are those byte values in the sequence b'0123456789'.
     fn isalnum(&self) -> bool {
-        (!self.0.is_empty()) && self.0.as_ref().iter().all(|c| c.is_ascii_alphanumeric())
+        (!self.0.is_empty()) && self.0.as_ref().iter().all(u8::is_ascii_alphanumeric)
     }
 
     /// Return True if all bytes in the sequence are alphabetic ASCII characters and the sequence
     /// is not empty, False otherwise. Alphabetic ASCII characters are those byte values in the
     /// sequence b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.
     fn isalpha(&self) -> bool {
-        (!self.0.is_empty()) && self.0.as_ref().iter().all(|c| c.is_ascii_alphabetic())
+        (!self.0.is_empty()) && self.0.as_ref().iter().all(u8::is_ascii_alphabetic)
     }
 
     /// Return True if the sequence is empty or all bytes in the sequence are ASCII, False
     /// otherwise. ASCII bytes are in the range 0-0x7F.
     fn isascii(&self) -> bool {
-        self.0.as_ref().iter().all(|c| c.is_ascii())
+        self.0.as_ref().iter().all(u8::is_ascii)
     }
 
     /// Return True if all bytes in the sequence are ASCII decimal digits and the sequence is not
     /// empty, False otherwise. ASCII decimal digits are those byte values in the sequence
     /// b'0123456789'.
     fn isdigit(&self) -> bool {
-        return (!self.0.is_empty()) && self.0.as_ref().iter().all(|c| c.is_ascii_digit());
+        (!self.0.is_empty()) && self.0.as_ref().iter().all(u8::is_ascii_digit)
     }
 
     /// Return True if there is at least one lowercase ASCII character in the sequence and no
