@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-07-28T20:47:52.675268169+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-07-30T00:20:14.484299755+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -193,7 +193,7 @@ ergonomic.</p>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/l/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - License" /></a></p>
 <p><strong>DOCS:</strong> <a href="https://ryo3.dev">ryo3.dev</a> (WIP)</p>
 <p><strong>API:</strong> <a href="https://ryo3.dev/api">ryo3.dev/api</a></p>
-<p><strong>This is a work in progress — feedback and PRs are welcome.</strong></p>
+<p><strong>This is a work in progress ~ feedback and PRs are welcome.</strong></p>
 <h2 id="highlights"><a class="header" href="#highlights">Highlights</a></h2>
 <ul>
 <li><strong>Async-first HTTP client:</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
@@ -211,7 +211,7 @@ parsing and formatting, with <code>datetime</code> interop and much more</li>
 <li><strong>Designed for ergonomics:</strong> Async where it matters. Simple where possible.
 Python-native behavior with minimal friction.</li>
 <li><strong>Type Annotated:</strong> Type annotations for all public APIs, with <code>mypy</code> support.</li>
-<li><strong>Performant:</strong> Speed without “blazingly fast.” <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></li>
+<li><strong>Performant:</strong> Speed without ‘blazingly fast.’ <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></li>
 </ul>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
 <pre><code class="language-bash">pip install ry
@@ -321,9 +321,9 @@ docs</li>
 </ul>
 <hr>
 <ol class="footnote-definition"><li id="footnote-1">
-<p>Release‑version benchmarks of <code>ry</code> (via <code>pytest‑benchmark</code>) showed no real
-performance variance, regardless of whether “blazing fast” appeared in
-README/docs. <a href="#fr-1-1">↩</a></p>
+<p>Release‑version benchmarks of <code>ry</code> (via <code>pytest-benchmark</code>) showed no real
+performance variance, regardless of whether “blazingly fast” appeared in the
+README or docs. <a href="#fr-1-1">↩</a></p>
 </li>
 </ol><div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">DEVELOPMENT</a></h1>
 <p><strong>OPEN TO PRS!</strong></p>
@@ -443,6 +443,24 @@ of tasks)</li>
 <hr />
 <p>If you want to be added to this list, please open an issue or PR! Happy to add
 you if you’ve helped in any way!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ry-dist-archives"><a class="header" href="#ry-dist-archives">ry-dist-archives</a></h1>
+<p><strong>TLDR: If you are using an older version of <code>ry</code> and it is not longer on PyPI,
+you can find it either on primary ry-repo’s
+<a href="https://github.com/jessekrubin/ry/releases">releases</a> page, or in the
+<a href="https://github.com/jessekrubin/ry-dist-archives">ry-dist-archives</a>
+repository.</strong></p>
+<p>PyPI imposes a 10 GB limit on the total size of all files in a given project.
+Once that limit is reached, you must either delete old files or request a size
+increase. As of now (<code>2025-07-22T08:34:51.3412157-07:00[America/Los_Angeles]</code>),
+the <code>ry</code> package is still very much in beta, and I (jesse) am not going to
+request a size increase while the project remains pre-<code>0.1.0</code>.</p>
+<p><code>ry</code> builds are performed with github cicd, and published builds for versions
+<code>0.44.0</code> are uploaded to github
+<a href="https://github.com/jessekrubin/ry/releases">releases</a>, <strong>but</strong> publishing releases
+was not previously a part of the cicd workflow.</p>
+<p>The script for downloading wheels is located at <a href="https://github.com/jessekrubin/ry-dist-archives/blob/main/scripts/dl_versions.py">ry-dist-archives/scripts/dl_versions.py</a>.
+It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and dumping, and async file I/O
+tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0052-unreleased"><a class="header" href="#v0052-unreleased">v0.0.52 [unreleased]</a></h2>
 <hr />

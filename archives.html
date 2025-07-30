@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>README - ry(o3) docs</title>
+        <title>ARCHIVES - ry(o3) docs</title>
 
 
         <!-- Custom HTML head -->
@@ -147,7 +147,7 @@
                         <a href="https://github.com/jessekrubin/ry" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/jessekrubin/ry/edit/main/docs/src/index.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                        <a href="https://github.com/jessekrubin/ry/edit/main/docs/src/archives.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -181,159 +181,34 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-07-30T00:20:14.484299755+00:00[Etc/UTC]</code></p>
-<hr />
-<h1 id="readme"><a class="header" href="#readme">README</a></h1>
-<h1 id="ry"><a class="header" href="#ry">ry</a></h1>
-<p>A growing collection of Python shims around Rust crates; fast, async-first, and
-ergonomic.</p>
-<p><a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/v/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/pyversions/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Python Version" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/wheel/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Wheel" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/dm/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Downloads" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/status/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Status" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/l/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - License" /></a></p>
-<p><strong>DOCS:</strong> <a href="https://ryo3.dev">ryo3.dev</a> (WIP)</p>
-<p><strong>API:</strong> <a href="https://ryo3.dev/api">ryo3.dev/api</a></p>
-<p><strong>This is a work in progress ~ feedback and PRs are welcome.</strong></p>
-<h2 id="highlights"><a class="header" href="#highlights">Highlights</a></h2>
-<ul>
-<li><strong>Async-first HTTP client:</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
-Supports streaming, zero-copy IO via the buffer protocol, timeouts,
-redirect-following, and native JSON parsing via <code>jiter</code>.</li>
-<li><strong>Async file I/O:</strong> Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to
-<code>aiofiles</code> and <code>anyio</code>’s async-file api. Supports buffered reads/writes,
-truncation, streaming reads, and <code>anyio</code> compatibility.</li>
-<li><strong>(de)compression:</strong> (de)compression tools for <code>zstd</code>, <code>brotli</code>, <code>gzip</code>, and
-<code>bzip2</code>.</li>
-<li><strong>Datetime utilities via <code>jiff</code>:</strong> Fast, accurate, timezone-aware datetime
-parsing and formatting, with <code>datetime</code> interop and much more</li>
-<li><strong>Miscellaneous bindings:</strong> Includes crates like <code>globset</code>, <code>walkdir</code>,
-<code>sqlformat</code>, <code>unindent</code>, <code>xxhash</code>, and more.</li>
-<li><strong>Designed for ergonomics:</strong> Async where it matters. Simple where possible.
-Python-native behavior with minimal friction.</li>
-<li><strong>Type Annotated:</strong> Type annotations for all public APIs, with <code>mypy</code> support.</li>
-<li><strong>Performant:</strong> Speed without ‘blazingly fast.’ <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></li>
-</ul>
-<h2 id="install"><a class="header" href="#install">Install</a></h2>
-<pre><code class="language-bash">pip install ry
-uv add ry
+                        <h1 id="ry-dist-archives"><a class="header" href="#ry-dist-archives">ry-dist-archives</a></h1>
+<p><strong>TLDR: If you are using an older version of <code>ry</code> and it is not longer on PyPI,
+you can find it either on primary ry-repo’s
+<a href="https://github.com/jessekrubin/ry/releases">releases</a> page, or in the
+<a href="https://github.com/jessekrubin/ry-dist-archives">ry-dist-archives</a>
+repository.</strong></p>
+<p>PyPI imposes a 10 GB limit on the total size of all files in a given project.
+Once that limit is reached, you must either delete old files or request a size
+increase. As of now (<code>2025-07-22T08:34:51.3412157-07:00[America/Los_Angeles]</code>),
+the <code>ry</code> package is still very much in beta, and I (jesse) am not going to
+request a size increase while the project remains pre-<code>0.1.0</code>.</p>
+<p><code>ry</code> builds are performed with github cicd, and published builds for versions
+<code>0.44.0</code> are uploaded to github
+<a href="https://github.com/jessekrubin/ry/releases">releases</a>, <strong>but</strong> publishing releases
+was not previously a part of the cicd workflow.</p>
+<p>The script for downloading wheels is located at <a href="https://github.com/jessekrubin/ry-dist-archives/blob/main/scripts/dl_versions.py">ry-dist-archives/scripts/dl_versions.py</a>.
+It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and dumping, and async file I/O
+tools.</p>
 
-# check install
-python -m ry
-</code></pre>
-<h2 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h2>
-<p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a>
-directory for some quickstart examples.</p>
-<hr />
-<h2 id="what"><a class="header" href="#what">What?</a></h2>
-<ul>
-<li><code>ry</code> – the python package</li>
-<li><code>ryo3-*</code> – the rust crates that are used by <code>ry</code> and possibly your own
-<code>pyo3</code>-based python package</li>
-</ul>
-<h2 id="who"><a class="header" href="#who">Who?</a></h2>
-<ul>
-<li>jessekrubin <a href="mailto:jessekrubin@gmail.com">jessekrubin@gmail.com</a></li>
-<li>possibly you!?</li>
-</ul>
-<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
-<p><em>(aka: questions that I have been asking myself)</em></p>
-<ul>
-<li><strong>Q:</strong> Why?
-<ul>
-<li><strong>A:</strong> I (jesse) needed several hashing functions for python and then kept
-adding things as I needed them</li>
-</ul>
-</li>
-<li><strong>Q:</strong> Does this have anything to do with the (excellent) package manager
-<code>rye</code>?
-<ul>
-<li><strong>A:</strong> short answer: no. long answer: no, it does not.</li>
-</ul>
-</li>
-<li><strong>Q:</strong> Why is the repo split into <code>ry</code> and <code>ryo3</code>?
-<ul>
-<li><strong>A:</strong> <code>ry</code> is the python package, <code>ryo3</code> is a rust crate setup to let you
-“register” functions you may want if you were writing your own pyo3-python
-bindings library; maybe someday the <code>ryo3::libs</code> module will be split up
-into separate packages</li>
-</ul>
-</li>
-</ul>
-<h2 id="crate-bindings"><a class="header" href="#crate-bindings">Crate bindings</a></h2>
-<ul>
-<li>wrapped crates:
-<ul>
-<li><code>std</code> - many stdlib types and apis</li>
-<li><code>bytes</code></li>
-<li><code>dirs</code></li>
-<li><code>glob</code></li>
-<li><code>heck</code></li>
-<li><code>http</code></li>
-<li><code>jiter</code></li>
-<li><code>reqwest</code></li>
-<li><code>shlex</code></li>
-<li><code>size</code></li>
-<li><code>sqlformat</code></li>
-<li><code>tokio</code> (<code>fs</code> and <code>process</code>)</li>
-<li><code>unindent</code></li>
-<li><code>url</code></li>
-<li><code>uuid</code></li>
-<li><code>which</code></li>
-<li>compression:
-<ul>
-<li><code>brotli</code></li>
-<li><code>bzip2</code></li>
-<li><code>flate2</code></li>
-<li><code>zstd</code></li>
-</ul>
-</li>
-<li>hashing:
-<ul>
-<li><code>fnv</code></li>
-<li><code>xxhash</code></li>
-</ul>
-</li>
-<li>burnt-sushi:
-<ul>
-<li><code>globset</code> (formerly <a href="https://pypi.org/project/globsters/">globsters</a>)</li>
-<li><code>jiff</code></li>
-<li><code>regex</code> (WIP ~ very incomplete)</li>
-<li><code>same-file</code></li>
-<li><code>walkdir</code></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<hr />
-<h2 id="dev"><a class="header" href="#dev">DEV</a></h2>
-<ul>
-<li><code>just</code> is used to run tasks</li>
-<li>Do not use the phrase <code>blazing fast</code> or any emojis in any PRs or issues or
-docs</li>
-<li>type annotations are required</li>
-<li><code>ruff</code> used for formatting and linting</li>
-</ul>
-<hr />
-<h2 id="see-also"><a class="header" href="#see-also">SEE ALSO</a></h2>
-<ul>
-<li>utiles (web-map tile utils): https://github.com/jessekrubin/utiles</li>
-</ul>
-<hr>
-<ol class="footnote-definition"><li id="footnote-1">
-<p>Release‑version benchmarks of <code>ry</code> (via <code>pytest-benchmark</code>) showed no real
-performance variance, regardless of whether “blazingly fast” appeared in the
-README or docs. <a href="#fr-1-1">↩</a></p>
-</li>
-</ol>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="acknowledgements.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
-                            <a rel="next prefetch" href="development.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="CHANGELOG.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -343,8 +218,11 @@ README or docs. <a href="#fr-1-1">↩</a></p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="acknowledgements.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
-                    <a rel="next prefetch" href="development.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="CHANGELOG.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
