@@ -151,10 +151,9 @@ impl PyXxh64 {
 
     /// Return the string representation of the hasher
     fn __repr__(&self) -> PyResult<String> {
-        let hasher = self.hasher.lock().map_err(|_| {
-            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Failed to lock hasher")
-        })?;
-        Ok(format!("xxh64<{:x}>", hasher.digest()))
+        let hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let digest = hasher.digest();
+        Ok(format!("xxh64<{:x}>", digest))
     }
 
     /// Return the name of the hasher ('xxh64')
@@ -196,7 +195,7 @@ impl PyXxh64 {
 
     fn hexdigest(&self) -> PyResult<String> {
         let digest = self.intdigest()?;
-        Ok(format!("{:016x}", digest))
+        Ok(format!("{digest:016x}"))
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -313,7 +312,7 @@ impl PyXxh3 {
 
     fn hexdigest(&self) -> PyResult<String> {
         let digest = self.intdigest()?;
-        Ok(format!("{:016x}", digest))
+        Ok(format!("{digest:016x}"))
     }
 
     fn digest128<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
@@ -330,7 +329,7 @@ impl PyXxh3 {
 
     fn hexdigest128(&self) -> PyResult<String> {
         let digest = self.intdigest128()?;
-        Ok(format!("{:032x}", digest))
+        Ok(format!("{digest:032x}"))
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -377,5 +376,5 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 fn map_poison_error<T>(e: std::sync::PoisonError<std::sync::MutexGuard<'_, T>>) -> PyErr {
-    PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Mutex poisoned: {:?}", e))
+    PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Mutex poisoned: {e:?}"))
 }
