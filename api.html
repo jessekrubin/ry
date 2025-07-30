@@ -403,7 +403,6 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
-
 </code></pre>
 <h2 id="ry.ryo3.dirs"><a class="header" href="#ry.ryo3.dirs"><code>ry.ryo3.dirs</code></a></h2>
 <pre><code class="language-python">def audio() -&gt; str | None: ...
@@ -444,12 +443,10 @@ def template() -&gt; str | None: ...
 def template_dir() -&gt; str | None: ...
 def video() -&gt; str | None: ...
 def video_dir() -&gt; str | None: ...
-
 </code></pre>
 <h2 id="ry.ryo3.errors"><a class="header" href="#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></h2>
 <pre><code class="language-python">class FeatureNotEnabledError(RuntimeError):
     """Raised when a feature is not enabled in the current build."""
-
 </code></pre>
 <h2 id="ry.ryo3.JSON"><a class="header" href="#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3.JSON"""
@@ -573,7 +570,6 @@ def parse(
 ) -&gt; JsonValue: ...
 def cache_clear() -&gt; None: ...
 def cache_usage() -&gt; int: ...
-
 </code></pre>
 <h2 id="ry.ryo3.orjson"><a class="header" href="#ry.ryo3.orjson"><code>ry.ryo3.orjson</code></a></h2>
 <pre><code class="language-python">"""orjson + ry types
@@ -597,7 +593,6 @@ def orjson_default(obj: t.Any) -&gt; orjson.Fragment:
         b'{"key":"value","date":"2023-10-01"}'
 
     """
-
 </code></pre>
 <h2 id="ry.ryo3.sh"><a class="header" href="#ry.ryo3.sh"><code>ry.ryo3.sh</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -632,7 +627,6 @@ def ls(
 
 
 def mkdir(path: str | PathLike[str]) -&gt; None: ...
-
 </code></pre>
 <h2 id="ry.ryo3.ulid"><a class="header" href="#ry.ryo3.ulid"><code>ry.ryo3.ulid</code></a></h2>
 <pre><code class="language-python">import builtins
@@ -710,7 +704,6 @@ class ULID:
     def __int__(self) -&gt; int: ...
     def __le__(self, other: int | str | ULID | builtins.bytes) -&gt; bool: ...
     def __lt__(self, other: int | str | ULID | builtins.bytes) -&gt; bool: ...
-
 </code></pre>
 <h2 id="ry.ryo3.uuid"><a class="header" href="#ry.ryo3.uuid"><code>ry.ryo3.uuid</code></a></h2>
 <pre><code class="language-python">"""ryo3-uuid types
@@ -818,7 +811,6 @@ RESERVED_NCS: str
 RFC_4122: str
 RESERVED_MICROSOFT: str
 RESERVED_FUTURE: str
-
 </code></pre>
 <h2 id="ry.ryo3.xxhash"><a class="header" href="#ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -933,7 +925,6 @@ def xxh3_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
 def xxh3_128_digest(input: Buffer, seed: int | None = None) -&gt; bytes: ...
 def xxh3_128_intdigest(input: Buffer, seed: int | None = None) -&gt; int: ...
 def xxh3_128_hexdigest(input: Buffer, seed: int | None = None) -&gt; str: ...
-
 </code></pre>
 <h2 id="ry.ryo3.zstd"><a class="header" href="#ry.ryo3.zstd"><code>ry.ryo3.zstd</code></a></h2>
 <pre><code class="language-python">from ry import Bytes
@@ -972,7 +963,6 @@ def unzstd(data: Buffer) -&gt; Bytes: ...
 
 # __MAGIC__
 def is_zstd(data: Buffer) -&gt; bool: ...
-
 </code></pre>
 <h2 id="ry.ryo3._brotli"><a class="header" href="#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></h2>
 <pre><code class="language-python">"""ryo3-brotli types"""
@@ -989,7 +979,6 @@ def brotli(
     input: bytes, quality: int = 11, magic_number: bool = False
 ) -&gt; bytes:
     """Alias for brotli_encode"""
-
 </code></pre>
 <h2 id="ry.ryo3._bytes"><a class="header" href="#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></h2>
 <pre><code class="language-python">import sys
@@ -1178,7 +1167,6 @@ class Bytes(Buffer):
 BytesLike: typing_extensions.TypeAlias = (
     Buffer | bytes | bytearray | memoryview | Bytes
 )
-
 </code></pre>
 <h2 id="ry.ryo3._bzip2"><a class="header" href="#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></h2>
 <pre><code class="language-python">"""ryo3-bzip2 types"""
@@ -1193,7 +1181,6 @@ def bzip2_encode(input: Buffer, quality: int = 9) -&gt; bytes: ...
 def bzip2_decode(input: Buffer) -&gt; bytes: ...
 def bzip2(input: Buffer, quality: int = 9) -&gt; bytes:
     """Alias for bzip2_encode"""
-
 </code></pre>
 <h2 id="ry.ryo3._dev"><a class="header" href="#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3.dev"""
@@ -1219,7 +1206,6 @@ def run(
 def anystr_noop(s: t.AnyStr) -&gt; t.AnyStr: ...
 def string_noop(s: str) -&gt; str: ...
 def bytes_noop(s: bytes) -&gt; bytes: ...
-
 </code></pre>
 <h2 id="ry.ryo3._flate2"><a class="header" href="#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></h2>
 <pre><code class="language-python">"""ryo3-flate2 types"""
@@ -1242,7 +1228,6 @@ def gunzip(input: Buffer) -&gt; Bytes:
 
 
 def is_gzipped(input: Buffer) -&gt; bool: ...
-
 </code></pre>
 <h2 id="ry.ryo3._fnv"><a class="header" href="#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></h2>
 <pre><code class="language-python">"""ryo3-fnv types"""
@@ -1270,7 +1255,6 @@ class FnvHasher:
 
 
 def fnv1a(input: Buffer, key: int | None = None) -&gt; FnvHasher: ...
-
 </code></pre>
 <h2 id="ry.ryo3._fspath"><a class="header" href="#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></h2>
 <pre><code class="language-python">"""ryo3-fspath types"""
@@ -1430,7 +1414,6 @@ class FsPathReaddir:
     def __next__(self) -&gt; FsPath: ...
     def collect(self) -&gt; list[FsPath]: ...
     def take(self, n: int) -&gt; list[FsPath]: ...
-
 </code></pre>
 <h2 id="ry.ryo3._glob"><a class="header" href="#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></h2>
 <pre><code class="language-python">"""ryo3-glob types"""
@@ -1505,7 +1488,6 @@ class Pattern:
     def escape(pattern: str) -&gt; str: ...
     @property
     def pattern(self) -&gt; str: ...
-
 </code></pre>
 <h2 id="ry.ryo3._globset"><a class="header" href="#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></h2>
 <pre><code class="language-python">"""ryo3-globset types"""
@@ -1593,7 +1575,6 @@ def globster(
     literal_separator: bool | None = None,
     backslash_escape: bool | None = None,
 ) -&gt; Globster: ...
-
 </code></pre>
 <h2 id="ry.ryo3._heck"><a class="header" href="#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></h2>
 <pre><code class="language-python">"""ryo3-heck types"""
@@ -1608,7 +1589,6 @@ def snake_case(string: str) -&gt; str: ...
 def snek_case(string: str) -&gt; str: ...
 def title_case(string: str) -&gt; str: ...
 def train_case(string: str) -&gt; str: ...
-
 </code></pre>
 <h2 id="ry.ryo3._http"><a class="header" href="#ry.ryo3._http"><code>ry.ryo3._http</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -1877,7 +1857,6 @@ class HttpStatus:
     NETWORK_AUTHENTICATION_REQUIRED: (
         HttpStatus  # 511 ~ Network Authentication Required
     )
-
 </code></pre>
 <h2 id="ry.ryo3._jiff"><a class="header" href="#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></h2>
 <pre><code class="language-python">"""jiff types"""
@@ -3556,7 +3535,6 @@ class TimeZoneDatabase:
     def from_concatenated_path(cls, path: str) -&gt; TimeZoneDatabase: ...
     @classmethod
     def bundled(cls) -&gt; TimeZoneDatabase: ...
-
 </code></pre>
 <h2 id="ry.ryo3._jiff_tz"><a class="header" href="#ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></a></h2>
 <pre><code class="language-python">from typing import Literal
@@ -4163,7 +4141,6 @@ TZDB_NAMES: TypeAlias = Literal[
     "WET",
     "Zulu",
 ]
-
 </code></pre>
 <h2 id="ry.ryo3._jiter"><a class="header" href="#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -4215,7 +4192,6 @@ def read_json(
 ) -&gt; JsonValue: ...
 def json_cache_clear() -&gt; None: ...
 def json_cache_usage() -&gt; int: ...
-
 </code></pre>
 <h2 id="ry.ryo3._quick_maths"><a class="header" href="#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></h2>
 <pre><code class="language-python">"""ryo3-quick-maths types"""
@@ -4241,7 +4217,6 @@ def quick_maths() -&gt; t.Literal[3]:
 
     NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
     """
-
 </code></pre>
 <h2 id="ry.ryo3._regex"><a class="header" href="#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></h2>
 <pre><code class="language-python">"""ryo3-regex types"""
@@ -4278,7 +4253,6 @@ class Regex:
     def replace_all(self, string: str, replacement: str) -&gt; str: ...
     def split(self, string: str) -&gt; list[str]: ...
     def splitn(self, string: str, n: int) -&gt; list[str]: ...
-
 </code></pre>
 <h2 id="ry.ryo3._reqwest"><a class="header" href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -4438,7 +4412,6 @@ async def fetch(
     method: str = "GET",
     **kwargs: te.Unpack[RequestKwargs],
 ) -&gt; Response: ...
-
 </code></pre>
 <h2 id="ry.ryo3._same_file"><a class="header" href="#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></h2>
 <pre><code class="language-python">"""ryo3-same-file types"""
@@ -4447,7 +4420,6 @@ from os import PathLike
 
 
 def is_same_file(a: PathLike[str], b: PathLike[str]) -&gt; bool: ...
-
 </code></pre>
 <h2 id="ry.ryo3._shlex"><a class="header" href="#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></h2>
 <pre><code class="language-python">"""ryo3-shlex types"""
@@ -4455,7 +4427,6 @@ def is_same_file(a: PathLike[str], b: PathLike[str]) -&gt; bool: ...
 
 def shplit(s: str) -&gt; list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
-
 </code></pre>
 <h2 id="ry.ryo3._size"><a class="header" href="#ry.ryo3._size"><code>ry.ryo3._size</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -4629,7 +4600,6 @@ class Size:
     def from_exabytes(cls: type[Size], size: float) -&gt; Size: ...
     @classmethod
     def from_exbibytes(cls: type[Size], size: float) -&gt; Size: ...
-
 </code></pre>
 <h2 id="ry.ryo3._sqlformat"><a class="header" href="#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -4669,7 +4639,6 @@ def sqlfmt(
     uppercase: bool | None = True,
     lines_between_statements: int = 1,
 ) -&gt; str: ...
-
 </code></pre>
 <h2 id="ry.ryo3._std"><a class="header" href="#ry.ryo3._std"><code>ry.ryo3._std</code></a></h2>
 <pre><code class="language-python">"""ryo3-std types"""
@@ -5148,7 +5117,6 @@ class IpAddr:
     # METHODS
     # =======================================================================
     def to_canonical(self) -&gt; IpAddr: ...
-
 </code></pre>
 <h2 id="ry.ryo3._tokio"><a class="header" href="#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></h2>
 <pre><code class="language-python">"""ryo4-tokio types"""
@@ -5261,7 +5229,6 @@ class AsyncFile:
 def aiopen(
     path: FsPathLike, mode: str = "r", buffering: int = -1
 ) -&gt; AsyncFile: ...
-
 </code></pre>
 <h2 id="ry.ryo3._unindent"><a class="header" href="#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></h2>
 <pre><code class="language-python">"""ryo3-unindent types"""
@@ -5269,7 +5236,6 @@ def aiopen(
 
 def unindent(string: str) -&gt; str: ...
 def unindent_bytes(string: bytes) -&gt; bytes: ...
-
 </code></pre>
 <h2 id="ry.ryo3._url"><a class="header" href="#ry.ryo3._url"><code>ry.ryo3._url</code></a></h2>
 <pre><code class="language-python">import typing as t
@@ -5376,7 +5342,6 @@ class URL:
         scheme: str | None = None,
         username: str | None = None,
     ) -&gt; URL: ...
-
 </code></pre>
 <h2 id="ry.ryo3._walkdir"><a class="header" href="#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></h2>
 <pre><code class="language-python">"""ryo3-walkdir types"""
@@ -5459,7 +5424,6 @@ def walkdir(
     same_file_system: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
 ) -&gt; WalkdirGen[str]: ...
-
 </code></pre>
 <h2 id="ry.ryo3._which"><a class="header" href="#ry.ryo3._which"><code>ry.ryo3._which</code></a></h2>
 <pre><code class="language-python">"""ryo3-which types"""
@@ -5472,7 +5436,6 @@ from ry.ryo3._regex import Regex
 def which(cmd: str, path: None | str = None) -&gt; Path | None: ...
 def which_all(cmd: str, path: None | str = None) -&gt; list[Path]: ...
 def which_re(regex: str | Regex, path: None | str = None) -&gt; list[Path]: ...
-
 </code></pre>
 <h2 id="ry.ryo3._zstd"><a class="header" href="#ry.ryo3._zstd"><code>ry.ryo3._zstd</code></a></h2>
 <pre><code class="language-python">"""ry.ryo3 root level zstd exports"""
@@ -5490,7 +5453,6 @@ __all__ = (
     "zstd_decompress",
     "zstd_encode",
 )
-
 </code></pre>
 <h2 id="ry.dirs"><a class="header" href="#ry.dirs"><code>ry.dirs</code></a></h2>
 <pre><code class="language-python">from ry.ryo3.dirs import audio as audio
@@ -5572,7 +5534,6 @@ __all__ = (
     "video",
     "video_dir",
 )
-
 </code></pre>
 <h2 id="ry.JSON"><a class="header" href="#ry.JSON"><code>ry.JSON</code></a></h2>
 <pre><code class="language-python">"""ry.JSON"""
@@ -5592,13 +5553,11 @@ __all__ = (
     "parse",
     "stringify",
 )
-
 </code></pre>
 <h2 id="ry.ulid"><a class="header" href="#ry.ulid"><code>ry.ulid</code></a></h2>
 <pre><code class="language-python">from ry.ryo3.ulid import ULID
 
 __all__ = ("ULID",)
-
 </code></pre>
 <h2 id="ry.uuid"><a class="header" href="#ry.uuid"><code>ry.uuid</code></a></h2>
 <pre><code class="language-python">from ry.ryo3.uuid import (
@@ -5642,7 +5601,6 @@ __all__ = (
     "uuid7",
     "uuid8",
 )
-
 </code></pre>
 <h2 id="ry.xxhash"><a class="header" href="#ry.xxhash"><code>ry.xxhash</code></a></h2>
 <pre><code class="language-python">from ry.ryo3.xxhash import Xxh3 as Xxh3
@@ -5696,7 +5654,6 @@ __all__ = (
     "xxh128_hexdigest",
     "xxh128_intdigest",
 )
-
 </code></pre>
 <h2 id="ry.zstd"><a class="header" href="#ry.zstd"><code>ry.zstd</code></a></h2>
 <pre><code class="language-python">from ry.ryo3.zstd import BLOCKSIZE_MAX as BLOCKSIZE_MAX
@@ -5740,7 +5697,6 @@ __all__ = (
     "is_zstd",
     "unzstd",
 )
-
 </code></pre>
 
                     </main>

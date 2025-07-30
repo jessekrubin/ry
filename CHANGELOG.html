@@ -183,6 +183,19 @@
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0052-unreleased"><a class="header" href="#v0052-unreleased">v0.0.52 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-bytes</code>
+<ul>
+<li>internal refactoring</li>
+</ul>
+</li>
+<li><code>ryo3-xxhash</code>
+<ul>
+<li>all xxhash-ing classes are now <code>frozen</code> pyclasses
+<a href="https://github.com/jessekrubin/ry/issues/259">#259</a></li>
+</ul>
+</li>
+</ul>
 <hr />
 <h2 id="v0051-2025-07-25"><a class="header" href="#v0051-2025-07-25">v0.0.51 [2025-07-25]</a></h2>
 <ul>
@@ -794,40 +807,40 @@ translate well to python</li>
 </li>
 </ul>
 <pre><code class="language-python">IntoDateDifference = (
-  DateDifference
-  | Date
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Date]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    DateDifference
+    | Date
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoTimeDifference = (
-  TimeDifference
-  | Time
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Time]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    TimeDifference
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoDateTimeDifference = (
-  DateTimeDifference
-  | Date
-  | Time
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Date]
-  | tuple[JIFF_UNIT_STRING, Time]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    DateTimeDifference
+    | Date
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoTimestampDifference = (
-  TimestampDifference
-  | Timestamp
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Timestamp]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    TimestampDifference
+    | Timestamp
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Timestamp]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 </code></pre>
 <hr />
