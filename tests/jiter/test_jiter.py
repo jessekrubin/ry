@@ -8,14 +8,6 @@ import pytest
 
 import ry as ry
 
-_NUMPY_AVAILABLE = False
-try:
-    import numpy as np
-
-    _NUMPY_AVAILABLE = True
-except ImportError:
-    np = None  # type: ignore[assignment]
-
 
 def test_parse_bytes() -> None:
     assert ry.parse_json(b"[true, false, null, 123, 456.7]") == [
@@ -114,7 +106,10 @@ def test_parse_json_lines() -> None:
 def test_parse_bytes_in_numpy_u8_arr() -> None:
     """Test that reading bytes from a buffer-protocol obj (eg numpy uint8 array works)"""
 
-    if np is None:
+    try:
+        import numpy as np
+
+    except ImportError:
         pytest.skip("Numpy is not available")
 
     json_bytes = b"[1, 2, 3]"
