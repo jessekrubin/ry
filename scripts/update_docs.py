@@ -69,7 +69,7 @@ def ruff_format_pyi(string: str, line_length: int = 80, indent_width: int = 4) -
         capture_output=True,
         check=True,
     )
-    return run_res.stdout
+    return run_res.stdout.rstrip("\n")
 
 
 def _gen_api_content_readme(
