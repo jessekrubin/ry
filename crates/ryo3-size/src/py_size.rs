@@ -25,7 +25,7 @@ impl From<i64> for PySize {
 impl PySize {
     #[new]
     fn py_new(size: i64) -> Self {
-        Self(size::Size::from_bytes(size))
+        Self(size::Size::from_const(size))
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
