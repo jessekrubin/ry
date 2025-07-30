@@ -2019,6 +2019,7 @@ version = "0.0.52"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
+ "ryo3-core",
  "xxhash-rust",
 ]
 

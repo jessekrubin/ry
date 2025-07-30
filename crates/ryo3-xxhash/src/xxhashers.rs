@@ -1,6 +1,7 @@
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
+use ryo3_core::PyLock;
 use std::sync::Mutex;
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder};
 use xxhash_rust::xxh32::Xxh32;
@@ -40,7 +41,7 @@ impl PyXxh32 {
     }
 
     fn __repr__(&self) -> PyResult<String> {
-        let hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let hasher = self.hasher.py_lock()?;
         Ok(format!("xxh32<{:x}>", hasher.digest()))
     }
 
@@ -65,35 +66,31 @@ impl PyXxh32 {
     }
 
     fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
-        let hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let hasher = self.hasher.py_lock()?;
 
         let digest = hasher.digest();
         Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
     fn intdigest(&self) -> PyResult<u32> {
-        self.hasher
-            .lock()
-            .map_err(map_poison_error)
-            .map(|hasher| hasher.digest())
+        self.hasher.py_lock().map(|hasher| hasher.digest())
     }
 
     fn hexdigest(&self) -> PyResult<String> {
         self.hasher
-            .lock()
-            .map_err(map_poison_error)
+            .py_lock()
             .map(|hasher| format!("{:08x}", hasher.digest()))
     }
 
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, s: ryo3_bytes::PyBytes) -> PyResult<()> {
-        let mut hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let mut hasher = self.hasher.py_lock()?;
         hasher.update(s.as_ref());
         Ok(())
     }
 
     fn copy(&self) -> PyResult<Self> {
-        let hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let hasher = self.hasher.py_lock()?;
         Ok(Self {
             hasher: Mutex::new(hasher.clone()),
 
@@ -103,7 +100,7 @@ impl PyXxh32 {
 
     #[pyo3(signature = (seed = None))]
     fn reset(&self, seed: Option<u32>) -> PyResult<()> {
-        let mut hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let mut hasher = self.hasher.py_lock()?;
         hasher.reset(seed.unwrap_or(self.seed));
         Ok(())
     }
@@ -151,9 +148,9 @@ impl PyXxh64 {
 
     /// Return the string representation of the hasher
     fn __repr__(&self) -> PyResult<String> {
-        let hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let hasher = self.hasher.py_lock()?;
         let digest = hasher.digest();
-        Ok(format!("xxh64<{:x}>", digest))
+        Ok(format!("xxh64<{digest:x}>"))
     }
 
     /// Return the name of the hasher ('xxh64')
@@ -178,19 +175,12 @@ impl PyXxh64 {
     }
 
     fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
-        let digest = self
-            .hasher
-            .lock()
-            .map_err(map_poison_error)
-            .map(|hasher| hasher.digest())?;
+        let digest = self.hasher.py_lock().map(|hasher| hasher.digest())?;
         Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
     fn intdigest(&self) -> PyResult<u64> {
-        self.hasher
-            .lock()
-            .map_err(map_poison_error)
-            .map(|hasher| hasher.digest())
+        self.hasher.py_lock().map(|hasher| hasher.digest())
     }
 
     fn hexdigest(&self) -> PyResult<String> {
@@ -200,13 +190,13 @@ impl PyXxh64 {
 
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
-        let mut hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let mut hasher = self.hasher.py_lock()?;
         hasher.update(b.as_ref());
         Ok(())
     }
 
     fn copy(&self) -> PyResult<Self> {
-        let hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let hasher = self.hasher.py_lock()?;
         Ok(Self {
             hasher: Mutex::new(hasher.clone()),
             seed: self.seed,
@@ -215,7 +205,7 @@ impl PyXxh64 {
 
     #[pyo3(signature = (seed = None))]
     fn reset(&self, seed: Option<u64>) -> PyResult<()> {
-        let mut hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let mut hasher = self.hasher.py_lock()?;
         hasher.reset(seed.unwrap_or(self.seed));
         Ok(())
     }
@@ -269,9 +259,8 @@ impl PyXxh3 {
 
     fn __repr__(&self) -> PyResult<String> {
         self.hasher
-            .lock()
+            .py_lock()
             .map(|hasher| format!("xxh3<{:x}>", hasher.digest()))
-            .map_err(map_poison_error)
     }
 
     #[classattr]
@@ -295,19 +284,12 @@ impl PyXxh3 {
     }
 
     fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
-        let digest = self
-            .hasher
-            .lock()
-            .map(|h| h.digest())
-            .map_err(map_poison_error)?;
+        let digest = self.hasher.py_lock().map(|h| h.digest())?;
         Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
     fn intdigest(&self) -> PyResult<u64> {
-        self.hasher
-            .lock()
-            .map(|h| h.digest())
-            .map_err(map_poison_error)
+        self.hasher.py_lock().map(|h| h.digest())
     }
 
     fn hexdigest(&self) -> PyResult<String> {
@@ -321,10 +303,7 @@ impl PyXxh3 {
     }
 
     fn intdigest128(&self) -> PyResult<u128> {
-        self.hasher
-            .lock()
-            .map(|h| h.digest128())
-            .map_err(map_poison_error)
+        self.hasher.py_lock().map(|h| h.digest128())
     }
 
     fn hexdigest128(&self) -> PyResult<String> {
@@ -335,13 +314,13 @@ impl PyXxh3 {
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
         // self.hasher.update(b.as_ref());
-        let mut hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let mut hasher = self.hasher.py_lock()?;
         hasher.update(b.as_ref());
         Ok(())
     }
 
     fn copy(&self) -> PyResult<Self> {
-        let hasher = self.hasher.lock().map_err(map_poison_error)?;
+        let hasher = self.hasher.py_lock()?;
         Ok(Self {
             hasher: Mutex::new(hasher.clone()),
             seed: self.seed,
@@ -349,7 +328,7 @@ impl PyXxh3 {
     }
 
     fn reset(&self) -> PyResult<()> {
-        let mut h = self.hasher.lock().map_err(map_poison_error)?;
+        let mut h = self.hasher.py_lock()?;
         h.reset();
         Ok(())
     }
@@ -373,8 +352,4 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(xxh64, m)?)?;
     m.add_function(wrap_pyfunction!(xxh3, m)?)?;
     Ok(())
-}
-
-fn map_poison_error<T>(e: std::sync::PoisonError<std::sync::MutexGuard<'_, T>>) -> PyErr {
-    PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Mutex poisoned: {e:?}"))
 }
