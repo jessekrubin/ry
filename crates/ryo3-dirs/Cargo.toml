@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-dirs"
-description = "python + `dirs` crate (https://crates.io/crates/dirs)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + `dirs` crate (https://crates.io/crates/dirs)"
 
 [dependencies]
 dirs.workspace = true

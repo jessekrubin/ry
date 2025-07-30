@@ -1,37 +1,36 @@
 [package]
 name = "ryo3-reqwest"
-description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.html)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.html)"
 
 [dependencies]
-pyo3 = { workspace = true, features = [] }
-pyo3-async-runtimes.workspace = true
-tracing.workspace = true
-tokio.workspace = true
 bytes.workspace = true
-jiter.workspace = true
-ryo3-bytes.workspace = true
-ryo3-url.workspace = true
-ryo3-http.workspace = true
 futures-core.workspace = true
 futures-util.workspace = true
-ryo3-macro-rules.workspace = true
-ryo3-std.workspace = true
-reqwest.workspace = true
+jiter.workspace = true
 parking_lot.workspace = true
-serde.workspace = true
+pyo3 = { workspace = true, features = [] }
+pyo3-async-runtimes.workspace = true
+reqwest.workspace = true
+ryo3-bytes.workspace = true
+ryo3-http.workspace = true
 ryo3-json.workspace = true
-serde_json.workspace = true
+ryo3-macro-rules.workspace = true
 ryo3-serde.workspace = true
-
+ryo3-std.workspace = true
+ryo3-url.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
 
 [lints]
 workspace = true
@@ -40,7 +39,7 @@ workspace = true
 default = [
   #  "parking-lot"
 ]
-#parking-lot = ["parking_lot"]
+# parking-lot = ["parking_lot"]
 blocking = [
-  "reqwest/blocking"
+  "reqwest/blocking",
 ]

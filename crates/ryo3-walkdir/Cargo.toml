@@ -1,23 +1,23 @@
 [package]
 name = "ryo3-walkdir"
-description = "python + walkdir (https://docs.rs/walkdir/latest/walkdir/)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + walkdir (https://docs.rs/walkdir/latest/walkdir/)"
 
 [dependencies]
+parking_lot.workspace = true
 pyo3 = { workspace = true, features = [] }
-ryo3-globset.workspace = true
 ryo3-core = { workspace = true }
+ryo3-globset.workspace = true
 ryo3-std = { workspace = true }
 walkdir = { workspace = true }
-parking_lot.workspace = true
 
 [lints]
 workspace = true

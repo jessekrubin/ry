@@ -1,19 +1,19 @@
 [package]
 name = "ryo3-jiter"
-description = "ry + pydantic-jiter (https://github.com/pydantic/jiter)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "ry + pydantic-jiter (https://github.com/pydantic/jiter)"
 
 [dependencies]
-pyo3 = { workspace = true, features = [] }
 jiter = { workspace = true, features = ["python"] }
+pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 
 [lints]

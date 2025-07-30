@@ -1,28 +1,28 @@
 [package]
 name = "ryo3-uuid"
-description = "python + uuid (https://github.com/rust-lang/uuid)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + uuid (https://github.com/rust-lang/uuid)"
 
 [dependencies]
 pyo3 = { workspace = true, features = ["uuid", "serde"] }
 ryo3-bytes.workspace = true
-uuid.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }
+uuid.workspace = true
 
 [dev-dependencies]
 serde = { workspace = true, features = ["derive"] }
 
 [features]
 default = [
-  "serde"
+  "serde",
 ]
 serde = [
   "dep:serde",

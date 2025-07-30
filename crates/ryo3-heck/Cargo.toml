@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-heck"
-description = "ryo3-heck - wraps heck (https://crates.io/crates/heck)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "ryo3-heck - wraps heck (https://crates.io/crates/heck)"
 
 [dependencies]
 heck.workspace = true

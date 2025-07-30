@@ -1,19 +1,19 @@
 [package]
 name = "ryo3-sqlformat"
-description = "sql-formatter - wraps sqlformat (https://crates.io/crates/sqlformat)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "sql-formatter - wraps sqlformat (https://crates.io/crates/sqlformat)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
-sqlformat = { workspace=true}
+sqlformat = { workspace = true }
 
 [lints]
 workspace = true

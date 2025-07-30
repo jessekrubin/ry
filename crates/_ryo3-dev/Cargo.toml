@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-dev"
-description = "ryo3-dev crate"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "ryo3-dev crate"
 
 [dependencies]
 pyo3.workspace = true

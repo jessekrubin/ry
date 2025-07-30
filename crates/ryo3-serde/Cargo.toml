@@ -12,28 +12,28 @@ repository.workspace = true
 description = "python + serde"
 
 [dependencies]
-pyo3 = { workspace = true, features = ["uuid"] }
-serde.workspace = true
-uuid = { workspace = true, features = ["serde"] }
 jiff = { workspace = true, optional = true, features = ["serde"] }
-ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
+pyo3 = { workspace = true, features = ["uuid"] }
 ryo3-http = { workspace = true, optional = true, features = ["serde"] }
+ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
 ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
 ryo3-url = { workspace = true, optional = true, features = ["serde"] }
 ryo3-uuid = { workspace = true, optional = true, features = ["serde"] }
+serde.workspace = true
+uuid = { workspace = true, features = ["serde"] }
 
 [build-dependencies]
 pyo3-build-config = { workspace = true }
 
 [features]
 default = [
-  "ry"
+  "ry",
 ]
 jiff = [
   "dep:jiff",
   "pyo3/jiff-02",
 ]
-#ryo3-jiff = ["ryo3-jiff/serde"]
+# ryo3-jiff = ["ryo3-jiff/serde"]
 ry = [
   "jiff",
   "ryo3-http",

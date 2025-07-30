@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-xxhash"
-description = "python + xxhash-rust (https://github.com/DoumanAsh/xxhash-rust)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + xxhash-rust (https://github.com/DoumanAsh/xxhash-rust)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }

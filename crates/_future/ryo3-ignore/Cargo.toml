@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-ignore"
-description = "python + ignore (https://docs.rs/ignore/latest/ignore/)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + ignore (https://docs.rs/ignore/latest/ignore/)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }

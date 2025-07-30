@@ -1,26 +1,26 @@
 [package]
 name = "ryo3-ulid"
-description = "python + ulid crate (https://crates.io/crates/ulid)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + ulid crate (https://crates.io/crates/ulid)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-uuid.workspace = true
-uuid.workspace = true
-ulid.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }
+ulid.workspace = true
+uuid.workspace = true
 
 [features]
 default = [
-  "serde"
+  "serde",
 ]
 serde = [
   "dep:serde",
