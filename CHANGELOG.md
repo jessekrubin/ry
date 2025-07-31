@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.53 [unreleased]
+
+---
+
 ## v0.0.52 [2025-07-30]
 
 - `ryo3-bytes`
