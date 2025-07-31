@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-07-30T20:20:32.460465785+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-07-31T01:04:23.300742778+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -462,11 +462,18 @@ was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and dumping, and async file I/O
 tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0052-unreleased"><a class="header" href="#v0052-unreleased">v0.0.52 [unreleased]</a></h2>
+<h2 id="v0052-2025-07-30"><a class="header" href="#v0052-2025-07-30">v0.0.52 [2025-07-30]</a></h2>
 <ul>
 <li><code>ryo3-bytes</code>
 <ul>
 <li>internal refactoring</li>
+<li>added
+<ul>
+<li><code>ry.Bytes.__rmul__</code></li>
+<li><code>ry.Bytes.lstrip</code></li>
+<li><code>ry.Bytes.rstrip</code></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><code>ryo3-xxhash</code>
@@ -2799,7 +2806,8 @@ class Bytes(Buffer):
     def __getitem__(self, other: int) -&gt; int: ...
     @overload
     def __getitem__(self, other: slice) -&gt; Bytes: ...
-    def __mul__(self, other: Buffer) -&gt; int: ...
+    def __mul__(self, other: int) -&gt; Bytes: ...
+    def __rmul__(self, other: int) -&gt; Bytes: ...
     def __len__(self) -&gt; int: ...
     def removeprefix(self, prefix: Buffer, /) -&gt; Bytes:
         """
