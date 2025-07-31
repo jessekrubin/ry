@@ -1,9 +1,13 @@
 # CHANGELOG
 
-## v0.0.52 [unreleased]
+## v0.0.52 [2025-07-30]
 
 - `ryo3-bytes`
   - internal refactoring
+  - added
+    - `ry.Bytes.__rmul__`
+    - `ry.Bytes.lstrip`
+    - `ry.Bytes.rstrip`
 - `ryo3-xxhash`
   - all xxhash-ing classes are now `frozen` pyclasses
     [#259](https://github.com/jessekrubin/ry/issues/259)

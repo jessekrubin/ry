@@ -215,7 +215,6 @@ def test_bytes_decode_default(
 @pytest.mark.parametrize(
     "fn_name",
     [
-        "__bytes__",
         "__iter__",
         "__mod__",
         "__rmod__",
@@ -225,7 +224,6 @@ def test_bytes_decode_default(
         "index",
         "join",
         "ljust",
-        "lstrip",
         "maketrans",
         "partition",
         "replace",
@@ -234,11 +232,7 @@ def test_bytes_decode_default(
         "rjust",
         "rpartition",
         "rsplit",
-        "rstrip",
         "split",
-        # "strip",
-        # "swapcase",
-        # "title",
         "translate",
         "zfill",
     ],

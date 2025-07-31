@@ -85,7 +85,64 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         }
     }
 
-    /// Return True if B is a titlecased string and there is at least one
+    fn py_lstrip(&self, bin: Option<&[u8]>) -> Self {
+        let b = self.as_ref();
+        if b.is_empty() {
+            return Self::from(vec![]);
+        }
+        if let Some(bin) = bin {
+            if bin.is_empty() {
+                return Self::from(b.to_vec());
+            }
+            let table = &mut [false; 256];
+            for &b in bin {
+                table[b as usize] = true;
+            }
+            let start = b
+                .iter()
+                .position(|&b| !table[b as usize])
+                .unwrap_or(b.len());
+            Self::from(b[start..].to_vec())
+        } else {
+            // must do manually to match python behavior
+            let is_ascii_whitespace =
+                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
+            let starting_ix_opt = b.iter().position(|x| !is_ascii_whitespace(x));
+            let Some(starting_ix) = starting_ix_opt else {
+                return Self::from(Vec::new());
+            };
+            Self::from(b[starting_ix..].to_vec())
+        }
+    }
+
+    fn py_rstrip(&self, bin: Option<&[u8]>) -> Self {
+        let b = self.as_ref();
+        if b.is_empty() {
+            return Self::from(vec![]);
+        }
+        if let Some(bin) = bin {
+            if bin.is_empty() {
+                return Self::from(b.to_vec());
+            }
+            let table = &mut [false; 256];
+            for &b in bin {
+                table[b as usize] = true;
+            }
+            let end = b
+                .iter()
+                .rposition(|&b| !table[b as usize])
+                .map_or(0, |ix| ix + 1);
+            Self::from(b[..end].to_vec())
+        } else {
+            // must do manually to match python behavior
+            let is_ascii_whitespace =
+                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
+            let ending_ix = b.iter().rposition(|x| !is_ascii_whitespace(x)).unwrap() + 1;
+            Self::from(b[..ending_ix].to_vec())
+        }
+    }
+
+    // Return True if B is a titlecased string and there is at least one
     /// character in B, i.e. uppercase characters may only follow uncased
     /// characters and lowercase characters only cased ones. Return False
     /// otherwise.

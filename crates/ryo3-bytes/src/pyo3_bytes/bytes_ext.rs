@@ -165,4 +165,22 @@ impl PyBytes {
             self.py_strip(None)
         }
     }
+
+    #[pyo3(signature = (bin=None))]
+    fn lstrip(&self, bin: Option<Self>) -> Self {
+        if let Some(bin) = bin {
+            self.py_lstrip(Some(bin.as_ref()))
+        } else {
+            self.py_lstrip(None)
+        }
+    }
+
+    #[pyo3(signature = (bin=None))]
+    fn rstrip(&self, bin: Option<Self>) -> Self {
+        if let Some(bin) = bin {
+            self.py_rstrip(Some(bin.as_ref()))
+        } else {
+            self.py_rstrip(None)
+        }
+    }
 }
