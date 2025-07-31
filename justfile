@@ -96,24 +96,20 @@ cargo-fmtc:
 
 # ruff check sorting of '__all__'
 sort-all-check:
-    ruff check . --select RUF022 --preview --output-format=full
+    uv run ruff check . --select RUF022 --preview --output-format=full
 
 # ruff sort '__all__'
 sort-all:
-    ruff check . --select RUF022 --preview --output-format=full --fix
+    uv run ruff check . --select RUF022 --preview --output-format=full --fix
 
 # ruff format
 ruff-fmt:
-    ruff format .
-    ruff check --select "I" --show-fixes --fix .
+    uv run ruff format .
+    uv run ruff check --select "I" --show-fixes --fix .
 
 # ruff format check
 ruff-fmtc:
-    ruff format . --check
-
-# python format black
-black:
-    black python
+    uv run ruff format . --check
 
 # python format
 fmtpy: sort-all ruff-fmt
@@ -135,7 +131,7 @@ mdfmt:
 
 # pyproject-fmt
 pyprojectfmt:
-    pyproject-fmt . --keep-full-version
+    uvx pyproject-fmt . --keep-full-version
 
 # format
 fmt: cargo-fmt fmtpy justfilefmt mdfmt pyprojectfmt
@@ -149,11 +145,11 @@ fmtc: cargo-fmtc fmtcpy justfilefmtc
 
 # run ruff linter
 ruff:
-    ruff check .
+    uv run ruff check .
 
 # run ruff + fix
 ruffix:
-    ruff --fix --show-fixes
+    uv run ruff --fix --show-fixes
 
 # run clippy
 clippy:
@@ -194,7 +190,7 @@ pip-compile:
     uv pip compile requirements.dev.in -n > requirements.dev.txt
 
 _gen_init:
-    python scripts/gen.py > python/ry/__init__.py
+    uv run python scripts/gen.py > python/ry/__init__.py
 
 _gen-py: _gen_init fmtpy
 
