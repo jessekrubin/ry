@@ -230,6 +230,10 @@ impl PyBytes {
         out_buf.into()
     }
 
+    fn __rmul__(&self, value: usize) -> Self {
+        self.__mul__(value)
+    }
+
     /// This is taken from opendal:
     /// https://github.com/apache/opendal/blob/d001321b0f9834bc1e2e7d463bcfdc3683e968c9/bindings/python/src/utils.rs#L51-L72
     #[allow(unsafe_code)]
@@ -316,17 +320,13 @@ impl PyBytes {
     /// Return True if there is at least one lowercase ASCII character in the sequence and no
     /// uppercase ASCII characters, False otherwise.
     fn islower(&self) -> bool {
-        // better version
         let mut has_lower = false;
-        for c in self.0.as_ref() {
+        for &c in self.0.as_ref() {
             if c.is_ascii_uppercase() {
                 return false;
             }
-            if !has_lower && c.is_ascii_lowercase() {
-                has_lower = true;
-            }
+            has_lower |= c.is_ascii_lowercase();
         }
-
         has_lower
     }
 
@@ -344,15 +344,12 @@ impl PyBytes {
     /// and no lowercase ASCII characters, False otherwise.
     fn isupper(&self) -> bool {
         let mut has_upper = false;
-        for c in self.0.as_ref() {
+        for &c in self.0.as_ref() {
             if c.is_ascii_lowercase() {
                 return false;
             }
-            if !has_upper && c.is_ascii_uppercase() {
-                has_upper = true;
-            }
+            has_upper |= c.is_ascii_uppercase();
         }
-
         has_upper
     }
 
@@ -369,8 +366,13 @@ impl PyBytes {
     }
 
     /// Copy this buffer's contents to a Python `bytes` object
-    fn to_bytes<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+    fn __bytes__<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
         pyo3::types::PyBytes::new(py, &self.0)
+    }
+
+    /// Copy this buffer's contents to a Python `bytes` object
+    fn to_bytes<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        self.__bytes__(py)
     }
 
     // <python-bytes-methods>
@@ -529,6 +531,24 @@ impl PyBytes {
             self.py_strip(Some(bin.as_ref()))
         } else {
             self.py_strip(None)
+        }
+    }
+
+    #[pyo3(signature = (bin=None))]
+    fn lstrip(&self, bin: Option<Self>) -> Self {
+        if let Some(bin) = bin {
+            self.py_lstrip(Some(bin.as_ref()))
+        } else {
+            self.py_lstrip(None)
+        }
+    }
+
+    #[pyo3(signature = (bin=None))]
+    fn rstrip(&self, bin: Option<Self>) -> Self {
+        if let Some(bin) = bin {
+            self.py_rstrip(Some(bin.as_ref()))
+        } else {
+            self.py_rstrip(None)
         }
     }
     // </python-bytes-methods>
