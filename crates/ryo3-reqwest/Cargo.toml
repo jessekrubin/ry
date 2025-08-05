@@ -22,13 +22,11 @@ pyo3-async-runtimes.workspace = true
 reqwest.workspace = true
 ryo3-bytes.workspace = true
 ryo3-http.workspace = true
-ryo3-json.workspace = true
 ryo3-macro-rules.workspace = true
 ryo3-serde.workspace = true
 ryo3-std.workspace = true
 ryo3-url.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 
