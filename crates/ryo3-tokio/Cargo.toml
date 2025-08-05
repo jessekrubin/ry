@@ -13,7 +13,6 @@ description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
 
 [dependencies]
 futures = "0.3.31"
-log = "0.4.27"
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
