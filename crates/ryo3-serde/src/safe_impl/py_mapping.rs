@@ -4,12 +4,14 @@ use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 use crate::errors::pyerr2sererr;
 use crate::{Depth, SerializePyAny};
 
+use crate::type_cache::PyTypeCache;
 use pyo3::{Bound, types::PyMapping};
 
 pub(crate) struct SerializePyMapping<'a, 'py> {
     mapping: &'a Bound<'py, PyMapping>,
     depth: Depth,
     default: Option<&'py Bound<'py, PyAny>>,
+    ob_type_lookup: &'py PyTypeCache,
 }
 
 impl<'a, 'py> SerializePyMapping<'a, 'py> {
@@ -17,11 +19,13 @@ impl<'a, 'py> SerializePyMapping<'a, 'py> {
         mapping: &'a Bound<'py, PyMapping>,
         default: Option<&'py Bound<'py, PyAny>>,
         depth: Depth,
+        ob_type_lookup: &'py PyTypeCache,
     ) -> Self {
         Self {
             mapping,
             depth,
             default,
+            ob_type_lookup,
         }
     }
 }
@@ -38,7 +42,12 @@ impl Serialize for SerializePyMapping<'_, '_> {
             for k in keys {
                 let k = crate::pytypes::mapping_key(&k)?;
                 let val = self.mapping.get_item(k).map_err(pyerr2sererr)?;
-                let v = SerializePyAny::new_with_depth(&val, self.default, self.depth + 1);
+                let v = SerializePyAny::new_with_depth(
+                    &val,
+                    self.default,
+                    self.depth + 1,
+                    self.ob_type_lookup,
+                );
                 m.serialize_entry(k, &v).map_err(pyerr2sererr)?;
             }
             m.end()
