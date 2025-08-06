@@ -17,7 +17,7 @@ pub(crate) struct SerializePySet<'a, 'py> {
     ob_type_lookup: &'py PyTypeCache,
 }
 
-impl<'a, 'py> ObjTypeRef<'py> for SerializePySet<'a, 'py> {
+impl<'py> ObjTypeRef<'py> for SerializePySet<'_, 'py> {
     fn type_ref(&self) -> &'py PyTypeCache {
         self.ob_type_lookup
     }

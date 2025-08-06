@@ -55,8 +55,8 @@ impl<'py> SerializePyAny<'py> {
     ) -> Self {
         Self {
             obj,
-            default,
             depth,
+            default,
             ob_type_lookup,
         }
     }
@@ -97,7 +97,7 @@ impl Serialize for SerializePyAny<'_> {
                 PyObType::Bool => SerializePyBool::new(self.obj).serialize(serializer),
                 PyObType::Int => SerializePyInt::new(self.obj).serialize(serializer),
                 PyObType::Float => SerializePyFloat::new(self.obj).serialize(serializer),
-                PyObType::String => SerializePyStr::new(&self.obj).serialize(serializer),
+                PyObType::String => SerializePyStr::new(self.obj).serialize(serializer),
                 PyObType::List => SerializePyList::new(self.obj, self.ob_type_lookup, self.default)
                     .serialize(serializer),
                 PyObType::Tuple => {

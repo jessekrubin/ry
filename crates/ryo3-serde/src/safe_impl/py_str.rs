@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use serde::ser::{Serialize, SerializeMap, Serializer};
+use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 use pyo3::Bound;

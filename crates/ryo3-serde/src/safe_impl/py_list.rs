@@ -1,14 +1,13 @@
 use pyo3::prelude::*;
-use pyo3::prelude::*;
 use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 
+use crate::SerializePyAny;
 use crate::constants::Depth;
 use crate::errors::pyerr2sererr;
 use crate::safe_impl::with_obj::ObjTypeRef;
 use crate::type_cache::PyTypeCache;
-use crate::SerializePyAny;
-use pyo3::types::PyList;
 use pyo3::Bound;
+use pyo3::types::PyList;
 
 pub(crate) struct SerializePyList<'a, 'py> {
     pub(crate) obj: &'a Bound<'py, PyAny>,
@@ -17,7 +16,7 @@ pub(crate) struct SerializePyList<'a, 'py> {
     ob_type_lookup: &'py PyTypeCache,
 }
 
-impl<'a, 'py> ObjTypeRef<'py> for SerializePyList<'a, 'py> {
+impl<'py> ObjTypeRef<'py> for SerializePyList<'_, 'py> {
     fn type_ref(&self) -> &'py PyTypeCache {
         self.ob_type_lookup
     }

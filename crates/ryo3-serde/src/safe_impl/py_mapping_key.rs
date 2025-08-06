@@ -1,8 +1,8 @@
 use pyo3::prelude::*;
-use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
+use serde::ser::{Error as SerError, Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::{Depth, serde_err};
+use crate::serde_err;
 
 use crate::any_repr::any_repr;
 use pyo3::Bound;

@@ -29,8 +29,8 @@ impl<'a, 'py> SerializePyDataclass<'a, 'py> {
             obj,
             default,
             fields,
-            depth,
             ob_type_lookup,
+            depth,
         }
     }
 }

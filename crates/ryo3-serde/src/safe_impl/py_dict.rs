@@ -18,7 +18,7 @@ pub(crate) struct SerializePyDict<'a, 'py> {
     ob_type_lookup: &'py PyTypeCache,
 }
 
-impl<'a, 'py> ObjTypeRef<'py> for SerializePyDict<'a, 'py> {
+impl<'py> ObjTypeRef<'py> for SerializePyDict<'_, 'py> {
     fn type_ref(&self) -> &'py PyTypeCache {
         self.ob_type_lookup
     }
@@ -46,9 +46,9 @@ impl<'a, 'py> SerializePyDict<'a, 'py> {
     ) -> Self {
         Self {
             obj,
-            ob_type_lookup,
             depth,
             default,
+            ob_type_lookup,
         }
     }
 }

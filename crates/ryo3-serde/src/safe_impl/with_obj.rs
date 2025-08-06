@@ -1,11 +1,11 @@
 use crate::SerializePyAny;
 use crate::type_cache::PyTypeCache;
 
-pub trait ObjTypeRef<'py> {
+pub(super) trait ObjTypeRef<'py> {
     fn type_ref(&self) -> &'py PyTypeCache;
 }
 
-pub trait SerializeWithObj<'a, 'py> {
+pub(super) trait SerializeWithObj<'a, 'py> {
     fn with_obj(&self, obj: &'a pyo3::Bound<'py, pyo3::PyAny>) -> SerializePyAny;
 }
 //
