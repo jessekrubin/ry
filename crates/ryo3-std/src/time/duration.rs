@@ -222,9 +222,9 @@ impl PyDuration {
         } else if let Ok(f) = other.extract::<f64>() {
             self.mul_f64(f)
         } else {
-            return Err(PyTypeError::new_err(
+            Err(PyTypeError::new_err(
                 "unsupported operand type(s); must be int | float",
-            ));
+            ))
         }
     }
 
