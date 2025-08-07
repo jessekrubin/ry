@@ -316,15 +316,11 @@ impl PyUlid {
                         .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
                     Ok(Self(ulid))
                 }
-                32 => {
-                    Self::from_hex(cs)
-                }
-                _ => {
-                    Err(PyValueError::new_err(format!(
-                        "Cannot parse ULID from string of length {}",
-                        cs.len()
-                    )))
-                }
+                32 => Self::from_hex(cs),
+                _ => Err(PyValueError::new_err(format!(
+                    "Cannot parse ULID from string of length {}",
+                    cs.len()
+                ))),
             }
         }
         // has to go through `isinstance` apparatus
