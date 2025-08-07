@@ -2,6 +2,9 @@
 
 ## v0.0.53 [unreleased]
 
+- `ryo3-serde`
+  - internal refactoring and cleanup
+
 ---
 
 ## v0.0.52 [2025-07-30]
