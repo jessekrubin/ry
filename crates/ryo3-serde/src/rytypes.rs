@@ -1,3 +1,18 @@
+//! Serializer(s) implementation(s) for ry-types
+//!
+//! As noted below this module was originally written by fugue-state-jesse,
+//! and I (non-fugue-state-jesse who is writing this) find the macro impossible
+//! to understand. Fugue-state-jesse doesn't use LLMs, as he has a wildly
+//! more advanced understanding of almost all things programming than I do.
+//!
+//! Summoning fugue-state-jesse is not something that can be done at will; if
+//! it were, I would do it all the time.
+//!
+//! TODO (fugue-state-jesse):
+//!     if/when you revisit this file, idk what is going on here, chad-gpt also
+//!     doesn't know, can you please refactor this to be saner?
+//!     --yourself
+//!
 #![cfg(feature = "ry")]
 use crate::errors::pyerr2sererr;
 
