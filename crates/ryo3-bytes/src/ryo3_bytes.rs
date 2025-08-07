@@ -30,7 +30,7 @@ use crate::python_bytes_methods::PythonBytesMethods;
 ///
 /// ### Buffer protocol export
 ///
-/// PyBytes implements the Python buffer protocol to enable Python to access the underlying `Bytes`
+/// `PyBytes` implements the Python buffer protocol to enable Python to access the underlying `Bytes`
 /// data view without copies. In Python, this `PyBytes` object can be passed to Python `bytes` or
 /// `memoryview` constructors, `numpy.frombuffer`, or any other function that supports buffer
 /// protocol input.
@@ -235,7 +235,7 @@ impl PyBytes {
     }
 
     /// This is taken from opendal:
-    /// https://github.com/apache/opendal/blob/d001321b0f9834bc1e2e7d463bcfdc3683e968c9/bindings/python/src/utils.rs#L51-L72
+    /// <https://github.com/apache/opendal/blob/d001321b0f9834bc1e2e7d463bcfdc3683e968c9/bindings/python/src/utils.rs#L51-L72>
     #[allow(unsafe_code)]
     unsafe fn __getbuffer__(
         slf: PyRef<Self>,
@@ -388,9 +388,9 @@ impl PyBytes {
     ///   errors
     ///     The error handling scheme to use for the handling of decoding errors.
     ///     The default is 'strict' meaning that decoding errors raise a
-    ///     UnicodeDecodeError. Other possible values are 'ignore' and 'replace'
-    ///     as well as any other name registered with codecs.register_error that
-    ///     can handle UnicodeDecodeErrors.
+    ///     `UnicodeDecodeError`. Other possible values are 'ignore' and 'replace'
+    ///     as well as any other name registered with `codecs.register_error` that
+    ///     can handle `UnicodeDecodeErrors`.
     ///
     /// ## python-signature
     /// ```python
@@ -410,7 +410,7 @@ impl PyBytes {
     ///
     ///   sep
     ///     An optional single character or byte to separate hex bytes.
-    ///   bytes_per_sep
+    ///   `bytes_per_sep`
     ///     How many bytes between separators.  Positive values count from the
     ///     right, negative values count from the left.
     ///
