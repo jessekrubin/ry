@@ -42,17 +42,17 @@ impl<'py> JsonSerializer<'py> {
     }
 
     fn check_default(&self) -> PyResult<()> {
-        if let Some(default) = self.default {
-            if !default.is_callable() {
-                let type_str = default
-                    .get_type()
-                    .name()
-                    .map(|name| name.to_string())
-                    .unwrap_or("unknown-type".to_string());
-                return Err(PyTypeError::new_err(format!(
-                    "'{type_str}' is not callable",
-                )));
-            }
+        if let Some(default) = self.default
+            && !default.is_callable()
+        {
+            let type_str = default
+                .get_type()
+                .name()
+                .map(|name| name.to_string())
+                .unwrap_or("unknown-type".to_string());
+            return Err(PyTypeError::new_err(format!(
+                "'{type_str}' is not callable",
+            )));
         }
         Ok(())
     }

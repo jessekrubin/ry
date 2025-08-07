@@ -198,12 +198,12 @@ impl RyTimeZone {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
 
-    /// Return `Offset` from TimeZone
+    /// Return `Offset` from `TimeZone`
     fn to_offset(&self, timestamp: &RyTimestamp) -> RyOffset {
         RyOffset::from(self.0.to_offset(timestamp.0))
     }
 
-    /// Return `Timestamp` from TimeZone given a `DateTime`
+    /// Return `Timestamp` from `TimeZone` given a `DateTime`
     fn to_timestamp(&self, datetime: &RyDateTime) -> Result<RyTimestamp, PyErr> {
         self.0
             .to_timestamp(datetime.0)
@@ -211,7 +211,7 @@ impl RyTimeZone {
             .map_err(map_py_value_err)
     }
 
-    /// Return `Zoned` from TimeZone given a `DateTime`
+    /// Return `Zoned` from `TimeZone` given a `DateTime`
     fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
         self.0
             .to_zoned(datetime.0)

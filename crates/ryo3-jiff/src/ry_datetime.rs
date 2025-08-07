@@ -490,7 +490,7 @@ impl RyDateTime {
         self.0.duration_until(dt.0).into()
     }
 
-    /// Returns the end of the day DateTime
+    /// Returns the end of the day `DateTime`
     fn end_of_day(&self) -> Self {
         Self::from(self.0.end_of_day())
     }

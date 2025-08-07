@@ -126,10 +126,11 @@ impl PyUrl {
             Ok(self.clone())
         } else {
             let mut relative_path = parts.join("/");
-            if let Some(last_part) = parts.last() {
-                if last_part.ends_with('/') && !relative_path.ends_with('/') {
-                    relative_path.push('/');
-                }
+            if let Some(last_part) = parts.last()
+                && last_part.ends_with('/')
+                && !relative_path.ends_with('/')
+            {
+                relative_path.push('/');
             }
             // jesus what was I doing here............. that I have this thing
             // chained from a block...

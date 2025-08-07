@@ -22,16 +22,16 @@ fn env_var_str_is_truthy(s: &str) -> bool {
 /// otherwise using 'RUST_LOG' if set.
 fn env_log_level() -> LevelFilter {
     // use "RYTRACE" if set to a truthy value
-    if let Ok(ry_trace) = std::env::var("RYTRACE") {
-        if env_var_str_is_truthy(&ry_trace) {
-            return LevelFilter::TRACE;
-        }
+    if let Ok(ry_trace) = std::env::var("RYTRACE")
+        && env_var_str_is_truthy(&ry_trace)
+    {
+        return LevelFilter::TRACE;
     }
 
-    if let Ok(ry_debug) = std::env::var("RYDEBUG") {
-        if env_var_str_is_truthy(&ry_debug) {
-            return LevelFilter::DEBUG;
-        }
+    if let Ok(ry_debug) = std::env::var("RYDEBUG")
+        && env_var_str_is_truthy(&ry_debug)
+    {
+        return LevelFilter::DEBUG;
     }
 
     for env_var in LOG_ENV_VARS.iter() {

@@ -29,7 +29,7 @@ pub(crate) enum PyObType {
     Tuple,
     Dict,
     Set,
-    Frozenset,
+    FrozenSet,
     // ------------------------------------------------------------------------
     // PY-DATETIME
     // ------------------------------------------------------------------------
@@ -88,7 +88,7 @@ pub(crate) enum PyObType {
     RyZoned,
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub(crate) struct PyTypeCache {
     pub none: usize,
@@ -253,7 +253,7 @@ impl PyTypeCache {
             x if x == self.tuple => Some(PyObType::Tuple),
             x if x == self.dict => Some(PyObType::Dict),
             x if x == self.set => Some(PyObType::Set),
-            x if x == self.frozenset => Some(PyObType::Frozenset),
+            x if x == self.frozenset => Some(PyObType::FrozenSet),
             // py-datetime
             x if x == self.datetime => Some(PyObType::DateTime),
             x if x == self.date => Some(PyObType::Date),

@@ -37,7 +37,7 @@ impl FromPyObject<'_> for QueryLike {
                 let item = item.extract::<(String, QueryValue)>()?;
                 vec.push(item);
             }
-            return Ok(Self(vec));
+            Ok(Self(vec))
         } else if let Ok(pairs) = ob.downcast::<PyList>() {
             let mut vec = Vec::new();
             for item in pairs.iter() {
@@ -47,7 +47,7 @@ impl FromPyObject<'_> for QueryLike {
                 let item = item.extract::<(String, QueryValue)>()?;
                 vec.push(item);
             }
-            return Ok(Self(vec));
+            Ok(Self(vec))
         } else {
             Err(PyValueError::new_err("Invalid query"))
         }
