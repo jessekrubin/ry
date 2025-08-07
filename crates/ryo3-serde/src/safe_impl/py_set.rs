@@ -1,39 +1,28 @@
 use pyo3::prelude::*;
-use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 
 use crate::errors::pyerr2sererr;
 
 use crate::SerializePyAny;
 use crate::constants::Depth;
-use crate::safe_impl::with_obj::ObjTypeRef;
-use crate::type_cache::PyTypeCache;
+use crate::ser::PySerializeContext;
 use pyo3::Bound;
 use pyo3::types::{PyFrozenSet, PyIterator, PySet};
 
 pub(crate) struct SerializePySet<'a, 'py> {
+    pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) obj: &'a Bound<'py, PyAny>,
     pub(crate) depth: Depth,
-    default: Option<&'py Bound<'py, PyAny>>,
-    ob_type_lookup: &'py PyTypeCache,
-}
-
-impl<'py> ObjTypeRef<'py> for SerializePySet<'_, 'py> {
-    fn type_ref(&self) -> &'py PyTypeCache {
-        self.ob_type_lookup
-    }
+    // default: Option<&'py Bound<'py, PyAny>>,
+    // ob_type_lookup: &'py PyTypeCache,
 }
 
 impl<'a, 'py> SerializePySet<'a, 'py> {
-    pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
-        ob_type_lookup: &'py PyTypeCache,
-        default: Option<&'py Bound<'py, PyAny>>,
-    ) -> Self {
+    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
         Self {
             obj,
-            ob_type_lookup,
+            ctx,
             depth: Depth::default(),
-            default,
         }
     }
 }
@@ -52,12 +41,7 @@ impl Serialize for SerializePySet<'_, '_> {
         let mut seq = serializer.serialize_seq(Some(len))?;
         for element in py_iter {
             let pyany = element.map_err(pyerr2sererr)?;
-            let ser_pyany = SerializePyAny::new_with_depth(
-                &pyany,
-                self.default,
-                self.depth + 1,
-                self.ob_type_lookup,
-            );
+            let ser_pyany = SerializePyAny::new_with_depth(&pyany, self.ctx, self.depth + 1);
             seq.serialize_element(&ser_pyany).map_err(pyerr2sererr)?;
         }
         seq.end()
@@ -68,23 +52,17 @@ impl Serialize for SerializePySet<'_, '_> {
 // frozenset
 // ----------------------------------------------------------------------------
 pub(crate) struct SerializePyFrozenSet<'a, 'py> {
+    pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) obj: &'a Bound<'py, PyAny>,
     pub(crate) depth: Depth,
-    default: Option<&'py Bound<'py, PyAny>>,
-    ob_type_lookup: &'py PyTypeCache,
 }
 
 impl<'a, 'py> SerializePyFrozenSet<'a, 'py> {
-    pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
-        ob_type_lookup: &'py PyTypeCache,
-        default: Option<&'py Bound<'py, PyAny>>,
-    ) -> Self {
+    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
         Self {
             obj,
-            ob_type_lookup,
+            ctx,
             depth: Depth::default(),
-            default,
         }
     }
 }
@@ -104,12 +82,7 @@ impl Serialize for SerializePyFrozenSet<'_, '_> {
         let mut seq = serializer.serialize_seq(Some(len))?;
         for element in py_iter {
             let pyany = element.map_err(pyerr2sererr)?;
-            let ser_pyany = SerializePyAny::new_with_depth(
-                &pyany,
-                self.default,
-                self.depth + 1,
-                self.ob_type_lookup,
-            );
+            let ser_pyany = SerializePyAny::new_with_depth(&pyany, self.ctx, self.depth + 1);
             seq.serialize_element(&ser_pyany).map_err(pyerr2sererr)?;
         }
         seq.end()

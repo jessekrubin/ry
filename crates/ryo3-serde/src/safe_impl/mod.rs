@@ -1,4 +1,5 @@
 mod py_bool;
+mod py_byteslike;
 mod py_dataclass;
 mod py_datetime;
 mod py_dict;
@@ -26,6 +27,7 @@ pub(crate) use py_str::SerializePyStr;
 
 pub(crate) use py_uuid::SerializePyUuid;
 
+pub(crate) use py_byteslike::SerializePyBytesLike;
 pub(crate) use py_datetime::{
     SerializePyDate, SerializePyDateTime, SerializePyTime, SerializePyTimeDelta,
 };

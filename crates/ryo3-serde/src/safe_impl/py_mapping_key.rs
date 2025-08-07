@@ -10,12 +10,11 @@ use pyo3::types::PyString;
 
 pub(crate) struct SerializePyMappingKey<'a, 'py> {
     obj: &'a Bound<'py, PyAny>,
-    default: Option<&'py Bound<'py, PyAny>>,
 }
 
 impl<'a, 'py> SerializePyMappingKey<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
-        Self { obj, default }
+    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+        Self { obj }
     }
 }
 

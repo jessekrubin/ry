@@ -6,30 +6,29 @@ use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 use crate::errors::pyerr2sererr;
 use crate::{Depth, MAX_DEPTH, SerializePyAny, serde_err};
 
-use crate::type_cache::PyTypeCache;
+use crate::ser::PySerializeContext;
 use pyo3::{Bound, types::PyDict};
 
 pub(crate) struct SerializePyDataclass<'a, 'py> {
+    ctx: PySerializeContext<'py>,
     obj: &'a Bound<'py, PyAny>,
-    default: Option<&'py Bound<'py, PyAny>>,
     fields: Bound<'py, PyDict>,
-    ob_type_lookup: &'py PyTypeCache,
+    // ob_type_lookup: &'py PyTypeCache,
     depth: Depth,
 }
 
 impl<'a, 'py> SerializePyDataclass<'a, 'py> {
     pub(crate) fn new(
         obj: &'a Bound<'py, PyAny>,
-        default: Option<&'py Bound<'py, PyAny>>,
+        ctx: PySerializeContext<'py>,
         depth: Depth,
         fields: Bound<'py, PyDict>,
-        ob_type_lookup: &'py PyTypeCache,
     ) -> Self {
         Self {
-            obj,
-            default,
+            ctx,
             fields,
-            ob_type_lookup,
+            obj,
+            // ob_type_lookup,
             depth,
         }
     }
@@ -54,13 +53,8 @@ impl Serialize for SerializePyDataclass<'_, '_> {
         if let Ok(dunder_dict) = self.obj.getattr("__dict__") {
             if let Ok(dict) = dunder_dict.downcast_into::<PyDict>() {
                 // serialize the __dict__ as a dict
-                SerializePyAny::new_with_depth(
-                    &dict,
-                    self.default,
-                    self.depth + 1,
-                    self.ob_type_lookup,
-                )
-                .serialize(serializer)
+                SerializePyAny::new_with_depth(&dict, self.ctx, self.depth + 1)
+                    .serialize(serializer)
             } else {
                 serde_err!("__dict__ is not a dict")
             }
@@ -79,12 +73,8 @@ impl Serialize for SerializePyDataclass<'_, '_> {
                         .downcast_into::<PyString>()
                         .map_err(pyerr2sererr)?;
                     let value = self.obj.getattr(&field_name_py_str).map_err(pyerr2sererr)?;
-                    let field_ser = SerializePyAny::new_with_depth(
-                        &value,
-                        self.default,
-                        self.depth + 1,
-                        self.ob_type_lookup,
-                    );
+                    let field_ser =
+                        SerializePyAny::new_with_depth(&value, self.ctx, self.depth + 1);
 
                     // actual string
                     let s = field_name_py_str
