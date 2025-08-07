@@ -81,14 +81,14 @@ pub fn zoned(
     }
 }
 
-/// Return ZondeDateTime for the current time in the system's local timezone.
+/// Return `ZondeDateTime` for the current time in the system's local timezone.
 #[pyfunction]
 #[must_use]
 pub fn now() -> RyZoned {
     RyZoned(Zoned::now())
 }
 
-/// Return ZonedDateTime for the current time in UTC.
+/// Return `ZonedDateTime` for the current time in UTC.
 #[pyfunction]
 pub fn utcnow() -> PyResult<RyZoned> {
     Zoned::now()
