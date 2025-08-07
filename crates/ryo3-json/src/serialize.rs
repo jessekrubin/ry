@@ -42,8 +42,8 @@ impl<'py> JsonSerializer<'py> {
     }
 
     fn check_default(&self) -> PyResult<()> {
-        if let Some(default) = self.default {
-            if !default.is_callable() {
+        if let Some(default) = self.default
+            && !default.is_callable() {
                 let type_str = default
                     .get_type()
                     .name()
@@ -53,7 +53,6 @@ impl<'py> JsonSerializer<'py> {
                     "'{type_str}' is not callable",
                 )));
             }
-        }
         Ok(())
     }
 
