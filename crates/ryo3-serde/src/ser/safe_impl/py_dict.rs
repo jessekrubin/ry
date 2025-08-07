@@ -2,22 +2,23 @@ use pyo3::prelude::*;
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::{Depth, SerializePyAny};
 
-use crate::safe_impl::py_mapping_key::SerializePyMappingKey;
+use crate::SerializePyAny;
+use crate::constants::Depth;
 use crate::ser::PySerializeContext;
+use crate::ser::safe_impl::py_mapping_key::SerializePyMappingKey;
+use pyo3::Bound;
 use pyo3::types::PyDict;
-use pyo3::{Bound, types::PyMapping};
 
-pub(crate) struct SerializePyMapping<'a, 'py> {
+pub(crate) struct SerializePyDict<'a, 'py> {
     ctx: PySerializeContext<'py>,
-    obj: &'a Bound<'py, PyMapping>,
-    depth: Depth,
+    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> SerializePyMapping<'a, 'py> {
+impl<'a, 'py> SerializePyDict<'a, 'py> {
     pub(crate) fn new_with_depth(
-        obj: &'a Bound<'py, PyMapping>,
+        obj: &'a Bound<'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
@@ -25,7 +26,7 @@ impl<'a, 'py> SerializePyMapping<'a, 'py> {
     }
 }
 
-impl Serialize for SerializePyMapping<'_, '_> {
+impl Serialize for SerializePyDict<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
