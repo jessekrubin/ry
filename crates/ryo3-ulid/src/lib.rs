@@ -129,14 +129,14 @@ impl PyUlid {
             // visitor.visit_str(&s.to_cow()?)
             let cs = s.to_str()?;
             let this_str = self.0.to_string();
-            return match op {
+            match op {
                 pyo3::basic::CompareOp::Eq => Ok(this_str.as_str() == cs),
                 pyo3::basic::CompareOp::Ne => Ok(this_str.as_str() != cs),
                 pyo3::basic::CompareOp::Lt => Ok(this_str.as_str() < cs),
                 pyo3::basic::CompareOp::Le => Ok(this_str.as_str() <= cs),
                 pyo3::basic::CompareOp::Gt => Ok(this_str.as_str() > cs),
                 pyo3::basic::CompareOp::Ge => Ok(this_str.as_str() >= cs),
-            };
+            }
         } else if let Ok(rs_ulid) = other.downcast::<Self>() {
             let other = rs_ulid.borrow().0;
             match op {
@@ -258,9 +258,9 @@ impl PyUlid {
             let f = pyfloat.extract::<f64>()?;
             Self::from_timestamp_seconds(f)
         } else {
-            return Err(PyTypeError::new_err(
+            Err(PyTypeError::new_err(
                 "Expected a float (seconds) or int (ms) for timestamp",
-            ));
+            ))
         }
     }
 
@@ -309,41 +309,41 @@ impl PyUlid {
                     let uu = Uuid::parse_str(cs)
                         .map_err(|e| PyValueError::new_err(format!("Invalid UUID string: {e}")))?;
                     let ul = Ulid::from_bytes(*uu.as_bytes());
-                    return Ok(Self(ul));
+                    Ok(Self(ul))
                 }
                 26 => {
                     let ulid = Ulid::from_string(cs)
                         .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
-                    return Ok(Self(ulid));
+                    Ok(Self(ulid))
                 }
                 32 => {
-                    return Self::from_hex(cs);
+                    Self::from_hex(cs)
                 }
                 _ => {
-                    return Err(PyValueError::new_err(format!(
+                    Err(PyValueError::new_err(format!(
                         "Cannot parse ULID from string of length {}",
                         cs.len()
-                    )));
+                    )))
                 }
             }
         }
         // has to go through `isinstance` apparatus
         else if other.is_instance_of::<pyo3::types::PyFloat>() {
             let f = other.extract::<f64>()?;
-            return Self::from_timestamp_seconds(f);
+            Self::from_timestamp_seconds(f)
         } else if let Ok(rs_ulid) = other.downcast::<Self>() {
             let inner = rs_ulid.borrow().0;
-            return Ok(Self(inner));
+            Ok(Self(inner))
         } else if other.is_instance_of::<PyBytes>() {
             let pybytes = other.downcast::<PyBytes>()?;
             let b = pybytes.extract::<[u8; 16]>()?;
-            return Ok(Self::from_bytes(b));
+            Ok(Self::from_bytes(b))
         } else if let Ok(py_uuid) = other.downcast::<PyUuid>() {
             return Ok(Self::from_uuid(UuidLike(py_uuid.borrow().0)));
         } else if let Ok(c_uuid) = other.extract::<CPythonUuid>() {
-            return Ok(Self::from_uuid(UuidLike(c_uuid.into())));
+            Ok(Self::from_uuid(UuidLike(c_uuid.into())))
         } else if let Ok(dt) = other.extract::<SystemTime>() {
-            return Ok(Self::from_datetime(dt));
+            Ok(Self::from_datetime(dt))
         } else {
             let other_type = other.get_type();
             let other_type_name = other_type
