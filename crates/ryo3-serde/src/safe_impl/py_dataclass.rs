@@ -12,9 +12,8 @@ use pyo3::{Bound, types::PyDict};
 pub(crate) struct SerializePyDataclass<'a, 'py> {
     ctx: PySerializeContext<'py>,
     obj: &'a Bound<'py, PyAny>,
-    fields: Bound<'py, PyDict>,
-    // ob_type_lookup: &'py PyTypeCache,
     depth: Depth,
+    fields: Bound<'py, PyDict>,
 }
 
 impl<'a, 'py> SerializePyDataclass<'a, 'py> {
@@ -26,10 +25,9 @@ impl<'a, 'py> SerializePyDataclass<'a, 'py> {
     ) -> Self {
         Self {
             ctx,
-            fields,
             obj,
-            // ob_type_lookup,
             depth,
+            fields,
         }
     }
 }

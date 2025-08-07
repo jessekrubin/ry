@@ -6,9 +6,7 @@ use crate::errors::pyerr2sererr;
 use crate::SerializePyAny;
 use crate::constants::Depth;
 use crate::safe_impl::py_mapping_key::SerializePyMappingKey;
-use crate::safe_impl::with_obj::ObjTypeRef;
 use crate::ser::PySerializeContext;
-use crate::type_cache::PyTypeCache;
 use pyo3::Bound;
 use pyo3::types::PyDict;
 
@@ -18,27 +16,13 @@ pub(crate) struct SerializePyDict<'a, 'py> {
     pub(crate) depth: Depth,
 }
 
-// impl<'py> ObjTypeRef<'py> for SerializePyDict<'_, 'py> {
-//     fn type_ref(&self) -> &'py PyTypeCache {
-//         self
-//     }
-// }
-
 impl<'a, 'py> SerializePyDict<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
-        Self {
-            obj,
-            ctx,
-            depth: Depth::default(),
-        }
-    }
-
     pub(crate) fn new_with_depth(
         obj: &'a Bound<'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
-        Self { obj, ctx, depth }
+        Self { ctx, obj, depth }
     }
 }
 

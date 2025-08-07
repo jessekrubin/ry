@@ -88,7 +88,7 @@ pub(crate) enum PyObType {
     RyZoned,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub(crate) struct PyTypeCache {
     pub none: usize,

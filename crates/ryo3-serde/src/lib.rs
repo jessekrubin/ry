@@ -6,6 +6,8 @@ mod errors;
 mod macro_rules;
 mod py_serialize;
 mod rytypes;
+
+#[expect(clippy::inline_always)]
 mod safe_impl;
 pub mod ser;
 mod type_cache;

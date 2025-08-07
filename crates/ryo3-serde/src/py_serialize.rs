@@ -18,14 +18,13 @@ use crate::safe_impl::{
 use crate::ser::PySerializeContext;
 use crate::type_cache::{PyObType, PyTypeCache};
 use crate::{Depth, MAX_DEPTH};
-use pyo3::Bound;
 use pyo3::types::{PyAnyMethods, PyDict, PyMapping, PySequence};
+use pyo3::{Bound, intern};
 
 pub struct SerializePyAny<'py> {
     pub(crate) obj: &'py Bound<'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
-
 }
 
 macro_rules! serde_err {
@@ -44,7 +43,7 @@ impl<'py> SerializePyAny<'py> {
     }
 
     #[must_use]
-    pub fn new_with_depth(
+    pub(crate) fn new_with_depth(
         obj: &'py Bound<'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
@@ -65,7 +64,7 @@ fn dataclass_fields<'a, 'py>(obj: &'a Bound<'py, PyAny>) -> Option<Bound<'py, Py
 where
     'py: 'a, // keep lifetimes compatible
 {
-    obj.getattr("__dataclass_fields__") // PyResult<Bound<PyAny>>
+    obj.getattr(intern!(obj.py(), "__dataclass_fields__")) // PyResult<Bound<PyAny>>
         .ok()? // Option<Bound<PyAny>>
         .downcast_into::<PyDict>() // PyResult<Bound<PyDict>>
         .ok() // Option<Bound<PyDict>>

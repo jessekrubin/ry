@@ -9,17 +9,17 @@ use serde::ser::{Serialize, Serializer};
 
 pub(crate) struct SerializePySequence<'a, 'py> {
     ctx: PySerializeContext<'py>,
-    seq: &'a Bound<'py, PySequence>,
+    obj: &'a Bound<'py, PySequence>,
     depth: Depth,
 }
 
 impl<'a, 'py> SerializePySequence<'a, 'py> {
     pub(crate) fn new_with_depth(
-        seq: &'a Bound<'py, PySequence>,
+        obj: &'a Bound<'py, PySequence>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
-        Self { seq, ctx, depth }
+        Self { ctx, obj, depth }
     }
 }
 
@@ -28,10 +28,10 @@ impl Serialize for SerializePySequence<'_, '_> {
     where
         S: Serializer,
     {
-        let len = self.seq.len().map_err(pyerr2sererr)?;
+        let len = self.obj.len().map_err(pyerr2sererr)?;
         let mut seq = serializer.serialize_seq(Some(len))?;
         for i in 0..len {
-            let item = self.seq.get_item(i).map_err(pyerr2sererr)?;
+            let item = self.obj.get_item(i).map_err(pyerr2sererr)?;
             let item_ser = SerializePyAny::new_with_depth(&item, self.ctx, self.depth + 1);
             seq.serialize_element(&item_ser)?;
         }

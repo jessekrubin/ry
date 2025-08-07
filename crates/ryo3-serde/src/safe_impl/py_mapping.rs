@@ -21,7 +21,7 @@ impl<'a, 'py> SerializePyMapping<'a, 'py> {
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
-        Self { obj, ctx, depth }
+        Self { ctx, obj, depth }
     }
 }
 
@@ -42,26 +42,5 @@ impl Serialize for SerializePyMapping<'_, '_> {
             m.serialize_entry(&sk, &sv)?;
         }
         m.end()
-        // let len = self.mapping.len().ok();
-        // if let Some(len) = len {
-        //     let mut m = serializer.serialize_map(Some(len))?;
-        //     let keys = self.mapping.keys().map_err(pyerr2sererr)?;
-        //     for k in keys {
-        //         let sk = SerializePyMappingKey::new(&k, self.default);
-        //         let val = self.mapping.get_item(k).map_err(pyerr2sererr)?;
-        //         let v = SerializePyAny::new_with_depth(
-        //             &val,
-        //             self.default,
-        //             self.depth + 1,
-        //             self.ob_type_lookup,
-        //         );
-        //         m.serialize_entry(&sk, &v).map_err(pyerr2sererr)?;
-        //     }
-        //     m.end()
-        // } else {
-        //     Err(S::Error::custom(
-        //         "SerializePyMapping: Length of mapping is not known.",
-        //     ))
-        // }
     }
 }

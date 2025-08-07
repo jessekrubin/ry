@@ -4,9 +4,7 @@ use serde::ser::{Serialize, SerializeSeq, Serializer};
 use crate::SerializePyAny;
 use crate::constants::Depth;
 use crate::errors::pyerr2sererr;
-use crate::safe_impl::with_obj::ObjTypeRef;
 use crate::ser::PySerializeContext;
-use crate::type_cache::PyTypeCache;
 use pyo3::Bound;
 use pyo3::types::PyList;
 
@@ -14,14 +12,6 @@ pub(crate) struct SerializePyList<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) obj: &'a Bound<'py, PyAny>,
     pub(crate) depth: Depth,
-    // default: Option<&'py Bound<'py, PyAny>>,
-    // ob_type_lookup: &'py PyTypeCache,
-}
-
-impl<'py> ObjTypeRef<'py> for SerializePyList<'_, 'py> {
-    fn type_ref(&self) -> &'py PyTypeCache {
-        self.ctx.typeref
-    }
 }
 
 impl<'a, 'py> SerializePyList<'a, 'py> {
