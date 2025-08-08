@@ -16,7 +16,6 @@ use crate::ser::safe_impl::{
     SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
     SerializePyStr, SerializePyTime, SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
 };
-use crate::ser::traits::PySerializeUnsafe;
 use crate::type_cache::{PyObType, PyTypeCache};
 use crate::{Depth, MAX_DEPTH};
 use pyo3::types::{PyAnyMethods, PyDict, PyMapping, PySequence};
@@ -106,130 +105,49 @@ impl Serialize for SerializePyAny<'_> {
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------
-            // __UUID__
-            #[cfg(feature = "ryo3-uuid")]
-            PyObType::RyUuid => rytypes::ry_uuid(self, serializer),
-            // __ULID__
-            #[cfg(feature = "ryo3-ulid")]
-            PyObType::RyUlid => rytypes::ry_ulid(self, serializer), // ulid is treated as a uuid for now
-            // __URL__
-            #[cfg(feature = "ryo3-url")]
-            PyObType::RyUrl => rytypes::ry_url(self, serializer),
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
-            PyObType::RyHeaders => rytypes::ry_headers(self, serializer),
+            PyObType::RyHeaders => {
+                rytypes::PyHeadersSerializer::new(self.obj).serialize(serializer)
+            }
             #[cfg(feature = "ryo3-http")]
-            PyObType::RyHttpStatus => rytypes::ry_http_status(self, serializer),
+            PyObType::RyHttpStatus => {
+                rytypes::PyHttpStatusSerializer::new(self.obj).serialize(serializer)
+            }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyDate => rytypes::ry_date(self, serializer),
+            PyObType::RyDate => rytypes::RyDateSerializer::new(self.obj).serialize(serializer),
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyDateTime => rytypes::ry_datetime(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RySignedDuration => rytypes::ry_signed_duration(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTime => rytypes::ry_time(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTimeSpan => rytypes::ry_span(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTimestamp => rytypes::ry_timestamp(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTimeZone => rytypes::ry_timezone(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyZoned => rytypes::ry_zoned(self, serializer),
-            // ------------------------------------------------------------
-            // UNKNOWN
-            // ------------------------------------------------------------
-            PyObType::Unknown => {
-                // if the object is a PyAny, we can try to serialize it as a dataclass or mapping
-                if let Some(fields) = dataclass_fields(self.obj) {
-                    let dc_serializer =
-                        SerializePyDataclass::new(self.obj, self.ctx, self.depth + 1, fields);
-                    dc_serializer.serialize(serializer)
-                } else if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
-                    SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth + 1)
-                        .serialize(serializer)
-                } else if let Ok(py_seq) = self.obj.downcast::<PySequence>() {
-                    SerializePySequence::new_with_depth(py_seq, self.ctx, self.depth + 1)
-                        .serialize(serializer)
-                } else if let Some(default) = self.ctx.default {
-                    // call the default transformer fn and attempt to then serialize the result
-                    let r = default.call1((&self.obj,)).map_err(pyerr2sererr)?;
-                    self.with_obj(&r).serialize(serializer)
-                } else {
-                    serde_err!("{} is not json-serializable", any_repr(self.obj))
-                }
+            PyObType::RyDateTime => {
+                rytypes::RyDateTimeSerializer::new(self.obj).serialize(serializer)
             }
-        }
-    }
-}
-
-impl PySerializeUnsafe for SerializePyAny<'_> {
-    fn serialize_unsafe<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        if self.depth == MAX_DEPTH {
-            return Err(SerError::custom("recursion"));
-        }
-
-        let ob_type = self.ctx.typeref.obtype(self.obj);
-        match ob_type {
-            PyObType::None | PyObType::Ellipsis => serializer.serialize_none(),
-            PyObType::Bool => SerializePyBool::new(self.obj).serialize_unsafe(serializer),
-            PyObType::Int => SerializePyInt::new(self.obj).serialize(serializer),
-            PyObType::Float => SerializePyFloat::new(self.obj).serialize(serializer),
-            PyObType::String => SerializePyStr::new(self.obj).serialize(serializer),
-            PyObType::List => SerializePyList::new(self.obj, self.ctx).serialize(serializer),
-            PyObType::Tuple => SerializePyTuple::new(self.obj, self.ctx).serialize(serializer),
-            PyObType::Dict => SerializePyDict::new_with_depth(self.obj, self.ctx, self.depth)
-                .serialize(serializer),
-            PyObType::Set => SerializePySet::new(self.obj, self.ctx).serialize(serializer),
-            PyObType::FrozenSet => {
-                SerializePyFrozenSet::new(self.obj, self.ctx).serialize(serializer)
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RySignedDuration => {
+                rytypes::RySignedDurationSerializer::new(self.obj).serialize(serializer)
             }
-            PyObType::DateTime => SerializePyDateTime::new(self.obj).serialize(serializer),
-            PyObType::Date => SerializePyDate::new(self.obj).serialize(serializer),
-            PyObType::Time => SerializePyTime::new(self.obj).serialize(serializer),
-            PyObType::Timedelta => SerializePyTimeDelta::new(self.obj).serialize(serializer),
-            PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
-                SerializePyBytesLike::new(self.obj).serialize(serializer)
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTime => rytypes::RyTimeSerializer::new(self.obj).serialize(serializer),
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTimeSpan => rytypes::RySpanSerializer::new(self.obj).serialize(serializer),
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTimestamp => {
+                rytypes::RyTimestampSerializer::new(self.obj).serialize(serializer)
             }
-            PyObType::PyUuid => SerializePyUuid::new(self.obj).serialize(serializer),
-            // ------------------------------------------------------------
-            // RY-TYPES
-            // ------------------------------------------------------------
-            // __UUID__
-            #[cfg(feature = "ryo3-uuid")]
-            PyObType::RyUuid => rytypes::ry_uuid(self, serializer),
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTimeZone => {
+                rytypes::RyTimeZoneSerializer::new(self.obj).serialize(serializer)
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyZoned => rytypes::RyZonedSerializer::new(self.obj).serialize(serializer),
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
-            PyObType::RyUlid => rytypes::ry_ulid(self, serializer), // ulid is treated as a uuid for now
+            PyObType::RyUlid => rytypes::PyUlidSerializer::new(self.obj).serialize(serializer),
             // __URL__
             #[cfg(feature = "ryo3-url")]
-            PyObType::RyUrl => rytypes::ry_url(self, serializer),
-            // __HTTP__
-            #[cfg(feature = "ryo3-http")]
-            PyObType::RyHeaders => rytypes::ry_headers(self, serializer),
-            #[cfg(feature = "ryo3-http")]
-            PyObType::RyHttpStatus => rytypes::ry_http_status(self, serializer),
-            // __JIFF__
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyDate => rytypes::ry_date(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyDateTime => rytypes::ry_datetime(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RySignedDuration => rytypes::ry_signed_duration(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTime => rytypes::ry_time(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTimeSpan => rytypes::ry_span(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTimestamp => rytypes::ry_timestamp(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTimeZone => rytypes::ry_timezone(self, serializer),
-            #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyZoned => rytypes::ry_zoned(self, serializer),
+            PyObType::RyUrl => rytypes::PyUrlSerializer::new(self.obj).serialize(serializer),
+            // __UUID__
+            #[cfg(feature = "ryo3-uuid")]
+            PyObType::RyUuid => rytypes::PyUuidSerializer::new(self.obj).serialize(serializer),
             // ------------------------------------------------------------
             // UNKNOWN
             // ------------------------------------------------------------
