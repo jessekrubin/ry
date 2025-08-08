@@ -43,7 +43,7 @@ macro_rules! ry_type_serializers {
                     .obj
                     .downcast::<$ty>()
                     .map_err(pyerr2sererr)?;
-                ob.borrow().serialize(serializer)
+                ob.get().serialize(serializer)
             }
         )+
     }

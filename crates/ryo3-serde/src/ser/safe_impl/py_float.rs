@@ -1,8 +1,10 @@
 use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
+use std::mem::offset_of;
 
 use crate::errors::pyerr2sererr;
 
+use crate::ser::traits::PySerializeUnsafe;
 use pyo3::Bound;
 
 pub(crate) struct SerializePyFloat<'a, 'py> {
@@ -22,5 +24,14 @@ impl Serialize for SerializePyFloat<'_, '_> {
     {
         let v: f64 = self.obj.extract().map_err(pyerr2sererr)?;
         serializer.serialize_f64(v)
+    }
+}
+
+impl PySerializeUnsafe for SerializePyFloat<'_, '_> {
+    fn serialize_unsafe<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        unsafe {}
     }
 }

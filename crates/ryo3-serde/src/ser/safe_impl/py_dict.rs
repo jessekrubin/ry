@@ -7,6 +7,7 @@ use crate::SerializePyAny;
 use crate::constants::Depth;
 use crate::ser::PySerializeContext;
 use crate::ser::safe_impl::py_mapping_key::SerializePyMappingKey;
+use crate::ser::traits::PySerializeUnsafe;
 use pyo3::Bound;
 use pyo3::types::PyDict;
 
