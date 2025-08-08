@@ -12,10 +12,10 @@ use tokio::sync::Mutex;
 type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 
 #[pyclass(name = "ReadDirAsync", module = "ry.ryo3", frozen)]
-pub struct RyReadDirAsync {
+pub struct PyReadDirAsync {
     stream: AsyncResponseStreamInner,
 }
-impl From<ReadDir> for RyReadDirAsync {
+impl From<ReadDir> for PyReadDirAsync {
     fn from(readdir: ReadDir) -> Self {
         Self {
             stream: Arc::new(Mutex::new(Box::pin(readdir))),
@@ -24,7 +24,7 @@ impl From<ReadDir> for RyReadDirAsync {
 }
 
 #[pymethods]
-impl RyReadDirAsync {
+impl PyReadDirAsync {
     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
         this
     }

@@ -30,6 +30,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // root level registration
     m.add_function(wrap_pyfunction!(orjson::orjson_default, m)?)?;
     m.add_function(wrap_pyfunction!(serialize::stringify, m)?)?;
+    #[expect(clippy::unsafe_removed_from_name)]
+    m.add_function(wrap_pyfunction!(serialize::stringify_unsafe, m)?)?;
     // m.add_wrapped(wrap_pymodule!(orjson::oj))?;
     Ok(())
 }
