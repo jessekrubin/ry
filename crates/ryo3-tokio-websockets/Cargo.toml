@@ -17,7 +17,7 @@ pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
 ryo3-std.workspace = true
 tokio.workspace = true
-tokio-websockets = { version = "0.12.0", features = ["client", "rand"] }
+tokio-websockets = { version = "0.12.0", features = ["client", "rand", "ring"] }
 tracing.workspace = true
 
 [lints]

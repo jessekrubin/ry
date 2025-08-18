@@ -2449,6 +2449,7 @@ dependencies = [
  "http",
  "httparse",
  "rand",
+ "ring",
  "simdutf8",
  "tokio",
  "tokio-util",
