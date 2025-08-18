@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-08-18T22:12:06.194043058+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-08-18T22:56:18.533500145+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -346,8 +346,8 @@ am still working out the kinks of using <code>uv</code> with maturin</li>
 </ul>
 <h2 id="style-guide"><a class="header" href="#style-guide">style guide</a></h2>
 <ul>
-<li><strong>NO UNWRAPPING</strong></li>
-<li><strong>NO PANICS</strong></li>
+<li><strong>NO UNWRAPPING</strong> – use <code>expect</code> over <code>unwrap</code></li>
+<li><strong>NO PANICS</strong> – don’t panic!</li>
 <li><strong>NO <code>blazingly-fast</code></strong> – <code>ry</code> is fast and does not need an adverb</li>
 <li><strong>USE CLIPPY</strong> <code>just clippy</code> or <code>just ci</code></li>
 <li><strong>USE RUSTFMT AND RUFF</strong> <code>just fmt</code></li>
@@ -374,6 +374,7 @@ is the name of the library they</li>
 <li>copy the template library <code>ryo3-quick-maths</code> library to your new library name</li>
 <li>refer to the above style guide for naming conventions</li>
 </ul>
+<hr />
 <h2 id="tools"><a class="header" href="#tools">tools</a></h2>
 <h3 id="python"><a class="header" href="#python">python</a></h3>
 <ul>
@@ -395,7 +396,7 @@ is the name of the library they</li>
 of tasks)</li>
 </ul>
 <p>tasks as of 2024-12-03:</p>
-<pre><code class="language-aiignore">Available recipes:
+<pre><code class="language-txt">Available recipes:
     dev            # dev run build + tests
     develop        # maturin develop
     cargo-test     # cargo test
@@ -456,14 +457,21 @@ the <code>ry</code> package is still very much in beta, and I (jesse) am not goi
 request a size increase while the project remains pre-<code>0.1.0</code>.</p>
 <p><code>ry</code> builds are performed with github cicd, and published builds for versions
 <code>0.44.0</code> are uploaded to github
-<a href="https://github.com/jessekrubin/ry/releases">releases</a>, <strong>but</strong> publishing releases
-was not previously a part of the cicd workflow.</p>
-<p>The script for downloading wheels is located at <a href="https://github.com/jessekrubin/ry-dist-archives/blob/main/scripts/dl_versions.py">ry-dist-archives/scripts/dl_versions.py</a>.
-It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and dumping, and async file I/O
-tools.</p>
+<a href="https://github.com/jessekrubin/ry/releases">releases</a>, <strong>but</strong> publishing
+releases was not previously a part of the cicd workflow.</p>
+<p>The script for downloading wheels is located at
+<a href="https://github.com/jessekrubin/ry-dist-archives/blob/main/scripts/dl_versions.py">ry-dist-archives/scripts/dl_versions.py</a>.
+It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
+dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0053-unreleased"><a class="header" href="#v0053-unreleased">v0.0.53 [unreleased]</a></h2>
 <ul>
+<li><code>ry</code>
+<ul>
+<li>Bump min python version 3.10 – this is a breaking change, but ry is still
+very much a WIP/in-beta, so the versioning schema is “yolo-versioning”</li>
+</ul>
+</li>
 <li><code>ryo3-serde</code>
 <ul>
 <li>internal refactoring and cleanup</li>
@@ -629,7 +637,7 @@ sets the <code>Content-Type</code> header to <code>application/json</code></li>
 </li>
 <li><code>ryo3-json</code>
 <ul>
-<li>Where json stuff + ry is going to live in the near future (may consolodate
+<li>Where json stuff + ry is going to live in the near future (may consolidate
 <code>ryo3-jiter</code> into this newer crate)</li>
 <li><code>ry.stringify()</code> uses <code>ryo3-serde</code> + <code>serde_json</code> to write json bytes/bufs
 and it is pretty fast, faster than ujson and rapidjson (not tested yyjson),
@@ -7499,8 +7507,16 @@ __all__ = (
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="food-4-thought"><a class="header" href="#food-4-thought">food-4-thought</a></h1>
 <p>thinking out loud…</p>
+<h2 id="fugue-state-jesse-2025-08-18"><a class="header" href="#fugue-state-jesse-2025-08-18">fugue-state-jesse [2025-08-18]</a></h2>
+<p>The most sophisticated rust code in this repository was not written by
+“fugue-state-jesse” (aka FSJ), not me (normal jesse) nor was it written by an
+AI/LLM. “fugue-state-jesse” only shows up at random about 1-2 times a week and
+seemingly has a vastly better understanding of rust and rust-macro-rules than I
+do.</p>
+<p>Throughout the repository I will sometimes leave notes to “fugue-state-jesse”
+with the hope that he might pick up on them and improve the code.</p>
 <hr />
-<h1 id="rydev"><a class="header" href="#rydev"><code>ry.dev</code></a></h1>
+<h2 id="rydev"><a class="header" href="#rydev"><code>ry.dev</code></a></h2>
 <p>For people who find <code>ry.dev</code> it is a module that exports all the things in ry as
 well as can be used as a repl; <code>python -m ry.dev</code> will start a repl (with
 ipython if installed else python-repl) with all of ry already imported. I

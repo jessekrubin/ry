@@ -202,8 +202,8 @@ am still working out the kinks of using <code>uv</code> with maturin</li>
 </ul>
 <h2 id="style-guide"><a class="header" href="#style-guide">style guide</a></h2>
 <ul>
-<li><strong>NO UNWRAPPING</strong></li>
-<li><strong>NO PANICS</strong></li>
+<li><strong>NO UNWRAPPING</strong> – use <code>expect</code> over <code>unwrap</code></li>
+<li><strong>NO PANICS</strong> – don’t panic!</li>
 <li><strong>NO <code>blazingly-fast</code></strong> – <code>ry</code> is fast and does not need an adverb</li>
 <li><strong>USE CLIPPY</strong> <code>just clippy</code> or <code>just ci</code></li>
 <li><strong>USE RUSTFMT AND RUFF</strong> <code>just fmt</code></li>
@@ -230,6 +230,7 @@ is the name of the library they</li>
 <li>copy the template library <code>ryo3-quick-maths</code> library to your new library name</li>
 <li>refer to the above style guide for naming conventions</li>
 </ul>
+<hr />
 <h2 id="tools"><a class="header" href="#tools">tools</a></h2>
 <h3 id="python"><a class="header" href="#python">python</a></h3>
 <ul>
@@ -251,7 +252,7 @@ is the name of the library they</li>
 of tasks)</li>
 </ul>
 <p>tasks as of 2024-12-03:</p>
-<pre><code class="language-aiignore">Available recipes:
+<pre><code class="language-txt">Available recipes:
     dev            # dev run build + tests
     develop        # maturin develop
     cargo-test     # cargo test

@@ -184,6 +184,12 @@
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0053-unreleased"><a class="header" href="#v0053-unreleased">v0.0.53 [unreleased]</a></h2>
 <ul>
+<li><code>ry</code>
+<ul>
+<li>Bump min python version 3.10 – this is a breaking change, but ry is still
+very much a WIP/in-beta, so the versioning schema is “yolo-versioning”</li>
+</ul>
+</li>
 <li><code>ryo3-serde</code>
 <ul>
 <li>internal refactoring and cleanup</li>
@@ -349,7 +355,7 @@ sets the <code>Content-Type</code> header to <code>application/json</code></li>
 </li>
 <li><code>ryo3-json</code>
 <ul>
-<li>Where json stuff + ry is going to live in the near future (may consolodate
+<li>Where json stuff + ry is going to live in the near future (may consolidate
 <code>ryo3-jiter</code> into this newer crate)</li>
 <li><code>ry.stringify()</code> uses <code>ryo3-serde</code> + <code>serde_json</code> to write json bytes/bufs
 and it is pretty fast, faster than ujson and rapidjson (not tested yyjson),
