@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## v0.0.53 [unreleased]
+## v0.0.54 [unreleased]
+
+---
+
+## v0.0.53 [2025-08-18]
 
 - `ry`
   - Bump min python version 3.10 -- this is a breaking change, but ry is still
