@@ -1,6 +1,4 @@
-from typing import Literal
-
-from typing_extensions import TypeAlias
+from typing import Literal, TypeAlias
 
 TZDB_NAMES: TypeAlias = Literal[
     "Africa/Abidjan",

@@ -11,8 +11,8 @@ import json
 import threading
 import time
 from asyncio import sleep as aiosleep
-from collections.abc import AsyncGenerator, Awaitable, Coroutine, Iterator
-from typing import Any, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Iterator
+from typing import Any
 
 import pytest
 from uvicorn import _types as uvt

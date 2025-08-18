@@ -16,7 +16,7 @@
   },
   "reportMissingImports": "error",
   "reportMissingTypeStubs": false,
-  "pythonVersion": "3.9",
+  "pythonVersion": "3.10",
   "pythonPlatform": "Linux",
   "executionEnvironments": [
     {

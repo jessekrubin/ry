@@ -8,9 +8,7 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 import builtins
 import uuid as pyuuid
 from enum import Enum
-from typing import Any
-
-from typing_extensions import TypeAlias
+from typing import Any, TypeAlias
 
 from ry._types import Buffer
 
