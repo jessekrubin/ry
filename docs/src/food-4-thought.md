@@ -2,9 +2,20 @@
 
 thinking out loud...
 
+## fugue-state-jesse [2025-08-18]
+
+The most sophisticated rust code in this repository was not written by
+"fugue-state-jesse" (aka FSJ), not me (normal jesse) nor was it written by an
+AI/LLM. "fugue-state-jesse" only shows up at random about 1-2 times a week and
+seemingly has a vastly better understanding of rust and rust-macro-rules than I
+do.
+
+Throughout the repository I will sometimes leave notes to "fugue-state-jesse"
+with the hope that he might pick up on them and improve the code.
+
 ---
 
-# `ry.dev`
+## `ry.dev`
 
 For people who find `ry.dev` it is a module that exports all the things in ry as
 well as can be used as a repl; `python -m ry.dev` will start a repl (with

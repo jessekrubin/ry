@@ -1,6 +1,7 @@
 # API
 
 ## Table of Contents
+
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.dirs`](#ry.ryo3.dirs)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
