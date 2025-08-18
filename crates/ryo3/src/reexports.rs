@@ -33,6 +33,7 @@ ryo3_features_reexport! {
     "size", ryo3_size,
     "sqlformat", ryo3_sqlformat,
     "tokio", ryo3_tokio,
+    "tokio-websockets", ryo3_tokio_websockets,
     "unindent", ryo3_unindent,
     "url", ryo3_url,
     "walkdir", ryo3_walkdir,

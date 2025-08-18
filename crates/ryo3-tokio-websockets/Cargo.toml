@@ -1,5 +1,5 @@
 [package]
-name = "ryo3-tokio"
+name = "ryo3-tokio-websockets"
 version.workspace = true
 authors.workspace = true
 categories.workspace = true
@@ -9,15 +9,15 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
+description = "ryo3-wrapper for tokio-websockets crate (https://crates.io/crates/tokio-websockets)"
 
 [dependencies]
-futures.workspace = true
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
 ryo3-std.workspace = true
 tokio.workspace = true
+tokio-websockets = { version = "0.12.0", features = ["client"] }
 tracing.workspace = true
 
 [lints]

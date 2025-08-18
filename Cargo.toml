@@ -97,6 +97,7 @@ members = [
   "crates/ryo3-sqlformat",
   "crates/ryo3-std",
   "crates/ryo3-tokio",
+  "crates/ryo3-tokio-websockets",
   "crates/ryo3-ulid",
   "crates/ryo3-unindent",
   "crates/ryo3-url",
@@ -143,6 +144,7 @@ ryo3-size = { path = "./crates/ryo3-size" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-std = { path = "./crates/ryo3-std" }
 ryo3-tokio = { path = "./crates/ryo3-tokio" }
+ryo3-tokio-websockets = { path = "./crates/ryo3-tokio-websockets" }
 ryo3-ulid = { path = "./crates/ryo3-ulid" }
 ryo3-unindent = { path = "./crates/ryo3-unindent" }
 ryo3-url = { path = "./crates/ryo3-url" }
@@ -168,6 +170,7 @@ bzip2 = "0.6.0"
 dirs = { version = "6.0.0", features = [] }
 flate2 = "1.1.2"
 fnv = "1.0.7"
+futures = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
 glob = "0.3"
