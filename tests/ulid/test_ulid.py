@@ -186,7 +186,7 @@ Params: t.TypeAlias = bytes | str | int | float
         (ULID.from_bytes, b"not-enough"),  # invalid length
         (ULID.from_bytes, 123),  # invalid type
         (ULID.from_str, "not-enough"),  # invalid length
-        (ULID.from_str, 123),  # inavlid type
+        (ULID.from_str, 123),  # invalid type
         (ULID.from_str, "notavalidulidnotavalidulid"),  # invalid alphabet
         (ULID.from_str, "Z" * 26),  # invalid timestamp
         (ULID.from_int, "not-an-int"),  # invalid type

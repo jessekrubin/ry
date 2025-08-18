@@ -112,7 +112,7 @@
   - this should theoretically allow for serializing any python object that is
     `serde` serializable with almost any `serde` serializer... that is the goal
 - `ryo3-json`
-  - Where json stuff + ry is going to live in the near future (may consolodate
+  - Where json stuff + ry is going to live in the near future (may consolidate
     `ryo3-jiter` into this newer crate)
   - `ry.stringify()` uses `ryo3-serde` + `serde_json` to write json bytes/bufs
     and it is pretty fast, faster than ujson and rapidjson (not tested yyjson),
