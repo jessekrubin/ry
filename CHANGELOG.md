@@ -2,6 +2,9 @@
 
 ## v0.0.53 [unreleased]
 
+- `ry`
+  - Bump min python version 3.10 -- this is a breaking change, but ry is still
+    very much a WIP/in-beta, so the versioning schema is "yolo-versioning"
 - `ryo3-serde`
   - internal refactoring and cleanup
 

@@ -168,7 +168,7 @@ def test_ulid_from_timestamp() -> None:
     assert ulid1.timestamp == ulid2.timestamp
 
 
-Params = t.Union[bytes, str, int, float]
+Params: t.TypeAlias = bytes | str | int | float
 
 
 @pytest.mark.parametrize(
