@@ -2448,6 +2448,7 @@ dependencies = [
  "futures-sink",
  "http",
  "httparse",
+ "rand",
  "simdutf8",
  "tokio",
  "tokio-util",
