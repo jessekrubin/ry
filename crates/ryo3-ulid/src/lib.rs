@@ -154,7 +154,7 @@ impl PyUlid {
                     let ulid = Ulid::from_bytes(
                         slice
                             .try_into()
-                            .expect("never to happen; checked lenght above"),
+                            .expect("never to happen; checked length above"),
                     );
                     match op {
                         pyo3::basic::CompareOp::Eq => Ok(self.0 == ulid),

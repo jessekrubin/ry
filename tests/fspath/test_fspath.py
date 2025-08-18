@@ -5,13 +5,13 @@ from __future__ import annotations
 import itertools as it
 import os
 from pathlib import Path
-from typing import Union
+from typing import TypeAlias
 
 import pytest
 
 import ry
 
-TPath = Union[type[Path], type[ry.FsPath]]
+TPath: TypeAlias = type[Path] | type[ry.FsPath]
 is_windows = os.name == "nt"
 
 

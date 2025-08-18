@@ -2,6 +2,9 @@
 
 ## v0.0.53 [unreleased]
 
+- `ry`
+  - Bump min python version 3.10 -- this is a breaking change, but ry is still
+    very much a WIP/in-beta, so the versioning schema is "yolo-versioning"
 - `ryo3-serde`
   - internal refactoring and cleanup
 
@@ -109,7 +112,7 @@
   - this should theoretically allow for serializing any python object that is
     `serde` serializable with almost any `serde` serializer... that is the goal
 - `ryo3-json`
-  - Where json stuff + ry is going to live in the near future (may consolodate
+  - Where json stuff + ry is going to live in the near future (may consolidate
     `ryo3-jiter` into this newer crate)
   - `ry.stringify()` uses `ryo3-serde` + `serde_json` to write json bytes/bufs
     and it is pretty fast, faster than ujson and rapidjson (not tested yyjson),
