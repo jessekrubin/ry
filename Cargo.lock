@@ -1941,7 +1941,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-websockets"
-version = "0.0.53"
+version = "0.0.54"
 dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
