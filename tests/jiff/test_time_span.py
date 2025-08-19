@@ -49,12 +49,12 @@ class TestTimeSpanStrings:
 
     def test_span_str_human(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
-        assert s.string(human=True) == "2mo 10d 2h 30m"
+        assert s.string(friendly=True) == "2mo 10d 2h 30m"
         assert s.string(True) == "2mo 10d 2h 30m"
 
     def test_span_str_alien_or_idk_but_not_human(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
-        assert s.string(human=False) == "P2M10DT2H30M"
+        assert s.string(friendly=False) == "P2M10DT2H30M"
         assert s.string() == "P2M10DT2H30M"
 
 

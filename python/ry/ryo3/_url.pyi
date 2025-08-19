@@ -1,8 +1,12 @@
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
+from typing_extensions import Self
+
+from ry._types import FromStr
+
 @t.final
-class URL:
+class URL(FromStr):
     def __init__(
         self, url: str | URL, *, params: dict[str, str] | None = None
     ) -> None: ...
@@ -12,6 +16,8 @@ class URL:
     # =========================================================================
     @classmethod
     def parse(cls, url: str) -> URL: ...
+    @classmethod
+    def from_str(cls, s: str) -> Self: ...
     @classmethod
     def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
     @classmethod
