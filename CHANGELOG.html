@@ -183,6 +183,22 @@
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0054-unreleased"><a class="header" href="#v0054-unreleased">v0.0.54 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>Changed <code>human</code> kwarg in <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> to <code>friendly</code></li>
+<li>Added to <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> the <code>friendly</code> method for
+more natural string representations.</li>
+</ul>
+</li>
+<li>type-annotations
+<ul>
+<li>Missing <code>lstrip</code>/<code>rstrip</code> method types for <code>ry.Bytes</code></li>
+<li>Updated types for <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> w/ correct
+<code>friendly</code> kwarg and <code>friendly()</code> methods</li>
+</ul>
+</li>
+</ul>
 <hr />
 <h2 id="v0053-2025-08-18"><a class="header" href="#v0053-2025-08-18">v0.0.53 [2025-08-18]</a></h2>
 <ul>
@@ -407,25 +423,20 @@ icky, the default may be changed to <code>str</code> (from <code>pathlib.Path</c
 <hr />
 <h2 id="v0045-2025-05-30"><a class="header" href="#v0045-2025-05-30">v0.0.45 [2025-05-30]</a></h2>
 <ul>
-<li>
-<p>added <code>__target__</code> to python package metadata in <code>ry.__about__</code> with the
-target triple of the current build</p>
-</li>
-<li>
-<p><code>ryo3-std</code></p>
+<li>added <code>__target__</code> to python package metadata in <code>ry.__about__</code> with the
+target triple of the current build</li>
+<li><code>ryo3-std</code>
 <ul>
 <li>Buffering for <code>FileReadStream</code></li>
 </ul>
 </li>
-<li>
-<p><code>ryo3-jiter</code></p>
+<li><code>ryo3-jiter</code>
 <ul>
 <li>Add function <code>parse_jsonl</code> for parsing json lines</li>
 <li>Add <code>lines</code> kwarg to <code>read_json</code> for parsing/reading json lines</li>
 </ul>
 </li>
-<li>
-<p><code>ryo3-jiff</code></p>
+<li><code>ryo3-jiff</code>
 <ul>
 <li>
 <p><code>ZonedDateTime.__new__</code> takes more python-datetime like args/kwargs, old
