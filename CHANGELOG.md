@@ -2,6 +2,15 @@
 
 ## v0.0.54 [unreleased]
 
+- `ryo3-jiff`
+  - Changed `human` kwarg in `ry.TimeSpan` and `ry.SignedDuration` to `friendly`
+  - Added to `ry.TimeSpan` and `ry.SignedDuration` the `friendly` method for
+    more natural string representations.
+- type-annotations
+  - Missing `lstrip`/`rstrip` method types for `ry.Bytes`
+  - Updated types for `ry.TimeSpan` and `ry.SignedDuration` w/ correct
+    `friendly` kwarg and `friendly()` methods
+
 ---
 
 ## v0.0.53 [2025-08-18]
