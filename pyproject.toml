@@ -68,6 +68,9 @@ dev = [
   "tzdata>=2025.2",
   "uvicorn>=0.34",
 ]
+misc = [
+  "griffe>=1.12.1",
+]
 
 [tool.maturin]
 python-source = "python"

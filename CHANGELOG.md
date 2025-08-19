@@ -2,6 +2,15 @@
 
 ## v0.0.54 [unreleased]
 
+- `ryo3-jiff`
+  - Changed `human` kwarg in `ry.TimeSpan` and `ry.SignedDuration` to `friendly`
+  - Added to `ry.TimeSpan` and `ry.SignedDuration` the `friendly` method for
+    more natural string representations.
+- type-annotations
+  - Missing `lstrip`/`rstrip` method types for `ry.Bytes`
+  - Updated types for `ry.TimeSpan` and `ry.SignedDuration` w/ correct
+    `friendly` kwarg and `friendly()` methods
+
 ---
 
 ## v0.0.53 [2025-08-18]
@@ -159,12 +168,10 @@
   - Add function `parse_jsonl` for parsing json lines
   - Add `lines` kwarg to `read_json` for parsing/reading json lines
 - `ryo3-jiff`
-
   - `ZonedDateTime.__new__` takes more python-datetime like args/kwargs, old
     version of constructor moved to classmethod
     `ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -> ZonedDateTime`
   - `zoned` top level function
-
     - if `tz` is `None` then it uses the system timezone
     - SIGNATURE
 

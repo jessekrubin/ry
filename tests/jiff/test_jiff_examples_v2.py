@@ -222,7 +222,7 @@ def test_parsing_a_span() -> None:
 
     friendly = ry.TimeSpan.parse("5 years, 1 week, 10 days, 5 hours, 59 minutes")
     assert iso == friendly
-    assert friendly.string(human=True) == "5y 1w 10d 5h 59m"
+    assert friendly.string(friendly=True) == "5y 1w 10d 5h 59m"
     assert str(friendly) == "P5Y1W10DT5H59M"
 
 

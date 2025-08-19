@@ -91,13 +91,17 @@ impl RySpan {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (human=false))]
-    fn string(&self, human: bool) -> String {
-        if human {
+    #[pyo3(signature = (friendly=false))]
+    fn string(&self, friendly: bool) -> String {
+        if friendly {
             format!("{:#}", self.0)
         } else {
             self.0.to_string()
         }
+    }
+
+    fn friendly(&self) -> String {
+        format!("{:#}", self.0)
     }
 
     fn __eq__(&self, other: &Self) -> bool {

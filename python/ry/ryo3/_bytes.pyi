@@ -36,6 +36,8 @@ class Bytes(Buffer):
     def __mul__(self, other: int) -> Bytes: ...
     def __rmul__(self, other: int) -> Bytes: ...
     def __len__(self) -> int: ...
+    def __bytes__(self) -> bytes:
+        """Return the underlying data as a Python `bytes` object."""
     def removeprefix(self, prefix: Buffer, /) -> Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -152,6 +154,18 @@ class Bytes(Buffer):
         """
         Return a copy of the sequence with leading and trailing bytes removed.
         If `chars` is provided, remove all bytes in `chars` from both ends.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+    def lstrip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with leading bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the left end.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+    def rstrip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with trailing bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the right end.
         If `chars` is not provided, remove all ASCII whitespace bytes.
         """
     def expandtabs(self, tabsize: int = 8) -> Bytes:

@@ -90,5 +90,7 @@ class TestSignedDurationStrings:
 
     def test_signed_duration_parse(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
-        assert sd.string(human=True) == "2h 30m"
+        assert sd.string(friendly=True) == "2h 30m"
         assert sd.string(True) == "2h 30m"
+        assert sd.friendly() == "2h 30m"
+        assert sd.string() == "PT2H30M"
