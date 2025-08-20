@@ -137,14 +137,16 @@ impl RySignedDuration {
     fn __abs__(&self) -> Self {
         Self(self.0.abs())
     }
+
     fn abs(&self) -> Self {
         self.__abs__()
     }
+
     fn unsigned_abs(&self) -> PyDuration {
         PyDuration::from(self.0.unsigned_abs())
     }
 
-    #[pyo3(signature = (friendly=false))]
+    #[pyo3(signature = (*, friendly=false))]
     fn string(&self, friendly: bool) -> String {
         if friendly {
             format!("{:#}", self.0)

@@ -92,7 +92,7 @@ impl RySpan {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (friendly=false))]
+    #[pyo3(signature = (*, friendly=false))]
     fn string(&self, friendly: bool) -> String {
         if friendly {
             format!("{:#}", self.0)

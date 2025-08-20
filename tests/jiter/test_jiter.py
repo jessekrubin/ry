@@ -32,7 +32,7 @@ def test_parse_str() -> None:
 
 
 @pytest.mark.parametrize(
-    "input",
+    "obj",
     [
         123,
         456.7,
