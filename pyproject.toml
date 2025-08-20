@@ -5,10 +5,18 @@ requires = [ "maturin>=1,<2" ]
 
 [project]
 name = "ry"
-description = "ry = rust + python kitchen sink utils (WIP)"
+description = "ry = rust + python"
 keywords = [
+  "datetime",
+  "http",
+  "jiff",
+  "json",
   "pyo3",
+  "reqwest",
   "rust",
+  "tokio",
+  "xxhash",
+  "zstd",
 ]
 license = "MIT OR Apache-2.0"
 maintainers = [
@@ -18,7 +26,7 @@ authors = [
   { name = "jesse rubin", email = "jessekrubin@gmail.com" },
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -26,7 +34,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -51,16 +58,19 @@ dev = [
   "ipython>=8.18.1",
   "maturin>=1.8.6",
   "mypy>=1.14.1",
-  "orjson>=3.10.18; implementation_name == 'cpython'",
+  "orjson>=3.10.18; implementation_name=='cpython'",
   "pydantic>=2.11.7",
   "pytest>=8.3.5",
   "pytest-asyncio>=1.0.0",
   "pytest-benchmark>=5.1",
+  "pytest-cov>=6.2.1",
   "rich>=14.0.0",
   "ruff>=0.11.12",
-  "tomli>=2.2.1",
   "tzdata>=2025.2",
   "uvicorn>=0.34",
+]
+misc = [
+  "griffe>=1.12.1",
 ]
 
 [tool.maturin]
@@ -122,6 +132,9 @@ reportUnnecessaryTypeIgnoreComment = true
 
 [tool.uv]
 package = false # don't build package w/ uv
+# UV problemo: https://github.com/astral-sh/setup-uv/issues/489
+# BUG IN UV: https://github.com/astral-sh/setup-uv/issues/489#issuecomment-3085384851
+required-version = ">=0.7.0"
 
 [tool.uv.sources]
 ry = { workspace = true }

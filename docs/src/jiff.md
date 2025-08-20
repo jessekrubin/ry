@@ -35,7 +35,7 @@ As of 2025-03-12 `pyo3` does not seem to support converting `Span` ->
 ## `ry` vs `whenever`
 
 There is another library called
-[ `whenever`](https://github.com/ariebovenberg/whenever) that provides a similar
+[`whenever`](https://github.com/ariebovenberg/whenever) that provides a similar
 datetime library to that of `ryo3-jiff` (both `jiff` and `whenever` are based on
 the [temporal](https://tc39.es/proposal-temporal/docs/) API).
 

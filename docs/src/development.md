@@ -21,8 +21,8 @@
 
 ## style guide
 
-- **NO UNWRAPPING**
-- **NO PANICS**
+- **NO UNWRAPPING** -- use `expect` over `unwrap`
+- **NO PANICS** -- don't panic!
 - **NO `blazingly-fast`** -- `ry` is fast and does not need an adverb
 - **USE CLIPPY** `just clippy` or `just ci`
 - **USE RUSTFMT AND RUFF** `just fmt`
@@ -46,6 +46,8 @@
 - copy the template library `ryo3-quick-maths` library to your new library name
 - refer to the above style guide for naming conventions
 
+---
+
 ## tools
 
 ### python
@@ -67,7 +69,7 @@
 
 tasks as of 2024-12-03:
 
-```aiignore
+```txt
 Available recipes:
     dev            # dev run build + tests
     develop        # maturin develop

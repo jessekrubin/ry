@@ -1,11 +1,12 @@
 #![doc = include_str!("../README.md")]
 
 mod any_repr;
+mod constants;
 mod errors;
 mod macro_rules;
-mod py_serialize;
-mod pytypes;
-mod rytypes;
+
+pub mod ser;
 mod type_cache;
 
-pub use py_serialize::SerializePyAny;
+pub(crate) use constants::{Depth, MAX_DEPTH};
+pub use ser::py_serialize::SerializePyAny;

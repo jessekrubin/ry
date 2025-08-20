@@ -540,7 +540,7 @@ macro_rules! status_code_match {
     };
 }
 
-pub fn status_code_pystring(py: Python, status_code: u16) -> Option<&Bound<'_, PyString>> {
+pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'_, PyString>> {
     status_code_match!(py, status_code, {
         (100, "Continue"),
         (101, "Switching Protocols"),

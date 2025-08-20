@@ -7,7 +7,7 @@ import pytest
 
 import ry
 
-jiff_objects = [
+JIFF_OBJECTS = [
     # date
     ry.date(2020, 8, 26),
     # time
@@ -29,7 +29,7 @@ jiff_objects = [
 ]
 
 
-@pytest.mark.parametrize("obj", jiff_objects)
+@pytest.mark.parametrize("obj", JIFF_OBJECTS)
 def test_pickling(obj: t.Any) -> None:
     pickled = pickle.dumps(obj)
     loaded = pickle.loads(pickled)

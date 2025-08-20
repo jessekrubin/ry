@@ -1,6 +1,6 @@
 extend = '../ruff.toml'
 
-target-version = "py39"
+target-version = "py310"
 line-length = 80 # for docs
 
 include = [

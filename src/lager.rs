@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use tracing::debug;
 use tracing::level_filters::LevelFilter;
-
+use tracing_log::LogTracer;
 /// List of environment variables to check for logging level
 const LOG_ENV_VARS: [&str; 3] = ["RYLOG", "RY_LOG", "RUST_LOG"];
 
@@ -22,16 +22,16 @@ fn env_var_str_is_truthy(s: &str) -> bool {
 /// otherwise using 'RUST_LOG' if set.
 fn env_log_level() -> LevelFilter {
     // use "RYTRACE" if set to a truthy value
-    if let Ok(ry_trace) = std::env::var("RYTRACE") {
-        if env_var_str_is_truthy(&ry_trace) {
-            return LevelFilter::TRACE;
-        }
+    if let Ok(ry_trace) = std::env::var("RYTRACE")
+        && env_var_str_is_truthy(&ry_trace)
+    {
+        return LevelFilter::TRACE;
     }
 
-    if let Ok(ry_debug) = std::env::var("RYDEBUG") {
-        if env_var_str_is_truthy(&ry_debug) {
-            return LevelFilter::DEBUG;
-        }
+    if let Ok(ry_debug) = std::env::var("RYDEBUG")
+        && env_var_str_is_truthy(&ry_debug)
+    {
+        return LevelFilter::DEBUG;
     }
 
     for env_var in LOG_ENV_VARS.iter() {
@@ -55,6 +55,7 @@ fn env_log_level() -> LevelFilter {
 
 pub fn tracing_init() -> Result<(), Box<dyn std::error::Error>> {
     // use "RY_LOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
+    LogTracer::init()?;
     let env_log_level = env_log_level();
     debug!(
         "tracing_init - env_filter_directives_string: {}",

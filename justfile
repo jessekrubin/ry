@@ -96,24 +96,20 @@ cargo-fmtc:
 
 # ruff check sorting of '__all__'
 sort-all-check:
-    ruff check . --select RUF022 --preview --output-format=full
+    uv run ruff check . --select RUF022 --preview --output-format=full
 
 # ruff sort '__all__'
 sort-all:
-    ruff check . --select RUF022 --preview --output-format=full --fix
+    uv run ruff check . --select RUF022 --preview --output-format=full --fix
 
 # ruff format
 ruff-fmt:
-    ruff format .
-    ruff check --select "I" --show-fixes --fix .
+    uv run ruff format .
+    uv run ruff check --select "I" --show-fixes --fix .
 
 # ruff format check
 ruff-fmtc:
-    ruff format . --check
-
-# python format black
-black:
-    black python
+    uv run ruff format . --check
 
 # python format
 fmtpy: sort-all ruff-fmt
@@ -129,8 +125,16 @@ justfilefmt:
 justfilefmtc:
     just --check --fmt --unstable
 
+# format markdown
+mdfmt:
+    pnpm dlx prettier@latest --cache --prose-wrap=always -w CHANGELOG.md
+
+# pyproject-fmt
+pyprojectfmt:
+    uvx pyproject-fmt . --keep-full-version
+
 # format
-fmt: cargo-fmt fmtpy justfilefmt
+fmt: cargo-fmt fmtpy justfilefmt mdfmt pyprojectfmt
 
 # format check
 fmtc: cargo-fmtc fmtcpy justfilefmtc
@@ -141,11 +145,11 @@ fmtc: cargo-fmtc fmtcpy justfilefmtc
 
 # run ruff linter
 ruff:
-    ruff check .
+    uv run ruff check .
 
 # run ruff + fix
 ruffix:
-    ruff --fix --show-fixes
+    uv run ruff --fix --show-fixes
 
 # run clippy
 clippy:
@@ -153,6 +157,7 @@ clippy:
 
 # run clippy with feature-powerset via cargo-hack
 clippy-features:
+    cargo hack --feature-powerset clippy --package ryo3-bytes
     cargo hack --feature-powerset clippy --package ryo3-fspath
     cargo hack --feature-powerset clippy --package ryo3-http
     cargo hack --feature-powerset clippy --package ryo3-jiff
@@ -170,7 +175,7 @@ lint: ruff clippy
 
 # run mypy type checker
 mypy:
-    mypy python/ry tests/ examples/ scripts/
+    uv run mypy python/ry tests/ examples/ scripts/
 
 # run pyright
 pyright:
@@ -185,7 +190,7 @@ pip-compile:
     uv pip compile requirements.dev.in -n > requirements.dev.txt
 
 _gen_init:
-    python scripts/gen.py > python/ry/__init__.py
+    uv run python scripts/gen.py > python/ry/__init__.py
 
 _gen-py: _gen_init fmtpy
 

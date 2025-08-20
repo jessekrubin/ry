@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-http"
-description = "python + http (https://docs.rs/http/latest/http/)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "python + http (https://docs.rs/http/latest/http/)"
 
 [dependencies]
 http.workspace = true

@@ -1,15 +1,15 @@
 [package]
 name = "ryo3-same-file"
-description = "ryo3-same-file - pyo3 shim for same-file crate (https://github.com/BurntSushi/same-file)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "ryo3-same-file - pyo3 shim for same-file crate (https://github.com/BurntSushi/same-file)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }

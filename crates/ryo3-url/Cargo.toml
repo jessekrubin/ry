@@ -1,21 +1,21 @@
 [package]
 name = "ryo3-url"
-description = "ryo3 + url (https://docs.rs/url/latest/url/)"
 version.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "ryo3 + url (https://docs.rs/url/latest/url/)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-macro-rules.workspace = true
-url = { workspace = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
+url = { workspace = true }
 
 [features]
 default = [

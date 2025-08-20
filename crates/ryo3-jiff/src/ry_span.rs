@@ -91,13 +91,17 @@ impl RySpan {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (human=false))]
-    fn string(&self, human: bool) -> String {
-        if human {
+    #[pyo3(signature = (friendly=false))]
+    fn string(&self, friendly: bool) -> String {
+        if friendly {
             format!("{:#}", self.0)
         } else {
             self.0.to_string()
         }
+    }
+
+    fn friendly(&self) -> String {
+        format!("{:#}", self.0)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -156,10 +160,15 @@ impl RySpan {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Span::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[classmethod]
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     fn _years(&self, n: i64) -> PyResult<Self> {
@@ -441,7 +450,7 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn checked_add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = (&other).into();
 
         self.0
@@ -460,7 +469,7 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn checked_sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
@@ -475,7 +484,7 @@ impl RySpan {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_mul(&self, rhs: i64) -> PyResult<Self> {
+    fn mul(&self, rhs: i64) -> PyResult<Self> {
         self.__mul__(rhs)
     }
 
@@ -545,15 +554,16 @@ impl RySpan {
     // ========================================================================
     // PROPERTIES
     // ========================================================================
-
     #[getter]
     fn is_negative(&self) -> bool {
         self.0.is_negative()
     }
+
     #[getter]
     fn is_positive(&self) -> bool {
         self.0.is_positive()
     }
+
     #[getter]
     fn is_zero(&self) -> bool {
         self.0.is_zero()
@@ -563,38 +573,47 @@ impl RySpan {
     fn years(&self) -> i16 {
         self.0.get_years()
     }
+
     #[getter]
     fn months(&self) -> i32 {
         self.0.get_months()
     }
+
     #[getter]
     fn weeks(&self) -> i32 {
         self.0.get_weeks()
     }
+
     #[getter]
     fn days(&self) -> i32 {
         self.0.get_days()
     }
+
     #[getter]
     fn hours(&self) -> i32 {
         self.0.get_hours()
     }
+
     #[getter]
     fn minutes(&self) -> i64 {
         self.0.get_minutes()
     }
+
     #[getter]
     fn seconds(&self) -> i64 {
         self.0.get_seconds()
     }
+
     #[getter]
     fn milliseconds(&self) -> i64 {
         self.0.get_milliseconds()
     }
+
     #[getter]
     fn microseconds(&self) -> i64 {
         self.0.get_microseconds()
     }
+
     #[getter]
     fn nanoseconds(&self) -> i64 {
         self.0.get_nanoseconds()

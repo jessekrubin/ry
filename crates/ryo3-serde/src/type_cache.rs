@@ -7,6 +7,7 @@ use pyo3::types::{
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
 
 pub(crate) enum PyObType {
+    Unknown,
     // ========================================================================
     // PY-TYPES
     // ========================================================================
@@ -29,7 +30,7 @@ pub(crate) enum PyObType {
     Tuple,
     Dict,
     Set,
-    Frozenset,
+    FrozenSet,
     // ------------------------------------------------------------------------
     // PY-DATETIME
     // ------------------------------------------------------------------------
@@ -88,7 +89,7 @@ pub(crate) enum PyObType {
     RyZoned,
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub(crate) struct PyTypeCache {
     pub none: usize,
@@ -238,29 +239,29 @@ impl PyTypeCache {
         TYPE_LOOKUP.get_or_init(py, || Self::new(py))
     }
 
-    pub(crate) fn ptr2type(&self, ptr: usize) -> Option<PyObType> {
+    pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
         match ptr {
-            x if x == self.none => Some(PyObType::None),
-            x if x == self.ellipsis => Some(PyObType::Ellipsis),
-            x if x == self.int => Some(PyObType::Int),
-            x if x == self.bool => Some(PyObType::Bool),
-            x if x == self.float => Some(PyObType::Float),
-            x if x == self.string => Some(PyObType::String),
-            x if x == self.bytes => Some(PyObType::Bytes),
-            x if x == self.bytearray => Some(PyObType::ByteArray),
-            x if x == self.memoryview => Some(PyObType::MemoryView),
-            x if x == self.list => Some(PyObType::List),
-            x if x == self.tuple => Some(PyObType::Tuple),
-            x if x == self.dict => Some(PyObType::Dict),
-            x if x == self.set => Some(PyObType::Set),
-            x if x == self.frozenset => Some(PyObType::Frozenset),
+            x if x == self.none => PyObType::None,
+            x if x == self.ellipsis => PyObType::Ellipsis,
+            x if x == self.int => PyObType::Int,
+            x if x == self.bool => PyObType::Bool,
+            x if x == self.float => PyObType::Float,
+            x if x == self.string => PyObType::String,
+            x if x == self.bytes => PyObType::Bytes,
+            x if x == self.bytearray => PyObType::ByteArray,
+            x if x == self.memoryview => PyObType::MemoryView,
+            x if x == self.list => PyObType::List,
+            x if x == self.tuple => PyObType::Tuple,
+            x if x == self.dict => PyObType::Dict,
+            x if x == self.set => PyObType::Set,
+            x if x == self.frozenset => PyObType::FrozenSet,
             // py-datetime
-            x if x == self.datetime => Some(PyObType::DateTime),
-            x if x == self.date => Some(PyObType::Date),
-            x if x == self.time => Some(PyObType::Time),
-            x if x == self.timedelta => Some(PyObType::Timedelta),
+            x if x == self.datetime => PyObType::DateTime,
+            x if x == self.date => PyObType::Date,
+            x if x == self.time => PyObType::Time,
+            x if x == self.timedelta => PyObType::Timedelta,
             // py-uuid
-            x if x == self.py_uuid => Some(PyObType::PyUuid),
+            x if x == self.py_uuid => PyObType::PyUuid,
             // =================================================================
             // RY-TYPES
             // =================================================================
@@ -268,51 +269,52 @@ impl PyTypeCache {
             // UUID
             // -----------------------------------------------------------------
             #[cfg(feature = "ryo3-uuid")]
-            x if x == self.ry_uuid => Some(PyObType::RyUuid),
+            x if x == self.ry_uuid => PyObType::RyUuid,
             // -----------------------------------------------------------------
             // ULID:wq
             // -----------------------------------------------------------------
             #[cfg(feature = "ryo3-ulid")]
-            x if x == self.ry_ulid => Some(PyObType::RyUlid),
+            x if x == self.ry_ulid => PyObType::RyUlid,
             // -----------------------------------------------------------------
             // URL
             // -----------------------------------------------------------------
             #[cfg(feature = "ryo3-url")]
-            x if x == self.ry_url => Some(PyObType::RyUrl),
+            x if x == self.ry_url => PyObType::RyUrl,
 
             // -----------------------------------------------------------------
             // HTTP
             // -----------------------------------------------------------------
             #[cfg(feature = "ryo3-http")]
-            x if x == self.ry_http_status => Some(PyObType::RyHttpStatus),
+            x if x == self.ry_http_status => PyObType::RyHttpStatus,
             #[cfg(feature = "ryo3-http")]
-            x if x == self.ry_headers => Some(PyObType::RyHeaders),
+            x if x == self.ry_headers => PyObType::RyHeaders,
 
             // -----------------------------------------------------------------
             // JIFF
             // -----------------------------------------------------------------
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_date => Some(PyObType::RyDate),
+            x if x == self.ry_date => PyObType::RyDate,
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_datetime => Some(PyObType::RyDateTime),
+            x if x == self.ry_datetime => PyObType::RyDateTime,
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_signed_duration => Some(PyObType::RySignedDuration),
+            x if x == self.ry_signed_duration => PyObType::RySignedDuration,
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_time => Some(PyObType::RyTime),
+            x if x == self.ry_time => PyObType::RyTime,
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_timespan => Some(PyObType::RyTimeSpan),
+            x if x == self.ry_timespan => PyObType::RyTimeSpan,
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_timestamp => Some(PyObType::RyTimestamp),
+            x if x == self.ry_timestamp => PyObType::RyTimestamp,
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_timezone => Some(PyObType::RyTimeZone),
+            x if x == self.ry_timezone => PyObType::RyTimeZone,
             #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_zoned => Some(PyObType::RyZoned),
-            _ => None,
+            x if x == self.ry_zoned => PyObType::RyZoned,
+
+            _ => PyObType::Unknown,
         }
     }
 
     #[must_use]
-    pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> Option<PyObType> {
+    pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
         self.ptr2type(ob.get_type_ptr() as usize)
     }
 }

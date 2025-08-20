@@ -1,8 +1,9 @@
 use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
-use crate::ry_offset::RyOffset;
+use crate::ry_offset::{RyOffset, print_isoformat_offset};
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -15,7 +16,7 @@ use crate::{
     JiffWeekday, JiffZoned, RyDate,
 };
 use jiff::civil::{Date, Time, Weekday};
-use jiff::tz::TimeZone;
+use jiff::tz::{Offset, TimeZone};
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
@@ -113,8 +114,13 @@ impl RyZoned {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Zoned::from_str(s).map(Self::from).map_err(map_py_value_err)
+    }
+
+    #[classmethod]
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     #[classmethod]
@@ -151,9 +157,26 @@ impl RyZoned {
         jiff::fmt::rfc2822::to_string(&self.0)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
-
-    fn isoformat(&self) -> String {
-        self.0.datetime().to_string()
+    // ISO format mismatch:
+    // input datetime: 7639-01-01 00:00:00.395000+00:00 (repr: datetime.datetime(7639, 1, 1, 0, 0, 0, 395000, tzinfo=zoneinfo.ZoneInfo(key='UTC')))
+    // py: 7639-01-01T00:00:00.395000+00:00
+    // ry: 7639-01-01T00:00:00+00
+    // is_eq: False
+    // ry_prefix_ok: False
+    fn isoformat(&self) -> PyResult<String> {
+        let offset: Offset = self.0.offset();
+        // let ts = self.0.timestamp();
+        let dattie = self.0.datetime();
+        let mut s = String::with_capacity(32);
+        if self.0.datetime().microsecond() == 0 && self.0.subsec_nanosecond() == 0 {
+            ISOFORMAT_PRINTER_NO_MICROS.print_datetime(&dattie, &mut s)
+        } else {
+            ISOFORMAT_PRINTER.print_datetime(&dattie, &mut s)
+        }
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{e}")))?;
+        print_isoformat_offset(&offset, &mut s)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{e}")))?;
+        Ok(s)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -176,13 +199,16 @@ impl RyZoned {
     }
 
     fn __repr__(&self) -> String {
-        // representable format
-        format!("ZonedDateTime.parse(\"{}\")", self.0)
+        format!("{self}")
     }
 
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
-        self.0.datetime().hash(&mut hasher);
+        self.0.hash(&mut hasher);
+        self.0
+            .time_zone()
+            .to_offset_info(self.0.timestamp())
+            .hash(&mut hasher);
         self.0.time_zone().iana_name().hash(&mut hasher);
         hasher.finish()
     }
@@ -277,15 +303,11 @@ impl RyZoned {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
     }
 
-    fn checked_sub<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn sub<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
 
@@ -709,9 +731,25 @@ impl RyZoned {
 
 impl Display for RyZoned {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        if let Some(tz_name) = self.0.time_zone().iana_name() {
+            write!(
+                f,
+                "ZonedDateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, nanosecond={}, tz=\"{}\")",
+                self.0.year(),
+                self.0.month(),
+                self.0.day(),
+                self.0.hour(),
+                self.0.minute(),
+                self.0.second(),
+                self.0.subsec_nanosecond(),
+                tz_name
+            )
+        } else {
+            write!(f, "ZonedDateTime.parse(\"{}\")", self.0)
+        }
     }
 }
+
 impl From<Zoned> for RyZoned {
     fn from(value: Zoned) -> Self {
         Self(value)

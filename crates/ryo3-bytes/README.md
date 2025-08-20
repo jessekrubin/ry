@@ -1,10 +1,12 @@
 # `ryo3-bytes`
 
-**NOTE:** The current code is a copy-past of the code within the `pyo3-bytes`
-crate from the `obstore` library. The goal is to bang out a python wrapper and
-merge it back into the `obstore` repo and finally remove it from this crate.
+**NOTE:** This builds on the `pyo3-bytes` crate to expose extra Python‐style
+bytes methods. Extending the `pyo3-bytes` crate is done with pyo3's
+`multiple-pymethods` feature; this can and does cause longer compile times. To
+avoid the compile time increase, there is an identical version under
+`src/ryo3_bytes.rs`
 
-python wrapper for the `bytes` crate
+Ideally these would be upstreamed to the `pyo3-bytes` crate at somepoint!
 
 `bytes`:
 

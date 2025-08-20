@@ -1,4 +1,3 @@
-use crate::RyDateTime;
 use crate::RySignedDuration;
 use crate::RySpan;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
@@ -7,6 +6,7 @@ use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::series::RyTimeSeries;
 use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
+use crate::{RyDate, RyDateTime};
 use jiff::Zoned;
 use jiff::civil::{Time, TimeRound};
 use pyo3::basic::CompareOp;
@@ -83,11 +83,17 @@ impl RyTime {
     fn midnight(_cls: &Bound<'_, PyType>) -> Self {
         Self(Time::midnight())
     }
+
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
         Time::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    #[classmethod]
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     // ========================================================================
@@ -178,11 +184,11 @@ impl RyTime {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_sub<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn sub<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         self.__sub__(py, other)
     }
 
@@ -250,6 +256,56 @@ impl RyTime {
         RyDateTime::from(self.0.on(year, month, day))
     }
 
+    #[pyo3(
+        signature = (
+            *,
+            hour=None,
+            minute=None,
+            second=None,
+            millisecond=None,
+            microsecond=None,
+            nanosecond=None,
+            subsec_nanosecond=None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    fn replace(
+        &self,
+        hour: Option<i8>,
+        minute: Option<i8>,
+        second: Option<i8>,
+        millisecond: Option<i16>,
+        microsecond: Option<i16>,
+        nanosecond: Option<i16>,
+        subsec_nanosecond: Option<i32>,
+    ) -> PyResult<Self> {
+        // start the builder
+        let mut builder = self.0.with();
+        if let Some(h) = hour {
+            builder = builder.hour(h);
+        }
+        if let Some(min) = minute {
+            builder = builder.minute(min);
+        }
+        if let Some(sec) = second {
+            builder = builder.second(sec);
+        }
+        if let Some(us) = microsecond {
+            builder = builder.microsecond(us);
+        }
+        if let Some(ms) = millisecond {
+            builder = builder.millisecond(ms);
+        }
+        if let Some(ns) = nanosecond {
+            builder = builder.nanosecond(ns);
+        }
+        if let Some(subns) = subsec_nanosecond {
+            builder = builder.subsec_nanosecond(subns);
+        }
+        // finally build, mapping any error back to Python
+        builder.build().map(Self::from).map_err(map_py_value_err)
+    }
+
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,
@@ -306,7 +362,7 @@ impl RyTime {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_datetime(&self, date: &crate::RyDate) -> RyDateTime {
+    fn to_datetime(&self, date: &RyDate) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(date.0))
     }
 

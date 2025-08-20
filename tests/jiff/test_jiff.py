@@ -6,6 +6,29 @@ import pytest
 
 import ry
 
+JIFF_UNITS = [
+    "nanosecond",
+    "microsecond",
+    "millisecond",
+    "second",
+    "minute",
+    "hour",
+    "day",
+    "month",
+    "year",
+]
+
+JIFF_ROUND_MODES = [
+    "ceil",
+    "floor",
+    "expand",
+    "trunc",
+    "half_ceil",
+    "half_floor",
+    "half_expand",
+    "half_trunc",
+    "half_even",
+]
 # ====================
 # Zoned
 # ====================
@@ -291,35 +314,6 @@ class TestTimeSpanProperties:
         assert self.ts.nanoseconds == 5_000_000
 
 
-# ====================
-# round mode
-# ====================
-
-JIFF_UNITS = [
-    "nanosecond",
-    "microsecond",
-    "millisecond",
-    "second",
-    "minute",
-    "hour",
-    "day",
-    "month",
-    "year",
-]
-
-JIFF_ROUND_MODES = [
-    "ceil",
-    "floor",
-    "expand",
-    "trunc",
-    "half_ceil",
-    "half_floor",
-    "half_expand",
-    "half_trunc",
-    "half_even",
-]
-
-
 class TestDateTime:
     d = ry.date(2020, 8, 26).at(6, 27, 0, 0)
 
@@ -428,7 +422,7 @@ class TestTzOffset:
     def test_checked_add(self) -> None:
         offset = ry.Offset.from_hours(-8)
         span = ry.timespan(hours=1)
-        assert offset.checked_add(span) == ry.Offset.from_hours(-7)
+        assert offset.add(span) == ry.Offset.from_hours(-7)
         signed_duration = span.to_signed_duration(
             ry.Date(
                 year=2024,
@@ -436,20 +430,20 @@ class TestTzOffset:
                 day=13,  # OOOOH friday the 13th
             )
         )
-        assert offset.checked_add(signed_duration) == ry.Offset.from_hours(-7)
+        assert offset.add(signed_duration) == ry.Offset.from_hours(-7)
         duration = ry.Duration(secs=3600)
-        assert offset.checked_add(duration) == ry.Offset.from_hours(-7)
+        assert offset.add(duration) == ry.Offset.from_hours(-7)
 
     def test_checked_sub(self) -> None:
         offset = ry.Offset.from_hours(-8)
         span = ry.timespan(hours=1)
-        assert offset.checked_sub(span) == ry.Offset.from_hours(-9)
+        assert offset.sub(span) == ry.Offset.from_hours(-9)
         signed_duration = span.to_signed_duration(
             ry.Date(year=2024, month=12, day=13)  # OOOOH friday the 13th (again)
         )
-        assert offset.checked_sub(signed_duration) == ry.Offset.from_hours(-9)
+        assert offset.sub(signed_duration) == ry.Offset.from_hours(-9)
         duration = ry.Duration(secs=3600)
-        assert offset.checked_sub(duration) == ry.Offset.from_hours(-9)
+        assert offset.sub(duration) == ry.Offset.from_hours(-9)
 
     def test_saturating_add(self) -> None:
         offset = ry.Offset.from_hours(25)
@@ -549,7 +543,7 @@ class TestParse:
         assert parsed_date == self.d
 
     def test_parse_datetime(self) -> None:
-        parsed_datetime = ry.DateTime.parse(self.dt.string())
+        parsed_datetime = ry.DateTime.from_str(self.dt.string())
         assert parsed_datetime == self.dt
 
     def test_parse_time(self) -> None:

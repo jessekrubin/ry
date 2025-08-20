@@ -1,14 +1,16 @@
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
+use ryo3_core::PyLock;
+use std::sync::Mutex;
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder};
 use xxhash_rust::xxh32::Xxh32;
 use xxhash_rust::xxh64::Xxh64;
 
-#[pyclass(name = "Xxh32", module = "ry.ryo3.xxhash")]
+#[pyclass(name = "Xxh32", module = "ry.ryo3.xxhash", frozen)]
 pub struct PyXxh32 {
     seed: u32,
-    hasher: Xxh32,
+    hasher: Mutex<Xxh32>,
 }
 
 #[pymethods]
@@ -21,21 +23,26 @@ impl PyXxh32 {
                 let seed = seed.unwrap_or(0);
                 let mut hasher = Xxh32::new(seed);
                 hasher.update(s.as_ref());
-                Self { seed, hasher }
+
+                Self {
+                    seed,
+                    hasher: Mutex::new(hasher),
+                }
             }
             None => Self {
                 seed: seed.unwrap_or(0),
-                hasher: Xxh32::new(seed.unwrap_or(0)),
+                hasher: Mutex::new(Xxh32::new(seed.unwrap_or(0))),
             },
         }
     }
 
-    fn __str__(&self) -> String {
+    fn __str__(&self) -> PyResult<String> {
         self.__repr__()
     }
 
-    fn __repr__(&self) -> String {
-        format!("xxh32<{:x}>", self.hasher.digest())
+    fn __repr__(&self) -> PyResult<String> {
+        let hasher = self.hasher.py_lock()?;
+        Ok(format!("xxh32<{:x}>", hasher.digest()))
     }
 
     #[classattr]
@@ -58,34 +65,44 @@ impl PyXxh32 {
         self.seed
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        let digest = self.hasher.digest();
-        PyBytes::new(py, &digest.to_be_bytes())
+    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let hasher = self.hasher.py_lock()?;
+
+        let digest = hasher.digest();
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
-    fn intdigest(&self) -> u32 {
-        self.hasher.digest()
+    fn intdigest(&self) -> PyResult<u32> {
+        self.hasher.py_lock().map(|hasher| hasher.digest())
     }
 
-    fn hexdigest(&self) -> String {
-        format!("{:08x}", self.hasher.digest())
+    fn hexdigest(&self) -> PyResult<String> {
+        self.hasher
+            .py_lock()
+            .map(|hasher| format!("{:08x}", hasher.digest()))
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&mut self, s: ryo3_bytes::PyBytes) {
-        self.hasher.update(s.as_ref());
+    fn update(&self, s: ryo3_bytes::PyBytes) -> PyResult<()> {
+        let mut hasher = self.hasher.py_lock()?;
+        hasher.update(s.as_ref());
+        Ok(())
     }
 
-    fn copy(&self) -> Self {
-        Self {
-            hasher: self.hasher.clone(),
+    fn copy(&self) -> PyResult<Self> {
+        let hasher = self.hasher.py_lock()?;
+        Ok(Self {
+            hasher: Mutex::new(hasher.clone()),
+
             seed: self.seed,
-        }
+        })
     }
 
     #[pyo3(signature = (seed = None))]
-    fn reset(&mut self, seed: Option<u32>) {
-        self.hasher.reset(seed.unwrap_or(self.seed));
+    fn reset(&self, seed: Option<u32>) -> PyResult<()> {
+        let mut hasher = self.hasher.py_lock()?;
+        hasher.reset(seed.unwrap_or(self.seed));
+        Ok(())
     }
 }
 
@@ -97,10 +114,10 @@ pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyXxh32 {
 }
 
 /// Python-Xxh64 hasher
-#[pyclass(name = "Xxh64", module = "ry.ryo3.xxhash")]
+#[pyclass(name = "Xxh64", module = "ry.ryo3.xxhash", frozen)]
 pub struct PyXxh64 {
     seed: u64,
-    hasher: Xxh64,
+    hasher: Mutex<Xxh64>,
 }
 
 #[pymethods]
@@ -114,23 +131,26 @@ impl PyXxh64 {
                 let mut hasher = Xxh64::new(seed.unwrap_or(0));
                 hasher.update(s.as_ref());
                 let seed = seed.unwrap_or(0);
+                let hasher = Mutex::new(hasher);
                 Self { seed, hasher }
             }
             None => Self {
                 seed: seed.unwrap_or(0),
-                hasher: Xxh64::new(seed.unwrap_or(0)),
+                hasher: Mutex::new(Xxh64::new(seed.unwrap_or(0))),
             },
         }
     }
 
     /// Return the string representation of the hasher
-    fn __str__(&self) -> String {
-        format!("xxh64<{:x}>", self.hasher.digest())
+    fn __str__(&self) -> PyResult<String> {
+        self.__repr__()
     }
 
     /// Return the string representation of the hasher
-    fn __repr__(&self) -> String {
-        format!("xxh64<{:x}>", self.hasher.digest())
+    fn __repr__(&self) -> PyResult<String> {
+        let hasher = self.hasher.py_lock()?;
+        let digest = hasher.digest();
+        Ok(format!("xxh64<{digest:x}>"))
     }
 
     /// Return the name of the hasher ('xxh64')
@@ -154,34 +174,40 @@ impl PyXxh64 {
         self.seed
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        let digest = self.hasher.digest();
-        PyBytes::new(py, &digest.to_be_bytes())
+    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let digest = self.hasher.py_lock().map(|hasher| hasher.digest())?;
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
-    fn intdigest(&self) -> u64 {
-        self.hasher.digest()
+    fn intdigest(&self) -> PyResult<u64> {
+        self.hasher.py_lock().map(|hasher| hasher.digest())
     }
 
-    fn hexdigest(&self) -> String {
-        format!("{:016x}", self.hasher.digest())
+    fn hexdigest(&self) -> PyResult<String> {
+        let digest = self.intdigest()?;
+        Ok(format!("{digest:016x}"))
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&mut self, b: ryo3_bytes::PyBytes) {
-        self.hasher.update(b.as_ref());
+    fn update(&self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
+        let mut hasher = self.hasher.py_lock()?;
+        hasher.update(b.as_ref());
+        Ok(())
     }
 
-    fn copy(&self) -> Self {
-        Self {
-            hasher: self.hasher.clone(),
+    fn copy(&self) -> PyResult<Self> {
+        let hasher = self.hasher.py_lock()?;
+        Ok(Self {
+            hasher: Mutex::new(hasher.clone()),
             seed: self.seed,
-        }
+        })
     }
 
     #[pyo3(signature = (seed = None))]
-    fn reset(&mut self, seed: Option<u64>) {
-        self.hasher.reset(seed.unwrap_or(self.seed));
+    fn reset(&self, seed: Option<u64>) -> PyResult<()> {
+        let mut hasher = self.hasher.py_lock()?;
+        hasher.reset(seed.unwrap_or(self.seed));
+        Ok(())
     }
 }
 
@@ -191,10 +217,10 @@ pub fn xxh64(s: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<PyXx
     Ok(PyXxh64::py_new(s, seed))
 }
 
-#[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash")]
+#[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash", frozen)]
 pub struct PyXxh3 {
     seed: u64,
-    hasher: Xxh3,
+    hasher: Mutex<Xxh3>,
 }
 
 #[pymethods]
@@ -215,18 +241,26 @@ impl PyXxh3 {
             Some(s) => {
                 let mut hasher = h;
                 hasher.update(s.as_ref());
-                Self { seed, hasher }
+                Self {
+                    seed,
+                    hasher: Mutex::new(hasher),
+                }
             }
-            None => Self { seed, hasher: h },
+            None => Self {
+                seed,
+                hasher: Mutex::new(h),
+            },
         }
     }
 
-    fn __str__(&self) -> String {
-        format!("xxh3<{:x}>", self.hasher.digest())
+    fn __str__(&self) -> PyResult<String> {
+        self.__repr__()
     }
 
-    fn __repr__(&self) -> String {
-        format!("xxh3<{:x}>", self.hasher.digest())
+    fn __repr__(&self) -> PyResult<String> {
+        self.hasher
+            .py_lock()
+            .map(|hasher| format!("xxh3<{:x}>", hasher.digest()))
     }
 
     #[classattr]
@@ -249,46 +283,54 @@ impl PyXxh3 {
         self.seed
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        let digest = self.hasher.digest();
-        PyBytes::new(py, &digest.to_be_bytes())
+    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let digest = self.hasher.py_lock().map(|h| h.digest())?;
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
-    fn intdigest(&self) -> u64 {
-        self.hasher.digest()
+    fn intdigest(&self) -> PyResult<u64> {
+        self.hasher.py_lock().map(|h| h.digest())
     }
 
-    fn hexdigest(&self) -> String {
-        format!("{:016x}", self.hasher.digest())
+    fn hexdigest(&self) -> PyResult<String> {
+        let digest = self.intdigest()?;
+        Ok(format!("{digest:016x}"))
     }
 
-    fn digest128<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        let digest = self.hasher.digest128();
-        PyBytes::new(py, &digest.to_be_bytes())
+    fn digest128<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let digest = self.intdigest128()?;
+        Ok(PyBytes::new(py, &digest.to_be_bytes()))
     }
 
-    fn intdigest128(&self) -> u128 {
-        self.hasher.digest128()
+    fn intdigest128(&self) -> PyResult<u128> {
+        self.hasher.py_lock().map(|h| h.digest128())
     }
 
-    fn hexdigest128(&self) -> String {
-        format!("{:032x}", self.hasher.digest128())
+    fn hexdigest128(&self) -> PyResult<String> {
+        let digest = self.intdigest128()?;
+        Ok(format!("{digest:032x}"))
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&mut self, b: ryo3_bytes::PyBytes) {
-        self.hasher.update(b.as_ref());
+    fn update(&self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
+        // self.hasher.update(b.as_ref());
+        let mut hasher = self.hasher.py_lock()?;
+        hasher.update(b.as_ref());
+        Ok(())
     }
 
-    fn copy(&self) -> Self {
-        Self {
-            hasher: self.hasher.clone(),
+    fn copy(&self) -> PyResult<Self> {
+        let hasher = self.hasher.py_lock()?;
+        Ok(Self {
+            hasher: Mutex::new(hasher.clone()),
             seed: self.seed,
-        }
+        })
     }
 
-    fn reset(&mut self) {
-        self.hasher.reset();
+    fn reset(&self) -> PyResult<()> {
+        let mut h = self.hasher.py_lock()?;
+        h.reset();
+        Ok(())
     }
 }
 

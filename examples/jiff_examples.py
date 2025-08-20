@@ -74,7 +74,7 @@ def test_find_duration_between_two_zoned_datetimes() -> None:
 def test_add_duration_to_a_zoned_datetime() -> None:
     start = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     span = ry.TimeSpan()._years(3)._months(4)._days(5)._hours(12)._minutes(3)
-    finish = start.checked_add(span)
+    finish = start.add(span)  # previously `checked_add`
     assert finish.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
@@ -94,12 +94,13 @@ def test_parsing_a_span() -> None:
     assert iso == expected
     assert str(iso) == "P5Y1W10DT5H59M"
 
-    friendly = ry.TimeSpan.parse(
+    from_friendly = ry.TimeSpan.parse(
         "5 years, 1 week, 10 days, 5 hours, 59 minutes"
     )
-    assert iso == friendly
-    assert friendly.string(human=True) == "5y 1w 10d 5h 59m"
-    assert str(friendly) == "P5Y1W10DT5H59M"
+    assert iso == from_friendly
+    assert from_friendly.string(friendly=True) == "5y 1w 10d 5h 59m"
+    assert from_friendly.friendly() == "5y 1w 10d 5h 59m"
+    assert str(from_friendly) == "P5Y1W10DT5H59M"
 
 
 def test_parsing_an_rfc2822_datetime_string() -> None:

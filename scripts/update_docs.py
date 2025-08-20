@@ -69,7 +69,7 @@ def ruff_format_pyi(string: str, line_length: int = 80, indent_width: int = 4) -
         capture_output=True,
         check=True,
     )
-    return run_res.stdout
+    return run_res.stdout.rstrip("\n")
 
 
 def _gen_api_content_readme(
@@ -111,7 +111,7 @@ def _gen_api_content_readme(
     type_stub_bodies = (f"```python\n{content}\n```\n" for _, content in parts)
     # zipper the headers and bodies into a single chain
 
-    yield from it.chain.from_iterable(zip(headers, type_stub_bodies))
+    yield from it.chain.from_iterable(zip(headers, type_stub_bodies, strict=False))
 
 
 @lru_cache
@@ -149,9 +149,9 @@ def write_text(
 def update_api_docs(
     check: bool = False,
 ) -> None:
-    """Update the API.md file in ./docs/src/API.md"""
-    filepath = REPO_ROOT / "docs" / "src" / "API.md"
-    assert filepath.exists(), f"API.md does not exist: {filepath}"
+    """Update the API.md file in ./docs/src/api.md"""
+    filepath = REPO_ROOT / "docs" / "src" / "api.md"
+    assert filepath.exists(), f"api.md does not exist: {filepath}"
     api_content_formatted = get_api_content_readme()
     parts = [api_content_formatted]
     write_text(filepath, "\n".join(parts), check=check)

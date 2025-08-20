@@ -23,7 +23,8 @@ impl PyWalkdirGen {
 
     /// __next__ just pulls one item from the underlying iterator
     fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
-        if let Some(entry) = self.iter.lock().next() {
+        let value = self.iter.lock().next();
+        if let Some(entry) = value {
             let bound_py_any = if self.objects {
                 // if objects is true, we return a DirEntry object
                 walkdir_entry::PyWalkDirEntry::from(entry).into_bound_py_any(py)

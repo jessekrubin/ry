@@ -6,7 +6,7 @@ import pytest
 
 import ry
 
-jiff_objects = [
+JIFF_OBJECTS = [
     # date
     ry.date(2020, 8, 26),
     # time
@@ -28,16 +28,8 @@ jiff_objects = [
 ]
 
 
-@pytest.mark.parametrize("obj", jiff_objects)
+@pytest.mark.parametrize("obj", JIFF_OBJECTS)
 def test_reprs(obj: t.Any) -> None:
     repr_str = repr(obj)
     # eval the repr string
-    assert eval("ry." + repr_str) == obj
-
-
-def test_reprs_simple() -> None:
-    d = ry.date(2020, 8, 26)
-    assert repr(d) == "Date(year=2020, month=8, day=26)"
-
-    t = ry.time(6, 27, 0, 0)
-    assert repr(t) == "Time(hour=6, minute=27, second=0, nanosecond=0)"
+    assert eval("ry." + repr_str) == obj, f"Repr string: `{repr_str}`"

@@ -1,10 +1,10 @@
 import typing as t
 from collections.abc import Mapping
 
-import typing_extensions
+import typing_extensions as te
 
 # fmt: off
-HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
+HTTP_VERSION_LIKE: te.TypeAlias = t.Literal[
     "HTTP/0.9", "0.9", 0,
     "HTTP/1.0", "1.0", 1, 10,
     "HTTP/1.1", "1.1", 11,
@@ -13,6 +13,91 @@ HttpVersionLike: typing_extensions.TypeAlias = t.Literal[
 ]
 # fmt: on
 
+_STANDARD_HEADER: te.TypeAlias = t.Literal[
+    "accept",
+    "accept-charset",
+    "accept-encoding",
+    "accept-language",
+    "accept-ranges",
+    "access-control-allow-credentials",
+    "access-control-allow-headers",
+    "access-control-allow-methods",
+    "access-control-allow-origin",
+    "access-control-expose-headers",
+    "access-control-max-age",
+    "access-control-request-headers",
+    "access-control-request-method",
+    "age",
+    "allow",
+    "alt-svc",
+    "authorization",
+    "cache-control",
+    "cache-status",
+    "cdn-cache-control",
+    "connection",
+    "content-disposition",
+    "content-encoding",
+    "content-language",
+    "content-length",
+    "content-location",
+    "content-range",
+    "content-security-policy",
+    "content-security-policy-report-only",
+    "content-type",
+    "cookie",
+    "dnt",
+    "date",
+    "etag",
+    "expect",
+    "expires",
+    "forwarded",
+    "from",
+    "host",
+    "if-match",
+    "if-modified-since",
+    "if-none-match",
+    "if-range",
+    "if-unmodified-since",
+    "last-modified",
+    "link",
+    "location",
+    "max-forwards",
+    "origin",
+    "pragma",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "public-key-pins",
+    "public-key-pins-report-only",
+    "range",
+    "referer",
+    "referrer-policy",
+    "refresh",
+    "retry-after",
+    "sec-websocket-accept",
+    "sec-websocket-extensions",
+    "sec-websocket-key",
+    "sec-websocket-protocol",
+    "sec-websocket-version",
+    "server",
+    "set-cookie",
+    "strict-transport-security",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "user-agent",
+    "upgrade",
+    "upgrade-insecure-requests",
+    "vary",
+    "via",
+    "warning",
+    "www-authenticate",
+    "x-content-type-options",
+    "x-dns-prefetch-control",
+    "x-frame-options",
+    "x-xss-protection",
+]
+
+_HeaderName: te.TypeAlias = _STANDARD_HEADER | str
 _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 
 @t.final
@@ -20,7 +105,10 @@ class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
     def __init__(
-        self, headers: Mapping[str, _VT] | Headers | None = None, /, **kwargs: _VT
+        self,
+        headers: Mapping[_HeaderName, _VT] | Headers | None = None,
+        /,
+        **kwargs: _VT,
     ) -> None: ...
 
     # =========================================================================
@@ -32,13 +120,13 @@ class Headers:
     # MAGIC METHODS
     # =========================================================================
     def __len__(self) -> int: ...
-    def __getitem__(self, key: str) -> str: ...
-    def __setitem__(self, key: str, value: str) -> None: ...
-    def __delitem__(self, key: str) -> None: ...
-    def __contains__(self, key: str) -> bool: ...
+    def __getitem__(self, key: _HeaderName) -> str: ...
+    def __setitem__(self, key: _HeaderName, value: str) -> None: ...
+    def __delitem__(self, key: _HeaderName) -> None: ...
+    def __contains__(self, key: _HeaderName) -> bool: ...
     def __or__(self, other: Headers | dict[str, str]) -> Headers: ...
     def __ror__(self, other: Headers | dict[str, str]) -> Headers: ...
-    def __iter__(self) -> t.Iterator[str]: ...
+    def __iter__(self) -> t.Iterator[_HeaderName]: ...
     def __bool__(self) -> bool: ...
 
     # =========================================================================
@@ -47,18 +135,18 @@ class Headers:
     def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
     def asdict(self) -> dict[str, str | t.Sequence[str]]: ...
     def stringify(self, *, fmt: bool = False) -> str: ...
-    def append(self, key: str, value: str) -> None: ...
+    def append(self, key: _HeaderName, value: str) -> None: ...
     def clear(self) -> None: ...
-    def contains_key(self, key: str) -> bool: ...
-    def get(self, key: str) -> str | None: ...
-    def get_all(self, key: str) -> list[str]: ...
-    def insert(self, key: str, value: str) -> None: ...
+    def contains_key(self, key: _HeaderName) -> bool: ...
+    def get(self, key: _HeaderName) -> str | None: ...
+    def get_all(self, key: _HeaderName) -> list[str]: ...
+    def insert(self, key: _HeaderName, value: str) -> None: ...
     def is_empty(self) -> bool: ...
     def keys(self) -> list[str]: ...
     def keys_len(self) -> int: ...
     def len(self) -> int: ...
-    def pop(self, key: str) -> str: ...
-    def remove(self, key: str) -> None: ...
+    def pop(self, key: _HeaderName) -> str: ...
+    def remove(self, key: _HeaderName) -> None: ...
     def update(self, headers: Headers | dict[str, str]) -> None: ...
     def values(self) -> list[str]: ...
     @property

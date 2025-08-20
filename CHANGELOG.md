@@ -1,13 +1,72 @@
 # CHANGELOG
 
-## v0.0.51 [unreleased]
+## v0.0.54 [unreleased]
+
+- `ryo3-jiff`
+  - Changed `human` kwarg in `ry.TimeSpan` and `ry.SignedDuration` to `friendly`
+  - Added to `ry.TimeSpan` and `ry.SignedDuration` the `friendly` method for
+    more natural string representations.
+- type-annotations
+  - Missing `lstrip`/`rstrip` method types for `ry.Bytes`
+  - Updated types for `ry.TimeSpan` and `ry.SignedDuration` w/ correct
+    `friendly` kwarg and `friendly()` methods
+
+---
+
+## v0.0.53 [2025-08-18]
+
+- `ry`
+  - Bump min python version 3.10 -- this is a breaking change, but ry is still
+    very much a WIP/in-beta, so the versioning schema is "yolo-versioning"
+- `ryo3-serde`
+  - internal refactoring and cleanup
+
+---
+
+## v0.0.52 [2025-07-30]
+
+- `ryo3-bytes`
+  - internal refactoring
+  - added
+    - `ry.Bytes.__rmul__`
+    - `ry.Bytes.lstrip`
+    - `ry.Bytes.rstrip`
+- `ryo3-xxhash`
+  - all xxhash-ing classes are now `frozen` pyclasses
+    [#259](https://github.com/jessekrubin/ry/issues/259)
+
+---
+
+## v0.0.51 [2025-07-25]
+
+- `ryo3-bytes`
+  - Separated `pyo3-bytes` and `ryo3-bytes`
+    - `pyo3-bytes` mirrors the official `pyo3-bytes` crate + extra methods, BUT
+      it requires the `multiple-pymethods` feature to be enabled
+    - `ryo3-bytes` is a crammed together version of the `pyo3-bytes`
+      implementation and extra methods and does NOT require the
+      `multiple-pymethods` feature to be enabled
+  - Made `PythonBytesMethods` trait for the methods that are shared between
+    `pyo3-bytes` and `ryo3-bytes`
+- `ryo3-ulid`
+  - strict + lax ulid parsing for pydantic
+- `ryo3-jiff`
+  - Renamed `checked_add` and `checked_sub` to `add` and `sub` where the
+    checked_version can error; did not remove where the checked version returns
+    an `Option` type (`ry.SignedDuration`). `.checked_add` may return later as a
+    method that returns an `Option` type for all types (tbd). This is also meant
+    to pave the way for `add`/`sub` functions with a more familiar api akin to
+    `whenever`, `pendulum`, `arrow`, `insert-other-datetime-lib-here`
+  - Added `replace` methods to `Date`, `DateTime` and `Time` structs that use
+    the underlying jiff `with` functions
 
 ---
 
 ## v0.0.50 [2025-07-14]
 
 - internal
-  - clippy lint fixes `unused_self` (all but `ryo3-bytes` which needs its own cleanup)
+  - clippy lint fixes `unused_self` (all but `ryo3-bytes` which needs its own
+    cleanup)
 - `ryo3-bytes`
   - Added (bc I need them) more python compat methods:
     - `title()`
@@ -66,7 +125,7 @@
   - this should theoretically allow for serializing any python object that is
     `serde` serializable with almost any `serde` serializer... that is the goal
 - `ryo3-json`
-  - Where json stuff + ry is going to live in the near future (may consolodate
+  - Where json stuff + ry is going to live in the near future (may consolidate
     `ryo3-jiter` into this newer crate)
   - `ry.stringify()` uses `ryo3-serde` + `serde_json` to write json bytes/bufs
     and it is pretty fast, faster than ujson and rapidjson (not tested yyjson),
@@ -109,12 +168,10 @@
   - Add function `parse_jsonl` for parsing json lines
   - Add `lines` kwarg to `read_json` for parsing/reading json lines
 - `ryo3-jiff`
-
   - `ZonedDateTime.__new__` takes more python-datetime like args/kwargs, old
     version of constructor moved to classmethod
     `ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -> ZonedDateTime`
   - `zoned` top level function
-
     - if `tz` is `None` then it uses the system timezone
     - SIGNATURE
 
@@ -374,40 +431,40 @@
 
 ```python
 IntoDateDifference = (
-  DateDifference
-  | Date
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Date]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    DateDifference
+    | Date
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoTimeDifference = (
-  TimeDifference
-  | Time
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Time]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    TimeDifference
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoDateTimeDifference = (
-  DateTimeDifference
-  | Date
-  | Time
-  | DateTime
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Date]
-  | tuple[JIFF_UNIT_STRING, Time]
-  | tuple[JIFF_UNIT_STRING, DateTime]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    DateTimeDifference
+    | Date
+    | Time
+    | DateTime
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Date]
+    | tuple[JIFF_UNIT_STRING, Time]
+    | tuple[JIFF_UNIT_STRING, DateTime]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 IntoTimestampDifference = (
-  TimestampDifference
-  | Timestamp
-  | ZonedDateTime
-  | tuple[JIFF_UNIT_STRING, Timestamp]
-  | tuple[JIFF_UNIT_STRING, ZonedDateTime]
+    TimestampDifference
+    | Timestamp
+    | ZonedDateTime
+    | tuple[JIFF_UNIT_STRING, Timestamp]
+    | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 ```
 

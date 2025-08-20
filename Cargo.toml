@@ -1,15 +1,15 @@
 [package]
 name = "ry"
-description = "ry = rust + python"
 version.workspace = true
-edition.workspace = true
 authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
+edition.workspace = true
 homepage.workspace = true
+keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "ry = rust + python"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
@@ -20,6 +20,7 @@ crate-type = ["cdylib", "rlib"]
 pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }
 tracing.workspace = true
+tracing-log = { workspace = true }
 tracing-subscriber.workspace = true
 
 [build-dependencies]
@@ -43,45 +44,42 @@ panic = "abort"
 # at the time of writing this (2024-12-20) the `fat` binary is 12.5mb and
 # the `thin` binary is 12.6mb (who's thin now!?).
 lto = "thin" # or "fat"
-#lto = "fat"
+# lto = "fat"
 
 # release fat profile
 [profile.bench]
 inherits = "release"
 lto = "fat"
 
-
 [workspace.package]
-version = "0.0.51"
+version = "0.0.54"
 authors = [
   "Jesse K. Rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
 ]
+categories = ["api-bindings"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2024"
 homepage = "https://github.com/jessekrubin/ry"
+keywords = ["python", "pyo3", "ryo3"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"
-keywords = ["python", "pyo3", "ryo3"]
-categories = ["api-bindings"]
 
 [workspace]
 resolver = "2"
 members = [
-  "crates/ryo3",
   "crates/_ryo3-dev",
   "crates/_ryo3-quick-maths",
-  "crates/ryo3-macro-rules",
-  "crates/ryo3-core",
-  "crates/ryo3-std",
-  "crates/ryo3-fspath",
+  "crates/ryo3",
   # external wrappers
   "crates/ryo3-brotli",
   "crates/ryo3-bytes",
   "crates/ryo3-bzip2",
+  "crates/ryo3-core",
   "crates/ryo3-dirs",
   "crates/ryo3-flate2",
   "crates/ryo3-fnv",
+  "crates/ryo3-fspath",
   "crates/ryo3-glob",
   "crates/ryo3-globset",
   "crates/ryo3-heck",
@@ -89,6 +87,7 @@ members = [
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
   "crates/ryo3-json",
+  "crates/ryo3-macro-rules",
   "crates/ryo3-regex",
   "crates/ryo3-reqwest",
   "crates/ryo3-same-file",
@@ -96,6 +95,7 @@ members = [
   "crates/ryo3-shlex",
   "crates/ryo3-size",
   "crates/ryo3-sqlformat",
+  "crates/ryo3-std",
   "crates/ryo3-tokio",
   "crates/ryo3-ulid",
   "crates/ryo3-unindent",
@@ -113,28 +113,27 @@ members = [
 # ======
 # internal
 ryo3 = { path = "./crates/ryo3", features = [] }
-ryo3-dev = { path = "./crates/_ryo3-dev" }
-ryo3-core = { path = "./crates/ryo3-core" }
-ryo3-std = { path = "./crates/ryo3-std" }
-ryo3-fspath = { path = "./crates/ryo3-fspath" }
-ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
-ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 # dev/future
-#ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
+# ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bytes = { path = "./crates/ryo3-bytes" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
+ryo3-core = { path = "./crates/ryo3-core" }
+ryo3-dev = { path = "./crates/_ryo3-dev" }
 ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
 ryo3-fnv = { path = "./crates/ryo3-fnv" }
+ryo3-fspath = { path = "./crates/ryo3-fspath" }
 ryo3-glob = { path = "./crates/ryo3-glob" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
 ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-http = { path = "./crates/ryo3-http" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
-ryo3-json = { path = "./crates/ryo3-json" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
+ryo3-json = { path = "./crates/ryo3-json" }
+ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
+ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-reqwest = { path = "./crates/ryo3-reqwest" }
 ryo3-same-file = { path = "./crates/ryo3-same-file" }
@@ -142,6 +141,7 @@ ryo3-serde = { path = "./crates/ryo3-serde" }
 ryo3-shlex = { path = "./crates/ryo3-shlex" }
 ryo3-size = { path = "./crates/ryo3-size" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
+ryo3-std = { path = "./crates/ryo3-std" }
 ryo3-tokio = { path = "./crates/ryo3-tokio" }
 ryo3-ulid = { path = "./crates/ryo3-ulid" }
 ryo3-unindent = { path = "./crates/ryo3-unindent" }
@@ -154,20 +154,20 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
 pyo3 = { version = "0.25.1", features = ["macros", "serde"] }
-pyo3-build-config = "0.25.1"
-#pyo3 async runtimes
+# pyo3 async runtimes
 pyo3-async-runtimes = { version = "0.25.0", features = ["tokio-runtime"] }
-#pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", features = ["tokio-runtime"] }
+pyo3-build-config = "0.25.1"
+# pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", features = ["tokio-runtime"] }
 
 # external
 ahash = "0.8.12"
 anyhow = "1.0"
-brotli = "8.0.1"
+brotli = "8.0.2"
 bytes = "1.10.1"
 bzip2 = "0.6.0"
 dirs = { version = "6.0.0", features = [] }
-fnv = "1.0.7"
 flate2 = "1.1.2"
+fnv = "1.0.7"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
 glob = "0.3"
@@ -178,23 +178,24 @@ jiff = { version = "0.2.14", features = ["default", "serde", "perf-inline"] }
 jiter = { version = "0.10.0", features = ["python"] }
 parking_lot = "0.12.3"
 regex = "1.11.1"
-reqwest = { version = "0.12.19", features = ["brotli", "charset", "cookies", "deflate", "gzip", "http2", "macos-system-configuration", "multipart", "json", "rustls-tls-native-roots", "stream", "zstd"], default-features = false }
+reqwest = { version = "0.12.23", features = ["brotli", "charset", "cookies", "deflate", "gzip", "http2", "macos-system-configuration", "multipart", "json", "rustls-tls-native-roots", "stream", "zstd"], default-features = false }
 same-file = "1.0.6"
 serde = { version = "1.0", features = ["derive"] }
-serde_bytes = "0.11.17"
-serde_json = { version = "1.0.140", features = ["std"] }
 serde-transcode = "1.1.1"
+serde_bytes = "0.11.17"
+serde_json = { version = "1.0", features = ["std"] }
 shlex = "1.3.0"
 size = "0.5.0"
 sqlformat = "0.3.5"
-thiserror = "2.0.12"
+thiserror = "2.0.15"
 tokio = { version = "1.45.1", features = ["bytes", "fs", "macros", "parking_lot", "rt", "rt-multi-thread", "sync", "io-util"] }
 tracing = "0.1.41"
+tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "default"] }
+ulid = { version = "1.2.1" }
 unindent = "0.2.4"
 url = { version = "2.5.4" }
-uuid = { version = "1.17.0", features = ["v4", "v8"] }
-ulid = { version = "1.2.1" }
+uuid = { version = "1.18.0", features = ["v4", "v8"] }
 walkdir = "2.5.0"
 which = { version = "8.0.0", features = [] }
 xxhash-rust = { version = "0.8.15", features = ["const_xxh3", "const_xxh32", "const_xxh64", "xxh3", "xxh32", "xxh64"] }
@@ -226,20 +227,23 @@ module_name_repetitions = "allow"
 # cargo allowed
 multiple_crate_versions = "allow"
 
-# nursery
+# nursery always on
 use_self = "warn"
 
+# =======
 # nursery
-# as_ptr_cast_mut = 'allow'
+# =======
+# __turn_these_on_occasionally__
+# equatable_if_let = "warn"
+# literal_string_with_formatting_args = "warn"
+# significant_drop_in_scrutinee = "warn"
+# __TBD__
+# as_ptr_cast_mut = 'warn'
 # derive_partial_eq_without_eq = "allow"
-# equatable_if_let = "allow"
-# literal_string_with_formatting_args = "allow"
 # missing_const_for_fn = "allow"
-# option_if_let_else = "allow"
-# or_fun_call = "allow"
+# option_if_let_else = "warn"
+# or_fun_call = "warn"
 # redundant_pub_crate = "allow"
-# significant_drop_in_scrutinee = "allow"
 # significant_drop_tightening = "allow"
 # needless_pass_by_ref_mut = "allow"
 # cognitive_complexity = "allow"
-# use_self = "allow"

@@ -8,7 +8,7 @@ use jiff::Timestamp;
 use jiff::tz::{Offset, TimeZone};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::{PyString, PyTuple, PyType};
 use ryo3_macro_rules::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -109,12 +109,16 @@ impl RyTimeZone {
         hasher.finish()
     }
 
-    fn __eq__(&self, other: TimeZoneEquality) -> bool {
-        match other {
-            TimeZoneEquality::TimeZone(other) => {
-                self.0.eq(&other.0) || self.0.iana_name() == other.0.iana_name()
-            }
-            TimeZoneEquality::Str(other) => self.0.iana_name() == Some(other.as_str()),
+    fn __eq__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<bool> {
+        if let Ok(other) = other.downcast::<Self>() {
+            Ok(self.0.eq(&other.get().0))
+        } else if let Ok(other) = other.downcast::<PyString>() {
+            let other_str = other.extract::<&str>()?;
+            Ok(self.0.iana_name() == Some(other_str))
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "Expected a RyTimeZone or a string",
+            ))
         }
     }
 
@@ -138,6 +142,10 @@ impl RyTimeZone {
     // =====================================================================
     // CLASS METHODS
     // =====================================================================
+    #[classmethod]
+    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+        TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
+    }
 
     #[classmethod]
     fn fixed(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
@@ -190,12 +198,12 @@ impl RyTimeZone {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
     }
 
-    /// Return `Offset` from TimeZone
+    /// Return `Offset` from `TimeZone`
     fn to_offset(&self, timestamp: &RyTimestamp) -> RyOffset {
         RyOffset::from(self.0.to_offset(timestamp.0))
     }
 
-    /// Return `Timestamp` from TimeZone given a `DateTime`
+    /// Return `Timestamp` from `TimeZone` given a `DateTime`
     fn to_timestamp(&self, datetime: &RyDateTime) -> Result<RyTimestamp, PyErr> {
         self.0
             .to_timestamp(datetime.0)
@@ -203,7 +211,7 @@ impl RyTimeZone {
             .map_err(map_py_value_err)
     }
 
-    /// Return `Zoned` from TimeZone given a `DateTime`
+    /// Return `Zoned` from `TimeZone` given a `DateTime`
     fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
         self.0
             .to_zoned(datetime.0)
@@ -248,10 +256,4 @@ impl RyTimeZone {
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
         err_py_not_impl!()
     }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-enum TimeZoneEquality {
-    TimeZone(RyTimeZone),
-    Str(String),
 }

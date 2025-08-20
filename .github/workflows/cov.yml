@@ -1,0 +1,74 @@
+name: cov
+
+# WIP
+# based on https://github.com/cjermain/rust-python-coverage
+
+on:
+  # push:
+  #   branches:
+  #     - "*"
+  #     - "*/*"
+  #     - "**"
+  #     - "!main"
+  #     - "!master"
+  #   tags:
+  #     - "*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-python-cov:
+    name: test-python-${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [ x86_64 ]
+        python-version: [ "3.12" ]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: llvm-tools-preview
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: setup-rust-cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "v0-rust-test-python-cov-${{ matrix.python-version }}"
+      - name: install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: install deps
+        run: |
+          uv sync
+      - name: install ry
+        run: |
+          uv -v pip install -e .
+        env:
+          RUST_BACKTRACE: 1
+      - run: uv pip freeze
+      - name: Run coverage
+        run: |
+          source <(cargo llvm-cov show-env --export-prefix)
+          export CARGO_TARGET_DIR=$CARGO_LLVM_COV_TARGET_DIR
+          export CARGO_INCREMENTAL=1
+          cargo llvm-cov clean --workspace
+          cargo test
+          uv run -- maturin develop --uv
+          uv run -- pytest tests --cov=ry --cov-report xml
+          cargo llvm-cov report --lcov --output-path coverage.lcov
+      - uses: codecov/codecov-action@v5
+        with:
+          files: coverage.lcov,coverage.xml
+          name: cov-python-${{ matrix.python-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: jessekrubin/ry

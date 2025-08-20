@@ -2,7 +2,8 @@
 
 use crate::{RySignedDuration, RySpan};
 use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
-use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
+use jiff::tz::OffsetArithmetic;
+use jiff::{SignedDuration, Span, TimestampArithmetic, ZonedArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
 use ryo3_std::PyDuration;
@@ -36,6 +37,24 @@ impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
             ));
         };
         Ok(Spanish { inner })
+    }
+}
+
+impl TryFrom<Spanish<'_>> for Span {
+    type Error = PyErr;
+    fn try_from(val: Spanish<'_>) -> Result<Self, Self::Error> {
+        match val.inner {
+            RySpanishObject::Span(span) => Ok(span.get().0),
+            RySpanishObject::Duration(duration) => Self::try_from(duration.get().0)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
+            RySpanishObject::SignedDuration(signed_duration) => {
+                let sd = signed_duration.get().0;
+                Self::try_from(sd)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            }
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::try_from(signed_duration)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
+        }
     }
 }
 
@@ -84,6 +103,17 @@ impl From<Spanish<'_>> for DateTimeArithmetic {
 }
 
 impl From<Spanish<'_>> for TimeArithmetic {
+    fn from(val: Spanish<'_>) -> Self {
+        match val.inner {
+            RySpanishObject::Span(span) => Self::from(span.get().0),
+            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
+            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+        }
+    }
+}
+
+impl From<Spanish<'_>> for OffsetArithmetic {
     fn from(val: Spanish<'_>) -> Self {
         match val.inner {
             RySpanishObject::Span(span) => Self::from(span.get().0),

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import ry.dev as ry
+import ry
 
 
 class TestDateDifference:
@@ -30,7 +30,8 @@ class TestDateDifference:
 
         d1 = ry.date(2024, 3, 15)
         d2 = ry.date(2030, 9, 13)
-        span = d1._until(ry.DateDifference(d2).smallest("year").mode("half_expand"))
+        diff = ry.DateDifference(d2).smallest("year").mode("half_expand")
+        span = d1._until(diff)
         assert span == ry.timespan(years=6)
 
         d2 = ry.date(2030, 9, 14)

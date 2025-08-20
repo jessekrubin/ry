@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import datetime as dt
+import datetime as pydt
 import sys
 from os import PathLike
 from typing import Protocol, TypedDict, TypeVar
+
+from typing_extensions import Self
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
@@ -16,9 +19,16 @@ __all__ = (
     "Buffer",
     "DateTimeTypedDict",
     "DateTypedDict",
+    "FromStr",
     "FsPathLike",
     "TimeSpanTypedDict",
     "TimeTypedDict",
+    "ToPy",
+    "ToPyDate",
+    "ToPyDateTime",
+    "ToPyTime",
+    "ToPyTimeDelta",
+    "ToPyTzInfo",
 )
 
 FsPathLike = str | PathLike[str]
@@ -26,8 +36,39 @@ FsPathLike = str | PathLike[str]
 T_co = TypeVar("T_co", covariant=True)
 
 
+class FromStr(Protocol):
+    @classmethod
+    def from_str(cls, s: str) -> Self: ...
+
+
 class ToPy(Protocol[T_co]):
+    """Objects that can be converted to a python stdlib type (`T_co`) via `obj.to_py()`."""
+
     def to_py(self) -> T_co: ...
+
+
+class ToPyDate(Protocol):
+    """Objects that can be converted to a Python `datetime.date`."""
+
+    def to_pydate(self) -> pydt.date: ...
+
+
+class ToPyTime(Protocol):
+    """Objects that can be converted to a Python `datetime.time`."""
+
+    def to_pytime(self) -> pydt.time: ...
+
+
+class ToPyDateTime(Protocol):
+    def to_pydatetime(self) -> pydt.datetime: ...
+
+
+class ToPyTimeDelta(Protocol):
+    def to_pytimedelta(self) -> pydt.timedelta: ...
+
+
+class ToPyTzInfo(Protocol):
+    def to_pytzinfo(self) -> pydt.tzinfo: ...
 
 
 # protocol for function defining __json__() -> bytes / buffer:

@@ -13,7 +13,7 @@ from ..strategies import st_timezones
 
 @given(st.dates())
 def test_date_roundtrip(dt: pydt.date) -> None:
-    """Test that datetime.isoformat() produces the expected string."""
+    """Test that ry.Date round-trips to/from python correctly."""
     ry_dt = ry.Date.from_pydate(dt)
     roundtrip_date = ry_dt.to_py()
     assert roundtrip_date == dt, f"Expected {dt}, got {roundtrip_date}"
@@ -21,8 +21,7 @@ def test_date_roundtrip(dt: pydt.date) -> None:
 
 @given(st.times())
 def test_time_roundtrip(t: pydt.time) -> None:
-    """Test that datetime.isoformat() produces the expected string."""
-
+    """Test that ry.Time round-trips to/from python correctly."""
     ry_t = ry.Time.from_pytime(t)
     roundtrip_date = ry_t.to_py()
     assert roundtrip_date == t, f"Expected {t}, got {roundtrip_date}"
@@ -30,7 +29,7 @@ def test_time_roundtrip(t: pydt.time) -> None:
 
 @given(st_timezones())
 def test_timezone_roundtrip(tz: pydt.tzinfo | zoneinfo.ZoneInfo) -> None:
-    """Test that datetime.isoformat() produces the expected string."""
+    """Test that timezone round-trips to/from python correctly."""
     assume(tz is not None)
     ry_tz = ry.TimeZone.from_pytzinfo(tz)
     roundtrip_tz = ry_tz.to_py()
@@ -51,7 +50,7 @@ def test_timezone_roundtrip(tz: pydt.tzinfo | zoneinfo.ZoneInfo) -> None:
 
 @given(st.datetimes(timezones=st.none()))
 def test_datetime_roundtrip(dt: pydt.datetime) -> None:
-    """Test that datetime.isoformat() produces the expected string."""
+    """Test that DateTime round-trips to/from python correctly"""
     ry_dt = ry.DateTime.from_pydatetime(dt)
     roundtrip_date = ry_dt.to_py()
     assert roundtrip_date == dt, f"Expected {dt}, got {roundtrip_date}"
@@ -59,7 +58,7 @@ def test_datetime_roundtrip(dt: pydt.datetime) -> None:
 
 @given(st.datetimes(timezones=st_timezones()))
 def test_zoned_datetime_roundtrip(dt: pydt.datetime) -> None:
-    """Test that datetime.isoformat() produces the expected string."""
+    """Test that ZonedDateTime round-trips to/from python correctly"""
     assume(dt.tzinfo is not None)
     ry_zdt = ry.ZonedDateTime.from_pydatetime(dt)
     roundtrip_date = ry_zdt.to_py()

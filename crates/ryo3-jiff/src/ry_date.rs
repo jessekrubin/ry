@@ -11,7 +11,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
-use crate::{JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
+use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
@@ -75,11 +75,8 @@ impl RyDate {
     }
 
     #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        DATETIME_PARSER
-            .parse_date(input)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+        Self::from_str(cls, input)
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond=0))]
@@ -143,12 +140,7 @@ impl RyDate {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Date(year={}, month={}, day={})",
-            self.year(),
-            self.month(),
-            self.day()
-        )
+        format!("{self}")
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -178,14 +170,6 @@ impl RyDate {
         }
     }
 
-    fn checked_sub<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.__sub__(py, other)
-    }
-
     fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         self.0
@@ -194,8 +178,12 @@ impl RyDate {
             .map_err(map_py_overflow_err)
     }
 
-    fn checked_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         self.__add__(other)
+    }
+
+    fn sub<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        self.__sub__(py, other)
     }
 
     fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -206,6 +194,49 @@ impl RyDate {
     fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(Self::from(self.0.saturating_sub(spanish)))
+    }
+
+    #[pyo3(
+        signature = (
+            *,
+            year=None,
+            era_year=None,
+            month=None,
+            day=None,
+            day_of_year=None,
+            day_of_year_no_leap=None,
+        )
+    )]
+    fn replace(
+        &self,
+        year: Option<i16>,
+        era_year: Option<(i16, JiffEra)>,
+        month: Option<i8>,
+        day: Option<i8>,
+        day_of_year: Option<i16>,
+        day_of_year_no_leap: Option<i16>,
+    ) -> PyResult<Self> {
+        let mut builder = self.0.with();
+        if let Some(y) = year {
+            builder = builder.year(y);
+        }
+        if let Some(ey) = era_year {
+            builder = builder.era_year(ey.0, (ey.1).0);
+        }
+        if let Some(m) = month {
+            builder = builder.month(m);
+        }
+        if let Some(d) = day {
+            builder = builder.day(d);
+        }
+        if let Some(doy) = day_of_year {
+            builder = builder.day_of_year(doy);
+        }
+        if let Some(doy) = day_of_year_no_leap {
+            builder = builder.day_of_year_no_leap(doy);
+        }
+        // finally build, mapping any error back to Python
+        builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
     #[classmethod]
@@ -414,7 +445,13 @@ impl RyDate {
 
 impl Display for RyDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Date<{}>", self.0)
+        write!(
+            f,
+            "Date(year={}, month={}, day={})",
+            self.year(),
+            self.month(),
+            self.day()
+        )
     }
 }
 
