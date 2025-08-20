@@ -186,9 +186,12 @@
 <ul>
 <li><code>ryo3-jiff</code>
 <ul>
-<li>Changed <code>human</code> kwarg in <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> to <code>friendly</code></li>
+<li>Changed <code>human</code> arg/kwarg in <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> to <code>friendly</code> and also make keyword only</li>
+<li>Changed <code>strptime</code> and <code>strftime</code> functions to be more inline with python’s
+<code>datetime</code> module by changing the order of args to be <code>(string, format)</code> instead
+of <code>(format, string)</code>; the strptime signature is <code>strptime(s: str, /, fmt: str) -&gt; Self</code></li>
 <li>Added to <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> the <code>friendly</code> method for
-more natural string representations.</li>
+more natural string representations</li>
 </ul>
 </li>
 <li>type-annotations
@@ -198,6 +201,8 @@ more natural string representations.</li>
 <code>friendly</code> kwarg and <code>friendly()</code> methods</li>
 </ul>
 </li>
+<li>Added ruff <code>A002</code> lint</li>
+<li>Added ruff <code>FBT</code> lints</li>
 </ul>
 <hr />
 <h2 id="v0053-2025-08-18"><a class="header" href="#v0053-2025-08-18">v0.0.53 [2025-08-18]</a></h2>
