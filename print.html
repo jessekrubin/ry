@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-08-19T17:29:44.053813195+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-08-20T05:57:48.481476013+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -1872,12 +1872,13 @@ def test_parsing_a_span() -&gt; None:
     assert iso == expected
     assert str(iso) == "P5Y1W10DT5H59M"
 
-    friendly = ry.TimeSpan.parse(
+    from_friendly = ry.TimeSpan.parse(
         "5 years, 1 week, 10 days, 5 hours, 59 minutes"
     )
-    assert iso == friendly
-    assert friendly.string(human=True) == "5y 1w 10d 5h 59m"
-    assert str(friendly) == "P5Y1W10DT5H59M"
+    assert iso == from_friendly
+    assert from_friendly.string(friendly=True) == "5y 1w 10d 5h 59m"
+    assert from_friendly.friendly() == "5y 1w 10d 5h 59m"
+    assert str(from_friendly) == "P5Y1W10DT5H59M"
 
 
 def test_parsing_an_rfc2822_datetime_string() -&gt; None:
@@ -2535,9 +2536,7 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 import builtins
 import uuid as pyuuid
 from enum import Enum
-from typing import Any
-
-from typing_extensions import TypeAlias
+from typing import Any, TypeAlias
 
 from ry._types import Buffer
 
@@ -2839,6 +2838,9 @@ class Bytes(Buffer):
     def __mul__(self, other: int) -&gt; Bytes: ...
     def __rmul__(self, other: int) -&gt; Bytes: ...
     def __len__(self) -&gt; int: ...
+    def __bytes__(self) -&gt; bytes:
+        """Return the underlying data as a Python `bytes` object."""
+
     def removeprefix(self, prefix: Buffer, /) -&gt; Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -2962,6 +2964,20 @@ class Bytes(Buffer):
         """
         Return a copy of the sequence with leading and trailing bytes removed.
         If `chars` is provided, remove all bytes in `chars` from both ends.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+
+    def lstrip(self, chars: Buffer | None = None) -&gt; Bytes:
+        """
+        Return a copy of the sequence with leading bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the left end.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+
+    def rstrip(self, chars: Buffer | None = None) -&gt; Bytes:
+        """
+        Return a copy of the sequence with trailing bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the right end.
         If `chars` is not provided, remove all ASCII whitespace bytes.
         """
 
@@ -4364,7 +4380,8 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    def string(self, human: bool = False) -&gt; str: ...
+    def string(self, friendly: bool = False) -&gt; str: ...
+    def friendly(self) -&gt; str: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -4486,7 +4503,8 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    def string(self, human: bool = False) -&gt; str: ...
+    def string(self, friendly: bool = False) -&gt; str: ...
+    def friendly(self) -&gt; str: ...
     def repr_full(self) -&gt; str: ...
 
     # =========================================================================
@@ -5357,9 +5375,7 @@ class TimeZoneDatabase:
     def bundled(cls) -&gt; TimeZoneDatabase: ...
 </code></pre>
 <h2 id="ry.ryo3._jiff_tz"><a class="header" href="#ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></a></h2>
-<pre><code class="language-python">from typing import Literal
-
-from typing_extensions import TypeAlias
+<pre><code class="language-python">from typing import Literal, TypeAlias
 
 TZDB_NAMES: TypeAlias = Literal[
     "Africa/Abidjan",
@@ -7061,9 +7077,13 @@ def unindent_bytes(string: bytes) -&gt; bytes: ...
 <pre><code class="language-python">import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
+from typing_extensions import Self
+
+from ry._types import FromStr
+
 
 @t.final
-class URL:
+class URL(FromStr):
     def __init__(
         self, url: str | URL, *, params: dict[str, str] | None = None
     ) -&gt; None: ...
@@ -7073,6 +7093,8 @@ class URL:
     # =========================================================================
     @classmethod
     def parse(cls, url: str) -&gt; URL: ...
+    @classmethod
+    def from_str(cls, s: str) -&gt; Self: ...
     @classmethod
     def parse_with_params(cls, url: str, params: dict[str, str]) -&gt; URL: ...
     @classmethod
@@ -7631,7 +7653,7 @@ conversions via the <code>jiff-02</code> feature flag, which is what is used now
 <hr />
 <h2 id="ry-vs-whenever"><a class="header" href="#ry-vs-whenever"><code>ry</code> vs <code>whenever</code></a></h2>
 <p>There is another library called
-<a href="https://github.com/ariebovenberg/whenever"> <code>whenever</code></a> that provides a similar
+<a href="https://github.com/ariebovenberg/whenever"><code>whenever</code></a> that provides a similar
 datetime library to that of <code>ryo3-jiff</code> (both <code>jiff</code> and <code>whenever</code> are based on
 the <a href="https://tc39.es/proposal-temporal/docs/">temporal</a> API).</p>
 <p>No formal benchmarks between <code>ry</code> and <code>whenever</code> have been done, but I have
