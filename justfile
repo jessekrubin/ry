@@ -127,7 +127,7 @@ justfilefmtc:
 
 # format markdown
 mdfmt:
-    prettier --cache --prose-wrap=always -w CHANGELOG.md
+    pnpm dlx prettier@latest --cache --prose-wrap=always -w CHANGELOG.md
 
 # pyproject-fmt
 pyprojectfmt:
