@@ -48,33 +48,37 @@ pub struct PyGlobPaths {
     dtype: GlobDType,
 }
 
+impl PyGlobPaths {
+    /// Pull exactly one item -- fix `clippy::significant-drop-in-scrutinee`
+    #[inline]
+    fn next_path(&self) -> Option<Result<PathBuf, glob::GlobError>> {
+        self.inner.lock().next()
+    }
+}
+
 #[pymethods]
 impl PyGlobPaths {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
-
-    /// __next__ just pulls one item from the underlying iterator
     fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
-        while let Some(path) = self.inner.lock().next() {
-            match path {
-                Ok(path) => {
+        loop {
+            match self.next_path() {
+                Some(Ok(path)) => {
                     let pyany = self.dtype.dtype_into_bound_py_any(py, path)?;
                     return Ok(Some(pyany));
-
-                    //  path.into_bound_py_any(py)?;
-                    // return Ok(Some(pyany));
                 }
-                Err(e) => {
+                Some(Err(e)) => {
                     if self.strict {
                         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                             "{e}"
                         )));
                     }
+                    // non-strict: skip error and keep iterating
                 }
+                None => return Ok(None),
             }
         }
-        Ok(None)
     }
 
     fn collect<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {

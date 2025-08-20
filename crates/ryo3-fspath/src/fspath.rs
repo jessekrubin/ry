@@ -824,7 +824,8 @@ impl PyFsPathReadDir {
     }
 
     fn __next__(&self) -> Option<PyFsPath> {
-        match self.iter.lock().next() {
+        let value = self.iter.lock().next();
+        match value {
             Some(Ok(entry)) => Some(PyFsPath::from(entry.path())),
             _ => None,
         }

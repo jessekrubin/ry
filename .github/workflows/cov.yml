@@ -1,15 +1,15 @@
 name: cov
 
 on:
-  push:
-    branches:
-      - "*"
-      - "*/*"
-      - "**"
-      - "!main"
-      - "!master"
-    tags:
-      - "*"
+  # push:
+  #   branches:
+  #     - "*"
+  #     - "*/*"
+  #     - "**"
+  #     - "!main"
+  #     - "!master"
+  #   tags:
+  #     - "*"
   pull_request:
   workflow_dispatch:
 
@@ -17,20 +17,6 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: install-rust-stable
-        uses: dtolnay/rust-toolchain@stable
-      - name: setup-rust-cache
-        uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: just
-      - run: just ci
-
-
   test-python-cov:
     name: test-python-${{ matrix.python-version }}
     runs-on: ubuntu-latest
@@ -80,11 +66,6 @@ jobs:
       - uses: codecov/codecov-action@v5
         with:
           files: coverage.lcov,coverage.xml
-          name: ${{ matrix.os }}
+          name: cov-python-${{ matrix.python-version }}
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: jessekrubin/ry
-      # - name: Upload coverage reports to Codecov
-      #   uses: codecov/codecov-action@v5
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     slug: jessekrubin/ry
