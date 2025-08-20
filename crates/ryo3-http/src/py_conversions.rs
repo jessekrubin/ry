@@ -124,9 +124,9 @@ impl FromPyObject<'_> for HttpVersion {
                 1 | 11 => Ok(Self(http::Version::HTTP_11)),
                 2 | 20 => Ok(Self(http::Version::HTTP_2)),
                 3 | 30 => Ok(Self(http::Version::HTTP_3)),
-                _ => Err(PyErr::new::<PyValueError, _>(
-                    "Invalid HTTP version: {i} (options: 0= HTPP/0.0, 1 | 10 = HTTP/1.0, 11 = HTTP/1.1, 2 | 20 = HTTP/2.0, 3 | 30 = HTTP/3.0)",
-                )),
+                _ => Err(PyErr::new::<PyValueError, _>(format!(
+                    "Invalid HTTP version: {i} (options: 0= HTTP/0.0, 1 | 10 = HTTP/1.0, 11 = HTTP/1.1, 2 | 20 = HTTP/2.0, 3 | 30 = HTTP/3.0)"
+                ))),
             }
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(

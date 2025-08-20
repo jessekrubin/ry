@@ -1,7 +1,6 @@
 # API
 
 ## Table of Contents
-
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.dirs`](#ry.ryo3.dirs)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
@@ -556,9 +555,7 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 import builtins
 import uuid as pyuuid
 from enum import Enum
-from typing import Any
-
-from typing_extensions import TypeAlias
+from typing import Any, TypeAlias
 
 from ry._types import Buffer
 
@@ -872,6 +869,9 @@ class Bytes(Buffer):
     def __mul__(self, other: int) -> Bytes: ...
     def __rmul__(self, other: int) -> Bytes: ...
     def __len__(self) -> int: ...
+    def __bytes__(self) -> bytes:
+        """Return the underlying data as a Python `bytes` object."""
+
     def removeprefix(self, prefix: Buffer, /) -> Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -995,6 +995,20 @@ class Bytes(Buffer):
         """
         Return a copy of the sequence with leading and trailing bytes removed.
         If `chars` is provided, remove all bytes in `chars` from both ends.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+
+    def lstrip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with leading bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the left end.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+
+    def rstrip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with trailing bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the right end.
         If `chars` is not provided, remove all ASCII whitespace bytes.
         """
 
@@ -2427,7 +2441,8 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    def string(self, human: bool = False) -> str: ...
+    def string(self, friendly: bool = False) -> str: ...
+    def friendly(self) -> str: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -2549,7 +2564,8 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    def string(self, human: bool = False) -> str: ...
+    def string(self, friendly: bool = False) -> str: ...
+    def friendly(self) -> str: ...
     def repr_full(self) -> str: ...
 
     # =========================================================================
@@ -3423,9 +3439,7 @@ class TimeZoneDatabase:
 <h2 id="ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></h2>
 
 ```python
-from typing import Literal
-
-from typing_extensions import TypeAlias
+from typing import Literal, TypeAlias
 
 TZDB_NAMES: TypeAlias = Literal[
     "Africa/Abidjan",
@@ -5163,9 +5177,13 @@ def unindent_bytes(string: bytes) -> bytes: ...
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
+from typing_extensions import Self
+
+from ry._types import FromStr
+
 
 @t.final
-class URL:
+class URL(FromStr):
     def __init__(
         self, url: str | URL, *, params: dict[str, str] | None = None
     ) -> None: ...
@@ -5175,6 +5193,8 @@ class URL:
     # =========================================================================
     @classmethod
     def parse(cls, url: str) -> URL: ...
+    @classmethod
+    def from_str(cls, s: str) -> Self: ...
     @classmethod
     def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
     @classmethod
