@@ -528,7 +528,7 @@ impl RyDateTime {
     }
 
     #[staticmethod]
-    #[pyo3(signature = (s, /, fmt ))]
+    #[pyo3(signature = (s, /, fmt))]
     fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
         DateTime::strptime(fmt, s)
             .map(Self::from)
