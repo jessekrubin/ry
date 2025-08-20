@@ -8,8 +8,10 @@ import sys
 from os import PathLike
 from typing import Protocol, TypedDict, TypeVar
 
-from typing_extensions import Self
-
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
 else:
@@ -21,6 +23,7 @@ __all__ = (
     "DateTypedDict",
     "FromStr",
     "FsPathLike",
+    "Self",
     "TimeSpanTypedDict",
     "TimeTypedDict",
     "ToPy",

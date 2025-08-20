@@ -3,13 +3,18 @@
 ## v0.0.54 [unreleased]
 
 - `ryo3-jiff`
-  - Changed `human` kwarg in `ry.TimeSpan` and `ry.SignedDuration` to `friendly`
+  - Changed `human` arg/kwarg in `ry.TimeSpan` and `ry.SignedDuration` to `friendly` and also make keyword only
+  - Changed `strptime` and `strftime` functions to be more inline with python's
+    `datetime` module by changing the order of args to be `(string, format)` instead
+    of `(format, string)`; the strptime signature is `strptime(s: str, /, fmt: str) -> Self`
   - Added to `ry.TimeSpan` and `ry.SignedDuration` the `friendly` method for
-    more natural string representations.
+    more natural string representations
 - type-annotations
   - Missing `lstrip`/`rstrip` method types for `ry.Bytes`
   - Updated types for `ry.TimeSpan` and `ry.SignedDuration` w/ correct
     `friendly` kwarg and `friendly()` methods
+- Added ruff `A002` lint
+- Added ruff `FBT` lints
 
 ---
 

@@ -99,16 +99,16 @@ impl RyTime {
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
-
-    #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
-        Time::strptime(format, input)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    fn strftime(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
     }
 
-    fn strftime(&self, format: &str) -> String {
-        self.0.strftime(format).to_string()
+    #[staticmethod]
+    #[pyo3(signature = (s, /, fmt))]
+    fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
+        Time::strptime(fmt, s)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     // ========================================================================

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as pydt
 
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies import SearchStrategy
@@ -91,6 +92,7 @@ class TestSignedDurationStrings:
     def test_signed_duration_parse(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
         assert sd.string(friendly=True) == "2h 30m"
-        assert sd.string(True) == "2h 30m"
         assert sd.friendly() == "2h 30m"
         assert sd.string() == "PT2H30M"
+        with pytest.raises(TypeError):
+            assert sd.string(True) == "2h 30m"  # type: ignore[misc]

@@ -8,7 +8,7 @@ import typing as t
 def run(
     *args: str | list[str],
     capture_output: bool = True,
-    input: bytes | None = None,
+    input: bytes | None = None,  # noqa: A002
 ) -> t.Any: ...
 
 # =============================================================================
