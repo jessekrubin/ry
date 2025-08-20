@@ -2,7 +2,7 @@ target-version = "py310"
 line-length = 88
 include = [
   "python/**/*.{py,pyi}",
-  "scripts/**",
+  "scripts/**/*.py",
   "tests/**/*.{py,pyi}",
   "bench/**/*.{py,pyi}",
   "examples/**/*.{py,pyi}",

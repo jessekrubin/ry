@@ -230,17 +230,20 @@ multiple_crate_versions = "allow"
 # nursery
 use_self = "warn"
 
+# =======
 # nursery
+# =======
+# __turn_these_on_occasionally__
+# equatable_if_let = "warn"
+# literal_string_with_formatting_args = "warn"
+# significant_drop_in_scrutinee = "warn"
+# __TBD__
 # as_ptr_cast_mut = 'allow'
 # derive_partial_eq_without_eq = "allow"
-# equatable_if_let = "allow"
-literal_string_with_formatting_args = "warn"
 # missing_const_for_fn = "allow"
 # option_if_let_else = "warn"
 # or_fun_call = "warn"
 # redundant_pub_crate = "allow"
-significant_drop_in_scrutinee = "warn"
 # significant_drop_tightening = "allow"
 # needless_pass_by_ref_mut = "allow"
 # cognitive_complexity = "allow"
-# use_self = "allow"

@@ -17,7 +17,7 @@ fn encode(data: &[u8], quality: Option<u8>, magic_number: Option<bool>) -> PyRes
         }
         _ => 11,
     };
-    let encoded = if let Some(true) = magic_number {
+    let encoded = if magic_number == Some(true) {
         let params = br::enc::BrotliEncoderParams {
             quality: quality_u8.into(),
             magic_number: true,
