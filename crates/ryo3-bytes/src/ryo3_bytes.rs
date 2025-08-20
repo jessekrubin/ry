@@ -214,7 +214,7 @@ impl PyBytes {
                 }
                 self.0
                     .get(index as usize)
-                    .ok_or(PyIndexError::new_err("Index out of range"))?
+                    .ok_or_else(|| PyIndexError::new_err("Index out of range"))?
                     .into_bound_py_any(py)
             }
             BytesGetItemKey::Slice(slice) => {

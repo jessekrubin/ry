@@ -227,7 +227,7 @@ module_name_repetitions = "allow"
 # cargo allowed
 multiple_crate_versions = "allow"
 
-# nursery
+# nursery always on
 use_self = "warn"
 
 # =======
@@ -238,7 +238,7 @@ use_self = "warn"
 # literal_string_with_formatting_args = "warn"
 # significant_drop_in_scrutinee = "warn"
 # __TBD__
-# as_ptr_cast_mut = 'allow'
+# as_ptr_cast_mut = 'warn'
 # derive_partial_eq_without_eq = "allow"
 # missing_const_for_fn = "allow"
 # option_if_let_else = "warn"
