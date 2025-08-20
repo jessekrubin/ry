@@ -1,5 +1,8 @@
 name: cov
 
+# WIP
+# based on https://github.com/cjermain/rust-python-coverage
+
 on:
   # push:
   #   branches:
