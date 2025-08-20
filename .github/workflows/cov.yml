@@ -81,6 +81,8 @@ jobs:
         with:
           files: coverage.lcov,coverage.xml
           name: ${{ matrix.os }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: jessekrubin/ry
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v5
       #   with:
