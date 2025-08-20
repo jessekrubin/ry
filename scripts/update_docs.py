@@ -149,9 +149,9 @@ def write_text(
 def update_api_docs(
     check: bool = False,
 ) -> None:
-    """Update the API.md file in ./docs/src/API.md"""
-    filepath = REPO_ROOT / "docs" / "src" / "API.md"
-    assert filepath.exists(), f"API.md does not exist: {filepath}"
+    """Update the API.md file in ./docs/src/api.md"""
+    filepath = REPO_ROOT / "docs" / "src" / "api.md"
+    assert filepath.exists(), f"api.md does not exist: {filepath}"
     api_content_formatted = get_api_content_readme()
     parts = [api_content_formatted]
     write_text(filepath, "\n".join(parts), check=check)
