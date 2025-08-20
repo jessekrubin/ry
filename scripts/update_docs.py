@@ -147,6 +147,7 @@ def write_text(
 
 
 def update_api_docs(
+    *,
     check: bool = False,
 ) -> None:
     """Update the API.md file in ./docs/src/api.md"""
@@ -157,7 +158,7 @@ def update_api_docs(
     write_text(filepath, "\n".join(parts), check=check)
 
 
-def update_docs_examples(check: bool = False) -> None:
+def update_docs_examples(*, check: bool = False) -> None:
     examples_root = REPO_ROOT / "examples"
     assert examples_root.exists(), f"examples_root does not exist: {examples_root}"
     files = ry.walkdir(examples_root, glob="**/*.py", files=True, dirs=False).collect()
@@ -192,7 +193,7 @@ def update_docs_examples(check: bool = False) -> None:
     write_text(filepath, "\n".join(parts), check=check)
 
 
-def update_docs(check: bool = False) -> None:
+def update_docs(*, check: bool = False) -> None:
     update_api_docs(check=check)
     update_docs_examples(check=check)
 

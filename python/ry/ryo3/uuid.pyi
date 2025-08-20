@@ -27,11 +27,11 @@ class UUID:
 
     def __init__(
         self,
-        hex: str | None = None,
-        bytes: builtins.bytes | None = None,
+        hex: str | None = None,  # noqa: A002
+        bytes: builtins.bytes | None = None,  # noqa: A002
         bytes_le: builtins.bytes | None = None,
         fields: _FieldsType | None = None,
-        int: builtins.int | None = None,
+        int: builtins.int | None = None,  # noqa: A002
         version: builtins.int | None = None,
         *,
         is_safe: SafeUUID = ...,
