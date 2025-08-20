@@ -1,6 +1,7 @@
 # API
 
 ## Table of Contents
+
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3._fspath`](#ry.ryo3._fspath)
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
@@ -45,6 +46,7 @@
 - [`ry.dirs`](#ry.dirs)
 - [`ry.JSON`](#ry.JSON)
 - [`ry.zstd`](#ry.zstd)
+
 <h2 id="ry.ryo3.__init__"><code>ry.ryo3.__init__</code></h2>
 
 ```python
