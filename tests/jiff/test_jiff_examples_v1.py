@@ -59,8 +59,8 @@ def test_parsing_a_span() -> None:
 
 def test_using_strftime_and_strptime_for_formatting_and_parsing() -> None:
     zdt = ry.ZonedDateTime.strptime(
-        "%A, %B %d, %Y at %I:%M%p %Q",
         "Monday, July 15, 2024 at 5:30pm US/Eastern",
+        "%A, %B %d, %Y at %I:%M%p %Q",
     )
     assert zdt.string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
     zdt = ry.date(2024, 7, 15).at(17, 30, 59, 0).in_tz("Australia/Tasmania")

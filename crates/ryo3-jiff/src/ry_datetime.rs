@@ -510,22 +510,27 @@ impl RyDateTime {
     fn from_parts(_cls: &Bound<'_, PyType>, date: &RyDate, time: &RyTime) -> Self {
         Self::from(DateTime::from_parts(date.0, time.0))
     }
+
     fn in_leap_year(&self) -> bool {
         self.0.in_leap_year()
     }
+
     fn last_of_year(&self) -> Self {
         Self::from(self.0.last_of_year())
     }
+
     fn start_of_day(&self) -> Self {
         Self::from(self.0.start_of_day())
     }
-    fn strftime(&self, format: &str) -> String {
-        self.0.strftime(format).to_string()
+
+    fn strftime(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
     }
 
-    #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
-        DateTime::strptime(s, format)
+    #[staticmethod]
+    #[pyo3(signature = (s, /, fmt ))]
+    fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
+        DateTime::strptime(fmt, s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }

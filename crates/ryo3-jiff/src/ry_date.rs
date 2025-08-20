@@ -345,13 +345,17 @@ impl RyDate {
         self.0.yesterday().map(From::from).map_err(map_py_value_err)
     }
 
-    fn strftime(&self, format: &str) -> String {
-        self.0.strftime(format).to_string()
+    // ========================================================================
+    // STRPTIME/STRFTIME
+    // ========================================================================
+    fn strftime(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
     }
 
-    #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
-        Date::strptime(s, format)
+    #[staticmethod]
+    #[pyo3(signature = (s, /, fmt))]
+    fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
+        Date::strptime(fmt, s)
             .map(Self::from)
             .map_err(map_py_value_err)
     }

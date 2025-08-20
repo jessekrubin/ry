@@ -85,6 +85,7 @@ impl RySpan {
     fn __str__(&self) -> String {
         self.0.to_string()
     }
+
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let args = PyTuple::empty(py).into_bound_py_any(py)?;
         let kwargs = self.asdict(py)?.into_bound_py_any(py)?;

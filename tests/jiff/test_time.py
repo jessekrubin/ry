@@ -14,7 +14,10 @@ def test_strptime() -> None:
     ```
     """
 
-    t = ry.Time.strptime("%I:%M%P", "4:30pm")
+    t = ry.Time.strptime(
+        "4:30pm",
+        "%I:%M%P",
+    )
     assert str(t) == "16:30:00"
 
 
