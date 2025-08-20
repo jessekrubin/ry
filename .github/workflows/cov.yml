@@ -81,30 +81,8 @@ jobs:
         with:
           files: coverage.lcov,coverage.xml
           name: ${{ matrix.os }}
-
-#  dev-test-linux-x86_64:
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 15
-#    strategy:
-#      matrix:
-#        target: [ x86_64 ]
-#    steps:
-#      - uses: actions/checkout@v5
-#      - uses: actions/setup-python@v5
-#        with:
-#          python-version: "3.10"
-#      - name: Build wheels
-#        uses: PyO3/maturin-action@v1
-#        with:
-#          target: ${{ matrix.target }}
-#          args: --release --out dist --find-interpreter
-#          sccache: "true"
-#      - name: pytest
-#        if: ${{ startsWith(matrix.target, 'x86_64') }}
-#        shell: bash
-#        run: |
-#          set -e
-#          pip install ry --find-links dist --force-reinstall
-#          pip install -r requirements.dev.txt
-#          pip install pytest
-#          pytest
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     slug: jessekrubin/ry
