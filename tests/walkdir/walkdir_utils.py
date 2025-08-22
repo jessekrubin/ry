@@ -45,13 +45,11 @@ def mk_dir_tree(tmp_path: Path) -> MkDirTree:
         tile_file = tiles_root / str(z) / str(x) / f"{y}.json"
         with open(tile_file, "w", encoding="utf-8", newline="\n") as phile:
             phile.write(
-                json.dumps(
-                    {
-                        "x": x,
-                        "y": y,
-                        "z": z,
-                    }
-                )
+                json.dumps({
+                    "x": x,
+                    "y": y,
+                    "z": z,
+                })
             )
         filepaths.add(tile_file)
     # make some empty dirs

@@ -256,13 +256,11 @@ RYTYPES_JSON_SER = {
     # url ~ ryo3-url
     "url": ry.URL("https://example.com"),
     # http
-    "headers": ry.Headers(
-        {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "X-Content-Type-Options": "nosniff",
-        }
-    ),
+    "headers": ry.Headers({
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-Content-Type-Options": "nosniff",
+    }),
     "http-status": ry.HttpStatus(200),
     # jiff ~ ryo3-jiff
     "date": ry.date(2020, 8, 26),

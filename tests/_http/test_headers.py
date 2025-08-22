@@ -47,23 +47,19 @@ class TestHeadersJson:
 
 class TestHeadersObj:
     def test_headers_obj_repr(self) -> None:
-        h = Headers(
-            {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-        )
+        h = Headers({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
         evaled = eval(repr(h))
         assert isinstance(evaled, Headers)
         assert evaled == h
 
     def test_kwargs(self) -> None:
-        h = Headers(
-            **{
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-        )
+        h = Headers(**{
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
         assert len(h) == 2
         assert h["Content-Type"] == "application/json"
         assert h["Accept"] == "application/json"
@@ -135,24 +131,20 @@ class TestHeadersObj:
         assert h.keys_len() == 0
 
     def test_headers_keys_list(self) -> None:
-        h = Headers(
-            {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-        )
+        h = Headers({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
         keys = h.keys()
         assert isinstance(keys, list)
         keyset = set(keys)
         assert keyset == {"content-type", "accept"}
 
     def test_headers_dict_able(self) -> None:
-        h = Headers(
-            {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-        )
+        h = Headers({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
         d = dict(h)
         assert isinstance(d, dict)
         assert d == {
@@ -161,12 +153,10 @@ class TestHeadersObj:
         }
 
     def test_headers_update(self) -> None:
-        h = Headers(
-            {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-        )
+        h = Headers({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
         h.update({"Content-Type": "application/xml"})
         assert len(h) == 2
         assert h["Content-Type"] == "application/xml"

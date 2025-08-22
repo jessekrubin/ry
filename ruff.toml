@@ -1,5 +1,6 @@
 target-version = "py310"
 line-length = 88
+preview = true
 include = [
   "python/**/*.{py,pyi}",
   "scripts/**/*.py",
@@ -39,7 +40,7 @@ lint.select = [
   "PLW",
   "Q",
   "RUF",
-  "RUF022", # unsorted-dunder-all
+  # "RUF022", # unsorted-dunder-all
   "S",
   "T",
   "TID",

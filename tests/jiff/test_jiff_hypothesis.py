@@ -79,15 +79,13 @@ def test_datetime_difference(dt1: ry.DateTime, dt2: ry.DateTime) -> None:
 @given(
     datetime_strategy,
     st.sampled_from(["second", "minute", "hour", "day", "month", "year"]),
-    st.sampled_from(
-        [
-            "half_even",
-            "half_ceil",
-            "half_floor",
-            "half_expand",
-            "half_trunc",
-        ]
-    ),
+    st.sampled_from([
+        "half_even",
+        "half_ceil",
+        "half_floor",
+        "half_expand",
+        "half_trunc",
+    ]),
     st.integers(min_value=1, max_value=1000),
 )
 def test_datetime_rounding(

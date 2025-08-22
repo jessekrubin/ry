@@ -75,19 +75,17 @@ datetime_tuple_strategy = st.builds(
     st.integers(min_value=0, max_value=999_999_999),
 )  # Nanosecond
 
-timezone_strategy = st.sampled_from(
-    [
-        "UTC",
-        "America/New_York",
-        "Europe/London",
-        "Asia/Tokyo",
-        "Australia/Sydney",
-        "Europe/Berlin",
-        "Africa/Cairo",
-        "America/Los_Angeles",
-        # Add more timezones as needed
-    ]
-)
+timezone_strategy = st.sampled_from([
+    "UTC",
+    "America/New_York",
+    "Europe/London",
+    "Asia/Tokyo",
+    "Australia/Sydney",
+    "Europe/Berlin",
+    "Africa/Cairo",
+    "America/Los_Angeles",
+    # Add more timezones as needed
+])
 
 duration_strategy = st.builds(
     ry.SignedDuration,
