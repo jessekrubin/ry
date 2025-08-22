@@ -25,6 +25,7 @@
 - [`ry.ryo3._jiff`](#ry.ryo3._jiff)
 - [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
+- [`ry.ryo3._memchr`](#ry.ryo3._memchr)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
 - [`ry.ryo3._regex`](#ry.ryo3._regex)
 - [`ry.ryo3._reqwest`](#ry.ryo3._reqwest)
@@ -50,9 +51,11 @@
 ```python
 """ry api ~ type annotations"""
 
-from ry import ulid as ulid  # noqa: RUF100
-from ry import uuid as uuid  # noqa: RUF100
 from ry.ryo3 import JSON as JSON
+from ry.ryo3 import ulid as ulid
+from ry.ryo3 import uuid as uuid
+from ry.ryo3 import xxhash as xxhash
+from ry.ryo3 import zstd as zstd
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -83,8 +86,8 @@ from ry.ryo3._heck import snake_case as snake_case
 from ry.ryo3._heck import snek_case as snek_case
 from ry.ryo3._heck import title_case as title_case
 from ry.ryo3._heck import train_case as train_case
-from ry.ryo3._http import Headers as Headers  # noqa: RUF100
-from ry.ryo3._http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.ryo3._http import Headers as Headers
+from ry.ryo3._http import HttpStatus as HttpStatus
 from ry.ryo3._jiff import Date as Date
 from ry.ryo3._jiff import DateDifference as DateDifference
 from ry.ryo3._jiff import DateTime as DateTime
@@ -120,6 +123,12 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._memchr import memchr as memchr
+from ry.ryo3._memchr import memchr2 as memchr2
+from ry.ryo3._memchr import memchr3 as memchr3
+from ry.ryo3._memchr import memrchr as memrchr
+from ry.ryo3._memchr import memrchr2 as memrchr2
+from ry.ryo3._memchr import memrchr3 as memrchr3
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import HttpClient as HttpClient
@@ -204,6 +213,7 @@ from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
 from ry.ryo3.JSON import stringify as stringify
+from ry.ryo3.JSON import stringify_unsafe as stringify_unsafe
 from ry.ryo3.orjson import orjson_default as orjson_default
 from ry.ryo3.sh import cd as cd
 from ry.ryo3.sh import home as home
@@ -397,6 +407,10 @@ def parse(
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
+
+
+# under construction
+def stringify_unsafe(data: t.Any) -> Bytes: ...
 ```
 
 <h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
@@ -4093,6 +4107,30 @@ def read_json(
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
+```
+
+<h2 id="ry.ryo3._memchr"><code>ry.ryo3._memchr</code></h2>
+
+```python
+"""ryo3-memchr types"""
+
+from typing import TypeAlias
+
+from ry._types import Buffer
+
+Byte: TypeAlias = int | bytes
+
+
+def memchr(needle: Byte, haystack: Buffer) -> int | None: ...
+def memchr2(needle: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memchr3(
+    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+) -> int | None: ...
+def memrchr(needle: Byte, haystack: Buffer) -> int | None: ...
+def memrchr2(needle: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memrchr3(
+    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+) -> int | None: ...
 ```
 
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
