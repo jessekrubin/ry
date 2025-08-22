@@ -1,8 +1,8 @@
 """ry api ~ type annotations"""
 
-from ry import ulid as ulid  # noqa: RUF100
-from ry import uuid as uuid  # noqa: RUF100
 from ry.ryo3 import JSON as JSON
+from ry.ryo3 import ulid as ulid  # noqa: RUF100
+from ry.ryo3 import uuid as uuid  # noqa: RUF100
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -71,6 +71,11 @@ from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
 from ry.ryo3._memchr import memchr as memchr
+from ry.ryo3._memchr import memchr2 as memchr2
+from ry.ryo3._memchr import memchr3 as memchr3
+from ry.ryo3._memchr import memrchr as memrchr
+from ry.ryo3._memchr import memrchr2 as memrchr2
+from ry.ryo3._memchr import memrchr3 as memrchr3
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import HttpClient as HttpClient

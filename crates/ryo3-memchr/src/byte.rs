@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use pyo3::{
     exceptions::{PyTypeError, PyValueError},
     prelude::*,
@@ -6,15 +8,24 @@ use pyo3::{
 
 pub struct Byte(u8);
 
+impl Deref for Byte {
+    type Target = u8;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl Byte {
+    #[must_use]
     pub fn new(value: u8) -> Self {
-        Byte(value)
+        Self(value)
     }
 }
 
 impl From<u8> for Byte {
     fn from(value: u8) -> Self {
-        Byte::new(value)
+        Self::new(value)
     }
 }
 
@@ -22,15 +33,15 @@ impl FromPyObject<'_> for Byte {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(i) = ob.downcast::<PyInt>() {
             if let Ok(b) = i.extract::<u8>() {
-                return Ok(Byte(b));
+                Ok(Self(b))
+            } else {
+                Err(PyValueError::new_err("Integer out of range for a byte"))
             }
-        }
-
-        if let Ok(i) = ob.downcast::<PyBytes>() {
+        } else if let Ok(i) = ob.downcast::<PyBytes>() {
             let l = i.len()?;
             if l == 1 {
                 let b = i.extract::<[u8; 1]>()?;
-                return Ok(Byte(b[0]));
+                Ok(Self(b[0]))
             } else {
                 Err(PyValueError::new_err(format!(
                     "Expected a single byte, got a bytes object of length {l}"

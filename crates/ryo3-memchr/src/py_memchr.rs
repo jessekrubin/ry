@@ -1,39 +1,45 @@
-use pyo3::{
-    exceptions::{PyTypeError, PyValueError},
-    prelude::*,
-    types::{PyBytes, PyInt},
-};
+use pyo3::prelude::*;
 
-#[derive(Debug, Clone, Copy)]
-pub struct Byte(u8);
+use crate::byte::Byte;
 
-impl FromPyObject<'_> for Byte {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(i) = ob.downcast::<PyInt>() {
-            if let Ok(b) = i.extract::<u8>() {
-                return Ok(Byte(b));
-            }
-        }
-
-        if let Ok(i) = ob.downcast::<PyBytes>() {
-            let l = i.len()?;
-            if l == 1 {
-                let b = i.extract::<[u8; 1]>()?;
-                return Ok(Byte(b[0]));
-            } else {
-                Err(PyValueError::new_err(format!(
-                    "Expected a single byte, got a bytes object of length {l}"
-                )))
-            }
-        } else {
-            Err(PyTypeError::new_err(
-                "Expected an integer in range(0, 256) or a bytes object of length 1",
-            ))
-        }
-    }
-}
-
+#[expect(clippy::needless_pass_by_value)]
+#[must_use]
 #[pyfunction]
 pub fn memchr(needle: Byte, haystack: &[u8]) -> Option<usize> {
-    ::memchr::memchr(needle.0, haystack)
+    ::memchr::memchr(*needle, haystack)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[must_use]
+#[pyfunction]
+pub fn memchr2(needle1: Byte, needle2: Byte, haystack: &[u8]) -> Option<usize> {
+    ::memchr::memchr2(*needle1, *needle2, haystack)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[must_use]
+#[pyfunction]
+pub fn memchr3(needle1: Byte, needle2: Byte, needle3: Byte, haystack: &[u8]) -> Option<usize> {
+    ::memchr::memchr3(*needle1, *needle2, *needle3, haystack)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[must_use]
+#[pyfunction]
+pub fn memrchr(needle: Byte, haystack: &[u8]) -> Option<usize> {
+    ::memchr::memrchr(*needle, haystack)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[must_use]
+#[pyfunction]
+pub fn memrchr2(needle1: Byte, needle2: Byte, haystack: &[u8]) -> Option<usize> {
+    ::memchr::memrchr2(*needle1, *needle2, haystack)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[must_use]
+#[pyfunction]
+pub fn memrchr3(needle1: Byte, needle2: Byte, needle3: Byte, haystack: &[u8]) -> Option<usize> {
+    ::memchr::memrchr3(*needle1, *needle2, *needle3, haystack)
 }
