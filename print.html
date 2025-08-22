@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-08-20T21:39:14.865954335+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-08-22T23:24:51.784728845+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -297,6 +297,7 @@ into separate packages</li>
 <ul>
 <li><code>globset</code> (formerly <a href="https://pypi.org/project/globsters/">globsters</a>)</li>
 <li><code>jiff</code></li>
+<li><code>memchr</code></li>
 <li><code>regex</code> (WIP ~ very incomplete)</li>
 <li><code>same-file</code></li>
 <li><code>walkdir</code></li>
@@ -466,12 +467,19 @@ dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0054-unreleased"><a class="header" href="#v0054-unreleased">v0.0.54 [unreleased]</a></h2>
 <ul>
+<li><code>ryo3-memchr</code>
+<ul>
+<li>Basic functionality for <code>memchr</code> and <code>memrchr</code> operations</li>
+</ul>
+</li>
 <li><code>ryo3-jiff</code>
 <ul>
-<li>Changed <code>human</code> arg/kwarg in <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> to <code>friendly</code> and also make keyword only</li>
+<li>Changed <code>human</code> arg/kwarg in <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> to
+<code>friendly</code> and also make keyword only</li>
 <li>Changed <code>strptime</code> and <code>strftime</code> functions to be more inline with python’s
-<code>datetime</code> module by changing the order of args to be <code>(string, format)</code> instead
-of <code>(format, string)</code>; the strptime signature is <code>strptime(s: str, /, fmt: str) -&gt; Self</code></li>
+<code>datetime</code> module by changing the order of args to be <code>(string, format)</code>
+instead of <code>(format, string)</code>; the strptime signature is
+<code>strptime(s: str, /, fmt: str) -&gt; Self</code></li>
 <li>Added to <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> the <code>friendly</code> method for
 more natural string representations</li>
 </ul>
@@ -1994,11 +2002,9 @@ def main() -&gt; None:
     # globset/globster
     for filepath in ry.walkdir(
         dir2walk,
-        glob=ry.globster(
-            [
-                "*.py",
-            ]
-        ),
+        glob=ry.globster([
+            "*.py",
+        ]),
     ):
         assert filepath.endswith(".py")
 
@@ -2033,6 +2039,7 @@ if __name__ == "__main__":
 <li><a href="api.html#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></li>
 <li><a href="api.html#ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></a></li>
 <li><a href="api.html#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></li>
+<li><a href="api.html#ry.ryo3._memchr"><code>ry.ryo3._memchr</code></a></li>
 <li><a href="api.html#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></li>
 <li><a href="api.html#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></li>
 <li><a href="api.html#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></li>
@@ -2057,9 +2064,11 @@ if __name__ == "__main__":
 <h2 id="ry.ryo3.__init__"><a class="header" href="#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></h2>
 <pre><code class="language-python">"""ry api ~ type annotations"""
 
-from ry import ulid as ulid  # noqa: RUF100
-from ry import uuid as uuid  # noqa: RUF100
 from ry.ryo3 import JSON as JSON
+from ry.ryo3 import ulid as ulid
+from ry.ryo3 import uuid as uuid
+from ry.ryo3 import xxhash as xxhash
+from ry.ryo3 import zstd as zstd
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -2090,8 +2099,8 @@ from ry.ryo3._heck import snake_case as snake_case
 from ry.ryo3._heck import snek_case as snek_case
 from ry.ryo3._heck import title_case as title_case
 from ry.ryo3._heck import train_case as train_case
-from ry.ryo3._http import Headers as Headers  # noqa: RUF100
-from ry.ryo3._http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.ryo3._http import Headers as Headers
+from ry.ryo3._http import HttpStatus as HttpStatus
 from ry.ryo3._jiff import Date as Date
 from ry.ryo3._jiff import DateDifference as DateDifference
 from ry.ryo3._jiff import DateTime as DateTime
@@ -2127,6 +2136,12 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._memchr import memchr as memchr
+from ry.ryo3._memchr import memchr2 as memchr2
+from ry.ryo3._memchr import memchr3 as memchr3
+from ry.ryo3._memchr import memrchr as memrchr
+from ry.ryo3._memchr import memrchr2 as memrchr2
+from ry.ryo3._memchr import memrchr3 as memrchr3
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import HttpClient as HttpClient
@@ -2211,6 +2226,7 @@ from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
 from ry.ryo3.JSON import stringify as stringify
+from ry.ryo3.JSON import stringify_unsafe as stringify_unsafe
 from ry.ryo3.orjson import orjson_default as orjson_default
 from ry.ryo3.sh import cd as cd
 from ry.ryo3.sh import home as home
@@ -2395,6 +2411,10 @@ def parse(
 ) -&gt; JsonValue: ...
 def cache_clear() -&gt; None: ...
 def cache_usage() -&gt; int: ...
+
+
+# under construction
+def stringify_unsafe(data: t.Any) -&gt; Bytes: ...
 </code></pre>
 <h2 id="ry.ryo3.orjson"><a class="header" href="#ry.ryo3.orjson"><code>ry.ryo3.orjson</code></a></h2>
 <pre><code class="language-python">"""orjson + ry types
@@ -6031,6 +6051,27 @@ def read_json(
 ) -&gt; JsonValue: ...
 def json_cache_clear() -&gt; None: ...
 def json_cache_usage() -&gt; int: ...
+</code></pre>
+<h2 id="ry.ryo3._memchr"><a class="header" href="#ry.ryo3._memchr"><code>ry.ryo3._memchr</code></a></h2>
+<pre><code class="language-python">"""ryo3-memchr types"""
+
+from typing import TypeAlias
+
+from ry._types import Buffer
+
+Byte: TypeAlias = int | bytes
+
+
+def memchr(needle: Byte, haystack: Buffer) -&gt; int | None: ...
+def memchr2(needle: Byte, needle2: Byte, haystack: Buffer) -&gt; int | None: ...
+def memchr3(
+    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+) -&gt; int | None: ...
+def memrchr(needle: Byte, haystack: Buffer) -&gt; int | None: ...
+def memrchr2(needle: Byte, needle2: Byte, haystack: Buffer) -&gt; int | None: ...
+def memrchr3(
+    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+) -&gt; int | None: ...
 </code></pre>
 <h2 id="ry.ryo3._quick_maths"><a class="header" href="#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></h2>
 <pre><code class="language-python">"""ryo3-quick-maths types"""

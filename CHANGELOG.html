@@ -184,12 +184,19 @@
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0054-unreleased"><a class="header" href="#v0054-unreleased">v0.0.54 [unreleased]</a></h2>
 <ul>
+<li><code>ryo3-memchr</code>
+<ul>
+<li>Basic functionality for <code>memchr</code> and <code>memrchr</code> operations</li>
+</ul>
+</li>
 <li><code>ryo3-jiff</code>
 <ul>
-<li>Changed <code>human</code> arg/kwarg in <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> to <code>friendly</code> and also make keyword only</li>
+<li>Changed <code>human</code> arg/kwarg in <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> to
+<code>friendly</code> and also make keyword only</li>
 <li>Changed <code>strptime</code> and <code>strftime</code> functions to be more inline with python’s
-<code>datetime</code> module by changing the order of args to be <code>(string, format)</code> instead
-of <code>(format, string)</code>; the strptime signature is <code>strptime(s: str, /, fmt: str) -&gt; Self</code></li>
+<code>datetime</code> module by changing the order of args to be <code>(string, format)</code>
+instead of <code>(format, string)</code>; the strptime signature is
+<code>strptime(s: str, /, fmt: str) -&gt; Self</code></li>
 <li>Added to <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> the <code>friendly</code> method for
 more natural string representations</li>
 </ul>
