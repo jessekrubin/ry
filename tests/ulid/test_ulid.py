@@ -8,12 +8,12 @@ removed freezegun as it is not really needed nor does pyo3 stuff respsect it
 
 from __future__ import annotations
 
+import datetime as pydt
 import typing as t
 import uuid
-from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 import pytest
-import typing_extensions as te
 
 import ry
 from ry.ulid import ULID
@@ -22,11 +22,11 @@ if t.TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+def utcnow() -> pydt.datetime:
+    return pydt.datetime.now(pydt.timezone.utc)
 
 
-def datetimes_almost_equal(a: datetime, b: datetime) -> None:
+def datetimes_almost_equal(a: pydt.datetime, b: pydt.datetime) -> None:
     dt = abs((a - b).total_seconds())
     assert dt < 0.01, (
         f"Expected {a} and {b} to be almost equal, but they differ by {dt} seconds"
@@ -35,7 +35,7 @@ def datetimes_almost_equal(a: datetime, b: datetime) -> None:
 
 def test_ulid() -> None:
     ulid = ULID()
-    now = datetime.now(timezone.utc)
+    now = pydt.datetime.now(pydt.timezone.utc)
     t = now.timestamp()
     assert len(ulid.bytes) == 16
     assert len(str(ulid)) == (10 + 16)
@@ -47,7 +47,7 @@ def test_ulid() -> None:
     assert isinstance(ulid.timestamp, float)
     assert ulid.timestamp == pytest.approx(t)
 
-    assert isinstance(ulid.datetime, datetime)
+    assert isinstance(ulid.datetime, pydt.datetime)
     datetimes_almost_equal(ulid.datetime, now)
 
 
@@ -65,7 +65,7 @@ def test_ulid_monotonic_sorting(tick: int) -> None:
     def _gen() -> t.Generator[ULID, None, None]:
         initial_time = utcnow()
         for i in range(1, 11):
-            dt = initial_time + timedelta(seconds=i * tick)
+            dt = initial_time + pydt.timedelta(seconds=i * tick)
             yield ULID.from_datetime(dt)
 
     ulids = list(_gen())
@@ -93,7 +93,7 @@ def test_comparison() -> None:
     assert ulid1 == str(ulid1)
     assert (ulid1 == object()) is False
 
-    later = now + timedelta(milliseconds=1)
+    later = now + pydt.timedelta(milliseconds=1)
     ulid2 = ULID.from_datetime(later)
 
     assert ulid1 < ulid2
@@ -232,7 +232,7 @@ def test_ulid_min_input(constructor: Callable[[Params], ULID], value: Params) ->
     [
         (ULID, b"\xff" * 16),
         (ULID.from_timestamp, 281474976710655),
-        (ULID.from_datetime, datetime.max.replace(tzinfo=timezone.utc)),
+        (ULID.from_datetime, pydt.datetime.max.replace(tzinfo=pydt.timezone.utc)),
         (ULID.from_bytes, b"\xff" * 16),
         (ULID.from_str, "7" + "Z" * 25),
         (ULID.from_hex, "f" * 32),
@@ -305,7 +305,7 @@ def test_pydantic_protocol_strict() -> None:
     ulid = ULID()
 
     class Model(BaseModel):
-        ulid: te.Annotated[ry.ulid.ULID | None, Field(strict=True)]
+        ulid: Annotated[ry.ulid.ULID | None, Field(strict=True)]
 
         model_config = {
             "arbitrary_types_allowed": True,
