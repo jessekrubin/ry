@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
-import zoneinfo
+from typing import TYPE_CHECKING
 
 from hypothesis import assume, given
 from hypothesis import strategies as st
@@ -9,6 +9,9 @@ from hypothesis import strategies as st
 import ry
 
 from ..strategies import st_timezones
+
+if TYPE_CHECKING:
+    import zoneinfo
 
 
 @given(st.dates())

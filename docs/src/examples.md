@@ -368,11 +368,9 @@ def main() -> None:
     # globset/globster
     for filepath in ry.walkdir(
         dir2walk,
-        glob=ry.globster(
-            [
-                "*.py",
-            ]
-        ),
+        glob=ry.globster([
+            "*.py",
+        ]),
     ):
         assert filepath.endswith(".py")
 

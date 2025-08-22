@@ -214,12 +214,10 @@ async def upload_file(
         message = await receive()
         body += message.get("body", b"")
         more_body = message.get("more_body", False)
-    response_json = json.dumps(
-        {
-            "received_bytes": len(body),
-            "content_type": content_type,
-        }
-    ).encode()
+    response_json = json.dumps({
+        "received_bytes": len(body),
+        "content_type": content_type,
+    }).encode()
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
         status=200,

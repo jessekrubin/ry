@@ -38,24 +38,20 @@ if __name__ == "__main__":
 
     def _banner() -> str:
         json_info = json.dumps(_lib_info(), indent=2)
-        return "\n".join(
-            (
-                "~~~~~~~~~~~~~",
-                "ry.dev ~ repl",
-                "~~~~~~~~~~~~~",
-                json_info,
-            )
-        )
+        return "\n".join((
+            "~~~~~~~~~~~~~",
+            "ry.dev ~ repl",
+            "~~~~~~~~~~~~~",
+            json_info,
+        ))
 
     # locals
     local = globals()
-    local.update(
-        {
-            "inspect": inspect,
-            "pprint": pprint,
-            "rich": rich,
-        }
-    )
+    local.update({
+        "inspect": inspect,
+        "pprint": pprint,
+        "rich": rich,
+    })
     # try to do das IPython first and 4-most...!
     try:
         import IPython

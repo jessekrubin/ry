@@ -4,11 +4,14 @@ import fnmatch
 import pathlib
 import random
 import re
+from typing import TYPE_CHECKING
 
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
 
 import ry
+
+if TYPE_CHECKING:
+    from pytest_benchmark.fixture import BenchmarkFixture
 
 PATTERN = "*.py"
 FILENAMES_RAW = [

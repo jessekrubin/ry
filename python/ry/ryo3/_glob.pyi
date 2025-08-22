@@ -41,6 +41,7 @@ def glob(
     require_literal_leading_dot: bool = False,
     dtype: type[_T],
 ) -> GlobPaths[_T]: ...
+
 @t.final
 class Pattern:
     def __init__(self, pattern: str) -> None: ...

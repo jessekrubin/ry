@@ -5,7 +5,9 @@ import typing as t
 import pytest
 
 import ry
-from ry._types import FromStr
+
+if t.TYPE_CHECKING:
+    from ry._types import FromStr
 
 JIFF_OBJECTS: list[FromStr] = [
     # date

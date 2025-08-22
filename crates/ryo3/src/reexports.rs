@@ -26,6 +26,7 @@ ryo3_features_reexport! {
     "heck", ryo3_heck,
     "jiff", ryo3_jiff,
     "jiter", ryo3_jiter,
+    "memchr", ryo3_memchr,
     "regex", ryo3_regex,
     "reqwest", ryo3_reqwest,
     "same-file", ryo3_same_file,

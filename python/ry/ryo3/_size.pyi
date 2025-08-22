@@ -27,6 +27,7 @@ def parse_size(s: str) -> int:
     Raises:
         ValueError: If string is not a valid human-readable bytes-size string.
     """
+
 @t.final
 class SizeFormatter:
     """Human-readable bytes-size formatter."""
