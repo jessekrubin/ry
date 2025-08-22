@@ -109,6 +109,7 @@ _(aka: questions that I have been asking myself)_
   - burnt-sushi:
     - `globset` (formerly [globsters](https://pypi.org/project/globsters/))
     - `jiff`
+    - `memchr`
     - `regex` (WIP ~ very incomplete)
     - `same-file`
     - `walkdir`
