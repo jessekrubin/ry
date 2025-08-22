@@ -1639,6 +1639,7 @@ dependencies = [
  "ryo3-jiff",
  "ryo3-jiter",
  "ryo3-json",
+ "ryo3-memchr",
  "ryo3-quick-maths",
  "ryo3-regex",
  "ryo3-reqwest",
@@ -1824,6 +1825,14 @@ dependencies = [
 name = "ryo3-macro-rules"
 version = "0.0.54"
 dependencies = [
+ "pyo3",
+]
+
+[[package]]
+name = "ryo3-memchr"
+version = "0.0.54"
+dependencies = [
+ "memchr",
  "pyo3",
 ]
 

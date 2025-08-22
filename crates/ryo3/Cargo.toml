@@ -43,6 +43,7 @@ ryo3-http = { workspace = true, optional = true }
 ryo3-jiff = { workspace = true, optional = true }
 ryo3-jiter = { workspace = true, optional = true }
 ryo3-json = { workspace = true, optional = true }
+ryo3-memchr = { workspace = true, optional = true }
 ryo3-regex = { workspace = true, optional = true }
 ryo3-reqwest = { workspace = true, optional = true }
 ryo3-same-file = { workspace = true, optional = true }
@@ -77,6 +78,7 @@ all = [
   "jiff",
   "jiter",
   "json",
+  "memchr",
   "regex",
   "reqwest",
   "same-file",
@@ -114,6 +116,7 @@ http = ["dep:ryo3-http"]
 jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
 json = ["dep:ryo3-json"]
+memchr = ["dep:ryo3-memchr"]
 regex = ["dep:ryo3-regex", "ryo3-which/regex"]
 reqwest = ["dep:ryo3-reqwest", "http", "url", "bytes"]
 same-file = ["dep:ryo3-same-file"]

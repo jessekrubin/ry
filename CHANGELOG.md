@@ -3,10 +3,12 @@
 ## v0.0.54 [unreleased]
 
 - `ryo3-jiff`
-  - Changed `human` arg/kwarg in `ry.TimeSpan` and `ry.SignedDuration` to `friendly` and also make keyword only
+  - Changed `human` arg/kwarg in `ry.TimeSpan` and `ry.SignedDuration` to
+    `friendly` and also make keyword only
   - Changed `strptime` and `strftime` functions to be more inline with python's
-    `datetime` module by changing the order of args to be `(string, format)` instead
-    of `(format, string)`; the strptime signature is `strptime(s: str, /, fmt: str) -> Self`
+    `datetime` module by changing the order of args to be `(string, format)`
+    instead of `(format, string)`; the strptime signature is
+    `strptime(s: str, /, fmt: str) -> Self`
   - Added to `ry.TimeSpan` and `ry.SignedDuration` the `friendly` method for
     more natural string representations
 - type-annotations

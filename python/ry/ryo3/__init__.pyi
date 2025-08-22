@@ -70,6 +70,7 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._memchr import memchr as memchr
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import HttpClient as HttpClient
@@ -154,6 +155,7 @@ from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
 from ry.ryo3.JSON import stringify as stringify
+from ry.ryo3.JSON import stringify_unsafe as stringify_unsafe
 from ry.ryo3.orjson import orjson_default as orjson_default
 from ry.ryo3.sh import cd as cd
 from ry.ryo3.sh import home as home
