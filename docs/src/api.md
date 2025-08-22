@@ -2,15 +2,6 @@
 
 ## Table of Contents
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
-- [`ry.ryo3.dirs`](#ry.ryo3.dirs)
-- [`ry.ryo3.errors`](#ry.ryo3.errors)
-- [`ry.ryo3.JSON`](#ry.ryo3.JSON)
-- [`ry.ryo3.orjson`](#ry.ryo3.orjson)
-- [`ry.ryo3.sh`](#ry.ryo3.sh)
-- [`ry.ryo3.ulid`](#ry.ryo3.ulid)
-- [`ry.ryo3.uuid`](#ry.ryo3.uuid)
-- [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
-- [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
@@ -40,6 +31,15 @@
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.ryo3._zstd`](#ry.ryo3._zstd)
+- [`ry.ryo3.dirs`](#ry.ryo3.dirs)
+- [`ry.ryo3.errors`](#ry.ryo3.errors)
+- [`ry.ryo3.JSON`](#ry.ryo3.JSON)
+- [`ry.ryo3.orjson`](#ry.ryo3.orjson)
+- [`ry.ryo3.sh`](#ry.ryo3.sh)
+- [`ry.ryo3.ulid`](#ry.ryo3.ulid)
+- [`ry.ryo3.uuid`](#ry.ryo3.uuid)
+- [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
+- [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry.dirs`](#ry.dirs)
 - [`ry.JSON`](#ry.JSON)
 - [`ry.ulid`](#ry.ulid)
@@ -231,595 +231,6 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
-```
-
-<h2 id="ry.ryo3.dirs"><code>ry.ryo3.dirs</code></h2>
-
-```python
-def audio() -> str | None: ...
-def audio_dir() -> str | None: ...
-def cache() -> str | None: ...
-def cache_dir() -> str | None: ...
-def config() -> str | None: ...
-def config_dir() -> str | None: ...
-def config_local() -> str | None: ...
-def config_local_dir() -> str | None: ...
-def data() -> str | None: ...
-def data_dir() -> str | None: ...
-def data_local() -> str | None: ...
-def data_local_dir() -> str | None: ...
-def desktop() -> str | None: ...
-def desktop_dir() -> str | None: ...
-def document() -> str | None: ...
-def document_dir() -> str | None: ...
-def download() -> str | None: ...
-def download_dir() -> str | None: ...
-def executable() -> str | None: ...
-def executable_dir() -> str | None: ...
-def font() -> str | None: ...
-def font_dir() -> str | None: ...
-def home() -> str | None: ...
-def home_dir() -> str | None: ...
-def picture() -> str | None: ...
-def picture_dir() -> str | None: ...
-def preference() -> str | None: ...
-def preference_dir() -> str | None: ...
-def public() -> str | None: ...
-def public_dir() -> str | None: ...
-def runtime() -> str | None: ...
-def runtime_dir() -> str | None: ...
-def state() -> str | None: ...
-def state_dir() -> str | None: ...
-def template() -> str | None: ...
-def template_dir() -> str | None: ...
-def video() -> str | None: ...
-def video_dir() -> str | None: ...
-```
-
-<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
-
-```python
-class FeatureNotEnabledError(RuntimeError):
-    """Raised when a feature is not enabled in the current build."""
-```
-
-<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
-
-```python
-"""ry.ryo3.JSON"""
-
-import typing as t
-
-import typing_extensions as te
-
-from ry._types import Buffer
-from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import JsonParseKwargs, JsonValue
-
-
-def minify(data: Buffer) -> Bytes:
-    """Return minified json data (remove whitespace, newlines)
-
-    Args:
-        data: The JSON data to minify.
-
-    Returns:
-        Minified JSON data as a `Bytes` object.
-
-    Examples:
-        >>> import json as pyjson
-        >>> from ry.ryo3 import JSON
-        >>> data = {"key": "value", "number": 123, "bool": True}
-        >>> json_str = pyjson.dumps(data, indent=2)
-        >>> print(json_str)
-        {
-          "key": "value",
-          "number": 123,
-          "bool": true
-        }
-        >>> bytes(JSON.minify(json_str))
-        b'{"key":"value","number":123,"bool":true}'
-
-    """
-
-
-def fmt(data: Buffer) -> Bytes:
-    """Return minified json data (remove whitespace, newlines)
-
-    Args:
-        data: The JSON data to minify.
-
-    Returns:
-        Minified JSON data as a `Bytes` object.
-
-    Examples:
-        >>> import json as pyjson
-        >>> from ry.ryo3 import JSON
-        >>> data = {"key": "value", "number": 123, "bool": True}
-        >>> json_str = pyjson.dumps(data, indent=2)
-        >>> print(json_str)
-        {
-          "key": "value",
-          "number": 123,
-          "bool": true
-        }
-        >>> bytes(JSON.fmt(json_str)).decode()
-        '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
-        >>> print(bytes(JSON.fmt(json_str)).decode())
-        {
-          "key": "value",
-          "number": 123,
-          "bool": true
-        }
-
-    """
-
-
-@t.overload
-def stringify(
-    data: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[True],
-) -> bytes: ...
-@t.overload
-def stringify(
-    data: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[False] = False,
-) -> Bytes: ...
-@t.overload
-def dumps(
-    data: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[True],
-) -> bytes: ...
-@t.overload
-def dumps(
-    data: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[False] = False,
-) -> Bytes: ...
-def loads(
-    data: Buffer | bytes | str,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def parse(
-    data: Buffer | bytes | str,
-    /,
-    **kwargs: te.Unpack[JsonParseKwargs],
-) -> JsonValue: ...
-def cache_clear() -> None: ...
-def cache_usage() -> int: ...
-
-
-# under construction
-def stringify_unsafe(data: t.Any) -> Bytes: ...
-```
-
-<h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
-
-```python
-"""orjson + ry types
-
-orjson-types: https://github.com/ijl/orjson/blob/master/pysrc/orjson/__init__.pyi
-"""
-
-import typing as t
-
-import orjson
-
-
-def orjson_default(obj: t.Any) -> orjson.Fragment:
-    """Fn to be used with `orjson.dumps` to serialize ry-compatible types
-
-    Example:
-        >>> import orjson
-        >>> from ry import orjson_default, Date
-        >>> data = {"key": "value", "date": Date(2023, 10, 1)}
-        >>> orjson.dumps(data, default=orjson_default)
-        b'{"key":"value","date":"2023-10-01"}'
-
-    """
-```
-
-<h2 id="ry.ryo3.sh"><code>ry.ryo3.sh</code></h2>
-
-```python
-import typing as t
-from os import PathLike
-
-from ry.ryo3._fspath import FsPath
-
-
-def pwd() -> str: ...
-def home() -> str: ...
-def cd(path: str | PathLike[str]) -> None: ...
-@t.overload
-def ls(
-    path: str | PathLike[str] | None = None,  # defaults to '.' if None
-    *,
-    absolute: bool = False,
-    sort: bool = False,
-    objects: t.Literal[False] = False,
-) -> list[str]:
-    """List directory contents - returns list of strings"""
-
-
-@t.overload
-def ls(
-    path: str | PathLike[str] | None = None,  # defaults to '.' if None
-    *,
-    absolute: bool = False,
-    sort: bool = False,
-    objects: t.Literal[True],
-) -> list[FsPath]:
-    """List directory contents - returns list of FsPath objects"""
-
-
-def mkdir(path: str | PathLike[str]) -> None: ...
-```
-
-<h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
-
-```python
-import builtins
-import datetime as pydt
-import uuid
-from collections.abc import Callable as Callable
-from typing import Any
-
-from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
-from pydantic import (
-    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
-)
-from pydantic_core import CoreSchema as CoreSchema
-
-
-class ULID:
-    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
-
-    # ----------------
-    # INSTANCE METHODS
-    # ----------------
-    def to_uuid(self) -> uuid.UUID: ...
-    def to_uuid4(self) -> uuid.UUID: ...
-
-    # ----------
-    # PROPERTIES
-    # ----------
-    @property
-    def bytes(self) -> builtins.bytes: ...
-    @property
-    def milliseconds(self) -> int: ...
-    @property
-    def timestamp(self) -> float: ...
-    @property
-    def datetime(self) -> pydt.datetime: ...
-    @property
-    def hex(self) -> str: ...
-
-    # -------------
-    # CLASS METHODS
-    # -------------
-    @classmethod
-    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
-    @classmethod
-    def from_timestamp(cls, value: float) -> ULID: ...
-    @classmethod
-    def from_uuid(cls, value: uuid.UUID) -> ULID: ...
-    @classmethod
-    def from_bytes(cls, bytes_: builtins.bytes) -> ULID: ...
-    @classmethod
-    def from_hex(cls, value: str) -> ULID: ...
-    @classmethod
-    def from_str(cls, string: str) -> ULID: ...
-    @classmethod
-    def from_int(cls, value: int) -> ULID: ...
-    @classmethod
-    def parse(cls, value: Any) -> ULID: ...
-
-    # --------
-    # PYDANTIC
-    # --------
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema: ...
-
-    # -------
-    # DUNDERS
-    # -------
-    def __bytes__(self) -> builtins.bytes: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __int__(self) -> int: ...
-    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-```
-
-<h2 id="ry.ryo3.uuid"><code>ry.ryo3.uuid</code></h2>
-
-```python
-"""ryo3-uuid types
-
-based on typeshed types for python's builtin uuid module
-
-REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
-"""
-
-import builtins
-import uuid as pyuuid
-from enum import Enum
-from typing import Any, TypeAlias
-
-from ry._types import Buffer
-
-_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
-
-
-class SafeUUID(Enum):
-    safe = 0
-    unsafe = -1
-    unknown = None
-
-
-class UUID:
-    NAMESPACE_DNS: UUID
-    NAMESPACE_URL: UUID
-    NAMESPACE_OID: UUID
-    NAMESPACE_X500: UUID
-
-    def __init__(
-        self,
-        hex: str | None = None,  # noqa: A002
-        bytes: builtins.bytes | None = None,  # noqa: A002
-        bytes_le: builtins.bytes | None = None,
-        fields: _FieldsType | None = None,
-        int: builtins.int | None = None,  # noqa: A002
-        version: builtins.int | None = None,
-        *,
-        is_safe: SafeUUID = ...,
-    ) -> None: ...
-    @property
-    def is_safe(self) -> SafeUUID: ...
-    @property
-    def bytes(self) -> builtins.bytes: ...
-    @property
-    def bytes_le(self) -> builtins.bytes: ...
-    @property
-    def clock_seq(self) -> builtins.int: ...
-    @property
-    def clock_seq_hi_variant(self) -> builtins.int: ...
-    @property
-    def clock_seq_low(self) -> builtins.int: ...
-    @property
-    def fields(self) -> _FieldsType: ...
-    @property
-    def hex(self) -> str: ...
-    @property
-    def int(self) -> builtins.int: ...
-    @property
-    def node(self) -> builtins.int: ...
-    @property
-    def time(self) -> builtins.int: ...
-    @property
-    def time_hi_version(self) -> builtins.int: ...
-    @property
-    def time_low(self) -> builtins.int: ...
-    @property
-    def time_mid(self) -> builtins.int: ...
-    @property
-    def urn(self) -> str: ...
-    @property
-    def variant(self) -> str: ...
-    @property
-    def version(self) -> builtins.int | None: ...
-    def to_py(self) -> pyuuid.UUID: ...
-    def __lt__(self, other: UUID) -> bool: ...
-    def __le__(self, other: UUID) -> bool: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __gt__(self, other: UUID) -> bool: ...
-    def __ge__(self, other: UUID) -> bool: ...
-    def __hash__(self) -> builtins.int: ...
-    def __int__(self) -> builtins.int: ...
-
-
-def getnode() -> builtins.int: ...
-def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid2(*args: Any, **kwargs: Any) -> UUID: ...
-def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
-def uuid4() -> UUID: ...
-def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
-def uuid6(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid7(timestamp: int | None = None) -> UUID: ...
-def uuid8(data: Buffer) -> UUID: ...
-
-
-NAMESPACE_DNS: UUID
-NAMESPACE_URL: UUID
-NAMESPACE_OID: UUID
-NAMESPACE_X500: UUID
-RESERVED_NCS: str
-RFC_4122: str
-RESERVED_MICROSOFT: str
-RESERVED_FUTURE: str
-```
-
-<h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
-
-```python
-import typing as t
-
-from ry._types import Buffer
-
-
-@t.final
-class Xxh32:
-    name: t.Literal["xxh32"]
-    digest_size: t.Literal[4]
-    block_size: t.Literal[16]
-
-    def __init__(self, data: Buffer = ..., seed: int | None = ...) -> None: ...
-    def update(self, data: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh32: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
-
-
-@t.final
-class Xxh64:
-    name: t.Literal["xxh64"]
-    digest_size: t.Literal[8]
-    block_size: t.Literal[32]
-
-    def __init__(
-        self, data: Buffer | None = None, seed: int | None = ...
-    ) -> None: ...
-    def update(self, data: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    def copy(self) -> Xxh64: ...
-    def reset(self, seed: int | None = ...) -> None: ...
-    @property
-    def seed(self) -> int: ...
-
-
-@t.final
-class Xxh3:
-    name: t.Literal["xxh3"]
-    digest_size: int  # xxh3_64: 8, xxh3_128: 16
-    block_size: int  # xxh3_64: 32, xxh3_128: 64
-
-    def __init__(
-        self,
-        data: Buffer = ...,
-        seed: int | None = ...,
-        secret: bytes | None = ...,
-    ) -> None: ...
-    def update(self, data: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def hexdigest(self) -> str: ...
-    def intdigest(self) -> int: ...
-    @property
-    def seed(self) -> int: ...
-    def digest128(self) -> bytes: ...
-    def hexdigest128(self) -> str: ...
-    def intdigest128(self) -> int: ...
-    def copy(self) -> Xxh3: ...
-    def reset(self) -> None: ...
-
-
-# constructor aliases
-def xxh32(data: Buffer | None = None, seed: int | None = None) -> Xxh32: ...
-def xxh64(data: Buffer | None = None, seed: int | None = None) -> Xxh64: ...
-def xxh3(
-    data: Buffer | None = None,
-    seed: int | None = None,
-    secret: bytes | None = None,
-) -> Xxh3: ...
-
-
-# -----------------------------------------------------------------------------
-# ONE-SHOT FUNCTIONS
-# -----------------------------------------------------------------------------
-
-
-# xxh32
-def xxh32_digest(data: Buffer, seed: int | None = None) -> bytes: ...
-def xxh32_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
-def xxh32_intdigest(data: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh64
-def xxh64_digest(data: Buffer, seed: int | None = None) -> bytes: ...
-def xxh64_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
-def xxh64_intdigest(data: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh128
-def xxh128_digest(data: Buffer, seed: int | None = None) -> bytes: ...
-def xxh128_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
-def xxh128_intdigest(data: Buffer, seed: int | None = None) -> int: ...
-
-
-# xxh3
-def xxh3_64_digest(data: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_64_intdigest(data: Buffer, seed: int | None = None) -> int: ...
-def xxh3_64_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
-def xxh3_digest(data: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_intdigest(data: Buffer, seed: int | None = None) -> int: ...
-def xxh3_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
-
-
-# xxh128
-def xxh3_128_digest(data: Buffer, seed: int | None = None) -> bytes: ...
-def xxh3_128_intdigest(data: Buffer, seed: int | None = None) -> int: ...
-def xxh3_128_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
-```
-
-<h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
-
-```python
-from ry import Bytes
-from ry._types import Buffer
-
-__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
-BLOCKSIZELOG_MAX: int
-BLOCKSIZE_MAX: int
-CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
-CONTENTSIZE_ERROR: int
-CONTENTSIZE_UNKNOWN: int
-MAGICNUMBER: int
-MAGIC_DICTIONARY: int
-MAGIC_SKIPPABLE_MASK: int
-MAGIC_SKIPPABLE_START: int
-VERSION_MAJOR: int
-VERSION_MINOR: int
-VERSION_NUMBER: int
-VERSION_RELEASE: int
-
-
-# =============================================================================
-# PYFUNCTIONS
-# =============================================================================
-# __COMPRESSION__
-def compress(data: Buffer, level: int = 3) -> Bytes: ...
-def encode(data: Buffer, level: int = 3) -> Bytes: ...
-def zstd(data: Buffer, level: int = 3) -> Bytes: ...
-
-
-# __DECOMPRESSION__
-def decode(data: Buffer) -> Bytes: ...
-def decompress(data: Buffer) -> Bytes: ...
-def unzstd(data: Buffer) -> Bytes: ...
-
-
-# __MAGIC__
-def is_zstd(data: Buffer) -> bool: ...
 ```
 
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
@@ -5440,6 +4851,595 @@ __all__ = (
     "zstd_decompress",
     "zstd_encode",
 )
+```
+
+<h2 id="ry.ryo3.dirs"><code>ry.ryo3.dirs</code></h2>
+
+```python
+def audio() -> str | None: ...
+def audio_dir() -> str | None: ...
+def cache() -> str | None: ...
+def cache_dir() -> str | None: ...
+def config() -> str | None: ...
+def config_dir() -> str | None: ...
+def config_local() -> str | None: ...
+def config_local_dir() -> str | None: ...
+def data() -> str | None: ...
+def data_dir() -> str | None: ...
+def data_local() -> str | None: ...
+def data_local_dir() -> str | None: ...
+def desktop() -> str | None: ...
+def desktop_dir() -> str | None: ...
+def document() -> str | None: ...
+def document_dir() -> str | None: ...
+def download() -> str | None: ...
+def download_dir() -> str | None: ...
+def executable() -> str | None: ...
+def executable_dir() -> str | None: ...
+def font() -> str | None: ...
+def font_dir() -> str | None: ...
+def home() -> str | None: ...
+def home_dir() -> str | None: ...
+def picture() -> str | None: ...
+def picture_dir() -> str | None: ...
+def preference() -> str | None: ...
+def preference_dir() -> str | None: ...
+def public() -> str | None: ...
+def public_dir() -> str | None: ...
+def runtime() -> str | None: ...
+def runtime_dir() -> str | None: ...
+def state() -> str | None: ...
+def state_dir() -> str | None: ...
+def template() -> str | None: ...
+def template_dir() -> str | None: ...
+def video() -> str | None: ...
+def video_dir() -> str | None: ...
+```
+
+<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
+
+```python
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build."""
+```
+
+<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
+
+```python
+"""ry.ryo3.JSON"""
+
+import typing as t
+
+import typing_extensions as te
+
+from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
+from ry.ryo3._jiter import JsonParseKwargs, JsonValue
+
+
+def minify(data: Buffer) -> Bytes:
+    """Return minified json data (remove whitespace, newlines)
+
+    Args:
+        data: The JSON data to minify.
+
+    Returns:
+        Minified JSON data as a `Bytes` object.
+
+    Examples:
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.minify(json_str))
+        b'{"key":"value","number":123,"bool":true}'
+
+    """
+
+
+def fmt(data: Buffer) -> Bytes:
+    """Return minified json data (remove whitespace, newlines)
+
+    Args:
+        data: The JSON data to minify.
+
+    Returns:
+        Minified JSON data as a `Bytes` object.
+
+    Examples:
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.fmt(json_str)).decode()
+        '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
+        >>> print(bytes(JSON.fmt(json_str)).decode())
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+
+    """
+
+
+@t.overload
+def stringify(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[True],
+) -> bytes: ...
+@t.overload
+def stringify(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False] = False,
+) -> Bytes: ...
+@t.overload
+def dumps(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[True],
+) -> bytes: ...
+@t.overload
+def dumps(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False] = False,
+) -> Bytes: ...
+def loads(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def parse(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def cache_clear() -> None: ...
+def cache_usage() -> int: ...
+
+
+# under construction
+def stringify_unsafe(data: t.Any) -> Bytes: ...
+```
+
+<h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
+
+```python
+"""orjson + ry types
+
+orjson-types: https://github.com/ijl/orjson/blob/master/pysrc/orjson/__init__.pyi
+"""
+
+import typing as t
+
+import orjson
+
+
+def orjson_default(obj: t.Any) -> orjson.Fragment:
+    """Fn to be used with `orjson.dumps` to serialize ry-compatible types
+
+    Example:
+        >>> import orjson
+        >>> from ry import orjson_default, Date
+        >>> data = {"key": "value", "date": Date(2023, 10, 1)}
+        >>> orjson.dumps(data, default=orjson_default)
+        b'{"key":"value","date":"2023-10-01"}'
+
+    """
+```
+
+<h2 id="ry.ryo3.sh"><code>ry.ryo3.sh</code></h2>
+
+```python
+import typing as t
+from os import PathLike
+
+from ry.ryo3._fspath import FsPath
+
+
+def pwd() -> str: ...
+def home() -> str: ...
+def cd(path: str | PathLike[str]) -> None: ...
+@t.overload
+def ls(
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[False] = False,
+) -> list[str]:
+    """List directory contents - returns list of strings"""
+
+
+@t.overload
+def ls(
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[True],
+) -> list[FsPath]:
+    """List directory contents - returns list of FsPath objects"""
+
+
+def mkdir(path: str | PathLike[str]) -> None: ...
+```
+
+<h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
+
+```python
+import builtins
+import datetime as pydt
+import uuid
+from collections.abc import Callable as Callable
+from typing import Any
+
+from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
+from pydantic import (
+    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
+)
+from pydantic_core import CoreSchema as CoreSchema
+
+
+class ULID:
+    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
+
+    # ----------------
+    # INSTANCE METHODS
+    # ----------------
+    def to_uuid(self) -> uuid.UUID: ...
+    def to_uuid4(self) -> uuid.UUID: ...
+
+    # ----------
+    # PROPERTIES
+    # ----------
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def milliseconds(self) -> int: ...
+    @property
+    def timestamp(self) -> float: ...
+    @property
+    def datetime(self) -> pydt.datetime: ...
+    @property
+    def hex(self) -> str: ...
+
+    # -------------
+    # CLASS METHODS
+    # -------------
+    @classmethod
+    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
+    @classmethod
+    def from_timestamp(cls, value: float) -> ULID: ...
+    @classmethod
+    def from_uuid(cls, value: uuid.UUID) -> ULID: ...
+    @classmethod
+    def from_bytes(cls, bytes_: builtins.bytes) -> ULID: ...
+    @classmethod
+    def from_hex(cls, value: str) -> ULID: ...
+    @classmethod
+    def from_str(cls, string: str) -> ULID: ...
+    @classmethod
+    def from_int(cls, value: int) -> ULID: ...
+    @classmethod
+    def parse(cls, value: Any) -> ULID: ...
+
+    # --------
+    # PYDANTIC
+    # --------
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema: ...
+
+    # -------
+    # DUNDERS
+    # -------
+    def __bytes__(self) -> builtins.bytes: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __int__(self) -> int: ...
+    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+```
+
+<h2 id="ry.ryo3.uuid"><code>ry.ryo3.uuid</code></h2>
+
+```python
+"""ryo3-uuid types
+
+based on typeshed types for python's builtin uuid module
+
+REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
+"""
+
+import builtins
+import uuid as pyuuid
+from enum import Enum
+from typing import Any, TypeAlias
+
+from ry._types import Buffer
+
+_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
+
+
+class SafeUUID(Enum):
+    safe = 0
+    unsafe = -1
+    unknown = None
+
+
+class UUID:
+    NAMESPACE_DNS: UUID
+    NAMESPACE_URL: UUID
+    NAMESPACE_OID: UUID
+    NAMESPACE_X500: UUID
+
+    def __init__(
+        self,
+        hex: str | None = None,  # noqa: A002
+        bytes: builtins.bytes | None = None,  # noqa: A002
+        bytes_le: builtins.bytes | None = None,
+        fields: _FieldsType | None = None,
+        int: builtins.int | None = None,  # noqa: A002
+        version: builtins.int | None = None,
+        *,
+        is_safe: SafeUUID = ...,
+    ) -> None: ...
+    @property
+    def is_safe(self) -> SafeUUID: ...
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def bytes_le(self) -> builtins.bytes: ...
+    @property
+    def clock_seq(self) -> builtins.int: ...
+    @property
+    def clock_seq_hi_variant(self) -> builtins.int: ...
+    @property
+    def clock_seq_low(self) -> builtins.int: ...
+    @property
+    def fields(self) -> _FieldsType: ...
+    @property
+    def hex(self) -> str: ...
+    @property
+    def int(self) -> builtins.int: ...
+    @property
+    def node(self) -> builtins.int: ...
+    @property
+    def time(self) -> builtins.int: ...
+    @property
+    def time_hi_version(self) -> builtins.int: ...
+    @property
+    def time_low(self) -> builtins.int: ...
+    @property
+    def time_mid(self) -> builtins.int: ...
+    @property
+    def urn(self) -> str: ...
+    @property
+    def variant(self) -> str: ...
+    @property
+    def version(self) -> builtins.int | None: ...
+    def to_py(self) -> pyuuid.UUID: ...
+    def __lt__(self, other: UUID) -> bool: ...
+    def __le__(self, other: UUID) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __gt__(self, other: UUID) -> bool: ...
+    def __ge__(self, other: UUID) -> bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __int__(self) -> builtins.int: ...
+
+
+def getnode() -> builtins.int: ...
+def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
+def uuid2(*args: Any, **kwargs: Any) -> UUID: ...
+def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
+def uuid4() -> UUID: ...
+def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
+def uuid6(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
+def uuid7(timestamp: int | None = None) -> UUID: ...
+def uuid8(data: Buffer) -> UUID: ...
+
+
+NAMESPACE_DNS: UUID
+NAMESPACE_URL: UUID
+NAMESPACE_OID: UUID
+NAMESPACE_X500: UUID
+RESERVED_NCS: str
+RFC_4122: str
+RESERVED_MICROSOFT: str
+RESERVED_FUTURE: str
+```
+
+<h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
+
+```python
+import typing as t
+
+from ry._types import Buffer
+
+
+@t.final
+class Xxh32:
+    name: t.Literal["xxh32"]
+    digest_size: t.Literal[4]
+    block_size: t.Literal[16]
+
+    def __init__(self, data: Buffer = ..., seed: int | None = ...) -> None: ...
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh32: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
+
+
+@t.final
+class Xxh64:
+    name: t.Literal["xxh64"]
+    digest_size: t.Literal[8]
+    block_size: t.Literal[32]
+
+    def __init__(
+        self, data: Buffer | None = None, seed: int | None = ...
+    ) -> None: ...
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh64: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
+
+
+@t.final
+class Xxh3:
+    name: t.Literal["xxh3"]
+    digest_size: int  # xxh3_64: 8, xxh3_128: 16
+    block_size: int  # xxh3_64: 32, xxh3_128: 64
+
+    def __init__(
+        self,
+        data: Buffer = ...,
+        seed: int | None = ...,
+        secret: bytes | None = ...,
+    ) -> None: ...
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    @property
+    def seed(self) -> int: ...
+    def digest128(self) -> bytes: ...
+    def hexdigest128(self) -> str: ...
+    def intdigest128(self) -> int: ...
+    def copy(self) -> Xxh3: ...
+    def reset(self) -> None: ...
+
+
+# constructor aliases
+def xxh32(data: Buffer | None = None, seed: int | None = None) -> Xxh32: ...
+def xxh64(data: Buffer | None = None, seed: int | None = None) -> Xxh64: ...
+def xxh3(
+    data: Buffer | None = None,
+    seed: int | None = None,
+    secret: bytes | None = None,
+) -> Xxh3: ...
+
+
+# -----------------------------------------------------------------------------
+# ONE-SHOT FUNCTIONS
+# -----------------------------------------------------------------------------
+
+
+# xxh32
+def xxh32_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh32_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh32_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh64
+def xxh64_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh64_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh64_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh128
+def xxh128_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh128_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh128_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh3
+def xxh3_64_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_64_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+def xxh3_64_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh3_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+def xxh3_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+
+
+# xxh128
+def xxh3_128_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_128_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+def xxh3_128_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+```
+
+<h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
+
+```python
+from ry import Bytes
+from ry._types import Buffer
+
+__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
+BLOCKSIZELOG_MAX: int
+BLOCKSIZE_MAX: int
+CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
+CONTENTSIZE_ERROR: int
+CONTENTSIZE_UNKNOWN: int
+MAGICNUMBER: int
+MAGIC_DICTIONARY: int
+MAGIC_SKIPPABLE_MASK: int
+MAGIC_SKIPPABLE_START: int
+VERSION_MAJOR: int
+VERSION_MINOR: int
+VERSION_NUMBER: int
+VERSION_RELEASE: int
+
+
+# =============================================================================
+# PYFUNCTIONS
+# =============================================================================
+# __COMPRESSION__
+def compress(data: Buffer, level: int = 3) -> Bytes: ...
+def encode(data: Buffer, level: int = 3) -> Bytes: ...
+def zstd(data: Buffer, level: int = 3) -> Bytes: ...
+
+
+# __DECOMPRESSION__
+def decode(data: Buffer) -> Bytes: ...
+def decompress(data: Buffer) -> Bytes: ...
+def unzstd(data: Buffer) -> Bytes: ...
+
+
+# __MAGIC__
+def is_zstd(data: Buffer) -> bool: ...
 ```
 
 <h2 id="ry.dirs"><code>ry.dirs</code></h2>
