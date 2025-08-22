@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import os
 import shutil
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import ry
 
 from .which_fixtures import _clean_path, _mk_test_bin_dirs
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_which_python() -> None:

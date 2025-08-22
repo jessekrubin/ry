@@ -1,8 +1,10 @@
 """ry api ~ type annotations"""
 
 from ry.ryo3 import JSON as JSON
-from ry.ryo3 import ulid as ulid  # noqa: RUF100
-from ry.ryo3 import uuid as uuid  # noqa: RUF100
+from ry.ryo3 import ulid as ulid
+from ry.ryo3 import uuid as uuid
+from ry.ryo3 import xxhash as xxhash
+from ry.ryo3 import zstd as zstd
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -33,8 +35,8 @@ from ry.ryo3._heck import snake_case as snake_case
 from ry.ryo3._heck import snek_case as snek_case
 from ry.ryo3._heck import title_case as title_case
 from ry.ryo3._heck import train_case as train_case
-from ry.ryo3._http import Headers as Headers  # noqa: RUF100
-from ry.ryo3._http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.ryo3._http import Headers as Headers
+from ry.ryo3._http import HttpStatus as HttpStatus
 from ry.ryo3._jiff import Date as Date
 from ry.ryo3._jiff import DateDifference as DateDifference
 from ry.ryo3._jiff import DateTime as DateTime

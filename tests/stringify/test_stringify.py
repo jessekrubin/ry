@@ -300,7 +300,7 @@ def test_stringify_ry_types() -> None:
     res = ry.stringify(RYTYPES_JSON_SER, fmt=True)
     parsed = ry.parse_json(res)
     assert isinstance(parsed, dict), "Parsed result should be a dictionary"
-    parsed_dict: dict[str, t.Any] = t.cast(dict[str, t.Any], parsed)
+    parsed_dict: dict[str, t.Any] = t.cast("dict[str, t.Any]", parsed)
 
     def _format_different() -> str:
         different_vals = {

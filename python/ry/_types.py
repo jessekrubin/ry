@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import datetime as dt
-import datetime as pydt
 import sys
 from os import PathLike
-from typing import Protocol, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Protocol, TypedDict, TypeVar
+
+if TYPE_CHECKING:
+    import datetime as dt
+    import datetime as pydt
 
 if sys.version_info >= (3, 11):
     from typing import Self

@@ -1834,6 +1834,7 @@ version = "0.0.54"
 dependencies = [
  "memchr",
  "pyo3",
+ "ryo3-bytes",
 ]
 
 [[package]]

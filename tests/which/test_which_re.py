@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import ry
 
 from .which_fixtures import _mk_test_bin_dirs
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_which_regex_existing_exe(tmp_path: Path) -> None:

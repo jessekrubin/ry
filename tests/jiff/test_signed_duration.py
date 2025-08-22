@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import datetime as pydt
+from typing import TYPE_CHECKING
 
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-from hypothesis.strategies import SearchStrategy
 
 import ry
 
 from ..strategies import st_i32, st_i64
+
+if TYPE_CHECKING:
+    from hypothesis.strategies import SearchStrategy
 
 
 def st_signed_duration_args() -> SearchStrategy[tuple[int, int]]:

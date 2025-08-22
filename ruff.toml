@@ -43,11 +43,11 @@ lint.select = [
   # "RUF022", # unsorted-dunder-all
   "S",
   "T",
+  "TC",
   "TID",
   "UP",
   "W",
   "YTT",
-
 ]
 lint.ignore = [
   "E501",    # line length

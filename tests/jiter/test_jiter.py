@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 import ry as ry
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_parse_bytes() -> None:

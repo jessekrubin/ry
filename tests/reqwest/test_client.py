@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 import ry as ry
 
-from .conftest import ReqtestServer
+if TYPE_CHECKING:
+    from .conftest import ReqtestServer
 
 
 @pytest.mark.anyio

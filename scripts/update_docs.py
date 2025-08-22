@@ -4,12 +4,15 @@ import argparse
 import dataclasses
 import itertools as it
 import subprocess as sp
-from collections.abc import Iterable
 from functools import lru_cache
-from os import PathLike
+from typing import TYPE_CHECKING
 
 import ry
 from ry import FsPath, which
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from os import PathLike
 
 # this filesdir
 PWDPATH = FsPath(__file__).resolve().parent

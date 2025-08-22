@@ -2,6 +2,8 @@
 
 ## v0.0.54 [unreleased]
 
+- `ryo3-memchr`
+  - Basic functionality for `memchr` and `memrchr` operations
 - `ryo3-jiff`
   - Changed `human` arg/kwarg in `ry.TimeSpan` and `ry.SignedDuration` to
     `friendly` and also make keyword only

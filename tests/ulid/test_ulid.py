@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import typing as t
 import uuid
-from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -18,6 +17,9 @@ import typing_extensions as te
 
 import ry
 from ry.ulid import ULID
+
+if t.TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def utcnow() -> datetime:
