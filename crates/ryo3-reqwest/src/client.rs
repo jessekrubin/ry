@@ -33,6 +33,7 @@ pub struct ClientConfig {
     brotli: bool,
     deflate: bool,
     zstd: bool,
+    hickory_dns: bool,
     http1_only: bool,
 }
 
@@ -112,6 +113,7 @@ impl RyHttpClient {
             brotli = true,
             deflate = true,
             zstd = true,
+            hickory_dns = true,
             http1_only = false,
         )
     )]
@@ -126,6 +128,7 @@ impl RyHttpClient {
         brotli: Option<bool>,
         deflate: Option<bool>,
         zstd: Option<bool>,
+        hickory_dns: Option<bool>,
         http1_only: Option<bool>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
@@ -141,6 +144,7 @@ impl RyHttpClient {
             brotli: brotli.unwrap_or(true),
             deflate: deflate.unwrap_or(true),
             zstd: zstd.unwrap_or(true),
+            hickory_dns: hickory_dns.unwrap_or(true),
             http1_only: http1_only.unwrap_or(false),
         };
         debug!("reqwest-client-config: {:#?}", client_cfg);
@@ -627,6 +631,7 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
         dict.set_item(intern!(py, "deflate"), self.deflate)?;
         dict.set_item(intern!(py, "zstd"), self.zstd)?;
         dict.set_item(intern!(py, "http1_only"), self.http1_only)?;
+        dict.set_item(intern!(py, "hickory_dns"), self.hickory_dns)?;
         Ok(dict)
     }
 }
@@ -638,7 +643,8 @@ impl ClientConfig {
             .brotli(self.brotli)
             .deflate(self.deflate)
             .zstd(self.zstd)
-            .cookie_store(self.cookies);
+            .cookie_store(self.cookies)
+            .hickory_dns(self.hickory_dns);
         if let Some(user_agent) = &self.user_agent {
             client_builder = client_builder.user_agent(user_agent.clone());
         }
