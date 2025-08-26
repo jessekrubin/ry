@@ -1,23 +1,13 @@
-use flate2::Compression;
 use flate2::bufread::GzDecoder;
 use flate2::write::GzEncoder;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
-use ryo3_macro_rules::py_value_error;
 use std::io::{Read, Write};
 
-pub fn rs_gzip_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
-    let quality = if let Some(param) = quality {
-        if param > 9 {
-            return Err(py_value_error!(
-                "Quality must be between 0 and 9 - got: {param:?}"
-            ));
-        }
-        Compression::new(param)
-    } else {
-        Compression::default()
-    };
-    let mut gzip_encoder = GzEncoder::new(Vec::new(), quality);
+use crate::compression::PyCompression;
+
+fn rs_gzip_encode(py: Python<'_>, data: &[u8], quality: PyCompression) -> PyResult<PyObject> {
+    let mut gzip_encoder = GzEncoder::new(Vec::new(), quality.0);
     gzip_encoder.write_all(data)?;
     let encoded = gzip_encoder.finish()?;
     Ok(PyBytes::new(py, &encoded).into())
@@ -35,10 +25,10 @@ pub fn rs_gzip_decode(data: &[u8]) -> PyResult<ryo3_bytes::PyBytes> {
 pub fn gzip_encode(
     py: Python<'_>,
     data: ryo3_bytes::PyBytes,
-    quality: Option<u32>,
+    quality: Option<PyCompression>,
 ) -> PyResult<PyObject> {
     let bin: &[u8] = data.as_ref();
-    rs_gzip_encode(py, bin, quality)
+    rs_gzip_encode(py, bin, quality.unwrap_or_default())
 }
 
 #[pyfunction]
@@ -52,9 +42,13 @@ pub fn gzip_decode(data: ryo3_bytes::PyBytes) -> PyResult<ryo3_bytes::PyBytes> {
 #[pyfunction]
 #[pyo3(signature = (data, quality=None))]
 #[expect(clippy::needless_pass_by_value)]
-pub fn gzip(py: Python<'_>, data: ryo3_bytes::PyBytes, quality: Option<u32>) -> PyResult<PyObject> {
-    let data: &[u8] = data.as_ref();
-    rs_gzip_encode(py, data, quality)
+pub fn gzip(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    quality: Option<PyCompression>,
+) -> PyResult<PyObject> {
+    let bin: &[u8] = data.as_ref();
+    rs_gzip_encode(py, bin, quality.unwrap_or_default())
 }
 
 #[pyfunction]

@@ -1952,7 +1952,6 @@ dependencies = [
  "flate2",
  "pyo3",
  "ryo3-bytes",
- "ryo3-macro-rules",
 ]
 
 [[package]]
