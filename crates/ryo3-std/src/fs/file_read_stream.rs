@@ -175,7 +175,7 @@ impl PyFileReadStream {
             let mut result = Vec::new();
             while let Some(Ok(b)) = inner.next() {
                 result.push(b.into());
-                if result.len() % 256 == 0 {
+                if result.len().is_multiple_of(256) {
                     py.check_signals()?;
                 }
             }
