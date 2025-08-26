@@ -197,7 +197,7 @@ tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "default"] }
 ulid = { version = "1.2.1" }
 unindent = "0.2.4"
-url = { version = "2.5.4" }
+url = { version = "2.5.7" }
 uuid = { version = "1.18.0", features = ["v4", "v8"] }
 walkdir = "2.5.0"
 which = { version = "8.0.0", features = [] }
