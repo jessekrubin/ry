@@ -16,7 +16,6 @@ impl FromPyObject<'_> for PyCompression {
             let s = pystr.to_str()?;
             let c = match s {
                 "fast" => Some(Self(Compression::fast())),
-                "default" => Some(Self(Compression::default())),
                 "best" => Some(Self(Compression::best())),
                 _ => None,
             };
@@ -25,7 +24,7 @@ impl FromPyObject<'_> for PyCompression {
             }
         }
         Err(PyValueError::new_err(
-            "Invalid compression level; valid levels are int 0-9 or string 'fast', 'default', 'best'",
+            "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
         ))
     }
 }

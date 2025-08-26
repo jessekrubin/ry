@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gzip
 import io
+from typing import Literal
 
 import pytest
 
@@ -91,7 +92,17 @@ def test_cross_compatibility() -> None:
 
 
 @pytest.mark.parametrize("quality", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-def test_quality_gzip(quality: int) -> None:
+def test_quality_gzip(quality: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) -> None:
+    input_data = b"XXXXXXXXXXYYYYYYYYYY"
+    output_data = ry.gzip_encode(input_data, quality=quality)
+    assert output_data is not None
+    decoded = ry.gzip_decode(output_data)
+    assert isinstance(decoded, ry.Bytes)
+    assert decoded == input_data
+
+
+@pytest.mark.parametrize("quality", ["best", "fast"])
+def test_quality_gzip_string(quality: Literal["best", "fast"]) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     output_data = ry.gzip_encode(input_data, quality=quality)
     assert output_data is not None
@@ -101,9 +112,9 @@ def test_quality_gzip(quality: int) -> None:
 
 def test_gzip_quality_value_error() -> None:
     with pytest.raises(ValueError) as e:
-        ry.gzip(b"test", quality=10)
+        ry.gzip(b"test", quality=10)  # type: ignore[arg-type]
     s = str(e.value)
     assert (
-        "Invalid compression level; valid levels are int 0-9 or string 'fast', 'default', 'best'"
+        "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'"
         in s
     )
