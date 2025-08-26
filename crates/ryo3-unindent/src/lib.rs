@@ -14,6 +14,7 @@ pub fn unindent_bytes<'py>(py: Python<'py>, input: &[u8]) -> Bound<'py, PyBytes>
     let b = ::unindent::unindent_bytes(input);
     PyBytes::new(py, &b)
 }
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(crate::unindent, m)?)?;
     m.add_function(wrap_pyfunction!(crate::unindent_bytes, m)?)?;

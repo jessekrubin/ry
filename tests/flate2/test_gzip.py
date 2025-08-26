@@ -103,4 +103,7 @@ def test_gzip_quality_value_error() -> None:
     with pytest.raises(ValueError) as e:
         ry.gzip(b"test", quality=10)
     s = str(e.value)
-    assert "Quality must be between 0 and 9 - got: 10" in s
+    assert (
+        "Invalid compression level; valid levels are int 0-9 or string 'fast', 'default', 'best'"
+        in s
+    )

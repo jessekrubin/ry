@@ -25,15 +25,11 @@ fn encode(data: &[u8], quality: Option<u8>, magic_number: Option<bool>) -> PyRes
             ..Default::default()
         };
         let mut encoder = br::CompressorWriter::with_params(Vec::new(), 4 * 1024, &params);
-        encoder.write_all(data).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}"))
-        })?;
+        encoder.write_all(data)?;
         encoder.into_inner()
     } else {
         let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, quality_u8.into(), 22);
-        encoder.write_all(data).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}"))
-        })?;
+        encoder.write_all(data)?;
         encoder.into_inner()
     };
     Ok(encoded)
