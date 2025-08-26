@@ -33,7 +33,7 @@ ergonomic.
 - **Designed for ergonomics:** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
 - **Type Annotated:** Type annotations for all public APIs, with `mypy` support.
-- **Performant:** Speed without 'blazingly fast.' [^1]
+- **Performant:** Speed without the words "blazingly fast." [^1]
 
 ## Install
 
