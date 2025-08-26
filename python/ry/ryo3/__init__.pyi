@@ -37,6 +37,11 @@ from ry.ryo3._heck import title_case as title_case
 from ry.ryo3._heck import train_case as train_case
 from ry.ryo3._http import Headers as Headers
 from ry.ryo3._http import HttpStatus as HttpStatus
+from ry.ryo3._jiff import JIFF_ROUND_MODE as JIFF_ROUND_MODE
+from ry.ryo3._jiff import JIFF_UNIT as JIFF_UNIT
+from ry.ryo3._jiff import WEEKDAY as WEEKDAY
+from ry.ryo3._jiff import WEEKDAY_INT as WEEKDAY_INT
+from ry.ryo3._jiff import WEEKDAY_STR as WEEKDAY_STR
 from ry.ryo3._jiff import Date as Date
 from ry.ryo3._jiff import DateDifference as DateDifference
 from ry.ryo3._jiff import DateTime as DateTime

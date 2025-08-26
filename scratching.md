@@ -1,0 +1,13 @@
+aiopen
+asyncify
+dgpylibs
+dgpytest
+fmts
+funkify
+h5
+jsonbourne
+lager
+listless
+requires
+shellfish
+xtyping

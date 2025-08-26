@@ -11,9 +11,12 @@ source <(cargo llvm-cov show-env --export-prefix)
 export CARGO_TARGET_DIR=$CARGO_LLVM_COV_TARGET_DIR
 export CARGO_INCREMENTAL=1
 
+rm -rfv ./target/llvm-cov/html
+
 cargo llvm-cov clean --workspace
-cargo test
+# cargo test
 uv run -- maturin develop --uv
 uv run -- pytest tests --cov=ry --cov-report xml
 cargo llvm-cov report --lcov --output-path coverage.lcov
 cargo llvm-cov report --html
+serve ./target/llvm-cov/html
