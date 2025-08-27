@@ -1,9 +1,7 @@
 import typing as t
 
-import typing_extensions as te
-
 import ry
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration
 from ry.ryo3._url import URL
@@ -36,51 +34,51 @@ class HttpClient:
     async def get(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def post(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def put(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def delete(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def patch(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def options(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def head(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def __call__(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
 
 @t.final
@@ -141,5 +139,5 @@ async def fetch(
     *,
     client: HttpClient | None = None,
     method: str = "GET",
-    **kwargs: te.Unpack[RequestKwargs],
+    **kwargs: Unpack[RequestKwargs],
 ) -> Response: ...

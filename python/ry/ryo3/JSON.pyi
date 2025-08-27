@@ -2,9 +2,7 @@
 
 import typing as t
 
-import typing_extensions as te
-
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
@@ -107,12 +105,12 @@ def dumps(
 def loads(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...

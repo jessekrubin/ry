@@ -738,17 +738,9 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
-import typing_extensions as te
-
 from ry.ryo3._fspath import FsPath
 
 _T = t.TypeVar("_T", bound=str | Path | FsPath)
-
-
-class _MatchOptions(t.TypedDict, total=False):
-    case_sensitive: bool
-    require_literal_separator: bool
-    require_literal_leading_dot: bool
 
 
 @t.final
@@ -786,19 +778,28 @@ class Pattern:
     def __call__(
         self,
         ob: str | PathLike[str],
-        **kwargs: te.Unpack[_MatchOptions],
+        *,
+        case_sensitive: bool = False,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
     ) -> bool: ...
     def matches(self, s: str) -> bool: ...
     def matches_path(self, path: PathLike[str]) -> bool: ...
     def matches_with(
         self,
         s: str,
-        **kwargs: te.Unpack[_MatchOptions],
+        *,
+        case_sensitive: bool = False,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
     ) -> bool: ...
     def matches_path_with(
         self,
         path: PathLike[str],
-        **kwargs: te.Unpack[_MatchOptions],
+        *,
+        case_sensitive: bool = False,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
     ) -> bool: ...
     @staticmethod
     def escape(pattern: str) -> str: ...
@@ -918,8 +919,6 @@ def train_case(string: str) -> str: ...
 ```python
 import typing as t
 from collections.abc import Mapping
-
-import typing_extensions as te
 
 # fmt: off
 HttpVersionLike: t.TypeAlias = t.Literal[
@@ -1192,8 +1191,6 @@ class HttpStatus:
 import datetime as pydt
 import typing as t
 
-import typing_extensions as te
-
 from ry._types import (
     DateTimeRoundTypedDict,
     DateTimeTypedDict,
@@ -1211,6 +1208,7 @@ from ry._types import (
     ToPyTimeDelta,
     ToPyTzInfo,
     ZonedDateTimeRoundTypedDict,
+    deprecated,
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
@@ -1371,7 +1369,7 @@ class Date(ToPy[pydt.date], ToPyDate):
     def iso_week_date(self) -> ISOWeekDate: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
+    @deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: TimezoneName) -> ZonedDateTime: ...
     def last_of_month(self) -> Date: ...
     def last_of_year(self) -> Date: ...
@@ -1680,7 +1678,7 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def first_of_year(self) -> DateTime: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: str) -> ZonedDateTime: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
+    @deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: str) -> ZonedDateTime: ...
     def iso_week_date(self) -> ISOWeekDate: ...
     def last_of_month(self) -> DateTime: ...
@@ -2273,7 +2271,7 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def as_second(self) -> int: ...
     def display_with_offset(self, offset: Offset) -> str: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
+    @deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: TimezoneName) -> ZonedDateTime:
         """Deprecated ~ use `in_tz`"""
 
@@ -2488,7 +2486,7 @@ class ZonedDateTime(
     def first_of_year(self) -> ZonedDateTime: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> Self: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
+    @deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: TimezoneName) -> Self: ...
     def inutc(self) -> ZonedDateTime: ...
     def last_of_month(self) -> ZonedDateTime: ...
@@ -3532,9 +3530,7 @@ TimezoneDbName: TypeAlias = Literal[
 import typing as t
 from os import PathLike
 
-import typing_extensions as te
-
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 
 # =============================================================================
 # JSON
@@ -3563,18 +3559,18 @@ class JsonParseKwargs(t.TypedDict, total=False):
 def parse_json(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse_jsonl(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> list[JsonValue]: ...
 def read_json(
     p: str | PathLike[str],
     /,
     lines: bool = False,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
@@ -3676,10 +3672,8 @@ class Regex:
 ```python
 import typing as t
 
-import typing_extensions as te
-
 import ry
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration
 from ry.ryo3._url import URL
@@ -3714,51 +3708,51 @@ class HttpClient:
     async def get(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def post(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def put(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def delete(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def patch(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def options(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def head(
         self,
         url: str | URL,
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def __call__(
         self,
         url: str | URL,
         *,
         method: str = "GET",
-        **kwargs: te.Unpack[RequestKwargs],
+        **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
 
 
@@ -3829,7 +3823,7 @@ async def fetch(
     *,
     client: HttpClient | None = None,
     method: str = "GET",
-    **kwargs: te.Unpack[RequestKwargs],
+    **kwargs: Unpack[RequestKwargs],
 ) -> Response: ...
 ```
 
@@ -3858,8 +3852,6 @@ def shplit(s: str) -> list[str]:
 
 ```python
 import typing as t
-
-import typing_extensions as te
 
 FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
 FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
@@ -4037,7 +4029,6 @@ class Size:
 
 import typing as t
 
-
 SqlfmtParamValue: t.TypeAlias = str | int | float | bool
 _TSqlfmtParamValue_co = t.TypeVar(
     "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
@@ -4080,9 +4071,15 @@ import ipaddress
 import pathlib
 import typing as t
 
-import typing_extensions as te
-
-from ry._types import Buffer, FileTypeDict, FsPathLike, MetadataDict, ToPy
+from ry._types import (
+    Buffer,
+    FileTypeDict,
+    FsPathLike,
+    MetadataDict,
+    Never,
+    Self,
+    ToPy,
+)
 from ry.ryo3._bytes import Bytes
 
 
@@ -4239,7 +4236,7 @@ def sleep(seconds: float) -> float: ...
 # =============================================================================
 @t.final
 class FileType:
-    def __init__(self, *args: te.Never, **kwargs: te.Never) -> te.NoReturn: ...
+    def __init__(self, *args: Never, **kwargs: Never) -> t.NoReturn: ...
     @property
     def is_dir(self) -> bool: ...
     @property
@@ -4259,7 +4256,7 @@ class Permissions:
 
 @t.final
 class Metadata:
-    def __init__(self) -> te.NoReturn: ...
+    def __init__(self) -> t.NoReturn: ...
     @property
     def file_type(self) -> FileType: ...
     @property
@@ -4302,7 +4299,7 @@ _T = t.TypeVar("_T")
 
 
 class RyIterable(t.Generic[_T]):
-    def __iter__(self) -> te.Self: ...
+    def __iter__(self) -> Self: ...
     def __next__(self) -> _T: ...
     def collect(self) -> list[_T]: ...
     def take(self, n: int = 1) -> list[_T]: ...
@@ -4322,7 +4319,7 @@ class FileReadStream:
         offset: int = 0,
         buffered: bool = True,
     ) -> None: ...
-    def __iter__(self) -> te.Self: ...
+    def __iter__(self) -> Self: ...
     def __next__(self) -> Bytes: ...
     def collect(self) -> list[Bytes]: ...
     def take(self, n: int = 1) -> list[Bytes]: ...
@@ -4561,10 +4558,8 @@ import typing as t
 from collections.abc import Generator
 from types import TracebackType
 
-import typing_extensions as te
-
 from ry import Bytes
-from ry._types import Buffer, FsPathLike
+from ry._types import Buffer, FsPathLike, Self
 from ry.ryo3._std import FileType, Metadata
 
 
@@ -4633,7 +4628,7 @@ class AsyncFile:
     ) -> None: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
-    async def isatty(self) -> te.NoReturn: ...
+    async def isatty(self) -> t.NoReturn: ...
     async def open(self) -> None: ...
     async def peek(self, size: int = ..., /) -> Bytes: ...
     async def read(self, size: int = ..., /) -> Bytes: ...
@@ -4649,10 +4644,10 @@ class AsyncFile:
     async def write(self, b: Buffer, /) -> int: ...
     @property
     def closed(self) -> bool: ...
-    def __await__(self) -> Generator[t.Any, t.Any, te.Self]: ...
-    def __aiter__(self) -> te.Self: ...
+    def __await__(self) -> Generator[t.Any, t.Any, Self]: ...
+    def __aiter__(self) -> Self: ...
     async def __anext__(self) -> Bytes: ...
-    async def __aenter__(self) -> te.Self: ...
+    async def __aenter__(self) -> Self: ...
     async def __aexit__(
         self,
         exc_type: type[BaseException] | None,
@@ -4682,9 +4677,7 @@ def unindent_bytes(string: bytes) -> bytes: ...
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
-from typing_extensions import Self
-
-from ry._types import FromStr
+from ry._types import FromStr, Self
 
 
 @t.final
@@ -4799,8 +4792,6 @@ class URL(FromStr):
 import typing as t
 from os import PathLike
 
-import typing_extensions as te
-
 from ry import FileType, FsPath, Glob, GlobSet, Globster
 
 
@@ -4839,7 +4830,7 @@ class WalkdirGen(t.Generic[_T_walkdir]):
 
     def __init__(
         self,
-    ) -> te.NoReturn: ...
+    ) -> t.NoReturn: ...
     def __next__(self) -> _T_walkdir: ...
     def __iter__(self) -> t.Iterator[_T_walkdir]: ...
     def collect(self) -> list[_T_walkdir]: ...
@@ -4968,9 +4959,7 @@ class FeatureNotEnabledError(RuntimeError):
 
 import typing as t
 
-import typing_extensions as te
-
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
@@ -5076,12 +5065,12 @@ def dumps(
 def loads(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
