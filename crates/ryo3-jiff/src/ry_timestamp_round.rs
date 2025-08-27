@@ -1,16 +1,27 @@
-use crate::{JiffRoundMode, JiffUnit};
-use jiff::TimestampRound;
-use pyo3::prelude::*;
 use std::fmt::Display;
 
-#[derive(Debug, Clone)]
+use crate::round::RoundOptions;
+use crate::{JiffRoundMode, JiffUnit, RyTimestamp};
+use jiff::TimestampRound;
+use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyTuple};
+use ryo3_macro_rules::py_value_error;
+
+#[derive(Clone, Copy, Debug)]
 #[pyclass(name = "TimestampRound", module = "ry.ryo3", frozen)]
 pub struct RyTimestampRound {
-    pub smallest: JiffUnit,
-    pub mode: JiffRoundMode,
-    pub increment: i64,
-    // internal
-    pub(crate) round: TimestampRound,
+    options: RoundOptions,
+    pub(crate) jiff_round: TimestampRound,
+}
+impl From<RoundOptions> for RyTimestampRound {
+    fn from(options: RoundOptions) -> Self {
+        let jiff_round = options.timestamp_round();
+        Self {
+            options,
+            jiff_round,
+        }
+    }
 }
 
 #[pymethods]
@@ -18,18 +29,11 @@ impl RyTimestampRound {
     #[new]
     #[pyo3(signature = (smallest=None, *, mode=None, increment=1))]
     fn py_new(smallest: Option<JiffUnit>, mode: Option<JiffRoundMode>, increment: i64) -> Self {
-        let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
-        let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand));
-        let round = TimestampRound::new()
-            .smallest(smallest.0)
-            .mode(mode.0)
-            .increment(increment);
-        Self {
-            smallest,
-            mode,
+        Self::from(RoundOptions::new(
+            smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond)),
+            mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand)),
             increment,
-            round,
-        }
+        ))
     }
 
     fn __str__(&self) -> String {
@@ -41,11 +45,18 @@ impl RyTimestampRound {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.mode == other.mode
-            && self.smallest == other.smallest
-            && self.increment == other.increment
+        self.options == other.options
     }
 
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.options.to_pydict(py)
+    }
+
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::empty(py).into_bound_py_any(py)?;
+        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
+        PyTuple::new(py, vec![args, kwargs])
+    }
     #[pyo3(signature = (smallest=None, mode=None, increment=None))]
     fn replace(
         &self,
@@ -53,19 +64,12 @@ impl RyTimestampRound {
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> Self {
-        let smallest = smallest.unwrap_or(self.smallest);
-        let mode = mode.unwrap_or(self.mode);
-        let increment = increment.unwrap_or(self.increment);
-        let round = TimestampRound::new()
-            .smallest(smallest.0)
-            .mode(mode.0)
-            .increment(increment);
-        Self {
-            smallest,
-            mode,
-            increment,
-            round,
-        }
+        let options = RoundOptions::new(
+            smallest.unwrap_or(self.options.smallest),
+            mode.unwrap_or(self.options.mode),
+            increment.unwrap_or(self.options.increment),
+        );
+        Self::from(options)
     }
 
     fn smallest(&self, unit: JiffUnit) -> Self {
@@ -81,15 +85,21 @@ impl RyTimestampRound {
     }
 
     fn _smallest(&self) -> JiffUnit {
-        self.smallest
+        self.options.smallest
     }
 
     fn _mode(&self) -> JiffRoundMode {
-        self.mode
+        self.options.mode
     }
 
     fn _increment(&self) -> i64 {
-        self.increment
+        self.options.increment
+    }
+
+    pub(crate) fn round(&self, ob: &RyTimestamp) -> PyResult<RyTimestamp> {
+        ob.0.round(self.jiff_round)
+            .map(RyTimestamp::from)
+            .map_err(|e| py_value_error!("Error rounding Timestamp: {}", e))
     }
 }
 
@@ -98,7 +108,7 @@ impl Display for RyTimestampRound {
         write!(
             f,
             "TimestampRound(smallest=\"{}\", mode=\"{}\", increment={})",
-            self.smallest, self.mode, self.increment
+            self.options.smallest, self.options.mode, self.options.increment
         )
     }
 }

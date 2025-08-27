@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import pickle
+from typing import TYPE_CHECKING, TypeAlias
 
 import pytest
 
@@ -10,22 +11,23 @@ if TYPE_CHECKING:
     from ry.ryo3 import JIFF_ROUND_MODE, JIFF_UNIT
 
 
-@pytest.mark.parametrize(
-    "cls",
-    [
-        ry.DateTimeRound,
-        ry.SignedDurationRound,
-        ry.TimestampRound,
-        ry.ZonedDateTimeRound,
-    ],
+_ROUND_CLASSES = [
+    ry.DateTimeRound,
+    ry.SignedDurationRound,
+    ry.TimestampRound,
+    ry.ZonedDateTimeRound,
+]
+RoundType: TypeAlias = (
+    ry.DateTimeRound
+    | ry.SignedDurationRound
+    | ry.TimestampRound
+    | ry.ZonedDateTimeRound
 )
+
+
+@pytest.mark.parametrize("cls", _ROUND_CLASSES)
 def test_round_getters(
-    cls: type[
-        ry.DateTimeRound
-        | ry.SignedDurationRound
-        | ry.TimestampRound
-        | ry.ZonedDateTimeRound
-    ],
+    cls: type[RoundType],
     jiff_unit: JIFF_UNIT,
     jiff_round_mode: JIFF_ROUND_MODE,
 ) -> None:
@@ -35,16 +37,36 @@ def test_round_getters(
     assert round_obj._increment() == 2
 
 
-@pytest.mark.parametrize(
-    "cls", [ry.DateTimeRound, ry.TimestampRound, ry.ZonedDateTimeRound]
-)
+@pytest.mark.parametrize("cls", _ROUND_CLASSES)
+def test_round_obj_to_dict(
+    cls: type[RoundType],
+    jiff_unit: JIFF_UNIT,
+    jiff_round_mode: JIFF_ROUND_MODE,
+) -> None:
+    round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)
+    round_dict = round_obj.to_dict()
+    assert round_dict == {
+        "smallest": jiff_unit,
+        "mode": jiff_round_mode,
+        "increment": 2,
+    }
+
+
+@pytest.mark.parametrize("cls", _ROUND_CLASSES)
+def test_round_pickling(
+    cls: type[RoundType],
+    jiff_unit: JIFF_UNIT,
+    jiff_round_mode: JIFF_ROUND_MODE,
+) -> None:
+    round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)
+    pickled = pickle.dumps(round_obj)
+    unpickled = pickle.loads(pickled)
+    assert round_obj == unpickled
+
+
+@pytest.mark.parametrize("cls", _ROUND_CLASSES)
 def test_round_replace(
-    cls: type[
-        ry.DateTimeRound
-        | ry.SignedDurationRound
-        | ry.TimestampRound
-        | ry.ZonedDateTimeRound
-    ],
+    cls: type[RoundType],
     jiff_unit: JIFF_UNIT,
     jiff_round_mode: JIFF_ROUND_MODE,
 ) -> None:

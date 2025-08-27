@@ -1,9 +1,11 @@
-use std::fmt::Display;
-
 use crate::{JiffRoundMode, JiffUnit, RySignedDuration};
-use jiff::SignedDurationRound;
+use jiff::civil::DateTimeRound;
+use jiff::{RoundMode, SignedDurationRound, TimestampRound, Unit, ZonedRound};
 use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyTuple};
+use pyo3::{IntoPyObjectExt, intern};
 use ryo3_macro_rules::py_value_error;
+use std::fmt::Display;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct RoundOptions {
@@ -21,8 +23,37 @@ impl RoundOptions {
         }
     }
 
+    pub(crate) fn to_pydict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let d = PyDict::new(py);
+        d.set_item(intern!(py, "smallest"), self.smallest)?;
+        d.set_item(intern!(py, "mode"), self.mode)?;
+        d.set_item(intern!(py, "increment"), self.increment)?;
+        Ok(d)
+    }
+
+    pub(crate) fn datetime_round(&self) -> DateTimeRound {
+        DateTimeRound::new()
+            .smallest(self.smallest.0)
+            .mode(self.mode.0)
+            .increment(self.increment)
+    }
+
     pub(crate) fn signed_duration_round(&self) -> SignedDurationRound {
         SignedDurationRound::new()
+            .smallest(self.smallest.0)
+            .mode(self.mode.0)
+            .increment(self.increment)
+    }
+
+    pub(crate) fn timestamp_round(&self) -> TimestampRound {
+        TimestampRound::new()
+            .smallest(self.smallest.0)
+            .mode(self.mode.0)
+            .increment(self.increment)
+    }
+
+    pub(crate) fn zoned_round(&self) -> ZonedRound {
+        ZonedRound::new()
             .smallest(self.smallest.0)
             .mode(self.mode.0)
             .increment(self.increment)
@@ -42,8 +73,8 @@ impl RySignedDurationRound {
     #[pyo3(signature = (smallest=None, *, mode=None, increment=1))]
     fn py_new(smallest: Option<JiffUnit>, mode: Option<JiffRoundMode>, increment: i64) -> Self {
         let options = RoundOptions::new(
-            smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond)),
-            mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand)),
+            smallest.unwrap_or(JiffUnit(Unit::Nanosecond)),
+            mode.unwrap_or(JiffRoundMode(RoundMode::HalfExpand)),
             increment,
         );
         let jiff_round = options.signed_duration_round();
@@ -63,6 +94,16 @@ impl RySignedDurationRound {
 
     fn __eq__(&self, other: &Self) -> bool {
         self.options == other.options
+    }
+
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.options.to_pydict(py)
+    }
+
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::empty(py).into_bound_py_any(py)?;
+        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
+        PyTuple::new(py, vec![args, kwargs])
     }
 
     #[pyo3(signature = (smallest=None, mode=None, increment=None))]

@@ -451,10 +451,7 @@ impl RyDateTime {
     }
 
     fn _round(&self, dt_round: &RyDateTimeRound) -> PyResult<Self> {
-        self.0
-            .round(dt_round.round)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        dt_round.round(self)
     }
 
     fn day_of_year(&self) -> i16 {

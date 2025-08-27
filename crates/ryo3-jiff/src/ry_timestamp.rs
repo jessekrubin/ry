@@ -360,10 +360,7 @@ impl RyTimestamp {
     }
 
     fn _round(&self, opts: &RyTimestampRound) -> PyResult<Self> {
-        self.0
-            .round(opts.round)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        opts.round(self)
     }
 
     fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
