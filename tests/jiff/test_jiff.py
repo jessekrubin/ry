@@ -23,11 +23,11 @@ JIFF_ROUND_MODES = [
     "floor",
     "expand",
     "trunc",
-    "half_ceil",
-    "half_floor",
-    "half_expand",
-    "half_trunc",
-    "half_even",
+    "half-ceil",
+    "half-floor",
+    "half-expand",
+    "half-trunc",
+    "half-even",
 ]
 # ====================
 # Zoned
@@ -320,7 +320,7 @@ class TestDateTime:
     def test_datetime_round_options(self) -> None:
         default = ry.DateTimeRound()
         expected_default_string = (
-            'DateTimeRound(smallest="nanosecond", mode="half_expand", increment=1)'
+            'DateTimeRound(smallest="nanosecond", mode="half-expand", increment=1)'
         )
         assert str(default) == expected_default_string
 

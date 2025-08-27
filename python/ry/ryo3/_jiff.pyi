@@ -43,11 +43,11 @@ JIFF_ROUND_MODE: te.TypeAlias = t.Literal[
     "floor",
     "expand",
     "trunc",
-    "half_ceil",
-    "half_floor",
-    "half_expand",
-    "half_trunc",
-    "half_even",
+    "half-ceil",
+    "half-floor",
+    "half-expand",
+    "half-trunc",
+    "half-even",
 ]
 
 WEEKDAY_STR: te.TypeAlias = t.Literal[
