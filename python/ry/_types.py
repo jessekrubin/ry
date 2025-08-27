@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TYPE_CHECKING, Protocol, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Literal, Protocol, TypedDict, TypeVar
 
 if TYPE_CHECKING:
     import datetime as pydt
@@ -20,19 +20,23 @@ else:
 
 __all__ = (
     "Buffer",
+    "DateTimeRoundTypedDict",
     "DateTimeTypedDict",
     "DateTypedDict",
     "FromStr",
     "FsPathLike",
     "Self",
+    "SignedDurationRoundTypedDict",
     "TimeSpanTypedDict",
     "TimeTypedDict",
+    "TimestampRoundTypedDict",
     "ToPy",
     "ToPyDate",
     "ToPyDateTime",
     "ToPyTime",
     "ToPyTimeDelta",
     "ToPyTzInfo",
+    "ZonedDateTimeRoundTypedDict",
 )
 
 FsPathLike = str | PathLike[str]
@@ -134,3 +138,41 @@ class TimeSpanTypedDict(TypedDict):
     milliseconds: int
     microseconds: int
     nanoseconds: int
+
+
+class _RoundTypedDict(TypedDict):
+    smallest: Literal[
+        "month",
+        "week",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
+    mode: Literal[
+        "ceil",
+        "floor",
+        "expand",
+        "trunc",
+        "half-ceil",
+        "half-floor",
+        "half-expand",
+        "half-trunc",
+        "half-even",
+    ]
+    increment: int
+
+
+class DateTimeRoundTypedDict(_RoundTypedDict): ...
+
+
+class SignedDurationRoundTypedDict(_RoundTypedDict): ...
+
+
+class TimestampRoundTypedDict(_RoundTypedDict): ...
+
+
+class ZonedDateTimeRoundTypedDict(_RoundTypedDict): ...

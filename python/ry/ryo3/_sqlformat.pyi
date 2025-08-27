@@ -1,15 +1,12 @@
+"""ryo3-sqlformat types"""
+
 import typing as t
 
-import typing_extensions
-
-# =============================================================================
-# SQLFORMAT
-# =============================================================================
-SqlfmtParamValue: typing_extensions.TypeAlias = str | int | float | bool
+SqlfmtParamValue: t.TypeAlias = str | int | float | bool
 _TSqlfmtParamValue_co = t.TypeVar(
     "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
 )
-SqlfmtParamsLike: typing_extensions.TypeAlias = (
+SqlfmtParamsLike: t.TypeAlias = (
     dict[str, _TSqlfmtParamValue_co]
     | t.Sequence[tuple[str, _TSqlfmtParamValue_co]]
     | t.Sequence[_TSqlfmtParamValue_co]

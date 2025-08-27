@@ -73,7 +73,6 @@ def test_walk_dir_dirpath_pathlib_path(tmp_path: Path) -> None:
 def test_walk_dir_dirpath_none_use_pwd(tmp_path: Path) -> None:
     dirtree = mk_dir_tree(tmp_path)
     tmp_fspath = ry.FsPath(tmp_path)
-    print(tmp_fspath, type(tmp_fspath))
     ry.cd(tmp_fspath)
     assert ry.pwd() == tmp_fspath
     walkdir_paths = [

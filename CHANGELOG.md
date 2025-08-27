@@ -13,6 +13,10 @@
     `strptime(s: str, /, fmt: str) -> Self`
   - Added to `ry.TimeSpan` and `ry.SignedDuration` the `friendly` method for
     more natural string representations
+  - Many internal refactors and cleanup
+  - Converted all `__repr__` methods to use struct `Display` impls
+  - Fixed rounding object repr function(s) and added pickling and tests for
+    round objects
 - type-annotations
   - Missing `lstrip`/`rstrip` method types for `ry.Bytes`
   - Updated types for `ry.TimeSpan` and `ry.SignedDuration` w/ correct

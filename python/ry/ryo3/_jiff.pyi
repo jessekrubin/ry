@@ -6,11 +6,14 @@ import typing as t
 import typing_extensions as te
 
 from ry._types import (
+    DateTimeRoundTypedDict,
     DateTimeTypedDict,
     DateTypedDict,
     FromStr,
     Self,
+    SignedDurationRoundTypedDict,
     TimeSpanTypedDict,
+    TimestampRoundTypedDict,
     TimeTypedDict,
     ToPy,
     ToPyDate,
@@ -18,14 +21,15 @@ from ry._types import (
     ToPyTime,
     ToPyTimeDelta,
     ToPyTzInfo,
+    ZonedDateTimeRoundTypedDict,
 )
 from ry.ryo3 import Duration
-from ry.ryo3._jiff_tz import TZDB_NAMES
+from ry.ryo3._jiff_tz import TimezoneDbName
 
 _T = t.TypeVar("_T")
 
-TZ_NAME: te.TypeAlias = TZDB_NAMES | str
-JIFF_UNIT: te.TypeAlias = t.Literal[
+TimezoneName: t.TypeAlias = TimezoneDbName | str
+JiffUnit: t.TypeAlias = t.Literal[
     "year",
     "month",
     "week",
@@ -38,23 +42,22 @@ JIFF_UNIT: te.TypeAlias = t.Literal[
     "nanosecond",
 ]
 
-JIFF_ROUND_MODE: te.TypeAlias = t.Literal[
+JiffRoundMode: t.TypeAlias = t.Literal[
     "ceil",
     "floor",
     "expand",
     "trunc",
-    "half_ceil",
-    "half_floor",
-    "half_expand",
-    "half_trunc",
-    "half_even",
+    "half-ceil",
+    "half-floor",
+    "half-expand",
+    "half-trunc",
+    "half-even",
 ]
 
-WEEKDAY_STR: te.TypeAlias = t.Literal[
+WeekdayStr: t.TypeAlias = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 ]
-
-WEEKDAY_INT: te.TypeAlias = t.Literal[
+WeekdayInt: t.TypeAlias = t.Literal[
     1,  # Monday
     2,  # Tuesday
     3,  # Wednesday
@@ -63,8 +66,7 @@ WEEKDAY_INT: te.TypeAlias = t.Literal[
     6,  # Saturday
     7,  # Sunday
 ]
-
-WEEKDAY: te.TypeAlias = WEEKDAY_STR | WEEKDAY_INT
+Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 @t.final
 class Date(ToPy[pydt.date], ToPyDate):
@@ -176,13 +178,13 @@ class Date(ToPy[pydt.date], ToPyDate):
     def first_of_year(self) -> Date: ...
     def iso_week_date(self) -> ISOWeekDate: ...
     def in_leap_year(self) -> bool: ...
-    def in_tz(self, tz: TZ_NAME) -> ZonedDateTime: ...
+    def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
     @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: TZ_NAME) -> ZonedDateTime: ...
+    def intz(self, tz: TimezoneName) -> ZonedDateTime: ...
     def last_of_month(self) -> Date: ...
     def last_of_year(self) -> Date: ...
-    def nth_weekday(self, nth: int, weekday: WEEKDAY) -> Date: ...
-    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -> Date: ...
+    def nth_weekday(self, nth: int, weekday: Weekday) -> Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: Weekday) -> Date: ...
     def replace(
         self,
         year: int | None = None,
@@ -207,24 +209,20 @@ class Date(ToPy[pydt.date], ToPyDate):
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
-
-    # =========================================================================
-    # INSTANCE METHODS W/ OVERLOADS
-    # =========================================================================
 
 @t.final
 class Time(ToPy[pydt.time], ToPyTime, FromStr):
@@ -354,8 +352,8 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     ) -> Time: ...
     def round(
         self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> Time: ...
     def series(self, span: TimeSpan) -> JiffSeries[Time]: ...
@@ -370,18 +368,18 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -493,8 +491,8 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def iso_week_date(self) -> ISOWeekDate: ...
     def last_of_month(self) -> DateTime: ...
     def last_of_year(self) -> DateTime: ...
-    def nth_weekday(self, nth: int, weekday: WEEKDAY) -> DateTime: ...
-    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -> DateTime: ...
+    def nth_weekday(self, nth: int, weekday: Weekday) -> DateTime: ...
+    def nth_weekday_of_month(self, nth: int, weekday: Weekday) -> DateTime: ...
     def replace(
         self,
         obj: Date | DateTime | Time | None = None,
@@ -517,9 +515,9 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     ) -> DateTime: ...
     def round(
         self,
-        smallest: JIFF_UNIT | None = None,
+        smallest: JiffUnit | None = None,
         *,
-        mode: JIFF_ROUND_MODE | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> DateTime: ...
     def _round(self, options: DateTimeRound) -> DateTime: ...
@@ -568,24 +566,24 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
         self,
         other: Date | Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Date | Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
 @t.final
 class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
-    def __init__(self, name: TZ_NAME) -> None: ...
+    def __init__(self, name: TimezoneName) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __call__(self) -> Self: ...
 
@@ -596,7 +594,7 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     def to_py(self) -> pydt.tzinfo: ...
     def to_pytzinfo(self) -> pydt.tzinfo: ...
     @classmethod
-    def from_str(cls, s: TZ_NAME) -> TimeZone: ...
+    def from_str(cls, s: TimezoneName) -> TimeZone: ...
     @classmethod
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -> TimeZone: ...
 
@@ -614,9 +612,9 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     @classmethod
     def fixed(cls: type[TimeZone], offset: Offset) -> TimeZone: ...
     @classmethod
-    def get(cls: type[TimeZone], name: TZ_NAME) -> TimeZone: ...
+    def get(cls: type[TimeZone], name: TimezoneName) -> TimeZone: ...
     @classmethod
-    def posix(cls: type[TimeZone], name: TZ_NAME) -> TimeZone: ...
+    def posix(cls: type[TimeZone], name: TimezoneName) -> TimeZone: ...
     @classmethod
     def system(cls: type[TimeZone]) -> TimeZone: ...
     @classmethod
@@ -631,6 +629,17 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     # =========================================================================
     def iana_name(self) -> str | None: ...
     def to_datetime(self, dt: Timestamp) -> DateTime: ...
+    def to_fixed_offset(self) -> Offset:
+        """Return a TimeZone with a fixed offset equivalent to this TimeZone.
+
+        Examples:
+            >>> import ry
+            >>> tz = ry.TimeZone.fixed(ry.Offset(hours=-5))
+            >>> fixed_tz = tz.to_fixed_offset()
+            >>> fixed_tz
+            Offset(hours=-5)
+
+        """
     def to_offset(self, timestamp: Timestamp) -> Offset: ...
     def to_timestamp(self, dt: DateTime) -> Timestamp: ...
     def to_zoned(self, other: DateTime) -> ZonedDateTime: ...
@@ -763,13 +772,21 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def subsec_millis(self) -> int: ...
     def subsec_nanos(self) -> int: ...
     def to_timespan(self) -> TimeSpan: ...
+    def round(
+        self,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -> SignedDuration: ...
+    def _round(self, options: SignedDurationRound) -> DateTime: ...
 
 # put in quotes to avoid ruff F821 - undefined name
-_TimeSpanArithmeticSingle: te.TypeAlias = TimeSpan | Duration | SignedDuration
-_TimeSpanArithmeticTuple: te.TypeAlias = tuple[
+_TimeSpanArithmeticSingle: t.TypeAlias = TimeSpan | Duration | SignedDuration
+_TimeSpanArithmeticTuple: t.TypeAlias = tuple[
     _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
 ]
-TimeSpanArithmetic: te.TypeAlias = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
+TimeSpanArithmetic: t.TypeAlias = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
 
 @t.final
 class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
@@ -901,12 +918,12 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     ) -> Self: ...
     def round(
         self,
-        smallest: JIFF_UNIT,
+        smallest: JiffUnit,
         increment: int = 1,
         *,
         relative: ZonedDateTime | Date | DateTime | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
     ) -> Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
@@ -914,7 +931,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     ) -> SignedDuration: ...
     def total(
         self,
-        unit: JIFF_UNIT,
+        unit: JiffUnit,
         relative: ZonedDateTime | Date | DateTime | None = None,
         days_are_24_hours: bool = False,
     ) -> int: ...
@@ -1047,9 +1064,9 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def as_nanosecond(self) -> int: ...
     def as_second(self) -> int: ...
     def display_with_offset(self, offset: Offset) -> str: ...
-    def in_tz(self, tz: TZ_NAME) -> ZonedDateTime: ...
+    def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
     @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: TZ_NAME) -> ZonedDateTime:
+    def intz(self, tz: TimezoneName) -> ZonedDateTime:
         """Deprecated ~ use `in_tz`"""
 
     def is_zero(self) -> bool: ...
@@ -1070,26 +1087,26 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def duration_since(self, other: Timestamp) -> SignedDuration: ...
     def duration_until(self, other: Timestamp) -> SignedDuration: ...
     def round(
         self,
-        unit: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        unit: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> Timestamp: ...
     def _round(self, options: TimestampRound) -> Timestamp: ...
@@ -1259,14 +1276,14 @@ class ZonedDateTime(
     def first_of_month(self) -> ZonedDateTime: ...
     def first_of_year(self) -> ZonedDateTime: ...
     def in_leap_year(self) -> bool: ...
-    def in_tz(self, tz: TZ_NAME) -> Self: ...
+    def in_tz(self, tz: TimezoneName) -> Self: ...
     @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: TZ_NAME) -> Self: ...
+    def intz(self, tz: TimezoneName) -> Self: ...
     def inutc(self) -> ZonedDateTime: ...
     def last_of_month(self) -> ZonedDateTime: ...
     def last_of_year(self) -> ZonedDateTime: ...
-    def nth_weekday(self, nth: int, weekday: WEEKDAY) -> Date: ...
-    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -> Date: ...
+    def nth_weekday(self, nth: int, weekday: Weekday) -> Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: Weekday) -> Date: ...
     def offset(self) -> Offset: ...
     def replace(
         self,
@@ -1293,9 +1310,9 @@ class ZonedDateTime(
     ) -> ZonedDateTime: ...
     def round(
         self,
-        smallest: JIFF_UNIT | None = None,
+        smallest: JiffUnit | None = None,
         *,
-        mode: JIFF_ROUND_MODE | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> DateTime: ...
     def _round(self, options: ZonedDateTimeRound) -> DateTime: ...
@@ -1313,18 +1330,18 @@ class ZonedDateTime(
         self,
         other: ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -1334,7 +1351,7 @@ class ISOWeekDate:
     MAX: ISOWeekDate
     ZERO: ISOWeekDate
 
-    def __init__(self, year: int, week: int, weekday: WEEKDAY) -> None: ...
+    def __init__(self, year: int, week: int, weekday: Weekday) -> None: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -1364,7 +1381,7 @@ class ISOWeekDate:
     @property
     def week(self) -> int: ...
     @property
-    def weekday(self) -> WEEKDAY_INT: ...
+    def weekday(self) -> WeekdayInt: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -1470,14 +1487,14 @@ class _Difference(t.Generic[_T]):
         self,
         date: _T,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> None: ...
-    def smallest(self, unit: JIFF_UNIT) -> Self: ...
-    def largest(self, unit: JIFF_UNIT) -> Self: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> Self: ...
+    def smallest(self, unit: JiffUnit) -> Self: ...
+    def largest(self, unit: JiffUnit) -> Self: ...
+    def mode(self, mode: JiffRoundMode) -> Self: ...
     def increment(self, increment: int) -> Self: ...
 
 @t.final
@@ -1499,70 +1516,104 @@ class ZonedDateTimeDifference(_Difference[ZonedDateTime]): ...
 # ROUND
 # =============================================================================
 @t.final
-class TimestampRound:
-    def __init__(
-        self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int = 1,
-    ) -> None: ...
-    def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> TimestampRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -> TimestampRound: ...
-    def increment(self, increment: int) -> TimestampRound: ...
-    def _smallest(self) -> JIFF_UNIT: ...
-    def _mode(self) -> JIFF_ROUND_MODE: ...
-    def _increment(self) -> int: ...
-    def replace(
-        self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
-    ) -> TimestampRound: ...
-
-@t.final
 class DateTimeRound:
     def __init__(
         self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
         increment: int = 1,
     ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> DateTimeRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -> DateTimeRound: ...
+    def mode(self, mode: JiffRoundMode) -> DateTimeRound: ...
+    def smallest(self, smallest: JiffUnit) -> DateTimeRound: ...
     def increment(self, increment: int) -> DateTimeRound: ...
-    def _smallest(self) -> JIFF_UNIT: ...
-    def _mode(self) -> JIFF_ROUND_MODE: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
     def _increment(self) -> int: ...
     def replace(
         self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
     ) -> DateTimeRound: ...
+    def to_dict(self) -> DateTimeRoundTypedDict: ...
+    def round(self, dt: DateTime) -> DateTime: ...
+
+@t.final
+class SignedDurationRound:
+    def __init__(
+        self,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
+        increment: int = 1,
+    ) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def mode(self, mode: JiffRoundMode) -> SignedDurationRound: ...
+    def smallest(self, smallest: JiffUnit) -> SignedDurationRound: ...
+    def increment(self, increment: int) -> SignedDurationRound: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
+    def _increment(self) -> int: ...
+    def replace(
+        self,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -> SignedDurationRound: ...
+    def to_dict(self) -> SignedDurationRoundTypedDict: ...
+    def round(self, sd: SignedDuration) -> SignedDuration: ...
+
+@t.final
+class TimestampRound:
+    def __init__(
+        self,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
+        increment: int = 1,
+    ) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def mode(self, mode: JiffRoundMode) -> TimestampRound: ...
+    def smallest(self, smallest: JiffUnit) -> TimestampRound: ...
+    def increment(self, increment: int) -> TimestampRound: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
+    def _increment(self) -> int: ...
+    def replace(
+        self,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -> TimestampRound: ...
+    def to_dict(self) -> TimestampRoundTypedDict: ...
+    def round(self, dt: Timestamp) -> Timestamp: ...
 
 @t.final
 class ZonedDateTimeRound:
     def __init__(
         self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
         increment: int = 1,
     ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> ZonedDateTimeRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -> ZonedDateTimeRound: ...
+    def mode(self, mode: JiffRoundMode) -> ZonedDateTimeRound: ...
+    def smallest(self, smallest: JiffUnit) -> ZonedDateTimeRound: ...
     def increment(self, increment: int) -> ZonedDateTimeRound: ...
-    def _smallest(self) -> JIFF_UNIT: ...
-    def _mode(self) -> JIFF_ROUND_MODE: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
     def _increment(self) -> int: ...
     def replace(
         self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
     ) -> ZonedDateTimeRound: ...
+    def to_dict(self) -> ZonedDateTimeRoundTypedDict: ...
+    def round(self, dt: ZonedDateTime) -> ZonedDateTime: ...
 
 @t.type_check_only
 class JiffSeries(
@@ -1621,15 +1672,15 @@ class TimeZoneDatabase:
         """Defaults to using the `self.from_env`"""
 
     @t.overload
-    def get(self, name: TZ_NAME, err: t.Literal[False]) -> TimeZone | None:
+    def get(self, name: TimezoneName, err: t.Literal[False]) -> TimeZone | None:
         """Returns TimeZone or None if the timezone is not found"""
 
     @t.overload
-    def get(self, name: TZ_NAME, err: t.Literal[True] = True) -> TimeZone:
+    def get(self, name: TimezoneName, err: t.Literal[True] = True) -> TimeZone:
         """Returns TimeZone, if not found raises a ValueError"""
 
     def available(self) -> list[str]: ...
-    def __getitem__(self, name: TZ_NAME) -> TimeZone: ...
+    def __getitem__(self, name: TimezoneName) -> TimeZone: ...
     def __len__(self) -> int: ...
     def is_definitively_empty(self) -> bool: ...
     @classmethod

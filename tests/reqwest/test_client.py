@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @pytest.mark.anyio
 async def test_get(server: ReqtestServer) -> None:
-    print(server)
     url = server.url
     client = ry.HttpClient()
     response = await client.get(str(url) + "howdy")

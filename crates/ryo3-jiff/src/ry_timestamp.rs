@@ -360,10 +360,7 @@ impl RyTimestamp {
     }
 
     fn _round(&self, opts: &RyTimestampRound) -> PyResult<Self> {
-        self.0
-            .round(opts.round)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        opts.round(self)
     }
 
     fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -381,9 +378,15 @@ impl RyTimestamp {
 
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        write!(
+            f,
+            "Timestamp({:?}, {:?})",
+            self.0.as_second(),
+            self.0.subsec_nanosecond()
+        )
     }
 }
+
 impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
         Self(value)

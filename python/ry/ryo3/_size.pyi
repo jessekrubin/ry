@@ -2,8 +2,8 @@ import typing as t
 
 import typing_extensions as te
 
-FORMAT_SIZE_BASE: te.TypeAlias = t.Literal[2, 10]  # default=2
-FORMAT_SIZE_STYLE: te.TypeAlias = t.Literal[  # default="default"
+FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
+FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
     "default",
     "abbreviated",
     "abbreviated_lowercase",
@@ -16,8 +16,8 @@ FORMAT_SIZE_STYLE: te.TypeAlias = t.Literal[  # default="default"
 def fmt_size(
     n: int,
     *,
-    base: FORMAT_SIZE_BASE | None = 2,
-    style: FORMAT_SIZE_STYLE | None = "default",
+    base: FormatSizeBase = 2,
+    style: FormatSizeStyle = "default",
 ) -> str:
     """Return human-readable string representation of bytes-size."""
 
@@ -34,8 +34,8 @@ class SizeFormatter:
 
     def __init__(
         self,
-        base: FORMAT_SIZE_BASE | None = 2,
-        style: FORMAT_SIZE_STYLE | None = "default",
+        base: FormatSizeBase = 2,
+        style: FormatSizeStyle = "default",
     ) -> None:
         """Initialize human-readable bytes-size formatter."""
 
@@ -71,8 +71,8 @@ class Size:
     def bytes(self) -> int: ...
     def format(
         self,
-        base: FORMAT_SIZE_BASE | None = 2,
-        style: FORMAT_SIZE_STYLE | None = "default",
+        base: FormatSizeBase = 2,
+        style: FormatSizeStyle = "default",
     ) -> str: ...
 
     # =========================================================================

@@ -30,7 +30,6 @@ JIFF_OBJECTS: list[FromStr] = [
 @pytest.mark.parametrize("obj", JIFF_OBJECTS)
 def test_from_string(obj: t.Any) -> None:
     string = obj.string()
-    print(f"Testing from_str for {obj} with string: {string}")
     cls = obj.__class__
     roundtrip_from_str = cls.from_str(string)
     roundtrip_parse = cls.parse(string)

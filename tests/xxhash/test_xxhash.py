@@ -1,3 +1,10 @@
+"""Tests for the `ry.xxhash` module.
+
+This test module was previously very very very large and handwritten. I did a
+bit of refactoring and as a part of that process I handed my refactored version
+to Chad-Gippity and asked it to re-organize it...
+"""
+
 from __future__ import annotations
 
 import pytest

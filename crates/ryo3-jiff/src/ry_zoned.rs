@@ -350,11 +350,8 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn _round(&self, dt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
-        self.0
-            .round(dt_round.round)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    fn _round(&self, zdt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
+        zdt_round.round(self)
     }
 
     fn tomorrow(&self) -> PyResult<Self> {
