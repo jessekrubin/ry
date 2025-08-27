@@ -15,8 +15,9 @@ else:
     from typing_extensions import Self
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
+    from typing import Unpack
 else:
-    from typing_extensions import Buffer
+    from typing_extensions import Buffer, Unpack
 
 __all__ = (
     "Buffer",
@@ -36,6 +37,7 @@ __all__ = (
     "ToPyTime",
     "ToPyTimeDelta",
     "ToPyTzInfo",
+    "Unpack",
     "ZonedDateTimeRoundTypedDict",
 )
 
