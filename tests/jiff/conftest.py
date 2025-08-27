@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
 if TYPE_CHECKING:
     from ry.ryo3 import JIFF_ROUND_MODE, JIFF_UNIT
 
-_JIFF_UNITS = (
+_JIFF_UNITS: tuple[JIFF_UNIT, ...] = (
     "nanosecond",
     "microsecond",
     "millisecond",
@@ -19,7 +19,7 @@ _JIFF_UNITS = (
     "year",
 )
 
-_JIFF_ROUND_MODES = (
+_JIFF_ROUND_MODES: tuple[JIFF_ROUND_MODE, ...] = (
     "ceil",
     "floor",
     "expand",
@@ -34,12 +34,12 @@ _JIFF_ROUND_MODES = (
 
 @pytest.fixture(params=_JIFF_UNITS)
 def jiff_unit(request: pytest.FixtureRequest) -> JIFF_UNIT:
-    return request.param
+    return cast("JIFF_UNIT", request.param)
 
 
 @pytest.fixture(params=_JIFF_ROUND_MODES)
 def jiff_round_mode(request: pytest.FixtureRequest) -> JIFF_ROUND_MODE:
-    return request.param
+    return cast("JIFF_ROUND_MODE", request.param)
 
 
 @pytest.fixture()

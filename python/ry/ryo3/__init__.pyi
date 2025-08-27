@@ -50,6 +50,7 @@ from ry.ryo3._jiff import DateTimeRound as DateTimeRound
 from ry.ryo3._jiff import ISOWeekDate as ISOWeekDate
 from ry.ryo3._jiff import Offset as Offset
 from ry.ryo3._jiff import SignedDuration as SignedDuration
+from ry.ryo3._jiff import SignedDurationRound as SignedDurationRound
 from ry.ryo3._jiff import Time as Time
 from ry.ryo3._jiff import TimeDifference as TimeDifference
 from ry.ryo3._jiff import TimeSpan as TimeSpan

@@ -1,7 +1,11 @@
+use crate::JiffRoundMode;
 use crate::JiffSignedDuration;
+use crate::JiffUnit;
 use crate::errors::map_py_value_err;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
+use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
+use jiff::SignedDurationRound;
 use jiff::{SignedDuration, Span};
 use pyo3::prelude::*;
 
@@ -419,6 +423,40 @@ impl RySignedDuration {
     }
     fn subsec_nanos(&self) -> i32 {
         self.0.subsec_nanos()
+    }
+
+    // ===========
+    // ROUND
+    #[pyo3(
+       signature = (smallest=None, *, mode = None, increment = None),
+    )]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<Self> {
+        let mut dt_round = SignedDurationRound::new();
+        if let Some(smallest) = smallest {
+            dt_round = dt_round.smallest(smallest.0);
+        }
+        if let Some(mode) = mode {
+            dt_round = dt_round.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            dt_round = dt_round.increment(increment);
+        }
+        self.0
+            .round(dt_round)
+            .map(Self::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    fn _round(&self, dt_round: &RySignedDurationRound) -> PyResult<Self> {
+        self.0
+            .round(dt_round.jiff_round)
+            .map(Self::from)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 }
 

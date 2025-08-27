@@ -17,10 +17,10 @@ pub struct JiffOffset(pub jiff::tz::Offset);
 #[derive(Debug)]
 pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct JiffUnit(pub(crate) jiff::Unit);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
