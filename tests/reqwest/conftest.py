@@ -12,7 +12,7 @@ import threading
 import time
 from asyncio import sleep as aiosleep
 from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Iterator
-from typing import Any
+from typing import Any, TypeAlias
 
 import pytest
 from uvicorn import _types as uvt
@@ -21,20 +21,9 @@ from uvicorn.server import Server
 
 import ry
 
-ENVIRONMENT_VARIABLES = {
-    "SSL_CERT_FILE",
-    "SSL_CERT_DIR",
-    "HTTP_PROXY",
-    "HTTPS_PROXY",
-    "ALL_PROXY",
-    "NO_PROXY",
-    "SSLKEYLOGFILE",
-}
-
-Message = dict[str, Any]
-Receive = Callable[[], Awaitable[Message]]
-Send = Callable[[uvt.ASGISendEvent], Coroutine[None, None, None]]
-Scope = dict[str, Any]
+Receive: TypeAlias = Callable[[], Awaitable[dict[str, Any]]]
+Send: TypeAlias = Callable[[uvt.ASGISendEvent], Coroutine[None, None, None]]
+Scope: TypeAlias = dict[str, Any]
 
 
 async def echo(
