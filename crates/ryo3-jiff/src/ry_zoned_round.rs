@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{JiffRoundMode, JiffUnit};
 use jiff::ZonedRound;
 use pyo3::prelude::*;
@@ -15,7 +17,7 @@ pub struct RyZonedDateTimeRound {
 #[pymethods]
 impl RyZonedDateTimeRound {
     #[new]
-    #[pyo3(signature = (smallest=None, mode=None, increment=1))]
+    #[pyo3(signature = (smallest=None, *, mode=None, increment=1))]
     fn py_new(smallest: Option<JiffUnit>, mode: Option<JiffRoundMode>, increment: i64) -> Self {
         let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
         let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand));
@@ -36,10 +38,7 @@ impl RyZonedDateTimeRound {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "ZonedDateTimeRound(smallest=\"{}\", mode=\"{}\", increment={})",
-            self.smallest, self.mode, self.increment
-        )
+        format!("{self}")
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -92,5 +91,15 @@ impl RyZonedDateTimeRound {
 
     fn _increment(&self) -> i64 {
         self.increment
+    }
+}
+
+impl Display for RyZonedDateTimeRound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ZonedDateTimeRound(smallest=\"{}\", mode=\"{}\", increment={})",
+            self.smallest, self.mode, self.increment
+        )
     }
 }

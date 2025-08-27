@@ -10,6 +10,7 @@ use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError};
 use pyo3::types::{PyDelta, PyTuple, PyType};
 use ryo3_std::PyDuration;
+use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Mul;
 use std::str::FromStr;
@@ -172,11 +173,7 @@ impl RySignedDuration {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "SignedDuration(secs={}, nanos={})",
-            self.0.as_secs(),
-            self.0.subsec_nanos()
-        )
+        format!("{self}")
     }
 
     fn __hash__(&self) -> u64 {
@@ -441,4 +438,15 @@ impl From<JiffSignedDuration> for RySignedDuration {
 enum RySignedDurationComparable<'py> {
     RySignedDuration(RySignedDuration),
     PyDelta(Bound<'py, PyDelta>),
+}
+
+impl Display for RySignedDuration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "SignedDuration(secs={}, nanos={})",
+            self.0.as_secs(),
+            self.0.subsec_nanos()
+        )
+    }
 }

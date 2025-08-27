@@ -1,6 +1,7 @@
 use crate::{JiffRoundMode, JiffUnit};
 use jiff::TimestampRound;
 use pyo3::prelude::*;
+use std::fmt::Display;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimestampRound", module = "ry.ryo3", frozen)]
@@ -15,7 +16,7 @@ pub struct RyTimestampRound {
 #[pymethods]
 impl RyTimestampRound {
     #[new]
-    #[pyo3(signature = (smallest=None, mode=None, increment=1))]
+    #[pyo3(signature = (smallest=None, *, mode=None, increment=1))]
     fn py_new(smallest: Option<JiffUnit>, mode: Option<JiffRoundMode>, increment: i64) -> Self {
         let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
         let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand));
@@ -36,10 +37,7 @@ impl RyTimestampRound {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "TimestampRound(smallest=\"{}\", mode=\"{}\", increment={})",
-            self.smallest, self.mode, self.increment
-        )
+        format!("{self}")
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -92,5 +90,15 @@ impl RyTimestampRound {
 
     fn _increment(&self) -> i64 {
         self.increment
+    }
+}
+
+impl Display for RyTimestampRound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "TimestampRound(smallest=\"{}\", mode=\"{}\", increment={})",
+            self.smallest, self.mode, self.increment
+        )
     }
 }

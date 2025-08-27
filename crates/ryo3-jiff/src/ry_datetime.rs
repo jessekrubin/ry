@@ -172,24 +172,15 @@ impl RyDateTime {
     }
 
     fn __str__(&self) -> String {
-        self.to_string()
+        self.0.to_string()
     }
 
     fn string(&self) -> String {
-        self.to_string()
+        self.__str__()
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, subsec_nanosecond={})",
-            self.year(),
-            self.month(),
-            self.day(),
-            self.hour(),
-            self.minute(),
-            self.second(),
-            self.subsec_nanosecond()
-        )
+        format!("{self}")
     }
 
     fn __hash__(&self) -> u64 {
@@ -622,6 +613,16 @@ impl RyDateTime {
 
 impl Display for RyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        write!(
+            f,
+            "DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, subsec_nanosecond={})",
+            self.year(),
+            self.month(),
+            self.day(),
+            self.hour(),
+            self.minute(),
+            self.second(),
+            self.subsec_nanosecond()
+        )
     }
 }
