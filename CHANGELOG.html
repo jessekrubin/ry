@@ -199,6 +199,10 @@ instead of <code>(format, string)</code>; the strptime signature is
 <code>strptime(s: str, /, fmt: str) -&gt; Self</code></li>
 <li>Added to <code>ry.TimeSpan</code> and <code>ry.SignedDuration</code> the <code>friendly</code> method for
 more natural string representations</li>
+<li>Many internal refactors and cleanup</li>
+<li>Converted all <code>__repr__</code> methods to use struct <code>Display</code> impls</li>
+<li>Fixed rounding object repr function(s) and added pickling and tests for
+round objects</li>
 </ul>
 </li>
 <li>type-annotations
