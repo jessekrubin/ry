@@ -175,4 +175,7 @@ class CODEGEN:
 
 
 if __name__ == "__main__":
-    print(CODEGEN.gen_status_code_rust_code())
+    import sys
+
+    s = CODEGEN.gen_status_code_rust_code()
+    sys.stdout.write(s)

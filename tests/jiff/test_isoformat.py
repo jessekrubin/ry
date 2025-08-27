@@ -61,10 +61,9 @@ def _test_zoned_datetime_isoformat(dt: pydt.datetime) -> None:
             f"py_zdt_utc: {py_zdt_utc.isoformat()}",
             f"ry_zdt_utc: {ry_zdt_utc.isoformat()}",
         )
-        print("\n".join(msg_lines))
-    assert ry_isoformat == py_isoformat or py_isoformat.startswith(ry_isoformat), (
-        f"py: {py_isoformat}\nry: {ry_isoformat}\nis_eq: {is_eq}\nry_prefix_ok: {ry_prefix_ok}\n"
-    )
+        assert ry_isoformat == py_isoformat or py_isoformat.startswith(ry_isoformat), (
+            "\n".join(msg_lines)
+        )
 
 
 def datetime_does_not_exist(value: pydt.datetime) -> bool:

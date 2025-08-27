@@ -8,6 +8,7 @@ from hypothesis import assume, given
 from hypothesis import strategies as st
 
 import ry
+from tests.strategies import MAX_I8, MAX_I16, MIN_I8, MIN_I16
 
 from .strategies import (
     date_tuple_strategy,
@@ -23,7 +24,7 @@ from .strategies import (
 )
 
 if t.TYPE_CHECKING:
-    from ry.ryo3._jiff import JIFF_ROUND_MODE, JIFF_UNIT
+    from ry.ryo3._jiff import JiffRoundMode, JiffUnit
 
 
 @given(date_tuple_strategy)
@@ -94,7 +95,7 @@ def test_datetime_difference(dt1: ry.DateTime, dt2: ry.DateTime) -> None:
     st.integers(min_value=1, max_value=1000),
 )
 def test_datetime_rounding(
-    dt: ry.DateTime, unit: JIFF_UNIT, mode: JIFF_ROUND_MODE, increment: int
+    dt: ry.DateTime, unit: JiffUnit, mode: JiffRoundMode, increment: int
 ) -> None:
     """Test that rounding a datetime with various options works correctly"""
     try:
@@ -116,8 +117,6 @@ def test_zoned_datetime_creation(dt: ry.DateTime, tz: str) -> None:
         assert zdt.timezone == tz
         assert isinstance(zdt, ry.ZonedDateTime)
     except ValueError:
-        print(f"Invalid timezone: {tz}")
-        # Some combinations might raise exceptions due to invalid dates or timezones
         assume(False)
 
 
@@ -171,13 +170,19 @@ def test_duration_addition_cancellation(duration: ry.SignedDuration) -> None:
 @given(st.integers(), st.integers(), st.integers())
 def test_invalid_date_creation(year: int, month: int, day: int) -> None:
     assume(not (-9999 <= year <= 9999 and 1 <= month <= 12 and 1 <= day <= 31))
-    try:
-        ry.date(year, month, day)
-    # TODO: figure out if should be OverflowError or ValueError
-    except (ValueError, OverflowError):
-        pass
+    if (
+        day > MAX_I8
+        or day < MIN_I8
+        or month > MAX_I8
+        or month < MIN_I8
+        or year > MAX_I16
+        or year < MIN_I16
+    ):
+        with pytest.raises(OverflowError):
+            _d = ry.date(year, month, day)
     else:
-        assert False, "Expected ValueError for invalid date"
+        with pytest.raises(ValueError):
+            _d = ry.date(year, month, day)
 
 
 @given(datetime_strategy)

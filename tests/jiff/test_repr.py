@@ -8,7 +8,7 @@ import pytest
 import ry
 
 if TYPE_CHECKING:
-    from ry.ryo3 import JIFF_ROUND_MODE, JIFF_UNIT
+    from ry.ryo3 import JiffRoundMode, JiffUnit
 
 JIFF_OBJECTS = [
     # date
@@ -62,8 +62,8 @@ def test_repr_span() -> None:
 )
 def test_round_reprs(
     cls: type[ry.DateTimeRound | ry.TimestampRound | ry.ZonedDateTimeRound],
-    jiff_unit: JIFF_UNIT,
-    jiff_round_mode: JIFF_ROUND_MODE,
+    jiff_unit: JiffUnit,
+    jiff_round_mode: JiffRoundMode,
 ) -> None:
     round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=1)
     repr_str = repr(round_obj)

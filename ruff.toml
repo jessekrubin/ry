@@ -94,7 +94,7 @@ lint.per-file-ignores."bench/**/*.py" = [
   "TID252",
 ]
 lint.per-file-ignores."tests/**/*.py" = [
-  "B011",
+#  "B011",
   "B018",
   "DTZ001",
   "PL",
@@ -103,7 +103,6 @@ lint.per-file-ignores."tests/**/*.py" = [
   "S301",
   "S307",
   "S603",
-  "T201",
   "TID252",
 ]
 lint.per-file-ignores."tests/reqwest/conftest.py" = ["ARG001"]

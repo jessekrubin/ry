@@ -23,7 +23,7 @@ impl RoundOptions {
         }
     }
 
-    pub(crate) fn to_pydict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    pub(crate) fn as_pydict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let d = PyDict::new(py);
         d.set_item(intern!(py, "smallest"), self.smallest)?;
         d.set_item(intern!(py, "mode"), self.mode)?;
@@ -96,8 +96,9 @@ impl RySignedDurationRound {
         self.options == other.options
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        self.options.to_pydict(py)
+        self.options.as_pydict(py)
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING, cast
 import pytest
 
 if TYPE_CHECKING:
-    from ry.ryo3 import JIFF_ROUND_MODE, JIFF_UNIT
+    from ry.ryo3 import JiffRoundMode, JiffUnit
 
-_JIFF_UNITS: tuple[JIFF_UNIT, ...] = (
+_JIFF_UNITS: tuple[JiffUnit, ...] = (
     "nanosecond",
     "microsecond",
     "millisecond",
@@ -19,7 +19,7 @@ _JIFF_UNITS: tuple[JIFF_UNIT, ...] = (
     "year",
 )
 
-_JIFF_ROUND_MODES: tuple[JIFF_ROUND_MODE, ...] = (
+_JIFF_ROUND_MODES: tuple[JiffRoundMode, ...] = (
     "ceil",
     "floor",
     "expand",
@@ -33,20 +33,20 @@ _JIFF_ROUND_MODES: tuple[JIFF_ROUND_MODE, ...] = (
 
 
 @pytest.fixture(params=_JIFF_UNITS)
-def jiff_unit(request: pytest.FixtureRequest) -> JIFF_UNIT:
-    return cast("JIFF_UNIT", request.param)
+def jiff_unit(request: pytest.FixtureRequest) -> JiffUnit:
+    return cast("JiffUnit", request.param)
 
 
 @pytest.fixture(params=_JIFF_ROUND_MODES)
-def jiff_round_mode(request: pytest.FixtureRequest) -> JIFF_ROUND_MODE:
-    return cast("JIFF_ROUND_MODE", request.param)
+def jiff_round_mode(request: pytest.FixtureRequest) -> JiffRoundMode:
+    return cast("JiffRoundMode", request.param)
 
 
 @pytest.fixture()
-def jiff_units() -> tuple[JIFF_UNIT, ...]:
+def jiff_units() -> tuple[JiffUnit, ...]:
     return _JIFF_UNITS
 
 
 @pytest.fixture()
-def jiff_round_modes() -> tuple[JIFF_ROUND_MODE, ...]:
+def jiff_round_modes() -> tuple[JiffRoundMode, ...]:
     return _JIFF_ROUND_MODES
