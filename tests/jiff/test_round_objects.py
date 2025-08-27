@@ -11,10 +11,21 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "cls", [ry.DateTimeRound, ry.TimestampRound, ry.ZonedDateTimeRound]
+    "cls",
+    [
+        ry.DateTimeRound,
+        ry.SignedDurationRound,
+        ry.TimestampRound,
+        ry.ZonedDateTimeRound,
+    ],
 )
 def test_round_getters(
-    cls: type[ry.DateTimeRound | ry.TimestampRound | ry.ZonedDateTimeRound],
+    cls: type[
+        ry.DateTimeRound
+        | ry.SignedDurationRound
+        | ry.TimestampRound
+        | ry.ZonedDateTimeRound
+    ],
     jiff_unit: JIFF_UNIT,
     jiff_round_mode: JIFF_ROUND_MODE,
 ) -> None:
@@ -28,7 +39,12 @@ def test_round_getters(
     "cls", [ry.DateTimeRound, ry.TimestampRound, ry.ZonedDateTimeRound]
 )
 def test_round_replace(
-    cls: type[ry.DateTimeRound | ry.TimestampRound | ry.ZonedDateTimeRound],
+    cls: type[
+        ry.DateTimeRound
+        | ry.SignedDurationRound
+        | ry.TimestampRound
+        | ry.ZonedDateTimeRound
+    ],
     jiff_unit: JIFF_UNIT,
     jiff_round_mode: JIFF_ROUND_MODE,
 ) -> None:

@@ -80,6 +80,11 @@ def test_datetime_difference(dt1: ry.DateTime, dt2: ry.DateTime) -> None:
     datetime_strategy,
     st.sampled_from(["second", "minute", "hour", "day", "month", "year"]),
     st.sampled_from([
+        "half-even",
+        "half-ceil",
+        "half-floor",
+        "half-expand",
+        "half-trunc",
         "half_even",
         "half_ceil",
         "half_floor",

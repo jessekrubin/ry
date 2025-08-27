@@ -37,21 +37,21 @@ impl<'py> IntoPyObject<'py> for &JiffRoundMode {
     }
 }
 
-const JIFF_ROUND_MODE_ACCEPTED: &str = "'ceil', 'floor', 'expand', 'trunc', 'half_ceil', 'half_floor', 'half_expand', 'half_trunc', 'half_even' (case-insensitive; underscores and hyphens are interchangeable)";
+const JIFF_ROUND_MODE_ACCEPTED: &str = "'ceil', 'floor', 'expand', 'trunc', 'half-ceil', 'half-floor', 'half-expand', 'half-trunc', 'half-even' (case-insensitive; underscores and hyphens are interchangeable)";
 
 impl<'py> FromPyObject<'py> for JiffRoundMode {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(str_mode) = ob.extract::<&str>() {
-            match str_mode.to_ascii_lowercase().replace('_', "-").as_str() {
+            match str_mode.to_ascii_lowercase().as_str() {
                 "ceil" => Ok(Self(RoundMode::Ceil)),
                 "floor" => Ok(Self(RoundMode::Floor)),
                 "expand" => Ok(Self(RoundMode::Expand)),
                 "trunc" => Ok(Self(RoundMode::Trunc)),
-                "half-ceil" => Ok(Self(RoundMode::HalfCeil)),
-                "half-floor" => Ok(Self(RoundMode::HalfFloor)),
-                "half-expand" => Ok(Self(RoundMode::HalfExpand)),
-                "half-trunc" => Ok(Self(RoundMode::HalfTrunc)),
-                "half-even" => Ok(Self(RoundMode::HalfEven)),
+                "half-ceil" | "half_ceil" => Ok(Self(RoundMode::HalfCeil)),
+                "half-floor" | "half_floor" => Ok(Self(RoundMode::HalfFloor)),
+                "half-expand" | "half_expand" => Ok(Self(RoundMode::HalfExpand)),
+                "half-trunc" | "half_trunc" => Ok(Self(RoundMode::HalfTrunc)),
+                "half-even" | "half_even" => Ok(Self(RoundMode::HalfEven)),
                 _ => Err(PyValueError::new_err(format!(
                     "Invalid round mode: {str_mode} (options: {JIFF_ROUND_MODE_ACCEPTED})"
                 ))),

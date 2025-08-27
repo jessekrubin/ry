@@ -381,9 +381,15 @@ impl RyTimestamp {
 
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        write!(
+            f,
+            "Timestamp({:?}, {:?})",
+            self.0.as_second(),
+            self.0.subsec_nanosecond()
+        )
     }
 }
+
 impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
         Self(value)

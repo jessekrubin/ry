@@ -117,3 +117,12 @@ class TestSignedDurationRound:
 
         rounded = dur.round(smallest="second", mode="expand", increment=30)
         assert rounded == ry.SignedDuration.from_secs(4 * 60 * 60 + 17 * 60 + 30)
+
+    def test_signed_duration_round_object(self) -> None:
+        dur = ry.SignedDuration(4 * 60 * 60 + 17 * 60 + 1, 123_456_789)
+
+        rounded = dur._round(
+            ry.SignedDurationRound(smallest="second", mode="expand", increment=30)
+        )
+
+        assert rounded == ry.SignedDuration.from_secs(4 * 60 * 60 + 17 * 60 + 30)
