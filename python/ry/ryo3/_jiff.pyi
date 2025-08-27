@@ -28,8 +28,8 @@ from ry.ryo3._jiff_tz import TimezoneDbName
 
 _T = t.TypeVar("_T")
 
-TimezoneName: te.TypeAlias = TimezoneDbName | str
-JiffUnit: te.TypeAlias = t.Literal[
+TimezoneName: t.TypeAlias = TimezoneDbName | str
+JiffUnit: t.TypeAlias = t.Literal[
     "year",
     "month",
     "week",
@@ -42,7 +42,7 @@ JiffUnit: te.TypeAlias = t.Literal[
     "nanosecond",
 ]
 
-JiffRoundMode: te.TypeAlias = t.Literal[
+JiffRoundMode: t.TypeAlias = t.Literal[
     "ceil",
     "floor",
     "expand",
@@ -54,10 +54,10 @@ JiffRoundMode: te.TypeAlias = t.Literal[
     "half-even",
 ]
 
-WeekdayStr: te.TypeAlias = t.Literal[
+WeekdayStr: t.TypeAlias = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 ]
-WeekdayInt: te.TypeAlias = t.Literal[
+WeekdayInt: t.TypeAlias = t.Literal[
     1,  # Monday
     2,  # Tuesday
     3,  # Wednesday
@@ -66,7 +66,7 @@ WeekdayInt: te.TypeAlias = t.Literal[
     6,  # Saturday
     7,  # Sunday
 ]
-Weekday: te.TypeAlias = WeekdayStr | WeekdayInt
+Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 @t.final
 class Date(ToPy[pydt.date], ToPyDate):
@@ -782,11 +782,11 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def _round(self, options: SignedDurationRound) -> DateTime: ...
 
 # put in quotes to avoid ruff F821 - undefined name
-_TimeSpanArithmeticSingle: te.TypeAlias = TimeSpan | Duration | SignedDuration
-_TimeSpanArithmeticTuple: te.TypeAlias = tuple[
+_TimeSpanArithmeticSingle: t.TypeAlias = TimeSpan | Duration | SignedDuration
+_TimeSpanArithmeticTuple: t.TypeAlias = tuple[
     _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
 ]
-TimeSpanArithmetic: te.TypeAlias = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
+TimeSpanArithmetic: t.TypeAlias = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
 
 @t.final
 class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):

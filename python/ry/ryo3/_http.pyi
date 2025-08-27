@@ -4,7 +4,7 @@ from collections.abc import Mapping
 import typing_extensions as te
 
 # fmt: off
-HttpVersionLike: te.TypeAlias = t.Literal[
+HttpVersionLike: t.TypeAlias = t.Literal[
     "HTTP/0.9", "0.9", 0,
     "HTTP/1.0", "1.0", 1, 10,
     "HTTP/1.1", "1.1", 11,
@@ -13,7 +13,7 @@ HttpVersionLike: te.TypeAlias = t.Literal[
 ]
 # fmt: on
 
-_StandardHeader: te.TypeAlias = t.Literal[
+_StandardHeader: t.TypeAlias = t.Literal[
     "accept",
     "accept-charset",
     "accept-encoding",
@@ -97,7 +97,7 @@ _StandardHeader: te.TypeAlias = t.Literal[
     "x-xss-protection",
 ]
 
-_HeaderName: te.TypeAlias = _StandardHeader | str
+_HeaderName: t.TypeAlias = _StandardHeader | str
 _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 
 @t.final
