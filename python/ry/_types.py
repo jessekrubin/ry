@@ -10,22 +10,31 @@ if TYPE_CHECKING:
     import datetime as pydt
 
 if sys.version_info >= (3, 11):
-    from typing import Self
+    from typing import Never, Self
 else:
-    from typing_extensions import Self
+    from typing_extensions import Never, Self
+
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
     from typing import Unpack
 else:
     from typing_extensions import Buffer, Unpack
 
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
 __all__ = (
     "Buffer",
     "DateTimeRoundTypedDict",
     "DateTimeTypedDict",
     "DateTypedDict",
+    "FileTypeDict",
     "FromStr",
     "FsPathLike",
+    "MetadataDict",
+    "Never",
     "Self",
     "SignedDurationRoundTypedDict",
     "TimeSpanTypedDict",
@@ -39,6 +48,7 @@ __all__ = (
     "ToPyTzInfo",
     "Unpack",
     "ZonedDateTimeRoundTypedDict",
+    "deprecated",
 )
 
 FsPathLike = str | PathLike[str]

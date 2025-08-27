@@ -119,6 +119,9 @@ markers = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
+enable_error_code = [
+  "deprecated",
+]
 
 [[tool.mypy.overrides]]
 module = "tests.*"

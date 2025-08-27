@@ -1,7 +1,5 @@
 import typing as t
 
-import typing_extensions as te
-
 import ry
 from ry._types import Buffer, Unpack
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike

@@ -1,7 +1,5 @@
 import typing as t
 
-import typing_extensions as te
-
 FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
 FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
     "default",

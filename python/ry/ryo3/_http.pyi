@@ -1,8 +1,6 @@
 import typing as t
 from collections.abc import Mapping
 
-import typing_extensions as te
-
 # fmt: off
 HttpVersionLike: t.TypeAlias = t.Literal[
     "HTTP/0.9", "0.9", 0,

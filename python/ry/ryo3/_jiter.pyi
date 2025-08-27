@@ -1,8 +1,6 @@
 import typing as t
 from os import PathLike
 
-import typing_extensions as te
-
 from ry._types import Buffer, Unpack
 
 # =============================================================================
