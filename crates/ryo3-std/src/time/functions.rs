@@ -11,7 +11,7 @@ pub fn sleep(py: Python<'_>, secs: f64) -> PyResult<f64> {
         let py_duration = Duration::try_from_secs_f64(secs)
             .map(PyDuration::from)
             // overflow error here b/c negative handled above
-            .map_err(|e| PyValueError::new_err(PyOverflowError::new_err(format!("{e}"))))?;
+            .map_err(|e| PyOverflowError::new_err(format!("{e}")))?;
         py_duration.sleep(py, None)?;
         Ok(py_duration.0.as_secs_f64())
     }
