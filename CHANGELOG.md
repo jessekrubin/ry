@@ -4,7 +4,8 @@
 
 - `ryo3-std`
   - Serialization for std types
-  - Speed run of socketaddr types (WIP); needs more testing and the socket types could be cleaner...
+  - Speed run of socketaddr types (WIP); needs more testing and the socket types
+    could be cleaner...
 - `ryo3-memchr`
   - Basic functionality for `memchr` and `memrchr` operations
 - `ryo3-jiff`
