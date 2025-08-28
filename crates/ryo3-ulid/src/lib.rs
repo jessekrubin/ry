@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 use pyo3::exceptions::{PyOverflowError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::types::{PyBytes, PyDict, PyModule, PyType};
-use pyo3::{class, intern, prelude::*, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, class, intern, prelude::*};
 use ryo3_uuid::{CPythonUuid, PyUuid};
 use std::fmt::Write;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -392,7 +392,7 @@ impl PyUlid {
 
     /// This is a hideous function but I struggled through this to try to figure out how to
     /// do pydantic schema validators which I hope to do for jiff soon... (as-of: 2025-05-29)
-    #[staticmethod]
+    #[classmethod]
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,

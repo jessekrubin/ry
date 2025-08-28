@@ -66,10 +66,7 @@ impl PyUrl {
 
     #[staticmethod]
     #[pyo3(signature = (url, *, params = None))]
-    fn parse(
-        url: &str,
-        params: Option<&Bound<'_, PyDict>>,
-    ) -> PyResult<Self> {
+    fn parse(url: &str, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         if let Some(params) = params {
             Self::parse_with_params(url, params)
         } else {
@@ -81,10 +78,7 @@ impl PyUrl {
 
     #[staticmethod]
     #[pyo3(name = "parse_with_params")]
-    fn py_parse_with_params<'py>(
-        url: &str,
-        params: &Bound<'py, PyDict>,
-    ) -> PyResult<Self> {
+    fn py_parse_with_params<'py>(url: &str, params: &Bound<'py, PyDict>) -> PyResult<Self> {
         Self::parse_with_params(url, params)
     }
 

@@ -251,19 +251,19 @@ impl PyIpv4Addr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn parse(s: &str) -> PyResult<Self> {
         s.parse::<std::net::Ipv4Addr>()
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"))
             .map(Self)
     }
 
     #[staticmethod]
-    fn from_bits(_cls: &Bound<'_, PyType>, s: u32) -> Self {
+    fn from_bits(s: u32) -> Self {
         Self(std::net::Ipv4Addr::from(s))
     }
 
     #[staticmethod]
-    fn from_octets(_cls: &Bound<'_, PyType>, a: u8, b: u8, c: u8, d: u8) -> Self {
+    fn from_octets(a: u8, b: u8, c: u8, d: u8) -> Self {
         Self(std::net::Ipv4Addr::new(a, b, c, d))
     }
 }
@@ -413,14 +413,14 @@ impl PyIpv6Addr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn parse(s: &str) -> PyResult<Self> {
         s.parse::<std::net::Ipv6Addr>()
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv6 address"))
             .map(Self)
     }
 
     #[staticmethod]
-    fn from_bits(_cls: &Bound<'_, PyType>, s: u128) -> Self {
+    fn from_bits(s: u128) -> Self {
         Self(std::net::Ipv6Addr::from(s))
     }
 }

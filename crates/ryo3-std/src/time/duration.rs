@@ -334,7 +334,7 @@ impl PyDuration {
     }
 
     #[staticmethod]
-    fn from_millis( millis: u64) -> Self {
+    fn from_millis(millis: u64) -> Self {
         Self(Duration::from_millis(millis))
     }
 
