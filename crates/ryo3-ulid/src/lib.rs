@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 use pyo3::exceptions::{PyOverflowError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::types::{PyBytes, PyDict, PyModule, PyType};
-use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use pyo3::{class, intern, prelude::*, IntoPyObjectExt};
 use ryo3_uuid::{CPythonUuid, PyUuid};
 use std::fmt::Write;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -484,7 +484,7 @@ impl PyUlid {
         Ok(ulid_schema)
     }
 
-    #[staticmethod]
+    #[classmethod]
     fn _pydantic_validate<'py>(
         cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
@@ -505,7 +505,7 @@ impl PyUlid {
         handler.call1((ulid,))
     }
 
-    #[staticmethod]
+    #[classmethod]
     fn _pydantic_validate_strict<'py>(
         cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
