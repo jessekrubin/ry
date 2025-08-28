@@ -1,7 +1,6 @@
 use crate::net::PyIpv6Addr;
 use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use pyo3::prelude::*;
-use pyo3::types::PyType;
 use ryo3_macro_rules::err_py_not_impl;
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
@@ -69,8 +68,8 @@ impl PySocketAddrV4 {
         self.0.port()
     }
 
-    #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn parse(s: &str) -> PyResult<Self> {
         // split on ':' and parse the first part as an IPv4 address and then
         // second as port yay
         let parts: Vec<&str> = s.split(':').collect();
@@ -221,24 +220,12 @@ impl PySocketAddrV6 {
         self.0.port()
     }
 
-    #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        // split on ':' and parse the first part as an IPv6 address and then
-        // second as port yay
-        let parts: Vec<&str> = s.split(':').collect();
-        if parts.len() != 2 {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Invalid SocketAddrV6 format, expected 'ip:port'",
-            ));
-        }
-        let ip_part = parts[0];
-        let port_part = parts[1];
-        let ip = Ipv6Addr::from_str(ip_part)
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv6 address"))?;
-        let port = port_part
-            .parse::<u16>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid port number"))?;
-        Ok(Self(SocketAddrV6::new(ip, port, 0, 0)))
+    #[staticmethod]
+    fn parse(_s: &str) -> PyResult<Self> {
+        // this is a nightly only featre...
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "SocketAddrV6.parse is not implemented yet",
+        ))
     }
 
     #[classattr]
@@ -365,22 +352,15 @@ impl PySocketAddr {
         hasher.finish()
     }
 
-    #[classmethod]
-    fn parse(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        let parts: Vec<&str> = s.split(':').collect();
-        if parts.len() != 2 {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Invalid SocketAddr format, expected 'ip:port'",
-            ));
+    #[staticmethod]
+    fn parse(s: &str) -> PyResult<Self> {
+        if s.starts_with('[') {
+            let pyv6sock = PySocketAddrV6::parse(s)?;
+            Ok(Self(SocketAddr::V6(pyv6sock.0)))
+        } else {
+            let pyv4sock = PySocketAddrV4::parse(s)?;
+            Ok(Self(SocketAddr::V4(pyv4sock.0)))
         }
-        let ip_part = parts[0];
-        let port_part = parts[1];
-        let ip = IpAddr::from_str(ip_part)
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IP address"))?;
-        let port = port_part
-            .parse::<u16>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid port number"))?;
-        Ok(Self(SocketAddr::new(ip, port)))
     }
 
     fn to_ipaddr(&self) -> PyIpAddr {

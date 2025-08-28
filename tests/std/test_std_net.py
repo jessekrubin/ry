@@ -1,18 +1,23 @@
 from __future__ import annotations
 
+from typing import TypeAlias
+
 import pytest
 
 import ry
 from ry import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6
 
-IP_ADDR_OBJECTS: list[Ipv4Addr | Ipv6Addr | IpAddr] = [
+RyIpAddrLike: TypeAlias = Ipv4Addr | Ipv6Addr | IpAddr
+RySocketAddrLike: TypeAlias = SocketAddrV4 | SocketAddrV6 | SocketAddr
+
+IP_ADDR_OBJECTS: list[RyIpAddrLike] = [
     Ipv4Addr(192, 168, 0, 1),
     Ipv6Addr("::1"),
     IpAddr(Ipv4Addr(192, 168, 0, 1)),
     IpAddr(Ipv6Addr("::1")),
 ]
 
-SOCKET_ADDR_OBJECTS: list[SocketAddrV4 | SocketAddrV6 | SocketAddr] = [
+SOCKET_ADDR_OBJECTS: list[RySocketAddrLike] = [
     SocketAddrV4(Ipv4Addr(192, 168, 0, 1), 8080),
     SocketAddrV6(Ipv6Addr("::1"), 8080),
     SocketAddr(Ipv4Addr(192, 168, 0, 1), 8080),
@@ -66,6 +71,28 @@ def test_addr_repr(obj: ry.IpAddr | ry.SocketAddrV4 | ry.SocketAddrV6) -> None:
     repr_str = "ry." + repr(obj)
     assert eval(repr_str) == obj
     assert isinstance(eval(repr_str), type(obj))
+
+
+@pytest.mark.parametrize(
+    "obj",
+    STD_NET_OBJECTS,
+)
+def test_string_and_parse(obj: ry.IpAddr | ry.SocketAddrV4 | ry.SocketAddrV6) -> None:
+    """
+    Test that the repr of IpAddr, SocketAddrV4, and SocketAddrV6 is correct.
+    """
+    s = str(obj)
+    cls = type(obj)
+    if isinstance(obj, ry.SocketAddrV6) or (
+        isinstance(obj, ry.SocketAddr) and obj.version == 6
+    ):
+        with pytest.raises(NotImplementedError):
+            parsed = cls.parse(s)
+
+    else:
+        parsed = cls.parse(s)
+        assert parsed == obj
+        assert isinstance(parsed, type(obj))
 
 
 def test_properties_v4() -> None:
