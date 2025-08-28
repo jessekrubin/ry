@@ -1,10 +1,9 @@
-use crate::PyDuration;
-use crate::time::instant::PyInstant;
+pub use duration::PyDuration;
+pub use instant::PyInstant;
 use pyo3::prelude::*;
-
-pub mod duration;
-pub mod instant;
-pub mod sleep;
+pub(crate) mod duration;
+pub(crate) mod instant;
+pub(crate) mod sleep;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyDuration>()?;

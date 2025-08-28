@@ -83,16 +83,9 @@ def test_string_and_parse(obj: ry.IpAddr | ry.SocketAddrV4 | ry.SocketAddrV6) ->
     """
     s = str(obj)
     cls = type(obj)
-    if isinstance(obj, ry.SocketAddrV6) or (
-        isinstance(obj, ry.SocketAddr) and obj.version == 6
-    ):
-        with pytest.raises(NotImplementedError):
-            parsed = cls.parse(s)
-
-    else:
-        parsed = cls.parse(s)
-        assert parsed == obj
-        assert isinstance(parsed, type(obj))
+    parsed = cls.parse(s)
+    assert parsed == obj
+    assert isinstance(parsed, type(obj))
 
 
 def test_properties_v4() -> None:

@@ -324,24 +324,15 @@ impl PyIpv6Addr {
     // ========================================================================
     // CMP
     // ========================================================================
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-    fn __ne__(&self, other: &Self) -> bool {
-        self.0 != other.0
-    }
-    fn __lt__(&self, other: &Self) -> bool {
-        self.0 < other.0
-    }
-    fn __le__(&self, other: &Self) -> bool {
-        self.0 <= other.0
-    }
-    fn __gt__(&self, other: &Self) -> bool {
-        self.0 > other.0
-    }
-    fn __ge__(&self, other: &Self) -> bool {
-        self.0 >= other.0
+    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
+        match op {
+            pyo3::basic::CompareOp::Eq => self.0 == other.0,
+            pyo3::basic::CompareOp::Ne => self.0 != other.0,
+            pyo3::basic::CompareOp::Lt => self.0 < other.0,
+            pyo3::basic::CompareOp::Le => self.0 <= other.0,
+            pyo3::basic::CompareOp::Gt => self.0 > other.0,
+            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
+        }
     }
 
     // ========================================================================
@@ -515,24 +506,15 @@ impl PyIpAddr {
     // ========================================================================
     // CMP
     // ========================================================================
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-    fn __ne__(&self, other: &Self) -> bool {
-        self.0 != other.0
-    }
-    fn __lt__(&self, other: &Self) -> bool {
-        self.0 < other.0
-    }
-    fn __le__(&self, other: &Self) -> bool {
-        self.0 <= other.0
-    }
-    fn __gt__(&self, other: &Self) -> bool {
-        self.0 > other.0
-    }
-    fn __ge__(&self, other: &Self) -> bool {
-        self.0 >= other.0
+    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
+        match op {
+            pyo3::basic::CompareOp::Eq => self.0 == other.0,
+            pyo3::basic::CompareOp::Ne => self.0 != other.0,
+            pyo3::basic::CompareOp::Lt => self.0 < other.0,
+            pyo3::basic::CompareOp::Le => self.0 <= other.0,
+            pyo3::basic::CompareOp::Gt => self.0 > other.0,
+            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
+        }
     }
 
     // ========================================================================

@@ -1,4 +1,4 @@
-use crate::PyDuration;
+use crate::time::PyDuration;
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyOverflowError;
 use pyo3::prelude::*;

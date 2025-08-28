@@ -17,6 +17,29 @@ pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 ryo3-core.workspace = true
 ryo3-macro-rules.workspace = true
+serde = { workspace = true, features = ["derive"], optional = true }
+jiff = {workspace = true, optional = true}
+
+[features]
+default = []
+ry = [
+  "dep:serde",
+  "serde",
+  "jiff",
+  "std-time",
+  "std-net",
+  "std-fs",
+  "std-process",
+]
+std-time = []
+std-net = []
+std-fs = []
+std-process = []
+
+serde = [
+  "dep:serde",
+  "jiff/serde",
+]
 
 [lints]
 workspace = true

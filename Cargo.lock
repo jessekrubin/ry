@@ -2160,10 +2160,12 @@ name = "ryo3-std"
 version = "0.0.54"
 dependencies = [
  "bytes",
+ "jiff",
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-macro-rules",
+ "serde",
 ]
 
 [[package]]

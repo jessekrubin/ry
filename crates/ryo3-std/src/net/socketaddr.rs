@@ -4,7 +4,6 @@ use pyo3::prelude::*;
 use ryo3_macro_rules::err_py_not_impl;
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
-use std::str::FromStr;
 
 #[pyclass(name = "SocketAddrV4", module = "ry.ryo3", frozen)]
 pub struct PySocketAddrV4(pub(crate) SocketAddrV4);
@@ -70,22 +69,8 @@ impl PySocketAddrV4 {
 
     #[staticmethod]
     fn parse(s: &str) -> PyResult<Self> {
-        // split on ':' and parse the first part as an IPv4 address and then
-        // second as port yay
-        let parts: Vec<&str> = s.split(':').collect();
-        if parts.len() != 2 {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Invalid SocketAddrV4 format, expected 'ip:port'",
-            ));
-        }
-        let ip_part = parts[0];
-        let port_part = parts[1];
-        let ip = Ipv4Addr::from_str(ip_part)
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"))?;
-        let port = port_part
-            .parse::<u16>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid port number"))?;
-        Ok(Self(SocketAddrV4::new(ip, port)))
+        let sock = s.parse()?;
+        Ok(Self(sock))
     }
 
     #[classattr]
@@ -221,11 +206,9 @@ impl PySocketAddrV6 {
     }
 
     #[staticmethod]
-    fn parse(_s: &str) -> PyResult<Self> {
-        // this is a nightly only featre...
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "SocketAddrV6.parse is not implemented yet",
-        ))
+    fn parse(s: &str) -> PyResult<Self> {
+        let sock = s.parse()?;
+        Ok(Self(sock))
     }
 
     #[classattr]
@@ -354,13 +337,8 @@ impl PySocketAddr {
 
     #[staticmethod]
     fn parse(s: &str) -> PyResult<Self> {
-        if s.starts_with('[') {
-            let pyv6sock = PySocketAddrV6::parse(s)?;
-            Ok(Self(SocketAddr::V6(pyv6sock.0)))
-        } else {
-            let pyv4sock = PySocketAddrV4::parse(s)?;
-            Ok(Self(SocketAddr::V4(pyv4sock.0)))
-        }
+        let sock = s.parse()?;
+        Ok(Self(sock))
     }
 
     fn to_ipaddr(&self) -> PyIpAddr {
