@@ -76,3 +76,4 @@ scratch/
 _scratch/
 .hypothesis/
 *.lcov
+*.profraw
