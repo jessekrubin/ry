@@ -47,6 +47,23 @@ pub(crate) enum PyObType {
     // RY-TYPES
     // ========================================================================
     // -----------------------------------------------------------------------
+    // STD
+    // -----------------------------------------------------------------------
+    #[cfg(feature = "ryo3-std")]
+    PyDuration,
+    #[cfg(feature = "ryo3-std")]
+    PyIpAddr,
+    #[cfg(feature = "ryo3-std")]
+    PyIpv4Addr,
+    #[cfg(feature = "ryo3-std")]
+    PyIpv6Addr,
+    #[cfg(feature = "ryo3-std")]
+    PySocketAddr,
+    #[cfg(feature = "ryo3-std")]
+    PySocketAddrV4,
+    #[cfg(feature = "ryo3-std")]
+    PySocketAddrV6,
+    // -----------------------------------------------------------------------
     // UUID
     // -----------------------------------------------------------------------
     #[cfg(feature = "ryo3-uuid")]
@@ -122,6 +139,21 @@ pub(crate) struct PyTypeCache {
     // ------------------------------------------------------------------------
     // RY-TYPES
     // ------------------------------------------------------------------------
+    // __ryo3_std__
+    #[cfg(feature = "ryo3-std")]
+    pub ry_duration: usize,
+    #[cfg(feature = "ryo3-std")]
+    pub ry_ip_addr: usize,
+    #[cfg(feature = "ryo3-std")]
+    pub ry_ipv4_addr: usize,
+    #[cfg(feature = "ryo3-std")]
+    pub ry_ipv6_addr: usize,
+    #[cfg(feature = "ryo3-std")]
+    pub ry_socket_addr: usize,
+    #[cfg(feature = "ryo3-std")]
+    pub ry_socket_addr_v4: usize,
+    #[cfg(feature = "ryo3-std")]
+    pub ry_socket_addr_v6: usize,
     // __ryo3_uuid__
     #[cfg(feature = "ryo3-uuid")]
     pub ry_uuid: usize,
@@ -191,6 +223,20 @@ impl PyTypeCache {
             // ----------------------------------------------------------------
             // RY-TYPES
             // ----------------------------------------------------------------
+            #[cfg(feature = "ryo3-std")]
+            ry_duration: ryo3_std::time::PyDuration::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-std")]
+            ry_ip_addr: ryo3_std::net::PyIpAddr::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-std")]
+            ry_ipv4_addr: ryo3_std::net::PyIpv4Addr::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-std")]
+            ry_ipv6_addr: ryo3_std::net::PyIpv6Addr::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-std")]
+            ry_socket_addr: ryo3_std::net::PySocketAddr::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-std")]
+            ry_socket_addr_v4: ryo3_std::net::PySocketAddrV4::type_object_raw(py) as usize,
+            #[cfg(feature = "ryo3-std")]
+            ry_socket_addr_v6: ryo3_std::net::PySocketAddrV6::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
             // UUID
             // ----------------------------------------------------------------
@@ -278,6 +324,20 @@ impl PyTypeCache {
             PyObType::Set
         } else if ptr == self.frozenset {
             PyObType::FrozenSet
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_duration {
+            PyObType::PyDuration
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_ip_addr {
+            PyObType::PyIpAddr
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_ipv4_addr {
+            PyObType::PyIpv4Addr
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_ipv6_addr {
+            PyObType::PyIpv6Addr
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_socket_addr {
+            PyObType::PySocketAddr
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_socket_addr_v4 {
+            PyObType::PySocketAddrV4
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_socket_addr_v6 {
+            PyObType::PySocketAddrV6
         } else if cfg!(feature = "ryo3-uuid") && ptr == self.ry_uuid {
             PyObType::RyUuid
         } else if cfg!(feature = "ryo3-ulid") && ptr == self.ry_ulid {

@@ -249,6 +249,8 @@ def test_stringify_json_data(data: t.Any) -> None:
 
 
 RYTYPES_JSON_SER = {
+    # std-time
+    "duration": ry.Duration(secs=1),
     # uuid ~ ryo3-uuid
     "uuid": ry.uuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
     # ulid ~ ryo3-ulid
@@ -274,6 +276,7 @@ RYTYPES_JSON_SER = {
     "zoned": ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
 }
 EXPECTED = {
+    "duration": "PT1S",
     "uuid": "88475448-f091-42ef-b574-2452952931c1",
     "ulid": "01H7Z5F8Y3V9G4J6K8D5E6F7G8",
     "url": "https://example.com/",

@@ -23,5 +23,5 @@ def test_sleep_value_error_negative_number() -> None:
 
 def test_sleep_overflow_error_super_big_number() -> None:
     max_u64 = 2**64
-    with pytest.raises(ValueError):
+    with pytest.raises(OverflowError):
         ry.sleep(max_u64)

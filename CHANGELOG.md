@@ -1,7 +1,10 @@
 # CHANGELOG
 
-## v0.0.54 [unreleased]
+## v0.0.54 [2025-08-28]
 
+- `ryo3-std`
+  - Serialization for std types
+  - Speed run of socketaddr types (WIP); needs more testing and the socket types could be cleaner...
 - `ryo3-memchr`
   - Basic functionality for `memchr` and `memrchr` operations
 - `ryo3-jiff`

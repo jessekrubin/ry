@@ -4,7 +4,7 @@ pub mod fs;
 pub mod net;
 pub mod time;
 
-pub use fs::*;
+pub use fs::{PyFileType, PyMetadata};
 pub use time::duration::PyDuration;
 pub use time::instant::PyInstant;
 
