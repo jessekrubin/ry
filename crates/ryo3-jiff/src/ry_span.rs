@@ -138,8 +138,8 @@ impl RySpan {
         Self(self.0.negate())
     }
 
-    #[classmethod]
-    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Span) -> Self {
+    #[staticmethod]
+    fn from_pytimedelta(delta: Span) -> Self {
         Self(delta)
     }
 
@@ -152,24 +152,24 @@ impl RySpan {
         jiff_span.into_pyobject(py)
     }
 
-    #[classmethod]
-    fn parse_common_iso(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn parse_common_iso(s: &str) -> PyResult<Self> {
         SPAN_PARSER
             .parse_span(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
         Span::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        Self::from_str(cls, input)
+    #[staticmethod]
+    fn parse(input: &str) -> PyResult<Self> {
+        Self::from_str(input)
     }
 
     fn _years(&self, n: i64) -> PyResult<Self> {

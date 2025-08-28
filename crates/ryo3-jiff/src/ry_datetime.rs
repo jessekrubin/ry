@@ -93,21 +93,21 @@ impl RyDateTime {
         Self(DateTime::ZERO)
     }
 
-    #[classmethod]
-    fn now(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn now() -> Self {
         Self::from(DateTime::from(Zoned::now()))
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
         DateTime::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn parse(cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        Self::from_str(cls, s)
+    #[staticmethod]
+    fn parse(s: &str) -> PyResult<Self> {
+        Self::from_str(s)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -294,8 +294,8 @@ impl RyDateTime {
         self.0.time()
     }
 
-    #[classmethod]
-    fn from_pydatetime(_cls: &Bound<'_, PyType>, d: DateTime) -> Self {
+    #[staticmethod]
+    fn from_pydatetime(d: DateTime) -> Self {
         Self::from(d)
     }
 
@@ -494,8 +494,8 @@ impl RyDateTime {
         Self::from(self.0.first_of_year())
     }
 
-    #[classmethod]
-    fn from_parts(_cls: &Bound<'_, PyType>, date: &RyDate, time: &RyTime) -> Self {
+    #[staticmethod]
+    fn from_parts(date: &RyDate, time: &RyTime) -> Self {
         Self::from(DateTime::from_parts(date.0, time.0))
     }
 

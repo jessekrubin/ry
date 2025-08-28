@@ -12,7 +12,7 @@ use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError};
-use pyo3::types::{PyDelta, PyTuple, PyType};
+use pyo3::types::{PyDelta, PyTuple};
 use ryo3_std::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -94,16 +94,16 @@ impl RySignedDuration {
         self.0.subsec_nanos()
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        Self::from_str(cls, input)
+    #[staticmethod]
+    fn parse(input: &str) -> PyResult<Self> {
+        Self::from_str(input)
     }
 
     #[getter]
@@ -120,8 +120,8 @@ impl RySignedDuration {
         self.0.is_zero()
     }
 
-    #[classmethod]
-    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: SignedDuration) -> Self {
+    #[staticmethod]
+    fn from_pytimedelta(delta: SignedDuration) -> Self {
         Self(delta)
     }
 
@@ -270,33 +270,33 @@ impl RySignedDuration {
     // =========
     // FROM NUMS
     // =========
-    #[classmethod]
-    fn from_hours(_cls: &Bound<'_, PyType>, hours: i64) -> Self {
+    #[staticmethod]
+    fn from_hours(hours: i64) -> Self {
         Self(SignedDuration::from_hours(hours))
     }
 
-    #[classmethod]
-    fn from_micros(_cls: &Bound<'_, PyType>, micros: i64) -> Self {
+    #[staticmethod]
+    fn from_micros(micros: i64) -> Self {
         Self(SignedDuration::from_micros(micros))
     }
 
-    #[classmethod]
-    fn from_millis(_cls: &Bound<'_, PyType>, millis: i64) -> Self {
+    #[staticmethod]
+    fn from_millis(millis: i64) -> Self {
         Self(SignedDuration::from_millis(millis))
     }
 
-    #[classmethod]
-    fn from_mins(_cls: &Bound<'_, PyType>, mins: i64) -> Self {
+    #[staticmethod]
+    fn from_mins(mins: i64) -> Self {
         Self(SignedDuration::from_mins(mins))
     }
 
-    #[classmethod]
-    fn from_nanos(_cls: &Bound<'_, PyType>, nanos: i64) -> Self {
+    #[staticmethod]
+    fn from_nanos(nanos: i64) -> Self {
         Self(SignedDuration::from_nanos(nanos))
     }
 
-    #[classmethod]
-    fn from_secs(_cls: &Bound<'_, PyType>, secs: &Bound<'_, PyAny>) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_secs(secs: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(secs) = secs.extract::<i64>() {
             Ok(Self(SignedDuration::from_secs(secs)))
         } else if let Ok(secs) = secs.extract::<f64>() {
@@ -308,13 +308,13 @@ impl RySignedDuration {
         }
     }
 
-    #[classmethod]
-    fn from_secs_f32(_cls: &Bound<'_, PyType>, secs: f32) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_secs_f32(secs: f32) -> PyResult<Self> {
         Self::py_try_from_secs_f32(secs)
     }
 
-    #[classmethod]
-    fn from_secs_f64(_cls: &Bound<'_, PyType>, secs: f64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_secs_f64(secs: f64) -> PyResult<Self> {
         Self::py_try_from_secs_f64(secs)
     }
 

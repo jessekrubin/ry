@@ -60,14 +60,14 @@ impl RyISOWeekDate {
     // ========================================================================
 
     /// Returns the `ISOWeekDate` for the given `Date`.
-    #[classmethod]
-    fn from_date(_cls: &Bound<'_, PyType>, date: &RyDate) -> Self {
+    #[staticmethod]
+    fn from_date(date: &RyDate) -> Self {
         Self(ISOWeekDate::from(date.0))
     }
 
     /// Returns the date today as an `ISOWeekDate`
-    #[classmethod]
-    fn today(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn today() -> Self {
         let date = jiff::civil::Date::from(Zoned::now());
         Self::from(ISOWeekDate::from(date))
     }

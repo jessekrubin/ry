@@ -73,27 +73,27 @@ impl RyTime {
     // ========================================================================
     // CLASS METHODS
     // ========================================================================
-    #[classmethod]
-    fn now(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn now() -> Self {
         let z = jiff::civil::Time::from(Zoned::now());
         Self::from(z)
     }
 
-    #[classmethod]
-    fn midnight(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn midnight() -> Self {
         Self(Time::midnight())
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
         Time::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        Self::from_str(cls, input)
+    #[staticmethod]
+    fn parse(input: &str) -> PyResult<Self> {
+        Self::from_str(input)
     }
 
     // ========================================================================
@@ -237,8 +237,8 @@ impl RyTime {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    #[classmethod]
-    fn from_pytime(_cls: &Bound<'_, PyType>, py_time: JiffTime) -> Self {
+    #[staticmethod]
+    fn from_pytime(py_time: JiffTime) -> Self {
         Self::from(py_time.0)
     }
 
