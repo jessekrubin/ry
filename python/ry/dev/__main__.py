@@ -21,6 +21,8 @@ def _banner() -> str:
 
 
 def _main() -> None:
+    import datetime as pydt
+
     try:
         import rich
         from rich import inspect
@@ -33,6 +35,7 @@ def _main() -> None:
     # locals
     local = globals()
     local.update({
+        "pydt": pydt,
         "inspect": inspect,
         "pprint": pprint,
         "rich": rich,
