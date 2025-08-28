@@ -1,7 +1,7 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyValueError;
-use pyo3::types::{PyString, PyType};
+use pyo3::types::PyString;
 use pyo3::{PyClass, prelude::*};
 use std::fmt::Write;
 use std::hash::Hash;

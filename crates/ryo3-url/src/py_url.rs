@@ -1,7 +1,7 @@
 use crate::UrlLike;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple};
 use ryo3_macro_rules::py_value_error;
 use std::hash::{Hash, Hasher};
 use std::net::IpAddr;
@@ -78,7 +78,7 @@ impl PyUrl {
 
     #[staticmethod]
     #[pyo3(name = "parse_with_params")]
-    fn py_parse_with_params<'py>(url: &str, params: &Bound<'py, PyDict>) -> PyResult<Self> {
+    fn py_parse_with_params(url: &str, params: &Bound<'_, PyDict>) -> PyResult<Self> {
         Self::parse_with_params(url, params)
     }
 

@@ -1,6 +1,5 @@
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3::types::PyType;
 use ryo3_macro_rules::err_py_not_impl;
 
 #[pyclass(name = "Ipv4Addr", module = "ry.ryo3", frozen)]

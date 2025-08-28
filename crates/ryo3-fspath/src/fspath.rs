@@ -5,7 +5,7 @@ use pyo3::exceptions::{
     PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
     PyValueError,
 };
-use pyo3::types::{PyBytes, PyTuple, PyType};
+use pyo3::types::{PyBytes, PyTuple};
 use pyo3::{intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::types::PathLike;

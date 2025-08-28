@@ -6,7 +6,7 @@ use parking_lot::lock_api::MutexGuard;
 use parking_lot::{Mutex, RawMutex};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple, PyType};
+use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
 use std::fmt::Display;
 use std::sync::Arc;
 

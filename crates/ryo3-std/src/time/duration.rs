@@ -1,7 +1,7 @@
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError, PyZeroDivisionError};
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDelta, PyTuple, PyType};
+use pyo3::types::{PyDelta, PyTuple};
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
 };

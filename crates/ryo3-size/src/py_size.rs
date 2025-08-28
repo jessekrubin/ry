@@ -2,7 +2,7 @@ use crate::types::{Base, Style};
 use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::PyTuple;
 use std::ops::{Neg, Not};
 
 #[derive(Debug, Clone)]
