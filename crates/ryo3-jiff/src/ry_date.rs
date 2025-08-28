@@ -16,7 +16,7 @@ use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDict, PyDictMethods, PyTuple, PyType};
+use pyo3::types::{PyDict, PyDictMethods, PyTuple};
 use pyo3::{
     Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, Python, intern, pyclass,
     pymethods,
@@ -60,23 +60,23 @@ impl RyDate {
         Self(Date::ZERO)
     }
 
-    #[classmethod]
-    fn today(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn today() -> Self {
         let z = jiff::civil::Date::from(Zoned::now());
         Self::from(z)
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_str(input: &str) -> PyResult<Self> {
         DATETIME_PARSER
             .parse_date(input)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        Self::from_str(cls, input)
+    #[staticmethod]
+    fn parse(input: &str) -> PyResult<Self> {
+        Self::from_str(input)
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond=0))]
@@ -239,8 +239,8 @@ impl RyDate {
         builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn from_pydate(_cls: &Bound<'_, PyType>, d: Date) -> Self {
+    #[staticmethod]
+    fn from_pydate(d: Date) -> Self {
         Self(d)
     }
 
@@ -423,8 +423,8 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn from_iso_week_date(_cls: &Bound<'_, PyType>, iso_week_date: &RyISOWeekDate) -> Self {
+    #[staticmethod]
+    fn from_iso_week_date(iso_week_date: &RyISOWeekDate) -> Self {
         Self::from(iso_week_date.0.date())
     }
 

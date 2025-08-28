@@ -10,7 +10,7 @@ use jiff::tz::Offset;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::PyTuple;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
@@ -69,20 +69,20 @@ impl RyOffset {
         Self::from(Offset::UTC)
     }
 
-    #[classmethod]
-    fn utc(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn utc() -> Self {
         Self::from(Offset::UTC)
     }
 
-    #[classmethod]
-    fn from_hours(_cls: &Bound<'_, PyType>, hours: i8) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_hours(hours: i8) -> PyResult<Self> {
         Offset::from_hours(hours)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn from_seconds(_cls: &Bound<'_, PyType>, seconds: i32) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_seconds(seconds: i32) -> PyResult<Self> {
         Offset::from_seconds(seconds)
             .map(Self::from)
             .map_err(map_py_value_err)
@@ -96,9 +96,9 @@ impl RyOffset {
         &self.0
     }
 
-    #[classmethod]
+    #[staticmethod]
     #[expect(clippy::needless_pass_by_value)]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: JiffOffset) -> Self {
+    fn from_pytzinfo(d: JiffOffset) -> Self {
         Self::from(d.0)
     }
 

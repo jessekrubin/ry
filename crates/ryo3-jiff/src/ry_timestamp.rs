@@ -65,25 +65,25 @@ impl RyTimestamp {
         Self(Timestamp::UNIX_EPOCH)
     }
 
-    #[classmethod]
-    fn now(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn now() -> Self {
         Self::from(Timestamp::now())
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
         Timestamp::from_str(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn parse(cls: &Bound<'_, PyType>, input: &str) -> PyResult<Self> {
-        Self::from_str(cls, input)
+    #[staticmethod]
+    fn parse(input: &str) -> PyResult<Self> {
+        Self::from_str(input)
     }
 
-    #[classmethod]
-    fn from_millisecond(_cls: &Bound<'_, PyType>, millisecond: i64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_millisecond(millisecond: i64) -> PyResult<Self> {
         Timestamp::from_millisecond(millisecond)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
@@ -93,7 +93,7 @@ impl RyTimestamp {
         RyZoned::from(Zoned::new(self.0, time_zone.into()))
     }
 
-    #[classmethod]
+    #[staticmethod]
     fn from_pydatetime<'py>(_cls: &Bound<'py, PyType>, dt: &Bound<'py, PyAny>) -> PyResult<Self> {
         let ts = dt.extract::<Timestamp>()?;
         Ok(Self(ts))
@@ -231,22 +231,22 @@ impl RyTimestamp {
         self.in_tz(time_zone_name)
     }
 
-    #[classmethod]
-    fn from_microsecond(_cls: &Bound<'_, PyType>, microsecond: i64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_microsecond(microsecond: i64) -> PyResult<Self> {
         Timestamp::from_microsecond(microsecond)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn from_nanosecond(_cls: &Bound<'_, PyType>, nanosecond: i128) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_nanosecond(nanosecond: i128) -> PyResult<Self> {
         Timestamp::from_nanosecond(nanosecond)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    #[classmethod]
-    fn from_second(_cls: &Bound<'_, PyType>, second: i64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_second(second: i64) -> PyResult<Self> {
         Timestamp::from_second(second)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))

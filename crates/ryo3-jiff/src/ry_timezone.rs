@@ -8,7 +8,7 @@ use jiff::Timestamp;
 use jiff::tz::{Offset, TimeZone};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
-use pyo3::types::{PyString, PyTuple, PyType};
+use pyo3::types::{PyString, PyTuple};
 use ryo3_macro_rules::err_py_not_impl;
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -134,57 +134,57 @@ impl RyTimeZone {
         &self.0
     }
 
-    #[classmethod]
-    fn from_pytzinfo(_cls: &Bound<'_, PyType>, d: JiffTimeZone) -> Self {
+    #[staticmethod]
+    fn from_pytzinfo(d: JiffTimeZone) -> Self {
         Self::from(d.0)
     }
 
     // =====================================================================
     // CLASS METHODS
     // =====================================================================
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
         TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn fixed(_cls: &Bound<'_, PyType>, offset: &RyOffset) -> Self {
+    #[staticmethod]
+    fn fixed(offset: &RyOffset) -> Self {
         Self::from(TimeZone::fixed(offset.0))
     }
 
-    #[classmethod]
-    fn posix(_cls: &Bound<'_, PyType>, string: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn posix(string: &str) -> PyResult<Self> {
         TimeZone::posix(string)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn get(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn get(s: &str) -> PyResult<Self> {
         TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn tzif(_cls: &Bound<'_, PyType>, name: &str, data: &[u8]) -> PyResult<Self> {
+    #[staticmethod]
+    fn tzif(name: &str, data: &[u8]) -> PyResult<Self> {
         TimeZone::tzif(name, data)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn utc(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn utc() -> Self {
         Self::from(TimeZone::fixed(Offset::UTC))
     }
 
-    #[classmethod]
-    fn try_system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+    #[staticmethod]
+    fn try_system() -> PyResult<Self> {
         TimeZone::try_system()
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    #[classmethod]
-    fn system(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+    #[staticmethod]
+    fn system() -> PyResult<Self> {
         TimeZone::try_system()
             .map(Self::from)
             .map_err(map_py_value_err)

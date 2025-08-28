@@ -2,7 +2,6 @@
 use crate::RyTimeZone;
 use jiff::tz::TimeZoneDatabase;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
 #[pyclass(name = "TimeZoneDatabase", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone)]
 pub struct RyTimeZoneDatabase {
@@ -73,25 +72,25 @@ impl RyTimeZoneDatabase {
         self.db().is_definitively_empty()
     }
 
-    #[classmethod]
-    fn bundled(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn bundled() -> Self {
         Self::from(TimeZoneDatabase::bundled())
     }
 
-    #[classmethod]
-    fn from_env(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn from_env() -> Self {
         Self::from(TimeZoneDatabase::from_env())
     }
 
-    #[classmethod]
-    fn from_dir(_cls: &Bound<'_, PyType>, path: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_dir(path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_dir(path)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
     }
 
-    #[classmethod]
-    fn from_concatenated_path(_cls: &Bound<'_, PyType>, path: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_concatenated_path(path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_concatenated_path(path)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
