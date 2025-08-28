@@ -10,7 +10,7 @@ use jiff::tz::Offset;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::PyTuple;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]

@@ -16,7 +16,7 @@ use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDict, PyDictMethods, PyTuple, PyType};
+use pyo3::types::{PyDict, PyDictMethods, PyTuple};
 use pyo3::{
     Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, Python, intern, pyclass,
     pymethods,

@@ -2,7 +2,6 @@
 use crate::RyTimeZone;
 use jiff::tz::TimeZoneDatabase;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
 #[pyclass(name = "TimeZoneDatabase", module = "ry.ryo3", frozen)]
 #[derive(Debug, Clone)]
 pub struct RyTimeZoneDatabase {

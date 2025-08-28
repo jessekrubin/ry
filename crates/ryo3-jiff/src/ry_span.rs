@@ -6,7 +6,7 @@ use crate::span_relative_to::RySpanRelativeTo;
 use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
 use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
-use pyo3::types::{PyDelta, PyDict, PyTuple, PyType};
+use pyo3::types::{PyDelta, PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
