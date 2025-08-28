@@ -438,9 +438,9 @@ impl PyBytes {
     /// ```python
     /// (string, /)
     /// ```
-    #[classmethod]
-    fn fromhex(cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
-        Self::py_fromhex(cls, s)
+    #[staticmethod]
+    fn fromhex(s: &str) -> PyResult<Self> {
+        Self::py_fromhex(s)
     }
 
     /// Return True if B is a titlecased string and there is at least one

@@ -25,9 +25,9 @@ impl PyInstant {
         Self(Instant::now())
     }
 
-    #[classmethod]
+    #[staticmethod]
     #[must_use]
-    pub fn now(_cls: &Bound<'_, PyType>) -> Self {
+    pub fn now() -> Self {
         Self(Instant::now())
     }
 

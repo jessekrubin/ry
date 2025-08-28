@@ -265,7 +265,7 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
     /// ```python
     /// (string, /)
     /// ```
-    fn py_fromhex(_cls: &Bound<'_, PyType>, s: &str) -> PyResult<Self> {
+    fn py_fromhex(s: &str) -> PyResult<Self> {
         // filter out whitespace
         let mut it = s.chars().filter(|c| !c.is_ascii_whitespace());
         let mut bytes = Vec::with_capacity(s.len() / 2);

@@ -410,7 +410,7 @@ impl PyHeaders {
     }
 
     #[cfg(feature = "json")]
-    #[classmethod]
+    #[staticmethod]
     fn from_json(_cls: &Bound<'_, PyType>, json: &str) -> PyResult<Self> {
         // let headers: crate::http_t=
         serde_json::from_str::<crate::HttpHeaderMap>(json)
@@ -419,7 +419,7 @@ impl PyHeaders {
     }
 
     #[cfg(not(feature = "json"))]
-    #[classmethod]
+    #[staticmethod]
     fn from_json(_cls: &Bound<'_, PyType>, _json: &str) -> PyResult<Self> {
         Err(::ryo3_core::FeatureNotEnabledError::new_err(
             "ryo3-http: `json` feature not enabled",

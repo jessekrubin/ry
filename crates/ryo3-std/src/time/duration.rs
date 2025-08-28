@@ -318,8 +318,8 @@ impl PyDuration {
     }
 
     /// Convert from python `datetime.timedelta`
-    #[classmethod]
-    fn from_pytimedelta(_cls: &Bound<'_, PyType>, delta: Duration) -> Self {
+    #[staticmethod]
+    fn from_pytimedelta(delta: Duration) -> Self {
         Self(delta)
     }
 
@@ -328,28 +328,28 @@ impl PyDuration {
     // ========================================================================
 
     /// Create a new `Duration` from the specified number of seconds.
-    #[classmethod]
-    fn from_secs(_cls: &Bound<'_, PyType>, secs: u64) -> Self {
+    #[staticmethod]
+    fn from_secs(secs: u64) -> Self {
         Self(Duration::from_secs(secs))
     }
 
-    #[classmethod]
-    fn from_millis(_cls: &Bound<'_, PyType>, millis: u64) -> Self {
+    #[staticmethod]
+    fn from_millis( millis: u64) -> Self {
         Self(Duration::from_millis(millis))
     }
 
-    #[classmethod]
-    fn from_micros(_cls: &Bound<'_, PyType>, micros: u64) -> Self {
+    #[staticmethod]
+    fn from_micros(micros: u64) -> Self {
         Self(Duration::from_micros(micros))
     }
 
-    #[classmethod]
-    fn from_nanos(_cls: &Bound<'_, PyType>, nanos: u64) -> Self {
+    #[staticmethod]
+    fn from_nanos(nanos: u64) -> Self {
         Self(Duration::from_nanos(nanos))
     }
 
-    #[classmethod]
-    fn from_hours(_cls: &Bound<'_, PyType>, hours: u64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_hours(hours: u64) -> PyResult<Self> {
         if hours > u64::MAX / (60 * 60) {
             Err(PyOverflowError::new_err("overflow in Duration::from_hours"))
         } else {
@@ -357,8 +357,8 @@ impl PyDuration {
         }
     }
 
-    #[classmethod]
-    fn from_mins(_cls: &Bound<'_, PyType>, mins: u64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_mins(mins: u64) -> PyResult<Self> {
         if mins > u64::MAX / 60 {
             Err(PyOverflowError::new_err("overflow in Duration::from_mins"))
         } else {
@@ -366,8 +366,8 @@ impl PyDuration {
         }
     }
 
-    #[classmethod]
-    fn from_days(_cls: &Bound<'_, PyType>, days: u64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_days(days: u64) -> PyResult<Self> {
         if days > u64::MAX / MAX_DAYS {
             Err(PyOverflowError::new_err(format!(
                 "overflow in Duration::from_days: {days} > {MAX_DAYS}"
@@ -377,8 +377,8 @@ impl PyDuration {
         }
     }
 
-    #[classmethod]
-    fn from_weeks(_cls: &Bound<'_, PyType>, weeks: u64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_weeks(weeks: u64) -> PyResult<Self> {
         if weeks > u64::MAX / (MAX_WEEKS) {
             Err(PyOverflowError::new_err(format!(
                 "overflow in Duration::from_weeks: {weeks} > {MAX_WEEKS}"
@@ -388,13 +388,13 @@ impl PyDuration {
         }
     }
 
-    #[classmethod]
-    fn from_secs_f32(_cls: &Bound<'_, PyType>, secs: f32) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_secs_f32(secs: f32) -> PyResult<Self> {
         Self::try_from_secs_f32(secs)
     }
 
-    #[classmethod]
-    fn from_secs_f64(_cls: &Bound<'_, PyType>, secs: f64) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_secs_f64(secs: f64) -> PyResult<Self> {
         Self::try_from_secs_f64(secs)
     }
 

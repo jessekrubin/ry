@@ -392,7 +392,7 @@ impl PyUlid {
 
     /// This is a hideous function but I struggled through this to try to figure out how to
     /// do pydantic schema validators which I hope to do for jiff soon... (as-of: 2025-05-29)
-    #[classmethod]
+    #[staticmethod]
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,
@@ -484,7 +484,7 @@ impl PyUlid {
         Ok(ulid_schema)
     }
 
-    #[classmethod]
+    #[staticmethod]
     fn _pydantic_validate<'py>(
         cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
@@ -505,7 +505,7 @@ impl PyUlid {
         handler.call1((ulid,))
     }
 
-    #[classmethod]
+    #[staticmethod]
     fn _pydantic_validate_strict<'py>(
         cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,

@@ -304,13 +304,13 @@ impl PyFsPath {
             })
     }
 
-    #[classmethod]
-    fn home(_cls: &Bound<'_, PyType>) -> Option<Self> {
+    #[staticmethod]
+    fn home() -> Option<Self> {
         ryo3_dirs::home().map(Self::from)
     }
 
-    #[classmethod]
-    fn cwd(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+    #[staticmethod]
+    fn cwd() -> PyResult<Self> {
         std::env::current_dir()
             .map(Self::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("cwd: {e}")))

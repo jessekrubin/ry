@@ -64,10 +64,9 @@ impl PyUrl {
         })
     }
 
-    #[classmethod]
+    #[staticmethod]
     #[pyo3(signature = (url, *, params = None))]
     fn parse(
-        _cls: &Bound<'_, PyType>,
         url: &str,
         params: Option<&Bound<'_, PyDict>>,
     ) -> PyResult<Self> {
@@ -80,10 +79,9 @@ impl PyUrl {
         }
     }
 
-    #[classmethod]
+    #[staticmethod]
     #[pyo3(name = "parse_with_params")]
     fn py_parse_with_params<'py>(
-        _cls: &Bound<'py, PyType>,
         url: &str,
         params: &Bound<'py, PyDict>,
     ) -> PyResult<Self> {
@@ -297,8 +295,8 @@ impl PyUrl {
         self.0.origin().ascii_serialization()
     }
 
-    #[classmethod]
-    fn from_directory_path(_cls: &Bound<'_, PyType>, path: &str) -> PyResult<Self> {
+    #[staticmethod]
+    fn from_directory_path(path: &str) -> PyResult<Self> {
         url::Url::from_directory_path(path)
             .map(Self::from)
             .map_err(|_e| {
