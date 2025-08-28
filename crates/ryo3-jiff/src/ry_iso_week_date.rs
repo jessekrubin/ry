@@ -3,7 +3,7 @@ use crate::{JiffWeekday, RyDate};
 use jiff::Zoned;
 use jiff::civil::ISOWeekDate;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::PyTuple;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
@@ -60,14 +60,14 @@ impl RyISOWeekDate {
     // ========================================================================
 
     /// Returns the `ISOWeekDate` for the given `Date`.
-    #[classmethod]
-    fn from_date(_cls: &Bound<'_, PyType>, date: &RyDate) -> Self {
+    #[staticmethod]
+    fn from_date(date: &RyDate) -> Self {
         Self(ISOWeekDate::from(date.0))
     }
 
     /// Returns the date today as an `ISOWeekDate`
-    #[classmethod]
-    fn today(_cls: &Bound<'_, PyType>) -> Self {
+    #[staticmethod]
+    fn today() -> Self {
         let date = jiff::civil::Date::from(Zoned::now());
         Self::from(ISOWeekDate::from(date))
     }

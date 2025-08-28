@@ -2,6 +2,58 @@
 
 thinking out loud...
 
+## staticmethod vs classmethod [2025-08-28]
+
+Nowhere in ry are any of the `classmethod` functions actually used as classmethods, they are effectively staticmethods; they don't access the class or instance in any way.
+Classes in `ry` do not (for the most part) support being subclassed.
+Benchmarking shows that `staticmethod` is slightly faster than `classmethod`,
+sooooo all classmethods will be removed, but added back in if needed later...
+
+Benchmarking code:
+
+```python
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import pytest
+
+import ry as ry
+
+if TYPE_CHECKING:
+    from pytest_benchmark.fixture import BenchmarkFixture
+
+
+def test_classmethod(benchmark: BenchmarkFixture):
+    # this is the current (as of 2025-08-28) `#[staticmethod]` parse function
+    benchmark(ry.Date.parse, "2023-03-15")
+
+
+def test_staticmethod(benchmark: BenchmarkFixture):
+    # This is a crudely copy-pasted version using `#[staticmethod]` instead
+    benchmark(ry.Date.parse2, "2023-03-15")
+```
+
+Benchmark results:
+
+```
+---------------------------------------------------------------------------------------- benchmark: 2 tests ---------------------------------------------------------------------------------------
+Name (time in ns)         Min                    Max                Mean              StdDev              Median               IQR             Outliers  OPS (Mops/s)            Rounds  Iterations
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_staticmethod     57.5000 (1.0)       2,290.0000 (1.0)       63.4931 (1.0)       16.2941 (1.0)       62.0000 (1.0)      1.5000 (824.63)  1048;11454       15.7497 (1.0)      100000         200
+test_classmethod      99.9989 (1.74)     29,200.0004 (12.75)    128.8420 (2.03)     146.9563 (9.02)     100.0008 (1.61)     0.0018 (1.0)      911;24504        7.7614 (0.49)     100000           1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Legend:
+  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.
+  OPS: Operations Per Second, computed as 1 / Mean
+```
+
+
+---
+
 ## fugue-state-jesse [2025-08-18]
 
 The most sophisticated rust code in this repository was written by
