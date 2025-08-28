@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
 from ry import Size
+
+if TYPE_CHECKING:
+    from ry.ryo3._size import FormatSizeBase, FormatSizeStyle
 
 FORMAT_SIZE_BASES = [None, 2, 10]
 FORMAT_SIZE_STYLES = [
@@ -51,16 +54,8 @@ SIZES = [
 @pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
 @pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
 def test_fmt_parse_roundtrip(
-    base: None | Literal[2, 10],
-    style: None
-    | Literal[
-        "default",
-        "abbreviated",
-        "abbreviated_lowercase",
-        "abbreviated-lowercase",
-        "full",
-        "full-lowercase",
-    ],
+    base: FormatSizeBase,
+    style: FormatSizeStyle,
 ) -> None:
     for size in SIZES:
         formatted = ry.fmt_size(size, base=base, style=style)
@@ -77,16 +72,8 @@ def test_fmt_parse_roundtrip(
 @pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
 @pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
 def test_fmt_parse_formatter(
-    base: None | Literal[2, 10],
-    style: None
-    | Literal[
-        "default",
-        "abbreviated",
-        "abbreviated_lowercase",
-        "abbreviated-lowercase",
-        "full",
-        "full-lowercase",
-    ],
+    base: FormatSizeBase,
+    style: FormatSizeStyle,
 ) -> None:
     formatter = ry.SizeFormatter(base=base, style=style)
 

@@ -4,14 +4,15 @@ thinking out loud...
 
 ## fugue-state-jesse [2025-08-18]
 
-The most sophisticated rust code in this repository was not written by
-"fugue-state-jesse" (aka FSJ), not me (normal jesse) nor was it written by an
-AI/LLM. "fugue-state-jesse" only shows up at random about 1-2 times a week and
+The most sophisticated rust code in this repository was written by
+`fugue-state-jesse` (aka FSJ), not me (`normal-jesse`) and not an AI/LLM.
+`fugue-state-jesse` only shows up at random about 1-2 times a week and
 seemingly has a vastly better understanding of rust and rust-macro-rules than I
 do.
 
-Throughout the repository I will sometimes leave notes to "fugue-state-jesse"
-with the hope that he might pick up on them and improve the code.
+Throughout the repository I (normal-jesse) will sometimes leave notes to
+`fugue-state-jesse` with the hope that he might do what I ask, but he tends to
+do his own thing.
 
 ---
 

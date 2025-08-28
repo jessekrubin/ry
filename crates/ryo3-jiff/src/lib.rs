@@ -14,17 +14,17 @@ extern crate core;
 
 pub mod pydatetime_conversions;
 
-mod dev;
-
 mod api;
 mod civil;
 mod constants;
 mod deprecations;
+mod dev;
 mod errors;
 mod functions;
 mod into_span_arithmetic;
 mod isoformat;
 mod jiff_types;
+mod round;
 mod ry_date;
 mod ry_date_difference;
 mod ry_datetime;

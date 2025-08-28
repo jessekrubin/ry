@@ -10,14 +10,11 @@ def test_python_version() -> None:
     python_exe = sys.executable
     completed_proc = sp.run([python_exe, "--version"], capture_output=True)
     assert completed_proc.returncode == 0
-    print(completed_proc)
     assert "python" in str(completed_proc.stdout).lower()
     res = ry.run(
         python_exe,
         "--version",
     )
-    print(res)
-    print(dir(res))
     assert res.returncode == 0
 
 
@@ -32,5 +29,3 @@ def test_binary_output() -> None:
         capture_output=True,
     )
     assert cproc.returncode == 0
-    print(cproc)
-    # assert False

@@ -155,15 +155,13 @@ class CODEGEN:
         parts = []
         for status_meta in class_attrs:
             name = status_meta.const_name
-            string = "\n".join(
-                (
-                    "    #[allow(non_snake_case)]",
-                    "    #[classattr]",
-                    f"    fn {name}() -> PyHttpStatus {{",
-                    f"        PyHttpStatus(ryo3-http::StatusCode::{name})",
-                    "    }\n",
-                )
-            )
+            string = "\n".join((
+                "    #[allow(non_snake_case)]",
+                "    #[classattr]",
+                f"    fn {name}() -> PyHttpStatus {{",
+                f"        PyHttpStatus(ryo3-http::StatusCode::{name})",
+                "    }\n",
+            ))
             parts.append(string)
         return "\n".join(parts)
 
@@ -177,4 +175,7 @@ class CODEGEN:
 
 
 if __name__ == "__main__":
-    print(CODEGEN.gen_status_code_rust_code())
+    import sys
+
+    s = CODEGEN.gen_status_code_rust_code()
+    sys.stdout.write(s)

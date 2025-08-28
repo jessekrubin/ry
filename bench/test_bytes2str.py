@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
 
 import ry
+
+if TYPE_CHECKING:
+    from pytest_benchmark.fixture import BenchmarkFixture
 
 ALL_BYTES = bytes(list(range(256)))
 ALL_BYTES_10X = ALL_BYTES * 10

@@ -621,9 +621,14 @@ fn validate_buffer(buf: &PyBuffer<u8>) -> PyResult<()> {
 
 impl<'py> FromPyObject<'py> for PyBytesWrapper {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let buffer = ob.extract::<PyBuffer<u8>>()?;
-        validate_buffer(&buffer)?;
-        Ok(Self(Some(buffer)))
+        if ob.is_instance_of::<pyo3::types::PyBytes>() {
+            let buffer = ob.extract::<PyBuffer<u8>>()?;
+            Ok(Self(Some(buffer)))
+        } else {
+            let buffer = ob.extract::<PyBuffer<u8>>()?;
+            validate_buffer(&buffer)?;
+            Ok(Self(Some(buffer)))
+        }
     }
 }
 

@@ -172,24 +172,15 @@ impl RyDateTime {
     }
 
     fn __str__(&self) -> String {
-        self.to_string()
+        self.0.to_string()
     }
 
     fn string(&self) -> String {
-        self.to_string()
+        self.__str__()
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, subsec_nanosecond={})",
-            self.year(),
-            self.month(),
-            self.day(),
-            self.hour(),
-            self.minute(),
-            self.second(),
-            self.subsec_nanosecond()
-        )
+        format!("{self}")
     }
 
     fn __hash__(&self) -> u64 {
@@ -460,10 +451,7 @@ impl RyDateTime {
     }
 
     fn _round(&self, dt_round: &RyDateTimeRound) -> PyResult<Self> {
-        self.0
-            .round(dt_round.round)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        dt_round.round(self)
     }
 
     fn day_of_year(&self) -> i16 {
@@ -510,22 +498,27 @@ impl RyDateTime {
     fn from_parts(_cls: &Bound<'_, PyType>, date: &RyDate, time: &RyTime) -> Self {
         Self::from(DateTime::from_parts(date.0, time.0))
     }
+
     fn in_leap_year(&self) -> bool {
         self.0.in_leap_year()
     }
+
     fn last_of_year(&self) -> Self {
         Self::from(self.0.last_of_year())
     }
+
     fn start_of_day(&self) -> Self {
         Self::from(self.0.start_of_day())
     }
-    fn strftime(&self, format: &str) -> String {
-        self.0.strftime(format).to_string()
+
+    fn strftime(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
     }
 
-    #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
-        DateTime::strptime(s, format)
+    #[staticmethod]
+    #[pyo3(signature = (s, /, fmt))]
+    fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
+        DateTime::strptime(fmt, s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
@@ -617,6 +610,16 @@ impl RyDateTime {
 
 impl Display for RyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        write!(
+            f,
+            "DateTime(year={}, month={}, day={}, hour={}, minute={}, second={}, subsec_nanosecond={})",
+            self.year(),
+            self.month(),
+            self.day(),
+            self.hour(),
+            self.minute(),
+            self.second(),
+            self.subsec_nanosecond()
+        )
     }
 }

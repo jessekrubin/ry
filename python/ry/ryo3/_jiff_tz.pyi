@@ -1,6 +1,6 @@
 from typing import Literal, TypeAlias
 
-TZDB_NAMES: TypeAlias = Literal[
+TimezoneDbName: TypeAlias = Literal[
     "Africa/Abidjan",
     "Africa/Accra",
     "Africa/Addis_Ababa",

@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import datetime as pydt
+from typing import TYPE_CHECKING
 
 import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
-from hypothesis.strategies import DrawFn, SearchStrategy
 
 import ry
 from ry import Duration
 
 from ..strategies import MAX_U32, MAX_U64
+
+if TYPE_CHECKING:
+    from hypothesis.strategies import DrawFn, SearchStrategy
 
 timedelta_positive_strategy = st.timedeltas(
     min_value=pydt.timedelta(0), max_value=pydt.timedelta(days=365 * 100)

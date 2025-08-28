@@ -1,0 +1,20 @@
+[package]
+name = "ryo3-memchr"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "python + memchr crate (https://crates.io/crates/memchr)"
+
+[dependencies]
+pyo3 = { workspace = true, features = [] }
+memchr.workspace = true
+ryo3-bytes.workspace = true
+
+[lints]
+workspace = true

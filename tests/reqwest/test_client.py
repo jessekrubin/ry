@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 import ry as ry
 
-from .conftest import ReqtestServer
+if TYPE_CHECKING:
+    from .conftest import ReqtestServer
 
 
 @pytest.mark.anyio
 async def test_get(server: ReqtestServer) -> None:
-    print(server)
     url = server.url
     client = ry.HttpClient()
     response = await client.get(str(url) + "howdy")

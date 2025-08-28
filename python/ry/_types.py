@@ -2,33 +2,53 @@
 
 from __future__ import annotations
 
-import datetime as dt
-import datetime as pydt
 import sys
 from os import PathLike
-from typing import Protocol, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Literal, Protocol, TypedDict, TypeVar
 
-from typing_extensions import Self
+if TYPE_CHECKING:
+    import datetime as pydt
+
+if sys.version_info >= (3, 11):
+    from typing import Never, Self
+else:
+    from typing_extensions import Never, Self
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
+    from typing import Unpack
 else:
-    from typing_extensions import Buffer
+    from typing_extensions import Buffer, Unpack
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 __all__ = (
     "Buffer",
+    "DateTimeRoundTypedDict",
     "DateTimeTypedDict",
     "DateTypedDict",
+    "FileTypeDict",
     "FromStr",
     "FsPathLike",
+    "MetadataDict",
+    "Never",
+    "Self",
+    "SignedDurationRoundTypedDict",
     "TimeSpanTypedDict",
     "TimeTypedDict",
+    "TimestampRoundTypedDict",
     "ToPy",
     "ToPyDate",
     "ToPyDateTime",
     "ToPyTime",
     "ToPyTimeDelta",
     "ToPyTzInfo",
+    "Unpack",
+    "ZonedDateTimeRoundTypedDict",
+    "deprecated",
 )
 
 FsPathLike = str | PathLike[str]
@@ -92,9 +112,9 @@ class MetadataDict(TypedDict):
     len: int
     readonly: bool
     file_type: FileTypeDict | None
-    accessed: dt.datetime
-    created: dt.datetime
-    modified: dt.datetime
+    accessed: pydt.datetime
+    created: pydt.datetime
+    modified: pydt.datetime
 
 
 # =============================================================================
@@ -130,3 +150,41 @@ class TimeSpanTypedDict(TypedDict):
     milliseconds: int
     microseconds: int
     nanoseconds: int
+
+
+class _RoundTypedDict(TypedDict):
+    smallest: Literal[
+        "month",
+        "week",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
+    mode: Literal[
+        "ceil",
+        "floor",
+        "expand",
+        "trunc",
+        "half-ceil",
+        "half-floor",
+        "half-expand",
+        "half-trunc",
+        "half-even",
+    ]
+    increment: int
+
+
+class DateTimeRoundTypedDict(_RoundTypedDict): ...
+
+
+class SignedDurationRoundTypedDict(_RoundTypedDict): ...
+
+
+class TimestampRoundTypedDict(_RoundTypedDict): ...
+
+
+class ZonedDateTimeRoundTypedDict(_RoundTypedDict): ...

@@ -1,6 +1,7 @@
 use crate::{RyDate, RyDateTime, RyTime, RyTimestamp};
 use parking_lot::Mutex;
 use pyo3::prelude::*;
+
 #[pyclass(name = "DateSeries", module = "ry.ryo3", frozen)]
 pub struct RyDateSeries {
     pub(crate) series: Mutex<jiff::civil::DateSeries>,

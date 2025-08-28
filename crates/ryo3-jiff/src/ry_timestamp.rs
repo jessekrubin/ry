@@ -251,18 +251,24 @@ impl RyTimestamp {
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
+
     fn signum(&self) -> i8 {
         self.0.signum()
     }
-    fn strftime(&self, format: &str) -> String {
-        self.0.strftime(format).to_string()
+
+    // ========================================================================
+    // STRPTIME/STRFTIME
+    // ========================================================================
+    fn strftime(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
     }
 
-    #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, s: &str, format: &str) -> PyResult<Self> {
-        Timestamp::strptime(s, format)
+    #[staticmethod]
+    #[pyo3(signature = (s, /, fmt))]
+    fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
+        Timestamp::strptime(fmt, s)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[pyo3(
@@ -354,10 +360,7 @@ impl RyTimestamp {
     }
 
     fn _round(&self, opts: &RyTimestampRound) -> PyResult<Self> {
-        self.0
-            .round(opts.round)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        opts.round(self)
     }
 
     fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -375,9 +378,15 @@ impl RyTimestamp {
 
 impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        write!(
+            f,
+            "Timestamp({:?}, {:?})",
+            self.0.as_second(),
+            self.0.subsec_nanosecond()
+        )
     }
 }
+
 impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
         Self(value)

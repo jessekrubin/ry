@@ -2,6 +2,12 @@
 
 ## Table of Contents
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
+- [`ry.ryo3._brotli`](#ry.ryo3._brotli)
+- [`ry.ryo3._bytes`](#ry.ryo3._bytes)
+- [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
+- [`ry.ryo3._dev`](#ry.ryo3._dev)
+- [`ry.ryo3._flate2`](#ry.ryo3._flate2)
+- [`ry.ryo3._fnv`](#ry.ryo3._fnv)
 - [`ry.ryo3._fspath`](#ry.ryo3._fspath)
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
 - [`ry.ryo3.errors`](#ry.ryo3.errors)
@@ -31,17 +37,34 @@
 - [`ry.ryo3.ulid`](#ry.ryo3.ulid)
 - [`ry.ryo3._globset`](#ry.ryo3._globset)
 - [`ry.ryo3._heck`](#ry.ryo3._heck)
-- [`ry.ryo3.dirs`](#ry.ryo3.dirs)
-- [`ry.ryo3._bytes`](#ry.ryo3._bytes)
-- [`ry.ryo3._dev`](#ry.ryo3._dev)
+- [`ry.ryo3._http`](#ry.ryo3._http)
+- [`ry.ryo3._jiff`](#ry.ryo3._jiff)
+- [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
+- [`ry.ryo3._jiter`](#ry.ryo3._jiter)
+- [`ry.ryo3._memchr`](#ry.ryo3._memchr)
+- [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
+- [`ry.ryo3._regex`](#ry.ryo3._regex)
+- [`ry.ryo3._reqwest`](#ry.ryo3._reqwest)
+- [`ry.ryo3._same_file`](#ry.ryo3._same_file)
+- [`ry.ryo3._shlex`](#ry.ryo3._shlex)
+- [`ry.ryo3._size`](#ry.ryo3._size)
+- [`ry.ryo3._sqlformat`](#ry.ryo3._sqlformat)
+- [`ry.ryo3._std`](#ry.ryo3._std)
+- [`ry.ryo3._tokio`](#ry.ryo3._tokio)
 - [`ry.ryo3._unindent`](#ry.ryo3._unindent)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
 - [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry.ryo3._zstd`](#ry.ryo3._zstd)
-- [`ry.xxhash`](#ry.xxhash)
-- [`ry.uuid`](#ry.uuid)
-- [`ry.ulid`](#ry.ulid)
+- [`ry.ryo3.dirs`](#ry.ryo3.dirs)
+- [`ry.ryo3.errors`](#ry.ryo3.errors)
+- [`ry.ryo3.JSON`](#ry.ryo3.JSON)
+- [`ry.ryo3.orjson`](#ry.ryo3.orjson)
+- [`ry.ryo3.sh`](#ry.ryo3.sh)
+- [`ry.ryo3.ulid`](#ry.ryo3.ulid)
+- [`ry.ryo3.uuid`](#ry.ryo3.uuid)
+- [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
+- [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry.dirs`](#ry.dirs)
 - [`ry.JSON`](#ry.JSON)
 - [`ry.zstd`](#ry.zstd)
@@ -50,9 +73,11 @@
 ```python
 """ry api ~ type annotations"""
 
-from ry import ulid as ulid  # noqa: RUF100
-from ry import uuid as uuid  # noqa: RUF100
 from ry.ryo3 import JSON as JSON
+from ry.ryo3 import ulid as ulid
+from ry.ryo3 import uuid as uuid
+from ry.ryo3 import xxhash as xxhash
+from ry.ryo3 import zstd as zstd
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -83,16 +108,19 @@ from ry.ryo3._heck import snake_case as snake_case
 from ry.ryo3._heck import snek_case as snek_case
 from ry.ryo3._heck import title_case as title_case
 from ry.ryo3._heck import train_case as train_case
-from ry.ryo3._http import Headers as Headers  # noqa: RUF100
-from ry.ryo3._http import HttpStatus as HttpStatus  # noqa: RUF100
+from ry.ryo3._http import Headers as Headers
+from ry.ryo3._http import HttpStatus as HttpStatus
 from ry.ryo3._jiff import Date as Date
 from ry.ryo3._jiff import DateDifference as DateDifference
 from ry.ryo3._jiff import DateTime as DateTime
 from ry.ryo3._jiff import DateTimeDifference as DateTimeDifference
 from ry.ryo3._jiff import DateTimeRound as DateTimeRound
 from ry.ryo3._jiff import ISOWeekDate as ISOWeekDate
+from ry.ryo3._jiff import JiffRoundMode as JiffRoundMode
+from ry.ryo3._jiff import JiffUnit as JiffUnit
 from ry.ryo3._jiff import Offset as Offset
 from ry.ryo3._jiff import SignedDuration as SignedDuration
+from ry.ryo3._jiff import SignedDurationRound as SignedDurationRound
 from ry.ryo3._jiff import Time as Time
 from ry.ryo3._jiff import TimeDifference as TimeDifference
 from ry.ryo3._jiff import TimeSpan as TimeSpan
@@ -101,6 +129,9 @@ from ry.ryo3._jiff import TimestampDifference as TimestampDifference
 from ry.ryo3._jiff import TimestampRound as TimestampRound
 from ry.ryo3._jiff import TimeZone as TimeZone
 from ry.ryo3._jiff import TimeZoneDatabase as TimeZoneDatabase
+from ry.ryo3._jiff import Weekday as Weekday
+from ry.ryo3._jiff import WeekdayInt as WeekdayInt
+from ry.ryo3._jiff import WeekdayStr as WeekdayStr
 from ry.ryo3._jiff import ZonedDateTime as ZonedDateTime
 from ry.ryo3._jiff import ZonedDateTimeDifference as ZonedDateTimeDifference
 from ry.ryo3._jiff import ZonedDateTimeRound as ZonedDateTimeRound
@@ -120,6 +151,12 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._memchr import memchr as memchr
+from ry.ryo3._memchr import memchr2 as memchr2
+from ry.ryo3._memchr import memchr3 as memchr3
+from ry.ryo3._memchr import memrchr as memrchr
+from ry.ryo3._memchr import memrchr2 as memrchr2
+from ry.ryo3._memchr import memrchr3 as memrchr3
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import HttpClient as HttpClient
@@ -207,6 +244,7 @@ from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
 from ry.ryo3.JSON import stringify as stringify
+from ry.ryo3.JSON import stringify_unsafe as stringify_unsafe
 from ry.ryo3.orjson import orjson_default as orjson_default
 from ry.ryo3.sh import cd as cd
 from ry.ryo3.sh import home as home
@@ -224,6 +262,334 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
+```
+
+<h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
+
+```python
+"""ryo3-brotli types"""
+
+from ry._types import Buffer
+
+
+def brotli_encode(
+    data: Buffer, quality: int = 11, magic_number: bool = False
+) -> bytes: ...
+def brotli_decode(data: Buffer) -> bytes: ...
+def brotli(
+    data: Buffer, quality: int = 11, magic_number: bool = False
+) -> bytes:
+    """Alias for brotli_encode"""
+```
+
+<h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
+
+```python
+import sys
+from typing import overload
+
+import typing_extensions
+
+if sys.version_info >= (3, 12):
+    from collections.abc import Buffer as Buffer
+else:
+    from typing_extensions import Buffer as Buffer
+
+
+class Bytes(Buffer):
+    """
+    A buffer implementing the Python buffer protocol, allowing zero-copy access
+    to underlying Rust memory.
+
+    You can pass this to `memoryview` for a zero-copy view into the underlying
+    data or to `bytes` to copy the underlying data into a Python `bytes`.
+
+    Many methods from the Python `bytes` class are implemented on this,
+    """
+
+    def __init__(self, buf: Buffer = b"") -> None:
+        """Construct a new Bytes object.
+
+        This will be a zero-copy view on the Python byte slice.
+        """
+
+    def __add__(self, other: Buffer) -> Bytes: ...
+    def __buffer__(self, flags: int) -> memoryview: ...
+    def __contains__(self, other: Buffer) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    @overload
+    def __getitem__(self, other: int) -> int: ...
+    @overload
+    def __getitem__(self, other: slice) -> Bytes: ...
+    def __mul__(self, other: int) -> Bytes: ...
+    def __rmul__(self, other: int) -> Bytes: ...
+    def __len__(self) -> int: ...
+    def __bytes__(self) -> bytes:
+        """Return the underlying data as a Python `bytes` object."""
+
+    def removeprefix(self, prefix: Buffer, /) -> Bytes:
+        """
+        If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
+        Otherwise, return the original binary data.
+        """
+
+    def removesuffix(self, suffix: Buffer, /) -> Bytes:
+        """
+        If the binary data ends with the suffix string and that suffix is not empty,
+        return `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
+        """
+
+    def isalnum(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are alphabetical ASCII characters or
+        ASCII decimal digits and the sequence is not empty, `False` otherwise.
+
+        Alphabetic ASCII characters are those byte values in the sequence
+        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`. ASCII decimal digits
+        are those byte values in the sequence `b'0123456789'`.
+        """
+
+    def isalpha(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are alphabetic ASCII characters and
+        the sequence is not empty, `False` otherwise.
+
+        Alphabetic ASCII characters are those byte values in the sequence
+        `b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'`.
+        """
+
+    def isascii(self) -> bool:
+        """
+        Return `True` if the sequence is empty or all bytes in the sequence are ASCII,
+        `False` otherwise.
+
+        ASCII bytes are in the range `0-0x7F`.
+        """
+
+    def isdigit(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are ASCII decimal digits and the
+        sequence is not empty, `False` otherwise.
+
+        ASCII decimal digits are those byte values in the sequence `b'0123456789'`.
+        """
+
+    def islower(self) -> bool:
+        """
+        Return `True` if there is at least one lowercase ASCII character in the sequence
+        and no uppercase ASCII characters, `False` otherwise.
+        """
+
+    def isspace(self) -> bool:
+        """
+        Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
+        is not empty, `False` otherwise.
+
+        ASCII whitespace characters are those byte values
+        in the sequence `b' \t\n\r\x0b\f'` (space, tab, newline, carriage return,
+        vertical tab, form feed).
+        """
+
+    def isupper(self) -> bool:
+        """
+        Return `True` if there is at least one uppercase alphabetic ASCII character in
+        the sequence and no lowercase ASCII characters, `False` otherwise.
+        """
+
+    def lower(self) -> Bytes:
+        """
+        Return a copy of the sequence with all the uppercase ASCII characters converted
+        to their corresponding lowercase counterpart.
+        """
+
+    def upper(self) -> Bytes:
+        """
+        Return a copy of the sequence with all the lowercase ASCII characters converted
+        to their corresponding uppercase counterpart.
+        """
+
+    def to_bytes(self) -> bytes:
+        """Copy this buffer's contents into a Python `bytes` object."""
+
+    # =========================================================================
+    # IMPL IN RY
+    # =========================================================================
+
+    def istitle(self) -> bool:
+        """
+        Return `True` if the sequence is non-empty and contains only ASCII letters,
+        digits, underscores, and hyphens, and starts with an ASCII letter or underscore.
+        Otherwise, return `False`.
+        """
+
+    def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
+        """Decode the binary data using the given encoding."""
+
+    def hex(
+        self, sep: str | None = None, bytes_per_sep: int | None = None
+    ) -> str:
+        """Return a hexadecimal representation of the binary data."""
+
+    @classmethod
+    def fromhex(cls, hexstr: str) -> Bytes:
+        """Construct a `Bytes` object from a hexadecimal string."""
+
+    def startswith(self, prefix: Buffer) -> bool:
+        """Return `True` if the binary data starts with the prefix string, `False` otherwise."""
+
+    def endswith(self, suffix: Buffer) -> bool:
+        """Return `True` if the binary data ends with the suffix string, `False` otherwise."""
+
+    def capitalize(self) -> Bytes:
+        """
+        Return a copy of the sequence with the first byte converted to uppercase and
+        all other bytes converted to lowercase.
+        """
+
+    def strip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with leading and trailing bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from both ends.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+
+    def lstrip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with leading bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the left end.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+
+    def rstrip(self, chars: Buffer | None = None) -> Bytes:
+        """
+        Return a copy of the sequence with trailing bytes removed.
+        If `chars` is provided, remove all bytes in `chars` from the right end.
+        If `chars` is not provided, remove all ASCII whitespace bytes.
+        """
+
+    def expandtabs(self, tabsize: int = 8) -> Bytes:
+        """
+        Return a copy of the sequence with all ASCII tab characters replaced by spaces.
+        The number of spaces is determined by the `tabsize` parameter.
+        """
+
+    def title(self) -> Bytes:
+        """
+        Return a copy of the sequence with the first byte of each word converted to
+        uppercase and all other bytes converted to lowercase.
+        """
+
+    def swapcase(self) -> Bytes:
+        """
+        Return a copy of the sequence with all uppercase ASCII characters converted to
+        their corresponding lowercase counterpart and vice versa.
+        """
+
+
+BytesLike: typing_extensions.TypeAlias = (
+    Buffer | bytes | bytearray | memoryview | Bytes
+)
+```
+
+<h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
+
+```python
+"""ryo3-bzip2 types"""
+
+from ry._types import Buffer
+
+
+# =============================================================================
+# BZIP2
+# =============================================================================
+def bzip2_encode(data: Buffer, quality: int = 9) -> bytes: ...
+def bzip2_decode(data: Buffer) -> bytes: ...
+def bzip2(data: Buffer, quality: int = 9) -> bytes:
+    """Alias for bzip2_encode"""
+```
+
+<h2 id="ry.ryo3._dev"><code>ry.ryo3._dev</code></h2>
+
+```python
+"""ry.ryo3.dev"""
+
+import typing as t
+
+
+# =============================================================================
+# SUBPROCESS (VERY MUCH WIP)
+# =============================================================================
+def run(
+    *args: str | list[str],
+    capture_output: bool = True,
+    input: bytes | None = None,  # noqa: A002
+) -> t.Any: ...
+
+
+# =============================================================================
+# STRING-DEV
+# =============================================================================
+
+
+def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
+def string_noop(s: str) -> str: ...
+def bytes_noop(s: bytes) -> bytes: ...
+```
+
+<h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
+
+```python
+"""ryo3-flate2 types"""
+
+from typing import Literal, TypeAlias
+
+from ry import Bytes
+from ry._types import Buffer
+
+Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+
+
+def gzip_encode(data: Buffer, quality: Quality = 6) -> Bytes: ...
+def gzip_decode(data: Buffer) -> Bytes: ...
+def gzip(data: Buffer, quality: Quality = 6) -> Bytes:
+    """Alias for gzip_encode"""
+
+
+def gunzip(data: Buffer) -> Bytes:
+    """Alias for gzip_decode"""
+
+
+def is_gzipped(data: Buffer) -> bool: ...
+```
+
+<h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
+
+```python
+"""ryo3-fnv types"""
+
+import typing as t
+
+from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
+
+
+@t.final
+class FnvHasher:
+    name: t.Literal["fnv1a"]
+    digest_size: t.Literal[8]
+    block_size: t.Literal[1]
+
+    def __init__(
+        self, data: Buffer | None = None, key: int | None = None
+    ) -> None: ...
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> Bytes: ...
+    def intdigest(self) -> int: ...
+    def hexdigest(self) -> str: ...
+    def copy(self) -> FnvHasher: ...
+
+
+def fnv1a(data: Buffer, key: int | None = None) -> FnvHasher: ...
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -391,14 +757,290 @@ class FsPathReaddir:
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
 
 ```python
-"""ryo3-walkdir types"""
+"""ryo3-glob types"""
+
+import typing as t
+from os import PathLike
+from pathlib import Path
+
+from ry.ryo3._fspath import FsPath
+
+_T = t.TypeVar("_T", bound=str | Path | FsPath)
+
+
+@t.final
+class GlobPaths(t.Generic[_T]):
+    """glob::Paths iterable wrapper"""
+
+    def __next__(self) -> _T: ...
+    def __iter__(self) -> GlobPaths[_T]: ...
+    def collect(self) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
+
+
+@t.overload
+def glob(
+    pattern: str,
+    *,
+    case_sensitive: bool = False,
+    require_literal_separator: bool = False,
+    require_literal_leading_dot: bool = False,
+) -> GlobPaths[Path]: ...
+@t.overload
+def glob(
+    pattern: str,
+    *,
+    case_sensitive: bool = False,
+    require_literal_separator: bool = False,
+    require_literal_leading_dot: bool = False,
+    dtype: type[_T],
+) -> GlobPaths[_T]: ...
+
+
+@t.final
+class Pattern:
+    def __init__(self, pattern: str) -> None: ...
+    def __call__(
+        self,
+        ob: str | PathLike[str],
+        *,
+        case_sensitive: bool = False,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
+    ) -> bool: ...
+    def matches(self, s: str) -> bool: ...
+    def matches_path(self, path: PathLike[str]) -> bool: ...
+    def matches_with(
+        self,
+        s: str,
+        *,
+        case_sensitive: bool = False,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
+    ) -> bool: ...
+    def matches_path_with(
+        self,
+        path: PathLike[str],
+        *,
+        case_sensitive: bool = False,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
+    ) -> bool: ...
+    @staticmethod
+    def escape(pattern: str) -> str: ...
+    @property
+    def pattern(self) -> str: ...
+```
+
+<h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
+
+```python
+"""ryo3-globset types"""
 
 import typing as t
 from os import PathLike
 
-import typing_extensions as te
 
-from ry import FileType, FsPath, Glob, GlobSet, Globster
+@t.final
+class Glob:
+    """globset::Glob wrapper"""
+
+    def __init__(
+        self,
+        pattern: str,
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def regex(self) -> str: ...
+    def is_match(self, path: str | PathLike[str]) -> bool: ...
+    def is_match_str(self, path: str) -> bool: ...
+    def __call__(self, path: str | PathLike[str]) -> bool: ...
+    def __invert__(self) -> Glob: ...
+    def globset(self) -> GlobSet: ...
+    def globster(self) -> Globster: ...
+
+
+@t.final
+class GlobSet:
+    """globset::GlobSet wrapper"""
+
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str) -> bool: ...
+    def is_match_str(self, path: str) -> bool: ...
+    def matches(self, path: str) -> list[int]: ...
+    def __call__(self, path: str) -> bool: ...
+    def globster(self) -> Globster: ...
+    @property
+    def patterns(self) -> tuple[str, ...]: ...
+
+
+@t.final
+class Globster:
+    """Globster is a matcher with claws!
+
+    Note: The north american `Globster` is similar to the european `Globset`
+          but allows for negative patterns (prefixed with '!')
+
+    """
+
+    def __init__(
+        self,
+        patterns: list[str],
+        /,
+        *,
+        case_insensitive: bool | None = None,
+        literal_separator: bool | None = None,
+        backslash_escape: bool | None = None,
+    ) -> None: ...
+    def is_empty(self) -> bool: ...
+    def is_match(self, path: str | PathLike[str]) -> bool: ...
+    def is_match_str(self, path: str) -> bool: ...
+    def __call__(self, path: str | PathLike[str]) -> bool: ...
+    @property
+    def patterns(self) -> tuple[str, ...]: ...
+
+
+def globster(
+    patterns: list[str] | tuple[str, ...],
+    /,
+    *,
+    case_insensitive: bool | None = None,
+    literal_separator: bool | None = None,
+    backslash_escape: bool | None = None,
+) -> Globster: ...
+```
+
+<h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>
+
+```python
+"""ryo3-heck types"""
+
+
+def camel_case(string: str) -> str: ...
+def kebab_case(string: str) -> str: ...
+def pascal_case(string: str) -> str: ...
+def shouty_kebab_case(string: str) -> str: ...
+def shouty_snake_case(string: str) -> str: ...
+def snake_case(string: str) -> str: ...
+def snek_case(string: str) -> str: ...
+def title_case(string: str) -> str: ...
+def train_case(string: str) -> str: ...
+```
+
+<h2 id="ry.ryo3._http"><code>ry.ryo3._http</code></h2>
+
+```python
+import typing as t
+from collections.abc import Mapping
+
+# fmt: off
+HttpVersionLike: t.TypeAlias = t.Literal[
+    "HTTP/0.9", "0.9", 0,
+    "HTTP/1.0", "1.0", 1, 10,
+    "HTTP/1.1", "1.1", 11,
+    "HTTP/2.0", "2.0", 2, 20,
+    "HTTP/3.0", "3.0", 3, 30,
+]
+# fmt: on
+
+_StandardHeader: t.TypeAlias = t.Literal[
+    "accept",
+    "accept-charset",
+    "accept-encoding",
+    "accept-language",
+    "accept-ranges",
+    "access-control-allow-credentials",
+    "access-control-allow-headers",
+    "access-control-allow-methods",
+    "access-control-allow-origin",
+    "access-control-expose-headers",
+    "access-control-max-age",
+    "access-control-request-headers",
+    "access-control-request-method",
+    "age",
+    "allow",
+    "alt-svc",
+    "authorization",
+    "cache-control",
+    "cache-status",
+    "cdn-cache-control",
+    "connection",
+    "content-disposition",
+    "content-encoding",
+    "content-language",
+    "content-length",
+    "content-location",
+    "content-range",
+    "content-security-policy",
+    "content-security-policy-report-only",
+    "content-type",
+    "cookie",
+    "dnt",
+    "date",
+    "etag",
+    "expect",
+    "expires",
+    "forwarded",
+    "from",
+    "host",
+    "if-match",
+    "if-modified-since",
+    "if-none-match",
+    "if-range",
+    "if-unmodified-since",
+    "last-modified",
+    "link",
+    "location",
+    "max-forwards",
+    "origin",
+    "pragma",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "public-key-pins",
+    "public-key-pins-report-only",
+    "range",
+    "referer",
+    "referrer-policy",
+    "refresh",
+    "retry-after",
+    "sec-websocket-accept",
+    "sec-websocket-extensions",
+    "sec-websocket-key",
+    "sec-websocket-protocol",
+    "sec-websocket-version",
+    "server",
+    "set-cookie",
+    "strict-transport-security",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "user-agent",
+    "upgrade",
+    "upgrade-insecure-requests",
+    "vary",
+    "via",
+    "warning",
+    "www-authenticate",
+    "x-content-type-options",
+    "x-dns-prefetch-control",
+    "x-frame-options",
+    "x-xss-protection",
+]
+
+_HeaderName: t.TypeAlias = _StandardHeader | str
+_VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 
 
 @t.final
@@ -511,18 +1153,20 @@ def quick_maths() -> t.Literal[3]:
 <h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
 
 ```python
-"""jiff types"""
+"""ryo3-jiff types"""
 
 import datetime as pydt
 import typing as t
 
-import typing_extensions as te
-
 from ry._types import (
+    DateTimeRoundTypedDict,
     DateTimeTypedDict,
     DateTypedDict,
     FromStr,
+    Self,
+    SignedDurationRoundTypedDict,
     TimeSpanTypedDict,
+    TimestampRoundTypedDict,
     TimeTypedDict,
     ToPy,
     ToPyDate,
@@ -530,14 +1174,16 @@ from ry._types import (
     ToPyTime,
     ToPyTimeDelta,
     ToPyTzInfo,
+    ZonedDateTimeRoundTypedDict,
+    deprecated,
 )
 from ry.ryo3 import Duration
-from ry.ryo3._jiff_tz import TZDB_NAMES
+from ry.ryo3._jiff_tz import TimezoneDbName
 
 _T = t.TypeVar("_T")
 
-TZ_NAME: te.TypeAlias = TZDB_NAMES | str
-JIFF_UNIT: te.TypeAlias = t.Literal[
+TimezoneName: t.TypeAlias = TimezoneDbName | str
+JiffUnit: t.TypeAlias = t.Literal[
     "year",
     "month",
     "week",
@@ -550,23 +1196,22 @@ JIFF_UNIT: te.TypeAlias = t.Literal[
     "nanosecond",
 ]
 
-JIFF_ROUND_MODE: te.TypeAlias = t.Literal[
+JiffRoundMode: t.TypeAlias = t.Literal[
     "ceil",
     "floor",
     "expand",
     "trunc",
-    "half_ceil",
-    "half_floor",
-    "half_expand",
-    "half_trunc",
-    "half_even",
+    "half-ceil",
+    "half-floor",
+    "half-expand",
+    "half-trunc",
+    "half-even",
 ]
 
-WEEKDAY_STR: te.TypeAlias = t.Literal[
+WeekdayStr: t.TypeAlias = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 ]
-
-WEEKDAY_INT: te.TypeAlias = t.Literal[
+WeekdayInt: t.TypeAlias = t.Literal[
     1,  # Monday
     2,  # Tuesday
     3,  # Wednesday
@@ -575,8 +1220,7 @@ WEEKDAY_INT: te.TypeAlias = t.Literal[
     6,  # Saturday
     7,  # Sunday
 ]
-
-WEEKDAY: te.TypeAlias = WEEKDAY_STR | WEEKDAY_INT
+Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 
 @t.final
@@ -631,8 +1275,8 @@ class Date(ToPy[pydt.date], ToPyDate):
     # STRPTIME/STRFTIME
     # =========================================================================
     @classmethod
-    def strptime(cls: type[Date], format: str, string: str) -> Date: ...
-    def strftime(self, format: str) -> str: ...
+    def strptime(cls, string: str, /, fmt: str) -> Self: ...
+    def strftime(self, fmt: str) -> str: ...
 
     # =========================================================================
     # OPERATORS
@@ -691,13 +1335,13 @@ class Date(ToPy[pydt.date], ToPyDate):
     def first_of_year(self) -> Date: ...
     def iso_week_date(self) -> ISOWeekDate: ...
     def in_leap_year(self) -> bool: ...
-    def in_tz(self, tz: TZ_NAME) -> ZonedDateTime: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: TZ_NAME) -> ZonedDateTime: ...
+    def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
+    @deprecated("intz is deprecated, use in_tz instead")
+    def intz(self, tz: TimezoneName) -> ZonedDateTime: ...
     def last_of_month(self) -> Date: ...
     def last_of_year(self) -> Date: ...
-    def nth_weekday(self, nth: int, weekday: WEEKDAY) -> Date: ...
-    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -> Date: ...
+    def nth_weekday(self, nth: int, weekday: Weekday) -> Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: Weekday) -> Date: ...
     def replace(
         self,
         year: int | None = None,
@@ -722,24 +1366,20 @@ class Date(ToPy[pydt.date], ToPyDate):
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
-
-    # =========================================================================
-    # INSTANCE METHODS W/ OVERLOADS
-    # =========================================================================
 
 
 @t.final
@@ -784,8 +1424,8 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     # STRPTIME/STRFTIME/PARSE
     # =========================================================================
     @classmethod
-    def strptime(cls: type[Time], format: str, string: str) -> Time: ...
-    def strftime(self, format: str) -> str: ...
+    def strptime(cls, string: str, /, fmt: str) -> Self: ...
+    def strftime(self, fmt: str) -> str: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -870,8 +1510,8 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     ) -> Time: ...
     def round(
         self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> Time: ...
     def series(self, span: TimeSpan) -> JiffSeries[Time]: ...
@@ -886,18 +1526,18 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -924,9 +1564,9 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     # =========================================================================
     # STRPTIME/STRFTIME/PARSE
     # =========================================================================
-    def strftime(self, format: str) -> str: ...
     @classmethod
-    def strptime(cls: type[DateTime], format: str, string: str) -> DateTime: ...
+    def strptime(cls, string: str, /, fmt: str) -> Self: ...
+    def strftime(self, fmt: str) -> str: ...
     @classmethod
     def from_str(cls: type[DateTime], s: str) -> DateTime: ...
     @classmethod
@@ -1005,13 +1645,13 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def first_of_year(self) -> DateTime: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: str) -> ZonedDateTime: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
+    @deprecated("intz is deprecated, use in_tz instead")
     def intz(self, tz: str) -> ZonedDateTime: ...
     def iso_week_date(self) -> ISOWeekDate: ...
     def last_of_month(self) -> DateTime: ...
     def last_of_year(self) -> DateTime: ...
-    def nth_weekday(self, nth: int, weekday: WEEKDAY) -> DateTime: ...
-    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -> DateTime: ...
+    def nth_weekday(self, nth: int, weekday: Weekday) -> DateTime: ...
+    def nth_weekday_of_month(self, nth: int, weekday: Weekday) -> DateTime: ...
     def replace(
         self,
         obj: Date | DateTime | Time | None = None,
@@ -1034,9 +1674,9 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     ) -> DateTime: ...
     def round(
         self,
-        smallest: JIFF_UNIT | None = None,
+        smallest: JiffUnit | None = None,
         *,
-        mode: JIFF_ROUND_MODE | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> DateTime: ...
     def _round(self, options: DateTimeRound) -> DateTime: ...
@@ -1085,27 +1725,27 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
         self,
         other: Date | Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Date | Time | DateTime | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
 
 @t.final
 class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
-    def __init__(self, name: TZ_NAME) -> None: ...
+    def __init__(self, name: TimezoneName) -> None: ...
     def __eq__(self, other: object) -> bool: ...
-    def __call__(self) -> te.Self: ...
+    def __call__(self) -> Self: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -1114,7 +1754,7 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     def to_py(self) -> pydt.tzinfo: ...
     def to_pytzinfo(self) -> pydt.tzinfo: ...
     @classmethod
-    def from_str(cls, s: TZ_NAME) -> TimeZone: ...
+    def from_str(cls, s: TimezoneName) -> TimeZone: ...
     @classmethod
     def from_pytzinfo(cls: type[TimeZone], tz: pydt.tzinfo) -> TimeZone: ...
 
@@ -1132,9 +1772,9 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     @classmethod
     def fixed(cls: type[TimeZone], offset: Offset) -> TimeZone: ...
     @classmethod
-    def get(cls: type[TimeZone], name: TZ_NAME) -> TimeZone: ...
+    def get(cls: type[TimeZone], name: TimezoneName) -> TimeZone: ...
     @classmethod
-    def posix(cls: type[TimeZone], name: TZ_NAME) -> TimeZone: ...
+    def posix(cls: type[TimeZone], name: TimezoneName) -> TimeZone: ...
     @classmethod
     def system(cls: type[TimeZone]) -> TimeZone: ...
     @classmethod
@@ -1149,6 +1789,18 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     # =========================================================================
     def iana_name(self) -> str | None: ...
     def to_datetime(self, dt: Timestamp) -> DateTime: ...
+    def to_fixed_offset(self) -> Offset:
+        """Return a TimeZone with a fixed offset equivalent to this TimeZone.
+
+        Examples:
+            >>> import ry
+            >>> tz = ry.TimeZone.fixed(ry.Offset(hours=-5))
+            >>> fixed_tz = tz.to_fixed_offset()
+            >>> fixed_tz
+            Offset(hours=-5)
+
+        """
+
     def to_offset(self, timestamp: Timestamp) -> Offset: ...
     def to_timestamp(self, dt: DateTime) -> Timestamp: ...
     def to_zoned(self, other: DateTime) -> ZonedDateTime: ...
@@ -1196,7 +1848,7 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    def string(self, friendly: bool = False) -> str: ...
+    def string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
 
     # =========================================================================
@@ -1288,14 +1940,22 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def subsec_millis(self) -> int: ...
     def subsec_nanos(self) -> int: ...
     def to_timespan(self) -> TimeSpan: ...
+    def round(
+        self,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -> SignedDuration: ...
+    def _round(self, options: SignedDurationRound) -> DateTime: ...
 
 
 # put in quotes to avoid ruff F821 - undefined name
-_TimeSpanArithmeticSingle: te.TypeAlias = TimeSpan | Duration | SignedDuration
-_TimeSpanArithmeticTuple: te.TypeAlias = tuple[
+_TimeSpanArithmeticSingle: t.TypeAlias = TimeSpan | Duration | SignedDuration
+_TimeSpanArithmeticTuple: t.TypeAlias = tuple[
     _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
 ]
-TimeSpanArithmetic: te.TypeAlias = (
+TimeSpanArithmetic: t.TypeAlias = (
     _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
 )
 
@@ -1319,7 +1979,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    def string(self, friendly: bool = False) -> str: ...
+    def string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
     def repr_full(self) -> str: ...
 
@@ -1377,15 +2037,15 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def __add__(
         self,
         val: TimeSpanArithmetic,
-    ) -> te.Self: ...
+    ) -> Self: ...
     def __sub__(
         self,
         val: TimeSpanArithmetic,
-    ) -> te.Self: ...
-    def __mul__(self, other: int) -> te.Self: ...
-    def __neg__(self) -> te.Self: ...
-    def __abs__(self) -> te.Self: ...
-    def __invert__(self) -> te.Self: ...
+    ) -> Self: ...
+    def __mul__(self, other: int) -> Self: ...
+    def __neg__(self) -> Self: ...
+    def __abs__(self) -> Self: ...
+    def __invert__(self) -> Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ge__(self, other: TimeSpan) -> bool: ...
     def __gt__(self, other: TimeSpan) -> bool: ...
@@ -1398,15 +2058,15 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
-    def add(self, val: TimeSpanArithmetic) -> te.Self: ...
-    def mul(self, other: int) -> te.Self: ...
-    def sub(self, val: TimeSpanArithmetic) -> te.Self: ...
+    def add(self, val: TimeSpanArithmetic) -> Self: ...
+    def mul(self, other: int) -> Self: ...
+    def sub(self, val: TimeSpanArithmetic) -> Self: ...
 
     # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
 
-    def abs(self) -> te.Self: ...
+    def abs(self) -> Self: ...
     def asdict(self) -> TimeSpanTypedDict: ...
     def compare(
         self,
@@ -1414,7 +2074,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
         relative: ZonedDateTime | DateTime | Date | None = None,
         days_are_24_hours: bool = False,
     ) -> int: ...
-    def negate(self) -> te.Self: ...
+    def negate(self) -> Self: ...
     def replace(
         self,
         years: int | None = None,
@@ -1427,47 +2087,47 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
         milliseconds: int | None = None,
         microseconds: int | None = None,
         nanoseconds: int | None = None,
-    ) -> te.Self: ...
+    ) -> Self: ...
     def round(
         self,
-        smallest: JIFF_UNIT,
+        smallest: JiffUnit,
         increment: int = 1,
         *,
         relative: ZonedDateTime | Date | DateTime | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-    ) -> te.Self: ...
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+    ) -> Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
         self, relative: ZonedDateTime | Date | DateTime
     ) -> SignedDuration: ...
     def total(
         self,
-        unit: JIFF_UNIT,
+        unit: JiffUnit,
         relative: ZonedDateTime | Date | DateTime | None = None,
         days_are_24_hours: bool = False,
     ) -> int: ...
     def total_seconds(self) -> int: ...
-    def try_years(self, years: int) -> te.Self: ...
-    def try_months(self, months: int) -> te.Self: ...
-    def try_weeks(self, weeks: int) -> te.Self: ...
-    def try_days(self, days: int) -> te.Self: ...
-    def try_hours(self, hours: int) -> te.Self: ...
-    def try_minutes(self, minutes: int) -> te.Self: ...
-    def try_seconds(self, seconds: int) -> te.Self: ...
-    def try_milliseconds(self, milliseconds: int) -> te.Self: ...
-    def try_microseconds(self, microseconds: int) -> te.Self: ...
-    def try_nanoseconds(self, nanoseconds: int) -> te.Self: ...
-    def _years(self, years: int) -> te.Self: ...
-    def _months(self, months: int) -> te.Self: ...
-    def _weeks(self, weeks: int) -> te.Self: ...
-    def _days(self, days: int) -> te.Self: ...
-    def _hours(self, hours: int) -> te.Self: ...
-    def _minutes(self, minutes: int) -> te.Self: ...
-    def _seconds(self, seconds: int) -> te.Self: ...
-    def _milliseconds(self, milliseconds: int) -> te.Self: ...
-    def _microseconds(self, microseconds: int) -> te.Self: ...
-    def _nanoseconds(self, nanoseconds: int) -> te.Self: ...
+    def try_years(self, years: int) -> Self: ...
+    def try_months(self, months: int) -> Self: ...
+    def try_weeks(self, weeks: int) -> Self: ...
+    def try_days(self, days: int) -> Self: ...
+    def try_hours(self, hours: int) -> Self: ...
+    def try_minutes(self, minutes: int) -> Self: ...
+    def try_seconds(self, seconds: int) -> Self: ...
+    def try_milliseconds(self, milliseconds: int) -> Self: ...
+    def try_microseconds(self, microseconds: int) -> Self: ...
+    def try_nanoseconds(self, nanoseconds: int) -> Self: ...
+    def _years(self, years: int) -> Self: ...
+    def _months(self, months: int) -> Self: ...
+    def _weeks(self, weeks: int) -> Self: ...
+    def _days(self, days: int) -> Self: ...
+    def _hours(self, hours: int) -> Self: ...
+    def _minutes(self, minutes: int) -> Self: ...
+    def _seconds(self, seconds: int) -> Self: ...
+    def _milliseconds(self, milliseconds: int) -> Self: ...
+    def _microseconds(self, microseconds: int) -> Self: ...
+    def _nanoseconds(self, nanoseconds: int) -> Self: ...
 
 
 @t.final
@@ -1507,7 +2167,7 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     # =========================================================================
     def __add__(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ge__(self, other: Timestamp) -> bool: ...
     def __gt__(self, other: Timestamp) -> bool: ...
@@ -1524,13 +2184,13 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     @t.overload
     def __isub__(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
     @t.overload
     def __sub__(self, other: Timestamp) -> TimeSpan: ...
     @t.overload
     def __sub__(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -1564,9 +2224,9 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     # =========================================================================
     # STRPTIME/STRFTIME
     # =========================================================================
-    def strftime(self, format: str) -> str: ...
     @classmethod
-    def strptime(cls, format: str, input: str) -> Timestamp: ...
+    def strptime(cls, string: str, /, fmt: str) -> Self: ...
+    def strftime(self, fmt: str) -> str: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -1577,9 +2237,9 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def as_nanosecond(self) -> int: ...
     def as_second(self) -> int: ...
     def display_with_offset(self, offset: Offset) -> str: ...
-    def in_tz(self, tz: TZ_NAME) -> ZonedDateTime: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: TZ_NAME) -> ZonedDateTime:
+    def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
+    @deprecated("intz is deprecated, use in_tz instead")
+    def intz(self, tz: TimezoneName) -> ZonedDateTime:
         """Deprecated ~ use `in_tz`"""
 
     def is_zero(self) -> bool: ...
@@ -1600,26 +2260,26 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def duration_since(self, other: Timestamp) -> SignedDuration: ...
     def duration_until(self, other: Timestamp) -> SignedDuration: ...
     def round(
         self,
-        unit: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        unit: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> Timestamp: ...
     def _round(self, options: TimestampRound) -> Timestamp: ...
@@ -1680,10 +2340,8 @@ class ZonedDateTime(
     # STRPTIME/STRFTIME
     # =========================================================================
     @classmethod
-    def strptime(
-        cls: type[ZonedDateTime], format: str, input: str
-    ) -> ZonedDateTime: ...
-    def strftime(self, format: str) -> str: ...
+    def strptime(cls, string: str, /, fmt: str) -> Self: ...
+    def strftime(self, fmt: str) -> str: ...
 
     # =========================================================================
     # PROPERTIES
@@ -1728,7 +2386,7 @@ class ZonedDateTime(
     # =========================================================================
     def __add__(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ge__(self, other: ZonedDateTime) -> bool: ...
     def __gt__(self, other: ZonedDateTime) -> bool: ...
@@ -1746,35 +2404,35 @@ class ZonedDateTime(
     @t.overload
     def __isub__(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
     @t.overload
     def __sub__(self, other: ZonedDateTime) -> TimeSpan: ...
     @t.overload
     def __sub__(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
 
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
     def add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
     @t.overload
     def sub(self, other: ZonedDateTime) -> TimeSpan: ...
     @t.overload
     def sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
     @t.overload
     def saturating_sub(self, other: ZonedDateTime) -> TimeSpan: ...
     @t.overload
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
-    ) -> te.Self: ...
+    ) -> Self: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -1794,14 +2452,14 @@ class ZonedDateTime(
     def first_of_month(self) -> ZonedDateTime: ...
     def first_of_year(self) -> ZonedDateTime: ...
     def in_leap_year(self) -> bool: ...
-    def in_tz(self, tz: TZ_NAME) -> te.Self: ...
-    @te.deprecated("intz is deprecated, use in_tz instead")
-    def intz(self, tz: TZ_NAME) -> te.Self: ...
+    def in_tz(self, tz: TimezoneName) -> Self: ...
+    @deprecated("intz is deprecated, use in_tz instead")
+    def intz(self, tz: TimezoneName) -> Self: ...
     def inutc(self) -> ZonedDateTime: ...
     def last_of_month(self) -> ZonedDateTime: ...
     def last_of_year(self) -> ZonedDateTime: ...
-    def nth_weekday(self, nth: int, weekday: WEEKDAY) -> Date: ...
-    def nth_weekday_of_month(self, nth: int, weekday: WEEKDAY) -> Date: ...
+    def nth_weekday(self, nth: int, weekday: Weekday) -> Date: ...
+    def nth_weekday_of_month(self, nth: int, weekday: Weekday) -> Date: ...
     def offset(self) -> Offset: ...
     def replace(
         self,
@@ -1828,9 +2486,9 @@ class ZonedDateTime(
     ) -> ZonedDateTime: ...
     def round(
         self,
-        smallest: JIFF_UNIT | None = None,
+        smallest: JiffUnit | None = None,
         *,
-        mode: JIFF_ROUND_MODE | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> DateTime: ...
     def _round(self, options: ZonedDateTimeRound) -> DateTime: ...
@@ -1848,18 +2506,18 @@ class ZonedDateTime(
         self,
         other: ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
     def until(
         self,
         other: ZonedDateTime,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> TimeSpan: ...
 
@@ -1870,7 +2528,7 @@ class ISOWeekDate:
     MAX: ISOWeekDate
     ZERO: ISOWeekDate
 
-    def __init__(self, year: int, week: int, weekday: WEEKDAY) -> None: ...
+    def __init__(self, year: int, week: int, weekday: Weekday) -> None: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -1900,7 +2558,7 @@ class ISOWeekDate:
     @property
     def week(self) -> int: ...
     @property
-    def weekday(self) -> WEEKDAY_INT: ...
+    def weekday(self) -> WeekdayInt: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -2008,15 +2666,15 @@ class _Difference(t.Generic[_T]):
         self,
         date: _T,
         *,
-        smallest: JIFF_UNIT | None = None,
-        largest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> None: ...
-    def smallest(self, unit: JIFF_UNIT) -> te.Self: ...
-    def largest(self, unit: JIFF_UNIT) -> te.Self: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> te.Self: ...
-    def increment(self, increment: int) -> te.Self: ...
+    def smallest(self, unit: JiffUnit) -> Self: ...
+    def largest(self, unit: JiffUnit) -> Self: ...
+    def mode(self, mode: JiffRoundMode) -> Self: ...
+    def increment(self, increment: int) -> Self: ...
 
 
 @t.final
@@ -2043,72 +2701,107 @@ class ZonedDateTimeDifference(_Difference[ZonedDateTime]): ...
 # ROUND
 # =============================================================================
 @t.final
-class TimestampRound:
-    def __init__(
-        self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
-        increment: int = 1,
-    ) -> None: ...
-    def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> TimestampRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -> TimestampRound: ...
-    def increment(self, increment: int) -> TimestampRound: ...
-    def _smallest(self) -> JIFF_UNIT: ...
-    def _mode(self) -> JIFF_ROUND_MODE: ...
-    def _increment(self) -> int: ...
-    def replace(
-        self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
-    ) -> TimestampRound: ...
-
-
-@t.final
 class DateTimeRound:
     def __init__(
         self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
         increment: int = 1,
     ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> DateTimeRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -> DateTimeRound: ...
+    def mode(self, mode: JiffRoundMode) -> DateTimeRound: ...
+    def smallest(self, smallest: JiffUnit) -> DateTimeRound: ...
     def increment(self, increment: int) -> DateTimeRound: ...
-    def _smallest(self) -> JIFF_UNIT: ...
-    def _mode(self) -> JIFF_ROUND_MODE: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
     def _increment(self) -> int: ...
     def replace(
         self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
     ) -> DateTimeRound: ...
+    def to_dict(self) -> DateTimeRoundTypedDict: ...
+    def round(self, dt: DateTime) -> DateTime: ...
+
+
+@t.final
+class SignedDurationRound:
+    def __init__(
+        self,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
+        increment: int = 1,
+    ) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def mode(self, mode: JiffRoundMode) -> SignedDurationRound: ...
+    def smallest(self, smallest: JiffUnit) -> SignedDurationRound: ...
+    def increment(self, increment: int) -> SignedDurationRound: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
+    def _increment(self) -> int: ...
+    def replace(
+        self,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -> SignedDurationRound: ...
+    def to_dict(self) -> SignedDurationRoundTypedDict: ...
+    def round(self, sd: SignedDuration) -> SignedDuration: ...
+
+
+@t.final
+class TimestampRound:
+    def __init__(
+        self,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
+        increment: int = 1,
+    ) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def mode(self, mode: JiffRoundMode) -> TimestampRound: ...
+    def smallest(self, smallest: JiffUnit) -> TimestampRound: ...
+    def increment(self, increment: int) -> TimestampRound: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
+    def _increment(self) -> int: ...
+    def replace(
+        self,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -> TimestampRound: ...
+    def to_dict(self) -> TimestampRoundTypedDict: ...
+    def round(self, dt: Timestamp) -> Timestamp: ...
 
 
 @t.final
 class ZonedDateTimeRound:
     def __init__(
         self,
-        smallest: JIFF_UNIT | None = None,
-        mode: JIFF_ROUND_MODE | None = None,
+        smallest: JiffUnit | None = None,
+        *,
+        mode: JiffRoundMode | None = None,
         increment: int = 1,
     ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
-    def mode(self, mode: JIFF_ROUND_MODE) -> ZonedDateTimeRound: ...
-    def smallest(self, smallest: JIFF_UNIT) -> ZonedDateTimeRound: ...
+    def mode(self, mode: JiffRoundMode) -> ZonedDateTimeRound: ...
+    def smallest(self, smallest: JiffUnit) -> ZonedDateTimeRound: ...
     def increment(self, increment: int) -> ZonedDateTimeRound: ...
-    def _smallest(self) -> JIFF_UNIT: ...
-    def _mode(self) -> JIFF_ROUND_MODE: ...
+    def _smallest(self) -> JiffUnit: ...
+    def _mode(self) -> JiffRoundMode: ...
     def _increment(self) -> int: ...
     def replace(
         self,
-        smallest: JIFF_UNIT | None,
-        mode: JIFF_ROUND_MODE | None,
-        increment: int | None,
+        smallest: JiffUnit | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
     ) -> ZonedDateTimeRound: ...
+    def to_dict(self) -> ZonedDateTimeRoundTypedDict: ...
+    def round(self, dt: ZonedDateTime) -> ZonedDateTime: ...
 
 
 @t.type_check_only
@@ -2170,15 +2863,15 @@ class TimeZoneDatabase:
         """Defaults to using the `self.from_env`"""
 
     @t.overload
-    def get(self, name: TZ_NAME, err: t.Literal[False]) -> TimeZone | None:
+    def get(self, name: TimezoneName, err: t.Literal[False]) -> TimeZone | None:
         """Returns TimeZone or None if the timezone is not found"""
 
     @t.overload
-    def get(self, name: TZ_NAME, err: t.Literal[True] = True) -> TimeZone:
+    def get(self, name: TimezoneName, err: t.Literal[True] = True) -> TimeZone:
         """Returns TimeZone, if not found raises a ValueError"""
 
     def available(self) -> list[str]: ...
-    def __getitem__(self, name: TZ_NAME) -> TimeZone: ...
+    def __getitem__(self, name: TimezoneName) -> TimeZone: ...
     def __len__(self) -> int: ...
     def is_definitively_empty(self) -> bool: ...
     @classmethod
@@ -4223,7 +4916,7 @@ def aiopen(
 ```python
 from typing import Literal, TypeAlias
 
-TZDB_NAMES: TypeAlias = Literal[
+TimezoneDbName: TypeAlias = Literal[
     "Africa/Abidjan",
     "Africa/Accra",
     "Africa/Addis_Ababa",
@@ -5318,15 +6011,13 @@ def unindent_bytes(string: bytes) -> bytes: ...
 import typing as t
 from os import PathLike
 
-import typing_extensions as te
-
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 
 # =============================================================================
 # JSON
 # =============================================================================
-JsonPrimitive: te.TypeAlias = None | bool | int | float | str
-JsonValue: te.TypeAlias = (
+JsonPrimitive: t.TypeAlias = None | bool | int | float | str
+JsonValue: t.TypeAlias = (
     JsonPrimitive
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]
@@ -5349,21 +6040,1241 @@ class JsonParseKwargs(t.TypedDict, total=False):
 def parse_json(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse_jsonl(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> list[JsonValue]: ...
 def read_json(
     p: str | PathLike[str],
     /,
     lines: bool = False,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
+```
+
+<h2 id="ry.ryo3._memchr"><code>ry.ryo3._memchr</code></h2>
+
+```python
+"""ryo3-memchr types"""
+
+from typing import TypeAlias
+
+from ry._types import Buffer
+
+Byte: TypeAlias = int | bytes
+
+
+def memchr(needle: Byte, haystack: Buffer) -> int | None: ...
+def memchr2(needle: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memchr3(
+    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+) -> int | None: ...
+def memrchr(needle: Byte, haystack: Buffer) -> int | None: ...
+def memrchr2(needle: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memrchr3(
+    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+) -> int | None: ...
+```
+
+<h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
+
+```python
+"""ry.ryo3.JSON"""
+
+import typing as t
+
+
+def quick_maths() -> t.Literal[3]:
+    """Performs quick-maths
+
+    Implements the algorithm for performing "quick-maths" as described by
+    Big Shaq in his PHD thesis, 2017, in which he states:
+
+    > "2 plus 2 is 4, minus one that's 3, quick maths." (Big Shaq et al., 2017)
+
+    Reference:
+        https://youtu.be/3M_5oYU-IsU?t=60
+
+    Example:
+        >>> import ry
+        >>> result = ry.quick_maths()
+        >>> assert result == 3
+
+    NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
+    """
+```
+
+<h2 id="ry.ryo3._regex"><code>ry.ryo3._regex</code></h2>
+
+```python
+"""ryo3-regex types"""
+
+import typing as t
+
+# =============================================================================
+# Regex
+# =============================================================================
+
+
+@t.final
+class Regex:
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_insensitive: bool = False,
+        crlf: bool = False,
+        dot_matches_new_line: bool = False,
+        ignore_whitespace: bool = False,
+        line_terminator: str | None = None,
+        multi_line: bool = False,
+        octal: bool = False,
+        size_limit: int | None = None,
+        swap_greed: bool = False,
+        unicode: bool = False,
+    ) -> None: ...
+    def is_match(self, string: str) -> bool: ...
+    def find(self, string: str) -> str | None: ...
+    def find_all(self, string: str) -> list[tuple[int, int]]: ...
+    def findall(self, string: str) -> list[tuple[int, int]]: ...
+    def replace(self, string: str, replacement: str) -> str: ...
+    def replace_all(self, string: str, replacement: str) -> str: ...
+    def split(self, string: str) -> list[str]: ...
+    def splitn(self, string: str, n: int) -> list[str]: ...
+```
+
+<h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
+
+```python
+import typing as t
+
+import ry
+from ry._types import Buffer, Unpack
+from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
+from ry.ryo3._std import Duration
+from ry.ryo3._url import URL
+
+
+class RequestKwargs(t.TypedDict, total=False):
+    body: Buffer | None
+    headers: Headers | dict[str, str] | None
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
+    json: t.Any
+    form: t.Any
+    multipart: t.Any
+    timeout: Duration | None
+    version: HttpVersionLike | None
+
+    Args:
+        data: The JSON data to minify.
+
+@t.final
+class HttpClient:
+    def __init__(
+        self,
+        *,
+        headers: dict[str, str] | None = None,
+        cookies: bool = False,
+        user_agent: str | None = None,  # default ~ 'ry-reqwest/<VERSION> ...'
+        timeout: Duration | None = None,
+        connect_timeout: Duration | None = None,
+        read_timeout: Duration | None = None,
+        gzip: bool = True,
+        brotli: bool = True,
+        deflate: bool = True,
+    ) -> None: ...
+    async def get(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def post(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def put(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def delete(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def patch(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def options(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def head(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def fetch(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def __call__(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+
+    Examples:
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.minify(json_str))
+        b'{"key":"value","number":123,"bool":true}'
+
+@t.final
+class ReqwestError(Exception):
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
+    def __dbg__(self) -> str: ...
+    def is_body(self) -> bool: ...
+    def is_builder(self) -> bool: ...
+    def is_connect(self) -> bool: ...
+    def is_decode(self) -> bool: ...
+    def is_redirect(self) -> bool: ...
+    def is_request(self) -> bool: ...
+    def is_status(self) -> bool: ...
+    def is_timeout(self) -> bool: ...
+    def status(self) -> HttpStatus | None: ...
+    def url(self) -> URL | None: ...
+
+
+@t.final
+class Response:
+    @property
+    def headers(self) -> Headers: ...
+    async def text(self) -> str: ...
+    async def json(self) -> t.Any: ...
+    async def bytes(self) -> ry.Bytes: ...
+    def bytes_stream(self) -> ResponseStream: ...
+    def stream(self) -> ResponseStream: ...
+    @property
+    def url(self) -> URL: ...
+    @property
+    def version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def http_version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def status(self) -> int: ...
+    @property
+    def status_text(self) -> str: ...
+    @property
+    def status_code(self) -> HttpStatus: ...
+    @property
+    def redirected(self) -> bool: ...
+
+
+@t.final
+class ResponseStream:
+    def __aiter__(self) -> ResponseStream: ...
+    async def __anext__(self) -> ry.Bytes: ...
+    async def take(self, n: int = 1) -> list[ry.Bytes]: ...
+    @t.overload
+    async def collect(
+        self, join: t.Literal[False] = False
+    ) -> list[ry.Bytes]: ...
+    @t.overload
+    async def collect(self, join: t.Literal[True] = True) -> ry.Bytes: ...
+
+
+async def fetch(
+    url: str | URL,
+    *,
+    client: HttpClient | None = None,
+    method: str = "GET",
+    **kwargs: Unpack[RequestKwargs],
+) -> Response: ...
+```
+
+<h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
+
+```python
+"""ryo3-same-file types"""
+
+from os import PathLike
+
+
+def is_same_file(a: PathLike[str], b: PathLike[str]) -> bool: ...
+```
+
+<h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
+
+```python
+"""ryo3-shlex types"""
+
+
+def shplit(s: str) -> list[str]:
+    """shlex::split wrapper much like python's stdlib shlex.split but faster"""
+```
+
+<h2 id="ry.ryo3._size"><code>ry.ryo3._size</code></h2>
+
+```python
+import typing as t
+
+FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
+FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
+    "default",
+    "abbreviated",
+    "abbreviated_lowercase",
+    "abbreviated-lowercase",
+    "full",
+    "full-lowercase",
+    "full_lowercase",
+]
+
+
+def fmt_size(
+    n: int,
+    *,
+    base: FormatSizeBase = 2,
+    style: FormatSizeStyle = "default",
+) -> str:
+    """Return human-readable string representation of bytes-size."""
+
+
+def parse_size(s: str) -> int:
+    """Return integer representation of human-readable bytes-size string.
+
+    Raises:
+        ValueError: If string is not a valid human-readable bytes-size string.
+    """
+
+
+def fmt(data: Buffer) -> Bytes:
+    """Return minified json data (remove whitespace, newlines)
+
+    def __init__(
+        self,
+        base: FormatSizeBase = 2,
+        style: FormatSizeStyle = "default",
+    ) -> None:
+        """Initialize human-readable bytes-size formatter."""
+
+    Returns:
+        Minified JSON data as a `Bytes` object.
+
+    Examples:
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.fmt(json_str)).decode()
+        '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
+        >>> print(bytes(JSON.fmt(json_str)).decode())
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+
+    """
+
+
+@t.final
+class Size:
+    """Bytes-size object."""
+
+    def __init__(self, size: int) -> None: ...
+    def __int__(self) -> int: ...
+    def __hash__(self) -> int: ...
+    def __abs__(self) -> Size: ...
+    def __neg__(self) -> Size: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: Size | float) -> bool: ...
+    def __le__(self, other: Size | float) -> bool: ...
+    def __gt__(self, other: Size | float) -> bool: ...
+    def __ge__(self, other: Size | float) -> bool: ...
+    def __bool__(self) -> bool: ...
+    def __pos__(self) -> Size: ...
+    def __invert__(self) -> Size: ...
+    def __add__(self, other: Size | float) -> Size: ...
+    def __sub__(self, other: Size | float) -> Size: ...
+    def __mul__(self, other: Size | float) -> Size: ...
+    def __rmul__(self, other: Size | float) -> Size: ...
+    @property
+    def bytes(self) -> int: ...
+    def format(
+        self,
+        base: FormatSizeBase = 2,
+        style: FormatSizeStyle = "default",
+    ) -> str: ...
+
+    # =========================================================================
+    # CLASS-METHODS
+    # =========================================================================
+
+    # -------------------------------------------------------------------------
+    # PARSING
+    # -------------------------------------------------------------------------
+    @classmethod
+    def parse(cls: type[Size], size: str) -> Size: ...
+    @classmethod
+    def from_str(cls: type[Size], size: str) -> Size: ...
+
+    # -------------------------------------------------------------------------
+    # BYTES
+    # -------------------------------------------------------------------------
+    @classmethod
+    def from_bytes(cls: type[Size], size: float) -> Size: ...
+
+    # -------------------------------------------------------------------------
+    # KILOBYTES
+    # -------------------------------------------------------------------------
+    @classmethod
+    def from_kb(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_kib(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_kibibytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_kilobytes(cls: type[Size], size: float) -> Size: ...
+
+    # -------------------------------------------------------------------------
+    # MEGABYTES
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def from_mb(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_mebibytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_megabytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_mib(cls: type[Size], size: float) -> Size: ...
+
+    # -------------------------------------------------------------------------
+    # GIGABYTES
+    # -------------------------------------------------------------------------
+    @classmethod
+    def from_gb(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_gib(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_gibibytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_gigabytes(cls: type[Size], size: float) -> Size: ...
+
+    # -------------------------------------------------------------------------
+    # TERABYTES
+    # -------------------------------------------------------------------------
+    @classmethod
+    def from_tb(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_tebibytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_terabytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_tib(cls: type[Size], size: float) -> Size: ...
+
+    # -------------------------------------------------------------------------
+    # PETABYTES
+    # -------------------------------------------------------------------------
+    @classmethod
+    def from_pb(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_pebibytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_petabytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_pib(cls: type[Size], size: float) -> Size: ...
+
+    # -------------------------------------------------------------------------
+    # EXABYTES
+    # -------------------------------------------------------------------------
+    @classmethod
+    def from_eb(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_eib(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_exabytes(cls: type[Size], size: float) -> Size: ...
+    @classmethod
+    def from_exbibytes(cls: type[Size], size: float) -> Size: ...
+```
+
+<h2 id="ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></h2>
+
+```python
+"""ryo3-sqlformat types"""
+
+import typing as t
+
+SqlfmtParamValue: t.TypeAlias = str | int | float | bool
+_TSqlfmtParamValue_co = t.TypeVar(
+    "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
+)
+SqlfmtParamsLike: t.TypeAlias = (
+    dict[str, _TSqlfmtParamValue_co]
+    | t.Sequence[tuple[str, _TSqlfmtParamValue_co]]
+    | t.Sequence[_TSqlfmtParamValue_co]
+)
+
+
+class SqlfmtQueryParams:
+    def __init__(
+        self, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    ) -> None: ...
+
+
+def sqlfmt_params(
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams,
+) -> SqlfmtQueryParams: ...
+def sqlfmt(
+    sql: str,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
+    *,
+    indent: int = 2,  # -1 or any negative value will use tabs
+    uppercase: bool | None = True,
+    lines_between_statements: int = 1,
+) -> str: ...
+```
+
+<h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>
+
+```python
+"""ryo3-std types"""
+
+import datetime as pydt
+import ipaddress
+import pathlib
+import typing as t
+
+from ry._types import (
+    Buffer,
+    FileTypeDict,
+    FsPathLike,
+    MetadataDict,
+    Never,
+    Self,
+    ToPy,
+)
+from ry.ryo3._bytes import Bytes
+
+
+# =============================================================================
+# STD::TIME
+# =============================================================================
+@t.final
+class Duration(ToPy[pydt.timedelta]):
+    ZERO: Duration
+    MIN: Duration
+    MAX: Duration
+    NANOSECOND: Duration
+    MICROSECOND: Duration
+    MILLISECOND: Duration
+    SECOND: Duration
+
+    def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: Duration) -> bool: ...
+    def __le__(self, other: Duration) -> bool: ...
+    def __gt__(self, other: Duration) -> bool: ...
+    def __ge__(self, other: Duration) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __richcmp__(
+        self, other: Duration | pydt.timedelta, op: int
+    ) -> bool: ...
+    def __bool__(self) -> bool: ...
+    def __float__(self) -> float: ...
+    def __int__(self) -> int: ...
+    @t.overload
+    def __truediv__(self, other: Duration | pydt.timedelta) -> float: ...
+    @t.overload
+    def __truediv__(self, other: float) -> Duration: ...
+    def __mul__(self, other: float) -> Duration: ...
+    def abs_diff(self, other: Duration) -> Duration: ...
+    def sleep(self) -> None: ...
+
+    # =========================================================================
+    # PYTHON_CONVERSIONS
+    # =========================================================================
+    @classmethod
+    def from_pytimedelta(
+        cls: type[Duration], td: pydt.timedelta
+    ) -> Duration: ...
+    def to_pytimedelta(self) -> pydt.timedelta: ...
+    def to_py(self) -> pydt.timedelta: ...
+
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def is_zero(self) -> bool: ...
+    @property
+    def nanos(self) -> int: ...
+    @property
+    def secs(self) -> int: ...
+    @property
+    def days(self) -> int: ...
+    @property
+    def seconds(self) -> int: ...
+    @property
+    def microseconds(self) -> int: ...
+    @property
+    def subsec_micros(self) -> int: ...
+    @property
+    def subsec_millis(self) -> int: ...
+    @property
+    def subsec_nanos(self) -> int: ...
+
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def from_hours(cls, hours: int) -> Duration: ...
+    @classmethod
+    def from_micros(cls, micros: int) -> Duration: ...
+    @classmethod
+    def from_millis(cls, millis: int) -> Duration: ...
+    @classmethod
+    def from_mins(cls, mins: int) -> Duration: ...
+    @classmethod
+    def from_nanos(cls, nanos: int) -> Duration: ...
+    @classmethod
+    def from_secs(cls, secs: int) -> Duration: ...
+    @classmethod
+    def from_secs_f32(cls, secs: float) -> Duration: ...
+    @classmethod
+    def from_secs_f64(cls, secs: float) -> Duration: ...
+    @classmethod
+    def from_days(cls, days: int) -> Duration: ...
+    @classmethod
+    def from_weeks(cls, weeks: int) -> Duration: ...
+    def as_micros(self) -> int: ...
+    def as_millis(self) -> int: ...
+    def as_nanos(self) -> int: ...
+    def as_secs(self) -> int: ...
+    def as_secs_f32(self) -> float: ...
+    def as_secs_f64(self) -> float: ...
+
+    # =========================================================================
+    # ARITHMETIC
+    # =========================================================================
+    def checked_add(self, other: Duration) -> Duration | None: ...
+    def checked_div(self, other: Duration) -> Duration | None: ...
+    def checked_mul(self, other: Duration) -> Duration | None: ...
+    def checked_sub(self, other: Duration) -> Duration | None: ...
+    def div_duration_f32(self, other: Duration) -> float: ...
+    def div_duration_f64(self, other: Duration) -> float: ...
+    def div_f32(self, other: float) -> Duration: ...
+    def div_f64(self, other: float) -> Duration: ...
+    def mul_f32(self, other: float) -> Duration: ...
+    def mul_f64(self, other: float) -> Duration: ...
+    def saturating_add(self, other: Duration) -> Duration: ...
+    def saturating_mul(self, other: Duration) -> Duration: ...
+    def saturating_sub(self, other: Duration) -> Duration: ...
+
+
+@t.final
+class Instant:
+    def __init__(self) -> None: ...
+    @classmethod
+    def now(cls) -> Instant: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __lt__(self, other: Instant) -> bool: ...
+    def __le__(self, other: Instant) -> bool: ...
+    def __gt__(self, other: Instant) -> bool: ...
+    def __ge__(self, other: Instant) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __add__(self, other: Duration) -> Instant: ...
+    @t.overload
+    def __sub__(self, other: Duration) -> Instant: ...
+    @t.overload
+    def __sub__(self, other: Instant) -> Duration: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def checked_add(self, other: Duration) -> Instant | None: ...
+    def checked_duration_since(self, earlier: Instant) -> Duration | None: ...
+    def checked_sub(self, other: Duration) -> Instant | None: ...
+    def duration_since(self, earlier: Instant) -> Duration: ...
+    def elapsed(self) -> Duration: ...
+    def saturating_duration_since(self, earlier: Instant) -> Duration: ...
+
+
+def instant() -> Instant: ...
+def sleep(seconds: float) -> float: ...
+
+
+# =============================================================================
+# STD::FS
+# =============================================================================
+@t.final
+class FileType:
+    def __init__(self, *args: Never, **kwargs: Never) -> t.NoReturn: ...
+    @property
+    def is_dir(self) -> bool: ...
+    @property
+    def is_file(self) -> bool: ...
+    @property
+    def is_symlink(self) -> bool: ...
+    def to_py(self) -> FileTypeDict: ...
+
+
+@t.final
+class Permissions:
+    @property
+    def readonly(self) -> bool: ...
+    def __eq__(self, value: object) -> bool: ...
+    def __ne__(self, value: object) -> bool: ...
+
+
+@t.final
+class Metadata:
+    def __init__(self) -> t.NoReturn: ...
+    @property
+    def file_type(self) -> FileType: ...
+    @property
+    def len(self) -> int: ...
+    @property
+    def is_empty(self) -> bool: ...
+    @property
+    def modified(self) -> pydt.datetime: ...
+    @property
+    def accessed(self) -> pydt.datetime: ...
+    @property
+    def created(self) -> pydt.datetime: ...
+    @property
+    def is_dir(self) -> bool: ...
+    @property
+    def is_file(self) -> bool: ...
+    @property
+    def is_symlink(self) -> bool: ...
+    @property
+    def permissions(self) -> Permissions: ...
+    @property
+    def readonly(self) -> bool: ...
+    def to_py(self) -> MetadataDict: ...
+
+
+@t.final
+class DirEntry:
+    def __fspath__(self) -> str: ...
+    @property
+    def path(self) -> pathlib.Path: ...
+    @property
+    def basename(self) -> str: ...
+    @property
+    def metadata(self) -> Metadata: ...
+    @property
+    def file_type(self) -> FileType: ...
+
+
+_T = t.TypeVar("_T")
+
+
+class RyIterable(t.Generic[_T]):
+    def __iter__(self) -> Self: ...
+    def __next__(self) -> _T: ...
+    def collect(self) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
+
+
+@t.final
+class ReadDir(RyIterable[DirEntry]): ...
+
+
+@t.final
+class FileReadStream:
+    def __init__(
+        self,
+        path: FsPathLike,
+        *,
+        chunk_size: int = 65536,
+        offset: int = 0,
+        buffered: bool = True,
+    ) -> None: ...
+    def __iter__(self) -> Self: ...
+    def __next__(self) -> Bytes: ...
+    def collect(self) -> list[Bytes]: ...
+    def take(self, n: int = 1) -> list[Bytes]: ...
+
+
+# ============================================================================
+# STD::FS ~ functions
+# =============================================================================
+def read(path: FsPathLike) -> Bytes: ...
+def read_bytes(path: FsPathLike) -> bytes: ...
+def read_dir(
+    path: FsPathLike,
+) -> ReadDir: ...
+def read_text(path: FsPathLike) -> str: ...
+def read_stream(
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False] = False,
+) -> Bytes: ...
+@t.overload
+def dumps(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[True],
+) -> bytes: ...
+@t.overload
+def dumps(
+    data: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False] = False,
+) -> Bytes: ...
+def loads(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def parse(
+    data: Buffer | bytes | str,
+    /,
+    **kwargs: te.Unpack[JsonParseKwargs],
+) -> JsonValue: ...
+def cache_clear() -> None: ...
+def cache_usage() -> int: ...
+```
+
+<h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
+
+```python
+"""ryo4-tokio types"""
+
+import pathlib
+import typing as t
+from collections.abc import Generator
+from types import TracebackType
+
+from ry import Bytes
+from ry._types import Buffer, FsPathLike, Self
+from ry.ryo3._std import FileType, Metadata
+
+
+# =============================================================================
+# PYFUNCTIONS
+# =============================================================================
+# __COMPRESSION__
+def compress(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
+def encode(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
+def zstd(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
+
+
+# __DECOMPRESSION__
+def decode(data: Buffer) -> Bytes: ...
+def decompress(data: Buffer) -> Bytes: ...
+def unzstd(data: Buffer) -> Bytes: ...
+
+
+@t.final
+class ReadDirAsync:
+    """Async iterator for read_dir_async"""
+
+    async def collect(self) -> list[DirEntryAsync]: ...
+    async def take(self, n: int) -> list[DirEntryAsync]: ...
+    def __aiter__(self) -> ReadDirAsync: ...
+    async def __anext__(self) -> DirEntryAsync: ...
+
+
+async def read_dir_async(path: FsPathLike) -> ReadDirAsync: ...
+
+
+# =============================================================================
+# SLEEP
+# =============================================================================
+async def sleep_async(seconds: float) -> float: ...
+async def asleep(seconds: float) -> float:
+    """Alias for sleep_async"""
+
+
+# =============================================================================
+# ASYNC-FILE
+# =============================================================================
+@t.final
+class AsyncFile:
+    def __init__(
+        self, path: FsPathLike, mode: str = "r", buffering: int = -1
+    ) -> None: ...
+    async def close(self) -> None: ...
+    async def flush(self) -> None: ...
+    async def isatty(self) -> t.NoReturn: ...
+    async def open(self) -> None: ...
+    async def peek(self, size: int = ..., /) -> Bytes: ...
+    async def read(self, size: int = ..., /) -> Bytes: ...
+    async def readable(self) -> bool: ...
+    async def readall(self) -> Bytes: ...
+    async def readline(self, size: int | None = ..., /) -> Bytes: ...
+    async def readlines(self, hint: int = ..., /) -> list[Bytes]: ...
+    async def seek(self, offset: int, whence: int = ..., /) -> int: ...
+    async def seekable(self) -> bool: ...
+    async def tell(self) -> int: ...
+    async def truncate(self, size: int | None = ..., /) -> int: ...
+    async def writable(self) -> bool: ...
+    async def write(self, b: Buffer, /) -> int: ...
+    @property
+    def closed(self) -> bool: ...
+    def __await__(self) -> Generator[t.Any, t.Any, Self]: ...
+    def __aiter__(self) -> Self: ...
+    async def __anext__(self) -> Bytes: ...
+    async def __aenter__(self) -> Self: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
+
+
+def aiopen(
+    path: FsPathLike, mode: str = "r", buffering: int = -1
+) -> AsyncFile: ...
+```
+
+<h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
+
+```python
+"""ryo3-unindent types"""
+
+
+def unindent(string: str) -> str: ...
+def unindent_bytes(string: bytes) -> bytes: ...
+```
+
+<h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
+
+```python
+import typing as t
+from ipaddress import IPv4Address, IPv6Address
+
+from ry._types import FromStr, Self
+
+
+@t.final
+class URL(FromStr):
+    def __init__(
+        self, url: str | URL, *, params: dict[str, str] | None = None
+    ) -> None: ...
+
+    # =========================================================================
+    # CLASSMETHODS
+    # =========================================================================
+    @classmethod
+    def parse(cls, url: str) -> URL: ...
+    @classmethod
+    def from_str(cls, s: str) -> Self: ...
+    @classmethod
+    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
+    @classmethod
+    def from_directory_path(cls, path: str) -> URL: ...
+
+    # =========================================================================
+    # STRING
+    # =========================================================================
+    def __fspath__(self) -> str: ...
+
+    # =========================================================================
+    # OPERATORS/DUNDER
+    # =========================================================================
+    def __eq__(self, other: object) -> bool: ...
+    def __ge__(self, other: URL) -> bool: ...
+    def __gt__(self, other: URL) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __le__(self, other: URL) -> bool: ...
+    def __lt__(self, other: URL) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    def __rtruediv__(self, relative: str) -> URL: ...
+    def __truediv__(self, relative: str) -> URL: ...
+
+    # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def authority(self) -> str: ...
+    @property
+    def fragment(self) -> str | None: ...
+    @property
+    def host(self) -> str | None: ...
+    @property
+    def host_str(self) -> str | None: ...
+    @property
+    def netloc(self) -> str: ...
+    @property
+    def password(self) -> str | None: ...
+    @property
+    def path(self) -> str: ...
+    @property
+    def path_segments(self) -> tuple[str, ...]: ...
+    @property
+    def port(self) -> int | None: ...
+    @property
+    def port_or_known_default(self) -> int | None: ...
+    @property
+    def query(self) -> str | None: ...
+    @property
+    def query_pairs(self) -> tuple[tuple[str, str], ...]: ...
+    @property
+    def scheme(self) -> str: ...
+    @property
+    def username(self) -> str: ...
+    @property
+    def origin(self) -> str: ...
+
+    # =========================================================================
+    # INSTANCE METHODS
+    # =========================================================================
+    def has_authority(self) -> bool: ...
+    def has_host(self) -> bool: ...
+    def is_special(self) -> bool: ...
+    def join(self, *parts: str) -> URL: ...
+    def make_relative(self, u: URL) -> URL: ...
+    def to_filepath(self) -> str: ...
+    def replace_fragment(self, fragment: str | None = None) -> URL: ...
+    def replace_host(self, host: str | None = None) -> URL: ...
+    def replace_ip_host(self, host: IPv4Address | IPv6Address) -> URL: ...
+    def replace_password(self, password: str | None = None) -> URL: ...
+    def replace_path(self, path: str) -> URL: ...
+    def replace_port(self, port: int | None = None) -> URL: ...
+    def replace_query(self, query: str | None = None) -> URL: ...
+    def replace_scheme(self, scheme: str) -> URL: ...
+    def replace_username(self, username: str) -> URL: ...
+    def socket_addrs(self) -> None: ...
+    def replace(
+        self,
+        *,
+        fragment: str | None = None,
+        host: str | None = None,
+        ip_host: IPv4Address | None = None,
+        password: str | None = None,
+        path: str | None = None,
+        port: int | None = None,
+        query: str | None = None,
+        scheme: str | None = None,
+        username: str | None = None,
+    ) -> URL: ...
+```
+
+<h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
+
+```python
+"""ryo3-walkdir types"""
+
+import typing as t
+from os import PathLike
+
+from ry import FileType, FsPath, Glob, GlobSet, Globster
+
+
+@t.final
+class WalkDirEntry:
+    def __fspath__(self) -> str: ...
+    @property
+    def path(self) -> FsPath: ...
+    @property
+    def file_name(self) -> str: ...
+    @property
+    def depth(self) -> int: ...
+    @property
+    def path_is_symlink(self) -> bool: ...
+    @property
+    def file_type(self) -> FileType: ...
+    @property
+    def is_dir(self) -> bool: ...
+    @property
+    def is_file(self) -> bool: ...
+    @property
+    def is_symlink(self) -> bool: ...
+    @property
+    def len(self) -> int: ...
+
+
+_T_walkdir = t.TypeVar(
+    "_T_walkdir",
+    bound=WalkDirEntry | str,
+)
+
+
+@t.final
+class WalkdirGen(t.Generic[_T_walkdir]):
+    """walkdir::Walkdir iterable wrapper"""
+
+    def __init__(
+        self,
+    ) -> t.NoReturn: ...
+    def __next__(self) -> _T_walkdir: ...
+    def __iter__(self) -> t.Iterator[_T_walkdir]: ...
+    def collect(self) -> list[_T_walkdir]: ...
+    def take(self, n: int = 1) -> list[_T_walkdir]: ...
+
+
+@t.overload
+def walkdir(
+    path: str | PathLike[str] | None = None,
+    *,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+    objects: t.Literal[True],
+) -> WalkdirGen[WalkDirEntry]: ...
+@t.overload
+def walkdir(
+    path: str | PathLike[str] | None = None,
+    *,
+    objects: t.Literal[False] = False,
+    files: bool = True,
+    dirs: bool = True,
+    contents_first: bool = False,
+    min_depth: int = 0,
+    max_depth: int | None = None,
+    follow_links: bool = False,
+    same_file_system: bool = False,
+    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
+) -> WalkdirGen[str]: ...
+```
+
+<h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
+
+```python
+"""ryo3-which types"""
+
+from pathlib import Path
+
+from ry.ryo3._regex import Regex
+
+
+def which(cmd: str, path: None | str = None) -> Path | None: ...
+def which_all(cmd: str, path: None | str = None) -> list[Path]: ...
+def which_re(regex: str | Regex, path: None | str = None) -> list[Path]: ...
+```
+
+<h2 id="ry.ryo3._zstd"><code>ry.ryo3._zstd</code></h2>
+
+```python
+"""ry.ryo3 root level zstd exports"""
+
+from ry.ryo3.zstd import compress as zstd_compress
+from ry.ryo3.zstd import decode as zstd_decode
+from ry.ryo3.zstd import decompress as zstd_decompress
+from ry.ryo3.zstd import encode as zstd_encode
+from ry.ryo3.zstd import is_zstd as is_zstd
+
+__all__ = (
+    "is_zstd",
+    "zstd_compress",
+    "zstd_decode",
+    "zstd_decompress",
+    "zstd_encode",
+)
+```
+
+<h2 id="ry.ryo3.dirs"><code>ry.ryo3.dirs</code></h2>
+
+```python
+def audio() -> str | None: ...
+def audio_dir() -> str | None: ...
+def cache() -> str | None: ...
+def cache_dir() -> str | None: ...
+def config() -> str | None: ...
+def config_dir() -> str | None: ...
+def config_local() -> str | None: ...
+def config_local_dir() -> str | None: ...
+def data() -> str | None: ...
+def data_dir() -> str | None: ...
+def data_local() -> str | None: ...
+def data_local_dir() -> str | None: ...
+def desktop() -> str | None: ...
+def desktop_dir() -> str | None: ...
+def document() -> str | None: ...
+def document_dir() -> str | None: ...
+def download() -> str | None: ...
+def download_dir() -> str | None: ...
+def executable() -> str | None: ...
+def executable_dir() -> str | None: ...
+def font() -> str | None: ...
+def font_dir() -> str | None: ...
+def home() -> str | None: ...
+def home_dir() -> str | None: ...
+def picture() -> str | None: ...
+def picture_dir() -> str | None: ...
+def preference() -> str | None: ...
+def preference_dir() -> str | None: ...
+def public() -> str | None: ...
+def public_dir() -> str | None: ...
+def runtime() -> str | None: ...
+def runtime_dir() -> str | None: ...
+def state() -> str | None: ...
+def state_dir() -> str | None: ...
+def template() -> str | None: ...
+def template_dir() -> str | None: ...
+def video() -> str | None: ...
+def video_dir() -> str | None: ...
+```
+
+<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
+
+```python
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build."""
 ```
 
 <h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
@@ -5373,9 +7284,7 @@ def json_cache_usage() -> int: ...
 
 import typing as t
 
-import typing_extensions as te
-
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
@@ -5481,15 +7390,387 @@ def dumps(
 def loads(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
+
+
+# under construction
+def stringify_unsafe(data: t.Any) -> Bytes: ...
+```
+
+<h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
+
+```python
+"""orjson + ry types
+
+orjson-types: https://github.com/ijl/orjson/blob/master/pysrc/orjson/__init__.pyi
+"""
+
+import typing as t
+
+import orjson
+
+
+def orjson_default(obj: t.Any) -> orjson.Fragment:
+    """Fn to be used with `orjson.dumps` to serialize ry-compatible types
+
+    Example:
+        >>> import orjson
+        >>> from ry import orjson_default, Date
+        >>> data = {"key": "value", "date": Date(2023, 10, 1)}
+        >>> orjson.dumps(data, default=orjson_default)
+        b'{"key":"value","date":"2023-10-01"}'
+
+    """
+```
+
+<h2 id="ry.ryo3.sh"><code>ry.ryo3.sh</code></h2>
+
+```python
+import typing as t
+from os import PathLike
+
+from ry.ryo3._fspath import FsPath
+
+
+def pwd() -> str: ...
+def home() -> str: ...
+def cd(path: str | PathLike[str]) -> None: ...
+@t.overload
+def ls(
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[False] = False,
+) -> list[str]:
+    """List directory contents - returns list of strings"""
+
+
+@t.overload
+def ls(
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[True],
+) -> list[FsPath]:
+    """List directory contents - returns list of FsPath objects"""
+
+
+def mkdir(path: str | PathLike[str]) -> None: ...
+```
+
+<h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
+
+```python
+import builtins
+import datetime as pydt
+import uuid
+from collections.abc import Callable as Callable
+from typing import Any
+
+from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
+from pydantic import (
+    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
+)
+from pydantic_core import CoreSchema as CoreSchema
+
+
+class ULID:
+    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
+
+    # ----------------
+    # INSTANCE METHODS
+    # ----------------
+    def to_uuid(self) -> uuid.UUID: ...
+    def to_uuid4(self) -> uuid.UUID: ...
+
+    # ----------
+    # PROPERTIES
+    # ----------
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def milliseconds(self) -> int: ...
+    @property
+    def timestamp(self) -> float: ...
+    @property
+    def datetime(self) -> pydt.datetime: ...
+    @property
+    def hex(self) -> str: ...
+
+    # -------------
+    # CLASS METHODS
+    # -------------
+    @classmethod
+    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
+    @classmethod
+    def from_timestamp(cls, value: float) -> ULID: ...
+    @classmethod
+    def from_uuid(cls, value: uuid.UUID) -> ULID: ...
+    @classmethod
+    def from_bytes(cls, bytes_: builtins.bytes) -> ULID: ...
+    @classmethod
+    def from_hex(cls, value: str) -> ULID: ...
+    @classmethod
+    def from_str(cls, string: str) -> ULID: ...
+    @classmethod
+    def from_int(cls, value: int) -> ULID: ...
+    @classmethod
+    def parse(cls, value: Any) -> ULID: ...
+
+    # --------
+    # PYDANTIC
+    # --------
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema: ...
+
+    # -------
+    # DUNDERS
+    # -------
+    def __bytes__(self) -> builtins.bytes: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __int__(self) -> int: ...
+    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+```
+
+<h2 id="ry.ryo3.uuid"><code>ry.ryo3.uuid</code></h2>
+
+```python
+"""ryo3-uuid types
+
+based on typeshed types for python's builtin uuid module
+
+REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
+"""
+
+import builtins
+import uuid as pyuuid
+from enum import Enum
+from typing import Any, TypeAlias
+
+from ry._types import Buffer
+
+_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
+
+
+class SafeUUID(Enum):
+    safe = 0
+    unsafe = -1
+    unknown = None
+
+
+class UUID:
+    NAMESPACE_DNS: UUID
+    NAMESPACE_URL: UUID
+    NAMESPACE_OID: UUID
+    NAMESPACE_X500: UUID
+
+    def __init__(
+        self,
+        hex: str | None = None,  # noqa: A002
+        bytes: builtins.bytes | None = None,  # noqa: A002
+        bytes_le: builtins.bytes | None = None,
+        fields: _FieldsType | None = None,
+        int: builtins.int | None = None,  # noqa: A002
+        version: builtins.int | None = None,
+        *,
+        is_safe: SafeUUID = ...,
+    ) -> None: ...
+    @property
+    def is_safe(self) -> SafeUUID: ...
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def bytes_le(self) -> builtins.bytes: ...
+    @property
+    def clock_seq(self) -> builtins.int: ...
+    @property
+    def clock_seq_hi_variant(self) -> builtins.int: ...
+    @property
+    def clock_seq_low(self) -> builtins.int: ...
+    @property
+    def fields(self) -> _FieldsType: ...
+    @property
+    def hex(self) -> str: ...
+    @property
+    def int(self) -> builtins.int: ...
+    @property
+    def node(self) -> builtins.int: ...
+    @property
+    def time(self) -> builtins.int: ...
+    @property
+    def time_hi_version(self) -> builtins.int: ...
+    @property
+    def time_low(self) -> builtins.int: ...
+    @property
+    def time_mid(self) -> builtins.int: ...
+    @property
+    def urn(self) -> str: ...
+    @property
+    def variant(self) -> str: ...
+    @property
+    def version(self) -> builtins.int | None: ...
+    def to_py(self) -> pyuuid.UUID: ...
+    def __lt__(self, other: UUID) -> bool: ...
+    def __le__(self, other: UUID) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __gt__(self, other: UUID) -> bool: ...
+    def __ge__(self, other: UUID) -> bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __int__(self) -> builtins.int: ...
+
+
+def getnode() -> builtins.int: ...
+def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
+def uuid2(*args: Any, **kwargs: Any) -> UUID: ...
+def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
+def uuid4() -> UUID: ...
+def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
+def uuid6(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
+def uuid7(timestamp: int | None = None) -> UUID: ...
+def uuid8(data: Buffer) -> UUID: ...
+
+
+NAMESPACE_DNS: UUID
+NAMESPACE_URL: UUID
+NAMESPACE_OID: UUID
+NAMESPACE_X500: UUID
+RESERVED_NCS: str
+RFC_4122: str
+RESERVED_MICROSOFT: str
+RESERVED_FUTURE: str
+```
+
+<h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
+
+```python
+import typing as t
+
+from ry._types import Buffer
+
+
+@t.final
+class Xxh32:
+    name: t.Literal["xxh32"]
+    digest_size: t.Literal[4]
+    block_size: t.Literal[16]
+
+    def __init__(self, data: Buffer = ..., seed: int | None = ...) -> None: ...
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh32: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
+
+
+@t.final
+class Xxh64:
+    name: t.Literal["xxh64"]
+    digest_size: t.Literal[8]
+    block_size: t.Literal[32]
+
+    def __init__(
+        self, data: Buffer | None = None, seed: int | None = ...
+    ) -> None: ...
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    def copy(self) -> Xxh64: ...
+    def reset(self, seed: int | None = ...) -> None: ...
+    @property
+    def seed(self) -> int: ...
+
+
+@t.final
+class Xxh3:
+    name: t.Literal["xxh3"]
+    digest_size: int  # xxh3_64: 8, xxh3_128: 16
+    block_size: int  # xxh3_64: 32, xxh3_128: 64
+
+    def __init__(
+        self,
+        data: Buffer = ...,
+        seed: int | None = ...,
+        secret: bytes | None = ...,
+    ) -> None: ...
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def intdigest(self) -> int: ...
+    @property
+    def seed(self) -> int: ...
+    def digest128(self) -> bytes: ...
+    def hexdigest128(self) -> str: ...
+    def intdigest128(self) -> int: ...
+    def copy(self) -> Xxh3: ...
+    def reset(self) -> None: ...
+
+
+# constructor aliases
+def xxh32(data: Buffer | None = None, seed: int | None = None) -> Xxh32: ...
+def xxh64(data: Buffer | None = None, seed: int | None = None) -> Xxh64: ...
+def xxh3(
+    data: Buffer | None = None,
+    seed: int | None = None,
+    secret: bytes | None = None,
+) -> Xxh3: ...
+
+
+# -----------------------------------------------------------------------------
+# ONE-SHOT FUNCTIONS
+# -----------------------------------------------------------------------------
+
+
+# xxh32
+def xxh32_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh32_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh32_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh64
+def xxh64_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh64_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh64_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh128
+def xxh128_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh128_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh128_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+
+
+# xxh3
+def xxh3_64_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_64_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+def xxh3_64_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+def xxh3_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+def xxh3_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
+
+
+# xxh128
+def xxh3_128_digest(data: Buffer, seed: int | None = None) -> bytes: ...
+def xxh3_128_intdigest(data: Buffer, seed: int | None = None) -> int: ...
+def xxh3_128_hexdigest(data: Buffer, seed: int | None = None) -> str: ...
 ```
 
 <h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
@@ -5518,9 +7799,9 @@ VERSION_RELEASE: int
 # PYFUNCTIONS
 # =============================================================================
 # __COMPRESSION__
-def compress(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def encode(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
-def zstd(data: Buffer, level: int = CLEVEL_DEFAULT) -> Bytes: ...
+def compress(data: Buffer, level: int = 3) -> Bytes: ...
+def encode(data: Buffer, level: int = 3) -> Bytes: ...
+def zstd(data: Buffer, level: int = 3) -> Bytes: ...
 
 
 # __DECOMPRESSION__
@@ -5531,136 +7812,6 @@ def unzstd(data: Buffer) -> Bytes: ...
 
 # __MAGIC__
 def is_zstd(data: Buffer) -> bool: ...
-```
-
-<h2 id="ry.ryo3._zstd"><code>ry.ryo3._zstd</code></h2>
-
-```python
-"""ry.ryo3 root level zstd exports"""
-
-from ry.ryo3.zstd import compress as zstd_compress
-from ry.ryo3.zstd import decode as zstd_decode
-from ry.ryo3.zstd import decompress as zstd_decompress
-from ry.ryo3.zstd import encode as zstd_encode
-from ry.ryo3.zstd import is_zstd as is_zstd
-
-__all__ = (
-    "is_zstd",
-    "zstd_compress",
-    "zstd_decode",
-    "zstd_decompress",
-    "zstd_encode",
-)
-```
-
-<h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
-
-```python
-from ry.ryo3.xxhash import Xxh3 as Xxh3
-from ry.ryo3.xxhash import Xxh32 as Xxh32
-from ry.ryo3.xxhash import Xxh64 as Xxh64
-from ry.ryo3.xxhash import xxh3 as xxh3
-from ry.ryo3.xxhash import xxh3_64_digest as xxh3_64_digest
-from ry.ryo3.xxhash import xxh3_64_hexdigest as xxh3_64_hexdigest
-from ry.ryo3.xxhash import xxh3_64_intdigest as xxh3_64_intdigest
-from ry.ryo3.xxhash import xxh3_128_digest as xxh3_128_digest
-from ry.ryo3.xxhash import xxh3_128_hexdigest as xxh3_128_hexdigest
-from ry.ryo3.xxhash import xxh3_128_intdigest as xxh3_128_intdigest
-from ry.ryo3.xxhash import xxh3_digest as xxh3_digest
-from ry.ryo3.xxhash import xxh3_hexdigest as xxh3_hexdigest
-from ry.ryo3.xxhash import xxh3_intdigest as xxh3_intdigest
-from ry.ryo3.xxhash import xxh32 as xxh32
-from ry.ryo3.xxhash import xxh32_digest as xxh32_digest
-from ry.ryo3.xxhash import xxh32_hexdigest as xxh32_hexdigest
-from ry.ryo3.xxhash import xxh32_intdigest as xxh32_intdigest
-from ry.ryo3.xxhash import xxh64 as xxh64
-from ry.ryo3.xxhash import xxh64_digest as xxh64_digest
-from ry.ryo3.xxhash import xxh64_hexdigest as xxh64_hexdigest
-from ry.ryo3.xxhash import xxh64_intdigest as xxh64_intdigest
-from ry.ryo3.xxhash import xxh128_digest as xxh128_digest
-from ry.ryo3.xxhash import xxh128_hexdigest as xxh128_hexdigest
-from ry.ryo3.xxhash import xxh128_intdigest as xxh128_intdigest
-
-__all__ = (
-    "Xxh3",
-    "Xxh32",
-    "Xxh64",
-    "xxh3",
-    "xxh3_64_digest",
-    "xxh3_64_hexdigest",
-    "xxh3_64_intdigest",
-    "xxh3_128_digest",
-    "xxh3_128_hexdigest",
-    "xxh3_128_intdigest",
-    "xxh3_digest",
-    "xxh3_hexdigest",
-    "xxh3_intdigest",
-    "xxh32",
-    "xxh32_digest",
-    "xxh32_hexdigest",
-    "xxh32_intdigest",
-    "xxh64",
-    "xxh64_digest",
-    "xxh64_hexdigest",
-    "xxh64_intdigest",
-    "xxh128_digest",
-    "xxh128_hexdigest",
-    "xxh128_intdigest",
-)
-```
-
-<h2 id="ry.uuid"><code>ry.uuid</code></h2>
-
-```python
-from ry.ryo3.uuid import (
-    NAMESPACE_DNS,
-    NAMESPACE_OID,
-    NAMESPACE_URL,
-    NAMESPACE_X500,
-    RESERVED_FUTURE,
-    RESERVED_MICROSOFT,
-    RESERVED_NCS,
-    RFC_4122,
-    UUID,
-    getnode,
-    uuid1,
-    uuid2,
-    uuid3,
-    uuid4,
-    uuid5,
-    uuid6,
-    uuid7,
-    uuid8,
-)
-
-__all__ = (
-    "NAMESPACE_DNS",
-    "NAMESPACE_OID",
-    "NAMESPACE_URL",
-    "NAMESPACE_X500",
-    "RESERVED_FUTURE",
-    "RESERVED_MICROSOFT",
-    "RESERVED_NCS",
-    "RFC_4122",
-    "UUID",
-    "getnode",
-    "uuid1",
-    "uuid2",
-    "uuid3",
-    "uuid4",
-    "uuid5",
-    "uuid6",
-    "uuid7",
-    "uuid8",
-)
-```
-
-<h2 id="ry.ulid"><code>ry.ulid</code></h2>
-
-```python
-from ry.ryo3.ulid import ULID
-
-__all__ = ("ULID",)
 ```
 
 <h2 id="ry.dirs"><code>ry.dirs</code></h2>

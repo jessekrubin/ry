@@ -123,9 +123,17 @@ impl RyZoned {
         Self::from_str(cls, input)
     }
 
-    #[classmethod]
-    fn strptime(_cls: &Bound<'_, PyType>, format: &str, input: &str) -> PyResult<Self> {
-        Zoned::strptime(format, input)
+    // ========================================================================
+    // STRPTIME/STRFTIME
+    // ========================================================================
+    fn strftime(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
+    }
+
+    #[staticmethod]
+    #[pyo3(signature = (s, /, fmt))]
+    fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
+        Zoned::strptime(fmt, s)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -142,10 +150,6 @@ impl RyZoned {
         jiff::fmt::rfc2822::parse(s)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
-    }
-
-    fn strftime(&self, format: &str) -> String {
-        self.0.strftime(format).to_string()
     }
 
     fn format_rfc2822(&self) -> PyResult<String> {
@@ -346,11 +350,8 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn _round(&self, dt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
-        self.0
-            .round(dt_round.round)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    fn _round(&self, zdt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
+        zdt_round.round(self)
     }
 
     fn tomorrow(&self) -> PyResult<Self> {

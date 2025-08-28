@@ -17,7 +17,7 @@ TYPES_PATH = PWD / "python" / "ry"
 
 
 @lru_cache(maxsize=1)
-def build_faux_types_pkg(strip_overload: bool = True) -> None:
+def build_faux_types_pkg(*, strip_overload: bool = True) -> None:
     if (__dirname / "ryo3types").exists():
         shutil.rmtree(__dirname / "ryo3types")
 
@@ -71,7 +71,7 @@ def build_faux_types_pkg(strip_overload: bool = True) -> None:
                     fobj.write(new_file_string)
 
 
-def load_types(strip_overload: bool = True) -> griffe.Object | griffe.Alias:
+def load_types(*, strip_overload: bool = True) -> griffe.Object | griffe.Alias:
     build_faux_types_pkg(strip_overload=strip_overload)
 
     # get the dummy types thingy

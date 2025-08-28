@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 import ry as ry
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_parse_bytes() -> None:
@@ -32,7 +34,7 @@ def test_parse_str() -> None:
 
 
 @pytest.mark.parametrize(
-    "input",
+    "obj",
     [
         123,
         456.7,
@@ -43,9 +45,9 @@ def test_parse_str() -> None:
         {"foo": "bar"},
     ],
 )
-def test_parse_json_raises_type_err(input: Any) -> None:
+def test_parse_json_raises_type_err(obj: Any) -> None:
     with pytest.raises(TypeError):
-        ry.parse_json(input)
+        ry.parse_json(obj)
 
 
 def test_parse_from_bytesio() -> None:

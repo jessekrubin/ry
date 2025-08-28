@@ -4,28 +4,15 @@ use std::io::{Read, Write};
 use ::bzip2::Compression;
 use ::bzip2::read::BzDecoder;
 use ::bzip2::write::BzEncoder;
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyInt, PyString};
 
-fn rs_bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResult<PyObject> {
-    let quality = if let Some(param) = quality {
-        if param < Compression::fast().level() || param > Compression::best().level() {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "The optional second argument to bzip2() must be between 0 and 9",
-            ));
-        }
-        Compression::new(param)
-    } else {
-        Compression::default()
-    };
+fn rs_bzip2_encode(py: Python<'_>, data: &[u8], quality: Compression) -> PyResult<PyObject> {
     let mut bzip2_encoder = BzEncoder::new(Vec::new(), quality);
-    bzip2_encoder.write_all(data.as_ref()).map_err(|e| {
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("bzip2-encode-error: {e:?}"))
-    })?;
-    let encoded = bzip2_encoder.finish().map_err(|e| {
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("bzip2-encode-error: {e:?}"))
-    })?;
+    bzip2_encoder.write_all(data.as_ref())?;
+    let encoded = bzip2_encoder.finish()?;
     Ok(PyBytes::new(py, &encoded).into())
 }
 
@@ -35,10 +22,10 @@ fn rs_bzip2_encode(py: Python<'_>, data: &[u8], quality: Option<u32>) -> PyResul
 pub fn bzip2_encode(
     py: Python<'_>,
     data: ryo3_bytes::PyBytes,
-    quality: Option<u32>,
+    quality: Option<PyCompression>,
 ) -> PyResult<PyObject> {
     let data = data.as_ref();
-    rs_bzip2_encode(py, data, quality)
+    rs_bzip2_encode(py, data, quality.unwrap_or_default().0)
 }
 
 #[pyfunction]
@@ -47,10 +34,10 @@ pub fn bzip2_encode(
 pub fn bzip2(
     py: Python<'_>,
     data: ryo3_bytes::PyBytes,
-    quality: Option<u32>,
+    quality: Option<PyCompression>,
 ) -> PyResult<PyObject> {
     let data = data.as_ref();
-    rs_bzip2_encode(py, data, quality)
+    rs_bzip2_encode(py, data, quality.unwrap_or_default().0)
 }
 
 #[pyfunction]
@@ -58,12 +45,37 @@ pub fn bzip2(
 pub fn bzip2_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<PyObject> {
     let mut decompressed = Vec::new();
     let data: &[u8] = data.as_ref();
-    BzDecoder::new(data)
-        .read_to_end(&mut decompressed)
-        .map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("bzip2-decode-error: {e:?}"))
-        })?;
+    BzDecoder::new(data).read_to_end(&mut decompressed)?;
+
     Ok(PyBytes::new(py, &decompressed).into())
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+pub struct PyCompression(pub(crate) Compression);
+
+impl FromPyObject<'_> for PyCompression {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(pyint) = ob.downcast::<PyInt>() {
+            let level = pyint.extract::<u32>()?;
+            if level < 10 {
+                return Ok(Self(Compression::new(level)));
+            }
+        } else if let Ok(pystr) = ob.downcast::<PyString>() {
+            let s = pystr.to_str()?;
+            let c = match s {
+                "fast" => Some(Self(Compression::fast())),
+                "default" => Some(Self(Compression::default())),
+                "best" => Some(Self(Compression::best())),
+                _ => None,
+            };
+            if let Some(c) = c {
+                return Ok(c);
+            }
+        }
+        Err(PyValueError::new_err(
+            "Invalid compression level; valid levels are int 0-9 or string 'fast', 'default', 'best'",
+        ))
+    }
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

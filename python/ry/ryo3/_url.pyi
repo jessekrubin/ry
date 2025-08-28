@@ -1,9 +1,7 @@
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
-from typing_extensions import Self
-
-from ry._types import FromStr
+from ry._types import FromStr, Self
 
 @t.final
 class URL(FromStr):

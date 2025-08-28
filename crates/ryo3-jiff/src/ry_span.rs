@@ -85,13 +85,14 @@ impl RySpan {
     fn __str__(&self) -> String {
         self.0.to_string()
     }
+
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let args = PyTuple::empty(py).into_bound_py_any(py)?;
         let kwargs = self.asdict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (friendly=false))]
+    #[pyo3(signature = (*, friendly=false))]
     fn string(&self, friendly: bool) -> String {
         if friendly {
             format!("{:#}", self.0)
@@ -320,53 +321,11 @@ impl RySpan {
         })
     }
 
-    // getter functions
-
     fn __repr__(&self) -> String {
         // parts that we want are the years, months, weeks, days, hours,
         // minutes, seconds, milliseconds, microseconds, nanoseconds if not
         // zero in the form of kwargs i guess??? tbd
-        let mut parts = vec![];
-        if self.0.get_years() != 0 {
-            parts.push(format!("years={}", self.0.get_years()));
-        }
-        if self.0.get_months() != 0 {
-            parts.push(format!("months={}", self.0.get_months()));
-        }
-
-        if self.0.get_weeks() != 0 {
-            parts.push(format!("weeks={}", self.0.get_weeks()));
-        }
-
-        if self.0.get_days() != 0 {
-            parts.push(format!("days={}", self.0.get_days()));
-        }
-
-        if self.0.get_hours() != 0 {
-            parts.push(format!("hours={}", self.0.get_hours()));
-        }
-
-        if self.0.get_minutes() != 0 {
-            parts.push(format!("minutes={}", self.0.get_minutes()));
-        }
-
-        if self.0.get_seconds() != 0 {
-            parts.push(format!("seconds={}", self.0.get_seconds()));
-        }
-
-        if self.0.get_milliseconds() != 0 {
-            parts.push(format!("milliseconds={}", self.0.get_milliseconds()));
-        }
-
-        if self.0.get_microseconds() != 0 {
-            parts.push(format!("microseconds={}", self.0.get_microseconds()));
-        }
-
-        if self.0.get_nanoseconds() != 0 {
-            parts.push(format!("nanoseconds={}", self.0.get_nanoseconds()));
-        }
-
-        format!("TimeSpan({})", parts.join(", "))
+        format!("{self}")
     }
 
     fn repr_full(&self) -> String {
@@ -384,6 +343,7 @@ impl RySpan {
             self.0.get_nanoseconds()
         )
     }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.fieldwise().hash(&mut hasher);
@@ -736,7 +696,42 @@ impl RySpan {
 
 impl Display for RySpan {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        // TODO: FIX THIS TO NOT DO THE JOIN
+        f.write_str("TimeSpan(")?;
+        let mut parts = vec![];
+        if self.0.get_years() != 0 {
+            parts.push(format!("years={}", self.0.get_years()));
+        }
+        if self.0.get_months() != 0 {
+            parts.push(format!("months={}", self.0.get_months()));
+        }
+        if self.0.get_weeks() != 0 {
+            parts.push(format!("weeks={}", self.0.get_weeks()));
+        }
+        if self.0.get_days() != 0 {
+            parts.push(format!("days={}", self.0.get_days()));
+        }
+        if self.0.get_hours() != 0 {
+            parts.push(format!("hours={}", self.0.get_hours()));
+        }
+        if self.0.get_minutes() != 0 {
+            parts.push(format!("minutes={}", self.0.get_minutes()));
+        }
+        if self.0.get_seconds() != 0 {
+            parts.push(format!("seconds={}", self.0.get_seconds()));
+        }
+        if self.0.get_milliseconds() != 0 {
+            parts.push(format!("milliseconds={}", self.0.get_milliseconds()));
+        }
+        if self.0.get_microseconds() != 0 {
+            parts.push(format!("microseconds={}", self.0.get_microseconds()));
+        }
+        if self.0.get_nanoseconds() != 0 {
+            parts.push(format!("nanoseconds={}", self.0.get_nanoseconds()));
+        }
+        write!(f, "{}", parts.join(", "))?;
+
+        write!(f, ")")
     }
 }
 

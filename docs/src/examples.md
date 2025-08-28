@@ -116,8 +116,8 @@ def test_parsing_an_rfc2822_datetime_string() -> None:
 
 def test_using_strftime_and_strptime() -> None:
     zdt = ry.ZonedDateTime.strptime(
-        "%A, %B %d, %Y at %I:%M%p %Q",
         "Monday, July 15, 2024 at 5:30pm US/Eastern",
+        "%A, %B %d, %Y at %I:%M%p %Q",
     )
     assert zdt.string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
 
@@ -368,11 +368,9 @@ def main() -> None:
     # globset/globster
     for filepath in ry.walkdir(
         dir2walk,
-        glob=ry.globster(
-            [
-                "*.py",
-            ]
-        ),
+        glob=ry.globster([
+            "*.py",
+        ]),
     ):
         assert filepath.endswith(".py")
 

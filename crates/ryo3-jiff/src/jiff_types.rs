@@ -17,10 +17,10 @@ pub struct JiffOffset(pub jiff::tz::Offset);
 #[derive(Debug)]
 pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct JiffUnit(pub(crate) jiff::Unit);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -213,11 +213,11 @@ impl JiffRoundMode {
             jiff::RoundMode::Floor => "floor",
             jiff::RoundMode::Expand => "expand",
             jiff::RoundMode::Trunc => "trunc",
-            jiff::RoundMode::HalfCeil => "half_ceil",
-            jiff::RoundMode::HalfFloor => "half_floor",
-            jiff::RoundMode::HalfExpand => "half_expand",
-            jiff::RoundMode::HalfTrunc => "half_trunc",
-            jiff::RoundMode::HalfEven => "half_even",
+            jiff::RoundMode::HalfCeil => "half-ceil",
+            jiff::RoundMode::HalfFloor => "half-floor",
+            jiff::RoundMode::HalfExpand => "half-expand",
+            jiff::RoundMode::HalfTrunc => "half-trunc",
+            jiff::RoundMode::HalfEven => "half-even",
             _ => "round_unknown",
         }
     }

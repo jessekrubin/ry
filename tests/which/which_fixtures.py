@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _clean_path(path: Path | str | None) -> str | None:
@@ -49,12 +52,10 @@ def _mk_test_bin_dirs(tmp_path: Path) -> list[str]:
             str(tmppath_bin2),
         ]
     else:
-        script_str = "\n".join(
-            [
-                "#!/usr/bin/env bash",
-                "echo $PATH",
-            ]
-        )
+        script_str = "\n".join([
+            "#!/usr/bin/env bash",
+            "echo $PATH",
+        ])
         # make exes
         for exe in exe_names:
             with open(tmp_path / exe, "w") as f:

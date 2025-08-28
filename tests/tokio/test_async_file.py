@@ -3,12 +3,15 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import io
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
 from ry import AsyncFile, aiopen
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.mark.anyio

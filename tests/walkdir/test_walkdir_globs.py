@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import typing as t
-from pathlib import Path
 
 import pytest
 
 import ry
 
 from .walkdir_utils import mk_dir_tree
+
+if t.TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.mark.parametrize(

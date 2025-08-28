@@ -240,78 +240,149 @@ impl PyTypeCache {
     }
 
     pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
-        match ptr {
-            x if x == self.none => PyObType::None,
-            x if x == self.ellipsis => PyObType::Ellipsis,
-            x if x == self.int => PyObType::Int,
-            x if x == self.bool => PyObType::Bool,
-            x if x == self.float => PyObType::Float,
-            x if x == self.string => PyObType::String,
-            x if x == self.bytes => PyObType::Bytes,
-            x if x == self.bytearray => PyObType::ByteArray,
-            x if x == self.memoryview => PyObType::MemoryView,
-            x if x == self.list => PyObType::List,
-            x if x == self.tuple => PyObType::Tuple,
-            x if x == self.dict => PyObType::Dict,
-            x if x == self.set => PyObType::Set,
-            x if x == self.frozenset => PyObType::FrozenSet,
-            // py-datetime
-            x if x == self.datetime => PyObType::DateTime,
-            x if x == self.date => PyObType::Date,
-            x if x == self.time => PyObType::Time,
-            x if x == self.timedelta => PyObType::Timedelta,
-            // py-uuid
-            x if x == self.py_uuid => PyObType::PyUuid,
-            // =================================================================
-            // RY-TYPES
-            // =================================================================
-            // -----------------------------------------------------------------
-            // UUID
-            // -----------------------------------------------------------------
-            #[cfg(feature = "ryo3-uuid")]
-            x if x == self.ry_uuid => PyObType::RyUuid,
-            // -----------------------------------------------------------------
-            // ULID:wq
-            // -----------------------------------------------------------------
-            #[cfg(feature = "ryo3-ulid")]
-            x if x == self.ry_ulid => PyObType::RyUlid,
-            // -----------------------------------------------------------------
-            // URL
-            // -----------------------------------------------------------------
-            #[cfg(feature = "ryo3-url")]
-            x if x == self.ry_url => PyObType::RyUrl,
-
-            // -----------------------------------------------------------------
-            // HTTP
-            // -----------------------------------------------------------------
-            #[cfg(feature = "ryo3-http")]
-            x if x == self.ry_http_status => PyObType::RyHttpStatus,
-            #[cfg(feature = "ryo3-http")]
-            x if x == self.ry_headers => PyObType::RyHeaders,
-
-            // -----------------------------------------------------------------
-            // JIFF
-            // -----------------------------------------------------------------
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_date => PyObType::RyDate,
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_datetime => PyObType::RyDateTime,
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_signed_duration => PyObType::RySignedDuration,
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_time => PyObType::RyTime,
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_timespan => PyObType::RyTimeSpan,
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_timestamp => PyObType::RyTimestamp,
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_timezone => PyObType::RyTimeZone,
-            #[cfg(feature = "ryo3-jiff")]
-            x if x == self.ry_zoned => PyObType::RyZoned,
-
-            _ => PyObType::Unknown,
+        if ptr == self.none {
+            PyObType::None
+        } else if ptr == self.string {
+            PyObType::String
+        } else if ptr == self.int {
+            PyObType::Int
+        } else if ptr == self.float {
+            PyObType::Float
+        } else if ptr == self.list {
+            PyObType::List
+        } else if ptr == self.tuple {
+            PyObType::Tuple
+        } else if ptr == self.dict {
+            PyObType::Dict
+        } else if ptr == self.bool {
+            PyObType::Bool
+        } else if ptr == self.bytes {
+            PyObType::Bytes
+        } else if ptr == self.datetime {
+            PyObType::DateTime
+        } else if ptr == self.date {
+            PyObType::Date
+        } else if ptr == self.time {
+            PyObType::Time
+        } else if ptr == self.timedelta {
+            PyObType::Timedelta
+        } else if ptr == self.py_uuid {
+            PyObType::PyUuid
+        } else if ptr == self.bytearray {
+            PyObType::ByteArray
+        } else if ptr == self.memoryview {
+            PyObType::MemoryView
+        } else if ptr == self.ellipsis {
+            PyObType::Ellipsis
+        } else if ptr == self.set {
+            PyObType::Set
+        } else if ptr == self.frozenset {
+            PyObType::FrozenSet
+        } else if cfg!(feature = "ryo3-uuid") && ptr == self.ry_uuid {
+            PyObType::RyUuid
+        } else if cfg!(feature = "ryo3-ulid") && ptr == self.ry_ulid {
+            PyObType::RyUlid
+        } else if cfg!(feature = "ryo3-url") && ptr == self.ry_url {
+            PyObType::RyUrl
+        } else if cfg!(feature = "ryo3-http") && ptr == self.ry_http_status {
+            PyObType::RyHttpStatus
+        } else if cfg!(feature = "ryo3-http") && ptr == self.ry_headers {
+            PyObType::RyHeaders
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_date {
+            PyObType::RyDate
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_datetime {
+            PyObType::RyDateTime
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_signed_duration {
+            PyObType::RySignedDuration
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_time {
+            PyObType::RyTime
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_timespan {
+            PyObType::RyTimeSpan
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_timestamp {
+            PyObType::RyTimestamp
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_timezone {
+            PyObType::RyTimeZone
+        } else if cfg!(feature = "ryo3-jiff") && ptr == self.ry_zoned {
+            PyObType::RyZoned
+        } else {
+            PyObType::Unknown
         }
     }
+
+    // ORIG IMPL
+    // pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
+    //     match ptr {
+    //         x if x == self.none => PyObType::None,
+    //         x if x == self.ellipsis => PyObType::Ellipsis,
+    //         x if x == self.int => PyObType::Int,
+    //         x if x == self.bool => PyObType::Bool,
+    //         x if x == self.float => PyObType::Float,
+    //         x if x == self.string => PyObType::String,
+    //         x if x == self.bytes => PyObType::Bytes,
+    //         x if x == self.bytearray => PyObType::ByteArray,
+    //         x if x == self.memoryview => PyObType::MemoryView,
+    //         x if x == self.list => PyObType::List,
+    //         x if x == self.tuple => PyObType::Tuple,
+    //         x if x == self.dict => PyObType::Dict,
+    //         x if x == self.set => PyObType::Set,
+    //         x if x == self.frozenset => PyObType::FrozenSet,
+    //         // py-datetime
+    //         x if x == self.datetime => PyObType::DateTime,
+    //         x if x == self.date => PyObType::Date,
+    //         x if x == self.time => PyObType::Time,
+    //         x if x == self.timedelta => PyObType::Timedelta,
+    //         // py-uuid
+    //         x if x == self.py_uuid => PyObType::PyUuid,
+    //         // =================================================================
+    //         // RY-TYPES
+    //         // =================================================================
+    //         // -----------------------------------------------------------------
+    //         // UUID
+    //         // -----------------------------------------------------------------
+    //         #[cfg(feature = "ryo3-uuid")]
+    //         x if x == self.ry_uuid => PyObType::RyUuid,
+    //         // -----------------------------------------------------------------
+    //         // ULID:wq
+    //         // -----------------------------------------------------------------
+    //         #[cfg(feature = "ryo3-ulid")]
+    //         x if x == self.ry_ulid => PyObType::RyUlid,
+    //         // -----------------------------------------------------------------
+    //         // URL
+    //         // -----------------------------------------------------------------
+    //         #[cfg(feature = "ryo3-url")]
+    //         x if x == self.ry_url => PyObType::RyUrl,
+
+    //         // -----------------------------------------------------------------
+    //         // HTTP
+    //         // -----------------------------------------------------------------
+    //         #[cfg(feature = "ryo3-http")]
+    //         x if x == self.ry_http_status => PyObType::RyHttpStatus,
+    //         #[cfg(feature = "ryo3-http")]
+    //         x if x == self.ry_headers => PyObType::RyHeaders,
+
+    //         // -----------------------------------------------------------------
+    //         // JIFF
+    //         // -----------------------------------------------------------------
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_date => PyObType::RyDate,
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_datetime => PyObType::RyDateTime,
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_signed_duration => PyObType::RySignedDuration,
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_time => PyObType::RyTime,
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_timespan => PyObType::RyTimeSpan,
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_timestamp => PyObType::RyTimestamp,
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_timezone => PyObType::RyTimeZone,
+    //         #[cfg(feature = "ryo3-jiff")]
+    //         x if x == self.ry_zoned => PyObType::RyZoned,
+
+    //         _ => PyObType::Unknown,
+    //     }
+    // }
 
     #[must_use]
     pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {

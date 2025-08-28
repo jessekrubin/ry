@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_fs_read_stream(tmp_path: Path) -> None:

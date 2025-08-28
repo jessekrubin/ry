@@ -1,15 +1,13 @@
 import typing as t
 from os import PathLike
 
-import typing_extensions as te
-
-from ry._types import Buffer
+from ry._types import Buffer, Unpack
 
 # =============================================================================
 # JSON
 # =============================================================================
-JsonPrimitive: te.TypeAlias = None | bool | int | float | str
-JsonValue: te.TypeAlias = (
+JsonPrimitive: t.TypeAlias = None | bool | int | float | str
+JsonValue: t.TypeAlias = (
     JsonPrimitive
     | dict[str, JsonPrimitive | JsonValue]
     | list[JsonPrimitive | JsonValue]
@@ -30,18 +28,18 @@ class JsonParseKwargs(t.TypedDict, total=False):
 def parse_json(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def parse_jsonl(
     data: Buffer | bytes | str,
     /,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> list[JsonValue]: ...
 def read_json(
     p: str | PathLike[str],
     /,
     lines: bool = False,
-    **kwargs: te.Unpack[JsonParseKwargs],
+    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...

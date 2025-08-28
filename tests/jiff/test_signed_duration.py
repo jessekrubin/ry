@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import datetime as pydt
+from typing import TYPE_CHECKING
 
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-from hypothesis.strategies import SearchStrategy
 
 import ry
 
 from ..strategies import st_i32, st_i64
+
+if TYPE_CHECKING:
+    from hypothesis.strategies import SearchStrategy
 
 
 def st_signed_duration_args() -> SearchStrategy[tuple[int, int]]:
@@ -91,6 +95,34 @@ class TestSignedDurationStrings:
     def test_signed_duration_parse(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
         assert sd.string(friendly=True) == "2h 30m"
-        assert sd.string(True) == "2h 30m"
         assert sd.friendly() == "2h 30m"
         assert sd.string() == "PT2H30M"
+        with pytest.raises(TypeError):
+            assert sd.string(True) == "2h 30m"  # type: ignore[misc]
+
+
+class TestSignedDurationRound:
+    # use jiff::{RoundMode, SignedDuration, SignedDurationRound, Unit};
+
+    # let dur = SignedDuration::new(4 * 60 * 60 + 17 * 60 + 1, 123_456_789);
+    # let rounded = dur.round(
+    #     SignedDurationRound::new()
+    #         .smallest(Unit::Second)
+    #         .increment(30)
+    #         .mode(RoundMode::Expand),
+    # )?;
+    # assert_eq!(rounded, SignedDuration::from_secs(4 * 60 * 60 + 17 * 60 + 30));
+    def test_signed_duration_round(self) -> None:
+        dur = ry.SignedDuration(4 * 60 * 60 + 17 * 60 + 1, 123_456_789)
+
+        rounded = dur.round(smallest="second", mode="expand", increment=30)
+        assert rounded == ry.SignedDuration.from_secs(4 * 60 * 60 + 17 * 60 + 30)
+
+    def test_signed_duration_round_object(self) -> None:
+        dur = ry.SignedDuration(4 * 60 * 60 + 17 * 60 + 1, 123_456_789)
+
+        rounded = dur._round(
+            ry.SignedDurationRound(smallest="second", mode="expand", increment=30)
+        )
+
+        assert rounded == ry.SignedDuration.from_secs(4 * 60 * 60 + 17 * 60 + 30)

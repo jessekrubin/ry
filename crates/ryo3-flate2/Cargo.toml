@@ -15,7 +15,6 @@ description = "python + flate2 (https://github.com/rust-lang/flate2-rs)"
 flate2 = { workspace = true }
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
-ryo3-macro-rules.workspace = true
 
 [lints]
 workspace = true

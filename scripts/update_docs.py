@@ -4,12 +4,15 @@ import argparse
 import dataclasses
 import itertools as it
 import subprocess as sp
-from collections.abc import Iterable
 from functools import lru_cache
-from os import PathLike
+from typing import TYPE_CHECKING
 
 import ry
 from ry import FsPath, which
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from os import PathLike
 
 # this filesdir
 PWDPATH = FsPath(__file__).resolve().parent
@@ -39,9 +42,16 @@ def filepath2module(filepath: FsPath) -> str:
 @lru_cache
 def get_types_dictionary() -> dict[str, str]:
     types_dict = {}
-    for pyi_filepath in map(
-        ry.FsPath, ry.walkdir(RYO_PYI_DIRPATH, glob="**/*.pyi", files=True, dirs=False)
-    ):
+    files = sorted(
+        (
+            ry.FsPath(p)
+            for p in ry.walkdir(
+                RYO_PYI_DIRPATH, glob="**/*.pyi", files=True, dirs=False
+            )
+        ),
+        key=lambda p: filepath2module(p).lower(),  # case-stable across OSes
+    )
+    for pyi_filepath in files:
         module_name = filepath2module(pyi_filepath)
         types_dict[module_name] = pyi_filepath.read_text()
     return types_dict
@@ -147,6 +157,7 @@ def write_text(
 
 
 def update_api_docs(
+    *,
     check: bool = False,
 ) -> None:
     """Update the API.md file in ./docs/src/api.md"""
@@ -157,10 +168,12 @@ def update_api_docs(
     write_text(filepath, "\n".join(parts), check=check)
 
 
-def update_docs_examples(check: bool = False) -> None:
+def update_docs_examples(*, check: bool = False) -> None:
     examples_root = REPO_ROOT / "examples"
     assert examples_root.exists(), f"examples_root does not exist: {examples_root}"
-    files = ry.walkdir(examples_root, glob="**/*.py", files=True, dirs=False).collect()
+    files = sorted(
+        ry.walkdir(examples_root, glob="**/*.py", files=True, dirs=False).collect()
+    )
     assert files, f"No files found in {examples_root}"
 
     def _build_part(filepath: FsPath) -> str:
@@ -192,7 +205,7 @@ def update_docs_examples(check: bool = False) -> None:
     write_text(filepath, "\n".join(parts), check=check)
 
 
-def update_docs(check: bool = False) -> None:
+def update_docs(*, check: bool = False) -> None:
     update_api_docs(check=check)
     update_docs_examples(check=check)
 

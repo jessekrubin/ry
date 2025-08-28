@@ -264,7 +264,8 @@ def test_using_strftime_and_strptime() -> None:
     ```
     """
     zdt = ry.ZonedDateTime.strptime(
-        "%A, %B %d, %Y at %I:%M%p %Q", "Monday, July 15, 2024 at 5:30pm US/Eastern"
+        "Monday, July 15, 2024 at 5:30pm US/Eastern",
+        "%A, %B %d, %Y at %I:%M%p %Q",
     )
     assert zdt.string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
 
