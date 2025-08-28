@@ -5,14 +5,20 @@ use pyo3::types::PyTuple;
 use ryo3_macro_rules::err_py_not_impl;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[pyclass(name = "Ipv4Addr", module = "ry.ryo3", frozen)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv4Addr(pub Ipv4Addr);
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[pyclass(name = "Ipv6Addr", module = "ry.ryo3", frozen)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv6Addr(pub Ipv6Addr);
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[pyclass(name = "IpAddr", module = "ry.ryo3", frozen)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpAddr(pub IpAddr);

@@ -71,6 +71,8 @@ where
 }
 
 impl Serialize for SerializePyAny<'_> {
+    // TODO: break this up...
+    #[expect(clippy::too_many_lines)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -110,6 +112,30 @@ impl Serialize for SerializePyAny<'_> {
             PyObType::PyDuration => {
                 rytypes::PyDurationSerializer::new(self.obj).serialize(serializer)
             }
+
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyIpAddr => rytypes::PyIpAddrSerializer::new(self.obj).serialize(serializer),
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyIpv4Addr => {
+                rytypes::PyIpv4AddrSerializer::new(self.obj).serialize(serializer)
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyIpv6Addr => {
+                rytypes::PyIpv6AddrSerializer::new(self.obj).serialize(serializer)
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PySocketAddr => {
+                rytypes::PySocketAddrSerializer::new(self.obj).serialize(serializer)
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PySocketAddrV4 => {
+                rytypes::PySocketAddrV4Serializer::new(self.obj).serialize(serializer)
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PySocketAddrV6 => {
+                rytypes::PySocketAddrV6Serializer::new(self.obj).serialize(serializer)
+            }
+
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {

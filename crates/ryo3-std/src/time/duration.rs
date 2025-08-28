@@ -28,6 +28,11 @@ impl From<Duration> for PyDuration {
 }
 
 impl PyDuration {
+    #[must_use]
+    pub fn inner(&self) -> &Duration {
+        &self.0
+    }
+
     fn try_from_secs_f32(secs: f32) -> PyResult<Self> {
         Duration::try_from_secs_f32(secs)
             .map(Self::from)

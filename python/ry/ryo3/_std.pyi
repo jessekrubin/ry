@@ -316,6 +316,7 @@ _T_ipaddress_co = t.TypeVar(
 class ToPyIpAddress(t.Protocol[_T_ipaddress_co]):
     def to_pyipaddress(self) -> _T_ipaddress_co: ...
 
+@t.final
 class Ipv4Addr(
     _Ipv4AddrProperties,
     _Version4,
@@ -388,6 +389,7 @@ class _Ipv6AddrProperties(t.Protocol):
     @property
     def is_unicast_global(self) -> t.NoReturn: ...
 
+@t.final
 class Ipv6Addr(
     _Ipv6AddrProperties,
     _Version6,
@@ -433,6 +435,7 @@ class Ipv6Addr(
         self, port: int, flowinfo: int = 0, scope_id: int = 0
     ) -> SocketAddrV6: ...
 
+@t.final
 class IpAddr(
     _Ipv4AddrProperties,
     _Ipv6AddrProperties,
@@ -503,6 +506,7 @@ class IpAddr(
     # =======================================================================
     def to_canonical(self) -> IpAddr: ...
 
+@t.final
 class SocketAddrV4(
     _Ipv4AddrProperties, _Version4, ToPyIpAddress[ipaddress.IPv4Address]
 ):
@@ -527,6 +531,7 @@ class SocketAddrV4(
     @property
     def ip(self) -> Ipv4Addr: ...
 
+@t.final
 class SocketAddrV6(
     _Ipv6AddrProperties, _Version6, ToPyIpAddress[ipaddress.IPv6Address]
 ):
@@ -553,6 +558,7 @@ class SocketAddrV6(
     @property
     def is_documentation(self) -> t.NoReturn: ...
 
+@t.final
 class SocketAddr(
     _Ipv4AddrProperties,
     _Ipv6AddrProperties,

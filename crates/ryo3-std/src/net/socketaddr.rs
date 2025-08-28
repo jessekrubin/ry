@@ -5,12 +5,18 @@ use ryo3_macro_rules::err_py_not_impl;
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[pyclass(name = "SocketAddrV4", module = "ry.ryo3", frozen)]
 pub struct PySocketAddrV4(pub(crate) SocketAddrV4);
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[pyclass(name = "SocketAddrV6", module = "ry.ryo3", frozen)]
 pub struct PySocketAddrV6(pub(crate) SocketAddrV6);
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[pyclass(name = "SocketAddr", module = "ry.ryo3", frozen)]
 pub struct PySocketAddr(pub(crate) SocketAddr);
 
