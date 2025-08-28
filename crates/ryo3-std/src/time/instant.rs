@@ -168,9 +168,3 @@ pub enum PyInstantSub {
     Instant(PyInstant),
     Duration(PyDuration),
 }
-
-#[pyfunction]
-#[must_use]
-pub fn instant() -> PyInstant {
-    PyInstant::from(Instant::now())
-}

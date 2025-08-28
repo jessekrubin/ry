@@ -1,7 +1,7 @@
-use crate::time::PyDuration;
+use super::{PyDuration, PyInstant};
 use pyo3::exceptions::{PyOverflowError, PyValueError};
 use pyo3::prelude::*;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 #[pyfunction]
 pub fn sleep(py: Python<'_>, secs: f64) -> PyResult<f64> {
@@ -15,4 +15,10 @@ pub fn sleep(py: Python<'_>, secs: f64) -> PyResult<f64> {
         py_duration.sleep(py, None)?;
         Ok(py_duration.0.as_secs_f64())
     }
+}
+
+#[pyfunction]
+#[must_use]
+pub fn instant() -> super::PyInstant {
+    super::PyInstant::from(Instant::now())
 }
