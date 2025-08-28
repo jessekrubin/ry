@@ -180,3 +180,33 @@ ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-uuid")]
     PyUuidSerializer => ryo3_uuid::PyUuid
 );
+
+// ===========================================================================
+// STD
+// ===========================================================================
+#[cfg(feature = "ryo3-std")]
+pub(crate) struct PyDurationSerializer<'py> {
+    ob: &'py Bound<'py, PyAny>,
+}
+
+#[cfg(feature = "ryo3-std")]
+impl<'py> PyDurationSerializer<'py> {
+    pub(crate) fn new(obj: &'py Bound<'py, PyAny>) -> Self {
+        Self { ob: obj }
+    }
+}
+
+#[cfg(feature = "ryo3-std")]
+impl<'py> Serialize for PyDurationSerializer<'py> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let ob = self
+            .ob
+            .downcast_exact::<ryo3_std::time::PyDuration>()
+            .map_err(pyerr2sererr)?;
+        let pydur = ob.get();
+        pydur.0.serialize(serializer)
+    }
+}

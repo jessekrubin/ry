@@ -18,7 +18,8 @@ pub fn sleep(py: Python<'_>, secs: f64) -> PyResult<f64> {
 }
 
 #[pyfunction]
+#[pyo3(name = "instant")]
 #[must_use]
-pub fn instant() -> super::PyInstant {
-    super::PyInstant::from(Instant::now())
+pub fn py_instant() -> PyInstant {
+    PyInstant::from(Instant::now())
 }

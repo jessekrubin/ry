@@ -14,6 +14,7 @@ description = "python + serde"
 [dependencies]
 jiff = { workspace = true, optional = true, features = ["serde"] }
 pyo3 = { workspace = true, features = ["uuid"] }
+ryo3-std = { workspace = true, optional = true, features = [] }
 ryo3-http = { workspace = true, optional = true, features = ["serde"] }
 ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
 ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
@@ -36,6 +37,7 @@ jiff = [
 # ryo3-jiff = ["ryo3-jiff/serde"]
 ry = [
   "jiff",
+  "ryo3-std",
   "ryo3-http",
   "ryo3-jiff",
   "ryo3-ulid",

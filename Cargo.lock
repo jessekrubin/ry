@@ -2124,6 +2124,7 @@ dependencies = [
  "pyo3-build-config",
  "ryo3-http",
  "ryo3-jiff",
+ "ryo3-std",
  "ryo3-ulid",
  "ryo3-url",
  "ryo3-uuid",

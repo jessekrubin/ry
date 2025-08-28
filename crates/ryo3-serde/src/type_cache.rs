@@ -47,6 +47,11 @@ pub(crate) enum PyObType {
     // RY-TYPES
     // ========================================================================
     // -----------------------------------------------------------------------
+    // STD
+    // -----------------------------------------------------------------------
+    #[cfg(feature = "ryo3-std")]
+    PyDuration,
+    // -----------------------------------------------------------------------
     // UUID
     // -----------------------------------------------------------------------
     #[cfg(feature = "ryo3-uuid")]
@@ -122,6 +127,9 @@ pub(crate) struct PyTypeCache {
     // ------------------------------------------------------------------------
     // RY-TYPES
     // ------------------------------------------------------------------------
+    // __ryo3_std__
+    #[cfg(feature = "ryo3-std")]
+    pub ry_duration: usize,
     // __ryo3_uuid__
     #[cfg(feature = "ryo3-uuid")]
     pub ry_uuid: usize,
@@ -191,6 +199,8 @@ impl PyTypeCache {
             // ----------------------------------------------------------------
             // RY-TYPES
             // ----------------------------------------------------------------
+            #[cfg(feature = "ryo3-std")]
+            ry_duration: ryo3_std::time::PyDuration::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
             // UUID
             // ----------------------------------------------------------------
@@ -278,6 +288,8 @@ impl PyTypeCache {
             PyObType::Set
         } else if ptr == self.frozenset {
             PyObType::FrozenSet
+        } else if cfg!(feature = "ryo3-std") && ptr == self.ry_duration {
+            PyObType::PyDuration
         } else if cfg!(feature = "ryo3-uuid") && ptr == self.ry_uuid {
             PyObType::RyUuid
         } else if cfg!(feature = "ryo3-ulid") && ptr == self.ry_ulid {

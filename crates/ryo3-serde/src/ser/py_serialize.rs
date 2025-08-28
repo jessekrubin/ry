@@ -105,6 +105,11 @@ impl Serialize for SerializePyAny<'_> {
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------
+            // __STD__
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyDuration => {
+                rytypes::PyDurationSerializer::new(self.obj).serialize(serializer)
+            }
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
