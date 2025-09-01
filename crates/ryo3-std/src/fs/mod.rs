@@ -298,7 +298,7 @@ pub fn read(pth: PathLike) -> PyResult<ryo3_bytes::PyBytes> {
 }
 
 #[pyfunction]
-pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
+pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<Py<PyAny>> {
     let fbytes = std::fs::read(s)?;
     Ok(PyBytes::new(py, &fbytes).into())
 }

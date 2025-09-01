@@ -43,7 +43,7 @@ pub fn brotli_encode(
     data: ryo3_bytes::PyBytes,
     quality: Option<u8>,
     magic_number: Option<bool>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let bin: &[u8] = data.as_ref();
     let encoded = encode(bin, quality, magic_number)?;
     Ok(PyBytes::new(py, &encoded).into())
@@ -57,7 +57,7 @@ pub fn brotli(
     data: ryo3_bytes::PyBytes,
     quality: Option<u8>,
     magic_number: Option<bool>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let bin: &[u8] = data.as_ref();
     let encoded = encode(bin, quality, magic_number)?;
     Ok(PyBytes::new(py, &encoded).into())
@@ -65,7 +65,7 @@ pub fn brotli(
 
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
-pub fn brotli_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<PyObject> {
+pub fn brotli_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<Py<PyAny>> {
     let mut decompressed = Vec::new();
     let bin: &[u8] = data.as_ref();
     br::Decompressor::new(bin, 4 * 1024)

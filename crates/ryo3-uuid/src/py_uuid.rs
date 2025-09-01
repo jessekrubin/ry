@@ -3,7 +3,7 @@
 use pyo3::exceptions::{PyNotImplementedError, PyTypeError, PyValueError};
 use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::sync::GILOnceCell;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyTuple, PyType};
 use ryo3_bytes::PyBytes;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -431,7 +431,7 @@ impl From<CPythonUuid> for uuid::Uuid {
 }
 
 fn get_uuid_cls(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
-    static UUID_CLS: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    static UUID_CLS: PyOnceLock<Py<PyType>> = PyOnceLock::new();
     UUID_CLS.import(py, "uuid", "UUID")
 }
 

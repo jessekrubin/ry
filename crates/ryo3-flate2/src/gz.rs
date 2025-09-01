@@ -6,7 +6,7 @@ use std::io::{Read, Write};
 
 use crate::compression::PyCompression;
 
-fn rs_gzip_encode(py: Python<'_>, data: &[u8], quality: PyCompression) -> PyResult<PyObject> {
+fn rs_gzip_encode(py: Python<'_>, data: &[u8], quality: PyCompression) -> PyResult<Py<PyAny>> {
     let mut gzip_encoder = GzEncoder::new(Vec::new(), quality.0);
     gzip_encoder.write_all(data)?;
     let encoded = gzip_encoder.finish()?;
@@ -26,7 +26,7 @@ pub fn gzip_encode(
     py: Python<'_>,
     data: ryo3_bytes::PyBytes,
     quality: Option<PyCompression>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let bin: &[u8] = data.as_ref();
     rs_gzip_encode(py, bin, quality.unwrap_or_default())
 }
@@ -46,7 +46,7 @@ pub fn gzip(
     py: Python<'_>,
     data: ryo3_bytes::PyBytes,
     quality: Option<PyCompression>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let bin: &[u8] = data.as_ref();
     rs_gzip_encode(py, bin, quality.unwrap_or_default())
 }

@@ -1,5 +1,5 @@
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
-use pyo3::sync::GILOnceCell;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{
     PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis, PyFloat,
     PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
@@ -187,7 +187,7 @@ pub(crate) struct PyTypeCache {
     pub ry_zoned: usize,
 }
 
-static TYPE_LOOKUP: GILOnceCell<PyTypeCache> = GILOnceCell::new();
+static TYPE_LOOKUP: PyOnceLock<PyTypeCache> = PyOnceLock::new();
 
 impl PyTypeCache {
     fn new(py: Python) -> Self {

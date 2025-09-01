@@ -9,7 +9,7 @@ use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyInt, PyString};
 
-fn rs_bzip2_encode(py: Python<'_>, data: &[u8], quality: Compression) -> PyResult<PyObject> {
+fn rs_bzip2_encode(py: Python<'_>, data: &[u8], quality: Compression) -> PyResult<Py<PyAny>> {
     let mut bzip2_encoder = BzEncoder::new(Vec::new(), quality);
     bzip2_encoder.write_all(data.as_ref())?;
     let encoded = bzip2_encoder.finish()?;
@@ -23,7 +23,7 @@ pub fn bzip2_encode(
     py: Python<'_>,
     data: ryo3_bytes::PyBytes,
     quality: Option<PyCompression>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let data = data.as_ref();
     rs_bzip2_encode(py, data, quality.unwrap_or_default().0)
 }
@@ -35,14 +35,14 @@ pub fn bzip2(
     py: Python<'_>,
     data: ryo3_bytes::PyBytes,
     quality: Option<PyCompression>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let data = data.as_ref();
     rs_bzip2_encode(py, data, quality.unwrap_or_default().0)
 }
 
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
-pub fn bzip2_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<PyObject> {
+pub fn bzip2_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<Py<PyAny>> {
     let mut decompressed = Vec::new();
     let data: &[u8] = data.as_ref();
     BzDecoder::new(data).read_to_end(&mut decompressed)?;

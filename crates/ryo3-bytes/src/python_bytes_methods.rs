@@ -5,6 +5,7 @@ use pyo3::types::PyString;
 use pyo3::{PyClass, prelude::*};
 use std::fmt::Write;
 use std::hash::Hash;
+
 pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyClass {
     /// Hash bytes
     fn py_hash(&self) -> u64 {
@@ -28,7 +29,9 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         errors: &str,
     ) -> PyResult<Bound<'py, PyString>> {
         let py_any = slf.into_bound_py_any(py)?;
-        PyString::from_object(&py_any, encoding, errors)
+        let encoding = std::ffi::CString::new(encoding)?;
+        let errors = std::ffi::CString::new(errors)?;
+        PyString::from_encoded_object(&py_any, Some(&encoding), Some(&errors))
     }
 
     fn py_capitalize(&self) -> Self {

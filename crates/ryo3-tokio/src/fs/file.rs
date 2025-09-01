@@ -268,9 +268,9 @@ impl PyAsyncFile {
     fn __aexit__<'py>(
         slf: PyRef<Self>,
         py: Python<'py>,
-        _exc_type: PyObject,
-        _exc_value: PyObject,
-        _traceback: PyObject,
+        _exc_type: Py<PyAny>,
+        _exc_value: Py<PyAny>,
+        _traceback: Py<PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&slf.inner);
 
@@ -325,7 +325,7 @@ impl PyAsyncFile {
 
     #[expect(clippy::unused_self)]
     fn isatty<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        future_into_py::<_, PyObject>(py, async move {
+        future_into_py::<_, Py<PyAny>>(py, async move {
             Err(PyNotImplementedError::new_err("isatty() not implemented"))
         })
     }

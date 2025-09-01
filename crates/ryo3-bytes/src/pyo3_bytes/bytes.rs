@@ -161,7 +161,7 @@ impl PyBytes {
         buf
     }
 
-    fn __getnewargs_ex__(&self, py: Python) -> PyResult<PyObject> {
+    fn __getnewargs_ex__(&self, py: Python) -> PyResult<Py<PyAny>> {
         let py_bytes = self.to_bytes(py);
         let args = PyTuple::new(py, vec![py_bytes])?.into_py_any(py)?;
         let kwargs = PyDict::new(py);
