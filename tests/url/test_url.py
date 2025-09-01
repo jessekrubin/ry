@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import ipaddress as pyip
+from pathlib import Path
+
 import pytest
 
 import ry
@@ -19,6 +22,13 @@ def test_parse_error() -> None:
 
 
 def test_url_from_url() -> None:
+    """Test that we can create a URL from a URL"""
+    url = ry.URL("http://example.com")
+    url_from_url = ry.URL(url)
+    assert url == url_from_url
+
+
+def test_url_parse() -> None:
     """Test that we can create a URL from a URL"""
     url = ry.URL("http://example.com")
     url_from_url = ry.URL(url)
@@ -61,6 +71,10 @@ def test_parse_url_readme() -> None:
 
     assert u.query == "labels=E-easy&state=open"
     assert u.fragment is None
+    u_from_str = ry.URL.from_str(
+        "https://github.com/rust-lang/rust/issues?labels=E-easy&state=open"
+    )
+    assert u == u_from_str
 
 
 def test_inheritance() -> None:
@@ -98,6 +112,12 @@ def test_repr() -> None:
 
 
 class TestJoinUrl:
+    def test_join_empty(self) -> None:
+        u = ry.URL("http://example.com")
+        empty_tuple = ()
+        joined = u.join(*empty_tuple)
+        assert str(joined) == "http://example.com/"
+
     def test_join(self) -> None:
         u = ry.URL("http://example.com")
         joined = u.join("foo")
@@ -145,3 +165,127 @@ def test_url_relative(base_url_expected: tuple[str, str, str]) -> None:
     url_obj = ry.URL(url)
     relative = base_url.make_relative(url_obj)
     assert relative == expected
+
+
+class TestUrlReplace:
+    def test_replace_scheme(self) -> None:
+        u = ry.URL("http://example.com")
+        replaced = u.replace(scheme="https")
+        assert str(replaced) == "https://example.com/"
+        assert str(u.replace_scheme("https")) == "https://example.com/"
+
+    def test_replace_host(self) -> None:
+        u = ry.URL("http://example.com")
+        replaced = u.replace(host="example.org")
+        assert str(replaced) == "http://example.org/"
+        assert str(u.replace_host("example.org")) == "http://example.org/"
+        assert u.host_str == "example.com"
+        assert u.host == "example.com"
+
+    def test_replace_port(self) -> None:
+        u = ry.URL("http://example.com")
+        replaced = u.replace(port=8080)
+        assert str(replaced) == "http://example.com:8080/"
+        assert str(u.replace_port(8080)) == "http://example.com:8080/"
+
+    def test_replace_path(self) -> None:
+        u = ry.URL("http://example.com/foo")
+        replaced = u.replace(path="/bar/baz")
+        assert str(replaced) == "http://example.com/bar/baz"
+        assert str(u.replace_path("bar/baz")) == "http://example.com/bar/baz"
+
+    def test_replace_query(self) -> None:
+        u = ry.URL("http://example.com/foo?a=1&b=2")
+        replaced = u.replace(query="c=3&d=4")
+        assert str(replaced) == "http://example.com/foo?c=3&d=4"
+        assert str(u.replace_query("c=3&d=4")) == "http://example.com/foo?c=3&d=4"
+
+    def test_replace_fragment(self) -> None:
+        u = ry.URL("http://example.com/foo#a_section")
+        replaced = u.replace(fragment="another_section")
+        assert str(replaced) == "http://example.com/foo#another_section"
+        assert (
+            str(u.replace_fragment("another_section"))
+            == "http://example.com/foo#another_section"
+        )
+
+    def test_replace_ip_host(self) -> None:
+        u = ry.URL("http://example.com")
+        replaced = u.replace(ip_host=pyip.ip_interface("2001:db8:85a3::8a2e:370:7334"))
+        assert str(replaced) == "http://[2001:db8:85a3::8a2e:370:7334]/"
+        assert (
+            str(u.replace_ip_host(pyip.ip_interface("2001:db8:85a3::8a2e:370:7334")))
+            == "http://[2001:db8:85a3::8a2e:370:7334]/"
+        )
+
+    def test_replace_username(self) -> None:
+        u = ry.URL("http://example.com")
+        replaced = u.replace(username="user")
+        expected = "http://user@example.com/"
+        assert str(replaced) == expected
+        assert str(u.replace_username("user")) == expected
+
+    def test_replace_password(self) -> None:
+        u = ry.URL("http://example.com")
+        replaced = u.replace(password="pass")  # noqa: S106
+        expected = "http://:pass@example.com/"
+        assert str(replaced) == expected
+        assert str(u.replace_password("pass")) == expected
+
+
+def test_socket_addrs() -> None:
+    url = ry.URL("http://example.com")
+    addrs = url.socket_addrs()
+
+    assert isinstance(addrs, list)
+    assert all(isinstance(addr, ry.SocketAddr) for addr in addrs)
+
+
+def test_port_or_known_default() -> None:
+    url = ry.URL("foo://example.com")
+    assert url.port_or_known_default is None
+    url_with_port = ry.URL("foo://example.com:1456")
+    assert url_with_port.port_or_known_default == 1456
+    https_url = ry.URL("https://example.com")
+    assert https_url.port_or_known_default == 443
+
+
+def test_from_directory_path() -> None:
+    pwd = Path(__file__).parent.resolve()
+    file_url = ry.URL.from_directory_path(pwd)
+    assert str(file_url).startswith("file://")
+
+    url_fspath = file_url.__fspath__()
+    assert url_fspath == str(pwd) + "/"
+    assert isinstance(url_fspath, str)
+
+
+def test_from_filepath() -> None:
+    this_file = Path(__file__).resolve()
+    file_url = ry.URL.from_filepath(this_file)
+    assert str(file_url).startswith("file://")
+
+    url_fspath = file_url.__fspath__()
+    assert url_fspath == str(this_file)
+    assert isinstance(url_fspath, str)
+
+
+@pytest.mark.parametrize(
+    "tdata",
+    [
+        ("http://example.com", True),
+        ("https://example.com", True),
+        ("ftp://example.com", True),
+        ("ws://example.com", True),
+        ("wss://example.com", True),
+        ("file:///tmp/foo", True),
+        ("custom-scheme://example.com", False),
+        ("moz:///tmp/foo", False),
+    ],
+)
+def test_is_special(
+    tdata: tuple[str, bool],
+) -> None:
+    url_str, is_special = tdata
+    url = ry.URL(url_str)
+    assert url.is_special() is is_special

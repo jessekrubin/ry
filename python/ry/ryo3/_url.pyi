@@ -1,7 +1,8 @@
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
-from ry._types import FromStr, Self
+from ry._types import FromStr, FsPathLike, Self
+from ry.ryo3._std import SocketAddr
 
 @t.final
 class URL(FromStr):
@@ -19,7 +20,9 @@ class URL(FromStr):
     @classmethod
     def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
     @classmethod
-    def from_directory_path(cls, path: str) -> URL: ...
+    def from_directory_path(cls, path: FsPathLike) -> URL: ...
+    @classmethod
+    def from_filepath(cls, path: FsPathLike) -> URL: ...
 
     # =========================================================================
     # STRING
@@ -29,6 +32,7 @@ class URL(FromStr):
     # =========================================================================
     # OPERATORS/DUNDER
     # =========================================================================
+    def __len__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
     def __ge__(self, other: URL) -> bool: ...
     def __gt__(self, other: URL) -> bool: ...
@@ -91,13 +95,13 @@ class URL(FromStr):
     def replace_query(self, query: str | None = None) -> URL: ...
     def replace_scheme(self, scheme: str) -> URL: ...
     def replace_username(self, username: str) -> URL: ...
-    def socket_addrs(self) -> None: ...
+    def socket_addrs(self) -> list[SocketAddr]: ...
     def replace(
         self,
         *,
         fragment: str | None = None,
         host: str | None = None,
-        ip_host: IPv4Address | None = None,
+        ip_host: IPv4Address | IPv6Address | None = None,
         password: str | None = None,
         path: str | None = None,
         port: int | None = None,

@@ -100,6 +100,7 @@ from ry.ryo3._size import parse_size as parse_size
 from ry.ryo3._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
 from ry.ryo3._sqlformat import sqlfmt as sqlfmt
 from ry.ryo3._sqlformat import sqlfmt_params as sqlfmt_params
+from ry.ryo3._std import DirEntry as DirEntry
 from ry.ryo3._std import Duration as Duration
 from ry.ryo3._std import FileReadStream as FileReadStream
 from ry.ryo3._std import FileType as FileType

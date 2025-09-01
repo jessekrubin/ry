@@ -96,14 +96,9 @@ impl PyUrl {
         hasher.finish()
     }
 
-    fn __fspath__(&self) -> PyResult<PathBuf> {
-        if let Ok(path) = self.0.to_file_path() {
-            Ok(path)
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "URL::__fspath__: invalid path",
-            ))
-        }
+    fn __fspath__(&self) -> PyResult<String> {
+        let fpath = self.to_filepath()?;
+        Ok(fpath.to_string_lossy().to_string())
     }
 
     fn __len__(&self) -> usize {
@@ -193,6 +188,11 @@ impl PyUrl {
     #[getter]
     fn scheme(&self) -> &str {
         self.0.scheme()
+    }
+
+    #[getter]
+    fn domain(&self) -> Option<&str> {
+        self.0.domain()
     }
 
     // TODO: figure out if we are going to return a host obj
@@ -290,12 +290,27 @@ impl PyUrl {
     }
 
     #[staticmethod]
-    fn from_directory_path(path: &str) -> PyResult<Self> {
-        url::Url::from_directory_path(path)
+    #[expect(clippy::needless_pass_by_value)]
+    fn from_directory_path(path: PathBuf) -> PyResult<Self> {
+        url::Url::from_directory_path(&path)
             .map(Self::from)
             .map_err(|_e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "invalid path (path={path})"
+                    "invalid path (path={})",
+                    path.display()
+                ))
+            })
+    }
+
+    #[staticmethod]
+    #[expect(clippy::needless_pass_by_value)]
+    fn from_filepath(path: PathBuf) -> PyResult<Self> {
+        url::Url::from_file_path(&path)
+            .map(Self::from)
+            .map_err(|_e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "invalid path (path={})",
+                    path.display()
                 ))
             })
     }
@@ -440,11 +455,27 @@ impl PyUrl {
         Ok(Self::from(url))
     }
 
+    #[cfg(feature = "ryo3-std")]
+    #[pyo3(signature = (default_port_number = None))]
+    fn socket_addrs(
+        &self,
+        default_port_number: Option<u16>,
+    ) -> PyResult<Vec<ryo3_std::net::PySocketAddr>> {
+        let sockets = self.0.socket_addrs(|| default_port_number)?;
+        let socks = sockets
+            .into_iter()
+            .map(ryo3_std::net::PySocketAddr::from)
+            .collect();
+        Ok(socks)
+    }
+
+    #[cfg(not(feature = "ryo3-std"))]
     #[expect(clippy::unused_self)]
-    fn socket_addrs(&self) -> PyResult<()> {
-        Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
-            "Url::socket_addrs not implemented",
-        ))
+    #[pyo3(signature = (default_port_number = None))]
+    fn socket_addrs(&self, default_port_number: Option<u16>) -> PyResult<Vec<String>> {
+        let sockets = self.0.socket_addrs(|| default_port_number)?;
+        let socks = sockets.into_iter().map(|sock| sock.to_string()).collect();
+        Ok(socks)
     }
 }
 

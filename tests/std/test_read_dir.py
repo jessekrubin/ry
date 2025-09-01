@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import concurrent.futures
 import os
+from typing import TYPE_CHECKING
 
 import ry
+
+if TYPE_CHECKING:
+    from ry.ryo3 import DirEntry
 
 # this files  dirpath
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +29,7 @@ def test_read_dir_concurrent() -> None:
 
     total = len(os.listdir(PWD))
 
-    def _process_direntry() -> ry.ryo3._std.DirEntry:
+    def _process_direntry() -> DirEntry:
         de = next(i)
         assert isinstance(de.__fspath__(), str)  # dummy check thing
         return de

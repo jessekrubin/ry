@@ -139,10 +139,10 @@ class TestIpv4Addr:
         ipv4 = ry.Ipv4Addr(192, 168, 0, 1)
 
         with pytest.raises(NotImplementedError):
-            _is_benchmarking = ipv4.is_benchmarking
+            _is_benchmarking = ipv4.is_benchmarking  # type: ignore[var-annotated]
         with pytest.raises(NotImplementedError):
-            _is_global = ipv4.is_global
+            _is_global = ipv4.is_global  # type: ignore[var-annotated]
         with pytest.raises(NotImplementedError):
-            _is_reserved = ipv4.is_reserved
+            _is_reserved = ipv4.is_reserved  # type: ignore[var-annotated]
         with pytest.raises(NotImplementedError):
-            _is_shared = ipv4.is_shared
+            _is_shared = ipv4.is_shared  # type: ignore[var-annotated]
