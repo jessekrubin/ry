@@ -4,7 +4,7 @@ import subprocess as sp
 
 import pytest
 
-import ry as ry
+import ry
 
 ZSTD_COMPRESSION_FUNCTIONS = [
     ry.zstd_compress,

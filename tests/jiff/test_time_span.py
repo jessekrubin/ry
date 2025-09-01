@@ -52,7 +52,7 @@ class TestTimeSpanStrings:
         assert s.string(friendly=True) == "2mo 10d 2h 30m"
 
         with pytest.raises(TypeError):
-            assert s.string(True) == "2mo 10d 2h 30m"  # type: ignore[misc]
+            assert s.string(True) == "2mo 10d 2h 30m"  # type: ignore[misc] # noqa: FBT003
 
     def test_span_str_alien_or_idk_but_not_human(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")

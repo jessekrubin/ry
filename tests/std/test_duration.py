@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
+from math import isnan
 from typing import TYPE_CHECKING
 
 import pytest
@@ -108,11 +109,7 @@ class TestDurationArithmetic:
             with pytest.raises((ValueError, ZeroDivisionError)):
                 dur.div_f32(divisor)
             return
-        if (
-            divisor == float("nan")
-            or divisor == float("inf")
-            or divisor == float("-inf")
-        ):
+        if isnan(divisor) or divisor == float("inf") or divisor == float("-inf"):
             with pytest.raises(ValueError):
                 dur.div_f32(divisor)
             return
@@ -139,11 +136,7 @@ class TestDurationArithmetic:
             with pytest.raises((ValueError, ZeroDivisionError)):
                 _dur = dur.div_f64(divisor)
             return
-        if (
-            divisor == float("nan")
-            or divisor == float("inf")
-            or divisor == float("-inf")
-        ):
+        if isnan(divisor) or divisor == float("inf") or divisor == float("-inf"):
             with pytest.raises(ValueError):
                 dur.div_f64(divisor)
             return

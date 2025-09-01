@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-import ry as ry
+import ry
 
 if TYPE_CHECKING:
     from .conftest import ReqtestServer
@@ -160,7 +160,7 @@ class TestStream:
 
         expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
         response_stream = response.bytes_stream()
-        collected = await response_stream.collect(True)
+        collected = await response_stream.collect(join=True)
         assert isinstance(collected, ry.Bytes)
         assert collected == expected
 

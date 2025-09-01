@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-import ry as ry
+import ry
 
 PWD = Path(__file__).parent
 PYPROJECT_TOML = PWD.parent.parent / "pyproject.toml"

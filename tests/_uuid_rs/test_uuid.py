@@ -19,7 +19,7 @@ def test_uuid_strings() -> None:
 def test_pickle() -> None:
     u = ryuuid.UUID("12345678-1234-5678-1234-567812345678")
     pickled = pickle.dumps(u)
-    unpickled = pickle.loads(pickled)  #
+    unpickled = pickle.loads(pickled)
     assert isinstance(unpickled, ryuuid.UUID)
     assert str(unpickled) == "12345678-1234-5678-1234-567812345678"
 

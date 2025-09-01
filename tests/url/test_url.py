@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-import ry as ry
+import ry
 
 
 def test_parse_error() -> None:
@@ -77,7 +77,6 @@ def test_str_subclass() -> None:
     assert str(ry.URL(S("http://example.com"))) == "http://example.com/"
 
 
-#
 def test_absolute_url_without_host() -> None:
     with pytest.raises(ValueError):
         ry.URL("http://:8080/")
