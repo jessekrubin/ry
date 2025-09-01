@@ -253,6 +253,7 @@ impl PyDuration {
         self.0.as_secs() / 86400
     }
 
+    /// Return the number of seconds in the duration not counting days
     #[getter]
     fn seconds(&self) -> u64 {
         self.0.as_secs() % 86400
