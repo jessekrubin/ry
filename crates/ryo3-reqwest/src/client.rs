@@ -10,6 +10,7 @@ use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::err_py_not_impl;
+use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
 use tracing::debug;
 
@@ -26,9 +27,9 @@ pub struct ClientConfig {
     headers: Option<PyHeaders>,
     cookies: bool,
     user_agent: Option<ryo3_http::HttpHeaderValue>,
-    timeout: Option<ryo3_std::PyDuration>,
-    read_timeout: Option<ryo3_std::PyDuration>,
-    connect_timeout: Option<ryo3_std::PyDuration>,
+    timeout: Option<PyDuration>,
+    read_timeout: Option<PyDuration>,
+    connect_timeout: Option<PyDuration>,
     gzip: bool,
     brotli: bool,
     deflate: bool,
@@ -46,7 +47,7 @@ struct RequestKwargs<'py> {
     json: Option<&'py Bound<'py, PyAny>>,
     multipart: Option<&'py Bound<'py, PyAny>>,
     form: Option<&'py Bound<'py, PyAny>>,
-    timeout: Option<&'py ryo3_std::PyDuration>,
+    timeout: Option<&'py PyDuration>,
     version: Option<HttpVersion>,
 }
 
@@ -121,9 +122,9 @@ impl RyHttpClient {
         headers: Option<PyHeadersLike>,
         cookies: bool,
         user_agent: Option<String>,
-        timeout: Option<ryo3_std::PyDuration>,
-        read_timeout: Option<ryo3_std::PyDuration>,
-        connect_timeout: Option<ryo3_std::PyDuration>,
+        timeout: Option<PyDuration>,
+        read_timeout: Option<PyDuration>,
+        connect_timeout: Option<PyDuration>,
         gzip: Option<bool>,
         brotli: Option<bool>,
         deflate: Option<bool>,
@@ -206,7 +207,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
@@ -255,7 +256,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
@@ -304,7 +305,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
@@ -353,7 +354,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
@@ -402,7 +403,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
@@ -451,7 +452,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
@@ -500,7 +501,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
@@ -551,7 +552,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let method = method.map_or_else(|| Method::GET, |m| m.0);
@@ -605,7 +606,7 @@ impl RyHttpClient {
         json: Option<&Bound<'py, PyAny>>,
         form: Option<&Bound<'py, PyAny>>,
         multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&ryo3_std::PyDuration>,
+        timeout: Option<&PyDuration>,
         version: Option<HttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.fetch(

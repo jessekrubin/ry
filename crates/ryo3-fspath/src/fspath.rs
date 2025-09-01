@@ -680,10 +680,10 @@ impl PyFsPath {
         Self::from(self.path().join(p))
     }
 
-    fn metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
+    fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
         self.path()
             .metadata()
-            .map(ryo3_std::PyMetadata::from)
+            .map(ryo3_std::fs::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
     }
 
@@ -712,10 +712,10 @@ impl PyFsPath {
             .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
 
-    fn symlink_metadata(&self) -> PyResult<ryo3_std::PyMetadata> {
+    fn symlink_metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
         self.path()
             .metadata()
-            .map(ryo3_std::PyMetadata::from)
+            .map(ryo3_std::fs::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
     }
 

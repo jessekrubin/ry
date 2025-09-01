@@ -1,6 +1,6 @@
 use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
-use ryo3_std::PyMetadata;
+use ryo3_std::fs::PyMetadata;
 use std::ffi::OsString;
 use std::format;
 use std::path::PathBuf;
@@ -112,7 +112,7 @@ impl PyDirEntryAsync {
 
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let file_type = inner.file_type().await.map_err(PyErr::from)?;
-            Ok(ryo3_std::PyFileType::new(file_type))
+            Ok(ryo3_std::fs::PyFileType::new(file_type))
         })
     }
 

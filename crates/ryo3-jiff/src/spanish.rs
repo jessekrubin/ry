@@ -6,7 +6,7 @@ use jiff::tz::OffsetArithmetic;
 use jiff::{SignedDuration, Span, TimestampArithmetic, ZonedArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
-use ryo3_std::PyDuration;
+use ryo3_std::time::PyDuration;
 
 enum RySpanishObject<'py> {
     Span(&'py Bound<'py, RySpan>),
