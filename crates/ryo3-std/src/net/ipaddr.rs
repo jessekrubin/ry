@@ -371,7 +371,6 @@ impl PyIpv6Addr {
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
     fn is_documentation(&self) -> bool {
         matches!(
             self.0.segments(),
