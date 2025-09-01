@@ -5,7 +5,7 @@ use crate::ry_span::RySpan;
 use crate::ry_zoned::RyZoned;
 use jiff::SpanArithmetic;
 use pyo3::prelude::*;
-use ryo3_std::PyDuration;
+use ryo3_std::time::PyDuration;
 
 #[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum SpanArithmeticTupleIx0 {

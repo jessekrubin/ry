@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use ryo3_bytes::PyBytes;
-use ryo3_std::PyMetadata;
+use ryo3_std::fs::PyMetadata;
 use std::path::PathBuf;
 use tracing::warn;
 

@@ -13,7 +13,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError};
 use pyo3::types::{PyDelta, PyTuple};
-use ryo3_std::PyDuration;
+use ryo3_std::time::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Mul;

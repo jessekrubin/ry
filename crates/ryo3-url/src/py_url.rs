@@ -470,7 +470,6 @@ impl PyUrl {
     }
 
     #[cfg(not(feature = "ryo3-std"))]
-    #[expect(clippy::unused_self)]
     #[pyo3(signature = (default_port_number = None))]
     fn socket_addrs(&self, default_port_number: Option<u16>) -> PyResult<Vec<String>> {
         let sockets = self.0.socket_addrs(|| default_port_number)?;

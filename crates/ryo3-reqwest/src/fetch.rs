@@ -35,7 +35,7 @@ pub(crate) fn fetch<'py>(
     json: Option<&Bound<'py, PyAny>>,
     form: Option<&Bound<'py, PyAny>>,
     multipart: Option<&Bound<'py, PyAny>>,
-    timeout: Option<&ryo3_std::PyDuration>,
+    timeout: Option<&ryo3_std::time::PyDuration>,
     version: Option<HttpVersion>,
 ) -> PyResult<Py<PyAny>> {
     let default_client_mut_guard;
