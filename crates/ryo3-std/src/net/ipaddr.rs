@@ -662,7 +662,6 @@ impl PyIpAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_reserved(&self) -> PyResult<bool> {
-        self.0.is_reserved();
         err_py_not_impl!()
     }
 
