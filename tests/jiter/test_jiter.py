@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-import ry as ry
+import ry
 
 if TYPE_CHECKING:
     from pathlib import Path

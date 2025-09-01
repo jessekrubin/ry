@@ -56,20 +56,15 @@ dependencies = [
 
 [[package]]
 name = "async-compression"
-version = "0.4.28"
+version = "0.4.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6448dfb3960f0b038e88c781ead1e7eb7929dfc3a71a1336ec9086c00f6d1e75"
+checksum = "977eb15ea9efd848bb8a4a1a2500347ed7f0bf794edf0dc3ddcf439f43d36b23"
 dependencies = [
- "brotli",
  "compression-codecs",
  "compression-core",
- "flate2",
  "futures-core",
- "memchr",
  "pin-project-lite",
  "tokio",
- "zstd",
- "zstd-safe",
 ]
 
 [[package]]
@@ -188,10 +183,11 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.34"
+version = "1.2.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42bc4aea80032b7bf409b0bc7ccad88853858911b7713a8062fdc0623867bedc"
+checksum = "590f9024a68a8c40351881787f1934dc11afd69090f5edb6831464694d836ea3"
 dependencies = [
+ "find-msvc-tools",
  "jobserver",
  "libc",
  "shlex",
@@ -211,25 +207,23 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
 name = "compression-codecs"
-version = "0.4.28"
+version = "0.4.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46cc6539bf1c592cff488b9f253b30bc0ec50d15407c2cf45e27bd8f308d5905"
+checksum = "485abf41ac0c8047c07c87c72c8fb3eb5197f6e9d7ded615dfd1a00ae00a0f64"
 dependencies = [
  "brotli",
  "compression-core",
  "flate2",
- "futures-core",
  "memchr",
- "pin-project-lite",
  "zstd",
  "zstd-safe",
 ]
 
 [[package]]
 name = "compression-core"
-version = "0.4.28"
+version = "0.4.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2957e823c15bde7ecf1e8b64e537aa03a6be5fda0e2334e99887669e75b12e01"
+checksum = "e47641d3deaf41fb1538ac1f54735925e275eaf3bf4d55c81b137fba797e5cbb"
 
 [[package]]
 name = "cookie"
@@ -333,9 +327,9 @@ checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
 
 [[package]]
 name = "deranged"
-version = "0.4.0"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c9e6a11ca8224451684bc0d7d5a7adbf8f2fd6887261a1cfc3c0432f9d4068e"
+checksum = "d630bccd429a5bb5a64b5e94f693bfc48c9f8566418fda4c494cc94f911f87cc"
 dependencies = [
  "powerfmt",
 ]
@@ -423,6 +417,12 @@ dependencies = [
  "libc",
  "windows-sys 0.60.2",
 ]
+
+[[package]]
+name = "find-msvc-tools"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e178e4fba8a2726903f6ba98a6d221e76f9c12c650d5dc0e6afdc50677b49650"
 
 [[package]]
 name = "flate2"
@@ -581,7 +581,7 @@ dependencies = [
  "js-sys",
  "libc",
  "r-efi",
- "wasi 0.14.2+wasi-0.2.4",
+ "wasi 0.14.3+wasi-0.2.4",
  "wasm-bindgen",
 ]
 
@@ -606,8 +606,8 @@ dependencies = [
  "aho-corasick",
  "bstr",
  "log",
- "regex-automata 0.4.10",
- "regex-syntax 0.8.6",
+ "regex-automata",
+ "regex-syntax",
  "serde",
 ]
 
@@ -1160,11 +1160,11 @@ checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
 name = "matchers"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8263075bb86c5a1b1427b5ae862e8889656f126e9f77c484496e8b47cf5c5558"
+checksum = "d1525a2a28c7f4fa0fc98bb91ae755d1e2d1505079e05539e35bc876b5d65ae9"
 dependencies = [
- "regex-automata 0.1.10",
+ "regex-automata",
 ]
 
 [[package]]
@@ -1239,12 +1239,11 @@ dependencies = [
 
 [[package]]
 name = "nu-ansi-term"
-version = "0.46.0"
+version = "0.50.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77a8165726e8236064dbb45459242600304b42a5ea24ee2948e18e023bf7ba84"
+checksum = "d4a28e057d01f97e61255210fcff094d74ed0466038633e95017f5beb68e4399"
 dependencies = [
- "overload",
- "winapi",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -1313,12 +1312,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
-name = "overload"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
-
-[[package]]
 name = "parking_lot"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1382,9 +1375,9 @@ dependencies = [
 
 [[package]]
 name = "potential_utf"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5a7c30837279ca13e7c867e9e40053bc68740f988cb07f7ca6df43cc734b585"
+checksum = "84df19adbe5b5a0782edcab45899906947ab039ccf4573713735ee7de1e6b08a"
 dependencies = [
  "zerovec",
 ]
@@ -1511,9 +1504,9 @@ dependencies = [
 
 [[package]]
 name = "quinn"
-version = "0.11.8"
+version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "626214629cda6781b6dc1d316ba307189c85ba657213ce642d9c77670f8202c8"
+checksum = "b9e20a958963c291dc322d98411f541009df2ced7b5a4f2bd52337638cfccf20"
 dependencies = [
  "bytes",
  "cfg_aliases",
@@ -1522,7 +1515,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.5.10",
+ "socket2 0.6.0",
  "thiserror 2.0.16",
  "tokio",
  "tracing",
@@ -1531,9 +1524,9 @@ dependencies = [
 
 [[package]]
 name = "quinn-proto"
-version = "0.11.12"
+version = "0.11.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49df843a9161c85bb8aae55f101bc0bac8bcafd637a620d9122fd7e0b2f7422e"
+checksum = "f1906b49b0c3bc04b5fe5d86a77925ae6524a19b816ae38ce1e426255f1d8a31"
 dependencies = [
  "bytes",
  "getrandom 0.3.3",
@@ -1552,16 +1545,16 @@ dependencies = [
 
 [[package]]
 name = "quinn-udp"
-version = "0.5.13"
+version = "0.5.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcebb1209ee276352ef14ff8732e24cc2b02bbac986cd74a4c81bcb2f9881970"
+checksum = "addec6a0dcad8a8d96a771f815f0eaf55f9d1805756410b39f5fa81332574cbd"
 dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.0",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1642,17 +1635,8 @@ checksum = "23d7fd106d8c02486a8d64e778353d1cffe08ce79ac2e82f540c86d0facf6912"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-automata 0.4.10",
- "regex-syntax 0.8.6",
-]
-
-[[package]]
-name = "regex-automata"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c230d73fb8d8c1b9c0b3135c5142a8acee3a0558fb8db5cf1cb65f8d7862132"
-dependencies = [
- "regex-syntax 0.6.29",
+ "regex-automata",
+ "regex-syntax",
 ]
 
 [[package]]
@@ -1663,14 +1647,8 @@ checksum = "6b9458fa0bfeeac22b5ca447c63aaf45f28439a709ccd244698632f9aa6394d6"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-syntax 0.8.6",
+ "regex-syntax",
 ]
-
-[[package]]
-name = "regex-syntax"
-version = "0.6.29"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f162c6dd7b008981e4d40210aca20b4bd0f9b60ca9271061b07f78537722f2e1"
 
 [[package]]
 name = "regex-syntax"
@@ -1838,7 +1816,7 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "ry"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1851,7 +1829,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1893,7 +1871,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "brotli",
  "pyo3",
@@ -1902,7 +1880,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bytes"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "ahash",
  "bytes",
@@ -1911,7 +1889,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -1920,7 +1898,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-core"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -1928,7 +1906,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "serde",
@@ -1939,7 +1917,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dirs"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "dirs",
  "pyo3",
@@ -1947,7 +1925,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "flate2",
  "pyo3",
@@ -1956,7 +1934,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "fnv",
  "pyo3",
@@ -1965,7 +1943,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fspath"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "parking_lot",
  "pyo3",
@@ -1979,7 +1957,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-glob"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "glob",
  "parking_lot",
@@ -1989,7 +1967,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "globset",
  "pyo3",
@@ -1998,7 +1976,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "heck",
  "pyo3",
@@ -2006,7 +1984,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-http"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "http",
  "parking_lot",
@@ -2019,7 +1997,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "jiff",
  "parking_lot",
@@ -2033,7 +2011,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "jiter",
  "pyo3",
@@ -2042,7 +2020,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2054,14 +2032,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macro-rules"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-memchr"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "memchr",
  "pyo3",
@@ -2070,14 +2048,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "regex",
@@ -2085,7 +2063,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-reqwest"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "bytes",
  "futures-core",
@@ -2108,7 +2086,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-same-file"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2117,7 +2095,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-serde"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2134,7 +2112,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "shlex",
@@ -2142,7 +2120,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-size"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "size",
@@ -2150,7 +2128,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -2158,7 +2136,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "bytes",
  "jiff",
@@ -2171,7 +2149,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "futures",
  "pyo3",
@@ -2184,7 +2162,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ulid"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-uuid",
@@ -2195,7 +2173,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-unindent"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "unindent",
@@ -2203,7 +2181,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-macro-rules",
@@ -2213,7 +2191,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-uuid"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2223,7 +2201,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "parking_lot",
  "pyo3",
@@ -2235,7 +2213,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-regex",
@@ -2244,7 +2222,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-xxhash"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2254,7 +2232,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2591,12 +2569,11 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.41"
+version = "0.3.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a7619e19bc266e0f9c5e6686659d394bc57973859340060a69221e57dbc0c40"
+checksum = "8ca967379f9d8eb8058d86ed467d81d03e81acd45757e4ca341c24affbe8e8e3"
 dependencies = [
  "deranged",
- "itoa",
  "num-conv",
  "powerfmt",
  "serde",
@@ -2606,15 +2583,15 @@ dependencies = [
 
 [[package]]
 name = "time-core"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9e9a38711f559d9e3ce1cdb06dd7c5b8ea546bc90052da6d06bb76da74bb07c"
+checksum = "a9108bb380861b07264b950ded55a44a14a4adc68b9f5efd85aafc3aa4d40a68"
 
 [[package]]
 name = "time-macros"
-version = "0.2.22"
+version = "0.2.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3526739392ec93fd8b359c8e98514cb3e8e021beb4e5f597b00a0221f8ed8a49"
+checksum = "7182799245a7264ce590b349d90338f1c1affad93d2639aed5f8f69c090b334c"
 dependencies = [
  "num-conv",
  "time-core",
@@ -2788,14 +2765,14 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.3.19"
+version = "0.3.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8189decb5ac0fa7bc8b96b7cb9b2701d60d48805aca84a238004d665fcc4008"
+checksum = "2054a14f5307d601f88daf0553e1cbf472acc4f2c51afab632431cdcd72124d5"
 dependencies = [
  "matchers",
  "nu-ansi-term",
  "once_cell",
- "regex",
+ "regex-automata",
  "serde",
  "serde_json",
  "sharded-slab",
@@ -2922,11 +2899,11 @@ checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
 
 [[package]]
 name = "wasi"
-version = "0.14.2+wasi-0.2.4"
+version = "0.14.3+wasi-0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
+checksum = "6a51ae83037bdd272a9e28ce236db8c07016dd0d50c27038b3f407533c030c95"
 dependencies = [
- "wit-bindgen-rt",
+ "wit-bindgen",
 ]
 
 [[package]]
@@ -3053,22 +3030,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd7cf3379ca1aac9eea11fba24fd7e315d621f8dfe35c8d7d2be8b793726e07d"
 
 [[package]]
-name = "winapi"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419"
-dependencies = [
- "winapi-i686-pc-windows-gnu",
- "winapi-x86_64-pc-windows-gnu",
-]
-
-[[package]]
-name = "winapi-i686-pc-windows-gnu"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
-
-[[package]]
 name = "winapi-util"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3076,12 +3037,6 @@ checksum = "0978bf7171b3d90bac376700cb56d606feb40f251a475a5d6634613564460b22"
 dependencies = [
  "windows-sys 0.60.2",
 ]
-
-[[package]]
-name = "winapi-x86_64-pc-windows-gnu"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "windows"
@@ -3453,13 +3408,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d135d17ab770252ad95e9a872d365cf3090e3be864a34ab46f48555993efc904"
 
 [[package]]
-name = "wit-bindgen-rt"
-version = "0.39.0"
+name = "wit-bindgen"
+version = "0.45.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
-dependencies = [
- "bitflags",
-]
+checksum = "052283831dbae3d879dc7f51f3d92703a316ca49f91540417d38591826127814"
 
 [[package]]
 name = "writeable"

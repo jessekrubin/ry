@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import ry as ry
+import ry
 
 
 def test_timestamp_series_jiff_example() -> None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import ry as ry
+import ry
 
 
 def test_10x10y_round_trip() -> None:

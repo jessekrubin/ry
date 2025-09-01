@@ -225,8 +225,6 @@ class TestTimeDifference:
         t2 = ry.Time.parse("08:11")
         span = t1._until(ry.TimeDifference(t2).smallest("hour").mode("ceil"))
         assert span == ry.timespan(hours=1)
-
-        #
         span = t1._since(ry.TimeDifference(t2).smallest("hour").mode("ceil"))
         assert span == ry.timespan(hours=0)
 

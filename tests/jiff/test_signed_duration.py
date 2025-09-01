@@ -98,7 +98,7 @@ class TestSignedDurationStrings:
         assert sd.friendly() == "2h 30m"
         assert sd.string() == "PT2H30M"
         with pytest.raises(TypeError):
-            assert sd.string(True) == "2h 30m"  # type: ignore[misc]
+            assert sd.string(True) == "2h 30m"  # type: ignore[misc]  # noqa: FBT003
 
 
 class TestSignedDurationRound:

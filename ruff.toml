@@ -9,7 +9,10 @@ include = [
   "examples/**/*.{py,pyi}",
   "docs/ryo3_version.py",
 ]
-lint.task-tags = [
+format.docstring-code-format = true
+
+[lint]
+task-tags = [
   # defaults
   "TODO",
   "FIXME",
@@ -17,8 +20,7 @@ lint.task-tags = [
   # typos
   "typos",
 ]
-format.docstring-code-format = true
-lint.select = [
+select = [
   "A",
   "ARG",
   "B",
@@ -49,15 +51,17 @@ lint.select = [
   "W",
   "YTT",
 ]
-lint.ignore = [
+ignore = [
   "E501",    # line length
-  "FBT003",  # boolean-positional-value-in-call
+  # "FBT003",  # boolean-positional-value-in-call
   "PLR2004", # magic values (super dumb rule)
   "PYI021",  # docstring-in-stub
 ]
+preview = true
+pydocstyle.convention = "google"
 # Require explicit selection of preview rules.
-lint.explicit-preview-rules = true
-lint.exclude = [
+explicit-preview-rules = true
+exclude = [
   ".bzr",
   ".direnv",
   ".eggs",
@@ -80,9 +84,19 @@ lint.exclude = [
   "node_modules",
   "venv",
 ]
-lint.per-file-ignores."python/ry/JSON.pyi" = ["N999"]
+
+unfixable = []
+flake8-tidy-imports.ban-relative-imports = "all"
+isort.known-first-party = ["ry"]
+flake8-boolean-trap.extend-allowed-calls = [
+  "pydantic.Field",
+  "hypothesis.assume",
+]
+
+[lint.per-file-ignores]
+"python/ry/JSON.pyi" = ["N999"]
 # Tests can use magic values, assertions, and relative imports
-lint.per-file-ignores."bench/**/*.py" = [
+"bench/**/*.py" = [
   "B011",
   "DTZ001",
   "PL",
@@ -93,33 +107,20 @@ lint.per-file-ignores."bench/**/*.py" = [
   "T201",
   "TID252",
 ]
-lint.per-file-ignores."tests/**/*.py" = [
-#  "B011",
-  "B018",
-  "DTZ001",
-  "PL",
-  "S101",
-  "S103",
-  "S301",
-  "S307",
-  "S603",
-  "TID252",
+"tests/**/*.py" = [
+  "DTZ001",   # call-datetime-without-tzinfo
+  "PLC0415",  # import-outside-top-level
+  "PLR0124",  # comparison-with-itself
+  "PLR0911",  # too-many-return-statements
+  "PLW1510",  # subprocess-run-without-check
+  "S101",     # assert
+  "S103",     # bad-file-permissions
+  "S301",     # suspicious-pickle-usage
+  "S307",     # suspicious-eval-usage
+  "S603",     # subprocess-without-shell-equals-true
+  "TID252",   # relative-imports
 ]
-lint.per-file-ignores."tests/reqwest/conftest.py" = ["ARG001"]
-lint.per-file-ignores."python/ry/dev/*.py" = [
-  "PLC0415"
-]
-lint.per-file-ignores."python/ry/ryo3/*.pyi" = ["F401", "F821"]
-lint.per-file-ignores."scripts/**" = ["S101", "S603", "T201"]
-lint.unfixable = []
-lint.flake8-tidy-imports.ban-relative-imports = "all"
-lint.isort.known-first-party = ["ry"]
-lint.flake8-boolean-trap.extend-allowed-calls = [
-  "pydantic.Field",
-  "hypothesis.assume",
-]
-# =============================================================================
-# Type checking
-# =============================================================================
-lint.preview = true
-lint.pydocstyle.convention = "google"
+"tests/reqwest/conftest.py" = ["ARG001"]
+"python/ry/dev/*.py" = ["PLC0415"]
+"python/ry/ryo3/*.pyi" = ["F401", "F821"]
+"scripts/**" = ["S101", "S603", "T201"]

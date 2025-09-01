@@ -90,7 +90,7 @@ impl RyResponseStream {
         })
     }
 
-    #[pyo3(signature = (join=false))]
+    #[pyo3(signature = (*, join=false))]
     fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.stream.clone();
         if join {
