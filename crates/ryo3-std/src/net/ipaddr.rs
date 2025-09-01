@@ -372,8 +372,11 @@ impl PyIpv6Addr {
 
     #[getter]
     #[expect(clippy::unused_self)]
-    fn is_documentation(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+    fn is_documentation(&self) -> bool {
+        matches!(
+            self.0.segments(),
+            [0x2001, 0xdb8, ..] | [0x3fff, 0..=0x0fff, ..]
+        )
     }
 
     #[getter]
@@ -597,7 +600,12 @@ impl PyIpAddr {
     fn is_documentation(&self) -> bool {
         match self.0 {
             IpAddr::V4(addr) => addr.is_documentation(),
-            IpAddr::V6(_) => false,
+            IpAddr::V6(addr) => {
+                matches!(
+                    addr.segments(),
+                    [0x2001, 0xdb8, ..] | [0x3fff, 0..=0x0fff, ..]
+                )
+            } //
         }
     }
 
@@ -654,6 +662,7 @@ impl PyIpAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_reserved(&self) -> PyResult<bool> {
+        self.0.is_reserved();
         err_py_not_impl!()
     }
 
