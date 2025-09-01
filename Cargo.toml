@@ -194,7 +194,7 @@ thiserror = "2.0.15"
 tokio = { version = "1.45.1", features = ["bytes", "fs", "macros", "parking_lot", "rt", "rt-multi-thread", "sync", "io-util"] }
 tracing = "0.1.41"
 tracing-log = "0.2.0"
-tracing-subscriber = { version = "0.3.19", features = ["serde", "serde_json", "default"] }
+tracing-subscriber = { version = "0.3.20", features = ["serde", "serde_json", "default"] }
 ulid = { version = "1.2.1" }
 unindent = "0.2.4"
 url = { version = "2.5.4" }
