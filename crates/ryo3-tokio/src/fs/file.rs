@@ -186,14 +186,12 @@ impl PyAsyncFileInner {
         Ok(buf.len())
     }
 
-    #[expect(clippy::unused_async)]
-    async fn writable(&mut self) -> PyResult<bool> {
-        Ok(self.open_options.write)
+    fn writable(&mut self) -> bool {
+        self.open_options.write
     }
 
-    #[expect(clippy::unused_async)]
-    async fn readable(&mut self) -> PyResult<bool> {
-        Ok(self.open_options.read)
+    fn readable(&mut self) -> bool {
+        self.open_options.read
     }
 
     fn get_file_mut(&mut self) -> PyResult<&mut BufStream<File>> {
@@ -386,8 +384,7 @@ impl PyAsyncFile {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            locked.readable().await?;
-            Ok(())
+            Ok(locked.readable())
         })
     }
 
@@ -502,15 +499,23 @@ impl PyAsyncFile {
 
     fn writable<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
+
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            locked.writable().await?;
-            Ok(())
+            Ok(locked.writable())
         })
     }
 }
 
 impl OpenOptions {
+    fn sanitize_mode_string(mode: &str) -> String {
+        // sort unique chars
+        let mut chars: Vec<char> = mode.chars().collect();
+        chars.sort();
+        chars.dedup();
+        chars.into_iter().collect()
+    }
+
     pub(crate) fn from_mode_string(mode: &str) -> PyResult<Self> {
         use pyo3::exceptions::PyValueError;
 
@@ -522,32 +527,33 @@ impl OpenOptions {
             truncate: false,
             create_new: false,
         };
+        let sanitized_mode = Self::sanitize_mode_string(mode);
 
-        match mode {
-            "r" | "rb" => {
+        match sanitized_mode.as_str() {
+            "r" | "rb" | "br" => {
                 opts.read = true;
             }
-            "r+" | "rb+" => {
+            "r+" | "+r" | "rb+" | "+rb" | "r+b" | "br+" | "+br" | "b+r" => {
                 opts.read = true;
                 opts.write = true;
             }
-            "w" | "wb" => {
-                opts.write = true;
-                opts.create = true;
-                opts.truncate = true;
-            }
-            "w+" | "wb+" => {
-                opts.read = true;
+            "w" | "wb" | "bw" => {
                 opts.write = true;
                 opts.create = true;
                 opts.truncate = true;
             }
-            "a" | "ab" => {
+            "w+" | "+w" | "wb+" | "w+b" | "+wb" | "+bw" | "b+w" | "bw+" => {
+                opts.read = true;
+                opts.write = true;
+                opts.create = true;
+                opts.truncate = true;
+            }
+            "a" | "ab" | "ba" => {
                 opts.write = true;
                 opts.append = true;
                 opts.create = true;
             }
-            "a+" | "ab+" => {
+            "a+" | "ab+" | "+a" | "+ab" => {
                 opts.read = true;
                 opts.write = true;
                 opts.append = true;
@@ -557,14 +563,14 @@ impl OpenOptions {
                 opts.write = true;
                 opts.create_new = true;
             }
-            "x+" => {
+            "x+" | "+x" => {
                 opts.read = true;
                 opts.write = true;
                 opts.create_new = true;
             }
             _ => {
                 return Err(PyValueError::new_err(format!(
-                    "Unsupported open mode: {mode:?}"
+                    "Unsupported open mode: {mode:?} (sanitized: {sanitized_mode:?})"
                 )));
             }
         }

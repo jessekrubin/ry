@@ -1,5 +1,7 @@
 mod file_read_stream;
+mod open_options;
 use crate::fs::file_read_stream::PyFileReadStream;
+use open_options::PyOpenOptions;
 use pyo3::exceptions::{
     PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError, PyValueError,
 };
@@ -7,6 +9,7 @@ use pyo3::types::{PyBytes, PyDict};
 use pyo3::{intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
+
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;

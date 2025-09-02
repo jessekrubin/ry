@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import io
+from itertools import permutations
 from typing import TYPE_CHECKING
 
 import pytest
@@ -106,9 +107,14 @@ def aiopen_fixtures(tmp_path: Path) -> FileFixtures:
     )
 
 
+def _mode_permutations(modes: list[str]) -> list[str]:
+    """Generate all orderings of a mode"""
+    return sorted({"".join(p) for mode in modes for p in permutations(mode)})
+
+
 class TestAsyncFileAiopen:
     @pytest.mark.anyio()
-    @pytest.mark.parametrize("mode", ["rb", "rb+", "ab+"])
+    @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
     @pytest.mark.parametrize("buffering", [-1, 0])
     async def test_simple_iteration(
         self, aiopen_fixtures: FileFixtures, mode: str, buffering: int
@@ -140,7 +146,7 @@ class TestAsyncFileAiopen:
         assert file.closed
 
     @pytest.mark.anyio()
-    @pytest.mark.parametrize("mode", ["rb", "rb+", "ab+"])
+    @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
     @pytest.mark.parametrize("buffering", [-1, 0])
     async def test_simple_readlines(
         self, aiopen_fixtures: FileFixtures, mode: str, buffering: int
@@ -161,7 +167,7 @@ class TestAsyncFileAiopen:
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["rb+", "wb", "ab"])
+@pytest.mark.parametrize("mode", _mode_permutations(["rb+", "wb", "ab"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_flush(mode: str, buffering: int, tmp_path: Path) -> None:
     """Test flushing to a file."""
@@ -188,7 +194,7 @@ async def test_simple_flush(mode: str, buffering: int, tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["rb+", "wb+", "ab+"])
+@pytest.mark.parametrize("mode", _mode_permutations(["rb+", "wb+", "ab+"]))
 async def test_simple_peek(mode: str, tmp_path: Path) -> None:
     """Test flushing to a file."""
     filename = "file.bin"
@@ -212,7 +218,7 @@ async def test_simple_peek(mode: str, tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["rb", "rb+", "ab+"])
+@pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_read(
     aiopen_fixtures: FileFixtures, mode: str, buffering: int
@@ -229,7 +235,7 @@ async def test_simple_read(
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["rb", "rb+", "ab+"])
+@pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_staggered_read(
     aiopen_fixtures: FileFixtures, mode: str, buffering: int
@@ -262,7 +268,7 @@ async def test_staggered_read(
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["rb", "rb+", "ab+"])
+@pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_seek(mode: str, buffering: int, tmp_path: Path) -> None:
     """Test seeking and then reading."""
@@ -279,7 +285,9 @@ async def test_simple_seek(mode: str, buffering: int, tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["wb", "rb", "rb+", "wb+", "ab", "ab+"])
+@pytest.mark.parametrize(
+    "mode", _mode_permutations(["wb", "rb", "rb+", "wb+", "ab", "ab+"])
+)
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_close_ctx_mgr(mode: str, buffering: int, tmp_path: Path) -> None:
     """Open a file, read a byte, and close it."""
@@ -296,7 +304,9 @@ async def test_simple_close_ctx_mgr(mode: str, buffering: int, tmp_path: Path) -
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["wb", "rb", "rb+", "wb+", "ab", "ab+"])
+@pytest.mark.parametrize(
+    "mode", _mode_permutations(["wb", "rb", "rb+", "wb+", "ab", "ab+"])
+)
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_close_no_ctx_mgr(
     mode: str, buffering: int, tmp_path: Path
@@ -350,7 +360,7 @@ async def test_simple_truncate(mode: str, buffering: int, tmp_path: Path) -> Non
 
 
 @pytest.mark.anyio()
-@pytest.mark.parametrize("mode", ["wb", "rb+", "wb+", "ab", "ab+"])
+@pytest.mark.parametrize("mode", _mode_permutations(["wb", "rb+", "wb+", "ab", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_write(mode: str, buffering: int, tmp_path: Path) -> None:
     """Test writing into a file."""
