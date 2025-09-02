@@ -27,6 +27,13 @@ pub fn dirs_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 //     Ok(())
 // }
 //
+#[cfg(feature = "shlex")]
+#[pymodule(gil_used = false, name = "shlex")]
+pub fn shlex(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    ryo3_shlex::pysubmod_add(m)?;
+    Ok(())
+}
+
 #[cfg(feature = "uuid")]
 #[pymodule(gil_used = false, name = "uuid")]
 pub fn uuid(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -72,6 +79,9 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "dirs")]
     m.add_wrapped(pyo3::wrap_pymodule!(dirs_module))?;
 
+    #[cfg(feature = "shlex")]
+    m.add_wrapped(pyo3::wrap_pymodule!(shlex))?;
+
     #[cfg(feature = "ulid")]
     m.add_wrapped(pyo3::wrap_pymodule!(ulid))?;
 
@@ -89,6 +99,11 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // sys_modules.set_item(intern!(py, "ry.http"), m.getattr(intern!(py, "http"))?)?;
     // let attr = m.getattr(intern!(py, "http"))?;
     // attr.setattr(intern!(py, "__name__"), intern!(py, "ry.http"))?;
+
+    // shlex
+    sys_modules.set_item(intern!(py, "ry.shlex"), m.getattr(intern!(py, "shlex"))?)?;
+    let attr = m.getattr(intern!(py, "shlex"))?;
+    attr.setattr(intern!(py, "__name__"), intern!(py, "ry.shlex"))?;
 
     // JSON
     sys_modules.set_item(intern!(py, "ry.JSON"), m.getattr(intern!(py, "JSON"))?)?;
