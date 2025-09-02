@@ -37,7 +37,7 @@ impl From<DateTime> for RyDateTime {
 #[pymethods]
 impl RyDateTime {
     #[new]
-    #[pyo3(signature = ( year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
+    #[pyo3(signature = (year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
     pub(crate) fn py_new(
         year: i16,
         month: i8,
@@ -372,7 +372,7 @@ impl RyDateTime {
                 builder = builder.time(time.0);
             } else {
                 return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                    "obj must be a Date, Time or Offset; given: {obj}",
+                    "obj must be a Date or Time; given: {obj}",
                 )));
             }
         }

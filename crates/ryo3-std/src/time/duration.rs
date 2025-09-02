@@ -5,6 +5,7 @@ use pyo3::types::{PyDelta, PyTuple};
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
 };
+use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
 use std::time::Duration;
@@ -113,11 +114,7 @@ impl PyDuration {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Duration(secs={}, nanos={})",
-            self.0.as_secs(),
-            self.0.subsec_nanos()
-        )
+        format!("{self}")
     }
 
     fn __hash__(&self) -> u64 {
@@ -256,6 +253,7 @@ impl PyDuration {
         self.0.as_secs() / 86400
     }
 
+    /// Return the number of seconds in the duration not counting days
     #[getter]
     fn seconds(&self) -> u64 {
         self.0.as_secs() % 86400
@@ -533,6 +531,17 @@ impl PyDuration {
 
     fn saturating_sub(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_sub(other.0))
+    }
+}
+
+impl Display for PyDuration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Duration(secs={}, nanos={})",
+            self.0.as_secs(),
+            self.0.subsec_nanos()
+        )
     }
 }
 

@@ -137,7 +137,10 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
             // must do manually to match python behavior
             let is_ascii_whitespace =
                 |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
-            let ending_ix = b.iter().rposition(|x| !is_ascii_whitespace(x)).unwrap() + 1;
+            let ending_ix = b
+                .iter()
+                .rposition(|x| !is_ascii_whitespace(x))
+                .map_or(0, |ix| ix + 1);
             Self::from(b[..ending_ix].to_vec())
         }
     }

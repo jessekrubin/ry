@@ -175,6 +175,7 @@ class TestDurationPydeltaConversion:
         assert pydelta.days == 1
         assert pydelta.seconds == (2 * 60 * 60) + (3 * 60) + 4
         assert pydelta.microseconds == 5
+
         assert ryduration.days == 1
         assert ryduration.seconds == (2 * 60 * 60) + (3 * 60) + 4
         assert ryduration.microseconds == 5
@@ -210,6 +211,7 @@ class TestDurationPydeltaConversion:
 class TestDurationConstants:
     def test_zero(self) -> None:
         assert ry.Duration.ZERO == ry.Duration(0, 0)
+        assert ry.Duration.ZERO.is_zero
 
     def test_min(self) -> None:
         assert ry.Duration.MIN == ry.Duration(0, 0)
@@ -292,3 +294,16 @@ class TestDurationDunders:
         assert int(ry.Duration(0, 1)) == 1
         assert int(ry.Duration(1, 1)) == 1_000_000_001
         assert int(ry.Duration(1, 500_000_000)) == 1_500_000_000
+
+
+def test_duration_properties() -> None:
+    dur = ry.Duration(90061, 123456789)
+
+    assert dur.days == 1
+    assert dur.subsec_nanos == 123456789
+    assert dur.subsec_micros == 123456
+    assert dur.microseconds == 123456
+    assert dur.is_zero is False
+    assert dur.subsec_millis == 123
+    assert dur.secs == 90061
+    assert dur.nanos == 123456789
