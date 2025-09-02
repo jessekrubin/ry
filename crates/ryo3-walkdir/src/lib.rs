@@ -210,7 +210,7 @@ pub fn walkdir(
         sort_by_file_name: sort_by_file_name.unwrap_or(false),
     };
     // let p = path.unwrap_or(PathLike::Str(String::from("."))).as_ref();
-    let wd_iter = opts.build_iter(path.unwrap_or(PathLike::Str(String::from("."))));
+    let wd_iter = opts.build_iter(path.unwrap_or_else(|| PathLike::Str(String::from("."))));
     // let filtered_iter = opts.build_iter(path.unwrap_or(PathLike::Str(String::from("."))).as_ref());
 
     // convert the WalkDir into an iterator of `walkdir::DirEntry` filtering

@@ -344,9 +344,7 @@ impl PyUlid {
             let other_type = other.get_type();
             let other_type_name = other_type
                 .name()
-                .map(|e| e.as_borrowed().to_string())
-                .unwrap_or(String::from("Unknown"));
-
+                .map_or_else(|_| String::from("Unknown"), |e| e.as_borrowed().to_string());
             Err(PyTypeError::new_err(format!(
                 "Cannot parse ULID from type {other_type_name}"
             )))

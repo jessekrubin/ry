@@ -130,7 +130,9 @@ impl RyResponse {
         let res_arc = self.res.clone();
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let mut opt = res_arc.lock().await;
-            let resp = opt.take().ok_or(pyerr_response_already_consumed!())?;
+            let resp = opt
+                .take()
+                .ok_or_else(|| pyerr_response_already_consumed!())?;
             // .ok_or_else(|| PyErr::new::<PyValueError, _>("response already consumed"))?;
             // .ok_or_else(|| PyErr::new::<PyValueError, _>("response already consumed"))?;
             resp.bytes()
@@ -145,7 +147,9 @@ impl RyResponse {
         let res_arc = self.res.clone();
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let mut opt = res_arc.lock().await;
-            let resp = opt.take().ok_or(pyerr_response_already_consumed!())?;
+            let resp = opt
+                .take()
+                .ok_or_else(|| pyerr_response_already_consumed!())?;
             resp.text().await.map_err(map_reqwest_err)
         })
     }
@@ -155,7 +159,9 @@ impl RyResponse {
         let res_arc = self.res.clone();
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let mut opt = res_arc.lock().await;
-            let resp = opt.take().ok_or(pyerr_response_already_consumed!())?;
+            let resp = opt
+                .take()
+                .ok_or_else(|| pyerr_response_already_consumed!())?;
             resp.bytes()
                 .await
                 .map(Pyo3JsonBytes::from)

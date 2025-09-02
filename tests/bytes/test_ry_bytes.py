@@ -121,6 +121,40 @@ def test_bytes_expandtabs_ext(
     assert rs_res.to_bytes() == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
+class TestBytesOperators:
+    @given(st.binary())
+    def test_bytes_mul(
+        self,
+        b: bytes,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        py_res = b * 2
+        rs_res = ry_bytes * 2
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @given(st.binary())
+    def test_bytes_rmul(
+        self,
+        b: bytes,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        py_res = 2 * b
+        rs_res = 2 * ry_bytes
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @given(st.binary(), st.binary())
+    def test_add(
+        self,
+        a: bytes,
+        b: bytes,
+    ) -> None:
+        ry_a = ry.Bytes(a)
+        ry_b = ry.Bytes(b)
+        py_res = a + b
+        rs_res = ry_a + ry_b
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {a!r} + {b!r}"
+
+
 @given(st.binary())
 def test_bytes_strip_no_arg(
     b: bytes,
@@ -129,6 +163,77 @@ def test_bytes_strip_no_arg(
     py_res = b.strip()
     rs_res = ry_bytes.strip()
     assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+
+class TestBytesStripHypothesis:
+    @given(st.binary())
+    def test_strip_hypothesis_no_arg(
+        self,
+        b: bytes,
+    ) -> None:
+        # .strip()
+        ry_bytes = ry.Bytes(b)
+        py_res = b.strip()
+        rs_res = ry_bytes.strip()
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @given(st.binary())
+    def test_lstrip_hypothesis_no_arg(
+        self,
+        b: bytes,
+    ) -> None:
+        # .lstrip()
+        ry_bytes = ry.Bytes(b)
+        py_res = b.lstrip()
+        rs_res = ry_bytes.lstrip()
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @given(st.binary())
+    def test_rstrip_hypothesis_no_arg(
+        self,
+        b: bytes,
+    ) -> None:
+        # .rstrip()
+        ry_bytes = ry.Bytes(b)
+        py_res = b.rstrip()
+        rs_res = ry_bytes.rstrip()
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @given(st.binary(), st.binary())
+    def test_strip_hypothesis_arg(
+        self,
+        b: bytes,
+        bytes2strip: bytes,
+    ) -> None:
+        # .strip()
+        ry_bytes = ry.Bytes(b)
+        py_res = b.strip(bytes2strip)
+        rs_res = ry_bytes.strip(bytes2strip)
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @given(st.binary(), st.binary())
+    def test_lstrip_hypothesis_arg(
+        self,
+        b: bytes,
+        bytes2strip: bytes,
+    ) -> None:
+        # .lstrip()
+        ry_bytes = ry.Bytes(b)
+        py_res = b.lstrip(bytes2strip)
+        rs_res = ry_bytes.lstrip(bytes2strip)
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @given(st.binary(), st.binary())
+    def test_rstrip_hypothesis_arg(
+        self,
+        b: bytes,
+        bytes2strip: bytes,
+    ) -> None:
+        # .rstrip()
+        ry_bytes = ry.Bytes(b)
+        py_res = b.rstrip(bytes2strip)
+        rs_res = ry_bytes.rstrip(bytes2strip)
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @pytest.mark.parametrize(
@@ -143,15 +248,27 @@ def test_bytes_strip_no_arg(
 def test_bytes_strip_no_arg_all_bytes(
     b: bytes,
 ) -> None:
+    # .strip()
     ry_bytes = ry.Bytes(b)
     py_res = b.strip()
     rs_res = ry_bytes.strip()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+    # .lstrip()
+    ry_bytes = ry.Bytes(b)
+    py_res = b.lstrip()
+    rs_res = ry_bytes.lstrip()
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+    # .rstrip()
+    ry_bytes = ry.Bytes(b)
+    py_res = b.rstrip()
+    rs_res = ry_bytes.rstrip()
     assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
 @pytest.mark.parametrize(
     "bytes2strip",
     [
+        b"",
         b" ",
         b"\n",
         b"\t",
@@ -163,6 +280,7 @@ def test_bytes_strip_no_arg_all_bytes(
 @pytest.mark.parametrize(
     "bytes2strip_from",
     [
+        b"",
         b"  \n\t  ",
         b" \n\t  ",
         b"\n\t  ",
@@ -175,15 +293,27 @@ def test_bytes_strip_with_arg(
     bytes2strip_from: bytes,
 ) -> None:
     """Test Bytes.strip() works like python bytes with an argument"""
+
+    # .strip()
     ry_bytes = ry.Bytes(bytes2strip_from)
     py_res = bytes2strip_from.strip(bytes2strip)
     rs_res = ry_bytes.strip(bytes2strip)
     assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {bytes2strip_from!r}"
 
+    # .lstrip()
+    ry_bytes = ry.Bytes(bytes2strip_from)
+    py_res = bytes2strip_from.lstrip(bytes2strip)
+    rs_res = ry_bytes.lstrip(bytes2strip)
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {bytes2strip_from!r}"
 
-@given(
-    st.binary(),
-)
+    # .rstrip()
+    ry_bytes = ry.Bytes(bytes2strip_from)
+    py_res = bytes2strip_from.rstrip(bytes2strip)
+    rs_res = ry_bytes.rstrip(bytes2strip)
+    assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {bytes2strip_from!r}"
+
+
+@given(st.binary())
 def test_hex_and_fromhex(
     b: bytes,
 ) -> None:
@@ -192,15 +322,16 @@ def test_hex_and_fromhex(
     ry_hex = ry_bytes.hex()
     assert ry_hex == py_hex
     ry_from_hex = ry_bytes.fromhex(py_hex)
+    ry_from_hex_upper = ry_bytes.fromhex(py_hex.upper())
 
     assert ry_from_hex == b
     assert ry_from_hex == ry_bytes
+    assert ry_from_hex_upper == b
+    assert ry_from_hex_upper == ry_bytes
 
 
 # test the string decode bytes fn
-@given(
-    st.text(),
-)
+@given(st.text())
 def test_bytes_decode_default(
     s: str,
 ) -> None:

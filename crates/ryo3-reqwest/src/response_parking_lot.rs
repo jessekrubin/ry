@@ -34,7 +34,7 @@ impl RyResponse {
 
     fn take_response(&self) -> PyResult<reqwest::Response> {
         let mut opt = self.res.lock();
-        opt.take().ok_or(pyerr_response_already_consumed!())
+        opt.take().ok_or_else(|| pyerr_response_already_consumed!())
     }
 }
 

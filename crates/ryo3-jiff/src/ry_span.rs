@@ -227,16 +227,16 @@ impl RySpan {
         microseconds: Option<i64>,
         nanoseconds: Option<i64>,
     ) -> PyResult<Self> {
-        let years = years.unwrap_or(i64::from(self.0.get_years()));
-        let months = months.unwrap_or(i64::from(self.0.get_months()));
-        let weeks = weeks.unwrap_or(i64::from(self.0.get_weeks()));
-        let days = days.unwrap_or(i64::from(self.0.get_days()));
-        let hours = hours.unwrap_or(i64::from(self.0.get_hours()));
-        let minutes = minutes.unwrap_or(self.0.get_minutes());
-        let seconds = seconds.unwrap_or(self.0.get_seconds());
-        let milliseconds = milliseconds.unwrap_or(self.0.get_milliseconds());
-        let microseconds = microseconds.unwrap_or(self.0.get_microseconds());
-        let nanoseconds = nanoseconds.unwrap_or(self.0.get_nanoseconds());
+        let years = years.unwrap_or_else(|| i64::from(self.0.get_years()));
+        let months = months.unwrap_or_else(|| i64::from(self.0.get_months()));
+        let weeks = weeks.unwrap_or_else(|| i64::from(self.0.get_weeks()));
+        let days = days.unwrap_or_else(|| i64::from(self.0.get_days()));
+        let hours = hours.unwrap_or_else(|| i64::from(self.0.get_hours()));
+        let minutes = minutes.unwrap_or_else(|| self.0.get_minutes());
+        let seconds = seconds.unwrap_or_else(|| self.0.get_seconds());
+        let milliseconds = milliseconds.unwrap_or_else(|| self.0.get_milliseconds());
+        let microseconds = microseconds.unwrap_or_else(|| self.0.get_microseconds());
+        let nanoseconds = nanoseconds.unwrap_or_else(|| self.0.get_nanoseconds());
         Self::py_new(
             years,
             months,

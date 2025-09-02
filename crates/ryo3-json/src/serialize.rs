@@ -41,8 +41,7 @@ impl<'py> JsonSerializer<'py> {
             let type_str = default
                 .get_type()
                 .name()
-                .map(|name| name.to_string())
-                .unwrap_or("unknown-type".to_string());
+                .map_or_else(|_| "unknown-type".to_string(), |name| name.to_string());
             return Err(PyTypeError::new_err(format!(
                 "'{type_str}' is not callable",
             )));
