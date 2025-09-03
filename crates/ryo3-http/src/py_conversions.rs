@@ -2,6 +2,7 @@
 //!
 //! TODO: figure out how to `intern!()` the strings...
 
+use crate::HttpHeaderNameRef;
 use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpVersion};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -251,31 +252,17 @@ pub(crate) fn header_name_to_pystring<'py>(
 }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderName {
-    #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
-    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = self.0.as_str();
-        #[cfg(Py_LIMITED_API)]
-        {
-            Ok(PyString::new(py, s).into_any())
-        }
-        #[cfg(not(Py_LIMITED_API))]
-        {
-            Ok(PyString::new(py, s))
-        }
+        header_name_to_pystring(py, &self.0)
     }
 }
 
 impl<'py> IntoPyObject<'py> for HttpHeaderName {
-    #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
-    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
@@ -300,6 +287,29 @@ impl FromPyObject<'_> for HttpHeaderName {
                 "invalid-header-name".to_string(),
             ))
         }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for &HttpHeaderNameRef<'_> {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        header_name_to_pystring(py, self.0)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for HttpHeaderNameRef<'_> {
+    // #[cfg(Py_LIMITED_API)]
+    type Target = PyAny;
+    // #[cfg(not(Py_LIMITED_API))]
+    // type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        header_name_to_pystring(py, self.0)
     }
 }
 
