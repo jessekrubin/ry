@@ -15,7 +15,7 @@ use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDict, PyDictMethods, PyTuple};
+use pyo3::types::{PyDict, PyDictMethods, PyString, PyTuple, PyType};
 use pyo3::{
     Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, Python, intern, pyclass,
     pymethods,
@@ -452,6 +452,178 @@ impl RyDate {
 
     fn iso_week_date(&self) -> RyISOWeekDate {
         self.0.iso_week_date().into()
+    }
+
+    #[classmethod]
+    fn _validate<'py>(
+        cls: &Bound<'py, PyType>,
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+
+            let d = Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?;
+            return d;
+        } else if let Ok(v) = value.downcast::<RyDate>() {
+            let self_any = v.into_bound_py_any(py)?;
+
+            return Ok(self_any);
+        } else if let Ok(d) = value.extract::<RyDateTime>() {
+            let dt = d.date();
+            return dt.into_bound_py_any(py);
+        } else if let Ok(d) = value.extract::<RyZoned>() {
+            let dt = d.date();
+            return dt.into_bound_py_any(py);
+        } else if let Ok(d) = value.extract::<Date>() {
+            let dt = Self::from_pydate(d);
+            return dt.into_bound_py_any(py);
+        } else {
+            Err(pyo3::exceptions::PyTypeError::new_err(format!(
+                "Invalid ry-date"
+            )))
+        }
+    }
+
+    // #[classmethod]
+    // fn __get_pydantic_core_schema__<'py>(
+    //     cls: &Bound<'py, PyType>,
+    //     core_schema: &Bound<'py, PyAny>,
+    //     handler: &Bound<'py, PyAny>,
+    // ) -> PyResult<Bound<'py, PyAny>> {
+    //     let py = core_schema.py();
+    //     let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
+    //     let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
+
+    // }
+
+    /// This is a hideous function but I struggled through this to try to figure out how to
+    /// do pydantic schema validators which I hope to do for jiff soon... (as-of: 2025-05-29)
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let py = source.py();
+        let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
+        let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
+
+        // let pydantic_no_info_wrap_validator_function = core_schema.call_method(
+        //     intern!(py, "no_info_wrap_validator_function"),
+        //     (cls.getattr(intern!(py, "_validate"))?,),
+        //     None,
+        // )?;
+
+        // let handler_any =
+
+        let to_string_ser_schema_kwargs = PyDict::new(py);
+        to_string_ser_schema_kwargs
+            .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
+        let to_string_ser_schema = core_schema.call_method(
+            intern!(py, "to_string_ser_schema"),
+            (),
+            Some(&to_string_ser_schema_kwargs),
+        )?;
+        let date_schema = core_schema.call_method(intern!(py, "date_schema"), (), None)?;
+        let validation_fn = cls.getattr(intern!(py, "_validate"))?;
+        // let cls_any = cls.into_bound_py_any(py)?;
+        let args = pyo3::types::PyTuple::new(py, vec![&validation_fn, &date_schema])?;
+
+
+        let string_serialization_schema = core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
+        let serialization_kwargs = PyDict::new(py);
+        serialization_kwargs.set_item(intern!(py, "serialization"), &string_serialization_schema)?;
+
+        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
+        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
+
+        let res =
+            core_schema.call_method(intern!(py, "no_info_wrap_validator_function"), args,
+        Some(&serialization_kwargs))?;
+        return Ok(res);
+
+        // oy vey this is hideous, but it works
+        // let str_schema_kwargs = PyDict::new(py);
+        // str_schema_kwargs.set_item(intern!(py, "pattern"), intern!(py, r"[A-Z0-9]{26}"))?;
+        // str_schema_kwargs.set_item(intern!(py, "min_length"), 26)?;
+        // str_schema_kwargs.set_item(intern!(py, "max_length"), 26)?;
+
+        // // more hideousness
+        // let bytes_schema_kwargs = PyDict::new(py);
+        // bytes_schema_kwargs.set_item(intern!(py, "min_length"), 16)?;
+        // bytes_schema_kwargs.set_item(intern!(py, "max_length"), 16)?;
+
+        // // actual validator functions
+        // let pydantic_validate = cls.getattr(intern!(py, "_pydantic_validate"))?;
+        // let pydantic_validate_strict = cls.getattr(intern!(py, "_pydantic_validate_strict"))?;
+
+        // let to_string_ser_schema_kwargs = PyDict::new(py);
+        // to_string_ser_schema_kwargs
+        //     .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
+        // let to_string_ser_schema = core_schema.call_method(
+        //     intern!(py, "to_string_ser_schema"),
+        //     (),
+        //     Some(&to_string_ser_schema_kwargs),
+        // )?;
+
+        // let no_info_wrap_validator_function_kwargs = PyDict::new(py);
+        // no_info_wrap_validator_function_kwargs
+        //     .set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
+
+        // // LAX union schema (allows ULID, string, bytes)
+        // let lax_union_schema = core_schema.call_method1(
+        //     intern!(py, "union_schema"),
+        //     (vec![
+        //         core_schema
+        //             .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
+        //         core_schema.call_method1(
+        //             intern!(py, "no_info_plain_validator_function"),
+        //             (py.get_type::<Self>(),),
+        //         )?,
+        //         core_schema.call_method(intern!(py, "str_schema"), (), Some(&str_schema_kwargs))?,
+        //         core_schema.call_method(
+        //             intern!(py, "bytes_schema"),
+        //             (),
+        //             Some(&bytes_schema_kwargs),
+        //         )?,
+        //     ],),
+        // )?;
+
+        // let strict_union = core_schema.call_method1(
+        //     intern!(py, "union_schema"),
+        //     (vec![
+        //         core_schema
+        //             .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
+        //         core_schema.call_method(
+        //             intern!(py, "str_schema"),
+        //             (),
+        //             Some(&str_schema_kwargs), // still allow canonical string
+        //         )?,
+        //     ],),
+        // )?;
+
+        // let strict_schema = core_schema.call_method(
+        //     intern!(py, "no_info_wrap_validator_function"),
+        //     (pydantic_validate_strict, strict_union),
+        //     Some(&no_info_wrap_validator_function_kwargs),
+        // )?;
+
+        // let ulid_schema_kwargs = PyDict::new(py);
+        // ulid_schema_kwargs.set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
+
+        // let lax_schema = core_schema.call_method(
+        //     intern!(py, "no_info_wrap_validator_function"),
+        //     (pydantic_validate, lax_union_schema),
+        //     Some(&no_info_wrap_validator_function_kwargs),
+        // )?;
+        // let ulid_schema = core_schema.call_method(
+        //     intern!(py, "lax_or_strict_schema"),
+        //     (lax_schema, strict_schema),
+        //     Some(&ulid_schema_kwargs),
+        // )?;
+        // Ok(ulid_schema)
     }
 }
 
