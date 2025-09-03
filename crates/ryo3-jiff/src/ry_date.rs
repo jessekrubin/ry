@@ -510,14 +510,6 @@ impl RyDate {
         let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
         let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
 
-        // let pydantic_no_info_wrap_validator_function = core_schema.call_method(
-        //     intern!(py, "no_info_wrap_validator_function"),
-        //     (cls.getattr(intern!(py, "_validate"))?,),
-        //     None,
-        // )?;
-
-        // let handler_any =
-
         let to_string_ser_schema_kwargs = PyDict::new(py);
         to_string_ser_schema_kwargs
             .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
@@ -543,87 +535,6 @@ impl RyDate {
             core_schema.call_method(intern!(py, "no_info_wrap_validator_function"), args,
         Some(&serialization_kwargs))?;
         return Ok(res);
-
-        // oy vey this is hideous, but it works
-        // let str_schema_kwargs = PyDict::new(py);
-        // str_schema_kwargs.set_item(intern!(py, "pattern"), intern!(py, r"[A-Z0-9]{26}"))?;
-        // str_schema_kwargs.set_item(intern!(py, "min_length"), 26)?;
-        // str_schema_kwargs.set_item(intern!(py, "max_length"), 26)?;
-
-        // // more hideousness
-        // let bytes_schema_kwargs = PyDict::new(py);
-        // bytes_schema_kwargs.set_item(intern!(py, "min_length"), 16)?;
-        // bytes_schema_kwargs.set_item(intern!(py, "max_length"), 16)?;
-
-        // // actual validator functions
-        // let pydantic_validate = cls.getattr(intern!(py, "_pydantic_validate"))?;
-        // let pydantic_validate_strict = cls.getattr(intern!(py, "_pydantic_validate_strict"))?;
-
-        // let to_string_ser_schema_kwargs = PyDict::new(py);
-        // to_string_ser_schema_kwargs
-        //     .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // let to_string_ser_schema = core_schema.call_method(
-        //     intern!(py, "to_string_ser_schema"),
-        //     (),
-        //     Some(&to_string_ser_schema_kwargs),
-        // )?;
-
-        // let no_info_wrap_validator_function_kwargs = PyDict::new(py);
-        // no_info_wrap_validator_function_kwargs
-        //     .set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
-
-        // // LAX union schema (allows ULID, string, bytes)
-        // let lax_union_schema = core_schema.call_method1(
-        //     intern!(py, "union_schema"),
-        //     (vec![
-        //         core_schema
-        //             .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
-        //         core_schema.call_method1(
-        //             intern!(py, "no_info_plain_validator_function"),
-        //             (py.get_type::<Self>(),),
-        //         )?,
-        //         core_schema.call_method(intern!(py, "str_schema"), (), Some(&str_schema_kwargs))?,
-        //         core_schema.call_method(
-        //             intern!(py, "bytes_schema"),
-        //             (),
-        //             Some(&bytes_schema_kwargs),
-        //         )?,
-        //     ],),
-        // )?;
-
-        // let strict_union = core_schema.call_method1(
-        //     intern!(py, "union_schema"),
-        //     (vec![
-        //         core_schema
-        //             .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
-        //         core_schema.call_method(
-        //             intern!(py, "str_schema"),
-        //             (),
-        //             Some(&str_schema_kwargs), // still allow canonical string
-        //         )?,
-        //     ],),
-        // )?;
-
-        // let strict_schema = core_schema.call_method(
-        //     intern!(py, "no_info_wrap_validator_function"),
-        //     (pydantic_validate_strict, strict_union),
-        //     Some(&no_info_wrap_validator_function_kwargs),
-        // )?;
-
-        // let ulid_schema_kwargs = PyDict::new(py);
-        // ulid_schema_kwargs.set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
-
-        // let lax_schema = core_schema.call_method(
-        //     intern!(py, "no_info_wrap_validator_function"),
-        //     (pydantic_validate, lax_union_schema),
-        //     Some(&no_info_wrap_validator_function_kwargs),
-        // )?;
-        // let ulid_schema = core_schema.call_method(
-        //     intern!(py, "lax_or_strict_schema"),
-        //     (lax_schema, strict_schema),
-        //     Some(&ulid_schema_kwargs),
-        // )?;
-        // Ok(ulid_schema)
     }
 }
 

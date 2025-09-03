@@ -1,11 +1,19 @@
 from pydantic.functional_validators import BeforeValidator
 import ry
+import annotated_types
 import pytest
 from typing import Any
 from rich import print
 import pydantic
 import datetime as pydt
-from pydantic import AfterValidator, GetPydanticSchema, PlainSerializer, WithJsonSchema
+import whenever as we
+from pydantic import (
+    AfterValidator,
+    GetPydanticSchema,
+    PlainSerializer,
+    WithJsonSchema,
+    condate,
+)
 from typing_extensions import Annotated
 from pydantic_core import core_schema
 
@@ -26,9 +34,26 @@ class PyDateModel(pydantic.BaseModel):
     date: pydt.date
 
 
+class PyDateModelConstrained(pydantic.BaseModel):
+    # date: condate(gt=pydt.date(2000, 1, 1))
+    # Annotated[pydt.date, pydantic.constr(regex=r"^\d{4}-\d{2}-\d{2}$")]
+    date: Annotated[  # pyright: ignore[reportReturnType]
+        pydt.date,
+        # Strict(strict) if strict is not None else None,
+        annotated_types.Interval(gt=pydt.date(2000, 1, 1))
+    ]
+
 class RyDateModel(pydantic.BaseModel):
     date: ry.Date
 
+class RyDateModelConstrained(pydantic.BaseModel):
+    # date: condate(gt=pydt.date(2000, 1, 1))
+    # Annotated[pydt.date, pydantic.constr(regex=r"^\d{4}-\d{2}-\d{2}$")]
+    date: Annotated[  # pyright: ignore[reportReturnType]
+        ry.Date,
+        # Strict(strict) if strict is not None else None,
+        annotated_types.Interval(gt=ry.Date(2000, 1, 1).to_pydate())
+    ]
 
 @pytest.mark.parametrize(
     "data",
@@ -61,6 +86,10 @@ def test_date_inputs(data: Any):
         ry.Date(2020, 1, 1).at(1, 2, 3, 4),
         ry.Date(2020, 1, 1).at(1, 2, 3, 4).in_tz("America/Los_Angeles"),
         "2020-01-01",
+
+        # errors...
+
+        ry.Date(2000, 1, 1)
     ],
 )
 def test_date_inputs2(data: Any):
@@ -82,8 +111,6 @@ def test_date_inputs2(data: Any):
     print(f"  RyDateModel from JSON: {from_json!r} ({type(from_json).__name__})")
     assert from_json == ry_model
 
-    #
-    assert False
 
 
 def _diff_schemas(left, right):
@@ -96,3 +123,11 @@ def test_date_json_schema():
     py_model = PyDateModel.model_json_schema()
     ry_model = RyDateModel.model_json_schema()
     _diff_schemas(py_model, ry_model)
+
+print(PyDateModelConstrained.model_json_schema())
+
+
+r = RyDateModelConstrained(
+    date=ry.Date(2000, 1, 1)
+)
+print(r)
