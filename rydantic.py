@@ -40,11 +40,13 @@ class PyDateModelConstrained(pydantic.BaseModel):
     date: Annotated[  # pyright: ignore[reportReturnType]
         pydt.date,
         # Strict(strict) if strict is not None else None,
-        annotated_types.Interval(gt=pydt.date(2000, 1, 1))
+        annotated_types.Interval(gt=pydt.date(2000, 1, 1)),
     ]
+
 
 class RyDateModel(pydantic.BaseModel):
     date: ry.Date
+
 
 class RyDateModelConstrained(pydantic.BaseModel):
     # date: condate(gt=pydt.date(2000, 1, 1))
@@ -52,8 +54,9 @@ class RyDateModelConstrained(pydantic.BaseModel):
     date: Annotated[  # pyright: ignore[reportReturnType]
         ry.Date,
         # Strict(strict) if strict is not None else None,
-        annotated_types.Interval(gt=ry.Date(2000, 1, 1).to_pydate())
+        annotated_types.Interval(gt=ry.Date(2000, 1, 1).to_pydate()),
     ]
+
 
 @pytest.mark.parametrize(
     "data",
@@ -86,10 +89,8 @@ def test_date_inputs(data: Any):
         ry.Date(2020, 1, 1).at(1, 2, 3, 4),
         ry.Date(2020, 1, 1).at(1, 2, 3, 4).in_tz("America/Los_Angeles"),
         "2020-01-01",
-
         # errors...
-
-        ry.Date(2000, 1, 1)
+        ry.Date(2000, 1, 1),
     ],
 )
 def test_date_inputs2(data: Any):
@@ -112,7 +113,6 @@ def test_date_inputs2(data: Any):
     assert from_json == ry_model
 
 
-
 def _diff_schemas(left, right):
     left_no_title = {k: v for k, v in left.items() if k != "title"}
     right_no_title = {k: v for k, v in right.items() if k != "title"}
@@ -124,10 +124,9 @@ def test_date_json_schema():
     ry_model = RyDateModel.model_json_schema()
     _diff_schemas(py_model, ry_model)
 
+
 print(PyDateModelConstrained.model_json_schema())
 
 
-r = RyDateModelConstrained(
-    date=ry.Date(2000, 1, 1)
-)
+r = RyDateModelConstrained(date=ry.Date(2000, 1, 1))
 print(r)
