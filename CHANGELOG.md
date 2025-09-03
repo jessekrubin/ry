@@ -2,6 +2,8 @@
 
 ## v0.0.55 [unreleased]
 
+- upgrade pyo3 v0.26.x
+
 ---
 
 ## v0.0.54 [2025-08-28]
