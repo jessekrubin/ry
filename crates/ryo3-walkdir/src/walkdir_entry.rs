@@ -1,4 +1,6 @@
 //! python wrapper for `walkdir::DirEntry`
+use std::ffi::OsStr;
+
 use pyo3::prelude::*;
 
 #[pyclass(name = "WalkDirEntry", module = "ry.ryo3", frozen)]
@@ -7,8 +9,8 @@ pub struct PyWalkDirEntry(walkdir::DirEntry);
 
 #[pymethods]
 impl PyWalkDirEntry {
-    fn __fspath__(&self) -> String {
-        self.0.path().to_path_buf().to_string_lossy().to_string()
+    fn __fspath__(&self) -> &OsStr {
+        self.0.path().as_os_str()
     }
 
     #[getter]

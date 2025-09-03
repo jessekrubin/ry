@@ -3,6 +3,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_macro_rules::py_value_error;
+use std::ffi::OsString;
 use std::hash::{Hash, Hasher};
 use std::net::IpAddr;
 use std::path::PathBuf;
@@ -96,9 +97,9 @@ impl PyUrl {
         hasher.finish()
     }
 
-    fn __fspath__(&self) -> PyResult<String> {
+    fn __fspath__(&self) -> PyResult<OsString> {
         let fpath = self.to_filepath()?;
-        Ok(fpath.to_string_lossy().to_string())
+        Ok(fpath.into_os_string())
     }
 
     fn __len__(&self) -> usize {

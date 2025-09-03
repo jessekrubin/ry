@@ -241,8 +241,7 @@ impl PyDirEntry {
 
     #[must_use]
     pub fn __fspath__(&self) -> OsString {
-        let p = self.0.path();
-        p.into_os_string()
+        self.0.path().into_os_string()
     }
 
     #[getter]
@@ -493,6 +492,7 @@ impl PyReadDir {
         Ok(paths)
     }
 }
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
