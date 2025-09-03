@@ -338,7 +338,7 @@ impl PyFsPath {
         Ok(fbytes.into())
     }
 
-    fn read_bytes(&self, py: Python<'_>) -> PyResult<PyObject> {
+    fn read_bytes(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
         let fbytes = std::fs::read(self.path());
         match fbytes {
             Ok(b) => Ok(PyBytes::new(py, &b).into()),

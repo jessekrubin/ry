@@ -3,11 +3,11 @@ use jiff::tz::TimeZone;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
-use pyo3::sync::GILOnceCell;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyType, PyTzInfo};
 
 pub fn timezone2pyobect<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyAny>> {
-    static ZONE_INFO: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    static ZONE_INFO: PyOnceLock<Py<PyType>> = PyOnceLock::new();
     ZONE_INFO
         .import(py, "zoneinfo", "ZoneInfo")
         .and_then(|obj| obj.call1((tz.iana_name(),)))

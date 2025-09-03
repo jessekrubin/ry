@@ -242,6 +242,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    environment: release-python
     if:
       ${{ startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' }}
     needs: [linux, musllinux, windows, macos, sdist]

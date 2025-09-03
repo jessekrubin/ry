@@ -1,8 +1,9 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
 use crate::bytes::PyBytes;
 use crate::python_bytes_methods::PythonBytesMethods;
+use bytes::BytesMut;
 use pyo3::prelude::*;
-use pyo3::types::{PyString, PyType};
+use pyo3::types::PyString;
 
 impl PythonBytesMethods for PyBytes {}
 
@@ -11,6 +12,13 @@ impl PyBytes {
     /// Return python-hash of bytes
     fn __hash__(&self) -> u64 {
         self.py_hash()
+    }
+
+    fn __rmul__(&self, value: usize) -> PyBytes {
+        let buf = self.as_slice();
+        let mut out_buf = BytesMut::with_capacity(buf.len() * value);
+        (0..value).for_each(|_| out_buf.extend_from_slice(buf));
+        out_buf.into()
     }
 
     /// Decode the bytes using the codec registered for encoding.

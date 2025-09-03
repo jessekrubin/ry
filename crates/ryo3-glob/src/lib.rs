@@ -5,7 +5,7 @@ use crate::pattern::PyPattern;
 use parking_lot::Mutex;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
-use pyo3::sync::GILOnceCell;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyModule, PyType};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -213,17 +213,17 @@ pub fn py_glob(
 }
 
 fn pathlib_path_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
-    static PATHLIB_PATH_TYPE: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    static PATHLIB_PATH_TYPE: PyOnceLock<Py<PyType>> = PyOnceLock::new();
     PATHLIB_PATH_TYPE.import(py, "pathlib", "Path")
 }
 
 fn str_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
-    static STR_TYPE: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    static STR_TYPE: PyOnceLock<Py<PyType>> = PyOnceLock::new();
     STR_TYPE.import(py, "builtins", "str")
 }
 
 fn ry_fspath_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
-    static FSPATH_TYPE: GILOnceCell<Py<PyType>> = GILOnceCell::new();
+    static FSPATH_TYPE: PyOnceLock<Py<PyType>> = PyOnceLock::new();
     FSPATH_TYPE.import(py, "ry.ryo3", "FsPath")
 }
 

@@ -1,6 +1,15 @@
 # CHANGELOG
 
-## v0.0.55 [unreleased]
+## v0.0.55 [2025-09-03]
+
+- upgrade pyo3 v0.26.x
+- `ryo3-bytes`
+  - Update buffer usage based on kyle barron `pyo3-bytes`
+    [changes](https://github.com/developmentseed/obstore/commit/2ca22a8c3949ae51fbf750ef5a08e3a76f583819)
+- `ryo3-std`
+  - Make each sub-module a feature flag `std-net`, `std-fs`, `std-time`, etc...
+- internal changes
+  - Implemented `Display` for several types for use in their `__repr__` methods
 
 ---
 

@@ -1,12 +1,12 @@
 use pyo3::exceptions::PyImportError;
 use pyo3::prelude::*;
-use pyo3::sync::GILOnceCell;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::PyDict;
 
-static ORJSON_DUMPS: GILOnceCell<Py<PyAny>> = GILOnceCell::new();
-static ORJSON_FRAGMENT: GILOnceCell<Py<PyAny>> = GILOnceCell::new();
-// static ORJSON_OPT_APPEND_NEWLINE: GILOnceCell<Py<PyInt>> = GILOnceCell::new();
-// static ORJSON_OPT_OPT_INDENT_2: GILOnceCell<Py<PyInt>> = GILOnceCell::new();
+static ORJSON_DUMPS: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+static ORJSON_FRAGMENT: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+// static ORJSON_OPT_APPEND_NEWLINE: PyOnceLock<Py<PyInt>> = PyOnceLock::new();
+// static ORJSON_OPT_OPT_INDENT_2: PyOnceLock<Py<PyInt>> = PyOnceLock::new();
 
 #[pyfunction(
     signature = (obj, **kwargs)

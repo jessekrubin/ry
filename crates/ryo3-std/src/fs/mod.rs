@@ -12,8 +12,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
+// TODO: this is stupid... should really be some sort of enum as `is_dir`/`is_file`/`is_symlink` are mutually exclusive
 #[pyclass(name = "FileType", module = "ry.ryo3", frozen)]
 pub struct PyFileType(pub std::fs::FileType);
+
 impl PyFileType {
     #[must_use]
     pub fn new(ft: std::fs::FileType) -> Self {
@@ -241,8 +243,7 @@ impl PyDirEntry {
 
     #[must_use]
     pub fn __fspath__(&self) -> OsString {
-        let p = self.0.path();
-        p.into_os_string()
+        self.0.path().into_os_string()
     }
 
     #[getter]
@@ -298,7 +299,7 @@ pub fn read(pth: PathLike) -> PyResult<ryo3_bytes::PyBytes> {
 }
 
 #[pyfunction]
-pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<PyObject> {
+pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<Py<PyAny>> {
     let fbytes = std::fs::read(s)?;
     Ok(PyBytes::new(py, &fbytes).into())
 }
@@ -493,6 +494,7 @@ impl PyReadDir {
         Ok(paths)
     }
 }
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMetadata>()?;
     m.add_class::<PyFileType>()?;
