@@ -12,8 +12,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
+// TODO: this is stupid... should really be some sort of enum as `is_dir`/`is_file`/`is_symlink` are mutually exclusive
 #[pyclass(name = "FileType", module = "ry.ryo3", frozen)]
 pub struct PyFileType(pub std::fs::FileType);
+
 impl PyFileType {
     #[must_use]
     pub fn new(ft: std::fs::FileType) -> Self {
