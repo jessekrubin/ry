@@ -252,10 +252,7 @@ pub(crate) fn header_name_to_pystring<'py>(
 }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderName {
-    // #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
-    // type Target = PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
     #[inline]
@@ -294,15 +291,12 @@ impl FromPyObject<'_> for HttpHeaderName {
 }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderNameRef<'_> {
-    // #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
-    // type Target = PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, &self.0)
+        header_name_to_pystring(py, self.0)
     }
 }
 
@@ -315,7 +309,7 @@ impl<'py> IntoPyObject<'py> for HttpHeaderNameRef<'_> {
     type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, &self.0)
+        header_name_to_pystring(py, self.0)
     }
 }
 
