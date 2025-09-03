@@ -155,8 +155,30 @@ impl RyResponse {
     }
 
     /// Return the response body as json (consumes the response)
-    fn json<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(
+        signature = (
+            *,
+            allow_inf_nan = false,
+            cache_mode = jiter::StringCacheMode::All,
+            partial_mode = jiter::PartialMode::Off,
+            catch_duplicate_keys = false,
+        )
+    )]
+    fn json<'py>(
+        &'py self,
+        py: Python<'py>,
+        allow_inf_nan: bool,
+        cache_mode: jiter::StringCacheMode,
+        partial_mode: jiter::PartialMode,
+        catch_duplicate_keys: bool,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let res_arc = self.res.clone();
+        let options = ryo3_jiter::JiterParseOptions {
+            allow_inf_nan,
+            cache_mode,
+            partial_mode,
+            catch_duplicate_keys,
+        };
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let mut opt = res_arc.lock().await;
             let resp = opt
@@ -164,7 +186,7 @@ impl RyResponse {
                 .ok_or_else(|| pyerr_response_already_consumed!())?;
             resp.bytes()
                 .await
-                .map(Pyo3JsonBytes::from)
+                .map(|bytes| Pyo3JsonBytes::from((bytes, options)))
                 .map_err(map_reqwest_err)
         })
     }

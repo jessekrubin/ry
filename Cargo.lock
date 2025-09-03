@@ -2073,6 +2073,7 @@ dependencies = [
  "reqwest",
  "ryo3-bytes",
  "ryo3-http",
+ "ryo3-jiter",
  "ryo3-macro-rules",
  "ryo3-serde",
  "ryo3-std",
