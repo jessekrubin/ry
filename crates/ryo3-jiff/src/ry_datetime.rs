@@ -235,7 +235,7 @@ impl RyDateTime {
         RyTime::from(self.0.time())
     }
 
-    fn date(&self) -> RyDate {
+    pub(crate) fn date(&self) -> RyDate {
         RyDate::from(self.0.date())
     }
 
