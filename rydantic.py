@@ -49,8 +49,6 @@ def test_date_inputs(data: Any):
 
     assert isinstance(ry_model.date, ry.Date)
 
-
-
     # py_model_dump = PyDateModel(date=data).model_dump()
 
 
