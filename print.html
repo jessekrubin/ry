@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-03T17:17:50.950192898+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-03T18:47:42.808981606+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -465,7 +465,26 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0055-unreleased"><a class="header" href="#v0055-unreleased">v0.0.55 [unreleased]</a></h2>
+<h2 id="v0055-2025-09-03"><a class="header" href="#v0055-2025-09-03">v0.0.55 [2025-09-03]</a></h2>
+<ul>
+<li>upgrade pyo3 v0.26.x</li>
+<li><code>ryo3-bytes</code>
+<ul>
+<li>Update buffer usage based on kyle barron <code>pyo3-bytes</code>
+<a href="https://github.com/developmentseed/obstore/commit/2ca22a8c3949ae51fbf750ef5a08e3a76f583819">changes</a></li>
+</ul>
+</li>
+<li><code>ryo3-std</code>
+<ul>
+<li>Make each sub-module a feature flag <code>std-net</code>, <code>std-fs</code>, <code>std-time</code>, etc…</li>
+</ul>
+</li>
+<li>internal changes
+<ul>
+<li>Implemented <code>Display</code> for several types for use in their <code>__repr__</code> methods</li>
+</ul>
+</li>
+</ul>
 <hr />
 <h2 id="v0054-2025-08-28"><a class="header" href="#v0054-2025-08-28">v0.0.54 [2025-08-28]</a></h2>
 <ul>
