@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.55 [unreleased]
+## v0.0.55 [2025-09-03]
 
 - upgrade pyo3 v0.26.x
 - `ryo3-bytes`
