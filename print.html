@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-03T22:45:46.575794425+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-04T01:13:54.249808066+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -465,6 +465,15 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0056-unreleased"><a class="header" href="#v0056-unreleased">v0.0.56 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li>Add <code>jiter</code> parsing options to <code>Response.json()</code></li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0055-2025-09-03"><a class="header" href="#v0055-2025-09-03">v0.0.55 [2025-09-03]</a></h2>
 <ul>
 <li>upgrade pyo3 v0.26.x</li>
@@ -5551,15 +5560,13 @@ JsonValue: t.TypeAlias = (
 
 class JsonParseKwargs(t.TypedDict, total=False):
     allow_inf_nan: bool
-    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: True"""
+    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: False"""
     cache_mode: t.Literal[True, False, "all", "keys", "none"]
     """Cache mode for JSON parsing ~ default: `all` """
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"]
     """Partial mode for JSON parsing ~ default: False"""
     catch_duplicate_keys: bool
     """Catch duplicate keys in JSON objects ~ default: False"""
-    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool
-    """Mode for parsing JSON floats ~ default: False"""
 
 
 def parse_json(
@@ -5771,7 +5778,16 @@ class Response:
     @property
     def headers(self) -&gt; Headers: ...
     async def text(self) -&gt; str: ...
-    async def json(self) -&gt; t.Any: ...
+    async def json(
+        self,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
+        catch_duplicate_keys: bool = False,
+    ) -&gt; t.Any: ...
     async def bytes(self) -&gt; ry.Bytes: ...
     def bytes_stream(self) -&gt; ResponseStream: ...
     def stream(self) -&gt; ResponseStream: ...
