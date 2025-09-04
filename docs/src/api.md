@@ -3548,15 +3548,13 @@ JsonValue: t.TypeAlias = (
 
 class JsonParseKwargs(t.TypedDict, total=False):
     allow_inf_nan: bool
-    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: True"""
+    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: False"""
     cache_mode: t.Literal[True, False, "all", "keys", "none"]
     """Cache mode for JSON parsing ~ default: `all` """
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"]
     """Partial mode for JSON parsing ~ default: False"""
     catch_duplicate_keys: bool
     """Catch duplicate keys in JSON objects ~ default: False"""
-    float_mode: t.Literal["float", "decimal", "lossless-float"] | bool
-    """Mode for parsing JSON floats ~ default: False"""
 
 
 def parse_json(
@@ -3780,7 +3778,16 @@ class Response:
     @property
     def headers(self) -> Headers: ...
     async def text(self) -> str: ...
-    async def json(self) -> t.Any: ...
+    async def json(
+        self,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
     def bytes_stream(self) -> ResponseStream: ...
     def stream(self) -> ResponseStream: ...

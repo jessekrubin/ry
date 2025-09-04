@@ -4,12 +4,11 @@
 //! Provides jitter wrapper that uses `PyBackedStr` and `PyBackedBytes` and
 //! allows for parsing json from bytes or str (which jiter-python does not as
 //! of [2024-05-29])
-use std::path::PathBuf;
-
 use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_error};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiterParseOptions {
@@ -30,15 +29,22 @@ impl Default for JiterParseOptions {
     }
 }
 
-impl JiterParseOptions {
-    fn parser(self) -> PythonParse {
-        PythonParse {
-            allow_inf_nan: self.allow_inf_nan,
-            cache_mode: self.cache_mode,
-            partial_mode: self.partial_mode,
-            catch_duplicate_keys: self.catch_duplicate_keys,
+impl From<&JiterParseOptions> for PythonParse {
+    fn from(options: &JiterParseOptions) -> Self {
+        Self {
+            allow_inf_nan: options.allow_inf_nan,
+            cache_mode: options.cache_mode,
+            partial_mode: options.partial_mode,
+            catch_duplicate_keys: options.catch_duplicate_keys,
             float_mode: FloatMode::Float,
         }
+    }
+}
+
+impl JiterParseOptions {
+    #[must_use]
+    pub fn parser(self) -> PythonParse {
+        PythonParse::from(&self)
     }
 
     fn parse<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.56 [unreleased]
+
+- `ryo3-reqwest`
+  - Add `jiter` parsing options to `Response.json()`
+
+---
+
 ## v0.0.55 [2025-09-03]
 
 - upgrade pyo3 v0.26.x
