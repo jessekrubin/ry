@@ -166,6 +166,7 @@ clippy-features:
     cargo hack --feature-powerset clippy --package ryo3-url
     cargo hack --feature-powerset clippy --package ryo3-uuid
     cargo hack --feature-powerset clippy --package ryo3-which
+    cargo hack --feature-powerset clippy --package ryo3-xxhash
 
 # lint python and rust
 lint: ruff clippy
