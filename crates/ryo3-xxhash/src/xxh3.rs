@@ -249,19 +249,20 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyXxh3>()?;
     m.add_function(wrap_pyfunction!(xxh3, m)?)?;
 
-    m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_128_hexdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_128_intdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_64_digest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_64_hexdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_64_intdigest, m)?)?;
 
-    // aliases
-    m.add_function(wrap_pyfunction!(xxh128_digest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh128_hexdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh128_intdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_digest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_hexdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_intdigest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_128_hexdigest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_128_intdigest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_64_digest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_64_hexdigest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_64_intdigest, m)?)?;
+    //
+    // // aliases
+    // m.add_function(wrap_pyfunction!(xxh128_digest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh128_hexdigest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh128_intdigest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_digest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_hexdigest, m)?)?;
+    // m.add_function(wrap_pyfunction!(xxh3_intdigest, m)?)?;
     Ok(())
 }

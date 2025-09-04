@@ -8,6 +8,8 @@ pub mod xxh32;
 mod xxh3_128;
 #[cfg(feature = "xxh64")]
 pub mod xxh64;
+mod py_digest;
+mod xxh3_64;
 
 #[cfg_attr(
     not(any(feature = "xxh32", feature = "xxh64", feature = "xxh3")),
@@ -21,6 +23,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "xxh3")]
     xxh3::pymod_add(m)?;
 
+    xxh3_64::pymod_add(m)?;
     xxh3_128::pymod_add(m)?;
     Ok(())
 }
