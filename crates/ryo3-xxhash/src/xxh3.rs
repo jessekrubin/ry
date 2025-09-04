@@ -3,6 +3,7 @@ use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap
 use ryo3_core::PyLock;
 use std::sync::Mutex;
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder, xxh3_64_with_seed, xxh3_128_with_seed};
+use crate::py_digest::PyDigest;
 // ============================================================================
 
 #[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash", frozen)]
@@ -248,7 +249,6 @@ pub fn xxh128_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResul
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyXxh3>()?;
     m.add_function(wrap_pyfunction!(xxh3, m)?)?;
-
 
     // m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
     // m.add_function(wrap_pyfunction!(xxh3_128_hexdigest, m)?)?;

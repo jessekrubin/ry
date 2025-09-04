@@ -1,3 +1,4 @@
+use pyo3::prelude::*;
 use crate::py_digest::{PyDigest, PyHexDigest};
 use pyo3::exceptions::PyValueError;
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
@@ -221,7 +222,12 @@ pub fn xxh3_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyHexDige
 // }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    let py = m.py();
     m.add_class::<PyXxh3_64>()?;
+
+    // alias xxh3_64 as xxh3
+    let attr = m.getattr(intern!(py, "xxh3_64"))?;
+    m.add(intern!(py, "xxh3"), attr)?;
     // m.add_function(wrap_pyfunction!(, m)?)?;
 
     // m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
