@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-04T01:13:54.249808066+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-04T01:30:46.320066929+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -470,6 +470,12 @@ dumping, and async file I/O tools.</p>
 <li><code>ryo3-reqwest</code>
 <ul>
 <li>Add <code>jiter</code> parsing options to <code>Response.json()</code></li>
+</ul>
+</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>use <code>#[pyo3(warn(...))]</code> for deprecation warnings instead of doing it manually</li>
+<li>fixed utc methods to use <code>.with_time_zone(TimeZone::UTC)</code> instead of <code>.in_tz("UTC")</code></li>
 </ul>
 </li>
 </ul>

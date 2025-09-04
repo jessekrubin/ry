@@ -189,6 +189,12 @@
 <li>Add <code>jiter</code> parsing options to <code>Response.json()</code></li>
 </ul>
 </li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>use <code>#[pyo3(warn(...))]</code> for deprecation warnings instead of doing it manually</li>
+<li>fixed utc methods to use <code>.with_time_zone(TimeZone::UTC)</code> instead of <code>.in_tz("UTC")</code></li>
+</ul>
+</li>
 </ul>
 <hr />
 <h2 id="v0055-2025-09-03"><a class="header" href="#v0055-2025-09-03">v0.0.55 [2025-09-03]</a></h2>
