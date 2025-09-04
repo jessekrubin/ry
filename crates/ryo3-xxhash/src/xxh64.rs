@@ -2,7 +2,7 @@
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
-use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult, Python};
+use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
 use ryo3_core::PyLock;
 use std::sync::Mutex;
 use xxhash_rust::xxh64::Xxh64;
