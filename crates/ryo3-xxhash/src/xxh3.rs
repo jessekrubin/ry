@@ -245,7 +245,6 @@ pub fn xxh128_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResul
     xxh3_128_hexdigest(data, seed)
 }
 
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyXxh3>()?;
     m.add_function(wrap_pyfunction!(xxh3, m)?)?;
