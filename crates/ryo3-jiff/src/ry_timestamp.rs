@@ -1,4 +1,3 @@
-use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -226,9 +225,14 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    fn intz(&self, py: Python, time_zone_name: &str) -> PyResult<RyZoned> {
-        deprecation_warning_intz(py)?;
-        self.in_tz(time_zone_name)
+    #[pyo3(
+        warn(
+            message = "`intz` is deprecated, use `in_tz` instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
+        self.in_tz(tz)
     }
 
     #[staticmethod]
