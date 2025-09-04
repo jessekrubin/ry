@@ -8,13 +8,13 @@ pub struct PyDigest<T>(pub T);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyHexDigest<T>(pub T);
 
-impl <T> From<T> for PyDigest<T> {
+impl<T> From<T> for PyDigest<T> {
     fn from(t: T) -> Self {
         Self(t)
     }
 }
 
-impl <T> From<T> for PyHexDigest<T> {
+impl<T> From<T> for PyHexDigest<T> {
     fn from(t: T) -> Self {
         Self(t)
     }
@@ -33,21 +33,52 @@ macro_rules! impl_into_py_object_py_digest {
                 Ok(PyBytes::new(py, &bytes))
             }
         }
-
-        impl<'py> IntoPyObject<'py> for PyHexDigest<$t> {
-            type Target = PyString;
-            type Output = Bound<'py, Self::Target>;
-            type Error = PyErr;
-
-            fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-                let digest = self.0;
-                let s = format!("{digest:0$x}", $size * 2);
-                let pystr = pystring_fast_new(py, &s, true);
-                Ok(pystr)
-            }
-        }
     };
 }
+
 impl_into_py_object_py_digest!(u32, 4);
 impl_into_py_object_py_digest!(u64, 8);
 impl_into_py_object_py_digest!(u128, 16);
+
+impl<'py> IntoPyObject<'py> for PyHexDigest<u32> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let s = format!("{:016x}", self.0);
+        let pystr = pystring_fast_new(py, &s, true);
+        Ok(pystr)
+    }
+}
+
+
+impl<'py> IntoPyObject<'py> for PyHexDigest<u64> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let s = format!("{:032x}", self.0);
+        let pystr = pystring_fast_new(py, &s, true);
+        Ok(pystr)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let s = format!("{:064x}", self.0);
+        let pystr = pystring_fast_new(py, &s, true);
+        Ok(pystr)
+    }
+}
+// #[pyo3(signature = (data, *, seed = None))]
+// pub fn xxh3_64_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
+//     Ok(format!(
+//         "{:016x}",
+//         xxh3_64_with_seed(data.as_ref(), seed.unwrap_or(0))
+//     ))
