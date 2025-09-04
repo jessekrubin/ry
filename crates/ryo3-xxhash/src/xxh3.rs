@@ -1,9 +1,9 @@
+use crate::py_digest::PyDigest;
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap_pyfunction};
 use ryo3_core::PyLock;
 use std::sync::Mutex;
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder, xxh3_64_with_seed, xxh3_128_with_seed};
-use crate::py_digest::PyDigest;
 // ============================================================================
 
 #[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash", frozen)]

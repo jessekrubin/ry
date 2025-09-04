@@ -46,12 +46,11 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u32> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = format!("{:016x}", self.0);
+        let s = format!("{:08x}", self.0);
         let pystr = pystring_fast_new(py, &s, true);
         Ok(pystr)
     }
 }
-
 
 impl<'py> IntoPyObject<'py> for PyHexDigest<u64> {
     type Target = PyString;
@@ -59,7 +58,7 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u64> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = format!("{:032x}", self.0);
+        let s = format!("{:016x}", self.0);
         let pystr = pystring_fast_new(py, &s, true);
         Ok(pystr)
     }
@@ -71,7 +70,7 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = format!("{:064x}", self.0);
+        let s = format!("{:032x}", self.0);
         let pystr = pystring_fast_new(py, &s, true);
         Ok(pystr)
     }

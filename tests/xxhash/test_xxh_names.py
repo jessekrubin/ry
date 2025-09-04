@@ -7,7 +7,7 @@ import ry
 hashers = [
     (ry.xxhash.xxh32, "xxh32"),
     (ry.xxhash.xxh64, "xxh64"),
-    (ry.xxhash.xxh3, "xxh3"),
+    (ry.xxhash.xxh3_64, "xxh3_64"),
     (ry.xxhash.xxh3_128, "xxh3_128"),
 ]
 

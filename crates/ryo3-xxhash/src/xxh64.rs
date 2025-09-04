@@ -4,7 +4,7 @@ use crate::py_digest::{PyDigest, PyHexDigest};
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyModuleMethods, PyString};
-use pyo3::{pyfunction, wrap_pyfunction, Bound, PyResult, Python};
+use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
 use ryo3_core::PyLock;
 use std::hash::Hasher;
 use std::sync::Mutex;
@@ -156,7 +156,7 @@ impl PyXxh64 {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh3")
+        intern!(py, "xxh64")
     }
 
     #[classattr]

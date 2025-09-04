@@ -1,8 +1,8 @@
-use pyo3::prelude::*;
 use crate::py_digest::{PyDigest, PyHexDigest};
 use pyo3::exceptions::PyValueError;
-use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
-use pyo3::{intern, pyclass, pyfunction, pymethods, wrap_pyfunction, Bound, PyResult, Python};
+use pyo3::prelude::*;
+use pyo3::types::{PyModule, PyModuleMethods, PyString};
+use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap_pyfunction};
 use ryo3_core::PyLock;
 use std::hash::Hasher;
 use std::sync::Mutex;
@@ -60,7 +60,7 @@ impl PyXxh3_64 {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh3")
+        intern!(py, "xxh3_64")
     }
 
     #[classattr]
@@ -132,10 +132,7 @@ impl PyXxh3_64 {
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = None))]
-pub fn xxh3_64_digest(
-    data: ryo3_bytes::PyBytes,
-    seed: Option<u64>,
-) -> PyDigest<u64> {
+pub fn xxh3_64_digest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyDigest<u64> {
     let digest = twox_hash::XxHash3_64::oneshot_with_seed(seed.unwrap_or(0), data.as_ref());
     PyDigest(digest)
 }

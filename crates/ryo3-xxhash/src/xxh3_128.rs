@@ -58,7 +58,7 @@ impl PyXxh3_128 {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh3")
+        intern!(py, "xxh3_128")
     }
 
     #[classattr]

@@ -1,15 +1,15 @@
 #![doc = include_str!("../README.md")]
 use pyo3::types::PyModule;
 use pyo3::{Bound, PyResult};
+mod py_digest;
 #[cfg(feature = "xxh3")]
 pub mod xxh3;
 #[cfg(feature = "xxh32")]
 pub mod xxh32;
 mod xxh3_128;
+mod xxh3_64;
 #[cfg(feature = "xxh64")]
 pub mod xxh64;
-mod py_digest;
-mod xxh3_64;
 
 #[cfg_attr(
     not(any(feature = "xxh32", feature = "xxh64", feature = "xxh3")),

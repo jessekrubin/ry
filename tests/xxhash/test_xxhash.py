@@ -56,9 +56,9 @@ class TestXxh32Hasher:
         assert h.intdigest() != h2.intdigest()
         assert h.hexdigest() != h2.hexdigest()
 
-        assert h2.digest() == ry_xxh.Xxh32(b"helloworld").digest()
-        assert h2.intdigest() == ry_xxh.Xxh32(b"helloworld").intdigest()
-        assert h2.hexdigest() == ry_xxh.Xxh32(b"helloworld").hexdigest()
+        assert h2.digest() == ry_xxh.xxh32(b"helloworld").digest()
+        assert h2.intdigest() == ry_xxh.xxh32(b"helloworld").intdigest()
+        assert h2.hexdigest() == ry_xxh.xxh32(b"helloworld").hexdigest()
 
 
 def test_xxh32_digest() -> None:
