@@ -77,14 +77,14 @@ def test_xxhash_matches_ry_xxh128() -> None:
         for rec in XXHASH_TEST_DATA:
             data = _bytes_from_record(rec)
             assert (
-                ry.xxhash.Xxh3(data, seed=seed).digest128()
+                ry.xxhash.Xxh3_128(data, seed=seed).digest128()
                 == xxhash.xxh128(data, seed).digest()
             )
             assert (
-                ry.xxhash.Xxh3(data, seed=seed).intdigest128()
+                ry.xxhash.Xxh3_128(data, seed=seed).intdigest128()
                 == xxhash.xxh128(data, seed).intdigest()
             )
             assert (
-                ry.xxhash.Xxh3(data, seed=seed).hexdigest128()
+                ry.xxhash.Xxh3_128(data, seed=seed).hexdigest128()
                 == xxhash.xxh128(data, seed).hexdigest()
             )
