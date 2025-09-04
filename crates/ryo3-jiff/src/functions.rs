@@ -3,6 +3,7 @@ use crate::errors::map_py_value_err;
 use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime};
 use jiff::civil::Date;
 use jiff::{Span, Zoned};
+use jiff::tz::TimeZone;
 use pyo3::prelude::*;
 
 #[pyfunction]
@@ -90,9 +91,9 @@ pub fn now() -> RyZoned {
 
 /// Return `ZonedDateTime` for the current time in UTC.
 #[pyfunction]
-#[must_use]
 pub fn utcnow() -> RyZoned {
-    RyZoned::utcnow()
+    RyZoned::from(Zoned::now()
+        .with_time_zone(TimeZone::UTC))
 }
 
 #[expect(clippy::too_many_arguments)]

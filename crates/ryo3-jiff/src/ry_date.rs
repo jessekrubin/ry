@@ -11,18 +11,19 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
 use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
-use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
+use jiff::Zoned;
 use pyo3::basic::CompareOp;
-use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDict, PyDictMethods, PyString, PyTuple, PyType};
+use pyo3::prelude::{PyAnyMethods, PyBytesMethods};
+use pyo3::types::{PyDict, PyDictMethods, PyInt, PyTuple, PyType};
 use pyo3::{
-    Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, Python, intern, pyclass,
-    pymethods,
+    intern, pyclass, pymethods, Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult,
+    Python,
 };
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
+use jiff::tz::TimeZone;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -454,35 +455,45 @@ impl RyDate {
         self.0.iso_week_date().into()
     }
 
-    #[classmethod]
-    fn _validate<'py>(
-        cls: &Bound<'py, PyType>,
+    /// Try to create a Date from a variety of python objects
+    #[staticmethod]
+    fn try_from<'py>(
+        // cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-
-            let d = Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?;
-            return d;
-        } else if let Ok(v) = value.downcast::<RyDate>() {
-            let self_any = v.into_bound_py_any(py)?;
-
-            return Ok(self_any);
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(v) = value.downcast::<PyInt>() {
+            let i = v.extract::<i64>()?;
+            let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
+                jiff::Timestamp::from_second(i)
+            } else {
+                jiff::Timestamp::from_millisecond(i)
+            }
+            .map_err(map_py_value_err)?;
+            let zdt = ts.to_zoned(TimeZone::UTC);
+            let date = zdt.date();
+            Self::from(date).into_bound_py_any(py) //.map(Bound::into_any)
         } else if let Ok(d) = value.extract::<RyDateTime>() {
             let dt = d.date();
-            return dt.into_bound_py_any(py);
+            dt.into_bound_py_any(py)
         } else if let Ok(d) = value.extract::<RyZoned>() {
             let dt = d.date();
-            return dt.into_bound_py_any(py);
+            dt.into_bound_py_any(py)
         } else if let Ok(d) = value.extract::<Date>() {
-            let dt = Self::from_pydate(d);
-            return dt.into_bound_py_any(py);
+            Self::from_pydate(d).into_bound_py_any(py)
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(format!(
+            Err(pyo3::exceptions::PyTypeError::new_err(
                 "Invalid ry-date"
-            )))
+            ))
         }
     }
 
@@ -510,31 +521,34 @@ impl RyDate {
         let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
         let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
 
-        let to_string_ser_schema_kwargs = PyDict::new(py);
-        to_string_ser_schema_kwargs
-            .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        let to_string_ser_schema = core_schema.call_method(
-            intern!(py, "to_string_ser_schema"),
-            (),
-            Some(&to_string_ser_schema_kwargs),
-        )?;
+        // let core_schema =
+        // let to_string_ser_schema_kwargs = PyDict::new(py);
+        // to_string_ser_schema_kwargs
+        //     .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
+        // let to_string_ser_schema = core_schema.call_method(
+        //     intern!(py, "to_string_ser_schema"),
+        //     (),
+        //     Some(&to_string_ser_schema_kwargs),
+        // )?;
         let date_schema = core_schema.call_method(intern!(py, "date_schema"), (), None)?;
-        let validation_fn = cls.getattr(intern!(py, "_validate"))?;
+        let validation_fn = cls.getattr(intern!(py, "try_from"))?;
         // let cls_any = cls.into_bound_py_any(py)?;
-        let args = pyo3::types::PyTuple::new(py, vec![&validation_fn, &date_schema])?;
+        let args = PyTuple::new(py, vec![&validation_fn, &date_schema])?;
 
-
-        let string_serialization_schema = core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
+        let string_serialization_schema =
+            core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
         let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(intern!(py, "serialization"), &string_serialization_schema)?;
+        serialization_kwargs
+            .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
 
         // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
         // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
 
-        let res =
-            core_schema.call_method(intern!(py, "no_info_wrap_validator_function"), args,
-        Some(&serialization_kwargs))?;
-        return Ok(res);
+        core_schema.call_method(
+            intern!(py, "no_info_wrap_validator_function"),
+            args,
+            Some(&serialization_kwargs),
+        )
     }
 }
 

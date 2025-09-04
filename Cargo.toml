@@ -89,6 +89,7 @@ members = [
   "crates/ryo3-json",
   "crates/ryo3-macro-rules",
   "crates/ryo3-memchr",
+  "crates/ryo3-pydantic",
   "crates/ryo3-regex",
   "crates/ryo3-reqwest",
   "crates/ryo3-same-file",
@@ -135,6 +136,7 @@ ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-json = { path = "./crates/ryo3-json" }
 ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
 ryo3-memchr = { path = "crates/ryo3-memchr" }
+ryo3-pydantic = { path = "./crates/ryo3-pydantic" }
 ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
 ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-reqwest = { path = "./crates/ryo3-reqwest" }

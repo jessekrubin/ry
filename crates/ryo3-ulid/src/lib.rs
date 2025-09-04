@@ -2,6 +2,7 @@
 use pyo3::exceptions::{PyOverflowError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::types::{PyBytes, PyDict, PyModule, PyType};
 use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use ryo3_pydantic::GetPydanticCoreSchemaCls;
 use ryo3_uuid::{CPythonUuid, PyUuid};
 use std::fmt::Write;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -396,9 +397,133 @@ impl PyUlid {
         source: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
+        Self::get_pydantic_core_schema(cls, source, _handler)
+    }
+
+    #[classmethod]
+    fn _pydantic_validate<'py>(
+        cls: &Bound<'py, PyType>,
+        value: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        let ulid = if let Ok(pyint) = value.downcast::<pyo3::types::PyInt>() {
+            cls.call_method1(intern!(py, "from_int"), (pyint,))
+        } else if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            cls.call_method1(intern!(py, "from_str"), (pystr,))
+        } else if let Ok(pyulid) = value.downcast::<Self>() {
+            pyulid.into_bound_py_any(py)
+        } else if let Ok(pybytes) = value.downcast::<PyBytes>() {
+            cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
+        } else {
+            Err(PyTypeError::new_err("Unrecognized format for ULID"))
+        }?;
+        handler.call1((ulid,))
+    }
+
+    #[classmethod]
+    fn _pydantic_validate_strict<'py>(
+        cls: &Bound<'py, PyType>,
+        value: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        let ulid = if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            cls.call_method1(intern!(py, "from_str"), (pystr,))
+        } else if let Ok(pyulid) = value.downcast::<Self>() {
+            pyulid.into_bound_py_any(py)
+        } else {
+            Err(PyValueError::new_err(
+                "Unrecognized format for ULID (strict)",
+            ))
+        }?;
+        handler.call1((ulid,))
+    }
+
+    // #[staticmethod]
+    // fn _pydantic_validate<'py>(
+    //     // cls: &Bound<'py, PyType>,
+    //     value: &Bound<'py, PyAny>,
+    //     handler: &Bound<'py, PyAny>,
+    // ) -> PyResult<Bound<'py, PyAny>> {
+    //     let py = value.py();
+    //     let ulid = if let Ok(pyint) = value.downcast::<pyo3::types::PyInt>() {
+    //         Self::from_int(pyint.extract::<u128>()?).into_bound_py_any(py)
+    //
+    //         // cls.call_method1(intern!(py, "from_int"), (pyint,))
+    //     } else if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+    //         let str = pystr.to_str()?;
+    //         Self::from_str(str).map(|s| s.into_bound_py_any(py))?
+    //
+    //         // cls.call_method1(intern!(py, "from_str"), (pystr,))
+    //     } else if let Ok(pyulid) = value.downcast::<Self>() {
+    //         pyulid.into_bound_py_any(py)
+    //     } else if let Ok(pybytes) = value.downcast::<PyBytes>() {
+    //         let slice: [u8; 16] = pybytes
+    //             .as_bytes()
+    //             .try_into()
+    //             .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
+    //         Self::from_bytes(slice).into_bound_py_any(py)
+    //         // cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
+    //     } else {
+    //         Err(PyTypeError::new_err("Unrecognized format for ULID"))
+    //     }?;
+    //     handler.call1((ulid,))
+    // }
+    //
+    // #[staticmethod]
+    // fn _pydantic_validate_strict<'py>(
+    //     // cls: &Bound<'py, PyType>,
+    //     value: &Bound<'py, PyAny>,
+    //     handler: &Bound<'py, PyAny>,
+    // ) -> PyResult<Bound<'py, PyAny>> {
+    //     let py = value.py();
+    //     let ulid = if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+    //         // Self::from_str()
+    //         let str = pystr.to_str()?;
+    //         Self::from_str(str).map(|s| s.into_bound_py_any(py))?
+    //         // cls.call_method1(intern!(py, "from_str"), (pystr,))
+    //     } else if let Ok(pyulid) = value.downcast::<Self>() {
+    //         pyulid.into_bound_py_any(py)
+    //     } else {
+    //         Err(PyValueError::new_err(
+    //             "Unrecognized format for ULID (strict)",
+    //         ))
+    //     }?;
+    //     handler.call1((ulid,))
+    // }
+}
+
+impl From<Ulid> for PyUlid {
+    fn from(ulid: Ulid) -> Self {
+        Self(ulid)
+    }
+}
+
+pub struct UuidLike(pub(crate) Uuid);
+
+impl FromPyObject<'_> for UuidLike {
+    fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(uuid_like) = obj.downcast::<PyUuid>() {
+            return Ok(Self(uuid_like.borrow().0));
+        } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
+            return Ok(Self(py_uuid.into()));
+        }
+        Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
+    }
+}
+
+impl GetPydanticCoreSchemaCls for PyUlid {
+    fn get_pydantic_core_schema<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let py = source.py();
-        let core_schema = py.import(intern!(py, "pydantic_core"))?;
-        let core_schema = core_schema.getattr(intern!(py, "core_schema"))?;
+        // let core_schema = py.import(intern!(py, "pydantic_core.core_schema"))?;
+        let core_schema = ryo3_pydantic::core_schema(py)?;
+
+        // let core_schema = core_schema.getattr(intern!(py, "core_schema"))?;
 
         // oy vey this is hideous, but it works
         let str_schema_kwargs = PyDict::new(py);
@@ -480,65 +605,6 @@ impl PyUlid {
             Some(&ulid_schema_kwargs),
         )?;
         Ok(ulid_schema)
-    }
-
-    #[classmethod]
-    fn _pydantic_validate<'py>(
-        cls: &Bound<'py, PyType>,
-        value: &Bound<'py, PyAny>,
-        handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let py = value.py();
-        let ulid = if let Ok(pyint) = value.downcast::<pyo3::types::PyInt>() {
-            cls.call_method1(intern!(py, "from_int"), (pyint,))
-        } else if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
-            cls.call_method1(intern!(py, "from_str"), (pystr,))
-        } else if let Ok(pyulid) = value.downcast::<Self>() {
-            pyulid.into_bound_py_any(py)
-        } else if let Ok(pybytes) = value.downcast::<PyBytes>() {
-            cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
-        } else {
-            Err(PyTypeError::new_err("Unrecognized format for ULID"))
-        }?;
-        handler.call1((ulid,))
-    }
-
-    #[classmethod]
-    fn _pydantic_validate_strict<'py>(
-        cls: &Bound<'py, PyType>,
-        value: &Bound<'py, PyAny>,
-        handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let py = value.py();
-        let ulid = if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
-            cls.call_method1(intern!(py, "from_str"), (pystr,))
-        } else if let Ok(pyulid) = value.downcast::<Self>() {
-            pyulid.into_bound_py_any(py)
-        } else {
-            Err(PyValueError::new_err(
-                "Unrecognized format for ULID (strict)",
-            ))
-        }?;
-        handler.call1((ulid,))
-    }
-}
-
-impl From<Ulid> for PyUlid {
-    fn from(ulid: Ulid) -> Self {
-        Self(ulid)
-    }
-}
-
-pub struct UuidLike(pub(crate) Uuid);
-
-impl FromPyObject<'_> for UuidLike {
-    fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(uuid_like) = obj.downcast::<PyUuid>() {
-            return Ok(Self(uuid_like.borrow().0));
-        } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
-            return Ok(Self(py_uuid.into()));
-        }
-        Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
     }
 }
 

@@ -212,7 +212,7 @@ impl RyZoned {
         RyTimestamp::from(self.0.timestamp())
     }
 
-    pub (crate) fn date(&self) -> RyDate {
+    pub(crate) fn date(&self) -> RyDate {
         RyDate::from(self.0.date())
     }
 
