@@ -13,6 +13,7 @@ description = "python + ulid crate (https://crates.io/crates/ulid)"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
+ryo3-pydantic = { workspace = true, features = [] }
 ryo3-uuid.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }
 ulid.workspace = true

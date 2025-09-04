@@ -1,22 +1,18 @@
 #![doc = include_str!("../README.md")]
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyModule};
+use pyo3::sync::PyOnceLock;
+use pyo3::types::PyType;
+use pyo3::{PyAny, PyResult};
 
-#[pyfunction]
-#[must_use]
-pub fn unindent(input: &str) -> String {
-    ::unindent::unindent(input)
+static CORE_SCHEMA: PyOnceLock<Py<PyModule>> = PyOnceLock::new();
+pub fn core_schema(py: Python<'_>) -> PyResult<&Bound<'_, PyModule>> {
+    CORE_SCHEMA.import(py, "pydantic_core", "core_schema")
 }
 
-#[pyfunction]
-#[must_use]
-pub fn unindent_bytes<'py>(py: Python<'py>, input: &[u8]) -> Bound<'py, PyBytes> {
-    let b = ::unindent::unindent_bytes(input);
-    PyBytes::new(py, &b)
-}
-
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(crate::unindent, m)?)?;
-    m.add_function(wrap_pyfunction!(crate::unindent_bytes, m)?)?;
-    Ok(())
+pub trait GetPydanticCoreSchemaCls {
+    fn get_pydantic_core_schema<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>>;
 }

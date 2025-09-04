@@ -2045,6 +2045,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryo3-pydantic"
+version = "0.0.55"
+dependencies = [
+ "pyo3",
+]
+
+[[package]]
 name = "ryo3-quick-maths"
 version = "0.0.55"
 dependencies = [
@@ -2163,6 +2170,7 @@ name = "ryo3-ulid"
 version = "0.0.55"
 dependencies = [
  "pyo3",
+ "ryo3-pydantic",
  "ryo3-uuid",
  "serde",
  "ulid",
