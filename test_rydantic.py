@@ -4,6 +4,7 @@ Adapted from pydantic's own tests:
  - https://github.com/pydantic/pydantic/blob/main/tests/test_datetime.py
 
 """
+
 import datetime as pydt
 import typing as t
 
@@ -18,20 +19,23 @@ class DateModel(pydantic.BaseModel):
 
 
 @pytest.mark.parametrize(
-    'value,result',
+    "value,result",
     [
         # Valid inputs
         (1_493_942_400, ry.date(2017, 5, 5)),
         (1_493_942_400_000, ry.date(2017, 5, 5)),
         (0, ry.date(1970, 1, 1)),
-        ('2012-04-23', ry.date(2012, 4, 23)),
-        (b'2012-04-23', ry.date(2012, 4, 23)),
+        ("2012-04-23", ry.date(2012, 4, 23)),
+        (b"2012-04-23", ry.date(2012, 4, 23)),
         (pydt.date(2012, 4, 9), ry.date(2012, 4, 9)),
         (pydt.datetime(2012, 4, 9, 0, 0), ry.date(2012, 4, 9)),
         (ry.date(2012, 4, 9), ry.date(2012, 4, 9)),
         (ry.datetime(2012, 4, 9, 0, 0, 0), ry.date(2012, 4, 9)),
-        (ry.datetime(2012, 4, 9, 0, 0, 0).in_tz('America/New_York'), ry.date(2012, 4, 9)),
-        (ry.datetime(2012, 4, 9, 0, 0, 0).in_tz('UTC'), ry.date(2012, 4, 9)),
+        (
+            ry.datetime(2012, 4, 9, 0, 0, 0).in_tz("America/New_York"),
+            ry.date(2012, 4, 9),
+        ),
+        (ry.datetime(2012, 4, 9, 0, 0, 0).in_tz("UTC"), ry.date(2012, 4, 9)),
         # Invalid inputs
         # (pydt.datetime(2012, 4, 9, 12, 15), Err('Datetimes provided to dates should have zero time - e.g. be exact dates')),
         # ('x20120423', Err('Input should be a valid date or datetime, input is too short')),
