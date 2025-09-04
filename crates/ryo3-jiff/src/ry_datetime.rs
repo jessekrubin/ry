@@ -1,4 +1,3 @@
-use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_datetime_difference::{DateTimeDifferenceArg, RyDateTimeDifference};
@@ -246,8 +245,13 @@ impl RyDateTime {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn intz(&self, py: Python, tz: &str) -> PyResult<RyZoned> {
-        deprecation_warning_intz(py)?;
+    #[pyo3(
+        warn(
+            message = "`intz` is deprecated, use `in_tz` instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
         self.in_tz(tz)
     }
 

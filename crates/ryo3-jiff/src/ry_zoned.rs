@@ -1,4 +1,3 @@
-use crate::deprecations::deprecation_warning_intz;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_datetime::RyDateTime;
@@ -95,13 +94,9 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn utcnow() -> PyResult<Self> {
-        Zoned::now()
-            .in_tz("UTC")
-            .map(Self::from)
-            .map_err(map_py_value_err)
+    pub(crate) fn utcnow() -> Self {
+        Self::from(Zoned::now().with_time_zone(TimeZone::UTC))
     }
-
     #[staticmethod]
     #[pyo3(signature = (timestamp, time_zone))]
     fn from_parts(timestamp: &RyTimestamp, time_zone: &RyTimeZone) -> Self {
@@ -261,8 +256,13 @@ impl RyZoned {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
-    fn intz(&self, py: Python, tz: &str) -> PyResult<Self> {
-        deprecation_warning_intz(py)?;
+    #[pyo3(
+        warn(
+            message = "`intz` is deprecated, use `in_tz` instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn intz(&self, tz: &str) -> PyResult<Self> {
         self.in_tz(tz)
     }
 
@@ -270,11 +270,8 @@ impl RyZoned {
         self.in_tz(tz)
     }
 
-    fn inutc(&self) -> PyResult<Self> {
-        self.0
-            .in_tz("UTC")
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    fn inutc(&self) -> Self {
+        Self::from(self.0.with_time_zone(TimeZone::UTC))
     }
 
     fn __sub__<'py>(

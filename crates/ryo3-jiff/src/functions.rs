@@ -90,11 +90,9 @@ pub fn now() -> RyZoned {
 
 /// Return `ZonedDateTime` for the current time in UTC.
 #[pyfunction]
-pub fn utcnow() -> PyResult<RyZoned> {
-    Zoned::now()
-        .in_tz("UTC")
-        .map(RyZoned::from)
-        .map_err(map_py_value_err)
+#[must_use]
+pub fn utcnow() -> RyZoned {
+    RyZoned::utcnow()
 }
 
 #[expect(clippy::too_many_arguments)]
