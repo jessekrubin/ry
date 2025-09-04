@@ -1,4 +1,4 @@
-#![allow(clippy::needless_pass_by_value)]
+#![expect(clippy::needless_pass_by_value)]
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods};
 use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
 
@@ -18,9 +18,9 @@ pub struct PyXxh32 {
 #[pymethods]
 impl PyXxh32 {
     #[new]
-    #[pyo3(signature = (b = None, seed = None))]
-    fn py_new(b: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
-        match b {
+    #[pyo3(signature = (data = None, *, seed = None))]
+    fn py_new(data: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
+        match data {
             Some(s) => {
                 let seed = seed.unwrap_or(0);
                 let mut hasher = Xxh32::new(seed);
@@ -84,9 +84,9 @@ impl PyXxh32 {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, s: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&self, data: ryo3_bytes::PyBytes) -> PyResult<()> {
         let mut hasher = self.hasher.py_lock()?;
-        hasher.update(s.as_ref());
+        hasher.update(data.as_ref());
         Ok(())
     }
 
@@ -109,34 +109,38 @@ impl PyXxh32 {
 
 /// Create a new xxh32 hasher
 #[pyfunction]
-#[pyo3(signature = (s = None, seed = 0))]
-pub fn xxh32(s: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyXxh32 {
-    PyXxh32::py_new(s, seed)
+#[pyo3(signature = (data = None, seed = 0))]
+pub fn xxh32(data: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> PyXxh32 {
+    PyXxh32::py_new(data, seed)
 }
 
+// ====================================================================================
+// ONCE SHOT FUNCTIONS
+// ====================================================================================
+
 #[pyfunction]
-#[pyo3(signature = (b, seed = None))]
+#[pyo3(signature = (data, *, seed = None))]
 pub fn xxh32_digest(
     py: Python<'_>,
-    b: ryo3_bytes::PyBytes,
+    data: ryo3_bytes::PyBytes,
     seed: Option<u32>,
 ) -> PyResult<Bound<'_, PyBytes>> {
-    let v = xxhash_rust::xxh32::xxh32(b.as_ref(), seed.unwrap_or(0));
+    let v = xxhash_rust::xxh32::xxh32(data.as_ref(), seed.unwrap_or(0));
     Ok(PyBytes::new(py, &v.to_be_bytes()))
 }
 
 #[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh32_intdigest(b: ryo3_bytes::PyBytes, seed: Option<u32>) -> PyResult<u32> {
-    Ok(xxhash_rust::xxh32::xxh32(b.as_ref(), seed.unwrap_or(0)))
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh32_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u32>) -> PyResult<u32> {
+    Ok(xxhash_rust::xxh32::xxh32(data.as_ref(), seed.unwrap_or(0)))
 }
 
 #[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh32_hexdigest(b: ryo3_bytes::PyBytes, seed: Option<u32>) -> PyResult<String> {
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh32_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u32>) -> PyResult<String> {
     Ok(format!(
         "{:08x}",
-        xxhash_rust::xxh32::xxh32(b.as_ref(), seed.unwrap_or(0))
+        xxhash_rust::xxh32::xxh32(data.as_ref(), seed.unwrap_or(0))
     ))
 }
 

@@ -1,111 +1,8 @@
-#![allow(clippy::needless_pass_by_value)]
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap_pyfunction};
 use ryo3_core::PyLock;
 use std::sync::Mutex;
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder, xxh3_64_with_seed, xxh3_128_with_seed};
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_64_digest(
-    py: Python<'_>,
-    b: ryo3_bytes::PyBytes,
-    seed: Option<u64>,
-) -> PyResult<Bound<'_, PyBytes>> {
-    let v = xxh3_64_with_seed(b.as_ref(), seed.unwrap_or(0));
-    Ok(PyBytes::new(py, &v.to_be_bytes()))
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_64_intdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u64> {
-    Ok(xxh3_64_with_seed(b.as_ref(), seed.unwrap_or(0)))
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_64_hexdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
-    Ok(format!(
-        "{:016x}",
-        xxh3_64_with_seed(b.as_ref(), seed.unwrap_or(0))
-    ))
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_128_digest(
-    py: Python<'_>,
-    b: ryo3_bytes::PyBytes,
-    seed: Option<u64>,
-) -> PyResult<Bound<'_, PyBytes>> {
-    let v = xxh3_128_with_seed(b.as_ref(), seed.unwrap_or(0));
-    Ok(PyBytes::new(py, &v.to_be_bytes()))
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_128_intdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u128> {
-    Ok(xxh3_128_with_seed(b.as_ref(), seed.unwrap_or(0)))
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_128_hexdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
-    Ok(format!(
-        "{:032x}",
-        xxh3_128_with_seed(b.as_ref(), seed.unwrap_or(0))
-    ))
-}
-
-// =======
-// ALIASES
-// =======
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_digest(
-    py: Python<'_>,
-    b: ryo3_bytes::PyBytes,
-    seed: Option<u64>,
-) -> PyResult<Bound<'_, PyBytes>> {
-    let v = xxh3_64_with_seed(b.as_ref(), seed.unwrap_or(0));
-    Ok(PyBytes::new(py, &v.to_be_bytes()))
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_intdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u64> {
-    xxh3_64_intdigest(b, seed)
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh3_hexdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
-    xxh3_64_hexdigest(b, seed)
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh128_digest(
-    py: Python<'_>,
-    b: ryo3_bytes::PyBytes,
-    seed: Option<u64>,
-) -> PyResult<Bound<'_, PyBytes>> {
-    let v = xxh3_128_with_seed(b.as_ref(), seed.unwrap_or(0));
-    Ok(PyBytes::new(py, &v.to_be_bytes()))
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh128_intdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u128> {
-    xxh3_128_intdigest(b, seed)
-}
-
-#[pyfunction]
-#[pyo3(signature = (b, seed = None))]
-pub fn xxh128_hexdigest(b: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
-    xxh3_128_hexdigest(b, seed)
-}
-
 // ============================================================================
 
 #[pyclass(name = "Xxh3", module = "ry.ryo3.xxhash", frozen)]
@@ -117,9 +14,9 @@ pub struct PyXxh3 {
 #[pymethods]
 impl PyXxh3 {
     #[new]
-    #[pyo3(signature = (b = None, seed = 0, secret = None))]
+    #[pyo3(signature = (data = None, *, seed = 0, secret = None))]
     fn py_new(
-        b: Option<ryo3_bytes::PyBytes>,
+        data: Option<ryo3_bytes::PyBytes>,
         seed: Option<u64>,
         secret: Option<[u8; 192]>,
     ) -> Self {
@@ -128,7 +25,7 @@ impl PyXxh3 {
             Some(s) => Xxh3Builder::new().with_seed(seed).with_secret(s).build(),
             None => Xxh3Builder::new().with_seed(seed).build(),
         };
-        match b {
+        match data {
             Some(s) => {
                 let mut hasher = h;
                 hasher.update(s.as_ref());
@@ -203,10 +100,10 @@ impl PyXxh3 {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, b: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&self, data: ryo3_bytes::PyBytes) -> PyResult<()> {
         // self.hasher.update(b.as_ref());
         let mut hasher = self.hasher.py_lock()?;
-        hasher.update(b.as_ref());
+        hasher.update(data.as_ref());
         Ok(())
     }
 
@@ -226,14 +123,128 @@ impl PyXxh3 {
 }
 
 #[pyfunction]
-#[pyo3(signature = (s = None, seed = 0, secret = None))]
+#[pyo3(signature = (data = None, *, seed = 0, secret = None))]
 pub fn xxh3(
-    s: Option<ryo3_bytes::PyBytes>,
+    data: Option<ryo3_bytes::PyBytes>,
     seed: Option<u64>,
     secret: Option<[u8; 192]>,
 ) -> PyXxh3 {
-    PyXxh3::py_new(s, seed, secret)
+    PyXxh3::py_new(data, seed, secret)
 }
+
+// ====================================================================================
+// ONCE SHOT FUNCTIONS
+// ====================================================================================
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_64_digest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: Option<u64>,
+) -> PyResult<Bound<'_, PyBytes>> {
+    let v = xxh3_64_with_seed(data.as_ref(), seed.unwrap_or(0));
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_64_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u64> {
+    Ok(xxh3_64_with_seed(data.as_ref(), seed.unwrap_or(0)))
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_64_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
+    Ok(format!(
+        "{:016x}",
+        xxh3_64_with_seed(data.as_ref(), seed.unwrap_or(0))
+    ))
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_128_digest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: Option<u64>,
+) -> PyResult<Bound<'_, PyBytes>> {
+    let v = xxh3_128_with_seed(data.as_ref(), seed.unwrap_or(0));
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_128_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u128> {
+    Ok(xxh3_128_with_seed(data.as_ref(), seed.unwrap_or(0)))
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_128_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
+    Ok(format!(
+        "{:032x}",
+        xxh3_128_with_seed(data.as_ref(), seed.unwrap_or(0))
+    ))
+}
+
+// =======
+// ALIASES
+// =======
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_digest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: Option<u64>,
+) -> PyResult<Bound<'_, PyBytes>> {
+    let v = xxh3_64_with_seed(data.as_ref(), seed.unwrap_or(0));
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u64> {
+    xxh3_64_intdigest(data, seed)
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh3_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
+    xxh3_64_hexdigest(data, seed)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh128_digest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: Option<u64>,
+) -> PyResult<Bound<'_, PyBytes>> {
+    let v = xxh3_128_with_seed(data.as_ref(), seed.unwrap_or(0));
+    Ok(PyBytes::new(py, &v.to_be_bytes()))
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh128_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<u128> {
+    xxh3_128_intdigest(data, seed)
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, *, seed = None))]
+pub fn xxh128_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
+    xxh3_128_hexdigest(data, seed)
+}
+
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyXxh3>()?;
