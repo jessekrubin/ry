@@ -111,7 +111,6 @@ pub fn xxh64(data: Option<ryo3_bytes::PyBytes>, seed: Option<u64>) -> PyResult<P
     Ok(PyXxh64::py_new(data, seed))
 }
 
-
 // ====================================================================================
 // ONCE SHOT FUNCTIONS
 // ====================================================================================
@@ -140,7 +139,6 @@ pub fn xxh64_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult
         xxhash_rust::xxh64::xxh64(data.as_ref(), seed.unwrap_or(0))
     ))
 }
-
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyXxh64>()?;
