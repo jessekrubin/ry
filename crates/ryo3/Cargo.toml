@@ -100,6 +100,7 @@ dev = ["dep:ryo3-dev"]
 ry = [
   "all",
   "dev",
+  "ryo3-xxhash/ry"
 ] # `ry` uses all features
 
 # wrappers
