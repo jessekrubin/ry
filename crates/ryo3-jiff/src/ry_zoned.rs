@@ -94,8 +94,8 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    pub(crate) fn utcnow() -> RyZoned {
-        RyZoned::from(Zoned::now().with_time_zone(TimeZone::UTC))
+    pub(crate) fn utcnow() -> Self {
+        Self::from(Zoned::now().with_time_zone(TimeZone::UTC))
     }
     #[staticmethod]
     #[pyo3(signature = (timestamp, time_zone))]

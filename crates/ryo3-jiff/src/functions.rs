@@ -90,6 +90,7 @@ pub fn now() -> RyZoned {
 
 /// Return `ZonedDateTime` for the current time in UTC.
 #[pyfunction]
+#[must_use]
 pub fn utcnow() -> RyZoned {
     RyZoned::utcnow()
 }
