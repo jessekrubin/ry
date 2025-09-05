@@ -9,7 +9,6 @@ use pyo3::types::PyDict;
 use ryo3_bytes::PyBytes;
 use ryo3_std::fs::PyMetadata;
 use std::path::PathBuf;
-use tokio::fs::OpenOptions;
 use tracing::warn;
 
 pub mod file;
@@ -190,8 +189,7 @@ pub fn aiopen<'py>(
             "aiopen text mode not implemented",
         ));
     }
-    // let open_options : OpenOptions
-    PyAsyncFile::new(path, mode.into())?.into_bound_py_any(py)
+    PyAsyncFile::new(path, mode.into()).into_bound_py_any(py)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

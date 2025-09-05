@@ -1,7 +1,5 @@
 mod file_read_stream;
-mod open_options;
 use crate::fs::file_read_stream::PyFileReadStream;
-use open_options::PyOpenOptions;
 use pyo3::exceptions::{
     PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError, PyValueError,
 };
@@ -63,7 +61,7 @@ impl PyFileType {
     }
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let file_type_dict = pyo3::types::PyDict::new(py);
+        let file_type_dict = PyDict::new(py);
         file_type_dict.set_item(intern!(py, "is_dir"), self.is_dir())?;
         file_type_dict.set_item(intern!(py, "is_file"), self.is_file())?;
         file_type_dict.set_item(intern!(py, "is_symlink"), self.is_symlink())?;

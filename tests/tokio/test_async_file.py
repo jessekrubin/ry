@@ -17,12 +17,12 @@ if TYPE_CHECKING:
 
 @pytest.mark.anyio
 async def test_write_and_read(tmp_path: Path) -> None:
-    f = AsyncFile(tmp_path / "file.txt", "w+")
+    f = AsyncFile(tmp_path / "file.txt", "wb+")
     await f.open()
     await f.write(b"hello\nworld\n")
     await f.close()
 
-    f = AsyncFile(tmp_path / "file.txt", "r")
+    f = AsyncFile(tmp_path / "file.txt", "rb")
     await f.open()
     data = await f.read()
     assert data == b"hello\nworld\n"
@@ -31,12 +31,12 @@ async def test_write_and_read(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 async def test_read_size(tmp_path: Path) -> None:
-    f = AsyncFile(tmp_path / "file.txt", "w+")
+    f = AsyncFile(tmp_path / "file.txt", "wb+")
     await f.open()
     await f.write(b"1234567890")
     await f.close()
 
-    f = AsyncFile(tmp_path / "file.txt", "r")
+    f = AsyncFile(tmp_path / "file.txt", "rb")
     await f.open()
     part = await f.read(4)
     assert part == b"1234"
@@ -48,12 +48,12 @@ async def test_read_size(tmp_path: Path) -> None:
 async def test_async_iteration(tmp_path: Path) -> None:
     temp_file_path = tmp_path / "test_file.txt"
     lines = b"line1\nline2\nline3\n"
-    f = AsyncFile(temp_file_path, "w+")
+    f = AsyncFile(temp_file_path, "wb+")
     await f.open()
     await f.write(lines)
     await f.close()
 
-    f = AsyncFile(temp_file_path, "r")
+    f = AsyncFile(temp_file_path, "rb")
     await f.open()
 
     collected = []
@@ -65,10 +65,10 @@ async def test_async_iteration(tmp_path: Path) -> None:
 @pytest.mark.anyio
 async def test_context_manager(tmp_path: Path) -> None:
     temp_file_path = tmp_path / "test_file.txt"
-    async with AsyncFile(temp_file_path, "w") as f:
+    async with AsyncFile(temp_file_path, "wb") as f:
         await f.write(b"ctx test")
 
-    async with AsyncFile(temp_file_path, "r") as f:
+    async with AsyncFile(temp_file_path, "rb") as f:
         contents = await f.read()
         assert contents == b"ctx test"
 
@@ -76,7 +76,7 @@ async def test_context_manager(tmp_path: Path) -> None:
 @pytest.mark.anyio
 async def test_fail_read_before_open(tmp_path: Path) -> None:
     temp_file_path = tmp_path / "test_file.txt"
-    f = AsyncFile(temp_file_path, "r")
+    f = AsyncFile(temp_file_path, "rb")
     with pytest.raises(RuntimeError):
         await f.read()
 

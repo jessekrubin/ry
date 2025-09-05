@@ -170,7 +170,6 @@ impl PyAsyncFileInner {
         Ok(buf.len())
     }
 
-
     fn get_file_mut(&mut self) -> PyResult<&mut BufStream<File>> {
         match self.state {
             FileState::Open(ref mut file) => Ok(file),
@@ -209,16 +208,16 @@ pub struct PyAsyncFile {
 }
 
 impl PyAsyncFile {
-    pub(crate) fn new(p: PathBuf, options: PyOpenOptions) -> PyResult<Self> {
+    pub(crate) fn new(p: PathBuf, options: PyOpenOptions) -> Self {
         let inner = PyAsyncFileInner {
             state: FileState::Closed,
             path: p,
             open_options: options,
         };
-        Ok(Self {
+        Self {
             props: AsyncFileProperties::from(&inner.open_options),
             inner: Arc::new(Mutex::new(inner)),
-        })
+        }
     }
 }
 
@@ -227,7 +226,12 @@ impl PyAsyncFile {
     #[new]
     #[pyo3(signature = (p, mode= PyOpenMode::default()))]
     fn py_new(p: PathBuf, mode: PyOpenMode) -> PyResult<Self> {
-        Self::new(p, mode.into())
+        if !mode.is_binary() {
+            return Err(PyNotImplementedError::new_err(
+                "Text mode not implemented for AsyncFile",
+            ));
+        }
+        Ok(Self::new(p, mode.into()))
     }
 
     /// This is a coroutine that returns `self` when awaited... so you
@@ -373,7 +377,7 @@ impl PyAsyncFile {
         })
     }
 
-    fn readable<'py>(&self, py: Python<'py>) -> bool {
+    fn readable(&self) -> bool {
         self.props.readable
     }
 
@@ -446,7 +450,7 @@ impl PyAsyncFile {
         })
     }
 
-    fn seekable<'py>(&'py self) -> bool {
+    fn seekable(&self) -> bool {
         // TODO MAKE NOT ALWAYS TRUE???
         self.props.seekable
     }
@@ -482,7 +486,7 @@ impl PyAsyncFile {
         })
     }
 
-    fn writable<'py>(&'py self, py: Python<'py>) -> bool {
+    fn writable(&self) -> bool {
         self.props.writable
     }
 }

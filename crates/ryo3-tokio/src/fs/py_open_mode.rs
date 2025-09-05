@@ -9,6 +9,15 @@
 use pyo3::prelude::*;
 use std::str::FromStr;
 
+trait OpenOptionsLike {
+    fn append(&self) -> bool;
+    fn create(&self) -> bool;
+    fn create_new(&self) -> bool;
+    fn read(&self) -> bool;
+    fn truncate(&self) -> bool;
+    fn write(&self) -> bool;
+}
+
 #[derive(Debug, Clone, Copy)]
 #[expect(clippy::struct_excessive_bools)]
 pub(crate) struct PyOpenOptions {
@@ -42,7 +51,7 @@ pub enum PyOpenMode {
 }
 
 impl PyOpenMode {
-    pub fn is_binary(&self) -> bool {
+    pub fn is_binary(self) -> bool {
         matches!(
             self,
             Self::AppendBinary
@@ -53,6 +62,82 @@ impl PyOpenMode {
                 | Self::WriteBinaryPlus
                 | Self::ExclusiveBinary
                 | Self::ExclusiveBinaryPlus
+        )
+    }
+}
+
+impl OpenOptionsLike for PyOpenMode {
+    fn append(&self) -> bool {
+        matches!(
+            self,
+            Self::AppendBinary | Self::AppendBinaryPlus | Self::AppendText | Self::AppendTextPlus
+        )
+    }
+
+    fn create(&self) -> bool {
+        matches!(
+            self,
+            Self::AppendBinary
+                | Self::AppendBinaryPlus
+                | Self::AppendText
+                | Self::AppendTextPlus
+                | Self::WriteBinary
+                | Self::WriteBinaryPlus
+                | Self::WriteText
+                | Self::WriteTextPlus
+        )
+    }
+
+    fn create_new(&self) -> bool {
+        matches!(
+            self,
+            Self::ExclusiveBinary
+                | Self::ExclusiveBinaryPlus
+                | Self::ExclusiveText
+                | Self::ExclusiveTextPlus
+        )
+    }
+
+    fn read(&self) -> bool {
+        matches!(
+            self,
+            Self::AppendBinaryPlus
+                | Self::AppendTextPlus
+                | Self::ReadBinary
+                | Self::ReadBinaryPlus
+                | Self::ReadText
+                | Self::ReadTextPlus
+                | Self::WriteBinaryPlus
+                | Self::WriteTextPlus
+                | Self::ExclusiveBinaryPlus
+                | Self::ExclusiveTextPlus
+        )
+    }
+
+    fn truncate(&self) -> bool {
+        matches!(
+            self,
+            Self::WriteBinary | Self::WriteBinaryPlus | Self::WriteText | Self::WriteTextPlus
+        )
+    }
+
+    fn write(&self) -> bool {
+        matches!(
+            self,
+            Self::AppendBinary
+                | Self::AppendBinaryPlus
+                | Self::AppendText
+                | Self::AppendTextPlus
+                | Self::ReadBinaryPlus
+                | Self::ReadTextPlus
+                | Self::WriteBinary
+                | Self::WriteBinaryPlus
+                | Self::WriteText
+                | Self::WriteTextPlus
+                | Self::ExclusiveBinary
+                | Self::ExclusiveBinaryPlus
+                | Self::ExclusiveText
+                | Self::ExclusiveTextPlus
         )
     }
 }
@@ -81,7 +166,7 @@ impl std::fmt::Display for PyOpenMode {
     }
 }
 
-const ERR_INVALID_PYTHON_OPEN_MODE: &'static str = "Invalid python open mode string; valid modes are: ab, ab+, at, at+, rb, rb+, rt, rt+, wb, wb+, wt, wt+, xb, xb+, xt, xt+";
+const ERR_INVALID_PYTHON_OPEN_MODE: &str = "Invalid python open mode string; valid modes are: ab, ab+, at, at+, rb, rb+, rt, rt+, wb, wb+, wt, wt+, xb, xb+, xt, xt+";
 impl FromStr for PyOpenMode {
     type Err = &'static str;
 
@@ -144,149 +229,24 @@ pub(super) fn cannonical_open_mode(s: &str) -> Option<&'static str> {
 impl FromPyObject<'_> for PyOpenMode {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         let s: &str = ob.extract()?;
-        PyOpenMode::from_str(s).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
+        Self::from_str(s).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
     }
 }
 
 impl From<PyOpenMode> for PyOpenOptions {
-
     fn from(mode: PyOpenMode) -> Self {
-        match mode {
-            PyOpenMode::AppendBinary => Self {
-                read: false,
-                write: true,
-                append: true,
-                create: true,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::AppendBinaryPlus => Self {
-                read: true,
-                write: true,
-                append: true,
-                create: true,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::AppendText => Self {
-                read: false,
-                write: true,
-                append: true,
-                create: true,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::AppendTextPlus => Self {
-                read: true,
-                write: true,
-                append: true,
-                create: true,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::ReadBinary => Self {
-                read: true,
-                write: false,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::ReadBinaryPlus => Self {
-                read: true,
-                write: true,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::ReadText => Self {
-                read: true,
-                write: false,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::ReadTextPlus => Self {
-                read: true,
-                write: true,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: false,
-            },
-            PyOpenMode::WriteBinary => Self {
-                read: false,
-                write: true,
-                append: false,
-                create: true,
-                truncate: true,
-                create_new: false,
-            },
-            PyOpenMode::WriteBinaryPlus => Self {
-                read: true,
-                write: true,
-                append: false,
-                create: true,
-                truncate: true,
-                create_new: false,
-            },
-            PyOpenMode::WriteText => Self {
-                read: false,
-                write: true,
-                append: false,
-                create: true,
-                truncate: true,
-                create_new: false,
-            },
-            PyOpenMode::WriteTextPlus => Self {
-                read: true,
-                write: true,
-                append: false,
-                create: true,
-                truncate: true,
-                create_new: false,
-            },
-            PyOpenMode::ExclusiveBinary => Self {
-                read: false,
-                write: true,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: true,
-            },
-            PyOpenMode::ExclusiveBinaryPlus => Self {
-                read: true,
-                write: true,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: true,
-            },
-            PyOpenMode::ExclusiveText => Self {
-                read: false,
-                write: true,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: true,
-            },
-            PyOpenMode::ExclusiveTextPlus => Self {
-                read: true,
-                write: true,
-                append: false,
-                create: false,
-                truncate: false,
-                create_new: true,
-
-            }
+        Self {
+            append: mode.append(),
+            create: mode.create(),
+            create_new: mode.create_new(),
+            read: mode.read(),
+            truncate: mode.truncate(),
+            write: mode.write(),
         }
     }
 }
 //
 impl PyOpenOptions {
-
     pub(crate) fn apply_to(self, open: &mut tokio::fs::OpenOptions) {
         open.read(self.read);
         open.write(self.write);

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TYPE_CHECKING, Literal, Protocol, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Literal, Protocol, TypeAlias, TypedDict, TypeVar
 
 if TYPE_CHECKING:
     import datetime as pydt
@@ -188,3 +188,63 @@ class TimestampRoundTypedDict(_RoundTypedDict): ...
 
 
 class ZonedDateTimeRoundTypedDict(_RoundTypedDict): ...
+
+
+# =============================================================================
+# OPEN MODES (CANONICAL)
+# =============================================================================
+# ry accepts the non-cannonical modes, but they are mapped to the canonical ones]
+
+OpenTextModeUpdating: TypeAlias = Literal[
+    "a+", "at+", "r+", "rt+", "w+", "wt+", "x+", "xt+"
+]
+OpenTextModeWriting: TypeAlias = Literal["a", "at", "w", "wt", "x", "xt"]
+OpenTextModeReading: TypeAlias = Literal["r", "rt"]
+OpenTextMode: TypeAlias = Literal[
+    "a",
+    "a+",
+    "at",
+    "at+",
+    "r",
+    "r+",
+    "rt",
+    "rt+",
+    "w",
+    "w+",
+    "wt",
+    "wt+",
+    "x",
+    "x+",
+    "xt",
+    "xt+",
+]
+OpenBinaryModeUpdating: TypeAlias = Literal["ab+", "rb+", "wb+", "xb+"]
+OpenBinaryModeWriting: TypeAlias = Literal["ab", "wb", "xb"]
+OpenBinaryModeReading: TypeAlias = Literal["rb"]
+OpenBinaryMode: TypeAlias = Literal["ab", "ab+", "rb", "rb+", "wb", "wb+", "xb", "xb+"]
+OpenMode: TypeAlias = Literal[
+    "a",
+    "a+",
+    "ab",
+    "ab+",
+    "at",
+    "at+",
+    "r",
+    "r+",
+    "rb",
+    "rb+",
+    "rt",
+    "rt+",
+    "w",
+    "w+",
+    "wb",
+    "wb+",
+    "wt",
+    "wt+",
+    "x",
+    "x+",
+    "xb",
+    "xb+",
+    "xt",
+    "xt+",
+]
