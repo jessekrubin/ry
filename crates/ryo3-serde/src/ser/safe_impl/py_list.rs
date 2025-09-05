@@ -1,19 +1,19 @@
 use pyo3::prelude::*;
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 
+use crate::SerializePyAny;
 use crate::constants::Depth;
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ser::safe_impl::{
     SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
     SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
-    SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet, SerializePyStr,
-    SerializePyTime, SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
+    SerializePyNone, SerializePySet, SerializePyStr, SerializePyTime, SerializePyTimeDelta,
+    SerializePyTuple, SerializePyUuid,
 };
 use crate::ser::{PySerializeContext, rytypes};
-use crate::{SerializePyAny, any_repr, serde_err};
 use pyo3::Bound;
-use pyo3::types::{PyList, PyMapping, PySequence};
+use pyo3::types::PyList;
 
 pub(crate) struct SerializePyList<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
@@ -22,12 +22,12 @@ pub(crate) struct SerializePyList<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyList<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
-        Self {
-            ctx,
-            obj,
-            depth: Depth::default(),
-        }
+    pub(crate) fn new(
+        obj: &'a Bound<'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        Self { ctx, obj, depth }
     }
 }
 
@@ -36,18 +36,13 @@ impl Serialize for SerializePyList<'_, '_> {
     where
         S: Serializer,
     {
-        let py_list: &Bound<'_, PyList> = self.obj.downcast().map_err(pyerr2sererr)?;
+        let py_list: &Bound<'_, PyList> = self.obj.downcast_exact().map_err(pyerr2sererr)?;
         let len = py_list.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
         } else {
             let mut seq = serializer.serialize_seq(Some(len))?;
             for element in py_list {
-                // seq.serialize_element(&SerializePyAny::new_with_depth(
-                //     &element,
-                //     self.ctx,
-                //     self.depth + 1,
-                // ))?;
                 let ob_type = self.ctx.typeref.obtype(&element);
                 match ob_type {
                     PyObType::None | PyObType::Ellipsis => {
@@ -66,14 +61,24 @@ impl Serialize for SerializePyList<'_, '_> {
                         seq.serialize_element(&SerializePyStr::new(&element))?;
                     }
                     PyObType::List => {
-                        seq.serialize_element(&SerializePyList::new(&element, self.ctx))?;
+                        seq.serialize_element(&SerializePyList::new(
+                            &element,
+                            self.ctx,
+                            self.depth + 1,
+                        ))?;
                     }
                     PyObType::Tuple => {
-                        seq.serialize_element(&SerializePyTuple::new(&element, self.ctx))?;
+                        seq.serialize_element(&SerializePyTuple::new(
+                            &element,
+                            self.ctx,
+                            self.depth + 1,
+                        ))?;
                     }
                     PyObType::Dict => {
-                        seq.serialize_element(&SerializePyDict::new_with_depth(
-                            &element, self.ctx, self.depth,
+                        seq.serialize_element(&SerializePyDict::new(
+                            &element,
+                            self.ctx,
+                            self.depth + 1,
                         ))?;
                     }
                     PyObType::Set => {
@@ -99,6 +104,11 @@ impl Serialize for SerializePyList<'_, '_> {
                     }
                     PyObType::PyUuid => {
                         seq.serialize_element(&SerializePyUuid::new(&element))?;
+                    }
+                    PyObType::Dataclass => {
+                        seq.serialize_element(&SerializePyDataclass::new(
+                            &element, self.ctx, self.depth,
+                        ))?;
                     }
                     // ------------------------------------------------------------
                     // RY-TYPES
@@ -200,24 +210,6 @@ impl Serialize for SerializePyList<'_, '_> {
                             self.ctx,
                             self.depth + 1,
                         ))?;
-                        // if the object is a PyAny, we can try to serialize it as a dataclass or mapping
-                        // if let Some(fields) = crate::ser::py_serialize::dataclass_fields(&element) {
-                        //     let dc_serializer =
-                        //     SerializePyDataclass::new(&element, self.ctx, self.depth + 1, fields);
-                        //         seq.serialize_element(
-                        //             &dc_serializer
-                        //         ) ?;
-                        // } else if let Ok(py_map) = &element.downcast::<PyMapping>() {
-                        //     seq.serialize_element(&SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth + 1))?;
-                        // } else if let Ok(py_seq) = &element.downcast::<PySequence>() {
-                        //     seq.serialize_element(&SerializePySequence::new_with_depth(py_seq, self.ctx, self.depth + 1))?;
-                        // } else if let Some(default) = self.ctx.default {
-                        //     // call the default transformer fn and attempt to then serialize the result
-                        //     let r = default.call1((&&element,)).map_err(pyerr2sererr)?;
-                        //     self.with_obj(&r).serialize(serializer)
-                        // } else {
-                        //     serde_err!("{} is not json-serializable", any_repr(&element))
-                        // }
                     }
                 }
             }

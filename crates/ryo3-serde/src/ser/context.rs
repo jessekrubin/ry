@@ -1,6 +1,4 @@
-use crate::ob_type::PyObType;
 use crate::ob_type_cache::PyTypeCache;
-use pyo3::prelude::PyAnyMethods;
 use pyo3::{Bound, PyAny};
 
 #[derive(Copy, Clone)]
@@ -13,10 +11,5 @@ pub(crate) struct PySerializeContext<'py> {
 impl<'py> PySerializeContext<'py> {
     pub(crate) fn new(default: Option<&'py Bound<'py, PyAny>>, typeref: &'py PyTypeCache) -> Self {
         Self { default, typeref }
-    }
-
-    #[must_use]
-    pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
-        self.typeref.ptr2type(ob.get_type_ptr() as usize)
     }
 }

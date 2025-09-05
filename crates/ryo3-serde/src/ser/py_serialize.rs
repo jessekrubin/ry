@@ -18,20 +18,14 @@ use crate::ser::safe_impl::{
     SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
     SerializePyStr, SerializePyTime, SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
 };
-use crate::{Depth, MAX_DEPTH};
-use pyo3::types::{PyAnyMethods, PyDict, PyMapping, PySequence};
-use pyo3::{Bound, intern};
+use crate::{Depth, MAX_DEPTH, serde_err};
+use pyo3::Bound;
+use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
 
 pub struct SerializePyAny<'py> {
     pub(crate) obj: &'py Bound<'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
-}
-
-macro_rules! serde_err {
-    ($($arg:tt)*) => {
-        Err(SerError::custom(format_args!($($arg)*)))
-    }
 }
 
 impl<'py> SerializePyAny<'py> {
@@ -60,17 +54,6 @@ impl<'py> SerializePyAny<'py> {
         }
     }
 }
-
-fn dataclass_fields<'a, 'py>(obj: &'a Bound<'py, PyAny>) -> Option<Bound<'py, PyDict>>
-where
-    'py: 'a,
-{
-    obj.getattr(intern!(obj.py(), "__dataclass_fields__")) // PyResult<Bound<PyAny>>
-        .ok()? // Option<Bound<PyAny>>
-        .downcast_into::<PyDict>() // PyResult<Bound<PyDict>>
-        .ok() // Option<Bound<PyDict>>
-}
-
 impl Serialize for SerializePyAny<'_> {
     // TODO: break this up...
     #[expect(clippy::too_many_lines)]
@@ -79,7 +62,7 @@ impl Serialize for SerializePyAny<'_> {
         S: Serializer,
     {
         if self.depth == MAX_DEPTH {
-            return Err(SerError::custom("recursion"));
+            return serde_err!("recursion");
         }
         let ob_type = self.ctx.typeref.obtype(self.obj);
         match ob_type {
@@ -88,10 +71,15 @@ impl Serialize for SerializePyAny<'_> {
             PyObType::Int => SerializePyInt::new(self.obj).serialize(serializer),
             PyObType::Float => SerializePyFloat::new(self.obj).serialize(serializer),
             PyObType::String => SerializePyStr::new(self.obj).serialize(serializer),
-            PyObType::List => SerializePyList::new(self.obj, self.ctx).serialize(serializer),
-            PyObType::Tuple => SerializePyTuple::new(self.obj, self.ctx).serialize(serializer),
-            PyObType::Dict => SerializePyDict::new_with_depth(self.obj, self.ctx, self.depth)
-                .serialize(serializer),
+            PyObType::List => {
+                SerializePyList::new(self.obj, self.ctx, self.depth).serialize(serializer)
+            }
+            PyObType::Tuple => {
+                SerializePyTuple::new(self.obj, self.ctx, self.depth).serialize(serializer)
+            }
+            PyObType::Dict => {
+                SerializePyDict::new(self.obj, self.ctx, self.depth).serialize(serializer)
+            }
             PyObType::Set => SerializePySet::new(self.obj, self.ctx).serialize(serializer),
             PyObType::FrozenSet => {
                 SerializePyFrozenSet::new(self.obj, self.ctx).serialize(serializer)
@@ -104,6 +92,9 @@ impl Serialize for SerializePyAny<'_> {
                 SerializePyBytesLike::new(self.obj).serialize(serializer)
             }
             PyObType::PyUuid => SerializePyUuid::new(self.obj).serialize(serializer),
+            PyObType::Dataclass => {
+                SerializePyDataclass::new(self.obj, self.ctx, self.depth).serialize(serializer)
+            }
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------
@@ -183,12 +174,7 @@ impl Serialize for SerializePyAny<'_> {
             // UNKNOWN
             // ------------------------------------------------------------
             PyObType::Unknown => {
-                // if the object is a PyAny, we can try to serialize it as a dataclass or mapping
-                if let Some(fields) = dataclass_fields(self.obj) {
-                    let dc_serializer =
-                        SerializePyDataclass::new(self.obj, self.ctx, self.depth + 1, fields);
-                    dc_serializer.serialize(serializer)
-                } else if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
+                if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
                     SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth + 1)
                         .serialize(serializer)
                 } else if let Ok(py_seq) = self.obj.downcast::<PySequence>() {

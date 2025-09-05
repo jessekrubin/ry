@@ -7,13 +7,13 @@ use crate::errors::pyerr2sererr;
 use crate::{Depth, MAX_DEPTH, SerializePyAny, serde_err};
 
 use crate::ser::PySerializeContext;
+use crate::ser::dataclass::dataclass_fields;
 use pyo3::{Bound, types::PyDict};
 
 pub(crate) struct SerializePyDataclass<'a, 'py> {
     ctx: PySerializeContext<'py>,
     obj: &'a Bound<'py, PyAny>,
     depth: Depth,
-    fields: Bound<'py, PyDict>,
 }
 
 impl<'a, 'py> SerializePyDataclass<'a, 'py> {
@@ -21,16 +21,11 @@ impl<'a, 'py> SerializePyDataclass<'a, 'py> {
         obj: &'a Bound<'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
-        fields: Bound<'py, PyDict>,
     ) -> Self {
-        Self {
-            ctx,
-            obj,
-            depth,
-            fields,
-        }
+        Self { ctx, obj, depth }
     }
 }
+
 // as done in pydantic-core: https://github.com/pydantic/pydantic-core/blob/5f0b5a8b26691b7a1e3de07cb409b21bb174929c/src/serializers/shared.rs#L591
 static DC_FIELD_MARKER: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
 /// needed to match the logic from dataclasses.fields `tuple(f for f in fields.values() if f._field_type is _FIELD)`
@@ -44,11 +39,12 @@ impl Serialize for SerializePyDataclass<'_, '_> {
         S: Serializer,
     {
         if self.depth == MAX_DEPTH {
-            return Err(SerError::custom("recursion"));
+            return serde_err!("recursion");
         }
 
+        let py = self.obj.py();
         // check for __dict__
-        if let Ok(dunder_dict) = self.obj.getattr("__dict__") {
+        if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
             if let Ok(dict) = dunder_dict.downcast_into::<PyDict>() {
                 // serialize the __dict__ as a dict
                 SerializePyAny::new_with_depth(&dict, self.ctx, self.depth + 1)
@@ -56,11 +52,10 @@ impl Serialize for SerializePyDataclass<'_, '_> {
             } else {
                 serde_err!("__dict__ is not a dict")
             }
-        } else {
-            let py = self.obj.py();
+        } else if let Some(fields) = dataclass_fields(&self.obj) {
             let field_marker = get_field_marker(py).map_err(pyerr2sererr)?;
             let mut map = serializer.serialize_map(None)?;
-            for (field_name, field) in self.fields.iter() {
+            for (field_name, field) in fields.iter() {
                 // check if the field is a dataclass field
                 let field_type = field
                     .getattr(intern!(py, "_field_type"))
@@ -82,6 +77,8 @@ impl Serialize for SerializePyDataclass<'_, '_> {
                 }
             }
             map.end()
+        } else {
+            serde_err!("object is not a dataclass instance")
         }
     }
 }

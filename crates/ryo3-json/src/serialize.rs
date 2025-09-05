@@ -97,8 +97,16 @@ impl<'py> JsonSerializer<'py> {
 macro_rules! stringify_fn {
     ($name:ident) => {
         #[pyfunction(
-            signature = (obj, *, default = None, fmt = false, sort_keys = false, append_newline = false, pybytes = false)
-        )]
+                    signature = (
+                        obj,
+                        *,
+                        default = None,
+                        fmt = false,
+                        sort_keys = false,
+                        append_newline = false,
+                        pybytes = false
+                    )
+                )]
         pub fn $name<'py>(
             py: Python<'py>,
             obj: &Bound<'py, PyAny>,
@@ -108,7 +116,6 @@ macro_rules! stringify_fn {
             append_newline: bool,
             pybytes: bool,
         ) -> PyResult<Bound<'py, PyAny>> {
-
             let serializer = JsonSerializer::new(
                 default,
                 JsonOptions {
