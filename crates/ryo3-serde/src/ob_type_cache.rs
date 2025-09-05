@@ -350,12 +350,7 @@ impl PyTypeCache {
 
     #[must_use]
     pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
-        let obtype = self.ptr2type(ob.get_type_ptr() as usize, ob);
-        if matches!(obtype, PyObType::Unknown) && is_dataclass(&ob) {
-            PyObType::Dataclass
-        } else {
-            obtype
-        }
+        self.ptr2type(ob.get_type_ptr() as usize, ob)
     }
 }
 

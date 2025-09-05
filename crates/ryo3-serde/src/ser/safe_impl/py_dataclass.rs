@@ -4,7 +4,7 @@ use pyo3::{intern, prelude::*};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::{Depth, MAX_DEPTH, SerializePyAny, serde_err};
+use crate::{Depth, MAX_DEPTH, SerializePyAny, serde_err, serde_err_recursion};
 
 use crate::ser::PySerializeContext;
 use crate::ser::dataclass::dataclass_fields;
@@ -39,7 +39,7 @@ impl Serialize for SerializePyDataclass<'_, '_> {
         S: Serializer,
     {
         if self.depth == MAX_DEPTH {
-            return serde_err!("recursion");
+            return serde_err_recursion!();
         }
 
         let py = self.obj.py();
@@ -52,7 +52,7 @@ impl Serialize for SerializePyDataclass<'_, '_> {
             } else {
                 serde_err!("__dict__ is not a dict")
             }
-        } else if let Some(fields) = dataclass_fields(&self.obj) {
+        } else if let Some(fields) = dataclass_fields(self.obj) {
             let field_marker = get_field_marker(py).map_err(pyerr2sererr)?;
             let mut map = serializer.serialize_map(None)?;
             for (field_name, field) in fields.iter() {

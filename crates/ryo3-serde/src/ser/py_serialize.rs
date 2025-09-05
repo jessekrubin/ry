@@ -3,7 +3,7 @@
 //! Based on a combination of `orjson`, `pythonize` and `rtoml`.
 
 use pyo3::prelude::*;
-use serde::ser::{Error as SerError, Serialize, Serializer};
+use serde::ser::{Serialize, Serializer};
 
 use crate::any_repr::any_repr;
 use crate::errors::pyerr2sererr;
@@ -18,7 +18,7 @@ use crate::ser::safe_impl::{
     SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
     SerializePyStr, SerializePyTime, SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
 };
-use crate::{Depth, MAX_DEPTH, serde_err};
+use crate::{Depth, MAX_DEPTH, serde_err, serde_err_recursion};
 use pyo3::Bound;
 use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
 
@@ -62,7 +62,7 @@ impl Serialize for SerializePyAny<'_> {
         S: Serializer,
     {
         if self.depth == MAX_DEPTH {
-            return serde_err!("recursion");
+            return serde_err_recursion!();
         }
         let ob_type = self.ctx.typeref.obtype(self.obj);
         match ob_type {
@@ -175,10 +175,10 @@ impl Serialize for SerializePyAny<'_> {
             // ------------------------------------------------------------
             PyObType::Unknown => {
                 if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
-                    SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth + 1)
+                    SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth)
                         .serialize(serializer)
                 } else if let Ok(py_seq) = self.obj.downcast::<PySequence>() {
-                    SerializePySequence::new_with_depth(py_seq, self.ctx, self.depth + 1)
+                    SerializePySequence::new_with_depth(py_seq, self.ctx, self.depth)
                         .serialize(serializer)
                 } else if let Some(default) = self.ctx.default {
                     // call the default transformer fn and attempt to then serialize the result

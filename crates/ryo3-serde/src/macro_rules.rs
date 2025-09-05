@@ -8,6 +8,6 @@ macro_rules! serde_err {
 #[macro_export]
 macro_rules! serde_err_recursion {
     () => {
-        serde_err!("recursion")
+        Err(::serde::ser::Error::custom("recursion"))
     };
 }
