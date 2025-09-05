@@ -1,5 +1,6 @@
 //! python `tokio::fs` module
 pub use crate::fs::file::PyAsyncFile;
+use crate::fs::py_open_mode::PyOpenMode;
 use crate::fs::read_dir::PyReadDirAsync;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
@@ -11,7 +12,9 @@ use std::path::PathBuf;
 use tracing::warn;
 
 pub mod file;
+mod py_open_mode;
 mod read_dir;
+
 #[pyfunction]
 pub fn canonicalize_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
@@ -170,18 +173,23 @@ pub fn write_string_async(
 }
 
 #[pyfunction(
-    signature = (path, mode = None, **kwargs),
+    signature = (path, mode = PyOpenMode::default(), **kwargs),
 )]
 pub fn aiopen<'py>(
     py: Python<'py>,
     path: PathBuf,
-    mode: Option<String>,
+    mode: PyOpenMode,
     kwargs: Option<&Bound<'py, PyDict>>,
 ) -> PyResult<Bound<'py, PyAny>> {
     if let Some(kwargs) = kwargs {
         warn!("aiopen kwargs not impl: {kwargs:?}");
     }
-    PyAsyncFile::new(path, mode)?.into_bound_py_any(py)
+    if !mode.is_binary() {
+        return Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "aiopen text mode not implemented",
+        ));
+    }
+    PyAsyncFile::new(path, mode.into()).into_bound_py_any(py)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

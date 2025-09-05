@@ -7,6 +7,7 @@ use pyo3::types::{PyBytes, PyDict};
 use pyo3::{intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
+
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -60,7 +61,7 @@ impl PyFileType {
     }
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let file_type_dict = pyo3::types::PyDict::new(py);
+        let file_type_dict = PyDict::new(py);
         file_type_dict.set_item(intern!(py, "is_dir"), self.is_dir())?;
         file_type_dict.set_item(intern!(py, "is_file"), self.is_file())?;
         file_type_dict.set_item(intern!(py, "is_symlink"), self.is_symlink())?;

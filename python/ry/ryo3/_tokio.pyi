@@ -6,7 +6,7 @@ from collections.abc import Generator
 from types import TracebackType
 
 from ry import Bytes
-from ry._types import Buffer, FsPathLike, Self
+from ry._types import Buffer, FsPathLike, OpenBinaryMode, Self
 from ry.ryo3._std import FileType, Metadata
 
 # =============================================================================
@@ -44,6 +44,7 @@ class DirEntryAsync:
 @t.final
 class ReadDirAsync:
     """Async iterator for read_dir_async"""
+
     async def collect(self) -> list[DirEntryAsync]: ...
     async def take(self, n: int) -> list[DirEntryAsync]: ...
     def __aiter__(self) -> ReadDirAsync: ...
@@ -64,7 +65,7 @@ async def asleep(seconds: float) -> float:
 @t.final
 class AsyncFile:
     def __init__(
-        self, path: FsPathLike, mode: str = "r", buffering: int = -1
+        self, path: FsPathLike, mode: OpenBinaryMode = "rb", buffering: int = -1
     ) -> None: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
@@ -95,4 +96,6 @@ class AsyncFile:
         exc_tb: TracebackType | None,
     ) -> None: ...
 
-def aiopen(path: FsPathLike, mode: str = "r", buffering: int = -1) -> AsyncFile: ...
+def aiopen(
+    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
+) -> AsyncFile: ...

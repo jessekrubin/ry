@@ -1,6 +1,7 @@
 use pyo3::exceptions::{PyIOError, PyNotImplementedError, PyRuntimeError, PyStopAsyncIteration};
 use pyo3::prelude::*;
 
+use crate::fs::py_open_mode::{PyOpenMode, PyOpenOptions};
 use pyo3::intern;
 use pyo3_async_runtimes::tokio::future_into_py;
 use std::io::SeekFrom;
@@ -11,17 +12,6 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
 use tokio::io::{AsyncSeekExt, BufStream};
 use tokio::sync::Mutex;
 
-#[derive(Debug, Clone, Copy)]
-#[expect(clippy::struct_excessive_bools)]
-struct OpenOptions {
-    append: bool,
-    create: bool,
-    create_new: bool,
-    read: bool,
-    truncate: bool,
-    write: bool,
-}
-
 enum FileState {
     Closed,
     Open(BufStream<File>),
@@ -30,7 +20,7 @@ enum FileState {
 struct PyAsyncFileInner {
     state: FileState,
     path: PathBuf,
-    open_options: OpenOptions,
+    open_options: PyOpenOptions,
 }
 
 impl Drop for PyAsyncFileInner {
@@ -87,12 +77,6 @@ impl PyAsyncFileInner {
             .map_err(|e| PyIOError::new_err(e.to_string()))?;
         file.flush().await?;
         Ok(r)
-    }
-
-    // TODO fix this if we ever swap out bufstream for bufwriter/bufreader?
-    #[expect(clippy::unused_async)]
-    async fn seekable(&mut self) -> PyResult<bool> {
-        Ok(true)
     }
 
     async fn flush(&mut self) -> PyResult<()> {
@@ -186,16 +170,6 @@ impl PyAsyncFileInner {
         Ok(buf.len())
     }
 
-    #[expect(clippy::unused_async)]
-    async fn writable(&mut self) -> PyResult<bool> {
-        Ok(self.open_options.write)
-    }
-
-    #[expect(clippy::unused_async)]
-    async fn readable(&mut self) -> PyResult<bool> {
-        Ok(self.open_options.read)
-    }
-
     fn get_file_mut(&mut self) -> PyResult<&mut BufStream<File>> {
         match self.state {
             FileState::Open(ref mut file) => Ok(file),
@@ -211,32 +185,53 @@ impl PyAsyncFileInner {
     }
 }
 
+struct AsyncFileProperties {
+    readable: bool,
+    writable: bool,
+    seekable: bool,
+}
+
+impl From<&PyOpenOptions> for AsyncFileProperties {
+    fn from(opts: &PyOpenOptions) -> Self {
+        Self {
+            readable: opts.read,
+            writable: opts.write || opts.append,
+            seekable: true, // always true for files for now...
+        }
+    }
+}
+
 #[pyclass(name = "AsyncFile", module = "ry.ryo3", frozen)]
 pub struct PyAsyncFile {
+    props: AsyncFileProperties,
     inner: Arc<Mutex<PyAsyncFileInner>>,
 }
 
 impl PyAsyncFile {
-    pub fn new<M: AsRef<str>>(p: PathBuf, mode: Option<M>) -> PyResult<Self> {
-        let path = p;
-        let mode: String = mode.map_or_else(|| "r".to_string(), |m| m.as_ref().to_string());
-        let open_options = OpenOptions::from_mode_string(&mode)?;
+    pub(crate) fn new(p: PathBuf, options: PyOpenOptions) -> Self {
         let inner = PyAsyncFileInner {
             state: FileState::Closed,
-            path,
-            open_options,
+            path: p,
+            open_options: options,
         };
-        Ok(Self {
+        Self {
+            props: AsyncFileProperties::from(&inner.open_options),
             inner: Arc::new(Mutex::new(inner)),
-        })
+        }
     }
 }
 
 #[pymethods]
 impl PyAsyncFile {
     #[new]
-    fn py_new(p: PathBuf, mode: Option<&str>) -> PyResult<Self> {
-        Self::new(p, mode)
+    #[pyo3(signature = (p, mode= PyOpenMode::default()))]
+    fn py_new(p: PathBuf, mode: PyOpenMode) -> PyResult<Self> {
+        if !mode.is_binary() {
+            return Err(PyNotImplementedError::new_err(
+                "Text mode not implemented for AsyncFile",
+            ));
+        }
+        Ok(Self::new(p, mode.into()))
     }
 
     /// This is a coroutine that returns `self` when awaited... so you
@@ -382,13 +377,8 @@ impl PyAsyncFile {
         })
     }
 
-    fn readable<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.readable().await?;
-            Ok(())
-        })
+    fn readable(&self) -> bool {
+        self.props.readable
     }
 
     fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -460,13 +450,9 @@ impl PyAsyncFile {
         })
     }
 
-    fn seekable<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.seekable().await?;
-            Ok(())
-        })
+    fn seekable(&self) -> bool {
+        // TODO MAKE NOT ALWAYS TRUE???
+        self.props.seekable
     }
 
     fn tell<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -500,84 +486,7 @@ impl PyAsyncFile {
         })
     }
 
-    fn writable<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.writable().await?;
-            Ok(())
-        })
-    }
-}
-
-impl OpenOptions {
-    pub(crate) fn from_mode_string(mode: &str) -> PyResult<Self> {
-        use pyo3::exceptions::PyValueError;
-
-        let mut opts = Self {
-            read: false,
-            write: false,
-            append: false,
-            create: false,
-            truncate: false,
-            create_new: false,
-        };
-
-        match mode {
-            "r" | "rb" => {
-                opts.read = true;
-            }
-            "r+" | "rb+" => {
-                opts.read = true;
-                opts.write = true;
-            }
-            "w" | "wb" => {
-                opts.write = true;
-                opts.create = true;
-                opts.truncate = true;
-            }
-            "w+" | "wb+" => {
-                opts.read = true;
-                opts.write = true;
-                opts.create = true;
-                opts.truncate = true;
-            }
-            "a" | "ab" => {
-                opts.write = true;
-                opts.append = true;
-                opts.create = true;
-            }
-            "a+" | "ab+" => {
-                opts.read = true;
-                opts.write = true;
-                opts.append = true;
-                opts.create = true;
-            }
-            "x" => {
-                opts.write = true;
-                opts.create_new = true;
-            }
-            "x+" => {
-                opts.read = true;
-                opts.write = true;
-                opts.create_new = true;
-            }
-            _ => {
-                return Err(PyValueError::new_err(format!(
-                    "Unsupported open mode: {mode:?}"
-                )));
-            }
-        }
-
-        Ok(opts)
-    }
-
-    pub(crate) fn apply_to(self, open: &mut tokio::fs::OpenOptions) {
-        open.read(self.read);
-        open.write(self.write);
-        open.append(self.append);
-        open.create(self.create);
-        open.truncate(self.truncate);
-        open.create_new(self.create_new);
+    fn writable(&self) -> bool {
+        self.props.writable
     }
 }
