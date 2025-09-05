@@ -5,8 +5,10 @@
 - `ryo3-reqwest`
   - Add `jiter` parsing options to `Response.json()`
 - `ryo3-jiff`
-  - use `#[pyo3(warn(...))]` for deprecation warnings instead of doing it manually
-  - fixed utc methods to use `.with_time_zone(TimeZone::UTC)` instead of `.in_tz("UTC")`
+  - use `#[pyo3(warn(...))]` for deprecation warnings instead of doing it
+    manually
+  - fixed utc methods to use `.with_time_zone(TimeZone::UTC)` instead of
+    `.in_tz("UTC")`
 
 ---
 

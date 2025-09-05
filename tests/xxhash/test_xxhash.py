@@ -17,26 +17,30 @@ from ._xxhash_fixtures import XXHASH_TEST_DATA, XXHashDataRecord, _bytes_from_re
 class TestXxh32Hasher:
     def test_xxh32_hasher_digest(self) -> None:
         assert ry_xxh.Xxh32(b"a").digest() == (1426945110).to_bytes(4, "big")
-        assert ry_xxh.Xxh32(b"a", 0).digest() == (1426945110).to_bytes(4, "big")
-        assert ry_xxh.Xxh32(b"a", 1).digest() == (4111757423).to_bytes(4, "big")
-        assert ry_xxh.Xxh32(b"a", 2**32 - 1).digest() == (3443684653).to_bytes(4, "big")
+        assert ry_xxh.Xxh32(b"a", seed=0).digest() == (1426945110).to_bytes(4, "big")
+        assert ry_xxh.Xxh32(b"a", seed=1).digest() == (4111757423).to_bytes(4, "big")
+        assert ry_xxh.Xxh32(b"a", seed=2**32 - 1).digest() == (3443684653).to_bytes(
+            4, "big"
+        )
 
     def test_xxh32_hasher_intdigest(self) -> None:
         assert ry_xxh.Xxh32(b"a").intdigest() == 1426945110
-        assert ry_xxh.Xxh32(b"a", 0).intdigest() == 1426945110
-        assert ry_xxh.Xxh32(b"a", 1).intdigest() == 4111757423
-        assert ry_xxh.Xxh32(b"a", 2**32 - 1).intdigest() == 3443684653
+        assert ry_xxh.Xxh32(b"a", seed=0).intdigest() == 1426945110
+        assert ry_xxh.Xxh32(b"a", seed=1).intdigest() == 4111757423
+        assert ry_xxh.Xxh32(b"a", seed=2**32 - 1).intdigest() == 3443684653
 
     def test_xxh32_hasher_hexdigest(self) -> None:
         assert ry_xxh.Xxh32(b"a").hexdigest() == (1426945110).to_bytes(4, "big").hex()
         assert (
-            ry_xxh.Xxh32(b"a", 0).hexdigest() == (1426945110).to_bytes(4, "big").hex()
+            ry_xxh.Xxh32(b"a", seed=0).hexdigest()
+            == (1426945110).to_bytes(4, "big").hex()
         )
         assert (
-            ry_xxh.Xxh32(b"a", 1).hexdigest() == (4111757423).to_bytes(4, "big").hex()
+            ry_xxh.Xxh32(b"a", seed=1).hexdigest()
+            == (4111757423).to_bytes(4, "big").hex()
         )
         assert (
-            ry_xxh.Xxh32(b"a", 2**32 - 1).hexdigest()
+            ry_xxh.Xxh32(b"a", seed=2**32 - 1).hexdigest()
             == (3443684653).to_bytes(4, "big").hex()
         )
 
@@ -59,24 +63,25 @@ class TestXxh32Hasher:
 
 def test_xxh32_digest() -> None:
     assert ry_xxh.xxh32_digest(b"a") == (1426945110).to_bytes(4, "big")
-    assert ry_xxh.xxh32_digest(b"a", 0) == (1426945110).to_bytes(4, "big")
-    assert ry_xxh.xxh32_digest(b"a", 1) == (4111757423).to_bytes(4, "big")
-    assert ry_xxh.xxh32_digest(b"a", 2**32 - 1) == (3443684653).to_bytes(4, "big")
+    assert ry_xxh.xxh32_digest(b"a", seed=0) == (1426945110).to_bytes(4, "big")
+    assert ry_xxh.xxh32_digest(b"a", seed=1) == (4111757423).to_bytes(4, "big")
+    assert ry_xxh.xxh32_digest(b"a", seed=2**32 - 1) == (3443684653).to_bytes(4, "big")
 
 
 def test_xxh32_intdigest() -> None:
     assert ry_xxh.xxh32_intdigest(b"a") == 1426945110
-    assert ry_xxh.xxh32_intdigest(b"a", 0) == 1426945110
-    assert ry_xxh.xxh32_intdigest(b"a", 1) == 4111757423
-    assert ry_xxh.xxh32_intdigest(b"a", 2**32 - 1) == 3443684653
+    assert ry_xxh.xxh32_intdigest(b"a", seed=0) == 1426945110
+    assert ry_xxh.xxh32_intdigest(b"a", seed=1) == 4111757423
+    assert ry_xxh.xxh32_intdigest(b"a", seed=2**32 - 1) == 3443684653
 
 
 def test_xxh32_hexdigest() -> None:
     assert ry_xxh.xxh32_hexdigest(b"a") == (1426945110).to_bytes(4, "big").hex()
-    assert ry_xxh.xxh32_hexdigest(b"a", 0) == (1426945110).to_bytes(4, "big").hex()
-    assert ry_xxh.xxh32_hexdigest(b"a", 1) == (4111757423).to_bytes(4, "big").hex()
+    assert ry_xxh.xxh32_hexdigest(b"a", seed=0) == (1426945110).to_bytes(4, "big").hex()
+    assert ry_xxh.xxh32_hexdigest(b"a", seed=1) == (4111757423).to_bytes(4, "big").hex()
     assert (
-        ry_xxh.xxh32_hexdigest(b"a", 2**32 - 1) == (3443684653).to_bytes(4, "big").hex()
+        ry_xxh.xxh32_hexdigest(b"a", seed=2**32 - 1)
+        == (3443684653).to_bytes(4, "big").hex()
     )
 
 

@@ -21,10 +21,9 @@ xxhash-rust = { workspace = true, features = [] }
 workspace = true
 
 [features]
-default = ["xxh3", "xxh32", "xxh64", "const_xxh3", "const_xxh32", "const_xxh64"]
-const_xxh3 = ["xxhash-rust/const_xxh3"]
-const_xxh32 = ["xxhash-rust/const_xxh32"]
-const_xxh64 = ["xxhash-rust/const_xxh64"]
+default = ["xxh3", "xxh32", "xxh64", "std"]
+std = ["xxhash-rust/std"]
 xxh3 = ["xxhash-rust/xxh3"]
 xxh32 = ["xxhash-rust/xxh32"]
 xxh64 = ["xxhash-rust/xxh64"]
+ry = ["default"]
