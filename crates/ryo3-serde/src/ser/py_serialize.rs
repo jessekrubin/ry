@@ -7,6 +7,8 @@ use serde::ser::{Error as SerError, Serialize, Serializer};
 
 use crate::any_repr::any_repr;
 use crate::errors::pyerr2sererr;
+use crate::ob_type::PyObType;
+use crate::ob_type_cache::PyTypeCache;
 use crate::ser::PySerializeContext;
 #[cfg(feature = "ry")]
 use crate::ser::rytypes;
@@ -16,7 +18,6 @@ use crate::ser::safe_impl::{
     SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
     SerializePyStr, SerializePyTime, SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
 };
-use crate::type_cache::{PyObType, PyTypeCache};
 use crate::{Depth, MAX_DEPTH};
 use pyo3::types::{PyAnyMethods, PyDict, PyMapping, PySequence};
 use pyo3::{Bound, intern};
@@ -80,7 +81,6 @@ impl Serialize for SerializePyAny<'_> {
         if self.depth == MAX_DEPTH {
             return Err(SerError::custom("recursion"));
         }
-
         let ob_type = self.ctx.typeref.obtype(self.obj);
         match ob_type {
             PyObType::None | PyObType::Ellipsis => SerializePyNone::new().serialize(serializer),

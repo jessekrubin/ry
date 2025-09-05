@@ -1,3 +1,4 @@
+use crate::ob_type::PyObType;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{
@@ -5,106 +6,6 @@ use pyo3::types::{
     PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
-
-pub(crate) enum PyObType {
-    Unknown,
-    // ========================================================================
-    // PY-TYPES
-    // ========================================================================
-    // ------------------------------------------------------------------------
-    // SINGLETONS
-    // ------------------------------------------------------------------------
-    None,
-    Ellipsis,
-    // ------------------------------------------------------------------------
-    // BUILTINS
-    // ------------------------------------------------------------------------
-    Int,
-    Bool,
-    Float,
-    String,
-    Bytes,
-    ByteArray,
-    MemoryView,
-    List,
-    Tuple,
-    Dict,
-    Set,
-    FrozenSet,
-    // ------------------------------------------------------------------------
-    // PY-DATETIME
-    // ------------------------------------------------------------------------
-    DateTime,
-    Date,
-    Time,
-    Timedelta,
-
-    // ------------------------------------------------------------------------
-    // UUID
-    // ------------------------------------------------------------------------
-    PyUuid,
-    // ========================================================================
-    // RY-TYPES
-    // ========================================================================
-    // -----------------------------------------------------------------------
-    // STD
-    // -----------------------------------------------------------------------
-    #[cfg(feature = "ryo3-std")]
-    PyDuration,
-    #[cfg(feature = "ryo3-std")]
-    PyIpAddr,
-    #[cfg(feature = "ryo3-std")]
-    PyIpv4Addr,
-    #[cfg(feature = "ryo3-std")]
-    PyIpv6Addr,
-    #[cfg(feature = "ryo3-std")]
-    PySocketAddr,
-    #[cfg(feature = "ryo3-std")]
-    PySocketAddrV4,
-    #[cfg(feature = "ryo3-std")]
-    PySocketAddrV6,
-    // -----------------------------------------------------------------------
-    // UUID
-    // -----------------------------------------------------------------------
-    #[cfg(feature = "ryo3-uuid")]
-    RyUuid,
-    // -----------------------------------------------------------------------
-    // ULID
-    // -----------------------------------------------------------------------
-    #[cfg(feature = "ryo3-ulid")]
-    RyUlid, // ulid is treated as a uuid for now
-    // -----------------------------------------------------------------------
-    // URL
-    // -----------------------------------------------------------------------
-    #[cfg(feature = "ryo3-url")]
-    RyUrl,
-    // -----------------------------------------------------------------------
-    // HTTP
-    // -----------------------------------------------------------------------
-    #[cfg(feature = "ryo3-http")]
-    RyHttpStatus,
-    #[cfg(feature = "ryo3-http")]
-    RyHeaders,
-    // -----------------------------------------------------------------------
-    // JIFF
-    // -----------------------------------------------------------------------
-    #[cfg(feature = "ryo3-jiff")]
-    RyDate,
-    #[cfg(feature = "ryo3-jiff")]
-    RyDateTime,
-    #[cfg(feature = "ryo3-jiff")]
-    RySignedDuration,
-    #[cfg(feature = "ryo3-jiff")]
-    RyTime,
-    #[cfg(feature = "ryo3-jiff")]
-    RyTimeSpan,
-    #[cfg(feature = "ryo3-jiff")]
-    RyTimeZone,
-    #[cfg(feature = "ryo3-jiff")]
-    RyTimestamp,
-    #[cfg(feature = "ryo3-jiff")]
-    RyZoned,
-}
 
 #[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
