@@ -192,7 +192,7 @@ pip-compile:
     uv pip compile requirements.dev.in -n > requirements.dev.txt
 
 _gen_init:
-    uv run python scripts/gen.py > python/ry/__init__.py
+    python scripts/gen.py > python/ry/__init__.py
 
 _gen-py: _gen_init fmtpy
 

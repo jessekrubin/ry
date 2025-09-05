@@ -60,7 +60,7 @@ class TestStringifyRecursion:
             _r = ry.stringify(a)
 
     def test_ry_recursion_dictionary(self) -> None:
-        data = {"a": 123}
+        data: dict[str, t.Any] = {"a": 123}
         for _i in range(254):
             data = {"a": data}
         assert self._depth(data) == 255
@@ -71,7 +71,7 @@ class TestStringifyRecursion:
             _a = ry.stringify({"a": data})
 
     def test_recursion_tuple(self) -> None:
-        data: tuple[tuple[int, ...] | int, ...] = (123,)
+        data: tuple[t.Any, ...] = (123,)
         for _i in range(254):
             data = (data,)
 
@@ -83,7 +83,7 @@ class TestStringifyRecursion:
             _a = ry.stringify((data,))
 
     def test_recursion_list(self) -> None:
-        data: list[int | list[int]] = [123]
+        data: list[t.Any] = [123]
         for _i in range(254):
             data = [data]
         assert self._depth(data) == 255
