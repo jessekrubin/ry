@@ -8,25 +8,6 @@ pub fn dirs_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// #[cfg(feature = "http")]
-// #[pymodule(gil_used = false, name = "http")]
-// pub fn http(m: &Bound<'_, PyModule>) -> PyResult<()> {
-//     ryo3_http::pymod_add(m)?;
-//     Ok(())
-// }
-
-// #[cfg(feature = "jiter")]
-// #[pymodule(gil_used = false, name = "JSON")]
-// pub fn json(m: &Bound<'_, PyModule>) -> PyResult<()> {
-//     m.add_function(wrap_pyfunction!(ryo3_json::stringify, m)?)?;
-//     m.add_function(wrap_pyfunction!(ryo3_json::dumps, m)?)?;
-//     m.add_function(wrap_pyfunction!(ryo3_jiter::parse, m)?)?;
-//     m.add_function(wrap_pyfunction!(ryo3_jiter::loads, m)?)?;
-//     m.add_function(wrap_pyfunction!(ryo3_jiter::cache_clear, m)?)?;
-//     m.add_function(wrap_pyfunction!(ryo3_jiter::cache_usage, m)?)?;
-//     Ok(())
-// }
-//
 #[cfg(feature = "uuid")]
 #[pymodule(gil_used = false, name = "uuid")]
 pub fn uuid(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -84,11 +65,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     sys_modules.set_item(intern!(py, "ry.dirs"), m.getattr(intern!(py, "dirs"))?)?;
     let attr = m.getattr(intern!(py, "dirs"))?;
     attr.setattr(intern!(py, "__name__"), intern!(py, "ry.dirs"))?;
-
-    // // http
-    // sys_modules.set_item(intern!(py, "ry.http"), m.getattr(intern!(py, "http"))?)?;
-    // let attr = m.getattr(intern!(py, "http"))?;
-    // attr.setattr(intern!(py, "__name__"), intern!(py, "ry.http"))?;
 
     // JSON
     sys_modules.set_item(intern!(py, "ry.JSON"), m.getattr(intern!(py, "JSON"))?)?;

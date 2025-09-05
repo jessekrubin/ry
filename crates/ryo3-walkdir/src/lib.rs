@@ -209,26 +209,7 @@ pub fn walkdir(
         same_file_system: same_file_system.unwrap_or(false),
         sort_by_file_name: sort_by_file_name.unwrap_or(false),
     };
-    // let p = path.unwrap_or(PathLike::Str(String::from("."))).as_ref();
     let wd_iter = opts.build_iter(path.unwrap_or_else(|| PathLike::Str(String::from("."))));
-    // let filtered_iter = opts.build_iter(path.unwrap_or(PathLike::Str(String::from("."))).as_ref());
-
-    // convert the WalkDir into an iterator of `walkdir::DirEntry` filtering
-    // out any `Err`
-    // let base_iter = wd.into_iter().filter_map(Result::ok);
-
-    // Apply .filter() for files/dirs.
-    // let want_files = files.unwrap_or(true);
-    // let want_dirs = dirs.unwrap_or(true);
-
-    // let filtered_iter = base_iter.filter(move |entry: &::walkdir::DirEntry| {
-    // let ftype = entry.file_type();
-    // (ftype.is_file() && want_files) || (ftype.is_dir() && want_dirs)
-    // });
-
-    // filter again if there is a glob...
-
-    // this is the final iterator
     let final_iter = if let Some(gs) = walk_globster {
         Box::new(wd_iter.filter(move |entry| gs.is_match(entry.path())))
             as Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>
