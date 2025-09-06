@@ -42,12 +42,6 @@ macro_rules! impl_from_round_options_for {
                     .increment(value.increment)
             }
         }
-
-        // impl Into<$type> for RoundOptions {
-        //     fn into(self) -> $type {
-        //         (&self).into()
-        //     }
-        // }
     };
 }
 
