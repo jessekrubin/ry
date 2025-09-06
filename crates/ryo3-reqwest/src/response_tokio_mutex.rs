@@ -12,7 +12,7 @@ use ryo3_url::PyUrl;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-#[pyclass(name = "Response", module = "ry.ryo3.reqwest", frozen)]
+#[pyclass(name = "Response", module = "ry.ryo3", frozen)]
 #[derive(Debug)]
 pub struct RyResponse {
     /// The actual response which will be consumed when read
