@@ -58,14 +58,28 @@ def test_repr_span() -> None:
 
 
 @pytest.mark.parametrize(
-    "cls", [ry.DateTimeRound, ry.TimestampRound, ry.ZonedDateTimeRound]
+    "cls",
+    [
+        ry.DateTimeRound,
+        ry.TimestampRound,
+        ry.ZonedDateTimeRound,
+        ry.TimeRound,
+        ry.SignedDurationRound,
+    ],
 )
 def test_round_reprs(
-    cls: type[ry.DateTimeRound | ry.TimestampRound | ry.ZonedDateTimeRound],
+    cls: type[
+        ry.DateTimeRound
+        | ry.TimestampRound
+        | ry.ZonedDateTimeRound
+        | ry.TimeRound
+        | ry.SignedDurationRound
+    ],
     jiff_unit: JiffUnit,
     jiff_round_mode: JiffRoundMode,
 ) -> None:
-    round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=1)
+    # TODO: fix tests so that these aren't possible...
+    round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=1)  # type: ignore[arg-type]
     repr_str = repr(round_obj)
     assert repr_str == str(round_obj)
     evaled = eval("ry." + repr_str)

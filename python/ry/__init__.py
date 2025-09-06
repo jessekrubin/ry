@@ -220,6 +220,7 @@ __all__ = (
     "SqlfmtQueryParams",
     "Time",
     "TimeDifference",
+    "TimeRound",
     "TimeSpan",
     "TimeZone",
     "TimeZoneDatabase",

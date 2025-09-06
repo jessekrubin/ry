@@ -154,17 +154,6 @@ class TimeSpanTypedDict(TypedDict):
 
 
 class _RoundTypedDict(TypedDict):
-    smallest: Literal[
-        "month",
-        "week",
-        "day",
-        "hour",
-        "minute",
-        "second",
-        "millisecond",
-        "microsecond",
-        "nanosecond",
-    ]
     mode: Literal[
         "ceil",
         "floor",
@@ -179,19 +168,61 @@ class _RoundTypedDict(TypedDict):
     increment: int
 
 
-class DateTimeRoundTypedDict(_RoundTypedDict): ...
+class DateTimeRoundTypedDict(_RoundTypedDict):
+    smallest: Literal[
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
 
 
-class SignedDurationRoundTypedDict(_RoundTypedDict): ...
+class SignedDurationRoundTypedDict(_RoundTypedDict):
+    smallest: Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
 
 
-class TimeRoundTypedDict(_RoundTypedDict): ...
+class TimeRoundTypedDict(TypedDict):
+    smallest: Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
 
 
-class TimestampRoundTypedDict(_RoundTypedDict): ...
+class TimestampRoundTypedDict(_RoundTypedDict):
+    smallest: Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
 
 
-class ZonedDateTimeRoundTypedDict(_RoundTypedDict): ...
+class ZonedDateTimeRoundTypedDict(_RoundTypedDict):
+    smallest: Literal[
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
 
 
 # =============================================================================
