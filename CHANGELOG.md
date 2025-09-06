@@ -4,6 +4,7 @@
 
 - `ryo3-jiff`
   - Added `TimeRound` python struct
+  - Fixed types for all `*Round` operations limiting max "smallest" arg literal types.
 
 ---
 
