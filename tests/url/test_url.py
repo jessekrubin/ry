@@ -21,6 +21,18 @@ def test_parse_error() -> None:
         ry.URL.parse("ry_http://[:::1]")
 
 
+def test_url_string() -> None:
+    """Test that we can create a URL from a string"""
+    url = ry.URL("http://example.com")
+    assert str(url) == "http://example.com/"
+
+
+def test_url_repr() -> None:
+    """Test that the repr of a URL is correct"""
+    url = ry.URL("http://example.com")
+    assert repr(url) == "URL('http://example.com/')"
+
+
 def test_url_from_url() -> None:
     """Test that we can create a URL from a URL"""
     url = ry.URL("http://example.com")
