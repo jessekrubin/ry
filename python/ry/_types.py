@@ -37,6 +37,7 @@ __all__ = (
     "Never",
     "Self",
     "SignedDurationRoundTypedDict",
+    "TimeRoundTypedDict",
     "TimeSpanTypedDict",
     "TimeTypedDict",
     "TimestampRoundTypedDict",
@@ -182,6 +183,9 @@ class DateTimeRoundTypedDict(_RoundTypedDict): ...
 
 
 class SignedDurationRoundTypedDict(_RoundTypedDict): ...
+
+
+class TimeRoundTypedDict(_RoundTypedDict): ...
 
 
 class TimestampRoundTypedDict(_RoundTypedDict): ...

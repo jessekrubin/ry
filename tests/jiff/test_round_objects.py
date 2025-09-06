@@ -14,11 +14,13 @@ if TYPE_CHECKING:
 _ROUND_CLASSES = [
     ry.DateTimeRound,
     ry.SignedDurationRound,
+    ry.TimeRound,
     ry.TimestampRound,
     ry.ZonedDateTimeRound,
 ]
 RoundType: TypeAlias = (
     ry.DateTimeRound
+    | ry.TimeRound
     | ry.SignedDurationRound
     | ry.TimestampRound
     | ry.ZonedDateTimeRound

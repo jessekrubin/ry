@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.57 [unreleased]
+
+- `ryo3-jiff`
+  - Added `TimeRound` python struct
+
+---
+
 ## v0.0.56 [2025-09-05]
 
 - `ryo3-serde`

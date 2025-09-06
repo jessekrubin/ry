@@ -45,6 +45,7 @@ from ry.ryo3 import (
     SqlfmtQueryParams,
     Time,
     TimeDifference,
+    TimeRound,
     TimeSpan,
     Timestamp,
     TimestampDifference,

@@ -1,5 +1,6 @@
 use crate::RySignedDuration;
 use crate::RySpan;
+use crate::RyTimeRound;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
@@ -383,6 +384,9 @@ impl RyTime {
             .map_err(map_py_value_err)
     }
 
+    fn _round(&self, dt_round: &RyTimeRound) -> PyResult<Self> {
+        dt_round.round(self)
+    }
     // ------------------------------------------------------------------------
     // SINCE/UNTIL
     // ------------------------------------------------------------------------

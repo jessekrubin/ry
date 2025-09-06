@@ -1,5 +1,5 @@
 pub use crate::functions::*;
-pub use crate::round::RySignedDurationRound;
+pub use crate::round::{RySignedDurationRound, RyTimeRound};
 pub use crate::ry_date::RyDate;
 pub use crate::ry_date_difference::RyDateDifference;
 pub use crate::ry_datetime::RyDateTime;
@@ -35,6 +35,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyTimestamp>()?;
     m.add_class::<RyZoned>()?;
 
+    // timezone database
     m.add_class::<RyTimeZoneDatabase>()?;
 
     // difference
@@ -46,9 +47,10 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // round
     m.add_class::<RyDateTimeRound>()?;
-    m.add_class::<RyZonedDateTimeRound>()?;
     m.add_class::<RySignedDurationRound>()?;
+    m.add_class::<RyTimeRound>()?;
     m.add_class::<RyTimestampRound>()?;
+    m.add_class::<RyZonedDateTimeRound>()?;
 
     // functions
     m.add_function(wrap_pyfunction!(now, m)?)?;
