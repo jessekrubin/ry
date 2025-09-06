@@ -16,7 +16,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 #[derive(Debug)]
-#[pyclass(name = "Response", module = "ry.ryo3.reqwest")]
+#[pyclass(name = "Response", module = "ry.ryo3")]
 pub struct RyResponse {
     /// The actual response which will be consumed when read
     res: Option<reqwest::Response>,
@@ -201,7 +201,7 @@ impl RyResponse {
 // clippy says this is too long and complicated to just sit in the struct def
 type AsyncResponseStreamInner =
     Arc<Mutex<Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send>>>>;
-#[pyclass(name = "ResponseStream", module = "ry.ryo3.reqwest")]
+#[pyclass(name = "ResponseStream", module = "ry.ryo3")]
 pub struct RyResponseStream {
     stream: AsyncResponseStreamInner,
 }

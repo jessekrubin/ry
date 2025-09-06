@@ -32,7 +32,7 @@ ergonomic.
   `sqlformat`, `unindent`, `xxhash`, and more.
 - **Designed for ergonomics:** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
-- **Type Annotated:** Type annotations for all public APIs, with `mypy` support.
+- **Type Annotated:** All public APIs are (painstakingly) type annotated.
 - **Performant:** Speed without the words "blazingly fast." [^1]
 
 ## Install

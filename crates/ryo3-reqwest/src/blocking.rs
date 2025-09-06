@@ -10,7 +10,7 @@ use reqwest::StatusCode;
 use ryo3_url::PyUrl;
 
 #[pyclass]
-#[pyo3(name = "BlockingResponse", module = "ry.ryo3.reqwest")]
+#[pyo3(name = "BlockingResponse", module = "ry.ryo3")]
 #[derive(Debug)]
 pub struct RyBlockingResponse {
     // Store the response in an Option so we can take ownership later.
@@ -142,7 +142,7 @@ impl RyBlockingResponse {
     }
 }
 #[pyclass]
-#[pyo3(name = "Client", module = "ry.ryo3.reqwest")]
+#[pyo3(name = "Client", module = "ry.ryo3")]
 #[derive(Debug)]
 pub struct RyClient(reqwest::blocking::Client);
 

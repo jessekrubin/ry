@@ -30,7 +30,7 @@ use tokio::sync::Mutex;
 
 type AsyncResponseStreamInner = Arc<Mutex<Fuse<BoxStream<'static, Result<Bytes, reqwest::Error>>>>>;
 
-#[pyclass(name = "ResponseStream", module = "ry.ryo3.reqwest", frozen)]
+#[pyclass(name = "ResponseStream", module = "ry.ryo3", frozen)]
 pub struct RyResponseStream {
     status: StatusCode,
     pub(crate) stream: AsyncResponseStreamInner,
