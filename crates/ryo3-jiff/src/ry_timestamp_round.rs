@@ -16,10 +16,9 @@ pub struct RyTimestampRound {
 }
 impl From<RoundOptions> for RyTimestampRound {
     fn from(options: RoundOptions) -> Self {
-        let jiff_round = options.timestamp_round();
         Self {
             options,
-            jiff_round,
+            jiff_round: (&options).into(),
         }
     }
 }

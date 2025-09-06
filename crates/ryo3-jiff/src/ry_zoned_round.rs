@@ -15,10 +15,9 @@ pub struct RyZonedDateTimeRound {
 }
 impl From<RoundOptions> for RyZonedDateTimeRound {
     fn from(options: RoundOptions) -> Self {
-        let jiff_round = options.zoned_round();
         Self {
             options,
-            jiff_round,
+            jiff_round: (&options).into(),
         }
     }
 }

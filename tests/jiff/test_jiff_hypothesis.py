@@ -98,14 +98,21 @@ def test_datetime_rounding(
     dt: ry.DateTime, unit: JiffUnit, mode: JiffRoundMode, increment: int
 ) -> None:
     """Test that rounding a datetime with various options works correctly"""
-    try:
-        options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)
-        rounded_dt = dt._round(options)
-        # Since rounding may not produce the original datetime, test that the rounded datetime is valid
-        assert isinstance(rounded_dt, ry.DateTime)
-
-    except ValueError as _ve:  # can fail
-        ...
+    if unit in ("year", "month", "week"):
+        with pytest.raises(ValueError):
+            options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]
+            rounded_dt = dt._round(options)
+    else:
+        try:
+            options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]
+            rounded_dt = dt._round(options)
+            assert isinstance(rounded_dt, ry.DateTime)
+        except ValueError:  # todo: fix this
+            with pytest.raises(ValueError):
+                options = ry.DateTimeRound(
+                    smallest=unit, mode=mode, increment=increment
+                )  # type: ignore[arg-type]
+                rounded_dt = dt._round(options)
 
 
 @given(datetime_strategy, timezone_strategy)

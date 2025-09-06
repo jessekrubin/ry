@@ -14,12 +14,12 @@ pub struct RyDateTimeRound {
     pub(crate) options: RoundOptions,
     pub(crate) jiff_round: DateTimeRound,
 }
+
 impl From<RoundOptions> for RyDateTimeRound {
     fn from(options: RoundOptions) -> Self {
-        let jiff_round = options.datetime_round();
         Self {
             options,
-            jiff_round,
+            jiff_round: (&options).into(),
         }
     }
 }

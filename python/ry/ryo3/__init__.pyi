@@ -50,6 +50,7 @@ from ry.ryo3._jiff import SignedDuration as SignedDuration
 from ry.ryo3._jiff import SignedDurationRound as SignedDurationRound
 from ry.ryo3._jiff import Time as Time
 from ry.ryo3._jiff import TimeDifference as TimeDifference
+from ry.ryo3._jiff import TimeRound as TimeRound
 from ry.ryo3._jiff import TimeSpan as TimeSpan
 from ry.ryo3._jiff import Timestamp as Timestamp
 from ry.ryo3._jiff import TimestampDifference as TimestampDifference
