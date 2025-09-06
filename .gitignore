@@ -38,6 +38,8 @@ pip-selfcheck.json
 # Unit test / coverage reports
 htmlcov/
 .tox/
+.hypothesis/
+.benchmarks/
 .coverage
 .cache
 nosetests.xml
@@ -71,9 +73,14 @@ docs/_build/
 
 # Pyenv
 .python-version
+
+# rust
 target/
+
+# scratch
 scratch/
 _scratch/
-.hypothesis/
+
+# coverage
 *.lcov
 *.profraw

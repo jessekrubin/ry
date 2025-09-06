@@ -1,4 +1,4 @@
-use crate::type_cache::PyTypeCache;
+use crate::ob_type_cache::PyTypeCache;
 use pyo3::{Bound, PyAny};
 
 #[derive(Copy, Clone)]

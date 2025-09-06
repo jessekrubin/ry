@@ -1125,7 +1125,7 @@ class ZonedDateTime(
         minute: int = 0,
         second: int = 0,
         nanosecond: int = 0,
-        tz: str | None = None,
+        tz: TimezoneName | None = None,
     ) -> None: ...
 
     # =========================================================================

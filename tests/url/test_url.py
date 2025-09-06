@@ -111,6 +111,23 @@ def test_repr() -> None:
     assert "URL('http://example.com/')" == repr(url)
 
 
+@pytest.mark.parametrize(
+    "url_str, expected",
+    [
+        ("https://127.0.0.1/", None),
+        ("https://[::1]/", None),
+        ("https://example.com/", "example.com"),
+        ("https://subdomain.example.com/", "subdomain.example.com"),
+        ("mailto:rms@example.net", None),
+    ],
+)
+def test_domain(
+    url_str: str,
+    expected: str | None,
+) -> None:
+    assert ry.URL(url_str).domain == expected
+
+
 class TestJoinUrl:
     def test_join_empty(self) -> None:
         u = ry.URL("http://example.com")

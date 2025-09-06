@@ -1,7 +1,11 @@
 # CHANGELOG
 
-## v0.0.56 [unreleased]
+## v0.0.56 [2025-09-05]
 
+- `ryo3-serde`
+  - refactoring and testing recursion and stitch
+- `ryo3-tokio`
+  - Fix: python open mode parsing for `aiopen` function
 - `ryo3-reqwest`
   - Add `jiter` parsing options to `Response.json()`
 - `ryo3-jiff`

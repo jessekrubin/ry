@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use serde::ser::{Error as SerError, Serialize, Serializer};
+use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 use crate::serde_err;

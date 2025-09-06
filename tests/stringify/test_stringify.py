@@ -37,17 +37,61 @@ def oj_stringify(data: t.Any) -> bytes:
     return orjson.dumps(data)
 
 
-def test_stringify_recursive() -> None:
-    """Test that stringify raises `RecursionError` for recursive data structures."""
-    a = {
-        "k": "v",
-    }
-    b = {
-        "a": a,
-    }
-    a["b"] = b  # type: ignore[assignment]
-    with pytest.raises(RecursionError, match="Recursion limit reached"):
-        _r = ry.stringify(a)
+class TestStringifyRecursion:
+    def _depth(self, d: dict[str, t.Any] | tuple[t.Any, ...] | list[t.Any]) -> int:
+        if isinstance(d, dict) and d:
+            return 1 + self._depth(next(iter(d.values())))
+        elif isinstance(d, list) and d:
+            return 1 + self._depth(d[0])
+        elif isinstance(d, tuple) and d:
+            return 1 + self._depth(d[0])
+        return 0
+
+    def test_stringify_recursive_dict_infinite(self) -> None:
+        """Test that stringify raises `RecursionError` for recursive data structures."""
+        a = {
+            "k": "v",
+        }
+        b = {
+            "a": a,
+        }
+        a["b"] = b  # type: ignore[assignment]
+        with pytest.raises(RecursionError, match="Recursion limit reached"):
+            _r = ry.stringify(a)
+
+    def test_ry_recursion_dictionary(self) -> None:
+        data: dict[str, t.Any] = {"a": 123}
+        for _i in range(254):
+            data = {"a": data}
+        assert self._depth(data) == 255
+        a = ry.stringify(data).decode()
+        assert isinstance(a, str)
+
+        with pytest.raises(RecursionError):
+            _a = ry.stringify({"a": data})
+
+    def test_recursion_tuple(self) -> None:
+        data: tuple[t.Any, ...] = (123,)
+        for _i in range(254):
+            data = (data,)
+
+        assert self._depth(data) == 255
+        a = ry.stringify(data).decode()
+        assert isinstance(a, str)
+
+        with pytest.raises(RecursionError):
+            _a = ry.stringify((data,))
+
+    def test_recursion_list(self) -> None:
+        data: list[t.Any] = [123]
+        for _i in range(254):
+            data = [data]
+        assert self._depth(data) == 255
+        a = ry.stringify(data).decode()
+        assert isinstance(a, str)
+
+        with pytest.raises(RecursionError):
+            _a = ry.stringify([data])
 
 
 def test_stringify_pybytes_output() -> None:
