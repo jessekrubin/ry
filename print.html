@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-06T01:14:28.569227647+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-06T22:21:50.787351652+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -465,6 +465,16 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0057-unreleased"><a class="header" href="#v0057-unreleased">v0.0.57 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>Added <code>TimeRound</code> python struct</li>
+<li>Fixed types for all <code>*Round</code> operations limiting max “smallest” arg literal types.</li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0056-2025-09-05"><a class="header" href="#v0056-2025-09-05">v0.0.56 [2025-09-05]</a></h2>
 <ul>
 <li><code>ryo3-serde</code>
@@ -2173,6 +2183,7 @@ from ry.ryo3._jiff import SignedDuration as SignedDuration
 from ry.ryo3._jiff import SignedDurationRound as SignedDurationRound
 from ry.ryo3._jiff import Time as Time
 from ry.ryo3._jiff import TimeDifference as TimeDifference
+from ry.ryo3._jiff import TimeRound as TimeRound
 from ry.ryo3._jiff import TimeSpan as TimeSpan
 from ry.ryo3._jiff import Timestamp as Timestamp
 from ry.ryo3._jiff import TimestampDifference as TimestampDifference
@@ -3240,6 +3251,7 @@ from ry._types import (
     FromStr,
     Self,
     SignedDurationRoundTypedDict,
+    TimeRoundTypedDict,
     TimeSpanTypedDict,
     TimestampRoundTypedDict,
     TimeTypedDict,
@@ -3589,6 +3601,7 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -&gt; Time: ...
+    def _round(self, options: TimeRound) -&gt; Time: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[Time]: ...
     def to_datetime(self, d: Date) -&gt; DateTime: ...
 
@@ -4017,10 +4030,18 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def to_timespan(self) -&gt; TimeSpan: ...
     def round(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
         *,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        mode: JiffRoundMode = "half-expand",
+        increment: int = 1,
     ) -&gt; SignedDuration: ...
     def _round(self, options: SignedDurationRound) -&gt; DateTime: ...
 
@@ -4353,9 +4374,17 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def duration_until(self, other: Timestamp) -&gt; SignedDuration: ...
     def round(
         self,
-        unit: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        unit: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
+        *,
+        mode: JiffRoundMode = "half-expand",
+        increment: int = 1,
     ) -&gt; Timestamp: ...
     def _round(self, options: TimestampRound) -&gt; Timestamp: ...
 
@@ -4561,10 +4590,18 @@ class ZonedDateTime(
     ) -&gt; ZonedDateTime: ...
     def round(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
         *,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        mode: JiffRoundMode = "half-expand",
+        increment: int = 1,
     ) -&gt; DateTime: ...
     def _round(self, options: ZonedDateTimeRound) -&gt; ZonedDateTime: ...
     def start_of_day(self) -&gt; ZonedDateTime: ...
@@ -4779,21 +4816,59 @@ class ZonedDateTimeDifference(_Difference[ZonedDateTime]): ...
 class DateTimeRound:
     def __init__(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
         *,
-        mode: JiffRoundMode | None = None,
+        mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
     def mode(self, mode: JiffRoundMode) -&gt; DateTimeRound: ...
-    def smallest(self, smallest: JiffUnit) -&gt; DateTimeRound: ...
+    def smallest(
+        self,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ],
+    ) -&gt; DateTimeRound: ...
     def increment(self, increment: int) -&gt; DateTimeRound: ...
-    def _smallest(self) -&gt; JiffUnit: ...
+    def _smallest(
+        self,
+    ) -&gt; t.Literal[
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]: ...
     def _mode(self) -&gt; JiffRoundMode: ...
     def _increment(self) -&gt; int: ...
     def replace(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ]
+        | None = None,
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -&gt; DateTimeRound: ...
@@ -4805,21 +4880,55 @@ class DateTimeRound:
 class SignedDurationRound:
     def __init__(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
         *,
-        mode: JiffRoundMode | None = None,
+        mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
     def mode(self, mode: JiffRoundMode) -&gt; SignedDurationRound: ...
-    def smallest(self, smallest: JiffUnit) -&gt; SignedDurationRound: ...
+    def smallest(
+        self,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ],
+    ) -&gt; SignedDurationRound: ...
     def increment(self, increment: int) -&gt; SignedDurationRound: ...
-    def _smallest(self) -&gt; JiffUnit: ...
+    def _smallest(
+        self,
+    ) -&gt; t.Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]: ...
     def _mode(self) -&gt; JiffRoundMode: ...
     def _increment(self) -&gt; int: ...
     def replace(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ]
+        | None = None,
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -&gt; SignedDurationRound: ...
@@ -4828,24 +4937,118 @@ class SignedDurationRound:
 
 
 @t.final
-class TimestampRound:
+class TimeRound:
     def __init__(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
         *,
-        mode: JiffRoundMode | None = None,
+        mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
-    def mode(self, mode: JiffRoundMode) -&gt; TimestampRound: ...
-    def smallest(self, smallest: JiffUnit) -&gt; TimestampRound: ...
-    def increment(self, increment: int) -&gt; TimestampRound: ...
-    def _smallest(self) -&gt; JiffUnit: ...
+    def mode(self, mode: JiffRoundMode) -&gt; TimeRound: ...
+    def smallest(
+        self,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ],
+    ) -&gt; TimeRound: ...
+    def increment(self, increment: int) -&gt; TimeRound: ...
+    def _smallest(
+        self,
+    ) -&gt; t.Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]: ...
     def _mode(self) -&gt; JiffRoundMode: ...
     def _increment(self) -&gt; int: ...
     def replace(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ]
+        | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -&gt; TimeRound: ...
+    def to_dict(self) -&gt; TimeRoundTypedDict: ...
+    def round(self, dt: Time) -&gt; Time: ...
+
+
+@t.final
+class TimestampRound:
+    def __init__(
+        self,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
+        *,
+        mode: JiffRoundMode = "half-expand",
+        increment: int = 1,
+    ) -&gt; None: ...
+    def __eq__(self, other: object) -&gt; bool: ...
+    def mode(self, mode: JiffRoundMode) -&gt; TimestampRound: ...
+    def smallest(
+        self,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ],
+    ) -&gt; TimestampRound: ...
+    def increment(self, increment: int) -&gt; TimestampRound: ...
+    def _smallest(
+        self,
+    ) -&gt; t.Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]: ...
+    def _mode(self) -&gt; JiffRoundMode: ...
+    def _increment(self) -&gt; int: ...
+    def replace(
+        self,
+        smallest: t.Literal[
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ]
+        | None = None,
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -&gt; TimestampRound: ...
@@ -4857,21 +5060,59 @@ class TimestampRound:
 class ZonedDateTimeRound:
     def __init__(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ] = "nanosecond",
         *,
-        mode: JiffRoundMode | None = None,
+        mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
     def mode(self, mode: JiffRoundMode) -&gt; ZonedDateTimeRound: ...
-    def smallest(self, smallest: JiffUnit) -&gt; ZonedDateTimeRound: ...
+    def smallest(
+        self,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ],
+    ) -&gt; ZonedDateTimeRound: ...
     def increment(self, increment: int) -&gt; ZonedDateTimeRound: ...
-    def _smallest(self) -&gt; JiffUnit: ...
+    def _smallest(
+        self,
+    ) -&gt; t.Literal[
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]: ...
     def _mode(self) -&gt; JiffRoundMode: ...
     def _increment(self) -&gt; int: ...
     def replace(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: t.Literal[
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+        ]
+        | None = None,
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -&gt; ZonedDateTimeRound: ...
