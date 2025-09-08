@@ -110,9 +110,11 @@ def test_datetime_rounding(
         except ValueError:  # todo: fix this
             with pytest.raises(ValueError):
                 options = ry.DateTimeRound(
-                    smallest=unit, mode=mode, increment=increment
-                )  # type: ignore[arg-type]
-                rounded_dt = dt._round(options)
+                    smallest=unit,  # type: ignore[arg-type]
+                    mode=mode,
+                    increment=increment,
+                )
+                _rounded_dt = dt._round(options)
 
 
 @given(datetime_strategy, timezone_strategy)
