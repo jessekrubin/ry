@@ -1,6 +1,6 @@
 use crate::constants::DATETIME_PARSER;
+use crate::difference::{DateDifferenceArg, RyDateDifference};
 use crate::errors::{map_py_overflow_err, map_py_value_err};
-use crate::ry_date_difference::{DateDifferenceArg, RyDateDifference};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
@@ -26,7 +26,7 @@ use std::ops::Sub;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[pyclass(name = "Date", module = "ry.ryo3", frozen)]
 pub struct RyDate(pub(crate) Date);
 
@@ -415,14 +415,14 @@ impl RyDate {
 
     fn _since(&self, other: &RyDateDifference) -> PyResult<RySpan> {
         self.0
-            .since(other.0)
+            .since(other.diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
 
     fn _until(&self, other: &RyDateDifference) -> PyResult<RySpan> {
         self.0
-            .until(other.0)
+            .until(other.diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }

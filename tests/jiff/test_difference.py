@@ -30,12 +30,12 @@ class TestDateDifference:
 
         d1 = ry.date(2024, 3, 15)
         d2 = ry.date(2030, 9, 13)
-        diff = ry.DateDifference(d2).smallest("year").mode("half-expand")
+        diff = ry.DateDifference(d2)._smallest("year")._mode("half-expand")
         span = d1._until(diff)
         assert span == ry.timespan(years=6)
 
         d2 = ry.date(2030, 9, 14)
-        span = d1._until(ry.DateDifference(d2).smallest("year").mode("half-expand"))
+        span = d1._until(ry.DateDifference(d2)._smallest("year")._mode("half-expand"))
         assert span == ry.timespan(years=7)
 
     def test_date_until_smallest(self) -> None:
@@ -57,7 +57,10 @@ class TestDateDifference:
         d1 = ry.date(2024, 3, 15)
         d2 = ry.date(2030, 11, 22)
         span = d1._until(
-            ry.DateDifference(d2).smallest("week").largest("week").mode("half-expand")
+            ry.DateDifference(d2)
+            ._smallest("week")
+            ._largest("week")
+            ._mode("half-expand")
         )
         assert span == ry.timespan(weeks=349)
 
@@ -88,10 +91,10 @@ class TestDateDifference:
         """
         d1 = ry.date(2024, 1, 15)
         d2 = ry.date(2024, 8, 16)
-        span = d1._until(ry.DateDifference(d2).smallest("month").mode("ceil"))
+        span = d1._until(ry.DateDifference(d2)._smallest("month")._mode("ceil"))
         assert span == ry.timespan(months=8)
 
-        span = d1._since(ry.DateDifference(d2).smallest("month").mode("ceil"))
+        span = d1._since(ry.DateDifference(d2)._smallest("month")._mode("ceil"))
         assert span == ry.timespan(months=-7)
 
     def test_date_difference_increment_docs_example(self) -> None:
@@ -124,13 +127,13 @@ class TestDateDifference:
         d1 = ry.date(2024, 1, 15)
         d2 = ry.date(2024, 8, 15)
         span = d1._until(
-            ry.DateDifference(d2).smallest("month").increment(2).mode("half-expand")
+            ry.DateDifference(d2)._smallest("month")._increment(2)._mode("half-expand")
         )
         assert span == ry.timespan(months=8)
 
         d2 = ry.date(2024, 8, 14)
         span = d1._until(
-            ry.DateDifference(d2).smallest("month").increment(2).mode("half-expand")
+            ry.DateDifference(d2)._smallest("month")._increment(2)._mode("half-expand")
         )
         assert span == ry.timespan(months=6)
 
@@ -166,13 +169,19 @@ class TestTimeDifference:
         t1 = ry.time(8, 14, 0, 123456789)
         t2 = ry.time(15, 0, 0, 0)
         span = t1._until(
-            ry.TimeDifference(t2).smallest("minute").mode("half-expand").increment(30)
+            ry.TimeDifference(t2)
+            ._smallest("minute")
+            ._mode("half-expand")
+            ._increment(30)
         )
         assert span == ry.timespan(hours=7)
 
         t2 = ry.time(14, 59, 0, 0)
         span = t1._until(
-            ry.TimeDifference(t2).smallest("minute").mode("half-expand").increment(30)
+            ry.TimeDifference(t2)
+            ._smallest("minute")
+            ._mode("half-expand")
+            ._increment(30)
         )
         assert span == ry.timespan(hours=6, minutes=30)
 
@@ -193,7 +202,7 @@ class TestTimeDifference:
         """
         t1 = ry.Time.parse("08:14:02.5001")
         t2 = ry.Time.parse("08:30:03.0001")
-        span = t1._until(ry.TimeDifference(t2).smallest("second").mode("half-expand"))
+        span = t1._until(ry.TimeDifference(t2)._smallest("second")._mode("half-expand"))
         assert span == ry.timespan(minutes=16, seconds=1)
 
     def test_time_difference_mode(self) -> None:
@@ -223,9 +232,9 @@ class TestTimeDifference:
         """
         t1 = ry.Time.parse("08:10")
         t2 = ry.Time.parse("08:11")
-        span = t1._until(ry.TimeDifference(t2).smallest("hour").mode("ceil"))
+        span = t1._until(ry.TimeDifference(t2)._smallest("hour")._mode("ceil"))
         assert span == ry.timespan(hours=1)
-        span = t1._since(ry.TimeDifference(t2).smallest("hour").mode("ceil"))
+        span = t1._since(ry.TimeDifference(t2)._smallest("hour")._mode("ceil"))
         assert span == ry.timespan(hours=0)
 
 
@@ -251,10 +260,10 @@ class TestDateTimeDifference:
         dt2 = ry.DateTime.parse("2030-03-22 15:00")
         span = dt1._until(
             ry.DateTimeDifference(dt2)
-            .smallest("minute")
-            .largest("year")
-            .mode("half-expand")
-            .increment(30)
+            ._smallest("minute")
+            ._largest("year")
+            ._mode("half-expand")
+            ._increment(30)
         )
         assert span == ry.timespan(years=6, days=7, hours=7)
 
@@ -286,9 +295,9 @@ class TestDateTimeDifference:
         dt2 = ry.DateTime.parse("2030-11-22 08:30")
         span = dt1._until(
             ry.DateTimeDifference(dt2)
-            .smallest("week")
-            .largest("week")
-            .mode("half-expand")
+            ._smallest("week")
+            ._largest("week")
+            ._mode("half-expand")
         )
         assert span == ry.timespan(weeks=349)
 
@@ -307,7 +316,7 @@ class TestDateTimeDifference:
         """
         dt1 = ry.DateTime.parse("2024-03-15 08:14")
         dt2 = ry.DateTime.parse("2030-11-22 08:30")
-        span = dt1._until(ry.DateTimeDifference(dt2).largest("second"))
+        span = dt1._until(ry.DateTimeDifference(dt2)._largest("second"))
         assert span == ry.timespan(seconds=211076160)
 
     def test_datetime_difference_mode(self) -> None:
@@ -340,10 +349,10 @@ class TestDateTimeDifference:
         """
         dt1 = ry.DateTime.parse("2024-03-15 08:10")
         dt2 = ry.DateTime.parse("2024-03-15 08:11")
-        span = dt1._until(ry.DateTimeDifference(dt2).smallest("hour").mode("ceil"))
+        span = dt1._until(ry.DateTimeDifference(dt2)._smallest("hour")._mode("ceil"))
         assert span == ry.timespan(hours=1)
 
-        span = dt1._since(ry.DateTimeDifference(dt2).smallest("hour").mode("ceil"))
+        span = dt1._since(ry.DateTimeDifference(dt2)._smallest("hour")._mode("ceil"))
         assert span == ry.timespan(hours=0)
 
 
@@ -382,10 +391,10 @@ class TestTimestampDifference:
         ts2 = ry.Timestamp.parse("2024-03-22 15:00Z")
         span = ts1._until(
             ry.TimestampDifference(ts2)
-            .smallest("minute")
-            .largest("hour")
-            .mode("half-expand")
-            .increment(30)
+            ._smallest("minute")
+            ._largest("hour")
+            ._mode("half-expand")
+            ._increment(30)
         )
 
         assert span == ry.timespan(hours=175)
@@ -393,10 +402,10 @@ class TestTimestampDifference:
         ts2 = ry.Timestamp.parse("2024-03-22 14:59Z")
         span = ts1._until(
             ry.TimestampDifference(ts2)
-            .smallest("minute")
-            .largest("hour")
-            .mode("half-expand")
-            .increment(30)
+            ._smallest("minute")
+            ._largest("hour")
+            ._mode("half-expand")
+            ._increment(30)
         )
         assert span == ry.timespan(hours=174, minutes=30)
 
@@ -418,7 +427,7 @@ class TestTimestampDifference:
         ts1 = ry.Timestamp.parse("2024-03-15 08:14:02.5001Z")
         ts2 = ry.Timestamp.parse("2024-03-15T08:16:03.0001Z")
         span = ts1._until(
-            ry.TimestampDifference(ts2).smallest("second").mode("half-expand")
+            ry.TimestampDifference(ts2)._smallest("second")._mode("half-expand")
         )
         assert span == ry.timespan(seconds=121)
 
@@ -437,7 +446,7 @@ class TestTimestampDifference:
         """
         ts1 = ry.Timestamp.parse("2024-03-15 08:14Z")
         ts2 = ry.Timestamp.parse("2030-11-22 08:30Z")
-        span = ts1._until(ry.TimestampDifference(ts2).largest("second"))
+        span = ts1._until(ry.TimestampDifference(ts2)._largest("second"))
         assert span == ry.timespan(seconds=211076160)
 
     def test_timestamp_difference_mode(self) -> None:
@@ -467,10 +476,10 @@ class TestTimestampDifference:
         """
         ts1 = ry.Timestamp.parse("2024-03-15 08:10Z")
         ts2 = ry.Timestamp.parse("2024-03-15 08:11Z")
-        span = ts1._until(ry.TimestampDifference(ts2).smallest("hour").mode("ceil"))
+        span = ts1._until(ry.TimestampDifference(ts2)._smallest("hour")._mode("ceil"))
         assert span == ry.timespan(hours=1)
 
-        span = ts1._since(ry.TimestampDifference(ts2).smallest("hour").mode("ceil"))
+        span = ts1._since(ry.TimestampDifference(ts2)._smallest("hour")._mode("ceil"))
         assert span == ry.timespan(hours=0)
 
     def test_timestamp_difference_increment(self) -> None:
@@ -495,8 +504,8 @@ class TestTimestampDifference:
         ts2 = ry.Timestamp.parse("2024-03-15 12:52Z")
         span = ts1._until(
             ry.TimestampDifference(ts2)
-            .smallest("minute")
-            .increment(5)
-            .mode("half-expand")
+            ._smallest("minute")
+            ._increment(5)
+            ._mode("half-expand")
         )
         assert span == ry.timespan(minutes=275)
