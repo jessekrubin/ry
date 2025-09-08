@@ -1247,6 +1247,48 @@ JiffRoundMode: t.TypeAlias = t.Literal[
     "half-trunc",
     "half-even",
 ]
+_DateTimeRoundSmallest: t.TypeAlias = t.Literal[
+    "day",
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
+_SignedDurationRoundSmallest: t.TypeAlias = t.Literal[
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
+_TimeRoundSmallest: t.TypeAlias = t.Literal[
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
+_TimestampRoundSmallest: t.TypeAlias = t.Literal[
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
+_ZonedDateTimeRoundSmallest: t.TypeAlias = t.Literal[
+    "day",
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
 
 WeekdayStr: t.TypeAlias = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
@@ -1550,7 +1592,7 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     ) -> Time: ...
     def round(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: _TimeRoundSmallest = "nanosecond",
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
     ) -> Time: ...
@@ -1715,7 +1757,7 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     ) -> DateTime: ...
     def round(
         self,
-        smallest: JiffUnit | None = None,
+        smallest: _DateTimeRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
@@ -1983,15 +2025,7 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def to_timespan(self) -> TimeSpan: ...
     def round(
         self,
-        smallest: t.Literal[
-            "day",
-            "hour",
-            "minute",
-            "second",
-            "millisecond",
-            "microsecond",
-            "nanosecond",
-        ] = "nanosecond",
+        smallest: _SignedDurationRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
@@ -2327,14 +2361,7 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def duration_until(self, other: Timestamp) -> SignedDuration: ...
     def round(
         self,
-        unit: t.Literal[
-            "hour",
-            "minute",
-            "second",
-            "millisecond",
-            "microsecond",
-            "nanosecond",
-        ] = "nanosecond",
+        unit: _TimestampRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
@@ -2543,15 +2570,7 @@ class ZonedDateTime(
     ) -> ZonedDateTime: ...
     def round(
         self,
-        smallest: t.Literal[
-            "day",
-            "hour",
-            "minute",
-            "second",
-            "millisecond",
-            "microsecond",
-            "nanosecond",
-        ] = "nanosecond",
+        smallest: _ZonedDateTimeRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
@@ -2766,16 +2785,6 @@ class ZonedDateTimeDifference(_Difference[ZonedDateTime]): ...
 # ROUND
 # =============================================================================
 
-_DateTimeRoundSmallest: t.TypeAlias = t.Literal[
-    "day",
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
-
 
 @t.final
 class DateTimeRound:
@@ -2809,16 +2818,6 @@ class DateTimeRound:
     ) -> DateTimeRound: ...
     def to_dict(self) -> DateTimeRoundTypedDict: ...
     def round(self, dt: DateTime) -> DateTime: ...
-
-
-_SignedDurationRoundSmallest: t.TypeAlias = t.Literal[
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
 
 
 @t.final
@@ -2855,16 +2854,6 @@ class SignedDurationRound:
     def round(self, sd: SignedDuration) -> SignedDuration: ...
 
 
-_TimeRoundSmallest: t.TypeAlias = t.Literal[
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
-
-
 @t.final
 class TimeRound:
     def __init__(
@@ -2899,16 +2888,6 @@ class TimeRound:
     def round(self, dt: Time) -> Time: ...
 
 
-_TimestampRoundSmallest: t.TypeAlias = t.Literal[
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
-
-
 @t.final
 class TimestampRound:
     def __init__(
@@ -2939,17 +2918,6 @@ class TimestampRound:
     ) -> TimestampRound: ...
     def to_dict(self) -> TimestampRoundTypedDict: ...
     def round(self, dt: Timestamp) -> Timestamp: ...
-
-
-_ZonedDateTimeRoundSmallest: t.TypeAlias = t.Literal[
-    "day",
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
 
 
 @t.final

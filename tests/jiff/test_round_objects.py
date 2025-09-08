@@ -90,3 +90,16 @@ def test_round_replace(
     )
 
     assert replace_all == cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("cls", _ROUND_CLASSES)
+def test_round_obj_defaults(
+    cls: type[RoundType],
+) -> None:
+    round_obj = cls()
+    round_dict = round_obj.to_dict()
+    assert round_dict == {
+        "smallest": "nanosecond",
+        "mode": "half-expand",
+        "increment": 1,
+    }
