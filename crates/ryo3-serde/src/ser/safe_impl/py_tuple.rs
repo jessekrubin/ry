@@ -219,21 +219,17 @@ impl Serialize for SerializePyTuple<'_, '_> {
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
         } else if len <= 16 {
-            let mut seq = serializer.serialize_tuple(len)?;
+            let mut tup = serializer.serialize_tuple(len)?;
             for element in py_tuple {
                 let ob_type = self.ctx.typeref.obtype(&element);
-
-                serialize_tuple_element!(ob_type, seq, self, element);
+                serialize_tuple_element!(ob_type, tup, self, element);
             }
-            seq.end()
+            tup.end()
         } else {
             let mut seq = serializer.serialize_seq(Some(len))?;
             for element in py_tuple {
-                seq.serialize_element(&SerializePyAny::new_with_depth(
-                    &element,
-                    self.ctx,
-                    self.depth + 1,
-                ))?;
+                let ob_type = self.ctx.typeref.obtype(&element);
+                serialize_tuple_element!(ob_type, seq, self, element);
             }
             seq.end()
         }
