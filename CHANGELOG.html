@@ -189,6 +189,28 @@
 <li>Added <code>TimeRound</code> python struct</li>
 <li>Fixed types for all <code>*Round</code> operations limiting max “smallest” arg literal
 types.</li>
+<li>Round-api changes
+<ul>
+<li>builder-y functions and getter functions have been flip-flopped:
+<ul>
+<li>Switched “builder”-y apis to start with prefix for all <code>*Round</code> structs:
+<ul>
+<li><code>increment(n: int) -&gt; Self</code> -&gt; <code>_increment(n: int) -&gt; Self</code></li>
+<li><code>mode(m: str) -&gt; Self</code> -&gt; <code>_mode(m: str) -&gt; Self</code></li>
+<li><code>smallest(unit: str) -&gt; Self</code> -&gt; <code>_smallest(unit: str) -&gt; Self</code></li>
+</ul>
+</li>
+<li>Switched all getter functions to be properties:
+<ul>
+<li><code>round_obj._increment() -&gt; int</code> -&gt; <code>round_obj.increment -&gt; int</code></li>
+<li><code>round_obj._mode() -&gt; str</code> -&gt; <code>round_obj.mode -&gt; str</code></li>
+<li><code>round_obj._smallest() -&gt; str</code> -&gt; <code>round_obj.smallest -&gt; str</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
