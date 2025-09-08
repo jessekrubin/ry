@@ -34,9 +34,9 @@ def test_round_getters(
     jiff_round_mode: JiffRoundMode,
 ) -> None:
     round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)  # type: ignore[arg-type]
-    assert round_obj._smallest() == jiff_unit
-    assert round_obj._mode() == jiff_round_mode
-    assert round_obj._increment() == 2
+    assert round_obj.smallest == jiff_unit
+    assert round_obj.mode == jiff_round_mode
+    assert round_obj.increment == 2
 
 
 @pytest.mark.parametrize("cls", _ROUND_CLASSES)
@@ -74,14 +74,14 @@ def test_round_replace(
 ) -> None:
     round_obj = cls()
 
-    replace_smallest = round_obj.smallest(jiff_unit)  # type: ignore[arg-type]
-    assert replace_smallest._smallest() == jiff_unit
+    replace_smallest = round_obj._smallest(jiff_unit)  # type: ignore[arg-type]
+    assert replace_smallest.smallest == jiff_unit
 
-    replace_mode = round_obj.mode(jiff_round_mode)
-    assert replace_mode._mode() == jiff_round_mode
+    replace_mode = round_obj._mode(jiff_round_mode)
+    assert replace_mode.mode == jiff_round_mode
 
-    replace_increment = round_obj.increment(2)
-    assert replace_increment._increment() == 2
+    replace_increment = round_obj._increment(2)
+    assert replace_increment.increment == 2
 
     replace_all = round_obj.replace(
         smallest=jiff_unit,  # type: ignore[arg-type]
@@ -90,3 +90,16 @@ def test_round_replace(
     )
 
     assert replace_all == cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("cls", _ROUND_CLASSES)
+def test_round_obj_defaults(
+    cls: type[RoundType],
+) -> None:
+    round_obj = cls()
+    round_dict = round_obj.to_dict()
+    assert round_dict == {
+        "smallest": "nanosecond",
+        "mode": "half-expand",
+        "increment": 1,
+    }

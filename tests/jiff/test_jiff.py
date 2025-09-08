@@ -327,7 +327,9 @@ class TestDateTime:
         for unit, mode in it.product(JIFF_UNITS, JIFF_ROUND_MODES):
             options = ry.DateTimeRound(smallest=unit, mode=mode, increment=1)  # type: ignore[arg-type]
 
-            options_chained = ry.DateTimeRound().smallest(unit).mode(mode).increment(1)  # type: ignore[arg-type]
+            options_chained = (
+                ry.DateTimeRound()._smallest(unit)._mode(mode)._increment(1)  # type: ignore[arg-type]
+            )
             expected_string = (
                 f'DateTimeRound(smallest="{unit}", mode="{mode}", increment=1)'
             )
