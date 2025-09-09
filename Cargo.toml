@@ -134,6 +134,7 @@ ryo3-http = { path = "./crates/ryo3-http" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-json = { path = "./crates/ryo3-json" }
+ryo3-macros = { path = "crates/ryo3-macros" }
 ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
 ryo3-memchr = { path = "crates/ryo3-memchr" }
 ryo3-pydantic = { path = "./crates/ryo3-pydantic" }
@@ -203,7 +204,7 @@ url = { version = "2.5.4" }
 uuid = { version = "1.18.1", features = ["v4", "v8"] }
 walkdir = "2.5.0"
 which = { version = "8.0.0", features = [] }
-xxhash-rust = { version = "0.8.15", features = []}
+xxhash-rust = { version = "0.8.15", features = [] }
 zstd = "0.13.3"
 zstd-safe = "7.2.4"
 

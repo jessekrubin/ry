@@ -583,7 +583,7 @@ impl RyZoned {
                 let offset = date.extract::<RyOffset>()?;
                 builder = builder.offset(offset.0);
             } else {
-                return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                return Err(PyErr::new::<PyTypeError, _>(format!(
                     "obj must be a Date, Time or Offset; given: {obj}",
                 )));
             }
@@ -725,7 +725,8 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(name = "try_from")]
+    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
@@ -753,11 +754,10 @@ impl RyZoned {
 
     #[staticmethod]
     fn _pydantic_parse<'py>(
-        // cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::try_from(value)
+        Self::py_try_from(value)
     }
 
     #[classmethod]

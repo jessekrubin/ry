@@ -443,10 +443,8 @@ impl RyTime {
     }
 
     #[staticmethod]
-    fn try_from<'py>(
-        // cls: &Bound<'py, PyType>,
-        value: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(name = "try_from")]
+    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
@@ -480,11 +478,10 @@ impl RyTime {
 
     #[staticmethod]
     fn _pydantic_parse<'py>(
-        // cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::try_from(value)
+        Self::py_try_from(value)
     }
 
     #[classmethod]

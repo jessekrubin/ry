@@ -632,16 +632,9 @@ impl RyDateTime {
     }
 
     #[staticmethod]
-    fn try_from<'py>(
-        // cls: &Bound<'py, PyType>,
-        value: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(name = "try_from")]
+    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        // if let Ok(v) = value.downcast::<Selfpcwes::PyNone>() {
-        //     Err(pyo3::exceptions::PyTypeError::new_err(
-        //         "Cannot convert None to ry.Time",
-        //     ))
-        // } else
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
@@ -671,12 +664,12 @@ impl RyDateTime {
 
     #[staticmethod]
     fn _pydantic_parse<'py>(
-        // cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::try_from(value)
+        Self::py_try_from(value)
     }
+
     #[classmethod]
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
