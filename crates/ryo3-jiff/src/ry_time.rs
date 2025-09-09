@@ -1,9 +1,9 @@
 use crate::RySignedDuration;
 use crate::RySpan;
 use crate::RyTimeRound;
+use crate::difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
-use crate::ry_time_difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::series::RyTimeSeries;
 use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
@@ -428,14 +428,14 @@ impl RyTime {
 
     fn _since(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
         self.0
-            .since(other.0)
+            .since(other.diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
 
     fn _until(&self, other: &RyTimeDifference) -> PyResult<RySpan> {
         self.0
-            .until(other.0)
+            .until(other.diff)
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
