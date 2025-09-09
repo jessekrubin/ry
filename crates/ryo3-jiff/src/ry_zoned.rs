@@ -796,9 +796,9 @@ impl RyZoned {
         let py = source.py();
         let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
         let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
-        let date_schema = core_schema.call_method(intern!(py, "time_schema"), (), None)?;
+        let datetime_schema = core_schema.call_method(intern!(py, "datetime_schema"), (), None)?;
         let validation_fn = cls.getattr(intern!(py, "_pydantic_parse"))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &date_schema])?;
+        let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
         let string_serialization_schema =
             core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
         let serialization_kwargs = PyDict::new(py);

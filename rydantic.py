@@ -31,7 +31,7 @@ class PyDateModelConstrained(pydantic.BaseModel):
     # Annotated[pydt.date, pydantic.constr(regex=r"^\d{4}-\d{2}-\d{2}$")]
     date: Annotated[  # pyright: ignore[reportReturnType]
         pydt.date,
-        # Strict(strict) if strict is not None else None,
+            # Strict(strict) if strict is not None else None,
         annotated_types.Interval(gt=pydt.date(2000, 1, 1)),
     ]
 
@@ -40,14 +40,31 @@ class RyDateModel(pydantic.BaseModel):
     date: ry.Date
 
 
+class RyTimeModel(pydantic.BaseModel):
+    d: ry.Time
+
+
 class RyDateModelConstrained(pydantic.BaseModel):
     # date: condate(gt=pydt.date(2000, 1, 1))
     # Annotated[pydt.date, pydantic.constr(regex=r"^\d{4}-\d{2}-\d{2}$")]
     date: Annotated[  # pyright: ignore[reportReturnType]
         ry.Date,
-        # Strict(strict) if strict is not None else None,
+            # Strict(strict) if strict is not None else None,
         annotated_types.Interval(gt=ry.Date(2000, 1, 1).to_pydate()),
     ]
+
+
+#
+class TimedeltaModel(pydantic.BaseModel):
+    d: pydt.timedelta
+
+
+class SignedDurationModel(pydantic.BaseModel):
+    d: ry.SignedDuration
+
+
+class TimeSpanModel(pydantic.BaseModel):
+    d: ry.TimeSpan
 
 
 @pytest.mark.parametrize(
@@ -117,17 +134,6 @@ def test_date_json_schema():
     _diff_schemas(py_model, ry_model)
 
 
-from uuid import UUID
-
-
-class UuidModel(pydantic.BaseModel):
-    id: UUID
-
-
-class RyTimeModel(pydantic.BaseModel):
-    d: ry.Time
-
-
 @pytest.mark.parametrize(
     "value,result",
     [
@@ -148,8 +154,8 @@ class RyTimeModel(pydantic.BaseModel):
         (ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC"), pydt.time(4, 8, 16)),
         # ry.Timestamp
         (
-            ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC").timestamp(),
-            pydt.time(4, 8, 16),
+                ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC").timestamp(),
+                pydt.time(4, 8, 16),
         ),
         # NOT IMPLEMENTED
         (3610, pydt.time(1, 0, 10, tzinfo=pydt.timezone.utc)),
@@ -206,6 +212,12 @@ class RyDatetimeModel(pydantic.BaseModel):
     dt: ry.DateTime
 
 
+def test_datetime_model_schema() -> None:
+    py_schema = PyDatetimeModel.model_json_schema()
+    ry_schema = RyDatetimeModel.model_json_schema()
+    _diff_schemas(py_schema, ry_schema)
+
+
 @pytest.mark.parametrize(
     "value,result",
     [
@@ -217,24 +229,24 @@ class RyDatetimeModel(pydantic.BaseModel):
         # (1_494_012_444_000, pydt.datetime(2017, 5, 5, 19, 27, 24, tzinfo=pydt.timezone.utc)),
         ("2012-04-23T09:15:00", pydt.datetime(2012, 4, 23, 9, 15)),
         (
-            "2012-04-23T09:15:00Z",
-            pydt.datetime(2012, 4, 23, 9, 15, 0, 0, tzinfo=pydt.timezone.utc),
+                "2012-04-23T09:15:00Z",
+                pydt.datetime(2012, 4, 23, 9, 15, 0, 0, tzinfo=pydt.timezone.utc),
         ),
         (
-            "2012-04-23T10:20:30.400+02:30",
-            pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(150)),
+                "2012-04-23T10:20:30.400+02:30",
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(150)),
         ),
         (
-            "2012-04-23T10:20:30.400+02:00",
-            pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(120)),
+                "2012-04-23T10:20:30.400+02:00",
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(120)),
         ),
         (
-            "2012-04-23T10:20:30.400-02:00",
-            pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(-120)),
+                "2012-04-23T10:20:30.400-02:00",
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(-120)),
         ),
         (
-            b"2012-04-23T10:20:30.400-02:00",
-            pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(-120)),
+                b"2012-04-23T10:20:30.400-02:00",
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(-120)),
         ),
         (pydt.datetime(2017, 5, 5), pydt.datetime(2017, 5, 5)),
         # (0, pydt.datetime(1970, 1, 1, 0, 0, 0, tzinfo=pydt.timezone.utc)),
@@ -282,8 +294,8 @@ class RyZonedDatetimeModel(pydantic.BaseModel):
         # Valid inputs
         # strings
         (
-            "2012-04-23T09:15:00+00:00[UTC]",
-            pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.timezone.utc),
+                "2012-04-23T09:15:00+00:00[UTC]",
+                pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.timezone.utc),
         ),
         # ('2012-04-23T09:15:00Z', pydt.datetime(2012, 4, 23, 9, 15, 0, 0, tzinfo=pydt.timezone.utc)),
         # ('2012-04-23T10:20:30.400+02:30', pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(150))),
@@ -296,17 +308,17 @@ class RyZonedDatetimeModel(pydantic.BaseModel):
         # NOT IMPLEMENTED
         # values in seconds
         (
-            1_494_012_444.883_309,
-            pydt.datetime(2017, 5, 5, 19, 27, 24, 883_309, tzinfo=pydt.timezone.utc),
+                1_494_012_444.883_309,
+                pydt.datetime(2017, 5, 5, 19, 27, 24, 883_309, tzinfo=pydt.timezone.utc),
         ),
         (
-            1_494_012_444,
-            pydt.datetime(2017, 5, 5, 19, 27, 24, tzinfo=pydt.timezone.utc),
+                1_494_012_444,
+                pydt.datetime(2017, 5, 5, 19, 27, 24, tzinfo=pydt.timezone.utc),
         ),
         # values in ms
         (
-            1_494_012_444_000,
-            pydt.datetime(2017, 5, 5, 19, 27, 24, tzinfo=pydt.timezone.utc),
+                1_494_012_444_000,
+                pydt.datetime(2017, 5, 5, 19, 27, 24, tzinfo=pydt.timezone.utc),
         ),
         # ('1494012444.883309', pydt.datetime(2017, 5, 5, 19, 27, 24, 883309, tzinfo=pydt.timezone.utc)),
         # ('1494012444', pydt.datetime(2017, 5, 5, 19, 27, 24, tzinfo=pydt.timezone.utc)),
@@ -314,12 +326,12 @@ class RyZonedDatetimeModel(pydantic.BaseModel):
         # ('1494012444000.883309', pydt.datetime(2017, 5, 5, 19, 27, 24, 883, tzinfo=pydt.timezone.utc)),
         # ('-1494012444000.883309', pydt.datetime(1922, 8, 29, 4, 32, 35, 999117, tzinfo=pydt.timezone.utc)),
         (
-            19_999_999_999,
-            pydt.datetime(2603, 10, 11, 11, 33, 19, tzinfo=pydt.timezone.utc),
+                19_999_999_999,
+                pydt.datetime(2603, 10, 11, 11, 33, 19, tzinfo=pydt.timezone.utc),
         ),  # just before watershed
         (
-            20_000_000_001,
-            pydt.datetime(1970, 8, 20, 11, 33, 20, 1000, tzinfo=pydt.timezone.utc),
+                20_000_000_001,
+                pydt.datetime(1970, 8, 20, 11, 33, 20, 1000, tzinfo=pydt.timezone.utc),
         ),
         # just after watershed
         # (1_549_316_052, pydt.datetime(2019, 2, 4, 21, 34, 12, 0, tzinfo=pydt.timezone.utc)),  # nowish in s
@@ -366,17 +378,19 @@ def test_zoned_parsing(value, result):
 #     assert TimedeltaModel(d=delta).d == delta
 #     # assert TimedeltaModel(d=str(delta)).d == delta
 #
-#
-class TimedeltaModel(pydantic.BaseModel):
-    d: pydt.timedelta
+
+def test_signed_duration_model_schema() -> None:
+    _diff_schemas(
+        SignedDurationModel.model_json_schema(),
+        TimedeltaModel.model_json_schema(),
+    )
 
 
-class SignedDurationModel(pydantic.BaseModel):
-    d: ry.SignedDuration
-
-
-class TimeSpanModel(pydantic.BaseModel):
-    d: ry.TimeSpan
+def test_span_model_schema() -> None:
+    _diff_schemas(
+        TimeSpanModel.model_json_schema(),
+        TimedeltaModel.model_json_schema(),
+    )
 
 
 @pytest.mark.parametrize(
