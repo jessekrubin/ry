@@ -12,15 +12,15 @@ use jiff::Zoned;
 use jiff::civil::{Date, Time, TimeRound};
 use jiff::tz::TimeZone;
 use pyo3::basic::CompareOp;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple, PyType};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 use std::str::FromStr;
-use pyo3::exceptions::PyTypeError;
-use ryo3_macro_rules::any_repr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -493,26 +493,10 @@ impl RyTime {
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let py = source.py();
-        let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
-        let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
-        let date_schema = core_schema.call_method(intern!(py, "time_schema"), (), None)?;
-        let validation_fn = cls.getattr(intern!(py, "_pydantic_parse"))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &date_schema])?;
-        let string_serialization_schema =
-            core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs
-            .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
-        core_schema.call_method(
-            intern!(py, "no_info_wrap_validator_function"),
-            args,
-            Some(&serialization_kwargs),
-        )
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 
@@ -528,6 +512,7 @@ impl Display for RyTime {
         )
     }
 }
+
 impl From<Time> for RyTime {
     fn from(value: Time) -> Self {
         Self(value)
