@@ -88,6 +88,7 @@ impl RyTimestamp {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZoned {
         RyZoned::from(Zoned::new(self.0, time_zone.into()))
     }
@@ -98,18 +99,22 @@ impl RyTimestamp {
         Ok(Self(ts))
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> Timestamp {
         self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pydatetime(&self) -> Timestamp {
         self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pydate(&self) -> jiff::civil::Date {
         self.0.to_zoned(TimeZone::UTC).date()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pytime(&self) -> jiff::civil::Time {
         self.0.to_zoned(TimeZone::UTC).time()
     }

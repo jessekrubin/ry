@@ -2,8 +2,8 @@ use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
 use crate::ry_zoned::RyZoned;
 use crate::{JiffRoundMode, JiffUnit, RyDate, RyTimestamp};
+use jiff::TimestampDifference;
 use jiff::civil::{DateDifference, DateTimeDifference, TimeDifference};
-use jiff::{TimestampDifference, ZonedDifference};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
@@ -205,7 +205,7 @@ impl std::fmt::Display for RyDateDifference {
         write!(f, "{}", self.date)?;
         write!(f, ", smallest=\"{}\"", self.options.smallest)?;
         if let Some(largest) = self.options.largest {
-            write!(f, ", largest=\"{}\"", largest)?;
+            write!(f, ", largest=\"{largest}\"")?;
         } else {
             write!(f, ", largest=None")?;
         }
@@ -418,7 +418,7 @@ impl std::fmt::Display for RyDateTimeDifference {
         write!(f, "{}", self.datetime)?;
         write!(f, ", smallest=\"{}\"", self.options.smallest)?;
         if let Some(largest) = self.options.largest {
-            write!(f, ", largest=\"{}\"", largest)?;
+            write!(f, ", largest=\"{largest}\"")?;
         } else {
             write!(f, ", largest=None")?;
         }
@@ -637,7 +637,7 @@ impl std::fmt::Display for RyTimeDifference {
         write!(f, "{}", self.time)?;
         write!(f, ", smallest=\"{}\"", self.options.smallest)?;
         if let Some(largest) = self.options.largest {
-            write!(f, ", largest=\"{}\"", largest)?;
+            write!(f, ", largest=\"{largest}\"")?;
         } else {
             write!(f, ", largest=None")?;
         }
@@ -823,7 +823,7 @@ impl RyTimestampDifference {
         };
         let diff = self.diff.mode(mode.0);
         Self {
-            timestamp: self.timestamp.clone(),
+            timestamp: self.timestamp,
             options,
             diff,
         }
@@ -838,7 +838,7 @@ impl RyTimestampDifference {
         };
         let diff = self.diff.increment(increment);
         Self {
-            timestamp: self.timestamp.clone(),
+            timestamp: self.timestamp,
             options,
             diff,
         }
@@ -858,7 +858,7 @@ impl std::fmt::Display for RyTimestampDifference {
         write!(f, "{}", self.timestamp)?;
         write!(f, ", smallest=\"{}\"", self.options.smallest)?;
         if let Some(largest) = self.options.largest {
-            write!(f, ", largest=\"{}\"", largest)?;
+            write!(f, ", largest=\"{largest}\"")?;
         } else {
             write!(f, ", largest=None")?;
         }
@@ -1059,7 +1059,7 @@ impl std::fmt::Display for RyZonedDifference {
         write!(f, "{}", self.zoned)?;
         write!(f, ", smallest=\"{}\"", self.options.smallest)?;
         if let Some(largest) = self.options.largest {
-            write!(f, ", largest=\"{}\"", largest)?;
+            write!(f, ", largest=\"{largest}\"")?;
         } else {
             write!(f, ", largest=None")?;
         }

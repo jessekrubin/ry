@@ -104,10 +104,12 @@ impl RyDate {
         hasher.finish()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_datetime(&self, time: &RyTime) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(time.0))
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.into())
@@ -243,10 +245,12 @@ impl RyDate {
         Self(d)
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> Date {
         self.to_pydate()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pydate(&self) -> Date {
         self.0
     }

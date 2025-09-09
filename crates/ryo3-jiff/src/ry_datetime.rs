@@ -268,6 +268,7 @@ impl RyDateTime {
         RyISOWeekDate::from(self.0.iso_week_date())
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.into())
@@ -278,22 +279,27 @@ impl RyDateTime {
     fn first_of_month(&self) -> Self {
         Self::from(self.0.first_of_month())
     }
+
     fn last_of_month(&self) -> Self {
         Self::from(self.0.last_of_month())
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> DateTime {
         self.to_pydatetime()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pydatetime(&self) -> DateTime {
         self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pydate(&self) -> Date {
         self.0.date()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pytime(&self) -> Time {
         self.0.time()
     }
