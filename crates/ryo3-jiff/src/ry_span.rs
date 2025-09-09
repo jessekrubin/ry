@@ -30,14 +30,8 @@ impl RySpan {
             Ok(())
         }
     }
-    fn py_try_from_secs_f64(secs: f64) -> PyResult<Self> {
-        // TODO: break into hours, minutes, seconds, nanoseconds
-        let sd = SignedDuration::try_from_secs_f64(secs).map_err(map_py_overflow_err)?;
-        Span::try_from(sd)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
-    }
 }
+
 impl PartialEq for RySpan {
     fn eq(&self, other: &Self) -> bool {
         let self_fieldwise = self.0.fieldwise();

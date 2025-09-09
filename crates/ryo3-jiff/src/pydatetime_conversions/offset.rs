@@ -4,7 +4,6 @@ use jiff::tz::Offset;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyNone, PyTzInfo};
-use std::time::Duration;
 
 impl<'py> IntoPyObject<'py> for JiffOffset {
     type Target = PyAny;

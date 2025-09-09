@@ -19,7 +19,7 @@ use jiff::tz::TimeZone;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use pyo3::{IntoPyObjectExt, intern};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
