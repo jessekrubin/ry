@@ -24,6 +24,8 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 use std::str::FromStr;
+use pyo3::exceptions::PyTypeError;
+use ryo3_macro_rules::any_repr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -648,27 +650,7 @@ impl RyDateTime {
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast::<PyFloat>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "DateTime from float not implemented",
-            ))
-        } else if let Ok(v) = value.downcast::<PyInt>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "DateTime from int not implemented",
-            ))
-            // let i = v.extract::<i64>()?;
-            // let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
-            //     jiff::Timestamp::from_second(i)
-            // } else {
-            //     jiff::Timestamp::from_millisecond(i)
-            // }
-            //     .map_err(map_py_value_err)?;
-            // let zdt = ts.to_zoned(TimeZone::UTC);
-            // let date = zdt.date();
-            // Self::from(date).into_bound_py_any(py) //.map(Bound::into_any)
-            // } else if let Ok(d) = value.downcast_exact::<RyDateTime>() {
-            //     let dt = d.get().time();
-            //     dt.into_bound_py_any(py)
+
         } else if let Ok(d) = value.downcast_exact::<RyZoned>() {
             let dt = d.get().time();
             dt.into_bound_py_any(py)
@@ -678,7 +660,11 @@ impl RyDateTime {
         } else if let Ok(d) = value.extract::<JiffDateTime>() {
             Self::from(d.0).into_bound_py_any(py)
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err("Invalid ry-date"))
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "DateTime conversion error: {}",
+                valtype
+            )))
         }
     }
     // ========================================================================
@@ -693,32 +679,16 @@ impl RyDateTime {
     ) -> PyResult<Bound<'py, PyAny>> {
         Self::try_from(value)
     }
-
     #[classmethod]
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let py = source.py();
-        let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
-        let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
-        let datetime_schema = core_schema.call_method(intern!(py, "datetime_schema"), (), None)?;
-        let validation_fn = cls.getattr(intern!(py, "_pydantic_parse"))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
-        let string_serialization_schema =
-            core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs
-            .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
-        core_schema.call_method(
-            intern!(py, "no_info_wrap_validator_function"),
-            args,
-            Some(&serialization_kwargs),
-        )
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
+
 }
 
 impl Display for RyDateTime {

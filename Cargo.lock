@@ -2009,6 +2009,7 @@ dependencies = [
  "pyo3",
  "pyo3-build-config",
  "ryo3-macro-rules",
+ "ryo3-pydantic",
  "ryo3-std",
  "serde",
  "serde_json",

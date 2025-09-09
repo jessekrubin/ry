@@ -1,19 +1,19 @@
+use crate::JiffRoundMode;
 use crate::JiffSignedDuration;
 use crate::JiffUnit;
 use crate::errors::map_py_value_err;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
-use crate::{JiffRoundMode, JiffZoned, RyTimestamp};
 use jiff::SignedDurationRound;
 use jiff::{SignedDuration, Span};
 use pyo3::prelude::*;
 
-use jiff::tz::TimeZone;
+use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError};
-use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple, PyType};
-use pyo3::{IntoPyObjectExt, intern};
+use pyo3::types::{PyDelta, PyFloat, PyInt, PyTuple, PyType};
+use ryo3_macro_rules::any_repr;
 use ryo3_std::time::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -29,13 +29,13 @@ const NANOS_PER_SEC: i32 = 1_000_000_000;
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
 impl RySignedDuration {
-    fn py_try_from_secs_f32(secs: f32) -> PyResult<Self> {
+    pub(crate) fn py_try_from_secs_f32(secs: f32) -> PyResult<Self> {
         SignedDuration::try_from_secs_f32(secs)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn py_try_from_secs_f64(secs: f64) -> PyResult<Self> {
+    pub(crate) fn py_try_from_secs_f64(secs: f64) -> PyResult<Self> {
         SignedDuration::try_from_secs_f64(secs)
             .map(Self::from)
             .map_err(map_py_value_err)
@@ -467,11 +467,6 @@ impl RySignedDuration {
         value: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        // if let Ok(v) = value.downcast::<Selfpcwes::PyNone>() {
-        //     Err(pyo3::exceptions::PyTypeError::new_err(
-        //         "Cannot convert None to ry.Time",
-        //     ))
-        // } else
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
@@ -480,37 +475,25 @@ impl RySignedDuration {
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast::<PyFloat>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "SignedDuration from float not implemented",
-            ))
-        } else if let Ok(v) = value.downcast::<PyInt>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "SignedDuration from int not implemented",
-            ))
-            // let i = v.extract::<i64>()?;
-            // let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
-            //     jiff::Timestamp::from_second(i)
-            // } else {
-            //     jiff::Timestamp::from_millisecond(i)
-            // }
-            //     .map_err(map_py_value_err)?;
-            // let zdt = ts.to_zoned(TimeZone::UTC);
-            // let date = zdt.date();
-            // Self::from(date).into_bound_py_any(py) //.map(Bound::into_any)
-            // } else if let Ok(d) = value.downcast_exact::<RyDateTime>() {
-            //     let dt = d.get().time();
-            //     dt.into_bound_py_any(py)
-            // } else if let Ok(d) = value.downcast_exact::<RyZoned>() {
-            //     let dt = d.get().time();
-            //     dt.into_bound_py_any(py)
-            // } else if let Ok(d) = value.downcast_exact::<RyTimestamp>() {
-            //     let dt = d.get().0.to_zoned(TimeZone::UTC);
-            //     dt.into_bound_py_any(py)
+        } else if let Ok(v) = value.downcast_exact::<PyFloat>() {
+            let f = v.extract::<f64>()?;
+            if f.is_nan() || f.is_infinite() {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Cannot convert NaN or infinite float to SignedDuration",
+                ));
+            }
+            Self::py_try_from_secs_f64(f).and_then(|dt| dt.into_bound_py_any(py))
+        } else if let Ok(v) = value.downcast_exact::<PyInt>() {
+            let i = v.extract::<i64>()?;
+            Self::from(SignedDuration::new(i, 0)).into_bound_py_any(py)
         } else if let Ok(d) = value.extract::<SignedDuration>() {
             Self::from(d).into_bound_py_any(py)
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err("Invalid ry-date"))
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "SignedDuration conversion error: {}",
+                valtype
+            )))
         }
     }
     // ========================================================================
@@ -530,26 +513,10 @@ impl RySignedDuration {
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let py = source.py();
-        let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
-        let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
-        let timedelta_schema = core_schema.call_method(intern!(py, "timedelta_schema"), (), None)?;
-        let validation_fn = cls.getattr(intern!(py, "_pydantic_parse"))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
-        let string_serialization_schema =
-            core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs
-            .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
-        core_schema.call_method(
-            intern!(py, "no_info_wrap_validator_function"),
-            args,
-            Some(&serialization_kwargs),
-        )
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 

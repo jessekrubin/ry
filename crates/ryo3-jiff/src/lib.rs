@@ -45,6 +45,7 @@ mod span_relative_to;
 mod spanish;
 mod test;
 mod tz;
+mod pydantic;
 
 pub use api::*;
 pub use jiff_types::*;

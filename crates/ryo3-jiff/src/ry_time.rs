@@ -19,6 +19,8 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 use std::str::FromStr;
+use pyo3::exceptions::PyTypeError;
+use ryo3_macro_rules::any_repr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -447,11 +449,6 @@ impl RyTime {
         value: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        // if let Ok(v) = value.downcast::<Selfpcwes::PyNone>() {
-        //     Err(pyo3::exceptions::PyTypeError::new_err(
-        //         "Cannot convert None to ry.Time",
-        //     ))
-        // } else
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
@@ -460,24 +457,6 @@ impl RyTime {
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast::<PyFloat>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "Time from float not implemented",
-            ))
-        } else if let Ok(v) = value.downcast::<PyInt>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "Time from int not implemented",
-            ))
-            // let i = v.extract::<i64>()?;
-            // let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
-            //     jiff::Timestamp::from_second(i)
-            // } else {
-            //     jiff::Timestamp::from_millisecond(i)
-            // }
-            //     .map_err(map_py_value_err)?;
-            // let zdt = ts.to_zoned(TimeZone::UTC);
-            // let date = zdt.date();
-            // Self::from(date).into_bound_py_any(py) //.map(Bound::into_any)
         } else if let Ok(d) = value.downcast_exact::<RyDateTime>() {
             let dt = d.get().time();
             dt.into_bound_py_any(py)
@@ -490,7 +469,11 @@ impl RyTime {
         } else if let Ok(d) = value.extract::<JiffTime>() {
             Self::from_pytime(d).into_bound_py_any(py)
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err("Invalid ry-date"))
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "Time conversion error: {}",
+                valtype
+            )))
         }
     }
     // ========================================================================

@@ -3,14 +3,16 @@ use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
-use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
+use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
 use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple, PyType};
-use pyo3::{IntoPyObjectExt, intern};
+use pyo3::{intern, IntoPyObjectExt};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
+use pyo3::exceptions::PyTypeError;
+use ryo3_macro_rules::any_repr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -27,6 +29,13 @@ impl RySpan {
         } else {
             Ok(())
         }
+    }
+    fn py_try_from_secs_f64(secs: f64) -> PyResult<Self> {
+        // TODO: break into hours, minutes, seconds, nanoseconds
+        let sd = SignedDuration::try_from_secs_f64(secs).map_err(map_py_overflow_err)?;
+        Span::try_from(sd)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 }
 impl PartialEq for RySpan {
@@ -712,37 +721,29 @@ impl RySpan {
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast::<PyFloat>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "TimeSpan from float not implemented",
-            ))
-        } else if let Ok(v) = value.downcast::<PyInt>() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "TimeSpan  from int not implemented",
-            ))
-            // let i = v.extract::<i64>()?;
-            // let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
-            //     jiff::Timestamp::from_second(i)
-            // } else {
-            //     jiff::Timestamp::from_millisecond(i)
-            // }
-            //     .map_err(map_py_value_err)?;
-            // let zdt = ts.to_zoned(TimeZone::UTC);
-            // let date = zdt.date();
-            // Self::from(date).into_bound_py_any(py) //.map(Bound::into_any)
-            // } else if let Ok(d) = value.downcast_exact::<RyDateTime>() {
-            //     let dt = d.get().time();
-            //     dt.into_bound_py_any(py)
-            // } else if let Ok(d) = value.downcast_exact::<RyZoned>() {
-            //     let dt = d.get().time();
-            //     dt.into_bound_py_any(py)
-            // } else if let Ok(d) = value.downcast_exact::<RyTimestamp>() {
-            //     let dt = d.get().0.to_zoned(TimeZone::UTC);
-            //     dt.into_bound_py_any(py)
+        } else if let Ok(v) = value.downcast_exact::<PyFloat>() {
+            let f = v.extract::<f64>()?;
+            if f.is_nan() || f.is_infinite() {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Cannot convert NaN or infinite float to SignedDuration",
+                ));
+            }
+            RySignedDuration::py_try_from_secs_f64(f).and_then(|dt| dt.into_bound_py_any(py))
+        } else if let Ok(v) = value.downcast_exact::<PyInt>() {
+            let i = v.extract::<i64>()?;
+            let sd = SignedDuration::from_secs(i);
+            Span::try_from(sd)
+                .map(Self::from)
+                .map_err(map_py_overflow_err)
+                .and_then(|dt| dt.into_bound_py_any(py))
         } else if let Ok(d) = value.extract::<Span>() {
             Self::from(d).into_bound_py_any(py)
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err("Invalid ry-date"))
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "SignedDuration conversion error: {}",
+                valtype
+            )))
         }
     }
     // ========================================================================
@@ -762,26 +763,10 @@ impl RySpan {
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let py = source.py();
-        let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
-        let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
-        let timedelta_schema = core_schema.call_method(intern!(py, "timedelta_schema"), (), None)?;
-        let validation_fn = cls.getattr(intern!(py, "_pydantic_parse"))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
-        let string_serialization_schema =
-            core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs
-            .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
-        core_schema.call_method(
-            intern!(py, "no_info_wrap_validator_function"),
-            args,
-            Some(&serialization_kwargs),
-        )
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 
@@ -835,6 +820,16 @@ impl From<Span> for RySpan {
 impl From<JiffSpan> for RySpan {
     fn from(span: JiffSpan) -> Self {
         Self(span.0)
+    }
+}
+
+impl TryFrom<SignedDuration> for RySpan {
+    type Error = PyErr;
+
+    fn try_from(value: SignedDuration) -> Result<Self, Self::Error> {
+        Span::try_from(value)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 }
 
