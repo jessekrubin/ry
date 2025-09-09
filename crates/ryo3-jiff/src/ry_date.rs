@@ -11,18 +11,18 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
 use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
+use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
 use jiff::tz::TimeZone;
-use jiff::Zoned;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyInt, PyTuple, PyType};
-use pyo3::{intern, IntoPyObject, IntoPyObjectExt};
+use pyo3::{IntoPyObject, IntoPyObjectExt, intern};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
-use pyo3::exceptions::PyTypeError;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -490,8 +490,7 @@ impl RyDate {
         } else {
             let valtype = any_repr!(value);
             Err(PyTypeError::new_err(format!(
-                "Date conversion error: {}",
-                valtype
+                "Date conversion error: {valtype}",
             )))
         }
     }

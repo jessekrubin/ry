@@ -471,8 +471,7 @@ impl RyTime {
         } else {
             let valtype = any_repr!(value);
             Err(PyTypeError::new_err(format!(
-                "Time conversion error: {}",
-                valtype
+                "Time conversion error: {valtype}",
             )))
         }
     }

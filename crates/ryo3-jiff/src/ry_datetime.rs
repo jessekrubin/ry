@@ -17,15 +17,15 @@ use jiff::Zoned;
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use jiff::tz::TimeZone;
 use pyo3::basic::CompareOp;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple, PyType};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 use std::str::FromStr;
-use pyo3::exceptions::PyTypeError;
-use ryo3_macro_rules::any_repr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -650,7 +650,6 @@ impl RyDateTime {
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-
         } else if let Ok(d) = value.downcast_exact::<RyZoned>() {
             let dt = d.get().time();
             dt.into_bound_py_any(py)
@@ -662,8 +661,7 @@ impl RyDateTime {
         } else {
             let valtype = any_repr!(value);
             Err(PyTypeError::new_err(format!(
-                "DateTime conversion error: {}",
-                valtype
+                "DateTime conversion error: {valtype}",
             )))
         }
     }
@@ -688,7 +686,6 @@ impl RyDateTime {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
-
 }
 
 impl Display for RyDateTime {

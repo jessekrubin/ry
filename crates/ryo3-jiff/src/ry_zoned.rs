@@ -1,4 +1,3 @@
-use ryo3_pydantic::GetPydanticCoreSchemaCls;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::round::RyZonedDateTimeRound;
@@ -12,21 +11,22 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
 use crate::{
-    JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict,
-    JiffUnit, JiffWeekday, JiffZoned, RyDate,
+    JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
+    JiffWeekday, JiffZoned, RyDate,
 };
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::{Offset, TimeZone};
 use jiff::{Zoned, ZonedDifference, ZonedRound};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple, PyType};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_macro_rules::any_repr;
+use ryo3_pydantic::GetPydanticCoreSchemaCls;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-use pyo3::exceptions::PyTypeError;
-use ryo3_macro_rules::any_repr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -726,9 +726,7 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn try_from<'py>(
-        value: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
@@ -746,8 +744,7 @@ impl RyZoned {
         } else {
             let valtype = any_repr!(value);
             Err(PyTypeError::new_err(format!(
-                "ZonedDateTime conversion error: {}",
-                valtype
+                "ZonedDateTime conversion error: {valtype}",
             )))
         }
     }

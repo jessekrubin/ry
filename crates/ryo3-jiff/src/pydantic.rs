@@ -1,7 +1,7 @@
 use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyZoned};
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDict, PyTuple, PyType};
-use pyo3::{intern, Bound, PyAny, PyResult};
+use pyo3::{Bound, PyAny, PyResult, intern};
 use ryo3_pydantic::GetPydanticCoreSchemaCls;
 
 impl GetPydanticCoreSchemaCls for RyDate {

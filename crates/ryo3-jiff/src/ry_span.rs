@@ -3,16 +3,16 @@ use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
-use crate::{timespan, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned};
+use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
 use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple, PyType};
-use pyo3::{intern, IntoPyObjectExt};
+use pyo3::{IntoPyObjectExt, intern};
+use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
-use pyo3::exceptions::PyTypeError;
-use ryo3_macro_rules::any_repr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -741,8 +741,7 @@ impl RySpan {
         } else {
             let valtype = any_repr!(value);
             Err(PyTypeError::new_err(format!(
-                "SignedDuration conversion error: {}",
-                valtype
+                "TimeSpan conversion error: {valtype}",
             )))
         }
     }

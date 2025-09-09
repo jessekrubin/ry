@@ -5,8 +5,6 @@ mod py_errs;
 #[macro_export]
 macro_rules! any_repr {
     ($obj:expr) => {{
-
-
         let typ = $obj.get_type();
         let name = typ
             .fully_qualified_name()

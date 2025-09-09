@@ -491,8 +491,7 @@ impl RySignedDuration {
         } else {
             let valtype = any_repr!(value);
             Err(PyTypeError::new_err(format!(
-                "SignedDuration conversion error: {}",
-                valtype
+                "SignedDuration conversion error: {valtype}",
             )))
         }
     }
