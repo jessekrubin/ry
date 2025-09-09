@@ -134,7 +134,6 @@ ryo3-http = { path = "./crates/ryo3-http" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-json = { path = "./crates/ryo3-json" }
-ryo3-macros = { path = "crates/ryo3-macros" }
 ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
 ryo3-memchr = { path = "crates/ryo3-memchr" }
 ryo3-pydantic = { path = "./crates/ryo3-pydantic" }
