@@ -395,9 +395,9 @@ impl PyUlid {
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::get_pydantic_core_schema(cls, source, _handler)
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 
     #[classmethod]

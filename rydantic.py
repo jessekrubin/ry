@@ -125,8 +125,14 @@ def test_date_json_schema():
     _diff_schemas(py_model, ry_model)
 
 
-print(PyDateModelConstrained.model_json_schema())
+from uuid import UUID
+class UuidModel(pydantic.BaseModel):
+    id: UUID
 
 
-r = RyDateModelConstrained(date=ry.Date(2000, 1, 1))
-print(r)
+print(UuidModel.model_json_schema())
+# print(PyDateModelConstrained.model_json_schema())
+
+
+# r = RyDateModelConstrained(date=ry.Date(2000, 1, 1))
+# print(r)

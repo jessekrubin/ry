@@ -11,19 +11,19 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
 use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
-use jiff::civil::{Date, Weekday};
 use jiff::Zoned;
+use jiff::civil::{Date, Weekday};
+use jiff::tz::TimeZone;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::{PyAnyMethods, PyBytesMethods};
 use pyo3::types::{PyDict, PyDictMethods, PyInt, PyTuple, PyType};
 use pyo3::{
-    intern, pyclass, pymethods, Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult,
-    Python,
+    Bound, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, Python, intern, pyclass,
+    pymethods,
 };
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
-use jiff::tz::TimeZone;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -491,9 +491,7 @@ impl RyDate {
         } else if let Ok(d) = value.extract::<Date>() {
             Self::from_pydate(d).into_bound_py_any(py)
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(
-                "Invalid ry-date"
-            ))
+            Err(pyo3::exceptions::PyTypeError::new_err("Invalid ry-date"))
         }
     }
 
