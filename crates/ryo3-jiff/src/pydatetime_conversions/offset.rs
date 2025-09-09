@@ -1,4 +1,5 @@
 use crate::{JiffOffset, JiffTimeZone};
+use jiff::SignedDuration;
 use jiff::tz::Offset;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -46,7 +47,7 @@ impl FromPyObject<'_> for JiffOffset {
                 "{ob:?} is not a fixed offset timezone"
             )));
         }
-        let total_seconds: Duration = py_timedelta.extract()?;
+        let total_seconds: SignedDuration = py_timedelta.extract()?;
         // This cast is safe since the timedelta is limited to -24 hours and 24 hours.
 
         let total_seconds = i32::try_from(total_seconds.as_secs())

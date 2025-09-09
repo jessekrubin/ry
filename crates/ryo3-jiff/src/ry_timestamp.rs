@@ -7,7 +7,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyTimestampSeries;
 use crate::spanish::Spanish;
-use crate::{JiffRoundMode, JiffUnit, RyOffset};
+use crate::{JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyOffset, RyTime};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::IntoPyObjectExt;
@@ -86,6 +86,18 @@ impl RyTimestamp {
         Timestamp::from_millisecond(millisecond)
             .map(Self::from)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    }
+
+    pub(crate) fn date(&self) -> RyDate {
+        self.0.to_zoned(TimeZone::UTC).date().into()
+    }
+
+    pub(crate) fn time(&self) -> RyTime {
+        self.0.to_zoned(TimeZone::UTC).time().into()
+    }
+
+    pub(crate) fn datetime(&self) -> RyDateTime {
+        self.0.to_zoned(TimeZone::UTC).datetime().into()
     }
 
     #[expect(clippy::wrong_self_convention)]

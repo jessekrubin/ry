@@ -455,12 +455,10 @@ impl RyDate {
         self.0.iso_week_date().into()
     }
 
-    /// Try to create a Date from a variety of python objects
     #[staticmethod]
     fn try_from<'py>(
         // cls: &Bound<'py, PyType>,
         value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
@@ -495,20 +493,16 @@ impl RyDate {
         }
     }
 
-    // #[classmethod]
-    // fn __get_pydantic_core_schema__<'py>(
-    //     cls: &Bound<'py, PyType>,
-    //     core_schema: &Bound<'py, PyAny>,
-    //     handler: &Bound<'py, PyAny>,
-    // ) -> PyResult<Bound<'py, PyAny>> {
-    //     let py = core_schema.py();
-    //     let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
-    //     let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
+    /// Try to create a Date from a variety of python objects
+    #[staticmethod]
+    fn _pydantic_parse<'py>(
+        // cls: &Bound<'py, PyType>,
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::try_from(value)
+    }
 
-    // }
-
-    /// This is a hideous function but I struggled through this to try to figure out how to
-    /// do pydantic schema validators which I hope to do for jiff soon... (as-of: 2025-05-29)
     #[classmethod]
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,
@@ -518,30 +512,16 @@ impl RyDate {
         let py = source.py();
         let pydantic_core = py.import(intern!(py, "pydantic_core"))?;
         let core_schema = pydantic_core.getattr(intern!(py, "core_schema"))?;
-
-        // let core_schema =
-        // let to_string_ser_schema_kwargs = PyDict::new(py);
-        // to_string_ser_schema_kwargs
-        //     .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // let to_string_ser_schema = core_schema.call_method(
-        //     intern!(py, "to_string_ser_schema"),
-        //     (),
-        //     Some(&to_string_ser_schema_kwargs),
-        // )?;
         let date_schema = core_schema.call_method(intern!(py, "date_schema"), (), None)?;
-        let validation_fn = cls.getattr(intern!(py, "try_from"))?;
-        // let cls_any = cls.into_bound_py_any(py)?;
+        let validation_fn = cls.getattr(intern!(py, "_pydantic_parse"))?;
         let args = PyTuple::new(py, vec![&validation_fn, &date_schema])?;
-
         let string_serialization_schema =
             core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs
             .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
-
         // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
         // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
-
         core_schema.call_method(
             intern!(py, "no_info_wrap_validator_function"),
             args,
