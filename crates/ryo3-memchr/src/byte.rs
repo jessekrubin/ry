@@ -6,6 +6,7 @@ use pyo3::{
     types::{PyBytes, PyInt},
 };
 
+#[derive(Clone, Copy)]
 pub struct Byte(u8);
 
 impl Deref for Byte {

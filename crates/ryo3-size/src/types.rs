@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyInt, PyString};
 use std::fmt::Display;
 
-#[derive(Debug)]
+#[derive(Clone, Copy)]
 pub struct Base(pub size::fmt::Base);
 
 impl PartialEq for Base {
@@ -52,7 +52,7 @@ impl FromPyObject<'_> for Base {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy)]
 pub struct Style(pub size::fmt::Style);
 
 impl PartialEq for Style {

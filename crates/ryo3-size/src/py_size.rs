@@ -5,7 +5,7 @@ use pyo3::pyclass::CompareOp;
 use pyo3::types::PyTuple;
 use std::ops::{Neg, Not};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "Size", module = "ry.ryo3", frozen)]
 pub struct PySize(size::Size);
 
@@ -22,6 +22,7 @@ impl From<i64> for PySize {
 }
 
 #[pymethods]
+#[allow(clippy::trivially_copy_pass_by_ref)]
 impl PySize {
     #[new]
     fn py_new(size: i64) -> Self {
@@ -129,7 +130,10 @@ impl PySize {
             .ok_or_else(|| PyValueError::new_err("Overflow"))
     }
 
-    #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+    #[expect(
+        clippy::cast_precision_loss,
+        clippy::cast_possible_truncation
+    )]
     fn __mul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
         let base = self.0.bytes();
 
@@ -400,7 +404,7 @@ impl PySizeIntermediate {
     }
 }
 
-#[derive(Debug, Clone, FromPyObject)]
+#[derive(Debug, Clone, Copy, FromPyObject)]
 enum PySizeArithmetic {
     Size(PySize),
     Int64(i64),
