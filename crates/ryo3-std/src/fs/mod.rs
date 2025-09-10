@@ -31,6 +31,7 @@ impl From<std::fs::FileType> for PyFileType {
     }
 }
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl PyFileType {
     #[getter]
@@ -51,14 +52,14 @@ impl PyFileType {
         self.0.is_symlink()
     }
 
-    fn __repr__(&self) -> PyResult<String> {
-        let repr = format!(
+    fn __repr__(&self) -> String {
+        // TODO move to display impl
+        format!(
             "FileType(is_dir={}, is_file={}, is_symlink={})",
             self.0.is_dir(),
             self.0.is_file(),
             self.0.is_symlink()
-        );
-        Ok(repr)
+        )
     }
 
     #[expect(clippy::wrong_self_convention, clippy::trivially_copy_pass_by_ref)]
@@ -180,9 +181,9 @@ impl PyMetadata {
     }
 
     #[getter]
-    fn permissions(&self) -> PyResult<PyPermissions> {
+    fn permissions(&self) -> PyPermissions {
         let permissions = self.0.permissions();
-        Ok(PyPermissions::from(permissions))
+        PyPermissions::from(permissions)
     }
 }
 
@@ -238,11 +239,11 @@ impl From<std::fs::DirEntry> for PyDirEntry {
 
 #[pymethods]
 impl PyDirEntry {
-    fn __repr__(&self) -> PyResult<String> {
+    fn __repr__(&self) -> String {
         let path = self.0.path();
         let pathstr = path.to_string_lossy();
         let s = format!("DirEntry('{pathstr}')");
-        Ok(s)
+        s
     }
 
     #[must_use]
@@ -251,9 +252,8 @@ impl PyDirEntry {
     }
 
     #[getter]
-    fn path(&self) -> PyResult<PathBuf> {
-        let path = self.0.path();
-        Ok(path)
+    fn path(&self) -> PathBuf {
+        self.0.path()
     }
 
     #[getter]
