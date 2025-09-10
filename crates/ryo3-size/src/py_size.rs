@@ -130,10 +130,7 @@ impl PySize {
             .ok_or_else(|| PyValueError::new_err("Overflow"))
     }
 
-    #[expect(
-        clippy::cast_precision_loss,
-        clippy::cast_possible_truncation
-    )]
+    #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
     fn __mul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
         let base = self.0.bytes();
 
