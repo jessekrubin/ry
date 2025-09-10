@@ -14,6 +14,30 @@ from ry import xxhash as ry_xxh
 from ._xxhash_fixtures import XXHASH_TEST_DATA, XXHashDataRecord, _bytes_from_record
 
 
+def test_xxh32_attributes() -> None:
+    assert ry_xxh.xxh32.name == "xxh32"
+    assert ry_xxh.xxh32.digest_size == 4
+    assert ry_xxh.xxh32.block_size == 16
+
+
+def test_xxh64_attributes() -> None:
+    assert ry_xxh.xxh64.name == "xxh64"
+    assert ry_xxh.xxh64.digest_size == 8
+    assert ry_xxh.xxh64.block_size == 32
+
+
+def test_xxh3_64_attributes() -> None:
+    assert ry_xxh.xxh3_64.name == "xxh3_64"
+    assert ry_xxh.xxh3_64.digest_size == 8
+    assert ry_xxh.xxh3_64.block_size == 32
+
+
+def test_xxh3_128_attributes() -> None:
+    assert ry_xxh.xxh3_128.name == "xxh3_128"
+    assert ry_xxh.xxh3_128.digest_size == 16
+    assert ry_xxh.xxh3_128.block_size == 64
+
+
 class TestXxh32Hasher:
     def test_xxh32_hasher_digest(self) -> None:
         assert ry_xxh.xxh32(b"a").digest() == (1426945110).to_bytes(4, "big")

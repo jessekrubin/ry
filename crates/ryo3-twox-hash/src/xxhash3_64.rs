@@ -1,21 +1,21 @@
 use crate::py_digest::{PyDigest, PyHexDigest};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyModule, PyModuleMethods, PyString};
-use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap_pyfunction};
+use pyo3::types::PyString;
+use pyo3::{Bound, PyResult, intern};
 use ryo3_core::PyLock;
 use std::hash::Hasher;
 use std::sync::Mutex;
 use twox_hash::XxHash3_64;
 
 #[pyclass(name = "xxh3_64", module = "ry.ryo3.xxhash", frozen)]
-pub struct PyXxh3_64 {
+pub struct PyXxHash3_64 {
     seed: u64,
     hasher: Mutex<XxHash3_64>,
 }
 
 #[pymethods]
-impl PyXxh3_64 {
+impl PyXxHash3_64 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0, secret = None))]
     fn py_new(
@@ -76,7 +76,7 @@ impl PyXxh3_64 {
         self.seed
     }
 
-    fn digest<'py>(&self) -> PyResult<PyDigest<u64>> {
+    fn digest(&self) -> PyResult<PyDigest<u64>> {
         let digest = self.hasher.py_lock().map(|h| h.finish())?;
         Ok(PyDigest(digest))
     }
@@ -92,7 +92,6 @@ impl PyXxh3_64 {
 
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, data: ryo3_bytes::PyBytes) -> PyResult<()> {
-        // self.hasher.update(b.as_ref());
         let mut hasher = self.hasher.py_lock()?;
         hasher.write(data.as_ref());
         Ok(())
@@ -112,7 +111,6 @@ impl PyXxh3_64 {
         Ok(())
     }
 }
-
 
 // ====================================================================================
 // ONCE SHOT FUNCTIONS
@@ -162,9 +160,8 @@ pub fn xxh3_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyHexDige
     xxh3_64_hexdigest(data, seed)
 }
 
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyXxh3_64>()?;
+    m.add_class::<PyXxHash3_64>()?;
     m.add_function(wrap_pyfunction!(xxh3_64_digest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh3_64_hexdigest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh3_64_intdigest, m)?)?;

@@ -8,13 +8,13 @@ use std::sync::Mutex;
 use twox_hash::XxHash3_128;
 
 #[pyclass(name = "xxh3_128", module = "ry.ryo3.xxhash", frozen)]
-pub struct PyXxh3_128 {
+pub struct PyXxHash3_128 {
     seed: u64,
     hasher: Mutex<XxHash3_128>,
 }
 
 #[pymethods]
-impl PyXxh3_128 {
+impl PyXxHash3_128 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0, secret = None))]
     fn py_new(
@@ -75,7 +75,7 @@ impl PyXxh3_128 {
         self.seed
     }
 
-    fn digest(&self, py: Python<'_>) -> PyResult<PyDigest<u128>> {
+    fn digest(&self) -> PyResult<PyDigest<u128>> {
         let digest = self.hasher.py_lock().map(|h| h.finish_128())?;
         Ok(PyDigest(digest))
     }
@@ -158,7 +158,7 @@ pub fn xxh128_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyHexDi
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
-    m.add_class::<PyXxh3_128>()?;
+    m.add_class::<PyXxHash3_128>()?;
 
     m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh3_128_hexdigest, m)?)?;

@@ -1,6 +1,6 @@
 import typing as t
 
-from ry._types import Buffer
+from ry._types import Buffer, Self
 
 @t.final
 class xxh32:  # noqa: N801
