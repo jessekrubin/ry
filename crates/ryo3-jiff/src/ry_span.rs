@@ -16,7 +16,7 @@ use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "TimeSpan", module = "ry.ryo3", frozen)]
 pub struct RySpan(pub(crate) Span);
 
@@ -146,10 +146,12 @@ impl RySpan {
         Self(delta)
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         self.to_pytimedelta(py)
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         let jiff_span = JiffSpan(self.0);
         jiff_span.into_pyobject(py)
@@ -353,6 +355,7 @@ impl RySpan {
         hasher.finish()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         use crate::interns;
         let dict = PyDict::new(py);
@@ -377,6 +380,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (relative = None))]
+    #[expect(clippy::wrong_self_convention)]
     fn to_signed_duration(&self, relative: Option<RySpanRelativeTo>) -> PyResult<RySignedDuration> {
         if let Some(r) = relative {
             match r {

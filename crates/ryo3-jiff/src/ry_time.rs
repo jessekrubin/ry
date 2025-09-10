@@ -239,7 +239,6 @@ impl RyTime {
         self.0
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_pytime(py_time: JiffTime) -> Self {
         Self::from(py_time.0)

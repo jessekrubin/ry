@@ -122,7 +122,6 @@ impl RyOffset {
     }
 
     #[staticmethod]
-    #[expect(clippy::needless_pass_by_value)]
     fn from_pytzinfo(d: JiffOffset) -> Self {
         Self::from(d.0)
     }

@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "ISOWeekDate", module = "ry.ryo3", frozen)]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 
@@ -135,6 +135,7 @@ impl RyISOWeekDate {
         )
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         use crate::interns;
         let dict = PyDict::new(py);

@@ -38,7 +38,7 @@ impl DifferenceOptions {
 // ============================================================================
 // DateDifference
 // ============================================================================
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "DateDifference", module = "ry.ryo3", frozen)]
 pub struct RyDateDifference {
     date: RyDate,
@@ -191,6 +191,7 @@ impl RyDateDifference {
         }
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "date"), self.date)?;
@@ -255,7 +256,7 @@ impl DateDifferenceArg {
 // DateTimeDifference
 // ============================================================================
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "DateTimeDifference", module = "ry.ryo3", frozen)]
 pub struct RyDateTimeDifference {
     datetime: RyDateTime,
@@ -404,6 +405,7 @@ impl RyDateTimeDifference {
         }
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "datetime"), self.datetime)?;
@@ -468,7 +470,7 @@ impl DateTimeDifferenceArg {
 // ============================================================================
 // TimeDifference
 // ============================================================================
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "TimeDifference", module = "ry.ryo3", frozen)]
 pub struct RyTimeDifference {
     time: RyTime,
@@ -623,6 +625,7 @@ impl RyTimeDifference {
         }
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "time"), self.time)?;
@@ -691,7 +694,7 @@ impl TimeDifferenceArg {
 // ============================================================================
 // TimestampDifference
 // ============================================================================
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "TimestampDifference", module = "ry.ryo3", frozen)]
 pub struct RyTimestampDifference {
     timestamp: RyTimestamp,
@@ -844,6 +847,7 @@ impl RyTimestampDifference {
         }
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "timestamp"), self.timestamp)?;

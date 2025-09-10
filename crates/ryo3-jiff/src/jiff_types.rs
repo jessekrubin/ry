@@ -1,20 +1,20 @@
 use std::fmt::Display;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct JiffDate(pub jiff::civil::Date);
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct JiffTime(pub jiff::civil::Time);
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct JiffDateTime(pub jiff::civil::DateTime);
 #[derive(Debug, Clone)]
 pub struct JiffZoned(pub jiff::Zoned);
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct JiffSpan(pub jiff::Span);
 #[derive(Debug, Clone)]
 pub struct JiffTimeZone(pub jiff::tz::TimeZone);
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct JiffOffset(pub jiff::tz::Offset);
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -29,9 +29,9 @@ pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
 pub struct JiffEra(pub(crate) jiff::civil::Era);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JiffEraYear(pub(crate) (i16, jiff::civil::Era));
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct JiffTzDisambiguation(pub jiff::tz::Disambiguation);
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct JiffTzOffsetConflict(pub jiff::tz::OffsetConflict);
 
 // ============================================================================
