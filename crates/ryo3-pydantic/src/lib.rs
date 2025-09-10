@@ -23,7 +23,7 @@ pub mod interns {
     /// classic millenials... nobody wants to be a string intern anymore...
     ///
     /// This keeps the string-interning in one place so we dont have multiple
-    /// pydandic based interns who are milling around, presumably not getting
+    /// pydantic based interns who are milling around, presumably not getting
     /// me the coffee I asked for.
     use pyo3::prelude::*;
 
