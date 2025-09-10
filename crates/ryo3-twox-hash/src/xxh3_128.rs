@@ -1,7 +1,7 @@
 use crate::py_digest::{PyDigest, PyHexDigest};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
+use pyo3::types::{PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap_pyfunction};
 use ryo3_core::PyLock;
 use std::sync::Mutex;
@@ -75,7 +75,7 @@ impl PyXxh3_128 {
         self.seed
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> PyResult<PyDigest<u128>> {
+    fn digest(&self, py: Python<'_>) -> PyResult<PyDigest<u128>> {
         let digest = self.hasher.py_lock().map(|h| h.finish_128())?;
         Ok(PyDigest(digest))
     }
