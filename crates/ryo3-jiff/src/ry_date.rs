@@ -466,17 +466,17 @@ impl RyDate {
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast::<PyInt>() {
-            let i = v.extract::<i64>()?;
-            let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
-                jiff::Timestamp::from_second(i)
-            } else {
-                jiff::Timestamp::from_millisecond(i)
-            }
-            .map_err(map_py_value_err)?;
-            let zdt = ts.to_zoned(TimeZone::UTC);
-            let date = zdt.date();
-            Self::from(date).into_bound_py_any(py) //.map(Bound::into_any)
+        // } else if let Ok(v) = value.downcast::<PyInt>() {
+        //     let i = v.extract::<i64>()?;
+        //     let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
+        //         jiff::Timestamp::from_second(i)
+        //     } else {
+        //         jiff::Timestamp::from_millisecond(i)
+        //     }
+        //     .map_err(map_py_value_err)?;
+        //     let zdt = ts.to_zoned(TimeZone::UTC);
+        //     let date = zdt.date();
+        //     Self::from(date).into_bound_py_any(py)
         } else if let Ok(d) = value.extract::<RyDateTime>() {
             let dt = d.date();
             dt.into_bound_py_any(py)

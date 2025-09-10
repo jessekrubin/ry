@@ -368,10 +368,11 @@ impl RySpan {
         Ok(dict)
     }
 
+    // TODO fix and allow relative
     fn total_seconds(&self) -> PyResult<f64> {
         self.0
-            .total(jiff::Unit::Second)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .total(jiff::SpanTotal::from(jiff::Unit::Second).days_are_24_hours())
+            .map_err(map_py_value_err)
     }
 
     #[pyo3(signature = (relative = None))]
@@ -715,7 +716,9 @@ impl RySpan {
                     "Cannot convert NaN or infinite float to SignedDuration",
                 ));
             }
-            RySignedDuration::py_try_from_secs_f64(f).and_then(|dt| dt.into_bound_py_any(py))
+            let sd = RySignedDuration::py_try_from_secs_f64(f)?;
+            let span = jiff::Span::try_from(sd.0).map_err(map_py_overflow_err)?;
+            Self::from(span).into_bound_py_any(py)
         } else if let Ok(v) = value.downcast_exact::<PyInt>() {
             let i = v.extract::<i64>()?;
             let sd = SignedDuration::from_secs(i);

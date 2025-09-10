@@ -177,6 +177,10 @@ impl RySignedDuration {
         !self.0.is_zero()
     }
 
+    fn __str__(&self) -> String {
+        format!("{}", self.0)
+    }
+
     fn __repr__(&self) -> String {
         format!("{self}")
     }
