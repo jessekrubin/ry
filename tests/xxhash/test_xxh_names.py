@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-import pytest
-
 import ry
 
-hashers = [
-    (ry.xxhash.Xxh32, "xxh32"),
-    (ry.xxhash.Xxh64, "xxh64"),
-    (ry.xxhash.Xxh3, "xxh3"),
-]
+
+def test_xxh32_name() -> None:
+    assert ry.xxhash.xxh32.name == "xxh32"
 
 
-@pytest.mark.parametrize("args", [pytest.param((h, n), id=n) for h, n in hashers])
-def test_xxh_name(
-    args: tuple[ry.xxhash.Xxh32 | ry.xxhash.Xxh64 | ry.xxhash.Xxh3, str],
-) -> None:
-    hasher, name = args
-    assert hasher.name == name
+def test_xxh64_name() -> None:
+    assert ry.xxhash.xxh64.name == "xxh64"
+
+
+def test_xxh3_64_name() -> None:
+    assert ry.xxhash.xxh3_64.name == "xxh3_64"
+
+
+def test_xxh3_128_name() -> None:
+    assert ry.xxhash.xxh3_128.name == "xxh3_128"

@@ -22,10 +22,10 @@ pub fn ulid(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-#[cfg(feature = "xxhash")]
+#[cfg(feature = "twox-hash")]
 #[pymodule(gil_used = false, submodule, name = "xxhash")]
-pub fn xxhash(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    ryo3_xxhash::pymod_add(m)?;
+pub fn twox_hash(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    ryo3_twox_hash::pymod_add(m)?;
     Ok(())
 }
 
@@ -59,8 +59,10 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "uuid")]
     m.add_wrapped(pyo3::wrap_pymodule!(uuid))?;
 
-    #[cfg(feature = "xxhash")]
-    m.add_wrapped(pyo3::wrap_pymodule!(xxhash))?;
+    // #[cfg(feature = "xxhash")]
+    // m.add_wrapped(pyo3::wrap_pymodule!(xxhash))?;
+    #[cfg(feature = "twox-hash")]
+    m.add_wrapped(pyo3::wrap_pymodule!(twox_hash))?;
 
     sys_modules.set_item(intern!(py, "ry.dirs"), m.getattr(intern!(py, "dirs"))?)?;
     let attr = m.getattr(intern!(py, "dirs"))?;
