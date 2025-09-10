@@ -25,6 +25,9 @@
     - `ry.Time.asdict()` -> `ry.Time.to_dict()`
     - `ry.Headers.asdict()` -> `ry.Headers.to_dict()`
   - Added `.to_dict()` to:
+- migrated from `xxhash-rust` to `twox-hash` ~ retiring `ryo3-xxhash` :( - the
+  `xxhash-rust` hashers liked to sometimes crash, whereas the `twox-hash`
+  py-hashers dont
 
 ---
 
