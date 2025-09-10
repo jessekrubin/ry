@@ -10,11 +10,11 @@ use crate::{RyDate, RyDateTime};
 use crate::{RySignedDuration, RyTimestamp, RyZoned};
 use jiff::Zoned;
 use jiff::civil::{Time, TimeRound};
+use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple, PyType};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -315,12 +315,14 @@ impl RyTime {
         )
     }
 
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        use crate::interns;
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "hour"), self.0.hour())?;
-        dict.set_item(intern!(py, "minute"), self.0.minute())?;
-        dict.set_item(intern!(py, "second"), self.0.second())?;
-        dict.set_item(intern!(py, "nanosecond"), self.0.subsec_nanosecond())?;
+        dict.set_item(interns::hour(py), self.0.hour())?;
+        dict.set_item(interns::minute(py), self.0.minute())?;
+        dict.set_item(interns::second(py), self.0.second())?;
+        dict.set_item(interns::nanosecond(py), self.0.subsec_nanosecond())?;
         Ok(dict)
     }
 

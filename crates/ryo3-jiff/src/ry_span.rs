@@ -5,10 +5,10 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
 use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
 use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
+use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple, PyType};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -91,7 +91,7 @@ impl RySpan {
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.asdict(py)?.into_bound_py_any(py)?;
+        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
     }
 
@@ -175,6 +175,45 @@ impl RySpan {
         Self::from_str(input)
     }
 
+    #[expect(clippy::too_many_arguments)]
+    #[pyo3(signature = (years=None, months=None, weeks=None, days=None, hours=None, minutes=None, seconds=None, milliseconds=None, microseconds=None, nanoseconds=None))]
+    fn replace(
+        &self,
+        years: Option<i64>,
+        months: Option<i64>,
+        weeks: Option<i64>,
+        days: Option<i64>,
+        hours: Option<i64>,
+        minutes: Option<i64>,
+        seconds: Option<i64>,
+        milliseconds: Option<i64>,
+        microseconds: Option<i64>,
+        nanoseconds: Option<i64>,
+    ) -> PyResult<Self> {
+        let years = years.unwrap_or_else(|| i64::from(self.0.get_years()));
+        let months = months.unwrap_or_else(|| i64::from(self.0.get_months()));
+        let weeks = weeks.unwrap_or_else(|| i64::from(self.0.get_weeks()));
+        let days = days.unwrap_or_else(|| i64::from(self.0.get_days()));
+        let hours = hours.unwrap_or_else(|| i64::from(self.0.get_hours()));
+        let minutes = minutes.unwrap_or_else(|| self.0.get_minutes());
+        let seconds = seconds.unwrap_or_else(|| self.0.get_seconds());
+        let milliseconds = milliseconds.unwrap_or_else(|| self.0.get_milliseconds());
+        let microseconds = microseconds.unwrap_or_else(|| self.0.get_microseconds());
+        let nanoseconds = nanoseconds.unwrap_or_else(|| self.0.get_nanoseconds());
+        Self::py_new(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )
+    }
+
     fn _years(&self, n: i64) -> PyResult<Self> {
         self.try_years(n)
     }
@@ -213,45 +252,6 @@ impl RySpan {
 
     fn _nanoseconds(&self, n: i64) -> PyResult<Self> {
         self.try_nanoseconds(n)
-    }
-
-    #[expect(clippy::too_many_arguments)]
-    #[pyo3(signature = (years=None, months=None, weeks=None, days=None, hours=None, minutes=None, seconds=None, milliseconds=None, microseconds=None, nanoseconds=None))]
-    fn replace(
-        &self,
-        years: Option<i64>,
-        months: Option<i64>,
-        weeks: Option<i64>,
-        days: Option<i64>,
-        hours: Option<i64>,
-        minutes: Option<i64>,
-        seconds: Option<i64>,
-        milliseconds: Option<i64>,
-        microseconds: Option<i64>,
-        nanoseconds: Option<i64>,
-    ) -> PyResult<Self> {
-        let years = years.unwrap_or_else(|| i64::from(self.0.get_years()));
-        let months = months.unwrap_or_else(|| i64::from(self.0.get_months()));
-        let weeks = weeks.unwrap_or_else(|| i64::from(self.0.get_weeks()));
-        let days = days.unwrap_or_else(|| i64::from(self.0.get_days()));
-        let hours = hours.unwrap_or_else(|| i64::from(self.0.get_hours()));
-        let minutes = minutes.unwrap_or_else(|| self.0.get_minutes());
-        let seconds = seconds.unwrap_or_else(|| self.0.get_seconds());
-        let milliseconds = milliseconds.unwrap_or_else(|| self.0.get_milliseconds());
-        let microseconds = microseconds.unwrap_or_else(|| self.0.get_microseconds());
-        let nanoseconds = nanoseconds.unwrap_or_else(|| self.0.get_nanoseconds());
-        Self::py_new(
-            years,
-            months,
-            weeks,
-            days,
-            hours,
-            minutes,
-            seconds,
-            milliseconds,
-            microseconds,
-            nanoseconds,
-        )
     }
 
     fn try_years(&self, n: i64) -> PyResult<Self> {
@@ -353,18 +353,19 @@ impl RySpan {
         hasher.finish()
     }
 
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        use crate::interns;
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "years"), self.0.get_years())?;
-        dict.set_item(intern!(py, "months"), self.0.get_months())?;
-        dict.set_item(intern!(py, "weeks"), self.0.get_weeks())?;
-        dict.set_item(intern!(py, "days"), self.0.get_days())?;
-        dict.set_item(intern!(py, "hours"), self.0.get_hours())?;
-        dict.set_item(intern!(py, "minutes"), self.0.get_minutes())?;
-        dict.set_item(intern!(py, "seconds"), self.0.get_seconds())?;
-        dict.set_item(intern!(py, "milliseconds"), self.0.get_milliseconds())?;
-        dict.set_item(intern!(py, "microseconds"), self.0.get_microseconds())?;
-        dict.set_item(intern!(py, "nanoseconds"), self.0.get_nanoseconds())?;
+        dict.set_item(interns::years(py), self.0.get_years())?;
+        dict.set_item(interns::months(py), self.0.get_months())?;
+        dict.set_item(interns::weeks(py), self.0.get_weeks())?;
+        dict.set_item(interns::days(py), self.0.get_days())?;
+        dict.set_item(interns::hours(py), self.0.get_hours())?;
+        dict.set_item(interns::minutes(py), self.0.get_minutes())?;
+        dict.set_item(interns::seconds(py), self.0.get_seconds())?;
+        dict.set_item(interns::milliseconds(py), self.0.get_milliseconds())?;
+        dict.set_item(interns::microseconds(py), self.0.get_microseconds())?;
+        dict.set_item(interns::nanoseconds(py), self.0.get_nanoseconds())?;
         Ok(dict)
     }
 

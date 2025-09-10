@@ -22,6 +22,7 @@ mod dev;
 mod difference;
 mod errors;
 mod functions;
+mod interns;
 mod into_span_arithmetic;
 mod isoformat;
 mod jiff_types;

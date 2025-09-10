@@ -10,7 +10,7 @@ import ry
 if TYPE_CHECKING:
     from ry.ryo3 import JiffRoundMode, JiffUnit
 
-JIFF_OBJECTS = [
+_JIFF_OBJECTS = [
     # date
     ry.date(2020, 8, 26),
     # time
@@ -32,7 +32,7 @@ JIFF_OBJECTS = [
 ]
 
 
-@pytest.mark.parametrize("obj", JIFF_OBJECTS)
+@pytest.mark.parametrize("obj", _JIFF_OBJECTS)
 def test_reprs(obj: t.Any) -> None:
     repr_str = repr(obj)
     # eval the repr string
@@ -86,7 +86,7 @@ def test_round_reprs(
     assert evaled == round_obj
 
 
-@pytest.mark.parametrize("obj", JIFF_OBJECTS)
+@pytest.mark.parametrize("obj", _JIFF_OBJECTS)
 def test_hash(obj: t.Any) -> None:
     hash_n = hash(obj)
     assert hash_n == hash(eval("ry." + repr(obj))), f"Hash mismatch for: {obj}"

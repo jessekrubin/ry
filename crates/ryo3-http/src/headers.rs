@@ -374,10 +374,6 @@ impl PyHeaders {
         self.to_py(py)
     }
 
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        self.to_py(py)
-    }
-
     #[cfg(feature = "json")]
     #[pyo3(signature = (*, fmt=false))]
     fn stringify(&self, fmt: bool) -> PyResult<String> {
@@ -412,7 +408,6 @@ impl PyHeaders {
     #[cfg(feature = "json")]
     #[staticmethod]
     fn from_json(json: &str) -> PyResult<Self> {
-        // let headers: crate::http_t=
         serde_json::from_str::<crate::HttpHeaderMap>(json)
             .map(|e| Self::from(e.0))
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))

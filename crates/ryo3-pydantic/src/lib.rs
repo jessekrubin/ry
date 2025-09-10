@@ -28,8 +28,8 @@ pub mod interns {
     use pyo3::prelude::*;
 
     macro_rules! unpaid_intern {
-        ($name:ident, $lit:literal) => {
-            pub fn $name<'py>(py: Python<'py>) -> &Bound<'py, pyo3::types::PyString> {
+        ($name:ident, $lit:expr) => {
+            pub fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
                 pyo3::intern!(py, $lit)
             }
         };
@@ -42,7 +42,9 @@ pub mod interns {
     }
 
     unpaid_intern!(_pydantic_parse);
+    unpaid_intern!(json_unless_none, "json-unless-none");
     unpaid_intern!(no_info_wrap_validator_function);
     unpaid_intern!(serialization);
     unpaid_intern!(to_string_ser_schema);
+    unpaid_intern!(when_used);
 }

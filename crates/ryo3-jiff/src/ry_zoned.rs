@@ -21,7 +21,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -224,6 +224,23 @@ impl RyZoned {
 
     fn datetime(&self) -> RyDateTime {
         RyDateTime::from(self.0.datetime())
+    }
+
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        use crate::interns;
+        let dict = PyDict::new(py);
+        dict.set_item(interns::year(py), self.0.year())?;
+        dict.set_item(interns::month(py), self.0.month())?;
+        dict.set_item(interns::day(py), self.0.day())?;
+        dict.set_item(interns::hour(py), self.0.hour())?;
+        dict.set_item(interns::minute(py), self.0.minute())?;
+        dict.set_item(interns::second(py), self.0.second())?;
+        dict.set_item(interns::nanosecond(py), self.0.subsec_nanosecond())?;
+        dict.set_item(
+            interns::tz(py),
+            self.0.time_zone().iana_name().unwrap_or("unknown"),
+        )?;
+        Ok(dict)
     }
 
     fn to_py(&self) -> &Zoned {

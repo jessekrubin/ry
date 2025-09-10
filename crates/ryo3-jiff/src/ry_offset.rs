@@ -1,4 +1,5 @@
 use crate::JiffOffset;
+use crate::constants::DATETIME_PARSER;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
@@ -10,13 +11,14 @@ use jiff::tz::Offset;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyDict, PyTuple};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-#[derive(Debug, Clone)]
 #[pyclass(name = "Offset", module = "ry.ryo3", frozen)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);
 
+#[expect(clippy::wrong_self_convention)]
 #[pymethods]
 impl RyOffset {
     #[new]
@@ -75,6 +77,21 @@ impl RyOffset {
     }
 
     #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        let o = DATETIME_PARSER
+            .parse_time_zone(s)
+            .map_err(map_py_value_err)?;
+        o.to_fixed_offset()
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[staticmethod]
+    fn parse(s: &str) -> PyResult<Self> {
+        Self::from_str(s)
+    }
+
+    #[staticmethod]
     fn from_hours(hours: i8) -> PyResult<Self> {
         Offset::from_hours(hours)
             .map(Self::from)
@@ -96,6 +113,14 @@ impl RyOffset {
         &self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        dict.set_item("seconds", self.seconds())?;
+        dict.set_item("fmt", self.string())?;
+        Ok(dict)
+    }
+
     #[staticmethod]
     #[expect(clippy::needless_pass_by_value)]
     fn from_pytzinfo(d: JiffOffset) -> Self {
@@ -109,7 +134,7 @@ impl RyOffset {
 
     #[must_use]
     fn __str__(&self) -> String {
-        self.__repr__()
+        self.0.to_string()
     }
 
     #[must_use]
@@ -125,7 +150,7 @@ impl RyOffset {
 
     #[getter]
     #[must_use]
-    fn seconds(&self) -> i32 {
+    pub(crate) fn seconds(&self) -> i32 {
         self.0.seconds()
     }
 

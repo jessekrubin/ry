@@ -17,7 +17,7 @@ use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple, PyType};
-use pyo3::{IntoPyObject, IntoPyObjectExt, intern};
+use pyo3::{IntoPyObject, IntoPyObjectExt};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -279,11 +279,13 @@ impl RyDate {
         self.in_tz(tz)
     }
 
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        use crate::interns;
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "year"), self.0.year())?;
-        dict.set_item(intern!(py, "month"), self.0.month())?;
-        dict.set_item(intern!(py, "day"), self.0.day())?;
+        dict.set_item(interns::year(py), self.0.year())?;
+        dict.set_item(interns::month(py), self.0.month())?;
+        dict.set_item(interns::day(py), self.0.day())?;
         Ok(dict)
     }
 

@@ -9,7 +9,7 @@ use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
-use ryo3_macro_rules::err_py_not_impl;
+use ryo3_macro_rules::pytodo;
 use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
 use tracing::debug;
@@ -83,10 +83,11 @@ impl RyHttpClient {
             req = req.json(&wrapped);
         }
         if let Some(_multipart) = options.multipart {
-            return err_py_not_impl!("multipart not implemented (yet)");
+            // return err_py_not_impl!("multipart not implemented (yet)");
+            pytodo!("multipart not implemented (yet)")
         }
         if let Some(_form) = options.form {
-            return err_py_not_impl!("form not implemented (yet)");
+            pytodo!("form not implemented (yet)")
         }
         if let Some(body) = options.body {
             let body_bytes = body.into_inner();

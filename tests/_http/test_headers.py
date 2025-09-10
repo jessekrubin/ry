@@ -19,20 +19,20 @@ class TestHeadersJson:
         json_str = HEADERS_OBJ.stringify()
         assert isinstance(json_str, str)
         assert json_str == json.dumps(
-            HEADERS_OBJ.asdict(), sort_keys=True, separators=(",", ":")
+            HEADERS_OBJ.to_dict(), sort_keys=True, separators=(",", ":")
         )
 
     def test_headers_json_fmt(self) -> None:
         json_str = HEADERS_OBJ.stringify(fmt=True)
         assert isinstance(json_str, str)
-        assert json_str == json.dumps(HEADERS_OBJ.asdict(), indent=2, sort_keys=True)
+        assert json_str == json.dumps(HEADERS_OBJ.to_dict(), indent=2, sort_keys=True)
 
     def test_round_trip(self) -> None:
         # test round trip
         json_str = HEADERS_OBJ.stringify()
         assert isinstance(json_str, str)
         assert json_str == json.dumps(
-            HEADERS_OBJ.asdict(), sort_keys=True, separators=(",", ":")
+            HEADERS_OBJ.to_dict(), sort_keys=True, separators=(",", ":")
         )
         h = Headers(json.loads(json_str))
         assert h == HEADERS_OBJ
@@ -107,7 +107,7 @@ class TestHeadersObj:
         assert isinstance(content_type, str)
 
         # dump to dict and see if its the same...
-        d = h.asdict()
+        d = h.to_dict()
         expected_dict = {"content-type": ["application/json", "application/xml"]}
         assert d == expected_dict
         from_dict = Headers(d)

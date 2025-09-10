@@ -16,11 +16,11 @@ use crate::{
 use jiff::Zoned;
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use jiff::tz::TimeZone;
+use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple, PyType};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -62,7 +62,7 @@ impl RyDateTime {
             subsec_nanosecond.unwrap_or(0),
         )
         .map(Self::from)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        .map_err(map_py_value_err)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -104,17 +104,22 @@ impl RyDateTime {
     }
 
     #[staticmethod]
+    fn today() -> Self {
+        Self::from(DateTime::from(Zoned::now()))
+    }
+
+    #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
         // if ends with 'Z', parse via timezone...
         if s.ends_with('Z') {
             jiff::Timestamp::from_str(s)
                 .map(|ts| ts.to_zoned(TimeZone::UTC).datetime())
                 .map(Self::from)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+                .map_err(map_py_value_err)
         } else {
             DateTime::from_str(s)
                 .map(Self::from)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+                .map_err(map_py_value_err)
         }
     }
 
@@ -256,7 +261,7 @@ impl RyDateTime {
         self.0
             .in_tz(tz)
             .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[pyo3(
@@ -287,7 +292,7 @@ impl RyDateTime {
         self.0
             .to_zoned(tz.into())
             .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn first_of_month(&self) -> Self {
@@ -329,15 +334,17 @@ impl RyDateTime {
         Ok(RyDateTimeSeries::from(s))
     }
 
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        use crate::interns;
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "year"), self.0.year())?;
-        dict.set_item(intern!(py, "month"), self.0.month())?;
-        dict.set_item(intern!(py, "day"), self.0.day())?;
-        dict.set_item(intern!(py, "hour"), self.0.hour())?;
-        dict.set_item(intern!(py, "minute"), self.0.minute())?;
-        dict.set_item(intern!(py, "second"), self.0.second())?;
-        dict.set_item(intern!(py, "nanosecond"), self.0.subsec_nanosecond())?;
+        dict.set_item(interns::year(py), self.0.year())?;
+        dict.set_item(interns::month(py), self.0.month())?;
+        dict.set_item(interns::day(py), self.0.day())?;
+        dict.set_item(interns::hour(py), self.0.hour())?;
+        dict.set_item(interns::minute(py), self.0.minute())?;
+        dict.set_item(interns::second(py), self.0.second())?;
+        dict.set_item(interns::nanosecond(py), self.0.subsec_nanosecond())?;
         Ok(dict)
     }
 
@@ -395,7 +402,7 @@ impl RyDateTime {
                 let time = time.extract::<RyTime>()?;
                 builder = builder.time(time.0);
             } else {
-                return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                return Err(PyErr::new::<PyTypeError, _>(format!(
                     "obj must be a Date or Time; given: {obj}",
                 )));
             }
@@ -471,7 +478,7 @@ impl RyDateTime {
         self.0
             .round(dt_round)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn _round(&self, dt_round: &RyDateTimeRound) -> PyResult<Self> {
@@ -544,7 +551,7 @@ impl RyDateTime {
     fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
         DateTime::strptime(fmt, s)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[pyo3(

@@ -16,6 +16,15 @@
         - `round_obj._increment() -> int` -> `round_obj.increment -> int`
         - `round_obj._mode() -> str` -> `round_obj.mode -> str`
         - `round_obj._smallest() -> str` -> `round_obj.smallest -> str`
+- `to_dict()`
+  - `.asdict()` renamed to `.to_dict()` all structs
+  - renames structs:
+    - `ry.DateTime.asdict()` -> `ry.DateTime.to_dict()`
+    - `ry.Date.asdict()` -> `ry.Date.to_dict()`
+    - `ry.TimeSpan.asdict()` -> `ry.TimeSpan.to_dict()`
+    - `ry.Time.asdict()` -> `ry.Time.to_dict()`
+    - `ry.Headers.asdict()` -> `ry.Headers.to_dict()`
+  - Added `.to_dict()` to:
 
 ---
 

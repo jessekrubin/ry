@@ -1,7 +1,7 @@
 use crate::net::PyIpv6Addr;
 use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use pyo3::prelude::*;
-use ryo3_macro_rules::err_py_not_impl;
+use ryo3_macro_rules::{pytodo, pytodo_err};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
@@ -95,7 +95,7 @@ impl PySocketAddrV4 {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_benchmarking(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo_err!()
     }
 
     #[getter]
@@ -111,7 +111,7 @@ impl PySocketAddrV4 {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -137,13 +137,13 @@ impl PySocketAddrV4 {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_reserved(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_shared(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -228,19 +228,19 @@ impl PySocketAddrV6 {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_benchmarking(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_documentation(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -261,13 +261,13 @@ impl PySocketAddrV6 {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_unicast(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_unicast_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -382,7 +382,7 @@ impl PySocketAddr {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_benchmarking(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -437,7 +437,7 @@ impl PySocketAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -464,13 +464,13 @@ impl PySocketAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_reserved(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_shared(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -484,7 +484,7 @@ impl PySocketAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_unicast_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]

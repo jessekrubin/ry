@@ -22,15 +22,15 @@ impl DifferenceOptions {
         py: Python<'py>,
         pydict: &'py Bound<'py, PyDict>,
     ) -> PyResult<()> {
-        // let dict = PyDict::new(py);
-        pydict.set_item(intern!(py, "smallest"), self.smallest)?;
+        use crate::interns;
+        pydict.set_item(interns::smallest(py), self.smallest)?;
         if let Some(largest) = self.largest {
-            pydict.set_item("largest", largest)?;
+            pydict.set_item(interns::largest(py), largest)?;
         } else {
-            pydict.set_item("largest", py.None())?;
+            pydict.set_item(interns::largest(py), py.None())?;
         }
-        pydict.set_item(intern!(py, "mode"), self.mode)?;
-        pydict.set_item(intern!(py, "increment"), self.increment)?;
+        pydict.set_item(interns::mode(py), self.mode)?;
+        pydict.set_item(interns::increment(py), self.increment)?;
         Ok(())
     }
 }

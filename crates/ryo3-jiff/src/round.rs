@@ -1,9 +1,9 @@
 use crate::{JiffRoundMode, JiffUnit, RyDateTime, RySignedDuration, RyTime, RyTimestamp, RyZoned};
 use jiff::civil::{DateTimeRound, TimeRound};
 use jiff::{RoundMode, SignedDurationRound, TimestampRound, Unit, ZonedRound};
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_macro_rules::py_value_error;
 use std::fmt::Display;
 
@@ -24,10 +24,11 @@ impl RoundOptions {
     }
 
     pub(crate) fn as_pydict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        use crate::interns;
         let d = PyDict::new(py);
-        d.set_item(intern!(py, "smallest"), self.smallest)?;
-        d.set_item(intern!(py, "mode"), self.mode)?;
-        d.set_item(intern!(py, "increment"), self.increment)?;
+        d.set_item(interns::smallest(py), self.smallest)?;
+        d.set_item(interns::mode(py), self.mode)?;
+        d.set_item(interns::increment(py), self.increment)?;
         Ok(d)
     }
 }
