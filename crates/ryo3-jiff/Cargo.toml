@@ -16,6 +16,7 @@ jiff.workspace = true
 parking_lot.workspace = true
 pyo3 = { workspace = true, features = ["jiff-02"] }
 ryo3-macro-rules.workspace = true
+ryo3-pydantic = { workspace = true, optional = true }
 ryo3-std = { workspace = true, features = ["std-time"] }
 serde = { workspace = true, features = ["derive"], optional = true }
 
@@ -29,6 +30,13 @@ pyo3-build-config = { workspace = true }
 [features]
 default = [
   "serde",
+  "pydantic",
+]
+pydantic = [
+  "ryo3-pydantic",
+]
+ry = [
+  "pydantic"
 ]
 serde = [
   "dep:serde",

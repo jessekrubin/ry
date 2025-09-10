@@ -7,13 +7,15 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyTimestampSeries;
 use crate::spanish::Spanish;
-use crate::{JiffRoundMode, JiffUnit, RyOffset};
+use crate::{JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyOffset, RyTime};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
+use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -88,6 +90,18 @@ impl RyTimestamp {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
     }
 
+    pub(crate) fn date(&self) -> RyDate {
+        self.0.to_zoned(TimeZone::UTC).date().into()
+    }
+
+    pub(crate) fn time(&self) -> RyTime {
+        self.0.to_zoned(TimeZone::UTC).time().into()
+    }
+
+    pub(crate) fn datetime(&self) -> RyDateTime {
+        self.0.to_zoned(TimeZone::UTC).datetime().into()
+    }
+
     #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZoned {
         RyZoned::from(Zoned::new(self.0, time_zone.into()))
@@ -131,6 +145,10 @@ impl RyTimestamp {
     }
 
     fn string(&self) -> String {
+        self.0.to_string()
+    }
+
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
 
@@ -382,6 +400,55 @@ impl RyTimestamp {
         let spanish = Spanish::try_from(other)?;
         let t = self.0.saturating_sub(spanish).map_err(map_py_value_err)?;
         Ok(Self::from(t))
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "try_from")]
+    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(d) = value.downcast_exact::<RyZoned>() {
+            d.get().timestamp().into_bound_py_any(py)
+        } else if let Ok(dt) = value.downcast_exact::<RyDateTime>() {
+            let zdt = dt.get().0.to_zoned(TimeZone::UTC)?;
+            let ts = zdt.timestamp();
+            Self::from(ts).into_bound_py_any(py)
+        } else if let Ok(ts) = value.extract::<Timestamp>() {
+            Self::from(ts).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "Timestamp conversion error: {valtype}",
+            )))
+        }
+    }
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[staticmethod]
+    fn _pydantic_parse<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::py_try_from(value)
+    }
+
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 

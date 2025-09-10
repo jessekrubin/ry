@@ -1,0 +1,18 @@
+[package]
+name = "ryo3-pydantic"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ry + pydantic integration"
+
+[dependencies]
+pyo3 = { workspace = true, features = [] }
+
+[lints]
+workspace = true

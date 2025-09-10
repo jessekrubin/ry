@@ -18,9 +18,11 @@ use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::{Offset, TimeZone};
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::IntoPyObjectExt;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyTuple, PyType};
+use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -208,15 +210,15 @@ impl RyZoned {
         hasher.finish()
     }
 
-    fn timestamp(&self) -> RyTimestamp {
+    pub(crate) fn timestamp(&self) -> RyTimestamp {
         RyTimestamp::from(self.0.timestamp())
     }
 
-    fn date(&self) -> RyDate {
+    pub(crate) fn date(&self) -> RyDate {
         RyDate::from(self.0.date())
     }
 
-    fn time(&self) -> RyTime {
+    pub(crate) fn time(&self) -> RyTime {
         RyTime::from(self.0.time())
     }
 
@@ -581,7 +583,7 @@ impl RyZoned {
                 let offset = date.extract::<RyOffset>()?;
                 builder = builder.offset(offset.0);
             } else {
-                return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                return Err(PyErr::new::<PyTypeError, _>(format!(
                     "obj must be a Date, Time or Offset; given: {obj}",
                 )));
             }
@@ -720,6 +722,52 @@ impl RyZoned {
     #[getter]
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "try_from")]
+    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(d) = value.downcast_exact::<RyTimestamp>() {
+            let dt = d.get().0.to_zoned(TimeZone::UTC);
+            dt.into_bound_py_any(py)
+        } else if let Ok(d) = value.extract::<JiffZoned>() {
+            Self::from(d.0).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "ZonedDateTime conversion error: {valtype}",
+            )))
+        }
+    }
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[staticmethod]
+    fn _pydantic_parse<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::py_try_from(value)
+    }
+
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 

@@ -1,4 +1,3 @@
-use crate::RySignedDuration;
 use crate::RySpan;
 use crate::RyTimeRound;
 use crate::difference::{RyTimeDifference, TimeDifferenceArg};
@@ -8,12 +7,15 @@ use crate::series::RyTimeSeries;
 use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
 use crate::{RyDate, RyDateTime};
+use crate::{RySignedDuration, RyTimestamp, RyZoned};
 use jiff::Zoned;
 use jiff::civil::{Time, TimeRound};
 use pyo3::basic::CompareOp;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -439,6 +441,58 @@ impl RyTime {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
+    #[staticmethod]
+    #[pyo3(name = "try_from")]
+    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(d) = value.downcast_exact::<RyDateTime>() {
+            let dt = d.get().time();
+            dt.into_bound_py_any(py)
+        } else if let Ok(d) = value.downcast_exact::<RyZoned>() {
+            let dt = d.get().time();
+            dt.into_bound_py_any(py)
+        } else if let Ok(d) = value.downcast_exact::<RyTimestamp>() {
+            let dt = d.get().time();
+            dt.into_bound_py_any(py)
+        } else if let Ok(d) = value.extract::<JiffTime>() {
+            Self::from_pytime(d).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "Time conversion error: {valtype}",
+            )))
+        }
+    }
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[staticmethod]
+    fn _pydantic_parse<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::py_try_from(value)
+    }
+
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl Display for RyTime {
@@ -449,10 +503,11 @@ impl Display for RyTime {
             self.0.hour(),
             self.0.minute(),
             self.0.second(),
-            self.0.nanosecond()
+            self.0.subsec_nanosecond()
         )
     }
 }
+
 impl From<Time> for RyTime {
     fn from(value: Time) -> Self {
         Self(value)

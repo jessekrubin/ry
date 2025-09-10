@@ -4,10 +4,12 @@ use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
 use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
-use jiff::{Span, SpanArithmetic, SpanRelativeTo, SpanRound};
+use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDelta, PyDict, PyTuple};
+use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple, PyType};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -29,6 +31,7 @@ impl RySpan {
         }
     }
 }
+
 impl PartialEq for RySpan {
     fn eq(&self, other: &Self) -> bool {
         let self_fieldwise = self.0.fieldwise();
@@ -365,10 +368,11 @@ impl RySpan {
         Ok(dict)
     }
 
+    // TODO fix and allow relative
     fn total_seconds(&self) -> PyResult<f64> {
         self.0
-            .total(jiff::Unit::Second)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .total(jiff::SpanTotal::from(jiff::Unit::Second).days_are_24_hours())
+            .map_err(map_py_value_err)
     }
 
     #[pyo3(signature = (relative = None))]
@@ -692,6 +696,66 @@ impl RySpan {
             }
         }
     }
+
+    #[staticmethod]
+    #[pyo3(name = "try_from")]
+    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(v) = value.downcast_exact::<PyFloat>() {
+            let f = v.extract::<f64>()?;
+            if f.is_nan() || f.is_infinite() {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Cannot convert NaN or infinite float to SignedDuration",
+                ));
+            }
+            let sd = RySignedDuration::py_try_from_secs_f64(f)?;
+            let span = jiff::Span::try_from(sd.0).map_err(map_py_overflow_err)?;
+            Self::from(span).into_bound_py_any(py)
+        } else if let Ok(v) = value.downcast_exact::<PyInt>() {
+            let i = v.extract::<i64>()?;
+            let sd = SignedDuration::from_secs(i);
+            Span::try_from(sd)
+                .map(Self::from)
+                .map_err(map_py_overflow_err)
+                .and_then(|dt| dt.into_bound_py_any(py))
+        } else if let Ok(d) = value.extract::<Span>() {
+            Self::from(d).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(value);
+            Err(PyTypeError::new_err(format!(
+                "TimeSpan conversion error: {valtype}",
+            )))
+        }
+    }
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[staticmethod]
+    fn _pydantic_parse<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::py_try_from(value)
+    }
+
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl Display for RySpan {
@@ -744,6 +808,16 @@ impl From<Span> for RySpan {
 impl From<JiffSpan> for RySpan {
     fn from(span: JiffSpan) -> Self {
         Self(span.0)
+    }
+}
+
+impl TryFrom<SignedDuration> for RySpan {
+    type Error = PyErr;
+
+    fn try_from(value: SignedDuration) -> Result<Self, Self::Error> {
+        Span::try_from(value)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 }
 
