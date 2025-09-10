@@ -210,7 +210,7 @@ impl RyZoned {
         hasher.finish()
     }
 
-    fn timestamp(&self) -> RyTimestamp {
+    pub(crate) fn timestamp(&self) -> RyTimestamp {
         RyTimestamp::from(self.0.timestamp())
     }
 

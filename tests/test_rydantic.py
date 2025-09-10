@@ -46,6 +46,11 @@ class RyZonedDatetimeModel(pydantic.BaseModel):
     dt: ry.ZonedDateTime
 
 
+# TIMESTAMP MODELS
+class RyTimestampModel(pydantic.BaseModel):
+    ts: ry.Timestamp
+
+
 # DURATION MODELS
 class PyTimedeltaModel(pydantic.BaseModel):
     d: pydt.timedelta
@@ -69,6 +74,11 @@ class TestJsonSchemas:
         py_model = PyDateModel.model_json_schema()
         ry_model = RyDateModel.model_json_schema()
         self._diff_schemas(py_model, ry_model)
+
+    def test_time_model_schema(self) -> None:
+        py_schema = PyTimeModel.model_json_schema()
+        ry_schema = RyTimeModel.model_json_schema()
+        self._diff_schemas(py_schema, ry_schema)
 
     def test_datetime_model_schema(self) -> None:
         py_schema = PyDatetimeModel.model_json_schema()
@@ -529,3 +539,47 @@ class TestTimeSpan:
         as_json = m.model_dump_json()
         from_json = RyTimeSpanModel.model_validate_json(as_json)
         assert isinstance(from_json.d, ry.TimeSpan)
+
+
+_TIMESTAMP_OK = [
+    # ry.DateTime
+    ry.date(2024, 1, 1).at(4, 8, 16),
+    # ry.ZonedDateTime
+    ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC"),
+    ry.date(2024, 1, 1).at(4, 8, 16).in_tz("America/Los_Angeles"),
+    # pydt.datetime with tzinfo
+    ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC").to_pydatetime(),
+    ry.date(2024, 1, 1).at(4, 8, 16).in_tz("America/Los_Angeles").to_pydatetime(),
+    # ry.Timestamp
+    ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC").timestamp(),
+    # str version of the above...
+    "2024-01-01T04:08:16+00:00[UTC]",
+    "2024-01-01T04:08:16-08:00[America/Los_Angeles]",
+    "2024-01-01 04:08:16+00:00",
+    "2024-01-01 04:08:16-08:00",
+    "2024-01-01T04:08:16Z",
+    # bytes version of the above...
+    b"2024-01-01T04:08:16+00:00[UTC]",
+    b"2024-01-01T04:08:16-08:00[America/Los_Angeles]",
+    b"2024-01-01 04:08:16+00:00",
+    b"2024-01-01 04:08:16-08:00",
+    b"2024-01-01T04:08:16Z",
+]
+
+
+class TestTimestamp:
+    @pytest.mark.parametrize(
+        "value",
+        _TIMESTAMP_OK,
+    )
+    def test_timestamp_parsing_ok(
+        self, value: ry.DateTime | ry.ZonedDateTime | ry.Timestamp
+    ) -> None:
+        m = RyTimestampModel(ts=value)  # type: ignore[arg-type]
+        assert isinstance(m.ts, ry.Timestamp)
+
+        as_json = m.model_dump_json(
+            indent=2,
+        )
+        from_json = RyTimestampModel.model_validate_json(as_json)
+        assert from_json.ts == m.ts
