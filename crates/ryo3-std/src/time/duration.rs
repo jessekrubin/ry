@@ -409,7 +409,7 @@ impl PyDuration {
     // ========================================================================
     #[pyo3(signature = (interval = None))]
     /// Sleep for the duration
-    pub fn sleep(&self, py: Python<'_>, interval: Option<u64>) -> PyResult<()> {
+    pub(crate) fn sleep(&self, py: Python<'_>, interval: Option<u64>) -> PyResult<()> {
         let interval = match interval {
             Some(interval) => {
                 if interval > 1000 {

@@ -122,12 +122,12 @@ impl PyIpv4Addr {
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    pub(crate) fn __repr__(&self) -> String {
         format!("Ipv4Addr('{}')", self.0)
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
 
@@ -313,12 +313,12 @@ impl PyIpv6Addr {
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    pub(crate) fn __repr__(&self) -> String {
         format!("Ipv6Addr('{}')", self.0)
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
 
@@ -497,12 +497,12 @@ impl PyIpAddr {
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    fn __repr__(&self) -> String {
         format!("IpAddr('{}')", self.0)
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
 

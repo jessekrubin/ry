@@ -26,29 +26,29 @@ impl PyInstant {
 
     #[staticmethod]
     #[must_use]
-    pub fn now() -> Self {
+    fn now() -> Self {
         Self(Instant::now())
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         format!("{:?}", self.0)
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    fn __repr__(&self) -> String {
         format!("{:?}", self.0)
     }
 
     #[must_use]
-    pub fn __hash__(&self) -> u64 {
+    fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
     }
 
     #[must_use]
-    pub fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,
             CompareOp::Ne => self.0 != other.0,
@@ -59,7 +59,7 @@ impl PyInstant {
         }
     }
 
-    pub fn __add__(&self, other: &PyDuration) -> Option<Self> {
+    fn __add__(&self, other: &PyDuration) -> Option<Self> {
         self.0.checked_add(other.0).map(Self)
     }
 
@@ -73,11 +73,7 @@ impl PyInstant {
     //     }
     // }
 
-    pub fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: PyInstantSub,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn __sub__<'py>(&self, py: Python<'py>, other: PyInstantSub) -> PyResult<Bound<'py, PyAny>> {
         match other {
             PyInstantSub::Instant(other) => {
                 let dur = self.0.checked_duration_since(other.0);
@@ -102,7 +98,7 @@ impl PyInstant {
         }
     }
 
-    // pub fn __isub__(&mut self, _py: Python<'_>, other: PyInstantSub) -> PyResult<()> {
+    // fn __isub__(&mut self, _py: Python<'_>, other: PyInstantSub) -> PyResult<()> {
     //     match other {
     //         PyInstantSub::Instant(other) => {
     //             let dur = self.0.checked_duration_since(other.0);
@@ -134,37 +130,37 @@ impl PyInstant {
     // }
 
     #[must_use]
-    pub fn elapsed(&self) -> PyDuration {
+    fn elapsed(&self) -> PyDuration {
         PyDuration(self.0.elapsed())
     }
 
-    pub fn checked_add(&self, other: &PyDuration) -> Option<Self> {
+    fn checked_add(&self, other: &PyDuration) -> Option<Self> {
         self.0.checked_add(other.0).map(Self)
     }
 
-    pub fn checked_sub(&self, other: &PyDuration) -> Option<Self> {
+    fn checked_sub(&self, other: &PyDuration) -> Option<Self> {
         self.0.checked_sub(other.0).map(Self::from)
     }
 
-    pub fn checked_duration_since(&self, earlier: &Self) -> Option<PyDuration> {
+    fn checked_duration_since(&self, earlier: &Self) -> Option<PyDuration> {
         self.0
             .checked_duration_since(earlier.0)
             .map(PyDuration::from)
     }
 
     #[must_use]
-    pub fn saturating_duration_since(&self, earlier: &Self) -> PyDuration {
+    fn saturating_duration_since(&self, earlier: &Self) -> PyDuration {
         PyDuration(self.0.saturating_duration_since(earlier.0))
     }
 
     #[must_use]
-    pub fn duration_since(&self, earlier: &Self) -> PyDuration {
+    fn duration_since(&self, earlier: &Self) -> PyDuration {
         PyDuration(self.0.duration_since(earlier.0))
     }
 }
 
 #[derive(Debug, Clone, Copy, FromPyObject)]
-pub enum PyInstantSub {
+enum PyInstantSub {
     Instant(PyInstant),
     Duration(PyDuration),
 }

@@ -35,23 +35,23 @@ impl From<std::fs::FileType> for PyFileType {
 impl PyFileType {
     #[getter]
     #[must_use]
-    pub fn is_dir(&self) -> bool {
+    fn is_dir(&self) -> bool {
         self.0.is_dir()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_file(&self) -> bool {
+    fn is_file(&self) -> bool {
         self.0.is_file()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_symlink(&self) -> bool {
+    fn is_symlink(&self) -> bool {
         self.0.is_symlink()
     }
 
-    pub fn __repr__(&self) -> PyResult<String> {
+    fn __repr__(&self) -> PyResult<String> {
         let repr = format!(
             "FileType(is_dir={}, is_file={}, is_symlink={})",
             self.0.is_dir(),
@@ -120,67 +120,67 @@ impl PyMetadata {
     }
 
     #[getter]
-    pub fn accessed(&self) -> PyResult<SystemTime> {
+    fn accessed(&self) -> PyResult<SystemTime> {
         let accessed = self.0.accessed()?;
         Ok(accessed)
     }
 
     #[getter]
-    pub fn created(&self) -> PyResult<SystemTime> {
+    fn created(&self) -> PyResult<SystemTime> {
         let created = self.0.created()?;
         Ok(created)
     }
 
     #[getter]
     #[must_use]
-    pub fn file_type(&self) -> PyFileType {
+    fn file_type(&self) -> PyFileType {
         PyFileType::new(self.0.file_type())
     }
 
     #[getter]
     #[must_use]
-    pub fn is_dir(&self) -> bool {
+    fn is_dir(&self) -> bool {
         self.0.is_dir()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_file(&self) -> bool {
+    fn is_file(&self) -> bool {
         self.0.is_file()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_symlink(&self) -> bool {
+    fn is_symlink(&self) -> bool {
         self.0.file_type().is_symlink()
     }
 
     #[getter]
     #[must_use]
-    pub fn len(&self) -> u64 {
+    fn len(&self) -> u64 {
         self.0.len()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.0.len() == 0
     }
 
     #[getter]
-    pub fn modified(&self) -> PyResult<SystemTime> {
+    fn modified(&self) -> PyResult<SystemTime> {
         let modified = self.0.modified()?;
         Ok(modified)
     }
 
     #[getter]
     #[must_use]
-    pub fn readonly(&self) -> bool {
+    fn readonly(&self) -> bool {
         self.0.permissions().readonly()
     }
 
     #[getter]
-    pub fn permissions(&self) -> PyResult<PyPermissions> {
+    fn permissions(&self) -> PyResult<PyPermissions> {
         let permissions = self.0.permissions();
         Ok(PyPermissions::from(permissions))
     }
@@ -206,7 +206,7 @@ impl PyPermissions {
 impl PyPermissions {
     #[getter]
     #[must_use]
-    pub fn readonly(&self) -> bool {
+    fn readonly(&self) -> bool {
         self.0.readonly()
     }
 
@@ -238,7 +238,7 @@ impl From<std::fs::DirEntry> for PyDirEntry {
 
 #[pymethods]
 impl PyDirEntry {
-    pub fn __repr__(&self) -> PyResult<String> {
+    fn __repr__(&self) -> PyResult<String> {
         let path = self.0.path();
         let pathstr = path.to_string_lossy();
         let s = format!("DirEntry('{pathstr}')");
@@ -246,30 +246,30 @@ impl PyDirEntry {
     }
 
     #[must_use]
-    pub fn __fspath__(&self) -> OsString {
+    fn __fspath__(&self) -> OsString {
         self.0.path().into_os_string()
     }
 
     #[getter]
-    pub fn path(&self) -> PyResult<PathBuf> {
+    fn path(&self) -> PyResult<PathBuf> {
         let path = self.0.path();
         Ok(path)
     }
 
     #[getter]
-    pub fn file_type(&self) -> PyResult<PyFileType> {
+    fn file_type(&self) -> PyResult<PyFileType> {
         let file_type = self.0.file_type()?;
         Ok(PyFileType::new(file_type))
     }
 
     #[getter]
-    pub fn metadata(&self) -> PyResult<PyMetadata> {
+    fn metadata(&self) -> PyResult<PyMetadata> {
         let metadata = self.0.metadata()?;
         Ok(PyMetadata::new(metadata))
     }
 
     #[getter]
-    pub fn basename(&self) -> PyResult<OsString> {
+    fn basename(&self) -> PyResult<OsString> {
         let path = self.0.path();
         let anme = path.file_name().ok_or_else(|| {
             PyValueError::new_err(format!(

@@ -62,7 +62,7 @@ impl PyWalkdirGen {
     }
 
     /// Collect all the entries into a Vec<Bound<PyAny>>
-    pub fn collect<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
         // if objects is true, we return a DirEntry object
         // if objects is false, we return a string
         if self.objects {

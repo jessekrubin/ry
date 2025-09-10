@@ -198,7 +198,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn get<'py>(
+    fn get<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -247,7 +247,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn post<'py>(
+    fn post<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -296,7 +296,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn put<'py>(
+    fn put<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -345,7 +345,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn patch<'py>(
+    fn patch<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -394,7 +394,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn delete<'py>(
+    fn delete<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -443,7 +443,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn head<'py>(
+    fn head<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -492,7 +492,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn options<'py>(
+    fn options<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -542,7 +542,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn fetch<'py>(
+    pub(crate) fn fetch<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -596,7 +596,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn __call__<'py>(
+    fn __call__<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
