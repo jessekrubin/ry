@@ -191,7 +191,7 @@ def test_zoned() -> None:
         "nanosecond": 0,
     }
     assert dt_fields == dt_dictionary
-    assert ry_datetime.asdict() == {
+    assert ry_datetime.to_dict() == {
         "year": 2020,
         "month": 8,
         "day": 26,
@@ -217,7 +217,7 @@ def test_zoned() -> None:
     }
 
     expected_time_dict = {"hour": 6, "minute": 27, "second": 0, "nanosecond": 0}
-    assert ry_time.asdict() == expected_time_dict
+    assert ry_time.to_dict() == expected_time_dict
 
 
 # ====================

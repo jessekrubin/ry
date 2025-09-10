@@ -5,7 +5,7 @@ use pyo3::pyclass::CompareOp;
 use pyo3::types::PyTuple;
 use std::ops::{Neg, Not};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[pyclass(name = "Size", module = "ry.ryo3", frozen)]
 pub struct PySize(size::Size);
 
@@ -21,6 +21,7 @@ impl From<i64> for PySize {
     }
 }
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl PySize {
     #[new]
@@ -400,7 +401,7 @@ impl PySizeIntermediate {
     }
 }
 
-#[derive(Debug, Clone, FromPyObject)]
+#[derive(Debug, Clone, Copy, FromPyObject)]
 enum PySizeArithmetic {
     Size(PySize),
     Int64(i64),

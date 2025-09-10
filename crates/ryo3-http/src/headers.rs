@@ -128,50 +128,50 @@ impl PyHeaders {
 
     /// Return struct Debug-string
     #[must_use]
-    pub fn __dbg__(&self) -> String {
+    fn __dbg__(&self) -> String {
         format!("{self:?}")
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    fn __repr__(&self) -> String {
         format!("{self}")
     }
 
     #[must_use]
-    pub fn __len__(&self) -> usize {
+    fn __len__(&self) -> usize {
         self.0.lock().len()
     }
 
     #[must_use]
-    pub fn __eq__(&self, other: &Self) -> bool {
+    fn __eq__(&self, other: &Self) -> bool {
         *(self.0.lock()) == *(other.0.lock())
     }
 
     #[must_use]
-    pub fn __ne__(&self, other: &Self) -> bool {
+    fn __ne__(&self, other: &Self) -> bool {
         *(self.0.lock()) != *(other.0.lock())
     }
 
     #[must_use]
-    pub fn __contains__(&self, key: &str) -> bool {
+    fn __contains__(&self, key: &str) -> bool {
         self.contains_key(key)
     }
 
-    pub fn __getitem__(&self, key: &str) -> Option<HttpHeaderValue> {
+    fn __getitem__(&self, key: &str) -> Option<HttpHeaderValue> {
         self.0.lock().get(key).map(HttpHeaderValue::from)
     }
 
-    pub fn __setitem__(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<()> {
+    fn __setitem__(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<()> {
         self.insert(key, value)?;
         Ok(())
     }
 
-    pub fn __delitem__(&self, key: HttpHeaderName) {
+    fn __delitem__(&self, key: HttpHeaderName) {
         self.remove(key);
     }
 
     #[must_use]
-    pub fn __iter__<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
+    fn __iter__<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
         self.keys(py)
     }
 
@@ -205,7 +205,7 @@ impl PyHeaders {
     //     - `values_mut`
     //     - `with_capacity`
 
-    pub fn append(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<bool> {
+    fn append(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<bool> {
         self.0
             .lock()
             .try_append(key.0, value.0)
@@ -218,20 +218,20 @@ impl PyHeaders {
         inner.len() == inner.keys_len()
     }
 
-    pub fn clear(&self) {
+    fn clear(&self) {
         self.0.lock().clear();
     }
 
     #[must_use]
-    pub fn contains_key(&self, key: &str) -> bool {
+    fn contains_key(&self, key: &str) -> bool {
         self.0.lock().contains_key(key)
     }
 
-    pub fn get(&self, key: &str) -> Option<HttpHeaderValue> {
+    fn get(&self, key: &str) -> Option<HttpHeaderValue> {
         self.0.lock().get(key).map(HttpHeaderValue::from)
     }
 
-    pub fn get_all(&self, key: &str) -> PyResult<Vec<String>> {
+    fn get_all(&self, key: &str) -> PyResult<Vec<String>> {
         // iterate and collect but filter out errors...
         let mut hvalues = vec![];
         for v in self.0.lock().get_all(key) {
@@ -246,7 +246,7 @@ impl PyHeaders {
         Ok(hvalues)
     }
 
-    pub fn insert(
+    fn insert(
         &self,
         key: HttpHeaderName,
         value: HttpHeaderValue,
@@ -259,17 +259,17 @@ impl PyHeaders {
     }
 
     #[must_use]
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.0.lock().is_empty()
     }
 
     #[must_use]
-    pub fn __bool__(&self) -> bool {
+    fn __bool__(&self) -> bool {
         !self.0.lock().is_empty()
     }
 
     #[must_use]
-    pub fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
+    fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
         self.0
             .lock()
             .keys()
@@ -278,24 +278,24 @@ impl PyHeaders {
     }
 
     #[must_use]
-    pub fn keys_len(&self) -> usize {
+    fn keys_len(&self) -> usize {
         self.0.lock().keys_len()
     }
 
     #[must_use]
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.0.lock().len()
     }
 
-    pub fn remove(&self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
+    fn remove(&self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
         self.0.lock().remove(key.0).map(HttpHeaderValue::from)
     }
 
-    pub fn pop(&self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
+    fn pop(&self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
         self.remove(key)
     }
 
-    pub fn values<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyString>>> {
+    fn values<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyString>>> {
         let mut vals = vec![];
         for v in self.0.lock().values() {
             let pystr = header_value_to_pystring(py, v)
@@ -306,7 +306,7 @@ impl PyHeaders {
     }
 
     #[pyo3(signature = (other, append = false))]
-    pub fn update(&self, other: PyHeadersLike, append: bool) -> PyResult<()> {
+    fn update(&self, other: PyHeadersLike, append: bool) -> PyResult<()> {
         match other {
             PyHeadersLike::Headers(other) => {
                 let other_inner = other.0.lock();
@@ -345,7 +345,7 @@ impl PyHeaders {
         Ok(())
     }
 
-    pub fn __or__(&self, other: PyHeadersLike) -> PyResult<Self> {
+    fn __or__(&self, other: PyHeadersLike) -> PyResult<Self> {
         let mut headers = self.0.clone().lock().clone();
         match other {
             PyHeadersLike::Headers(other) => {
@@ -371,10 +371,6 @@ impl PyHeaders {
     }
 
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        self.to_py(py)
-    }
-
-    fn asdict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         self.to_py(py)
     }
 
@@ -412,7 +408,6 @@ impl PyHeaders {
     #[cfg(feature = "json")]
     #[staticmethod]
     fn from_json(json: &str) -> PyResult<Self> {
-        // let headers: crate::http_t=
         serde_json::from_str::<crate::HttpHeaderMap>(json)
             .map(|e| Self::from(e.0))
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))

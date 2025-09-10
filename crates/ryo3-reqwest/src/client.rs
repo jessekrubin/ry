@@ -9,7 +9,7 @@ use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
-use ryo3_macro_rules::err_py_not_impl;
+use ryo3_macro_rules::pytodo;
 use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
 use tracing::debug;
@@ -83,10 +83,11 @@ impl RyHttpClient {
             req = req.json(&wrapped);
         }
         if let Some(_multipart) = options.multipart {
-            return err_py_not_impl!("multipart not implemented (yet)");
+            // return err_py_not_impl!("multipart not implemented (yet)");
+            pytodo!("multipart not implemented (yet)")
         }
         if let Some(_form) = options.form {
-            return err_py_not_impl!("form not implemented (yet)");
+            pytodo!("form not implemented (yet)")
         }
         if let Some(body) = options.body {
             let body_bytes = body.into_inner();
@@ -197,7 +198,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn get<'py>(
+    fn get<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -246,7 +247,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn post<'py>(
+    fn post<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -295,7 +296,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn put<'py>(
+    fn put<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -344,7 +345,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn patch<'py>(
+    fn patch<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -393,7 +394,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn delete<'py>(
+    fn delete<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -442,7 +443,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn head<'py>(
+    fn head<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -491,7 +492,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn options<'py>(
+    fn options<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -541,7 +542,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn fetch<'py>(
+    pub(crate) fn fetch<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -595,7 +596,7 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
-    pub fn __call__<'py>(
+    fn __call__<'py>(
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
@@ -624,9 +625,9 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "headers"), self.headers.clone())?;
         dict.set_item(intern!(py, "user_agent"), self.user_agent.clone())?;
-        dict.set_item(intern!(py, "timeout"), self.timeout.clone())?;
-        dict.set_item(intern!(py, "read_timeout"), self.read_timeout.clone())?;
-        dict.set_item(intern!(py, "connect_timeout"), self.connect_timeout.clone())?;
+        dict.set_item(intern!(py, "timeout"), self.timeout)?;
+        dict.set_item(intern!(py, "read_timeout"), self.read_timeout)?;
+        dict.set_item(intern!(py, "connect_timeout"), self.connect_timeout)?;
         dict.set_item(intern!(py, "gzip"), self.gzip)?;
         dict.set_item(intern!(py, "brotli"), self.brotli)?;
         dict.set_item(intern!(py, "deflate"), self.deflate)?;

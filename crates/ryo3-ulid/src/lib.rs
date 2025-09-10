@@ -27,7 +27,8 @@ fn gen_new() -> PyResult<Ulid> {
 
 #[pyclass(name = "ULID", module = "ry.ulid", frozen, weakref)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-pub struct PyUlid(pub Ulid);
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PyUlid(Ulid);
 
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for PyUlid {
@@ -40,7 +41,7 @@ impl<'de> serde::Deserialize<'de> for PyUlid {
 }
 
 impl PyUlid {
-    fn to_u128(&self) -> u128 {
+    fn to_u128(self) -> u128 {
         let b = self.0.to_bytes();
         u128::from_be_bytes(b)
     }
@@ -189,6 +190,7 @@ impl PyUlid {
         Self(ulid)
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_bytes<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
         self.__bytes__(py)
     }
@@ -271,18 +273,19 @@ impl PyUlid {
     }
 
     #[staticmethod]
-    #[expect(clippy::needless_pass_by_value)] // must do bc of pyo3
     fn from_uuid(uu: UuidLike) -> Self {
         let uu = uu.0;
         let ul = Ulid::from_bytes(*uu.as_bytes());
         Self(ul)
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_uuid(&self) -> PyUuid {
         let b = self.0.to_bytes();
         ryo3_uuid::PyUuid::from(Uuid::from_bytes(b))
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_uuid4(&self) -> PyUuid {
         let mut b = uuid::Builder::from_u128(self.to_u128());
         b.set_version(uuid::Version::Random);
@@ -336,7 +339,7 @@ impl PyUlid {
             let b = pybytes.extract::<[u8; 16]>()?;
             Ok(Self::from_bytes(b))
         } else if let Ok(py_uuid) = other.downcast::<PyUuid>() {
-            return Ok(Self::from_uuid(UuidLike(py_uuid.borrow().0)));
+            return Ok(Self::from_uuid(UuidLike(*py_uuid.borrow().get())));
         } else if let Ok(c_uuid) = other.extract::<CPythonUuid>() {
             Ok(Self::from_uuid(UuidLike(c_uuid.into())))
         } else if let Ok(dt) = other.extract::<SystemTime>() {
@@ -500,12 +503,13 @@ impl From<Ulid> for PyUlid {
     }
 }
 
-pub struct UuidLike(pub(crate) Uuid);
+#[derive(Clone, Copy)]
+struct UuidLike(pub(crate) Uuid);
 
 impl FromPyObject<'_> for UuidLike {
     fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(uuid_like) = obj.downcast::<PyUuid>() {
-            return Ok(Self(uuid_like.borrow().0));
+            return Ok(Self(*uuid_like.borrow().get()));
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
             return Ok(Self(py_uuid.into()));
         }

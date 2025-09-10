@@ -18,9 +18,11 @@ def test_date_tuple() -> None:
     assert (2020, 8, 26) == rdt.astuple()
 
 
-def test_date_asdict() -> None:
+def test_date_to_dict() -> None:
     rdt = ry.date(2020, 8, 26)
-    assert {"year": 2020, "month": 8, "day": 26} == rdt.asdict()
+    d = rdt.to_dict()
+    assert isinstance(d, dict)
+    assert d == {"year": 2020, "month": 8, "day": 26}
 
 
 def test_rytime2pytime() -> None:
@@ -35,17 +37,17 @@ def test_time_tuple() -> None:
     assert (10, 20, 30, 0) == rytime.astuple()
 
 
-def test_time_asdict() -> None:
+def test_time_to_dict() -> None:
     rytime = ry.time(10, 20, 30)
     assert {
         "hour": 10,
         "minute": 20,
         "second": 30,
         "nanosecond": 0,
-    } == rytime.asdict()
+    } == rytime.to_dict()
 
 
-def test_datetime_as_dict() -> None:
+def test_datetime_to_dict() -> None:
     rytime = ry.datetime(2020, 8, 26, 10, 20, 30)
     assert {
         "year": 2020,
@@ -55,4 +57,17 @@ def test_datetime_as_dict() -> None:
         "minute": 20,
         "second": 30,
         "nanosecond": 0,
-    } == rytime.asdict()
+    } == rytime.to_dict()
+
+
+def test_zoned_to_dict() -> None:
+    rytime = ry.datetime(2020, 8, 26, 10, 20, 30)
+    assert {
+        "year": 2020,
+        "month": 8,
+        "day": 26,
+        "hour": 10,
+        "minute": 20,
+        "second": 30,
+        "nanosecond": 0,
+    } == rytime.to_dict()

@@ -14,9 +14,16 @@ pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibilit
 pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
 
 #[pyclass(name = "UUID", module = "ry.uuid", frozen, weakref)]
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-pub struct PyUuid(pub uuid::Uuid);
+pub struct PyUuid(uuid::Uuid);
+
+impl PyUuid {
+    #[must_use]
+    pub fn get(&self) -> &uuid::Uuid {
+        &self.0
+    }
+}
 
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for PyUuid {
@@ -189,6 +196,7 @@ impl PyUuid {
         self.0.urn().to_string()
     }
 
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> uuid::Uuid {
         self.0
     }
@@ -422,6 +430,7 @@ pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
 // NOTE: As of today/now (2025-05-15) on Big-Endian system the uuid conversion
 //       does not work as expected due to the usage of `.to_le()`
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CPythonUuid(pub(crate) uuid::Uuid);
 
 impl From<CPythonUuid> for uuid::Uuid {

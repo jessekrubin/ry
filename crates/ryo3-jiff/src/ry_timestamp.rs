@@ -107,6 +107,15 @@ impl RyTimestamp {
         RyZoned::from(Zoned::new(self.0, time_zone.into()))
     }
 
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, ::pyo3::types::PyDict>> {
+        use crate::interns;
+        let dict = ::pyo3::types::PyDict::new(py);
+        dict.set_item(interns::second(py), self.0.as_second())?;
+        dict.set_item(interns::nanosecond(py), self.0.subsec_nanosecond())?;
+        Ok(dict)
+    }
+
     #[staticmethod]
     fn from_pydatetime<'py>(_cls: &Bound<'py, PyType>, dt: &Bound<'py, PyAny>) -> PyResult<Self> {
         let ts = dt.extract::<Timestamp>()?;

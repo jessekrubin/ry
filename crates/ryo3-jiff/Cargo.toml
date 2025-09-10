@@ -44,4 +44,7 @@ serde = [
 ]
 
 [lints]
+
+#extend
+
 workspace = true

@@ -12,7 +12,7 @@ use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError};
-use pyo3::types::{PyDelta, PyFloat, PyInt, PyTuple, PyType};
+use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple, PyType};
 use ryo3_macro_rules::any_repr;
 use ryo3_std::time::PyDuration;
 use std::fmt::Display;
@@ -24,7 +24,7 @@ const NANOS_PER_SEC: i32 = 1_000_000_000;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[derive(Debug, Clone, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[pyclass(name = "SignedDuration", module = "ry.ryo3", frozen)]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
@@ -43,6 +43,7 @@ impl RySignedDuration {
 }
 
 #[pymethods]
+#[expect(clippy::wrong_self_convention)]
 impl RySignedDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
@@ -134,6 +135,15 @@ impl RySignedDuration {
         &self.0
     }
 
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        use crate::interns;
+        let dict = PyDict::new(py);
+        dict.set_item(interns::secs(py), self.0.as_secs())?;
+        dict.set_item(interns::nanos(py), self.0.subsec_nanos())?;
+        Ok(dict)
+    }
+
     fn to_timespan(&self) -> PyResult<RySpan> {
         Span::try_from(self.0)
             .map(RySpan::from)
@@ -178,7 +188,7 @@ impl RySignedDuration {
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.0)
+        self.0.to_string()
     }
 
     fn __repr__(&self) -> String {

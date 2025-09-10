@@ -6,7 +6,7 @@ use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyString, PyTuple};
 
 #[pyclass(name = "HttpStatus", module = "ry.ryo3.http", frozen)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct PyHttpStatus(pub http::StatusCode);
 
 #[pymethods]
@@ -19,6 +19,7 @@ impl PyHttpStatus {
         })?))
     }
 
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(py, [self.0.as_u16()])
     }

@@ -65,11 +65,12 @@ pub fn py_date_to_date(py_date: &impl pyo3::types::PyDateAccess) -> PyResult<Dat
 
 #[cfg(Py_LIMITED_API)]
 pub fn py_date_to_date(py_date: &Bound<'_, PyAny>) -> PyResult<Date> {
+    use crate::interns;
     let py = py_date.py();
     Ok(Date::new(
-        py_date.getattr(pyo3::intern!(py, "year"))?.extract()?,
-        py_date.getattr(pyo3::intern!(py, "month"))?.extract()?,
-        py_date.getattr(pyo3::intern!(py, "day"))?.extract()?,
+        py_date.getattr(interns::year(py))?.extract()?,
+        py_date.getattr(interns::month(py))?.extract()?,
+        py_date.getattr(interns::day(py))?.extract()?,
     )?)
 }
 

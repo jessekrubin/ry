@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::CONTENT_ENCODING;
 use ryo3_http::{HttpVersion, PyHeaders, PyHttpStatus, status_code_pystring};
-use ryo3_macro_rules::err_py_not_impl;
+use ryo3_macro_rules::pytodo;
 use ryo3_url::PyUrl;
 use std::sync::Arc;
 
@@ -48,7 +48,7 @@ impl From<reqwest::Response> for RyResponse {
 impl RyResponse {
     #[new]
     fn py_new() -> PyResult<Self> {
-        err_py_not_impl!("Response::new")
+        pytodo!("Response::new")
     }
 
     fn __str__(&self) -> String {
@@ -93,7 +93,7 @@ impl RyResponse {
     #[getter]
     #[pyo3(name = "url")]
     fn url(&self) -> Option<PyUrl> {
-        self.head.url.as_ref().map(|url| PyUrl(url.clone()))
+        self.head.url.as_ref().map(|url| PyUrl::new(url.clone()))
     }
 
     #[getter]

@@ -15,7 +15,7 @@ def test_span_fn_no_positionals_allowed() -> None:
 
 def test_span_dict() -> None:
     s = ry.timespan(years=1)
-    assert s.asdict() == {
+    assert s.to_dict() == {
         "years": 1,
         "months": 0,
         "weeks": 0,

@@ -1,8 +1,8 @@
-#![expect(clippy::trivially_copy_pass_by_ref)]
+// #![expect(clippy::trivially_copy_pass_by_ref)]
 use crate::net::{PySocketAddrV4, PySocketAddrV6};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use ryo3_macro_rules::err_py_not_impl;
+use ryo3_macro_rules::pytodo;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -110,6 +110,7 @@ fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
     ))
 }
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl PyIpv4Addr {
     #[new]
@@ -121,12 +122,12 @@ impl PyIpv4Addr {
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    pub(crate) fn __repr__(&self) -> String {
         format!("Ipv4Addr('{}')", self.0)
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
 
@@ -196,7 +197,7 @@ impl PyIpv4Addr {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_benchmarking(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -212,7 +213,7 @@ impl PyIpv4Addr {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -238,13 +239,13 @@ impl PyIpv4Addr {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_reserved(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_shared(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -312,12 +313,12 @@ impl PyIpv6Addr {
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    pub(crate) fn __repr__(&self) -> String {
         format!("Ipv6Addr('{}')", self.0)
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
 
@@ -367,7 +368,7 @@ impl PyIpv6Addr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_benchmarking(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -381,7 +382,7 @@ impl PyIpv6Addr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -410,7 +411,7 @@ impl PyIpv6Addr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_unicast_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -496,12 +497,12 @@ impl PyIpAddr {
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    fn __repr__(&self) -> String {
         format!("IpAddr('{}')", self.0)
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         self.0.to_string()
     }
 
@@ -574,7 +575,7 @@ impl PyIpAddr {
     #[expect(clippy::unused_self)]
     #[getter]
     fn is_benchmarking(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -634,7 +635,7 @@ impl PyIpAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -661,13 +662,13 @@ impl PyIpAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_reserved(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_shared(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]
@@ -681,7 +682,7 @@ impl PyIpAddr {
     #[getter]
     #[expect(clippy::unused_self)]
     fn is_unicast_global(&self) -> PyResult<bool> {
-        err_py_not_impl!()
+        pytodo!()
     }
 
     #[getter]

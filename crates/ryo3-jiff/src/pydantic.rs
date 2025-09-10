@@ -19,8 +19,6 @@ impl GetPydanticCoreSchemaCls for RyDate {
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
         core_schema.call_method(
             interns::no_info_wrap_validator_function(py),
             args,
@@ -43,8 +41,6 @@ impl GetPydanticCoreSchemaCls for RyDateTime {
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
         core_schema.call_method(
             interns::no_info_wrap_validator_function(py),
             args,
@@ -69,8 +65,6 @@ impl GetPydanticCoreSchemaCls for RyTime {
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs
             .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
         core_schema.call_method(
             interns::no_info_wrap_validator_function(py),
             args,
@@ -121,8 +115,6 @@ impl GetPydanticCoreSchemaCls for RyZoned {
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
         core_schema.call_method(
             interns::no_info_wrap_validator_function(py),
             args,
@@ -147,8 +139,6 @@ impl GetPydanticCoreSchemaCls for RySpan {
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
         core_schema.call_method(
             interns::no_info_wrap_validator_function(py),
             args,
@@ -204,8 +194,6 @@ impl GetPydanticCoreSchemaCls for RySignedDuration {
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
-        // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-        // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
         core_schema.call_method(
             interns::no_info_wrap_validator_function(py),
             args,

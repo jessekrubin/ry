@@ -13,11 +13,11 @@ pub struct HttpMethod(pub http::Method);
 pub struct HttpHeaderName(pub http::HeaderName);
 #[derive(Debug)]
 pub struct HttpHeaderNameRef<'a>(pub &'a http::HeaderName);
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HttpStatusCode(pub http::StatusCode);
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderValue(pub HeaderValue);
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HttpVersion(pub http::Version);
 
 // ============================================================================

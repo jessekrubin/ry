@@ -6,6 +6,7 @@ use pyo3::{
     types::{PyBytes, PyInt},
 };
 
+#[derive(Clone, Copy)]
 pub struct Byte(u8);
 
 impl Deref for Byte {
@@ -16,16 +17,9 @@ impl Deref for Byte {
     }
 }
 
-impl Byte {
-    #[must_use]
-    pub fn new(value: u8) -> Self {
-        Self(value)
-    }
-}
-
 impl From<u8> for Byte {
     fn from(value: u8) -> Self {
-        Self::new(value)
+        Self(value)
     }
 }
 

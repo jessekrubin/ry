@@ -121,7 +121,7 @@ impl RyReqwestError {
 
     fn url(&self) -> Option<PyUrl> {
         if let Some(e) = &(*self.0.lock()) {
-            e.url().map(|url| PyUrl(url.clone()))
+            e.url().map(|url| PyUrl::new(url.clone()))
         } else {
             None
         }
@@ -132,7 +132,7 @@ impl RyReqwestError {
         let err = slf.0.lock().take();
         if let Some(e) = err {
             // baboom put it back
-            slf.0.lock().replace(e.with_url(url.0.clone()));
+            slf.0.lock().replace(e.with_url(url.as_ref().clone()));
         }
         slf
     }
