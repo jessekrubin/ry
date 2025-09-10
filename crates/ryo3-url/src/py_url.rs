@@ -11,9 +11,13 @@ use std::path::PathBuf;
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "URL", module = "ry.ryo3", frozen)]
-pub struct PyUrl(pub url::Url);
+pub struct PyUrl(pub(crate) url::Url);
 
 impl PyUrl {
+    pub fn new(url: url::Url) -> Self {
+        Self(url)
+    }
+
     fn parse_with_params(url: &str, params: &Bound<'_, PyDict>) -> PyResult<Self> {
         let params = params
             .into_iter()

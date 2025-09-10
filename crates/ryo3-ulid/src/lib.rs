@@ -28,7 +28,7 @@ fn gen_new() -> PyResult<Ulid> {
 #[pyclass(name = "ULID", module = "ry.ulid", frozen, weakref)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PyUlid(pub Ulid);
+pub struct PyUlid(Ulid);
 
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for PyUlid {
@@ -339,7 +339,7 @@ impl PyUlid {
             let b = pybytes.extract::<[u8; 16]>()?;
             Ok(Self::from_bytes(b))
         } else if let Ok(py_uuid) = other.downcast::<PyUuid>() {
-            return Ok(Self::from_uuid(UuidLike(py_uuid.borrow().0)));
+            return Ok(Self::from_uuid(UuidLike(*py_uuid.borrow().get())));
         } else if let Ok(c_uuid) = other.extract::<CPythonUuid>() {
             Ok(Self::from_uuid(UuidLike(c_uuid.into())))
         } else if let Ok(dt) = other.extract::<SystemTime>() {
@@ -504,12 +504,12 @@ impl From<Ulid> for PyUlid {
 }
 
 #[derive(Clone, Copy)]
-pub struct UuidLike(pub(crate) Uuid);
+struct UuidLike(pub(crate) Uuid);
 
 impl FromPyObject<'_> for UuidLike {
     fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(uuid_like) = obj.downcast::<PyUuid>() {
-            return Ok(Self(uuid_like.borrow().0));
+            return Ok(Self(*uuid_like.borrow().get()));
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
             return Ok(Self(py_uuid.into()));
         }

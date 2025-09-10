@@ -83,7 +83,7 @@ impl RyResponse {
     #[getter]
     #[pyo3(name = "url")]
     fn url(&self) -> Option<PyUrl> {
-        self.head.url.as_ref().map(|url| PyUrl(url.clone()))
+        self.head.url.as_ref().map(|url| PyUrl::new(url.clone()))
     }
 
     #[getter]
