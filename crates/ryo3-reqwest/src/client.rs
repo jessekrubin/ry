@@ -625,9 +625,9 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
         let dict = PyDict::new(py);
         dict.set_item(intern!(py, "headers"), self.headers.clone())?;
         dict.set_item(intern!(py, "user_agent"), self.user_agent.clone())?;
-        dict.set_item(intern!(py, "timeout"), self.timeout.clone())?;
-        dict.set_item(intern!(py, "read_timeout"), self.read_timeout.clone())?;
-        dict.set_item(intern!(py, "connect_timeout"), self.connect_timeout.clone())?;
+        dict.set_item(intern!(py, "timeout"), self.timeout)?;
+        dict.set_item(intern!(py, "read_timeout"), self.read_timeout)?;
+        dict.set_item(intern!(py, "connect_timeout"), self.connect_timeout)?;
         dict.set_item(intern!(py, "gzip"), self.gzip)?;
         dict.set_item(intern!(py, "brotli"), self.brotli)?;
         dict.set_item(intern!(py, "deflate"), self.deflate)?;

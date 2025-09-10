@@ -1,4 +1,4 @@
-#![expect(clippy::trivially_copy_pass_by_ref)]
+// #![expect(clippy::trivially_copy_pass_by_ref)]
 use crate::net::{PySocketAddrV4, PySocketAddrV6};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
@@ -110,6 +110,7 @@ fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
     ))
 }
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl PyIpv4Addr {
     #[new]

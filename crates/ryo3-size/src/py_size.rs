@@ -21,8 +21,8 @@ impl From<i64> for PySize {
     }
 }
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
-#[allow(clippy::trivially_copy_pass_by_ref)]
 impl PySize {
     #[new]
     fn py_new(size: i64) -> Self {

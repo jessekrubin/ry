@@ -6,8 +6,8 @@ use pyo3::pyclass::CompareOp;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 
-#[derive(Debug, Clone)]
 #[pyclass(name = "Instant", module = "ry.ryo3", frozen)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyInstant(pub Instant);
 
 impl From<Instant> for PyInstant {
@@ -163,7 +163,7 @@ impl PyInstant {
     }
 }
 
-#[derive(Debug, Clone, FromPyObject)]
+#[derive(Debug, Clone, Copy, FromPyObject)]
 pub enum PyInstantSub {
     Instant(PyInstant),
     Duration(PyDuration),

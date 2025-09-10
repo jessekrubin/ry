@@ -15,6 +15,7 @@ use std::time::SystemTime;
 
 // TODO: this is stupid... should really be some sort of enum as `is_dir`/`is_file`/`is_symlink` are mutually exclusive
 #[pyclass(name = "FileType", module = "ry.ryo3", frozen)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PyFileType(pub std::fs::FileType);
 
 impl PyFileType {
@@ -60,6 +61,7 @@ impl PyFileType {
         Ok(repr)
     }
 
+    #[expect(clippy::wrong_self_convention, clippy::trivially_copy_pass_by_ref)]
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let file_type_dict = PyDict::new(py);
         file_type_dict.set_item(intern!(py, "is_dir"), self.is_dir())?;
@@ -70,6 +72,7 @@ impl PyFileType {
 }
 
 #[pyclass(name = "Metadata", module = "ry.ryo3", frozen)]
+#[derive(Clone)]
 pub struct PyMetadata(pub std::fs::Metadata);
 
 impl From<std::fs::Metadata> for PyMetadata {

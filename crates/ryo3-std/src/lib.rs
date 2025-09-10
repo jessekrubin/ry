@@ -1,4 +1,3 @@
-#![allow(missing_copy_implementations)]
 use pyo3::prelude::*;
 
 #[cfg(feature = "std-fs")]

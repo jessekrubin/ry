@@ -18,7 +18,7 @@ const DAYS_PER_WEEK: u64 = 7;
 const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY);
 const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 #[pyclass(name = "Duration", module = "ry.ryo3", frozen)]
 pub struct PyDuration(pub Duration);
 
@@ -48,6 +48,7 @@ impl PyDuration {
 }
 
 #[pymethods]
+#[expect(clippy::needless_pass_by_value)]
 impl PyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
@@ -311,11 +312,13 @@ impl PyDuration {
     // ========================================================================
 
     /// Convert to python `datetime.timedelta`
+    #[expect(clippy::wrong_self_convention)]
     fn to_py(&self) -> Duration {
         self.0
     }
 
     /// Convert to python `datetime.timedelta`
+    #[expect(clippy::wrong_self_convention)]
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         self.0.into_pyobject(py)
     }

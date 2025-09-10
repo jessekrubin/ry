@@ -14,6 +14,7 @@ use std::path::PathBuf;
 pub struct PyUrl(pub(crate) url::Url);
 
 impl PyUrl {
+    #[must_use]
     pub fn new(url: url::Url) -> Self {
         Self(url)
     }
