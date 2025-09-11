@@ -2,49 +2,49 @@
 //!
 //!
 //!
-//! SpanRound is used internally by several of the underlying difference structs
+//! `SpanRound` is used internally by several of the underlying difference structs
 //! so for ref, here are the span-round defaults:
 //!
-//! - SpanRound
+//! - `SpanRound`
 //!   - smallest-max: None
 //!   - smallest-min: None
 //!   - defaults
 //!     - smallest:  Nanosecond
 //!     - largest:   None
-//!     - mode:      HalfExpand
+//!     - mode:      `HalfExpand`
 //!     - increment: 1
 //!     - relative:  None
 //!
 //! # DEFAULTS
 //!
-//! - DateDifference
+//! - `DateDifference`
 //!   - smallest-max: ???
 //!   - defaults
 //!     - smallest:  Day
 //!     - mode:      Trunc
 //!     - increment: 1
-//! - DateTimeDifference
+//! - `DateTimeDifference`
 //!   - smallest-max: ???
 //!   - defaults
 //!     - smallest:  Nanosecond
 //!     - largest:   None
 //!     - mode:      Trunc
 //!     - increment: 1
-//! - ZonedDifference
+//! - `ZonedDifference`
 //!   - smallest-max: ???
 //!   - defaults
 //!     - smallest:  Nanosecond
 //!     - largest:   None
 //!     - mode:      Trunc
 //!     - increment: 1
-//! - TimeDifference
+//! - `TimeDifference`
 //!   - smallest-max: Hour
 //!   - defaults
 //!     - smallest:  Nanosecond
 //!     - largest:   None (defaults to Hour if not set)
 //!     - mode:      Trunc
 //!     - increment: 1
-//! - TimestampDifference
+//! - `TimestampDifference`
 //!   - smallest-max: Day
 //!   - largest-max:  Day
 //!   - defaults

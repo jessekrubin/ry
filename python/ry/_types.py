@@ -31,10 +31,13 @@ __all__ = (
     "DateTimeDifferenceTypedDict",
     "DateTimeRoundTypedDict",
     "DateTimeTypedDict",
+    "DateTimeTypedDict",
+    "DateTypedDict",
     "DateTypedDict",
     "FileTypeDict",
     "FromStr",
     "FsPathLike",
+    "ISOWeekDateTypedDict",
     "JiffRoundMode",
     "JiffUnit",
     "MetadataDict",
@@ -48,6 +51,7 @@ __all__ = (
     "TimeTypedDict",
     "TimestampDifferenceTypedDict",
     "TimestampRoundTypedDict",
+    "TimestampTypedDict",
     "ToPy",
     "ToPyDate",
     "ToPyDateTime",
@@ -163,13 +167,24 @@ class TimeTypedDict(TypedDict):
     hour: int
     minute: int
     second: int
-    millisecond: int
-    microsecond: int
     nanosecond: int
-    subsec_nanosecond: int
 
 
 class DateTimeTypedDict(DateTypedDict, TimeTypedDict): ...
+
+
+class ZonedDateTimeTypedDict(DateTimeTypedDict):
+    tz: str
+
+
+class TimestampTypedDict(DateTimeTypedDict):
+    second: int
+    nanosecond: int
+
+
+class SignedDurationTypedDict(TypedDict):
+    secs: int
+    nanos: int
 
 
 class TimeSpanTypedDict(TypedDict):
@@ -185,6 +200,20 @@ class TimeSpanTypedDict(TypedDict):
     nanoseconds: int
 
 
+class OffsetTypedDict(TypedDict):
+    seconds: int
+    fmt: str
+
+
+class ISOWeekDateTypedDict(TypedDict):
+    year: int
+    week: int
+    weekday: int
+
+
+# -----------------------------------------------------------------------------
+# JIFF ROUND
+# -----------------------------------------------------------------------------
 class _RoundTypedDict(TypedDict):
     mode: JiffRoundMode
     increment: int

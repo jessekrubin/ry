@@ -2,49 +2,49 @@
 //!
 //! # DEFAULTS
 //!
-//! - TimestampRound
+//! - `TimestampRound`
 //!   - smallest-max: Hour
 //!   - defaults
 //!     - smallest: Nanosecond
-//!     - mode:     HalfExpand
+//!     - mode:     `HalfExpand`
 //!     - increment: 1
-//! - TimeRound
+//! - `TimeRound`
 //!   - smallest-max: Hour
 //!   - defaults
 //!     - smallest: Nanosecond
-//!     - mode:     HalfExpand
+//!     - mode:     `HalfExpand`
 //!     - increment: 1
-//! - DateTimeRound
+//! - `DateTimeRound`
 //!   - smallest-max: Day
 //!   - defaults
 //!     - smallest: Nanosecond
-//!     - mode:     HalfExpand
+//!     - mode:     `HalfExpand`
 //!     - increment: 1
-//! - SignedDurationRound
+//! - `SignedDurationRound`
 //!   - smallest-max: Hour
 //!   - defaults
 //!     - smallest: Nanosecond
-//!     - mode:     HalfExpand
+//!     - mode:     `HalfExpand`
 //!     - increment: 1
-//! - ZonedDateTimeRound
+//! - `ZonedDateTimeRound`
 //!   - smallest-max: Day
 //!   - defaults
 //!     - smallest: Nanosecond
-//!     - mode:     HalfExpand
+//!     - mode:     `HalfExpand`
 //!     - increment: 1
-//! - OffsetRound
+//! - `OffsetRound`
 //!   - notes: smallest must be hour, minute, or second
 //!   - smallest-max: Hour
 //!   - smallest-min: Second
 //!   - defaults
 //!     - smallest: Second
-//! - SpanRound
+//! - `SpanRound`
 //!   - smallest-max: None
 //!   - smallest-min: None
 //!   - defaults
 //!     - smallest:  Nanosecond
 //!     - largest:   None
-//!     - mode:      HalfExpand
+//!     - mode:      `HalfExpand`
 //!     - increment: 1
 //!     - relative:  None
 use crate::{
@@ -137,13 +137,13 @@ impl RyDateTimeRound {
         mode: Option<JiffRoundMode>,
         increment: i64,
         _check: bool,
-    ) -> PyResult<Self> {
+    ) -> Self {
         let opts = RoundOptions::new(
             smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond)),
             mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand)),
             increment,
         );
-        Ok(Self::from(opts))
+        Self::from(opts)
     }
 
     fn __repr__(&self) -> String {

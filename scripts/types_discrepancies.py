@@ -108,6 +108,7 @@ IGNORED_MEMBERS = {
     "__gt__",
     "__hash__",
     "__le__",
+    "__rtruediv__",
     "__len__",
     "__lt__",
     "__ne__",

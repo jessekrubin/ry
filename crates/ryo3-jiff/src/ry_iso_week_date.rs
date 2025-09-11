@@ -141,7 +141,7 @@ impl RyISOWeekDate {
         let dict = PyDict::new(py);
         dict.set_item(interns::year(py), self.year())?;
         dict.set_item(interns::week(py), self.week())?;
-        dict.set_item(interns::day(py), self.weekday())?;
+        dict.set_item(interns::weekday(py), self.weekday())?;
         Ok(dict)
     }
 
