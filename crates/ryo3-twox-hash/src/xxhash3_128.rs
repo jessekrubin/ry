@@ -45,10 +45,6 @@ impl PyXxHash3_128 {
         }
     }
 
-    fn __str__(&self) -> PyResult<String> {
-        self.__repr__()
-    }
-
     fn __repr__(&self) -> PyResult<String> {
         self.hasher
             .py_lock()
@@ -109,6 +105,29 @@ impl PyXxHash3_128 {
         let mut h = self.hasher.py_lock()?;
         *h = XxHash3_128::with_seed(self.seed);
         Ok(())
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = None, secret = None))]
+    fn oneshot(
+        data: ryo3_bytes::PyBytes,
+        seed: Option<u64>,
+        secret: Option<ryo3_bytes::PyBytes>,
+    ) -> PyResult<u128> {
+        if let Some(secret) = secret {
+            twox_hash::XxHash3_128::oneshot_with_seed_and_secret(
+                seed.unwrap_or(0),
+                secret.as_ref(),
+                data.as_ref(),
+            )
+            .map_err(|e| PyValueError::new_err(format!("invalid secret: {e}")))
+        } else {
+            Ok(twox_hash::XxHash3_128::oneshot_with_seed(
+                seed.unwrap_or(0),
+                data.as_ref(),
+            ))
+        }
     }
 }
 

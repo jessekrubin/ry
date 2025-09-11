@@ -7,6 +7,8 @@ to Chad-Gippity and asked it to re-organize it...
 
 from __future__ import annotations
 
+import typing as t
+
 import pytest
 
 from ry import xxhash as ry_xxh
@@ -83,6 +85,53 @@ class TestXxh32Hasher:
         assert h2.digest() == ry_xxh.xxh32(b"helloworld").digest()
         assert h2.intdigest() == ry_xxh.xxh32(b"helloworld").intdigest()
         assert h2.hexdigest() == ry_xxh.xxh32(b"helloworld").hexdigest()
+
+
+@pytest.mark.parametrize(
+    "hasher",
+    [
+        ry_xxh.xxh32(),
+        ry_xxh.xxh32(seed=123),
+        ry_xxh.xxh64(),
+        ry_xxh.xxh64(seed=123),
+        ry_xxh.xxh3_64(),
+        ry_xxh.xxh3_64(seed=123),
+        ry_xxh.xxh3_128(),
+        ry_xxh.xxh3_128(seed=123),
+    ],
+)
+def test_hashers_reset(hasher: t.Any) -> None:
+    initial_digest = hasher.digest()
+    initial_seed = hasher.seed
+    hasher.update(b"hello")
+    hexdig = hasher.hexdigest()
+    assert hexdig in str(hexdig)
+    assert hexdig in repr(hexdig)
+    hasher.reset()
+    assert hasher.seed == initial_seed
+    assert hasher.digest() == initial_digest
+
+
+@pytest.mark.parametrize(
+    "hasher",
+    [
+        ry_xxh.xxh32,
+        ry_xxh.xxh64,
+        ry_xxh.xxh3_64,
+        ry_xxh.xxh3_128,
+    ],
+)
+def test_hashers_copy(hasher: t.Any) -> None:
+    og = hasher(seed=123)
+    og.update(b"hello")
+    copycat = og.copy()
+    assert og.digest() == copycat.digest()
+    assert og.intdigest() == copycat.intdigest()
+    assert og.hexdigest() == copycat.hexdigest()
+    copycat.update(b"world")
+    assert og.digest() != copycat.digest()
+    assert og.intdigest() != copycat.intdigest()
+    assert og.hexdigest() != copycat.hexdigest()
 
 
 def test_xxh32_digest() -> None:
@@ -197,6 +246,19 @@ def _assert_xxh3_128_all_forms(
     actual_digests = [ry_xxh.xxh3_128_digest(data, seed=s) for s in seeds]
     assert [int.from_bytes(d, "big") for d in actual_digests] == expected_ints
 
+    # ALIASES
+    # intdigest
+    actual_ints = [ry_xxh.xxh128_intdigest(data, seed=s) for s in seeds]
+    assert actual_ints == expected_ints
+
+    # hexdigest
+    actual_hexes = [ry_xxh.xxh128_hexdigest(data, seed=s) for s in seeds]
+    assert [int(h, 16) for h in actual_hexes] == expected_ints
+
+    # digest
+    actual_digests = [ry_xxh.xxh128_digest(data, seed=s) for s in seeds]
+    assert [int.from_bytes(d, "big") for d in actual_digests] == expected_ints
+
 
 # -----------------------------------------------------------------------------
 # TESTS
@@ -250,7 +312,7 @@ def test_xxh32_hasher(rec: XXHashDataRecord) -> None:
 
 
 @pytest.mark.parametrize("rec", XXHASH_TEST_DATA)
-def test_xxh64_const_fns(rec: XXHashDataRecord) -> None:
+def test_xxh64_oneshot_fns(rec: XXHashDataRecord) -> None:
     data = _bytes_from_record(rec)
 
     # Seeds: 0, 1, 0xFFFFFFFFFFFFFFFF
@@ -267,7 +329,7 @@ def test_xxh64_const_fns(rec: XXHashDataRecord) -> None:
 # Test xxh3_64
 # ------------------------------------------------------------------------------
 @pytest.mark.parametrize("rec", XXHASH_TEST_DATA)
-def test_xxh3_64_const_fns(rec: XXHashDataRecord) -> None:
+def test_xxh3_64_oneshot_fns(rec: XXHashDataRecord) -> None:
     data = _bytes_from_record(rec)
 
     # Seeds: 0, 1, 0xFFFFFFFFFFFFFFFF
@@ -284,7 +346,7 @@ def test_xxh3_64_const_fns(rec: XXHashDataRecord) -> None:
 # Test xxh3_128
 # ------------------------------------------------------------------------------
 @pytest.mark.parametrize("rec", XXHASH_TEST_DATA)
-def test_xxh3_128_const_fns(rec: XXHashDataRecord) -> None:
+def test_xxh3_128_oneshot_fns(rec: XXHashDataRecord) -> None:
     data = _bytes_from_record(rec)
 
     # Seeds: 0, 1, 0xFFFFFFFFFFFFFFFF

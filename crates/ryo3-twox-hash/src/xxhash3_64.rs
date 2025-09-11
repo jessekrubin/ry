@@ -46,10 +46,6 @@ impl PyXxHash3_64 {
         }
     }
 
-    fn __str__(&self) -> PyResult<String> {
-        self.__repr__()
-    }
-
     fn __repr__(&self) -> PyResult<String> {
         self.hasher
             .py_lock()
@@ -110,6 +106,29 @@ impl PyXxHash3_64 {
         *h = XxHash3_64::with_seed(self.seed);
         Ok(())
     }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0, secret = None))]
+    fn oneshot(
+        data: ryo3_bytes::PyBytes,
+        seed: Option<u64>,
+        secret: Option<ryo3_bytes::PyBytes>,
+    ) -> PyResult<u64> {
+        if let Some(secret) = secret {
+            twox_hash::XxHash3_64::oneshot_with_seed_and_secret(
+                seed.unwrap_or(0),
+                secret.as_ref(),
+                data.as_ref(),
+            )
+            .map_err(|e| PyValueError::new_err(format!("invalid secret: {e}")))
+        } else {
+            Ok(twox_hash::XxHash3_64::oneshot_with_seed(
+                seed.unwrap_or(0),
+                data.as_ref(),
+            ))
+        }
+    }
 }
 
 // ====================================================================================
@@ -137,36 +156,38 @@ pub fn xxh3_64_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> u64 {
 pub fn xxh3_64_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyHexDigest<u64> {
     twox_hash::XxHash3_64::oneshot_with_seed(seed.unwrap_or(0), data.as_ref()).into()
 }
+
+// ============================================================================
+// I thought these aliases were cool, but they were just annoying...
+// ============================================================================
 // =======
 // ALIASES
 // =======
-#[expect(clippy::needless_pass_by_value)]
-#[pyfunction]
-#[pyo3(signature = (data, *, seed = None))]
-pub fn xxh3_digest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyDigest<u64> {
-    let digest = twox_hash::XxHash3_64::oneshot_with_seed(seed.unwrap_or(0), data.as_ref());
-    PyDigest(digest)
-}
 
-#[pyfunction]
-#[pyo3(signature = (data, *, seed = None))]
-pub fn xxh3_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> u64 {
-    xxh3_64_intdigest(data, seed)
-}
+// #[expect(clippy::needless_pass_by_value)]
+// #[pyfunction]
+// #[pyo3(signature = (data, *, seed = None))]
+// pub fn xxh3_digest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyDigest<u64> {
+//     let digest = twox_hash::XxHash3_64::oneshot_with_seed(seed.unwrap_or(0), data.as_ref());
+//     PyDigest(digest)
+// }
 
-#[pyfunction]
-#[pyo3(signature = (data, *, seed = None))]
-pub fn xxh3_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyHexDigest<u64> {
-    xxh3_64_hexdigest(data, seed)
-}
+// #[pyfunction]
+// #[pyo3(signature = (data, *, seed = None))]
+// pub fn xxh3_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> u64 {
+//     xxh3_64_intdigest(data, seed)
+// }
+
+// #[pyfunction]
+// #[pyo3(signature = (data, *, seed = None))]
+// pub fn xxh3_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyHexDigest<u64> {
+//     xxh3_64_hexdigest(data, seed)
+// }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyXxHash3_64>()?;
     m.add_function(wrap_pyfunction!(xxh3_64_digest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh3_64_hexdigest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh3_64_intdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_digest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_hexdigest, m)?)?;
-    m.add_function(wrap_pyfunction!(xxh3_intdigest, m)?)?;
     Ok(())
 }
