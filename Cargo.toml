@@ -106,7 +106,7 @@ members = [
   "crates/ryo3-uuid",
   "crates/ryo3-walkdir",
   "crates/ryo3-which",
-  "crates/ryo3-xxhash",
+  # "crates/ryo3-xxhash",
   "crates/ryo3-zstd",
 ]
 
@@ -155,7 +155,7 @@ ryo3-url = { path = "./crates/ryo3-url" }
 ryo3-uuid = { path = "./crates/ryo3-uuid" }
 ryo3-walkdir = { path = "./crates/ryo3-walkdir" }
 ryo3-which = { path = "./crates/ryo3-which" }
-ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
+# ryo3-xxhash = { path = "./crates/ryo3-xxhash" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
@@ -206,7 +206,7 @@ url = { version = "2.5.4" }
 uuid = { version = "1.18.1", features = ["v4", "v8"] }
 walkdir = "2.5.0"
 which = { version = "8.0.0", features = [] }
-xxhash-rust = { version = "0.8.15", features = [] }
+# xxhash-rust = { version = "0.8.15", features = [] }
 zstd = "0.13.3"
 zstd-safe = "7.2.4"
 
