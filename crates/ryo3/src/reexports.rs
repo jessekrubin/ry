@@ -38,6 +38,6 @@ ryo3_features_reexport! {
     "url", ryo3_url,
     "walkdir", ryo3_walkdir,
     "which", ryo3_which,
-    "xxhash", ryo3_xxhash,
+    // "twox-hash", ryo3_twox_hash,
     "zstd", ryo3_zstd,
 }

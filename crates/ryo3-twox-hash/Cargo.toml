@@ -1,0 +1,31 @@
+[package]
+name = "ryo3-twox-hash"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "python + twox-hash (https://docs.rs/twox-hash/latest/twox_hash/)"
+
+[dependencies]
+pyo3 = { workspace = true, features = [] }
+ryo3-bytes.workspace = true
+ryo3-core.workspace = true
+twox-hash.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["random", "xxhash32", "xxhash64", "xxhash3_64", "xxhash3_128", "std"]
+std = ["twox-hash/std"]
+random = ["twox-hash/random"]
+xxhash32 = ["twox-hash/xxhash32"]
+xxhash3_128 = [ "twox-hash/xxhash3_128" ]
+xxhash3_64 = [ "twox-hash/xxhash3_64" ]
+xxhash64 = ["twox-hash/xxhash64"]
+ry = ["default"]
