@@ -188,6 +188,16 @@ class SignedDurationTypedDict(TypedDict):
 
 
 class TimeSpanTypedDict(TypedDict):
+    """TimeSpan TypedDict
+
+    Examples:
+        >>> import ry
+        >>> ts = ry.timespan(years=1, months=2, weeks=3)
+        >>> ts.to_dict()
+        {'years': 1, 'months': 2, 'weeks': 3, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0, 'milliseconds': 0, 'microseconds': 0, 'nanoseconds': 0}
+
+    """
+
     years: int
     months: int
     weeks: int
