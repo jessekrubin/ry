@@ -228,6 +228,9 @@ types.</li>
 <li>Added <code>.to_dict()</code> to:</li>
 </ul>
 </li>
+<li>migrated from <code>xxhash-rust</code> to <code>twox-hash</code> ~ retiring <code>ryo3-xxhash</code> :( - the
+<code>xxhash-rust</code> hashers liked to sometimes crash, whereas the <code>twox-hash</code>
+py-hashers dont</li>
 </ul>
 <hr />
 <h2 id="v0056-2025-09-05"><a class="header" href="#v0056-2025-09-05">v0.0.56 [2025-09-05]</a></h2>
