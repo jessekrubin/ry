@@ -1,3 +1,58 @@
+//! ryo3-jiff difference options
+//!
+//!
+//!
+//! SpanRound is used internally by several of the underlying difference structs
+//! so for ref, here are the span-round defaults:
+//!
+//! - SpanRound
+//!   - smallest-max: None
+//!   - smallest-min: None
+//!   - defaults
+//!     - smallest:  Nanosecond
+//!     - largest:   None
+//!     - mode:      HalfExpand
+//!     - increment: 1
+//!     - relative:  None
+//!
+//! # DEFAULTS
+//!
+//! - DateDifference
+//!   - smallest-max: ???
+//!   - defaults
+//!     - smallest:  Day
+//!     - mode:      Trunc
+//!     - increment: 1
+//! - DateTimeDifference
+//!   - smallest-max: ???
+//!   - defaults
+//!     - smallest:  Nanosecond
+//!     - largest:   None
+//!     - mode:      Trunc
+//!     - increment: 1
+//! - ZonedDifference
+//!   - smallest-max: ???
+//!   - defaults
+//!     - smallest:  Nanosecond
+//!     - largest:   None
+//!     - mode:      Trunc
+//!     - increment: 1
+//! - TimeDifference
+//!   - smallest-max: Hour
+//!   - defaults
+//!     - smallest:  Nanosecond
+//!     - largest:   None (defaults to Hour if not set)
+//!     - mode:      Trunc
+//!     - increment: 1
+//! - TimestampDifference
+//!   - smallest-max: Day
+//!   - largest-max:  Day
+//!   - defaults
+//!    - smallest:  Nanosecond
+//!    - largest:   None
+//!    - mode:      Trunc
+//!    - increment: 1
+
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
 use crate::ry_zoned::RyZoned;

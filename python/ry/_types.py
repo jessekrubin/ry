@@ -27,19 +27,26 @@ else:
 
 __all__ = (
     "Buffer",
+    "DateDifferenceTypedDict",
+    "DateTimeDifferenceTypedDict",
     "DateTimeRoundTypedDict",
     "DateTimeTypedDict",
     "DateTypedDict",
     "FileTypeDict",
     "FromStr",
     "FsPathLike",
+    "JiffRoundMode",
+    "JiffUnit",
     "MetadataDict",
     "Never",
+    "OffsetRoundTypedDict",
     "Self",
     "SignedDurationRoundTypedDict",
+    "TimeDifferenceTypedDict",
     "TimeRoundTypedDict",
     "TimeSpanTypedDict",
     "TimeTypedDict",
+    "TimestampDifferenceTypedDict",
     "TimestampRoundTypedDict",
     "ToPy",
     "ToPyDate",
@@ -48,6 +55,7 @@ __all__ = (
     "ToPyTimeDelta",
     "ToPyTzInfo",
     "Unpack",
+    "ZonedDateTimeDifferenceTypedDict",
     "ZonedDateTimeRoundTypedDict",
     "deprecated",
 )
@@ -121,6 +129,30 @@ class MetadataDict(TypedDict):
 # =============================================================================
 # JIFF
 # =============================================================================
+JiffUnit: TypeAlias = Literal[
+    "year",  # 9
+    "month",  # 8
+    "day",  # 6
+    "hour",  # 5
+    "minute",  # 4
+    "second",  # 3
+    "millisecond",  # 2
+    "microsecond",  # 1
+    "nanosecond",  # 0
+]
+JiffRoundMode: TypeAlias = Literal[
+    "ceil",
+    "floor",
+    "expand",
+    "trunc",
+    "half-ceil",
+    "half-floor",
+    "half-expand",
+    "half-trunc",
+    "half-even",
+]
+
+
 class DateTypedDict(TypedDict):
     year: int
     month: int
@@ -154,17 +186,7 @@ class TimeSpanTypedDict(TypedDict):
 
 
 class _RoundTypedDict(TypedDict):
-    mode: Literal[
-        "ceil",
-        "floor",
-        "expand",
-        "trunc",
-        "half-ceil",
-        "half-floor",
-        "half-expand",
-        "half-trunc",
-        "half-even",
-    ]
+    mode: JiffRoundMode
     increment: int
 
 
@@ -223,6 +245,70 @@ class ZonedDateTimeRoundTypedDict(_RoundTypedDict):
         "microsecond",
         "nanosecond",
     ]
+
+
+class OffsetRoundTypedDict(_RoundTypedDict):
+    smallest: Literal[
+        "second",
+        "minute",
+        "hour",
+    ]
+
+
+# -----------------------------------------------------------------------------
+# JIFF DIFFERENCE
+# -----------------------------------------------------------------------------
+class _DifferenceTypedDict(TypedDict):
+    mode: JiffRoundMode
+    increment: int
+
+
+DateDifferenceUnit: TypeAlias = Literal[
+    "month",
+    "year",
+    "day",
+]
+TimeDifferenceUnit: TypeAlias = Literal[
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
+TimeStampDifferenceUnit: TypeAlias = Literal[
+    "hour",
+    "minute",
+    "second",
+    "millisecond",
+    "microsecond",
+    "nanosecond",
+]
+
+
+class DateDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: DateDifferenceUnit
+    largest: DateDifferenceUnit | None
+
+
+class TimeDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: TimeDifferenceUnit
+    largest: TimeDifferenceUnit | None
+
+
+class DateTimeDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: JiffUnit
+    largest: JiffUnit | None
+
+
+class ZonedDateTimeDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: JiffUnit
+    largest: JiffUnit | None
+
+
+class TimestampDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: TimeStampDifferenceUnit
+    largest: TimeStampDifferenceUnit | None
 
 
 # =============================================================================

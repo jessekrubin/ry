@@ -11,11 +11,13 @@ from ry import Date, DateTime, Time, Timestamp, ZonedDateTime
 if TYPE_CHECKING:
     from ry.ryo3 import JiffRoundMode, JiffUnit
 
-_ROUND_CLASSES = [
-    ry.TimeDifference,
-    ry.TimestampDifference,
-]
-RoundType: TypeAlias = ry.TimeDifference | ry.TimestampDifference
+RoundType: TypeAlias = (
+    ry.TimeDifference
+    | ry.TimestampDifference
+    | ry.DateDifference
+    | ry.DateTimeDifference
+    | ry.ZonedDateTimeDifference
+)
 
 _JIFF_UNITS: tuple[JiffUnit, ...] = (
     "nanosecond",

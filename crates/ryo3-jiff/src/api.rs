@@ -3,6 +3,7 @@ pub use crate::difference::{
     RyZonedDifference,
 };
 pub use crate::functions::*;
+use crate::round::RyOffsetRound;
 pub use crate::round::{
     RyDateTimeRound, RySignedDurationRound, RyTimeRound, RyTimestampRound, RyZonedDateTimeRound,
 };
@@ -47,6 +48,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyDateTimeRound>()?;
     m.add_class::<RySignedDurationRound>()?;
     m.add_class::<RyTimeRound>()?;
+    m.add_class::<RyOffsetRound>()?;
     m.add_class::<RyTimestampRound>()?;
     m.add_class::<RyZonedDateTimeRound>()?;
 
