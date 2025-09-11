@@ -5632,7 +5632,7 @@ RESERVED_FUTURE: str
 ```python
 import typing as t
 
-from ry._types import Buffer, Self
+from ry._types import Buffer
 
 
 @t.final
@@ -5652,6 +5652,8 @@ class xxh32:  # noqa: N801
     def reset(self, seed: int | None = ...) -> None: ...
     @property
     def seed(self) -> int: ...
+    @staticmethod
+    def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
 
 
 @t.final
@@ -5671,6 +5673,8 @@ class xxh64:  # noqa: N801
     def reset(self, seed: int | None = ...) -> None: ...
     @property
     def seed(self) -> int: ...
+    @staticmethod
+    def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
 
 
 @t.final
@@ -5697,6 +5701,10 @@ class xxh3_64:  # noqa: N801
     def intdigest128(self) -> int: ...
     def copy(self) -> xxh3_64: ...
     def reset(self) -> None: ...
+    @staticmethod
+    def oneshot(
+        data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    ) -> int: ...
 
 
 @t.final
@@ -5723,6 +5731,10 @@ class xxh3_128:  # noqa: N801
     def intdigest128(self) -> int: ...
     def copy(self) -> xxh3_128: ...
     def reset(self) -> None: ...
+    @staticmethod
+    def oneshot(
+        data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    ) -> int: ...
 
 
 xxh128 = xxh3_128
@@ -5754,9 +5766,6 @@ def xxh128_intdigest(data: Buffer, *, seed: int | None = None) -> int: ...
 def xxh3_64_digest(data: Buffer, *, seed: int | None = None) -> bytes: ...
 def xxh3_64_intdigest(data: Buffer, *, seed: int | None = None) -> int: ...
 def xxh3_64_hexdigest(data: Buffer, *, seed: int | None = None) -> str: ...
-def xxh3_digest(data: Buffer, *, seed: int | None = None) -> bytes: ...
-def xxh3_intdigest(data: Buffer, *, seed: int | None = None) -> int: ...
-def xxh3_hexdigest(data: Buffer, *, seed: int | None = None) -> str: ...
 
 
 # xxh128
@@ -5977,9 +5986,6 @@ from ry.ryo3.xxhash import xxh3_128 as xxh3_128
 from ry.ryo3.xxhash import xxh3_128_digest as xxh3_128_digest
 from ry.ryo3.xxhash import xxh3_128_hexdigest as xxh3_128_hexdigest
 from ry.ryo3.xxhash import xxh3_128_intdigest as xxh3_128_intdigest
-from ry.ryo3.xxhash import xxh3_digest as xxh3_digest
-from ry.ryo3.xxhash import xxh3_hexdigest as xxh3_hexdigest
-from ry.ryo3.xxhash import xxh3_intdigest as xxh3_intdigest
 from ry.ryo3.xxhash import xxh32 as xxh32
 from ry.ryo3.xxhash import xxh32_digest as xxh32_digest
 from ry.ryo3.xxhash import xxh32_hexdigest as xxh32_hexdigest
@@ -6002,9 +6008,6 @@ __all__ = (
     "xxh3_128_digest",
     "xxh3_128_hexdigest",
     "xxh3_128_intdigest",
-    "xxh3_digest",
-    "xxh3_hexdigest",
-    "xxh3_intdigest",
     "xxh32",
     "xxh32_digest",
     "xxh32_hexdigest",
