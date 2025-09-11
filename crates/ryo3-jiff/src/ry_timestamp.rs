@@ -441,7 +441,7 @@ impl RyTimestamp {
     // ========================================================================
     // PYDANTIC
     // ========================================================================
-
+    #[cfg(feature = "pydantic")]
     #[staticmethod]
     fn _pydantic_parse<'py>(
         value: &Bound<'py, PyAny>,
@@ -450,9 +450,10 @@ impl RyTimestamp {
         Self::py_try_from(value)
     }
 
+    #[cfg(feature = "pydantic")]
     #[classmethod]
     fn __get_pydantic_core_schema__<'py>(
-        cls: &Bound<'py, PyType>,
+        cls: &Bound<'py, ::pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,
         handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
