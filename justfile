@@ -157,16 +157,16 @@ clippy:
 
 # run clippy with feature-powerset via cargo-hack
 clippy-features:
-    cargo hack --feature-powerset clippy --package ryo3-std
     cargo hack --feature-powerset clippy --package ryo3-bytes
     cargo hack --feature-powerset clippy --package ryo3-fspath
     cargo hack --feature-powerset clippy --package ryo3-http
     cargo hack --feature-powerset clippy --package ryo3-jiff
+    cargo hack --feature-powerset clippy --package ryo3-std
+    cargo hack --feature-powerset clippy --package ryo3-twox-hash
     cargo hack --feature-powerset clippy --package ryo3-ulid
     cargo hack --feature-powerset clippy --package ryo3-url
     cargo hack --feature-powerset clippy --package ryo3-uuid
     cargo hack --feature-powerset clippy --package ryo3-which
-    cargo hack --feature-powerset clippy --package ryo3-xxhash
 
 # lint python and rust
 lint: ruff clippy
