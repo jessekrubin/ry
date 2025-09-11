@@ -19,15 +19,42 @@ from ._xxhash_fixtures import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    import xxhash
+
+    _PyHasher: TypeAlias = type[
+        xxhash.xxh32 | xxhash.xxh64 | xxhash.xxh128 | xxhash.xxh3_64 | xxhash.xxh3_128
+    ]
+
+    _RyHasher: TypeAlias = type[
+        ry.xxhash.xxh32
+        | ry.xxhash.xxh64
+        | ry.xxhash.xxh128
+        | ry.xxhash.xxh3_64
+        | ry.xxhash.xxh3_128
+    ]
+
 try:
     # test against python-xxhash if importable...
     import xxhash
 except ImportError:
-    ...
+
+    class _xxhash:  # noqa: N801
+        def __getattr__(self, name: str) -> None:
+            return None
+
+    xxhash = _xxhash()
 
 pytest_skip_xxhash = pytest.mark.skipif(
     "xxhash" not in sys.modules, reason="xxhash is not installed"
 )
+
+
+class _RyXxHashOneShotFn(Protocol):
+    def __call__(self, data: bytes, *, seed: int = 0) -> bytes | str | int: ...
+
+
+class _PyXxHashOneShotFn(Protocol):
+    def __call__(self, data: bytes, seed: int = 0) -> bytes | str | int: ...
 
 
 def _bytes_from_record(rec: XXHashDataRecord) -> bytes:
@@ -96,14 +123,6 @@ def test_attributes_set() -> None:
     ry_exports = set(filter(lambda n: not n.startswith("_"), dir(ry.xxhash)))
     py_xxhash_exports = set(_python_xxhash_exports)
     assert py_xxhash_exports.issubset(ry_exports)
-
-
-class _RyXxHashOneShotFn(Protocol):
-    def __call__(self, data: bytes, *, seed: int = 0) -> bytes | str | int: ...
-
-
-class _PyXxHashOneShotFn(Protocol):
-    def __call__(self, data: bytes, seed: int = 0) -> bytes | str | int: ...
 
 
 @pytest_skip_xxhash
@@ -184,18 +203,6 @@ def test_xxhash_matches_ry_xxh3_128(
             py_res = pyxx(_bytes_from_record(rec), seed)
             assert ry_res == py_res
             assert isinstance(ry_res, type(py_res))
-
-
-_RyHasher: TypeAlias = type[
-    ry.xxhash.xxh32
-    | ry.xxhash.xxh64
-    | ry.xxhash.xxh128
-    | ry.xxhash.xxh3_64
-    | ry.xxhash.xxh3_128
-]
-_PyHasher: TypeAlias = type[
-    xxhash.xxh32 | xxhash.xxh64 | xxhash.xxh128 | xxhash.xxh3_64 | xxhash.xxh3_128
-]
 
 
 @pytest_skip_xxhash
