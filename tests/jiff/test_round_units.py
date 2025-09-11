@@ -190,15 +190,9 @@ _ZONED_DATETIME_ROUND_UNITS = [
     "day",
 ]
 _OFFSET_ROUND_UNITS = [
-    "nanosecond",
-    "microsecond",
-    "millisecond",
     "second",
     "minute",
     "hour",
-    "day",
-    "month",
-    "year",
 ]
 _SIGNED_DURATION_ROUND_UNITS = [
     "nanosecond",
