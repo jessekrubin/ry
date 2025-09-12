@@ -302,27 +302,7 @@ class _DifferenceTypedDict(TypedDict):
     increment: int
 
 
-DateDifferenceUnit: TypeAlias = Literal[
-    "month",
-    "year",
-    "day",
-]
-TimeDifferenceUnit: TypeAlias = Literal[
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
-TimeStampDifferenceUnit: TypeAlias = Literal[
-    "hour",
-    "minute",
-    "second",
-    "millisecond",
-    "microsecond",
-    "nanosecond",
-]
+DateDifferenceUnit: TypeAlias = Literal["month", "year", "day"]
 
 
 class DateDifferenceTypedDict(_DifferenceTypedDict):
@@ -330,19 +310,29 @@ class DateDifferenceTypedDict(_DifferenceTypedDict):
     largest: DateDifferenceUnit | None
 
 
-class TimeDifferenceTypedDict(_DifferenceTypedDict):
-    smallest: TimeDifferenceUnit
-    largest: TimeDifferenceUnit | None
-
-
 class DateTimeDifferenceTypedDict(_DifferenceTypedDict):
     smallest: JiffUnit
     largest: JiffUnit | None
 
 
+TimeDifferenceUnit: TypeAlias = Literal[
+    "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+]
+
+
+class TimeDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: TimeDifferenceUnit
+    largest: TimeDifferenceUnit | None
+
+
 class ZonedDateTimeDifferenceTypedDict(_DifferenceTypedDict):
     smallest: JiffUnit
     largest: JiffUnit | None
+
+
+TimeStampDifferenceUnit: TypeAlias = Literal[
+    "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+]
 
 
 class TimestampDifferenceTypedDict(_DifferenceTypedDict):

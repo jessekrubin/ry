@@ -674,7 +674,7 @@ impl RyOffsetRound {
     )]
     fn py_new(smallest: Option<JiffUnit>, mode: Option<JiffRoundMode>, increment: i64) -> Self {
         let options = RoundOptions::new(
-            smallest.unwrap_or(JiffUnit(Unit::Hour)),
+            smallest.unwrap_or(JiffUnit(Unit::Second)),
             mode.unwrap_or(JiffRoundMode(RoundMode::HalfExpand)),
             increment,
         );

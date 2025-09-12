@@ -11,17 +11,19 @@ if TYPE_CHECKING:
     from ry.ryo3 import JiffRoundMode, JiffUnit
 
 
-_ROUND_CLASSES = [
+_ROUND_CLASSES = (
     ry.DateTimeRound,
+    ry.OffsetRound,
     ry.SignedDurationRound,
     ry.TimeRound,
     ry.TimestampRound,
     ry.ZonedDateTimeRound,
-]
+)
 RoundType: TypeAlias = (
     ry.DateTimeRound
-    | ry.TimeRound
+    | ry.OffsetRound
     | ry.SignedDurationRound
+    | ry.TimeRound
     | ry.TimestampRound
     | ry.ZonedDateTimeRound
 )
@@ -98,8 +100,15 @@ def test_round_obj_defaults(
 ) -> None:
     round_obj = cls()
     round_dict = round_obj.to_dict()
-    assert round_dict == {
-        "smallest": "nanosecond",
-        "mode": "half-expand",
-        "increment": 1,
-    }
+    if cls is ry.OffsetRound:  # only OffsetRound defaults to "second"
+        assert round_dict == {
+            "smallest": "second",
+            "mode": "half-expand",
+            "increment": 1,
+        }
+    else:
+        assert round_dict == {
+            "smallest": "nanosecond",
+            "mode": "half-expand",
+            "increment": 1,
+        }
