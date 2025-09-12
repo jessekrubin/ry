@@ -104,11 +104,6 @@ class ToPyTzInfo(Protocol):
     def to_pytzinfo(self) -> pydt.tzinfo: ...
 
 
-# protocol for function defining __json__() -> bytes / buffer:
-class Stringify(Protocol):
-    def __json__(self) -> Buffer | bytes | str: ...
-
-
 # =============================================================================
 # STD
 # =============================================================================

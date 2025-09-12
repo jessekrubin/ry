@@ -852,7 +852,6 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     ) -> SignedDuration: ...
     def _round(self, options: SignedDurationRound) -> DateTime: ...
 
-# put in quotes to avoid ruff F821 - undefined name
 _TimeSpanArithmeticSingle: t.TypeAlias = TimeSpan | Duration | SignedDuration
 _TimeSpanArithmeticTuple: t.TypeAlias = tuple[
     _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
