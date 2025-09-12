@@ -471,8 +471,7 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    #[pyo3(name = "try_from")]
-    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
@@ -504,11 +503,11 @@ impl RySignedDuration {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_parse<'py>(
+    fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value).map_err(map_py_value_err)
+        Self::from_any(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]
