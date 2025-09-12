@@ -3,7 +3,7 @@ import typing as t
 import ry
 from ry._types import Buffer, Unpack
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
-from ry.ryo3._std import Duration
+from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
 class RequestKwargs(t.TypedDict, total=False):
@@ -130,6 +130,8 @@ class Response:
     def status_code(self) -> HttpStatus: ...
     @property
     def redirected(self) -> bool: ...
+    @property
+    def remote_addr(self) -> SocketAddr | None: ...
 
 @t.final
 class ResponseStream:

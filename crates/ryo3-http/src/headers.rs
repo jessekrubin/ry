@@ -104,7 +104,11 @@ impl From<HeaderMap> for PyHeaders {
         Self(Arc::new(Mutex::new(hm)))
     }
 }
-
+impl From<Arc<Mutex<HeaderMap>>> for PyHeaders {
+    fn from(hm: Arc<Mutex<HeaderMap>>) -> Self {
+        Self(hm)
+    }
+}
 #[pymethods]
 impl PyHeaders {
     #[new]

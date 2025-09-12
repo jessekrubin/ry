@@ -1,6 +1,6 @@
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
-use crate::response_data::RyResponseHead;
+use crate::response_head::RyResponseHead;
 use crate::{RyResponseStream, pyerr_response_already_consumed};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -125,7 +125,7 @@ impl RyResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        self.head.headers.get(CONTENT_ENCODING).map(|en| {
+        (*self.head.headers.lock()).get(CONTENT_ENCODING).map(|en| {
             let s = en.to_str().expect("Invalid content encoding");
             s.to_string()
         })

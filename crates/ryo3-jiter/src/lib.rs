@@ -55,9 +55,15 @@ impl JiterParseOptions {
 
     fn parse_lines<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
         let lines_iter = data.split(|b| *b == b'\n').filter(|line| !line.is_empty());
-        let parsed_lines = lines_iter
-            .map(|line| self.parse(py, line))
-            .collect::<Result<Vec<_>, _>>()?;
+        let parser = self.parser();
+        // parse each line and collect into a Vec
+        let mut parsed_lines = Vec::new();
+        for line in lines_iter.clone() {
+            let parsed = parser
+                .python_parse(py, line)
+                .map_err(|e| map_json_error(line, &e))?;
+            parsed_lines.push(parsed);
+        }
         let pylist = PyList::new(py, parsed_lines)?;
         pylist.into_bound_py_any(py)
     }

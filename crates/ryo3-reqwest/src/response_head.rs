@@ -1,14 +1,16 @@
+use parking_lot::Mutex;
 use reqwest::StatusCode;
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub(crate) struct RyResponseHead {
     /// das status code
-    pub status: StatusCode,
+    pub(crate) status: StatusCode,
     /// das headers
-    pub headers: reqwest::header::HeaderMap,
+    pub(crate) headers: Arc<Mutex<reqwest::header::HeaderMap>>,
     /// das url
-    pub url: reqwest::Url,
+    pub(crate) url: reqwest::Url,
     /// das content length -- if it exists (tho it might not and/or be
     /// different if the response is compressed)
     pub(crate) content_length: Option<u64>,
@@ -23,7 +25,7 @@ impl RyResponseHead {
     pub(crate) fn new(res: &reqwest::Response) -> Self {
         Self {
             status: res.status(),
-            headers: res.headers().clone(),
+            headers: Arc::new(Mutex::new(res.headers().clone())),
             url: res.url().clone(),
             content_length: res.content_length(),
             version: res.version(),

@@ -2,13 +2,14 @@ use bytes::Bytes;
 use jiter::map_json_error;
 use pyo3::prelude::*;
 use ryo3_jiter::JiterParseOptions;
+
 pub(crate) struct Pyo3JsonBytes {
     pub bytes: Bytes,
-    pub options: ryo3_jiter::JiterParseOptions,
+    pub options: JiterParseOptions,
 }
 
 impl Pyo3JsonBytes {
-    pub(crate) fn new(buf: Bytes, options: ryo3_jiter::JiterParseOptions) -> Self {
+    pub(crate) fn new(buf: Bytes, options: JiterParseOptions) -> Self {
         Self {
             bytes: buf,
             options,
@@ -22,7 +23,7 @@ impl From<(Bytes, JiterParseOptions)> for Pyo3JsonBytes {
 }
 impl From<Bytes> for Pyo3JsonBytes {
     fn from(value: Bytes) -> Self {
-        Self::new(value, ryo3_jiter::JiterParseOptions::default())
+        Self::new(value, JiterParseOptions::default())
     }
 }
 
