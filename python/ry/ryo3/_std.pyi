@@ -5,14 +5,23 @@ import ipaddress
 import pathlib
 import typing as t
 
-from ry._types import Buffer, FileTypeDict, FsPathLike, MetadataDict, Never, Self, ToPy
+from ry._types import (
+    Buffer,
+    FileTypeDict,
+    FsPathLike,
+    MetadataDict,
+    Never,
+    Self,
+    ToPy,
+    ToPyTimeDelta,
+)
 from ry.ryo3._bytes import Bytes
 
 # =============================================================================
 # STD::TIME
 # =============================================================================
 @t.final
-class Duration(ToPy[pydt.timedelta]):
+class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     ZERO: Duration
     MIN: Duration
     MAX: Duration
