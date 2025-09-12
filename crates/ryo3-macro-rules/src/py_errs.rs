@@ -1,8 +1,8 @@
 //! Macros for creating python errors
 //!
-//! py_*_error! creates a PyErr
+//! py_*_error! creates a `PyErr`
 //!
-//! py_*_err! creates a Result<_, PyErr>
+//! py_*_err! creates a `Result<_, PyErr>`
 
 #[macro_export]
 macro_rules! py_type_error {

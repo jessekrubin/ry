@@ -12,7 +12,6 @@ mod query_like;
 mod response_head;
 mod response_parking_lot;
 mod response_stream;
-mod response_tokio_mutex;
 mod user_agent;
 
 pub use client::RyHttpClient;
