@@ -11,9 +11,9 @@ use pyo3::prelude::*;
 
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::{PyOverflowError, PyTypeError};
+use pyo3::exceptions::PyOverflowError;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
-use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_err, py_value_error};
 use ryo3_std::time::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -52,7 +52,7 @@ impl RySignedDuration {
         if !(-NANOS_PER_SEC < nanos && nanos < NANOS_PER_SEC) {
             let addsecs = nanos / NANOS_PER_SEC;
             secs.checked_add(addsecs as i64).ok_or_else(|| {
-                PyOverflowError::new_err("nanoseconds overflowed seconds in PySignedDuration::new")
+                py_overflow_error!("nanoseconds overflowed seconds in PySignedDuration::new")
             })?;
         }
         Ok(Self::from(SignedDuration::new(secs, nanos)))
@@ -202,27 +202,24 @@ impl RySignedDuration {
     }
 
     fn __add__(&self, other: &Self) -> PyResult<Self> {
-        let maybe_dur = self.0.checked_add(other.0);
-        match maybe_dur {
-            Some(dur) => Ok(Self(dur)),
-            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
-        }
+        self.0
+            .checked_add(other.0)
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!())
     }
 
     fn __sub__(&self, other: &Self) -> PyResult<Self> {
-        let dur = self.0.checked_sub(other.0);
-        match dur {
-            Some(dur) => Ok(Self(dur)),
-            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
-        }
+        self.0
+            .checked_sub(other.0)
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!())
     }
 
     fn __mul__(&self, other: i32) -> PyResult<Self> {
-        let dur = self.0.checked_mul(other);
-        match dur {
-            Some(dur) => Ok(Self(dur)),
-            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
-        }
+        self.0
+            .checked_mul(other)
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!())
     }
 
     fn __rmul__(&self, other: i32) -> PyResult<Self> {
@@ -230,17 +227,17 @@ impl RySignedDuration {
     }
 
     fn __div__(&self, other: i32) -> PyResult<Self> {
-        let dur = self.0.checked_div(other);
-        match dur {
-            Some(dur) => Ok(Self(dur)),
-            None => Err(PyErr::new::<PyOverflowError, _>("overflow")),
-        }
+        self.0
+            .checked_div(other)
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!())
     }
 
     fn __neg__(&self) -> PyResult<Self> {
-        self.0.checked_neg().map(Self::from).ok_or_else(|| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>("negation does not exist")
-        })
+        self.0
+            .checked_neg()
+            .map(Self::from)
+            .ok_or_else(|| py_value_error!("negation does not exist"))
     }
 
     #[getter]
@@ -317,9 +314,7 @@ impl RySignedDuration {
         } else if let Ok(secs) = secs.extract::<f64>() {
             Self::py_try_from_secs_f64(secs)
         } else {
-            Err(PyTypeError::new_err(
-                "Invalid type for seconds; expected i64 or f64",
-            ))
+            py_type_err!("Invalid type for seconds; expected i64 or f64")
         }
     }
 
@@ -490,9 +485,7 @@ impl RySignedDuration {
         } else if let Ok(v) = value.downcast_exact::<PyFloat>() {
             let f = v.extract::<f64>()?;
             if f.is_nan() || f.is_infinite() {
-                return Err(pyo3::exceptions::PyValueError::new_err(
-                    "Cannot convert NaN or infinite float to SignedDuration",
-                ));
+                return py_value_err!("Cannot convert NaN or infinite float to SignedDuration");
             }
             Self::py_try_from_secs_f64(f).and_then(|dt| dt.into_bound_py_any(py))
         } else if let Ok(v) = value.downcast_exact::<PyInt>() {
@@ -502,9 +495,7 @@ impl RySignedDuration {
             Self::from(d).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "SignedDuration conversion error: {valtype}",
-            )))
+            py_type_err!("SignedDuration conversion error: {valtype}")
         }
     }
     // ========================================================================
@@ -517,7 +508,7 @@ impl RySignedDuration {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::py_try_from(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]

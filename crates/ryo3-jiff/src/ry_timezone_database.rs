@@ -1,5 +1,5 @@
 //! python shim for `TimeZoneDatabase`
-use crate::RyTimeZone;
+use crate::{RyTimeZone, errors::map_py_value_err};
 use jiff::tz::TimeZoneDatabase;
 use pyo3::prelude::*;
 #[pyclass(name = "TimeZoneDatabase", module = "ry.ryo3", frozen)]
@@ -86,14 +86,14 @@ impl RyTimeZoneDatabase {
     fn from_dir(path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_dir(path)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
     fn from_concatenated_path(path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_concatenated_path(path)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
+            .map_err(map_py_value_err)
     }
 }
 

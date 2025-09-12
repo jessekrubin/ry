@@ -12,10 +12,10 @@ use jiff::Zoned;
 use jiff::civil::{Time, TimeRound};
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::py_type_err;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -44,7 +44,7 @@ impl RyTime {
             nanosecond.unwrap_or(0),
         )
         .map(Self::from)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        .map_err(map_py_value_err)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -89,9 +89,7 @@ impl RyTime {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        Time::from_str(s)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        Time::from_str(s).map(Self::from).map_err(map_py_value_err)
     }
 
     #[staticmethod]
@@ -275,6 +273,25 @@ impl RyTime {
         nanosecond: Option<i16>,
         subsec_nanosecond: Option<i32>,
     ) -> PyResult<Self> {
+        if hour.is_none()
+            && minute.is_none()
+            && second.is_none()
+            && millisecond.is_none()
+            && microsecond.is_none()
+            && nanosecond.is_none()
+            && subsec_nanosecond.is_none()
+        {
+            // nothing to replace, return self
+            return Ok(*self);
+        }
+        if subsec_nanosecond.is_some()
+            && (millisecond.is_some() || microsecond.is_some() || nanosecond.is_some())
+        {
+            return py_type_err!(
+                "Cannot specify both subsec_nanosecond and millisecond/microsecond/nanosecond",
+            );
+        }
+
         // start the builder
         let mut builder = self.0.with();
         if let Some(h) = hour {
@@ -468,9 +485,7 @@ impl RyTime {
             Self::from_pytime(d).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "Time conversion error: {valtype}",
-            )))
+            py_type_err!("Time conversion error: {valtype}")
         }
     }
     // ========================================================================
@@ -483,7 +498,7 @@ impl RyTime {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::py_try_from(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]

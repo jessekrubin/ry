@@ -22,7 +22,7 @@ use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::{any_repr, py_type_err};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -135,24 +135,22 @@ impl RyZoned {
     fn parse_rfc2822(input: &str) -> PyResult<Self> {
         ::jiff::fmt::rfc2822::parse(input)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
     fn from_rfc2822(s: &str) -> PyResult<Self> {
         jiff::fmt::rfc2822::parse(s)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn format_rfc2822(&self) -> PyResult<String> {
-        jiff::fmt::rfc2822::to_string(&self.0)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        jiff::fmt::rfc2822::to_string(&self.0).map_err(map_py_value_err)
     }
 
     fn to_rfc2822(&self) -> PyResult<String> {
-        jiff::fmt::rfc2822::to_string(&self.0)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        jiff::fmt::rfc2822::to_string(&self.0).map_err(map_py_value_err)
     }
     // ISO format mismatch:
     // input datetime: 7639-01-01 00:00:00.395000+00:00 (repr: datetime.datetime(7639, 1, 1, 0, 0, 0, 395000, tzinfo=zoneinfo.ZoneInfo(key='UTC')))
@@ -269,10 +267,7 @@ impl RyZoned {
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {
-        self.0
-            .in_tz(tz)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        self.0.in_tz(tz).map(Self::from).map_err(map_py_value_err)
     }
 
     #[pyo3(
@@ -760,9 +755,7 @@ impl RyZoned {
             Self::from(d.0).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "ZonedDateTime conversion error: {valtype}",
-            )))
+            py_type_err!("ZonedDateTime conversion error: {valtype}",)
         }
     }
     // ========================================================================
@@ -775,7 +768,7 @@ impl RyZoned {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::py_try_from(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]

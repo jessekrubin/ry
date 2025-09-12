@@ -83,7 +83,6 @@ impl RyHttpClient {
             req = req.json(&wrapped);
         }
         if let Some(_multipart) = options.multipart {
-            // return err_py_not_impl!("multipart not implemented (yet)");
             pytodo!("multipart not implemented (yet)")
         }
         if let Some(_form) = options.form {

@@ -12,10 +12,9 @@ use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
-use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::{any_repr, py_type_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -36,7 +35,7 @@ impl RyTimestamp {
         let ns = nanosecond.unwrap_or(0);
         Timestamp::new(s, ns)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -48,6 +47,7 @@ impl RyTimestamp {
             ],
         )
     }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {
@@ -75,7 +75,7 @@ impl RyTimestamp {
     fn from_str(s: &str) -> PyResult<Self> {
         Timestamp::from_str(s)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
@@ -87,7 +87,7 @@ impl RyTimestamp {
     fn from_millisecond(millisecond: i64) -> PyResult<Self> {
         Timestamp::from_millisecond(millisecond)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     pub(crate) fn date(&self) -> RyDate {
@@ -271,21 +271,21 @@ impl RyTimestamp {
     fn from_microsecond(microsecond: i64) -> PyResult<Self> {
         Timestamp::from_microsecond(microsecond)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
     fn from_nanosecond(nanosecond: i128) -> PyResult<Self> {
         Timestamp::from_nanosecond(nanosecond)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
     fn from_second(second: i64) -> PyResult<Self> {
         Timestamp::from_second(second)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn signum(&self) -> i8 {
@@ -433,9 +433,7 @@ impl RyTimestamp {
             Self::from(ts).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "Timestamp conversion error: {valtype}",
-            )))
+            Err(py_type_error!("Timestamp conversion error: {valtype}"))
         }
     }
     // ========================================================================
@@ -447,7 +445,7 @@ impl RyTimestamp {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::py_try_from(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]

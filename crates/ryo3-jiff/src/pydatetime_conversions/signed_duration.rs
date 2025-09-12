@@ -29,13 +29,15 @@ pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedD
 
     #[cfg(Py_LIMITED_API)]
     let (days, seconds, microseconds) = {
+        use pyo3::intern;
+
         let py = delta.py();
-        let days = delta.getattr(pyo3::intern!(py, "days"))?.extract::<i64>()?;
+        let days = delta.getattr(crate::interns::days(py))?.extract::<i64>()?;
         let seconds = delta
-            .getattr(pyo3::intern!(py, "seconds"))?
+            .getattr(crate::interns::seconds(py))?
             .extract::<i64>()?;
         let microseconds = obj
-            .getattr(pyo3::intern!(py, "microseconds"))?
+            .getattr(crate::interns::microseconds(py))?
             .extract::<i32>()?;
         (days, seconds, microseconds)
     };

@@ -21,7 +21,7 @@ use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::{any_repr, py_type_err};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -660,9 +660,7 @@ impl RyDateTime {
             Self::from(d.0).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "DateTime conversion error: {valtype}",
-            )))
+            py_type_err!("DateTime conversion error: {valtype}",)
         }
     }
     // ========================================================================
@@ -674,7 +672,7 @@ impl RyDateTime {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::py_try_from(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]

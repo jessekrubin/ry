@@ -173,7 +173,7 @@ class TestDate:
         self,
         raw: pydt.date | pydt.datetime | ry.Date | str,
     ) -> None:
-        with pytest.raises((pydantic.ValidationError, TypeError)):
+        with pytest.raises(pydantic.ValidationError):
             _d = RyDateModel(date=raw)  # type: ignore[arg-type]
 
 
@@ -243,7 +243,7 @@ class TestTime:
         self,
         value: float | ry.Time | str,
     ) -> None:
-        with pytest.raises((pydantic.ValidationError, TypeError)):
+        with pytest.raises(pydantic.ValidationError):
             _d = RyTimeModel(d=value)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize(
@@ -261,7 +261,7 @@ class TestTime:
         assert isinstance(value, float | int)
         assert isinstance(result, pydt.time)
         pytest.skip("tbd")
-        with pytest.raises((pydantic.ValidationError, TypeError)):
+        with pytest.raises(pydantic.ValidationError):
             _d = RyTimeModel(d=value)
 
 
@@ -334,7 +334,7 @@ class TestDatetime:
         self,
         value: float | str | bytes | pydt.datetime,
     ) -> None:
-        with pytest.raises((pydantic.ValidationError, TypeError)):
+        with pytest.raises(pydantic.ValidationError):
             _d = RyDatetimeModel(dt=value)  # type: ignore[arg-type]
 
 
@@ -382,7 +382,7 @@ class TestZonedDatetime:
     def test_zoned_parsing_err(
         self, value: float | str | bytes | pydt.datetime
     ) -> None:
-        with pytest.raises((pydantic.ValidationError, TypeError)):
+        with pytest.raises(pydantic.ValidationError):
             _d = RyZonedDatetimeModel(dt=value)  # type: ignore[arg-type]
 
 
@@ -452,7 +452,7 @@ class TestSignedDuration:
         ],
     )
     def test_parse_signed_duration_err(self, value: Any) -> None:
-        with pytest.raises((pydantic.ValidationError, TypeError)):
+        with pytest.raises(pydantic.ValidationError):
             _m = RySignedDurationModel(d=value)
 
 
@@ -522,7 +522,7 @@ class TestTimeSpan:
         ],
     )
     def test_parse_timespan_err(self, value: Any) -> None:
-        with pytest.raises((pydantic.ValidationError, TypeError)):
+        with pytest.raises(pydantic.ValidationError):
             _m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize(

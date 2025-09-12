@@ -6,10 +6,9 @@ use crate::span_relative_to::RySpanRelativeTo;
 use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
 use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
-use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::{any_repr, py_type_err, py_type_error, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
@@ -717,8 +716,8 @@ impl RySpan {
         } else if let Ok(v) = value.downcast_exact::<PyFloat>() {
             let f = v.extract::<f64>()?;
             if f.is_nan() || f.is_infinite() {
-                return Err(pyo3::exceptions::PyValueError::new_err(
-                    "Cannot convert NaN or infinite float to SignedDuration",
+                return Err(py_value_error!(
+                    "Cannot convert NaN or infinite float to SignedDuration"
                 ));
             }
             let sd = RySignedDuration::py_try_from_secs_f64(f)?;
@@ -735,9 +734,7 @@ impl RySpan {
             Self::from(d).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "TimeSpan conversion error: {valtype}",
-            )))
+            py_type_err!("TimeSpan conversion error: {valtype}")
         }
     }
     // ========================================================================
@@ -750,7 +747,7 @@ impl RySpan {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::py_try_from(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]

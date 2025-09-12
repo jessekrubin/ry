@@ -1,8 +1,8 @@
 use crate::JiffEraYear;
 use jiff::civil::Era;
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3::{IntoPyObjectExt, intern};
 
 impl<'py> IntoPyObject<'py> for &JiffEraYear {
     #[cfg(Py_LIMITED_API)]
@@ -15,8 +15,8 @@ impl<'py> IntoPyObject<'py> for &JiffEraYear {
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let (y, e) = self.0;
         let era_str_pyobj = match e {
-            Era::BCE => intern!(py, "BCE"),
-            Era::CE => intern!(py, "CE"),
+            Era::BCE => crate::interns::bce(py),
+            Era::CE => crate::interns::ce(py),
         };
         let year_py = y.into_py_any(py)?;
         let era_str = era_str_pyobj.into_py_any(py)?;

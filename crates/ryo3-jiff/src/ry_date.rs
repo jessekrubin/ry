@@ -18,7 +18,7 @@ use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObject, IntoPyObjectExt};
-use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -291,9 +291,7 @@ impl RyDate {
 
     fn series(&self, period: &RySpan) -> PyResult<RyDateSeries> {
         if period.0.is_zero() {
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "period cannot be zero",
-            ))
+            Err(py_value_error!("period cannot be zero"))
         } else {
             Ok(RyDateSeries::from(self.0.series(period.0)))
         }
@@ -488,9 +486,7 @@ impl RyDate {
             Self::from_pydate(d).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "Date conversion error: {valtype}",
-            )))
+            py_type_err!("Date conversion error: {valtype}",)
         }
     }
 
@@ -501,7 +497,7 @@ impl RyDate {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::py_try_from(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]
