@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-11T16:40:59.015810272+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-12T03:46:53.723835987+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -2220,6 +2220,7 @@ from ry.ryo3._jiff import ISOWeekDate as ISOWeekDate
 from ry.ryo3._jiff import JiffRoundMode as JiffRoundMode
 from ry.ryo3._jiff import JiffUnit as JiffUnit
 from ry.ryo3._jiff import Offset as Offset
+from ry.ryo3._jiff import OffsetRound as OffsetRound
 from ry.ryo3._jiff import SignedDuration as SignedDuration
 from ry.ryo3._jiff import SignedDurationRound as SignedDurationRound
 from ry.ryo3._jiff import Time as Time
@@ -3285,15 +3286,24 @@ import datetime as pydt
 import typing as t
 
 from ry._types import (
+    DateDifferenceTypedDict,
+    DateTimeDifferenceTypedDict,
     DateTimeRoundTypedDict,
     DateTimeTypedDict,
     DateTypedDict,
     FromStr,
+    ISOWeekDateTypedDict,
+    OffsetRoundTypedDict,
+    OffsetTypedDict,
     Self,
     SignedDurationRoundTypedDict,
+    SignedDurationTypedDict,
+    TimeDifferenceTypedDict,
     TimeRoundTypedDict,
     TimeSpanTypedDict,
+    TimestampDifferenceTypedDict,
     TimestampRoundTypedDict,
+    TimestampTypedDict,
     TimeTypedDict,
     ToPy,
     ToPyDate,
@@ -3301,13 +3311,16 @@ from ry._types import (
     ToPyTime,
     ToPyTimeDelta,
     ToPyTzInfo,
+    ZonedDateTimeDifferenceTypedDict,
     ZonedDateTimeRoundTypedDict,
+    ZonedDateTimeTypedDict,
     deprecated,
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
 
 _T = t.TypeVar("_T")
+_TDict = t.TypeVar("_TDict")
 
 TimezoneName: t.TypeAlias = TimezoneDbName | str
 JiffUnit: t.TypeAlias = t.Literal[
@@ -3375,6 +3388,11 @@ _ZonedDateTimeRoundSmallest: t.TypeAlias = t.Literal[
     "millisecond",
     "microsecond",
     "nanosecond",
+]
+_OffsetRoundSmallest: t.TypeAlias = t.Literal[
+    "hour",
+    "minute",
+    "second",
 ]
 
 WeekdayStr: t.TypeAlias = t.Literal[
@@ -3763,6 +3781,8 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     @classmethod
     def now(cls: type[DateTime]) -&gt; DateTime: ...
     @classmethod
+    def today(cls: type[DateTime]) -&gt; DateTime: ...
+    @classmethod
     def from_parts(cls: type[DateTime], date: Date, time: Time) -&gt; DateTime: ...
 
     # =========================================================================
@@ -4035,6 +4055,7 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     ) -&gt; SignedDuration: ...
     def to_py(self) -&gt; pydt.timedelta: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
+    def to_dict(self) -&gt; SignedDurationTypedDict: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -4376,6 +4397,7 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def to_pydate(self) -&gt; pydt.date: ...
     def to_pydatetime(self) -&gt; pydt.datetime: ...
     def to_pytime(self) -&gt; pydt.time: ...
+    def to_dict(self) -&gt; TimestampTypedDict: ...
 
     # =========================================================================
     # ARITHMETIC METHODS
@@ -4407,6 +4429,9 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     # INSTANCE METHODS
     # =========================================================================
 
+    def date(self) -&gt; Date: ...
+    def datetime(self) -&gt; DateTime: ...
+    def time(self) -&gt; Time: ...
     def as_microsecond(self) -&gt; int: ...
     def as_millisecond(self) -&gt; int: ...
     def as_nanosecond(self) -&gt; int: ...
@@ -4484,6 +4509,7 @@ class ZonedDateTime(
     def from_pydatetime(
         cls: type[ZonedDateTime], dt: pydt.datetime
     ) -&gt; ZonedDateTime: ...
+    def to_dict(self) -&gt; ZonedDateTimeTypedDict: ...
     def to_py(self) -&gt; pydt.datetime: ...
     def to_pydate(self) -&gt; pydt.date: ...
     def to_pydatetime(self) -&gt; pydt.datetime: ...
@@ -4724,7 +4750,13 @@ class ISOWeekDate:
     @classmethod
     def from_date(cls: type[ISOWeekDate], date: Date) -&gt; ISOWeekDate: ...
     @classmethod
+    def from_str(cls: type[ISOWeekDate], s: str) -&gt; ISOWeekDate: ...
+    @classmethod
+    def parse(cls: type[ISOWeekDate], s: str) -&gt; ISOWeekDate: ...
+    @classmethod
     def today(cls: type[ISOWeekDate]) -&gt; ISOWeekDate: ...
+    @classmethod
+    def now(cls: type[ISOWeekDate]) -&gt; ISOWeekDate: ...
 
     # =========================================================================
     # PROPERTIES
@@ -4740,6 +4772,8 @@ class ISOWeekDate:
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -&gt; Date: ...
+    def string(self) -&gt; str: ...
+    def to_dict(self) -&gt; ISOWeekDateTypedDict: ...
 
 
 @t.final
@@ -4776,10 +4810,15 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
     # __FROM__
     @classmethod
     def from_pytzinfo(cls: type[Offset], tz: pydt.tzinfo) -&gt; Offset: ...
+    @classmethod
+    def parse(cls: type[Offset], tz: pydt.tzinfo) -&gt; Offset: ...
+    @classmethod
+    def from_str(cls: type[Offset], tz: pydt.tzinfo) -&gt; Offset: ...
 
     # __TO__
     def to_py(self) -&gt; pydt.tzinfo: ...
     def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
+    def to_dict(self) -&gt; OffsetTypedDict: ...
 
     # =========================================================================
     # PROPERTIES
@@ -4832,12 +4871,23 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
     def negate(self) -&gt; Offset: ...
     def since(self, other: Offset) -&gt; TimeSpan: ...
     def until(self, other: Offset) -&gt; TimeSpan: ...
+    def round(
+        self,
+        smallest: _OffsetRoundSmallest = "second",
+        *,
+        mode: JiffRoundMode = "half-expand",
+        increment: int = 1,
+    ) -&gt; Timestamp: ...
+    def _round(self, options: OffsetRound) -&gt; Timestamp: ...
 
 
 # =============================================================================
 # DIFFERENCE
 # =============================================================================
-class _Difference(t.Generic[_T]):
+_Tobj = t.TypeVar("_Tobj", Date, DateTime, Time, Timestamp, ZonedDateTime)
+
+
+class _Difference(t.Generic[_Tobj, _TDict]):
     def __init__(
         self,
         obj: _T,
@@ -4860,35 +4910,67 @@ class _Difference(t.Generic[_T]):
     def _largest(self, unit: JiffUnit) -&gt; Self: ...
     def _mode(self, mode: JiffRoundMode) -&gt; Self: ...
     def _increment(self, increment: int) -&gt; Self: ...
+    def to_dict(self) -&gt; _TDict: ...
 
 
 @t.final
-class DateDifference(_Difference[Date]): ...
+class DateDifference(_Difference[Date, DateDifferenceTypedDict]): ...
 
 
 @t.final
-class DateTimeDifference(_Difference[DateTime]): ...
+class DateTimeDifference(
+    _Difference[DateTime, DateTimeDifferenceTypedDict]
+): ...
 
 
 @t.final
-class TimeDifference(_Difference[Time]): ...
+class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]): ...
 
 
 @t.final
-class TimestampDifference(_Difference[Timestamp]): ...
+class TimestampDifference(
+    _Difference[Timestamp, TimestampDifferenceTypedDict]
+): ...
 
 
 @t.final
-class ZonedDateTimeDifference(_Difference[ZonedDateTime]): ...
+class ZonedDateTimeDifference(
+    _Difference[ZonedDateTime, ZonedDateTimeDifferenceTypedDict]
+): ...
 
 
 # =============================================================================
 # ROUND
 # =============================================================================
 
+_TSmallest = t.TypeVar(
+    "_TSmallest",
+)
+
+
+@t.type_check_only
+class _Round(t.Generic[_TSmallest, _TDict]):
+    def __eq__(self, other: object) -&gt; bool: ...
+    def _mode(self, mode: JiffRoundMode) -&gt; Self: ...
+    def _smallest(self, smallest: _TSmallest) -&gt; Self: ...
+    def _increment(self, increment: int) -&gt; Self: ...
+    @property
+    def smallest(self) -&gt; _TSmallest: ...
+    @property
+    def mode(self) -&gt; JiffRoundMode: ...
+    @property
+    def increment(self) -&gt; int: ...
+    def replace(
+        self,
+        smallest: _TSmallest | None = None,
+        mode: JiffRoundMode | None = None,
+        increment: int | None = None,
+    ) -&gt; Self: ...
+    def to_dict(self) -&gt; _TDict: ...
+
 
 @t.final
-class DateTimeRound:
+class DateTimeRound(_Round[_DateTimeRoundSmallest, DateTimeRoundTypedDict]):
     def __init__(
         self,
         smallest: _DateTimeRoundSmallest = "nanosecond",
@@ -4896,33 +4978,13 @@ class DateTimeRound:
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def _mode(self, mode: JiffRoundMode) -&gt; DateTimeRound: ...
-    def _smallest(
-        self,
-        smallest: _DateTimeRoundSmallest,
-    ) -&gt; DateTimeRound: ...
-    def _increment(self, increment: int) -&gt; DateTimeRound: ...
-    @property
-    def smallest(
-        self,
-    ) -&gt; _DateTimeRoundSmallest: ...
-    @property
-    def mode(self) -&gt; JiffRoundMode: ...
-    @property
-    def increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: _DateTimeRoundSmallest | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
-    ) -&gt; DateTimeRound: ...
-    def to_dict(self) -&gt; DateTimeRoundTypedDict: ...
     def round(self, dt: DateTime) -&gt; DateTime: ...
 
 
 @t.final
-class SignedDurationRound:
+class SignedDurationRound(
+    _Round[_SignedDurationRoundSmallest, SignedDurationRoundTypedDict]
+):
     def __init__(
         self,
         smallest: _SignedDurationRoundSmallest = "nanosecond",
@@ -4930,33 +4992,11 @@ class SignedDurationRound:
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def _mode(self, mode: JiffRoundMode) -&gt; SignedDurationRound: ...
-    def _smallest(
-        self,
-        smallest: _SignedDurationRoundSmallest,
-    ) -&gt; SignedDurationRound: ...
-    def _increment(self, increment: int) -&gt; SignedDurationRound: ...
-    @property
-    def smallest(
-        self,
-    ) -&gt; _SignedDurationRoundSmallest: ...
-    @property
-    def mode(self) -&gt; JiffRoundMode: ...
-    @property
-    def increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: _SignedDurationRoundSmallest | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
-    ) -&gt; SignedDurationRound: ...
-    def to_dict(self) -&gt; SignedDurationRoundTypedDict: ...
     def round(self, sd: SignedDuration) -&gt; SignedDuration: ...
 
 
 @t.final
-class TimeRound:
+class TimeRound(_Round[_TimeRoundSmallest, TimeRoundTypedDict]):
     def __init__(
         self,
         smallest: _TimeRoundSmallest = "nanosecond",
@@ -4964,33 +5004,11 @@ class TimeRound:
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def _mode(self, mode: JiffRoundMode) -&gt; TimeRound: ...
-    def _smallest(
-        self,
-        smallest: _TimeRoundSmallest,
-    ) -&gt; TimeRound: ...
-    def _increment(self, increment: int) -&gt; TimeRound: ...
-    @property
-    def smallest(
-        self,
-    ) -&gt; _TimeRoundSmallest: ...
-    @property
-    def mode(self) -&gt; JiffRoundMode: ...
-    @property
-    def increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: _TimeRoundSmallest | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
-    ) -&gt; TimeRound: ...
-    def to_dict(self) -&gt; TimeRoundTypedDict: ...
     def round(self, dt: Time) -&gt; Time: ...
 
 
 @t.final
-class TimestampRound:
+class TimestampRound(_Round[_TimestampRoundSmallest, TimestampRoundTypedDict]):
     def __init__(
         self,
         smallest: _TimestampRoundSmallest = "nanosecond",
@@ -4998,31 +5016,13 @@ class TimestampRound:
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def _mode(self, mode: JiffRoundMode) -&gt; TimestampRound: ...
-    def _smallest(
-        self,
-        smallest: _TimestampRoundSmallest,
-    ) -&gt; TimestampRound: ...
-    def _increment(self, increment: int) -&gt; TimestampRound: ...
-    @property
-    def smallest(self) -&gt; _TimestampRoundSmallest: ...
-    @property
-    def mode(self) -&gt; JiffRoundMode: ...
-    @property
-    def increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: _TimestampRoundSmallest | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
-    ) -&gt; TimestampRound: ...
-    def to_dict(self) -&gt; TimestampRoundTypedDict: ...
     def round(self, dt: Timestamp) -&gt; Timestamp: ...
 
 
 @t.final
-class ZonedDateTimeRound:
+class ZonedDateTimeRound(
+    _Round[_ZonedDateTimeRoundSmallest, ZonedDateTimeRoundTypedDict]
+):
     def __init__(
         self,
         smallest: _ZonedDateTimeRoundSmallest = "nanosecond",
@@ -5030,29 +5030,19 @@ class ZonedDateTimeRound:
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
     ) -&gt; None: ...
-    def __eq__(self, other: object) -&gt; bool: ...
-    def _mode(self, mode: JiffRoundMode) -&gt; ZonedDateTimeRound: ...
-    def _smallest(
-        self,
-        smallest: _ZonedDateTimeRoundSmallest,
-    ) -&gt; ZonedDateTimeRound: ...
-    def _increment(self, increment: int) -&gt; ZonedDateTimeRound: ...
-    @property
-    def smallest(
-        self,
-    ) -&gt; _ZonedDateTimeRoundSmallest: ...
-    @property
-    def mode(self) -&gt; JiffRoundMode: ...
-    @property
-    def increment(self) -&gt; int: ...
-    def replace(
-        self,
-        smallest: _ZonedDateTimeRoundSmallest | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
-    ) -&gt; ZonedDateTimeRound: ...
-    def to_dict(self) -&gt; ZonedDateTimeRoundTypedDict: ...
     def round(self, dt: ZonedDateTime) -&gt; ZonedDateTime: ...
+
+
+@t.final
+class OffsetRound(_Round[_OffsetRoundSmallest, OffsetRoundTypedDict]):
+    def __init__(
+        self,
+        smallest: _OffsetRoundSmallest = "second",
+        *,
+        mode: JiffRoundMode = "half-expand",
+        increment: int = 1,
+    ) -&gt; None: ...
+    def round(self, dt: Offset) -&gt; Offset: ...
 
 
 @t.type_check_only
@@ -5871,7 +5861,7 @@ class Regex:
 import ry
 from ry._types import Buffer, Unpack
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
-from ry.ryo3._std import Duration
+from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
 
@@ -6001,13 +5991,29 @@ class Response:
         "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
     ]: ...
     @property
+    def redirected(self) -&gt; bool: ...
+    @property
+    def content_length(self) -&gt; int | None: ...
+    @property
+    def content_encoding(self) -&gt; str | None: ...
+    @property
+    def body_used(self) -&gt; bool:
+        """True if the body has been consumed"""
+
+    @property
+    def ok(self) -&gt; bool:
+        """True if the status is a success (2xx)"""
+
+    @property
+    def remote_addr(self) -&gt; SocketAddr | None: ...
+    @property
     def status(self) -&gt; int: ...
     @property
     def status_text(self) -&gt; str: ...
     @property
     def status_code(self) -&gt; HttpStatus: ...
-    @property
-    def redirected(self) -&gt; bool: ...
+    def __bool__(self) -&gt; bool:
+        """True if the status is a success (2xx)"""
 
 
 @t.final
@@ -6308,6 +6314,10 @@ class Duration(ToPy[pydt.timedelta]):
     def __truediv__(self, other: Duration | pydt.timedelta) -&gt; float: ...
     @t.overload
     def __truediv__(self, other: float) -&gt; Duration: ...
+    @t.overload
+    def __rtruediv__(self, other: Duration | pydt.timedelta) -&gt; float: ...
+    @t.overload
+    def __rtruediv__(self, other: float) -&gt; Duration: ...
     def __mul__(self, other: float) -&gt; Duration: ...
     def abs_diff(self, other: Duration) -&gt; Duration: ...
     def sleep(self) -&gt; None: ...
