@@ -8,12 +8,20 @@ use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
 use std::fmt::Display;
+use std::ops::Deref;
 use std::sync::Arc;
 
 #[pyclass(name = "Headers", module = "ry.ryo3", frozen, mapping)]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub Arc<Mutex<HeaderMap>>);
 
+impl Deref for PyHeaders {
+    type Target = Arc<Mutex<HeaderMap>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 impl PyHeaders {
     fn extract_kwargs(kwargs: &Bound<'_, PyDict>) -> PyResult<HeaderMap> {
         let mut hm = HeaderMap::new();
