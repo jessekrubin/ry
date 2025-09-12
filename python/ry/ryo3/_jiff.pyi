@@ -852,11 +852,12 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     ) -> SignedDuration: ...
     def _round(self, options: SignedDurationRound) -> DateTime: ...
 
-_TimeSpanArithmeticSingle: t.TypeAlias = TimeSpan | Duration | SignedDuration
-_TimeSpanArithmeticTuple: t.TypeAlias = tuple[
-    _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
-]
-TimeSpanArithmetic: t.TypeAlias = _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
+TimeSpanArithmetic: t.TypeAlias = (
+    TimeSpan
+    | Duration
+    | SignedDuration
+    | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
+)
 
 @t.final
 class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):

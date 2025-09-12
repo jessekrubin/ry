@@ -165,14 +165,28 @@ class TimeTypedDict(TypedDict):
     nanosecond: int
 
 
-class DateTimeTypedDict(DateTypedDict, TimeTypedDict): ...
+class DateTimeTypedDict(TypedDict):
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
+    nanosecond: int
 
 
-class ZonedDateTimeTypedDict(DateTimeTypedDict):
+class ZonedDateTimeTypedDict(TypedDict):
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
+    nanosecond: int
     tz: str
 
 
-class TimestampTypedDict(DateTimeTypedDict):
+class TimestampTypedDict:
     second: int
     nanosecond: int
 
@@ -219,12 +233,7 @@ class ISOWeekDateTypedDict(TypedDict):
 # -----------------------------------------------------------------------------
 # JIFF ROUND
 # -----------------------------------------------------------------------------
-class _RoundTypedDict(TypedDict):
-    mode: JiffRoundMode
-    increment: int
-
-
-class DateTimeRoundTypedDict(_RoundTypedDict):
+class DateTimeRoundTypedDict(TypedDict):
     smallest: Literal[
         "day",
         "hour",
@@ -234,9 +243,11 @@ class DateTimeRoundTypedDict(_RoundTypedDict):
         "microsecond",
         "nanosecond",
     ]
+    mode: JiffRoundMode
+    increment: int
 
 
-class SignedDurationRoundTypedDict(_RoundTypedDict):
+class SignedDurationRoundTypedDict(TypedDict):
     smallest: Literal[
         "hour",
         "minute",
@@ -245,6 +256,8 @@ class SignedDurationRoundTypedDict(_RoundTypedDict):
         "microsecond",
         "nanosecond",
     ]
+    mode: JiffRoundMode
+    increment: int
 
 
 class TimeRoundTypedDict(TypedDict):
@@ -256,9 +269,11 @@ class TimeRoundTypedDict(TypedDict):
         "microsecond",
         "nanosecond",
     ]
+    mode: JiffRoundMode
+    increment: int
 
 
-class TimestampRoundTypedDict(_RoundTypedDict):
+class TimestampRoundTypedDict(TypedDict):
     smallest: Literal[
         "hour",
         "minute",
@@ -267,9 +282,11 @@ class TimestampRoundTypedDict(_RoundTypedDict):
         "microsecond",
         "nanosecond",
     ]
+    mode: JiffRoundMode
+    increment: int
 
 
-class ZonedDateTimeRoundTypedDict(_RoundTypedDict):
+class ZonedDateTimeRoundTypedDict(TypedDict):
     smallest: Literal[
         "day",
         "hour",
@@ -279,14 +296,18 @@ class ZonedDateTimeRoundTypedDict(_RoundTypedDict):
         "microsecond",
         "nanosecond",
     ]
+    mode: JiffRoundMode
+    increment: int
 
 
-class OffsetRoundTypedDict(_RoundTypedDict):
+class OffsetRoundTypedDict(TypedDict):
     smallest: Literal[
         "second",
         "minute",
         "hour",
     ]
+    mode: JiffRoundMode
+    increment: int
 
 
 # -----------------------------------------------------------------------------
