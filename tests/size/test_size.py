@@ -160,6 +160,12 @@ class TestSizeObj:
         # pb ~ 1000 * 1000 * 1000 * 1000 * 1000
         assert int(Size.from_pb(1)) == 1000 * 1000 * 1000 * 1000 * 1000
         assert int(Size.from_petabytes(1)) == 1000 * 1000 * 1000 * 1000 * 1000
+        # eib ~ 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+        assert int(Size.from_eib(1)) == 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+        assert int(Size.from_exbibytes(1)) == 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+        # eb ~ 1000 * 1000 * 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_eb(1)) == 1000 * 1000 * 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_exabytes(1)) == 1000 * 1000 * 1000 * 1000 * 1000 * 1000
 
 
 def test_weird_off_by_one_multiplication() -> None:
