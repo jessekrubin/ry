@@ -41,7 +41,7 @@ pub mod interns {
         };
     }
 
-    unpaid_intern!(_pydantic_parse);
+    unpaid_intern!(_pydantic_validate);
     unpaid_intern!(json_unless_none, "json-unless-none");
     unpaid_intern!(no_info_wrap_validator_function);
     unpaid_intern!(to_string_ser_schema);

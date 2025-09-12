@@ -763,42 +763,96 @@ impl RySpan {
 
 impl Display for RySpan {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // TODO: FIX THIS TO NOT DO THE JOIN
         f.write_str("TimeSpan(")?;
-        let mut parts = vec![];
-        if self.0.get_years() != 0 {
-            parts.push(format!("years={}", self.0.get_years()));
-        }
-        if self.0.get_months() != 0 {
-            parts.push(format!("months={}", self.0.get_months()));
-        }
-        if self.0.get_weeks() != 0 {
-            parts.push(format!("weeks={}", self.0.get_weeks()));
-        }
-        if self.0.get_days() != 0 {
-            parts.push(format!("days={}", self.0.get_days()));
-        }
-        if self.0.get_hours() != 0 {
-            parts.push(format!("hours={}", self.0.get_hours()));
-        }
-        if self.0.get_minutes() != 0 {
-            parts.push(format!("minutes={}", self.0.get_minutes()));
-        }
-        if self.0.get_seconds() != 0 {
-            parts.push(format!("seconds={}", self.0.get_seconds()));
-        }
-        if self.0.get_milliseconds() != 0 {
-            parts.push(format!("milliseconds={}", self.0.get_milliseconds()));
-        }
-        if self.0.get_microseconds() != 0 {
-            parts.push(format!("microseconds={}", self.0.get_microseconds()));
-        }
-        if self.0.get_nanoseconds() != 0 {
-            parts.push(format!("nanoseconds={}", self.0.get_nanoseconds()));
-        }
-        write!(f, "{}", parts.join(", "))?;
+        let mut write_sep = false;
 
-        write!(f, ")")
+        let years = self.0.get_years();
+        if years != 0 {
+            write!(f, "years={years}")?;
+            write_sep = true;
+        }
+
+        let months = self.0.get_months();
+        if months != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "months={months}")?;
+            write_sep = true;
+        }
+
+        let weeks = self.0.get_weeks();
+        if weeks != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "weeks={weeks}")?;
+            write_sep = true;
+        }
+
+        let days = self.0.get_days();
+        if days != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "days={days}")?;
+            write_sep = true;
+        }
+
+        let hours = self.0.get_hours();
+        if hours != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "hours={hours}")?;
+            write_sep = true;
+        }
+
+        let minutes = self.0.get_minutes();
+        if minutes != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "minutes={minutes}")?;
+            write_sep = true;
+        }
+
+        let seconds = self.0.get_seconds();
+        if seconds != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "seconds={seconds}")?;
+            write_sep = true;
+        }
+
+        let milliseconds = self.0.get_milliseconds();
+        if milliseconds != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "milliseconds={milliseconds}")?;
+            write_sep = true;
+        }
+
+        let microseconds = self.0.get_microseconds();
+        if microseconds != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "microseconds={microseconds}")?;
+            write_sep = true;
+        }
+
+        let nanoseconds = self.0.get_nanoseconds();
+        if nanoseconds != 0 {
+            if write_sep {
+                f.write_str(", ")?;
+            }
+            write!(f, "nanoseconds={nanoseconds}")?;
+        }
+
+        f.write_str(")")
     }
 }
 

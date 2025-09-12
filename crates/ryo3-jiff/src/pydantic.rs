@@ -13,7 +13,7 @@ impl GetPydanticCoreSchemaCls for RyDate {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let date_schema = core_schema.call_method(interns::date_schema(py), (), None)?;
-        let validation_fn = cls.getattr(interns::_pydantic_parse(py))?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &date_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
@@ -35,7 +35,7 @@ impl GetPydanticCoreSchemaCls for RyDateTime {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
-        let validation_fn = cls.getattr(interns::_pydantic_parse(py))?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
@@ -58,7 +58,7 @@ impl GetPydanticCoreSchemaCls for RyTime {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let time_schema = core_schema.call_method(interns::time_schema(py), (), None)?;
-        let validation_fn = cls.getattr(interns::_pydantic_parse(py))?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &time_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
@@ -84,7 +84,7 @@ impl GetPydanticCoreSchemaCls for RyTimestamp {
         // Maybe it should be a not str_schema? idk? really not sure if it should be str or datetime
         // let str_schema = core_schema.call_method(intern!(py, "str_schema"), (), None)?;
         let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
-        let validation_fn = cls.getattr(interns::_pydantic_parse(py))?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
@@ -107,7 +107,7 @@ impl GetPydanticCoreSchemaCls for RyZoned {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
-        let validation_fn = cls.getattr(interns::_pydantic_parse(py))?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
@@ -130,7 +130,7 @@ impl GetPydanticCoreSchemaCls for RySpan {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let timedelta_schema = core_schema.call_method(interns::timedelta_schema(py), (), None)?;
-        let validation_fn = cls.getattr(interns::_pydantic_parse(py))?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
@@ -157,7 +157,7 @@ impl GetPydanticCoreSchemaCls for RySpan {
 //         let core_schema = ryo3_pydantic::core_schema(py)?;
 //         let timedelta_schema =
 //             core_schema.call_method(intern!(py, "timedelta_schema"), (), None)?;
-//         let validation_fn = cls.getattr(intern!(py, "_pydantic_parse"))?;
+//         let validation_fn = cls.getattr(intern!(py, "_pydantic_validate"))?;
 //         let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
 //         let string_serialization_schema =
 //             core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
@@ -184,7 +184,7 @@ impl GetPydanticCoreSchemaCls for RySignedDuration {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let timedelta_schema = core_schema.call_method(interns::timedelta_schema(py), (), None)?;
-        let validation_fn = cls.getattr(interns::_pydantic_parse(py))?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;

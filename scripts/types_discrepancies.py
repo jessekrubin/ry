@@ -100,7 +100,7 @@ OVERLOADS = {
 IGNORED_MEMBERS = {
     # TODO
     "__get_pydantic_core_schema__",
-    "_pydantic_parse",
+    "_pydantic_validate",
     "try_from",  # have not settled on this one yet...
     # MAYBE IGNORE
     "__eq__",
