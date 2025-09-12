@@ -21,7 +21,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::{PyDict, PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple};
 use ryo3_macro_rules::any_repr;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -769,6 +769,7 @@ impl RyZoned {
     // PYDANTIC
     // ========================================================================
 
+    #[cfg(feature = "pydantic")]
     #[staticmethod]
     fn _pydantic_parse<'py>(
         value: &Bound<'py, PyAny>,
@@ -777,9 +778,10 @@ impl RyZoned {
         Self::py_try_from(value)
     }
 
+    #[cfg(feature = "pydantic")]
     #[classmethod]
     fn __get_pydantic_core_schema__<'py>(
-        cls: &Bound<'py, PyType>,
+        cls: &Bound<'py, ::pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,
         handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {

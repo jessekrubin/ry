@@ -98,12 +98,17 @@ OVERLOADS = {
 
 
 IGNORED_MEMBERS = {
+    # TODO
+    "__get_pydantic_core_schema__",
+    "_pydantic_parse",
+    "try_from",  # have not settled on this one yet...
     # MAYBE IGNORE
     "__eq__",
     "__ge__",
     "__gt__",
     "__hash__",
     "__le__",
+    "__rtruediv__",
     "__len__",
     "__lt__",
     "__ne__",

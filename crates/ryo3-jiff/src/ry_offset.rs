@@ -1,13 +1,14 @@
-use crate::JiffOffset;
 use crate::constants::DATETIME_PARSER;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::round::RyOffsetRound;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
-use jiff::tz::Offset;
+use crate::{JiffOffset, JiffRoundMode, JiffUnit};
+use jiff::tz::{Offset, OffsetRound};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
@@ -210,6 +211,36 @@ impl RyOffset {
         RySignedDuration::from(s)
     }
 
+    #[pyo3(
+        signature = (smallest = None, *, mode = None, increment = None),
+        text_signature = "($self, smallest=\"second\", *, mode=\"half-expand\", increment=1)"
+    )]
+    fn round(
+        &self,
+        smallest: Option<JiffUnit>,
+        mode: Option<JiffRoundMode>,
+        increment: Option<i64>,
+    ) -> PyResult<Self> {
+        let mut round_ob = OffsetRound::new();
+        if let Some(smallest) = smallest {
+            round_ob = round_ob.smallest(smallest.0);
+        }
+        if let Some(mode) = mode {
+            round_ob = round_ob.mode(mode.0);
+        }
+        if let Some(increment) = increment {
+            round_ob = round_ob.increment(increment);
+        }
+        self.0
+            .round(round_ob)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    fn _round(&self, opts: &RyOffsetRound) -> PyResult<Self> {
+        opts.round(self)
+    }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
@@ -226,6 +257,7 @@ impl RyOffset {
             CompareOp::Ge => self.0 >= other.0,
         }
     }
+
     fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         self.0

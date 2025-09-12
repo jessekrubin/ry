@@ -17,6 +17,7 @@ name = "ry"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+#mimalloc = "0.1.48"
 pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }
 tracing.workspace = true

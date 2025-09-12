@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Deref};
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffDate(pub jiff::civil::Date);
@@ -203,6 +203,13 @@ impl Display for JiffUnit {
     }
 }
 
+impl Deref for JiffUnit {
+    type Target = jiff::Unit;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 // ============================================================================
 // ROUND MODE
 // ============================================================================
@@ -227,6 +234,14 @@ impl Display for JiffRoundMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = self.static_str();
         write!(f, "{s}")
+    }
+}
+
+impl Deref for JiffRoundMode {
+    type Target = jiff::RoundMode;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

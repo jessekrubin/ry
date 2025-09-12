@@ -48,6 +48,8 @@ unpaid_intern!(nanoseconds);
 // tz / offset
 unpaid_intern!(tz);
 
+// weekday
+unpaid_intern!(weekday);
 // signed duration
 unpaid_intern!(secs);
 unpaid_intern!(nanos);

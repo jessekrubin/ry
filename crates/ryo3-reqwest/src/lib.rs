@@ -9,7 +9,7 @@ mod fetch;
 mod form_data;
 mod pyo3_json_bytes;
 mod query_like;
-mod response_data;
+mod response_head;
 mod response_parking_lot;
 mod response_stream;
 mod response_tokio_mutex;
@@ -24,6 +24,7 @@ pub use response_stream::RyResponseStream;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyHttpClient>()?;
+    m.add_class::<RyResponse>()?;
     m.add_class::<RyReqwestError>()?;
     m.add_function(wrap_pyfunction!(fetch::fetch, m)?)?;
     Ok(())

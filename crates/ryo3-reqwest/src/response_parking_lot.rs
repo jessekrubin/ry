@@ -1,6 +1,6 @@
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
-use crate::response_data::RyResponseHead;
+use crate::response_head::RyResponseHead;
 use crate::{RyResponseStream, pyerr_response_already_consumed};
 use parking_lot::Mutex;
 use pyo3::exceptions::PyValueError;
@@ -9,6 +9,7 @@ use pyo3::types::PyString;
 use reqwest::header::CONTENT_ENCODING;
 use ryo3_http::{HttpVersion, PyHeaders, PyHttpStatus, status_code_pystring};
 use ryo3_macro_rules::pytodo;
+use ryo3_std::net::PySocketAddr;
 use ryo3_url::PyUrl;
 use std::sync::Arc;
 
@@ -51,33 +52,29 @@ impl RyResponse {
         pytodo!("Response::new")
     }
 
-    fn __str__(&self) -> String {
-        format!("Response<{}>", self.head.status_code)
-    }
-
     fn __repr__(&self) -> String {
-        format!("Response<{}>", self.head.status_code)
+        format!("{self}")
     }
 
     #[getter]
     fn status(&self) -> u16 {
-        self.head.status_code.as_u16()
+        self.head.status.as_u16()
     }
 
     #[getter]
     fn status_text<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
-        status_code_pystring(py, self.head.status_code.as_u16())
+        status_code_pystring(py, self.head.status.as_u16())
     }
 
     #[getter]
     fn status_code(&self) -> PyHttpStatus {
-        PyHttpStatus(self.head.status_code)
+        PyHttpStatus(self.head.status)
     }
 
     /// Returns true if the response was redirected
     #[getter]
     fn redirected(&self) -> bool {
-        self.head.status_code.is_redirection()
+        self.head.status.is_redirection()
     }
 
     #[getter]
@@ -92,8 +89,8 @@ impl RyResponse {
 
     #[getter]
     #[pyo3(name = "url")]
-    fn url(&self) -> Option<PyUrl> {
-        self.head.url.as_ref().map(|url| PyUrl::new(url.clone()))
+    fn url(&self) -> PyUrl {
+        PyUrl::from(self.head.url.clone())
     }
 
     #[getter]
@@ -108,15 +105,20 @@ impl RyResponse {
         self.head.content_length
     }
 
+    #[getter]
+    fn remote_addr(&self) -> Option<PySocketAddr> {
+        self.head.remote_addr.map(PySocketAddr::from)
+    }
+
     /// Return true if the status code is a success code (200-299)
     #[getter]
     fn ok(&self) -> bool {
-        self.head.status_code.is_success()
+        self.head.status.is_success()
     }
 
     /// __bool__ dunder method returns true if `ok` is true
     fn __bool__(&self) -> bool {
-        self.head.status_code.is_success()
+        self.head.status.is_success()
     }
 
     /// Return true if the body has been consumed
@@ -199,9 +201,20 @@ impl RyResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        self.head.headers.get(CONTENT_ENCODING).map(|en| {
+        (*self.head.headers.lock()).get(CONTENT_ENCODING).map(|en| {
             let s = en.to_str().expect("Invalid content encoding");
             s.to_string()
         })
+    }
+}
+
+impl std::fmt::Display for RyResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "<Response [{status}; {url}]>",
+            status = self.head.status.as_u16(),
+            url = self.head.url,
+        )
     }
 }
