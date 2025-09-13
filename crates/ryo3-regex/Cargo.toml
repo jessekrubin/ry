@@ -15,5 +15,8 @@ description = "ryo3 + regex (https://docs.rs/regex/latest/regex/)"
 pyo3 = { workspace = true, features = [] }
 regex.workspace = true
 
+[features]
+ry = []
+
 [lints]
 workspace = true

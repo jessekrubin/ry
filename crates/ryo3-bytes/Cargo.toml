@@ -18,6 +18,7 @@ pyo3 = { workspace = true, features = [] }
 
 [features]
 default = []
+ry = []
 multiple-pymethods = ["pyo3/multiple-pymethods"]
 
 [lints]

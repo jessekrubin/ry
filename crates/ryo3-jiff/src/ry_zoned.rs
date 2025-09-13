@@ -30,7 +30,8 @@ use std::str::FromStr;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, PartialEq)]
-#[pyclass(name = "ZonedDateTime", module = "ry.ryo3", frozen)]
+#[pyclass(name = "ZonedDateTime", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZoned(pub(crate) Zoned);
 
 #[pymethods]

@@ -16,5 +16,9 @@ globset.workspace = true
 pyo3 = { workspace = true, features = [] }
 ryo3-core.workspace = true
 
+[features]
+default = []
+ry = []
+
 [lints]
 workspace = true

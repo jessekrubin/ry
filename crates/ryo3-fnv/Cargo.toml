@@ -16,5 +16,9 @@ fnv = { workspace = true }
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 
+[features]
+default = []
+ry = []
+
 [lints]
 workspace = true

@@ -10,7 +10,8 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "URL", module = "ry.ryo3", frozen)]
+#[pyclass(name = "URL", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyUrl(pub(crate) url::Url);
 
 impl PyUrl {

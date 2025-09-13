@@ -1,7 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "blocking")]
-pub mod blocking;
 mod client;
 mod default_client;
 mod errors;

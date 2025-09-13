@@ -16,7 +16,8 @@ use pyo3::types::{PyDict, PyTuple};
 use ryo3_macro_rules::py_type_error;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-#[pyclass(name = "Offset", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Offset", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);
 

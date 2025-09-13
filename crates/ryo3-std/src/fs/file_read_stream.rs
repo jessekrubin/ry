@@ -86,7 +86,8 @@ impl Iterator for FileReadStreamWrapper {
     }
 }
 
-#[pyclass(name = "FileReadStream", module = "ry.ryo3", frozen)]
+#[pyclass(name = "FileReadStream", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFileReadStream {
     pub(crate) pth: PathBuf,
     pub(crate) chunk_size: usize,

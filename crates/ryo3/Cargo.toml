@@ -102,7 +102,24 @@ dev = ["dep:ryo3-dev"]
 ry = [
   "all",
   "dev",
-  "ryo3-twox-hash/ry"
+  "ryo3-bytes/ry",
+  "ryo3-fnv/ry",
+  "ryo3-fspath/ry",
+  "ryo3-glob/ry",
+  "ryo3-globset/ry",
+  "ryo3-http/ry",
+  "ryo3-jiff/ry",
+  "ryo3-regex/ry",
+  "ryo3-reqwest/ry",
+  "ryo3-size/ry",
+  "ryo3-sqlformat/ry",
+  "ryo3-std/ry",
+  "ryo3-tokio/ry",
+  "ryo3-twox-hash/ry",
+  "ryo3-ulid/ry",
+  "ryo3-url/ry",
+  "ryo3-uuid/ry",
+  "ryo3-walkdir/ry",
 ] # `ry` uses all features
 
 # wrappers

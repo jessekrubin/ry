@@ -15,5 +15,8 @@ description = "sql-formatter - wraps sqlformat (https://crates.io/crates/sqlform
 pyo3 = { workspace = true, features = [] }
 sqlformat = { workspace = true }
 
+[features]
+ry = []
+
 [lints]
 workspace = true

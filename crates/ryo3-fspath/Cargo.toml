@@ -25,7 +25,12 @@ same-file = { workspace = true, optional = true }
 workspace = true
 
 [features]
-default = ["same-file", "which", "which-regex"]
+default = []
+ry = ["same-file", "which", "which-regex"]
 same-file = ["dep:same-file"]
-which = ["dep:ryo3-which"]
-which-regex = ["which", "ryo3-which/regex"]
+which = [
+  "ryo3-which"
+]
+which-regex = [
+  "ryo3-which/regex"
+]

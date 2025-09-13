@@ -3,7 +3,8 @@ use pyo3::prelude::*;
 use regex::{Regex, RegexBuilder};
 use std::borrow::{Borrow, Cow};
 
-#[pyclass(name = "Regex", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Regex", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyRegex {
     pub re: std::sync::Arc<Regex>,

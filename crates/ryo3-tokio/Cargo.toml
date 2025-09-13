@@ -20,5 +20,9 @@ ryo3-std = {workspace = true, features = ["std-fs"] }
 tokio.workspace = true
 tracing.workspace = true
 
+[features]
+default = []
+ry = []
+
 [lints]
 workspace = true

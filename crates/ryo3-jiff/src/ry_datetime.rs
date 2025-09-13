@@ -30,7 +30,8 @@ use std::str::FromStr;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-#[pyclass(name = "DateTime", module = "ry.ryo3", frozen)]
+#[pyclass(name = "DateTime", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTime(pub(crate) DateTime);
 
 impl From<DateTime> for RyDateTime {

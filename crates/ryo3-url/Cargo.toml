@@ -19,7 +19,8 @@ serde = { workspace = true, features = ["derive"], optional = true }
 url = { workspace = true }
 
 [features]
-default = [
+default = []
+ry = [
   "serde",
   "ryo3-std",
 ]

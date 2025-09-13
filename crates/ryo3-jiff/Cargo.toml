@@ -28,15 +28,13 @@ serde_json.workspace = true
 pyo3-build-config = { workspace = true }
 
 [features]
-default = [
+default = []
+ry = [
   "serde",
-  "pydantic",
+  "pydantic"
 ]
 pydantic = [
   "ryo3-pydantic",
-]
-ry = [
-  "pydantic"
 ]
 serde = [
   "dep:serde",

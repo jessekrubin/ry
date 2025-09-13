@@ -13,7 +13,8 @@ use ryo3_std::net::PySocketAddr;
 use ryo3_url::PyUrl;
 use std::sync::Arc;
 
-#[pyclass(name = "Response", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Response", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyResponse {
     /// The actual response which will be consumed when read

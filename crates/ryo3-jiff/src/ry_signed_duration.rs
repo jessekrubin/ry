@@ -25,7 +25,8 @@ const NANOS_PER_SEC: i32 = 1_000_000_000;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[pyclass(name = "SignedDuration", module = "ry.ryo3", frozen)]
+#[pyclass(name = "SignedDuration", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
 impl RySignedDuration {

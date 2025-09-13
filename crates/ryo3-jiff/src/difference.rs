@@ -94,7 +94,8 @@ impl DifferenceOptions {
 // DateDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateDifference", module = "ry.ryo3", frozen)]
+#[pyclass(name = "DateDifference", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateDifference {
     date: RyDate,
     options: DifferenceOptions,
@@ -312,7 +313,8 @@ impl DateDifferenceArg {
 // ============================================================================
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateTimeDifference", module = "ry.ryo3", frozen)]
+#[pyclass(name = "DateTimeDifference", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeDifference {
     datetime: RyDateTime,
     options: DifferenceOptions,
@@ -526,7 +528,8 @@ impl DateTimeDifferenceArg {
 // TimeDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeDifference", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimeDifference", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeDifference {
     time: RyTime,
     options: DifferenceOptions,
@@ -750,7 +753,8 @@ impl TimeDifferenceArg {
 // TimestampDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimestampDifference", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimestampDifference", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampDifference {
     timestamp: RyTimestamp,
     options: DifferenceOptions,
@@ -969,7 +973,8 @@ impl TimestampDifferenceArg {
 // ZonedDateTimeDifference
 // ============================================================================
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTimeDifference", module = "ry.ryo3", frozen)]
+#[pyclass(name = "ZonedDateTimeDifference", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDifference {
     zoned: RyZoned,
     options: DifferenceOptions,

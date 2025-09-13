@@ -2,7 +2,8 @@ use crate::{RyDate, RyDateTime, RyTime, RyTimestamp};
 use parking_lot::Mutex;
 use pyo3::prelude::*;
 
-#[pyclass(name = "DateSeries", module = "ry.ryo3", frozen)]
+#[pyclass(name = "DateSeries", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateSeries {
     pub(crate) series: Mutex<jiff::civil::DateSeries>,
 }
@@ -32,7 +33,8 @@ impl RyDateSeries {
     }
 }
 
-#[pyclass(name = "DateTimeSeries", module = "ry.ryo3", frozen)]
+#[pyclass(name = "DateTimeSeries", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeSeries {
     pub(crate) series: Mutex<jiff::civil::DateTimeSeries>,
 }
@@ -62,7 +64,8 @@ impl RyDateTimeSeries {
     }
 }
 
-#[pyclass(name = "TimeSeries", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimeSeries", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeSeries {
     pub(crate) series: Mutex<jiff::civil::TimeSeries>,
 }
@@ -92,7 +95,8 @@ impl RyTimeSeries {
     }
 }
 
-#[pyclass(name = "TimestampSeries", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimestampSeries", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampSeries {
     pub(crate) series: Mutex<jiff::TimestampSeries>,
 }

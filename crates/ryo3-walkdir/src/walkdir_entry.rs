@@ -3,7 +3,8 @@ use std::ffi::OsStr;
 
 use pyo3::prelude::*;
 
-#[pyclass(name = "WalkDirEntry", module = "ry.ryo3", frozen)]
+#[pyclass(name = "WalkDirEntry", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyWalkDirEntry(walkdir::DirEntry);
 

@@ -5,8 +5,6 @@ use pyo3::types::PyDict;
 
 static ORJSON_DUMPS: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
 static ORJSON_FRAGMENT: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
-// static ORJSON_OPT_APPEND_NEWLINE: PyOnceLock<Py<PyInt>> = PyOnceLock::new();
-// static ORJSON_OPT_OPT_INDENT_2: PyOnceLock<Py<PyInt>> = PyOnceLock::new();
 
 #[pyfunction(
     signature = (obj, **kwargs)
@@ -51,8 +49,7 @@ pub fn orjson_default<'py>(
         .and_then(|v| fragment(py, v))
 }
 
-#[pymodule(gil_used = false, name = "oj", submodule, module = "ry.ryo3")]
-pub fn oj(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(dumps, m)?)?;
-    Ok(())
-}
+// pub fn oj(m: &Bound<'_, PyModule>) -> PyResult<()> {
+//     m.add_function(wrap_pyfunction!(dumps, m)?)?;
+//     Ok(())
+// }
