@@ -2,7 +2,7 @@ anyio
 hypothesis
 maturin
 mypy
-orjson==3.10.18
+orjson
 pydantic
 pytest
 pytest-asyncio
