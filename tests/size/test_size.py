@@ -130,11 +130,42 @@ class TestSizeObj:
             Size.parse("invalid")
 
     def test_size_from_methods(self) -> None:
+        # kib ~ 1024
         assert int(Size.from_kib(1)) == 1024
+        assert int(Size.from_kibibytes(1)) == 1024
+        # kb ~ 1000
+        assert int(Size.from_kb(1)) == 1000
+        assert int(Size.from_kilobytes(1)) == 1000
+        # mib ~ 1024 * 1024
         assert int(Size.from_mib(1)) == 1024 * 1024
+        assert int(Size.from_mebibytes(1)) == 1024 * 1024
+        # mb ~ 1000 * 1000
+        assert int(Size.from_mb(1)) == 1000 * 1000
+        assert int(Size.from_megabytes(1)) == 1000 * 1000
+        # gib ~ 1024 * 1024 * 1024
         assert int(Size.from_gib(1)) == 1024 * 1024 * 1024
+        assert int(Size.from_gibibytes(1)) == 1024 * 1024 * 1024
+        # gb ~ 1000 * 1000 * 1000
+        assert int(Size.from_gb(1)) == 1000 * 1000 * 1000
+        assert int(Size.from_gigabytes(1)) == 1000 * 1000 * 1000
+        # tib ~ 1024 * 1024 * 1024 * 1024
         assert int(Size.from_tib(1)) == 1024 * 1024 * 1024 * 1024
+        assert int(Size.from_tebibytes(1)) == 1024 * 1024 * 1024 * 1024
+        # tb ~ 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_tb(1)) == 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_terabytes(1)) == 1000 * 1000 * 1000 * 1000
+        # pib  ~ 1024 * 1024 * 1024 * 1024 * 1024
         assert int(Size.from_pib(1)) == 1024 * 1024 * 1024 * 1024 * 1024
+        assert int(Size.from_pebibytes(1)) == 1024 * 1024 * 1024 * 1024 * 1024
+        # pb ~ 1000 * 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_pb(1)) == 1000 * 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_petabytes(1)) == 1000 * 1000 * 1000 * 1000 * 1000
+        # eib ~ 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+        assert int(Size.from_eib(1)) == 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+        assert int(Size.from_exbibytes(1)) == 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+        # eb ~ 1000 * 1000 * 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_eb(1)) == 1000 * 1000 * 1000 * 1000 * 1000 * 1000
+        assert int(Size.from_exabytes(1)) == 1000 * 1000 * 1000 * 1000 * 1000 * 1000
 
 
 def test_weird_off_by_one_multiplication() -> None:

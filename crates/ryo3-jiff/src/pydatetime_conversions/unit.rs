@@ -3,9 +3,9 @@ use jiff::Unit;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 
-impl<'py> IntoPyObject<'py> for JiffUnit {
+impl<'py> IntoPyObject<'py> for &JiffUnit {
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
+    type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = std::convert::Infallible;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
@@ -13,26 +13,26 @@ impl<'py> IntoPyObject<'py> for JiffUnit {
     }
 }
 
-impl<'py> IntoPyObject<'py> for &JiffUnit {
+impl<'py> IntoPyObject<'py> for JiffUnit {
     type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = std::convert::Infallible; // the conversion error type, has to be convertible to `PyErr`
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            Unit::Year => "year",
-            Unit::Month => "month",
-            Unit::Week => "week",
-            Unit::Day => "day",
-            Unit::Hour => "hour",
-            Unit::Minute => "minute",
-            Unit::Second => "second",
-            Unit::Millisecond => "millisecond",
-            Unit::Microsecond => "microsecond",
-            Unit::Nanosecond => "nanosecond",
+            Unit::Year => crate::interns::year(py),
+            Unit::Month => crate::interns::month(py),
+            Unit::Week => crate::interns::week(py),
+            Unit::Day => crate::interns::day(py),
+            Unit::Hour => crate::interns::hour(py),
+            Unit::Minute => crate::interns::minute(py),
+            Unit::Second => crate::interns::second(py),
+            Unit::Millisecond => crate::interns::millisecond(py),
+            Unit::Microsecond => crate::interns::microsecond(py),
+            Unit::Nanosecond => crate::interns::nanosecond(py),
         };
-
-        s.into_pyobject(py)
+        Ok(s.as_borrowed())
     }
 }
 

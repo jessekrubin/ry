@@ -2059,13 +2059,13 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def _round(self, options: SignedDurationRound) -> DateTime: ...
 
 
-# put in quotes to avoid ruff F821 - undefined name
-_TimeSpanArithmeticSingle: t.TypeAlias = TimeSpan | Duration | SignedDuration
-_TimeSpanArithmeticTuple: t.TypeAlias = tuple[
-    _TimeSpanArithmeticSingle, ZonedDateTime | Date | DateTime
-]
 TimeSpanArithmetic: t.TypeAlias = (
-    _TimeSpanArithmeticSingle | _TimeSpanArithmeticTuple
+    TimeSpan
+    | Duration
+    | SignedDuration
+    | tuple[
+        TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime
+    ]
 )
 
 
@@ -2217,16 +2217,6 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
         days_are_24_hours: bool = False,
     ) -> int: ...
     def total_seconds(self) -> int: ...
-    def try_years(self, years: int) -> Self: ...
-    def try_months(self, months: int) -> Self: ...
-    def try_weeks(self, weeks: int) -> Self: ...
-    def try_days(self, days: int) -> Self: ...
-    def try_hours(self, hours: int) -> Self: ...
-    def try_minutes(self, minutes: int) -> Self: ...
-    def try_seconds(self, seconds: int) -> Self: ...
-    def try_milliseconds(self, milliseconds: int) -> Self: ...
-    def try_microseconds(self, microseconds: int) -> Self: ...
-    def try_nanoseconds(self, nanoseconds: int) -> Self: ...
     def _years(self, years: int) -> Self: ...
     def _months(self, months: int) -> Self: ...
     def _weeks(self, weeks: int) -> Self: ...
@@ -4225,6 +4215,7 @@ from ry._types import (
     Never,
     Self,
     ToPy,
+    ToPyTimeDelta,
 )
 from ry.ryo3._bytes import Bytes
 
@@ -4233,7 +4224,7 @@ from ry.ryo3._bytes import Bytes
 # STD::TIME
 # =============================================================================
 @t.final
-class Duration(ToPy[pydt.timedelta]):
+class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     ZERO: Duration
     MIN: Duration
     MAX: Duration

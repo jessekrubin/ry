@@ -13,6 +13,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
+use ryo3_macro_rules::py_type_error;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[pyclass(name = "Offset", module = "ry.ryo3", frozen)]
@@ -32,9 +33,7 @@ impl RyOffset {
             (None, Some(s)) => Offset::from_seconds(s)
                 .map(Self::from)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}"))),
-            _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "Offset() takes either hours or seconds",
-            )),
+            _ => Err(py_type_error!("Offset() takes either hours or seconds")),
         }
     }
 
@@ -117,8 +116,8 @@ impl RyOffset {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item("seconds", self.seconds())?;
-        dict.set_item("fmt", self.string())?;
+        dict.set_item(crate::interns::seconds(py), self.seconds())?;
+        dict.set_item(crate::interns::fmt(py), self.string())?;
         Ok(dict)
     }
 
@@ -139,13 +138,7 @@ impl RyOffset {
 
     #[must_use]
     fn __repr__(&self) -> String {
-        let s = self.0.seconds();
-        // if it is hours then use hours for repr
-        if s % 3600 == 0 {
-            format!("Offset(hours={})", s / 3600)
-        } else {
-            format!("Offset(seconds={s})")
-        }
+        format!("{self}")
     }
 
     #[getter]
@@ -306,6 +299,20 @@ impl From<Offset> for RyOffset {
 impl From<JiffOffset> for RyOffset {
     fn from(value: JiffOffset) -> Self {
         Self::from(value.0)
+    }
+}
+
+impl std::fmt::Display for RyOffset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self.0.seconds();
+        // if it is hours then use hours for repr
+        write!(f, "Offset(")?;
+        if s % 3600 == 0 {
+            write!(f, "hours={}", s / 3600)?;
+        } else {
+            write!(f, "seconds={s}")?;
+        }
+        write!(f, ")")
     }
 }
 

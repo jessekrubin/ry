@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 
 macro_rules! unpaid_intern {
     ($name:ident, $lit:literal) => {
-        pub(crate) fn $name<'py>(py: Python<'py>) -> &Bound<'py, pyo3::types::PyString> {
+        pub(crate) fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
             pyo3::intern!(py, $lit)
         }
     };
@@ -29,8 +29,8 @@ unpaid_intern!(day);
 unpaid_intern!(hour);
 unpaid_intern!(minute);
 unpaid_intern!(second);
-// unpaid_intern!(millisecond);
-// unpaid_intern!(microsecond);
+unpaid_intern!(millisecond);
+unpaid_intern!(microsecond);
 unpaid_intern!(nanosecond);
 
 // plural duration(s)
@@ -47,9 +47,11 @@ unpaid_intern!(nanoseconds);
 
 // tz / offset
 unpaid_intern!(tz);
+unpaid_intern!(fmt);
 
 // weekday
 unpaid_intern!(weekday);
+
 // signed duration
 unpaid_intern!(secs);
 unpaid_intern!(nanos);
@@ -59,3 +61,19 @@ unpaid_intern!(smallest);
 unpaid_intern!(largest);
 unpaid_intern!(mode);
 unpaid_intern!(increment);
+
+// era
+unpaid_intern!(bce, "BCE");
+unpaid_intern!(ce, "CE");
+
+// round-mode
+unpaid_intern!(ceil);
+unpaid_intern!(floor);
+unpaid_intern!(expand);
+unpaid_intern!(trunc);
+unpaid_intern!(half_ceil, "half-ceil");
+unpaid_intern!(half_floor, "half-floor");
+unpaid_intern!(half_expand, "half-expand");
+unpaid_intern!(half_trunc, "half-trunc");
+unpaid_intern!(half_even, "half-even");
+unpaid_intern!(unknown);

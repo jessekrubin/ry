@@ -1,31 +1,30 @@
 use crate::jiff_types::JiffEra;
 use jiff::civil::Era;
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 
 const JIFF_ERA_STRINGS: &str = "'BCE'/'BC', 'CE'/'AD' (case insensitive)";
 
-impl<'py> IntoPyObject<'py> for JiffEra {
+impl<'py> IntoPyObject<'py> for &JiffEra {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = std::convert::Infallible;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
     }
 }
 
-impl<'py> IntoPyObject<'py> for &JiffEra {
+impl<'py> IntoPyObject<'py> for JiffEra {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = std::convert::Infallible;
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            Era::BCE => intern!(py, "bce"),
-            Era::CE => intern!(py, "ce"),
+            Era::BCE => crate::interns::bce(py),
+            Era::CE => crate::interns::ce(py),
         };
         Ok(s.as_borrowed())
     }

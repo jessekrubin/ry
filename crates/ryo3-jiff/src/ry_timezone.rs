@@ -53,7 +53,7 @@ impl RyTimeZone {
         }
         TimeZone::get(time_zone_name)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     // =====================================================================

@@ -1,13 +1,13 @@
 use crate::JiffRoundMode;
 use jiff::RoundMode;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use pyo3::types::PyString;
-use pyo3::{intern, prelude::*};
 
 impl<'py> IntoPyObject<'py> for JiffRoundMode {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = std::convert::Infallible;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
@@ -17,21 +17,21 @@ impl<'py> IntoPyObject<'py> for JiffRoundMode {
 impl<'py> IntoPyObject<'py> for &JiffRoundMode {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = std::convert::Infallible;
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            RoundMode::Ceil => intern!(py, "ceil"),
-            RoundMode::Floor => intern!(py, "floor"),
-            RoundMode::Expand => intern!(py, "expand"),
-            RoundMode::Trunc => intern!(py, "trunc"),
-            RoundMode::HalfCeil => intern!(py, "half-ceil"),
-            RoundMode::HalfFloor => intern!(py, "half-floor"),
-            RoundMode::HalfExpand => intern!(py, "half-expand"),
-            RoundMode::HalfTrunc => intern!(py, "half-trunc"),
-            RoundMode::HalfEven => intern!(py, "half-even"),
-            _ => intern!(py, "unknown"),
+            RoundMode::Ceil => crate::interns::ceil(py),
+            RoundMode::Floor => crate::interns::floor(py),
+            RoundMode::Expand => crate::interns::expand(py),
+            RoundMode::Trunc => crate::interns::trunc(py),
+            RoundMode::HalfCeil => crate::interns::half_ceil(py),
+            RoundMode::HalfFloor => crate::interns::half_floor(py),
+            RoundMode::HalfExpand => crate::interns::half_expand(py),
+            RoundMode::HalfTrunc => crate::interns::half_trunc(py),
+            RoundMode::HalfEven => crate::interns::half_even(py),
+            _ => crate::interns::unknown(py),
         };
         Ok(s.as_borrowed())
     }

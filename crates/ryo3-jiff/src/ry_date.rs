@@ -13,12 +13,11 @@ use crate::spanish::Spanish;
 use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObject, IntoPyObjectExt};
-use ryo3_macro_rules::any_repr;
+use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -291,9 +290,7 @@ impl RyDate {
 
     fn series(&self, period: &RySpan) -> PyResult<RyDateSeries> {
         if period.0.is_zero() {
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "period cannot be zero",
-            ))
+            Err(py_value_error!("period cannot be zero"))
         } else {
             Ok(RyDateSeries::from(self.0.series(period.0)))
         }
@@ -456,8 +453,7 @@ impl RyDate {
     }
 
     #[staticmethod]
-    #[pyo3(name = "try_from")]
-    fn py_try_from<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
@@ -488,20 +484,18 @@ impl RyDate {
             Self::from_pydate(d).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
-            Err(PyTypeError::new_err(format!(
-                "Date conversion error: {valtype}",
-            )))
+            py_type_err!("Date conversion error: {valtype}",)
         }
     }
 
     /// Try to create a Date from a variety of python objects
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_parse<'py>(
+    fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        Self::py_try_from(value)
+        Self::from_any(value).map_err(map_py_value_err)
     }
 
     #[cfg(feature = "pydantic")]

@@ -211,8 +211,6 @@ impl Serialize for PyDurationSerializer<'_> {
         let dur = *pydur.inner();
         if let Ok(signed_duration) = jiff::SignedDuration::try_from(dur) {
             signed_duration.serialize(serializer)
-        } else if let Ok(tspan) = jiff::Span::try_from(dur) {
-            tspan.serialize(serializer)
         } else {
             // TODO: Figure out what to do in this case... I dont love this...
             dur.serialize(serializer)

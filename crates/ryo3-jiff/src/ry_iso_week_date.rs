@@ -127,12 +127,7 @@ impl RyISOWeekDate {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "ISOWeekDate({}, {}, '{}')",
-            self.year(),
-            self.week(),
-            self.weekday()
-        )
+        format!("{self}")
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -177,6 +172,18 @@ impl RyISOWeekDate {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
+    }
+}
+
+impl std::fmt::Display for RyISOWeekDate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ISOWeekDate({}, {}, '{}')",
+            self.year(),
+            self.week(),
+            self.weekday()
+        )
     }
 }
 

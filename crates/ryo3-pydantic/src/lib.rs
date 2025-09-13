@@ -41,10 +41,16 @@ pub mod interns {
         };
     }
 
-    unpaid_intern!(_pydantic_parse);
+    unpaid_intern!(_pydantic_validate);
     unpaid_intern!(json_unless_none, "json-unless-none");
     unpaid_intern!(no_info_wrap_validator_function);
-    unpaid_intern!(serialization);
     unpaid_intern!(to_string_ser_schema);
     unpaid_intern!(when_used);
+    // kwargs
+    unpaid_intern!(serialization);
+    // datetime schemas
+    unpaid_intern!(timedelta_schema);
+    unpaid_intern!(datetime_schema);
+    unpaid_intern!(date_schema);
+    unpaid_intern!(time_schema);
 }
