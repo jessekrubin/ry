@@ -35,10 +35,8 @@ tracing.workspace = true
 workspace = true
 
 [features]
-default = [
-  #  "parking-lot"
-]
-# parking-lot = ["parking_lot"]
-blocking = [
-  "reqwest/blocking",
-]
+default = []
+ry = []
+# blocking = [
+#   "reqwest/blocking",
+# ]

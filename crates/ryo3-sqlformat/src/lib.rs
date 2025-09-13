@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 
-#[pyclass(name = "SqlfmtQueryParams", module = "ry.ryo3", frozen)]
+#[pyclass(name = "SqlfmtQueryParams", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct PySqlfmtQueryParams {
     pub params: QueryParams,

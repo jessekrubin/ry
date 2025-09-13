@@ -3,7 +3,8 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 use std::path::PathBuf;
 
-#[pyclass(name = "Pattern", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Pattern", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct PyPattern(pub(crate) glob::Pattern);
 

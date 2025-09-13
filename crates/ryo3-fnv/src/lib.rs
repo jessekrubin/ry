@@ -9,7 +9,8 @@ use pyo3::{PyResult, wrap_pyfunction};
 use fnv::FnvHasher;
 use std::sync::Mutex;
 
-#[pyclass(name = "FnvHasher", module = "ry.ryo3", frozen)]
+#[pyclass(name = "FnvHasher", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFnvHasher(pub Mutex<FnvHasher>);
 
 impl PyFnvHasher {

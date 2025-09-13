@@ -16,7 +16,8 @@ use std::str::FromStr;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeSpan", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimeSpan", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySpan(pub(crate) Span);
 
 impl RySpan {

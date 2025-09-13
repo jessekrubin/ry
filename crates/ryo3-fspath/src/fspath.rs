@@ -18,7 +18,8 @@ const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
 type ArcPathBuf = std::sync::Arc<PathBuf>;
 
-#[pyclass(name = "FsPath", module = "ry.ryo3", frozen)]
+#[pyclass(name = "FsPath", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
     pth: ArcPathBuf,
@@ -812,7 +813,8 @@ where
     }
 }
 
-#[pyclass(name = "FsPathReadDir", module = "ry.ryo3", frozen)]
+#[pyclass(name = "FsPathReadDir", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFsPathReadDir {
     iter: Mutex<std::fs::ReadDir>,
 }

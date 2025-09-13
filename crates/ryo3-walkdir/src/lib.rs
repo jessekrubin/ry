@@ -8,7 +8,8 @@ use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
 
-#[pyclass(name = "WalkdirGen", module = "ry.ryo3", frozen)]
+#[pyclass(name = "WalkdirGen", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWalkdirGen {
     objects: bool,
     iter: Mutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>>,

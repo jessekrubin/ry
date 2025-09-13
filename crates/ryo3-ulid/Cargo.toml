@@ -20,7 +20,8 @@ ulid.workspace = true
 uuid.workspace = true
 
 [features]
-default = [
+default = []
+ry = [
   "serde",
 ]
 serde = [

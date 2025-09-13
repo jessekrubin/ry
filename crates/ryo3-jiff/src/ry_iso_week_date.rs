@@ -8,7 +8,8 @@ use pyo3::types::{PyDict, PyTuple};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "ISOWeekDate", module = "ry.ryo3", frozen)]
+#[pyclass(name = "ISOWeekDate", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 
 #[pymethods]

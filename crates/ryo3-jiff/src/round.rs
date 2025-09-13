@@ -113,7 +113,8 @@ impl RoundOptions {
 // DateTimeRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "DateTimeRound", module = "ry.ryo3", frozen)]
+#[pyclass(name = "DateTimeRound", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeRound {
     pub(crate) options: RoundOptions,
     pub(crate) jiff_round: DateTimeRound,
@@ -228,7 +229,8 @@ impl Display for RyDateTimeRound {
 // SignedDurationRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "SignedDurationRound", module = "ry.ryo3", frozen)]
+#[pyclass(name = "SignedDurationRound", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDurationRound {
     options: RoundOptions,
     pub(crate) jiff_round: SignedDurationRound,
@@ -335,7 +337,8 @@ impl Display for RySignedDurationRound {
 // TimeRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "TimeRound", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimeRound", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeRound {
     options: RoundOptions,
     pub(crate) jiff_round: TimeRound,
@@ -442,7 +445,8 @@ impl Display for RyTimeRound {
 // TimestampRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "TimestampRound", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimestampRound", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampRound {
     options: RoundOptions,
     pub(crate) jiff_round: TimestampRound,
@@ -550,7 +554,8 @@ impl Display for RyTimestampRound {
 // ZonedDateTimeRound
 // ---------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "ZonedDateTimeRound", module = "ry.ryo3", frozen)]
+#[pyclass(name = "ZonedDateTimeRound", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDateTimeRound {
     options: RoundOptions,
     pub(crate) jiff_round: ZonedRound,
@@ -659,7 +664,8 @@ impl Display for RyZonedDateTimeRound {
 // OffsetRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "OffsetRound", module = "ry.ryo3", frozen)]
+#[pyclass(name = "OffsetRound", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyOffsetRound {
     options: RoundOptions,
     pub(crate) jiff_round: OffsetRound,

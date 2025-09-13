@@ -41,7 +41,8 @@ impl GlobDType {
     }
 }
 
-#[pyclass(name = "GlobPaths", module = "ry.ryo3", frozen)]
+#[pyclass(name = "GlobPaths", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyGlobPaths {
     inner: Arc<Mutex<::glob::Paths>>,
     strict: bool,

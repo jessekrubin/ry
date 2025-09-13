@@ -201,7 +201,8 @@ impl From<&PyOpenOptions> for AsyncFileProperties {
     }
 }
 
-#[pyclass(name = "AsyncFile", module = "ry.ryo3", frozen)]
+#[pyclass(name = "AsyncFile", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncFile {
     props: AsyncFileProperties,
     inner: Arc<Mutex<PyAsyncFileInner>>,

@@ -2,7 +2,8 @@
 use crate::{RyTimeZone, errors::map_py_value_err};
 use jiff::tz::TimeZoneDatabase;
 use pyo3::prelude::*;
-#[pyclass(name = "TimeZoneDatabase", module = "ry.ryo3", frozen)]
+#[pyclass(name = "TimeZoneDatabase", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct RyTimeZoneDatabase {
     inner: Option<TimeZoneDatabase>,

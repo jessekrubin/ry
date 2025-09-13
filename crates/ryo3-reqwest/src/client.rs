@@ -15,7 +15,8 @@ use ryo3_url::extract_url;
 use tracing::debug;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "HttpClient", module = "ry.ryo3", frozen)]
+#[pyclass(name = "HttpClient", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyHttpClient {
     client: reqwest::Client,
     cfg: ClientConfig,

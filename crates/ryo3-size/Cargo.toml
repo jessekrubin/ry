@@ -15,5 +15,8 @@ description = "python + size crate (https://crates.io/crates/size)"
 pyo3 = { workspace = true, features = [] }
 size.workspace = true
 
+[features]
+ry = []
+
 [lints]
 workspace = true

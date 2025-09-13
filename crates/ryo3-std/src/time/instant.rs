@@ -6,7 +6,8 @@ use pyo3::pyclass::CompareOp;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 
-#[pyclass(name = "Instant", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Instant", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyInstant(pub Instant);
 

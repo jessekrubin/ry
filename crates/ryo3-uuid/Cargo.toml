@@ -21,7 +21,8 @@ uuid.workspace = true
 serde = { workspace = true, features = ["derive"] }
 
 [features]
-default = [
+default = []
+ry = [
   "serde",
 ]
 serde = [

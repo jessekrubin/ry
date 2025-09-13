@@ -14,7 +14,8 @@ use std::sync::Mutex;
 use std::time::SystemTime;
 
 // TODO: this is stupid... should really be some sort of enum as `is_dir`/`is_file`/`is_symlink` are mutually exclusive
-#[pyclass(name = "FileType", module = "ry.ryo3", frozen)]
+#[pyclass(name = "FileType", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PyFileType(pub std::fs::FileType);
 
@@ -72,7 +73,8 @@ impl PyFileType {
     }
 }
 
-#[pyclass(name = "Metadata", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Metadata", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
 pub struct PyMetadata(pub std::fs::Metadata);
 
@@ -187,7 +189,8 @@ impl PyMetadata {
     }
 }
 
-#[pyclass(name = "Permissions", module = "ry.ryo3", frozen)]
+#[pyclass(name = "Permissions", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyPermissions(pub std::fs::Permissions);
 
 impl From<std::fs::Permissions> for PyPermissions {
@@ -228,7 +231,8 @@ impl PyPermissions {
     }
 }
 
-#[pyclass(name = "DirEntry", module = "ry.ryo3", frozen)]
+#[pyclass(name = "DirEntry", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDirEntry(pub std::fs::DirEntry);
 
 impl From<std::fs::DirEntry> for PyDirEntry {
@@ -439,7 +443,8 @@ pub fn read_dir(pth: PathLike) -> PyResult<PyReadDir> {
     }
 }
 
-#[pyclass(name = "ReadDir", module = "ry.ryo3", frozen)]
+#[pyclass(name = "ReadDir", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyReadDir {
     path: PathBuf,
     iter: Mutex<std::fs::ReadDir>,

@@ -21,7 +21,9 @@ url = { workspace = true }
 [features]
 default = [
   "serde",
-  "ryo3-std",
+]
+ry = [
+  "serde",
 ]
 serde = [
   "dep:serde",

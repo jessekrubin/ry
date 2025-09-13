@@ -26,6 +26,10 @@ pyo3-build-config = { workspace = true }
 workspace = true
 
 [features]
-default = ["json"]
+default = []
+ry = [
+  "serde",
+  "json",
+]
 serde = ["dep:serde"]
 json = ["serde", "serde_json"]

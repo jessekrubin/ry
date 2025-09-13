@@ -7,19 +7,22 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "SocketAddrV4", module = "ry.ryo3", frozen)]
+#[pyclass(name = "SocketAddrV4", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddrV4(pub(crate) SocketAddrV4);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "SocketAddrV6", module = "ry.ryo3", frozen)]
+#[pyclass(name = "SocketAddrV6", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddrV6(pub(crate) SocketAddrV6);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "SocketAddr", module = "ry.ryo3", frozen)]
+#[pyclass(name = "SocketAddr", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddr(pub(crate) SocketAddr);
 
