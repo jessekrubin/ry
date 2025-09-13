@@ -255,6 +255,7 @@ def test_socket_addrs() -> None:
     addrs = url.socket_addrs()
 
     assert isinstance(addrs, list)
+    print(addrs)
     assert all(isinstance(addr, ry.SocketAddr) for addr in addrs)
 
 

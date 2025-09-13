@@ -25,7 +25,8 @@ fn gen_new() -> PyResult<Ulid> {
         .map_err(|_| PyOverflowError::new_err("ULID-generator overflow"))
 }
 
-#[pyclass(name = "ULID", module = "ry.ulid", frozen, weakref)]
+#[pyclass(name = "ULID", frozen, weakref)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ulid"))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyUlid(Ulid);

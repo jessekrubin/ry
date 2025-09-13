@@ -5,7 +5,8 @@ use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyString, PyTuple};
 
-#[pyclass(name = "HttpStatus", module = "ry.ryo3.http", frozen)]
+#[pyclass(name = "HttpStatus", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Debug)]
 pub struct PyHttpStatus(pub http::StatusCode);
 

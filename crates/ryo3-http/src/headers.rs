@@ -11,7 +11,8 @@ use std::fmt::Display;
 use std::ops::Deref;
 use std::sync::Arc;
 
-#[pyclass(name = "Headers", module = "ry.ryo3", frozen, mapping)]
+#[pyclass(name = "Headers", frozen, mapping)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub Arc<Mutex<HeaderMap>>);
 

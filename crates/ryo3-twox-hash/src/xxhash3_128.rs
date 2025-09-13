@@ -7,7 +7,8 @@ use ryo3_core::PyLock;
 use std::sync::Mutex;
 use twox_hash::XxHash3_128;
 
-#[pyclass(name = "xxh3_128", module = "ry.ryo3.xxhash", frozen)]
+#[pyclass(name = "xxh3_128", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash3_128 {
     seed: u64,
     hasher: Mutex<XxHash3_128>,

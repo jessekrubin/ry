@@ -8,7 +8,8 @@ use std::hash::Hasher;
 use std::sync::Mutex;
 use twox_hash::XxHash32;
 
-#[pyclass(name = "xxh32", module = "ry.ryo3.xxhash", frozen)]
+#[pyclass(name = "xxh32", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash32 {
     seed: u32,
     hasher: Mutex<XxHash32>,

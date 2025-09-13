@@ -10,7 +10,8 @@ use reqwest::StatusCode;
 use ryo3_url::PyUrl;
 
 #[pyclass]
-#[pyo3(name = "BlockingResponse", module = "ry.ryo3")]
+#[pyo3(name = "BlockingResponse")]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyBlockingResponse {
     // Store the response in an Option so we can take ownership later.
