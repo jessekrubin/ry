@@ -120,6 +120,10 @@ impl RyZoned {
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
+    fn __format__(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
+    }
+
     fn strftime(&self, fmt: &str) -> String {
         self.0.strftime(fmt).to_string()
     }

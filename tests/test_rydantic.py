@@ -521,7 +521,7 @@ class TestTimeSpan:
             "P0.5D",
         ],
     )
-    def test_parse_timespan_err(self, value: Any) -> None:
+    def test_parse_timespan_err(self, value: str) -> None:
         with pytest.raises(pydantic.ValidationError):
             _m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]
 

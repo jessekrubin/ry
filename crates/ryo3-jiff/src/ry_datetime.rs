@@ -543,6 +543,10 @@ impl RyDateTime {
         Self::from(self.0.start_of_day())
     }
 
+    fn __format__(&self, fmt: &str) -> String {
+        self.0.strftime(fmt).to_string()
+    }
+
     fn strftime(&self, fmt: &str) -> String {
         self.0.strftime(fmt).to_string()
     }
@@ -572,6 +576,7 @@ impl RyDateTime {
             .map(RySpan::from)
             .map_err(map_py_value_err)
     }
+
     #[pyo3(
        signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
     )]
