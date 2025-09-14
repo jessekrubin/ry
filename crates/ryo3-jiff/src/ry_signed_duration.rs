@@ -169,7 +169,7 @@ impl RySignedDuration {
         } else if fmt.is_empty() {
             Ok(self.0.to_string())
         } else {
-            py_type_err!("Invalid format specifier '{fmt}' for TimeSpan")
+            py_type_err!("Invalid format specifier '{fmt}' for SignedDuration")
         }
     }
 
