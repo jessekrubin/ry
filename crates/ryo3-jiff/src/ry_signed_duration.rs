@@ -163,6 +163,16 @@ impl RySignedDuration {
         PyDuration::from(self.0.unsigned_abs())
     }
 
+    fn __format__(&self, fmt: &str) -> PyResult<String> {
+        if fmt == "#" {
+            Ok(format!("{:#}", self.0))
+        } else if fmt.is_empty() {
+            Ok(self.0.to_string())
+        } else {
+            py_type_err!("Invalid format specifier '{fmt}' for TimeSpan")
+        }
+    }
+
     #[pyo3(signature = (*, friendly=false))]
     fn string(&self, friendly: bool) -> String {
         if friendly {

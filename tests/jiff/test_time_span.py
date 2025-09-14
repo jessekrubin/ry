@@ -46,13 +46,21 @@ class TestTimeSpanStrings:
     def test_span_str(self) -> None:
         s = ry.timespan(years=1)
         assert str(s) == "P1Y"
+        assert f"{s}" == "P1Y"
 
-    def test_span_str_human(self) -> None:
+    def test_span_str_friendly(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
         assert s.string(friendly=True) == "2mo 10d 2h 30m"
+        assert s.friendly() == "2mo 10d 2h 30m"
+        assert f"{s:#}" == "2mo 10d 2h 30m"
 
         with pytest.raises(TypeError):
             assert s.string(True) == "2mo 10d 2h 30m"  # type: ignore[misc] # noqa: FBT003
+
+    def test_invalid_format_specifier(self) -> None:
+        s = ry.TimeSpan.parse("P2M10DT2H30M")
+        with pytest.raises(TypeError):
+            assert f"{s:alien}" == "P2M10DT2H30M"
 
     def test_span_str_alien_or_idk_but_not_human(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
