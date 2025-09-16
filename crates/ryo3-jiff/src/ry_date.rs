@@ -33,11 +33,9 @@ pub struct RyDate(pub(crate) Date);
 impl RyDate {
     #[new]
     pub(crate) fn py_new(year: i16, month: i8, day: i8) -> PyResult<Self> {
-        Date::new(year, month, day).map(Self::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "{e} (year={year}, month={month}, day={day})",
-            ))
-        })
+        Date::new(year, month, day)
+            .map(Self::from)
+            .map_err(|e| py_value_error!("{e} (year={year}, month={month}, day={day})",))
     }
 
     #[expect(non_snake_case)]
@@ -113,7 +111,7 @@ impl RyDate {
         self.0
             .to_zoned(tz.into())
             .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -266,7 +264,7 @@ impl RyDate {
         self.0
             .in_tz(tz)
             .map(RyZoned::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[pyo3(

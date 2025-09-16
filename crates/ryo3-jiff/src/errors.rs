@@ -15,3 +15,10 @@ where
 {
     PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!("{e}"))
 }
+
+pub(crate) fn map_py_runtime_err<E>(e: E) -> PyErr
+where
+    E: fmt::Display,
+{
+    PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{e}"))
+}

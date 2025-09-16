@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use pyo3::{
-    exceptions::{PyTypeError, PyValueError},
+    exceptions::PyTypeError,
     prelude::*,
     types::{PyBytes, PyInt},
 };
@@ -29,15 +29,15 @@ impl FromPyObject<'_> for Byte {
             if let Ok(b) = i.extract::<u8>() {
                 Ok(Self(b))
             } else {
-                Err(PyValueError::new_err("Integer out of range for a byte"))
+                Err(PyTypeError::new_err("Integer out of range for a byte"))
             }
         } else if let Ok(i) = ob.downcast::<PyBytes>() {
             let l = i.len()?;
             if l == 1 {
                 let b = i.extract::<[u8; 1]>()?;
-                Ok(Self(b[0]))
+                Ok(Self::from(b[0]))
             } else {
-                Err(PyValueError::new_err(format!(
+                Err(PyTypeError::new_err(format!(
                     "Expected a single byte, got a bytes object of length {l}"
                 )))
             }

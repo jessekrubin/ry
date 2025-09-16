@@ -974,6 +974,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
         self,
         other: TimeSpan,
         relative: ZonedDateTime | DateTime | Date | None = None,
+        *,
         days_are_24_hours: bool = False,
     ) -> int: ...
     def negate(self) -> Self: ...
@@ -1007,6 +1008,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
         self,
         unit: JiffUnit,
         relative: ZonedDateTime | Date | DateTime | None = None,
+        *,
         days_are_24_hours: bool = False,
     ) -> int: ...
     def total_seconds(self) -> int: ...
