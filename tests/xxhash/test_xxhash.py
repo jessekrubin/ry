@@ -55,6 +55,12 @@ class TestXxh32Hasher:
         assert ry_xxh.xxh32(b"a", seed=1).intdigest() == 4111757423
         assert ry_xxh.xxh32(b"a", seed=2**32 - 1).intdigest() == 3443684653
 
+    def test_xxh32_hasher_oneshot_int_digest(self) -> None:
+        assert ry_xxh.xxh32.oneshot(b"a") == 1426945110
+        assert ry_xxh.xxh32.oneshot(b"a", seed=0) == 1426945110
+        assert ry_xxh.xxh32.oneshot(b"a", seed=1) == 4111757423
+        assert ry_xxh.xxh32.oneshot(b"a", seed=2**32 - 1) == 3443684653
+
     def test_xxh32_hasher_hexdigest(self) -> None:
         assert ry_xxh.xxh32(b"a").hexdigest() == (1426945110).to_bytes(4, "big").hex()
         assert (
@@ -200,6 +206,10 @@ def _assert_xxh64_all_forms(
     actual_ints = [ry_xxh.xxh64_intdigest(data, seed=s) for s in seeds]
     assert actual_ints == expected_ints
 
+    # oneshot
+    actual_ints_oneshot = [ry_xxh.xxh64.oneshot(data, seed=s) for s in seeds]
+    assert actual_ints_oneshot == expected_ints
+
     # hexdigest
     actual_hexes = [ry_xxh.xxh64_hexdigest(data, seed=s) for s in seeds]
     assert [int(h, 16) for h in actual_hexes] == expected_ints
@@ -226,6 +236,14 @@ def _assert_xxh3_64_all_forms(
     # digest
     actual_digests = [ry_xxh.xxh3_64_digest(data, seed=s) for s in seeds]
     assert [int.from_bytes(d, "big") for d in actual_digests] == expected_ints
+
+    # oneshot on hasher
+    actual_ints_oneshot = [ry_xxh.xxh3_64.oneshot(data, seed=s) for s in seeds]
+    assert actual_ints_oneshot == expected_ints
+
+    # hasher init
+    actual_ints_hasher = [ry_xxh.xxh3_64(data, seed=s).intdigest() for s in seeds]
+    assert actual_ints_hasher == expected_ints
 
 
 def _assert_xxh3_128_all_forms(
@@ -258,6 +276,14 @@ def _assert_xxh3_128_all_forms(
     # digest
     actual_digests = [ry_xxh.xxh128_digest(data, seed=s) for s in seeds]
     assert [int.from_bytes(d, "big") for d in actual_digests] == expected_ints
+
+    # oneshot on hasher
+    actual_ints_oneshot = [ry_xxh.xxh3_128.oneshot(data, seed=s) for s in seeds]
+    assert actual_ints_oneshot == expected_ints
+
+    # hasher init
+    actual_ints_hasher = [ry_xxh.xxh3_128(data, seed=s).intdigest() for s in seeds]
+    assert actual_ints_hasher == expected_ints
 
 
 # -----------------------------------------------------------------------------
