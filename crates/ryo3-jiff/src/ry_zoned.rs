@@ -1,4 +1,4 @@
-use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::errors::{map_py_overflow_err, map_py_runtime_err, map_py_value_err};
 use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::round::RyZonedDateTimeRound;
 use crate::ry_datetime::RyDateTime;
@@ -18,7 +18,6 @@ use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::{Offset, TimeZone};
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
@@ -173,9 +172,8 @@ impl RyZoned {
         } else {
             ISOFORMAT_PRINTER.print_datetime(&dattie, &mut s)
         }
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{e}")))?;
-        print_isoformat_offset(&offset, &mut s)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{e}")))?;
+        .map_err(map_py_runtime_err)?;
+        print_isoformat_offset(&offset, &mut s).map_err(map_py_runtime_err)?;
         Ok(s)
     }
 
@@ -359,7 +357,7 @@ impl RyZoned {
         self.0
             .round(zdt_round)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn _round(&self, zdt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
@@ -600,9 +598,7 @@ impl RyZoned {
                 let offset = date.extract::<RyOffset>()?;
                 builder = builder.offset(offset.0);
             } else {
-                return Err(PyErr::new::<PyTypeError, _>(format!(
-                    "obj must be a Date, Time or Offset; given: {obj}",
-                )));
+                return py_type_err!("obj must be a Date, Time or Offset; given: {obj}",);
             }
         }
 

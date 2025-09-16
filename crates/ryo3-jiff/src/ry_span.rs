@@ -23,9 +23,7 @@ pub struct RySpan(pub(crate) Span);
 impl RySpan {
     pub(crate) fn assert_non_zero(&self) -> PyResult<()> {
         if self.0.is_zero() {
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Span cannot be zero",
-            ))
+            Err(py_value_error!("Span cannot be zero",))
         } else {
             Ok(())
         }
@@ -172,14 +170,12 @@ impl RySpan {
         SPAN_PARSER
             .parse_span(s)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        Span::from_str(s)
-            .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+        Span::from_str(s).map(Self::from).map_err(map_py_value_err)
     }
 
     #[staticmethod]
@@ -358,24 +354,24 @@ impl RySpan {
                     .0
                     .to_duration(&z.0)
                     .map(RySignedDuration)
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
+                    .map_err(map_py_value_err),
                 RySpanRelativeTo::Date(d) => self
                     .0
                     .to_duration(d.0)
                     .map(RySignedDuration)
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
+                    .map_err(map_py_value_err),
                 RySpanRelativeTo::DateTime(dt) => self
                     .0
                     .to_duration(dt.0)
                     .map(RySignedDuration)
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())),
+                    .map_err(map_py_value_err),
             }
         } else {
             let now = jiff::Zoned::now();
             self.0
                 .to_duration(&now)
                 .map(RySignedDuration)
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
+                .map_err(map_py_value_err)
         }
     }
 
@@ -435,8 +431,8 @@ impl RySpan {
         days_are_24_hours: Option<bool>,
     ) -> PyResult<i8> {
         if days_are_24_hours.is_some() && relative.is_some() {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Cannot provide both relative and days_are_24_hours",
+            return Err(py_value_error!(
+                "Cannot provide relative with days_are_24_hours=True",
             ));
         }
         if let Some(r) = relative {
@@ -631,17 +627,17 @@ impl RySpan {
         self.0.signum()
     }
 
-    #[pyo3(signature = (unit, relative=None, days_are_24_hours=None))]
+    #[pyo3(signature = (unit, relative=None, *, days_are_24_hours=false))]
     fn total(
         &self,
         unit: JiffUnit,
         relative: Option<SpanCompareRelative>,
-        days_are_24_hours: Option<bool>,
+        days_are_24_hours: bool,
     ) -> PyResult<f64> {
         // err on both relative and days_are_24_hours provided
-        if relative.is_some() && days_are_24_hours.is_some() {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Cannot provide both relative and days_are_24_hours",
+        if relative.is_some() && days_are_24_hours {
+            return Err(py_value_error!(
+                "Cannot provide relative with days_are_24_hours=True",
             ));
         }
         if let Some(r) = relative {
@@ -656,19 +652,15 @@ impl RySpan {
                     Ok(self.0.total((unit.0, dt.0)).map_err(map_py_value_err)?)
                 }
             }
+        } else if days_are_24_hours {
+            let span_total = SpanRelativeTo::days_are_24_hours();
+            let a = self
+                .0
+                .total((unit.0, span_total))
+                .map_err(map_py_value_err)?;
+            Ok(a)
         } else {
-            let days_are_24_hours = days_are_24_hours.unwrap_or(false);
-
-            if days_are_24_hours {
-                let span_total = SpanRelativeTo::days_are_24_hours();
-                let a = self
-                    .0
-                    .total((unit.0, span_total))
-                    .map_err(map_py_value_err)?;
-                Ok(a)
-            } else {
-                Ok(self.0.total(unit.0).map_err(map_py_value_err)?)
-            }
+            Ok(self.0.total(unit.0).map_err(map_py_value_err)?)
         }
     }
 

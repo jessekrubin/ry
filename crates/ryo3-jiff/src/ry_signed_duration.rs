@@ -1,6 +1,7 @@
 use crate::JiffRoundMode;
 use crate::JiffSignedDuration;
 use crate::JiffUnit;
+use crate::errors::map_py_overflow_err;
 use crate::errors::map_py_value_err;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::round::RySignedDurationRound;
@@ -11,7 +12,6 @@ use pyo3::prelude::*;
 
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::PyOverflowError;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_err, py_value_error};
 use ryo3_std::time::PyDuration;
@@ -101,7 +101,7 @@ impl RySignedDuration {
     fn from_str(s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
@@ -148,7 +148,7 @@ impl RySignedDuration {
     fn to_timespan(&self) -> PyResult<RySpan> {
         Span::try_from(self.0)
             .map(RySpan::from)
-            .map_err(|e| PyErr::new::<PyOverflowError, _>(format!("{e}")))
+            .map_err(map_py_overflow_err)
     }
 
     fn __abs__(&self) -> Self {
@@ -471,14 +471,14 @@ impl RySignedDuration {
         self.0
             .round(dt_round)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     fn _round(&self, dt_round: &RySignedDurationRound) -> PyResult<Self> {
         self.0
             .round(dt_round.jiff_round)
             .map(Self::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]

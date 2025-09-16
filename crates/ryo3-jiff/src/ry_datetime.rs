@@ -18,10 +18,9 @@ use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
 use jiff::tz::TimeZone;
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_macro_rules::{any_repr, py_type_err};
+use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
@@ -403,9 +402,7 @@ impl RyDateTime {
                 let time = time.extract::<RyTime>()?;
                 builder = builder.time(time.0);
             } else {
-                return Err(PyErr::new::<PyTypeError, _>(format!(
-                    "obj must be a Date or Time; given: {obj}",
-                )));
+                return Err(py_type_error!("obj must be a Date or Time; given: {obj}"));
             }
         }
         // only override if the Option is Some
