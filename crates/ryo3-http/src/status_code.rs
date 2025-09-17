@@ -11,6 +11,7 @@ use pyo3::types::{PyString, PyTuple};
 pub struct PyHttpStatus(pub http::StatusCode);
 
 #[pymethods]
+#[expect(clippy::trivially_copy_pass_by_ref)]
 impl PyHttpStatus {
     #[new]
     #[pyo3(signature = (code))]
@@ -26,104 +27,105 @@ impl PyHttpStatus {
     }
 
     #[must_use]
-    pub fn __str__(&self) -> String {
+    fn __str__(&self) -> String {
         format!("{:?}", self.0)
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    fn __repr__(&self) -> String {
         format!("{:?}", self.0)
     }
 
     #[must_use]
-    pub fn __int__(&self) -> u16 {
+    fn __int__(&self) -> u16 {
         self.0.as_u16()
     }
 
     #[must_use]
-    pub fn to_py(&self) -> u16 {
+    #[expect(clippy::wrong_self_convention)]
+    fn to_py(&self) -> u16 {
         self.0.as_u16()
     }
 
     #[must_use]
     #[getter]
-    pub fn canonical_reason<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
+    fn canonical_reason<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
         status_code_pystring(py, self.0.as_u16())
     }
 
     #[getter]
     #[must_use]
-    pub fn reason<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
+    fn reason<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
         status_code_pystring(py, self.0.as_u16())
     }
 
     #[getter]
     #[must_use]
-    pub fn is_informational(&self) -> bool {
+    fn is_informational(&self) -> bool {
         self.0.is_informational()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_success(&self) -> bool {
+    fn is_success(&self) -> bool {
         self.0.is_success()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_redirect(&self) -> bool {
+    fn is_redirect(&self) -> bool {
         self.0.is_redirection()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_redirection(&self) -> bool {
+    fn is_redirection(&self) -> bool {
         self.0.is_redirection()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_client_error(&self) -> bool {
+    fn is_client_error(&self) -> bool {
         self.0.is_client_error()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_server_error(&self) -> bool {
+    fn is_server_error(&self) -> bool {
         self.0.is_server_error()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_error(&self) -> bool {
+    fn is_error(&self) -> bool {
         self.0.is_server_error() || self.0.is_client_error()
     }
 
     #[getter]
     #[must_use]
-    pub fn is_ok(&self) -> bool {
+    fn is_ok(&self) -> bool {
         self.0.is_success()
     }
 
     #[getter]
     #[must_use]
-    pub fn ok(&self) -> bool {
+    fn ok(&self) -> bool {
         self.0.is_success()
     }
 
     #[must_use]
-    pub fn __hash__(&self) -> u64 {
+    fn __hash__(&self) -> u64 {
         u64::from(self.0.as_u16())
     }
 
     #[must_use]
-    pub fn __bool__(&self) -> bool {
+    fn __bool__(&self) -> bool {
         self.0.is_success()
     }
 
-    pub fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        if let Ok(status_downcast_gucci) = other.cast::<Self>() {
-            let status = status_downcast_gucci.extract::<Self>()?;
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        if let Ok(status_downcast_gucci) = other.cast_exact::<Self>() {
+            let status = status_downcast_gucci.get();
             match op {
                 CompareOp::Eq => Ok(self.0 == status.0),
                 CompareOp::Ne => Ok(self.0 != status.0),
@@ -544,10 +546,12 @@ macro_rules! status_code_match {
 
 pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'_, PyString>> {
     status_code_match!(py, status_code, {
+        // 1xx
         (100, "Continue"),
         (101, "Switching Protocols"),
         (102, "Processing"),
 
+        // 2xx
         (200, "OK"),
         (201, "Created"),
         (202, "Accepted"),
@@ -559,6 +563,7 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
         (208, "Already Reported"),
         (226, "IM Used"),
 
+        // 3xx
         (300, "Multiple Choices"),
         (301, "Moved Permanently"),
         (302, "Found"),
@@ -568,6 +573,7 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
         (307, "Temporary Redirect"),
         (308, "Permanent Redirect"),
 
+        // 4xx
         (400, "Bad Request"),
         (401, "Unauthorized"),
         (402, "Payment Required"),
@@ -587,7 +593,6 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
         (416, "Range Not Satisfiable"),
         (417, "Expectation Failed"),
         (418, "I'm a teapot"),
-
         (421, "Misdirected Request"),
         (422, "Unprocessable Entity"),
         (423, "Locked"),
@@ -599,6 +604,7 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
         (431, "Request Header Fields Too Large"),
         (451, "Unavailable For Legal Reasons"),
 
+        // 5xx
         (500, "Internal Server Error"),
         (501, "Not Implemented"),
         (502, "Bad Gateway"),

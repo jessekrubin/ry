@@ -82,12 +82,12 @@ impl PyGlob {
     }
 
     #[must_use]
-    pub fn is_match_str(&self, path: &str) -> bool {
+    fn is_match_str(&self, path: &str) -> bool {
         self.matcher.is_match(path) ^ self.negative
     }
 
     #[must_use]
-    pub fn is_match(&self, path: PathLike) -> bool {
+    fn is_match(&self, path: PathLike) -> bool {
         self.matcher.is_match(path) ^ self.negative
     }
 
@@ -203,12 +203,12 @@ impl PyGlobSet {
     }
 
     #[must_use]
-    pub fn is_match_str(&self, path: &str) -> bool {
+    fn is_match_str(&self, path: &str) -> bool {
         self.globset.is_match(path)
     }
 
     #[must_use]
-    pub fn is_match(&self, path: PathLike) -> bool {
+    fn is_match(&self, path: PathLike) -> bool {
         self.globset.is_match(path)
     }
 

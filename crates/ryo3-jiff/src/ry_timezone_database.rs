@@ -35,7 +35,7 @@ impl RyTimeZoneDatabase {
     }
 
     #[pyo3(signature = (name, err = false))]
-    pub fn get(&self, name: &str, err: bool) -> PyResult<Option<RyTimeZone>> {
+    fn get(&self, name: &str, err: bool) -> PyResult<Option<RyTimeZone>> {
         let tz_res = self.db().get(name).map(RyTimeZone::from);
         match tz_res {
             Ok(tz) => Ok(Some(tz)),
@@ -51,7 +51,7 @@ impl RyTimeZoneDatabase {
         }
     }
 
-    pub fn available(&self) -> Vec<String> {
+    fn available(&self) -> Vec<String> {
         self.db()
             .available()
             .map(|tz_name| tz_name.to_string())
