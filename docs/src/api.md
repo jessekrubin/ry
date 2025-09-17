@@ -1120,6 +1120,7 @@ class HttpStatus:
     # CONST STATUS CODES
     # =========================================================================
 <<<<<<< HEAD
+<<<<<<< HEAD
     # fmt: off
     # 1xx: Informational
     CONTINUE: t.ClassVar[HttpStatus]  # 100 ~ Continue
@@ -1131,16 +1132,25 @@ class HttpStatus:
     ACCEPTED: t.ClassVar[HttpStatus]  # 202 ~ Accepted
     NON_AUTHORITATIVE_INFORMATION: t.ClassVar[HttpStatus]  # 203 ~ Non Authoritative Information
 =======
+=======
+    # fmt: off
+    # 1xx: Informational
+>>>>>>> 853fe28 (update docs)
     CONTINUE: t.ClassVar[HttpStatus]  # 100 ~ Continue
     SWITCHING_PROTOCOLS: t.ClassVar[HttpStatus]  # 101 ~ Switching Protocols
     PROCESSING: t.ClassVar[HttpStatus]  # 102 ~ Processing
+    # 2xx: Success
     OK: t.ClassVar[HttpStatus]  # 200 ~ OK
     CREATED: t.ClassVar[HttpStatus]  # 201 ~ Created
     ACCEPTED: t.ClassVar[HttpStatus]  # 202 ~ Accepted
+<<<<<<< HEAD
     NON_AUTHORITATIVE_INFORMATION: t.ClassVar[
         HttpStatus
     ]  # 203 ~ Non Authoritative Information
 >>>>>>> 8efb0c4 (update the docs)
+=======
+    NON_AUTHORITATIVE_INFORMATION: t.ClassVar[HttpStatus]  # 203 ~ Non Authoritative Information
+>>>>>>> 853fe28 (update docs)
     NO_CONTENT: t.ClassVar[HttpStatus]  # 204 ~ No Content
     RESET_CONTENT: t.ClassVar[HttpStatus]  # 205 ~ Reset Content
     PARTIAL_CONTENT: t.ClassVar[HttpStatus]  # 206 ~ Partial Content
@@ -1148,9 +1158,13 @@ class HttpStatus:
     ALREADY_REPORTED: t.ClassVar[HttpStatus]  # 208 ~ Already Reported
     IM_USED: t.ClassVar[HttpStatus]  # 226 ~ IM Used
 <<<<<<< HEAD
+<<<<<<< HEAD
     # 3xx: Redirection
 =======
 >>>>>>> 8efb0c4 (update the docs)
+=======
+    # 3xx: Redirection
+>>>>>>> 853fe28 (update docs)
     MULTIPLE_CHOICES: t.ClassVar[HttpStatus]  # 300 ~ Multiple Choices
     MOVED_PERMANENTLY: t.ClassVar[HttpStatus]  # 301 ~ Moved Permanently
     FOUND: t.ClassVar[HttpStatus]  # 302 ~ Found
@@ -1160,9 +1174,13 @@ class HttpStatus:
     TEMPORARY_REDIRECT: t.ClassVar[HttpStatus]  # 307 ~ Temporary Redirect
     PERMANENT_REDIRECT: t.ClassVar[HttpStatus]  # 308 ~ Permanent Redirect
 <<<<<<< HEAD
+<<<<<<< HEAD
     # 4xx: Client Error
 =======
 >>>>>>> 8efb0c4 (update the docs)
+=======
+    # 4xx: Client Error
+>>>>>>> 853fe28 (update docs)
     BAD_REQUEST: t.ClassVar[HttpStatus]  # 400 ~ Bad Request
     UNAUTHORIZED: t.ClassVar[HttpStatus]  # 401 ~ Unauthorized
     PAYMENT_REQUIRED: t.ClassVar[HttpStatus]  # 402 ~ Payment Required
@@ -1171,12 +1189,16 @@ class HttpStatus:
     METHOD_NOT_ALLOWED: t.ClassVar[HttpStatus]  # 405 ~ Method Not Allowed
     NOT_ACCEPTABLE: t.ClassVar[HttpStatus]  # 406 ~ Not Acceptable
 <<<<<<< HEAD
+<<<<<<< HEAD
     PROXY_AUTHENTICATION_REQUIRED: t.ClassVar[HttpStatus]  # 407 ~ Proxy Authentication Required
 =======
     PROXY_AUTHENTICATION_REQUIRED: t.ClassVar[
         HttpStatus
     ]  # 407 ~ Proxy Authentication Required
 >>>>>>> 8efb0c4 (update the docs)
+=======
+    PROXY_AUTHENTICATION_REQUIRED: t.ClassVar[HttpStatus]  # 407 ~ Proxy Authentication Required
+>>>>>>> 853fe28 (update docs)
     REQUEST_TIMEOUT: t.ClassVar[HttpStatus]  # 408 ~ Request Timeout
     CONFLICT: t.ClassVar[HttpStatus]  # 409 ~ Conflict
     GONE: t.ClassVar[HttpStatus]  # 410 ~ Gone
@@ -1185,12 +1207,16 @@ class HttpStatus:
     PAYLOAD_TOO_LARGE: t.ClassVar[HttpStatus]  # 413 ~ Payload Too Large
     URI_TOO_LONG: t.ClassVar[HttpStatus]  # 414 ~ URI Too Long
 <<<<<<< HEAD
+<<<<<<< HEAD
     UNSUPPORTED_MEDIA_TYPE: t.ClassVar[HttpStatus]  # 415 ~ Unsupported Media Type
 =======
     UNSUPPORTED_MEDIA_TYPE: t.ClassVar[
         HttpStatus
     ]  # 415 ~ Unsupported Media Type
 >>>>>>> 8efb0c4 (update the docs)
+=======
+    UNSUPPORTED_MEDIA_TYPE: t.ClassVar[HttpStatus]  # 415 ~ Unsupported Media Type
+>>>>>>> 853fe28 (update docs)
     RANGE_NOT_SATISFIABLE: t.ClassVar[HttpStatus]  # 416 ~ Range Not Satisfiable
     EXPECTATION_FAILED: t.ClassVar[HttpStatus]  # 417 ~ Expectation Failed
     IM_A_TEAPOT: t.ClassVar[HttpStatus]  # 418 ~ I'm a teapot
@@ -1203,6 +1229,7 @@ class HttpStatus:
     PRECONDITION_REQUIRED: t.ClassVar[HttpStatus]  # 428 ~ Precondition Required
     TOO_MANY_REQUESTS: t.ClassVar[HttpStatus]  # 429 ~ Too Many Requests
 <<<<<<< HEAD
+<<<<<<< HEAD
     REQUEST_HEADER_FIELDS_TOO_LARGE: t.ClassVar[HttpStatus]  # 431 ~ Request Header Fields Too Large
     UNAVAILABLE_FOR_LEGAL_REASONS: t.ClassVar[HttpStatus]  # 451 ~ Unavailable For Legal Reasons
     # 5xx: Server Error
@@ -1214,11 +1241,17 @@ class HttpStatus:
         HttpStatus
     ]  # 451 ~ Unavailable For Legal Reasons
 >>>>>>> 8efb0c4 (update the docs)
+=======
+    REQUEST_HEADER_FIELDS_TOO_LARGE: t.ClassVar[HttpStatus]  # 431 ~ Request Header Fields Too Large
+    UNAVAILABLE_FOR_LEGAL_REASONS: t.ClassVar[HttpStatus]  # 451 ~ Unavailable For Legal Reasons
+    # 5xx: Server Error
+>>>>>>> 853fe28 (update docs)
     INTERNAL_SERVER_ERROR: t.ClassVar[HttpStatus]  # 500 ~ Internal Server Error
     NOT_IMPLEMENTED: t.ClassVar[HttpStatus]  # 501 ~ Not Implemented
     BAD_GATEWAY: t.ClassVar[HttpStatus]  # 502 ~ Bad Gateway
     SERVICE_UNAVAILABLE: t.ClassVar[HttpStatus]  # 503 ~ Service Unavailable
     GATEWAY_TIMEOUT: t.ClassVar[HttpStatus]  # 504 ~ Gateway Timeout
+<<<<<<< HEAD
 <<<<<<< HEAD
     HTTP_VERSION_NOT_SUPPORTED: t.ClassVar[HttpStatus]  # 505 ~ HTTP Version Not Supported
     VARIANT_ALSO_NEGOTIATES: t.ClassVar[HttpStatus]  # 506 ~ Variant Also Negotiates
@@ -1241,6 +1274,15 @@ class HttpStatus:
         HttpStatus
     ]  # 511 ~ Network Authentication Required
 >>>>>>> 8efb0c4 (update the docs)
+=======
+    HTTP_VERSION_NOT_SUPPORTED: t.ClassVar[HttpStatus]  # 505 ~ HTTP Version Not Supported
+    VARIANT_ALSO_NEGOTIATES: t.ClassVar[HttpStatus]  # 506 ~ Variant Also Negotiates
+    INSUFFICIENT_STORAGE: t.ClassVar[HttpStatus]  # 507 ~ Insufficient Storage
+    LOOP_DETECTED: t.ClassVar[HttpStatus]  # 508 ~ Loop Detected
+    NOT_EXTENDED: t.ClassVar[HttpStatus]  # 510 ~ Not Extended
+    NETWORK_AUTHENTICATION_REQUIRED: t.ClassVar[HttpStatus]  # 511 ~ Network Authentication Required
+    # fmt: on
+>>>>>>> 853fe28 (update docs)
 ```
 
 <h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
