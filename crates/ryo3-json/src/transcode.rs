@@ -12,7 +12,7 @@ fn minify_json<R: io::Read, W: io::Write>(input: R, output: W) -> Result<(), ser
 }
 #[pyfunction(signature = (buf, /))]
 pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<ryo3_bytes::PyBytes> {
-    if let Ok(s) = buf.downcast::<PyString>() {
+    if let Ok(s) = buf.cast::<PyString>() {
         // py-string
         let json_str = s.to_string();
         let json_bytes = json_str.as_bytes();
@@ -20,14 +20,14 @@ pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<ryo3_bytes::P
         minify_json(json_bytes, &mut output)
             .map_err(|e| PyValueError::new_err(format!("Failed to minify JSON: {e}")))?;
         Ok(ryo3_bytes::PyBytes::from(output))
-    } else if let Ok(pybytes) = buf.downcast::<pyo3::types::PyBytes>() {
+    } else if let Ok(pybytes) = buf.cast::<pyo3::types::PyBytes>() {
         // py bytes
         let json_bytes = pybytes.as_bytes();
         let mut output = Vec::with_capacity(json_bytes.len());
         minify_json(json_bytes, &mut output)
             .map_err(|e| PyValueError::new_err(format!("Failed to minify JSON: {e}")))?;
         Ok(ryo3_bytes::PyBytes::from(output))
-    } else if let Ok(custom) = buf.downcast::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(custom) = buf.cast::<ryo3_bytes::PyBytes>() {
         // rs-bytes instance
         let borrowed = custom.borrow();
         let json_bytes = borrowed.as_slice();
@@ -56,7 +56,7 @@ fn indent2_json<R: io::Read, W: io::Write>(input: R, output: W) -> Result<(), se
 }
 #[pyfunction(signature = (buf, /))]
 pub(crate) fn fmt<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<ryo3_bytes::PyBytes> {
-    if let Ok(s) = buf.downcast::<PyString>() {
+    if let Ok(s) = buf.cast::<PyString>() {
         // py-string
         let json_str = s.to_string();
         let json_bytes = json_str.as_bytes();
@@ -64,14 +64,14 @@ pub(crate) fn fmt<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<ryo3_bytes::PyBy
         indent2_json(json_bytes, &mut output)
             .map_err(|e| PyValueError::new_err(format!("Failed to format JSON: {e}")))?;
         Ok(ryo3_bytes::PyBytes::from(output))
-    } else if let Ok(pybytes) = buf.downcast::<pyo3::types::PyBytes>() {
+    } else if let Ok(pybytes) = buf.cast::<pyo3::types::PyBytes>() {
         // py bytes
         let json_bytes = pybytes.as_bytes();
         let mut output = Vec::with_capacity(json_bytes.len());
         indent2_json(json_bytes, &mut output)
             .map_err(|e| PyValueError::new_err(format!("Failed to format JSON: {e}")))?;
         Ok(ryo3_bytes::PyBytes::from(output))
-    } else if let Ok(custom) = buf.downcast::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(custom) = buf.cast::<ryo3_bytes::PyBytes>() {
         // rs-bytes instance
         let borrowed = custom.borrow();
         let json_bytes = borrowed.as_slice();

@@ -371,7 +371,7 @@ struct SizeWrapper(size::Size);
 
 impl FromPyObject<'_> for SizeWrapper {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.downcast::<PySize>() {
+        if let Ok(s) = ob.cast::<PySize>() {
             let pysize = s.extract::<PySize>()?;
             Ok(Self(pysize.0))
         } else if let Ok(i) = ob.extract::<i64>() {

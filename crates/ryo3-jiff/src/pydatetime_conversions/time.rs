@@ -94,7 +94,7 @@ impl FromPyObject<'_> for JiffTime {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         #[cfg(not(Py_LIMITED_API))]
         {
-            let time = ob.downcast::<PyTime>()?;
+            let time = ob.cast::<PyTime>()?;
             py_time_to_jiff_time(time).map(Self::from)
         }
         #[cfg(Py_LIMITED_API)]

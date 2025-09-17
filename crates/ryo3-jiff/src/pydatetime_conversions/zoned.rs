@@ -36,7 +36,7 @@ impl<'py> IntoPyObject<'py> for JiffZoned {
 
 impl FromPyObject<'_> for JiffZoned {
     fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let dt = dt.downcast::<PyDateTime>()?;
+        let dt = dt.cast::<PyDateTime>()?;
         let tzinfo = dt.get_tzinfo().map_or_else(
             || {
                 Err(PyErr::new::<PyValueError, _>(

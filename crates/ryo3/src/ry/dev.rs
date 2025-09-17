@@ -19,9 +19,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // renaming
     let sys = PyModule::import(py, intern!(py, "sys"))?;
-    let sys_modules = sys
-        .getattr(intern!(py, "modules"))?
-        .downcast_into::<PyDict>()?;
+    let sys_modules = sys.getattr(intern!(py, "modules"))?.cast_into::<PyDict>()?;
 
     // dev module
     let pystr_dev = intern!(py, "_dev");

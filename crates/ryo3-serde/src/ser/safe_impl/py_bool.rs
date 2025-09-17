@@ -24,7 +24,7 @@ impl Serialize for SerializePyBool<'_, '_> {
     {
         let tf = self
             .obj
-            .downcast::<PyBool>()
+            .cast::<PyBool>()
             .map(pyo3::types::PyBoolMethods::is_true)
             .map_err(pyerr2sererr)?;
         serializer.serialize_bool(tf)

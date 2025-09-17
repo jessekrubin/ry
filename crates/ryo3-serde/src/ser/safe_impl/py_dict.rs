@@ -201,7 +201,7 @@ impl Serialize for SerializePyDict<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_dict: &Bound<'_, PyDict> = self.obj.downcast_exact().map_err(pyerr2sererr)?;
+        let py_dict: &Bound<'_, PyDict> = self.obj.cast_exact().map_err(pyerr2sererr)?;
         let len = py_dict.len();
         if len == 0 {
             return serializer.serialize_map(Some(0))?.end();

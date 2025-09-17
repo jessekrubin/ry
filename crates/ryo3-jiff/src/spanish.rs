@@ -22,13 +22,13 @@ impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
     type Error = PyErr;
 
     fn try_from(ob: &'py Bound<'py, PyAny>) -> Result<Self, Self::Error> {
-        let inner = if let Ok(span) = ob.downcast::<RySpan>() {
+        let inner = if let Ok(span) = ob.cast::<RySpan>() {
             RySpanishObject::Span(span)
-        } else if let Ok(duration) = ob.downcast::<PyDuration>() {
+        } else if let Ok(duration) = ob.cast::<PyDuration>() {
             RySpanishObject::Duration(duration)
-        } else if let Ok(signed_duration) = ob.downcast::<RySignedDuration>() {
+        } else if let Ok(signed_duration) = ob.cast::<RySignedDuration>() {
             RySpanishObject::SignedDuration(signed_duration)
-        } else if let Ok(signed_duration) = ob.downcast::<PyDelta>() {
+        } else if let Ok(signed_duration) = ob.cast::<PyDelta>() {
             let signed_duration = signed_duration.extract::<SignedDuration>()?;
             RySpanishObject::PyTimeDelta(signed_duration)
         } else {

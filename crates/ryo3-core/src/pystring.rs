@@ -47,7 +47,7 @@ pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, Py
         let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
         core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
         core::ptr::write(data_ptr.add(s.len()), 0);
-        Bound::from_owned_ptr(py, ptr).downcast_into_unchecked()
+        Bound::from_owned_ptr(py, ptr).cast_into_unchecked()
     }
 }
 

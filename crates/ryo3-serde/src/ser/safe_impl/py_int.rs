@@ -24,7 +24,7 @@ impl Serialize for SerializePyInt<'_, '_> {
     {
         let v: i64 = self
             .obj
-            .downcast::<PyInt>()
+            .cast::<PyInt>()
             .map_err(pyerr2sererr)?
             .extract()
             .map_err(pyerr2sererr)?;

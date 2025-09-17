@@ -667,15 +667,15 @@ impl RySpan {
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast_exact::<PyFloat>() {
+        } else if let Ok(v) = value.cast_exact::<PyFloat>() {
             let f = v.extract::<f64>()?;
             if f.is_nan() || f.is_infinite() {
                 return Err(py_value_error!(
@@ -685,7 +685,7 @@ impl RySpan {
             let sd = RySignedDuration::py_try_from_secs_f64(f)?;
             let span = jiff::Span::try_from(sd.0).map_err(map_py_overflow_err)?;
             Self::from(span).into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast_exact::<PyInt>() {
+        } else if let Ok(v) = value.cast_exact::<PyInt>() {
             let i = v.extract::<i64>()?;
             let sd = SignedDuration::from_secs(i);
             Span::try_from(sd)

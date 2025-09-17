@@ -297,7 +297,7 @@ impl RyZoned {
         other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         #[expect(clippy::arithmetic_side_effects)]
-        if let Ok(zoned) = other.downcast::<Self>() {
+        if let Ok(zoned) = other.cast::<Self>() {
             // if other is a Zoned, return a Span
             let span = &self.0 - &zoned.get().0;
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
@@ -586,15 +586,15 @@ impl RyZoned {
         let mut builder = self.0.with();
         if let Some(obj) = obj {
             // if obj is a Zoned, use it as the base
-            if let Ok(zoned) = obj.downcast::<RyDate>() {
+            if let Ok(zoned) = obj.cast::<RyDate>() {
                 // if obj is a Zoned, use it as the base
                 let date = zoned.extract::<RyDate>()?;
                 builder = builder.date(date.0);
-            } else if let Ok(time) = obj.downcast::<RyTime>() {
+            } else if let Ok(time) = obj.cast::<RyTime>() {
                 // if obj is a Time, use it as the base
                 let time = time.extract::<RyTime>()?;
                 builder = builder.time(time.0);
-            } else if let Ok(date) = obj.downcast::<RyOffset>() {
+            } else if let Ok(date) = obj.cast::<RyOffset>() {
                 let offset = date.extract::<RyOffset>()?;
                 builder = builder.offset(offset.0);
             } else {
@@ -740,15 +740,15 @@ impl RyZoned {
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(d) = value.downcast_exact::<RyTimestamp>() {
+        } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
             let dt = d.get().0.to_zoned(TimeZone::UTC);
             dt.into_bound_py_any(py)
         } else if let Ok(d) = value.extract::<JiffZoned>() {

@@ -12,10 +12,10 @@ impl FromPyObject<'_> for UrlLike {
 }
 
 pub fn extract_url(ob: &Bound<'_, PyAny>) -> PyResult<url::Url> {
-    if let Ok(url) = ob.downcast::<PyUrl>() {
+    if let Ok(url) = ob.cast::<PyUrl>() {
         let url = url.borrow();
         Ok(url.0.clone())
-    } else if let Ok(s) = ob.downcast::<PyString>()?.to_str() {
+    } else if let Ok(s) = ob.cast::<PyString>()?.to_str() {
         url::Url::parse(s)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={ob})")))
     } else {

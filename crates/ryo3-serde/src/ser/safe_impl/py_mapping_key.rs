@@ -23,7 +23,7 @@ impl Serialize for SerializePyMappingKey<'_, '_> {
     where
         S: Serializer,
     {
-        if let Ok(py_string) = self.obj.downcast::<PyString>() {
+        if let Ok(py_string) = self.obj.cast::<PyString>() {
             let v = py_string.to_str().map_err(pyerr2sererr)?;
             serializer.serialize_str(v)
         } else if let Ok(key) = self.obj.extract::<bool>() {

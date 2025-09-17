@@ -45,7 +45,7 @@ impl Serialize for SerializePyDataclass<'_, '_> {
         let py = self.obj.py();
         // check for __dict__
         if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
-            if let Ok(dict) = dunder_dict.downcast_into::<PyDict>() {
+            if let Ok(dict) = dunder_dict.cast_into::<PyDict>() {
                 // serialize the __dict__ as a dict
                 SerializePyAny::new_with_depth(&dict, self.ctx, self.depth + 1)
                     .serialize(serializer)
@@ -62,9 +62,8 @@ impl Serialize for SerializePyDataclass<'_, '_> {
                     .map_err(pyerr2sererr)?;
                 if field_type.is(field_marker) {
                     // this is a dataclass field
-                    let field_name_py_str = field_name
-                        .downcast_into::<PyString>()
-                        .map_err(pyerr2sererr)?;
+                    let field_name_py_str =
+                        field_name.cast_into::<PyString>().map_err(pyerr2sererr)?;
                     let value = self.obj.getattr(&field_name_py_str).map_err(pyerr2sererr)?;
                     let field_ser =
                         SerializePyAny::new_with_depth(&value, self.ctx, self.depth + 1);

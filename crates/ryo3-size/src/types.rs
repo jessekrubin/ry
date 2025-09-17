@@ -37,7 +37,7 @@ impl FromPyObject<'_> for Base {
         // if is int...
         if ob.is_none() {
             Ok(Self::default())
-        } else if let Ok(i) = ob.downcast::<PyInt>() {
+        } else if let Ok(i) = ob.cast::<PyInt>() {
             let base = i.extract::<u8>()?;
             match base {
                 2 => Ok(Self(size::fmt::Base::Base2)),
@@ -87,7 +87,7 @@ impl FromPyObject<'_> for Style {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         if ob.is_none() {
             Ok(Self::default())
-        } else if let Ok(s) = ob.downcast::<PyString>() {
+        } else if let Ok(s) = ob.cast::<PyString>() {
             let s_ref = s.to_str()?;
             match s_ref.to_ascii_lowercase().as_str() {
                 "default" => Ok(Self(size::fmt::Style::Default)),

@@ -6,7 +6,7 @@ const JIFF_TZ_OFFSET_CONFLICTS: &str = "'always-offset', 'always-timezone', 'pre
 impl FromPyObject<'_> for JiffTzOffsetConflict {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
                 "always_offset" | "always-offset" => {

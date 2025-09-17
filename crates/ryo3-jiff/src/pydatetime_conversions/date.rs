@@ -31,7 +31,7 @@ impl<'py> IntoPyObject<'py> for &JiffDate {
 
 impl FromPyObject<'_> for JiffDate {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let py_date = ob.downcast::<PyDate>()?;
+        let py_date = ob.cast::<PyDate>()?;
         let date = py_date_to_date(py_date)?;
         Ok(Self::from(date))
     }

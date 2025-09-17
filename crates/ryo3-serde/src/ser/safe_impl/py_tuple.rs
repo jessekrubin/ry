@@ -214,7 +214,7 @@ impl Serialize for SerializePyTuple<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_tuple: &Bound<'_, PyTuple> = self.obj.downcast().map_err(pyerr2sererr)?;
+        let py_tuple: &Bound<'_, PyTuple> = self.obj.cast().map_err(pyerr2sererr)?;
         let len = py_tuple.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()

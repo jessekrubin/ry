@@ -33,7 +33,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZone {
 
 impl<'py> FromPyObject<'py> for JiffTimeZone {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let ob = ob.downcast::<PyTzInfo>()?;
+        let ob = ob.cast::<PyTzInfo>()?;
         let attr = intern!(ob.py(), "key");
         if ob.hasattr(attr)? {
             let tz_pystr = ob.getattr(attr)?.extract::<PyBackedStr>()?;

@@ -37,7 +37,7 @@ impl PyPattern {
             !case_sensitive || require_literal_separator || require_literal_leading_dot;
 
         // if string...
-        if let Ok(s) = ob.downcast::<PyString>()?.to_str() {
+        if let Ok(s) = ob.cast::<PyString>()?.to_str() {
             if use_match_with {
                 Ok(self.0.matches_with(
                     s,
