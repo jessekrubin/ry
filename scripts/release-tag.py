@@ -1,6 +1,5 @@
 import subprocess
 import sys
-
 import tomllib
 
 import ry

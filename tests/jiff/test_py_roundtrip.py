@@ -42,10 +42,8 @@ def test_timezone_roundtrip(tz: pydt.tzinfo | zoneinfo.ZoneInfo) -> None:
     )
     # the input tz info may be a zoneinfo.ZoneInfo or a pytz timezone,
     # so we need to handle both cases
-    tz_utcoffset = tz.utcoffset(pydt.datetime.now(tz=pydt.timezone.utc))
-    roundtrip_tz_utcoffset = roundtrip_tz.utcoffset(
-        pydt.datetime.now(tz=pydt.timezone.utc)
-    )
+    tz_utcoffset = tz.utcoffset(pydt.datetime.now(tz=pydt.UTC))
+    roundtrip_tz_utcoffset = roundtrip_tz.utcoffset(pydt.datetime.now(tz=pydt.UTC))
     assert roundtrip_tz_utcoffset == tz_utcoffset, (
         f"Expected timezone offset {tz_utcoffset}, got {roundtrip_tz_utcoffset}"
     )

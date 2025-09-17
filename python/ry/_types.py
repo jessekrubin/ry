@@ -4,15 +4,11 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TYPE_CHECKING, Literal, Protocol, TypeAlias, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar
 
 if TYPE_CHECKING:
     import datetime as pydt
 
-if sys.version_info >= (3, 11):
-    from typing import Never, Self
-else:
-    from typing_extensions import Never, Self
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
@@ -41,9 +37,7 @@ __all__ = (
     "JiffRoundMode",
     "JiffUnit",
     "MetadataDict",
-    "Never",
     "OffsetRoundTypedDict",
-    "Self",
     "SignedDurationRoundTypedDict",
     "TimeDifferenceTypedDict",
     "TimeRoundTypedDict",

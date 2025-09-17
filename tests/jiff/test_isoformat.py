@@ -46,7 +46,7 @@ def _test_zoned_datetime_isoformat(dt: pydt.datetime) -> None:
     is_eq = ry_isoformat == py_isoformat
     ry_prefix_ok = py_isoformat.startswith(ry_isoformat)
     if not is_eq and not ry_prefix_ok:
-        py_zdt_utc = dt.astimezone(pydt.timezone.utc)
+        py_zdt_utc = dt.astimezone(pydt.UTC)
         ry_zdt_utc = ry_dt.inutc()
 
         is_imaginary = datetime_does_not_exist(dt)
@@ -83,7 +83,7 @@ def datetime_does_not_exist(value: pydt.datetime) -> bool:
     try:
         # Does the naive portion of the datetime change when round-tripped to
         # UTC?  If so, or if this overflows, we say that it does not exist.
-        roundtrip = value.astimezone(pydt.timezone.utc).astimezone(value.tzinfo)
+        roundtrip = value.astimezone(pydt.UTC).astimezone(value.tzinfo)
     except OverflowError:
         # Overflows at datetime.min or datetime.max boundary condition.
         # Rejecting these is acceptable, because timezones are close to

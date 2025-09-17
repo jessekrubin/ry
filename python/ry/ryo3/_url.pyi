@@ -1,7 +1,7 @@
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
-from ry._types import FromStr, FsPathLike, Self
+from ry._types import FromStr, FsPathLike
 from ry.ryo3._std import SocketAddr
 
 @t.final
@@ -16,7 +16,7 @@ class URL(FromStr):
     @classmethod
     def parse(cls, url: str) -> URL: ...
     @classmethod
-    def from_str(cls, s: str) -> Self: ...
+    def from_str(cls, s: str) -> t.Self: ...
     @classmethod
     def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
     @classmethod

@@ -7,6 +7,7 @@
     f-string formatting
 - internal
   - migrated all `downcast*` usages to `cast*`
+- Min python version for ry is now 3.11+
 
 ---
 

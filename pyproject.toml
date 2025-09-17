@@ -26,7 +26,7 @@ authors = [
   { name = "jesse rubin", email = "jessekrubin@gmail.com" },
 ]
 
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -34,7 +34,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -55,7 +54,7 @@ urls.Source = "https://github.com/jessekrubin/ry"
 dev = [
   "anyio>=4.8",
   "hypothesis>=6.124.2",
-  "ipython>=8.18.1",
+  "ipython>=9.5.0",
   "maturin>=1.8.6",
   "mypy>=1.14.1",
   "orjson>=3.10.18; implementation_name=='cpython'",
@@ -119,7 +118,7 @@ markers = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
-python_version = "3.10"
+python_version = "3.11"
 enable_error_code = [
   "deprecated",
 ]
