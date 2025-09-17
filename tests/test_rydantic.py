@@ -107,7 +107,7 @@ class TestDate:
         "data",
         [
             pydt.date(2020, 1, 1),
-            pydt.datetime(2020, 1, 1, 12, 0, 0, tzinfo=pydt.timezone.utc),
+            pydt.datetime(2020, 1, 1, 12, 0, 0, tzinfo=pydt.UTC),
             ry.Date(2020, 1, 1),
             ry.Date(2020, 1, 1).at(1, 2, 3, 4),
             ry.Date(2020, 1, 1).at(1, 2, 3, 4).in_tz("America/Los_Angeles"),
@@ -204,7 +204,7 @@ class TestTime:
             # NOT IMPLEMENTED
             ("11:05:00-05:30", pydt.time(11, 5, 0, tzinfo=create_tz(-330))),
             ("11:05:00-0530", pydt.time(11, 5, 0, tzinfo=create_tz(-330))),
-            ("11:05:00+00:00", pydt.time(11, 5, 0, tzinfo=pydt.timezone.utc)),
+            ("11:05:00+00:00", pydt.time(11, 5, 0, tzinfo=pydt.UTC)),
             ("11:05-06:00", pydt.time(11, 5, 0, tzinfo=create_tz(-360))),
             ("11:05+06:00", pydt.time(11, 5, 0, tzinfo=create_tz(360))),
             ("11:05:00-25:00", pydt.time(11, 5, 0)),
@@ -250,9 +250,9 @@ class TestTime:
         "value,result",
         [
             # NOT IMPLEMENTED
-            (3610, pydt.time(1, 0, 10, tzinfo=pydt.timezone.utc)),
-            (3600.5, pydt.time(1, 0, 0, 500000, tzinfo=pydt.timezone.utc)),
-            (86400 - 1, pydt.time(23, 59, 59, tzinfo=pydt.timezone.utc)),
+            (3610, pydt.time(1, 0, 10, tzinfo=pydt.UTC)),
+            (3600.5, pydt.time(1, 0, 0, 500000, tzinfo=pydt.UTC)),
+            (86400 - 1, pydt.time(23, 59, 59, tzinfo=pydt.UTC)),
         ],
     )
     def test_time_parsing_tbd(
@@ -272,7 +272,7 @@ class TestDatetime:
             ("2012-04-23T09:15:00", pydt.datetime(2012, 4, 23, 9, 15)),
             (
                 "2012-04-23T09:15:00Z",
-                pydt.datetime(2012, 4, 23, 9, 15, 0, 0, tzinfo=pydt.timezone.utc),
+                pydt.datetime(2012, 4, 23, 9, 15, 0, 0, tzinfo=pydt.UTC),
             ),
             (
                 "2012-04-23T10:20:30.400+02:30",
@@ -344,7 +344,7 @@ class TestZonedDatetime:
         [
             (
                 "2012-04-23T09:15:00+00:00[UTC]",
-                pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.timezone.utc),
+                pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.UTC),
             ),
         ],
     )

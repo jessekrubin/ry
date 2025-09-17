@@ -13,7 +13,7 @@ def test_timezone_to_pytzinfo() -> None:
 
 
 def test_timezone_from_pytzinfo() -> None:
-    pydatetime = pydt.datetime(2020, 8, 26, 6, 27, 0, 0, pydt.timezone.utc)
+    pydatetime = pydt.datetime(2020, 8, 26, 6, 27, 0, 0, pydt.UTC)
     tzinfo = pydatetime.tzinfo
     assert isinstance(tzinfo, pydt.tzinfo)
     assert tzinfo is not None

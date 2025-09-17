@@ -26,7 +26,7 @@ authors = [
   { name = "jesse rubin", email = "jessekrubin@gmail.com" },
 ]
 
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -34,7 +34,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -119,7 +118,7 @@ markers = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
-python_version = "3.10"
+python_version = "3.11"
 enable_error_code = [
   "deprecated",
 ]
