@@ -83,6 +83,9 @@ jobs:
           arch: ${{ matrix.platform.target }}
           distro: ubuntu22.04
           githubToken: ${{ github.token }}
+          dockerRunArgs: |
+            --volume "${{ github.workspace }}:/workspace"
+            --workdir /workspace
           install: |
             apt-get update
             apt-get install -y --no-install-recommends curl ca-certificates software-properties-common tzdata
