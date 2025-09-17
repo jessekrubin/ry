@@ -90,7 +90,7 @@ class TestDifferenceUnitsDefaults:
         timestamp_difference_units = []
         for unit in _JIFF_UNITS:
             try:
-                _diff = ts1.until(ts2, smallest=unit)
+                _diff = ts1.until(ts2, smallest=unit)  # type: ignore[arg-type]
                 timestamp_difference_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -104,7 +104,7 @@ class TestDifferenceUnitsDefaults:
         time_difference_units = []
         for unit in _JIFF_UNITS:
             try:
-                _diff = t1.until(t2, smallest=unit)
+                _diff = t1.until(t2, smallest=unit)  # type: ignore[arg-type]
                 time_difference_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -118,7 +118,7 @@ class TestDifferenceUnitsDefaults:
         date_difference_units = []
         for unit in _JIFF_UNITS:
             try:
-                _diff = d1.until(d2, smallest=unit)
+                _diff = d1.until(d2, smallest=unit)  # type: ignore[arg-type]
                 date_difference_units.append(unit)
             except ValueError as _ve:
                 ...

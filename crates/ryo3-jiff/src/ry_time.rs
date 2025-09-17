@@ -79,8 +79,12 @@ impl RyTime {
     // ========================================================================
     #[staticmethod]
     fn now() -> Self {
-        let z = jiff::civil::Time::from(Zoned::now());
-        Self::from(z)
+        jiff::civil::Time::from(Zoned::now()).into()
+    }
+
+    #[staticmethod]
+    fn utcnow() -> Self {
+        jiff::civil::Time::from(Zoned::now().with_time_zone(jiff::tz::TimeZone::UTC)).into()
     }
 
     #[staticmethod]

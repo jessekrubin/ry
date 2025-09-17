@@ -276,19 +276,19 @@ class Date(ToPy[pydt.date], ToPyDate):
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
-        largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        smallest: t.Literal["year", "month", "week", "day"] = "day",
+        largest: t.Literal["year", "month", "week", "day"] | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
-        largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        smallest: t.Literal["year", "month", "week", "day"] = "day",
+        largest: t.Literal["year", "month", "week", "day"] | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
 
 @t.final
@@ -352,6 +352,8 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     def midnight(cls: type[Time]) -> Time: ...
     @classmethod
     def now(cls: type[Time]) -> Time: ...
+    @classmethod
+    def utcnow(cls: type[Time]) -> Time: ...
     @classmethod
     def from_str(cls: type[Time], s: str) -> Time: ...
     @classmethod
@@ -437,19 +439,29 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
-        largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        smallest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ] = "nanosecond",
+        largest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ]
+        | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Time | DateTime | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
-        largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        smallest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ] = "nanosecond",
+        largest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ]
+        | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
 
 @t.final
@@ -636,21 +648,21 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def _until(self, other: DateTimeDifference) -> TimeSpan: ...
     def since(
         self,
-        other: Date | Time | DateTime | ZonedDateTime,
+        other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
+        smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
     def until(
         self,
-        other: Date | Time | DateTime | ZonedDateTime,
+        other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
+        smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
 
 @t.final
@@ -1158,19 +1170,29 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
-        largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        smallest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ] = "nanosecond",
+        largest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ]
+        | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
     def until(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
-        largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        smallest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ] = "nanosecond",
+        largest: t.Literal[
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+        ]
+        | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
     def duration_since(self, other: Timestamp) -> SignedDuration: ...
     def duration_until(self, other: Timestamp) -> SignedDuration: ...
@@ -1404,19 +1426,19 @@ class ZonedDateTime(
         self,
         other: ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
+        smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
     def until(
         self,
         other: ZonedDateTime,
         *,
-        smallest: JiffUnit | None = None,
+        smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
-        mode: JiffRoundMode | None = None,
-        increment: int | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
     ) -> TimeSpan: ...
 
 @t.final
@@ -1579,6 +1601,7 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo):
 # =============================================================================
 _Tobj = t.TypeVar("_Tobj", Date, DateTime, Time, Timestamp, ZonedDateTime)
 
+@t.type_check_only
 class _Difference(t.Generic[_Tobj, _TDict]):
     def __init__(
         self,
