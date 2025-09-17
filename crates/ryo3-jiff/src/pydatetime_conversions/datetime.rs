@@ -30,7 +30,7 @@ impl<'py> IntoPyObject<'py> for &JiffDateTime {
 
 impl FromPyObject<'_> for JiffDateTime {
     fn extract_bound(dt: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let dt = dt.downcast::<PyDateTime>()?;
+        let dt = dt.cast::<PyDateTime>()?;
 
         // If the user tries to convert a timezone aware datetime into a naive one,
         // we return a hard error. We could silently remove tzinfo, or assume local timezone

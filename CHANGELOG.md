@@ -2,6 +2,12 @@
 
 ## v0.0.58 [unreleased]
 
+- `ryo3-jiff`
+  - added `.__format__()` methods to several jiff structs to allow custom
+    f-string formatting
+- internal
+  - migrated all `downcast*` usages to `cast*`
+
 ---
 
 ## v0.0.57 [2025-09-12]

@@ -17,7 +17,7 @@ pub(crate) struct QueryLike(Vec<(String, QueryValue)>);
 
 impl FromPyObject<'_> for QueryLike {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(pairs) = ob.downcast::<PyDict>() {
+        if let Ok(pairs) = ob.cast::<PyDict>() {
             let mut vec = Vec::new();
             for (k, v) in pairs.iter() {
                 if k.is_none() || v.is_none() {
@@ -28,7 +28,7 @@ impl FromPyObject<'_> for QueryLike {
                 vec.push((k, v));
             }
             Ok(Self(vec))
-        } else if let Ok(pairs) = ob.downcast::<PyTuple>() {
+        } else if let Ok(pairs) = ob.cast::<PyTuple>() {
             let mut vec = Vec::new();
             for item in pairs.iter() {
                 if item.is_none() {
@@ -38,7 +38,7 @@ impl FromPyObject<'_> for QueryLike {
                 vec.push(item);
             }
             Ok(Self(vec))
-        } else if let Ok(pairs) = ob.downcast::<PyList>() {
+        } else if let Ok(pairs) = ob.cast::<PyList>() {
             let mut vec = Vec::new();
             for item in pairs.iter() {
                 if item.is_none() {

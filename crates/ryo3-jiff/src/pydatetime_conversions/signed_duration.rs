@@ -17,7 +17,7 @@ pub fn signed_duration_to_pyobject<'py>(
 }
 
 pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedDuration> {
-    let delta = obj.downcast::<PyDelta>()?;
+    let delta = obj.cast::<PyDelta>()?;
     #[cfg(not(Py_LIMITED_API))]
     let (days, seconds, microseconds) = {
         (

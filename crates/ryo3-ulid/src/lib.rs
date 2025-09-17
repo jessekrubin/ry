@@ -77,13 +77,13 @@ impl PyUlid {
     pub fn py_new(value: Option<Bound<'_, PyAny>>) -> PyResult<Self> {
         if let Some(value) = value {
             // IF IS BYTES
-            if let Ok(b) = value.downcast::<PyBytes>() {
+            if let Ok(b) = value.cast::<PyBytes>() {
                 let slice = b.as_bytes();
                 let b: [u8; 16] = slice
                     .try_into()
                     .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
                 Ok(Self::from_bytes(b))
-            } else if let Ok(str) = value.downcast::<pyo3::types::PyString>() {
+            } else if let Ok(str) = value.cast::<pyo3::types::PyString>() {
                 let cs = str.to_str()?;
                 Self::from_string(cs)
             } else {
@@ -117,7 +117,7 @@ impl PyUlid {
     }
 
     fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        if let Ok(pyint) = other.downcast::<pyo3::types::PyInt>() {
+        if let Ok(pyint) = other.cast::<pyo3::types::PyInt>() {
             let other: u128 = pyint.extract()?;
             match op {
                 pyo3::basic::CompareOp::Eq => Ok(self.to_u128() == other),
@@ -128,7 +128,7 @@ impl PyUlid {
                 pyo3::basic::CompareOp::Ge => Ok(self.to_u128() >= other),
             }
         } else if other.is_instance_of::<pyo3::types::PyString>() {
-            let s = other.downcast::<pyo3::types::PyString>()?;
+            let s = other.cast::<pyo3::types::PyString>()?;
             // visitor.visit_str(&s.to_cow()?)
             let cs = s.to_str()?;
             let this_str = self.0.to_string();
@@ -140,7 +140,7 @@ impl PyUlid {
                 pyo3::basic::CompareOp::Gt => Ok(this_str.as_str() > cs),
                 pyo3::basic::CompareOp::Ge => Ok(this_str.as_str() >= cs),
             }
-        } else if let Ok(rs_ulid) = other.downcast::<Self>() {
+        } else if let Ok(rs_ulid) = other.cast::<Self>() {
             let other = rs_ulid.borrow().0;
             match op {
                 pyo3::basic::CompareOp::Eq => Ok(self.0 == other),
@@ -150,7 +150,7 @@ impl PyUlid {
                 pyo3::basic::CompareOp::Gt => Ok(self.0 > other),
                 pyo3::basic::CompareOp::Ge => Ok(self.0 >= other),
             }
-        } else if let Ok(pybytes) = other.downcast::<PyBytes>() {
+        } else if let Ok(pybytes) = other.cast::<PyBytes>() {
             let slice = pybytes.as_bytes();
             match slice.len() {
                 16 => {
@@ -253,12 +253,12 @@ impl PyUlid {
 
     #[staticmethod]
     fn from_timestamp(value: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(pyint) = value.downcast::<pyo3::types::PyInt>() {
+        if let Ok(pyint) = value.cast::<pyo3::types::PyInt>() {
             let i = pyint
                 .extract::<u64>()
                 .map_err(|_| PyOverflowError::new_err("value gt u64::MAX"))?;
             Self::from_timestamp_milliseconds(i)
-        } else if let Ok(pyfloat) = value.downcast::<pyo3::types::PyFloat>() {
+        } else if let Ok(pyfloat) = value.cast::<pyo3::types::PyFloat>() {
             let f = pyfloat.extract::<f64>()?;
             Self::from_timestamp_seconds(f)
         } else {
@@ -295,7 +295,7 @@ impl PyUlid {
 
     #[staticmethod]
     fn parse(other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(pyint) = other.downcast::<pyo3::types::PyInt>() {
+        if let Ok(pyint) = other.cast::<pyo3::types::PyInt>() {
             let i = pyint.extract::<u128>()?;
             if let Ok(smaller_int) = u64::try_from(i) {
                 let ulid = Ulid::from_datetime(
@@ -306,7 +306,7 @@ impl PyUlid {
             // If the integer is too large, we treat it as a ULID.
             Ok(Self::from_int(i))
         } else if other.is_instance_of::<pyo3::types::PyString>() {
-            let s = other.downcast::<pyo3::types::PyString>()?;
+            let s = other.cast::<pyo3::types::PyString>()?;
             let cs = s.to_str()?;
             // uuid string length
             match cs.len() {
@@ -332,14 +332,14 @@ impl PyUlid {
         else if other.is_instance_of::<pyo3::types::PyFloat>() {
             let f = other.extract::<f64>()?;
             Self::from_timestamp_seconds(f)
-        } else if let Ok(rs_ulid) = other.downcast::<Self>() {
+        } else if let Ok(rs_ulid) = other.cast::<Self>() {
             let inner = rs_ulid.borrow().0;
             Ok(Self(inner))
         } else if other.is_instance_of::<PyBytes>() {
-            let pybytes = other.downcast::<PyBytes>()?;
+            let pybytes = other.cast::<PyBytes>()?;
             let b = pybytes.extract::<[u8; 16]>()?;
             Ok(Self::from_bytes(b))
-        } else if let Ok(py_uuid) = other.downcast::<PyUuid>() {
+        } else if let Ok(py_uuid) = other.cast::<PyUuid>() {
             return Ok(Self::from_uuid(UuidLike(*py_uuid.borrow().get())));
         } else if let Ok(c_uuid) = other.extract::<CPythonUuid>() {
             Ok(Self::from_uuid(UuidLike(c_uuid.into())))
@@ -411,13 +411,13 @@ impl PyUlid {
         handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        let ulid = if let Ok(pyint) = value.downcast::<pyo3::types::PyInt>() {
+        let ulid = if let Ok(pyint) = value.cast::<pyo3::types::PyInt>() {
             cls.call_method1(intern!(py, "from_int"), (pyint,))
-        } else if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             cls.call_method1(intern!(py, "from_str"), (pystr,))
-        } else if let Ok(pyulid) = value.downcast::<Self>() {
+        } else if let Ok(pyulid) = value.cast::<Self>() {
             pyulid.into_bound_py_any(py)
-        } else if let Ok(pybytes) = value.downcast::<PyBytes>() {
+        } else if let Ok(pybytes) = value.cast::<PyBytes>() {
             cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
         } else {
             Err(PyTypeError::new_err("Unrecognized format for ULID"))
@@ -432,9 +432,9 @@ impl PyUlid {
         handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        let ulid = if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+        let ulid = if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             cls.call_method1(intern!(py, "from_str"), (pystr,))
-        } else if let Ok(pyulid) = value.downcast::<Self>() {
+        } else if let Ok(pyulid) = value.cast::<Self>() {
             pyulid.into_bound_py_any(py)
         } else {
             Err(PyValueError::new_err(
@@ -451,18 +451,18 @@ impl PyUlid {
     //     handler: &Bound<'py, PyAny>,
     // ) -> PyResult<Bound<'py, PyAny>> {
     //     let py = value.py();
-    //     let ulid = if let Ok(pyint) = value.downcast::<pyo3::types::PyInt>() {
+    //     let ulid = if let Ok(pyint) = value.cast::<pyo3::types::PyInt>() {
     //         Self::from_int(pyint.extract::<u128>()?).into_bound_py_any(py)
     //
     //         // cls.call_method1(intern!(py, "from_int"), (pyint,))
-    //     } else if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+    //     } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
     //         let str = pystr.to_str()?;
     //         Self::from_str(str).map(|s| s.into_bound_py_any(py))?
     //
     //         // cls.call_method1(intern!(py, "from_str"), (pystr,))
-    //     } else if let Ok(pyulid) = value.downcast::<Self>() {
+    //     } else if let Ok(pyulid) = value.cast::<Self>() {
     //         pyulid.into_bound_py_any(py)
-    //     } else if let Ok(pybytes) = value.downcast::<PyBytes>() {
+    //     } else if let Ok(pybytes) = value.cast::<PyBytes>() {
     //         let slice: [u8; 16] = pybytes
     //             .as_bytes()
     //             .try_into()
@@ -482,12 +482,12 @@ impl PyUlid {
     //     handler: &Bound<'py, PyAny>,
     // ) -> PyResult<Bound<'py, PyAny>> {
     //     let py = value.py();
-    //     let ulid = if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+    //     let ulid = if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
     //         // Self::from_str()
     //         let str = pystr.to_str()?;
     //         Self::from_str(str).map(|s| s.into_bound_py_any(py))?
     //         // cls.call_method1(intern!(py, "from_str"), (pystr,))
-    //     } else if let Ok(pyulid) = value.downcast::<Self>() {
+    //     } else if let Ok(pyulid) = value.cast::<Self>() {
     //         pyulid.into_bound_py_any(py)
     //     } else {
     //         Err(PyValueError::new_err(
@@ -509,7 +509,7 @@ struct UuidLike(pub(crate) Uuid);
 
 impl FromPyObject<'_> for UuidLike {
     fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(uuid_like) = obj.downcast::<PyUuid>() {
+        if let Ok(uuid_like) = obj.cast::<PyUuid>() {
             return Ok(Self(*uuid_like.borrow().get()));
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
             return Ok(Self(py_uuid.into()));

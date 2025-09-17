@@ -11,7 +11,7 @@ use pyo3::{Bound, PyAny, PyResult};
 pub fn extract_bytes_ref<'py>(obj: &'py Bound<'py, PyAny>) -> PyResult<&'py [u8]> {
     if let Ok(bytes) = obj.extract::<&[u8]>() {
         Ok(bytes)
-    } else if let Ok(custom) = obj.downcast::<PyBytes>() {
+    } else if let Ok(custom) = obj.cast::<PyBytes>() {
         let a = custom.get();
         Ok(a.as_ref())
     } else {
@@ -25,7 +25,7 @@ pub fn extract_bytes_ref<'py>(obj: &'py Bound<'py, PyAny>) -> PyResult<&'py [u8]
 pub fn extract_bytes_ref_str<'py>(obj: &'py Bound<'py, PyAny>) -> PyResult<&'py [u8]> {
     if let Ok(bytes) = obj.extract::<&[u8]>() {
         Ok(bytes)
-    } else if let Ok(custom) = obj.downcast::<PyBytes>() {
+    } else if let Ok(custom) = obj.cast::<PyBytes>() {
         let a = custom.get();
         Ok(a.as_ref())
     } else if let Ok(s) = obj.extract::<&str>() {

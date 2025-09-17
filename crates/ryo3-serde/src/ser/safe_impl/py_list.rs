@@ -213,7 +213,7 @@ impl Serialize for SerializePyList<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_list: &Bound<'_, PyList> = self.obj.downcast_exact().map_err(pyerr2sererr)?;
+        let py_list: &Bound<'_, PyList> = self.obj.cast_exact().map_err(pyerr2sererr)?;
         let len = py_list.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()

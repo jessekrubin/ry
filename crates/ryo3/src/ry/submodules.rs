@@ -40,9 +40,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
     // renaming
     let sys = PyModule::import(py, intern!(py, "sys"))?;
-    let sys_modules = sys
-        .getattr(intern!(py, "modules"))?
-        .downcast_into::<PyDict>()?;
+    let sys_modules = sys.getattr(intern!(py, "modules"))?.cast_into::<PyDict>()?;
 
     #[cfg(feature = "jiter")]
     m.add_wrapped(pyo3::wrap_pymodule!(ryo3_json::json_py_module))?;

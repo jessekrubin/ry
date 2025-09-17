@@ -32,7 +32,7 @@ impl Serialize for SerializePySet<'_, '_> {
     where
         S: Serializer,
     {
-        let py_set: &Bound<'_, PyAny> = self.obj.downcast::<PySet>().map_err(pyerr2sererr)?;
+        let py_set: &Bound<'_, PyAny> = self.obj.cast::<PySet>().map_err(pyerr2sererr)?;
         let len = py_set.len().map_err(pyerr2sererr)?;
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
@@ -73,7 +73,7 @@ impl Serialize for SerializePyFrozenSet<'_, '_> {
         S: Serializer,
     {
         let py_frozenset: &Bound<'_, PyAny> =
-            self.obj.downcast::<PyFrozenSet>().map_err(pyerr2sererr)?;
+            self.obj.cast::<PyFrozenSet>().map_err(pyerr2sererr)?;
         let len = py_frozenset.len().map_err(pyerr2sererr)?;
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();

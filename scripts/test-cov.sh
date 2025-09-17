@@ -16,7 +16,7 @@ rm -rfv ./target/llvm-cov/html
 cargo llvm-cov clean --workspace
 # cargo test
 uv run -- maturin develop --uv
-uv run -- pytest tests --cov=ry --cov-report xml
+uv run -- pytest tests python/ry --doctest-modules --cov=ry --cov-report xml
 cargo llvm-cov report --lcov --output-path coverage.lcov
 cargo llvm-cov report --html
 serve ./target/llvm-cov/html

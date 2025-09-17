@@ -99,7 +99,7 @@ pub fn parse_json<'py>(
     } else if let Ok(s) = data.extract::<&str>() {
         let json_bytes = s.as_bytes();
         options.parse(py, json_bytes)
-    } else if let Ok(custom) = data.downcast::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(custom) = data.cast::<ryo3_bytes::PyBytes>() {
         let pybytes = custom.get();
         let json_bytes = pybytes.as_slice();
         options.parse(py, json_bytes)
@@ -140,7 +140,7 @@ pub fn parse_jsonl<'py>(
     };
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse_lines(py, bytes)
-    } else if let Ok(custom) = data.downcast::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(custom) = data.cast::<ryo3_bytes::PyBytes>() {
         let pybytes = custom.get();
         let json_bytes = pybytes.as_ref();
         options.parse_lines(py, json_bytes)

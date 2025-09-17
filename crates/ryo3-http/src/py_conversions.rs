@@ -49,7 +49,7 @@ const HTTP_METHOD_STRINGS: &str =
 
 impl FromPyObject<'_> for HttpMethod {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string().to_ascii_uppercase();
             match s.as_str() {
                 "GET" => Ok(Self(http::Method::GET)),
@@ -108,7 +108,7 @@ impl<'py> IntoPyObject<'py> for HttpVersion {
 const HTTP_VERSION_STRING: &str = "Invalid HTTP version ~ must be one of 'HTTP/0.9'|'0.9', 'HTTP/1.0'|'HTTP/1'|'1.0'|'1', 'HTTP/1.1'|'1.1', 'HTTP/2.0'|'HTTP/2'|'2.0'|'2'|'2.2', 'HTTP/3.0'|'HTTP/3'|'3.0'|'3'";
 impl FromPyObject<'_> for HttpVersion {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string();
             match s.as_str().to_ascii_uppercase().as_str() {
                 "HTTP/0.9" | "0.9" => Ok(Self(http::Version::HTTP_09)),
@@ -272,12 +272,12 @@ impl<'py> IntoPyObject<'py> for HttpHeaderName {
 
 impl FromPyObject<'_> for HttpHeaderName {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string();
             http::HeaderName::from_bytes(s.as_bytes())
                 .map(HttpHeaderName)
                 .map_err(|e| PyValueError::new_err(format!("invalid-header-name: {e}")))
-        } else if let Ok(pyb) = ob.downcast::<PyBytes>() {
+        } else if let Ok(pyb) = ob.cast::<PyBytes>() {
             let s = pyb.as_bytes();
             http::HeaderName::from_bytes(s)
                 .map(HttpHeaderName)
@@ -348,12 +348,12 @@ impl<'py> IntoPyObject<'py> for HttpHeaderValue {
 
 impl FromPyObject<'_> for HttpHeaderValue {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string();
             http::HeaderValue::from_str(&s)
                 .map(Self::from)
                 .map_err(|e| PyValueError::new_err(format!("invalid-header-value: {e}")))
-        } else if let Ok(pyb) = ob.downcast::<PyBytes>() {
+        } else if let Ok(pyb) = ob.cast::<PyBytes>() {
             let s = pyb.as_bytes();
             http::HeaderValue::from_bytes(s)
                 .map(Self::from)

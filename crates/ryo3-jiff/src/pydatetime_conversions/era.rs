@@ -10,16 +10,6 @@ impl<'py> IntoPyObject<'py> for &JiffEra {
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = std::convert::Infallible;
 
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        (&self).into_pyobject(py)
-    }
-}
-
-impl<'py> IntoPyObject<'py> for JiffEra {
-    type Target = PyString;
-    type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = std::convert::Infallible;
-
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
@@ -30,10 +20,20 @@ impl<'py> IntoPyObject<'py> for JiffEra {
     }
 }
 
+impl<'py> IntoPyObject<'py> for JiffEra {
+    type Target = PyString;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
+    }
+}
+
 impl FromPyObject<'_> for JiffEra {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
                 "bce" | "bc" => Ok(Self(Era::BCE)),

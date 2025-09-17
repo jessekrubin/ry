@@ -47,7 +47,7 @@ use serde::ser::Serialize;
 //             {
 //                 let ob = ser
 //                     .obj
-//                     .downcast::<$ty>()
+//                     .cast::<$ty>()
 //                     .map_err(pyerr2sererr)?;
 //                 ob.get().serialize(serializer)
 //             }
@@ -104,7 +104,7 @@ macro_rules! ry_type_serializer_struct {
             {
                 let ob = self
                     .ob
-                    .downcast_exact::<$ty>()
+                    .cast_exact::<$ty>()
                     .map_err(pyerr2sererr)?;
                 ob.get().serialize(serializer)
             }
@@ -204,7 +204,7 @@ impl Serialize for PyDurationSerializer<'_> {
     {
         let ob = self
             .ob
-            .downcast_exact::<ryo3_std::time::PyDuration>()
+            .cast_exact::<ryo3_std::time::PyDuration>()
             .map_err(pyerr2sererr)?;
         let pydur = ob.get();
 

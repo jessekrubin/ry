@@ -9,7 +9,7 @@ where
 {
     obj.getattr(intern!(obj.py(), "__dataclass_fields__")) // PyResult<Bound<PyAny>>
         .ok()? // Option<Bound<PyAny>>
-        .downcast_into::<PyDict>() // PyResult<Bound<PyDict>>
+        .cast_into::<PyDict>() // PyResult<Bound<PyDict>>
         .ok() // Option<Bound<PyDict>>
 }
 

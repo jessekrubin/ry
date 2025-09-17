@@ -4,7 +4,7 @@ use ryo3_regex::PyRegex;
 use std::path::PathBuf;
 
 fn extract_regex(regex: &Bound<PyAny>) -> PyResult<PyRegex> {
-    if let Ok(regex) = regex.downcast::<PyString>() {
+    if let Ok(regex) = regex.cast::<PyString>() {
         let regex = regex.to_str()?;
         PyRegex::try_from(regex)
     } else if let Ok(regex) = regex.extract::<PyRegex>() {

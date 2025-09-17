@@ -484,21 +484,21 @@ impl RySignedDuration {
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
-        if let Ok(pystr) = value.downcast::<pyo3::types::PyString>() {
+        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if let Ok(pybytes) = value.downcast::<pyo3::types::PyBytes>() {
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if value.is_exact_instance_of::<Self>() {
             value.into_bound_py_any(py)
-        } else if let Ok(v) = value.downcast_exact::<PyFloat>() {
+        } else if let Ok(v) = value.cast_exact::<PyFloat>() {
             let f = v.extract::<f64>()?;
             if f.is_nan() || f.is_infinite() {
                 return py_value_err!("Cannot convert NaN or infinite float to SignedDuration");
             }
             Self::py_try_from_secs_f64(f).and_then(|dt| dt.into_bound_py_any(py))
-        } else if let Ok(v) = value.downcast_exact::<PyInt>() {
+        } else if let Ok(v) = value.cast_exact::<PyInt>() {
             let i = v.extract::<i64>()?;
             Self::from(SignedDuration::new(i, 0)).into_bound_py_any(py)
         } else if let Ok(d) = value.extract::<SignedDuration>() {

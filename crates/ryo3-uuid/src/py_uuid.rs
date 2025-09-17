@@ -164,7 +164,7 @@ impl PyUuid {
     }
 
     fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        if let Ok(rs_uuid) = other.downcast::<Self>() {
+        if let Ok(rs_uuid) = other.cast::<Self>() {
             let other = rs_uuid.get();
 
             match op {

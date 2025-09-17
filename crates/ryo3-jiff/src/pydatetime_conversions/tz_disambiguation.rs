@@ -7,7 +7,7 @@ const JIFF_ERA_STRINGS: &str = "'compatible', 'earlier', 'later', 'reject'";
 impl FromPyObject<'_> for JiffTzDisambiguation {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
                 "compatible" => Ok(tz::Disambiguation::Compatible.into()),

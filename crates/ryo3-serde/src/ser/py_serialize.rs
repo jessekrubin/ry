@@ -174,10 +174,10 @@ impl Serialize for SerializePyAny<'_> {
             // UNKNOWN
             // ------------------------------------------------------------
             PyObType::Unknown => {
-                if let Ok(py_map) = self.obj.downcast::<PyMapping>() {
+                if let Ok(py_map) = self.obj.cast::<PyMapping>() {
                     SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth)
                         .serialize(serializer)
-                } else if let Ok(py_seq) = self.obj.downcast::<PySequence>() {
+                } else if let Ok(py_seq) = self.obj.cast::<PySequence>() {
                     SerializePySequence::new_with_depth(py_seq, self.ctx, self.depth)
                         .serialize(serializer)
                 } else if let Some(default) = self.ctx.default {

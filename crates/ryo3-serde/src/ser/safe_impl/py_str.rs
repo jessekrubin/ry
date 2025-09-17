@@ -20,7 +20,7 @@ impl Serialize for SerializePyStr<'_, '_> {
     where
         S: Serializer,
     {
-        let py_str: &Bound<'_, PyString> = self.obj.downcast().map_err(pyerr2sererr)?;
+        let py_str: &Bound<'_, PyString> = self.obj.cast().map_err(pyerr2sererr)?;
         let s = py_str.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(s)
     }

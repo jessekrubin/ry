@@ -7,12 +7,12 @@ pub struct PyCompression(pub(crate) Compression);
 
 impl FromPyObject<'_> for PyCompression {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(pyint) = ob.downcast::<PyInt>() {
+        if let Ok(pyint) = ob.cast::<PyInt>() {
             let level = pyint.extract::<u32>()?;
             if level < 10 {
                 return Ok(Self(Compression::new(level)));
             }
-        } else if let Ok(pystr) = ob.downcast::<PyString>() {
+        } else if let Ok(pystr) = ob.cast::<PyString>() {
             let s = pystr.to_str()?;
             let c = match s {
                 "fast" => Some(Self(Compression::fast())),

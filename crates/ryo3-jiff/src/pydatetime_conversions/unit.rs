@@ -42,7 +42,7 @@ const JIFF_UNIT_OPTIONS: &str = "0='year', 1='month', 2='week', 3='day', 4='hour
 impl FromPyObject<'_> for JiffUnit {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.downcast::<PyString>() {
+        if let Ok(s) = ob.cast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
                 "year" => Ok(Self(Unit::Year)),
