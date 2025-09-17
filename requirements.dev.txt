@@ -10,7 +10,7 @@ click==8.2.1
     # via uvicorn
 h11==0.16.0
     # via uvicorn
-hypothesis==6.138.15
+hypothesis==6.139.1
     # via -r requirements.dev.in
 idna==3.10
     # via anyio
@@ -32,7 +32,7 @@ pluggy==1.6.0
     # via pytest
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pydantic==2.11.8
+pydantic==2.11.9
     # via -r requirements.dev.in
 pydantic-core==2.33.2
     # via pydantic
