@@ -596,9 +596,8 @@ impl PyFsPath {
     //  - Path.to_path_buf
     //  - Path.as_mut_os_str
     //  - Path.as_os_str
-    fn ancestors<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parents: Vec<Self> = self.path().ancestors().map(Self::from).collect();
-        PyTuple::new(py, parents)
+    fn ancestors(&self) -> PyFsPathAncestors {
+        PyFsPathAncestors::new(self.path())
     }
 
     fn canonicalize(&self) -> PyResult<Self> {
@@ -861,5 +860,69 @@ impl PyFsPathReadDir {
 impl From<std::fs::ReadDir> for PyFsPathReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
         Self { iter: iter.into() }
+    }
+}
+
+#[pyclass(name = "FsPathAncestors", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct PyFsPathAncestors {
+    path: ArcPathBuf,
+    current: Mutex<Option<ArcPathBuf>>,
+}
+
+impl PyFsPathAncestors {
+    pub fn new<P: AsRef<Path>>(p: P) -> Self {
+        Self {
+            path: ArcPathBuf::new(p.as_ref().to_path_buf()),
+            current: Mutex::new(Some(ArcPathBuf::new(p.as_ref().to_path_buf()))),
+        }
+    }
+}
+
+#[pymethods]
+impl PyFsPathAncestors {
+    fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(&self) -> Option<PyFsPath> {
+        let mut current = self.current.lock();
+        let taken = current.take().map(|p| PyFsPath::from(p.as_ref()));
+        if let Some(ref p) = taken {
+            let next = p.path().parent().map(|p| ArcPathBuf::new(p.to_path_buf()));
+            *current = next;
+        }
+        taken
+    }
+
+    fn collect(&self) -> Vec<PyFsPath> {
+        let mut paths = vec![];
+        while let Some(path) = self.__next__() {
+            paths.push(path);
+        }
+        paths
+    }
+
+    #[pyo3(signature = (n = 1))]
+    fn take(&self, n: usize) -> Vec<PyFsPath> {
+        let mut paths = vec![];
+        for _ in 0..n {
+            if let Some(path) = self.__next__() {
+                paths.push(path);
+            } else {
+                break;
+            }
+        }
+        paths
+    }
+}
+
+impl std::fmt::Display for PyFsPathAncestors {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FsPathAncestors<{}>", self.path.display())
     }
 }
