@@ -5,6 +5,7 @@
 - `ryo3-jiff`
   - added `.__format__()` methods to several jiff structs to allow custom
     f-string formatting
+  - Fixed `SignedDuration.__truediv__` operator
 - internal
   - migrated all `downcast*` usages to `cast*`
 - Min python version for ry is now 3.11+

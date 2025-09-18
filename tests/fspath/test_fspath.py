@@ -191,6 +191,59 @@ class TestFsPath:
         assert type(rypath.parts) is type(pypath.parts)
         assert isinstance(rypath.parts, tuple)
 
+    def test_parents(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path/file.txt")
+        rypath = path_cls("/some/path/file.txt")
+        assert len(rypath.parents) == len(pypath.parents)
+        for rp, pp in zip(rypath.parents, pypath.parents, strict=False):
+            assert rp.as_posix() == pp.as_posix()
+
+    def test_name(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path/file.txt")
+        rypath = path_cls("/some/path/file.txt")
+        assert rypath.name == pypath.name
+
+    def test_suffixes(self, path_cls: TPath) -> None:
+        pypath = Path("/some/path/file.tar.gz")
+        rypath = path_cls("/some/path/file.tar.gz")
+        assert rypath.suffixes == pypath.suffixes
+        assert type(rypath.suffixes) is type(pypath.suffixes)
+        assert isinstance(rypath.suffixes, list)
+
+    def test_home(self, path_cls: TPath) -> None:
+        pypath = Path.home()
+        rypath = path_cls.home()
+        assert rypath == pypath
+
+    def test_cwd(self, path_cls: TPath) -> None:
+        pypath = Path.cwd()
+        rypath = path_cls.cwd()
+        assert rypath == pypath
+
+
+class TestFsPathRustMethods:
+    def test_extensions(self) -> None:
+        fsp = ry.FsPath("/some/path/file.tar.gz")
+        assert fsp.extension() == "gz"
+
+    def test_file_name(self) -> None:
+        fsp = ry.FsPath("/some/path/file.tar.gz")
+        assert fsp.file_name() == "file.tar.gz"
+
+    def test_file_prefix(self) -> None:
+        fsp = ry.FsPath("/some/path/file.tar.gz")
+        assert fsp.file_prefix() == "file.tar"
+
+    def test_file_stem(self) -> None:
+        fsp = ry.FsPath("/some/path/file.tar.gz")
+        assert fsp.file_stem() == "file.tar"
+
+    def test_is_relative(self) -> None:
+        fsp = ry.FsPath("file.tar.gz")
+        assert fsp.is_relative()
+        another = ry.FsPath.home()
+        assert not another.is_relative()
+
 
 class TestFsPathBytes:
     def test_read(self, tmp_path: Path) -> None:

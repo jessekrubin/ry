@@ -443,59 +443,6 @@ impl PyUlid {
         }?;
         handler.call1((ulid,))
     }
-
-    // #[staticmethod]
-    // fn _pydantic_validate<'py>(
-    //     // cls: &Bound<'py, PyType>,
-    //     value: &Bound<'py, PyAny>,
-    //     handler: &Bound<'py, PyAny>,
-    // ) -> PyResult<Bound<'py, PyAny>> {
-    //     let py = value.py();
-    //     let ulid = if let Ok(pyint) = value.cast::<pyo3::types::PyInt>() {
-    //         Self::from_int(pyint.extract::<u128>()?).into_bound_py_any(py)
-    //
-    //         // cls.call_method1(intern!(py, "from_int"), (pyint,))
-    //     } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
-    //         let str = pystr.to_str()?;
-    //         Self::from_str(str).map(|s| s.into_bound_py_any(py))?
-    //
-    //         // cls.call_method1(intern!(py, "from_str"), (pystr,))
-    //     } else if let Ok(pyulid) = value.cast::<Self>() {
-    //         pyulid.into_bound_py_any(py)
-    //     } else if let Ok(pybytes) = value.cast::<PyBytes>() {
-    //         let slice: [u8; 16] = pybytes
-    //             .as_bytes()
-    //             .try_into()
-    //             .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
-    //         Self::from_bytes(slice).into_bound_py_any(py)
-    //         // cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
-    //     } else {
-    //         Err(PyTypeError::new_err("Unrecognized format for ULID"))
-    //     }?;
-    //     handler.call1((ulid,))
-    // }
-    //
-    // #[staticmethod]
-    // fn _pydantic_validate_strict<'py>(
-    //     // cls: &Bound<'py, PyType>,
-    //     value: &Bound<'py, PyAny>,
-    //     handler: &Bound<'py, PyAny>,
-    // ) -> PyResult<Bound<'py, PyAny>> {
-    //     let py = value.py();
-    //     let ulid = if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
-    //         // Self::from_str()
-    //         let str = pystr.to_str()?;
-    //         Self::from_str(str).map(|s| s.into_bound_py_any(py))?
-    //         // cls.call_method1(intern!(py, "from_str"), (pystr,))
-    //     } else if let Ok(pyulid) = value.cast::<Self>() {
-    //         pyulid.into_bound_py_any(py)
-    //     } else {
-    //         Err(PyValueError::new_err(
-    //             "Unrecognized format for ULID (strict)",
-    //         ))
-    //     }?;
-    //     handler.call1((ulid,))
-    // }
 }
 
 impl From<Ulid> for PyUlid {
@@ -524,6 +471,7 @@ impl GetPydanticCoreSchemaCls for PyUlid {
         source: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::interns;
         let py = source.py();
         // let core_schema = py.import(intern!(py, "pydantic_core.core_schema"))?;
         let core_schema = ryo3_pydantic::core_schema(py)?;
@@ -532,45 +480,45 @@ impl GetPydanticCoreSchemaCls for PyUlid {
 
         // oy vey this is hideous, but it works
         let str_schema_kwargs = PyDict::new(py);
-        str_schema_kwargs.set_item(intern!(py, "pattern"), intern!(py, r"[A-Z0-9]{26}"))?;
-        str_schema_kwargs.set_item(intern!(py, "min_length"), 26)?;
-        str_schema_kwargs.set_item(intern!(py, "max_length"), 26)?;
+        str_schema_kwargs.set_item(interns::pattern(py), intern!(py, r"[A-Z0-9]{26}"))?;
+        str_schema_kwargs.set_item(interns::min_length(py), 26)?;
+        str_schema_kwargs.set_item(interns::max_length(py), 26)?;
 
         // more hideousness
         let bytes_schema_kwargs = PyDict::new(py);
-        bytes_schema_kwargs.set_item(intern!(py, "min_length"), 16)?;
-        bytes_schema_kwargs.set_item(intern!(py, "max_length"), 16)?;
+        bytes_schema_kwargs.set_item(interns::min_length(py), 16)?;
+        bytes_schema_kwargs.set_item(interns::max_length(py), 16)?;
 
         // actual validator functions
-        let pydantic_validate = cls.getattr(intern!(py, "_pydantic_validate"))?;
-        let pydantic_validate_strict = cls.getattr(intern!(py, "_pydantic_validate_strict"))?;
+        let pydantic_validate = cls.getattr(interns::_pydantic_validate(py))?;
+        let pydantic_validate_strict = cls.getattr(interns::_pydantic_validate_strict(py))?;
 
         let to_string_ser_schema_kwargs = PyDict::new(py);
         to_string_ser_schema_kwargs
-            .set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
+            .set_item(interns::when_used(py), interns::json_unless_none(py))?;
         let to_string_ser_schema = core_schema.call_method(
-            intern!(py, "to_string_ser_schema"),
+            interns::to_string_ser_schema(py),
             (),
             Some(&to_string_ser_schema_kwargs),
         )?;
 
         let no_info_wrap_validator_function_kwargs = PyDict::new(py);
         no_info_wrap_validator_function_kwargs
-            .set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
+            .set_item(interns::serialization(py), &to_string_ser_schema)?;
 
         // LAX union schema (allows ULID, string, bytes)
         let lax_union_schema = core_schema.call_method1(
-            intern!(py, "union_schema"),
+            interns::union_schema(py),
             (vec![
                 core_schema
-                    .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
+                    .call_method1(interns::is_instance_schema(py), (py.get_type::<Self>(),))?,
                 core_schema.call_method1(
-                    intern!(py, "no_info_plain_validator_function"),
+                    interns::no_info_plain_validator_function(py),
                     (py.get_type::<Self>(),),
                 )?,
-                core_schema.call_method(intern!(py, "str_schema"), (), Some(&str_schema_kwargs))?,
+                core_schema.call_method(interns::str_schema(py), (), Some(&str_schema_kwargs))?,
                 core_schema.call_method(
-                    intern!(py, "bytes_schema"),
+                    interns::bytes_schema(py),
                     (),
                     Some(&bytes_schema_kwargs),
                 )?,
@@ -578,12 +526,12 @@ impl GetPydanticCoreSchemaCls for PyUlid {
         )?;
 
         let strict_union = core_schema.call_method1(
-            intern!(py, "union_schema"),
+            interns::union_schema(py),
             (vec![
                 core_schema
-                    .call_method1(intern!(py, "is_instance_schema"), (py.get_type::<Self>(),))?,
+                    .call_method1(interns::is_instance_schema(py), (py.get_type::<Self>(),))?,
                 core_schema.call_method(
-                    intern!(py, "str_schema"),
+                    interns::str_schema(py),
                     (),
                     Some(&str_schema_kwargs), // still allow canonical string
                 )?,
@@ -591,21 +539,21 @@ impl GetPydanticCoreSchemaCls for PyUlid {
         )?;
 
         let strict_schema = core_schema.call_method(
-            intern!(py, "no_info_wrap_validator_function"),
+            interns::no_info_wrap_validator_function(py),
             (pydantic_validate_strict, strict_union),
             Some(&no_info_wrap_validator_function_kwargs),
         )?;
 
         let ulid_schema_kwargs = PyDict::new(py);
-        ulid_schema_kwargs.set_item(intern!(py, "serialization"), &to_string_ser_schema)?;
+        ulid_schema_kwargs.set_item(interns::serialization(py), &to_string_ser_schema)?;
 
         let lax_schema = core_schema.call_method(
-            intern!(py, "no_info_wrap_validator_function"),
+            interns::no_info_wrap_validator_function(py),
             (pydantic_validate, lax_union_schema),
             Some(&no_info_wrap_validator_function_kwargs),
         )?;
         let ulid_schema = core_schema.call_method(
-            intern!(py, "lax_or_strict_schema"),
+            interns::lax_or_strict_schema(py),
             (lax_schema, strict_schema),
             Some(&ulid_schema_kwargs),
         )?;
