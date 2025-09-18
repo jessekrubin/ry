@@ -48,38 +48,38 @@ impl PyDuration {
 
     fn try_from_secs_f32(secs: f32) -> PyResult<Self> {
         if secs.is_nan() {
-            return py_value_err!("invalid value: nan");
-        }
-        if secs.is_infinite() {
+            py_value_err!("invalid value: nan")
+        } else if secs.is_infinite() {
             if secs.is_sign_negative() {
-                return py_type_err!("negative duration");
+                py_type_err!("negative duration")
+            } else {
+                py_overflow_err!("invalid value: inf")
             }
-            return py_overflow_err!("invalid value: inf");
+        } else if secs < 0.0 {
+            py_type_err!("negative duration")
+        } else {
+            Duration::try_from_secs_f32(secs)
+                .map(Self::from)
+                .map_err(|e| py_overflow_error!("{e}"))
         }
-        if secs < 0.0 {
-            return py_type_err!("negative duration");
-        }
-        Duration::try_from_secs_f32(secs)
-            .map(Self::from)
-            .map_err(|e| py_overflow_error!("{e}"))
     }
 
     fn try_from_secs_f64(secs: f64) -> PyResult<Self> {
         if secs.is_nan() {
-            return py_value_err!("invalid value: nan");
-        }
-        if secs.is_infinite() {
+            py_value_err!("invalid value: nan")
+        } else if secs.is_infinite() {
             if secs.is_sign_negative() {
-                return py_type_err!("negative duration");
+                py_type_err!("negative duration")
+            } else {
+                py_overflow_err!("invalid value: inf")
             }
-            return py_overflow_err!("invalid value: inf");
+        } else if secs < 0.0 {
+            py_type_err!("negative duration")
+        } else {
+            Duration::try_from_secs_f64(secs)
+                .map(Self::from)
+                .map_err(|e| py_overflow_error!("{e}"))
         }
-        if secs < 0.0 {
-            return py_type_err!("negative duration");
-        }
-        Duration::try_from_secs_f64(secs)
-            .map(Self::from)
-            .map_err(|e| py_overflow_error!("{e}"))
     }
 }
 
