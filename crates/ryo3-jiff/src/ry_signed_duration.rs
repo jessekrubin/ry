@@ -17,7 +17,6 @@ use ryo3_macro_rules::{
     any_repr, py_overflow_error, py_type_err, py_value_err, py_value_error, py_zero_division_err,
 };
 use ryo3_std::time::PyDuration;
-use std::f32::consts::E;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Div;
@@ -25,10 +24,10 @@ use std::ops::Mul;
 use std::str::FromStr;
 
 const NANOS_PER_SEC: i32 = 1_000_000_000;
-const NANOS_PER_MILLI: i32 = 1_000_000;
-const NANOS_PER_MICRO: i32 = 1_000;
-const MILLIS_PER_SEC: i64 = 1_000;
-const MICROS_PER_SEC: i64 = 1_000_000;
+// const NANOS_PER_MILLI: i32 = 1_000_000;
+// const NANOS_PER_MICRO: i32 = 1_000;
+// const MILLIS_PER_SEC: i64 = 1_000;
+// const MICROS_PER_SEC: i64 = 1_000_000;
 const SECS_PER_MINUTE: i64 = 60;
 const MINS_PER_HOUR: i64 = 60;
 
