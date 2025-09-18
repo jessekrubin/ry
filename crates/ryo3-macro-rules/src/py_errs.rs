@@ -63,3 +63,23 @@ macro_rules! py_value_err {
         ::std::result::Result::Err(::pyo3::exceptions::PyValueError::new_err(::std::format!($($arg)+)))
     };
 }
+
+#[macro_export]
+macro_rules! py_zero_division_error {
+    () => {
+        ::pyo3::exceptions::PyZeroDivisionError::new_err("division by zero")
+    };
+    ($($arg:tt)+) => {
+        ::pyo3::exceptions::PyZeroDivisionError::new_err(::std::format!($($arg)+))
+    };
+}
+
+#[macro_export]
+macro_rules! py_zero_division_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyZeroDivisionError::new_err("division by zero"))
+    };
+    ($($arg:tt)+) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyZeroDivisionError::new_err(::std::format!($($arg)+)))
+    };
+}
