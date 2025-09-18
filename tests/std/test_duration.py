@@ -264,6 +264,23 @@ class TestDurationArithmetic:
         except OverflowError:
             pass
 
+    @given(st_duration(), st_duration())
+    def test_abs_diff(self, left: Duration, right: Duration) -> None:
+        result = ry.Duration.abs_diff(left, right)
+        assert isinstance(result, ry.Duration)
+
+    @given(
+        st_duration(),
+        st.timedeltas(
+            min_value=pydt.timedelta(0),
+        ),
+    )
+    def test_abs_diff_with_timedelta(
+        self, left: Duration, right: pydt.timedelta
+    ) -> None:
+        result = ry.Duration.abs_diff(left, right)
+        assert isinstance(result, ry.Duration)
+
 
 @given(st_duration_args())
 def test_duration_constructor_safe(args: tuple[int, int]) -> None:

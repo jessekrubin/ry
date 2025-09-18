@@ -1,10 +1,8 @@
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError, PyZeroDivisionError};
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDelta, PyInt, PyTuple};
-use pyo3::{
-    Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
-};
+use pyo3::types::{PyInt, PyTuple};
+use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
 use ryo3_macro_rules::{
     py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
@@ -360,8 +358,8 @@ impl PyDuration {
 
     /// Convert to python `datetime.timedelta`
     #[expect(clippy::wrong_self_convention)]
-    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        self.0.into_pyobject(py)
+    fn to_pytimedelta(&self) -> Duration {
+        self.0
     }
 
     /// Convert from python `datetime.timedelta`
