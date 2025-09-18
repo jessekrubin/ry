@@ -196,7 +196,7 @@ class TestFsPath:
         rypath = path_cls("/some/path/file.txt")
         assert len(rypath.parents) == len(pypath.parents)
         for rp, pp in zip(rypath.parents, pypath.parents, strict=False):
-            assert rp.__fspath__() == pp.__fspath__()
+            assert rp.as_posix() == pp.as_posix()
 
     def test_name(self, path_cls: TPath) -> None:
         pypath = Path("/some/path/file.txt")
