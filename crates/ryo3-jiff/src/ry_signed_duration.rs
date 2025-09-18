@@ -249,7 +249,7 @@ impl RySignedDuration {
     fn __truediv__<'py>(
         &self,
         py: Python<'py>,
-        other: Bound<'py, PyAny>,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         if let Ok(dur) = other.cast_exact::<Self>() {
             self.div_duration_f64(dur.get())?.into_bound_py_any(py)
@@ -322,12 +322,12 @@ impl RySignedDuration {
         const MIN_HOUR: i64 = i64::MIN / (SECS_PER_MINUTE * MINS_PER_HOUR);
         // OK because (SECS_PER_MINUTE*MINS_PER_HOUR)!={-1,0}.
         const MAX_HOUR: i64 = i64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR);
-        if hours < MIN_HOUR || hours > MAX_HOUR {
-            return Err(py_overflow_error!(
-                "hours value {hours} out of range [{MIN_HOUR}, {MAX_HOUR}]"
-            ));
-        } else {
+        if (MIN_HOUR..=MAX_HOUR).contains(&hours) {
             Ok(Self(SignedDuration::from_hours(hours)))
+        } else {
+            Err(py_overflow_error!(
+                "hours value {hours} out of range [{MIN_HOUR}, {MAX_HOUR}]"
+            ))
         }
     }
 
@@ -345,12 +345,12 @@ impl RySignedDuration {
     fn from_mins(mins: i64) -> PyResult<Self> {
         const MIN_MINUTE: i64 = i64::MIN / SECS_PER_MINUTE;
         const MAX_MINUTE: i64 = i64::MAX / SECS_PER_MINUTE;
-        if mins < MIN_MINUTE || mins > MAX_MINUTE {
+        if (MIN_MINUTE..=MAX_MINUTE).contains(&mins) {
+            Ok(Self(SignedDuration::from_mins(mins)))
+        } else {
             Err(py_overflow_error!(
                 "minutes value {mins} out of range [{MIN_MINUTE}, {MAX_MINUTE}]"
             ))
-        } else {
-            Ok(Self(SignedDuration::from_mins(mins)))
         }
     }
 
