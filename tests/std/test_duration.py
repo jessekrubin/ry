@@ -100,9 +100,20 @@ class TestDurationArithmetic:
         with pytest.raises(ZeroDivisionError):
             _r = dur / 0.0
         with pytest.raises(ZeroDivisionError):
+            _f = dur / ry.Duration(0, 0)
+        with pytest.raises(ZeroDivisionError):
+            _f = dur / pydt.timedelta()
+        with pytest.raises(ZeroDivisionError):
             dur.div_f32(0.0)
         with pytest.raises(ZeroDivisionError):
             dur.div_f64(0.0)
+
+    def test_div_type_error(self) -> None:
+        dur = ry.Duration(1, 0)
+        with pytest.raises(TypeError):
+            _r = dur / "string"  # type: ignore[operator]
+        with pytest.raises(TypeError):
+            _r = dur / []  # type: ignore[operator]
 
     @given(st_duration(), st.floats())
     def test_duration_div_f32(
@@ -163,6 +174,94 @@ class TestDurationArithmetic:
         except OverflowError:
             pass
         except ZeroDivisionError:
+            pass
+
+    @given(st_duration(), st.floats(width=32))
+    def test_duration_mul_f32(
+        self,
+        dur: Duration,
+        factor: float,
+    ) -> None:
+        if factor == 0:
+            assert dur.mul_f32(factor) == ry.Duration(0, 0)
+            return
+
+        if isnan(factor):
+            with pytest.raises(ValueError):
+                dur.mul_f32(factor)
+            return
+        if factor == float("inf") or factor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.mul_f32(factor)
+            return
+        if factor < 0:
+            with pytest.raises(TypeError):
+                _dur = dur.mul_f32(factor)
+            return
+        try:
+            divided = dur.mul_f32(factor)
+            assert isinstance(divided, ry.Duration)
+        except OverflowError:
+            pass
+
+    @given(st_duration(), st.floats())
+    def test_duration_mul_f64(
+        self,
+        dur: Duration,
+        factor: float,
+    ) -> None:
+        if factor == 0:
+            assert dur.mul_f64(factor) == ry.Duration(0, 0)
+            return
+
+        if isnan(factor):
+            with pytest.raises(ValueError):
+                dur.mul_f64(factor)
+            return
+        if factor == float("inf") or factor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.mul_f64(factor)
+            return
+        if factor < 0:
+            with pytest.raises(TypeError):
+                _dur = dur.mul_f64(factor)
+            return
+        try:
+            divided = dur.mul_f64(factor)
+            assert isinstance(divided, ry.Duration)
+        except OverflowError:
+            pass
+
+    @given(st_duration(), st_duration())
+    def test_div_duration_f32(
+        self,
+        left: Duration,
+        right: Duration,
+    ) -> None:
+        if right.is_zero:
+            with pytest.raises(ZeroDivisionError):
+                _r = left.div_duration_f32(right)
+            return
+        try:
+            result = left.div_duration_f32(right)
+            assert isinstance(result, float)
+        except OverflowError:
+            pass
+
+    @given(st_duration(), st_duration())
+    def test_div_duration_f64(
+        self,
+        left: Duration,
+        right: Duration,
+    ) -> None:
+        if right.is_zero:
+            with pytest.raises(ZeroDivisionError):
+                _r = left.div_duration_f64(right)
+            return
+        try:
+            result = left.div_duration_f64(right)
+            assert isinstance(result, float)
+        except OverflowError:
             pass
 
 
@@ -330,6 +429,7 @@ class TestDurationAs:
     def test_as_secs_f32(self) -> None:
         dur = ry.Duration(1, 500_000_000)
         assert dur.as_secs_f32() == 1.5
+        assert dur.as_secs() == 1.5
 
     def test_as_secs_f64(self) -> None:
         dur = ry.Duration(1, 500_000_000)

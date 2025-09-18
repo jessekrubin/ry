@@ -16,6 +16,12 @@ def test_sleep() -> None:
     assert end - start >= 0
 
 
+@pytest.mark.parametrize("interval", [0, 1001])
+def test_sleep_check_interval_err(interval: int) -> None:
+    with pytest.raises(ValueError):
+        ry.Duration(1, 1).sleep(interval=interval)
+
+
 @pytest.mark.anyio
 async def test_sleep_async() -> None:
     start = time.time()

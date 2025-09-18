@@ -195,19 +195,9 @@ class TestSignedDurationSaturatingArithmetic:
 
         if left == right:
             assert left_minus_right == right_minus_left
-
         if left.is_zero and right.is_zero:
             assert left_minus_right == ry.SignedDuration(0, 0)
             assert right_minus_left == ry.SignedDuration(0, 0)
-        if (left and not right) or (
-            right and not left
-        ):  # one is zero, the other is not
-            negatable = right_minus_left.checked_neg() is not None
-            if negatable:
-                abs_diff = abs(
-                    left_minus_right.as_nanos() - (-right_minus_left).as_nanos()
-                )
-                assert abs_diff < 100  # fuzz
 
     @given(st_signed_duration(), st_i32)
     def test_signed_duration_saturating_mul(

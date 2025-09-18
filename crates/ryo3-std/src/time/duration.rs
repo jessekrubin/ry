@@ -176,10 +176,6 @@ impl PyDuration {
         self.0.as_nanos()
     }
 
-    fn dbg(&self) -> String {
-        format!("Duration<{:?}>", self.0)
-    }
-
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================
@@ -245,12 +241,8 @@ impl PyDuration {
             let f = f.extract::<f64>()?;
             self.div_f64(f).and_then(|d| d.into_bound_py_any(py))
         } else if let Ok(d) = other.cast_exact::<Self>() {
-            let rs_dur = d.get().inner();
-            if rs_dur.is_zero() {
-                py_zero_division_err!()
-            } else {
-                self.0.div_duration_f64(*rs_dur).into_bound_py_any(py)
-            }
+            let rs_dur = d.get();
+            self.div_duration_f64(rs_dur)?.into_bound_py_any(py)
         } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
             let rs_dur: Duration = d.extract()?;
             if rs_dur.is_zero() {
@@ -465,6 +457,8 @@ impl PyDuration {
                     return Err(PyValueError::new_err(
                         "interval must be less than or equal to 1000",
                     ));
+                } else if interval == 0 {
+                    return Err(PyValueError::new_err("interval must be greater than 0"));
                 }
                 interval
             }
@@ -533,12 +527,20 @@ impl PyDuration {
         self.0.checked_sub(other.0).map(Self::from)
     }
 
-    fn div_duration_f32(&self, other: &Self) -> f32 {
-        self.0.div_duration_f32(other.0)
+    fn div_duration_f32(&self, other: &Self) -> PyResult<f32> {
+        if other.0.is_zero() {
+            py_zero_division_err!()
+        } else {
+            Ok(self.0.div_duration_f32(other.0))
+        }
     }
 
-    fn div_duration_f64(&self, other: &Self) -> f64 {
-        self.0.div_duration_f64(other.0)
+    fn div_duration_f64(&self, other: &Self) -> PyResult<f64> {
+        if other.0.is_zero() {
+            py_zero_division_err!()
+        } else {
+            Ok(self.0.div_duration_f64(other.0))
+        }
     }
 
     fn div_f32(&self, n: f32) -> PyResult<Self> {
@@ -572,14 +574,14 @@ impl PyDuration {
     }
 
     fn mul_f32(&self, n: f32) -> PyResult<Self> {
-        if n.is_nan() {
+        if n.abs() == 0.0 {
+            Ok(Self::from(Duration::ZERO))
+        } else if n.is_infinite() {
+            py_overflow_err!()
+        } else if n.is_nan() {
             py_value_err!("invalid value: nan")
         } else if n.is_sign_negative() {
             py_type_err!("negative factor")
-        } else if n.is_infinite() {
-            py_value_err!("invalid value: inf")
-        } else if n == 0.0 {
-            py_zero_division_err!()
         } else {
             let result = self.0.as_secs_f32().mul(n);
             Self::try_from_secs_f32(result)
@@ -587,14 +589,14 @@ impl PyDuration {
     }
 
     fn mul_f64(&self, n: f64) -> PyResult<Self> {
-        if n.is_nan() {
+        if n.abs() == 0.0 {
+            Ok(Self::from(Duration::ZERO))
+        } else if n.is_infinite() {
+            py_overflow_err!()
+        } else if n.is_nan() {
             py_value_err!("invalid value: nan")
         } else if n.is_sign_negative() {
             py_type_err!("negative factor")
-        } else if n.is_infinite() {
-            py_value_err!("invalid value: inf")
-        } else if n == 0.0 {
-            py_zero_division_err!()
         } else {
             let result = self.0.as_secs_f64().mul(n);
             Self::try_from_secs_f64(result)
