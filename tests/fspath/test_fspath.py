@@ -193,10 +193,12 @@ class TestFsPath:
 
     def test_parents(self, path_cls: TPath) -> None:
         pypath = Path("/some/path/file.txt")
-        rypath = path_cls("/some/path/file.txt")
+        rypath: ry.FsPath | Path = path_cls("/some/path/file.txt")
         assert len(rypath.parents) == len(pypath.parents)
         for rp, pp in zip(rypath.parents, pypath.parents, strict=False):
-            assert rp.as_posix() == pp.as_posix()
+            rp_posix = rp.as_posix()  # type: ignore[attr-defined]
+            pp_posix = pp.as_posix()
+            assert rp_posix == pp_posix
 
     def test_name(self, path_cls: TPath) -> None:
         pypath = Path("/some/path/file.txt")

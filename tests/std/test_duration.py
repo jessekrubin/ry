@@ -40,6 +40,15 @@ def st_duration(draw: DrawFn) -> Duration:
     return Duration(secs, nanos)
 
 
+def st_durations() -> SearchStrategy[Duration]:
+    """Strategy for `ry.Duration` instances"""
+    return st.builds(
+        Duration,
+        st.integers(min_value=0, max_value=MAX_U64),
+        st.integers(min_value=0, max_value=999_999_999),
+    ).filter(lambda d: d.secs <= MAX_U64)
+
+
 def st_duration_args() -> SearchStrategy[tuple[int, int]]:
     """Strategy for `ry.Duration` constructor arguments"""
     return st.tuples(
@@ -74,15 +83,15 @@ class TestDurationArithmetic:
         dur1 = ry.Duration(16, 0)
         dur2 = ry.Duration(4, 0)
         divided = dur1 / dur2
-        assert isinstance(divided, ry.Duration)
-        assert divided == ry.Duration(4, 0)
+        assert isinstance(divided, float)
+        assert divided == 4.0
 
     def test_duration_div_timedelta(self) -> None:
         dur = ry.Duration(16, 0)
         pydelta = pydt.timedelta(seconds=4)
         divided = dur / pydelta
-        assert isinstance(divided, ry.Duration)
-        assert divided == ry.Duration(4, 0)
+        assert isinstance(divided, float)
+        assert divided == 4.0
 
     def test_duration_div_zero_raises_zero_division_error(self) -> None:
         dur = ry.Duration(1, 0)
@@ -103,21 +112,25 @@ class TestDurationArithmetic:
     ) -> None:
         if divisor == 0:
             with pytest.raises(ZeroDivisionError):
-                dur.div_f32(divisor)
+                _dur = dur.div_f32(divisor)
             return
-        if divisor < 0:
-            with pytest.raises((ValueError, ZeroDivisionError)):
-                dur.div_f32(divisor)
-            return
-        if isnan(divisor) or divisor == float("inf") or divisor == float("-inf"):
+        if isnan(divisor):
             with pytest.raises(ValueError):
                 dur.div_f32(divisor)
+            return
+        if divisor == float("inf") or divisor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.div_f32(divisor)
+            return
+        if divisor < 0:
+            with pytest.raises((TypeError, OverflowError, ZeroDivisionError)):
+                _dur = dur.div_f32(divisor)
             return
 
         try:
             divided = dur.div_f32(divisor)
             assert isinstance(divided, ry.Duration)
-        except ValueError:
+        except OverflowError:
             pass
         except ZeroDivisionError:
             pass
@@ -132,18 +145,22 @@ class TestDurationArithmetic:
             with pytest.raises(ZeroDivisionError):
                 _dur = dur.div_f64(divisor)
             return
-        if divisor < 0:
-            with pytest.raises((ValueError, ZeroDivisionError)):
-                _dur = dur.div_f64(divisor)
-            return
-        if isnan(divisor) or divisor == float("inf") or divisor == float("-inf"):
+        if isnan(divisor):
             with pytest.raises(ValueError):
                 dur.div_f64(divisor)
+            return
+        if divisor == float("inf") or divisor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.div_f64(divisor)
+            return
+        if divisor < 0:
+            with pytest.raises((TypeError, ZeroDivisionError)):
+                _dur = dur.div_f64(divisor)
             return
         try:
             divided = dur.div_f64(divisor)
             assert isinstance(divided, ry.Duration)
-        except ValueError:
+        except OverflowError:
             pass
         except ZeroDivisionError:
             pass
@@ -307,3 +324,157 @@ def test_duration_properties() -> None:
     assert dur.subsec_millis == 123
     assert dur.secs == 90061
     assert dur.nanos == 123456789
+
+
+class TestDurationAs:
+    def test_as_secs_f32(self) -> None:
+        dur = ry.Duration(1, 500_000_000)
+        assert dur.as_secs_f32() == 1.5
+
+    def test_as_secs_f64(self) -> None:
+        dur = ry.Duration(1, 500_000_000)
+        assert dur.as_secs_f64() == 1.5
+
+    def test_as_millis(self) -> None:
+        dur = ry.Duration(1, 500_000_000)
+        assert dur.as_millis() == 1500
+
+    def test_as_micros(self) -> None:
+        dur = ry.Duration(1, 500_000_000)
+        assert dur.as_micros() == 1_500_000
+
+    def test_as_nanos(self) -> None:
+        dur = ry.Duration(1, 500_000_000)
+        assert dur.as_nanos() == 1_500_000_000
+
+
+class TestDurationFromIntegers:
+    @given(st.integers(min_value=0, max_value=MAX_U64))
+    def test_from_secs(self, secs: int) -> None:
+        dur = ry.Duration.from_secs(secs)
+        assert isinstance(dur, ry.Duration)
+        assert dur.secs == secs
+        assert dur.nanos == 0
+
+    @given(st.integers(min_value=0, max_value=MAX_U64))
+    def test_from_millis(self, millis: int) -> None:
+        dur = ry.Duration.from_millis(millis)
+        assert isinstance(dur, ry.Duration)
+        assert dur.secs == millis // 1000
+        assert dur.nanos == (millis % 1000) * 1_000_000
+
+    @given(st.integers(min_value=0, max_value=MAX_U64))
+    def test_from_micros(self, micros: int) -> None:
+        dur = ry.Duration.from_micros(micros)
+        assert isinstance(dur, ry.Duration)
+        assert dur.secs == micros // 1_000_000
+        assert dur.nanos == (micros % 1_000_000) * 1_000
+
+    @given(st.integers(min_value=0, max_value=MAX_U64))
+    def test_from_nanos(self, nanos: int) -> None:
+        dur = ry.Duration.from_nanos(nanos)
+        assert isinstance(dur, ry.Duration)
+        assert dur.secs == nanos // 1_000_000_000
+        assert dur.nanos == nanos % 1_000_000_000
+
+    @given(st.integers(min_value=0, max_value=MAX_U64))
+    def test_from_hours(self, hours: int) -> None:
+        if hours > MAX_U64 // 3600:
+            with pytest.raises(OverflowError):
+                _dur = ry.Duration.from_hours(hours)
+        else:
+            dur = ry.Duration.from_hours(hours)
+            assert isinstance(dur, ry.Duration)
+
+    @given(st.integers(min_value=0, max_value=MAX_U64))
+    def test_from_mins(self, minutes: int) -> None:
+        if minutes > MAX_U64 // 60:
+            with pytest.raises(OverflowError):
+                _dur = ry.Duration.from_mins(minutes)
+        else:
+            dur = ry.Duration.from_mins(minutes)
+            assert isinstance(dur, ry.Duration)
+
+    @given(st.integers(min_value=0, max_value=MAX_U64))
+    def test_from_days(self, days: int) -> None:
+        if days > MAX_U64 // 86400:
+            with pytest.raises(OverflowError):
+                _dur = ry.Duration.from_days(days)
+        else:
+            dur = ry.Duration.from_days(days)
+            assert isinstance(dur, ry.Duration)
+
+    @given(st.floats(width=32))
+    def test_from_secs_f32(self, secs: float) -> None:
+        if isnan(secs):
+            with pytest.raises(ValueError):
+                _dur = ry.Duration.from_secs_f32(secs)
+        elif secs < 0.0:
+            with pytest.raises((TypeError, OverflowError)):
+                _dur = ry.Duration.from_secs_f32(secs)
+        elif secs == float("inf"):
+            with pytest.raises(OverflowError):
+                _dur = ry.Duration.from_secs_f32(secs)
+        else:
+            try:
+                dur = ry.Duration.from_secs_f32(secs)
+                assert isinstance(dur, ry.Duration)
+            except OverflowError:
+                pass
+
+    @given(st.floats())
+    def test_from_secs_f64(self, secs: float) -> None:
+        if isnan(secs):
+            with pytest.raises(ValueError):
+                _dur = ry.Duration.from_secs_f64(secs)
+        elif secs < 0.0:
+            with pytest.raises((TypeError, OverflowError)):
+                _dur = ry.Duration.from_secs_f64(secs)
+        elif secs == float("inf"):
+            with pytest.raises(OverflowError):
+                _dur = ry.Duration.from_secs_f64(secs)
+        else:
+            try:
+                dur = ry.Duration.from_secs_f64(secs)
+                assert isinstance(dur, ry.Duration)
+            except OverflowError:
+                pass
+
+
+class TestDurationCheckedArithmetic:
+    @given(st_durations(), st_durations())
+    def test_checked_add(self, left: ry.Duration, right: ry.Duration) -> None:
+        result = left.checked_add(right)
+        assert result is None or isinstance(result, ry.Duration)
+
+    @given(st_durations(), st_durations())
+    def test_checked_sub(self, left: ry.Duration, right: ry.Duration) -> None:
+        result = left.checked_sub(right)
+        assert result is None or isinstance(result, ry.Duration)
+
+    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    def test_checked_mul(self, dur: ry.Duration, factor: int) -> None:
+        result = dur.checked_mul(factor)
+        assert result is None or isinstance(result, ry.Duration)
+
+    @given(st_durations(), st.integers(min_value=1, max_value=MAX_U32))
+    def test_checked_div(self, dur: ry.Duration, divisor: int) -> None:
+        result = dur.checked_div(divisor)
+        assert result is None or isinstance(result, ry.Duration)
+
+
+class TestDurationSaturatingArithmetic:
+    @given(st_durations(), st_durations())
+    def test_saturating_add(self, left: ry.Duration, right: ry.Duration) -> None:
+        result = left.saturating_add(right)
+        assert isinstance(result, ry.Duration)
+
+    @given(st_durations(), st_durations())
+    def test_saturating_sub(self, left: ry.Duration, right: ry.Duration) -> None:
+        result = left.saturating_sub(right)
+        assert isinstance(result, ry.Duration)
+
+    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    def test_saturating_mul(self, dur: ry.Duration, factor: int) -> None:
+        result = dur.saturating_mul(factor)
+        assert isinstance(result, ry.Duration)
