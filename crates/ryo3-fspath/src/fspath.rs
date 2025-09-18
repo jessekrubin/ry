@@ -231,7 +231,7 @@ impl PyFsPath {
             PyTuple::new(py, parents)
         } else {
             // no parents
-            return PyTuple::new(py, Vec::<Self>::new());
+            PyTuple::new(py, Vec::<Self>::new())
         }
     }
 
