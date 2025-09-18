@@ -345,15 +345,19 @@ impl RySignedDuration {
     fn as_hours(&self) -> i64 {
         self.0.as_hours()
     }
+
     fn as_micros(&self) -> i128 {
         self.0.as_micros()
     }
+
     fn as_millis(&self) -> i128 {
         self.0.as_millis()
     }
+
     fn as_millis_f32(&self) -> f32 {
         self.0.as_millis_f32()
     }
+
     fn as_millis_f64(&self) -> f64 {
         self.0.as_millis_f64()
     }
@@ -415,12 +419,15 @@ impl RySignedDuration {
     fn mul_f32(&self, n: f32) -> Self {
         Self::from(self.0.mul_f32(n))
     }
+
     fn mul_f64(&self, n: f64) -> Self {
         Self::from(self.0.mul_f64(n))
     }
+
     fn saturating_add(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_add(other.0))
     }
+
     fn saturating_mul(&self, other: i32) -> Self {
         Self::from(self.0.saturating_mul(other))
     }
@@ -436,12 +443,15 @@ impl RySignedDuration {
     fn signum(&self) -> i8 {
         self.0.signum()
     }
+
     fn subsec_micros(&self) -> i32 {
         self.0.subsec_micros()
     }
+
     fn subsec_millis(&self) -> i32 {
         self.0.subsec_millis()
     }
+
     fn subsec_nanos(&self) -> i32 {
         self.0.subsec_nanos()
     }

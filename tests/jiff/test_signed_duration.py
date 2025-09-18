@@ -1,23 +1,14 @@
 from __future__ import annotations
 
 import datetime as pydt
-from typing import TYPE_CHECKING
 
 import pytest
 from hypothesis import given
-from hypothesis import strategies as st
 
 import ry
 
-from ..strategies import st_i32, st_i64
-
-if TYPE_CHECKING:
-    from hypothesis.strategies import SearchStrategy
-
-
-def st_signed_duration_args() -> SearchStrategy[tuple[int, int]]:
-    """Strategy for `ry.Duration` constructor arguments"""
-    return st.tuples(st_i64, st_i32)
+from ..strategies import st_i32
+from .strategies import st_signed_duration, st_signed_duration_args
 
 
 @given(st_signed_duration_args())
@@ -123,3 +114,117 @@ class TestSignedDurationRound:
         )
 
         assert rounded == ry.SignedDuration.from_secs(4 * 60 * 60 + 17 * 60 + 30)
+
+
+class TestSignedDurationSaturatingArithmetic:
+    @given(st_signed_duration(), st_signed_duration())
+    def test_signed_duration_saturating_add(
+        self, left: ry.SignedDuration, right: ry.SignedDuration
+    ) -> None:
+        left_plus_right = left.saturating_add(right)
+        right_plus_left = right.saturating_add(left)
+        assert left_plus_right == right_plus_left
+        assert isinstance(left_plus_right, ry.SignedDuration)
+        assert isinstance(right_plus_left, ry.SignedDuration)
+
+    @given(st_signed_duration(), st_signed_duration())
+    def test_signed_duration_saturating_sub(
+        self, left: ry.SignedDuration, right: ry.SignedDuration
+    ) -> None:
+        left_minus_right = left.saturating_sub(right)
+        right_minus_left = right.saturating_sub(left)
+        assert isinstance(left_minus_right, ry.SignedDuration)
+        assert isinstance(right_minus_left, ry.SignedDuration)
+
+        if left == right:
+            assert left_minus_right == right_minus_left
+
+        if left.is_zero and right.is_zero:
+            assert left_minus_right == ry.SignedDuration(0, 0)
+            assert right_minus_left == ry.SignedDuration(0, 0)
+        if (left and not right) or (
+            right and not left
+        ):  # one is zero, the other is not
+            negatable = right_minus_left.checked_neg() is not None
+            if negatable:
+                assert left_minus_right == -right_minus_left or (
+                    abs(left_minus_right - right_minus_left)
+                    < ry.SignedDuration(0, 100)  # fuzz
+                )
+
+    @given(st_signed_duration(), st_i32)
+    def test_signed_duration_saturating_mul(
+        self, dur: ry.SignedDuration, factor: int
+    ) -> None:
+        dur_times_factor = dur.saturating_mul(factor)
+        assert isinstance(dur_times_factor, ry.SignedDuration)
+        if factor == 0:
+            assert dur_times_factor == ry.SignedDuration(0, 0)
+        elif factor == 1:
+            assert dur_times_factor == dur
+        elif factor == -1:
+            assert dur_times_factor == -dur
+
+
+_NANOS_PER_SEC: int = 1_000_000_000
+_NANOS_PER_MILLI: int = 1_000_000
+_NANOS_PER_MICRO: int = 1_000
+_MILLIS_PER_SEC: int = 1_000
+_MICROS_PER_SEC: int = 1_000_000
+_SECS_PER_MINUTE: int = 60
+_MINS_PER_HOUR: int = 60
+
+
+class TestSignedDurationAsXYZ:
+    @given(st_signed_duration())
+    def test_as_hours(self, dur: ry.SignedDuration) -> None:
+        hours = dur.as_hours()
+        assert isinstance(hours, int)
+        expected = dur.signum() * int(
+            abs(dur.secs) // 3600
+            + abs(dur.nanos) // (_NANOS_PER_SEC * _SECS_PER_MINUTE * _MINS_PER_HOUR)
+        )
+        assert hours == expected
+
+    @given(st_signed_duration())
+    def test_as_mins(self, dur: ry.SignedDuration) -> None:
+        minutes = dur.as_mins()
+        assert isinstance(minutes, int)
+        expected = dur.signum() * int(
+            abs(dur.secs) // 60 + abs(dur.nanos) // 60_000_000_000
+        )
+        assert minutes == expected
+
+    @given(st_signed_duration())
+    def test_as_secs(self, dur: ry.SignedDuration) -> None:
+        seconds = dur.as_secs()
+        assert isinstance(seconds, int)
+        expected = dur.signum() * (
+            abs(dur.secs) + dur.signum() * int(abs(dur.nanos) // _NANOS_PER_SEC)
+        )
+        assert seconds == expected
+
+    @given(st_signed_duration())
+    def test_as_millis(self, dur: ry.SignedDuration) -> None:
+        millis = dur.as_millis()
+        assert isinstance(millis, int)
+        expected = dur.signum() * int(
+            abs(dur.secs) * _MILLIS_PER_SEC + abs(dur.nanos) // _NANOS_PER_MILLI
+        )
+        assert millis == expected
+
+    @given(st_signed_duration())
+    def test_as_micros(self, dur: ry.SignedDuration) -> None:
+        micros = dur.as_micros()
+        assert isinstance(micros, int)
+        expected = dur.signum() * int(
+            abs(dur.secs) * _MICROS_PER_SEC + abs(dur.nanos) // _NANOS_PER_MICRO
+        )
+        assert micros == expected
+
+    @given(st_signed_duration())
+    def test_as_nanos(self, dur: ry.SignedDuration) -> None:
+        nanos = dur.as_nanos()
+        assert isinstance(nanos, int)
+        expected = dur.signum() * (abs(dur.secs) * _NANOS_PER_SEC + abs(dur.nanos))
+        assert nanos == expected

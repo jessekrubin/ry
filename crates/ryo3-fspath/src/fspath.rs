@@ -223,11 +223,16 @@ impl PyFsPath {
         }
     }
 
-    // TODO - implement ad iterator not tuple
     #[getter]
     fn parents<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parents: Vec<Self> = self.path().ancestors().map(Self::from).collect();
-        PyTuple::new(py, parents)
+        let parent = self.path().parent();
+        if let Some(par) = parent {
+            let parents: Vec<Self> = par.ancestors().map(Self::from).collect();
+            PyTuple::new(py, parents)
+        } else {
+            // no parents
+            return PyTuple::new(py, Vec::<Self>::new());
+        }
     }
 
     #[getter]
@@ -286,7 +291,10 @@ impl PyFsPath {
         let mut p = self.path().to_path_buf();
         while let Some(e) = p.extension() {
             match e.to_str() {
-                Some(e) => suffixes.push(e.to_string()),
+                Some(e) => {
+                    // push with leading dot to match python pathlib
+                    suffixes.push(format!(".{e}"));
+                }
                 None => break,
             }
             p = p.with_extension("");
