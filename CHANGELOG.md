@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.59 [unreleased]
+
+---
+
 ## v0.0.58 [2025-09-18]
 
 - `ryo3-jiff`
