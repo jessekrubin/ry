@@ -25,6 +25,7 @@
 - [`ry.ryo3._size`](#ry.ryo3._size)
 - [`ry.ryo3._sqlformat`](#ry.ryo3._sqlformat)
 - [`ry.ryo3._std`](#ry.ryo3._std)
+- [`ry.ryo3._std_constants`](#ry.ryo3._std_constants)
 - [`ry.ryo3._tokio`](#ry.ryo3._tokio)
 - [`ry.ryo3._unindent`](#ry.ryo3._unindent)
 - [`ry.ryo3._url`](#ry.ryo3._url)
@@ -188,6 +189,42 @@ from ry.ryo3._std import sleep as sleep
 from ry.ryo3._std import write as write
 from ry.ryo3._std import write_bytes as write_bytes
 from ry.ryo3._std import write_text as write_text
+from ry.ryo3._std_constants import I8_BITS as I8_BITS
+from ry.ryo3._std_constants import I8_MAX as I8_MAX
+from ry.ryo3._std_constants import I8_MIN as I8_MIN
+from ry.ryo3._std_constants import I16_BITS as I16_BITS
+from ry.ryo3._std_constants import I16_MAX as I16_MAX
+from ry.ryo3._std_constants import I16_MIN as I16_MIN
+from ry.ryo3._std_constants import I32_BITS as I32_BITS
+from ry.ryo3._std_constants import I32_MAX as I32_MAX
+from ry.ryo3._std_constants import I32_MIN as I32_MIN
+from ry.ryo3._std_constants import I64_BITS as I64_BITS
+from ry.ryo3._std_constants import I64_MAX as I64_MAX
+from ry.ryo3._std_constants import I64_MIN as I64_MIN
+from ry.ryo3._std_constants import I128_BITS as I128_BITS
+from ry.ryo3._std_constants import I128_MAX as I128_MAX
+from ry.ryo3._std_constants import I128_MIN as I128_MIN
+from ry.ryo3._std_constants import ISIZE_BITS as ISIZE_BITS
+from ry.ryo3._std_constants import ISIZE_MAX as ISIZE_MAX
+from ry.ryo3._std_constants import ISIZE_MIN as ISIZE_MIN
+from ry.ryo3._std_constants import U8_BITS as U8_BITS
+from ry.ryo3._std_constants import U8_MAX as U8_MAX
+from ry.ryo3._std_constants import U8_MIN as U8_MIN
+from ry.ryo3._std_constants import U16_BITS as U16_BITS
+from ry.ryo3._std_constants import U16_MAX as U16_MAX
+from ry.ryo3._std_constants import U16_MIN as U16_MIN
+from ry.ryo3._std_constants import U32_BITS as U32_BITS
+from ry.ryo3._std_constants import U32_MAX as U32_MAX
+from ry.ryo3._std_constants import U32_MIN as U32_MIN
+from ry.ryo3._std_constants import U64_BITS as U64_BITS
+from ry.ryo3._std_constants import U64_MAX as U64_MAX
+from ry.ryo3._std_constants import U64_MIN as U64_MIN
+from ry.ryo3._std_constants import U128_BITS as U128_BITS
+from ry.ryo3._std_constants import U128_MAX as U128_MAX
+from ry.ryo3._std_constants import U128_MIN as U128_MIN
+from ry.ryo3._std_constants import USIZE_BITS as USIZE_BITS
+from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
+from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import aiopen as aiopen
 from ry.ryo3._tokio import asleep as asleep
@@ -1947,6 +1984,7 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def __hash__(self) -> int: ...
     def __mul__(self, other: int) -> t.Self: ...
     def __rmul__(self, other: int) -> t.Self: ...
+    def __sub__(self, other: t.Self) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: object) -> bool: ...
@@ -1959,7 +1997,10 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def __float__(self) -> float: ...
     def __int__(self) -> int: ...
     def __bool__(self) -> bool: ...
-    def __truediv__(self, other: int) -> t.Self: ...
+    @t.overload
+    def __truediv__(self, other: t.Self) -> float: ...
+    @t.overload
+    def __truediv__(self, other: float) -> t.Self: ...
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self | pydt.timedelta, op: int) -> bool: ...
@@ -4258,6 +4299,10 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
+    def __add__(self, other: t.Self | pydt.timedelta) -> t.Self: ...
+    def __sub__(self, other: t.Self | pydt.timedelta) -> t.Self: ...
+    def __radd__(self, other: t.Self | pydt.timedelta) -> t.Self: ...
+    def __rsub__(self, other: t.Self | pydt.timedelta) -> t.Self: ...
     def __lt__(self, other: t.Self) -> bool: ...
     def __le__(self, other: t.Self) -> bool: ...
     def __gt__(self, other: t.Self) -> bool: ...
@@ -4276,8 +4321,9 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     @t.overload
     def __rtruediv__(self, other: float) -> t.Self: ...
     def __mul__(self, other: float) -> t.Self: ...
-    def abs_diff(self, other: t.Self) -> t.Self: ...
-    def sleep(self) -> None: ...
+    def __rmul__(self, other: float) -> t.Self: ...
+    def abs_diff(self, other: t.Self | pydt.timedelta) -> t.Self: ...
+    def sleep(self, interval: int = 10) -> None: ...
 
     # =========================================================================
     # PYTHON_CONVERSIONS
@@ -4335,7 +4381,7 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def as_micros(self) -> int: ...
     def as_millis(self) -> int: ...
     def as_nanos(self) -> int: ...
-    def as_secs(self) -> int: ...
+    def as_secs(self) -> float: ...
     def as_secs_f32(self) -> float: ...
     def as_secs_f64(self) -> float: ...
 
@@ -4343,8 +4389,8 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     # ARITHMETIC
     # =========================================================================
     def checked_add(self, other: t.Self) -> t.Self | None: ...
-    def checked_div(self, other: t.Self) -> t.Self | None: ...
-    def checked_mul(self, other: t.Self) -> t.Self | None: ...
+    def checked_div(self, other: int) -> t.Self | None: ...
+    def checked_mul(self, other: float) -> t.Self | None: ...
     def checked_sub(self, other: t.Self) -> t.Self | None: ...
     def div_duration_f32(self, other: t.Self) -> float: ...
     def div_duration_f64(self, other: t.Self) -> float: ...
@@ -4353,7 +4399,7 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def mul_f32(self, other: float) -> t.Self: ...
     def mul_f64(self, other: float) -> t.Self: ...
     def saturating_add(self, other: t.Self) -> t.Self: ...
-    def saturating_mul(self, other: t.Self) -> t.Self: ...
+    def saturating_mul(self, other: int) -> t.Self: ...
     def saturating_sub(self, other: t.Self) -> t.Self: ...
 
 
@@ -4855,6 +4901,69 @@ class SocketAddr(
     def ip(self) -> IpAddr: ...
     @property
     def port(self) -> int: ...
+```
+
+<h2 id="ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></h2>
+
+```python
+from typing import Literal
+
+# ruff: noqa: PYI054
+# u8
+U8_BITS: Literal[8]
+U8_MAX: Literal[255]
+U8_MIN: Literal[0]
+# i8
+I8_BITS: Literal[8]
+I8_MAX: Literal[127]
+I8_MIN: Literal[-128]
+# i16
+I16_BITS: Literal[16]
+I16_MAX: Literal[32_767]
+I16_MIN: Literal[-32_768]
+# u16
+U16_BITS: Literal[16]
+U16_MAX: Literal[65_535]
+U16_MIN: Literal[0]
+
+# u32
+U32_BITS: Literal[32]
+U32_MAX: Literal[4_294_967_295]
+U32_MIN: Literal[0]
+
+# i32
+I32_BITS: Literal[32]
+I32_MAX: Literal[2_147_483_647]
+I32_MIN: Literal[-2_147_483_648]
+
+# u64
+U64_BITS: Literal[64]
+U64_MAX: Literal[18_446_744_073_709_551_615]
+U64_MIN: Literal[0]
+
+# i64
+I64_BITS: Literal[64]
+I64_MAX: Literal[9_223_372_036_854_775_807]
+I64_MIN: Literal[-9_223_372_036_854_775_808]
+
+# u128
+U128_BITS: Literal[128]
+U128_MAX: Literal[340_282_366_920_938_463_463_374_607_431_768_211_455]
+U128_MIN: Literal[0]
+
+# i128
+I128_BITS: Literal[128]
+I128_MAX: Literal[170_141_183_460_469_231_731_687_303_715_884_105_727]
+I128_MIN: Literal[-170_141_183_460_469_231_731_687_303_715_884_105_727]
+
+# usize
+USIZE_BITS: Literal[32, 64]
+USIZE_MAX: Literal[4_294_967_295, 18_446_744_073_709_551_615]
+USIZE_MIN: Literal[0]
+# isize
+ISIZE_BITS: Literal[32, 64]
+ISIZE_MAX: Literal[2_147_483_647, 9_223_372_036_854_775_807]
+ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 ```
 
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
