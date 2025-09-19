@@ -1,20 +1,21 @@
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError, PyZeroDivisionError};
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDelta, PyTuple};
-use pyo3::{
-    Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
+use pyo3::types::{PyInt, PyTuple};
+use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
+use ryo3_macro_rules::{
+    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
 use std::time::Duration;
 
+const NANOS_PER_SEC: u32 = 1_000_000_000;
 const SECS_PER_MINUTE: u64 = 60;
 const MINS_PER_HOUR: u64 = 60;
 const HOURS_PER_DAY: u64 = 24;
 const DAYS_PER_WEEK: u64 = 7;
-
 const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY);
 const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
 
@@ -36,15 +37,39 @@ impl PyDuration {
     }
 
     fn try_from_secs_f32(secs: f32) -> PyResult<Self> {
-        Duration::try_from_secs_f32(secs)
-            .map(Self::from)
-            .map_err(|e| PyValueError::new_err(format!("{e}")))
+        if secs.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if secs.is_infinite() {
+            if secs.is_sign_negative() {
+                py_type_err!("negative duration")
+            } else {
+                py_overflow_err!("invalid value: inf")
+            }
+        } else if secs < 0.0 {
+            py_type_err!("negative duration")
+        } else {
+            Duration::try_from_secs_f32(secs)
+                .map(Self::from)
+                .map_err(|e| py_overflow_error!("{e}"))
+        }
     }
 
     fn try_from_secs_f64(secs: f64) -> PyResult<Self> {
-        Duration::try_from_secs_f64(secs)
-            .map(Self::from)
-            .map_err(|e| PyValueError::new_err(format!("{e}")))
+        if secs.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if secs.is_infinite() {
+            if secs.is_sign_negative() {
+                py_type_err!("negative duration")
+            } else {
+                py_overflow_err!("invalid value: inf")
+            }
+        } else if secs < 0.0 {
+            py_type_err!("negative duration")
+        } else {
+            Duration::try_from_secs_f64(secs)
+                .map(Self::from)
+                .map_err(|e| py_overflow_error!("{e}"))
+        }
     }
 }
 
@@ -54,13 +79,17 @@ impl PyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
     fn py_new(secs: u64, nanos: u32) -> PyResult<Self> {
-        let carry = nanos / 1_000_000_000;
-        let nanos = nanos % 1_000_000_000;
-
-        let secs = secs
-            .checked_add(u64::from(carry))
-            .ok_or_else(|| PyOverflowError::new_err("overflow in Duration::new"))?;
-        Ok(Self(Duration::new(secs, nanos)))
+        if nanos < NANOS_PER_SEC {
+            Ok(Self(Duration::new(secs, nanos)))
+        } else {
+            let secs = secs
+                .checked_add(u64::from(nanos / NANOS_PER_SEC))
+                .ok_or_else(|| {
+                    py_overflow_error!("overflow; seconds part of Duration::new too large")
+                })?;
+            let nanos = nanos % NANOS_PER_SEC;
+            Ok(Self(Duration::new(secs, nanos)))
+        }
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -137,10 +166,6 @@ impl PyDuration {
         self.0.as_nanos()
     }
 
-    fn dbg(&self) -> String {
-        format!("Duration<{:?}>", self.0)
-    }
-
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================
@@ -165,55 +190,80 @@ impl PyDuration {
         }
     }
 
-    fn __add__(&self, other: PyDurationComparable) -> PyResult<Self> {
-        let maybe_duration = match other {
-            PyDurationComparable::PyDuration(other) => self.0.checked_add(other.0),
-            PyDurationComparable::Duration(other) => self.0.checked_add(other),
-        };
-        if let Some(duration) = maybe_duration {
-            Ok(Self(duration))
+    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            self.0
+                .checked_add(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration addition"))
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: Duration = d.extract()?;
+            self.0
+                .checked_add(rs_dur)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration addition"))
         } else {
-            Err(PyOverflowError::new_err("overflow in Duration addition"))
+            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
         }
     }
 
-    fn __sub__(&self, other: PyDurationComparable) -> PyResult<Self> {
-        let maybe_duration = match other {
-            PyDurationComparable::PyDuration(other) => self.0.checked_sub(other.0),
-            PyDurationComparable::Duration(other) => self.0.checked_sub(other),
-        };
-        if let Some(duration) = maybe_duration {
-            Ok(Self(duration))
+    fn __radd__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn __sub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            self.0
+                .checked_sub(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration subtraction"))
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: Duration = d.extract()?;
+            self.0
+                .checked_sub(rs_dur)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration subtraction"))
         } else {
-            Err(PyOverflowError::new_err("overflow in Duration subtraction"))
+            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
         }
+    }
+
+    fn __rsub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__sub__(other)
     }
 
     fn __truediv__<'py>(
         &self,
         py: Python<'py>,
-        other: PyDurationArithmeticDiv,
+        other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        match other {
-            PyDurationArithmeticDiv::Int(other) => {
-                if other == 0 {
-                    return Err(PyZeroDivisionError::new_err("division by zero"));
-                }
-                self.0
-                    .checked_div(other)
-                    .map(Self::from)
-                    .ok_or_else(|| PyOverflowError::new_err("overflow in Duration division"))?
-                    .into_bound_py_any(py)
+        if let Ok(f) = other.cast::<PyInt>() {
+            let i = f.extract::<u32>()?;
+            if i == 0 {
+                return Err(PyZeroDivisionError::new_err("division by zero"));
             }
-            PyDurationArithmeticDiv::Float(other) => self.div_f64(other)?.into_bound_py_any(py),
-            PyDurationArithmeticDiv::PyDuration(other) => {
-                let result = self.0.div_duration_f64(other.0);
-                Self::try_from_secs_f64(result)?.into_bound_py_any(py)
+            self.checked_div(i)
+                .ok_or_else(|| py_overflow_error!("overflow in Duration division"))?
+                .into_bound_py_any(py)
+        } else if let Ok(f) = other.cast::<pyo3::types::PyFloat>() {
+            let f = f.extract::<f64>()?;
+            self.div_f64(f).and_then(|d| d.into_bound_py_any(py))
+        } else if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            self.div_duration_f64(rs_dur)?.into_bound_py_any(py)
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: Duration = d.extract()?;
+            if rs_dur.is_zero() {
+                py_zero_division_err!()
+            } else {
+                self.0.div_duration_f64(rs_dur).into_bound_py_any(py)
             }
-            PyDurationArithmeticDiv::Duration(other) => {
-                let result = self.0.div_duration_f64(other);
-                Self::try_from_secs_f64(result)?.into_bound_py_any(py)
-            }
+        } else {
+            py_type_err!(
+                "unsupported operand type(s); must be int | float | Duration | datetime.timedelta"
+            )
         }
     }
 
@@ -230,6 +280,10 @@ impl PyDuration {
                 "unsupported operand type(s); must be int | float",
             ))
         }
+    }
+
+    fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__mul__(other)
     }
 
     // ========================================================================
@@ -320,8 +374,8 @@ impl PyDuration {
 
     /// Convert to python `datetime.timedelta`
     #[expect(clippy::wrong_self_convention)]
-    fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        self.0.into_pyobject(py)
+    fn to_pytimedelta(&self) -> Duration {
+        self.0
     }
 
     /// Convert from python `datetime.timedelta`
@@ -375,7 +429,7 @@ impl PyDuration {
 
     #[staticmethod]
     fn from_days(days: u64) -> PyResult<Self> {
-        if days > u64::MAX / MAX_DAYS {
+        if days > MAX_DAYS {
             Err(PyOverflowError::new_err(format!(
                 "overflow in Duration::from_days: {days} > {MAX_DAYS}"
             )))
@@ -417,6 +471,8 @@ impl PyDuration {
                     return Err(PyValueError::new_err(
                         "interval must be less than or equal to 1000",
                     ));
+                } else if interval == 0 {
+                    return Err(PyValueError::new_err("interval must be greater than 0"));
                 }
                 interval
             }
@@ -485,44 +541,80 @@ impl PyDuration {
         self.0.checked_sub(other.0).map(Self::from)
     }
 
-    fn div_duration_f32(&self, other: &Self) -> f32 {
-        self.0.div_duration_f32(other.0)
+    fn div_duration_f32(&self, other: &Self) -> PyResult<f32> {
+        if other.0.is_zero() {
+            py_zero_division_err!()
+        } else {
+            Ok(self.0.div_duration_f32(other.0))
+        }
     }
 
-    fn div_duration_f64(&self, other: &Self) -> f64 {
-        self.0.div_duration_f64(other.0)
+    fn div_duration_f64(&self, other: &Self) -> PyResult<f64> {
+        if other.0.is_zero() {
+            py_zero_division_err!()
+        } else {
+            Ok(self.0.div_duration_f64(other.0))
+        }
     }
 
     fn div_f32(&self, n: f32) -> PyResult<Self> {
-        if n == 0.0 {
-            return Err(PyZeroDivisionError::new_err("division by zero"));
+        if n.abs() == 0.0 {
+            py_zero_division_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if n.is_infinite() {
+            py_overflow_err!("invalid value: inf")
+        } else if n.is_sign_negative() {
+            py_type_err!("negative divisor")
+        } else {
+            let result = self.0.as_secs_f32().div(n);
+            Self::try_from_secs_f32(result)
         }
-        if n.is_sign_negative() || n.is_infinite() || n.is_nan() {
-            return Err(PyValueError::new_err("invalid value"));
-        }
-        let result = self.0.as_secs_f32().div(n);
-        Self::try_from_secs_f32(result)
     }
 
     fn div_f64(&self, n: f64) -> PyResult<Self> {
-        if n == 0.0 {
-            return Err(PyZeroDivisionError::new_err("division by zero"));
+        if n.abs() == 0.0 {
+            py_zero_division_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if n.is_infinite() {
+            py_overflow_err!("invalid value: inf")
+        } else if n.is_sign_negative() {
+            py_type_err!("negative divisor")
+        } else {
+            let result = self.0.as_secs_f64().div(n);
+            Self::try_from_secs_f64(result)
         }
-        if n.is_sign_negative() || n.is_infinite() || n.is_nan() {
-            return Err(PyValueError::new_err("invalid value"));
-        }
-        let result = self.0.as_secs_f64().div(n);
-        Self::try_from_secs_f64(result)
     }
 
     fn mul_f32(&self, n: f32) -> PyResult<Self> {
-        let result = self.0.as_secs_f32().mul(n);
-        Self::try_from_secs_f32(result)
+        if n.abs() == 0.0 {
+            Ok(Self::from(Duration::ZERO))
+        } else if n.is_infinite() {
+            py_overflow_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if n.is_sign_negative() {
+            py_type_err!("negative factor")
+        } else {
+            let result = self.0.as_secs_f32().mul(n);
+            Self::try_from_secs_f32(result)
+        }
     }
 
     fn mul_f64(&self, n: f64) -> PyResult<Self> {
-        let result = self.0.as_secs_f64().mul(n);
-        Self::try_from_secs_f64(result)
+        if n.abs() == 0.0 {
+            Ok(Self::from(Duration::ZERO))
+        } else if n.is_infinite() {
+            py_overflow_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if n.is_sign_negative() {
+            py_type_err!("negative factor")
+        } else {
+            let result = self.0.as_secs_f64().mul(n);
+            Self::try_from_secs_f64(result)
+        }
     }
 
     fn saturating_add(&self, other: &Self) -> Self {
@@ -551,14 +643,6 @@ impl Display for PyDuration {
 
 #[derive(Debug, Clone, FromPyObject)]
 enum PyDurationComparable {
-    PyDuration(PyDuration),
-    Duration(Duration),
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-enum PyDurationArithmeticDiv {
-    Int(u32), // matches Duration::checked_mul
-    Float(f64),
     PyDuration(PyDuration),
     Duration(Duration),
 }

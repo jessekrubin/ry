@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.58 [unreleased]
+## v0.0.58 [2025-09-18]
 
 - `ryo3-jiff`
   - added `.__format__()` methods to several jiff structs to allow custom
