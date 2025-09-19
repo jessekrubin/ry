@@ -81,12 +81,11 @@ def test_inheritance() -> None:
     with pytest.raises(TypeError):
 
         class MyURL(ry.URL):  # type: ignore[misc]
-            pass
+            ...
 
 
 def test_str_subclass() -> None:
-    class S(str):
-        pass
+    class S(str): ...
 
     assert str(ry.URL(S("http://example.com"))) == "http://example.com/"
 

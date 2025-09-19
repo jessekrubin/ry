@@ -8,7 +8,7 @@ use ryo3_macro_rules::{
 };
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::ops::{Deref, Div, Mul};
+use std::ops::{Div, Mul};
 use std::time::Duration;
 
 const NANOS_PER_SEC: u32 = 1_000_000_000;
@@ -27,14 +27,6 @@ pub struct PyDuration(pub Duration);
 impl From<Duration> for PyDuration {
     fn from(d: Duration) -> Self {
         Self(d)
-    }
-}
-
-impl Deref for PyDuration {
-    type Target = Duration;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 
@@ -198,28 +190,48 @@ impl PyDuration {
         }
     }
 
-    fn __add__(&self, other: PyDurationComparable) -> PyResult<Self> {
-        let maybe_duration = match other {
-            PyDurationComparable::PyDuration(other) => self.0.checked_add(other.0),
-            PyDurationComparable::Duration(other) => self.0.checked_add(other),
-        };
-        if let Some(duration) = maybe_duration {
-            Ok(Self(duration))
+    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            self.0
+                .checked_add(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration addition"))
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: Duration = d.extract()?;
+            self.0
+                .checked_add(rs_dur)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration addition"))
         } else {
-            Err(PyOverflowError::new_err("overflow in Duration addition"))
+            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
         }
     }
 
-    fn __sub__(&self, other: PyDurationComparable) -> PyResult<Self> {
-        let maybe_duration = match other {
-            PyDurationComparable::PyDuration(other) => self.0.checked_sub(other.0),
-            PyDurationComparable::Duration(other) => self.0.checked_sub(other),
-        };
-        if let Some(duration) = maybe_duration {
-            Ok(Self(duration))
+    fn __radd__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
+    fn __sub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            self.0
+                .checked_sub(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration subtraction"))
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: Duration = d.extract()?;
+            self.0
+                .checked_sub(rs_dur)
+                .map(Self::from)
+                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration subtraction"))
         } else {
-            Err(PyOverflowError::new_err("overflow in Duration subtraction"))
+            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
         }
+    }
+
+    fn __rsub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__sub__(other)
     }
 
     fn __truediv__<'py>(
@@ -268,6 +280,10 @@ impl PyDuration {
                 "unsupported operand type(s); must be int | float",
             ))
         }
+    }
+
+    fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__mul__(other)
     }
 
     // ========================================================================

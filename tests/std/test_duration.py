@@ -14,7 +14,7 @@ from ry import Duration
 from ..strategies import MAX_U32, MAX_U64
 
 if TYPE_CHECKING:
-    from hypothesis.strategies import DrawFn, SearchStrategy
+    from hypothesis.strategies import SearchStrategy
 
 timedelta_positive_strategy = st.timedeltas(
     min_value=pydt.timedelta(0), max_value=pydt.timedelta(days=365 * 100)
@@ -28,25 +28,31 @@ def _duration_should_over_flow(
     secs: int,
     nanos: int,
 ) -> bool:
-    return secs + (nanos // 1_000_000_000) > MAX_U64
+    return secs + (nanos // 1_000_000_000) > ry.U64_MAX
 
 
-@st.composite
-def st_duration(draw: DrawFn) -> Duration:
-    secs = draw(st.integers(min_value=0, max_value=MAX_U64))
-    nanos = draw(st.integers(min_value=0, max_value=MAX_U32))
-    carry = nanos // 1_000_000_000
-    assume(secs + carry <= MAX_U64)
-    return Duration(secs, nanos)
-
-
-def st_durations() -> SearchStrategy[Duration]:
+def st_durations(
+    *,
+    min_value: ry.Duration = ry.Duration.MIN,
+    max_value: ry.Duration = ry.Duration.MAX,
+) -> SearchStrategy[Duration]:
     """Strategy for `ry.Duration` instances"""
+    if min_value > max_value:
+        emsg = f"min_value {min_value} must be <= max_value {max_value}"
+        raise ValueError(emsg)
+    if min_value == max_value:
+        return st.just(min_value)
+    if min_value == ry.Duration.MIN and max_value == ry.Duration.MAX:
+        return st.builds(
+            Duration,
+            st.integers(min_value=0, max_value=MAX_U64),
+            st.integers(min_value=0, max_value=999_999_999),
+        )
     return st.builds(
         Duration,
         st.integers(min_value=0, max_value=MAX_U64),
         st.integers(min_value=0, max_value=999_999_999),
-    ).filter(lambda d: d.secs <= MAX_U64)
+    ).filter(lambda d: min_value <= d <= max_value)
 
 
 def st_duration_args() -> SearchStrategy[tuple[int, int]]:
@@ -69,6 +75,87 @@ def test_duration_new(duration_args: tuple[int, int]) -> None:
 
 
 class TestDurationArithmetic:
+    # =========================================================================
+    # ADDITION
+    # =========================================================================
+
+    @given(st_durations(), st_durations())
+    def test_add(self, left: Duration, right: Duration) -> None:
+        _expected_secs = left.secs + right.secs
+        _expected_nanos = left.nanos + right.nanos
+        if _duration_should_over_flow(_expected_secs, _expected_nanos):
+            with pytest.raises(OverflowError):
+                _ = left + right
+            return
+        result = left + right
+        assert isinstance(result, ry.Duration)
+
+    @given(
+        st_durations(),
+        st.timedeltas(
+            min_value=pydt.timedelta(0),
+        ),
+    )
+    def test_add_with_timedelta(self, left: Duration, right: pydt.timedelta) -> None:
+        _expected_secs = left.secs + int(right.total_seconds())
+        _expected_nanos = left.nanos + (right.microseconds * 1000)
+        if _duration_should_over_flow(_expected_secs, _expected_nanos):
+            with pytest.raises(OverflowError):
+                _ = left + right
+            return
+
+        result = left + right
+        assert isinstance(result, ry.Duration)
+        result_right = right + left
+        assert isinstance(result_right, ry.Duration)
+        assert result == result_right
+
+    # =========================================================================
+    # SUBTRACTION
+    # =========================================================================
+    @given(st_durations(), st_durations())
+    def test_sub(self, left: Duration, right: Duration) -> None:
+        if left < right:
+            with pytest.raises(OverflowError):
+                _ = left - right
+            return
+        result = left - right
+        assert isinstance(result, ry.Duration)
+
+    @given(
+        st_durations(),
+        st.timedeltas(
+            min_value=pydt.timedelta(0),
+        ),
+    )
+    def test_sub_with_timedelta(self, left: Duration, right: pydt.timedelta) -> None:
+        if left < ry.Duration.from_pytimedelta(right):
+            with pytest.raises(OverflowError):
+                _res = left - right
+            return
+        result = left - right
+        assert isinstance(result, ry.Duration)
+
+    @given(
+        st_durations(),
+        st.timedeltas(
+            min_value=pydt.timedelta(0),
+        ),
+    )
+    def test_sub_with_timedelta_rsub(
+        self, left: Duration, right: pydt.timedelta
+    ) -> None:
+        if left < ry.Duration.from_pytimedelta(right):
+            with pytest.raises(OverflowError):
+                _res = right - left
+            return
+        result = left - right
+        assert isinstance(result, ry.Duration)
+
+    # =========================================================================
+    # DIVISION
+    # =========================================================================
+
     def test_duration_div_number(self) -> None:
         dur = ry.Duration(16, 0)
         divided = dur / 2
@@ -115,7 +202,7 @@ class TestDurationArithmetic:
         with pytest.raises(TypeError):
             _r = dur / []  # type: ignore[operator]
 
-    @given(st_duration(), st.floats())
+    @given(st_durations(), st.floats())
     def test_duration_div_f32(
         self,
         dur: Duration,
@@ -142,11 +229,11 @@ class TestDurationArithmetic:
             divided = dur.div_f32(divisor)
             assert isinstance(divided, ry.Duration)
         except OverflowError:
-            pass
+            ...
         except ZeroDivisionError:
-            pass
+            ...
 
-    @given(st_duration(), st.floats())
+    @given(st_durations(), st.floats())
     def test_duration_div_f64(
         self,
         dur: Duration,
@@ -172,11 +259,70 @@ class TestDurationArithmetic:
             divided = dur.div_f64(divisor)
             assert isinstance(divided, ry.Duration)
         except OverflowError:
-            pass
+            ...
         except ZeroDivisionError:
-            pass
+            ...
 
-    @given(st_duration(), st.floats(width=32))
+    @given(st_durations(), st_durations())
+    def test_div_duration_f32(
+        self,
+        left: Duration,
+        right: Duration,
+    ) -> None:
+        if right.is_zero:
+            with pytest.raises(ZeroDivisionError):
+                _r = left.div_duration_f32(right)
+            return
+        try:
+            result = left.div_duration_f32(right)
+            assert isinstance(result, float)
+        except OverflowError:
+            ...
+
+    @given(st_durations(), st_durations())
+    def test_div_duration_f64(
+        self,
+        left: Duration,
+        right: Duration,
+    ) -> None:
+        if right.is_zero:
+            with pytest.raises(ZeroDivisionError):
+                _r = left.div_duration_f64(right)
+            return
+        try:
+            result = left.div_duration_f64(right)
+            assert isinstance(result, float)
+        except OverflowError:
+            ...
+
+    # =========================================================================
+    # MULTIPLICATION
+    # =========================================================================
+    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    def test_duration_mul_int(
+        self,
+        dur: Duration,
+        factor: int,
+    ) -> None:
+        try:
+            multiplied = dur * factor
+            assert isinstance(multiplied, ry.Duration)
+        except OverflowError:
+            ...
+
+    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    def test_duration_rmul_int(
+        self,
+        dur: Duration,
+        factor: int,
+    ) -> None:
+        try:
+            multiplied = factor * dur
+            assert isinstance(multiplied, ry.Duration)
+        except OverflowError:
+            ...
+
+    @given(st_durations(), st.floats(width=32))
     def test_duration_mul_f32(
         self,
         dur: Duration,
@@ -202,9 +348,9 @@ class TestDurationArithmetic:
             divided = dur.mul_f32(factor)
             assert isinstance(divided, ry.Duration)
         except OverflowError:
-            pass
+            ...
 
-    @given(st_duration(), st.floats())
+    @given(st_durations(), st.floats())
     def test_duration_mul_f64(
         self,
         dur: Duration,
@@ -230,47 +376,18 @@ class TestDurationArithmetic:
             divided = dur.mul_f64(factor)
             assert isinstance(divided, ry.Duration)
         except OverflowError:
-            pass
+            ...
 
-    @given(st_duration(), st_duration())
-    def test_div_duration_f32(
-        self,
-        left: Duration,
-        right: Duration,
-    ) -> None:
-        if right.is_zero:
-            with pytest.raises(ZeroDivisionError):
-                _r = left.div_duration_f32(right)
-            return
-        try:
-            result = left.div_duration_f32(right)
-            assert isinstance(result, float)
-        except OverflowError:
-            pass
-
-    @given(st_duration(), st_duration())
-    def test_div_duration_f64(
-        self,
-        left: Duration,
-        right: Duration,
-    ) -> None:
-        if right.is_zero:
-            with pytest.raises(ZeroDivisionError):
-                _r = left.div_duration_f64(right)
-            return
-        try:
-            result = left.div_duration_f64(right)
-            assert isinstance(result, float)
-        except OverflowError:
-            pass
-
-    @given(st_duration(), st_duration())
+    # =========================================================================
+    # ABS_DIFF
+    # =========================================================================
+    @given(st_durations(), st_durations())
     def test_abs_diff(self, left: Duration, right: Duration) -> None:
         result = ry.Duration.abs_diff(left, right)
         assert isinstance(result, ry.Duration)
 
     @given(
-        st_duration(),
+        st_durations(),
         st.timedeltas(
             min_value=pydt.timedelta(0),
         ),
@@ -298,7 +415,7 @@ class TestDurationOverflows:
             dur = ry.Duration.from_weeks(n)
             assert isinstance(dur, ry.Duration)
         except OverflowError:
-            pass
+            ...
 
 
 class TestDurationPydeltaConversion:
@@ -537,7 +654,7 @@ class TestDurationFromIntegers:
                 dur = ry.Duration.from_secs_f32(secs)
                 assert isinstance(dur, ry.Duration)
             except OverflowError:
-                pass
+                ...
 
     @given(st.floats())
     def test_from_secs_f64(self, secs: float) -> None:
@@ -555,7 +672,7 @@ class TestDurationFromIntegers:
                 dur = ry.Duration.from_secs_f64(secs)
                 assert isinstance(dur, ry.Duration)
             except OverflowError:
-                pass
+                ...
 
 
 class TestDurationCheckedArithmetic:

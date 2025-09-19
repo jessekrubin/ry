@@ -33,7 +33,7 @@ def _test_dev_status_code(num: int) -> None:
     try:
         assert s != ry.HttpStatus(num + 1)
     except ValueError:
-        pass
+        ...
     assert s != num + 1
     assert s is not None
     assert s != 0

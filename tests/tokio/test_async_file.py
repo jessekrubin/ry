@@ -405,7 +405,7 @@ async def test_simple_readall(tmp_path: Path) -> None:
 async def test_file_async_context_aexit(aiopen_fixtures: FileFixtures) -> None:
     test_file = aiopen_fixtures.test_file_path
     async with aiopen(test_file) as fp:
-        pass
+        ...
 
     with pytest.raises(RuntimeError):
         _line = await fp.read()
