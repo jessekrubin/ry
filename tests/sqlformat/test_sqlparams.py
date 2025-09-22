@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 import typing as t
 
 import pytest
@@ -65,3 +66,12 @@ def test_sqlparams_from_self(params: t.Any) -> None:
     else:
         assert len(sqlfmt_params_obj) == 0
         assert sqlfmt_params_obj.__len__() == 0
+
+
+@pytest.mark.parametrize("params", _ARAMS_ARR)
+def test_sqlparams_pickling(params: t.Any) -> None:
+    sqlfmt_params_obj = ry.sqlfmt_params(
+        params,
+    )
+    round_tripped = pickle.loads(pickle.dumps(sqlfmt_params_obj))
+    assert sqlfmt_params_obj == round_tripped

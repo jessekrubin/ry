@@ -58,22 +58,15 @@ impl PyFnvHasher {
         1
     }
 
-    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        PyTuple::new(
-            py,
-            [
-                py.None().into_bound_py_any(py)?,
-                self.finish().into_bound_py_any(py)?,
-            ],
-        )
-    }
-
-    fn __str__(&self) -> String {
-        format!("fnv1a<{:x}>", self.finish())
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::new(py, [py.None().into_bound_py_any(py)?])?;
+        let kw = pyo3::types::PyDict::new(py);
+        kw.set_item(pyo3::intern!(py, "key"), self.finish())?;
+        PyTuple::new(py, [args.into_bound_py_any(py)?, kw.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> String {
-        format!("fnv1a<{:x}>", self.finish())
+        format!("{self}")
     }
 
     #[classattr]
@@ -122,4 +115,10 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFnvHasher>()?;
     m.add_function(wrap_pyfunction!(self::fnv1a, m)?)?;
     Ok(())
+}
+
+impl std::fmt::Display for PyFnvHasher {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "fnv1a<{:x}>", self.finish())
+    }
 }

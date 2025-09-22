@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pickle
+
 import pytest
 
 import ry
@@ -17,6 +19,24 @@ def test_fnv_hasher_name() -> None:
 
 def test_fnv1a_empty() -> None:
     assert ry.fnv1a(b"").intdigest() == 0xCBF29CE484222325
+
+
+def test_fnv1a_repr() -> None:
+    assert ry.fnv1a(b"").__repr__() == "fnv1a<cbf29ce484222325>"
+
+
+def test_fnv1a_pickling() -> None:
+    hasher = ry.fnv1a(b"abc")
+    pickled = pickle.dumps(hasher)
+    unpickled = pickle.loads(pickled)
+    assert unpickled.intdigest() == hasher.intdigest()
+    assert ry.fnv1a(key=hasher.intdigest()).intdigest() == hasher.intdigest()
+    assert ry.fnv1a(b"", key=hasher.intdigest()).intdigest() == hasher.intdigest()
+    hasher.update(b"def")
+    pickled2 = pickle.dumps(hasher)
+    unpickled2 = pickle.loads(pickled2)
+    assert unpickled2.intdigest() == hasher.intdigest()
+    assert unpickled2.intdigest() == ry.fnv1a(b"abcdef").intdigest()
 
 
 @pytest.mark.parametrize("data,expected", FNV_TEST_DATA)

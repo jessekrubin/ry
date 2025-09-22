@@ -1,5 +1,5 @@
 use crate::py_regex_options::PyRegexOptions;
-use pyo3::prelude::*;
+use pyo3::{IntoPyObjectExt, prelude::*};
 use regex::{Regex, RegexBuilder};
 use std::borrow::{Borrow, Cow};
 
@@ -50,36 +50,6 @@ impl TryFrom<RegexBuilder> for PyRegex {
     }
 }
 
-//
-// build
-// case_insensitive -- default false
-// crlf -- default false
-// dot_matches_new_line -- default false
-// ignore_whitespace -- default false
-// line_terminator - default '\n'
-// multi_line -- default false
-// octal -- default false
-// size_limit -- default none
-// swap_greed -- default false
-// unicode -- default true
-// -------NOT SUPPORTED---------
-// dfa_size_limit
-// nest_limit -- idk
-
-fn get_line_terminator_u8(line_terminator: Option<&str>) -> PyResult<u8> {
-    match line_terminator {
-        Some(lt) => {
-            if lt.len() != 1 {
-                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                    "line_terminator must be a single byte",
-                ));
-            }
-            Ok(lt.as_bytes()[0])
-        }
-        None => Ok(b'\n'),
-    }
-}
-
 #[pymethods]
 impl PyRegex {
     #[new]
@@ -106,43 +76,52 @@ impl PyRegex {
         crlf: bool,
         dot_matches_new_line: bool,
         ignore_whitespace: bool,
-        line_terminator: Option<&str>,
+        line_terminator: Option<ryo3_core::types::Byte>,
         multi_line: bool,
         octal: bool,
         size_limit: Option<usize>,
         swap_greed: bool,
         unicode: bool,
     ) -> PyResult<Self> {
-        let mut builder = RegexBuilder::new(pattern);
+        // let line_terminator_u8: u8 = get_line_terminator_u8(line_terminator)?;
+        let options = PyRegexOptions {
+            case_insensitive,
+            crlf,
+            dot_matches_new_line,
+            ignore_whitespace,
+            line_terminator: line_terminator.map_or(b'\n', |lt| *lt),
+            multi_line,
+            octal,
+            size_limit,
+            swap_greed,
+            unicode,
+        };
 
-        // fill in the bools
-        let mut builder = builder
-            .case_insensitive(case_insensitive)
-            .crlf(crlf)
-            .dot_matches_new_line(dot_matches_new_line)
-            .ignore_whitespace(ignore_whitespace)
-            .multi_line(multi_line)
-            .octal(octal)
-            .swap_greed(swap_greed)
-            .unicode(unicode);
-
-        let line_terminator_u8: u8 = get_line_terminator_u8(line_terminator)?;
-        builder = builder.line_terminator(line_terminator_u8);
-
-        if let Some(size_limit) = size_limit {
-            builder.size_limit(size_limit);
-        }
-        builder.build().map(Self::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
+        let re = options.build_pattern(pattern)?;
+        Ok(Self {
+            re: std::sync::Arc::new(re),
+            options: Some(options),
         })
     }
 
+    fn __getnewargs_ex__<'py>(
+        &self,
+        py: Python<'py>,
+    ) -> PyResult<Bound<'py, pyo3::types::PyTuple>> {
+        let options_dict = if let Some(opts) = &self.options {
+            opts.as_pydict(py)?.into_bound_py_any(py)?
+        } else {
+            pyo3::types::PyDict::new(py).into_bound_py_any(py)?
+        };
+        pyo3::types::PyTuple::new(py, &[self.re.as_str().into_bound_py_any(py)?, options_dict])
+    }
+
     fn __repr__(&self) -> String {
-        format!("Regex('{}')", self.re)
+        format!("{self}")
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.re.as_str() == other.re.as_str()
+        self.re.as_str() == other.re.as_str() && self.options == other.options
     }
 
     fn is_match(&self, text: &str) -> bool {
@@ -190,5 +169,21 @@ impl PyRegex {
 impl Borrow<Regex> for PyRegex {
     fn borrow(&self) -> &Regex {
         &self.re
+    }
+}
+
+impl std::fmt::Display for PyRegex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(opts) = &self.options {
+            // if opts.is_default() {
+            //     write!(f, "Regex('{}')", self.re.as_str())
+            // } else {
+            write!(f, "Regex(r'{}'", self.re.as_str())?;
+            opts.write_regex_kwargs(f)?;
+            write!(f, ")")
+            // }
+        } else {
+            write!(f, "Regex(r'{}')", self.re.as_str())
+        }
     }
 }
