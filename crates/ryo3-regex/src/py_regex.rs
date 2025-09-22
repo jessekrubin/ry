@@ -108,12 +108,14 @@ impl PyRegex {
         &self,
         py: Python<'py>,
     ) -> PyResult<Bound<'py, pyo3::types::PyTuple>> {
-        let options_dict = if let Some(opts) = &self.options {
+        let kwargs = if let Some(opts) = &self.options {
             opts.as_pydict(py)?.into_bound_py_any(py)?
         } else {
             pyo3::types::PyDict::new(py).into_bound_py_any(py)?
         };
-        pyo3::types::PyTuple::new(py, &[self.re.as_str().into_bound_py_any(py)?, options_dict])
+
+        let args = pyo3::types::PyTuple::new(py, [self.re.as_str().into_bound_py_any(py)?])?;
+        pyo3::types::PyTuple::new(py, &[args.into_bound_py_any(py)?, kwargs])
     }
 
     fn __repr__(&self) -> String {

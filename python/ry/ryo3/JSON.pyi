@@ -6,7 +6,7 @@ from ry._types import Buffer, Unpack
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
-def minify(data: Buffer) -> Bytes:
+def minify(data: Buffer | str) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:
@@ -31,7 +31,7 @@ def minify(data: Buffer) -> Bytes:
 
     """
 
-def fmt(data: Buffer) -> Bytes:
+def fmt(data: Buffer | str) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:

@@ -82,10 +82,27 @@ JSON_DATA = [
 
 
 @pytest.mark.parametrize("tdata", JSON_DATA, ids=lambda x: x.tid)
-def test_json_minify(tdata: JsonDataTestCase) -> None:
+def test_json_minify_format(tdata: JsonDataTestCase) -> None:
     """
     Test the JSON minification functionality.
     """
     json_string_indented = JSON.stringify(tdata.value, fmt=True)
-    minified_json = bytes(JSON.minify(json_string_indented))
-    assert minified_json == tdata.expected
+
+    for el in (
+        json_string_indented,
+        bytes(json_string_indented),
+        memoryview(json_string_indented),
+        json_string_indented.decode("utf-8"),
+    ):
+        minified_json = JSON.minify(el)
+        assert minified_json == tdata.expected
+
+        # go backwards...
+        for min_el in (
+            minified_json,
+            bytes(minified_json),
+            memoryview(minified_json),
+            minified_json.decode("utf-8"),
+        ):
+            unminified = JSON.fmt(min_el)
+            assert unminified == json_string_indented

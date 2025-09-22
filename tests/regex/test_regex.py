@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 import typing as t
 
 import pytest
@@ -119,3 +120,11 @@ def test_regex_repr_line_terminator(
         assert repr_str == expected
         evaluated = eval(repr_str, {"Regex": ry.Regex})
         assert re == evaluated
+
+
+@pytest.mark.parametrize("kwargs", _gen_kwargs_options())
+def test_regex_pickling(kwargs: dict[str, t.Any]) -> None:
+    re = ry.Regex(r"\w", **kwargs)
+    pickled = pickle.dumps(re)
+    unpickled = pickle.loads(pickled)
+    assert re == unpickled
