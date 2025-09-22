@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-19T04:06:43.057552103+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-22T18:16:24.982311738+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -466,6 +466,31 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0059-unreleased"><a class="header" href="#v0059-unreleased">v0.0.59 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-sqlformat</code>
+<ul>
+<li>Updated to version 0.4.0 of <code>sqlformat</code> crate</li>
+<li>Added sqlformat version 0.4.0 new options:
+<ul>
+<li><code>ignore_case_convert: list[str] | None = None</code></li>
+<li><code>inline: bool = False</code></li>
+<li><code>max_inline_block: int = 50</code></li>
+<li><code>max_inline_arguments: int | None = None</code></li>
+<li><code>max_inline_top_level: int | None = None</code></li>
+<li><code>joins_as_top_level: bool = False</code></li>
+</ul>
+</li>
+<li>Changed <code>indent</code> arg/kwarg to accept either:
+<ul>
+<li><code>int</code> (positive integer for number of spaces)</li>
+<li><code>str</code> (“tabs”, “\t” or “spaces”)</li>
+</ul>
+</li>
+<li>Changed <code>uppercase</code> arg/kwarg to default to <code>False</code> instead of <code>True</code> to be
+more inline with the default behaviour of <code>sqlformat</code> crate</li>
+</ul>
+</li>
+</ul>
 <hr />
 <h2 id="v0058-2025-09-18"><a class="header" href="#v0058-2025-09-18">v0.0.58 [2025-09-18]</a></h2>
 <ul>
@@ -6350,6 +6375,7 @@ class SqlfmtQueryParams:
     def __init__(
         self, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
     ) -&gt; None: ...
+    def __len__(self) -&gt; int: ...
 
 
 def sqlfmt_params(
@@ -6361,9 +6387,15 @@ def sqlfmt(
     | SqlfmtQueryParams
     | None = None,
     *,
-    indent: int = 2,  # -1 or any negative value will use tabs
-    uppercase: bool | None = True,
+    indent: int | t.Literal["tabs", "\t"] = 2,
+    uppercase: bool = False,
     lines_between_statements: int = 1,
+    ignore_case_convert: list[str] | None = None,
+    inline: bool = False,
+    max_inline_block: int = 50,
+    max_inline_arguments: int | None = None,
+    max_inline_top_level: int | None = None,
+    joins_as_top_level: bool = False,
 ) -&gt; str: ...
 </code></pre>
 <h2 id="ry.ryo3._std"><a class="header" href="#ry.ryo3._std"><code>ry.ryo3._std</code></a></h2>

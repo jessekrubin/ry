@@ -183,6 +183,31 @@
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0059-unreleased"><a class="header" href="#v0059-unreleased">v0.0.59 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-sqlformat</code>
+<ul>
+<li>Updated to version 0.4.0 of <code>sqlformat</code> crate</li>
+<li>Added sqlformat version 0.4.0 new options:
+<ul>
+<li><code>ignore_case_convert: list[str] | None = None</code></li>
+<li><code>inline: bool = False</code></li>
+<li><code>max_inline_block: int = 50</code></li>
+<li><code>max_inline_arguments: int | None = None</code></li>
+<li><code>max_inline_top_level: int | None = None</code></li>
+<li><code>joins_as_top_level: bool = False</code></li>
+</ul>
+</li>
+<li>Changed <code>indent</code> arg/kwarg to accept either:
+<ul>
+<li><code>int</code> (positive integer for number of spaces)</li>
+<li><code>str</code> (“tabs”, “\t” or “spaces”)</li>
+</ul>
+</li>
+<li>Changed <code>uppercase</code> arg/kwarg to default to <code>False</code> instead of <code>True</code> to be
+more inline with the default behaviour of <code>sqlformat</code> crate</li>
+</ul>
+</li>
+</ul>
 <hr />
 <h2 id="v0058-2025-09-18"><a class="header" href="#v0058-2025-09-18">v0.0.58 [2025-09-18]</a></h2>
 <ul>
