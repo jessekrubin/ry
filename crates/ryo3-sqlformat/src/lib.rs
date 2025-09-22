@@ -16,8 +16,9 @@ pub struct PySqlfmtQueryParams {
 #[pymethods]
 impl PySqlfmtQueryParams {
     #[new]
-    fn py_new(params: PyQueryParamsLike) -> PyResult<Self> {
-        sqlfmt_params(Some(params))
+    #[pyo3(signature = (params=None))]
+    fn py_new(params: Option<PyQueryParamsLike>) -> PyResult<Self> {
+        sqlfmt_params(params)
     }
 
     fn __repr__(&self) -> String {
@@ -150,11 +151,41 @@ impl Display for QueryParamsFormatter<'_> {
     }
 }
 
-impl From<Vec<(String, String)>> for PySqlfmtQueryParams {
-    fn from(p: Vec<(String, String)>) -> Self {
-        let named_params = p.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-        let p = QueryParams::Named(named_params);
-        Self { params: p }
+#[derive(Debug, Clone, Copy)]
+pub struct PyIndent(sqlformat::Indent);
+
+const PY_INDENT_ERR_MSG: &str =
+    "Indent must be an integer, 'tabs'/'\\t', or 'spaces' (default 2 spaces)";
+impl FromPyObject<'_> for PyIndent {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+        // none go to default (2 spaces)
+        if ob.is_none() {
+            return Ok(Self(sqlformat::Indent::Spaces(2)));
+        }
+
+        if let Ok(i) = ob.extract::<i16>() {
+            if i < 0 {
+                return Ok(Self(sqlformat::Indent::Tabs));
+            }
+            return Ok(Self(sqlformat::Indent::Spaces(
+                i.try_into().expect("i16 to u8 should not fail here"),
+            )));
+        }
+
+        if let Ok(s) = ob.extract::<&str>() {
+            match s.to_lowercase().as_str() {
+                "tabs" | "\t" => return Ok(Self(sqlformat::Indent::Tabs)),
+                "spaces" => return Ok(Self(sqlformat::Indent::Spaces(2))),
+                _ => {
+                    return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                        PY_INDENT_ERR_MSG,
+                    ));
+                }
+            }
+        }
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            PY_INDENT_ERR_MSG,
+        ))
     }
 }
 
@@ -231,33 +262,57 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
 ///
 /// Based on [sqlformat-crate](https://crates.io/crates/sqlformat)
 #[pyfunction]
-#[pyo3(signature = (sql, params=None, *, indent=None, uppercase=None, lines_between_queries=None))]
+#[pyo3(
+    signature = (
+        sql,
+        params=None,
+        *,
+        indent=None,
+        uppercase=None,
+        lines_between_queries=1,
+        ignore_case_convert=None,
+        inline=false,
+        max_inline_block=50,
+        max_inline_arguments=None,
+        max_inline_top_level=None,
+        joins_as_top_level=false,
+    )
+)]
+#[expect(clippy::needless_pass_by_value)]
+#[expect(clippy::too_many_arguments)]
 pub fn sqlfmt(
     sql: &str,
     params: Option<PyQueryParamsLike>,
-    indent: Option<i16>,
+    indent: Option<PyIndent>,
     uppercase: Option<bool>,
-    lines_between_queries: Option<u8>,
+    lines_between_queries: u8,
+    ignore_case_convert: Option<Vec<String>>,
+    inline: bool,
+    max_inline_block: usize,
+    max_inline_arguments: Option<usize>,
+    max_inline_top_level: Option<usize>,
+    joins_as_top_level: bool,
 ) -> PyResult<String> {
-    // if indent is negative, use tabs
-    let indent = match indent {
-        Some(i) if i < 0 => sqlformat::Indent::Tabs,
-        Some(i) => sqlformat::Indent::Spaces(i.try_into().map_err(|_| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>("Indent must be a positive integer")
-        })?),
-        None => sqlformat::Indent::Spaces(2),
-    };
+    let indent = indent.map_or(sqlformat::Indent::Spaces(2), |i| i.0);
+    let ignore_case_convert: Option<Vec<&str>> = ignore_case_convert
+        .as_ref()
+        .map(|v| v.iter().map(String::as_str).collect());
     let options = sqlformat::FormatOptions {
         indent,
-        uppercase: Option::from(uppercase.unwrap_or(true)),
-        lines_between_queries: lines_between_queries.unwrap_or(1),
-        ignore_case_convert: None,
+        uppercase,
+        lines_between_queries,
+        ignore_case_convert,
+        inline,
+        max_inline_block,
+        max_inline_arguments,
+        max_inline_top_level,
+        joins_as_top_level,
     };
     if let Some(p) = params {
         if let PyQueryParamsLike::PyQueryParams(p) = p {
             Ok(sqlformat::format(sql, &p.params, &options))
         } else {
-            let py_params = PySqlfmtQueryParams::py_new(p)?;
+            let py_params = PySqlfmtQueryParams::py_new(Some(p))?;
             Ok(sqlformat::format(sql, &py_params.params, &options))
         }
     } else {
@@ -289,7 +344,13 @@ mod tests {
             )])),
             None,
             None,
+            1,
             None,
+            false,
+            50,
+            None,
+            None,
+            false,
         )
         .unwrap();
         let expected = "SELECT\n  *\nFROM\n  poopy\nWHERE\n  COLUMN = 1";
