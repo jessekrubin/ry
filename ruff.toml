@@ -9,6 +9,8 @@ include = [
   "examples/**/*.{py,pyi}",
   "docs/ryo3_version.py",
 ]
+extend-exclude = [".purgatory/**/*.py"]
+
 format.docstring-code-format = true
 
 [lint]
