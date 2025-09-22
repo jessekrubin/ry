@@ -2,6 +2,21 @@
 
 ## v0.0.59 [unreleased]
 
+- `ryo3-sqlformat`
+  - Updated to version 0.4.0 of `sqlformat` crate
+  - Added sqlformat version 0.4.0 new options:
+    - `ignore_case_convert: list[str] | None = None`
+    - `inline: bool = False`
+    - `max_inline_block: int = 50`
+    - `max_inline_arguments: int | None = None`
+    - `max_inline_top_level: int | None = None`
+    - `joins_as_top_level: bool = False`
+  - Changed `indent` arg/kwarg to accept either:
+    - `int` (positive integer for number of spaces)
+    - `str` ("tabs", "\t" or "spaces")
+  - Changed `uppercase` arg/kwarg to default to `False` instead of `True` to be
+    more inline with the default behaviour of `sqlformat` crate
+
 ---
 
 ## v0.0.58 [2025-09-18]
