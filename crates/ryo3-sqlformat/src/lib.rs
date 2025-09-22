@@ -160,23 +160,22 @@ impl FromPyObject<'_> for PyIndent {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // none go to default (2 spaces)
         if ob.is_none() {
-            return Ok(PyIndent(sqlformat::Indent::Spaces(2)));
+            return Ok(Self(sqlformat::Indent::Spaces(2)));
         }
 
         if let Ok(i) = ob.extract::<i16>() {
             if i < 0 {
-                return Ok(PyIndent(sqlformat::Indent::Tabs));
-            } else {
-                return Ok(PyIndent(sqlformat::Indent::Spaces(
-                    i.try_into().expect("i16 to u8 should not fail here"),
-                )));
+                return Ok(Self(sqlformat::Indent::Tabs));
             }
+            return Ok(Self(sqlformat::Indent::Spaces(
+                i.try_into().expect("i16 to u8 should not fail here"),
+            )));
         }
 
         if let Ok(s) = ob.extract::<&str>() {
             match s.to_lowercase().as_str() {
-                "tabs" | "\t" => return Ok(PyIndent(sqlformat::Indent::Tabs)),
-                "spaces" => return Ok(PyIndent(sqlformat::Indent::Spaces(2))),
+                "tabs" | "\t" => return Ok(Self(sqlformat::Indent::Tabs)),
+                "spaces" => return Ok(Self(sqlformat::Indent::Spaces(2))),
                 _ => {
                     return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
                         PY_INDENT_ERR_MSG,
@@ -279,6 +278,8 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
         joins_as_top_level=false,
     )
 )]
+#[expect(clippy::needless_pass_by_value)]
+#[expect(clippy::too_many_arguments)]
 pub fn sqlfmt(
     sql: &str,
     params: Option<PyQueryParamsLike>,
@@ -292,7 +293,7 @@ pub fn sqlfmt(
     max_inline_top_level: Option<usize>,
     joins_as_top_level: bool,
 ) -> PyResult<String> {
-    let indent = indent.map(|i| i.0).unwrap_or(sqlformat::Indent::Spaces(2));
+    let indent = indent.map_or(sqlformat::Indent::Spaces(2), |i| i.0);
     let ignore_case_convert: Option<Vec<&str>> = ignore_case_convert
         .as_ref()
         .map(|v| v.iter().map(String::as_str).collect());
