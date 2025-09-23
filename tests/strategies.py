@@ -8,6 +8,8 @@ from typing import Any, Final
 from hypothesis import strategies as st
 from hypothesis.strategies import SearchStrategy
 
+import ry
+
 # unsigned ──────────────────────────────────────────────────────────
 MIN_U8: Final = 0
 MAX_U8: Final = (1 << 8) - 1  # 255
@@ -43,17 +45,17 @@ MIN_I128: Final = -(1 << 127)  # -170_141_183_460_469_231_731_687_303_715_884_10
 MAX_I128: Final = (1 << 127) - 1  # 170_141_183_460_469_231_731_687_303_715_884_105_727
 
 # unsigned ────────────────────────────────────────────────────────────
-st_u8 = st.integers(min_value=MIN_U8, max_value=MAX_U8)
-st_u16 = st.integers(min_value=MIN_U16, max_value=MAX_U16)
-st_u32 = st.integers(min_value=MIN_U32, max_value=MAX_U32)
-st_u64 = st.integers(min_value=MIN_U64, max_value=MAX_U64)
-st_u128 = st.integers(min_value=MIN_U128, max_value=MAX_U128)
+st_u8 = st.integers(min_value=ry.U8_MIN, max_value=ry.U8_MAX)
+st_u16 = st.integers(min_value=ry.U16_MIN, max_value=ry.U16_MAX)
+st_u32 = st.integers(min_value=ry.U32_MIN, max_value=ry.U32_MAX)
+st_u64 = st.integers(min_value=ry.U64_MIN, max_value=ry.U64_MAX)
+st_u128 = st.integers(min_value=ry.U128_MIN, max_value=ry.U128_MAX)
 # signed ─────────────────────────────────────────────────────────────
-st_i8 = st.integers(min_value=MIN_I8, max_value=MAX_I8)
-st_i16 = st.integers(min_value=MIN_I16, max_value=MAX_I16)
-st_i32 = st.integers(min_value=MIN_I32, max_value=MAX_I32)
-st_i64 = st.integers(min_value=MIN_I64, max_value=MAX_I64)
-st_i128 = st.integers(min_value=MIN_I128, max_value=MAX_I128)
+st_i8 = st.integers(min_value=ry.I8_MIN, max_value=ry.I8_MAX)
+st_i16 = st.integers(min_value=ry.I16_MIN, max_value=ry.I16_MAX)
+st_i32 = st.integers(min_value=ry.I32_MIN, max_value=ry.I32_MAX)
+st_i64 = st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX)
+st_i128 = st.integers(min_value=ry.I128_MIN, max_value=ry.I128_MAX)
 
 JsonSearchStrategy = SearchStrategy[
     list[Any]

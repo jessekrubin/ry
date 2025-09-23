@@ -4,16 +4,10 @@ name: cov
 # based on https://github.com/cjermain/rust-python-coverage
 
 on:
-  # push:
-  #   branches:
-  #     - "*"
-  #     - "*/*"
-  #     - "**"
-  #     - "!main"
-  #     - "!master"
-  #   tags:
-  #     - "*"
-  # pull_request:
+  push:
+    branches:
+      - main
+  pull_request: {}
   workflow_dispatch:
 
 permissions:
