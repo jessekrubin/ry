@@ -12,6 +12,14 @@ import ry
 from ..strategies import st_i32, st_i64
 from .strategies import st_signed_duration_args, st_signed_durations
 
+_NANOS_PER_SEC: int = 1_000_000_000
+_NANOS_PER_MILLI: int = 1_000_000
+_NANOS_PER_MICRO: int = 1_000
+_MILLIS_PER_SEC: int = 1_000
+_MICROS_PER_SEC: int = 1_000_000
+_SECS_PER_MINUTE: int = 60
+_MINS_PER_HOUR: int = 60
+
 
 @given(st_signed_duration_args())
 def test_signed_duration_new(duration_args: tuple[int, int]) -> None:
@@ -41,9 +49,32 @@ def test_signed_duration_cmp() -> None:
     assert right == right
 
 
+@given(st_signed_durations())
+def test_cast_float(dur: ry.SignedDuration) -> None:
+    f = float(dur)
+    assert isinstance(f, float)
+    if dur.is_zero:
+        assert f == 0.0
+    assert f == dur.as_secs() + dur.subsec_nanos / 1_000_000_000.0
+
+
+@given(st_signed_durations())
+def test_cast_int(dur: ry.SignedDuration) -> None:
+    i = int(dur)
+    assert isinstance(i, int)
+    assert i == dur.as_nanos()
+
+
+@given(st_signed_durations())
+def test_cast_bool(dur: ry.SignedDuration) -> None:
+    b = bool(dur)
+    assert isinstance(b, bool)
+    assert b == (not dur.is_zero)
+
+
 def test_signed_duration_cmp_timedelta() -> None:
     left = ry.SignedDuration(1, 2)
-    right = ry.SignedDuration(3, 4).to_pytimedelta()
+    right = ry.SignedDuration(3, 4).to_py()
     assert left < right
     assert right > left
     assert left <= right
@@ -177,6 +208,7 @@ class TestSignedDurationStrings:
         assert sd.string(friendly=True) == "2h 30m"
         assert sd.friendly() == "2h 30m"
         assert sd.string() == "PT2H30M"
+        assert sd.__str__() == "PT2H30M"
         assert f"{sd}" == "PT2H30M"
         assert f"{sd:#}" == "2h 30m"
         with pytest.raises(TypeError):
@@ -217,6 +249,349 @@ class TestSignedDurationRound:
         )
 
         assert rounded == ry.SignedDuration.from_secs(4 * 60 * 60 + 17 * 60 + 30)
+
+
+class TestDurationArithmetic:
+    # =========================================================================
+    # ADDITION
+    # =========================================================================
+
+    @given(st_signed_durations(), st_signed_durations())
+    def test_add(self, left: ry.SignedDuration, right: ry.SignedDuration) -> None:
+        if left.checked_add(right) is None:
+            with pytest.raises(OverflowError):
+                _ = left + right
+            return
+
+        result = left + right
+        assert isinstance(result, ry.SignedDuration)
+
+    @given(
+        st_signed_durations(),
+        st.timedeltas(
+            min_value=pydt.timedelta(0),
+        ),
+    )
+    def test_add_with_timedelta(
+        self, left: ry.SignedDuration, right: pydt.timedelta
+    ) -> None:
+        if left.checked_add(ry.SignedDuration.from_pytimedelta(right)) is None:
+            with pytest.raises(OverflowError):
+                _ = left + right
+            return
+
+        result = left + right
+        assert isinstance(result, ry.SignedDuration)
+        result_right = right + left
+        assert isinstance(result_right, ry.SignedDuration)
+        assert result == result_right
+
+    # =========================================================================
+    # SUBTRACTION
+    # =========================================================================
+    @given(st_signed_durations(), st_signed_durations())
+    def test_sub(self, left: ry.SignedDuration, right: ry.SignedDuration) -> None:
+        if left.checked_sub(right) is None:
+            with pytest.raises(OverflowError):
+                _res = left - right
+            return
+        result = left - right
+        assert isinstance(result, ry.SignedDuration)
+
+    @given(
+        st_signed_durations(),
+        st.timedeltas(),
+    )
+    def test_sub_with_timedelta(
+        self, left: ry.SignedDuration, right: pydt.timedelta
+    ) -> None:
+        if left.checked_sub(ry.SignedDuration.from_pytimedelta(right)) is None:
+            with pytest.raises(OverflowError):
+                _res = left - right
+            return
+        result = left - right
+        assert isinstance(result, ry.SignedDuration)
+
+    @given(
+        st_signed_durations(),
+        st.timedeltas(),
+    )
+    def test_sub_with_timedelta_rsub(
+        self, left: ry.SignedDuration, right: pydt.timedelta
+    ) -> None:
+        if left.checked_sub(ry.SignedDuration.from_pytimedelta(right)) is None:
+            with pytest.raises(OverflowError):
+                _res = right - left
+            return
+
+        result = left - right
+        assert isinstance(result, ry.SignedDuration)
+
+    # =========================================================================
+    # DIVISION
+    # =========================================================================
+
+    def test_div_number(self) -> None:
+        dur = ry.SignedDuration(16, 0)
+        divided = dur / 2
+        assert isinstance(divided, ry.SignedDuration)
+        assert divided == ry.SignedDuration(8, 0)
+
+        divided = dur / 2.0
+        assert isinstance(divided, ry.SignedDuration)
+        assert divided == ry.SignedDuration(8, 0)
+
+    def test_div_self(self) -> None:
+        dur1 = ry.SignedDuration(16, 0)
+        dur2 = ry.SignedDuration(4, 0)
+        divided = dur1 / dur2
+        assert isinstance(divided, float)
+        assert divided == 4.0
+
+    def test_div_timedelta(self) -> None:
+        dur = ry.SignedDuration(16, 0)
+        pydelta = pydt.timedelta(seconds=4)
+        divided = dur / pydelta
+        assert isinstance(divided, float)
+        assert divided == 4.0
+
+    def test_div_zero_raises_zero_division_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(ZeroDivisionError):
+            _r = dur / 0
+        with pytest.raises(ZeroDivisionError):
+            _r = dur / 0.0
+        with pytest.raises(ZeroDivisionError):
+            _f = dur / ry.SignedDuration.ZERO
+        with pytest.raises(ZeroDivisionError):
+            _f = dur / pydt.timedelta()
+        with pytest.raises(ZeroDivisionError):
+            dur.div_f32(0.0)
+        with pytest.raises(ZeroDivisionError):
+            dur.div_f64(0.0)
+
+    def test_div_f32_nan_raises_value_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(ValueError):
+            _r = dur.div_f32(float("nan"))
+
+    def test_div_f64_nan_raises_value_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(ValueError):
+            _r = dur.div_f64(float("nan"))
+
+    def test_div_f32_inf_raises_overflow_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(OverflowError):
+            _r = dur.div_f32(float("inf"))
+        with pytest.raises(OverflowError):
+            _r = dur.div_f32(float("-inf"))
+
+    def test_div_f64_inf_raises_overflow_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(OverflowError):
+            _r = dur.div_f64(float("inf"))
+        with pytest.raises(OverflowError):
+            _r = dur.div_f64(float("-inf"))
+
+    def test_div_type_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(TypeError):
+            _r = dur / "string"  # type: ignore[operator]
+        with pytest.raises(TypeError):
+            _r = dur / []  # type: ignore[operator]
+
+    @given(st_signed_durations(), st.floats(width=32))
+    def test_div_f32(
+        self,
+        dur: ry.SignedDuration,
+        divisor: float,
+    ) -> None:
+        if divisor == 0:
+            with pytest.raises(ZeroDivisionError):
+                _dur = dur.div_f32(divisor)
+            return
+        if isnan(divisor):
+            with pytest.raises(ValueError):
+                dur.div_f32(divisor)
+            return
+        if divisor == float("inf") or divisor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.div_f32(divisor)
+            return
+        if divisor < 0:
+            with pytest.raises((TypeError, OverflowError, ZeroDivisionError)):
+                _dur = dur.div_f32(divisor)
+            return
+
+        try:
+            divided = dur.div_f32(divisor)
+            assert isinstance(divided, ry.SignedDuration)
+        except OverflowError:
+            ...
+        except ZeroDivisionError:
+            ...
+
+    @given(st_signed_durations(), st.floats())
+    def test_div_f64(
+        self,
+        dur: ry.SignedDuration,
+        divisor: float,
+    ) -> None:
+        if divisor == 0:
+            with pytest.raises(ZeroDivisionError):
+                _dur = dur.div_f64(divisor)
+            return
+        if isnan(divisor):
+            with pytest.raises(ValueError):
+                dur.div_f64(divisor)
+            return
+        if divisor == float("inf") or divisor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.div_f64(divisor)
+            return
+        if divisor < 0:
+            with pytest.raises((TypeError, ZeroDivisionError)):
+                _dur = dur.div_f64(divisor)
+            return
+        try:
+            divided = dur.div_f64(divisor)
+            assert isinstance(divided, ry.SignedDuration)
+        except OverflowError:
+            ...
+        except ZeroDivisionError:
+            ...
+
+    @given(st_signed_durations(), st_signed_durations())
+    def test_div_duration_f32(
+        self,
+        left: ry.SignedDuration,
+        right: ry.SignedDuration,
+    ) -> None:
+        if right.is_zero:
+            with pytest.raises(ZeroDivisionError):
+                _r = left.div_duration_f32(right)
+            return
+        try:
+            result = left.div_duration_f32(right)
+            assert isinstance(result, float)
+        except OverflowError:
+            ...
+
+    @given(st_signed_durations(), st_signed_durations())
+    def test_div_duration_f64(
+        self,
+        left: ry.SignedDuration,
+        right: ry.SignedDuration,
+    ) -> None:
+        if right.is_zero:
+            with pytest.raises(ZeroDivisionError):
+                _r = left.div_duration_f64(right)
+            return
+        try:
+            result = left.div_duration_f64(right)
+            assert isinstance(result, float)
+        except OverflowError:
+            ...
+
+    # =========================================================================
+    # MULTIPLICATION
+    # =========================================================================
+    def test_mul_f32_nan_raises_value_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(ValueError):
+            _r = dur.mul_f32(float("nan"))
+
+    def test_mul_f64_nan_raises_value_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(ValueError):
+            _r = dur.mul_f64(float("nan"))
+
+    def test_mul_f32_inf_raises_overflow_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(OverflowError):
+            _r = dur.mul_f32(float("inf"))
+        with pytest.raises(OverflowError):
+            _r = dur.mul_f32(float("-inf"))
+
+    def test_mul_f64_inf_raises_overflow_error(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(OverflowError):
+            _r = dur.mul_f64(float("inf"))
+        with pytest.raises(OverflowError):
+            _r = dur.mul_f64(float("-inf"))
+
+    @given(st_signed_durations(), st.integers(min_value=0, max_value=ry.U32_MAX))
+    def test_mul_int(
+        self,
+        dur: ry.SignedDuration,
+        factor: int,
+    ) -> None:
+        try:
+            multiplied = dur * factor
+            assert isinstance(multiplied, ry.SignedDuration)
+        except OverflowError:
+            ...
+
+    @given(st_signed_durations(), st.integers(min_value=0, max_value=ry.U32_MAX))
+    def test_rmul_int(
+        self,
+        dur: ry.SignedDuration,
+        factor: int,
+    ) -> None:
+        try:
+            multiplied = factor * dur
+            assert isinstance(multiplied, ry.SignedDuration)
+        except OverflowError:
+            ...
+
+    @given(st_signed_durations(), st.floats(width=32))
+    def test_duration_mul_f32(
+        self,
+        dur: ry.SignedDuration,
+        factor: float,
+    ) -> None:
+        if factor == 0:
+            assert dur.mul_f32(factor) == ry.SignedDuration(0, 0)
+            return
+
+        if isnan(factor):
+            with pytest.raises(ValueError):
+                dur.mul_f32(factor)
+            return
+        if factor == float("inf") or factor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.mul_f32(factor)
+            return
+        try:
+            divided = dur.mul_f32(factor)
+            assert isinstance(divided, ry.SignedDuration)
+        except OverflowError:
+            ...
+
+    @given(st_signed_durations(), st.floats(width=64))
+    def test_mul_f64(
+        self,
+        dur: ry.SignedDuration,
+        factor: float,
+    ) -> None:
+        if factor == 0:
+            assert dur.mul_f64(factor) == ry.SignedDuration(0, 0)
+            return
+
+        if isnan(factor):
+            with pytest.raises(ValueError):
+                dur.mul_f64(factor)
+            return
+        if factor == float("inf") or factor == float("-inf"):
+            with pytest.raises(OverflowError):
+                _dur = dur.mul_f64(factor)
+            return
+        try:
+            divided = dur.mul_f64(factor)
+            assert isinstance(divided, ry.SignedDuration)
+        except OverflowError:
+            ...
 
 
 class TestSignedDurationCheckedArithmetic:
@@ -308,16 +683,44 @@ class TestSignedDurationSaturatingArithmetic:
             assert dur_times_factor == -dur
 
 
-_NANOS_PER_SEC: int = 1_000_000_000
-_NANOS_PER_MILLI: int = 1_000_000
-_NANOS_PER_MICRO: int = 1_000
-_MILLIS_PER_SEC: int = 1_000
-_MICROS_PER_SEC: int = 1_000_000
-_SECS_PER_MINUTE: int = 60
-_MINS_PER_HOUR: int = 60
-
-
 class TestSignedDurationAsXYZ:
+    def test_as_secs_f32(self) -> None:
+        dur = ry.SignedDuration(1, 500_000_000)
+        assert dur.as_secs_f32() == 1.5
+        assert dur.as_secs() == 1
+        assert isinstance(dur.as_secs(), int)
+        ndur = -dur
+        assert ndur.as_secs_f32() == -1.5
+        assert ndur.as_secs() == -1
+        assert isinstance(ndur.as_secs(), int)
+
+    def test_as_secs_f64(self) -> None:
+        dur = ry.SignedDuration(1, 500_000_000)
+        assert dur.as_secs_f64() == 1.5
+        assert dur.as_secs() == 1
+        assert isinstance(dur.as_secs(), int)
+        ndur = -dur
+        assert ndur.as_secs_f64() == -1.5
+        assert ndur.as_secs() == -1
+        assert isinstance(ndur.as_secs(), int)
+
+    def test_as_millis_f32(self) -> None:
+        dur = ry.SignedDuration(1, 123_456_789)
+        assert dur.as_millis_f32() - 1123.456787109375 < 1e-5
+        assert dur.as_millis() == 1123
+        ndur = -dur
+        assert abs(dur.as_millis_f32()) - 1123.456787109375 < 1e-5
+        assert ndur.as_millis() == -1123
+
+    def test_as_millis_f64(self) -> None:
+        dur = ry.SignedDuration(1, 123_456_789)
+
+        assert dur.as_millis_f64() - 1123.456787109375 < 1e-5
+        assert dur.as_millis() == 1123
+        ndur = -dur
+        assert abs(dur.as_millis_f64()) - 1123.456787109375 < 1e-5
+        assert ndur.as_millis() == -1123
+
     @given(st_signed_durations())
     def test_as_hours(self, dur: ry.SignedDuration) -> None:
         hours = dur.as_hours()
