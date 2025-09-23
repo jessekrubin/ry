@@ -8,7 +8,6 @@ from hypothesis import assume, given
 from hypothesis import strategies as st
 
 import ry
-from tests.strategies import MAX_I8, MAX_I16, MIN_I8, MIN_I16
 
 from .strategies import (
     date_tuple_strategy,
@@ -180,12 +179,12 @@ def test_duration_addition_cancellation(duration: ry.SignedDuration) -> None:
 def test_invalid_date_creation(year: int, month: int, day: int) -> None:
     assume(not (-9999 <= year <= 9999 and 1 <= month <= 12 and 1 <= day <= 31))
     if (
-        day > MAX_I8
-        or day < MIN_I8
-        or month > MAX_I8
-        or month < MIN_I8
-        or year > MAX_I16
-        or year < MIN_I16
+        day > ry.I8_MAX
+        or day < ry.I8_MIN
+        or month > ry.I8_MAX
+        or month < ry.I8_MIN
+        or year > ry.I16_MAX
+        or year < ry.I16_MIN
     ):
         with pytest.raises(OverflowError):
             _d = ry.date(year, month, day)
