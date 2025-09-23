@@ -88,7 +88,7 @@ class TestTimeSpanStrings:
 
     def test_all_ones_repr_full(self) -> None:
         assert (
-            _TIMESPAN_ONES.__repr__()
+            repr(_TIMESPAN_ONES)
             == "TimeSpan(years=1, months=1, weeks=1, days=1, hours=1, minutes=1, seconds=1, milliseconds=1, microseconds=1, nanoseconds=1)"
         )
 
@@ -133,7 +133,7 @@ class TestTimeSpanStrings:
             s = ry.timespan(**dict.fromkeys(cb, 1))
 
             expected_repr = "TimeSpan(" + ", ".join(f"{k}=1" for k in cb) + ")"
-            assert s.__repr__() == expected_repr
+            assert repr(s) == expected_repr
 
 
 def test_negative_spans() -> None:

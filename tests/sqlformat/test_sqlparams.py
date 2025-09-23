@@ -34,14 +34,14 @@ def test_sqlparams(params: t.Any) -> None:
     # exec
     round_tripped = eval(repr_str)
     assert sqlfmt_params_obj == round_tripped
-    assert not sqlfmt_params_obj.__ne__(sqlfmt_params_obj)
+    assert not sqlfmt_params_obj != sqlfmt_params_obj
     assert hash(sqlfmt_params_obj) == hash(round_tripped)
     if params is not None:
         assert len(sqlfmt_params_obj) == 3
-        assert sqlfmt_params_obj.__len__() == 3
+        assert len(sqlfmt_params_obj) == 3
     else:
         assert len(sqlfmt_params_obj) == 0
-        assert sqlfmt_params_obj.__len__() == 0
+        assert len(sqlfmt_params_obj) == 0
 
 
 @pytest.mark.parametrize("params", _ARAMS_ARR)
@@ -58,14 +58,14 @@ def test_sqlparams_from_self(params: t.Any) -> None:
     # exec
     round_tripped = eval(repr_str)
     assert sqlfmt_params_obj == round_tripped
-    assert not sqlfmt_params_obj.__ne__(sqlfmt_params_obj)
+    assert not sqlfmt_params_obj != sqlfmt_params_obj
     assert hash(sqlfmt_params_obj) == hash(round_tripped)
     if params is not None:
         assert len(sqlfmt_params_obj) == 3
-        assert sqlfmt_params_obj.__len__() == 3
+        assert len(sqlfmt_params_obj) == 3
     else:
         assert len(sqlfmt_params_obj) == 0
-        assert sqlfmt_params_obj.__len__() == 0
+        assert len(sqlfmt_params_obj) == 0
 
 
 @pytest.mark.parametrize("params", _ARAMS_ARR)

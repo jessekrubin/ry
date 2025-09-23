@@ -179,8 +179,8 @@ class TestFsPath:
     def test_bytes(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")
         rypath = path_cls("/some/path")
-        pathbytes_fslash = rypath.__bytes__().replace(b"\\", b"/")
-        assert pathbytes_fslash == pypath.__bytes__().replace(
+        pathbytes_fslash = bytes(rypath).replace(b"\\", b"/")
+        assert pathbytes_fslash == bytes(pypath).replace(
             b"\\", b"/"
         )  # todo: reevaluate
 

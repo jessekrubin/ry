@@ -39,6 +39,7 @@ select = [
   "ICN",
   "N",
   "PLC",
+  "PLC2801",
   "PLE",
   "PLR",
   "PLW",

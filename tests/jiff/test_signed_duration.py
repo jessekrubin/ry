@@ -208,7 +208,7 @@ class TestSignedDurationStrings:
         assert sd.to_string(friendly=True) == "2h 30m"
         assert sd.friendly() == "2h 30m"
         assert sd.to_string() == "PT2H30M"
-        assert sd.__str__() == "PT2H30M"
+        assert str(sd) == "PT2H30M"
         assert f"{sd}" == "PT2H30M"
         assert f"{sd:#}" == "2h 30m"
         with pytest.raises(TypeError):

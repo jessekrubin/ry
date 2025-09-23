@@ -271,7 +271,7 @@ def test_from_directory_path() -> None:
     file_url = ry.URL.from_directory_path(pwd)
     assert str(file_url).startswith("file://")
 
-    url_fspath = file_url.__fspath__().replace("\\", "/")
+    url_fspath = file_url.__fspath__().replace("\\", "/")  # noqa: PLC2801
     assert url_fspath == (str(pwd) + "/").replace("\\", "/")
     assert isinstance(url_fspath, str)
 
@@ -281,7 +281,7 @@ def test_from_filepath() -> None:
     file_url = ry.URL.from_filepath(this_file)
     assert str(file_url).startswith("file://")
 
-    url_fspath = file_url.__fspath__().replace("\\", "/")
+    url_fspath = file_url.__fspath__().replace("\\", "/")  # noqa: PLC2801
     assert url_fspath == str(this_file).replace("\\", "/")
     assert isinstance(url_fspath, str)
 

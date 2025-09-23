@@ -14,7 +14,7 @@ def _test_setup(tmp_path: Path) -> None:
         "This is a nested test file."
     )
     ry.cd(tmp_path)
-    assert ry.pwd() == tmp_path.__fspath__()
+    assert ry.pwd() == tmp_path.__fspath__()  # noqa: PLC2801
 
 
 def test_glob_dtype_default_no_dtype_given(
