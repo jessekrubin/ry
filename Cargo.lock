@@ -2038,6 +2038,7 @@ dependencies = [
  "memchr",
  "pyo3",
  "ryo3-bytes",
+ "ryo3-core",
 ]
 
 [[package]]
@@ -2060,6 +2061,7 @@ version = "0.0.59"
 dependencies = [
  "pyo3",
  "regex",
+ "ryo3-core",
 ]
 
 [[package]]

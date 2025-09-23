@@ -11,8 +11,6 @@ from hypothesis import strategies as st
 import ry
 from ry import Duration
 
-from ..strategies import MAX_U32, MAX_U64
-
 if TYPE_CHECKING:
     from hypothesis.strategies import SearchStrategy
 
@@ -45,12 +43,12 @@ def st_durations(
     if min_value == ry.Duration.MIN and max_value == ry.Duration.MAX:
         return st.builds(
             Duration,
-            st.integers(min_value=0, max_value=MAX_U64),
+            st.integers(min_value=0, max_value=ry.U64_MAX),
             st.integers(min_value=0, max_value=999_999_999),
         )
     return st.builds(
         Duration,
-        st.integers(min_value=0, max_value=MAX_U64),
+        st.integers(min_value=0, max_value=ry.U64_MAX),
         st.integers(min_value=0, max_value=999_999_999),
     ).filter(lambda d: min_value <= d <= max_value)
 
@@ -58,8 +56,8 @@ def st_durations(
 def st_duration_args() -> SearchStrategy[tuple[int, int]]:
     """Strategy for `ry.Duration` constructor arguments"""
     return st.tuples(
-        st.integers(min_value=0, max_value=MAX_U64),
-        st.integers(min_value=0, max_value=MAX_U32),
+        st.integers(min_value=0, max_value=ry.U64_MAX),
+        st.integers(min_value=0, max_value=ry.U32_MAX),
     )
 
 
@@ -298,7 +296,7 @@ class TestDurationArithmetic:
     # =========================================================================
     # MULTIPLICATION
     # =========================================================================
-    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    @given(st_durations(), st.integers(min_value=0, max_value=ry.U32_MAX))
     def test_duration_mul_int(
         self,
         dur: Duration,
@@ -310,7 +308,7 @@ class TestDurationArithmetic:
         except OverflowError:
             ...
 
-    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    @given(st_durations(), st.integers(min_value=0, max_value=ry.U32_MAX))
     def test_duration_rmul_int(
         self,
         dur: Duration,
@@ -403,7 +401,7 @@ class TestDurationArithmetic:
 def test_duration_constructor_safe(args: tuple[int, int]) -> None:
     secs, nanos = args
     carry = nanos // 1_000_000_000
-    assume(secs + carry <= MAX_U64)
+    assume(secs + carry <= ry.U64_MAX)
     dur = Duration(secs, nanos)
     assert isinstance(dur, Duration)
 
@@ -583,55 +581,55 @@ class TestDurationAs:
 
 
 class TestDurationFromIntegers:
-    @given(st.integers(min_value=0, max_value=MAX_U64))
+    @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_secs(self, secs: int) -> None:
         dur = ry.Duration.from_secs(secs)
         assert isinstance(dur, ry.Duration)
         assert dur.secs == secs
         assert dur.nanos == 0
 
-    @given(st.integers(min_value=0, max_value=MAX_U64))
+    @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_millis(self, millis: int) -> None:
         dur = ry.Duration.from_millis(millis)
         assert isinstance(dur, ry.Duration)
         assert dur.secs == millis // 1000
         assert dur.nanos == (millis % 1000) * 1_000_000
 
-    @given(st.integers(min_value=0, max_value=MAX_U64))
+    @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_micros(self, micros: int) -> None:
         dur = ry.Duration.from_micros(micros)
         assert isinstance(dur, ry.Duration)
         assert dur.secs == micros // 1_000_000
         assert dur.nanos == (micros % 1_000_000) * 1_000
 
-    @given(st.integers(min_value=0, max_value=MAX_U64))
+    @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_nanos(self, nanos: int) -> None:
         dur = ry.Duration.from_nanos(nanos)
         assert isinstance(dur, ry.Duration)
         assert dur.secs == nanos // 1_000_000_000
         assert dur.nanos == nanos % 1_000_000_000
 
-    @given(st.integers(min_value=0, max_value=MAX_U64))
+    @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_hours(self, hours: int) -> None:
-        if hours > MAX_U64 // 3600:
+        if hours > ry.U64_MAX // 3600:
             with pytest.raises(OverflowError):
                 _dur = ry.Duration.from_hours(hours)
         else:
             dur = ry.Duration.from_hours(hours)
             assert isinstance(dur, ry.Duration)
 
-    @given(st.integers(min_value=0, max_value=MAX_U64))
+    @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_mins(self, minutes: int) -> None:
-        if minutes > MAX_U64 // 60:
+        if minutes > ry.U64_MAX // 60:
             with pytest.raises(OverflowError):
                 _dur = ry.Duration.from_mins(minutes)
         else:
             dur = ry.Duration.from_mins(minutes)
             assert isinstance(dur, ry.Duration)
 
-    @given(st.integers(min_value=0, max_value=MAX_U64))
+    @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_days(self, days: int) -> None:
-        if days > MAX_U64 // 86400:
+        if days > ry.U64_MAX // 86400:
             with pytest.raises(OverflowError):
                 _dur = ry.Duration.from_days(days)
         else:
@@ -686,12 +684,12 @@ class TestDurationCheckedArithmetic:
         result = left.checked_sub(right)
         assert result is None or isinstance(result, ry.Duration)
 
-    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    @given(st_durations(), st.integers(min_value=0, max_value=ry.U32_MAX))
     def test_checked_mul(self, dur: ry.Duration, factor: int) -> None:
         result = dur.checked_mul(factor)
         assert result is None or isinstance(result, ry.Duration)
 
-    @given(st_durations(), st.integers(min_value=1, max_value=MAX_U32))
+    @given(st_durations(), st.integers(min_value=1, max_value=ry.U32_MAX))
     def test_checked_div(self, dur: ry.Duration, divisor: int) -> None:
         result = dur.checked_div(divisor)
         assert result is None or isinstance(result, ry.Duration)
@@ -708,7 +706,7 @@ class TestDurationSaturatingArithmetic:
         result = left.saturating_sub(right)
         assert isinstance(result, ry.Duration)
 
-    @given(st_durations(), st.integers(min_value=0, max_value=MAX_U32))
+    @given(st_durations(), st.integers(min_value=0, max_value=ry.U32_MAX))
     def test_saturating_mul(self, dur: ry.Duration, factor: int) -> None:
         result = dur.saturating_mul(factor)
         assert isinstance(result, ry.Duration)

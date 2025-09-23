@@ -607,7 +607,7 @@ class FnvHasher:
     def copy(self) -> FnvHasher: ...
 
 
-def fnv1a(data: Buffer, key: int | None = None) -> FnvHasher: ...
+def fnv1a(data: Buffer | None = None, key: int | None = None) -> FnvHasher: ...
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -3822,7 +3822,7 @@ class Regex:
         crlf: bool = False,
         dot_matches_new_line: bool = False,
         ignore_whitespace: bool = False,
-        line_terminator: str | None = None,
+        line_terminator: bytes | int | None = None,
         multi_line: bool = False,
         octal: bool = False,
         size_limit: int | None = None,
@@ -5395,7 +5395,7 @@ from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
 
-def minify(data: Buffer) -> Bytes:
+def minify(data: Buffer | str) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:
@@ -5421,7 +5421,7 @@ def minify(data: Buffer) -> Bytes:
     """
 
 
-def fmt(data: Buffer) -> Bytes:
+def fmt(data: Buffer | str) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:

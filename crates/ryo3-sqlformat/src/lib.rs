@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 use pyo3::prelude::PyModule;
-use pyo3::prelude::*;
+use pyo3::{IntoPyObjectExt, prelude::*};
 use sqlformat::{self, QueryParams};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -35,6 +35,27 @@ impl PySqlfmtQueryParams {
             QueryParams::Indexed(p) => p.len(),
             QueryParams::None => 0,
         }
+    }
+
+    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, pyo3::types::PyTuple>> {
+        let params: Bound<'py, PyAny> = match &self.params {
+            QueryParams::Named(p) => {
+                let dict = pyo3::types::PyDict::new(py);
+                for (k, v) in p {
+                    dict.set_item(k, v)?;
+                }
+                dict.into_bound_py_any(py)?
+            }
+            QueryParams::Indexed(p) => {
+                let mut arr = Vec::with_capacity(p.len());
+                for v in p {
+                    arr.push(v.clone());
+                }
+                arr.into_bound_py_any(py)?
+            }
+            QueryParams::None => py.None().into_bound_py_any(py)?,
+        };
+        pyo3::types::PyTuple::new(py, &[params])
     }
 
     fn __eq__(&self, other: &Self) -> bool {

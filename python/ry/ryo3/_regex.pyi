@@ -16,7 +16,7 @@ class Regex:
         crlf: bool = False,
         dot_matches_new_line: bool = False,
         ignore_whitespace: bool = False,
-        line_terminator: str | None = None,
+        line_terminator: bytes | int | None = None,
         multi_line: bool = False,
         octal: bool = False,
         size_limit: int | None = None,

@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
-use crate::byte::Byte;
 use ryo3_bytes::PyBytes;
+use ryo3_core::types::Byte;
 
 #[expect(clippy::needless_pass_by_value)]
 #[must_use]

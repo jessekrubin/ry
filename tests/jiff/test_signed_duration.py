@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import datetime as pydt
+from math import isnan
 
 import pytest
 from hypothesis import given
+from hypothesis import strategies as st
 
 import ry
 
@@ -340,3 +342,89 @@ class TestSignedDurationFromXYZ:
             assert dur.secs == -expected_secs
             assert dur.nanos == -expected_nanos
             assert isinstance(dur, ry.SignedDuration)
+
+
+class TestSignedDurationFromIntegers:
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_secs(self, secs: int) -> None:
+        dur = ry.SignedDuration.from_secs(secs)
+        assert isinstance(dur, ry.SignedDuration)
+        assert dur.secs == secs
+        assert dur.nanos == 0
+
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_millis(self, millis: int) -> None:
+        dur = ry.SignedDuration.from_millis(millis)
+        assert isinstance(dur, ry.SignedDuration)
+        assert dur.secs == abs(millis) // 1000 * (1 if millis >= 0 else -1)
+        assert dur.nanos == (abs(millis) % 1000) * 1_000_000 * (
+            1 if millis >= 0 else -1
+        )
+
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_micros(self, micros: int) -> None:
+        dur = ry.SignedDuration.from_micros(micros)
+        assert isinstance(dur, ry.SignedDuration)
+        assert dur.secs == abs(micros) // 1_000_000 * (1 if micros >= 0 else -1)
+        assert dur.nanos == (abs(micros) % 1_000_000) * 1_000 * (
+            1 if micros >= 0 else -1
+        )
+
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_nanos(self, nanos: int) -> None:
+        dur = ry.SignedDuration.from_nanos(nanos)
+        assert isinstance(dur, ry.SignedDuration)
+        assert dur.secs == abs(nanos) // 1_000_000_000 * (1 if nanos >= 0 else -1)
+        assert dur.nanos == (abs(nanos) % 1_000_000_000) * (1 if nanos >= 0 else -1)
+
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_hours(self, hours: int) -> None:
+        if abs(hours) > ry.I64_MAX // 3600:
+            with pytest.raises(OverflowError):
+                _dur = ry.SignedDuration.from_hours(hours)
+        else:
+            dur = ry.SignedDuration.from_hours(hours)
+            assert isinstance(dur, ry.SignedDuration)
+
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_mins(self, minutes: int) -> None:
+        if abs(minutes) > ry.I64_MAX // 60:
+            with pytest.raises(OverflowError):
+                _dur = ry.SignedDuration.from_mins(minutes)
+        else:
+            dur = ry.SignedDuration.from_mins(minutes)
+            assert isinstance(dur, ry.SignedDuration)
+
+    def test_from_days(self) -> None:
+        with pytest.raises(AttributeError):
+            _ = ry.SignedDuration.from_days(1)  # type: ignore[attr-defined]
+
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_secs_f32(self, secs: float) -> None:
+        if isnan(secs):
+            with pytest.raises(ValueError):
+                _dur = ry.SignedDuration.from_secs_f32(secs)
+        elif secs == float("inf"):
+            with pytest.raises(OverflowError):
+                _dur = ry.SignedDuration.from_secs_f32(secs)
+        else:
+            try:
+                dur = ry.SignedDuration.from_secs_f32(secs)
+                assert isinstance(dur, ry.SignedDuration)
+            except OverflowError:
+                ...
+
+    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    def test_from_secs_f64(self, secs: float) -> None:
+        if isnan(secs):
+            with pytest.raises(ValueError):
+                _dur = ry.SignedDuration.from_secs_f64(secs)
+        elif secs == float("inf"):
+            with pytest.raises(OverflowError):
+                _dur = ry.SignedDuration.from_secs_f64(secs)
+        else:
+            try:
+                dur = ry.SignedDuration.from_secs_f64(secs)
+                assert isinstance(dur, ry.SignedDuration)
+            except OverflowError:
+                ...

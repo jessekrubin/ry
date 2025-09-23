@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 from typing import TYPE_CHECKING
 
 import pytest
@@ -175,3 +176,14 @@ def test_weird_off_by_one_multiplication() -> None:
     size_obj = Size(si)
     result = size_obj * i
     assert result == expected, f"Expected {expected}, got {result} for si={si}, i={i}"
+
+
+@pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
+@pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
+def test_size_formatter_pickling(
+    base: FormatSizeBase,
+    style: FormatSizeStyle,
+) -> None:
+    formatter = ry.SizeFormatter(base=base, style=style)
+    unpickled = pickle.loads(pickle.dumps(formatter))
+    assert formatter == unpickled
