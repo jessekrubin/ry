@@ -1,6 +1,5 @@
 use crate::time::PyDuration;
 use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::PyOverflowError;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use ryo3_macro_rules::{py_overflow_err, py_overflow_error};
