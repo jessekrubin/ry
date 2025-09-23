@@ -106,6 +106,36 @@ impl RySignedDuration {
         self.0.subsec_nanos()
     }
 
+    #[getter]
+    fn is_positive(&self) -> bool {
+        self.0.is_positive()
+    }
+
+    #[getter]
+    fn is_negative(&self) -> bool {
+        self.0.is_negative()
+    }
+
+    #[getter]
+    fn is_zero(&self) -> bool {
+        self.0.is_zero()
+    }
+
+    #[getter]
+    fn subsec_micros(&self) -> i32 {
+        self.0.subsec_micros()
+    }
+
+    #[getter]
+    fn subsec_millis(&self) -> i32 {
+        self.0.subsec_millis()
+    }
+
+    #[getter]
+    fn subsec_nanos(&self) -> i32 {
+        self.0.subsec_nanos()
+    }
+
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
@@ -116,20 +146,6 @@ impl RySignedDuration {
     #[staticmethod]
     fn parse(input: &str) -> PyResult<Self> {
         Self::from_str(input)
-    }
-
-    #[getter]
-    fn is_positive(&self) -> bool {
-        self.0.is_positive()
-    }
-
-    #[getter]
-    fn is_negative(&self) -> bool {
-        self.0.is_negative()
-    }
-    #[getter]
-    fn is_zero(&self) -> bool {
-        self.0.is_zero()
     }
 
     #[staticmethod]
@@ -423,6 +439,9 @@ impl RySignedDuration {
         self.0.as_secs_f64()
     }
 
+    // ------------------------------------------------------------------------
+    // CHECKED-ARITHMETIC
+    // ------------------------------------------------------------------------
     fn checked_add(&self, other: &Self) -> Option<Self> {
         self.0.checked_add(other.0).map(Self::from)
     }
@@ -433,6 +452,10 @@ impl RySignedDuration {
 
     fn checked_mul(&self, other: i32) -> Option<Self> {
         self.0.checked_mul(other).map(Self::from)
+    }
+
+    fn checked_neg(&self) -> Option<Self> {
+        self.0.checked_neg().map(Self::from)
     }
 
     fn checked_sub(&self, other: &Self) -> Option<Self> {
@@ -479,6 +502,9 @@ impl RySignedDuration {
         Self::from(self.0.mul_f64(n))
     }
 
+    // ------------------------------------------------------------------------
+    // SATURATING-ARITHMETIC
+    // ------------------------------------------------------------------------
     fn saturating_add(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_add(other.0))
     }
@@ -491,24 +517,8 @@ impl RySignedDuration {
         Self::from(self.0.saturating_sub(other.0))
     }
 
-    fn checked_neg(&self) -> Option<Self> {
-        self.0.checked_neg().map(Self::from)
-    }
-
     fn signum(&self) -> i8 {
         self.0.signum()
-    }
-
-    fn subsec_micros(&self) -> i32 {
-        self.0.subsec_micros()
-    }
-
-    fn subsec_millis(&self) -> i32 {
-        self.0.subsec_millis()
-    }
-
-    fn subsec_nanos(&self) -> i32 {
-        self.0.subsec_nanos()
     }
 
     // ========================================================================

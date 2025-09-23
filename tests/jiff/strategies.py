@@ -140,28 +140,29 @@ def st_signed_duration_args() -> SearchStrategy[tuple[int, int]]:
     )
 
 
-def st_signed_duration(
+def st_signed_durations(
     *,
-    min_value: ry.SignedDuration | None = None,
-    max_value: ry.SignedDuration | None = None,
+    min_value: ry.SignedDuration = ry.SignedDuration.MIN,
+    max_value: ry.SignedDuration = ry.SignedDuration.MAX,
 ) -> SearchStrategy[ry.SignedDuration]:
-    """Strategy for `ry.SignedDuration` instances"""
-    st_nanos = st.integers(min_value=-999_999_999, max_value=999_999_999)
-    st_seconds = st.integers(min_value=-(1 << 63), max_value=(1 << 63) - 1)
-    if min_value is None and max_value is None:
-        return st.builds(ry.SignedDuration, st_seconds, st_nanos)
-
-    _min_val = min_value if min_value is not None else ry.SignedDuration.MIN
-    _max_val = max_value if max_value is not None else ry.SignedDuration.MAX
-    assert isinstance(_min_val, ry.SignedDuration), (
-        "min_value must be ry.SignedDuration or None"
-    )
-    assert isinstance(_max_val, ry.SignedDuration), (
-        "max_value must be ry.SignedDuration or None"
-    )
-
+    """Strategy for `ry.Duration` instances"""
+    if not isinstance(min_value, ry.SignedDuration):
+        raise TypeError(f"min_value must be a ry.SignedDuration, got {type(min_value)}")
+    if not isinstance(max_value, ry.SignedDuration):
+        raise TypeError(f"max_value must be a ry.SignedDuration, got {type(max_value)}")
+    if min_value > max_value:
+        emsg = f"min_value {min_value} must be <= max_value {max_value}"
+        raise ValueError(emsg)
+    if min_value == max_value:
+        return st.just(min_value)
+    if min_value == ry.SignedDuration.MIN and max_value == ry.SignedDuration.MAX:
+        return st.builds(
+            ry.SignedDuration,
+            st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX),
+            st.integers(min_value=-999_999_999, max_value=999_999_999),
+        )
     return st.builds(
         ry.SignedDuration,
-        st.integers(min_value=_min_val.secs, max_value=_max_val.secs),
+        st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX),
         st.integers(min_value=-999_999_999, max_value=999_999_999),
-    ).filter(lambda d: (_min_val <= d <= _max_val))
+    ).filter(lambda d: min_value <= d <= max_value)
