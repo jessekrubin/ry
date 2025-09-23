@@ -677,11 +677,6 @@ impl RySpan {
             value.into_bound_py_any(py)
         } else if let Ok(v) = value.cast_exact::<PyFloat>() {
             let f = v.extract::<f64>()?;
-            if f.is_nan() || f.is_infinite() {
-                return Err(py_value_error!(
-                    "Cannot convert NaN or infinite float to SignedDuration"
-                ));
-            }
             let sd = RySignedDuration::py_try_from_secs_f64(f)?;
             let span = jiff::Span::try_from(sd.0).map_err(map_py_overflow_err)?;
             Self::from(span).into_bound_py_any(py)

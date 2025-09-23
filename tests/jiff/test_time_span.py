@@ -2,10 +2,24 @@ from __future__ import annotations
 
 import datetime as pydt
 import functools
+import itertools as it
 
 import pytest
 
 import ry
+
+_TIMESPAN_ONES = ry.timespan(
+    years=1,
+    months=1,
+    weeks=1,
+    days=1,
+    hours=1,
+    minutes=1,
+    seconds=1,
+    milliseconds=1,
+    microseconds=1,
+    nanoseconds=1,
+)
 
 
 def test_span_fn_no_positionals_allowed() -> None:
@@ -14,24 +28,53 @@ def test_span_fn_no_positionals_allowed() -> None:
 
 
 def test_span_dict() -> None:
-    s = ry.timespan(years=1)
+    s = _TIMESPAN_ONES
     assert s.to_dict() == {
         "years": 1,
-        "months": 0,
-        "weeks": 0,
-        "days": 0,
-        "hours": 0,
-        "minutes": 0,
-        "seconds": 0,
-        "milliseconds": 0,
-        "microseconds": 0,
-        "nanoseconds": 0,
+        "months": 1,
+        "weeks": 1,
+        "days": 1,
+        "hours": 1,
+        "minutes": 1,
+        "seconds": 1,
+        "milliseconds": 1,
+        "microseconds": 1,
+        "nanoseconds": 1,
+    }
+
+
+def test_builder_pattern() -> None:
+    s = (
+        ry.TimeSpan()
+        ._years(1)
+        ._months(1)
+        ._weeks(1)
+        ._days(1)
+        ._hours(1)
+        ._minutes(1)
+        ._seconds(1)
+        ._milliseconds(1)
+        ._microseconds(1)
+        ._nanoseconds(1)
+    )
+    assert s == _TIMESPAN_ONES
+    assert s.to_dict() == {
+        "years": 1,
+        "months": 1,
+        "weeks": 1,
+        "days": 1,
+        "hours": 1,
+        "minutes": 1,
+        "seconds": 1,
+        "milliseconds": 1,
+        "microseconds": 1,
+        "nanoseconds": 1,
     }
 
 
 def test_span_to_py_timedelta() -> None:
     s = ry.timespan(hours=1)
-    py_timedelta = s.to_pytimedelta()
+    py_timedelta = s.to_py()
     assert isinstance(py_timedelta, pydt.timedelta)
     assert py_timedelta == pydt.timedelta(hours=1)
 
@@ -42,6 +85,12 @@ class TestTimeSpanStrings:
         assert repr(s) == "TimeSpan(years=1)"
         _expected_repr_full = "TimeSpan(years=1, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)"
         assert s.repr_full() == _expected_repr_full
+
+    def test_all_ones_repr_full(self) -> None:
+        assert (
+            _TIMESPAN_ONES.__repr__()
+            == "TimeSpan(years=1, months=1, weeks=1, days=1, hours=1, minutes=1, seconds=1, milliseconds=1, microseconds=1, nanoseconds=1)"
+        )
 
     def test_span_str(self) -> None:
         s = ry.timespan(years=1)
@@ -66,6 +115,25 @@ class TestTimeSpanStrings:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
         assert s.string(friendly=False) == "P2M10DT2H30M"
         assert s.string() == "P2M10DT2H30M"
+
+    def test_repr_kwargs(self) -> None:
+        kwarg_keys = (
+            "years",
+            "months",
+            "weeks",
+            "days",
+            "hours",
+            "minutes",
+            "seconds",
+            "milliseconds",
+            "microseconds",
+            "nanoseconds",
+        )
+        for cb in it.combinations(kwarg_keys, 3):
+            s = ry.timespan(**dict.fromkeys(cb, 1))
+
+            expected_repr = "TimeSpan(" + ", ".join(f"{k}=1" for k in cb) + ")"
+            assert s.__repr__() == expected_repr
 
 
 def test_negative_spans() -> None:
@@ -299,3 +367,36 @@ class TestSpanTotal:
         ]
         spans_sorted_no_dst = sorted(spans, key=lambda x: x[1])
         assert [x[0] for x in spans_sorted_no_dst] == [span3, span1, span2]
+
+
+class TestSpanReplace:
+    def test_replace(self) -> None:
+        replacements = {
+            "years": 2,
+            "months": 2,
+            "weeks": 2,
+            "days": 2,
+            "hours": 2,
+            "minutes": 2,
+            "seconds": 2,
+            "milliseconds": 2,
+            "microseconds": 2,
+            "nanoseconds": 2,
+        }
+
+        key_selections = (
+            ("years", "days", "nanoseconds"),
+            ("months", "weeks", "hours", "microseconds"),
+            ("weeks", "minutes", "seconds", "milliseconds"),
+            ("days", "hours", "minutes", "seconds", "milliseconds"),
+            ("years", "months", "weeks", "days", "hours", "minutes", "seconds"),
+            ("years", "months", "weeks", "days", "hours", "minutes", "seconds"),
+            tuple(replacements.keys()),
+        )
+        # random select some of the keys...
+        for keys in key_selections:
+            s = ry.timespan()
+            r = s.replace(**{k: replacements[k] for k in keys})
+            expected = {**s.to_dict(), **{k: replacements[k] for k in keys}}
+            assert r.to_dict() == expected
+            assert s != r

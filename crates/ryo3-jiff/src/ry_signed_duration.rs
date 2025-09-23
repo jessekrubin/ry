@@ -13,6 +13,7 @@ use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
+use ryo3_macro_rules::py_overflow_err;
 use ryo3_macro_rules::{
     any_repr, py_overflow_error, py_type_err, py_value_err, py_value_error, py_zero_division_err,
 };
@@ -40,15 +41,27 @@ pub struct RySignedDuration(pub(crate) SignedDuration);
 
 impl RySignedDuration {
     pub(crate) fn py_try_from_secs_f32(secs: f32) -> PyResult<Self> {
-        SignedDuration::try_from_secs_f32(secs)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        if secs.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if secs.is_infinite() {
+            py_overflow_err!("invalid value: inf")
+        } else {
+            SignedDuration::try_from_secs_f32(secs)
+                .map(Self::from)
+                .map_err(|e| py_overflow_error!("{e}"))
+        }
     }
 
     pub(crate) fn py_try_from_secs_f64(secs: f64) -> PyResult<Self> {
-        SignedDuration::try_from_secs_f64(secs)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        if secs.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if secs.is_infinite() {
+            py_overflow_err!("invalid value: inf")
+        } else {
+            SignedDuration::try_from_secs_f64(secs)
+                .map(Self::from)
+                .map_err(|e| py_overflow_error!("{e}"))
+        }
     }
 }
 
@@ -106,6 +119,36 @@ impl RySignedDuration {
         self.0.subsec_nanos()
     }
 
+    #[getter]
+    fn is_positive(&self) -> bool {
+        self.0.is_positive()
+    }
+
+    #[getter]
+    fn is_negative(&self) -> bool {
+        self.0.is_negative()
+    }
+
+    #[getter]
+    fn is_zero(&self) -> bool {
+        self.0.is_zero()
+    }
+
+    #[getter]
+    fn subsec_micros(&self) -> i32 {
+        self.0.subsec_micros()
+    }
+
+    #[getter]
+    fn subsec_millis(&self) -> i32 {
+        self.0.subsec_millis()
+    }
+
+    #[getter]
+    fn subsec_nanos(&self) -> i32 {
+        self.0.subsec_nanos()
+    }
+
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
         SignedDuration::from_str(s)
@@ -116,20 +159,6 @@ impl RySignedDuration {
     #[staticmethod]
     fn parse(input: &str) -> PyResult<Self> {
         Self::from_str(input)
-    }
-
-    #[getter]
-    fn is_positive(&self) -> bool {
-        self.0.is_positive()
-    }
-
-    #[getter]
-    fn is_negative(&self) -> bool {
-        self.0.is_negative()
-    }
-    #[getter]
-    fn is_zero(&self) -> bool {
-        self.0.is_zero()
     }
 
     #[staticmethod]
@@ -221,28 +250,64 @@ impl RySignedDuration {
         hasher.finish()
     }
 
-    fn __add__(&self, other: &Self) -> PyResult<Self> {
-        self.0
-            .checked_add(other.0)
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!())
+    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            self.0
+                .checked_add(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| py_overflow_error!())
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: JiffSignedDuration = d.extract()?;
+            self.0
+                .checked_add(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| py_overflow_error!())
+        } else {
+            py_type_err!("unsupported operand type(s); must be SignedDuration | datetime.timedelta")
+        }
     }
 
-    fn __sub__(&self, other: &Self) -> PyResult<Self> {
-        self.0
-            .checked_sub(other.0)
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!())
+    fn __radd__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__add__(other)
     }
 
-    fn __mul__(&self, other: i32) -> PyResult<Self> {
-        self.0
-            .checked_mul(other)
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!())
+    fn __sub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            self.0
+                .checked_sub(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| py_overflow_error!())
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: JiffSignedDuration = d.extract()?;
+            self.0
+                .checked_sub(rs_dur.0)
+                .map(Self::from)
+                .ok_or_else(|| py_overflow_error!())
+        } else {
+            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
+        }
     }
 
-    fn __rmul__(&self, other: i32) -> PyResult<Self> {
+    fn __rsub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__sub__(other)
+    }
+
+    fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(i) = other.extract::<i32>() {
+            self.0
+                .checked_mul(i)
+                .map(Self::from)
+                .ok_or_else(|| py_overflow_error!())
+        } else if let Ok(f) = other.extract::<f64>() {
+            self.mul_f64(f)
+        } else {
+            py_type_err!("unsupported operand type(s); must be int or float")
+        }
+    }
+
+    fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
         self.__mul__(other)
     }
 
@@ -263,6 +328,13 @@ impl RySignedDuration {
             }
         } else if let Ok(n) = other.extract::<f64>() {
             self.div_f64(n)?.into_bound_py_any(py)
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            let rs_dur: JiffSignedDuration = d.extract()?;
+            if rs_dur.0.is_zero() {
+                py_zero_division_err!()
+            } else {
+                self.0.div_duration_f64(rs_dur.0).into_bound_py_any(py)
+            }
         } else {
             py_type_err!("Unsupported type for division with SignedDuration")
         }
@@ -423,6 +495,9 @@ impl RySignedDuration {
         self.0.as_secs_f64()
     }
 
+    // ------------------------------------------------------------------------
+    // CHECKED-ARITHMETIC
+    // ------------------------------------------------------------------------
     fn checked_add(&self, other: &Self) -> Option<Self> {
         self.0.checked_add(other.0).map(Self::from)
     }
@@ -433,6 +508,10 @@ impl RySignedDuration {
 
     fn checked_mul(&self, other: i32) -> Option<Self> {
         self.0.checked_mul(other).map(Self::from)
+    }
+
+    fn checked_neg(&self) -> Option<Self> {
+        self.0.checked_neg().map(Self::from)
     }
 
     fn checked_sub(&self, other: &Self) -> Option<Self> {
@@ -456,29 +535,63 @@ impl RySignedDuration {
     }
 
     fn div_f32(&self, n: f32) -> PyResult<Self> {
-        if n == 0.0 {
-            return py_zero_division_err!("Cannot divide SignedDuration by zero");
+        if n.abs() == 0.0 {
+            py_zero_division_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if n.is_infinite() {
+            py_overflow_err!("invalid value: inf")
+        } else if n.is_sign_negative() {
+            py_type_err!("negative divisor")
+        } else {
+            let result = self.0.as_secs_f32().div(n);
+            Self::py_try_from_secs_f32(result)
         }
-        let secs = self.as_secs_f32().mul(n);
-        Self::py_try_from_secs_f32(secs)
     }
 
     fn div_f64(&self, n: f64) -> PyResult<Self> {
-        if n == 0.0 {
-            return py_zero_division_err!("Cannot divide SignedDuration by zero");
+        if n.abs() == 0.0 {
+            py_zero_division_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else if n.is_infinite() {
+            py_overflow_err!("invalid value: inf")
+        } else if n.is_sign_negative() {
+            py_type_err!("negative divisor")
+        } else {
+            let result = self.0.as_secs_f64().div(n);
+            Self::py_try_from_secs_f64(result)
         }
-        let secs = self.as_secs_f64().div(n);
-        Self::py_try_from_secs_f64(secs)
     }
 
-    fn mul_f32(&self, n: f32) -> Self {
-        Self::from(self.0.mul_f32(n))
+    fn mul_f32(&self, n: f32) -> PyResult<Self> {
+        if n.abs() == 0.0 {
+            Ok(Self::from(SignedDuration::ZERO))
+        } else if n.is_infinite() {
+            py_overflow_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else {
+            let result = self.0.as_secs_f32().mul(n);
+            Self::py_try_from_secs_f32(result)
+        }
     }
 
-    fn mul_f64(&self, n: f64) -> Self {
-        Self::from(self.0.mul_f64(n))
+    fn mul_f64(&self, n: f64) -> PyResult<Self> {
+        if n.abs() == 0.0 {
+            Ok(Self::from(SignedDuration::ZERO))
+        } else if n.is_infinite() {
+            py_overflow_err!()
+        } else if n.is_nan() {
+            py_value_err!("invalid value: nan")
+        } else {
+            let result = self.0.as_secs_f64().mul(n);
+            Self::py_try_from_secs_f64(result)
+        }
     }
-
+    // ------------------------------------------------------------------------
+    // SATURATING-ARITHMETIC
+    // ------------------------------------------------------------------------
     fn saturating_add(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_add(other.0))
     }
@@ -491,24 +604,8 @@ impl RySignedDuration {
         Self::from(self.0.saturating_sub(other.0))
     }
 
-    fn checked_neg(&self) -> Option<Self> {
-        self.0.checked_neg().map(Self::from)
-    }
-
     fn signum(&self) -> i8 {
         self.0.signum()
-    }
-
-    fn subsec_micros(&self) -> i32 {
-        self.0.subsec_micros()
-    }
-
-    fn subsec_millis(&self) -> i32 {
-        self.0.subsec_millis()
-    }
-
-    fn subsec_nanos(&self) -> i32 {
-        self.0.subsec_nanos()
     }
 
     // ========================================================================
