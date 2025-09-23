@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-23T18:13:33.584544777+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-23T22:42:26.309419576+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -467,6 +467,23 @@ dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0059-unreleased"><a class="header" href="#v0059-unreleased">v0.0.59 [unreleased]</a></h2>
 <ul>
+<li><code>ry.protocols</code>
+<ul>
+<li>moved all protocols to <code>ry.protocols</code></li>
+</ul>
+</li>
+<li>deprecations
+<ul>
+<li>deprecate all <code>obj.string()</code> methods in favor of <code>obj.to_string()</code> tho I
+still dont love it in the first place</li>
+</ul>
+</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>added <code>isoformat</code> and <code>from_isoformat</code> methods to <code>ry.TimeSpan</code> and
+<code>ry.SignedDuration</code> structs</li>
+</ul>
+</li>
 <li><code>ryo3-sqlformat</code>
 <ul>
 <li>Updated to version 0.4.0 of <code>sqlformat</code> crate</li>
@@ -2020,19 +2037,19 @@ def test_print_current_unix_timestamp() -&gt; None:
 def test_print_datetime_for_a_timestamp() -&gt; None:
     ts = ry.Timestamp.from_millisecond(1_720_646_365_567)
     zdt = ts.to_zoned(ry.TimeZone("America/New_York"))
-    assert zdt.string() == "2024-07-10T17:19:25.567-04:00[America/New_York]"
-    assert ts.string() == "2024-07-10T21:19:25.567Z"
+    assert zdt.to_string() == "2024-07-10T17:19:25.567-04:00[America/New_York]"
+    assert ts.to_string() == "2024-07-10T21:19:25.567Z"
 
 
 def test_create_zoned_datetime_from_civil_time() -&gt; None:
     zdt = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
-    assert zdt.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+    assert zdt.to_string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_change_an_instant_from_one_timezone_to_another() -&gt; None:
     paris = ry.date(1918, 11, 11).at(11, 0, 0, 0).in_tz("Europe/Paris")
     nyc = paris.in_tz("America/New_York")
-    assert nyc.string() == "1918-11-11T06:00:00-05:00[America/New_York]"
+    assert nyc.to_string() == "1918-11-11T06:00:00-05:00[America/New_York]"
 
 
 def test_find_duration_between_two_zoned_datetimes() -&gt; None:
@@ -2049,15 +2066,15 @@ def test_add_duration_to_a_zoned_datetime() -&gt; None:
     start = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     span = ry.TimeSpan()._years(3)._months(4)._days(5)._hours(12)._minutes(3)
     finish = start.add(span)  # previously `checked_add`
-    assert finish.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+    assert finish.to_string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_dealing_with_ambiguity() -&gt; None:
     gap = ry.date(2024, 3, 10).at(2, 30, 0, 0).in_tz("America/New_York")
-    assert gap.string() == "2024-03-10T03:30:00-04:00[America/New_York]"
+    assert gap.to_string() == "2024-03-10T03:30:00-04:00[America/New_York]"
 
     fold = ry.date(2024, 11, 3).at(1, 30, 0, 0).in_tz("America/New_York")
-    assert fold.string() == "2024-11-03T01:30:00-04:00[America/New_York]"
+    assert fold.to_string() == "2024-11-03T01:30:00-04:00[America/New_York]"
 
 
 def test_parsing_a_span() -&gt; None:
@@ -2072,7 +2089,7 @@ def test_parsing_a_span() -&gt; None:
         "5 years, 1 week, 10 days, 5 hours, 59 minutes"
     )
     assert iso == from_friendly
-    assert from_friendly.string(friendly=True) == "5y 1w 10d 5h 59m"
+    assert from_friendly.to_string(friendly=True) == "5y 1w 10d 5h 59m"
     assert from_friendly.friendly() == "5y 1w 10d 5h 59m"
     assert str(from_friendly) == "P5Y1W10DT5H59M"
 
@@ -2090,7 +2107,7 @@ def test_using_strftime_and_strptime() -&gt; None:
         "Monday, July 15, 2024 at 5:30pm US/Eastern",
         "%A, %B %d, %Y at %I:%M%p %Q",
     )
-    assert zdt.string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
+    assert zdt.to_string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
 
     tas = ry.date(2024, 7, 15).at(17, 30, 59, 0).in_tz("Australia/Tasmania")
     formatted = tas.strftime("%A, %B %d, %Y at %-I:%M%P %Q")
@@ -2794,7 +2811,8 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
-from ry._types import Buffer, ToPy
+from ry._types import Buffer
+from ry.protocols import ToPy
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._regex import Regex
 from ry.ryo3._std import Metadata
@@ -3398,7 +3416,6 @@ from ry._types import (
     DateTimeRoundTypedDict,
     DateTimeTypedDict,
     DateTypedDict,
-    FromStr,
     ISOWeekDateTypedDict,
     OffsetRoundTypedDict,
     OffsetTypedDict,
@@ -3411,16 +3428,20 @@ from ry._types import (
     TimestampRoundTypedDict,
     TimestampTypedDict,
     TimeTypedDict,
+    ZonedDateTimeDifferenceTypedDict,
+    ZonedDateTimeRoundTypedDict,
+    ZonedDateTimeTypedDict,
+    deprecated,
+)
+from ry.protocols import (
+    FromStr,
     ToPy,
     ToPyDate,
     ToPyDateTime,
     ToPyTime,
     ToPyTimeDelta,
     ToPyTzInfo,
-    ZonedDateTimeDifferenceTypedDict,
-    ZonedDateTimeRoundTypedDict,
-    ZonedDateTimeTypedDict,
-    deprecated,
+    ToString,
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
@@ -3517,7 +3538,7 @@ Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate):
+class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -3532,7 +3553,9 @@ class Date(ToPy[pydt.date], ToPyDate):
     # =========================================================================
     # STRING
     # =========================================================================
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
     def isoformat(self) -&gt; str: ...
 
     # =========================================================================
@@ -3691,7 +3714,11 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    @deprecated(
+        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
+    )
     def string(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
     def isoformat(self) -&gt; str: ...
 
     # =========================================================================
@@ -3879,7 +3906,11 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
         second: int = 0,
         nanosecond: int = 0,
     ) -&gt; None: ...
+    @deprecated(
+        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
+    )
     def string(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
     def isoformat(self) -&gt; str: ...
 
     # =========================================================================
@@ -4170,7 +4201,12 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    def isoformat(self) -&gt; str: ...
+    @classmethod
+    def from_isoformat(cls, s: str) -&gt; t.Self: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self, *, friendly: bool = False) -&gt; str: ...
+    def to_string(self, *, friendly: bool = False) -&gt; str: ...
     def friendly(self) -&gt; str: ...
 
     # =========================================================================
@@ -4300,7 +4336,12 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    def isoformat(self) -&gt; str: ...
+    @classmethod
+    def from_isoformat(cls, s: str) -&gt; t.Self: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self, *, friendly: bool = False) -&gt; str: ...
+    def to_string(self, *, friendly: bool = False) -&gt; str: ...
     def friendly(self) -&gt; str: ...
     def repr_full(self) -&gt; str: ...
 
@@ -4557,7 +4598,9 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def is_zero(self) -&gt; bool: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[t.Self]: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
     def subsec_microsecond(self) -&gt; int: ...
     def subsec_millisecond(self) -&gt; int: ...
     def subsec_nanosecond(self) -&gt; int: ...
@@ -4717,7 +4760,9 @@ class ZonedDateTime(
     # =========================================================================
     # STRING/FORMAT
     # =========================================================================
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
     def to_rfc2822(self) -&gt; str: ...
     def format_rfc2822(self) -&gt; str: ...
     def isoformat(self) -&gt; str: ...
@@ -4905,7 +4950,9 @@ class ISOWeekDate:
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -&gt; Date: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
     def to_dict(self) -&gt; ISOWeekDateTypedDict: ...
 
 
@@ -4923,7 +4970,9 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -6417,9 +6466,8 @@ from ry._types import (
     FileTypeDict,
     FsPathLike,
     MetadataDict,
-    ToPy,
-    ToPyTimeDelta,
 )
+from ry.protocols import ToPy, ToPyTimeDelta
 from ry.ryo3._bytes import Bytes
 
 

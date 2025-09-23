@@ -184,6 +184,23 @@
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0059-unreleased"><a class="header" href="#v0059-unreleased">v0.0.59 [unreleased]</a></h2>
 <ul>
+<li><code>ry.protocols</code>
+<ul>
+<li>moved all protocols to <code>ry.protocols</code></li>
+</ul>
+</li>
+<li>deprecations
+<ul>
+<li>deprecate all <code>obj.string()</code> methods in favor of <code>obj.to_string()</code> tho I
+still dont love it in the first place</li>
+</ul>
+</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>added <code>isoformat</code> and <code>from_isoformat</code> methods to <code>ry.TimeSpan</code> and
+<code>ry.SignedDuration</code> structs</li>
+</ul>
+</li>
 <li><code>ryo3-sqlformat</code>
 <ul>
 <li>Updated to version 0.4.0 of <code>sqlformat</code> crate</li>
