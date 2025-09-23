@@ -10,9 +10,8 @@ from ry._types import (
     FileTypeDict,
     FsPathLike,
     MetadataDict,
-    ToPy,
-    ToPyTimeDelta,
 )
+from ry.protocols import ToPy, ToPyTimeDelta
 from ry.ryo3._bytes import Bytes
 
 # =============================================================================

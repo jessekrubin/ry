@@ -2,6 +2,14 @@
 
 ## v0.0.59 [unreleased]
 
+- `ry.protocols`
+  - moved all protocols to `ry.protocols`
+- deprecations
+  - deprecate all `obj.string()` methods in favor of `obj.to_string()` tho I
+    still dont love it in the first place
+- `ryo3-jiff`
+  - added `isoformat` and `from_isoformat` methods to `ry.TimeSpan` and
+    `ry.SignedDuration` structs
 - `ryo3-sqlformat`
   - Updated to version 0.4.0 of `sqlformat` crate
   - Added sqlformat version 0.4.0 new options:

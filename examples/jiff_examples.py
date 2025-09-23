@@ -46,19 +46,19 @@ def test_print_current_unix_timestamp() -> None:
 def test_print_datetime_for_a_timestamp() -> None:
     ts = ry.Timestamp.from_millisecond(1_720_646_365_567)
     zdt = ts.to_zoned(ry.TimeZone("America/New_York"))
-    assert zdt.string() == "2024-07-10T17:19:25.567-04:00[America/New_York]"
-    assert ts.string() == "2024-07-10T21:19:25.567Z"
+    assert zdt.to_string() == "2024-07-10T17:19:25.567-04:00[America/New_York]"
+    assert ts.to_string() == "2024-07-10T21:19:25.567Z"
 
 
 def test_create_zoned_datetime_from_civil_time() -> None:
     zdt = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
-    assert zdt.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+    assert zdt.to_string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_change_an_instant_from_one_timezone_to_another() -> None:
     paris = ry.date(1918, 11, 11).at(11, 0, 0, 0).in_tz("Europe/Paris")
     nyc = paris.in_tz("America/New_York")
-    assert nyc.string() == "1918-11-11T06:00:00-05:00[America/New_York]"
+    assert nyc.to_string() == "1918-11-11T06:00:00-05:00[America/New_York]"
 
 
 def test_find_duration_between_two_zoned_datetimes() -> None:
@@ -75,15 +75,15 @@ def test_add_duration_to_a_zoned_datetime() -> None:
     start = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     span = ry.TimeSpan()._years(3)._months(4)._days(5)._hours(12)._minutes(3)
     finish = start.add(span)  # previously `checked_add`
-    assert finish.string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+    assert finish.to_string() == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_dealing_with_ambiguity() -> None:
     gap = ry.date(2024, 3, 10).at(2, 30, 0, 0).in_tz("America/New_York")
-    assert gap.string() == "2024-03-10T03:30:00-04:00[America/New_York]"
+    assert gap.to_string() == "2024-03-10T03:30:00-04:00[America/New_York]"
 
     fold = ry.date(2024, 11, 3).at(1, 30, 0, 0).in_tz("America/New_York")
-    assert fold.string() == "2024-11-03T01:30:00-04:00[America/New_York]"
+    assert fold.to_string() == "2024-11-03T01:30:00-04:00[America/New_York]"
 
 
 def test_parsing_a_span() -> None:
@@ -98,7 +98,7 @@ def test_parsing_a_span() -> None:
         "5 years, 1 week, 10 days, 5 hours, 59 minutes"
     )
     assert iso == from_friendly
-    assert from_friendly.string(friendly=True) == "5y 1w 10d 5h 59m"
+    assert from_friendly.to_string(friendly=True) == "5y 1w 10d 5h 59m"
     assert from_friendly.friendly() == "5y 1w 10d 5h 59m"
     assert str(from_friendly) == "P5Y1W10DT5H59M"
 
@@ -116,7 +116,7 @@ def test_using_strftime_and_strptime() -> None:
         "Monday, July 15, 2024 at 5:30pm US/Eastern",
         "%A, %B %d, %Y at %I:%M%p %Q",
     )
-    assert zdt.string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
+    assert zdt.to_string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
 
     tas = ry.date(2024, 7, 15).at(17, 30, 59, 0).in_tz("Australia/Tasmania")
     formatted = tas.strftime("%A, %B %d, %Y at %-I:%M%P %Q")

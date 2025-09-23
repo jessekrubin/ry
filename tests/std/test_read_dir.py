@@ -31,7 +31,7 @@ def test_read_dir_concurrent() -> None:
 
     def _process_direntry() -> DirEntry:
         de = next(i)
-        assert isinstance(de.__fspath__(), str)  # dummy check thing
+        assert isinstance(de.__fspath__(), str)  # dummy check thing  # noqa: PLC2801
         return de
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as tpe:

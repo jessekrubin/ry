@@ -22,7 +22,7 @@ def test_fnv1a_empty() -> None:
 
 
 def test_fnv1a_repr() -> None:
-    assert ry.fnv1a(b"").__repr__() == "fnv1a<cbf29ce484222325>"
+    assert repr(ry.fnv1a(b"")) == "fnv1a<cbf29ce484222325>"
 
 
 def test_fnv1a_pickling() -> None:

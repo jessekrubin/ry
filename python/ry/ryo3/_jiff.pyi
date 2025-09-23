@@ -9,7 +9,6 @@ from ry._types import (
     DateTimeRoundTypedDict,
     DateTimeTypedDict,
     DateTypedDict,
-    FromStr,
     ISOWeekDateTypedDict,
     OffsetRoundTypedDict,
     OffsetTypedDict,
@@ -22,16 +21,20 @@ from ry._types import (
     TimestampRoundTypedDict,
     TimestampTypedDict,
     TimeTypedDict,
+    ZonedDateTimeDifferenceTypedDict,
+    ZonedDateTimeRoundTypedDict,
+    ZonedDateTimeTypedDict,
+    deprecated,
+)
+from ry.protocols import (
+    FromStr,
     ToPy,
     ToPyDate,
     ToPyDateTime,
     ToPyTime,
     ToPyTimeDelta,
     ToPyTzInfo,
-    ZonedDateTimeDifferenceTypedDict,
-    ZonedDateTimeRoundTypedDict,
-    ZonedDateTimeTypedDict,
-    deprecated,
+    ToString,
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
@@ -127,7 +130,7 @@ WeekdayInt: t.TypeAlias = t.Literal[
 Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate):
+class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -142,7 +145,9 @@ class Date(ToPy[pydt.date], ToPyDate):
     # =========================================================================
     # STRING
     # =========================================================================
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -> str: ...
+    def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
 
     # =========================================================================
@@ -298,7 +303,11 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    @deprecated(
+        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
+    )
     def string(self) -> str: ...
+    def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
 
     # =========================================================================
@@ -465,7 +474,11 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
         second: int = 0,
         nanosecond: int = 0,
     ) -> None: ...
+    @deprecated(
+        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
+    )
     def string(self) -> str: ...
+    def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
 
     # =========================================================================
@@ -754,7 +767,12 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    def isoformat(self) -> str: ...
+    @classmethod
+    def from_isoformat(cls, s: str) -> t.Self: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self, *, friendly: bool = False) -> str: ...
+    def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
 
     # =========================================================================
@@ -880,7 +898,12 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    def isoformat(self) -> str: ...
+    @classmethod
+    def from_isoformat(cls, s: str) -> t.Self: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self, *, friendly: bool = False) -> str: ...
+    def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
     def repr_full(self) -> str: ...
 
@@ -1136,7 +1159,9 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     def is_zero(self) -> bool: ...
     def series(self, span: TimeSpan) -> JiffSeries[t.Self]: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -> str: ...
+    def to_string(self) -> str: ...
     def subsec_microsecond(self) -> int: ...
     def subsec_millisecond(self) -> int: ...
     def subsec_nanosecond(self) -> int: ...
@@ -1273,7 +1298,9 @@ class ZonedDateTime(
     # =========================================================================
     # STRING/FORMAT
     # =========================================================================
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -> str: ...
+    def to_string(self) -> str: ...
     def to_rfc2822(self) -> str: ...
     def format_rfc2822(self) -> str: ...
     def isoformat(self) -> str: ...
@@ -1460,7 +1487,9 @@ class ISOWeekDate:
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -> Date: ...
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -> str: ...
+    def to_string(self) -> str: ...
     def to_dict(self) -> ISOWeekDateTypedDict: ...
 
 @t.final
@@ -1477,7 +1506,9 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
+    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
     def string(self) -> str: ...
+    def to_string(self) -> str: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS

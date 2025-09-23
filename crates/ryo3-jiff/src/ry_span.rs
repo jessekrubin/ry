@@ -83,6 +83,18 @@ impl RySpan {
         )
     }
 
+    fn isoformat(&self) -> String {
+        crate::constants::SPAN_PRINTER.span_to_string(&self.0)
+    }
+
+    #[staticmethod]
+    fn from_isoformat(s: &str) -> PyResult<Self> {
+        crate::constants::SPAN_PARSER
+            .parse_span(s)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
     fn __str__(&self) -> String {
         self.0.to_string()
     }
@@ -103,7 +115,22 @@ impl RySpan {
         }
     }
 
-    #[pyo3(signature = (*, friendly=false))]
+    #[pyo3(signature = (*, friendly=false), name = "to_string")]
+    fn py_to_string(&self, friendly: bool) -> String {
+        if friendly {
+            format!("{:#}", self.0)
+        } else {
+            self.0.to_string()
+        }
+    }
+
+    #[pyo3(
+        warn(
+            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.60]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        ),
+        signature = (*, friendly=false)
+    )]
     fn string(&self, friendly: bool) -> String {
         if friendly {
             format!("{:#}", self.0)

@@ -46,12 +46,6 @@ __all__ = (
     "TimestampDifferenceTypedDict",
     "TimestampRoundTypedDict",
     "TimestampTypedDict",
-    "ToPy",
-    "ToPyDate",
-    "ToPyDateTime",
-    "ToPyTime",
-    "ToPyTimeDelta",
-    "ToPyTzInfo",
     "Unpack",
     "ZonedDateTimeDifferenceTypedDict",
     "ZonedDateTimeRoundTypedDict",
@@ -66,36 +60,6 @@ T_co = TypeVar("T_co", covariant=True)
 class FromStr(Protocol):
     @classmethod
     def from_str(cls, s: str) -> Self: ...
-
-
-class ToPy(Protocol[T_co]):
-    """Objects that can be converted to a python stdlib type (`T_co`) via `obj.to_py()`."""
-
-    def to_py(self) -> T_co: ...
-
-
-class ToPyDate(Protocol):
-    """Objects that can be converted to a Python `datetime.date`."""
-
-    def to_pydate(self) -> pydt.date: ...
-
-
-class ToPyTime(Protocol):
-    """Objects that can be converted to a Python `datetime.time`."""
-
-    def to_pytime(self) -> pydt.time: ...
-
-
-class ToPyDateTime(Protocol):
-    def to_pydatetime(self) -> pydt.datetime: ...
-
-
-class ToPyTimeDelta(Protocol):
-    def to_pytimedelta(self) -> pydt.timedelta: ...
-
-
-class ToPyTzInfo(Protocol):
-    def to_pytzinfo(self) -> pydt.tzinfo: ...
 
 
 # =============================================================================

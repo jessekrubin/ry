@@ -72,12 +72,24 @@ impl PyFsPath {
         PyTuple::new(py, vec![os_str])
     }
 
+    #[pyo3(
+        warn(
+            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.60]",
+            category = pyo3::exceptions::PyDeprecationWarning
+      )
+    )]
+    #[must_use]
     fn string(&self) -> String {
-        path2str(self.path())
+        self.py_to_string()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> String {
+        self.__str__()
     }
 
     fn __str__(&self) -> String {
-        self.string()
+        path2str(self.path())
     }
 
     fn __repr__(&self) -> String {
@@ -114,7 +126,7 @@ impl PyFsPath {
                     return true;
                 }
                 // if that fails, compare as strings
-                self.string() == path2str(other.as_ref())
+                self.py_to_string() == path2str(other.as_ref())
             }
             CompareOp::Ne => {
                 // start by comparing as paths
@@ -122,7 +134,7 @@ impl PyFsPath {
                     return true;
                 }
                 // if that fails, compare as strings
-                self.string() != path2str(other.as_ref())
+                self.py_to_string() != path2str(other.as_ref())
             }
             CompareOp::Lt => p < o,
             CompareOp::Le => p <= o,
@@ -353,7 +365,7 @@ impl PyFsPath {
             Ok(b) => Ok(PyBytes::new(py, &b).into()),
             Err(e) => {
                 // TODO: figure out cleaner way of doing this
-                let pathstr = self.string();
+                let pathstr = self.py_to_string();
                 let emsg = format!("read_vec_u8 - path: {pathstr} - {e}");
                 Err(PyFileNotFoundError::new_err(emsg))
             }
@@ -362,7 +374,7 @@ impl PyFsPath {
 
     fn read_text(&self, py: Python<'_>) -> PyResult<String> {
         let bvec = std::fs::read(self.path()).map_err(|e| {
-            let pathstr = self.string();
+            let pathstr = self.py_to_string();
             PyFileNotFoundError::new_err(format!("read_text - path: {pathstr} - {e}"))
         })?;
         let r = std::str::from_utf8(&bvec);
@@ -381,7 +393,7 @@ impl PyFsPath {
         match write_res {
             Ok(()) => Ok(b.len()),
             Err(e) => {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 Err(PyNotADirectoryError::new_err(format!(
                     "write_bytes - parent: {fspath} - {e}"
                 )))
@@ -398,7 +410,7 @@ impl PyFsPath {
         match write_result {
             Ok(()) => Ok(()),
             Err(e) => {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 Err(PyNotADirectoryError::new_err(format!(
                     "write_bytes - parent: {fspath} - {e}"
                 )))
@@ -415,17 +427,17 @@ impl PyFsPath {
         if !exist_ok && exists {
             return Err(PyFileExistsError::new_err(format!(
                 "mkdir - parent: {} - directory already exists",
-                self.string()
+                self.py_to_string()
             )));
         }
         if parents {
             std::fs::create_dir_all(path).map_err(|e| {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
             })?;
         } else {
             std::fs::create_dir(path).map_err(|e| {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
             })?;
         }
@@ -435,12 +447,15 @@ impl PyFsPath {
             use std::os::unix::fs::PermissionsExt;
             let mut perms = std::fs::metadata(path)
                 .map_err(|e| {
-                    PyFileNotFoundError::new_err(format!("mkdir - parent: {} - {e}", self.string()))
+                    PyFileNotFoundError::new_err(format!(
+                        "mkdir - parent: {} - {e}",
+                        self.py_to_string()
+                    ))
                 })?
                 .permissions();
             perms.set_mode(mode);
             std::fs::set_permissions(path, perms).map_err(|e| {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
             })?;
         }
@@ -452,23 +467,23 @@ impl PyFsPath {
         if !self.exists()? {
             return Err(PyFileNotFoundError::new_err(format!(
                 "rmdir - parent: {} - directory does not exist",
-                self.string()
+                self.py_to_string()
             )));
         }
         if !self.is_dir() {
             return Err(PyNotADirectoryError::new_err(format!(
                 "rmdir - parent: {} - not a directory",
-                self.string()
+                self.py_to_string()
             )));
         }
         if recursive {
             std::fs::remove_dir_all(self.path()).map_err(|e| {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("rmdir - parent: {fspath} - {e}"))
             })?;
         } else {
             std::fs::remove_dir(self.path()).map_err(|e| {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("rmdir - parent: {fspath} - {e}"))
             })?;
         }
@@ -483,14 +498,14 @@ impl PyFsPath {
             }
             return Err(PyFileNotFoundError::new_err(format!(
                 "unlink - parent: {} - file does not exist",
-                self.string()
+                self.py_to_string()
             )));
         }
         if self.is_dir() {
             self.rmdir(recursive)?;
         } else {
             std::fs::remove_file(self.path()).map_err(|e| {
-                let fspath = self.string();
+                let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("unlink - parent: {fspath} - {e}"))
             })?;
         }
@@ -505,11 +520,11 @@ impl PyFsPath {
         if new_path.exists() {
             return Err(PyFileExistsError::new_err(format!(
                 "rename - parent: {} - destination already exists",
-                self.string()
+                self.py_to_string()
             )));
         }
         std::fs::rename(self.path(), new_path).map_err(|e| {
-            let fspath = self.string();
+            let fspath = self.py_to_string();
             PyNotADirectoryError::new_err(format!("rename - parent: {fspath} - {e}"))
         })?;
         Ok(Self::from(new_path))
@@ -529,7 +544,7 @@ impl PyFsPath {
             }
         }
         std::fs::rename(self.path(), new_path).map_err(|e| {
-            let fspath = self.string();
+            let fspath = self.py_to_string();
             PyNotADirectoryError::new_err(format!("replace - parent: {fspath} - {e}"))
         })?;
         Ok(Self::from(new_path))
