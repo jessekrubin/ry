@@ -4,7 +4,8 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
-from ry._types import Buffer, ToPy
+from ry._types import Buffer
+from ry.protocols import ToPy
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._regex import Regex
 from ry.ryo3._std import Metadata

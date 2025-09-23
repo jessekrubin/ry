@@ -131,7 +131,7 @@ def test_zoned_datetime_creation(dt: ry.DateTime, tz: str) -> None:
 @given(datetime_strategy)
 def test_datetime_serialization(dt: ry.DateTime) -> None:
     """Test serialization and deserialization"""
-    dt_string = dt.string()
+    dt_string = dt.to_string()
     dt_parsed = ry.DateTime.parse(dt_string)
     assert dt == dt_parsed
 
@@ -196,7 +196,7 @@ def test_invalid_date_creation(year: int, month: int, day: int) -> None:
 @given(datetime_strategy)
 def test_datetime_string_format(dt: ry.DateTime) -> None:
     """Test that the string representation matches expected format"""
-    dt_string = dt.string()
+    dt_string = dt.to_string()
     assert isinstance(dt_string, str)
     assert "T" in dt_string
 
@@ -238,7 +238,7 @@ def test_time_difference(t1: ry.Time, t2: ry.Time) -> None:
 @given(duration_strategy)
 def test_duration_string(duration: ry.SignedDuration) -> None:
     """Test that the string representation of a duration is valid"""
-    duration_string = duration.string()
+    duration_string = duration.to_string()
     assert isinstance(duration_string, str)
 
 

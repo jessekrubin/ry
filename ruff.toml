@@ -57,6 +57,7 @@ ignore = [
   "E501",    # line length
   # "FBT003",  # boolean-positional-value-in-call
   "PLR2004", # magic values (super dumb rule)
+  "PYI053", #
   "PYI021",  # docstring-in-stub
 ]
 preview = true

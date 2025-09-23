@@ -211,8 +211,35 @@ impl RySignedDuration {
         }
     }
 
-    #[pyo3(signature = (*, friendly=false))]
+    fn isoformat(&self) -> String {
+        crate::constants::SPAN_PRINTER.duration_to_string(&self.0)
+    }
+
+    #[staticmethod]
+    fn from_isoformat(s: &str) -> PyResult<Self> {
+        crate::constants::SPAN_PARSER
+            .parse_duration(s)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[pyo3(
+        warn(
+            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.60]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        ),
+        signature = (*, friendly=false)
+    )]
     fn string(&self, friendly: bool) -> String {
+        if friendly {
+            self.friendly()
+        } else {
+            self.__str__()
+        }
+    }
+
+    #[pyo3(signature = (*, friendly=false), name = "to_string")]
+    fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
             format!("{:#}", self.0)
         } else {

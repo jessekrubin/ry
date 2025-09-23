@@ -118,7 +118,7 @@ impl RyOffset {
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item(crate::interns::seconds(py), self.seconds())?;
-        dict.set_item(crate::interns::fmt(py), self.string())?;
+        dict.set_item(crate::interns::fmt(py), self.py_to_string())?;
         Ok(dict)
     }
 
@@ -127,9 +127,21 @@ impl RyOffset {
         Self::from(d.0)
     }
 
+    #[pyo3(
+        warn(
+            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.60]",
+            category = pyo3::exceptions::PyDeprecationWarning
+      )
+    )]
     #[must_use]
     fn string(&self) -> String {
-        self.0.to_string()
+        self.py_to_string()
+    }
+
+    #[pyo3(name = "to_string")]
+    #[must_use]
+    fn py_to_string(&self) -> String {
+        self.__str__()
     }
 
     #[must_use]

@@ -99,12 +99,12 @@ class TestTimeSpanStrings:
 
     def test_span_str_friendly(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
-        assert s.string(friendly=True) == "2mo 10d 2h 30m"
+        assert s.to_string(friendly=True) == "2mo 10d 2h 30m"
         assert s.friendly() == "2mo 10d 2h 30m"
         assert f"{s:#}" == "2mo 10d 2h 30m"
 
         with pytest.raises(TypeError):
-            assert s.string(True) == "2mo 10d 2h 30m"  # type: ignore[misc] # noqa: FBT003
+            assert s.to_string(True) == "2mo 10d 2h 30m"  # type: ignore[misc] # noqa: FBT003
 
     def test_invalid_format_specifier(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
@@ -113,8 +113,8 @@ class TestTimeSpanStrings:
 
     def test_span_str_alien_or_idk_but_not_human(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")
-        assert s.string(friendly=False) == "P2M10DT2H30M"
-        assert s.string() == "P2M10DT2H30M"
+        assert s.to_string(friendly=False) == "P2M10DT2H30M"
+        assert s.to_string() == "P2M10DT2H30M"
 
     def test_repr_kwargs(self) -> None:
         kwarg_keys = (
@@ -162,19 +162,19 @@ def test_negative_spans() -> None:
     assert_eq!(span.to_string(), "-P5d");
     """
     span = -ry.TimeSpan()._days(5)
-    assert span.string() == "-P5D"
+    assert span.to_string() == "-P5D"
 
     span = ry.TimeSpan()._days(5).negate()
-    assert span.string() == "-P5D"
+    assert span.to_string() == "-P5D"
 
     span = ry.TimeSpan()._days(-5)
-    assert span.string() == "-P5D"
+    assert span.to_string() == "-P5D"
 
     span = -ry.TimeSpan()._days(-5).negate()
-    assert span.string() == "-P5D"
+    assert span.to_string() == "-P5D"
 
     span = ry.TimeSpan()._days(-5)
-    assert span.string() == "-P5D"
+    assert span.to_string() == "-P5D"
 
 
 class TestSpanAdd:

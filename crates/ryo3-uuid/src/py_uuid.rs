@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-
 use pyo3::exceptions::{PyNotImplementedError, PyTypeError, PyValueError};
 use pyo3::intern;
 use pyo3::prelude::*;
@@ -147,16 +146,28 @@ impl PyUuid {
         hasher.finish()
     }
 
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> String {
+        self.__str__()
+    }
+
+    #[allow(deprecated)]
+    #[pyo3(
+        warn(
+            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.60]",
+            category = pyo3::exceptions::PyDeprecationWarning
+      )
+    )]
     fn string(&self) -> String {
-        self.0.to_string()
+        self.py_to_string()
     }
 
     fn __str__(&self) -> String {
-        self.string()
+        self.0.to_string()
     }
 
     fn __repr__(&self) -> String {
-        format!("UUID('{}')", self.string())
+        format!("UUID('{}')", self.py_to_string())
     }
 
     fn __int__(&self) -> u128 {

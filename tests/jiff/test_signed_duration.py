@@ -201,18 +201,18 @@ class TestSignedDurationProperties:
 class TestSignedDurationStrings:
     def test_signed_duration_string(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
-        assert sd.string() == "PT2H30M"
+        assert sd.to_string() == "PT2H30M"
 
     def test_signed_duration_parse(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
-        assert sd.string(friendly=True) == "2h 30m"
+        assert sd.to_string(friendly=True) == "2h 30m"
         assert sd.friendly() == "2h 30m"
-        assert sd.string() == "PT2H30M"
+        assert sd.to_string() == "PT2H30M"
         assert sd.__str__() == "PT2H30M"
         assert f"{sd}" == "PT2H30M"
         assert f"{sd:#}" == "2h 30m"
         with pytest.raises(TypeError):
-            assert sd.string(True) == "2h 30m"  # type: ignore[misc]  # noqa: FBT003
+            assert sd.to_string(True) == "2h 30m"  # type: ignore[misc]  # noqa: FBT003
 
     def test_invalid_format_specifier(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
