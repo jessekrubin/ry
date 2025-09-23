@@ -147,9 +147,11 @@ def st_signed_durations(
 ) -> SearchStrategy[ry.SignedDuration]:
     """Strategy for `ry.Duration` instances"""
     if not isinstance(min_value, ry.SignedDuration):
-        raise TypeError(f"min_value must be a ry.SignedDuration, got {type(min_value)}")
+        msg = f"min_value must be a ry.SignedDuration, got {type(min_value)}"
+        raise TypeError(msg)
     if not isinstance(max_value, ry.SignedDuration):
-        raise TypeError(f"max_value must be a ry.SignedDuration, got {type(max_value)}")
+        msg = f"max_value must be a ry.SignedDuration, got {type(max_value)}"
+        raise TypeError(msg)
     if min_value > max_value:
         emsg = f"min_value {min_value} must be <= max_value {max_value}"
         raise ValueError(emsg)

@@ -36,9 +36,11 @@ def st_durations(
 ) -> SearchStrategy[Duration]:
     """Strategy for `ry.Duration` instances"""
     if not isinstance(min_value, ry.Duration):
-        raise TypeError(f"min_value must be a ry.Duration, got {type(min_value)}")
+        msg = f"min_value must be a ry.Duration, got {type(min_value)}"
+        raise TypeError(msg)
     if not isinstance(max_value, ry.Duration):
-        raise TypeError(f"max_value must be a ry.Duration, got {type(max_value)}")
+        msg = f"max_value must be a ry.Duration, got {type(max_value)}"
+        raise TypeError(msg)
     if min_value > max_value:
         emsg = f"min_value {min_value} must be <= max_value {max_value}"
         raise ValueError(emsg)
