@@ -18,7 +18,8 @@ ryo3-bytes.workspace = true
 ryo3-core.workspace = true
 ryo3-macro-rules.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
-jiff = {workspace = true, optional = true}
+jiff = { workspace = true, optional = true }
+ryo3-pydantic = { workspace = true, optional = true }
 
 [features]
 default = []
@@ -30,16 +31,18 @@ ry = [
   "std-net",
   "std-fs",
   "std-process",
+  "pydantic",
 ]
 std-time = []
 std-net = []
 std-fs = []
 std-process = []
-
+pydantic = ["dep:ryo3-pydantic", "dep:jiff"]
 serde = [
   "dep:serde",
   "jiff/serde",
 ]
+jiff = ["dep:jiff"]
 
 [lints]
 workspace = true

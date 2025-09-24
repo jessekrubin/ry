@@ -42,6 +42,7 @@ pub mod interns {
     }
 
     unpaid_intern!(_pydantic_validate);
+    unpaid_intern!(_pydantic_serialize);
     unpaid_intern!(_pydantic_validate_strict);
     unpaid_intern!(json_unless_none, "json-unless-none");
     unpaid_intern!(no_info_wrap_validator_function);

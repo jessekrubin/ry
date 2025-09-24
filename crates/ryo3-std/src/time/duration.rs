@@ -1,10 +1,12 @@
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError, PyZeroDivisionError};
-use pyo3::prelude::PyAnyMethods;
+use pyo3::prelude::{PyAnyMethods, PyBytesMethods};
+use pyo3::types::{PyDict, PyTypeMethods};
 use pyo3::types::{PyInt, PyTuple};
 use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
 use ryo3_macro_rules::{
-    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
+    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
+    py_zero_division_err,
 };
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -90,6 +92,29 @@ impl PyDuration {
             let nanos = nanos % NANOS_PER_SEC;
             Ok(Self(Duration::new(secs, nanos)))
         }
+    }
+
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        dict.set_item(pyo3::intern!(py, "secs"), self.0.as_secs())?;
+
+        dict.set_item(pyo3::intern!(py, "nanos"), self.0.subsec_nanos())?;
+        Ok(dict)
+    }
+
+    #[staticmethod]
+    fn from_dict(dict: &Bound<'_, PyDict>) -> PyResult<Self> {
+        let secs: u64 = dict.get_item(pyo3::intern!(dict.py(), "secs"))?.extract()?;
+        let nanos: u32 = dict
+            .get_item(pyo3::intern!(dict.py(), "nanos"))?
+            .extract()?;
+        if nanos >= NANOS_PER_SEC {
+            return Err(py_value_error!(
+                "'nanos' must be less than {NANOS_PER_SEC}, got {nanos}"
+            ));
+        }
+        Ok(Self(Duration::new(secs, nanos)))
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -628,6 +653,74 @@ impl PyDuration {
     fn saturating_sub(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_sub(other.0))
     }
+
+    #[staticmethod]
+    fn from_str<'py>(s: &str) -> PyResult<Self> {
+        let sd: jiff::SignedDuration = s.parse().map_err(|e| py_value_error!("{}", e))?;
+        // let a =
+        std::time::Duration::try_from(sd)
+            .map(Self::from)
+            .map_err(|e| py_value_error!("{e}"))
+        // Ok(a)
+    }
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if let Ok(s) = value.cast_exact::<pyo3::types::PyDict>() {
+            Self::from_dict(s).and_then(|dt| dt.into_bound_py_any(py))
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        // } else if let Ok(v) = value.cast_exact::<PyFloat>() {
+        //     let f = v.extract::<f64>()?;
+        //     if f.is_nan() || f.is_infinite() {
+        //         return py_value_err!("Cannot convert NaN or infinite float to SignedDuration");
+        //     }
+        //     Self::py_try_from_secs_f64(f).and_then(|dt| dt.into_bound_py_any(py))
+        // } else if let Ok(v) = value.cast_exact::<PyInt>() {
+        //     let i = v.extract::<i64>()?;
+        //     Self::from(SignedDuration::new(i, 0)).into_bound_py_any(py)
+        } else if let Ok(d) = value.extract::<Duration>() {
+            Self::from(d).into_bound_py_any(py)
+        } else {
+            let valtype = ryo3_macro_rules::any_repr!(value);
+            py_type_err!("SignedDuration conversion error: {valtype}")
+        }
+    }
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_serialize<'py>(v: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = v.py();
+        v.call_method0(pyo3::intern!(py, "to_dict"))
+    }
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::from_any(value).map_err(|e| py_value_error!("Duration validation error: {}", e))
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl Display for PyDuration {
@@ -645,4 +738,51 @@ impl Display for PyDuration {
 enum PyDurationComparable {
     PyDuration(PyDuration),
     Duration(Duration),
+}
+
+#[cfg(feature = "pydantic")]
+mod rydantic {
+    use super::PyDuration;
+    use pyo3::prelude::PyAnyMethods;
+    use pyo3::types::{PyDict, PyTuple, PyType};
+    use pyo3::{Bound, PyAny, PyResult};
+    use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
+    impl GetPydanticCoreSchemaCls for PyDuration {
+        fn get_pydantic_core_schema<'py>(
+            cls: &Bound<'py, PyType>,
+            source: &Bound<'py, PyAny>,
+            _handler: &Bound<'py, PyAny>,
+        ) -> PyResult<Bound<'py, PyAny>> {
+            use ryo3_pydantic::interns;
+            let py = source.py();
+            let core_schema = ryo3_pydantic::core_schema(py)?;
+            let timedelta_schema =
+                core_schema.call_method(interns::timedelta_schema(py), (), None)?;
+            let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+            let kw = PyDict::new(py);
+            // Not passing info_arg; we don't need it.
+            // Declare JSON return type to help Pydantic optimize:
+            // kw.set_item(
+            //     pyo3::intern!(py, "json_return_type"),
+            //     pyo3::intern!(py, "dict"),
+            // )?;
+            let ser = core_schema.call_method(
+                pyo3::intern!(py, "plain_serializer_function_ser_schema"),
+                // interns::function_plain_ser_schema(py),
+                PyTuple::new(py, vec![&cls.getattr(interns::_pydantic_serialize(py))?])?,
+                Some(&kw),
+            )?;
+
+            let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
+            // let string_serialization_schema =
+            //     core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+            let serialization_kwargs = PyDict::new(py);
+            serialization_kwargs.set_item(interns::serialization(py), &ser)?;
+            core_schema.call_method(
+                interns::no_info_wrap_validator_function(py),
+                args,
+                Some(&serialization_kwargs),
+            )
+        }
+    }
 }

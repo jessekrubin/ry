@@ -86,6 +86,11 @@ class TestTimeSpanStrings:
         _expected_repr_full = "TimeSpan(years=1, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0)"
         assert s.repr_full() == _expected_repr_full
 
+    def test_span_isoformat(self) -> None:
+        s = ry.timespan(years=1)
+        assert s.isoformat() == "P1Y"
+        assert s == ry.TimeSpan.from_isoformat("P1Y")
+
     def test_all_ones_repr_full(self) -> None:
         assert (
             repr(_TIMESPAN_ONES)

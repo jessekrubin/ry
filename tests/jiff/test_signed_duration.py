@@ -203,6 +203,11 @@ class TestSignedDurationStrings:
         sd = ry.SignedDuration.parse("PT2H30M")
         assert sd.to_string() == "PT2H30M"
 
+    def test_signed_duration_isoformat(self) -> None:
+        sd = ry.SignedDuration.parse("PT2H30M")
+        assert sd.isoformat() == "PT2H30M"
+        assert ry.SignedDuration.from_isoformat(sd.isoformat()) == sd
+
     def test_signed_duration_parse(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
         assert sd.to_string(friendly=True) == "2h 30m"
