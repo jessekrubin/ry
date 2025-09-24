@@ -17,13 +17,18 @@ def _repo_root() -> Path:
 
 
 @pytest.fixture
-def ry_repo_root() -> Path:
+def repo_root() -> Path:
     return _repo_root()
 
 
 @pytest.fixture
 def ry_repo_crates(ry_repo_root: Path) -> list[Path]:
     return list(ry_repo_root.glob("crates/*"))
+
+
+@pytest.fixture
+def ry_pyproject_toml_path(ry_repo_root: Path) -> Path:
+    return ry_repo_root / "pyproject.toml"
 
 
 @pytest.fixture(

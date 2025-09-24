@@ -1,7 +1,7 @@
 use crate::net::PyIpv6Addr;
 use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
+use crate::net::ipaddr_props::IpAddrProps;
 use pyo3::prelude::*;
-use ryo3_macro_rules::{pytodo, pytodo_err};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
@@ -58,7 +58,7 @@ impl PySocketAddrV4 {
     }
 
     fn __hash__(&self) -> u64 {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let mut hasher = std::hash::DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
     }
@@ -99,66 +99,68 @@ impl PySocketAddrV4 {
     fn ip(&self) -> PyIpv4Addr {
         PyIpv4Addr::from(self.0.ip())
     }
+
     // ========================================================================
     // Ipv4 forwarded
     // ========================================================================
-    #[expect(clippy::unused_self)]
     #[getter]
-    fn is_benchmarking(&self) -> PyResult<bool> {
-        pytodo_err!()
+    fn is_benchmarking(&self) -> bool {
+        <Self as IpAddrProps>::is_benchmarking(self)
     }
 
     #[getter]
     fn is_broadcast(&self) -> bool {
-        self.0.ip().is_broadcast()
+        <Self as IpAddrProps>::is_broadcast(self)
     }
 
     #[getter]
     fn is_documentation(&self) -> bool {
-        self.0.ip().is_documentation()
+        <Self as IpAddrProps>::is_documentation(self)
     }
 
-    #[expect(clippy::unused_self)]
     #[getter]
     fn is_global(&self) -> PyResult<bool> {
-        pytodo!()
+        <Self as IpAddrProps>::is_global(self)
     }
 
     #[getter]
     fn is_link_local(&self) -> bool {
-        self.0.ip().is_link_local()
+        <Self as IpAddrProps>::is_link_local(self)
     }
 
     #[getter]
     fn is_loopback(&self) -> bool {
-        self.0.ip().is_loopback()
+        <Self as IpAddrProps>::is_loopback(self)
     }
 
     #[getter]
     fn is_multicast(&self) -> bool {
-        self.0.ip().is_multicast()
+        <Self as IpAddrProps>::is_multicast(self)
     }
 
     #[getter]
     fn is_private(&self) -> bool {
-        self.0.ip().is_private()
+        <Self as IpAddrProps>::is_private(self)
     }
 
-    #[expect(clippy::unused_self)]
     #[getter]
-    fn is_reserved(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_reserved(&self) -> bool {
+        <Self as IpAddrProps>::is_reserved(self)
     }
 
-    #[expect(clippy::unused_self)]
     #[getter]
-    fn is_shared(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_shared(&self) -> bool {
+        <Self as IpAddrProps>::is_shared(self)
     }
 
     #[getter]
     fn is_unspecified(&self) -> bool {
-        self.0.ip().is_unspecified()
+        <Self as IpAddrProps>::is_unspecified(self)
+    }
+
+    #[getter]
+    fn is_unicast(&self) -> bool {
+        <Self as IpAddrProps>::is_unicast(self)
     }
 }
 
@@ -194,7 +196,7 @@ impl PySocketAddrV6 {
     }
 
     fn __hash__(&self) -> u64 {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let mut hasher = std::hash::DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
     }
@@ -238,64 +240,74 @@ impl PySocketAddrV6 {
     // ========================================================================
     // IpAddr forwarded
     // ========================================================================
-    #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_benchmarking(&self) -> PyResult<bool> {
-        pytodo!()
-    }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_documentation(&self) -> PyResult<bool> {
-        pytodo!()
-    }
-
-    #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_global(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_documentation(&self) -> bool {
+        <Self as IpAddrProps>::is_documentation(self)
     }
 
     #[getter]
     fn is_loopback(&self) -> bool {
-        self.0.ip().is_loopback()
+        <Self as IpAddrProps>::is_loopback(self)
     }
 
     #[getter]
     fn is_multicast(&self) -> bool {
-        self.0.ip().is_multicast()
+        <Self as IpAddrProps>::is_multicast(self)
     }
 
     #[getter]
-    fn is_ipv4_mapped(&self) -> bool {
-        self.to_ipaddrv6().is_ipv4_mapped()
+    pub(crate) fn is_ipv4_mapped(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv4_mapped(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_unicast(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_unicast(&self) -> bool {
+        <Self as IpAddrProps>::is_unicast(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_unicast_global(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_unicast_global(&self) -> bool {
+        <Self as IpAddrProps>::is_unicast_global(self)
     }
 
     #[getter]
     fn is_unicast_link_local(&self) -> bool {
-        self.0.ip().is_unicast_link_local()
+        <Self as IpAddrProps>::is_unicast_link_local(self)
     }
 
     #[getter]
     fn is_unique_local(&self) -> bool {
-        self.0.ip().is_unique_local()
+        <Self as IpAddrProps>::is_unique_local(self)
     }
 
     #[getter]
     fn is_unspecified(&self) -> bool {
-        self.0.ip().is_unspecified()
+        <Self as IpAddrProps>::is_unspecified(self)
+    }
+
+    // ----------------------------------------------------------------------
+    // unstable properties
+    // ----------------------------------------------------------------------
+
+    #[getter]
+    fn is_benchmarking(&self) -> bool {
+        <Self as IpAddrProps>::is_benchmarking(self)
+    }
+
+    #[getter]
+    fn is_global(&self) -> PyResult<bool> {
+        <Self as IpAddrProps>::is_global(self)
+    }
+
+    #[getter]
+    fn is_reserved(&self) -> bool {
+        <Self as IpAddrProps>::is_reserved(self)
+    }
+
+    #[getter]
+    fn is_shared(&self) -> bool {
+        <Self as IpAddrProps>::is_shared(self)
     }
 }
 
@@ -349,7 +361,7 @@ impl PySocketAddr {
     }
 
     fn __hash__(&self) -> u64 {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let mut hasher = std::hash::DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
     }
@@ -394,127 +406,97 @@ impl PySocketAddr {
     // ========================================================================
     // IpAddr forwarded
     // ========================================================================
-    #[expect(clippy::unused_self)]
-    #[getter]
-    fn is_benchmarking(&self) -> PyResult<bool> {
-        pytodo!()
-    }
 
     #[getter]
     fn is_ipv4(&self) -> bool {
-        self.0.ip().is_ipv4()
+        <Self as IpAddrProps>::is_ipv4(self)
     }
 
     #[getter]
     fn is_ipv6(&self) -> bool {
-        self.0.ip().is_ipv6()
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
+
+    // #[expect(clippy::unused_self)]
+    #[getter]
+    fn is_benchmarking(&self) -> bool {
+        <Self as IpAddrProps>::is_benchmarking(self)
     }
 
     #[getter]
     fn is_broadcast(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V4(addr) => addr.is_broadcast(),
-            IpAddr::V6(_) => false,
-        }
+        <Self as IpAddrProps>::is_broadcast(self)
     }
 
     #[getter]
     fn is_documentation(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V4(addr) => addr.is_documentation(),
-            IpAddr::V6(_) => false,
-        }
+        <Self as IpAddrProps>::is_documentation(self)
     }
 
     #[getter]
     fn is_loopback(&self) -> bool {
-        self.0.ip().is_loopback()
+        <Self as IpAddrProps>::is_loopback(self)
     }
 
     #[getter]
     fn is_multicast(&self) -> bool {
-        self.0.ip().is_multicast()
+        <Self as IpAddrProps>::is_multicast(self)
     }
 
     #[getter]
     fn is_private(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V4(addr) => addr.is_private(),
-            IpAddr::V6(_) => false,
-        }
+        <Self as IpAddrProps>::is_private(self)
     }
 
     #[getter]
     fn is_unspecified(&self) -> bool {
-        self.0.ip().is_unspecified()
+        <Self as IpAddrProps>::is_unspecified(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
+    // #[expect(clippy::unused_self)]
     fn is_global(&self) -> PyResult<bool> {
-        pytodo!()
+        <Self as IpAddrProps>::is_global(self)
     }
 
     #[getter]
     fn is_ipv4_mapped(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V6(addr) => {
-                matches!(
-                    addr.octets(),
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _, _, _, _]
-                )
-            }
-            IpAddr::V4(_) => false,
-        }
+        <Self as IpAddrProps>::is_ipv4_mapped(self)
     }
 
     #[getter]
     fn is_link_local(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V4(addr) => addr.is_link_local(),
-            IpAddr::V6(_) => false,
-        }
+        <Self as IpAddrProps>::is_link_local(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_reserved(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_reserved(&self) -> bool {
+        <Self as IpAddrProps>::is_reserved(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_shared(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_shared(&self) -> bool {
+        <Self as IpAddrProps>::is_shared(self)
     }
 
     #[getter]
     fn is_unicast(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V4(addr) => !addr.is_multicast(),
-            IpAddr::V6(addr) => !addr.is_multicast(),
-        }
+        <Self as IpAddrProps>::is_unicast(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_unicast_global(&self) -> PyResult<bool> {
-        pytodo!()
+    // #[expect(clippy::unused_self)]
+    fn is_unicast_global(&self) -> bool {
+        <Self as IpAddrProps>::is_unicast_global(self)
     }
 
     #[getter]
     fn is_unicast_link_local(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V4(_) => false,
-            IpAddr::V6(addr) => addr.is_unicast_link_local(),
-        }
+        <Self as IpAddrProps>::is_unicast_link_local(self)
     }
 
     #[getter]
     fn is_unique_local(&self) -> bool {
-        match self.0.ip() {
-            IpAddr::V4(_) => false,
-            IpAddr::V6(addr) => addr.is_unique_local(),
-        }
+        <Self as IpAddrProps>::is_unique_local(self)
     }
 }

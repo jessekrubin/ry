@@ -55,6 +55,37 @@ st_i32 = st.integers(min_value=ry.I32_MIN, max_value=ry.I32_MAX)
 st_i64 = st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX)
 st_i128 = st.integers(min_value=ry.I128_MIN, max_value=ry.I128_MAX)
 
+
+def st_durations(
+    *,
+    min_value: ry.Duration = ry.Duration.MIN,
+    max_value: ry.Duration = ry.Duration.MAX,
+) -> SearchStrategy[ry.Duration]:
+    """Strategy for `ry.Duration` instances"""
+    if not isinstance(min_value, ry.Duration):
+        msg = f"min_value must be a ry.Duration, got {type(min_value)}"
+        raise TypeError(msg)
+    if not isinstance(max_value, ry.Duration):
+        msg = f"max_value must be a ry.Duration, got {type(max_value)}"
+        raise TypeError(msg)
+    if min_value > max_value:
+        emsg = f"min_value {min_value} must be <= max_value {max_value}"
+        raise ValueError(emsg)
+    if min_value == max_value:
+        return st.just(min_value)
+    if min_value == ry.Duration.MIN and max_value == ry.Duration.MAX:
+        return st.builds(
+            ry.Duration,
+            st.integers(min_value=0, max_value=ry.U64_MAX),
+            st.integers(min_value=0, max_value=999_999_999),
+        )
+    return st.builds(
+        ry.Duration,
+        st.integers(min_value=0, max_value=ry.U64_MAX),
+        st.integers(min_value=0, max_value=999_999_999),
+    ).filter(lambda d: min_value <= d <= max_value)
+
+
 JsonSearchStrategy = SearchStrategy[
     list[Any]
     | dict[str, Any]

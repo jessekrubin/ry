@@ -1,8 +1,7 @@
 // #![expect(clippy::trivially_copy_pass_by_ref)]
-use crate::net::{PySocketAddrV4, PySocketAddrV6};
+use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use ryo3_macro_rules::pytodo;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -25,93 +24,6 @@ pub struct PyIpv6Addr(pub Ipv6Addr);
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpAddr(pub IpAddr);
-
-static IPV4_ADDR_ERROR: &str =
-    "Invalid IPv4 address, should be a [u8; 4], u32, str, bytes (len=4), or ipaddress.IPv4Address";
-
-fn extract_ipv4_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv4Addr> {
-    // 32 bit fitting int
-    if let Ok(addr) = ob.extract::<u32>() {
-        return Ok(std::net::Ipv4Addr::from(addr));
-    }
-
-    // if is string then parse
-    if let Ok(addr) = ob.extract::<&str>() {
-        return addr.parse().map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid IPv4 address: {e}"))
-        });
-    }
-
-    // if is bytes then parse
-    if let Ok(addr) = ob.extract::<[u8; 4]>() {
-        return Ok(std::net::Ipv4Addr::from(addr));
-    }
-
-    if let Ok(IpAddr::V4(addr)) = ob.extract::<IpAddr>() {
-        return Ok(addr);
-    }
-    // error
-    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-        IPV4_ADDR_ERROR,
-    ))
-}
-
-fn extract_ipv4(
-    a: &Bound<'_, PyAny>,
-    b: Option<u8>,
-    c: Option<u8>,
-    d: Option<u8>,
-) -> PyResult<Ipv4Addr> {
-    // if bcd are not None then extract a as u8 or error...
-    match (b, c, d) {
-        (Some(b), Some(c), Some(d)) => {
-            if let Ok(addr) = a.extract::<u8>() {
-                return Ok(Ipv4Addr::new(addr, b, c, d));
-            }
-        }
-        (None, None, None) => {
-            if let Ok(addr) = extract_ipv4_from_single_ob(a) {
-                return Ok(addr);
-            }
-        }
-        _ => {
-            return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                IPV4_ADDR_ERROR,
-            ));
-        }
-    }
-    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-        IPV4_ADDR_ERROR,
-    ))
-}
-
-static IPV6_ADDR_ERROR: &str =
-    "Invalid IPv4 address, should be a [u8; 16], u128, str, bytes or ipaddress.IPv6Address";
-
-fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
-    // 32 bit fitting int
-    if let Ok(addr) = ob.extract::<u128>() {
-        return Ok(std::net::Ipv6Addr::from(addr));
-    }
-    // if is string then parse
-    if let Ok(addr) = ob.extract::<&str>() {
-        return addr.parse().map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid IPv6 address: {e}"))
-        });
-    }
-    // if is bytes then parse
-    if let Ok(addr) = ob.extract::<[u8; 16]>() {
-        return Ok(std::net::Ipv6Addr::from(addr));
-    }
-
-    if let Ok(IpAddr::V6(addr)) = ob.extract::<IpAddr>() {
-        return Ok(addr);
-    }
-    // error
-    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-        IPV6_ADDR_ERROR,
-    ))
-}
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
@@ -196,65 +108,66 @@ impl PyIpv4Addr {
     // ========================================================================
     // PROPERTIES
     // ========================================================================
-
-    #[expect(clippy::unused_self)]
     #[getter]
-    fn is_benchmarking(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_benchmarking(&self) -> bool {
+        <Self as IpAddrProps>::is_benchmarking(self)
     }
 
     #[getter]
     fn is_broadcast(&self) -> bool {
-        self.0.is_broadcast()
+        <Self as IpAddrProps>::is_broadcast(self)
     }
 
     #[getter]
     fn is_documentation(&self) -> bool {
-        self.0.is_documentation()
+        <Self as IpAddrProps>::is_documentation(self)
     }
 
-    #[expect(clippy::unused_self)]
     #[getter]
     fn is_global(&self) -> PyResult<bool> {
-        pytodo!()
+        <Self as IpAddrProps>::is_global(self)
     }
 
     #[getter]
     fn is_link_local(&self) -> bool {
-        self.0.is_link_local()
+        <Self as IpAddrProps>::is_link_local(self)
     }
 
     #[getter]
     fn is_loopback(&self) -> bool {
-        self.0.is_loopback()
+        <Self as IpAddrProps>::is_loopback(self)
     }
 
     #[getter]
     fn is_multicast(&self) -> bool {
-        self.0.is_multicast()
+        <Self as IpAddrProps>::is_multicast(self)
     }
 
     #[getter]
     fn is_private(&self) -> bool {
-        self.0.is_private()
+        <Self as IpAddrProps>::is_private(self)
     }
 
-    #[expect(clippy::unused_self)]
     #[getter]
-    fn is_reserved(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_reserved(&self) -> bool {
+        <Self as IpAddrProps>::is_reserved(self)
     }
 
-    #[expect(clippy::unused_self)]
     #[getter]
-    fn is_shared(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_shared(&self) -> bool {
+        <Self as IpAddrProps>::is_shared(self)
     }
 
     #[getter]
     fn is_unspecified(&self) -> bool {
-        self.0.is_unspecified()
+        <Self as IpAddrProps>::is_unspecified(self)
     }
+
+    #[getter]
+    fn is_unicast(&self) -> bool {
+        <Self as IpAddrProps>::is_unicast(self)
+    }
+
     // ========================================================================
     // PY-CONVERSIONS
     // ========================================================================
@@ -367,70 +280,75 @@ impl PyIpv6Addr {
     // ========================================================================
     // PROPERTIES
     // ========================================================================
-
-    #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_benchmarking(&self) -> PyResult<bool> {
-        pytodo!()
-    }
-
     #[getter]
     fn is_documentation(&self) -> bool {
-        matches!(
-            self.0.segments(),
-            [0x2001, 0xdb8, ..] | [0x3fff, 0..=0x0fff, ..]
-        )
-    }
-
-    #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_global(&self) -> PyResult<bool> {
-        pytodo!()
+        <Self as IpAddrProps>::is_documentation(self)
     }
 
     #[getter]
     fn is_loopback(&self) -> bool {
-        self.0.is_loopback()
+        <Self as IpAddrProps>::is_loopback(self)
     }
 
     #[getter]
     fn is_multicast(&self) -> bool {
-        self.0.is_multicast()
+        <Self as IpAddrProps>::is_multicast(self)
     }
 
     #[getter]
     pub(crate) fn is_ipv4_mapped(&self) -> bool {
-        matches!(
-            self.0.octets(),
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _, _, _, _]
-        )
+        <Self as IpAddrProps>::is_ipv4_mapped(self)
     }
 
     #[getter]
     fn is_unicast(&self) -> bool {
-        !(self.0.is_multicast())
+        <Self as IpAddrProps>::is_unicast(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_unicast_global(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_unicast_global(&self) -> bool {
+        <Self as IpAddrProps>::is_unicast_global(self)
     }
 
     #[getter]
     fn is_unicast_link_local(&self) -> bool {
-        self.0.is_unicast_link_local()
+        <Self as IpAddrProps>::is_unicast_link_local(self)
     }
 
     #[getter]
     fn is_unique_local(&self) -> bool {
-        self.0.is_unique_local()
+        <Self as IpAddrProps>::is_unique_local(self)
     }
 
     #[getter]
     fn is_unspecified(&self) -> bool {
-        self.0.is_unspecified()
+        <Self as IpAddrProps>::is_unspecified(self)
     }
+
+    // ----------------------------------------------------------------------
+    // unstable properties
+    // ----------------------------------------------------------------------
+
+    #[getter]
+    fn is_benchmarking(&self) -> bool {
+        <Self as IpAddrProps>::is_benchmarking(self)
+    }
+
+    #[getter]
+    fn is_global(&self) -> PyResult<bool> {
+        <Self as IpAddrProps>::is_global(self)
+    }
+
+    #[getter]
+    fn is_reserved(&self) -> bool {
+        <Self as IpAddrProps>::is_reserved(self)
+    }
+
+    #[getter]
+    fn is_shared(&self) -> bool {
+        <Self as IpAddrProps>::is_shared(self)
+    }
+
     // ========================================================================
     // PY-CONVERSIONS
     // ========================================================================
@@ -575,41 +493,29 @@ impl PyIpAddr {
     // ---------------------------------------------------------------------
     // RUST PROPERTIES
     // ---------------------------------------------------------------------
-    #[expect(clippy::unused_self)]
-    #[getter]
-    fn is_benchmarking(&self) -> PyResult<bool> {
-        pytodo!()
-    }
-
     #[getter]
     fn is_ipv4(&self) -> bool {
-        self.0.is_ipv4()
+        <Self as IpAddrProps>::is_ipv4(self)
     }
 
     #[getter]
     fn is_ipv6(&self) -> bool {
-        self.0.is_ipv6()
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
+
+    #[getter]
+    fn is_benchmarking(&self) -> bool {
+        <Self as IpAddrProps>::is_benchmarking(self)
     }
 
     #[getter]
     fn is_broadcast(&self) -> bool {
-        match self.0 {
-            IpAddr::V4(addr) => addr.is_broadcast(),
-            IpAddr::V6(_) => false,
-        }
+        <Self as IpAddrProps>::is_broadcast(self)
     }
 
     #[getter]
     fn is_documentation(&self) -> bool {
-        match self.0 {
-            IpAddr::V4(addr) => addr.is_documentation(),
-            IpAddr::V6(addr) => {
-                matches!(
-                    addr.segments(),
-                    [0x2001, 0xdb8, ..] | [0x3fff, 0..=0x0fff, ..]
-                )
-            } //
-        }
+        <Self as IpAddrProps>::is_documentation(self)
     }
 
     #[getter]
@@ -619,89 +525,62 @@ impl PyIpAddr {
 
     #[getter]
     fn is_multicast(&self) -> bool {
-        self.0.is_multicast()
+        <Self as IpAddrProps>::is_multicast(self)
     }
 
     #[getter]
     fn is_private(&self) -> bool {
-        match self.0 {
-            IpAddr::V4(addr) => addr.is_private(),
-            IpAddr::V6(_) => false,
-        }
+        <Self as IpAddrProps>::is_private(self)
     }
 
     #[getter]
     fn is_unspecified(&self) -> bool {
-        self.0.is_unspecified()
+        <Self as IpAddrProps>::is_unspecified(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
     fn is_global(&self) -> PyResult<bool> {
-        pytodo!()
+        <Self as IpAddrProps>::is_global(self)
     }
 
     #[getter]
     fn is_ipv4_mapped(&self) -> bool {
-        match self.0 {
-            IpAddr::V6(addr) => {
-                matches!(
-                    addr.octets(),
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, _, _, _, _]
-                )
-            }
-            IpAddr::V4(_) => false,
-        }
+        <Self as IpAddrProps>::is_ipv4_mapped(self)
     }
 
     #[getter]
     fn is_link_local(&self) -> bool {
-        match self.0 {
-            IpAddr::V4(addr) => addr.is_link_local(),
-            IpAddr::V6(_) => false,
-        }
+        <Self as IpAddrProps>::is_link_local(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_reserved(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_reserved(&self) -> bool {
+        <Self as IpAddrProps>::is_reserved(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_shared(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_shared(&self) -> bool {
+        <Self as IpAddrProps>::is_shared(self)
     }
 
     #[getter]
     fn is_unicast(&self) -> bool {
-        match self.0 {
-            IpAddr::V4(addr) => !addr.is_multicast(),
-            IpAddr::V6(addr) => !addr.is_multicast(),
-        }
+        <Self as IpAddrProps>::is_unicast(self)
     }
 
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn is_unicast_global(&self) -> PyResult<bool> {
-        pytodo!()
+    fn is_unicast_global(&self) -> bool {
+        <Self as IpAddrProps>::is_unicast_global(self)
     }
 
     #[getter]
     fn is_unicast_link_local(&self) -> bool {
-        match self.0 {
-            IpAddr::V4(_) => false,
-            IpAddr::V6(addr) => addr.is_unicast_link_local(),
-        }
+        <Self as IpAddrProps>::is_unicast_link_local(self)
     }
 
     #[getter]
     fn is_unique_local(&self) -> bool {
-        match self.0 {
-            IpAddr::V4(_) => false,
-            IpAddr::V6(addr) => addr.is_unique_local(),
-        }
+        <Self as IpAddrProps>::is_unique_local(self)
     }
 
     // ========================================================================
@@ -832,4 +711,98 @@ impl IpAddrLike {
             }),
         }
     }
+}
+
+// ============================================================================
+// UTILS
+// ============================================================================
+
+static IPV4_ADDR_ERROR: &str =
+    "Invalid IPv4 address, should be a [u8; 4], u32, str, bytes (len=4), or ipaddress.IPv4Address";
+
+fn extract_ipv4_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv4Addr> {
+    // 32 bit fitting int
+    if let Ok(addr) = ob.extract::<u32>() {
+        return Ok(std::net::Ipv4Addr::from(addr));
+    }
+
+    // if is string then parse
+    if let Ok(addr) = ob.extract::<&str>() {
+        return addr.parse().map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid IPv4 address: {e}"))
+        });
+    }
+
+    // if is bytes then parse
+    if let Ok(addr) = ob.extract::<[u8; 4]>() {
+        return Ok(std::net::Ipv4Addr::from(addr));
+    }
+
+    if let Ok(IpAddr::V4(addr)) = ob.extract::<IpAddr>() {
+        return Ok(addr);
+    }
+    // error
+    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+        IPV4_ADDR_ERROR,
+    ))
+}
+
+fn extract_ipv4(
+    a: &Bound<'_, PyAny>,
+    b: Option<u8>,
+    c: Option<u8>,
+    d: Option<u8>,
+) -> PyResult<Ipv4Addr> {
+    // if bcd are not None then extract a as u8 or error...
+    match (b, c, d) {
+        (Some(b), Some(c), Some(d)) => {
+            if let Ok(addr) = a.extract::<u8>() {
+                return Ok(Ipv4Addr::new(addr, b, c, d));
+            }
+        }
+        (None, None, None) => {
+            if let Ok(addr) = extract_ipv4_from_single_ob(a) {
+                return Ok(addr);
+            }
+        }
+        _ => {
+            return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                IPV4_ADDR_ERROR,
+            ));
+        }
+    }
+    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+        IPV4_ADDR_ERROR,
+    ))
+}
+
+static IPV6_ADDR_ERROR: &str =
+    "Invalid IPv4 address, should be a [u8; 16], u128, str, bytes or ipaddress.IPv6Address";
+
+fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
+    // 32 bit fitting int
+    if let Ok(addr) = ob.extract::<u128>() {
+        return Ok(std::net::Ipv6Addr::from(addr));
+    }
+
+    // if is string then parse
+    if let Ok(addr) = ob.extract::<&str>() {
+        return addr.parse().map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid IPv6 address: {e}"))
+        });
+    }
+
+    // if is bytes then parse
+    if let Ok(addr) = ob.extract::<[u8; 16]>() {
+        return Ok(std::net::Ipv6Addr::from(addr));
+    }
+
+    if let Ok(IpAddr::V6(addr)) = ob.extract::<IpAddr>() {
+        return Ok(addr);
+    }
+
+    // error
+    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+        IPV6_ADDR_ERROR,
+    ))
 }

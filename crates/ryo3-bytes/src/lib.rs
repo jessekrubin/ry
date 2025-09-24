@@ -26,9 +26,11 @@ pub use bytes_like::{extract_bytes_ref, extract_bytes_ref_str};
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBytes>()?;
 
-    // rename bytes module to `ry`
-    m.getattr(intern!(m.py(), "Bytes"))?
-        .setattr(intern!(m.py(), "__module__"), intern!(m.py(), "ry.ryo3"))?;
-
+    // if `ry` and `multiple-pymethods` features are enabled, set the
+    // __module__ attribute of PyBytes to "ry.ryo3" which is just for tests...
+    if cfg!(feature = "ry") && cfg!(feature = "multiple-pymethods") {
+        m.getattr(intern!(m.py(), "Bytes"))?
+            .setattr(intern!(m.py(), "__module__"), intern!(m.py(), "ry.ryo3"))?;
+    }
     Ok(())
 }

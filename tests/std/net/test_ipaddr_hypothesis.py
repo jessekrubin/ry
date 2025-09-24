@@ -12,14 +12,14 @@ import ry
 
 class TestIpAddrHypothesis:
     @given(st.ip_addresses(v=4))
-    def test_ipv4(self, py_ipaddr: str) -> None:
+    def test_ipv4(self, py_ipaddr: ipaddress.IPv4Address) -> None:
         assert isinstance(py_ipaddr, ipaddress.IPv4Address)
         ip = ry.Ipv4Addr(py_ipaddr)
         assert isinstance(ip, ry.Ipv4Addr)
         assert isinstance(ip.to_py(), pyip.IPv4Address)
 
     @given(st.ip_addresses(v=6))
-    def test_ipv6(self, py_ipaddr: str) -> None:
+    def test_ipv6(self, py_ipaddr: ipaddress.IPv6Address) -> None:
         assert isinstance(py_ipaddr, ipaddress.IPv6Address)
         ip = ry.Ipv6Addr(py_ipaddr)
         assert isinstance(ip, ry.Ipv6Addr)
@@ -46,28 +46,6 @@ class TestIpAddrHypothesis:
             assert isinstance(eval(repr_str_ipv6), ry.Ipv6Addr)
 
     @given(st.ip_addresses())
-    def test_ipaddr_pickle(
-        self, py_ipaddr: ipaddress.IPv4Address | ipaddress.IPv6Address
-    ) -> None:
-        ry_ip = ry.IpAddr(py_ipaddr)
-        pickled = pickle.dumps(ry_ip)
-        unpickled = pickle.loads(pickled)
-        assert isinstance(unpickled, ry.IpAddr)
-        assert ry_ip == unpickled
-        if ry_ip.is_ipv4:
-            ry_ipv4 = ry_ip.to_ipv4()
-            pickled_ipv4 = pickle.dumps(ry_ipv4)
-            unpickled_ipv4 = pickle.loads(pickled_ipv4)
-            assert isinstance(unpickled_ipv4, ry.Ipv4Addr)
-            assert ry_ipv4 == unpickled_ipv4
-        else:
-            ry_ipv6 = ry_ip.to_ipv6()
-            pickled_ipv6 = pickle.dumps(ry_ipv6)
-            unpickled_ipv6 = pickle.loads(pickled_ipv6)
-            assert isinstance(unpickled_ipv6, ry.Ipv6Addr)
-            assert ry_ipv6 == unpickled_ipv6
-
-    @given(st.ip_addresses())
     def test_ipaddr(
         self, py_ipaddr: ipaddress.IPv4Address | ipaddress.IPv6Address
     ) -> None:
@@ -88,3 +66,31 @@ class TestIpAddrHypothesis:
             assert ip.is_ipv6
             assert py_ip_from_rs_ip == py_ipaddr
             assert isinstance(py_ip_from_rs_ip, pyip.IPv6Address)
+
+
+class TestIpAddrPickling:
+    @given(st.ip_addresses(v=4))
+    def test_ipv4addr_pickle(self, py_ipaddr: ipaddress.IPv4Address) -> None:
+        ry_ip = ry.Ipv4Addr(py_ipaddr)
+        pickled = pickle.dumps(ry_ip)
+        unpickled = pickle.loads(pickled)
+        assert isinstance(unpickled, ry.Ipv4Addr)
+        assert ry_ip == unpickled
+
+    @given(st.ip_addresses(v=6))
+    def test_ipv6addr_pickle(self, py_ipaddr: ipaddress.IPv6Address) -> None:
+        ry_ip = ry.Ipv6Addr(py_ipaddr)
+        pickled = pickle.dumps(ry_ip)
+        unpickled = pickle.loads(pickled)
+        assert isinstance(unpickled, ry.Ipv6Addr)
+        assert ry_ip == unpickled
+
+    @given(st.ip_addresses())
+    def test_ipaddr_pickle(
+        self, py_ipaddr: ipaddress.IPv4Address | ipaddress.IPv6Address
+    ) -> None:
+        ry_ip = ry.IpAddr(py_ipaddr)
+        pickled = pickle.dumps(ry_ip)
+        unpickled = pickle.loads(pickled)
+        assert isinstance(unpickled, ry.IpAddr)
+        assert ry_ip == unpickled

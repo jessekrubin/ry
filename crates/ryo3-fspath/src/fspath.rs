@@ -111,7 +111,7 @@ impl PyFsPath {
     }
 
     fn __hash__(&self) -> u64 {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let mut hasher = std::hash::DefaultHasher::new();
         self.path().hash(&mut hasher);
         hasher.finish()
     }
@@ -711,10 +711,9 @@ impl PyFsPath {
     }
 
     fn read_dir(&self) -> PyResult<PyFsPathReadDir> {
-        let rd = std::fs::read_dir(self.path())
+        std::fs::read_dir(self.path())
             .map(PyFsPathReadDir::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))?;
-        Ok(rd)
+            .map_err(|e| PyFileNotFoundError::new_err(format!("iterdir: {e}")))
     }
 
     fn read_link(&self) -> PyResult<Self> {

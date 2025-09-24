@@ -36,6 +36,7 @@ use crate::python_bytes_methods::PythonBytesMethods;
 /// protocol input.
 #[pyclass(name = "Bytes", subclass, frozen, sequence, weakref)]
 #[derive(Hash, PartialEq, PartialOrd, Eq, Ord)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyBytes(Bytes);
 
 impl PythonBytesMethods for PyBytes {}

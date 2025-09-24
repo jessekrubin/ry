@@ -6,7 +6,7 @@ import pytest
 
 import ry
 
-RY_TYPES = [
+_RY_TYPES = [
     ry.AsyncFile,
     ry.Date,
     ry.DateDifference,
@@ -51,11 +51,18 @@ RY_TYPES = [
     ry.ZonedDateTime,
     ry.ZonedDateTimeDifference,
     ry.ZonedDateTimeRound,
+    # submodules
+    ry.ulid.ULID,
+    ry.uuid.UUID,
+    ry.xxhash.xxh3_64,
+    ry.xxhash.xxh3_128,
+    ry.xxhash.xxh32,
+    ry.xxhash.xxh64,
 ]
 
 
 @pytest.mark.parametrize(
-    "cls", [pytest.param(cls, id=cls.__name__) for cls in RY_TYPES]
+    "cls", [pytest.param(cls, id=cls.__name__) for cls in _RY_TYPES]
 )
 def test_subclassing_fails(cls: t.Any) -> None:
     """
