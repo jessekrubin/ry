@@ -675,7 +675,7 @@ impl PyDuration {
             Self::from_dict(s).and_then(|dt| dt.into_bound_py_any(py))
         } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
 
