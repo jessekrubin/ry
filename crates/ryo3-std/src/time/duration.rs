@@ -654,15 +654,20 @@ impl PyDuration {
         Self::from(self.0.saturating_sub(other.0))
     }
 
+    #[cfg(feature = "jiff")]
     #[staticmethod]
-    fn from_str<'py>(s: &str) -> PyResult<Self> {
+    fn from_str(s: &str) -> PyResult<Self> {
         let sd: jiff::SignedDuration = s.parse().map_err(|e| py_value_error!("{}", e))?;
-        // let a =
         std::time::Duration::try_from(sd)
             .map(Self::from)
             .map_err(|e| py_value_error!("{e}"))
-        // Ok(a)
     }
+    #[cfg(not(feature = "jiff"))]
+    #[staticmethod]
+    fn from_str(_s: &str) -> PyResult<Self> {
+        py_type_err!("from_str requires the 'jiff' feature to be enabled")
+    }
+
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
@@ -746,7 +751,7 @@ mod rydantic {
     use pyo3::prelude::PyAnyMethods;
     use pyo3::types::{PyDict, PyTuple, PyType};
     use pyo3::{Bound, PyAny, PyResult};
-    use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
+    use ryo3_pydantic::GetPydanticCoreSchemaCls;
     impl GetPydanticCoreSchemaCls for PyDuration {
         fn get_pydantic_core_schema<'py>(
             cls: &Bound<'py, PyType>,
