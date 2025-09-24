@@ -143,7 +143,7 @@ class TestOffset:
 
 def test_zoned() -> None:
     zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
-    assert zdt.to_string() == "2020-08-26T06:27:00-04:00[America/New_York]"
+    assert str(zdt) == "2020-08-26T06:27:00-04:00[America/New_York]"
 
     zdt_fields = {
         "tz": str(zdt.timezone),
@@ -230,12 +230,12 @@ class TestTimeSpan:
         zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
         zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
         span = zdt2 - zdt1
-        assert span.to_string() == "PT29341H3M"
+        assert str(span) == "PT29341H3M"
         span_negated = -span
-        assert span_negated.to_string() == "-PT29341H3M"
+        assert str(span_negated) == "-PT29341H3M"
 
         span_inverted = ~span
-        assert span_inverted.to_string() == "-PT29341H3M"
+        assert str(span_inverted) == "-PT29341H3M"
 
     def test_span_2_duration(self) -> None:
         zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
@@ -344,7 +344,7 @@ class TestDateTime:
 class TestTimespanFunction:
     def test_timespan_fn(self) -> None:
         ts = ry.timespan(weeks=1)
-        assert ts.to_string() == "P1W"
+        assert str(ts) == "P1W"
 
     def test_timespan_overflow(self) -> None:
         max_i64 = 9_223_372_036_854_775_807
@@ -541,19 +541,19 @@ class TestParse:
     zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
 
     def test_parse_date(self) -> None:
-        parsed_date = ry.Date.parse(self.d.to_string())
+        parsed_date = ry.Date.parse(str(self.d))
         assert parsed_date == self.d
 
     def test_parse_datetime(self) -> None:
-        parsed_datetime = ry.DateTime.from_str(self.dt.to_string())
+        parsed_datetime = ry.DateTime.from_str(str(self.dt))
         assert parsed_datetime == self.dt
 
     def test_parse_time(self) -> None:
-        parsed_time = ry.Time.parse(self.t.to_string())
+        parsed_time = ry.Time.parse(str(self.t))
         assert parsed_time == self.t
 
     def test_parse_zoned_datetime(self) -> None:
-        parsed_zdt = ry.ZonedDateTime.parse(self.zdt.to_string())
+        parsed_zdt = ry.ZonedDateTime.parse(str(self.zdt))
         assert parsed_zdt == self.zdt
         assert parsed_zdt.timezone == self.zdt.timezone
         assert parsed_zdt.date() == self.zdt.date()
@@ -574,4 +574,4 @@ class TestJiffFunctions:
         assert isinstance(zdt, ry.ZonedDateTime)
         assert zdt.date() == ry.date(2020, 2, 29)
         assert zdt.time() == ry.time(12, 30, 45)
-        assert zdt.to_string() == "2020-02-29T12:30:45-08:00[America/Los_Angeles]"
+        assert str(zdt) == "2020-02-29T12:30:45-08:00[America/Los_Angeles]"
