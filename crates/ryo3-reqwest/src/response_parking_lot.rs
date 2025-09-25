@@ -132,13 +132,8 @@ impl RyResponse {
 
     /// Return the response body as bytes (consumes the response)
     fn bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        // let res_arc = self.res.clone();
         let response = self.take_response()?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            // let mut opt = res_arc.lock().await;
-            // let resp = opt.take().ok_or(pyerr_response_already_consumed!())?;
-            // .ok_or_else(|| PyErr::new::<PyValueError, _>("response already consumed"))?;
-            // .ok_or_else(|| PyErr::new::<PyValueError, _>("response already consumed"))?;
             response
                 .bytes()
                 .await

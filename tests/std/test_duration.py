@@ -10,6 +10,8 @@ from hypothesis import strategies as st
 
 import ry
 
+from ..strategies import st_durations
+
 if TYPE_CHECKING:
     from hypothesis.strategies import SearchStrategy
 
@@ -26,36 +28,6 @@ def _duration_should_over_flow(
     nanos: int,
 ) -> bool:
     return secs + (nanos // 1_000_000_000) > ry.U64_MAX
-
-
-def st_durations(
-    *,
-    min_value: ry.Duration = ry.Duration.MIN,
-    max_value: ry.Duration = ry.Duration.MAX,
-) -> SearchStrategy[ry.Duration]:
-    """Strategy for `ry.Duration` instances"""
-    if not isinstance(min_value, ry.Duration):
-        msg = f"min_value must be a ry.Duration, got {type(min_value)}"
-        raise TypeError(msg)
-    if not isinstance(max_value, ry.Duration):
-        msg = f"max_value must be a ry.Duration, got {type(max_value)}"
-        raise TypeError(msg)
-    if min_value > max_value:
-        emsg = f"min_value {min_value} must be <= max_value {max_value}"
-        raise ValueError(emsg)
-    if min_value == max_value:
-        return st.just(min_value)
-    if min_value == ry.Duration.MIN and max_value == ry.Duration.MAX:
-        return st.builds(
-            ry.Duration,
-            st.integers(min_value=0, max_value=ry.U64_MAX),
-            st.integers(min_value=0, max_value=999_999_999),
-        )
-    return st.builds(
-        ry.Duration,
-        st.integers(min_value=0, max_value=ry.U64_MAX),
-        st.integers(min_value=0, max_value=999_999_999),
-    ).filter(lambda d: min_value <= d <= max_value)
 
 
 def st_duration_args() -> SearchStrategy[tuple[int, int]]:

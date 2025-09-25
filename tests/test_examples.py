@@ -11,7 +11,6 @@ import pytest
 import ry
 
 PWD = Path(__file__).parent
-PYPROJECT_TOML = PWD.parent.parent / "pyproject.toml"
 
 
 def _repo_root() -> Path:
@@ -48,7 +47,14 @@ def test_example_script(example: ExampleScript, tmp_path: Path) -> None:
     if "CI" in os.environ and os.environ["CI"] == "true":
         pytest.skip("SKIP DURING CI (for now)")
     os.chdir(tmp_path)
+    assert example.filepath.exists()
+    assert example.filepath.is_file()
     assert os.path.exists(example.filepath)
     assert os.path.isfile(example.filepath)
     res = subprocess.run([sys.executable, str(example.filepath)], capture_output=True)
-    assert res.returncode == 0
+
+    assert res.returncode == 0, (
+        f"Example script {example.filepath} failed with return code {res.returncode}\n"
+        f"__STDOUT__:\n{res.stdout.decode()}^^^\n"
+        f"__STDERR__:\n{res.stderr.decode()}^^^\n"
+    )

@@ -120,14 +120,21 @@ async def five_hundred(
 async def howdy(
     scope: Scope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
+    body = b'{"howdy": "partner"}'
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
         status=200,
-        headers=[(b"content-type", b"application/json")],
+        headers=[
+            (
+                b"content-type",
+                b"application/json",
+            ),
+            (b"content-length", str(len(body)).encode()),
+        ],
     )
     yield uvt.HTTPResponseBodyEvent(
         type="http.response.body",
-        body=b'{"howdy": "partner"}',
+        body=body,
     )
 
 
@@ -219,6 +226,22 @@ async def upload_file(
     )
 
 
+async def broken_json(
+    scope: Scope, receive: Receive, send: Send
+) -> AsyncGenerator[uvt.ASGISendEvent]:
+    yield uvt.HTTPResponseStartEvent(
+        type="http.response.start",
+        status=200,
+        headers=[(b"content-type", b"application/json")],
+    )
+    broken_json = b'{"dog":"dingo","is-dingo":true,"bluey-fam-size":4,"fraction-red-heelers":0.5,"activities":["screwing up the garden","barking at strangers for exisiting","'
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body",
+        body=broken_json,
+        more_body=False,
+    )
+
+
 def router(
     scope: Scope, receive: Receive, send: Send
 ) -> Callable[[Scope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]]:
@@ -236,6 +259,8 @@ def router(
         return upload_file
     elif scope["path"].startswith("/cookie"):
         return cookie_monster
+    elif scope["path"].startswith("/broken-json"):
+        return broken_json
     else:
         return four_oh_four
 

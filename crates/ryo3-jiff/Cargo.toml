@@ -17,7 +17,7 @@ parking_lot.workspace = true
 pyo3 = { workspace = true, features = ["jiff-02"] }
 ryo3-macro-rules.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }
-ryo3-std = { workspace = true, features = ["std-time"] }
+ryo3-std = { workspace = true, features = ["time"] }
 serde = { workspace = true, features = ["derive"], optional = true }
 
 [dev-dependencies]
@@ -42,7 +42,4 @@ serde = [
 ]
 
 [lints]
-
-#extend
-
 workspace = true

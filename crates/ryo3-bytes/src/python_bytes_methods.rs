@@ -10,7 +10,7 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
     /// Hash bytes
     fn py_hash(&self) -> u64 {
         // STD-HASHER VERSION
-        // let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        // let mut hasher = std::hash::DefaultHasher::new();
         // let bref: &[u8] = self.as_ref();
         // bref.hash(&mut hasher);
         // hasher.finish()

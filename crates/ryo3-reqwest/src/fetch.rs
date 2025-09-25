@@ -2,7 +2,6 @@
 
 use crate::RyHttpClient;
 use crate::default_client::default_client;
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use ryo3_http::{HttpVersion, PyHeadersLike};
 
@@ -27,7 +26,7 @@ use ryo3_http::{HttpVersion, PyHeadersLike};
 pub(crate) fn fetch<'py>(
     py: Python<'py>,
     url: &Bound<'py, PyAny>,
-    client: Option<&RyHttpClient>,
+    client: Option<&'py RyHttpClient>,
     method: Option<ryo3_http::HttpMethod>,
     body: Option<ryo3_bytes::PyBytes>,
     headers: Option<PyHeadersLike>,
@@ -37,19 +36,19 @@ pub(crate) fn fetch<'py>(
     multipart: Option<&Bound<'py, PyAny>>,
     timeout: Option<&ryo3_std::time::PyDuration>,
     version: Option<HttpVersion>,
-) -> PyResult<Py<PyAny>> {
-    let default_client_mut_guard;
-    let client_ref: &RyHttpClient = if let Some(c) = client {
-        c
-    } else {
-        let guard = default_client().lock();
-        default_client_mut_guard = guard; // "stayin-alive" (ah ah ah ah, stayin-alive)
-        &default_client_mut_guard
-    };
-
-    client_ref
-        .fetch(
-            py, url, method, body, headers, query, json, multipart, form, timeout, version,
+) -> PyResult<Bound<'py, PyAny>> {
+    if let Some(c) = client {
+        c.fetch(
+            py, url, method, body, headers, query, json, form, multipart, timeout, version,
         )
-        .map(|x| x.into_py_any(py))?
+    } else {
+        let obj: Py<PyAny> = {
+            let guard = default_client().lock();
+            let bound = guard.fetch(
+                py, url, method, body, headers, query, json, form, multipart, timeout, version,
+            )?;
+            bound.unbind()
+        };
+        Ok(obj.into_bound(py))
+    }
 }

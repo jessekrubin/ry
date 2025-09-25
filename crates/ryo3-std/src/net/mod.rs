@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 pub use socketaddr::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};
 mod from;
 mod ipaddr;
+mod ipaddr_props;
 mod socketaddr;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

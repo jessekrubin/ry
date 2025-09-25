@@ -1,15 +1,13 @@
 use crate::jiff_types::JiffTzDisambiguation;
 use jiff::tz;
 use pyo3::prelude::*;
-use pyo3::types::PyString;
 
 const JIFF_ERA_STRINGS: &str = "'compatible', 'earlier', 'later', 'reject'";
 impl FromPyObject<'_> for JiffTzDisambiguation {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string().to_ascii_lowercase();
-            match s.as_str() {
+        if let Ok(s) = ob.extract::<&str>() {
+            match s {
                 "compatible" => Ok(tz::Disambiguation::Compatible.into()),
                 "earlier" => Ok(tz::Disambiguation::Earlier.into()),
                 "later" => Ok(tz::Disambiguation::Later.into()),

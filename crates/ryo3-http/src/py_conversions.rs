@@ -44,30 +44,28 @@ impl<'py> IntoPyObject<'py> for HttpMethod {
     }
 }
 
-const HTTP_METHOD_STRINGS: &str =
-    "'GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS', 'CONNECT', 'PATCH', 'TRACE'";
+const HTTP_METHOD_STRINGS: &str = "'GET'/'get', 'POST'/'post', 'PUT'/'put', 'DELETE'/'delete', 'HEAD'/'head', 'OPTIONS'/'options', 'CONNECT'/'connect', 'PATCH'/'patch', 'TRACE'/'trace'";
 
 impl FromPyObject<'_> for HttpMethod {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string().to_ascii_uppercase();
-            match s.as_str() {
-                "GET" => Ok(Self(http::Method::GET)),
-                "POST" => Ok(Self(http::Method::POST)),
-                "PUT" => Ok(Self(http::Method::PUT)),
-                "DELETE" => Ok(Self(http::Method::DELETE)),
-                "HEAD" => Ok(Self(http::Method::HEAD)),
-                "OPTIONS" => Ok(Self(http::Method::OPTIONS)),
-                "CONNECT" => Ok(Self(http::Method::CONNECT)),
-                "PATCH" => Ok(Self(http::Method::PATCH)),
-                "TRACE" => Ok(Self(http::Method::TRACE)),
+        if let Ok(s) = ob.extract::<&str>() {
+            match s {
+                "GET" | "get" => Ok(Self(http::Method::GET)),
+                "POST" | "post" => Ok(Self(http::Method::POST)),
+                "PUT" | "put" => Ok(Self(http::Method::PUT)),
+                "DELETE" | "delete" => Ok(Self(http::Method::DELETE)),
+                "HEAD" | "head" => Ok(Self(http::Method::HEAD)),
+                "OPTIONS" | "options" => Ok(Self(http::Method::OPTIONS)),
+                "CONNECT" | "connect" => Ok(Self(http::Method::CONNECT)),
+                "PATCH" | "patch" => Ok(Self(http::Method::PATCH)),
+                "TRACE" | "trace" => Ok(Self(http::Method::TRACE)),
                 _ => Err(PyErr::new::<PyValueError, _>(format!(
                     "Invalid HTTP method: {s} (options: {HTTP_METHOD_STRINGS})"
                 ))),
             }
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                "Invalid unit: {ob} (options: {HTTP_METHOD_STRINGS})"
+                "Invalid method: {ob} (options: {HTTP_METHOD_STRINGS})"
             )))
         }
     }
@@ -108,9 +106,9 @@ impl<'py> IntoPyObject<'py> for HttpVersion {
 const HTTP_VERSION_STRING: &str = "Invalid HTTP version ~ must be one of 'HTTP/0.9'|'0.9', 'HTTP/1.0'|'HTTP/1'|'1.0'|'1', 'HTTP/1.1'|'1.1', 'HTTP/2.0'|'HTTP/2'|'2.0'|'2'|'2.2', 'HTTP/3.0'|'HTTP/3'|'3.0'|'3'";
 impl FromPyObject<'_> for HttpVersion {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string();
-            match s.as_str().to_ascii_uppercase().as_str() {
+        if let Ok(s) = ob.cast_exact::<PyString>() {
+            let s = s.extract::<&str>()?;
+            match s.to_ascii_uppercase().as_str() {
                 "HTTP/0.9" | "0.9" => Ok(Self(http::Version::HTTP_09)),
                 "HTTP/1.0" | "HTTP/1" | "1.0" | "1" => Ok(Self(http::Version::HTTP_10)),
                 "HTTP/1.1" | "1.1" => Ok(Self(http::Version::HTTP_11)),
@@ -272,8 +270,8 @@ impl<'py> IntoPyObject<'py> for HttpHeaderName {
 
 impl FromPyObject<'_> for HttpHeaderName {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string();
+        if let Ok(s) = ob.cast_exact::<PyString>() {
+            let s = s.extract::<&str>()?;
             http::HeaderName::from_bytes(s.as_bytes())
                 .map(HttpHeaderName)
                 .map_err(|e| PyValueError::new_err(format!("invalid-header-name: {e}")))
@@ -348,9 +346,8 @@ impl<'py> IntoPyObject<'py> for HttpHeaderValue {
 
 impl FromPyObject<'_> for HttpHeaderValue {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string();
-            http::HeaderValue::from_str(&s)
+        if let Ok(s) = ob.extract::<&str>() {
+            http::HeaderValue::from_str(s)
                 .map(Self::from)
                 .map_err(|e| PyValueError::new_err(format!("invalid-header-value: {e}")))
         } else if let Ok(pyb) = ob.cast::<PyBytes>() {

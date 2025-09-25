@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - main
+      - "*"
+      - "*/*"
   pull_request: {}
   workflow_dispatch:
 
@@ -61,6 +63,8 @@ jobs:
           uv run -- pytest tests --cov=ry --cov-report xml
           cargo llvm-cov report --lcov --output-path coverage.lcov
       - uses: codecov/codecov-action@v5
+        # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
+        continue-on-error: true
         with:
           files: coverage.lcov,coverage.xml
           name: cov-python-${{ matrix.python-version }}
