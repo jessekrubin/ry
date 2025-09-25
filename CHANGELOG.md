@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.60 [unreleased]
+
+- deprecations
+  - bump out `.string()` method deprecation removals to `0.0.61`
+
+---
+
 ## v0.0.59 [2025-09-24]
 
 - `ryo3-request`
