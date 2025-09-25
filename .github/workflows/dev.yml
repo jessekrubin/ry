@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v5
       - name: install-rust-stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
       - name: setup-rust-cache
         uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
