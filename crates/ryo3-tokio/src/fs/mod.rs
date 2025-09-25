@@ -1,7 +1,7 @@
 //! python `tokio::fs` module
 pub use crate::fs::file::PyAsyncFile;
 use crate::fs::py_open_mode::PyOpenMode;
-use crate::fs::read_dir::PyReadDirAsync;
+use crate::fs::read_dir::PyAsyncReadDir;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
@@ -77,7 +77,7 @@ pub fn read_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
 pub fn read_dir_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
         let readdir = tokio::fs::read_dir(pth).await.map_err(PyErr::from)?;
-        Ok(PyReadDirAsync::from(readdir))
+        Ok(PyAsyncReadDir::from(readdir))
     })
 }
 

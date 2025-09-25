@@ -1,5 +1,4 @@
 //! ry = rust + python (entry point)
-
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::intern;
 use pyo3::prelude::*;

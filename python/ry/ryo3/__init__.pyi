@@ -173,7 +173,9 @@ from ry.ryo3._std_constants import U128_MIN as U128_MIN
 from ry.ryo3._std_constants import USIZE_BITS as USIZE_BITS
 from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
 from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
+from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
+from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
 from ry.ryo3._tokio import aiopen as aiopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
