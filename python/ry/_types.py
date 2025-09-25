@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TYPE_CHECKING, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeAlias, TypedDict, TypeVar
 
 if TYPE_CHECKING:
     import datetime as pydt
@@ -31,7 +31,6 @@ __all__ = (
     "DateTypedDict",
     "DateTypedDict",
     "FileTypeDict",
-    "FromStr",
     "FsPathLike",
     "ISOWeekDateTypedDict",
     "JiffRoundMode",
@@ -55,11 +54,6 @@ __all__ = (
 FsPathLike = str | PathLike[str]
 
 T_co = TypeVar("T_co", covariant=True)
-
-
-class FromStr(Protocol):
-    @classmethod
-    def from_str(cls, s: str) -> Self: ...
 
 
 # =============================================================================
