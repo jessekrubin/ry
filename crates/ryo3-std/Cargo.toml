@@ -26,15 +26,15 @@ ry = [
   "dep:serde",
   "serde",
   "jiff",
-  "std-time",
-  "std-net",
-  "std-fs",
-  "std-process",
+  "time",
+  "net",
+  "fs",
+  "process",
 ]
-std-time = []
-std-net = []
-std-fs = []
-std-process = []
+time = []
+net = []
+fs = []
+process = []
 
 serde = [
   "dep:serde",

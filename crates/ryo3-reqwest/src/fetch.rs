@@ -38,10 +38,9 @@ pub(crate) fn fetch<'py>(
     version: Option<HttpVersion>,
 ) -> PyResult<Bound<'py, PyAny>> {
     if let Some(c) = client {
-        let a = c.fetch(
+        c.fetch(
             py, url, method, body, headers, query, json, form, multipart, timeout, version,
-        );
-        return a;
+        )
     } else {
         let obj: Py<PyAny> = {
             let guard = default_client().lock();
@@ -50,6 +49,6 @@ pub(crate) fn fetch<'py>(
             )?;
             bound.unbind()
         };
-        return Ok(obj.into_bound(py));
-    };
+        Ok(obj.into_bound(py))
+    }
 }

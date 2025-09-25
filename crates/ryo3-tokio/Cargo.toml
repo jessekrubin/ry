@@ -16,7 +16,7 @@ futures = "0.3.31"
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
-ryo3-std = {workspace = true, features = ["std-fs"] }
+ryo3-std = {workspace = true, features = ["fs"] }
 tokio.workspace = true
 tracing.workspace = true
 

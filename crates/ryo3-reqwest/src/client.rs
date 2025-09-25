@@ -8,7 +8,7 @@ use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
-use ryo3_macro_rules::pytodo;
+use ryo3_macro_rules::{py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
 use tracing::debug;
@@ -80,16 +80,14 @@ impl RyHttpClient {
         }
 
         // make sure only one of body, json, form, multipart is set
-        if options.body.is_some() as u8
-            + options.json.is_some() as u8
-            + options.form.is_some() as u8
-            + options.multipart.is_some() as u8
+        if u8::from(options.body.is_some())
+            + u8::from(options.json.is_some())
+            + u8::from(options.form.is_some())
+            + u8::from(options.multipart.is_some())
             > 1
         {
-            return Err(PyValueError::new_err(
-                "body, json, form, multipart are mutually exclusive",
-            ));
-        };
+            return py_value_err!("body, json, form, multipart are mutually exclusive");
+        }
 
         if let Some(_multipart) = options.multipart {
             pytodo!("multipart not implemented (yet)");

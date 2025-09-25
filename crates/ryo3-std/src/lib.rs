@@ -1,19 +1,19 @@
 use pyo3::prelude::*;
 
-#[cfg(feature = "std-fs")]
+#[cfg(feature = "fs")]
 pub mod fs;
-#[cfg(feature = "std-net")]
+#[cfg(feature = "net")]
 pub mod net;
-#[cfg(feature = "std-time")]
+#[cfg(feature = "time")]
 pub mod time;
 
 #[allow(unused_variables)]
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    #[cfg(feature = "std-fs")]
+    #[cfg(feature = "fs")]
     fs::pymod_add(m)?;
-    #[cfg(feature = "std-net")]
+    #[cfg(feature = "net")]
     net::pymod_add(m)?;
-    #[cfg(feature = "std-time")]
+    #[cfg(feature = "time")]
     time::pymod_add(m)?;
     Ok(())
 }
