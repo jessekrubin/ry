@@ -42,9 +42,8 @@ const JIFF_UNIT_OPTIONS: &str = "0='year', 1='month', 2='week', 3='day', 4='hour
 impl FromPyObject<'_> for JiffUnit {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string().to_ascii_lowercase();
-            match s.as_str() {
+        if let Ok(s) = ob.extract::<&str>() {
+            match s.to_ascii_lowercase().as_str() {
                 "year" => Ok(Self(Unit::Year)),
                 "month" => Ok(Self(Unit::Month)),
                 "week" => Ok(Self(Unit::Week)),

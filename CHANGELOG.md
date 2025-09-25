@@ -2,6 +2,10 @@
 
 ## v0.0.59 [unreleased]
 
+- `ryo3-request`
+  - switched query/form kwargs to accept anything that can be serde-d via
+    `ryo3-serde` which is basically anything that is json-serializable via
+    `ry.stringify`
 - `ry.protocols`
   - moved all protocols to `ry.protocols`
 - deprecations

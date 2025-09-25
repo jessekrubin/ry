@@ -1,7 +1,6 @@
 use crate::JiffWeekday;
 use pyo3::prelude::*;
 use pyo3::types::PyInt;
-use pyo3::types::PyString;
 
 impl<'py> IntoPyObject<'py> for JiffWeekday {
     type Target = PyInt;
@@ -40,17 +39,15 @@ const JIFF_WEEKDAY_STRING: &str =
 
 impl FromPyObject<'_> for JiffWeekday {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        // downcast to string...
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string().to_ascii_lowercase();
-            match s.as_str() {
-                "monday" => Ok(Self(jiff::civil::Weekday::Monday)),
-                "tuesday" => Ok(Self(jiff::civil::Weekday::Tuesday)),
-                "wednesday" => Ok(Self(jiff::civil::Weekday::Wednesday)),
-                "thursday" => Ok(Self(jiff::civil::Weekday::Thursday)),
-                "friday" => Ok(Self(jiff::civil::Weekday::Friday)),
-                "saturday" => Ok(Self(jiff::civil::Weekday::Saturday)),
-                "sunday" => Ok(Self(jiff::civil::Weekday::Sunday)),
+        if let Ok(s) = ob.extract::<&str>() {
+            match s {
+                "monday" | "MONDAY" => Ok(Self(jiff::civil::Weekday::Monday)),
+                "tuesday" | "TUESDAY" => Ok(Self(jiff::civil::Weekday::Tuesday)),
+                "wednesday" | "WEDNESDAY" => Ok(Self(jiff::civil::Weekday::Wednesday)),
+                "thursday" | "THURSDAY" => Ok(Self(jiff::civil::Weekday::Thursday)),
+                "friday" | "FRIDAY" => Ok(Self(jiff::civil::Weekday::Friday)),
+                "saturday" | "SATURDAY" => Ok(Self(jiff::civil::Weekday::Saturday)),
+                "sunday" | "SUNDAY" => Ok(Self(jiff::civil::Weekday::Sunday)),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid weekday: {s} (options: {JIFF_WEEKDAY_STRING})"
                 ))),

@@ -1,14 +1,12 @@
 use crate::jiff_types::JiffTzOffsetConflict;
 use pyo3::prelude::*;
-use pyo3::types::PyString;
 
 const JIFF_TZ_OFFSET_CONFLICTS: &str = "'always-offset', 'always-timezone', 'prefer-offset', 'reject' (case-insensitive; underscores and hyphens are interchangeable)";
 impl FromPyObject<'_> for JiffTzOffsetConflict {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.cast::<PyString>() {
-            let s = s.to_string().to_ascii_lowercase();
-            match s.as_str() {
+        if let Ok(s) = ob.extract::<&str>() {
+            match s {
                 "always_offset" | "always-offset" => {
                     Ok(jiff::tz::OffsetConflict::AlwaysOffset.into())
                 }
@@ -24,9 +22,9 @@ impl FromPyObject<'_> for JiffTzOffsetConflict {
                 ))),
             }
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "Invalid type for era",
-            ))
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                "Invalid type, expected str (options: {JIFF_TZ_OFFSET_CONFLICTS})"
+            )))
         }
     }
 }
