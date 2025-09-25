@@ -2,7 +2,7 @@ name: gh-pages
 
 on:
   push:
-    branches: [main, jkrdev]
+    branches: [main, jkrdev, codecov-cfg]
   pull_request:
     branches: [main]
 

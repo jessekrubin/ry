@@ -2174,6 +2174,7 @@ version = "0.0.60"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
+ "ryo3-macro-rules",
  "serde",
  "uuid",
 ]
