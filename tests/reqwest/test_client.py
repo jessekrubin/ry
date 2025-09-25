@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing as t
 from typing import TYPE_CHECKING
 
 import pytest
@@ -15,10 +16,32 @@ async def test_get(server: ReqtestServer) -> None:
     url = server.url
     client = ry.HttpClient()
     response = await client.get(str(url) + "howdy")
+    assert not response.body_used
     assert response.status_code == 200
     assert response.version == "HTTP/1.1"
     res_text = await response.text()
+    assert response.body_used
     assert res_text == '{"howdy": "partner"}'
+    assert response.ok
+    assert bool(response)
+    assert f"{response!r}" == f"<Response [{response.status_code}; {response.url}]>"
+    assert response.content_encoding is None
+    if response.remote_addr is not None:
+        assert isinstance(response.remote_addr, ry.SocketAddr)
+    assert response.content_length == len(res_text)
+
+
+@pytest.mark.anyio
+async def test_bytes(server: ReqtestServer) -> None:
+    url = server.url
+    client = ry.HttpClient()
+    response = await client.get(str(url) + "howdy")
+    assert response.status_code == 200
+    assert response.version == "HTTP/1.1"
+    res_bin = await response.bytes()
+    assert res_bin == b'{"howdy": "partner"}'
+    assert response.ok
+    assert bool(response)
 
 
 @pytest.mark.anyio
@@ -51,6 +74,52 @@ async def test_get_query(server: ReqtestServer) -> None:
         ("bluey-fam-size", "4"),
         ("fraction-red-heelers", "0.5"),
     )
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
+@pytest.mark.parametrize(
+    "form_data",
+    [
+        {
+            "dog": "dingo",
+            "is-dingo": True,
+            "bluey-fam-size": 4,
+            "fraction-red-heelers": 2 / 4,
+        },
+        [
+            ("dog", "dingo"),
+            ("is-dingo", True),
+            ("bluey-fam-size", 4),
+            ("fraction-red-heelers", 2 / 4),
+        ],
+    ],
+)
+async def test_form_data(server: ReqtestServer, method: str, form_data: t.Any) -> None:
+    url = server.url / "echo"
+    client = ry.HttpClient()
+    form_data = {
+        "dog": "dingo",
+        "is-dingo": True,
+        "bluey-fam-size": 4,
+        "fraction-red-heelers": 2 / 4,
+    }
+    response = await client.fetch(
+        url,
+        method=method,
+        form=form_data,
+    )
+    assert response.status_code == 200
+    assert response.version == "HTTP/1.1"
+    assert response.http_version == "HTTP/1.1"
+    assert not response.redirected
+    assert response.status == 200
+    assert response.status_text == "OK"
+    assert response.status_code == ry.HttpStatus(200)
+    res_json = await response.json()
+
+    expected_body = "dog=dingo&is-dingo=true&bluey-fam-size=4&fraction-red-heelers=0.5"
+    assert res_json["body"] == expected_body
 
 
 @pytest.mark.anyio
@@ -114,7 +183,50 @@ async def test_get_json(server: ReqtestServer) -> None:
     assert headers_dict["content-type"] == "application/json"
 
 
+class TestResponseJson:
+    @pytest.mark.anyio
+    async def test_get_json_broken_is_broken(self, server: ReqtestServer) -> None:
+        url = server.url / "broken-json"
+        client = ry.HttpClient()
+        response = await client.get(url)
+        with pytest.raises(ValueError):
+            _data = await response.json()
+
+    @pytest.mark.anyio
+    async def test_get_json_broken_is_broken_allow_partial(
+        self, server: ReqtestServer
+    ) -> None:
+        url = server.url / "broken-json"
+        client = ry.HttpClient()
+        response = await client.get(url)
+        data = await response.json(partial_mode=True)
+        expected = {
+            "dog": "dingo",
+            "is-dingo": True,
+            "bluey-fam-size": 4,
+            "fraction-red-heelers": 0.5,
+            "activities": [
+                "screwing up the garden",
+                "barking at strangers for exisiting",
+            ],
+        }
+        assert data == expected
+
+
 class TestStream:
+    @pytest.mark.anyio
+    @staticmethod
+    async def test_get_bytes_stream(server: ReqtestServer) -> None:
+        url = server.url
+        client = ry.HttpClient()
+        response = await client.get(str(url) + "long")
+
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        parts = b""
+        async for thing in response.bytes_stream():
+            parts += thing
+        assert parts == expected
+
     @pytest.mark.anyio
     @staticmethod
     async def test_get_stream(server: ReqtestServer) -> None:
@@ -124,7 +236,7 @@ class TestStream:
 
         expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
         parts = b""
-        async for thing in response.bytes_stream():
+        async for thing in response.stream():
             parts += thing
         assert parts == expected
 
@@ -220,32 +332,52 @@ async def test_client_post_json(server: ReqtestServer) -> None:
     assert res_json["body"] == '{"body":"BABOOM"}'
 
 
-async def test_client_timeout_dev(server: ReqtestServer) -> None:
-    url = server.url
-    client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
-    res = await client.get(str(url) + "slow")
-    assert res.status_code == 200
-    with pytest.raises(ry.ReqwestError, match="TimedOut"):
-        _text = await res.text()
-
-
-async def test_client_timeout_get_both_same_time(server: ReqtestServer) -> None:
-    url = server.url
+async def test_client_post_json_and_form_errors(server: ReqtestServer) -> None:
+    url = server.url / "echo"
     client = ry.HttpClient()
-    res = await client.get(str(url) + "slow")
-    text_future = res.text()
-    with pytest.raises(ValueError):
-        _bytes_future = await res.bytes()
-    text = await text_future
-    assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
+    with pytest.raises(
+        ValueError, match="body, json, form, multipart are mutually exclusive"
+    ):
+        _response = await client.post(url, json={"body": "BABOOM"}, form={"a": 1})
 
 
-async def test_client_timeout(server: ReqtestServer) -> None:
-    url = server.url
-    client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
-    with pytest.raises(ry.ReqwestError):
+class TestTimeout:
+    async def test_client_timeout_dev(self, server: ReqtestServer) -> None:
+        url = server.url
+        client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
         res = await client.get(str(url) + "slow")
-        _text = await res.text()
+        assert res.status_code == 200
+        with pytest.raises(ry.ReqwestError, match="TimedOut"):
+            _text = await res.text()
+
+    async def test_client_timeout_on_request(self, server: ReqtestServer) -> None:
+        url = server.url / "slow"
+        res = await ry.fetch(
+            url,
+            timeout=ry.Duration.from_secs_f64(0.1),
+        )
+        assert res.status_code == 200
+        with pytest.raises(ry.ReqwestError, match="TimedOut"):
+            _text = await res.text()
+
+    async def test_client_timeout_get_both_same_time(
+        self, server: ReqtestServer
+    ) -> None:
+        url = server.url
+        client = ry.HttpClient()
+        res = await client.get(str(url) + "slow")
+        text_future = res.text()
+        with pytest.raises(ValueError):
+            _bytes_future = await res.bytes()
+        text = await text_future
+        assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
+
+    async def test_client_timeout(self, server: ReqtestServer) -> None:
+        url = server.url
+        client = ry.HttpClient(timeout=ry.Duration.from_secs_f64(0.1))
+        with pytest.raises(ry.ReqwestError):
+            res = await client.get(str(url) + "slow")
+            _text = await res.text()
 
 
 class TestCookies:
@@ -298,3 +430,32 @@ class TestCookies:
         assert response.status_code == 200, f"response: {response}"
         res_json = await response.json()
         assert res_json["headers"]["cookie"] == "ryo3=ryo3", f"res_json: {res_json}"
+
+
+class TestTodo:
+    def test_response_new_errs(self) -> None:
+        with pytest.raises(NotImplementedError):
+            _res = ry.Response()
+
+    @pytest.mark.anyio
+    async def test_post_multipart_not_impl(
+        self,
+    ) -> None:
+        c = ry.HttpClient()
+        with pytest.raises(NotImplementedError):
+            _r = await c.post("http://example.com", multipart={"a": 1})
+
+    @pytest.mark.anyio
+    async def test_client_fetch_multipart_not_impl(
+        self,
+    ) -> None:
+        c = ry.HttpClient()
+        with pytest.raises(NotImplementedError):
+            _r = await c.fetch("http://example.com", method="POST", multipart={"a": 1})
+
+    @pytest.mark.anyio
+    async def test_fetch_multipart_not_impl(
+        self,
+    ) -> None:
+        with pytest.raises(NotImplementedError):
+            _r = await ry.fetch("http://example.com", method="POST", multipart={"a": 1})

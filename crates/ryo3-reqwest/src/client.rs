@@ -1,6 +1,5 @@
 use crate::RyResponse;
 use crate::errors::map_reqwest_err;
-use crate::query_like::QueryLike;
 use crate::user_agent::parse_user_agent;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -76,18 +75,32 @@ impl RyHttpClient {
             req = req.timeout(timeout.0);
         }
         if let Some(query) = options.query {
-            let q = QueryLike::extract_bound(query)?;
-            req = req.query(&q);
+            let pyser = ryo3_serde::SerializePyAny::new(query, None);
+            req = req.query(&pyser);
+        }
+
+        // make sure only one of body, json, form, multipart is set
+        if options.body.is_some() as u8
+            + options.json.is_some() as u8
+            + options.form.is_some() as u8
+            + options.multipart.is_some() as u8
+            > 1
+        {
+            return Err(PyValueError::new_err(
+                "body, json, form, multipart are mutually exclusive",
+            ));
+        };
+
+        if let Some(_multipart) = options.multipart {
+            pytodo!("multipart not implemented (yet)");
         }
         if let Some(json) = options.json {
             let wrapped = ryo3_serde::SerializePyAny::new(json, None);
             req = req.json(&wrapped);
         }
-        if let Some(_multipart) = options.multipart {
-            pytodo!("multipart not implemented (yet)")
-        }
-        if let Some(_form) = options.form {
-            pytodo!("form not implemented (yet)")
+        if let Some(form) = options.form {
+            let pyser = ryo3_serde::SerializePyAny::new(form, None);
+            req = req.form(&pyser);
         }
         if let Some(body) = options.body {
             let body_bytes = body.into_inner();
