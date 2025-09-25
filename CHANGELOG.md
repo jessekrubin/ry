@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.59 [unreleased]
+## v0.0.59 [2025-09-24]
 
 - `ryo3-request`
   - switched query/form kwargs to accept anything that can be serde-d via
