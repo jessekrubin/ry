@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-23T22:42:26.309419576+00:00[Etc/UTC]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-25T03:30:47.429451703+00:00[Etc/UTC]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -465,8 +465,15 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0059-unreleased"><a class="header" href="#v0059-unreleased">v0.0.59 [unreleased]</a></h2>
+<h2 id="v0059-2025-09-24"><a class="header" href="#v0059-2025-09-24">v0.0.59 [2025-09-24]</a></h2>
 <ul>
+<li><code>ryo3-request</code>
+<ul>
+<li>switched query/form kwargs to accept anything that can be serde-d via
+<code>ryo3-serde</code> which is basically anything that is json-serializable via
+<code>ry.stringify</code></li>
+</ul>
+</li>
 <li><code>ry.protocols</code>
 <ul>
 <li>moved all protocols to <code>ry.protocols</code></li>
@@ -2037,19 +2044,19 @@ def test_print_current_unix_timestamp() -&gt; None:
 def test_print_datetime_for_a_timestamp() -&gt; None:
     ts = ry.Timestamp.from_millisecond(1_720_646_365_567)
     zdt = ts.to_zoned(ry.TimeZone("America/New_York"))
-    assert zdt.to_string() == "2024-07-10T17:19:25.567-04:00[America/New_York]"
-    assert ts.to_string() == "2024-07-10T21:19:25.567Z"
+    assert str(zdt) == "2024-07-10T17:19:25.567-04:00[America/New_York]"
+    assert str(ts) == "2024-07-10T21:19:25.567Z"
 
 
 def test_create_zoned_datetime_from_civil_time() -&gt; None:
     zdt = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
-    assert zdt.to_string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+    assert str(zdt) == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_change_an_instant_from_one_timezone_to_another() -&gt; None:
     paris = ry.date(1918, 11, 11).at(11, 0, 0, 0).in_tz("Europe/Paris")
     nyc = paris.in_tz("America/New_York")
-    assert nyc.to_string() == "1918-11-11T06:00:00-05:00[America/New_York]"
+    assert str(nyc) == "1918-11-11T06:00:00-05:00[America/New_York]"
 
 
 def test_find_duration_between_two_zoned_datetimes() -&gt; None:
@@ -2066,15 +2073,15 @@ def test_add_duration_to_a_zoned_datetime() -&gt; None:
     start = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     span = ry.TimeSpan()._years(3)._months(4)._days(5)._hours(12)._minutes(3)
     finish = start.add(span)  # previously `checked_add`
-    assert finish.to_string() == "2023-12-31T18:30:00-05:00[America/New_York]"
+    assert str(finish) == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
 def test_dealing_with_ambiguity() -&gt; None:
     gap = ry.date(2024, 3, 10).at(2, 30, 0, 0).in_tz("America/New_York")
-    assert gap.to_string() == "2024-03-10T03:30:00-04:00[America/New_York]"
+    assert str(gap) == "2024-03-10T03:30:00-04:00[America/New_York]"
 
     fold = ry.date(2024, 11, 3).at(1, 30, 0, 0).in_tz("America/New_York")
-    assert fold.to_string() == "2024-11-03T01:30:00-04:00[America/New_York]"
+    assert str(fold) == "2024-11-03T01:30:00-04:00[America/New_York]"
 
 
 def test_parsing_a_span() -&gt; None:
@@ -2107,7 +2114,7 @@ def test_using_strftime_and_strptime() -&gt; None:
         "Monday, July 15, 2024 at 5:30pm US/Eastern",
         "%A, %B %d, %Y at %I:%M%p %Q",
     )
-    assert zdt.to_string() == "2024-07-15T17:30:00-04:00[US/Eastern]"
+    assert str(zdt) == "2024-07-15T17:30:00-04:00[US/Eastern]"
 
     tas = ry.date(2024, 7, 15).at(17, 30, 59, 0).in_tz("Australia/Tasmania")
     formatted = tas.strftime("%A, %B %d, %Y at %-I:%M%P %Q")
@@ -6773,7 +6780,7 @@ class _Version(t.Protocol):
 
 class _Ipv4AddrProperties(t.Protocol):
     @property
-    def is_benchmarking(self) -&gt; t.NoReturn: ...
+    def is_benchmarking(self) -&gt; bool: ...
     @property
     def is_broadcast(self) -&gt; bool: ...
     @property
@@ -6789,11 +6796,13 @@ class _Ipv4AddrProperties(t.Protocol):
     @property
     def is_private(self) -&gt; bool: ...
     @property
-    def is_reserved(self) -&gt; t.NoReturn: ...
+    def is_reserved(self) -&gt; bool: ...
     @property
-    def is_shared(self) -&gt; t.NoReturn: ...
+    def is_shared(self) -&gt; bool: ...
     @property
     def is_unspecified(self) -&gt; bool: ...
+    @property
+    def is_unicast(self) -&gt; bool: ...
 
 
 _T_ipaddress_co = t.TypeVar(
@@ -6821,7 +6830,9 @@ class Ipv4Addr(
     @t.overload
     def __init__(self, a: int, b: int, c: int, d: int) -&gt; None: ...
     @t.overload
-    def __init__(self, iplike: int | str | bytes | Ipv4Addr) -&gt; None: ...
+    def __init__(
+        self, iplike: int | str | bytes | Ipv4Addr | ipaddress.IPv4Address
+    ) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
     def __ne__(self, other: object) -&gt; bool: ...
     def __lt__(self, other: Ipv4Addr) -&gt; bool: ...
@@ -6871,13 +6882,13 @@ class _Ipv6AddrProperties(t.Protocol):
     @property
     def is_unspecified(self) -&gt; bool: ...
     @property
-    def is_benchmarking(self) -&gt; t.NoReturn: ...
+    def is_benchmarking(self) -&gt; bool: ...
     @property
     def is_global(self) -&gt; t.NoReturn: ...
     @property
     def is_ipv4_mapped(self) -&gt; t.NoReturn: ...
     @property
-    def is_unicast(self) -&gt; t.NoReturn: ...
+    def is_unicast(self) -&gt; bool: ...
     @property
     def is_unicast_global(self) -&gt; t.NoReturn: ...
 
@@ -6897,7 +6908,9 @@ class Ipv6Addr(
         self, a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int
     ) -&gt; None: ...
     @t.overload
-    def __init__(self, iplike: int | str | bytes | Ipv6Addr) -&gt; None: ...
+    def __init__(
+        self, iplike: int | str | bytes | Ipv6Addr | ipaddress.IPv6Address
+    ) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
     def __ne__(self, other: object) -&gt; bool: ...
     def __lt__(self, other: Ipv6Addr) -&gt; bool: ...
