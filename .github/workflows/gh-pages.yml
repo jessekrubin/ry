@@ -2,7 +2,7 @@ name: gh-pages
 
 on:
   push:
-    branches: [main, jkrdev]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -28,9 +28,6 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      # - uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.12'
       - name: Setup mdBook
         uses: taiki-e/install-action@v2
         with:

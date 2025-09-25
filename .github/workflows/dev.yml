@@ -64,3 +64,47 @@ jobs:
           RUST_BACKTRACE: 1
       - run: uv pip freeze
       - run: uv run pytest
+
+  test-python-cov:
+    name: test-python-cov-${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [ x86_64 ]
+        python-version: [ "3.12" ]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: setup-rust-cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "v0-rust-test-python-cov-${{ matrix.python-version }}"
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - name: install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: install deps
+        run: |
+          uv sync
+      - run: rustc --version --verbose
+      - run: uv pip freeze
+      - name: Run coverage
+        run: |
+          source <(cargo llvm-cov show-env --export-prefix)
+          export CARGO_TARGET_DIR=$CARGO_LLVM_COV_TARGET_DIR
+          export CARGO_INCREMENTAL=1
+          cargo llvm-cov clean --workspace --profraw-only
+          uv run -- maturin develop --uv
+          uv run -- pytest tests --cov=ry --cov-report xml
+          cargo llvm-cov report --lcov --output-path coverage.lcov
+      - uses: codecov/codecov-action@v5
+        # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
+        continue-on-error: true
+        with:
+          files: coverage.lcov,coverage.xml
+          name: cov-python-${{ matrix.python-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: jessekrubin/ry

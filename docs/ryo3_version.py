@@ -27,7 +27,9 @@ import ry
 
 def _tokens() -> dict[str, str]:
     return {
-        "RY_DOCS_BUILD_TIMESTAMP": ry.ZonedDateTime.now().string(),
+        "RY_DOCS_BUILD_TIMESTAMP": str(
+            ry.ZonedDateTime.now().in_tz("America/Los_Angeles")
+        ),
     }
 
 

@@ -62,10 +62,10 @@ class TestJiffDeprecationsString:
 
 
 @pytest.mark.skipif(
-    ry.__version__ < "0.0.60",
-    reason="These were removed in 0.0.60",
+    ry.__version__ < "0.0.61",
+    reason="These were removed in 0.0.61",
 )
-class TestJiffDeprecationsStringRemovedByVersion000060:
+class TestJiffDeprecationsStringFunctions:
     """Test deprecations for objs that have a `.string()->str:` method"""
 
     def test_jiff_string_deprecation_date(self) -> None:

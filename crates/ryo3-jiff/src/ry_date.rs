@@ -131,7 +131,7 @@ impl RyDate {
 
     #[pyo3(
         warn(
-            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.60]",
+            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.61]",
             category = pyo3::exceptions::PyDeprecationWarning
       )
     )]

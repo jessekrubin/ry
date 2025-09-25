@@ -14,8 +14,9 @@ description = "python + uuid (https://github.com/rust-lang/uuid)"
 [dependencies]
 pyo3 = { workspace = true, features = ["uuid", "serde"] }
 ryo3-bytes.workspace = true
+ryo3-macro-rules.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }
-uuid.workspace = true
+uuid = { workspace = true, features = ["v4", "v8"] }
 
 [dev-dependencies]
 serde = { workspace = true, features = ["derive"] }
