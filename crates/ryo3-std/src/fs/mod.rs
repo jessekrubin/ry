@@ -214,13 +214,13 @@ impl PyDirEntry {
     #[getter]
     fn basename(&self) -> PyResult<OsString> {
         let path = self.0.path();
-        let anme = path.file_name().ok_or_else(|| {
+        let name = path.file_name().ok_or_else(|| {
             PyValueError::new_err(format!(
                 "basename - path: {} - no file name",
                 path.to_string_lossy()
             ))
         })?;
-        Ok(anme.to_os_string())
+        Ok(name.to_os_string())
     }
 }
 

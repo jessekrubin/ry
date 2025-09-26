@@ -1,7 +1,5 @@
 # DEVELOPMENT
 
-**OPEN TO PRS!**
-
 ## goals
 
 1. Provide a really nice ergonomic API to work with (this is the highest
@@ -21,25 +19,25 @@
 
 ## style guide
 
+- Naming conventions:
+  - For python classes/structs/types prefer `AsyncXYZ` over `XYZAsync`
+  - use `snake_case` for functions and variables
+  - use `CamelCase` for types and traits
+  - use `SCREAMING_SNAKE_CASE` for constants and statics
 - **NO UNWRAPPING** -- use `expect` over `unwrap`
 - **NO PANICS** -- don't panic!
 - **NO `blazingly-fast`** -- `ry` is fast and does not need an adverb
 - **USE CLIPPY** `just clippy` or `just ci`
 - **USE RUSTFMT AND RUFF** `just fmt`
-- avoid using macros as they are not as easy to reason about and/or debug, but
-  feel free to say 'yolo'
 - library style guide:
   - python objects/structs/classes defined in the library should be named either
     `Py<CLASSNAME>` or `Ry<CLASSNAME>` and the prefix should be consistent
     throughout the library (eg `ryo3-jiff` uses `Ry` as the internal prefix to
     not conflict with the `Py<CLASSNAME>` structs provided by `pyo3`)
-  - if a `pyclass` or `pyfunction` is not mirroring a rust function prefer names
-    that are puns but also semi-descriptive (eg `Globsters` in `ryo3-globset`)
-  - attempt to mirror the structure of the og library as much as possible
-  - wrapper libraries should be of the form `ryo3-<LIB_NAME>` where `<LIB_NAME>`
-    is the name of the library they
+  - For wrapper libraries, attempt to mirror the structure of the original library as much as possible
+  - wrapper library names should be of the form `ryo3-<LIB_NAME>` where `<LIB_NAME>`
+    is the name of the wrapped library
   - library directories should be `kebab-case` and should be `ryo3-<LIB_NAME>`
-  - MUST PROVIDE TYPE ANNOTATIONS
 
 ## Creating a new library/wrapper-thing
 
@@ -67,41 +65,52 @@
 - to see all tasks run `just` or `just --list` (our default task echos the list
   of tasks)
 
-tasks as of 2024-12-03:
+tasks as of 2025-09-26:
 
 ```txt
 Available recipes:
-    dev            # dev run build + tests
-    develop        # maturin develop
-    cargo-test     # cargo test
-    build          # build
-    build-release  # build release
-    dev-rel        # maturin develop release
-    pytest         # run pytest
-    pytestv        # run pytest (printing captured output)
-    test           # run all test
-    test-release   # test ry package
-    bench          # benchmark ry python package
-    ci             # ci rust checks
-    cargo-fmt      # cargo format
-    cargo-fmtc     # cargo format check
-    sort-all-check # ruff check sorting of '__all__'
-    sort-all       # ruff sort '__all__'
-    ruff-fmt       # ruff format
-    ruff-fmtc      # ruff format check
-    black          # python format black
-    fmtpy          # python format
-    fmtcpy         # python format check
-    justfilefmt    # justfile format
-    justfilefmtc   # justfile format check
-    fmt            # format
-    fmtc           # format check
-    ruff           # run ruff linter
-    ruffix         # run ruff + fix
-    clippy         # run clippy
-    lint           # lint python and rust
-    mypy           # run mypy type checker
-    pyright        # run pyright
-    pip-compile    # pip compile requirements
-    gen            # generate code tasks
+    repl            # run ry.dev python repl
+    repl-uv         # run ry.dev python repl (if using uv)
+    dev             # dev run build + tests
+    dev-uv          # dev run build + tests (with uv)
+    sync            # uv sync
+    develop         # maturin develop
+    develop-uv      # maturin develop (with uv)
+    mat             # maturin develop (shorthand)
+    cargo-test      # cargo test
+    build           # build
+    build-release   # build release
+    dev-rel         # maturin develop release
+    doctest         # run pytest
+    pytest          # run pytest
+    pytest-uv       # run pytest
+    pytestv         # run pytest (printing captured output)
+    test            # run all test
+    test-release    # test ry package
+    bench           # benchmark ry python package
+    ci              # ci rust checks
+    cargo-fmt       # cargo format
+    cargo-fmtc      # cargo format check
+    sort-all-check  # ruff check sorting of '__all__'
+    sort-all        # ruff sort '__all__'
+    ruff-fmt        # ruff format
+    ruff-fmtc       # ruff format check
+    fmtpy           # python format
+    fmtcpy          # python format check
+    justfilefmt     # justfile format
+    justfilefmtc    # justfile format check
+    mdfmt           # format markdown
+    pyprojectfmt    # pyproject-fmt
+    fmt             # format
+    fmtc            # format check
+    ruff            # run ruff linter
+    ruffix          # run ruff + fix
+    clippy          # run clippy
+    clippy-features # run clippy with feature-powerset via cargo-hack
+    lint            # lint python and rust
+    mypy            # run mypy type checker
+    pyright         # run pyright
+    pip-compile     # pip compile requirements
+    gen             # generate code tasks
+    cargo-doc       # generate cargo docs for all crates (in workspace)
 ```
