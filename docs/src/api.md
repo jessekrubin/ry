@@ -1237,6 +1237,7 @@ class HttpStatus:
 """ryo3-jiff types"""
 
 import datetime as pydt
+import sys
 import typing as t
 
 from ry._types import (
@@ -1261,7 +1262,6 @@ from ry._types import (
     ZonedDateTimeDifferenceTypedDict,
     ZonedDateTimeRoundTypedDict,
     ZonedDateTimeTypedDict,
-    deprecated,
 )
 from ry.protocols import (
     FromStr,
@@ -1276,6 +1276,10 @@ from ry.protocols import (
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
 
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 _T = t.TypeVar("_T")
 _TDict = t.TypeVar("_TDict")
 
@@ -6033,24 +6037,18 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TYPE_CHECKING, Literal, TypeAlias, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeAlias
 
 if TYPE_CHECKING:
     import datetime as pydt
 
-    import ry
-
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
-    from typing import Unpack
+    from typing import TypedDict, Unpack
 else:
-    from typing_extensions import Buffer, Unpack
+    from typing_extensions import Buffer, TypedDict, Unpack
 
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 __all__ = (
     "Buffer",
@@ -6080,12 +6078,9 @@ __all__ = (
     "Unpack",
     "ZonedDateTimeDifferenceTypedDict",
     "ZonedDateTimeRoundTypedDict",
-    "deprecated",
 )
 
 FsPathLike = str | PathLike[str]
-
-T_co = TypeVar("T_co", covariant=True)
 
 
 # =============================================================================
@@ -6534,9 +6529,18 @@ __all__ = (
     "ToString",
 )
 
-T_co = t.TypeVar("T_co", covariant=True)
+_T_co = t.TypeVar("_T_co", covariant=True)
 
 
+class ToPy(t.Protocol[_T_co]):
+    """Objects that can be converted to a python stdlib type (`_T_co`) via `obj.to_py()`."""
+
+    def to_py(self) -> _T_co: ...
+
+
+# =============================================================================
+# TO/FROM STRING
+# =============================================================================
 class FromStr(t.Protocol):
     """Protocol for types that have a `.from_str()` class method."""
 
@@ -6550,10 +6554,9 @@ class ToString(t.Protocol):
     def to_string(self) -> str: ...
 
 
-class ToPy(t.Protocol[T_co]):
-    """Objects that can be converted to a python stdlib type (`T_co`) via `obj.to_py()`."""
-
-    def to_py(self) -> T_co: ...
+# =============================================================================
+# DATETIME
+# =============================================================================
 
 
 class ToPyDate(t.Protocol):
@@ -6569,14 +6572,20 @@ class ToPyTime(t.Protocol):
 
 
 class ToPyDateTime(t.Protocol):
+    """Objects that can be converted to a Python `datetime.datetime`."""
+
     def to_pydatetime(self) -> pydt.datetime: ...
 
 
 class ToPyTimeDelta(t.Protocol):
+    """Objects that can be converted to a Python `datetime.timedelta`."""
+
     def to_pytimedelta(self) -> pydt.timedelta: ...
 
 
 class ToPyTzInfo(t.Protocol):
+    """Objects that can be converted to a Python `datetime.tzinfo`."""
+
     def to_pytzinfo(self) -> pydt.tzinfo: ...
 ```
 
