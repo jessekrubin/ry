@@ -1,11 +1,11 @@
 use crate::RyZoned;
 use crate::errors::map_py_value_err;
+use crate::span_ranges;
 use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime};
 use jiff::civil::Date;
 use jiff::tz::TimeZone;
 use jiff::{Span, Zoned};
 use pyo3::prelude::*;
-
 #[pyfunction]
 #[must_use]
 pub fn offset(hours: i8) -> RyOffset {
@@ -111,6 +111,7 @@ pub fn timespan(
     microseconds: i64,
     nanoseconds: i64,
 ) -> PyResult<RySpan> {
+    #[inline]
     fn apply_if_nonzero(
         span: Span,
         value: i64,
@@ -142,4 +143,57 @@ pub fn timespan(
     let span = apply_if_nonzero(span, nanoseconds, Span::try_nanoseconds, "nanoseconds")?;
 
     Ok(RySpan::from(span))
+}
+
+#[expect(clippy::too_many_arguments)]
+#[pyfunction]
+#[pyo3(
+    signature = (
+        *,
+        years=None,
+        months=0,
+        weeks=0,
+        days=0,
+        hours=0,
+        minutes=0,
+        seconds=0,
+        milliseconds=0,
+        microseconds=0,
+        nanoseconds=0
+    )
+)]
+pub(crate) fn timespan2(
+    years: Option<span_ranges::SpanYears>,
+    months: i64,
+    weeks: i64,
+    days: i64,
+    hours: i64,
+    minutes: i64,
+    seconds: i64,
+    milliseconds: i64,
+    microseconds: i64,
+    nanoseconds: i64,
+) -> RySpan {
+    #[inline]
+    fn apply_if_nonzero(span: Span, value: i64, method: impl FnOnce(Span, i64) -> Span) -> Span {
+        if value != 0 {
+            // span.and_then(|s| {
+            method(span, value)
+        } else {
+            span
+        }
+    }
+
+    let span = Span::new().years(years.unwrap_or(span_ranges::SpanYears(0)).0);
+    // let span = apply_if_nonzero(span, years.0, Span::years);
+    let span = apply_if_nonzero(span, months, Span::months);
+    let span = apply_if_nonzero(span, weeks, Span::weeks);
+    let span = apply_if_nonzero(span, days, Span::days);
+    let span = apply_if_nonzero(span, hours, Span::hours);
+    let span = apply_if_nonzero(span, minutes, Span::minutes);
+    let span = apply_if_nonzero(span, seconds, Span::seconds);
+    let span = apply_if_nonzero(span, milliseconds, Span::milliseconds);
+    let span = apply_if_nonzero(span, microseconds, Span::microseconds);
+    let span = apply_if_nonzero(span, nanoseconds, Span::nanoseconds);
+    RySpan::from(span)
 }

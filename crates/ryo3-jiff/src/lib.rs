@@ -13,6 +13,7 @@
 extern crate core;
 
 pub mod pydatetime_conversions;
+mod span_ranges;
 
 mod api;
 mod civil;
