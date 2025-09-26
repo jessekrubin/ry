@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import datetime as pydt
 
+import pydantic
+import pytest
+
 import ry
+from ry._types import OffsetInfoDict
 
 
 def test_timezone_to_pytzinfo() -> None:
@@ -55,3 +59,19 @@ class TestTimeZone:
         assert offset == ry.Offset.from_seconds(-61)
         assert repr(tz) == "TimeZone('-00:01:01')"
         assert str(tz) == "-00:01:01"
+
+
+_TS_NOW = ry.Timestamp.now()
+
+
+@pytest.mark.parametrize("tzname", ry.TimeZoneDatabase().available())
+def test_offset_infos(tzname: str) -> None:
+    tadapt = pydantic.TypeAdapter(OffsetInfoDict)
+
+    tz = ry.TimeZone(tzname)
+
+    info = tz.to_offset_info(_TS_NOW)
+    assert isinstance(info, dict)
+    val = tadapt.validate_python(info, strict=True)
+    assert isinstance(val, dict)
+    assert set(val.keys()) == {"offset", "dst", "abbreviation"}

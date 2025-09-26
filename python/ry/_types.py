@@ -36,6 +36,7 @@ __all__ = (
     "JiffRoundMode",
     "JiffUnit",
     "MetadataDict",
+    "OffsetInfoDict",
     "OffsetRoundTypedDict",
     "SignedDurationRoundTypedDict",
     "TimeDifferenceTypedDict",
@@ -71,7 +72,7 @@ class MetadataDict(TypedDict):
     is_symlink: bool
     len: int
     readonly: bool
-    file_type: FileTypeDict | None
+    file_type: Literal["file", "directory", "symlink"]
     accessed: pydt.datetime
     created: pydt.datetime
     modified: pydt.datetime
@@ -171,9 +172,19 @@ class TimeSpanTypedDict(TypedDict):
     nanoseconds: int
 
 
+class TimeZoneDict(TypedDict):
+    tz: str
+
+
 class OffsetTypedDict(TypedDict):
     seconds: int
     fmt: str
+
+
+class OffsetInfoDict(TypedDict):
+    offset: OffsetTypedDict
+    dst: bool
+    abbreviation: str
 
 
 class ISOWeekDateTypedDict(TypedDict):

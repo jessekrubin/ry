@@ -38,20 +38,20 @@ impl RyDate {
             .map_err(|e| py_value_error!("{e} (year={year}, month={month}, day={day})",))
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case)]
     fn MIN() -> Self {
         Self(Date::MIN)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case)]
     fn MAX() -> Self {
         Self(Date::MAX)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case)]
     fn ZERO() -> Self {
         Self(Date::ZERO)
     }

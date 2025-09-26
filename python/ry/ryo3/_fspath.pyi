@@ -5,15 +5,16 @@ from os import PathLike
 from pathlib import Path
 
 from ry._types import Buffer
-from ry.protocols import ToPy
+from ry.protocols import ToPy, ToString
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._regex import Regex
 from ry.ryo3._std import Metadata
 
 @t.final
-class FsPath(ToPy[Path]):
+class FsPath(ToPy[Path], ToString):
     def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
     def __fspath__(self) -> str: ...
+    def to_string(self) -> str: ...
     def to_py(self) -> Path: ...
     def to_pathlib(self) -> Path: ...
     # =========================================================================

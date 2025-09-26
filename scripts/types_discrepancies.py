@@ -101,7 +101,7 @@ IGNORED_MEMBERS = {
     # TODO
     "__get_pydantic_core_schema__",
     "_pydantic_validate",
-    "try_from",  # have not settled on this one yet...
+    "from_any",  # have not settled on this one yet...
     # MAYBE IGNORE
     "__eq__",
     "__ge__",

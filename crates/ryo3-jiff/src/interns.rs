@@ -46,8 +46,11 @@ unpaid_intern!(microseconds);
 unpaid_intern!(nanoseconds);
 
 // tz / offset
-unpaid_intern!(tz);
+unpaid_intern!(abbreviation);
+unpaid_intern!(dst);
 unpaid_intern!(fmt);
+unpaid_intern!(offset);
+unpaid_intern!(tz);
 
 // weekday
 unpaid_intern!(weekday);

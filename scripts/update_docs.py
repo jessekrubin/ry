@@ -42,13 +42,16 @@ def filepath2module(filepath: FsPath) -> str:
 @lru_cache
 def get_types_dictionary() -> dict[str, str]:
     types_dict = {}
+    pyi_files = map(
+        ry.FsPath, ry.walkdir(RYO_PYI_DIRPATH, glob="**/*.pyi", files=True, dirs=False)
+    )
     files = sorted(
-        (
-            ry.FsPath(p)
-            for p in ry.walkdir(
-                RYO_PYI_DIRPATH, glob="**/*.pyi", files=True, dirs=False
-            )
-        ),
+        [
+            *pyi_files,
+            # additional files...
+            RYO_PYI_DIRPATH / "protocols.py",
+            RYO_PYI_DIRPATH / "_types.py",
+        ],
         key=lambda p: filepath2module(p).lower(),  # case-stable across OSes
     )
     for pyi_filepath in files:

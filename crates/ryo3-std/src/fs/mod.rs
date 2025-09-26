@@ -453,6 +453,8 @@ impl std::fmt::Debug for PyReadDir {
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFileReadStream>()?;
     m.add_class::<PyFileType>()?;
+    m.add_class::<PyDirEntry>()?;
+    m.add_class::<PyReadDir>()?;
     m.add_class::<PyMetadata>()?;
     m.add_function(wrap_pyfunction!(canonicalize, m)?)?;
     m.add_function(wrap_pyfunction!(copy, m)?)?;

@@ -10,6 +10,7 @@ from ry._types import (
     DateTimeTypedDict,
     DateTypedDict,
     ISOWeekDateTypedDict,
+    OffsetInfoDict,
     OffsetRoundTypedDict,
     OffsetTypedDict,
     SignedDurationRoundTypedDict,
@@ -659,6 +660,8 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 @t.final
 class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
+    UTC: t.ClassVar[TimeZone]
+
     def __init__(self, name: TimezoneName) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __call__(self) -> t.Self: ...
@@ -669,10 +672,12 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
 
     def to_py(self) -> pydt.tzinfo: ...
     def to_pytzinfo(self) -> pydt.tzinfo: ...
+    def to_dict(self) -> OffsetTypedDict: ...
     @classmethod
     def from_str(cls, s: TimezoneName) -> t.Self: ...
     @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -> t.Self: ...
+    def to_offset_info(self, timestamp: Timestamp) -> OffsetInfoDict: ...
 
     # =========================================================================
     # PROPERTIES
@@ -1630,21 +1635,31 @@ class _Difference(t.Generic[_Tobj, _TDict]):
     def to_dict(self) -> _TDict: ...
 
 @t.final
-class DateDifference(_Difference[Date, DateDifferenceTypedDict]): ...
+class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
+    @property
+    def date(self) -> Date: ...
 
 @t.final
-class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]): ...
+class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
+    @property
+    def datetime(self) -> DateTime: ...
 
 @t.final
-class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]): ...
+class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
+    @property
+    def time(self) -> Time: ...
 
 @t.final
-class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]): ...
+class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
+    @property
+    def timestamp(self) -> Timestamp: ...
 
 @t.final
 class ZonedDateTimeDifference(
     _Difference[ZonedDateTime, ZonedDateTimeDifferenceTypedDict]
-): ...
+):
+    @property
+    def zoned(self) -> ZonedDateTime: ...
 
 # =============================================================================
 # ROUND
