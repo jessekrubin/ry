@@ -4,6 +4,8 @@
 
 - deprecations
   - bump out `.string()` method deprecation removals to `0.0.61`
+- `ryo3-std`
+  - `ry.FileType` struct now has inner faux type/real type
 
 ---
 

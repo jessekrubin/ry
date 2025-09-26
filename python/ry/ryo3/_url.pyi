@@ -1,7 +1,8 @@
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
-from ry._types import FromStr, FsPathLike
+from ry._types import FsPathLike
+from ry.protocols import FromStr
 from ry.ryo3._std import SocketAddr
 
 @t.final

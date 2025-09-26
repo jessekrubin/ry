@@ -1,5 +1,7 @@
 mod file_read_stream;
-use crate::fs::file_read_stream::PyFileReadStream;
+mod file_type;
+use crate::fs::file_read_stream::{DEFAULT_CHUNK_SIZE, PyFileReadStream};
+pub use file_type::PyFileType;
 use pyo3::exceptions::{
     PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError, PyValueError,
 };
@@ -7,71 +9,12 @@ use pyo3::types::{PyBytes, PyDict};
 use pyo3::{intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
+use std::convert::Into;
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
-
-// TODO: this is stupid... should really be some sort of enum as `is_dir`/`is_file`/`is_symlink` are mutually exclusive
-#[pyclass(name = "FileType", frozen)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
-pub struct PyFileType(pub std::fs::FileType);
-
-impl PyFileType {
-    #[must_use]
-    pub fn new(ft: std::fs::FileType) -> Self {
-        Self(ft)
-    }
-}
-
-impl From<std::fs::FileType> for PyFileType {
-    fn from(ft: std::fs::FileType) -> Self {
-        Self(ft)
-    }
-}
-
-#[expect(clippy::trivially_copy_pass_by_ref)]
-#[pymethods]
-impl PyFileType {
-    #[getter]
-    #[must_use]
-    fn is_dir(&self) -> bool {
-        self.0.is_dir()
-    }
-
-    #[getter]
-    #[must_use]
-    fn is_file(&self) -> bool {
-        self.0.is_file()
-    }
-
-    #[getter]
-    #[must_use]
-    fn is_symlink(&self) -> bool {
-        self.0.is_symlink()
-    }
-
-    fn __repr__(&self) -> String {
-        // TODO move to display impl
-        format!(
-            "FileType(is_dir={}, is_file={}, is_symlink={})",
-            self.0.is_dir(),
-            self.0.is_file(),
-            self.0.is_symlink()
-        )
-    }
-
-    #[expect(clippy::wrong_self_convention, clippy::trivially_copy_pass_by_ref)]
-    fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let file_type_dict = PyDict::new(py);
-        file_type_dict.set_item(intern!(py, "is_dir"), self.is_dir())?;
-        file_type_dict.set_item(intern!(py, "is_file"), self.is_file())?;
-        file_type_dict.set_item(intern!(py, "is_symlink"), self.is_symlink())?;
-        Ok(file_type_dict)
-    }
-}
 
 #[pyclass(name = "Metadata", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -111,11 +54,7 @@ impl PyMetadata {
         metadata_dict.set_item(intern!(py, "is_symlink"), self.is_symlink())?;
         metadata_dict.set_item(intern!(py, "len"), self.len())?;
         metadata_dict.set_item(intern!(py, "readonly"), self.readonly())?;
-        if let Ok(ft) = self.file_type().to_py(py) {
-            metadata_dict.set_item(intern!(py, "file_type"), ft)?;
-        } else {
-            metadata_dict.set_item(intern!(py, "file_type"), py.None())?;
-        }
+        metadata_dict.set_item(intern!(py, "file_type"), self.file_type().to_py(py))?;
         metadata_dict.set_item(intern!(py, "accessed"), self.accessed()?)?;
         metadata_dict.set_item(intern!(py, "created"), self.created()?)?;
         metadata_dict.set_item(intern!(py, "modified"), self.modified()?)?;
@@ -233,7 +172,7 @@ impl PyPermissions {
 
 #[pyclass(name = "DirEntry", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyDirEntry(pub std::fs::DirEntry);
+pub struct PyDirEntry(std::fs::DirEntry);
 
 impl From<std::fs::DirEntry> for PyDirEntry {
     fn from(de: std::fs::DirEntry) -> Self {
@@ -290,10 +229,10 @@ impl PyDirEntry {
 // ============================================================================
 
 #[pyfunction]
-#[pyo3(signature = (pth, *, chunk_size = None, offset = 0, buffered = true))]
+#[pyo3(signature = (pth, *, chunk_size = DEFAULT_CHUNK_SIZE, offset = 0, buffered = true))]
 pub fn read_stream(
     pth: PathBuf,
-    chunk_size: Option<usize>,
+    chunk_size: usize,
     offset: u64,
     buffered: bool,
 ) -> PyResult<PyFileReadStream> {
@@ -373,8 +312,9 @@ pub fn rename(from: PathBuf, to: PathBuf) -> PyResult<()> {
 
 #[pyfunction]
 pub fn metadata(pth: PathLike) -> PyResult<PyMetadata> {
-    let metadata = std::fs::metadata(pth)?;
-    Ok(PyMetadata::new(metadata))
+    std::fs::metadata(pth)
+        .map(PyMetadata::from)
+        .map_err(Into::into)
 }
 
 #[expect(clippy::needless_pass_by_value)]
@@ -453,8 +393,7 @@ pub struct PyReadDir {
 #[pymethods]
 impl PyReadDir {
     fn __repr__(&self) -> String {
-        let path = self.path.to_string_lossy();
-        format!("ReadDir('{path}')")
+        format!("{self:?}")
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -504,10 +443,19 @@ impl PyReadDir {
     }
 }
 
+impl std::fmt::Debug for PyReadDir {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let path = self.path.to_string_lossy();
+        write!(f, "ReadDir(\"{path}\")")
+    }
+}
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyMetadata>()?;
-    m.add_class::<PyFileType>()?;
     m.add_class::<PyFileReadStream>()?;
+    m.add_class::<PyFileType>()?;
+    m.add_class::<PyDirEntry>()?;
+    m.add_class::<PyReadDir>()?;
+    m.add_class::<PyMetadata>()?;
     m.add_function(wrap_pyfunction!(canonicalize, m)?)?;
     m.add_function(wrap_pyfunction!(copy, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir, m)?)?;

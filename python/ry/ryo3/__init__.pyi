@@ -111,6 +111,7 @@ from ry.ryo3._std import IpAddr as IpAddr
 from ry.ryo3._std import Ipv4Addr as Ipv4Addr
 from ry.ryo3._std import Ipv6Addr as Ipv6Addr
 from ry.ryo3._std import Metadata as Metadata
+from ry.ryo3._std import ReadDir as ReadDir
 from ry.ryo3._std import SocketAddr as SocketAddr
 from ry.ryo3._std import SocketAddrV4 as SocketAddrV4
 from ry.ryo3._std import SocketAddrV6 as SocketAddrV6
@@ -173,7 +174,9 @@ from ry.ryo3._std_constants import U128_MIN as U128_MIN
 from ry.ryo3._std_constants import USIZE_BITS as USIZE_BITS
 from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
 from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
+from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
+from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
 from ry.ryo3._tokio import aiopen as aiopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async

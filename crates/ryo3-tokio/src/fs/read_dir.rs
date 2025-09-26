@@ -11,12 +11,12 @@ use tokio::sync::Mutex;
 
 type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 
-#[pyclass(name = "ReadDirAsync", frozen)]
+#[pyclass(name = "AsyncReadDir", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyReadDirAsync {
+pub struct PyAsyncReadDir {
     stream: AsyncResponseStreamInner,
 }
-impl From<ReadDir> for PyReadDirAsync {
+impl From<ReadDir> for PyAsyncReadDir {
     fn from(readdir: ReadDir) -> Self {
         Self {
             stream: Arc::new(Mutex::new(Box::pin(readdir))),
@@ -25,7 +25,7 @@ impl From<ReadDir> for PyReadDirAsync {
 }
 
 #[pymethods]
-impl PyReadDirAsync {
+impl PyAsyncReadDir {
     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
         this
     }
@@ -37,10 +37,10 @@ impl PyReadDirAsync {
             let nextentry = guard.as_mut().next_entry().await;
             match nextentry {
                 Ok(Some(entry)) => {
-                    let pde = PyDirEntryAsync::from(entry);
+                    let pde = PyAsyncDirEntry::from(entry);
                     Ok(pde)
                 }
-                Ok(None) => Err(PyStopAsyncIteration::new_err("response-stream-fin")),
+                Ok(None) => Err(PyStopAsyncIteration::new_err("fin")),
                 Err(e) => Err(PyErr::from(e)),
             }
         })
@@ -52,7 +52,7 @@ impl PyReadDirAsync {
             let mut guard = stream.lock().await;
             let mut entries = Vec::new();
             while let Some(entry) = guard.as_mut().next_entry().await? {
-                let pde = PyDirEntryAsync::from(entry);
+                let pde = PyAsyncDirEntry::from(entry);
                 entries.push(pde);
             }
             Ok(entries)
@@ -67,7 +67,7 @@ impl PyReadDirAsync {
             for _ in 0..n {
                 match guard.as_mut().next_entry().await {
                     Ok(Some(entry)) => {
-                        let pde = PyDirEntryAsync::from(entry);
+                        let pde = PyAsyncDirEntry::from(entry);
                         entries.push(pde);
                     }
                     Ok(None) => break,
@@ -79,22 +79,22 @@ impl PyReadDirAsync {
     }
 }
 
-#[pyclass(name = "DirEntryAsync", frozen)]
+#[pyclass(name = "AsyncDirEntry", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct PyDirEntryAsync(pub Arc<tokio::fs::DirEntry>);
+struct PyAsyncDirEntry(pub Arc<tokio::fs::DirEntry>);
 
-impl From<tokio::fs::DirEntry> for PyDirEntryAsync {
+impl From<tokio::fs::DirEntry> for PyAsyncDirEntry {
     fn from(entry: tokio::fs::DirEntry) -> Self {
         Self(Arc::new(entry))
     }
 }
 
 #[pymethods]
-impl PyDirEntryAsync {
+impl PyAsyncDirEntry {
     fn __repr__(&self) -> String {
         let path = self.0.path();
         let pathstr = path.to_string_lossy();
-        format!("DirEntryAsync('{pathstr}')")
+        format!("AsyncDirEntry<'{pathstr}'>")
     }
 
     #[must_use]
@@ -106,6 +106,11 @@ impl PyDirEntryAsync {
     #[getter]
     fn path(&self) -> PathBuf {
         self.0.path()
+    }
+
+    #[getter]
+    fn filename(&self) -> OsString {
+        self.0.file_name()
     }
 
     #[getter]
@@ -137,5 +142,11 @@ impl PyDirEntryAsync {
             ))
         })?;
         Ok(anme.to_os_string())
+    }
+}
+
+impl std::fmt::Debug for PyAsyncDirEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AsyncDirEntry<'{:?}'>", self.0.path())
     }
 }

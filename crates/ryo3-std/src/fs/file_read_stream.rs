@@ -1,8 +1,7 @@
 use bytes::{Bytes, BytesMut};
-use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::{PyRef, PyResult, pyclass, pymethods};
-use ryo3_core::py_bool2str;
+use ryo3_macro_rules::{py_runtime_err, py_value_err};
 use std::fs::File;
 use std::io::{self, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -99,16 +98,10 @@ pub struct PyFileReadStream {
 #[pymethods]
 impl PyFileReadStream {
     #[new]
-    #[pyo3(signature = (pth, *, chunk_size = None, offset = 0, buffered = true))]
-    pub fn py_new(
-        pth: PathBuf,
-        chunk_size: Option<usize>,
-        offset: u64,
-        buffered: bool,
-    ) -> PyResult<Self> {
-        let chunk_size = chunk_size.unwrap_or(DEFAULT_CHUNK_SIZE);
+    #[pyo3(signature = (pth, *, chunk_size = DEFAULT_CHUNK_SIZE, offset = 0, buffered = true))]
+    pub fn py_new(pth: PathBuf, chunk_size: usize, offset: u64, buffered: bool) -> PyResult<Self> {
         if chunk_size == 0 {
-            return Err(PyValueError::new_err("chunk_size must be greater than 0"));
+            return py_value_err!("chunk_size must be greater than 0");
         }
         let mut stream = if buffered {
             FileReadStreamWrapper::Buffered(FileReadStream::from_path_buffered(&pth, chunk_size)?)
@@ -128,14 +121,7 @@ impl PyFileReadStream {
     }
 
     fn __repr__(&self) -> String {
-        let buffered_str = py_bool2str(self.buffered);
-        format!(
-            "FileReadStream(path='{}', chunk_size={}, offset={}, buffered={})",
-            self.pth.display(),
-            self.chunk_size,
-            self.offset,
-            buffered_str
-        )
+        format!("{self:?}")
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -150,7 +136,7 @@ impl PyFileReadStream {
                 None => Ok(None),
             }
         } else {
-            Err(PyRuntimeError::new_err("lock error on file read stream"))
+            py_runtime_err!("lock error on file read stream")
         }
     }
 
@@ -167,7 +153,7 @@ impl PyFileReadStream {
             }
             Ok(result)
         } else {
-            Err(PyRuntimeError::new_err("lock error on file read stream"))
+            py_runtime_err!("lock error on file read stream")
         }
     }
 
@@ -182,7 +168,25 @@ impl PyFileReadStream {
             }
             Ok(result)
         } else {
-            Err(PyRuntimeError::new_err("lock error on file read stream"))
+            py_runtime_err!("lock error on file read stream")
         }
+    }
+}
+
+impl std::fmt::Debug for PyFileReadStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FileReadStream(path='{}'", self.pth.display(),)?;
+        if self.chunk_size != DEFAULT_CHUNK_SIZE {
+            write!(f, ", chunk_size={}", self.chunk_size)?;
+        }
+        if self.offset != 0 {
+            write!(f, ", offset={}", self.offset)?;
+        }
+        if self.buffered {
+            write!(f, ", buffered=true")?;
+        } else {
+            write!(f, ", buffered=false")?;
+        }
+        write!(f, ")")
     }
 }

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TYPE_CHECKING, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeAlias
 
 if TYPE_CHECKING:
     import datetime as pydt
@@ -12,14 +12,10 @@ if TYPE_CHECKING:
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
-    from typing import Unpack
+    from typing import TypedDict, Unpack
 else:
-    from typing_extensions import Buffer, Unpack
+    from typing_extensions import Buffer, TypedDict, Unpack
 
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 __all__ = (
     "Buffer",
@@ -31,12 +27,12 @@ __all__ = (
     "DateTypedDict",
     "DateTypedDict",
     "FileTypeDict",
-    "FromStr",
     "FsPathLike",
     "ISOWeekDateTypedDict",
     "JiffRoundMode",
     "JiffUnit",
     "MetadataDict",
+    "OffsetInfoDict",
     "OffsetRoundTypedDict",
     "SignedDurationRoundTypedDict",
     "TimeDifferenceTypedDict",
@@ -49,17 +45,9 @@ __all__ = (
     "Unpack",
     "ZonedDateTimeDifferenceTypedDict",
     "ZonedDateTimeRoundTypedDict",
-    "deprecated",
 )
 
 FsPathLike = str | PathLike[str]
-
-T_co = TypeVar("T_co", covariant=True)
-
-
-class FromStr(Protocol):
-    @classmethod
-    def from_str(cls, s: str) -> Self: ...
 
 
 # =============================================================================
@@ -77,7 +65,7 @@ class MetadataDict(TypedDict):
     is_symlink: bool
     len: int
     readonly: bool
-    file_type: FileTypeDict | None
+    file_type: Literal["file", "directory", "symlink"]
     accessed: pydt.datetime
     created: pydt.datetime
     modified: pydt.datetime
@@ -177,9 +165,19 @@ class TimeSpanTypedDict(TypedDict):
     nanoseconds: int
 
 
+class TimeZoneDict(TypedDict):
+    tz: str
+
+
 class OffsetTypedDict(TypedDict):
     seconds: int
     fmt: str
+
+
+class OffsetInfoDict(TypedDict):
+    offset: OffsetTypedDict
+    dst: bool
+    abbreviation: str
 
 
 class ISOWeekDateTypedDict(TypedDict):

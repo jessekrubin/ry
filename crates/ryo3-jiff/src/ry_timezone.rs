@@ -57,6 +57,12 @@ impl RyTimeZone {
             .map_err(map_py_value_err)
     }
 
+    #[classattr]
+    #[expect(non_snake_case)]
+    fn UTC() -> Self {
+        Self::from(TimeZone::UTC)
+    }
+
     // =====================================================================
     // DUNDERS
     // =====================================================================
@@ -181,7 +187,7 @@ impl RyTimeZone {
 
     #[staticmethod]
     fn utc() -> Self {
-        Self::from(TimeZone::fixed(Offset::UTC))
+        Self::UTC()
     }
 
     #[staticmethod]
@@ -201,6 +207,22 @@ impl RyTimeZone {
     // =====================================================================
     // INSTANCE METHODS
     // =====================================================================
+
+    /// Return dictionary with `offset`, `dst` and `abbreviation` from `TimeZone`
+    /// given a `Timestamp`
+    fn to_offset_info<'py>(
+        &self,
+        py: Python<'py>,
+        timestamp: &RyTimestamp,
+    ) -> PyResult<Bound<'py, PyDict>> {
+        let offset_info = self.0.to_offset_info(timestamp.0);
+        let dict = PyDict::new(py);
+        let ryoff = RyOffset::from(offset_info.offset());
+        dict.set_item(crate::interns::offset(py), ryoff.to_dict(py)?)?;
+        dict.set_item(crate::interns::dst(py), offset_info.dst().is_dst())?;
+        dict.set_item(crate::interns::abbreviation(py), offset_info.abbreviation())?;
+        Ok(dict)
+    }
 
     fn to_datetime(&self, timestamp: &RyTimestamp) -> RyDateTime {
         RyDateTime::from(self.0.to_datetime(timestamp.0))
