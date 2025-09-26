@@ -224,8 +224,10 @@
 <li><a href="#ry.ryo3.uuid"><code>ry.ryo3.uuid</code></a></li>
 <li><a href="#ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></a></li>
 <li><a href="#ry.ryo3.zstd"><code>ry.ryo3.zstd</code></a></li>
+<li><a href="#ry._types"><code>ry._types</code></a></li>
 <li><a href="#ry.dirs"><code>ry.dirs</code></a></li>
 <li><a href="#ry.JSON"><code>ry.JSON</code></a></li>
+<li><a href="#ry.protocols"><code>ry.protocols</code></a></li>
 <li><a href="#ry.ulid"><code>ry.ulid</code></a></li>
 <li><a href="#ry.uuid"><code>ry.uuid</code></a></li>
 <li><a href="#ry.xxhash"><code>ry.xxhash</code></a></li>
@@ -345,6 +347,7 @@ from ry.ryo3._std import IpAddr as IpAddr
 from ry.ryo3._std import Ipv4Addr as Ipv4Addr
 from ry.ryo3._std import Ipv6Addr as Ipv6Addr
 from ry.ryo3._std import Metadata as Metadata
+from ry.ryo3._std import ReadDir as ReadDir
 from ry.ryo3._std import SocketAddr as SocketAddr
 from ry.ryo3._std import SocketAddrV4 as SocketAddrV4
 from ry.ryo3._std import SocketAddrV6 as SocketAddrV6
@@ -407,7 +410,9 @@ from ry.ryo3._std_constants import U128_MIN as U128_MIN
 from ry.ryo3._std_constants import USIZE_BITS as USIZE_BITS
 from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
 from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
+from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
+from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
 from ry.ryo3._tokio import aiopen as aiopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
@@ -781,16 +786,17 @@ from os import PathLike
 from pathlib import Path
 
 from ry._types import Buffer
-from ry.protocols import ToPy
+from ry.protocols import ToPy, ToString
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._regex import Regex
 from ry.ryo3._std import Metadata
 
 
 @t.final
-class FsPath(ToPy[Path]):
+class FsPath(ToPy[Path], ToString):
     def __init__(self, path: PathLike[str] | str | None = None) -&gt; None: ...
     def __fspath__(self) -&gt; str: ...
+    def to_string(self) -&gt; str: ...
     def to_py(self) -&gt; Path: ...
     def to_pathlib(self) -&gt; Path: ...
     # =========================================================================
@@ -1377,6 +1383,7 @@ class HttpStatus:
 <pre><code class="language-python">"""ryo3-jiff types"""
 
 import datetime as pydt
+import sys
 import typing as t
 
 from ry._types import (
@@ -1386,6 +1393,7 @@ from ry._types import (
     DateTimeTypedDict,
     DateTypedDict,
     ISOWeekDateTypedDict,
+    OffsetInfoDict,
     OffsetRoundTypedDict,
     OffsetTypedDict,
     SignedDurationRoundTypedDict,
@@ -1400,7 +1408,6 @@ from ry._types import (
     ZonedDateTimeDifferenceTypedDict,
     ZonedDateTimeRoundTypedDict,
     ZonedDateTimeTypedDict,
-    deprecated,
 )
 from ry.protocols import (
     FromStr,
@@ -1415,6 +1422,10 @@ from ry.protocols import (
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
 
+if sys.version_info &gt;= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 _T = t.TypeVar("_T")
 _TDict = t.TypeVar("_TDict")
 
@@ -2061,6 +2072,8 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 @t.final
 class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
+    UTC: t.ClassVar[TimeZone]
+
     def __init__(self, name: TimezoneName) -&gt; None: ...
     def __eq__(self, other: object) -&gt; bool: ...
     def __call__(self) -&gt; t.Self: ...
@@ -2071,10 +2084,12 @@ class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
 
     def to_py(self) -&gt; pydt.tzinfo: ...
     def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
+    def to_dict(self) -&gt; OffsetTypedDict: ...
     @classmethod
     def from_str(cls, s: TimezoneName) -&gt; t.Self: ...
     @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -&gt; t.Self: ...
+    def to_offset_info(self, timestamp: Timestamp) -&gt; OffsetInfoDict: ...
 
     # =========================================================================
     # PROPERTIES
@@ -3066,29 +3081,35 @@ class _Difference(t.Generic[_Tobj, _TDict]):
 
 
 @t.final
-class DateDifference(_Difference[Date, DateDifferenceTypedDict]): ...
+class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
+    @property
+    def date(self) -&gt; Date: ...
 
 
 @t.final
-class DateTimeDifference(
-    _Difference[DateTime, DateTimeDifferenceTypedDict]
-): ...
+class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
+    @property
+    def datetime(self) -&gt; DateTime: ...
 
 
 @t.final
-class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]): ...
+class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
+    @property
+    def time(self) -&gt; Time: ...
 
 
 @t.final
-class TimestampDifference(
-    _Difference[Timestamp, TimestampDifferenceTypedDict]
-): ...
+class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
+    @property
+    def timestamp(self) -&gt; Timestamp: ...
 
 
 @t.final
 class ZonedDateTimeDifference(
     _Difference[ZonedDateTime, ZonedDateTimeDifferenceTypedDict]
-): ...
+):
+    @property
+    def zoned(self) -&gt; ZonedDateTime: ...
 
 
 # =============================================================================
@@ -4112,6 +4133,7 @@ class ReqwestError(Exception):
 
 @t.final
 class Response:
+    def __init__(self) -&gt; t.NoReturn: ...
     @property
     def headers(self) -&gt; Headers: ...
     async def text(self) -&gt; str: ...
@@ -4597,15 +4619,21 @@ def sleep(seconds: float) -&gt; float: ...
 # STD::FS
 # =============================================================================
 @t.final
-class FileType:
-    def __init__(self, *args: t.Never, **kwargs: t.Never) -&gt; t.NoReturn: ...
+class FileType(ToPy[t.Literal["file", "dir", "symlink"]]):
+    def __init__(
+        self,
+        t: t.Literal[
+            "f", "file", "d", "dir", "directory", "l", "symlink", "link"
+        ],
+    ) -&gt; None: ...
     @property
     def is_dir(self) -&gt; bool: ...
     @property
     def is_file(self) -&gt; bool: ...
     @property
     def is_symlink(self) -&gt; bool: ...
-    def to_py(self) -&gt; FileTypeDict: ...
+    def to_dict(self) -&gt; FileTypeDict: ...
+    def to_py(self) -&gt; t.Literal["file", "dir", "symlink"]: ...
 
 
 @t.final
@@ -4646,6 +4674,7 @@ class Metadata:
 
 @t.final
 class DirEntry:
+    def __init__(self) -&gt; t.NoReturn: ...
     def __fspath__(self) -&gt; str: ...
     @property
     def path(self) -&gt; pathlib.Path: ...
@@ -4668,7 +4697,8 @@ class RyIterable(t.Generic[_T]):
 
 
 @t.final
-class ReadDir(RyIterable[DirEntry]): ...
+class ReadDir(RyIterable[DirEntry]):
+    def __init__(self) -&gt; t.NoReturn: ...
 
 
 @t.final
@@ -4834,25 +4864,29 @@ class _Ipv6AddrProperties(t.Protocol):
     # ========================================================================
 
     @property
+    def is_benchmarking(self) -&gt; bool: ...
+    @property
+    def is_global(self) -&gt; t.NoReturn: ...
+    @property
+    def is_ipv4_mapped(self) -&gt; bool: ...
+    @property
     def is_loopback(self) -&gt; bool: ...
     @property
     def is_multicast(self) -&gt; bool: ...
+    @property
+    def is_reserved(self) -&gt; bool: ...
+    @property
+    def is_shared(self) -&gt; bool: ...
+    @property
+    def is_unicast(self) -&gt; bool: ...
+    @property
+    def is_unicast_global(self) -&gt; t.NoReturn: ...
     @property
     def is_unicast_link_local(self) -&gt; bool: ...
     @property
     def is_unique_local(self) -&gt; bool: ...
     @property
     def is_unspecified(self) -&gt; bool: ...
-    @property
-    def is_benchmarking(self) -&gt; bool: ...
-    @property
-    def is_global(self) -&gt; t.NoReturn: ...
-    @property
-    def is_ipv4_mapped(self) -&gt; t.NoReturn: ...
-    @property
-    def is_unicast(self) -&gt; bool: ...
-    @property
-    def is_unicast_global(self) -&gt; t.NoReturn: ...
 
 
 @t.final
@@ -5160,7 +5194,7 @@ async def exists_async(path: FsPathLike) -&gt; bool: ...
 
 
 @t.final
-class DirEntryAsync:
+class AsyncDirEntry:
     def __fspath__(self) -&gt; str: ...
     @property
     def path(self) -&gt; pathlib.Path: ...
@@ -5173,16 +5207,16 @@ class DirEntryAsync:
 
 
 @t.final
-class ReadDirAsync:
+class AsyncReadDir:
     """Async iterator for read_dir_async"""
 
-    async def collect(self) -&gt; list[DirEntryAsync]: ...
-    async def take(self, n: int) -&gt; list[DirEntryAsync]: ...
-    def __aiter__(self) -&gt; ReadDirAsync: ...
-    async def __anext__(self) -&gt; DirEntryAsync: ...
+    async def collect(self) -&gt; list[AsyncDirEntry]: ...
+    async def take(self, n: int) -&gt; list[AsyncDirEntry]: ...
+    def __aiter__(self) -&gt; AsyncReadDir: ...
+    async def __anext__(self) -&gt; AsyncDirEntry: ...
 
 
-async def read_dir_async(path: FsPathLike) -&gt; ReadDirAsync: ...
+async def read_dir_async(path: FsPathLike) -&gt; AsyncReadDir: ...
 
 
 # =============================================================================
@@ -5246,7 +5280,8 @@ def unindent_bytes(string: bytes) -&gt; bytes: ...
 <pre><code class="language-python">import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
-from ry._types import FromStr, FsPathLike
+from ry._types import FsPathLike
+from ry.protocols import FromStr
 from ry.ryo3._std import SocketAddr
 
 
@@ -6057,6 +6092,382 @@ def unzstd(data: Buffer) -&gt; Bytes: ...
 # __MAGIC__
 def is_zstd(data: Buffer) -&gt; bool: ...
 </code></pre>
+<h2 id="ry._types"><a class="header" href="#ry._types"><code>ry._types</code></a></h2>
+<pre><code class="language-python">"""ry-types"""
+
+from __future__ import annotations
+
+import sys
+from os import PathLike
+from typing import TYPE_CHECKING, Literal, TypeAlias
+
+if TYPE_CHECKING:
+    import datetime as pydt
+
+
+if sys.version_info &gt;= (3, 12):
+    from collections.abc import Buffer
+    from typing import TypedDict, Unpack
+else:
+    from typing_extensions import Buffer, TypedDict, Unpack
+
+
+__all__ = (
+    "Buffer",
+    "DateDifferenceTypedDict",
+    "DateTimeDifferenceTypedDict",
+    "DateTimeRoundTypedDict",
+    "DateTimeTypedDict",
+    "DateTimeTypedDict",
+    "DateTypedDict",
+    "DateTypedDict",
+    "FileTypeDict",
+    "FsPathLike",
+    "ISOWeekDateTypedDict",
+    "JiffRoundMode",
+    "JiffUnit",
+    "MetadataDict",
+    "OffsetInfoDict",
+    "OffsetRoundTypedDict",
+    "SignedDurationRoundTypedDict",
+    "TimeDifferenceTypedDict",
+    "TimeRoundTypedDict",
+    "TimeSpanTypedDict",
+    "TimeTypedDict",
+    "TimestampDifferenceTypedDict",
+    "TimestampRoundTypedDict",
+    "TimestampTypedDict",
+    "Unpack",
+    "ZonedDateTimeDifferenceTypedDict",
+    "ZonedDateTimeRoundTypedDict",
+)
+
+FsPathLike = str | PathLike[str]
+
+
+# =============================================================================
+# STD
+# =============================================================================
+class FileTypeDict(TypedDict):
+    is_dir: bool
+    is_file: bool
+    is_symlink: bool
+
+
+class MetadataDict(TypedDict):
+    is_dir: bool
+    is_file: bool
+    is_symlink: bool
+    len: int
+    readonly: bool
+    file_type: Literal["file", "directory", "symlink"]
+    accessed: pydt.datetime
+    created: pydt.datetime
+    modified: pydt.datetime
+
+
+# =============================================================================
+# JIFF
+# =============================================================================
+JiffUnit: TypeAlias = Literal[
+    "year",  # 9
+    "month",  # 8
+    "day",  # 6
+    "hour",  # 5
+    "minute",  # 4
+    "second",  # 3
+    "millisecond",  # 2
+    "microsecond",  # 1
+    "nanosecond",  # 0
+]
+JiffRoundMode: TypeAlias = Literal[
+    "ceil",
+    "floor",
+    "expand",
+    "trunc",
+    "half-ceil",
+    "half-floor",
+    "half-expand",
+    "half-trunc",
+    "half-even",
+]
+
+
+class DateTypedDict(TypedDict):
+    year: int
+    month: int
+    day: int
+
+
+class TimeTypedDict(TypedDict):
+    hour: int
+    minute: int
+    second: int
+    nanosecond: int
+
+
+class DateTimeTypedDict(TypedDict):
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
+    nanosecond: int
+
+
+class ZonedDateTimeTypedDict(TypedDict):
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
+    nanosecond: int
+    tz: str
+
+
+class TimestampTypedDict:
+    second: int
+    nanosecond: int
+
+
+class SignedDurationTypedDict(TypedDict):
+    secs: int
+    nanos: int
+
+
+class TimeSpanTypedDict(TypedDict):
+    """TimeSpan TypedDict
+
+    Examples:
+        &gt;&gt;&gt; import ry
+        &gt;&gt;&gt; ts = ry.timespan(years=1, months=2, weeks=3)
+        &gt;&gt;&gt; ts.to_dict()
+        {'years': 1, 'months': 2, 'weeks': 3, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0, 'milliseconds': 0, 'microseconds': 0, 'nanoseconds': 0}
+
+    """
+
+    years: int
+    months: int
+    weeks: int
+    days: int
+    hours: int
+    minutes: int
+    seconds: int
+    milliseconds: int
+    microseconds: int
+    nanoseconds: int
+
+
+class TimeZoneDict(TypedDict):
+    tz: str
+
+
+class OffsetTypedDict(TypedDict):
+    seconds: int
+    fmt: str
+
+
+class OffsetInfoDict(TypedDict):
+    offset: OffsetTypedDict
+    dst: bool
+    abbreviation: str
+
+
+class ISOWeekDateTypedDict(TypedDict):
+    year: int
+    week: int
+    weekday: int
+
+
+# -----------------------------------------------------------------------------
+# JIFF ROUND
+# -----------------------------------------------------------------------------
+class DateTimeRoundTypedDict(TypedDict):
+    smallest: Literal[
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
+    mode: JiffRoundMode
+    increment: int
+
+
+class SignedDurationRoundTypedDict(TypedDict):
+    smallest: Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
+    mode: JiffRoundMode
+    increment: int
+
+
+class TimeRoundTypedDict(TypedDict):
+    smallest: Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
+    mode: JiffRoundMode
+    increment: int
+
+
+class TimestampRoundTypedDict(TypedDict):
+    smallest: Literal[
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
+    mode: JiffRoundMode
+    increment: int
+
+
+class ZonedDateTimeRoundTypedDict(TypedDict):
+    smallest: Literal[
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+    ]
+    mode: JiffRoundMode
+    increment: int
+
+
+class OffsetRoundTypedDict(TypedDict):
+    smallest: Literal[
+        "second",
+        "minute",
+        "hour",
+    ]
+    mode: JiffRoundMode
+    increment: int
+
+
+# -----------------------------------------------------------------------------
+# JIFF DIFFERENCE
+# -----------------------------------------------------------------------------
+class _DifferenceTypedDict(TypedDict):
+    mode: JiffRoundMode
+    increment: int
+
+
+DateDifferenceUnit: TypeAlias = Literal["month", "year", "day"]
+
+
+class DateDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: DateDifferenceUnit
+    largest: DateDifferenceUnit | None
+
+
+class DateTimeDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: JiffUnit
+    largest: JiffUnit | None
+
+
+TimeDifferenceUnit: TypeAlias = Literal[
+    "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+]
+
+
+class TimeDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: TimeDifferenceUnit
+    largest: TimeDifferenceUnit | None
+
+
+class ZonedDateTimeDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: JiffUnit
+    largest: JiffUnit | None
+
+
+TimeStampDifferenceUnit: TypeAlias = Literal[
+    "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
+]
+
+
+class TimestampDifferenceTypedDict(_DifferenceTypedDict):
+    smallest: TimeStampDifferenceUnit
+    largest: TimeStampDifferenceUnit | None
+
+
+# =============================================================================
+# OPEN MODES (CANONICAL)
+# =============================================================================
+# ry accepts the non-cannonical modes, but they are mapped to the canonical ones]
+
+OpenTextModeUpdating: TypeAlias = Literal[
+    "a+", "at+", "r+", "rt+", "w+", "wt+", "x+", "xt+"
+]
+OpenTextModeWriting: TypeAlias = Literal["a", "at", "w", "wt", "x", "xt"]
+OpenTextModeReading: TypeAlias = Literal["r", "rt"]
+OpenTextMode: TypeAlias = Literal[
+    "a",
+    "a+",
+    "at",
+    "at+",
+    "r",
+    "r+",
+    "rt",
+    "rt+",
+    "w",
+    "w+",
+    "wt",
+    "wt+",
+    "x",
+    "x+",
+    "xt",
+    "xt+",
+]
+OpenBinaryModeUpdating: TypeAlias = Literal["ab+", "rb+", "wb+", "xb+"]
+OpenBinaryModeWriting: TypeAlias = Literal["ab", "wb", "xb"]
+OpenBinaryModeReading: TypeAlias = Literal["rb"]
+OpenBinaryMode: TypeAlias = Literal[
+    "ab", "ab+", "rb", "rb+", "wb", "wb+", "xb", "xb+"
+]
+OpenMode: TypeAlias = Literal[
+    "a",
+    "a+",
+    "ab",
+    "ab+",
+    "at",
+    "at+",
+    "r",
+    "r+",
+    "rb",
+    "rb+",
+    "rt",
+    "rt+",
+    "w",
+    "w+",
+    "wb",
+    "wb+",
+    "wt",
+    "wt+",
+    "x",
+    "x+",
+    "xb",
+    "xb+",
+    "xt",
+    "xt+",
+]
+</code></pre>
 <h2 id="ry.dirs"><a class="header" href="#ry.dirs"><code>ry.dirs</code></a></h2>
 <pre><code class="language-python">from ry.ryo3.dirs import audio as audio
 from ry.ryo3.dirs import audio_dir as audio_dir
@@ -6156,6 +6567,79 @@ __all__ = (
     "parse",
     "stringify",
 )
+</code></pre>
+<h2 id="ry.protocols"><a class="header" href="#ry.protocols"><code>ry.protocols</code></a></h2>
+<pre><code class="language-python">import datetime as pydt
+import typing as t
+
+__all__ = (
+    "FromStr",
+    "ToPyDate",
+    "ToPyDateTime",
+    "ToPyTime",
+    "ToPyTimeDelta",
+    "ToPyTzInfo",
+    "ToString",
+)
+
+_T_co = t.TypeVar("_T_co", covariant=True)
+
+
+class ToPy(t.Protocol[_T_co]):
+    """Objects that can be converted to a python stdlib type (`_T_co`) via `obj.to_py()`."""
+
+    def to_py(self) -&gt; _T_co: ...
+
+
+# =============================================================================
+# TO/FROM STRING
+# =============================================================================
+class FromStr(t.Protocol):
+    """Protocol for types that have a `.from_str()` class method."""
+
+    @classmethod
+    def from_str(cls, s: str) -&gt; t.Self: ...
+
+
+class ToString(t.Protocol):
+    """Protocol for types that have a `.to_string()` method."""
+
+    def to_string(self) -&gt; str: ...
+
+
+# =============================================================================
+# DATETIME
+# =============================================================================
+
+
+class ToPyDate(t.Protocol):
+    """Objects that can be converted to a Python `datetime.date`."""
+
+    def to_pydate(self) -&gt; pydt.date: ...
+
+
+class ToPyTime(t.Protocol):
+    """Objects that can be converted to a Python `datetime.time`."""
+
+    def to_pytime(self) -&gt; pydt.time: ...
+
+
+class ToPyDateTime(t.Protocol):
+    """Objects that can be converted to a Python `datetime.datetime`."""
+
+    def to_pydatetime(self) -&gt; pydt.datetime: ...
+
+
+class ToPyTimeDelta(t.Protocol):
+    """Objects that can be converted to a Python `datetime.timedelta`."""
+
+    def to_pytimedelta(self) -&gt; pydt.timedelta: ...
+
+
+class ToPyTzInfo(t.Protocol):
+    """Objects that can be converted to a Python `datetime.tzinfo`."""
+
+    def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
 </code></pre>
 <h2 id="ry.ulid"><a class="header" href="#ry.ulid"><code>ry.ulid</code></a></h2>
 <pre><code class="language-python">from ry.ryo3.ulid import ULID
