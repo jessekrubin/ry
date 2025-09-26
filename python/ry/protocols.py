@@ -11,9 +11,18 @@ __all__ = (
     "ToString",
 )
 
-T_co = t.TypeVar("T_co", covariant=True)
+_T_co = t.TypeVar("_T_co", covariant=True)
 
 
+class ToPy(t.Protocol[_T_co]):
+    """Objects that can be converted to a python stdlib type (`_T_co`) via `obj.to_py()`."""
+
+    def to_py(self) -> _T_co: ...
+
+
+# =============================================================================
+# TO/FROM STRING
+# =============================================================================
 class FromStr(t.Protocol):
     """Protocol for types that have a `.from_str()` class method."""
 
@@ -27,10 +36,9 @@ class ToString(t.Protocol):
     def to_string(self) -> str: ...
 
 
-class ToPy(t.Protocol[T_co]):
-    """Objects that can be converted to a python stdlib type (`T_co`) via `obj.to_py()`."""
-
-    def to_py(self) -> T_co: ...
+# =============================================================================
+# DATETIME
+# =============================================================================
 
 
 class ToPyDate(t.Protocol):
@@ -46,12 +54,18 @@ class ToPyTime(t.Protocol):
 
 
 class ToPyDateTime(t.Protocol):
+    """Objects that can be converted to a Python `datetime.datetime`."""
+
     def to_pydatetime(self) -> pydt.datetime: ...
 
 
 class ToPyTimeDelta(t.Protocol):
+    """Objects that can be converted to a Python `datetime.timedelta`."""
+
     def to_pytimedelta(self) -> pydt.timedelta: ...
 
 
 class ToPyTzInfo(t.Protocol):
+    """Objects that can be converted to a Python `datetime.tzinfo`."""
+
     def to_pytzinfo(self) -> pydt.tzinfo: ...

@@ -1,6 +1,7 @@
 """ryo3-jiff types"""
 
 import datetime as pydt
+import sys
 import typing as t
 
 from ry._types import (
@@ -25,7 +26,6 @@ from ry._types import (
     ZonedDateTimeDifferenceTypedDict,
     ZonedDateTimeRoundTypedDict,
     ZonedDateTimeTypedDict,
-    deprecated,
 )
 from ry.protocols import (
     FromStr,
@@ -40,6 +40,10 @@ from ry.protocols import (
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
 
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 _T = t.TypeVar("_T")
 _TDict = t.TypeVar("_TDict")
 
