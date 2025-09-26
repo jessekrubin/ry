@@ -474,6 +474,32 @@ wheels = [
 ]
 
 [[package]]
+name = "prek"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/d4/5fa66f4ddb1e030027fecd0f5a3998c51182b329e4dff2946906c054452d/prek-0.2.2.tar.gz", hash = "sha256:0066da4863fd1ff1508c7041ca45d6533ae79859ca5ac63786254ff5c8ef2812", size = 3004990, upload-time = "2025-09-26T15:08:57.655Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/2c/80f72745c8c33ce2ff18e6f4def79ccf7f53c6a5caf8b245088e0fb0f6fb/prek-0.2.2-py3-none-linux_armv6l.whl", hash = "sha256:8c589112c31687bdd8bb80d5e8456c356c78f444e24e2d58b917d18d3827af42", size = 4363590, upload-time = "2025-09-26T15:08:29.782Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/37/252fdba88d2156b21e311067700720cc5382a9843df7317f96a8b07bddd9/prek-0.2.2-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:c5ca2b8cd3bc2047e846c54af9d3dc97e17d3ba1cdfccde72f33cf4596a956b2", size = 4461597, upload-time = "2025-09-26T15:08:31.863Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/be/b36416c04d74128a6a975235fef142d216010b210c336e095f538ce132ec/prek-0.2.2-py3-none-macosx_11_0_arm64.whl", hash = "sha256:20be468f6aad06d5215e2ec31d4dc4bcf3807f52cd9ac028730bbe0fd9ac6329", size = 4160070, upload-time = "2025-09-26T15:08:33.198Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/f6/01629d733017ad98149d62fbbcda1171ee3714ed88c74ec404e563382739/prek-0.2.2-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.musllinux_1_1_aarch64.whl", hash = "sha256:514c81b80279a76289839318937e70e37ad9997305b371139776c58bdefca101", size = 4341393, upload-time = "2025-09-26T15:08:34.53Z" },
+    { url = "https://files.pythonhosted.org/packages/7d/98/5c7d9d76c4849b2b4044ffd20deb3c28040754689d9c3f52a637e12221d6/prek-0.2.2-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:9c4f546d54ce8360d40bdc8dd32e354354c3283b998e40ee410b48116808990e", size = 4299411, upload-time = "2025-09-26T15:08:36.155Z" },
+    { url = "https://files.pythonhosted.org/packages/38/8f/6a2914f68ede0a6fd154eee02f400526ecb9e7459279e712d4a91cc4869a/prek-0.2.2-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ede616288bc3abd17b6e0319d8eab0517caaa3cfe931d0fcad85c3ca815c57b1", size = 4579986, upload-time = "2025-09-26T15:08:37.575Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/6e/b7ba27693f3082c25c4ee91d4df17070bf48ca4ff412345892a6d628e7de/prek-0.2.2-py3-none-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:397f65fc9607820d2b589e89bc00f4237465babb55720f6ad447feaec8005193", size = 5009218, upload-time = "2025-09-26T15:08:39.307Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/85/ec86a63bd64804df721f35411357c53a0f06f19dd447c6023af713512069/prek-0.2.2-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:2c64c5823ee6673b3a0a6319d6b4f6122086760f72dd9f347e9ce7a294f2bc99", size = 4940288, upload-time = "2025-09-26T15:08:41.643Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/c7/293d383c28a1cf992a081a175e0b52c9da39d4042c1e9058c59c093a28f3/prek-0.2.2-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:73e33963a5447d087ad5743ac8757c85fe3d78391157f15953d4d552645a52c2", size = 5058987, upload-time = "2025-09-26T15:08:42.927Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/5f/f3afc2d7670b4e1e688171a3b03613f0a7576e1212bd282508fde2312d3c/prek-0.2.2-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7cb35a5fd97d4a0fd67e2857efbd1bcd343d129c2d7b1dfa14ee7f91a4f4604d", size = 4645407, upload-time = "2025-09-26T15:08:44.568Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/cb/ce1048dc90efb43c8416f69ec39d067c59891ce6776d2513d50c323f9d42/prek-0.2.2-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:cd1cf549a3748a89ecb1a04554598a76187dc6e970d5bd74632d12c92cbfb94a", size = 4353874, upload-time = "2025-09-26T15:08:45.879Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/8a/0345fd246c5307353dced8caebe97d48921fcdeae615dec8eea97d25ae21/prek-0.2.2-py3-none-manylinux_2_31_riscv64.whl", hash = "sha256:d93759fd5c5cde3f59f76ce221ad0cc1141235961b00428e8c71e311235851ea", size = 4452536, upload-time = "2025-09-26T15:08:47.193Z" },
+    { url = "https://files.pythonhosted.org/packages/91/6f/f95c4a2b54fd635599ba710741faeaa62f05e793faba5416c47aa5d2371b/prek-0.2.2-py3-none-musllinux_1_1_armv7l.whl", hash = "sha256:e0109cd8fbf1bd9b775ede0c9fcfb69b3a210a748e58c3b95acfe80432949de2", size = 4276884, upload-time = "2025-09-26T15:08:49.005Z" },
+    { url = "https://files.pythonhosted.org/packages/50/8f/34c0a49f93e35ca5db1b56096ffce1bbd7b92561ddb96d2cbb8b30868d6e/prek-0.2.2-py3-none-musllinux_1_1_i686.whl", hash = "sha256:ec713a3cdd1345df66f07d57ea2d3d94c877947c15d5c680d0f2007431fa13e9", size = 4473965, upload-time = "2025-09-26T15:08:50.769Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/7a/891cf6b28a1748fc2f5c991fc10b600360c91e1afe6495eac3f57ce45b49/prek-0.2.2-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:33bae12c932195280538c0a204a8c7efbefa2b1d134f2a2b86dc94064b4137db", size = 4748791, upload-time = "2025-09-26T15:08:52.023Z" },
+    { url = "https://files.pythonhosted.org/packages/c0/7a/02a49f62ce4f40a0ca910b2f5acb8f7178ddc8e20c97e5dd387006fd4ac7/prek-0.2.2-py3-none-win32.whl", hash = "sha256:e1ed8ec95bc07e718a4ff11b6e169372e789a54fdfd80577bcf8098d2242f88b", size = 4178321, upload-time = "2025-09-26T15:08:53.664Z" },
+    { url = "https://files.pythonhosted.org/packages/40/96/20beda52fde7f65ec745d1ff1df1d272802c8f9e8352f2271072745d81c1/prek-0.2.2-py3-none-win_amd64.whl", hash = "sha256:ff51fd83a7a49122e624aea728eb2934940d24497b1cf2be6eaa4f01a46b2e70", size = 4743225, upload-time = "2025-09-26T15:08:54.898Z" },
+    { url = "https://files.pythonhosted.org/packages/38/b0/dc6aa46c3aa5831f4638bfaa21f18ced079476a68e6726d74f5f1cd91391/prek-0.2.2-py3-none-win_arm64.whl", hash = "sha256:ac65386fe827eeb622d17971c3db00e1ee9fc43f2c742dd20372b24f6ab4ae8e", size = 4433787, upload-time = "2025-09-26T15:08:56.393Z" },
+]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.52"
 source = { registry = "https://pypi.org/simple" }
@@ -708,6 +734,7 @@ dev = [
     { name = "maturin" },
     { name = "mypy" },
     { name = "orjson", marker = "implementation_name == 'cpython'" },
+    { name = "prek" },
     { name = "pydantic" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -732,6 +759,7 @@ dev = [
     { name = "maturin", specifier = ">=1.8.6" },
     { name = "mypy", specifier = ">=1.14.1" },
     { name = "orjson", marker = "implementation_name == 'cpython'", specifier = ">=3.10.18" },
+    { name = "prek", specifier = ">=0.2.2" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-asyncio", specifier = ">=1.0.0" },

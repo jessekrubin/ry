@@ -61,6 +61,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(time, m)?)?;
     m.add_function(wrap_pyfunction!(timespan, m)?)?;
     m.add_function(wrap_pyfunction!(timespan2, m)?)?;
+    m.add_function(wrap_pyfunction!(timespan3, m)?)?;
     m.add_function(wrap_pyfunction!(zoned, m)?)?;
 
     // okee-dokey

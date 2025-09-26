@@ -22,9 +22,9 @@ use pyo3::prelude::*;
 
 // jiff errormsg looks like:  years: parameter 'years' with value -9223372036854775808 is not in the required range of -19998..=19998
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct SpanYears(pub(crate) i64);
+pub(crate) struct PySpanYears(pub(crate) i64);
 
-impl SpanYears {
+impl PySpanYears {
     pub(crate) const MIN: i64 = -19_998;
     pub(crate) const MAX: i64 = 19_998;
 
@@ -43,14 +43,79 @@ impl SpanYears {
     }
 }
 
-impl From<SpanYears> for i64 {
-    fn from(value: SpanYears) -> Self {
+impl From<PySpanYears> for i64 {
+    fn from(value: PySpanYears) -> Self {
         value.0
     }
 }
 
-impl FromPyObject<'_> for SpanYears {
+impl FromPyObject<'_> for PySpanYears {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+        // make it so that the error message
         ob.extract::<i64>().and_then(Self::new)
     }
 }
+
+
+macro_rules! define_pyspan_unit {
+    (
+        $struct_name:ident,
+        $min:expr,
+        $max:expr,
+        $unit_name:expr
+    ) => {
+
+        #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub(crate) struct $struct_name(pub(crate) i64);
+
+        impl $struct_name {
+            pub(crate) const MIN: i64 = $min;
+            pub(crate) const MAX: i64 = $max;
+
+            pub(crate) fn new(value: i64) -> PyResult<Self> {
+                if (Self::MIN..=Self::MAX).contains(&value) {
+                    Ok(Self(value))
+                } else {
+                    Err(Self::py_error())
+                }
+            }
+
+            pub(crate) fn py_error() -> PyErr {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                    concat!(
+                        stringify!($struct_name),
+                        ": parameter '",
+                        stringify!($unit_name),
+                        "' must be an integer in the required range of ",
+                        stringify!($min),
+                        "..=",
+                        stringify!($max)
+                    ),
+                )
+            }
+        }
+
+        impl From<$struct_name> for i64 {
+            fn from(value: $struct_name) -> Self {
+                value.0
+            }
+        }
+
+        impl FromPyObject<'_> for $struct_name {
+            fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+                // make it so that the error message
+                ob.extract::<i64>().and_then(Self::new)
+            }
+        }
+    }
+}
+
+define_pyspan_unit!(PySpanMonths, -239_976, 239_976, months);
+define_pyspan_unit!(PySpanWeeks, -1_043_497, 1_043_497, weeks);
+define_pyspan_unit!(PySpanDays, -7_304_484, 7_304_484, days);
+define_pyspan_unit!(PySpanHours, -175_307_616, 175_307_616, hours);
+define_pyspan_unit!(PySpanMinutes, -10_518_456_960, 10_518_456_960, minutes);
+define_pyspan_unit!(PySpanSeconds, -631_107_417_600, 631_107_417_600, seconds);
+define_pyspan_unit!(PySpanMilliseconds, -631_107_417_600_000, 631_107_417_600_000, milliseconds);
+define_pyspan_unit!(PySpanMicroseconds, -631_107_417_600_000_000, 631_107_417_600_000_000, microseconds);
+define_pyspan_unit!(PySpanNanoseconds, -9_223_372_036_854_775_807, 9_223_372_036_854_775_807, nanoseconds);
