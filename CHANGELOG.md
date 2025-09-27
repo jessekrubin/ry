@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.61 [unreleased]
+
+- use `pyo3-async-runtimes` git repo (for now):
+  - [PyO3/pyo3-async-runtimes#60](https://github.com/PyO3/pyo3-async-runtimes/pull/60)
+  - [PyO3/pyo3-async-runtimes#62](https://github.com/PyO3/pyo3-async-runtimes/pull/62)
+
+---
+
 ## v0.0.60 [2025-09-26]
 
 - deprecations

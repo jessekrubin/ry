@@ -6,8 +6,8 @@ use tracing_log::LogTracer;
 const LOG_ENV_VARS: [&str; 3] = ["RYLOG", "RY_LOG", "RUST_LOG"];
 
 fn env_var_is_falsey(s: &str) -> bool {
-    let s_lower = s.trim().to_lowercase();
-    matches!(s_lower.as_str(), "" | "0" | "false" | "off" | "no" | "n")
+    let s_lower: std::borrow::Cow<'_, str> = s.trim().to_ascii_lowercase().into();
+    matches!(s_lower.as_ref(), "" | "0" | "false" | "off" | "no")
 }
 
 fn env_var_str_is_truthy(s: &str) -> bool {
@@ -34,26 +34,16 @@ fn env_log_level() -> LevelFilter {
         return LevelFilter::DEBUG;
     }
 
-    for env_var in LOG_ENV_VARS.iter() {
-        if let Ok(value) = std::env::var(env_var) {
-            if value.is_empty() {
-                continue;
-            }
-            if env_var_is_falsey(&value) {
-                continue;
-            }
-            match LevelFilter::from_str(&value) {
-                Ok(level) => return level,
-                Err(_) => {
-                    return LevelFilter::DEBUG;
-                }
-            }
-        }
-    }
-    LevelFilter::WARN
+    LOG_ENV_VARS
+        .into_iter()
+        .filter_map(|name| std::env::var(name).ok())
+        .filter(|v| env_var_str_is_truthy(v))
+        .map(|v| LevelFilter::from_str(v.trim()).unwrap_or(LevelFilter::DEBUG))
+        .next()
+        .unwrap_or(LevelFilter::WARN)
 }
 
-pub fn tracing_init() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn tracing_init() -> Result<(), Box<dyn std::error::Error>> {
     // use "RY_LOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
     LogTracer::init()?;
     let env_log_level = env_log_level();
