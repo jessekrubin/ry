@@ -3,7 +3,7 @@
 //! classic millennials... nobody wants to be a string intern anymore...
 //!
 //! This keeps the string-interning in one place so we dont have multiple
-//! pydantic based interns who are milling around, presumably not getting
+//! jiff based interns who are milling around, presumably not getting
 //! me the coffee I asked for.
 use pyo3::prelude::*;
 
