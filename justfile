@@ -6,9 +6,11 @@
 @_default:
     just --list --unsorted
 
+# run ry.dev python repl
 repl:
     python -m ry.dev
 
+# run ry.dev python repl (if using uv)
 repl-uv:
     uv run python -m ry.dev
 
@@ -54,8 +56,9 @@ dev-rel:
 doctest:
     pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" python
 
+# run pytest
 pytest:
-    pytest --benchmark-skip
+    pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" python tests
 
 # run pytest
 pytest-uv:

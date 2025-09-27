@@ -29,6 +29,7 @@ from ry._types import (
 )
 from ry.protocols import (
     FromStr,
+    Strftime,
     ToPy,
     ToPyDate,
     ToPyDateTime,
@@ -135,7 +136,7 @@ WeekdayInt: t.TypeAlias = t.Literal[
 Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
+class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -293,7 +294,7 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
     ) -> TimeSpan: ...
 
 @t.final
-class Time(ToPy[pydt.time], ToPyTime, FromStr):
+class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
     MIN: t.ClassVar[Time]
     MAX: t.ClassVar[Time]
 
@@ -464,7 +465,9 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
     ) -> TimeSpan: ...
 
 @t.final
-class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
+class DateTime(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+):
     MIN: t.ClassVar[DateTime]
     MAX: t.ClassVar[DateTime]
     ZERO: t.ClassVar[DateTime]
@@ -663,7 +666,11 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
     ) -> TimeSpan: ...
 
 @t.final
-class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
+class TimeZone(
+    ToPy[pydt.tzinfo],
+    ToPyTzInfo,
+    FromStr,
+):
     UTC: t.ClassVar[TimeZone]
 
     def __init__(self, name: TimezoneName) -> None: ...
@@ -1055,7 +1062,9 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def _nanoseconds(self, nanoseconds: int) -> t.Self: ...
 
 @t.final
-class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
+class Timestamp(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+):
     """
     A representation of a timestamp with second and nanosecond precision.
     """
@@ -1222,7 +1231,7 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 @t.final
 class ZonedDateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo, FromStr
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo, FromStr, Strftime
 ):
     def __init__(
         self,

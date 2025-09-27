@@ -234,7 +234,7 @@ async def broken_json(
         status=200,
         headers=[(b"content-type", b"application/json")],
     )
-    broken_json = b'{"dog":"dingo","is-dingo":true,"bluey-fam-size":4,"fraction-red-heelers":0.5,"activities":["screwing up the garden","barking at strangers for exisiting","'
+    broken_json = b'{"dog":"dingo","is-dingo":true,"bluey-fam-size":4,"fraction-red-heelers":0.5,"activities":["screwing up the garden","barking at strangers for existing","'
     yield uvt.HTTPResponseBodyEvent(
         type="http.response.body",
         body=broken_json,

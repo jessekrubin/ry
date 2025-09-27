@@ -207,7 +207,7 @@ class TestResponseJson:
             "fraction-red-heelers": 0.5,
             "activities": [
                 "screwing up the garden",
-                "barking at strangers for exisiting",
+                "barking at strangers for existing",
             ],
         }
         assert data == expected

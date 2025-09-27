@@ -307,12 +307,13 @@ impl RyTimestamp {
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
-    fn __format__(&self, fmt: &str) -> String {
-        self.0.strftime(fmt).to_string()
+    fn __format__(&self, fmt: &str) -> PyResult<String> {
+        self.strftime(fmt)
     }
 
-    fn strftime(&self, fmt: &str) -> String {
-        self.0.strftime(fmt).to_string()
+    fn strftime(&self, fmt: &str) -> PyResult<String> {
+        let bdt: jiff::fmt::strtime::BrokenDownTime = self.0.into();
+        bdt.to_string(fmt).map_err(map_py_value_err)
     }
 
     #[staticmethod]

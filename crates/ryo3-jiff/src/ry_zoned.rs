@@ -119,12 +119,24 @@ impl RyZoned {
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
-    fn __format__(&self, fmt: &str) -> String {
-        self.0.strftime(fmt).to_string()
+    // Orig version but idk if it is needed....
+    // fn __format__(&self, fmt: &str) -> String {
+    //     self.0.strftime(fmt).to_string()
+    // }
+
+    // fn strftime(&self, fmt: &str) -> String {
+    //     self.0.strftime(fmt).to_string()
+    // }
+
+    // NOT SURE THIS IS NEEDED AS AFAICT jiff::Zoned doesn't fail?
+    fn __format__(&self, fmt: &str) -> PyResult<String> {
+        self.strftime(fmt)
     }
 
-    fn strftime(&self, fmt: &str) -> String {
-        self.0.strftime(fmt).to_string()
+    #[pyo3(signature = (fmt))]
+    fn strftime(&self, fmt: &str) -> PyResult<String> {
+        let bdt: jiff::fmt::strtime::BrokenDownTime = (&self.0).into();
+        bdt.to_string(fmt).map_err(map_py_value_err)
     }
 
     #[staticmethod]
