@@ -256,22 +256,6 @@ _FMT_FLAGS = [
     "#",  # Swap the case of the result string. This is typically only useful with %p or %Z, since they are the only conversion specifiers that emit strings entirely in uppercase by default.
 ]
 
-
-# bad_combos
-bad_combossets = {
-    "Timestamp": set(),
-    "Time": set(),
-    "Date": set(),
-    "DateTime": set(),
-    "ZonedDateTime": set(),
-}
-bad_combos = {
-    "Timestamp": [],
-    "Time": [],
-    "Date": [],
-    "DateTime": [],
-    "ZonedDateTime": [],
-}
 # fmt: off
 _PROBLEM_COMBOS = {
     "Timestamp": [
@@ -302,9 +286,6 @@ def test_strftime(obj: _FmtOb, spec: _Specifier, flag: str | None) -> None:
     should_error = spec["specifier"] in _PROBLEM_COMBOS_LUT.get(obj["dtype"], set())
     specifier = spec["specifier"] if flag is None else f"%{flag}{spec['specifier'][1:]}"
 
-    fmt_res_lenient = obj["ob"].strftime(specifier, lenient=True)
-    assert isinstance(fmt_res_lenient, str)
-
     if should_error:
         with pytest.raises(ValueError):
             _ = obj["ob"].strftime(specifier)
@@ -313,8 +294,5 @@ def test_strftime(obj: _FmtOb, spec: _Specifier, flag: str | None) -> None:
     else:
         fmt_res = obj["ob"].strftime(specifier)
         assert isinstance(fmt_res, str)
-        fmt_res_lenient = obj["ob"].strftime(specifier, lenient=True)
-        assert isinstance(fmt_res_lenient, str)
-        assert fmt_res == fmt_res_lenient
         via_fstring = f"{obj['ob']:{specifier}}"
         assert fmt_res == via_fstring

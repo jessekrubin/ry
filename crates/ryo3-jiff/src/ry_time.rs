@@ -106,16 +106,13 @@ impl RyTime {
     // STRPTIME/STRFTIME
     // ========================================================================
     fn __format__(&self, fmt: &str) -> PyResult<String> {
-        let bdt: jiff::fmt::strtime::BrokenDownTime = self.0.into();
-        bdt.to_string(fmt).map_err(map_py_value_err)
+        self.strftime(fmt)
     }
 
-    #[pyo3(signature = (fmt, *, lenient =false))]
-    fn strftime(&self, fmt: &str, lenient: bool) -> PyResult<String> {
+    #[pyo3(signature = (fmt))]
+    fn strftime(&self, fmt: &str) -> PyResult<String> {
         let bdt: jiff::fmt::strtime::BrokenDownTime = self.0.into();
-        let cfg = jiff::fmt::strtime::Config::new().lenient(lenient);
-        bdt.to_string_with_config(&cfg, fmt)
-            .map_err(map_py_value_err)
+        bdt.to_string(fmt).map_err(map_py_value_err)
     }
 
     #[staticmethod]

@@ -1265,6 +1265,7 @@ from ry._types import (
 )
 from ry.protocols import (
     FromStr,
+    Strftime,
     ToPy,
     ToPyDate,
     ToPyDateTime,
@@ -1372,7 +1373,7 @@ Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
+class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -1533,7 +1534,7 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
 
 
 @t.final
-class Time(ToPy[pydt.time], ToPyTime, FromStr):
+class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
     MIN: t.ClassVar[Time]
     MAX: t.ClassVar[Time]
 
@@ -1725,7 +1726,9 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
 
 
 @t.final
-class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
+class DateTime(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+):
     MIN: t.ClassVar[DateTime]
     MAX: t.ClassVar[DateTime]
     ZERO: t.ClassVar[DateTime]
@@ -1925,7 +1928,11 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 
 @t.final
-class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
+class TimeZone(
+    ToPy[pydt.tzinfo],
+    ToPyTzInfo,
+    FromStr,
+):
     UTC: t.ClassVar[TimeZone]
 
     def __init__(self, name: TimezoneName) -> None: ...
@@ -2323,7 +2330,9 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
 
 
 @t.final
-class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
+class Timestamp(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+):
     """
     A representation of a timestamp with second and nanosecond precision.
     """
@@ -2511,7 +2520,13 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 @t.final
 class ZonedDateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo, FromStr
+    ToPy[pydt.datetime],
+    ToPyDate,
+    ToPyTime,
+    ToPyDateTime,
+    ToPyTzInfo,
+    FromStr,
+    Strftime,
 ):
     def __init__(
         self,
@@ -6521,6 +6536,8 @@ import typing as t
 
 __all__ = (
     "FromStr",
+    "Strftime",
+    "ToPy",
     "ToPyDate",
     "ToPyDateTime",
     "ToPyTime",
@@ -6557,6 +6574,12 @@ class ToString(t.Protocol):
 # =============================================================================
 # DATETIME
 # =============================================================================
+
+
+class Strftime(t.Protocol):
+    """Protocol for types that have a `.strftime()` method."""
+
+    def strftime(self, fmt: str) -> str: ...
 
 
 class ToPyDate(t.Protocol):
