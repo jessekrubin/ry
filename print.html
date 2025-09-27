@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-25T19:03:18.876223624-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-26T20:53:34.118332808-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -207,7 +207,7 @@ truncation, streaming reads, and <code>anyio</code> compatibility.</li>
 <li><strong>Datetime utilities via <code>jiff</code>:</strong> Fast, accurate, timezone-aware datetime
 parsing and formatting, with <code>datetime</code> interop and much more</li>
 <li><strong>Miscellaneous bindings:</strong> Includes crates like <code>globset</code>, <code>walkdir</code>,
-<code>sqlformat</code>, <code>unindent</code>, <code>xxhash</code>, and more.</li>
+<code>sqlformat</code>, <code>unindent</code>, <code>twox-hash</code>, and more.</li>
 <li><strong>Designed for ergonomics:</strong> Async where it matters. Simple where possible.
 Python-native behavior with minimal friction.</li>
 <li><strong>Type Annotated:</strong> All public APIs are (painstakingly) type annotated.</li>
@@ -290,7 +290,7 @@ into separate packages</li>
 <li>hashing:
 <ul>
 <li><code>fnv</code></li>
-<li><code>xxhash</code></li>
+<li><code>twox-hash</code></li>
 </ul>
 </li>
 <li>burnt-sushi:
@@ -327,7 +327,6 @@ performance variance, regardless of whether “blazingly fast” appeared in the
 README or docs. <a href="#fr-1-1">↩</a></p>
 </li>
 </ol><div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">DEVELOPMENT</a></h1>
-<p><strong>OPEN TO PRS!</strong></p>
 <h2 id="goals"><a class="header" href="#goals">goals</a></h2>
 <ol>
 <li>Provide a really nice ergonomic API to work with (this is the highest
@@ -347,26 +346,30 @@ am still working out the kinks of using <code>uv</code> with maturin</li>
 </ul>
 <h2 id="style-guide"><a class="header" href="#style-guide">style guide</a></h2>
 <ul>
+<li>Naming conventions:
+<ul>
+<li>For python classes/structs/types prefer <code>AsyncXYZ</code> over <code>XYZAsync</code></li>
+<li>use <code>snake_case</code> for functions and variables</li>
+<li>use <code>CamelCase</code> for types and traits</li>
+<li>use <code>SCREAMING_SNAKE_CASE</code> for constants and statics</li>
+</ul>
+</li>
 <li><strong>NO UNWRAPPING</strong> – use <code>expect</code> over <code>unwrap</code></li>
 <li><strong>NO PANICS</strong> – don’t panic!</li>
 <li><strong>NO <code>blazingly-fast</code></strong> – <code>ry</code> is fast and does not need an adverb</li>
 <li><strong>USE CLIPPY</strong> <code>just clippy</code> or <code>just ci</code></li>
 <li><strong>USE RUSTFMT AND RUFF</strong> <code>just fmt</code></li>
-<li>avoid using macros as they are not as easy to reason about and/or debug, but
-feel free to say ‘yolo’</li>
 <li>library style guide:
 <ul>
 <li>python objects/structs/classes defined in the library should be named either
 <code>Py&lt;CLASSNAME&gt;</code> or <code>Ry&lt;CLASSNAME&gt;</code> and the prefix should be consistent
 throughout the library (eg <code>ryo3-jiff</code> uses <code>Ry</code> as the internal prefix to
 not conflict with the <code>Py&lt;CLASSNAME&gt;</code> structs provided by <code>pyo3</code>)</li>
-<li>if a <code>pyclass</code> or <code>pyfunction</code> is not mirroring a rust function prefer names
-that are puns but also semi-descriptive (eg <code>Globsters</code> in <code>ryo3-globset</code>)</li>
-<li>attempt to mirror the structure of the og library as much as possible</li>
-<li>wrapper libraries should be of the form <code>ryo3-&lt;LIB_NAME&gt;</code> where <code>&lt;LIB_NAME&gt;</code>
-is the name of the library they</li>
+<li>For wrapper libraries, attempt to mirror the structure of the original
+library as much as possible</li>
+<li>wrapper library names should be of the form <code>ryo3-&lt;LIB_NAME&gt;</code> where
+<code>&lt;LIB_NAME&gt;</code> is the name of the wrapped library</li>
 <li>library directories should be <code>kebab-case</code> and should be <code>ryo3-&lt;LIB_NAME&gt;</code></li>
-<li>MUST PROVIDE TYPE ANNOTATIONS</li>
 </ul>
 </li>
 </ul>
@@ -396,41 +399,52 @@ is the name of the library they</li>
 <li>to see all tasks run <code>just</code> or <code>just --list</code> (our default task echos the list
 of tasks)</li>
 </ul>
-<p>tasks as of 2024-12-03:</p>
+<p>tasks as of 2025-09-26:</p>
 <pre><code class="language-txt">Available recipes:
-    dev            # dev run build + tests
-    develop        # maturin develop
-    cargo-test     # cargo test
-    build          # build
-    build-release  # build release
-    dev-rel        # maturin develop release
-    pytest         # run pytest
-    pytestv        # run pytest (printing captured output)
-    test           # run all test
-    test-release   # test ry package
-    bench          # benchmark ry python package
-    ci             # ci rust checks
-    cargo-fmt      # cargo format
-    cargo-fmtc     # cargo format check
-    sort-all-check # ruff check sorting of '__all__'
-    sort-all       # ruff sort '__all__'
-    ruff-fmt       # ruff format
-    ruff-fmtc      # ruff format check
-    black          # python format black
-    fmtpy          # python format
-    fmtcpy         # python format check
-    justfilefmt    # justfile format
-    justfilefmtc   # justfile format check
-    fmt            # format
-    fmtc           # format check
-    ruff           # run ruff linter
-    ruffix         # run ruff + fix
-    clippy         # run clippy
-    lint           # lint python and rust
-    mypy           # run mypy type checker
-    pyright        # run pyright
-    pip-compile    # pip compile requirements
-    gen            # generate code tasks
+    repl            # run ry.dev python repl
+    repl-uv         # run ry.dev python repl (if using uv)
+    dev             # dev run build + tests
+    dev-uv          # dev run build + tests (with uv)
+    sync            # uv sync
+    develop         # maturin develop
+    develop-uv      # maturin develop (with uv)
+    mat             # maturin develop (shorthand)
+    cargo-test      # cargo test
+    build           # build
+    build-release   # build release
+    dev-rel         # maturin develop release
+    doctest         # run pytest
+    pytest          # run pytest
+    pytest-uv       # run pytest
+    pytestv         # run pytest (printing captured output)
+    test            # run all test
+    test-release    # test ry package
+    bench           # benchmark ry python package
+    ci              # ci rust checks
+    cargo-fmt       # cargo format
+    cargo-fmtc      # cargo format check
+    sort-all-check  # ruff check sorting of '__all__'
+    sort-all        # ruff sort '__all__'
+    ruff-fmt        # ruff format
+    ruff-fmtc       # ruff format check
+    fmtpy           # python format
+    fmtcpy          # python format check
+    justfilefmt     # justfile format
+    justfilefmtc    # justfile format check
+    mdfmt           # format markdown
+    pyprojectfmt    # pyproject-fmt
+    fmt             # format
+    fmtc            # format check
+    ruff            # run ruff linter
+    ruffix          # run ruff + fix
+    clippy          # run clippy
+    clippy-features # run clippy with feature-powerset via cargo-hack
+    lint            # lint python and rust
+    mypy            # run mypy type checker
+    pyright         # run pyright
+    pip-compile     # pip compile requirements
+    gen             # generate code tasks
+    cargo-doc       # generate cargo docs for all crates (in workspace)
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="acknowledgements"><a class="header" href="#acknowledgements">ACKNOWLEDGEMENTS</a></h1>
 <p>This project would not be possible without the incredible work of many others.</p>
@@ -465,7 +479,7 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0060-unreleased"><a class="header" href="#v0060-unreleased">v0.0.60 [unreleased]</a></h2>
+<h2 id="v0060-2025-09-26"><a class="header" href="#v0060-2025-09-26">v0.0.60 [2025-09-26]</a></h2>
 <ul>
 <li>deprecations
 <ul>
@@ -475,6 +489,21 @@ dumping, and async file I/O tools.</p>
 <li><code>ryo3-std</code>
 <ul>
 <li><code>ry.FileType</code> struct now has inner faux type/real type</li>
+</ul>
+</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li><code>strftime</code>/<code>__format__</code> changed to use <code>BrokenDownTime</code> to not panic</li>
+</ul>
+</li>
+<li><code>ryo3-tokio</code>
+<ul>
+<li>renamed:
+<ul>
+<li><code>DirEntryAsync</code> -&gt; <code>AsyncDirEntry</code></li>
+<li><code>ReadDirAsync</code> -&gt; <code>AsyncReadDir</code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -3463,6 +3492,7 @@ from ry._types import (
 )
 from ry.protocols import (
     FromStr,
+    Strftime,
     ToPy,
     ToPyDate,
     ToPyDateTime,
@@ -3570,7 +3600,7 @@ Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
+class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -3731,7 +3761,7 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr):
 
 
 @t.final
-class Time(ToPy[pydt.time], ToPyTime, FromStr):
+class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
     MIN: t.ClassVar[Time]
     MAX: t.ClassVar[Time]
 
@@ -3923,7 +3953,9 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr):
 
 
 @t.final
-class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
+class DateTime(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+):
     MIN: t.ClassVar[DateTime]
     MAX: t.ClassVar[DateTime]
     ZERO: t.ClassVar[DateTime]
@@ -4123,7 +4155,11 @@ class DateTime(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 
 @t.final
-class TimeZone(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
+class TimeZone(
+    ToPy[pydt.tzinfo],
+    ToPyTzInfo,
+    FromStr,
+):
     UTC: t.ClassVar[TimeZone]
 
     def __init__(self, name: TimezoneName) -&gt; None: ...
@@ -4521,7 +4557,9 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
 
 
 @t.final
-class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
+class Timestamp(
+    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+):
     """
     A representation of a timestamp with second and nanosecond precision.
     """
@@ -4709,7 +4747,13 @@ class Timestamp(ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr):
 
 @t.final
 class ZonedDateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo, FromStr
+    ToPy[pydt.datetime],
+    ToPyDate,
+    ToPyTime,
+    ToPyDateTime,
+    ToPyTzInfo,
+    FromStr,
+    Strftime,
 ):
     def __init__(
         self,
@@ -8626,6 +8670,8 @@ import typing as t
 
 __all__ = (
     "FromStr",
+    "Strftime",
+    "ToPy",
     "ToPyDate",
     "ToPyDateTime",
     "ToPyTime",
@@ -8662,6 +8708,12 @@ class ToString(t.Protocol):
 # =============================================================================
 # DATETIME
 # =============================================================================
+
+
+class Strftime(t.Protocol):
+    """Protocol for types that have a `.strftime()` method."""
+
+    def strftime(self, fmt: str) -&gt; str: ...
 
 
 class ToPyDate(t.Protocol):
@@ -8832,10 +8884,12 @@ __all__ = (
 <div style="break-before: page; page-break-before: always;"></div><h1 id="food-4-thought"><a class="header" href="#food-4-thought">food-4-thought</a></h1>
 <p>thinking out loud…</p>
 <h2 id="staticmethod-vs-classmethod-2025-08-28"><a class="header" href="#staticmethod-vs-classmethod-2025-08-28">staticmethod vs classmethod [2025-08-28]</a></h2>
-<p>Nowhere in ry are any of the <code>classmethod</code> functions actually used as classmethods, they are effectively staticmethods; they don’t access the class or instance in any way.
-Classes in <code>ry</code> do not (for the most part) support being subclassed.
-Benchmarking shows that <code>staticmethod</code> is slightly faster than <code>classmethod</code>,
-sooooo all classmethods will be removed, but added back in if needed later…</p>
+<p>Nowhere in ry are any of the <code>classmethod</code> functions actually used as
+classmethods, they are effectively staticmethods; they don’t access the class or
+instance in any way. Classes in <code>ry</code> do not (for the most part) support being
+subclassed. Benchmarking shows that <code>staticmethod</code> is slightly faster than
+<code>classmethod</code>, sooooo all classmethods will be removed, but added back in if
+needed later…</p>
 <p>Benchmarking code:</p>
 <pre><code class="language-python">from __future__ import annotations
 
@@ -8876,9 +8930,8 @@ Legend:
 <h2 id="fugue-state-jesse-2025-08-18"><a class="header" href="#fugue-state-jesse-2025-08-18">fugue-state-jesse [2025-08-18]</a></h2>
 <p>The most sophisticated rust code in this repository was written by
 <code>fugue-state-jesse</code> (aka FSJ), not me (<code>normal-jesse</code>) and not an AI/LLM.
-<code>fugue-state-jesse</code> only shows up at random about 1-2 times a week and
-seemingly has a vastly better understanding of rust and rust-macro-rules than I
-do.</p>
+<code>fugue-state-jesse</code> only shows up at random about 1-2 times a week and seemingly
+has a vastly better understanding of rust and rust-macro-rules than I do.</p>
 <p>Throughout the repository I (normal-jesse) will sometimes leave notes to
 <code>fugue-state-jesse</code> with the hope that he might do what I ask, but he tends to
 do his own thing.</p>
