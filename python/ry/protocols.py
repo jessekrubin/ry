@@ -3,6 +3,8 @@ import typing as t
 
 __all__ = (
     "FromStr",
+    "Strftime",
+    "ToPy",
     "ToPyDate",
     "ToPyDateTime",
     "ToPyTime",
@@ -39,6 +41,12 @@ class ToString(t.Protocol):
 # =============================================================================
 # DATETIME
 # =============================================================================
+
+
+class Strftime(t.Protocol):
+    """Protocol for types that have a `.strftime()` method."""
+
+    def strftime(self, fmt: str) -> str: ...
 
 
 class ToPyDate(t.Protocol):

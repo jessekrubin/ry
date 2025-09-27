@@ -364,12 +364,17 @@ impl RyDate {
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
-    fn __format__(&self, fmt: &str) -> String {
-        self.0.strftime(fmt).to_string()
+    fn __format__(&self, fmt: &str) -> PyResult<String> {
+        let bdt: jiff::fmt::strtime::BrokenDownTime = self.0.into();
+        bdt.to_string(fmt).map_err(map_py_value_err)
     }
 
-    fn strftime(&self, fmt: &str) -> String {
-        self.0.strftime(fmt).to_string()
+    #[pyo3(signature = (fmt, *, lenient =false))]
+    fn strftime(&self, fmt: &str, lenient: bool) -> PyResult<String> {
+        let bdt: jiff::fmt::strtime::BrokenDownTime = self.0.into();
+        let cfg = jiff::fmt::strtime::Config::new().lenient(lenient);
+        bdt.to_string_with_config(&cfg, fmt)
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
