@@ -48,7 +48,7 @@ pub(crate) fn tracing_init() -> Result<(), Box<dyn std::error::Error>> {
     // use "RY_LOG" if set to a truthy value, otherwise use 'RUST_LOG' if set.
     LogTracer::init()?;
     let env_log_level = env_log_level();
-    debug!(
+    tracing::trace!(
         "tracing_init - env_filter_directives_string: {}",
         env_log_level
     );
@@ -63,10 +63,10 @@ pub(crate) fn tracing_init() -> Result<(), Box<dyn std::error::Error>> {
     let set_subscriber_result = tracing::subscriber::set_global_default(subscriber);
     match set_subscriber_result {
         Ok(()) => {
-            debug!("tracing_init - set_global_default succeeded");
+            tracing::trace!("tracing_init - set_global_default succeeded");
         }
         Err(e) => {
-            debug!("tracing_init - set_global_default failed: {:?}", e);
+            tracing::trace!("tracing_init - set_global_default failed: {:?}", e);
         }
     }
     Ok(())

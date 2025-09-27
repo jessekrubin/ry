@@ -1,8 +1,5 @@
 //! ry = rust + python
-use pyo3::exceptions::PyRuntimeError;
-use pyo3::intern;
 use pyo3::prelude::*;
-use tracing::debug;
 mod lager;
 
 const PACKAGE: &str = env!("CARGO_PKG_NAME");
@@ -26,6 +23,7 @@ fn warn_debug_build(py: Python) -> PyResult<()> {
     let warning = PyRuntimeWarning::new_err("ry not compiled in release mode");
     let args = PyTuple::new(py, vec![warning])?;
     warnings_mod.call_method1(intern!(py, "warn"), args)?;
+    tracing::warn!("ry not compiled in release mode");
     Ok(())
 }
 
@@ -33,14 +31,14 @@ fn warn_debug_build(py: Python) -> PyResult<()> {
 #[pymodule(gil_used = false)]
 #[pyo3(name = "ryo3")]
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    lager::tracing_init()
-        .map_err(|e| PyRuntimeError::new_err(format!("Failed to initialize logging: {e}")))?;
-    let ti = std::time::Instant::now();
+    lager::tracing_init().map_err(|e| {
+        pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to initialize logging: {e}"))
+    })?;
+    // ------------------------------------------------------------------------
     #[cfg(debug_assertions)]
     warn_debug_build(m.py())?;
-    debug!("version: {}", VERSION);
-    debug!("build_profile: {}", BUILD_PROFILE);
-    debug!("build_timestamp: {}", BUILD_TIMESTAMP);
+    // ------------------------------------------------------------------------
+    let ti = std::time::Instant::now();
     m.add("__pkg_name__", PACKAGE)?;
     m.add("__description__", DESCRIPTION)?;
     m.add("__version__", VERSION)?;
@@ -48,10 +46,16 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
     m.add("__authors__", AUTHORS)?;
     m.add("__target__", TARGET)?;
-
+    // ------------------------------------------------------------------------
     // register/add core lib from ryo3
     ryo3::ry::pymod_add(m)?;
+    // ------------------------------------------------------------------------
+    tracing::debug!(
+        build.version = %VERSION,
+        build.profile = %BUILD_PROFILE,
+        build.timestamp = %BUILD_TIMESTAMP,
+        "ryo3-init: {:?}", ti.elapsed()
+    );
 
-    debug!("ryo3-init: {:?}", ti.elapsed());
     Ok(())
 }
