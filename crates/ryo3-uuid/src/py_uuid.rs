@@ -155,17 +155,6 @@ impl PyUuid {
         self.__str__()
     }
 
-    #[allow(deprecated)]
-    #[pyo3(
-        warn(
-            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.61]",
-            category = pyo3::exceptions::PyDeprecationWarning
-      )
-    )]
-    fn string(&self) -> String {
-        self.py_to_string()
-    }
-
     fn __str__(&self) -> String {
         self.0.to_string()
     }

@@ -5,6 +5,16 @@
 - use `pyo3-async-runtimes` git repo (for now):
   - [PyO3/pyo3-async-runtimes#60](https://github.com/PyO3/pyo3-async-runtimes/pull/60)
   - [PyO3/pyo3-async-runtimes#62](https://github.com/PyO3/pyo3-async-runtimes/pull/62)
+- removed deprecated `.string()` methods from several structs/clases:
+  - `ry.FsPath`
+  - `ry.UUID`
+  - `ry.DateTime`
+  - `ry.Date`
+  - `ry.SignedDuration`
+  - `ry.TimeSpan`
+  - `ry.Time`
+  - `ry.Timestamp`
+  - `ry.ZonedDateTime`
 
 ---
 
