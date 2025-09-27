@@ -6,6 +6,7 @@ from ry.ryo3 import (
     __authors__,
     __build_profile__,
     __build_timestamp__,
+    __opt_level__,
     __target__,
     __version__,
 )
@@ -15,6 +16,7 @@ __all__ = (
     "__build_profile__",
     "__build_timestamp__",
     "__description__",
+    "__opt_level__",
     "__pkgroot__",
     "__target__",
     "__title__",

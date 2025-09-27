@@ -58,7 +58,7 @@ lto = "fat"
 [workspace.package]
 version = "0.0.61"
 authors = [
-  "Jesse K. Rubin <jessekrubin@gmail.com>",
+  "jesse k. rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
 ]
 categories = ["api-bindings"]

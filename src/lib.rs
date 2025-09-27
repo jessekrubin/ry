@@ -3,12 +3,14 @@ use pyo3::prelude::*;
 mod lager;
 
 const PACKAGE: &str = env!("CARGO_PKG_NAME");
+const OPT_LEVEL: &str = env!("OPT_LEVEL");
 const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BUILD_PROFILE: &str = env!("PROFILE");
 const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 const TARGET: &str = env!("TARGET");
+const LTO: &str = env!("LTO");
 
 /// Raise `pyo3::exceptions::PyRuntimeWarning` for debug build(s)
 ///
@@ -44,6 +46,8 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", VERSION)?;
     m.add("__build_profile__", BUILD_PROFILE)?;
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
+    m.add("__opt_level__", OPT_LEVEL)?;
+    m.add("__lto__", LTO)?;
     m.add("__authors__", AUTHORS)?;
     m.add("__target__", TARGET)?;
     // ------------------------------------------------------------------------
