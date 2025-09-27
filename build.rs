@@ -8,17 +8,6 @@ fn main() {
         std::env::var("OPT_LEVEL").expect("OPT_LEVEL env var not found which is SUPER strange!");
     println!("cargo:rustc-env=OPT_LEVEL={opt_level}");
 
-    // print every env var for debugging
-    for (key, value) in std::env::vars() {
-        println!("cargo:warning=env var: {key}={value}");
-        eprintln!("cargo:warning=env var: {key}={value}");
-    }
-
-    if let Ok(lto) = std::env::var("CARGO_PROFILE_RELEASE_LTO") {
-        println!("cargo:rustc-env=LTO={lto}");
-    } else {
-        println!("cargo:rustc-env=LTO=none");
-    }
     // env var build profile
     let profile =
         std::env::var("PROFILE").expect("PROFILE env var not found which is SUPER strange!");
