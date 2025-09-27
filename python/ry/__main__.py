@@ -5,7 +5,14 @@ import os
 import sys
 
 from ry import ryo3
-from ry.__about__ import __authors__, __pkgroot__, __target__, __title__, __version__
+from ry.__about__ import (
+    __authors__,
+    __opt_level__,
+    __pkgroot__,
+    __target__,
+    __title__,
+    __version__,
+)
 
 
 def _ext_info() -> dict[str, str | int]:
@@ -17,6 +24,7 @@ def _ext_info() -> dict[str, str | int]:
         "build_profile": ryo3.__build_profile__,
         "build_timestamp": ryo3.__build_timestamp__,
         "target": __target__,
+        "opt-level": __opt_level__,
     }
 
 

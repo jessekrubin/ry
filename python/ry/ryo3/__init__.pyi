@@ -5,6 +5,14 @@ from ry.ryo3 import ulid as ulid
 from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
+from ry.ryo3.__about__ import __authors__ as __authors__
+from ry.ryo3.__about__ import __build_profile__ as __build_profile__
+from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
+from ry.ryo3.__about__ import __description__ as __description__
+from ry.ryo3.__about__ import __opt_level__ as __opt_level__
+from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
+from ry.ryo3.__about__ import __target__ as __target__
+from ry.ryo3.__about__ import __version__ as __version__
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -220,14 +228,3 @@ from ry.ryo3.sh import home as home
 from ry.ryo3.sh import ls as ls
 from ry.ryo3.sh import mkdir as mkdir
 from ry.ryo3.sh import pwd as pwd
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-__version__: str
-__authors__: str
-__build_profile__: str
-__build_timestamp__: str
-__pkg_name__: str
-__description__: str
-__target__: str

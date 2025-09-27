@@ -128,7 +128,7 @@ _(aka: questions that I have been asking myself)_
 
 ## SEE ALSO
 
-- utiles (web-map tile utils): https://github.com/jessekrubin/utiles
+- [utiles](https://github.com/jessekrubin/utiles): web-map tile utils
 
 [^1]:
     Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real

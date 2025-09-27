@@ -11,6 +11,9 @@ license.workspace = true
 repository.workspace = true
 description = "ry = rust + python"
 
+[lints]
+workspace = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "ry"
@@ -53,9 +56,9 @@ inherits = "release"
 lto = "fat"
 
 [workspace.package]
-version = "0.0.60"
+version = "0.0.61"
 authors = [
-  "Jesse K. Rubin <jessekrubin@gmail.com>",
+  "jesse k. rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
 ]
 categories = ["api-bindings"]
@@ -160,7 +163,8 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 # pyo3
 pyo3 = { version = "0.26.0", features = ["macros", "serde"] }
 # pyo3 async runtimes
-pyo3-async-runtimes = { version = "0.26.0", features = ["tokio-runtime"] }
+#pyo3-async-runtimes = { version = "0.26.0", features = ["tokio-runtime"] }
+pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes" , features = ["tokio-runtime"] }
 pyo3-build-config = "0.26.0"
 
 # external

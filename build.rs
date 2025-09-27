@@ -3,6 +3,11 @@ use jiff::{Unit, Zoned};
 fn main() {
     pyo3_build_config::use_pyo3_cfgs();
 
+    // OPT_LEVEL is available directly
+    let opt_level =
+        std::env::var("OPT_LEVEL").expect("OPT_LEVEL env var not found which is SUPER strange!");
+    println!("cargo:rustc-env=OPT_LEVEL={opt_level}");
+
     // env var build profile
     let profile =
         std::env::var("PROFILE").expect("PROFILE env var not found which is SUPER strange!");

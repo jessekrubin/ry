@@ -124,21 +124,6 @@ impl RySpan {
         }
     }
 
-    #[pyo3(
-        warn(
-            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.61]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        ),
-        signature = (*, friendly=false)
-    )]
-    fn string(&self, friendly: bool) -> String {
-        if friendly {
-            format!("{:#}", self.0)
-        } else {
-            self.0.to_string()
-        }
-    }
-
     fn friendly(&self) -> String {
         format!("{:#}", self.0)
     }

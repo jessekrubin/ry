@@ -223,21 +223,6 @@ impl RySignedDuration {
             .map_err(map_py_value_err)
     }
 
-    #[pyo3(
-        warn(
-            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.61]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        ),
-        signature = (*, friendly=false)
-    )]
-    fn string(&self, friendly: bool) -> String {
-        if friendly {
-            self.friendly()
-        } else {
-            self.__str__()
-        }
-    }
-
     #[pyo3(signature = (*, friendly=false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
