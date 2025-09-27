@@ -13,9 +13,7 @@ ryo3-wrapper for `jiff` crate
 
 ---
 
-## Notes
-
-Misc notes and references
+## Reference
 
 ### Span ranges
 
@@ -32,10 +30,29 @@ Misc notes and references
 | `microseconds` | `-631_107_417_600_000_000`   | `631_107_417_600_000_000`   |
 | `nanoseconds`  | `-9_223_372_036_854_775_807` | `9_223_372_036_854_775_807` |
 
-### `strftime`/`__format__` specifiers/directives & flags
+### Round options
 
-REF:
-https://docs.rs/jiff/latest/jiff/fmt/strtime/index.html#conversion-specifications
+| Type                  | Min Unit     | Max Unit | Defaults (smallest / mode / increment) |
+| --------------------- | ------------ | -------- | -------------------------------------- |
+| `TimestampRound`      | `nanosecond` | `hour`   | `nanosecond` / `half-expand` / `1`     |
+| `TimeRound`           | `nanosecond` | `hour`   | `nanosecond` / `half-expand` / `1`     |
+| `DateTimeRound`       | `nanosecond` | `day`    | `nanosecond` / `half-expand` / `1`     |
+| `ZonedDateTimeRound`  | `nanosecond` | `day`    | `nanosecond` / `half-expand` / `1`     |
+| `SignedDurationRound` | `nanosecond` | `hour`   | `nanosecond` / `half-expand` / `1`     |
+| `OffsetRound`         | `second`     | `hour`   | `second` / `half-expand` / `1`         |
+| `SpanRound`           | `nanosecond` | `year`   | `nanosecond` / `half-expand` / `1`     |
+
+### Difference options
+
+| Type            | Min Unit     | Max Unit | Default Mode |
+| --------------- | ------------ | -------- | ------------ |
+| `Timestamp`     | `nanosecond` | `hour`   | `trunc`      |
+| `Time`          | `nanosecond` | `hour`   | `trunc`      |
+| `Date`          | `nanosecond` | `year`   | `trunc`      |
+| `DateTime`      | `nanosecond` | `year`   | `trunc`      |
+| `ZonedDateTime` | `nanosecond` | `year`   | `trunc`      |
+
+### `strftime`/`__format__` specifiers/directives & flags ([ref](https://docs.rs/jiff/latest/jiff/fmt/strtime/index.html#conversion-specifications))
 
 | Specifier        | Example                      | Description                                                                     |
 | ---------------- | ---------------------------- | ------------------------------------------------------------------------------- |
@@ -85,7 +102,6 @@ https://docs.rs/jiff/latest/jiff/fmt/strtime/index.html#conversion-specification
 | `%:z`            | `+05:30`                     | A time zone offset in the format `[+-]HH:MM[:SS]`.                              |
 | `%::z`           | `+05:30:00`                  | A time zone offset in the format `[+-]HH:MM:SS`.                                |
 | `%:::z`          | `-04`, `+05:30`              | A time zone offset in the format `[+-]HH:[MM[:SS]]`.                            |
-
 
 | Flag | Description                                        |
 | ---- | -------------------------------------------------- |
