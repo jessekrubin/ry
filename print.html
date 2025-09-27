@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-26T20:53:34.118332808-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-27T13:23:49.987997821-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -318,7 +318,7 @@ docs</li>
 <hr />
 <h2 id="see-also"><a class="header" href="#see-also">SEE ALSO</a></h2>
 <ul>
-<li>utiles (web-map tile utils): https://github.com/jessekrubin/utiles</li>
+<li><a href="https://github.com/jessekrubin/utiles">utiles</a>: web-map tile utils</li>
 </ul>
 <hr>
 <ol class="footnote-definition"><li id="footnote-1">
@@ -479,6 +479,29 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0061-unreleased"><a class="header" href="#v0061-unreleased">v0.0.61 [unreleased]</a></h2>
+<ul>
+<li>use <code>pyo3-async-runtimes</code> git repo (for now):
+<ul>
+<li><a href="https://github.com/PyO3/pyo3-async-runtimes/pull/60">PyO3/pyo3-async-runtimes#60</a></li>
+<li><a href="https://github.com/PyO3/pyo3-async-runtimes/pull/62">PyO3/pyo3-async-runtimes#62</a></li>
+</ul>
+</li>
+<li>removed deprecated <code>.string()</code> methods from several structs/clases:
+<ul>
+<li><code>ry.FsPath</code></li>
+<li><code>ry.UUID</code></li>
+<li><code>ry.DateTime</code></li>
+<li><code>ry.Date</code></li>
+<li><code>ry.SignedDuration</code></li>
+<li><code>ry.TimeSpan</code></li>
+<li><code>ry.Time</code></li>
+<li><code>ry.Timestamp</code></li>
+<li><code>ry.ZonedDateTime</code></li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0060-2025-09-26"><a class="header" href="#v0060-2025-09-26">v0.0.60 [2025-09-26]</a></h2>
 <ul>
 <li>deprecations
