@@ -50,11 +50,13 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // register/add core lib from ryo3
     ryo3::ry::pymod_add(m)?;
     // ------------------------------------------------------------------------
+    let ryo3_init_time = ti.elapsed();
     tracing::debug!(
-        build.version = %VERSION,
         build.profile = %BUILD_PROFILE,
+        build.target = %TARGET,
         build.timestamp = %BUILD_TIMESTAMP,
-        "ryo3-init: {:?}", ti.elapsed()
+        build.version = %VERSION,
+        "ryo3-v{VERSION} initialized [{ryo3_init_time:?}]",
     );
 
     Ok(())

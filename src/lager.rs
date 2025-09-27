@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use tracing::debug;
 use tracing::level_filters::LevelFilter;
 use tracing_log::LogTracer;
 /// List of environment variables to check for logging level
