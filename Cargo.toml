@@ -11,6 +11,9 @@ license.workspace = true
 repository.workspace = true
 description = "ry = rust + python"
 
+[lints]
+workspace = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "ry"

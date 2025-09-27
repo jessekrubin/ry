@@ -13,19 +13,19 @@ const BUILD_PROFILE: &str = env!("PROFILE");
 const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 const TARGET: &str = env!("TARGET");
 
-/// Raise RuntimeWarning for debug build(s)
+/// Raise `pyo3::exceptions::PyRuntimeWarning` for debug build(s)
 ///
-/// Taken from `obstore` pyo3 library (obstore)[https://github.com/developmentseed/obstore.git]
+/// Taken from `obstore` pyo3 library [obstore](https://github.com/developmentseed/obstore.git)
 #[cfg(debug_assertions)]
 #[pyfunction]
-fn warn_debug_build(_py: Python) -> PyResult<()> {
+fn warn_debug_build(py: Python) -> PyResult<()> {
     use pyo3::exceptions::PyRuntimeWarning;
     use pyo3::intern;
     use pyo3::types::PyTuple;
-    let warnings_mod = _py.import(intern!(_py, "warnings"))?;
+    let warnings_mod = py.import(intern!(py, "warnings"))?;
     let warning = PyRuntimeWarning::new_err("ry not compiled in release mode");
-    let args = PyTuple::new(_py, vec![warning])?;
-    warnings_mod.call_method1(intern!(_py, "warn"), args)?;
+    let args = PyTuple::new(py, vec![warning])?;
+    warnings_mod.call_method1(intern!(py, "warn"), args)?;
     Ok(())
 }
 

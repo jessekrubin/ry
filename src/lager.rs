@@ -14,12 +14,13 @@ fn env_var_str_is_truthy(s: &str) -> bool {
     !env_var_is_falsey(s)
 }
 
-/// Return the EnvFilter directive to use for initializing the tracing subscriber,
+/// Return the `LevelFilter` directive to use for initializing the tracing subscriber,
+///
 /// Looks for the following environment variables, in order:
 ///   "RYTRACE" - truthy value enables trace logging
 ///   "RYDEBUG" - truthy value enables debug logging
 ///   "RYLOG" - returns
-/// otherwise using 'RUST_LOG' if set.
+/// otherwise using `RUST_LOG` if set.
 fn env_log_level() -> LevelFilter {
     // use "RYTRACE" if set to a truthy value
     if let Ok(ry_trace) = std::env::var("RYTRACE")
