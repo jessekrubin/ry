@@ -20,15 +20,4 @@ impl RyWeekday {
             jiff::civil::Weekday::Saturday => "saturday",
         }
     }
-
-    #[expect(clippy::trivially_copy_pass_by_ref)]
-    #[pyo3(
-        warn(
-            message = "obj.string() is deprecated, use `obj.to_string()` or `str(obj)` [remove in 0.0.61]",
-            category = pyo3::exceptions::PyDeprecationWarning
-      )
-    )]
-    fn string(&self) -> &'static str {
-        self.py_to_string()
-    }
 }
