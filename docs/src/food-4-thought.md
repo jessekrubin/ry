@@ -4,10 +4,12 @@ thinking out loud...
 
 ## staticmethod vs classmethod [2025-08-28]
 
-Nowhere in ry are any of the `classmethod` functions actually used as classmethods, they are effectively staticmethods; they don't access the class or instance in any way.
-Classes in `ry` do not (for the most part) support being subclassed.
-Benchmarking shows that `staticmethod` is slightly faster than `classmethod`,
-sooooo all classmethods will be removed, but added back in if needed later...
+Nowhere in ry are any of the `classmethod` functions actually used as
+classmethods, they are effectively staticmethods; they don't access the class or
+instance in any way. Classes in `ry` do not (for the most part) support being
+subclassed. Benchmarking shows that `staticmethod` is slightly faster than
+`classmethod`, sooooo all classmethods will be removed, but added back in if
+needed later...
 
 Benchmarking code:
 
@@ -51,16 +53,14 @@ Legend:
   OPS: Operations Per Second, computed as 1 / Mean
 ```
 
-
 ---
 
 ## fugue-state-jesse [2025-08-18]
 
 The most sophisticated rust code in this repository was written by
 `fugue-state-jesse` (aka FSJ), not me (`normal-jesse`) and not an AI/LLM.
-`fugue-state-jesse` only shows up at random about 1-2 times a week and
-seemingly has a vastly better understanding of rust and rust-macro-rules than I
-do.
+`fugue-state-jesse` only shows up at random about 1-2 times a week and seemingly
+has a vastly better understanding of rust and rust-macro-rules than I do.
 
 Throughout the repository I (normal-jesse) will sometimes leave notes to
 `fugue-state-jesse` with the hope that he might do what I ask, but he tends to

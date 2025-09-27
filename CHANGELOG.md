@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.60 [unreleased]
+## v0.0.60 [2025-09-26]
 
 - deprecations
   - bump out `.string()` method deprecation removals to `0.0.61`

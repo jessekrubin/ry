@@ -29,7 +29,7 @@ ergonomic.
 - **Datetime utilities via `jiff`:** Fast, accurate, timezone-aware datetime
   parsing and formatting, with `datetime` interop and much more
 - **Miscellaneous bindings:** Includes crates like `globset`, `walkdir`,
-  `sqlformat`, `unindent`, `xxhash`, and more.
+  `sqlformat`, `unindent`, `twox-hash`, and more.
 - **Designed for ergonomics:** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
 - **Type Annotated:** All public APIs are (painstakingly) type annotated.
@@ -105,7 +105,7 @@ _(aka: questions that I have been asking myself)_
     - `zstd`
   - hashing:
     - `fnv`
-    - `xxhash`
+    - `twox-hash`
   - burnt-sushi:
     - `globset` (formerly [globsters](https://pypi.org/project/globsters/))
     - `jiff`
@@ -130,6 +130,7 @@ _(aka: questions that I have been asking myself)_
 
 - utiles (web-map tile utils): https://github.com/jessekrubin/utiles
 
-[^1]: Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
+[^1]:
+    Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
     performance variance, regardless of whether "blazingly fast" appeared in the
     README or docs.

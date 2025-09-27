@@ -34,9 +34,10 @@
     `Py<CLASSNAME>` or `Ry<CLASSNAME>` and the prefix should be consistent
     throughout the library (eg `ryo3-jiff` uses `Ry` as the internal prefix to
     not conflict with the `Py<CLASSNAME>` structs provided by `pyo3`)
-  - For wrapper libraries, attempt to mirror the structure of the original library as much as possible
-  - wrapper library names should be of the form `ryo3-<LIB_NAME>` where `<LIB_NAME>`
-    is the name of the wrapped library
+  - For wrapper libraries, attempt to mirror the structure of the original
+    library as much as possible
+  - wrapper library names should be of the form `ryo3-<LIB_NAME>` where
+    `<LIB_NAME>` is the name of the wrapped library
   - library directories should be `kebab-case` and should be `ryo3-<LIB_NAME>`
 
 ## Creating a new library/wrapper-thing
