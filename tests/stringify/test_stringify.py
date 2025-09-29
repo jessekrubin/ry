@@ -265,6 +265,7 @@ PYTYPES_JSON_SER = [
     True,
     [1, 2, 3, 4, 5],
     (1, 2, 3, 4, 5),
+    (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17),
     [1, 2, 3, {"a": 1, "b": 2}],
     [],
     (),
@@ -557,4 +558,41 @@ def test_stringify_dataclass_nested() -> None:
     assert parsed == {
         "shape1": {"name": "circle", "point": {"x": 1, "y": 2}},
         "shape2": {"name": "square", "point": {"x": 3, "y": 4}},
+    }
+
+
+def test_stringify_non_dict_like_mapping() -> None:
+    """Test that `stringify` raises an error for non-dict-like mappings."""
+
+    class NonDictLikeMapping(t.Mapping[str, str]):
+        def __init__(self, data: dict[str, str]) -> None:
+            self._data = data
+
+        def __getitem__(self, key: str) -> str:
+            return self._data[key]
+
+        def __iter__(self) -> t.Iterator[str]:
+            return iter(self._data)
+
+        def __len__(self) -> int:
+            return len(self._data)
+
+        def keys(self) -> t.KeysView[str]:
+            return self._data.keys()
+
+        def values(self) -> t.ValuesView[str]:
+            return self._data.values()
+
+        def items(self) -> t.ItemsView[str, str]:
+            return self._data.items()
+
+    data = NonDictLikeMapping({
+        "key1": "value1",
+        "key2": "value2",
+    })
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert parsed == {
+        "key1": "value1",
+        "key2": "value2",
     }

@@ -262,6 +262,7 @@ impl PyTypeCache {
     //     }
     // }
 
+    #[inline]
     pub(crate) fn ptr2type(&self, ptr: usize, ob: &Bound<'_, PyAny>) -> PyObType {
         if ptr == self.none {
             PyObType::None
@@ -349,6 +350,7 @@ impl PyTypeCache {
     }
 
     #[must_use]
+    #[inline]
     pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
         self.ptr2type(ob.get_type_ptr() as usize, ob)
     }

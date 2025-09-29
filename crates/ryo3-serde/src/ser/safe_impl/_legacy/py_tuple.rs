@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use serde::ser::{Serialize, SerializeSeq, Serializer};
+use serde::ser::{Serialize, SerializeSeq, SerializeTuple, Serializer};
 
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
@@ -7,31 +7,31 @@ use crate::ob_type::PyObType;
 use crate::ser::safe_impl::{
     SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
     SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
-    SerializePyNone, SerializePySet, SerializePyStr, SerializePyTime, SerializePyTimeDelta,
-    SerializePyTuple, SerializePyUuid,
+    SerializePyList, SerializePyNone, SerializePySet, SerializePyStr, SerializePyTime,
+    SerializePyTimeDelta, SerializePyUuid,
 };
 use crate::ser::{PySerializeContext, rytypes};
 use crate::{SerializePyAny, serde_err_recursion};
-use pyo3::Bound;
-use pyo3::types::PyList;
 
-pub(crate) struct SerializePyList<'a, 'py> {
-    pub(crate) ctx: PySerializeContext<'py>,
+use pyo3::types::PyTuple;
+
+pub(crate) struct SerializePyTuple<'a, 'py> {
     pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> SerializePyList<'a, 'py> {
+impl<'a, 'py> SerializePyTuple<'a, 'py> {
     pub(crate) fn new(
         obj: &'a Bound<'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
-        Self { ctx, obj, depth }
+        Self { obj, ctx, depth }
     }
 }
 
-macro_rules! serialize_list_element {
+macro_rules! serialize_tuple_element {
     ($ob_type:expr, $seq:expr, $self:expr, $element:expr) => {
         match $ob_type {
             PyObType::None | PyObType::Ellipsis => {
@@ -205,7 +205,8 @@ macro_rules! serialize_list_element {
         }
     };
 }
-impl Serialize for SerializePyList<'_, '_> {
+
+impl Serialize for SerializePyTuple<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -213,17 +214,25 @@ impl Serialize for SerializePyList<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_list: &Bound<'_, PyList> = self.obj.cast_exact().map_err(pyerr2sererr)?;
-        let len = py_list.len();
+        let py_tuple: &Bound<'_, PyTuple> = self.obj.cast().map_err(pyerr2sererr)?;
+        let len = py_tuple.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
-        } else {
-            let mut seq = serializer.serialize_seq(Some(len))?;
-            for element in py_list {
+        } else  {
+            let mut tup = serializer.serialize_tuple(len)?;
+            for element in py_tuple {
                 let ob_type = self.ctx.typeref.obtype(&element);
-                serialize_list_element!(ob_type, seq, self, element);
+                serialize_tuple_element!(ob_type, tup, self, element);
             }
-            seq.end()
+            tup.end()
         }
+        // else {
+        //     let mut seq = serializer.serialize_seq(Some(len))?;
+        //     for element in py_tuple {
+        //         let ob_type = self.ctx.typeref.obtype(&element);
+        //         serialize_tuple_element!(ob_type, seq, self, element);
+        //     }
+        //     seq.end()
+        // }
     }
 }
