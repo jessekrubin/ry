@@ -34,32 +34,32 @@ class TestJiffDeprecationsStringFunctions:
 
     def test_jiff_string_deprecation_date(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.Date.today().string()  # type: ignore[deprecated]
+            _s = ry.Date.today().string()  # type: ignore[attr-defined]
 
     def test_jiff_string_deprecation_datetime(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.now().datetime().string()  # type: ignore[deprecated]
+            _s = ry.now().datetime().string()  # type: ignore[attr-defined]
 
     def test_jiff_string_deprecation_timestamp(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.now().timestamp().string()  # type: ignore[deprecated]
+            _s = ry.now().timestamp().string()  # type: ignore[attr-defined]
 
     def test_jiff_string_deprecation_time(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.Time.now().string()  # type: ignore[deprecated]
+            _s = ry.Time.now().string()  # type: ignore[attr-defined]
 
     def test_jiff_string_deprecation_offset(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.Offset(hours=5).string()  # type: ignore[deprecated]
+            _s = ry.Offset(hours=5).string()  # type: ignore[attr-defined]
 
     def test_jiff_string_deprecation_signed_duration(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.SignedDuration.MIN.string()  # type: ignore[deprecated]
+            _s = ry.SignedDuration.MIN.string()  # type: ignore[attr-defined]
 
     def test_jiff_string_deprecation_iso_week_date(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.ISOWeekDate.today().string()  # type: ignore[deprecated]
+            _s = ry.ISOWeekDate.today().string()  # type: ignore[attr-defined]
 
     def test_jiff_string_deprecation_zoned_datetime(self) -> None:
         with pytest.raises(AttributeError):
-            _s = ry.ZonedDateTime.now().string()  # type: ignore[deprecated]
+            _s = ry.ZonedDateTime.now().string()  # type: ignore[attr-defined]
