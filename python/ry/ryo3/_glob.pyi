@@ -21,30 +21,39 @@ class GlobPaths(t.Generic[_T]):
 def glob(
     pattern: str,
     *,
-    case_sensitive: bool = False,
+    case_sensitive: bool = True,
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
+    strict: bool = False,
 ) -> GlobPaths[Path]: ...
 @t.overload
 def glob(
     pattern: str,
     *,
-    case_sensitive: bool = False,
+    case_sensitive: bool = True,
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
+    strict: bool = False,
     dtype: type[_T],
 ) -> GlobPaths[_T]: ...
 
 @t.final
 class Pattern:
-    def __init__(self, pattern: str) -> None: ...
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_sensitive: bool = True,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
+    ) -> None: ...
     def __call__(
         self,
         ob: str | PathLike[str],
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -> bool: ...
     def matches(self, s: str) -> bool: ...
     def matches_path(self, path: PathLike[str]) -> bool: ...
@@ -52,19 +61,20 @@ class Pattern:
         self,
         s: str,
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -> bool: ...
     def matches_path_with(
         self,
         path: PathLike[str],
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -> bool: ...
     @staticmethod
     def escape(pattern: str) -> str: ...
     @property
     def pattern(self) -> str: ...
+    def __hash__(self) -> int: ...

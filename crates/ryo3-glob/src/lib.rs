@@ -7,6 +7,8 @@ use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyModule, PyType};
+use ryo3_macro_rules::py_value_err;
+use ryo3_macro_rules::py_value_error;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -62,6 +64,7 @@ impl PyGlobPaths {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
+
     fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
         loop {
             match self.next_path() {
@@ -71,11 +74,8 @@ impl PyGlobPaths {
                 }
                 Some(Err(e)) => {
                     if self.strict {
-                        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "{e}"
-                        )));
+                        return py_value_err!("{e}");
                     }
-                    // non-strict: skip error and keep iterating
                 }
                 None => return Ok(None),
             }
@@ -92,9 +92,7 @@ impl PyGlobPaths {
                         results.push(any);
                     }
                     Err(e) => {
-                        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "{e}"
-                        )));
+                        return py_value_err!("{e}");
                     }
                 }
             }
@@ -119,8 +117,7 @@ impl PyGlobPaths {
             let mut results = Vec::new();
 
             for path_result in self.inner.lock().by_ref().take(n) {
-                let path = path_result
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+                let path = path_result.map_err(|e| py_value_error!("{e}"))?;
                 let el = self.dtype.dtype_into_bound_py_any(py, path)?;
                 results.push(el);
             }
@@ -184,8 +181,8 @@ impl PyGlobPaths {
         case_sensitive=true,
         require_literal_separator=false,
         require_literal_leading_dot=false,
+        strict=true,
         dtype=None,
-        strict=true
     )
 )]
 pub fn py_glob(
@@ -193,8 +190,8 @@ pub fn py_glob(
     case_sensitive: bool,
     require_literal_separator: bool,
     require_literal_leading_dot: bool,
-    dtype: Option<Bound<'_, PyType>>,
     strict: bool,
+    dtype: Option<Bound<'_, PyType>>,
 ) -> PyResult<PyGlobPaths> {
     let dtype = extract_dtype(dtype)?;
     ::glob::glob_with(
@@ -210,7 +207,7 @@ pub fn py_glob(
         strict,
         dtype,
     })
-    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))
+    .map_err(|e| py_value_error!("{e}"))
 }
 
 fn pathlib_path_type(py: Python<'_>) -> PyResult<&Bound<'_, PyType>> {
@@ -238,7 +235,6 @@ fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
         } else if dtype.is(ry_fspath_type(py)?) {
             Ok(GlobDType::FsPath)
         } else {
-            // If you want the repr of the type in the error, you can call `dtype.repr()` here.
             let repr = dtype.repr()?.to_string_lossy().into_owned();
             Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                 "Invalid dtype: {repr} (only `str`, `pathlib.Path` or `ry.ryo3.FsPath` are supported)"
