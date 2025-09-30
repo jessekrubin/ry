@@ -1,12 +1,12 @@
-use crate::{JiffOffset, JiffTimeZone};
-use jiff::SignedDuration;
+use crate::errors::map_py_value_err;
+use crate::{JiffOffset, JiffSignedDuration, JiffTimeZone};
 use jiff::tz::Offset;
-use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyNone, PyTzInfo};
+use ryo3_macro_rules::py_type_err;
 
 impl<'py> IntoPyObject<'py> for JiffOffset {
-    type Target = PyAny;
+    type Target = PyTzInfo;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
@@ -16,7 +16,7 @@ impl<'py> IntoPyObject<'py> for JiffOffset {
 }
 
 impl<'py> IntoPyObject<'py> for &JiffOffset {
-    type Target = PyAny;
+    type Target = PyTzInfo;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
@@ -40,19 +40,16 @@ impl FromPyObject<'_> for JiffOffset {
         // Any other timezone would require a datetime as the parameter, and return
         // None if the datetime is not provided.
         // Trying to convert None to a PyDelta in the next line will then fail.
-        let py_timedelta = ob.call_method1("utcoffset", (PyNone::get(ob.py()),))?;
+        let py_timedelta =
+            ob.call_method1(pyo3::intern!(ob.py(), "utcoffset"), (PyNone::get(ob.py()),))?;
         if py_timedelta.is_none() {
-            return Err(PyTypeError::new_err(format!(
-                "{ob:?} is not a fixed offset timezone"
-            )));
+            return py_type_err!("{ob:?} is not a fixed offset timezone");
         }
-        let total_seconds: SignedDuration = py_timedelta.extract()?;
-        // This cast is safe since the timedelta is limited to -24 hours and 24 hours.
+        let total_seconds: JiffSignedDuration = py_timedelta.extract()?;
 
-        let total_seconds = i32::try_from(total_seconds.as_secs())
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-        let o = Offset::from_seconds(total_seconds)
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-        Ok(Self::from(o))
+        let total_seconds = i32::try_from(total_seconds.0.as_secs()).map_err(map_py_value_err)?;
+        Offset::from_seconds(total_seconds)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 }

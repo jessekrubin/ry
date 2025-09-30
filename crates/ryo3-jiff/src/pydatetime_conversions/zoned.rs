@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyTimeAccess;
 use pyo3::types::{PyDateTime, PyTzInfoAccess};
 
-pub fn zoned2pyobect<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
+pub fn zoned2pyobject<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
     z.into_pyobject(py)
 }
 
@@ -19,7 +19,7 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let z = &self.0;
-        zoned2pyobect(py, z)
+        zoned2pyobject(py, z)
     }
 }
 
