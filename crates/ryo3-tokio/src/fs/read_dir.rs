@@ -16,6 +16,7 @@ type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 pub struct PyAsyncReadDir {
     stream: AsyncResponseStreamInner,
 }
+
 impl From<ReadDir> for PyAsyncReadDir {
     fn from(readdir: ReadDir) -> Self {
         Self {
@@ -92,9 +93,7 @@ impl From<tokio::fs::DirEntry> for PyAsyncDirEntry {
 #[pymethods]
 impl PyAsyncDirEntry {
     fn __repr__(&self) -> String {
-        let path = self.0.path();
-        let pathstr = path.to_string_lossy();
-        format!("AsyncDirEntry<'{pathstr}'>")
+        format!("{self:?}")
     }
 
     #[must_use]

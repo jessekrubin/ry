@@ -1,8 +1,8 @@
 # API
 
 ## Table of Contents
-
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
+- [`ry.ryo3.__about__`](#ry.ryo3.__about__)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
@@ -60,6 +60,14 @@ from ry.ryo3 import ulid as ulid
 from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
+from ry.ryo3.__about__ import __authors__ as __authors__
+from ry.ryo3.__about__ import __build_profile__ as __build_profile__
+from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
+from ry.ryo3.__about__ import __description__ as __description__
+from ry.ryo3.__about__ import __opt_level__ as __opt_level__
+from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
+from ry.ryo3.__about__ import __target__ as __target__
+from ry.ryo3.__about__ import __version__ as __version__
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -275,10 +283,13 @@ from ry.ryo3.sh import home as home
 from ry.ryo3.sh import ls as ls
 from ry.ryo3.sh import mkdir as mkdir
 from ry.ryo3.sh import pwd as pwd
+```
 
-# =============================================================================
-# CONSTANTS
-# =============================================================================
+<h2 id="ry.ryo3.__about__"><code>ry.ryo3.__about__</code></h2>
+
+```python
+import typing as t
+
 __version__: str
 __authors__: str
 __build_profile__: str
@@ -286,6 +297,7 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
+__opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 ```
 
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
@@ -680,7 +692,6 @@ class FsPath(ToPy[Path], ToString):
     def replace(self, new_path: PathLike[str] | str) -> FsPath: ...
     def resolve(self) -> FsPath: ...
     def rmdir(self, recursive: bool = False) -> None: ...
-    def string(self) -> str: ...
     def unlink(
         self, missing_ok: bool = False, recursive: bool = False
     ) -> None: ...
@@ -809,31 +820,40 @@ class GlobPaths(t.Generic[_T]):
 def glob(
     pattern: str,
     *,
-    case_sensitive: bool = False,
+    case_sensitive: bool = True,
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
+    strict: bool = False,
 ) -> GlobPaths[Path]: ...
 @t.overload
 def glob(
     pattern: str,
     *,
-    case_sensitive: bool = False,
+    case_sensitive: bool = True,
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
+    strict: bool = False,
     dtype: type[_T],
 ) -> GlobPaths[_T]: ...
 
 
 @t.final
 class Pattern:
-    def __init__(self, pattern: str) -> None: ...
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_sensitive: bool = True,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
+    ) -> None: ...
     def __call__(
         self,
         ob: str | PathLike[str],
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -> bool: ...
     def matches(self, s: str) -> bool: ...
     def matches_path(self, path: PathLike[str]) -> bool: ...
@@ -841,22 +861,23 @@ class Pattern:
         self,
         s: str,
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -> bool: ...
     def matches_path_with(
         self,
         path: PathLike[str],
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -> bool: ...
     @staticmethod
     def escape(pattern: str) -> str: ...
     @property
     def pattern(self) -> str: ...
+    def __hash__(self) -> int: ...
 ```
 
 <h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
@@ -1389,8 +1410,6 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     # =========================================================================
     # STRING
     # =========================================================================
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -> str: ...
     def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
 
@@ -1550,10 +1569,6 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
     # =========================================================================
     # STRING
     # =========================================================================
-    @deprecated(
-        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
-    )
-    def string(self) -> str: ...
     def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
 
@@ -1744,10 +1759,6 @@ class DateTime(
         second: int = 0,
         nanosecond: int = 0,
     ) -> None: ...
-    @deprecated(
-        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
-    )
-    def string(self) -> str: ...
     def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
 
@@ -2050,8 +2061,6 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def isoformat(self) -> str: ...
     @classmethod
     def from_isoformat(cls, s: str) -> t.Self: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self, *, friendly: bool = False) -> str: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
 
@@ -2185,8 +2194,6 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def isoformat(self) -> str: ...
     @classmethod
     def from_isoformat(cls, s: str) -> t.Self: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self, *, friendly: bool = False) -> str: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
     def repr_full(self) -> str: ...
@@ -2446,8 +2453,6 @@ class Timestamp(
     def is_zero(self) -> bool: ...
     def series(self, span: TimeSpan) -> JiffSeries[t.Self]: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -> str: ...
     def to_string(self) -> str: ...
     def subsec_microsecond(self) -> int: ...
     def subsec_millisecond(self) -> int: ...
@@ -2614,8 +2619,6 @@ class ZonedDateTime(
     # =========================================================================
     # STRING/FORMAT
     # =========================================================================
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -> str: ...
     def to_string(self) -> str: ...
     def to_rfc2822(self) -> str: ...
     def format_rfc2822(self) -> str: ...
@@ -2804,8 +2807,6 @@ class ISOWeekDate:
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -> Date: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -> str: ...
     def to_string(self) -> str: ...
     def to_dict(self) -> ISOWeekDateTypedDict: ...
 
@@ -2824,8 +2825,6 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -> str: ...
     def to_string(self) -> str: ...
 
     # =========================================================================
