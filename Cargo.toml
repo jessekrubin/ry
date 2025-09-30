@@ -47,8 +47,8 @@ panic = "abort"
 # there does not seem to be a noticeable difference in the performance tho
 # at the time of writing this (2024-12-20) the `fat` binary is 12.5mb and
 # the `thin` binary is 12.6mb (who's thin now!?).
-# lto = "thin" # or "fat"
-lto = "fat"
+lto = "thin" # or "fat"
+# lto = "fat"
 
 # release fat profile
 [profile.bench]
