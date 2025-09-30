@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-09-29T18:52:31.710888657-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-09-30T09:00:58.584988977-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -2289,6 +2289,7 @@ if __name__ == "__main__":
 <h2 id="table-of-contents"><a class="header" href="#table-of-contents">Table of Contents</a></h2>
 <ul>
 <li><a href="api.html#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></li>
+<li><a href="api.html#ry.ryo3.__about__"><code>ry.ryo3.__about__</code></a></li>
 <li><a href="api.html#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></li>
 <li><a href="api.html#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></li>
 <li><a href="api.html#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></li>
@@ -2345,6 +2346,14 @@ from ry.ryo3 import ulid as ulid
 from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
+from ry.ryo3.__about__ import __authors__ as __authors__
+from ry.ryo3.__about__ import __build_profile__ as __build_profile__
+from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
+from ry.ryo3.__about__ import __description__ as __description__
+from ry.ryo3.__about__ import __opt_level__ as __opt_level__
+from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
+from ry.ryo3.__about__ import __target__ as __target__
+from ry.ryo3.__about__ import __version__ as __version__
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -2560,10 +2569,10 @@ from ry.ryo3.sh import home as home
 from ry.ryo3.sh import ls as ls
 from ry.ryo3.sh import mkdir as mkdir
 from ry.ryo3.sh import pwd as pwd
+</code></pre>
+<h2 id="ry.ryo3.__about__"><a class="header" href="#ry.ryo3.__about__"><code>ry.ryo3.__about__</code></a></h2>
+<pre><code class="language-python">import typing as t
 
-# =============================================================================
-# CONSTANTS
-# =============================================================================
 __version__: str
 __authors__: str
 __build_profile__: str
@@ -2571,6 +2580,7 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
+__opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 </code></pre>
 <h2 id="ry.ryo3._brotli"><a class="header" href="#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></h2>
 <pre><code class="language-python">"""ryo3-brotli types"""
@@ -2944,7 +2954,6 @@ class FsPath(ToPy[Path], ToString):
     def replace(self, new_path: PathLike[str] | str) -&gt; FsPath: ...
     def resolve(self) -&gt; FsPath: ...
     def rmdir(self, recursive: bool = False) -&gt; None: ...
-    def string(self) -&gt; str: ...
     def unlink(
         self, missing_ok: bool = False, recursive: bool = False
     ) -&gt; None: ...
@@ -3070,31 +3079,40 @@ class GlobPaths(t.Generic[_T]):
 def glob(
     pattern: str,
     *,
-    case_sensitive: bool = False,
+    case_sensitive: bool = True,
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
+    strict: bool = False,
 ) -&gt; GlobPaths[Path]: ...
 @t.overload
 def glob(
     pattern: str,
     *,
-    case_sensitive: bool = False,
+    case_sensitive: bool = True,
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
+    strict: bool = False,
     dtype: type[_T],
 ) -&gt; GlobPaths[_T]: ...
 
 
 @t.final
 class Pattern:
-    def __init__(self, pattern: str) -&gt; None: ...
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        case_sensitive: bool = True,
+        require_literal_separator: bool = False,
+        require_literal_leading_dot: bool = False,
+    ) -&gt; None: ...
     def __call__(
         self,
         ob: str | PathLike[str],
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -&gt; bool: ...
     def matches(self, s: str) -&gt; bool: ...
     def matches_path(self, path: PathLike[str]) -&gt; bool: ...
@@ -3102,22 +3120,23 @@ class Pattern:
         self,
         s: str,
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -&gt; bool: ...
     def matches_path_with(
         self,
         path: PathLike[str],
         *,
-        case_sensitive: bool = False,
-        require_literal_separator: bool = False,
-        require_literal_leading_dot: bool = False,
+        case_sensitive: bool | None = None,
+        require_literal_separator: bool | None = None,
+        require_literal_leading_dot: bool | None = None,
     ) -&gt; bool: ...
     @staticmethod
     def escape(pattern: str) -&gt; str: ...
     @property
     def pattern(self) -&gt; str: ...
+    def __hash__(self) -&gt; int: ...
 </code></pre>
 <h2 id="ry.ryo3._globset"><a class="header" href="#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></h2>
 <pre><code class="language-python">"""ryo3-globset types"""
@@ -3638,8 +3657,6 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     # =========================================================================
     # STRING
     # =========================================================================
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -&gt; str: ...
     def to_string(self) -&gt; str: ...
     def isoformat(self) -&gt; str: ...
 
@@ -3799,10 +3816,6 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
     # =========================================================================
     # STRING
     # =========================================================================
-    @deprecated(
-        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
-    )
-    def string(self) -&gt; str: ...
     def to_string(self) -&gt; str: ...
     def isoformat(self) -&gt; str: ...
 
@@ -3993,10 +4006,6 @@ class DateTime(
         second: int = 0,
         nanosecond: int = 0,
     ) -&gt; None: ...
-    @deprecated(
-        "`obj.string()` is deprecated, use `obj.to_string()` or `obj.isoformat()` instead"
-    )
-    def string(self) -&gt; str: ...
     def to_string(self) -&gt; str: ...
     def isoformat(self) -&gt; str: ...
 
@@ -4299,8 +4308,6 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def isoformat(self) -&gt; str: ...
     @classmethod
     def from_isoformat(cls, s: str) -&gt; t.Self: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self, *, friendly: bool = False) -&gt; str: ...
     def to_string(self, *, friendly: bool = False) -&gt; str: ...
     def friendly(self) -&gt; str: ...
 
@@ -4434,8 +4441,6 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     def isoformat(self) -&gt; str: ...
     @classmethod
     def from_isoformat(cls, s: str) -&gt; t.Self: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self, *, friendly: bool = False) -&gt; str: ...
     def to_string(self, *, friendly: bool = False) -&gt; str: ...
     def friendly(self) -&gt; str: ...
     def repr_full(self) -&gt; str: ...
@@ -4695,8 +4700,6 @@ class Timestamp(
     def is_zero(self) -&gt; bool: ...
     def series(self, span: TimeSpan) -&gt; JiffSeries[t.Self]: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -&gt; str: ...
     def to_string(self) -&gt; str: ...
     def subsec_microsecond(self) -&gt; int: ...
     def subsec_millisecond(self) -&gt; int: ...
@@ -4863,8 +4866,6 @@ class ZonedDateTime(
     # =========================================================================
     # STRING/FORMAT
     # =========================================================================
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -&gt; str: ...
     def to_string(self) -&gt; str: ...
     def to_rfc2822(self) -&gt; str: ...
     def format_rfc2822(self) -&gt; str: ...
@@ -5053,8 +5054,6 @@ class ISOWeekDate:
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -&gt; Date: ...
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -&gt; str: ...
     def to_string(self) -&gt; str: ...
     def to_dict(self) -&gt; ISOWeekDateTypedDict: ...
 
@@ -5073,8 +5072,6 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     # =========================================================================
     # STRING
     # =========================================================================
-    @deprecated("`obj.string()` is deprecated, use `obj.to_string()`")
-    def string(self) -&gt; str: ...
     def to_string(self) -&gt; str: ...
 
     # =========================================================================
