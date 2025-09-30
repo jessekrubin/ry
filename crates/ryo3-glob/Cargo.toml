@@ -16,6 +16,7 @@ glob.workspace = true
 parking_lot.workspace = true
 pyo3.workspace = true
 ryo3-fspath.workspace = true
+ryo3-macro-rules.workspace = true
 
 [features]
 ry = []

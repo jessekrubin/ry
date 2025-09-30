@@ -1918,6 +1918,7 @@ dependencies = [
  "parking_lot",
  "pyo3",
  "ryo3-fspath",
+ "ryo3-macro-rules",
 ]
 
 [[package]]
