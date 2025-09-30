@@ -107,7 +107,7 @@ impl RyOffset {
     }
 
     fn to_py(&self) -> &Offset {
-        &self.0
+        self.to_pytzinfo()
     }
 
     fn to_pytzinfo(&self) -> &Offset {

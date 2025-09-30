@@ -2,7 +2,8 @@
 
 ## v0.0.61 [unreleased]
 
-- use `jessekrubin/pyo3-async-runtimes` (branch 'unpaid-interns') git repo (for now):
+- use `jessekrubin/pyo3-async-runtimes` (branch 'unpaid-interns') git repo (for
+  now):
   - [PyO3/pyo3-async-runtimes#60](https://github.com/PyO3/pyo3-async-runtimes/pull/60)
   - [PyO3/pyo3-async-runtimes#62](https://github.com/PyO3/pyo3-async-runtimes/pull/62)
 - removed deprecated `.string()` methods from several structs/clases:

@@ -1,19 +1,25 @@
+use crate::JiffSignedDuration;
 use crate::{JiffOffset, JiffTimeZone};
 use jiff::tz::TimeZone;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
-use pyo3::sync::PyOnceLock;
-use pyo3::types::{PyType, PyTzInfo};
+use pyo3::types::PyTzInfo;
 
-pub fn timezone2pyobect<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyAny>> {
-    static ZONE_INFO: PyOnceLock<Py<PyType>> = PyOnceLock::new();
-    ZONE_INFO
-        .import(py, "zoneinfo", "ZoneInfo")
-        .and_then(|obj| obj.call1((tz.iana_name(),)))
+pub fn timezone2pyobject<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyTzInfo>> {
+    if tz == &TimeZone::UTC {
+        Ok(PyTzInfo::utc(py)?.to_owned())
+    } else if let Some(iana_name) = tz.iana_name() {
+        Ok(PyTzInfo::timezone(py, iana_name)?)
+    } else {
+        let off = tz.to_fixed_offset()?;
+        let dur = off.duration_since(jiff::tz::Offset::UTC);
+        PyTzInfo::fixed_offset(py, JiffSignedDuration(dur))
+    }
 }
+
 impl<'py> IntoPyObject<'py> for JiffTimeZone {
-    type Target = PyAny;
+    type Target = PyTzInfo;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
@@ -21,13 +27,14 @@ impl<'py> IntoPyObject<'py> for JiffTimeZone {
         (&self).into_pyobject(py)
     }
 }
+
 impl<'py> IntoPyObject<'py> for &JiffTimeZone {
-    type Target = PyAny;
+    type Target = PyTzInfo;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        timezone2pyobect(py, &self.0)
+        timezone2pyobject(py, &self.0)
     }
 }
 
