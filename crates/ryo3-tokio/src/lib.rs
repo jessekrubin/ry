@@ -1,17 +1,19 @@
 #![doc = include_str!("../README.md")]
 
+#[cfg(feature = "fs")]
 pub mod fs;
+#[cfg(feature = "time")]
 pub mod time;
 
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use pyo3::{PyResult, wrap_pyfunction};
 
+#[cfg_attr(not(any(feature = "fs", feature = "time")), expect(unused_variables))]
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(time::asleep, m)?)?;
-    m.add_function(wrap_pyfunction!(time::sleep_async, m)?)?;
+    #[cfg(feature = "time")]
+    time::pymod_add(m)?;
 
-    // fs
+    #[cfg(feature = "fs")]
     fs::pymod_add(m)?;
 
     Ok(())

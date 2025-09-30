@@ -16,13 +16,19 @@ futures = "0.3.31"
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
-ryo3-std = {workspace = true, features = ["fs"] }
-tokio.workspace = true
+ryo3-std = {workspace = true, features = [] }
+# tokio = { version = "1.45.1", features = ["bytes", "fs", "macros", "parking_lot", "rt", "rt-multi-thread", "sync", "io-util"] }
+tokio= { workspace = true, features = [] }
 tracing.workspace = true
 
 [features]
 default = []
-ry = []
+ry = [
+  "fs", "time"
+]
+fs = ["tokio/fs", "ryo3-std/fs"]
+time = ["tokio/time", "ryo3-std/time"]
+
 
 [lints]
 workspace = true
