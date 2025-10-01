@@ -78,12 +78,12 @@ impl Serialize for SerializePyDateTime<'_, '_> {
         // has tz?
         // let has_tzinfo = dt.get_tzinfo().is_some();
         if let Some(_tzinfo) = py_dt.get_tzinfo() {
-            let zdt: jiff::Zoned = py_dt.extract().map_err(pyerr2sererr)?;
-            zdt.serialize(serializer)
+            let zdt: ryo3_jiff::JiffZoned = py_dt.extract().map_err(pyerr2sererr)?;
+            zdt.0.serialize(serializer)
         } else {
             // if no tzinfo, use jiff to serialize
-            let dt: jiff::civil::DateTime = py_dt.extract().map_err(pyerr2sererr)?;
-            dt.serialize(serializer)
+            let dt: ryo3_jiff::JiffDateTime = py_dt.extract().map_err(pyerr2sererr)?;
+            dt.0.serialize(serializer)
         }
     }
 }
@@ -123,8 +123,9 @@ impl Serialize for SerializePyTimeDelta<'_, '_> {
     {
         let py_timedelta: &Bound<'_, pyo3::types::PyDelta> =
             self.obj.cast().map_err(pyerr2sererr)?;
-        let signed_duration: jiff::SignedDuration = py_timedelta.extract().map_err(pyerr2sererr)?;
-        signed_duration.serialize(serializer)
+        let signed_duration: ryo3_jiff::JiffSignedDuration =
+            py_timedelta.extract().map_err(pyerr2sererr)?;
+        signed_duration.0.serialize(serializer)
     }
 }
 

@@ -32,7 +32,8 @@ default = [
 ]
 jiff = [
   "dep:jiff",
-  "pyo3/jiff-02",
+  "ryo3-jiff",
+  # "pyo3/jiff-02",
 ]
 # ryo3-jiff = ["ryo3-jiff/serde"]
 ry = [
