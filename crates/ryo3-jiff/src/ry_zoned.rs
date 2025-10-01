@@ -11,11 +11,10 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
 use crate::{
-    JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZone, JiffTimeZoneRef,
-    JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef,
-    RyDate,
+    JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZoneRef, JiffTzDisambiguation,
+    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef, RyDate,
 };
-use jiff::civil::{Date, Time, Weekday};
+use jiff::civil::{Date, Weekday};
 use jiff::tz::{Offset, TimeZone};
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::IntoPyObjectExt;
@@ -258,11 +257,11 @@ impl RyZoned {
         Ok(dict)
     }
 
-    fn to_py(&self) -> JiffZonedRef {
+    fn to_py(&self) -> JiffZonedRef<'_> {
         self.to_pydatetime()
     }
 
-    fn to_pydatetime(&self) -> JiffZonedRef {
+    fn to_pydatetime(&self) -> JiffZonedRef<'_> {
         JiffZonedRef::from(&self.0)
     }
 
@@ -274,7 +273,7 @@ impl RyZoned {
         self.0.time().into()
     }
 
-    fn to_pytzinfo(&self) -> JiffTimeZoneRef {
+    fn to_pytzinfo(&self) -> JiffTimeZoneRef<'_> {
         let tz = self.0.time_zone();
         JiffTimeZoneRef::from(tz)
     }

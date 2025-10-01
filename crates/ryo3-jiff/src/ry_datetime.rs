@@ -14,7 +14,7 @@ use crate::{
     RyDate, RyDateTimeRound, RyTimestamp,
 };
 use jiff::Zoned;
-use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
+use jiff::civil::{DateTime, DateTimeRound, Weekday};
 use jiff::tz::TimeZone;
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;

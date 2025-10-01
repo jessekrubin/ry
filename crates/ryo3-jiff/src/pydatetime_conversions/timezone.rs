@@ -35,7 +35,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZoneRef<'_> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        timezone2pyobject(py, &self.0)
+        timezone2pyobject(py, self.0)
     }
 }
 

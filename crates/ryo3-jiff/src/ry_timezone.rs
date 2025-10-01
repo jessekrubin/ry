@@ -133,12 +133,12 @@ impl RyTimeZone {
     // PY-CONVERSIONS
     // =====================================================================
 
-    fn to_py(&self) -> JiffTimeZoneRef {
+    fn to_py(&self) -> JiffTimeZoneRef<'_> {
         let tz = self.0.as_ref();
         JiffTimeZoneRef::from(tz)
     }
 
-    fn to_pytzinfo(&self) -> JiffTimeZoneRef {
+    fn to_pytzinfo(&self) -> JiffTimeZoneRef<'_> {
         let tz = self.0.as_ref();
         JiffTimeZoneRef::from(tz)
     }

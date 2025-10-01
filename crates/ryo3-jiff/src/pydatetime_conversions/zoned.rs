@@ -33,18 +33,19 @@ fn datetime_to_pydatetime<'py>(
     )
 }
 
-pub fn zoned2pyobject<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
-    fn fold(zoned: &Zoned) -> Option<bool> {
-        let prev = zoned.time_zone().preceding(zoned.timestamp()).next()?;
-        let next = zoned.time_zone().following(prev.timestamp()).next()?;
-        let start_of_current_offset = if next.timestamp() == zoned.timestamp() {
-            next.timestamp()
-        } else {
-            prev.timestamp()
-        };
-        Some(zoned.timestamp() + (zoned.offset() - prev.offset()) <= start_of_current_offset)
-    }
+#[expect(clippy::arithmetic_side_effects)]
+fn fold(zoned: &Zoned) -> Option<bool> {
+    let prev = zoned.time_zone().preceding(zoned.timestamp()).next()?;
+    let next = zoned.time_zone().following(prev.timestamp()).next()?;
+    let start_of_current_offset = if next.timestamp() == zoned.timestamp() {
+        next.timestamp()
+    } else {
+        prev.timestamp()
+    };
+    Some(zoned.timestamp() + (zoned.offset() - prev.offset()) <= start_of_current_offset)
+}
 
+pub fn zoned2pyobject<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
     datetime_to_pydatetime(
         py,
         &z.datetime(),
