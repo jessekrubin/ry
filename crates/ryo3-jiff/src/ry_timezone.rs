@@ -1,9 +1,9 @@
-use crate::JiffTimeZone;
 use crate::errors::map_py_value_err;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
+use crate::{JiffTimeZone, JiffTimeZoneRef};
 use jiff::Timestamp;
 use jiff::tz::{Offset, TimeZone};
 use pyo3::IntoPyObjectExt;
@@ -133,12 +133,14 @@ impl RyTimeZone {
     // PY-CONVERSIONS
     // =====================================================================
 
-    fn to_py(&self) -> &TimeZone {
-        &self.0
+    fn to_py(&self) -> JiffTimeZoneRef {
+        let tz = self.0.as_ref();
+        JiffTimeZoneRef::from(tz)
     }
 
-    fn to_pytzinfo(&self) -> &TimeZone {
-        &self.0
+    fn to_pytzinfo(&self) -> JiffTimeZoneRef {
+        let tz = self.0.as_ref();
+        JiffTimeZoneRef::from(tz)
     }
 
     #[staticmethod]

@@ -1,11 +1,33 @@
 use crate::jiff_types::JiffDateTime;
-use crate::pydatetime_conversions::{py_date_to_date, py_time_to_jiff_time};
+use crate::pydatetime_conversions::{py_date_to_date, pytime_to_time};
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::PyDateTime;
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyTzInfoAccess;
+
+fn datetime_to_pydatetime<'py>(
+    py: Python<'py>,
+    datetime: &DateTime,
+    fold: bool,
+) -> PyResult<Bound<'py, PyDateTime>> {
+    // let tz = timezone
+    // .map(|tz| JiffTimeZoneRef(tz).into_pyobject(py))
+    // .transpose()?;
+    PyDateTime::new_with_fold(
+        py,
+        datetime.year().into(),
+        datetime.month().try_into()?,
+        datetime.day().try_into()?,
+        datetime.hour().try_into()?,
+        datetime.minute().try_into()?,
+        datetime.second().try_into()?,
+        (datetime.subsec_nanosecond() / 1000).try_into()?,
+        None,
+        fold,
+    )
+}
 
 impl<'py> IntoPyObject<'py> for JiffDateTime {
     type Target = PyDateTime;
@@ -24,7 +46,7 @@ impl<'py> IntoPyObject<'py> for &JiffDateTime {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        self.0.into_pyobject(py)
+        datetime_to_pydatetime(py, &self.0, false)
     }
 }
 
@@ -43,7 +65,7 @@ impl FromPyObject<'_> for JiffDateTime {
             return Err(PyTypeError::new_err("expected a datetime without tzinfo"));
         }
         let jiff_date = py_date_to_date(dt)?;
-        let jiff_time = py_time_to_jiff_time(dt)?;
+        let jiff_time = pytime_to_time(dt)?;
         let dt = DateTime::from_parts(jiff_date, jiff_time);
         // ::new(date_from_pyobject(dt)?, py_time_to_jiff_time(dt)?);
         Ok(dt.into())

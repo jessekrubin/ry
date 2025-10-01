@@ -11,8 +11,9 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
 use crate::{
-    JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
-    JiffWeekday, JiffZoned, RyDate,
+    JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZone, JiffTimeZoneRef,
+    JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef,
+    RyDate,
 };
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::{Offset, TimeZone};
@@ -257,24 +258,25 @@ impl RyZoned {
         Ok(dict)
     }
 
-    fn to_py(&self) -> &Zoned {
+    fn to_py(&self) -> JiffZonedRef {
         self.to_pydatetime()
     }
 
-    fn to_pydatetime(&self) -> &Zoned {
-        &self.0
+    fn to_pydatetime(&self) -> JiffZonedRef {
+        JiffZonedRef::from(&self.0)
     }
 
-    fn to_pydate(&self) -> Date {
-        self.0.date()
+    fn to_pydate(&self) -> JiffDate {
+        self.0.date().into()
     }
 
-    fn to_pytime(&self) -> Time {
-        self.0.time()
+    fn to_pytime(&self) -> JiffTime {
+        self.0.time().into()
     }
 
-    fn to_pytzinfo(&self) -> &TimeZone {
-        self.0.time_zone()
+    fn to_pytzinfo(&self) -> JiffTimeZoneRef {
+        let tz = self.0.time_zone();
+        JiffTimeZoneRef::from(tz)
     }
 
     #[staticmethod]
@@ -763,7 +765,7 @@ impl RyZoned {
             value.into_bound_py_any(py)
         } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
             let dt = d.get().0.to_zoned(TimeZone::UTC);
-            dt.into_bound_py_any(py)
+            Self::from(dt).into_bound_py_any(py)
         } else if let Ok(d) = value.extract::<JiffZoned>() {
             Self::from(d.0).into_bound_py_any(py)
         } else {

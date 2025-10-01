@@ -162,16 +162,16 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn from_pytimedelta(delta: SignedDuration) -> Self {
-        Self(delta)
+    fn from_pytimedelta(delta: JiffSignedDuration) -> Self {
+        Self(delta.0)
     }
 
-    fn to_py(&self) -> &SignedDuration {
-        &self.0
+    fn to_py(&self) -> JiffSignedDuration {
+        self.to_pytimedelta()
     }
 
-    fn to_pytimedelta(&self) -> &SignedDuration {
-        &self.0
+    fn to_pytimedelta(&self) -> JiffSignedDuration {
+        JiffSignedDuration(self.0)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -675,7 +675,7 @@ impl RySignedDuration {
         } else if let Ok(v) = value.cast_exact::<PyInt>() {
             let i = v.extract::<i64>()?;
             Self::from(SignedDuration::new(i, 0)).into_bound_py_any(py)
-        } else if let Ok(d) = value.extract::<SignedDuration>() {
+        } else if let Ok(d) = value.extract::<JiffSignedDuration>() {
             Self::from(d).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);

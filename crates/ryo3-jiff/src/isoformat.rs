@@ -3,6 +3,8 @@ use jiff::fmt::temporal::DateTimePrinter;
 use pyo3::PyResult;
 use ryo3_macro_rules::py_value_error;
 
+use crate::errors::map_py_value_err;
+
 pub(crate) const ISOFORMAT_PRINTER_NO_MICROS: DateTimePrinter =
     DateTimePrinter::new().separator(b'T').precision(Some(0));
 pub(crate) const ISOFORMAT_PRINTER: DateTimePrinter =
@@ -39,7 +41,10 @@ pub(crate) fn parse_iso_week_date(s: &str) -> PyResult<jiff::civil::ISOWeekDate>
     // Extract pieces
     let year = s[0..4].parse()?;
     let week = s[6..8].parse()?;
-    let weekday = s[9..10].parse().map(Weekday::from_monday_one_offset)??;
+    let weekday = s[9..10]
+        .parse()
+        .map(Weekday::from_monday_one_offset)?
+        .map_err(map_py_value_err)?;
 
     jiff::civil::ISOWeekDate::new(year, week, weekday)
         .map_err(|e| py_value_error!("Invalid ISO week date: {e}"))

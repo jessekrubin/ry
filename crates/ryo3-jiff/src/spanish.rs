@@ -1,6 +1,6 @@
 //! Span-ish ry/python object(s)
 
-use crate::{RySignedDuration, RySpan};
+use crate::{JiffSignedDuration, RySignedDuration, RySpan};
 use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
 use jiff::tz::OffsetArithmetic;
 use jiff::{SignedDuration, Span, TimestampArithmetic, ZonedArithmetic};
@@ -29,7 +29,7 @@ impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
         } else if let Ok(signed_duration) = ob.cast::<RySignedDuration>() {
             RySpanishObject::SignedDuration(signed_duration)
         } else if let Ok(signed_duration) = ob.cast::<PyDelta>() {
-            let signed_duration = signed_duration.extract::<SignedDuration>()?;
+            let signed_duration = signed_duration.extract::<JiffSignedDuration>()?.0;
             RySpanishObject::PyTimeDelta(signed_duration)
         } else {
             return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(

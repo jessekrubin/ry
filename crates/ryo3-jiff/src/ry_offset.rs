@@ -106,12 +106,12 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
-    fn to_py(&self) -> &Offset {
+    fn to_py(&self) -> JiffOffset {
         self.to_pytzinfo()
     }
 
-    fn to_pytzinfo(&self) -> &Offset {
-        &self.0
+    fn to_pytzinfo(&self) -> JiffOffset {
+        JiffOffset(self.0)
     }
 
     #[expect(clippy::wrong_self_convention)]

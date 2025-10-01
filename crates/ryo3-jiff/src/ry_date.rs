@@ -10,7 +10,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
-use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
+use crate::{JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
 use pyo3::prelude::*;
@@ -239,18 +239,18 @@ impl RyDate {
     }
 
     #[staticmethod]
-    fn from_pydate(d: Date) -> Self {
-        Self(d)
+    fn from_pydate(d: JiffDate) -> Self {
+        Self::from(d)
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> Date {
+    fn to_py(&self) -> JiffDate {
         self.to_pydate()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydate(&self) -> Date {
-        self.0
+    fn to_pydate(&self) -> JiffDate {
+        self.0.into()
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -486,7 +486,7 @@ impl RyDate {
         } else if let Ok(d) = value.extract::<RyZoned>() {
             let dt = d.date();
             dt.into_bound_py_any(py)
-        } else if let Ok(d) = value.extract::<Date>() {
+        } else if let Ok(d) = value.extract::<JiffDate>() {
             Self::from_pydate(d).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
@@ -531,5 +531,11 @@ impl Display for RyDate {
 impl From<Date> for RyDate {
     fn from(value: Date) -> Self {
         Self(value)
+    }
+}
+
+impl From<JiffDate> for RyDate {
+    fn from(value: JiffDate) -> Self {
+        Self(value.0)
     }
 }

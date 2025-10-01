@@ -13,7 +13,12 @@ pub fn signed_duration_to_pyobject<'py>(
     py: Python<'py>,
     duration: &SignedDuration,
 ) -> PyResult<Bound<'py, PyDelta>> {
-    duration.into_pyobject(py)
+    let total_seconds = duration.as_secs();
+    let days: i32 = (total_seconds / (24 * 60 * 60)).try_into()?;
+    let seconds: i32 = (total_seconds % (24 * 60 * 60)).try_into()?;
+    let microseconds = duration.subsec_micros();
+
+    PyDelta::new(py, days, seconds, microseconds, true)
 }
 
 pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedDuration> {

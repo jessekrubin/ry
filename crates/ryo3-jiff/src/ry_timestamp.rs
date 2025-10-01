@@ -7,7 +7,10 @@ use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyTimestampSeries;
 use crate::spanish::Spanish;
-use crate::{JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyOffset, RyTime};
+use crate::{
+    JiffDate, JiffRoundMode, JiffTime, JiffTimestamp, JiffUnit, RyDate, RyDateTime, RyOffset,
+    RyTime,
+};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::IntoPyObjectExt;
@@ -119,28 +122,28 @@ impl RyTimestamp {
 
     #[staticmethod]
     fn from_pydatetime<'py>(_cls: &Bound<'py, PyType>, dt: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let ts = dt.extract::<Timestamp>()?;
-        Ok(Self(ts))
+        let ts = dt.extract::<JiffTimestamp>().map(Self::from)?;
+        Ok(ts)
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> Timestamp {
-        self.0
+    fn to_py(&self) -> JiffTimestamp {
+        self.to_pydatetime()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydatetime(&self) -> Timestamp {
-        self.0
+    fn to_pydatetime(&self) -> JiffTimestamp {
+        self.0.into()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydate(&self) -> jiff::civil::Date {
-        self.0.to_zoned(TimeZone::UTC).date()
+    fn to_pydate(&self) -> JiffDate {
+        self.0.to_zoned(TimeZone::UTC).date().into()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pytime(&self) -> jiff::civil::Time {
-        self.0.to_zoned(TimeZone::UTC).time()
+    fn to_pytime(&self) -> JiffTime {
+        self.0.to_zoned(TimeZone::UTC).time().into()
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -432,10 +435,14 @@ impl RyTimestamp {
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
             d.get().timestamp().into_bound_py_any(py)
         } else if let Ok(dt) = value.cast_exact::<RyDateTime>() {
-            let zdt = dt.get().0.to_zoned(TimeZone::UTC)?;
+            let zdt = dt
+                .get()
+                .0
+                .to_zoned(TimeZone::UTC)
+                .map_err(map_py_value_err)?;
             let ts = zdt.timestamp();
             Self::from(ts).into_bound_py_any(py)
-        } else if let Ok(ts) = value.extract::<Timestamp>() {
+        } else if let Ok(ts) = value.extract::<JiffTimestamp>() {
             Self::from(ts).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(value);
@@ -480,5 +487,11 @@ impl Display for RyTimestamp {
 impl From<Timestamp> for RyTimestamp {
     fn from(value: Timestamp) -> Self {
         Self(value)
+    }
+}
+
+impl From<JiffTimestamp> for RyTimestamp {
+    fn from(value: JiffTimestamp) -> Self {
+        Self::from(value.0)
     }
 }

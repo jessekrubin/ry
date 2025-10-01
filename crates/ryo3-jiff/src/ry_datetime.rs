@@ -10,8 +10,8 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateTimeSeries;
 use crate::spanish::Spanish;
 use crate::{
-    JiffDateTime, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate,
-    RyDateTimeRound, RyTimestamp,
+    JiffDate, JiffDateTime, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffUnit, JiffWeekday,
+    RyDate, RyDateTimeRound, RyTimestamp,
 };
 use jiff::Zoned;
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
@@ -36,6 +36,12 @@ pub struct RyDateTime(pub(crate) DateTime);
 impl From<DateTime> for RyDateTime {
     fn from(value: DateTime) -> Self {
         Self(value)
+    }
+}
+
+impl From<JiffDateTime> for RyDateTime {
+    fn from(value: JiffDateTime) -> Self {
+        Self::from(value.0)
     }
 }
 
@@ -305,27 +311,27 @@ impl RyDateTime {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> DateTime {
+    fn to_py(&self) -> JiffDateTime {
         self.to_pydatetime()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydatetime(&self) -> DateTime {
-        self.0
+    fn to_pydatetime(&self) -> JiffDateTime {
+        self.0.into()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydate(&self) -> Date {
-        self.0.date()
+    fn to_pydate(&self) -> JiffDate {
+        self.0.date().into()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pytime(&self) -> Time {
-        self.0.time()
+    fn to_pytime(&self) -> JiffTime {
+        self.0.time().into()
     }
 
     #[staticmethod]
-    fn from_pydatetime(d: DateTime) -> Self {
+    fn from_pydatetime(d: JiffDateTime) -> Self {
         Self::from(d)
     }
 

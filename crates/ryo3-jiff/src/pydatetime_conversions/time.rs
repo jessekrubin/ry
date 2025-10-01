@@ -6,24 +6,19 @@ pub fn time_to_pyobject<'py>(
     py: Python<'py>,
     time: &jiff::civil::Time,
 ) -> PyResult<Bound<'py, PyTime>> {
-    let hour_u8 = u8::try_from(time.hour())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("hour: {e}")))?;
-    let minute_u8 = u8::try_from(time.minute())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("minute: {e}")))?;
-    let second_u8 = u8::try_from(time.second())
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("second: {e}")))?;
-    let microsecond_u32 = u32::try_from(time.microsecond()).map_err(|e| {
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("microsecond: {e}"))
-    })?;
-    let time = PyTime::new(py, hour_u8, minute_u8, second_u8, microsecond_u32, None)?;
-    Ok(time)
+    pyo3::types::PyTime::new(
+        py,
+        time.hour().try_into()?,
+        time.minute().try_into()?,
+        time.second().try_into()?,
+        (time.subsec_nanosecond() / 1000).try_into()?,
+        None,
+    )
 }
 
 #[cfg(not(Py_LIMITED_API))]
 #[expect(clippy::arithmetic_side_effects)]
-pub fn py_time_to_jiff_time(
-    py_time: &impl pyo3::types::PyTimeAccess,
-) -> PyResult<jiff::civil::Time> {
+pub fn pytime_to_time(py_time: &impl pyo3::types::PyTimeAccess) -> PyResult<jiff::civil::Time> {
     let hour = py_time.get_hour();
     let hour_i8 = i8::try_from(hour)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("hour: {e}")))?;
@@ -48,7 +43,7 @@ pub fn py_time_to_jiff_time(
 }
 
 #[cfg(Py_LIMITED_API)]
-pub fn py_time_to_jiff_time(py_time: &Bound<'_, PyAny>) -> PyResult<jiff::civil::Time> {
+pub fn pytime_to_time(py_time: &Bound<'_, PyAny>) -> PyResult<jiff::civil::Time> {
     use pyo3::intern;
     let hour_i8 = py_time
         .getattr(intern!(py_time.py(), "hour"))?
@@ -95,11 +90,11 @@ impl FromPyObject<'_> for JiffTime {
         #[cfg(not(Py_LIMITED_API))]
         {
             let time = ob.cast::<PyTime>()?;
-            py_time_to_jiff_time(time).map(Self::from)
+            pytime_to_time(time).map(Self::from)
         }
         #[cfg(Py_LIMITED_API)]
         {
-            py_time_to_jiff_time(ob).map(JiffTime::from)
+            pytime_to_time(ob).map(JiffTime::from)
         }
     }
 }

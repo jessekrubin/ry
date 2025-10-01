@@ -240,13 +240,13 @@ impl RyTime {
     // PYTHON CONVERSIONS
     // =====================================================================
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> Time {
+    fn to_py(&self) -> JiffTime {
         self.to_pytime()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pytime(&self) -> Time {
-        self.0
+    fn to_pytime(&self) -> JiffTime {
+        self.0.into()
     }
 
     #[staticmethod]
