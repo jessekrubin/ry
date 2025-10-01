@@ -13,6 +13,7 @@ description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.ht
 
 [dependencies]
 bytes.workspace = true
+cookie = { version = "0.18.1", features = ["percent-encode"] }
 futures-core.workspace = true
 futures-util.workspace = true
 jiter.workspace = true

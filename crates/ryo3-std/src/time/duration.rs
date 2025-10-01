@@ -6,7 +6,6 @@ use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclas
 use ryo3_macro_rules::{
     py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
-use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
 use std::time::Duration;
@@ -19,7 +18,7 @@ const DAYS_PER_WEEK: u64 = 7;
 const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY);
 const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 #[pyclass(name = "Duration", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDuration(pub Duration);
@@ -145,7 +144,7 @@ impl PyDuration {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self}")
+        format!("{self:?}")
     }
 
     fn __hash__(&self) -> u64 {
@@ -630,7 +629,7 @@ impl PyDuration {
     }
 }
 
-impl Display for PyDuration {
+impl std::fmt::Debug for PyDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
