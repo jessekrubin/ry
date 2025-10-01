@@ -119,7 +119,7 @@ impl PyCookie {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 
     fn encoded(&self) -> String {
@@ -288,7 +288,7 @@ impl std::fmt::Debug for PyCookie {
                 cookie::SameSite::Strict => "Strict",
                 cookie::SameSite::None => "None",
             };
-            write!(f, ", same_site=\"{}\"", s)?;
+            write!(f, ", same_site=\"{s}\"")?;
         }
         if let Some(secure) = self.0.secure() {
             if secure {
