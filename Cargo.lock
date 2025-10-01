@@ -2206,6 +2206,7 @@ version = "0.0.61"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
+ "ryo3-macro-rules",
  "zstd",
  "zstd-safe",
 ]
