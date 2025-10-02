@@ -39,8 +39,9 @@ impl<'py> IntoPyObject<'py> for &JiffRoundMode {
 
 const JIFF_ROUND_MODE_ACCEPTED: &str = "'ceil', 'floor', 'expand', 'trunc', 'half-ceil', 'half-floor', 'half-expand', 'half-trunc', 'half-even' (underscores and hyphens are interchangeable)";
 
-impl<'py> FromPyObject<'py> for JiffRoundMode {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for JiffRoundMode {
+    type Error = PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(str_mode) = ob.extract::<&str>() {
             match str_mode.to_ascii_lowercase().as_str() {
                 "ceil" => Ok(Self(RoundMode::Ceil)),

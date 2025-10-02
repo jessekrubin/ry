@@ -13,7 +13,12 @@ pub fn signed_duration_to_pyobject<'py>(
     py: Python<'py>,
     duration: &SignedDuration,
 ) -> PyResult<Bound<'py, PyDelta>> {
-    duration.into_pyobject(py)
+    let total_seconds = duration.as_secs();
+    let days: i32 = (total_seconds / (24 * 60 * 60)).try_into()?;
+    let seconds: i32 = (total_seconds % (24 * 60 * 60)).try_into()?;
+    let microseconds = duration.subsec_micros();
+
+    PyDelta::new(py, days, seconds, microseconds, true)
 }
 
 pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedDuration> {
@@ -76,9 +81,11 @@ impl<'py> IntoPyObject<'py> for &JiffSignedDuration {
     }
 }
 
-impl FromPyObject<'_> for JiffSignedDuration {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let sdur: SignedDuration = signed_duration_from_pyobject(ob)?;
+impl<'py> FromPyObject<'_, 'py> for JiffSignedDuration {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        #[expect(clippy::explicit_auto_deref)]
+        let sdur: SignedDuration = signed_duration_from_pyobject(&*obj)?;
         Ok(Self(sdur))
     }
 }
