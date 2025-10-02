@@ -561,22 +561,6 @@ impl FromPyObject<'_> for CPythonUuid {
     }
 }
 
-// struct UuidLike(uuid::Uuid);
-
-// impl FromPyObject<'_> for UuidLike {
-//     fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
-//         if let Ok(py_uuid) = obj.cast_exact::<PyUuid>() {
-//             Ok(Self(py_uuid.get().0))
-//         } else if let Ok(cpy_uuid) = obj.extract::<CPythonUuid>() {
-//             Ok(Self(cpy_uuid.0))
-//         } else {
-//             Err(PyTypeError::new_err(
-//                 "Expected a `ry.uuid.UUID` or `uuid.UUID` instance.",
-//             ))
-//         }
-//     }
-// }
-
 #[cfg(feature = "pydantic")]
 impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
     fn get_pydantic_core_schema<'py>(
@@ -600,92 +584,5 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
             args,
             Some(&serialization_kwargs),
         )
-        //
-        // let py = source.py();
-        // // let core_schema = py.import(intern!(py, "pydantic_core.core_schema"))?;
-        // let core_schema = ryo3_pydantic::core_schema(py)?;
-        //
-        // // let core_schema = core_schema.getattr(intern!(py, "core_schema"))?;
-        //
-        // // oy vey this is hideous, but it works
-        // let str_schema_kwargs = PyDict::new(py);
-        // str_schema_kwargs.set_item(interns::pattern(py), intern!(py, r"[A-Z0-9]{26}"))?;
-        // str_schema_kwargs.set_item(interns::min_length(py), 26)?;
-        // str_schema_kwargs.set_item(interns::max_length(py), 26)?;
-        //
-        // // more hideousness
-        // let bytes_schema_kwargs = PyDict::new(py);
-        // bytes_schema_kwargs.set_item(interns::min_length(py), 16)?;
-        // bytes_schema_kwargs.set_item(interns::max_length(py), 16)?;
-        //
-        // // actual validator functions
-        // let pydantic_validate = cls.getattr(interns::_pydantic_validate(py))?;
-        // let pydantic_validate_strict = cls.getattr(interns::_pydantic_validate_strict(py))?;
-        //
-        // let to_string_ser_schema_kwargs = PyDict::new(py);
-        // to_string_ser_schema_kwargs
-        //     .set_item(interns::when_used(py), interns::json_unless_none(py))?;
-        // let to_string_ser_schema = core_schema.call_method(
-        //     interns::to_string_ser_schema(py),
-        //     (),
-        //     Some(&to_string_ser_schema_kwargs),
-        // )?;
-        //
-        // let no_info_wrap_validator_function_kwargs = PyDict::new(py);
-        // no_info_wrap_validator_function_kwargs
-        //     .set_item(interns::serialization(py), &to_string_ser_schema)?;
-        //
-        // // LAX union schema (allows ULID, string, bytes)
-        // let lax_union_schema = core_schema.call_method1(
-        //     interns::union_schema(py),
-        //     (vec![
-        //         core_schema
-        //             .call_method1(interns::is_instance_schema(py), (py.get_type::<Self>(),))?,
-        //         core_schema.call_method1(
-        //             interns::no_info_plain_validator_function(py),
-        //             (py.get_type::<Self>(),),
-        //         )?,
-        //         core_schema.call_method(interns::str_schema(py), (), Some(&str_schema_kwargs))?,
-        //         core_schema.call_method(
-        //             interns::bytes_schema(py),
-        //             (),
-        //             Some(&bytes_schema_kwargs),
-        //         )?,
-        //     ],),
-        // )?;
-        //
-        // let strict_union = core_schema.call_method1(
-        //     interns::union_schema(py),
-        //     (vec![
-        //         core_schema
-        //             .call_method1(interns::is_instance_schema(py), (py.get_type::<Self>(),))?,
-        //         core_schema.call_method(
-        //             interns::str_schema(py),
-        //             (),
-        //             Some(&str_schema_kwargs), // still allow canonical string
-        //         )?,
-        //     ],),
-        // )?;
-        //
-        // let strict_schema = core_schema.call_method(
-        //     interns::no_info_wrap_validator_function(py),
-        //     (pydantic_validate_strict, strict_union),
-        //     Some(&no_info_wrap_validator_function_kwargs),
-        // )?;
-        //
-        // let ulid_schema_kwargs = PyDict::new(py);
-        // ulid_schema_kwargs.set_item(interns::serialization(py), &to_string_ser_schema)?;
-        //
-        // let lax_schema = core_schema.call_method(
-        //     interns::no_info_wrap_validator_function(py),
-        //     (pydantic_validate, lax_union_schema),
-        //     Some(&no_info_wrap_validator_function_kwargs),
-        // )?;
-        // let ulid_schema = core_schema.call_method(
-        //     interns::lax_or_strict_schema(py),
-        //     (lax_schema, strict_schema),
-        //     Some(&ulid_schema_kwargs),
-        // )?;
-        // Ok(ulid_schema)
     }
 }
