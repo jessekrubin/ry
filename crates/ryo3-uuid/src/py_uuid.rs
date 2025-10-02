@@ -1,11 +1,11 @@
 #![doc = include_str!("../README.md")]
 use pyo3::exceptions::{PyTypeError, PyValueError};
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
+use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::PyBytes;
-use ryo3_macro_rules::{py_value_error, pytodo};
+use ryo3_macro_rules::{any_repr, py_type_err, py_value_error, pytodo};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::OnceLock;
 
@@ -209,8 +209,18 @@ impl PyUuid {
 
     // static/class methods
     #[staticmethod]
+    fn from_pyuuid(ob: CPythonUuid) -> Self {
+        Self::from(ob.0)
+    }
+
+    #[staticmethod]
     fn from_hex(hex: &str) -> PyResult<Self> {
-        uuid::Uuid::parse_str(hex)
+        Self::from_str(hex)
+    }
+
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        uuid::Uuid::parse_str(s)
             .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
@@ -368,6 +378,50 @@ impl PyUuid {
     fn is_nil(&self) -> bool {
         self.0.is_nil()
     }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(s) = value.extract::<&str>() {
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(b) = value.extract::<[u8; 16]>() {
+            // let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_int(u128::from_be_bytes(b)).into_bound_py_any(py)
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(v) = value.extract::<CPythonUuid>() {
+            Self::from(v.0).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("UUID conversion error: {valtype}")
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 #[pyfunction(name = "getnode")]
@@ -522,3 +576,116 @@ impl FromPyObject<'_> for CPythonUuid {
 //         }
 //     }
 // }
+
+#[cfg(feature = "pydantic")]
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
+    fn get_pydantic_core_schema<'py>(
+        cls: &Bound<'py, pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::interns;
+
+        let py = source.py();
+        let core_schema = ryo3_pydantic::core_schema(py)?;
+        let uuid_schema = core_schema.call_method(intern!(py, "uuid_schema"), (), None)?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+        let args = PyTuple::new(py, vec![&validation_fn, &uuid_schema])?;
+        let string_serialization_schema =
+            core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+        let serialization_kwargs = pyo3::types::PyDict::new(py);
+        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        core_schema.call_method(
+            interns::no_info_wrap_validator_function(py),
+            args,
+            Some(&serialization_kwargs),
+        )
+        //
+        // let py = source.py();
+        // // let core_schema = py.import(intern!(py, "pydantic_core.core_schema"))?;
+        // let core_schema = ryo3_pydantic::core_schema(py)?;
+        //
+        // // let core_schema = core_schema.getattr(intern!(py, "core_schema"))?;
+        //
+        // // oy vey this is hideous, but it works
+        // let str_schema_kwargs = PyDict::new(py);
+        // str_schema_kwargs.set_item(interns::pattern(py), intern!(py, r"[A-Z0-9]{26}"))?;
+        // str_schema_kwargs.set_item(interns::min_length(py), 26)?;
+        // str_schema_kwargs.set_item(interns::max_length(py), 26)?;
+        //
+        // // more hideousness
+        // let bytes_schema_kwargs = PyDict::new(py);
+        // bytes_schema_kwargs.set_item(interns::min_length(py), 16)?;
+        // bytes_schema_kwargs.set_item(interns::max_length(py), 16)?;
+        //
+        // // actual validator functions
+        // let pydantic_validate = cls.getattr(interns::_pydantic_validate(py))?;
+        // let pydantic_validate_strict = cls.getattr(interns::_pydantic_validate_strict(py))?;
+        //
+        // let to_string_ser_schema_kwargs = PyDict::new(py);
+        // to_string_ser_schema_kwargs
+        //     .set_item(interns::when_used(py), interns::json_unless_none(py))?;
+        // let to_string_ser_schema = core_schema.call_method(
+        //     interns::to_string_ser_schema(py),
+        //     (),
+        //     Some(&to_string_ser_schema_kwargs),
+        // )?;
+        //
+        // let no_info_wrap_validator_function_kwargs = PyDict::new(py);
+        // no_info_wrap_validator_function_kwargs
+        //     .set_item(interns::serialization(py), &to_string_ser_schema)?;
+        //
+        // // LAX union schema (allows ULID, string, bytes)
+        // let lax_union_schema = core_schema.call_method1(
+        //     interns::union_schema(py),
+        //     (vec![
+        //         core_schema
+        //             .call_method1(interns::is_instance_schema(py), (py.get_type::<Self>(),))?,
+        //         core_schema.call_method1(
+        //             interns::no_info_plain_validator_function(py),
+        //             (py.get_type::<Self>(),),
+        //         )?,
+        //         core_schema.call_method(interns::str_schema(py), (), Some(&str_schema_kwargs))?,
+        //         core_schema.call_method(
+        //             interns::bytes_schema(py),
+        //             (),
+        //             Some(&bytes_schema_kwargs),
+        //         )?,
+        //     ],),
+        // )?;
+        //
+        // let strict_union = core_schema.call_method1(
+        //     interns::union_schema(py),
+        //     (vec![
+        //         core_schema
+        //             .call_method1(interns::is_instance_schema(py), (py.get_type::<Self>(),))?,
+        //         core_schema.call_method(
+        //             interns::str_schema(py),
+        //             (),
+        //             Some(&str_schema_kwargs), // still allow canonical string
+        //         )?,
+        //     ],),
+        // )?;
+        //
+        // let strict_schema = core_schema.call_method(
+        //     interns::no_info_wrap_validator_function(py),
+        //     (pydantic_validate_strict, strict_union),
+        //     Some(&no_info_wrap_validator_function_kwargs),
+        // )?;
+        //
+        // let ulid_schema_kwargs = PyDict::new(py);
+        // ulid_schema_kwargs.set_item(interns::serialization(py), &to_string_ser_schema)?;
+        //
+        // let lax_schema = core_schema.call_method(
+        //     interns::no_info_wrap_validator_function(py),
+        //     (pydantic_validate, lax_union_schema),
+        //     Some(&no_info_wrap_validator_function_kwargs),
+        // )?;
+        // let ulid_schema = core_schema.call_method(
+        //     interns::lax_or_strict_schema(py),
+        //     (lax_schema, strict_schema),
+        //     Some(&ulid_schema_kwargs),
+        // )?;
+        // Ok(ulid_schema)
+    }
+}
