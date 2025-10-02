@@ -5,9 +5,23 @@ use pyo3::{Bound, FromPyObject, PyAny, PyErr, PyResult};
 
 pub struct UrlLike(pub url::Url);
 
-impl FromPyObject<'_> for UrlLike {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        extract_url(ob).map(UrlLike)
+impl<'py> FromPyObject<'_, 'py> for UrlLike {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(url) = obj.cast_exact::<PyUrl>() {
+            let url = url.borrow();
+            Ok(Self(url.0.clone()))
+        } else if let Ok(s) = obj.cast::<PyString>()?.to_str() {
+            let url = url::Url::parse(s).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={s})"))
+            })?;
+            Ok(Self(url))
+        } else {
+            Err(pyo3::exceptions::PyTypeError::new_err(
+                "Expected str or URL object",
+            ))
+        }
     }
 }
 

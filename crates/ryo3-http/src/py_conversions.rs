@@ -43,9 +43,11 @@ impl<'py> IntoPyObject<'py> for HttpMethod {
 
 const HTTP_METHOD_STRINGS: &str = "'GET'/'get', 'POST'/'post', 'PUT'/'put', 'DELETE'/'delete', 'HEAD'/'head', 'OPTIONS'/'options', 'CONNECT'/'connect', 'PATCH'/'patch', 'TRACE'/'trace'";
 
-impl FromPyObject<'_> for HttpMethod {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.extract::<&str>() {
+impl<'py> FromPyObject<'_, 'py> for HttpMethod {
+    type Error = pyo3::PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(s) = obj.extract::<&str>() {
             match s {
                 "GET" | "get" => Ok(Self(http::Method::GET)),
                 "POST" | "post" => Ok(Self(http::Method::POST)),
@@ -62,7 +64,7 @@ impl FromPyObject<'_> for HttpMethod {
             }
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                "Invalid method: {ob} (options: {HTTP_METHOD_STRINGS})"
+                "Invalid method: (options: {HTTP_METHOD_STRINGS})"
             )))
         }
     }
@@ -101,8 +103,10 @@ impl<'py> IntoPyObject<'py> for HttpVersion {
 }
 
 const HTTP_VERSION_STRING: &str = "Invalid HTTP version ~ must be one of 'HTTP/0.9'|'0.9', 'HTTP/1.0'|'HTTP/1'|'1.0'|'1', 'HTTP/1.1'|'1.1', 'HTTP/2.0'|'HTTP/2'|'2.0'|'2'|'2.2', 'HTTP/3.0'|'HTTP/3'|'3.0'|'3'";
-impl FromPyObject<'_> for HttpVersion {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+
+impl<'py> FromPyObject<'_, 'py> for HttpVersion {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(s) = ob.cast_exact::<PyString>() {
             let s = s.extract::<&str>()?;
             match s.to_ascii_uppercase().as_str() {
@@ -126,7 +130,7 @@ impl FromPyObject<'_> for HttpVersion {
             }
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                "Invalid unit: {ob} (options: {HTTP_VERSION_STRING})"
+                "Invalid HTTP-version (options: {HTTP_VERSION_STRING})"
             )))
         }
     }
@@ -265,8 +269,9 @@ impl<'py> IntoPyObject<'py> for HttpHeaderName {
     }
 }
 
-impl FromPyObject<'_> for HttpHeaderName {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for HttpHeaderName {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.cast_exact::<PyString>() {
             let s = s.extract::<&str>()?;
             http::HeaderName::from_bytes(s.as_bytes())
@@ -338,8 +343,9 @@ impl<'py> IntoPyObject<'py> for HttpHeaderValue {
     }
 }
 
-impl FromPyObject<'_> for HttpHeaderValue {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for HttpHeaderValue {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<&str>() {
             http::HeaderValue::from_str(s)
                 .map(Self::from)
