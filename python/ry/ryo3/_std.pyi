@@ -7,6 +7,7 @@ import typing as t
 
 from ry._types import (
     Buffer,
+    DurationDict,
     FileTypeDict,
     FsPathLike,
     MetadataDict,
@@ -63,6 +64,9 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def from_pytimedelta(cls, td: pydt.timedelta) -> t.Self: ...
     def to_pytimedelta(self) -> pydt.timedelta: ...
     def to_py(self) -> pydt.timedelta: ...
+    def to_dict(self) -> DurationDict: ...
+    @classmethod
+    def from_dict(cls, d: DurationDict) -> t.Self: ...
 
     # =========================================================================
     # PROPERTIES

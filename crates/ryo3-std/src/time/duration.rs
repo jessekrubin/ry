@@ -1,7 +1,6 @@
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError, PyZeroDivisionError};
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyInt, PyTuple};
+use pyo3::types::{PyDict, PyInt, PyTuple};
 use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
 use ryo3_macro_rules::{
     py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
@@ -31,6 +30,20 @@ impl From<Duration> for PyDuration {
 }
 
 impl PyDuration {
+    fn new(secs: u64, nanos: u32) -> PyResult<Self> {
+        if nanos < NANOS_PER_SEC {
+            Ok(Self(Duration::new(secs, nanos)))
+        } else {
+            let secs = secs
+                .checked_add(u64::from(nanos / NANOS_PER_SEC))
+                .ok_or_else(|| {
+                    py_overflow_error!("overflow; seconds part of Duration::new too large")
+                })?;
+            let nanos = nanos % NANOS_PER_SEC;
+            Ok(Self(Duration::new(secs, nanos)))
+        }
+    }
+
     #[must_use]
     pub fn inner(&self) -> &Duration {
         &self.0
@@ -79,17 +92,7 @@ impl PyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
     fn py_new(secs: u64, nanos: u32) -> PyResult<Self> {
-        if nanos < NANOS_PER_SEC {
-            Ok(Self(Duration::new(secs, nanos)))
-        } else {
-            let secs = secs
-                .checked_add(u64::from(nanos / NANOS_PER_SEC))
-                .ok_or_else(|| {
-                    py_overflow_error!("overflow; seconds part of Duration::new too large")
-                })?;
-            let nanos = nanos % NANOS_PER_SEC;
-            Ok(Self(Duration::new(secs, nanos)))
-        }
+        Self::new(secs, nanos)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -196,13 +199,13 @@ impl PyDuration {
             self.0
                 .checked_add(rs_dur.0)
                 .map(Self::from)
-                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration addition"))
+                .ok_or_else(|| py_overflow_error!("overflow in Duration addition"))
         } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
             let rs_dur: Duration = d.extract()?;
             self.0
                 .checked_add(rs_dur)
                 .map(Self::from)
-                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration addition"))
+                .ok_or_else(|| py_overflow_error!("overflow in Duration addition"))
         } else {
             py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
         }
@@ -218,13 +221,13 @@ impl PyDuration {
             self.0
                 .checked_sub(rs_dur.0)
                 .map(Self::from)
-                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration subtraction"))
+                .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
         } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
             let rs_dur: Duration = d.extract()?;
             self.0
                 .checked_sub(rs_dur)
                 .map(Self::from)
-                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration subtraction"))
+                .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
         } else {
             py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
         }
@@ -242,7 +245,7 @@ impl PyDuration {
         if let Ok(f) = other.cast::<PyInt>() {
             let i = f.extract::<u32>()?;
             if i == 0 {
-                return Err(PyZeroDivisionError::new_err("division by zero"));
+                return py_zero_division_err!("division by zero");
             }
             self.checked_div(i)
                 .ok_or_else(|| py_overflow_error!("overflow in Duration division"))?
@@ -272,13 +275,11 @@ impl PyDuration {
             self.0
                 .checked_mul(i)
                 .map(Self::from)
-                .ok_or_else(|| PyOverflowError::new_err("overflow in Duration multiplication"))
+                .ok_or_else(|| py_overflow_error!("overflow in Duration multiplication"))
         } else if let Ok(f) = other.extract::<f64>() {
             self.mul_f64(f)
         } else {
-            Err(PyTypeError::new_err(
-                "unsupported operand type(s); must be int | float",
-            ))
+            py_overflow_err!("unsupported operand type(s); must be int | float")
         }
     }
 
@@ -385,6 +386,24 @@ impl PyDuration {
     }
 
     // ========================================================================
+    // TO/FROM NUMBERS
+    // ========================================================================
+    #[expect(clippy::wrong_self_convention)]
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        dict.set_item(interns::secs(py), self.0.as_secs())?;
+        dict.set_item(interns::nanos(py), self.0.subsec_nanos())?;
+        Ok(dict)
+    }
+
+    #[staticmethod]
+    fn from_dict(dict: &Bound<'_, PyDict>) -> PyResult<Self> {
+        let secs: u64 = dict.get_item(interns::secs(dict.py()))?.extract()?;
+        let nanos: u32 = dict.get_item(interns::nanos(dict.py()))?.extract()?;
+        Self::new(secs, nanos)
+    }
+
+    // ========================================================================
     // FROM NUMBERS
     // ========================================================================
 
@@ -412,7 +431,7 @@ impl PyDuration {
     #[staticmethod]
     fn from_hours(hours: u64) -> PyResult<Self> {
         if hours > u64::MAX / (60 * 60) {
-            Err(PyOverflowError::new_err("overflow in Duration::from_hours"))
+            py_overflow_err!("overflow in Duration::from_hours")
         } else {
             Ok(Self(Duration::from_secs(hours * 60 * 60)))
         }
@@ -421,7 +440,7 @@ impl PyDuration {
     #[staticmethod]
     fn from_mins(mins: u64) -> PyResult<Self> {
         if mins > u64::MAX / 60 {
-            Err(PyOverflowError::new_err("overflow in Duration::from_mins"))
+            py_overflow_err!("overflow in Duration::from_mins")
         } else {
             Ok(Self(Duration::from_secs(mins * 60)))
         }
@@ -430,9 +449,7 @@ impl PyDuration {
     #[staticmethod]
     fn from_days(days: u64) -> PyResult<Self> {
         if days > MAX_DAYS {
-            Err(PyOverflowError::new_err(format!(
-                "overflow in Duration::from_days: {days} > {MAX_DAYS}"
-            )))
+            py_overflow_err!("overflow in Duration::from_days: {days} > {MAX_DAYS}")
         } else {
             Ok(Self(Duration::from_secs(days * 60 * 60 * 24)))
         }
@@ -441,9 +458,7 @@ impl PyDuration {
     #[staticmethod]
     fn from_weeks(weeks: u64) -> PyResult<Self> {
         if weeks > u64::MAX / (MAX_WEEKS) {
-            Err(PyOverflowError::new_err(format!(
-                "overflow in Duration::from_weeks: {weeks} > {MAX_WEEKS}"
-            )))
+            py_overflow_err!("overflow in Duration::from_weeks: {weeks} > {MAX_WEEKS}")
         } else {
             Ok(Self(Duration::from_secs(weeks * 60 * 60 * 24 * 7)))
         }
@@ -468,11 +483,9 @@ impl PyDuration {
         let interval = match interval {
             Some(interval) => {
                 if interval > 1000 {
-                    return Err(PyValueError::new_err(
-                        "interval must be less than or equal to 1000",
-                    ));
+                    return py_value_err!("interval must be less than or equal to 1000");
                 } else if interval == 0 {
-                    return Err(PyValueError::new_err("interval must be greater than 0"));
+                    return py_value_err!("interval must be greater than 0");
                 }
                 interval
             }
@@ -645,4 +658,16 @@ impl Display for PyDuration {
 enum PyDurationComparable {
     PyDuration(PyDuration),
     Duration(Duration),
+}
+
+// ----------------------------------------------------------------------------
+// py-string interns
+// ----------------------------------------------------------------------------
+
+mod interns {
+    use pyo3::prelude::*;
+    use ryo3_macro_rules::py_intern_fn;
+
+    py_intern_fn!(secs);
+    py_intern_fn!(nanos);
 }
