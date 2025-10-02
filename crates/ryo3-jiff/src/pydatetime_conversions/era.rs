@@ -30,10 +30,11 @@ impl<'py> IntoPyObject<'py> for JiffEra {
     }
 }
 
-impl FromPyObject<'_> for JiffEra {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for JiffEra {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.cast::<PyString>() {
+        if let Ok(s) = obj.cast::<PyString>() {
             let s = s.to_string().to_ascii_lowercase();
             match s.as_str() {
                 "bce" | "bc" => Ok(Self(Era::BCE)),

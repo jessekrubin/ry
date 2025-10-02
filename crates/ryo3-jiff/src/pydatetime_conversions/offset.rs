@@ -27,13 +27,14 @@ impl<'py> IntoPyObject<'py> for &JiffOffset {
     }
 }
 
-impl FromPyObject<'_> for JiffOffset {
+impl<'py> FromPyObject<'_, 'py> for JiffOffset {
+    type Error = PyErr;
     /// Convert python tzinfo to rust [`FixedOffset`].
     ///
     /// Note that the conversion will result in precision lost in microseconds as chrono offset
     /// does not supports microseconds.
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let ob = ob.cast::<PyTzInfo>()?;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let ob = obj.cast::<PyTzInfo>()?;
 
         // Passing Python's None to the `utcoffset` function will only
         // work for timezones defined as fixed offsets in Python.

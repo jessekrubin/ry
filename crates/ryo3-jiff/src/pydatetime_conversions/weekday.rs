@@ -37,8 +37,10 @@ impl<'py> IntoPyObject<'py> for &JiffWeekday {
 const JIFF_WEEKDAY_STRING: &str =
     "1='monday', 2='tuesday', 3='wednesday', 4='thursday', 5='friday', 6='saturday', 7='sunday'";
 
-impl FromPyObject<'_> for JiffWeekday {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for JiffWeekday {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<&str>() {
             match s {
                 "monday" | "MONDAY" => Ok(Self(jiff::civil::Weekday::Monday)),

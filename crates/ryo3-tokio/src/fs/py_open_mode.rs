@@ -225,9 +225,10 @@ pub(super) fn canonical_open_mode(s: &str) -> Option<&'static str> {
     }
 }
 
-impl FromPyObject<'_> for PyOpenMode {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let s: &str = ob.extract()?;
+impl<'py> FromPyObject<'_, 'py> for PyOpenMode {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let s: &str = obj.extract()?;
         Self::from_str(s).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)
     }
 }

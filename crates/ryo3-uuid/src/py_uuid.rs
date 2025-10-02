@@ -642,8 +642,10 @@ fn py_uuid_type_ptr(py: Python) -> usize {
 // ``````
 
 // NEW VERSION THAT USES TYPE POINTER COMPARISON
-impl FromPyObject<'_> for CPythonUuid {
-    fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for CPythonUuid {
+    type Error = pyo3::PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         let py = obj.py();
         let uuid_cls_ptr = py_uuid_type_ptr(obj.py());
         let obj_ptr = obj.get_type().as_type_ptr() as usize;

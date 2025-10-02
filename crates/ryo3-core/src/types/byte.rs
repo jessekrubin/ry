@@ -43,15 +43,17 @@ impl From<u8> for Byte {
     }
 }
 
-impl FromPyObject<'_> for Byte {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(i) = ob.cast::<PyInt>() {
+impl<'py> FromPyObject<'_, 'py> for Byte {
+    type Error = pyo3::PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(i) = obj.cast::<PyInt>() {
             if let Ok(b) = i.extract::<u8>() {
                 Ok(Self(b))
             } else {
                 Err(PyTypeError::new_err("Integer out of range for a byte"))
             }
-        } else if let Ok(i) = ob.cast::<PyBytes>() {
+        } else if let Ok(i) = obj.cast::<PyBytes>() {
             let l = i.len()?;
             if l == 1 {
                 let b = i.extract::<[u8; 1]>()?;

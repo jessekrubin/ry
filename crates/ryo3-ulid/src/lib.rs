@@ -454,8 +454,9 @@ impl From<Ulid> for PyUlid {
 #[derive(Clone, Copy)]
 struct UuidLike(pub(crate) Uuid);
 
-impl FromPyObject<'_> for UuidLike {
-    fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for UuidLike {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(uuid_like) = obj.cast::<PyUuid>() {
             return Ok(Self(*uuid_like.borrow().get()));
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {

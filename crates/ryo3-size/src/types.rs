@@ -32,12 +32,17 @@ impl Display for Base {
 }
 
 const BASE_ERR_MSG: &str = "base must be be int(2)/int(10)";
-impl FromPyObject<'_> for Base {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for Base {
+    // fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+    // }
+
+    type Error = pyo3::PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         // if is int...
-        if ob.is_none() {
+        if obj.is_none() {
             Ok(Self::default())
-        } else if let Ok(i) = ob.cast::<PyInt>() {
+        } else if let Ok(i) = obj.cast::<PyInt>() {
             let base = i.extract::<u8>()?;
             match base {
                 2 => Ok(Self(size::fmt::Base::Base2)),
@@ -83,8 +88,9 @@ impl Default for Style {
 const STYLE_ERR_MSG: &str =
     "style must be None/'default'/'abbreviated'/'abbreviated_lowercase'/'full'/'full_lowercase'";
 
-impl FromPyObject<'_> for Style {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for Style {
+    type Error = pyo3::PyErr;
+    fn extract(ob: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> PyResult<Self> {
         if ob.is_none() {
             Ok(Self::default())
         } else if let Ok(s) = ob.cast::<PyString>() {

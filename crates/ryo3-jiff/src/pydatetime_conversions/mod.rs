@@ -7,6 +7,7 @@ mod round_mode;
 mod signed_duration;
 mod span;
 mod time;
+mod timestamp;
 mod timezone;
 mod tz_disambiguation;
 mod tz_offset_conflict;

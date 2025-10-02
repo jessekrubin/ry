@@ -53,8 +53,9 @@ pub fn bzip2_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<Py<Py
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 pub struct PyCompression(pub(crate) Compression);
 
-impl FromPyObject<'_> for PyCompression {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for PyCompression {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(pyint) = ob.cast::<PyInt>() {
             let level = pyint.extract::<u32>()?;
             if level < 10 {

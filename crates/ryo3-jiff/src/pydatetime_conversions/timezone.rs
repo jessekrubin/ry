@@ -1,5 +1,6 @@
-use crate::JiffSignedDuration;
+use crate::errors::map_py_value_err;
 use crate::{JiffOffset, JiffTimeZone};
+use crate::{JiffSignedDuration, JiffTimeZoneRef};
 use jiff::tz::TimeZone;
 use pyo3::intern;
 use pyo3::prelude::*;
@@ -12,9 +13,29 @@ pub fn timezone2pyobject<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<
     } else if let Some(iana_name) = tz.iana_name() {
         Ok(PyTzInfo::timezone(py, iana_name)?)
     } else {
-        let off = tz.to_fixed_offset()?;
+        let off = tz.to_fixed_offset().map_err(map_py_value_err)?;
         let dur = off.duration_since(jiff::tz::Offset::UTC);
         PyTzInfo::fixed_offset(py, JiffSignedDuration(dur))
+    }
+}
+
+impl<'py> IntoPyObject<'py> for JiffTimeZoneRef<'_> {
+    type Target = PyTzInfo;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for &JiffTimeZoneRef<'_> {
+    type Target = PyTzInfo;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        timezone2pyobject(py, self.0)
     }
 }
 
@@ -38,14 +59,16 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZone {
     }
 }
 
-impl<'py> FromPyObject<'py> for JiffTimeZone {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let ob = ob.cast::<PyTzInfo>()?;
+impl<'py> FromPyObject<'_, 'py> for JiffTimeZone {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let ob = obj.cast::<PyTzInfo>()?;
         let attr = intern!(ob.py(), "key");
         if ob.hasattr(attr)? {
             let tz_pystr = ob.getattr(attr)?.extract::<PyBackedStr>()?;
             let tz_str = tz_pystr.to_string();
-            Ok(Self(TimeZone::get(&tz_str)?))
+            let tz = TimeZone::get(&tz_str).map_err(map_py_value_err)?;
+            Ok(Self(tz))
         } else {
             Ok(ob.extract::<JiffOffset>()?.0.to_time_zone().into())
         }
