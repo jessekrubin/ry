@@ -177,8 +177,9 @@ pub struct PyIndent(sqlformat::Indent);
 
 const PY_INDENT_ERR_MSG: &str =
     "Indent must be an integer, 'tabs'/'\\t', or 'spaces' (default 2 spaces)";
-impl FromPyObject<'_> for PyIndent {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for PyIndent {
+    type Error = pyo3::PyErr;
+    fn extract(ob: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> PyResult<Self> {
         // none go to default (2 spaces)
         if ob.is_none() {
             return Ok(Self(sqlformat::Indent::Spaces(2)));

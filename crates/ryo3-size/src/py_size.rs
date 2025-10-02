@@ -369,14 +369,16 @@ impl PySize {
 #[derive(Debug, Clone)]
 struct SizeWrapper(size::Size);
 
-impl FromPyObject<'_> for SizeWrapper {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.cast::<PySize>() {
+impl<'py> FromPyObject<'_, 'py> for SizeWrapper {
+    type Error = pyo3::PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(s) = obj.cast::<PySize>() {
             let pysize = s.extract::<PySize>()?;
             Ok(Self(pysize.0))
-        } else if let Ok(i) = ob.extract::<i64>() {
+        } else if let Ok(i) = obj.extract::<i64>() {
             Ok(Self(size::Size::from_const(i)))
-        } else if let Ok(f) = ob.extract::<f64>() {
+        } else if let Ok(f) = obj.extract::<f64>() {
             Ok(Self(size::Size::from_bytes(f)))
         } else {
             Err(PyTypeError::new_err("Must be Size or i64"))

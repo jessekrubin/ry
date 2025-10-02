@@ -1000,8 +1000,7 @@ dependencies = [
 [[package]]
 name = "jiter"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed1be5dfeadf968b30fa03a012a2f161de8be6df2d91bd8085c62cfb5efca65a"
+source = "git+https://github.com/jessekrubin/jiter.git?branch=pyo3-v0.27.x#46768d788b88061911d115987095d06f317d7f8b"
 dependencies = [
  "ahash",
  "bitvec",
@@ -1383,8 +1382,7 @@ dependencies = [
 [[package]]
 name = "pyo3"
 version = "0.26.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ba0117f4212101ee6544044dae45abe1083d30ce7b29c4b5cbdfa2354e07383"
+source = "git+https://github.com/pyo3/pyo3.git#9fd849b0b9eb3a028165be6cf2a99da732befbb9"
 dependencies = [
  "indoc",
  "inventory",
@@ -1417,8 +1415,7 @@ dependencies = [
 [[package]]
 name = "pyo3-build-config"
 version = "0.26.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fc6ddaf24947d12a9aa31ac65431fb1b851b8f4365426e182901eabfb87df5f"
+source = "git+https://github.com/pyo3/pyo3.git#9fd849b0b9eb3a028165be6cf2a99da732befbb9"
 dependencies = [
  "target-lexicon",
 ]
@@ -1426,8 +1423,7 @@ dependencies = [
 [[package]]
 name = "pyo3-ffi"
 version = "0.26.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "025474d3928738efb38ac36d4744a74a400c901c7596199e20e45d98eb194105"
+source = "git+https://github.com/pyo3/pyo3.git#9fd849b0b9eb3a028165be6cf2a99da732befbb9"
 dependencies = [
  "libc",
  "pyo3-build-config",
@@ -1436,8 +1432,7 @@ dependencies = [
 [[package]]
 name = "pyo3-macros"
 version = "0.26.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e64eb489f22fe1c95911b77c44cc41e7c19f3082fc81cce90f657cdc42ffded"
+source = "git+https://github.com/pyo3/pyo3.git#9fd849b0b9eb3a028165be6cf2a99da732befbb9"
 dependencies = [
  "proc-macro2",
  "pyo3-macros-backend",
@@ -1448,8 +1443,7 @@ dependencies = [
 [[package]]
 name = "pyo3-macros-backend"
 version = "0.26.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "100246c0ecf400b475341b8455a9213344569af29a3c841d29270e53102e0fcf"
+source = "git+https://github.com/pyo3/pyo3.git#9fd849b0b9eb3a028165be6cf2a99da732befbb9"
 dependencies = [
  "heck",
  "proc-macro2",

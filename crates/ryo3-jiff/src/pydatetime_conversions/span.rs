@@ -1,7 +1,7 @@
+use crate::errors::map_py_value_err;
 use crate::{JiffSignedDuration, JiffSpan};
 use jiff::{Span, SpanRelativeTo};
-use pyo3::types::PyAnyMethods;
-use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python};
+use pyo3::prelude::*;
 
 impl<'py> IntoPyObject<'py> for JiffSpan {
     type Target = pyo3::types::PyDelta;
@@ -29,10 +29,11 @@ impl<'py> IntoPyObject<'py> for &JiffSpan {
     }
 }
 
-impl FromPyObject<'_> for JiffSpan {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let signed_duration = ob.extract::<JiffSignedDuration>()?;
-        let span: Span = signed_duration.0.try_into()?;
+impl<'py> FromPyObject<'_, 'py> for JiffSpan {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let signed_duration = obj.extract::<JiffSignedDuration>()?;
+        let span: Span = signed_duration.0.try_into().map_err(map_py_value_err)?;
         Ok(Self::from(span))
     }
 }
