@@ -4466,6 +4466,7 @@ import typing as t
 
 from ry._types import (
     Buffer,
+    DurationDict,
     FileTypeDict,
     FsPathLike,
     MetadataDict,
@@ -4523,6 +4524,9 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def from_pytimedelta(cls, td: pydt.timedelta) -&gt; t.Self: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
     def to_py(self) -&gt; pydt.timedelta: ...
+    def to_dict(self) -&gt; DurationDict: ...
+    @classmethod
+    def from_dict(cls, d: DurationDict) -&gt; t.Self: ...
 
     # =========================================================================
     # PROPERTIES
@@ -6133,6 +6137,7 @@ __all__ = (
     "DateTimeTypedDict",
     "DateTypedDict",
     "DateTypedDict",
+    "DurationDict",
     "FileTypeDict",
     "FsPathLike",
     "ISOWeekDateTypedDict",
@@ -6160,6 +6165,11 @@ FsPathLike = str | PathLike[str]
 # =============================================================================
 # STD
 # =============================================================================
+class DurationDict(TypedDict):
+    secs: int
+    nanos: int
+
+
 class FileTypeDict(TypedDict):
     is_dir: bool
     is_file: bool

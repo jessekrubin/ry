@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-10-01T23:11:12.500432402-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-10-02T09:59:36.679527388-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -481,6 +481,11 @@ dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0061-unreleased"><a class="header" href="#v0061-unreleased">v0.0.61 [unreleased]</a></h2>
 <ul>
+<li><code>ryo3-std</code>
+<ul>
+<li>added <code>to_dict</code>/<code>from_dict</code> to <code>ry.Duration</code></li>
+</ul>
+</li>
 <li>use <code>jessekrubin/pyo3-async-runtimes</code> (branch ‘unpaid-interns’) git repo (for
 now):
 <ul>
@@ -6576,6 +6581,7 @@ import typing as t
 
 from ry._types import (
     Buffer,
+    DurationDict,
     FileTypeDict,
     FsPathLike,
     MetadataDict,
@@ -6633,6 +6639,9 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def from_pytimedelta(cls, td: pydt.timedelta) -&gt; t.Self: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
     def to_py(self) -&gt; pydt.timedelta: ...
+    def to_dict(self) -&gt; DurationDict: ...
+    @classmethod
+    def from_dict(cls, d: DurationDict) -&gt; t.Self: ...
 
     # =========================================================================
     # PROPERTIES
@@ -8243,6 +8252,7 @@ __all__ = (
     "DateTimeTypedDict",
     "DateTypedDict",
     "DateTypedDict",
+    "DurationDict",
     "FileTypeDict",
     "FsPathLike",
     "ISOWeekDateTypedDict",
@@ -8270,6 +8280,11 @@ FsPathLike = str | PathLike[str]
 # =============================================================================
 # STD
 # =============================================================================
+class DurationDict(TypedDict):
+    secs: int
+    nanos: int
+
+
 class FileTypeDict(TypedDict):
     is_dir: bool
     is_file: bool
