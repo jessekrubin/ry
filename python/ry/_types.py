@@ -26,6 +26,7 @@ __all__ = (
     "DateTimeTypedDict",
     "DateTypedDict",
     "DateTypedDict",
+    "DurationDict",
     "FileTypeDict",
     "FsPathLike",
     "ISOWeekDateTypedDict",
