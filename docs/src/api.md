@@ -151,6 +151,7 @@ from ry.ryo3._memchr import memrchr2 as memrchr2
 from ry.ryo3._memchr import memrchr3 as memrchr3
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
+from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
@@ -4058,6 +4059,10 @@ class Response:
     @property
     def content_encoding(self) -> str | None: ...
     @property
+    def cookies(self) -> list[Cookie] | None: ...
+    @property
+    def set_cookies(self) -> list[Cookie] | None: ...
+    @property
     def body_used(self) -> bool:
         """True if the body has been consumed"""
 
@@ -4097,6 +4102,69 @@ async def fetch(
     method: str = "GET",
     **kwargs: Unpack[RequestKwargs],
 ) -> Response: ...
+
+
+@t.final
+class Cookie:
+    def __init__(
+        self,
+        name: str,
+        value: str,
+        *,
+        domain: str | None = None,
+        expires: int | None = None,
+        http_only: bool | None = None,
+        max_age: Duration | None = None,
+        partitioned: bool | None = None,
+        path: str | None = None,
+        permanent: bool = False,
+        removal: bool = False,
+        same_site: t.Literal["Lax", "Strict", "None"] | None = None,
+        secure: bool | None = None,
+    ) -> None: ...
+    @staticmethod
+    def parse(s: str) -> Cookie: ...
+    @staticmethod
+    def parse_encoded(s: str) -> Cookie: ...
+
+    # -------------------------------------------------------------------------
+    # METHODS
+    # -------------------------------------------------------------------------
+    # -- STRING --
+    def encoded(self) -> str: ...
+    def stripped(self) -> str: ...
+    def encoded_stripped(self) -> str: ...
+    def stripped_encoded(self) -> str: ...
+
+    # -------------------------------------------------------------------------
+    # PROPERTIES
+    # -------------------------------------------------------------------------
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> str: ...
+    @property
+    def value_trimmed(self) -> str: ...
+    @property
+    def name_value(self) -> tuple[str, str]: ...
+    @property
+    def name_value_trimmed(self) -> tuple[str, str]: ...
+    @property
+    def domain(self) -> str | None: ...
+    @property
+    def expires(self) -> int | None: ...
+    @property
+    def http_only(self) -> bool | None: ...
+    @property
+    def max_age(self) -> Duration | None: ...
+    @property
+    def partitioned(self) -> bool | None: ...
+    @property
+    def path(self) -> str | None: ...
+    @property
+    def same_site(self) -> t.Literal["Lax", "Strict", "None"] | None: ...
+    @property
+    def secure(self) -> bool | None: ...
 ```
 
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>

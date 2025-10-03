@@ -10,6 +10,9 @@
   - [PyO3/pyo3-async-runtimes#62](https://github.com/PyO3/pyo3-async-runtimes/pull/62)
 - `ryo3-uuid`
   - supa speedy pydantic support added to `ry.uuid.UUID` (bc I need it now)
+- `ryo3-reqwest`
+  - `ry.Cookie` class/struct and `cookies`/`set_cookies` properties on the
+    `ry.Response` class/struct
 - removed deprecated `.string()` methods from several structs/clases:
   - `ry.FsPath`
   - `ry.UUID`

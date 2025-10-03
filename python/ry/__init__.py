@@ -1,7 +1,4 @@
-"""ry = rust + python
-
-`ry` is a kitchen-sink collection of wrappers for well vetted and popular rust crates
-"""
+"""ry = rust + python"""
 
 from ry import ryo3
 from ry.ryo3 import (
@@ -45,11 +42,13 @@ from ry.ryo3 import (
     USIZE_MIN,
     AsyncFile,
     Bytes,
+    Cookie,
     Date,
     DateDifference,
     DateTime,
     DateTimeDifference,
     DateTimeRound,
+    DirEntry,
     Duration,
     FileReadStream,
     FileType,
@@ -70,6 +69,7 @@ from ry.ryo3 import (
     Offset,
     OffsetRound,
     Pattern,
+    ReadDir,
     Regex,
     ReqwestError,
     Response,
@@ -98,6 +98,7 @@ from ry.ryo3 import (
     __build_profile__,
     __build_timestamp__,
     __description__,
+    __opt_level__,
     __pkg_name__,
     __target__,
     __version__,
@@ -258,11 +259,13 @@ __all__ = (
     "USIZE_MIN",
     "AsyncFile",
     "Bytes",
+    "Cookie",
     "Date",
     "DateDifference",
     "DateTime",
     "DateTimeDifference",
     "DateTimeRound",
+    "DirEntry",
     "Duration",
     "FileReadStream",
     "FileType",
@@ -283,6 +286,7 @@ __all__ = (
     "Offset",
     "OffsetRound",
     "Pattern",
+    "ReadDir",
     "Regex",
     "ReqwestError",
     "Response",
@@ -311,6 +315,7 @@ __all__ = (
     "__build_profile__",
     "__build_timestamp__",
     "__description__",
+    "__opt_level__",
     "__pkg_name__",
     "__target__",
     "__version__",

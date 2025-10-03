@@ -2032,6 +2032,7 @@ name = "ryo3-reqwest"
 version = "0.0.61"
 dependencies = [
  "bytes",
+ "cookie",
  "futures-core",
  "futures-util",
  "jiter",

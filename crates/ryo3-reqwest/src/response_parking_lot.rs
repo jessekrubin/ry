@@ -1,12 +1,13 @@
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_head::RyResponseHead;
-use crate::{RyResponseStream, pyerr_response_already_consumed};
+use crate::{PyCookie, RyResponseStream, pyerr_response_already_consumed};
+use cookie::Cookie;
 use parking_lot::Mutex;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use reqwest::header::CONTENT_ENCODING;
+use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
 use ryo3_http::{HttpVersion, PyHeaders, PyHttpStatus, status_code_pystring};
 use ryo3_macro_rules::pytodo;
 use ryo3_std::net::PySocketAddr;
@@ -201,6 +202,31 @@ impl RyResponse {
             let s = en.to_str().expect("Invalid content encoding");
             s.to_string()
         })
+    }
+
+    /// Return the cookies set in the response headers
+    #[getter]
+    fn set_cookies(&self) -> Option<Vec<PyCookie>> {
+        let headers = self.head.headers.lock();
+        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
+            .get_all(SET_COOKIE)
+            .iter()
+            .filter_map(|hv| hv.to_str().ok())
+            .map(ToOwned::to_owned)
+            .filter_map(|s| Cookie::parse(s).ok())
+            .map(PyCookie::from)
+            .collect();
+        if py_cookies.is_empty() {
+            None
+        } else {
+            Some(py_cookies)
+        }
+    }
+
+    /// Alias for `set_cookies` property
+    #[getter]
+    fn cookies(&self) -> Option<Vec<PyCookie>> {
+        self.set_cookies()
     }
 }
 

@@ -418,7 +418,15 @@ class TestCookies:
         client = ry.HttpClient(cookies=True)
         response = await client.get(str(url) + "cookies")
         assert response.status_code == 200, f"response: {response}"
-        res_json = await response.json()
+        _res_json = await response.json()
+
+        c = response.cookies
+        assert isinstance(c, list) and len(c) == 1
+
+        assert isinstance(c[0], ry.Cookie)
+        assert c[0].name == "ryo3"
+        assert c[0].value == "ryo3"
+        assert c[0].path == "/"
 
         header_set_cookie = response.headers["set-cookie"]
         assert header_set_cookie == "ryo3=ryo3; Path=/", (
