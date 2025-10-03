@@ -420,7 +420,7 @@ class TestCookies:
         assert response.status_code == 200, f"response: {response}"
         _res_json = await response.json()
 
-        c = client.cookies
+        c = response.cookies
         assert isinstance(c, list) and len(c) == 1
 
         assert isinstance(c[0], ry.Cookie)
