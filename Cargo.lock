@@ -2176,6 +2176,7 @@ dependencies = [
  "pyo3",
  "ryo3-bytes",
  "ryo3-macro-rules",
+ "ryo3-pydantic",
  "serde",
  "uuid",
 ]

@@ -1,6 +1,7 @@
 use crate::RyResponse;
 use crate::errors::map_reqwest_err;
 use crate::user_agent::parse_user_agent;
+use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -8,7 +9,7 @@ use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::HeaderMap;
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
-use ryo3_macro_rules::{py_value_err, pytodo};
+use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
 use tracing::debug;
@@ -41,7 +42,7 @@ pub struct ClientConfig {
 struct RequestKwargs<'py> {
     url: &'py Bound<'py, PyAny>,
     method: Method,
-    body: Option<ryo3_bytes::PyBytes>,
+    body: Option<&'py Bound<'py, PyAny>>,
     headers: Option<PyHeadersLike>,
     query: Option<&'py Bound<'py, PyAny>>,
     json: Option<&'py Bound<'py, PyAny>>,
@@ -101,8 +102,16 @@ impl RyHttpClient {
             req = req.form(&pyser);
         }
         if let Some(body) = options.body {
-            let body_bytes = body.into_inner();
-            req = req.body(body_bytes);
+            if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
+                // short circuit for rs-py-bytes
+                let rsbytes: &Bytes = rsbytes.get().as_ref();
+                req = req.body(rsbytes.to_owned());
+            } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
+                // buffer protocol
+                req = req.body(bytes.into_inner());
+            } else {
+                return py_type_err!("body must be bytes-like or string");
+            }
         }
         debug!("reqwest-client-fetch: {:#?}", req);
         Ok(req)
@@ -213,7 +222,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -262,7 +271,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -311,7 +320,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -360,7 +369,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -409,7 +418,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -458,7 +467,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -507,7 +516,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -558,7 +567,7 @@ impl RyHttpClient {
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         method: Option<ryo3_http::HttpMethod>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,
@@ -612,7 +621,7 @@ impl RyHttpClient {
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
         method: Option<ryo3_http::HttpMethod>,
-        body: Option<ryo3_bytes::PyBytes>,
+        body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
         json: Option<&Bound<'py, PyAny>>,

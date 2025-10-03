@@ -1,11 +1,11 @@
 #![doc = include_str!("../README.md")]
 use pyo3::exceptions::{PyTypeError, PyValueError};
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
+use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::PyBytes;
-use ryo3_macro_rules::{py_value_error, pytodo};
+use ryo3_macro_rules::{any_repr, py_type_err, py_value_error, pytodo};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::OnceLock;
 
@@ -209,8 +209,18 @@ impl PyUuid {
 
     // static/class methods
     #[staticmethod]
+    fn from_pyuuid(ob: CPythonUuid) -> Self {
+        Self::from(ob.0)
+    }
+
+    #[staticmethod]
     fn from_hex(hex: &str) -> PyResult<Self> {
-        uuid::Uuid::parse_str(hex)
+        Self::from_str(hex)
+    }
+
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        uuid::Uuid::parse_str(s)
             .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
@@ -368,6 +378,50 @@ impl PyUuid {
     fn is_nil(&self) -> bool {
         self.0.is_nil()
     }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(s) = value.extract::<&str>() {
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(b) = value.extract::<[u8; 16]>() {
+            // let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_int(u128::from_be_bytes(b)).into_bound_py_any(py)
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(v) = value.extract::<CPythonUuid>() {
+            Self::from(v.0).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("UUID conversion error: {valtype}")
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 #[pyfunction(name = "getnode")]
@@ -507,18 +561,28 @@ impl FromPyObject<'_> for CPythonUuid {
     }
 }
 
-// struct UuidLike(uuid::Uuid);
+#[cfg(feature = "pydantic")]
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
+    fn get_pydantic_core_schema<'py>(
+        cls: &Bound<'py, pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::interns;
 
-// impl FromPyObject<'_> for UuidLike {
-//     fn extract_bound(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
-//         if let Ok(py_uuid) = obj.cast_exact::<PyUuid>() {
-//             Ok(Self(py_uuid.get().0))
-//         } else if let Ok(cpy_uuid) = obj.extract::<CPythonUuid>() {
-//             Ok(Self(cpy_uuid.0))
-//         } else {
-//             Err(PyTypeError::new_err(
-//                 "Expected a `ry.uuid.UUID` or `uuid.UUID` instance.",
-//             ))
-//         }
-//     }
-// }
+        let py = source.py();
+        let core_schema = ryo3_pydantic::core_schema(py)?;
+        let uuid_schema = core_schema.call_method(intern!(py, "uuid_schema"), (), None)?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+        let args = PyTuple::new(py, vec![&validation_fn, &uuid_schema])?;
+        let string_serialization_schema =
+            core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+        let serialization_kwargs = pyo3::types::PyDict::new(py);
+        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        core_schema.call_method(
+            interns::no_info_wrap_validator_function(py),
+            args,
+            Some(&serialization_kwargs),
+        )
+    }
+}

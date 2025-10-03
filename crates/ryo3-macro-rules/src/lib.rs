@@ -58,3 +58,19 @@ macro_rules! pytodo {
         return $crate::pytodo_err!($($arg)+);
     };
 }
+
+/// Macro to define a function that returns an interned Python string.
+#[macro_export]
+macro_rules! py_intern_fn {
+    ($name:ident, $lit:literal) => {
+        pub(crate) fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
+            pyo3::intern!(py, $lit)
+        }
+    };
+
+    ($name:ident) => {
+        pub(crate) fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
+            pyo3::intern!(py, stringify!($name))
+        }
+    };
+}

@@ -337,7 +337,7 @@ def server() -> Iterator[ReqtestServer]:
     cfg = Config(
         app=reqtest_server,
         host="127.0.0.1",
-        port=0,  # ← ask OS for a free port
+        port=0,
         lifespan="off",
         loop="asyncio",
     )
@@ -346,3 +346,22 @@ def server() -> Iterator[ReqtestServer]:
         bound_port = running.servers[0].sockets[0].getsockname()[1]
         running.config.port = bound_port  # make .url work
         yield running
+
+
+def _main() -> None:
+    import sys
+
+    cfg = Config(
+        app=reqtest_server,
+        host="127.0.0.1",
+        port=8000,
+        lifespan="off",
+        loop="asyncio",
+    )
+    srv = ReqtestServer(config=cfg)
+    sys.stdout.write(f"Server running at {srv.url}")
+    srv.run()
+
+
+if __name__ == "__main__":
+    _main()

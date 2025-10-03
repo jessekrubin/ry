@@ -735,3 +735,22 @@ class TestDurationSaturatingArithmetic:
     def test_saturating_mul(self, dur: ry.Duration, factor: int) -> None:
         result = dur.saturating_mul(factor)
         assert isinstance(result, ry.Duration)
+
+
+class TestDurationDictConversion:
+    @given(st_durations())
+    def test_duration_to_from_dict(self, dur: ry.Duration) -> None:
+        d = dur.to_dict()
+        assert isinstance(d, dict)
+        assert d["secs"] == dur.secs
+        assert d["nanos"] == dur.nanos
+        assert len(d) == 2
+        assert d["secs"] == dur.secs
+        assert d["nanos"] == dur.nanos
+        dur2 = ry.Duration.from_dict(d)
+        assert dur2 == dur
+
+    @pytest.mark.parametrize("d", [{}, {"secs": 1}, {"nanos": 1}])
+    def test_duration_from_dict_missing_keys(self, d: dict[str, int]) -> None:
+        with pytest.raises(KeyError):
+            _dur = ry.Duration.from_dict(d)  # type: ignore[arg-type]

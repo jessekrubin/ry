@@ -26,6 +26,7 @@ __all__ = (
     "DateTimeTypedDict",
     "DateTypedDict",
     "DateTypedDict",
+    "DurationDict",
     "FileTypeDict",
     "FsPathLike",
     "ISOWeekDateTypedDict",
@@ -53,6 +54,11 @@ FsPathLike = str | PathLike[str]
 # =============================================================================
 # STD
 # =============================================================================
+class DurationDict(TypedDict):
+    secs: int
+    nanos: int
+
+
 class FileTypeDict(TypedDict):
     is_dir: bool
     is_file: bool

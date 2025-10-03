@@ -2,10 +2,14 @@
 
 ## v0.0.61 [unreleased]
 
+- `ryo3-std`
+  - added `to_dict`/`from_dict` to `ry.Duration`
 - use `jessekrubin/pyo3-async-runtimes` (branch 'unpaid-interns') git repo (for
   now):
   - [PyO3/pyo3-async-runtimes#60](https://github.com/PyO3/pyo3-async-runtimes/pull/60)
   - [PyO3/pyo3-async-runtimes#62](https://github.com/PyO3/pyo3-async-runtimes/pull/62)
+- `ryo3-uuid`
+  - supa speedy pydantic support added to `ry.uuid.UUID` (bc I need it now)
 - removed deprecated `.string()` methods from several structs/clases:
   - `ry.FsPath`
   - `ry.UUID`

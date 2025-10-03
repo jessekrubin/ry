@@ -56,6 +56,7 @@ unpaid_intern!(tz);
 unpaid_intern!(weekday);
 
 // signed duration
+// TODO: maybe dedupe with `ryo3-std/time` ?
 unpaid_intern!(secs);
 unpaid_intern!(nanos);
 

@@ -15,6 +15,7 @@ description = "python + uuid (https://github.com/rust-lang/uuid)"
 pyo3 = { workspace = true, features = ["uuid", "serde"] }
 ryo3-bytes.workspace = true
 ryo3-macro-rules.workspace = true
+ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
 uuid = { workspace = true, features = ["v4", "v8"] }
 
@@ -25,10 +26,15 @@ serde = { workspace = true, features = ["derive"] }
 default = []
 ry = [
   "serde",
+  "pydantic",
 ]
 serde = [
   "dep:serde",
   "uuid/serde",
+]
+pydantic = [
+  "serde",
+  "ryo3-pydantic"
 ]
 
 [lints]
