@@ -28,7 +28,7 @@ pub(crate) fn fetch<'py>(
     url: &Bound<'py, PyAny>,
     client: Option<&'py RyHttpClient>,
     method: Option<ryo3_http::HttpMethod>,
-    body: Option<ryo3_bytes::PyBytes>,
+    body: Option<&Bound<'py, PyAny>>,
     headers: Option<PyHeadersLike>,
     query: Option<&Bound<'py, PyAny>>,
     json: Option<&Bound<'py, PyAny>>,

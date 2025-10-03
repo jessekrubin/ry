@@ -4,7 +4,6 @@ use crate::user_agent::parse_user_agent;
 use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::HeaderMap;
