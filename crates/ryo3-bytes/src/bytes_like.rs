@@ -16,7 +16,7 @@ pub fn extract_bytes_ref<'py>(obj: &'py Bound<'py, PyAny>) -> PyResult<&'py [u8]
         Ok(a.as_ref())
     } else {
         Err(pyo3::exceptions::PyTypeError::new_err(
-            "Expected bytes, bytearray, or pyo3-bytes object",
+            "Expected bytes, bytearray, or buffer object",
         ))
     }
 }
@@ -32,7 +32,7 @@ pub fn extract_bytes_ref_str<'py>(obj: &'py Bound<'py, PyAny>) -> PyResult<&'py 
         Ok(s.as_bytes())
     } else {
         Err(pyo3::exceptions::PyTypeError::new_err(
-            "Expected bytes-like bytes, bytearray, pyo3-bytes object",
+            "Expected bytes, bytearray, buffer object, or string",
         ))
     }
 }
