@@ -130,11 +130,17 @@ class Response:
     @property
     def content_encoding(self) -> str | None: ...
     @property
+    def cookies(self) -> list[Cookie] | None: ...
+    @property
+    def set_cookies(self) -> list[Cookie] | None: ...
+    @property
     def body_used(self) -> bool:
         """True if the body has been consumed"""
+
     @property
     def ok(self) -> bool:
         """True if the status is a success (2xx)"""
+
     @property
     def remote_addr(self) -> SocketAddr | None: ...
     @property
@@ -186,6 +192,7 @@ class Cookie:
     def parse(s: str) -> Cookie: ...
     @staticmethod
     def parse_encoded(s: str) -> Cookie: ...
+
     # -------------------------------------------------------------------------
     # METHODS
     # -------------------------------------------------------------------------

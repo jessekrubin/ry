@@ -9,6 +9,12 @@ use ryo3_std::time::PyDuration;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCookie(pub(crate) ::cookie::Cookie<'static>);
 
+impl From<::cookie::Cookie<'static>> for PyCookie {
+    fn from(value: ::cookie::Cookie<'static>) -> Self {
+        Self(value)
+    }
+}
+
 #[pymethods]
 impl PyCookie {
     #[new]
