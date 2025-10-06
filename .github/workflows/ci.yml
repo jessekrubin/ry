@@ -177,6 +177,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: 3.x
+          # Need to include architecture: https://github.com/PyO3/maturin-action/issues/375
           architecture: ${{ matrix.platform.target == 'x86' && 'x86' || 'x64' }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
