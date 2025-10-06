@@ -170,13 +170,14 @@ jobs:
         platform:
           - runner: windows-latest
             target: x64
-          - runner: windows-latest
-            target: x86
+          # - runner: windows-latest
+          #   target: x86
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: 3.x
+          # python-version: 3.x
+          python-version: '3.13'
           # Need to include architecture: https://github.com/PyO3/maturin-action/issues/375
           architecture: ${{ matrix.platform.target == 'x86' && 'x86' || 'x64' }}
       - name: Build wheels
