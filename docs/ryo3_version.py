@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
