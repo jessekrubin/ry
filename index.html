@@ -181,7 +181,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-10-06T11:53:55.846419832-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-10-07T09:19:03.157170764-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -262,52 +262,42 @@ into separate packages</li>
 </li>
 </ul>
 <h2 id="crate-bindings"><a class="header" href="#crate-bindings">Crate bindings</a></h2>
-<ul>
-<li>wrapped crates:
-<ul>
-<li><code>std</code> - many stdlib types and apis</li>
-<li><code>bytes</code></li>
-<li><code>dirs</code></li>
-<li><code>glob</code></li>
-<li><code>heck</code></li>
-<li><code>http</code></li>
-<li><code>jiter</code></li>
-<li><code>reqwest</code></li>
-<li><code>shlex</code></li>
-<li><code>size</code></li>
-<li><code>sqlformat</code></li>
-<li><code>tokio</code> (<code>fs</code> and <code>process</code>)</li>
-<li><code>unindent</code></li>
-<li><code>url</code></li>
-<li><code>uuid</code></li>
-<li><code>which</code></li>
-<li>compression:
-<ul>
-<li><code>brotli</code></li>
-<li><code>bzip2</code></li>
-<li><code>flate2</code></li>
-<li><code>zstd</code></li>
-</ul>
-</li>
-<li>hashing:
-<ul>
-<li><code>fnv</code></li>
-<li><code>twox-hash</code></li>
-</ul>
-</li>
-<li>burnt-sushi:
-<ul>
-<li><code>globset</code> (formerly <a href="https://pypi.org/project/globsters/">globsters</a>)</li>
-<li><code>jiff</code></li>
-<li><code>memchr</code></li>
-<li><code>regex</code> (WIP ~ very incomplete)</li>
-<li><code>same-file</code></li>
-<li><code>walkdir</code></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+<div class="table-wrapper"><table><thead><tr><th><strong>crate</strong></th><th><strong>ryo3-crate</strong></th></tr></thead><tbody>
+<tr><td><code>std</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-std"><code>ryo3-std</code></a></td></tr>
+<tr><td><code>bytes</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bytes"><code>ryo3-bytes</code></a></td></tr>
+<tr><td><code>bzip2</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bzip2"><code>ryo3-bzip2</code></a></td></tr>
+<tr><td><code>dirs</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-dirs"><code>ryo3-dirs</code></a></td></tr>
+<tr><td><code>glob</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-glob"><code>ryo3-glob</code></a></td></tr>
+<tr><td><code>heck</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-heck"><code>ryo3-heck</code></a></td></tr>
+<tr><td><code>http</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-http"><code>ryo3-http</code></a></td></tr>
+<tr><td><code>jiter</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-jiter"><code>ryo3-jiter</code></a></td></tr>
+<tr><td><code>reqwest</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-reqwest"><code>ryo3-reqwest</code></a></td></tr>
+<tr><td><code>serde</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-serde"><code>ryo3-serde</code></a></td></tr>
+<tr><td><code>shlex</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-shlex"><code>ryo3-shlex</code></a></td></tr>
+<tr><td><code>size</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-size"><code>ryo3-size</code></a></td></tr>
+<tr><td><code>sqlformat</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-sqlformat"><code>ryo3-sqlformat</code></a></td></tr>
+<tr><td><code>tokio</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-tokio"><code>ryo3-tokio</code></a></td></tr>
+<tr><td><code>ulid</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-ulid"><code>ryo3-ulid</code></a></td></tr>
+<tr><td><code>unindent</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-unindent"><code>ryo3-unindent</code></a></td></tr>
+<tr><td><code>url</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-url"><code>ryo3-url</code></a></td></tr>
+<tr><td><code>uuid</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-uuid"><code>ryo3-uuid</code></a></td></tr>
+<tr><td><code>which</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-which"><code>ryo3-which</code></a></td></tr>
+<tr><td><strong>Compression</strong></td><td><strong>~</strong></td></tr>
+<tr><td><code>brotli</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-brotli"><code>ryo3-brotli</code></a></td></tr>
+<tr><td><code>flate2</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-flate2"><code>ryo3-flate2</code></a></td></tr>
+<tr><td><code>zstd</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-zstd"><code>ryo3-zstd</code></a></td></tr>
+<tr><td><strong>Hashing</strong></td><td><strong>~</strong></td></tr>
+<tr><td><code>fnv</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-fnv"><code>ryo3-fnv</code></a></td></tr>
+<tr><td><code>twox-hash</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-twox-hash"><code>ryo3-twox-hash</code></a></td></tr>
+<tr><td><strong>@BurntSushi</strong></td><td><strong>~</strong></td></tr>
+<tr><td><code>globset</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-globset"><code>ryo3-globset</code></a></td></tr>
+<tr><td><code>jiff</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-jiff"><code>ryo3-jiff</code></a></td></tr>
+<tr><td><code>memchr</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-memchr"><code>ryo3-memchr</code></a></td></tr>
+<tr><td><code>regex</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-regex"><code>ryo3-regex</code></a></td></tr>
+<tr><td><code>same-file</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-same-file"><code>ryo3-same-file</code></a></td></tr>
+<tr><td><code>walkdir</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-walkdir"><code>ryo3-walkdir</code></a></td></tr>
+</tbody></table>
+</div>
 <hr />
 <h2 id="dev"><a class="header" href="#dev">DEV</a></h2>
 <ul>
