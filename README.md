@@ -81,38 +81,41 @@ _(aka: questions that I have been asking myself)_
 
 ## Crate bindings
 
-- wrapped crates:
-  - `std` - many stdlib types and apis
-  - `bytes`
-  - `dirs`
-  - `glob`
-  - `heck`
-  - `http`
-  - `jiter`
-  - `reqwest`
-  - `shlex`
-  - `size`
-  - `sqlformat`
-  - `tokio` (`fs` and `process`)
-  - `unindent`
-  - `url`
-  - `uuid`
-  - `which`
-  - compression:
-    - `brotli`
-    - `bzip2`
-    - `flate2`
-    - `zstd`
-  - hashing:
-    - `fnv`
-    - `twox-hash`
-  - burnt-sushi:
-    - `globset` (formerly [globsters](https://pypi.org/project/globsters/))
-    - `jiff`
-    - `memchr`
-    - `regex` (WIP ~ very incomplete)
-    - `same-file`
-    - `walkdir`
+| **crate**       | **ryo3-crate**                                                                        |
+| --------------- | ------------------------------------------------------------------------------------- |
+| `std`           | [`ryo3-std`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-std)             |
+| `bytes`         | [`ryo3-bytes`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bytes)         |
+| `bzip2`         | [`ryo3-bzip2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bzip2)         |
+| `dirs`          | [`ryo3-dirs`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-dirs)           |
+| `glob`          | [`ryo3-glob`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-glob)           |
+| `heck`          | [`ryo3-heck`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-heck)           |
+| `http`          | [`ryo3-http`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-http)           |
+| `jiter`         | [`ryo3-jiter`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-jiter)         |
+| `reqwest`       | [`ryo3-reqwest`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-reqwest)     |
+| `serde`         | [`ryo3-serde`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-serde)         |
+| `shlex`         | [`ryo3-shlex`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-shlex)         |
+| `size`          | [`ryo3-size`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-size)           |
+| `sqlformat`     | [`ryo3-sqlformat`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-sqlformat) |
+| `tokio`         | [`ryo3-tokio`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-tokio)         |
+| `ulid`          | [`ryo3-ulid`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-ulid)           |
+| `unindent`      | [`ryo3-unindent`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-unindent)   |
+| `url`           | [`ryo3-url`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-url)             |
+| `uuid`          | [`ryo3-uuid`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-uuid)           |
+| `which`         | [`ryo3-which`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-which)         |
+| **Compression** | **~**                                                                                 |
+| `brotli`        | [`ryo3-brotli`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-brotli)       |
+| `flate2`        | [`ryo3-flate2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-flate2)       |
+| `zstd`          | [`ryo3-zstd`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-zstd)           |
+| **Hashing**     | **~**                                                                                 |
+| `fnv`           | [`ryo3-fnv`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-fnv)             |
+| `twox-hash`     | [`ryo3-twox-hash`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-twox-hash) |
+| **@BurntSushi** | **~**                                                                                 |
+| `globset`       | [`ryo3-globset`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-globset)     |
+| `jiff`          | [`ryo3-jiff`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-jiff)           |
+| `memchr`        | [`ryo3-memchr`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-memchr)       |
+| `regex`         | [`ryo3-regex`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-regex)         |
+| `same-file`     | [`ryo3-same-file`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-same-file) |
+| `walkdir`       | [`ryo3-walkdir`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-walkdir)     |
 
 ---
 

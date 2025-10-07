@@ -321,7 +321,7 @@ class TimestampDifferenceTypedDict(_DifferenceTypedDict):
 # =============================================================================
 # OPEN MODES (CANONICAL)
 # =============================================================================
-# ry accepts the non-cannonical modes, but they are mapped to the canonical ones]
+# ry accepts the non-canonical modes, but they are mapped to the canonical ones]
 
 OpenTextModeUpdating: TypeAlias = Literal[
     "a+", "at+", "r+", "rt+", "w+", "wt+", "x+", "xt+"
