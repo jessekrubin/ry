@@ -12,7 +12,6 @@ use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
-use tracing::debug;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "HttpClient", frozen)]
@@ -113,7 +112,6 @@ impl RyHttpClient {
                 return py_type_err!("body must be bytes-like or string");
             }
         }
-        debug!("reqwest-client-fetch: {:#?}", req);
         Ok(req)
     }
 }
@@ -169,7 +167,6 @@ impl RyHttpClient {
             hickory_dns: hickory_dns.unwrap_or(true),
             http1_only: http1_only.unwrap_or(false),
         };
-        debug!("reqwest-client-config: {:#?}", client_cfg);
         let client_builder = client_cfg.client_builder();
         let client = client_builder
             .build()
@@ -591,7 +588,6 @@ impl RyHttpClient {
         };
 
         let req = self.build_request(opts)?;
-        debug!("reqwest-client-fetch: {:#?}", req);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             req.send()
                 .await
