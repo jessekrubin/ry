@@ -9,6 +9,7 @@ mod pyo3_json_bytes;
 mod response_head;
 mod response_parking_lot;
 mod response_stream;
+mod tls_version;
 mod user_agent;
 
 pub use client::RyHttpClient;

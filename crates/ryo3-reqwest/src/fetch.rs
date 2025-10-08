@@ -2,7 +2,7 @@
 
 use crate::RyHttpClient;
 use crate::default_client::default_client;
-use pyo3::prelude::*;
+use pyo3::{prelude::*, pybacked::PyBackedStr};
 use ryo3_http::{HttpVersion, PyHeadersLike};
 
 // global fetch
@@ -19,6 +19,8 @@ use ryo3_http::{HttpVersion, PyHeadersLike};
         form = None,
         multipart = None,
         timeout = None,
+        basic_auth = None,
+        bearer_auth = None,
         version = None,
     )
 )]
@@ -35,17 +37,43 @@ pub(crate) fn fetch<'py>(
     form: Option<&Bound<'py, PyAny>>,
     multipart: Option<&Bound<'py, PyAny>>,
     timeout: Option<&ryo3_std::time::PyDuration>,
+    basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
+    bearer_auth: Option<PyBackedStr>,
     version: Option<HttpVersion>,
 ) -> PyResult<Bound<'py, PyAny>> {
     if let Some(c) = client {
         c.fetch(
-            py, url, method, body, headers, query, json, form, multipart, timeout, version,
+            py,
+            url,
+            method,
+            body,
+            headers,
+            query,
+            json,
+            form,
+            multipart,
+            timeout,
+            basic_auth,
+            bearer_auth,
+            version,
         )
     } else {
         let obj: Py<PyAny> = {
             let guard = default_client().lock();
             let bound = guard.fetch(
-                py, url, method, body, headers, query, json, form, multipart, timeout, version,
+                py,
+                url,
+                method,
+                body,
+                headers,
+                query,
+                json,
+                form,
+                multipart,
+                timeout,
+                basic_auth,
+                bearer_auth,
+                version,
             )?;
             bound.unbind()
         };
