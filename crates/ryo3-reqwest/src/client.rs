@@ -895,6 +895,7 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
         dict.set_item(intern!(py, "zstd"), self.zstd)?;
         dict.set_item(intern!(py, "hickory_dns"), self.hickory_dns)?;
         dict.set_item(intern!(py, "http1_only"), self.http1_only)?;
+        dict.set_item(intern!(py, "https_only"), self.https_only)?;
         // -- http1 --
         dict.set_item(
             intern!(py, "http1_title_case_headers"),
@@ -1019,9 +1020,7 @@ impl ClientConfig {
             .tls_info(self.tls_info)
             .danger_accept_invalid_certs(self.danger_accept_invalid_certs)
             .danger_accept_invalid_hostnames(self.danger_accept_invalid_hostnames);
-        if self.http1_only {
-            client_builder = client_builder.http1_only();
-        }
+
         if let Some(user_agent) = &self.user_agent {
             client_builder = client_builder.user_agent(user_agent.clone());
         }
@@ -1037,11 +1036,10 @@ impl ClientConfig {
         if let Some(connect_timeout) = &self.connect_timeout {
             client_builder = client_builder.connect_timeout(connect_timeout.0);
         }
+        // http1
         if self.http1_only {
             client_builder = client_builder.http1_only();
         }
-
-        // http1
         if self.http1_title_case_headers {
             client_builder = client_builder.http1_title_case_headers();
         }

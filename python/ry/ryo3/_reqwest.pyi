@@ -14,6 +14,8 @@ class RequestKwargs(t.TypedDict, total=False):
     form: t.Any
     multipart: t.Any
     timeout: Duration | None
+    basic_auth: tuple[str, str | None] | None
+    bearer_auth: str | None
     version: HttpVersionLike | None
 
 @t.final
