@@ -6,35 +6,37 @@
   - Added `basic_auth` and `bearer_auth` kwargs to fetch functions (`get`,
     `post`, `put`, `delete`, `head`, `patch`, and of course `fetch`)
   - Added more client kwargs from `reqwest::ClientBuilder`:
-    - `redirect: Option<usize>`
-    - `referer: bool`
-    - `http1_only: bool`
-    - `https_only: bool`
-    - `http1_title_case_headers: bool`
-    - `http1_allow_obsolete_multiline_headers_in_responses: bool`
-    - `http1_allow_spaces_after_header_name_in_responses: bool`
-    - `http1_ignore_invalid_headers_in_responses: bool`
-    - `http2_prior_knowledge: bool`
-    - `http2_initial_stream_window_size: Option<u32>`
-    - `http2_initial_connection_window_size: Option<u32>`
-    - `http2_adaptive_window: bool`
-    - `http2_max_frame_size: Option<u32>`
-    - `http2_max_header_list_size: Option<u32>`
-    - `http2_keep_alive_interval: Option<PyDuration>`
-    - `http2_keep_alive_timeout: Option<PyDuration>`
-    - `http2_keep_alive_while_idle: bool`
-    - `pool_max_idle_per_host: usize // default: 2`
-    - `pool_idle_timeout: Option<PyDuration>`
-    - `tcp_keepalive: Option<PyDuration> // default: 15 seconds`
-    - `tcp_keepalive_interval: Option<PyDuration> // default: 15 seconds`
-    - `tcp_keepalive_retries: Option<u32> // default: 3`
-    - `tcp_nodelay: bool // default: true`
-    - `tls_max_version: Option<TlsVersion>`
-    - `tls_min_version: Option<TlsVersion>`
-    - `tls_info: bool // default: false`
-    - `tls_sni: bool // default: true`
-    - `danger_accept_invalid_certs: bool`
-    - `danger_accept_invalid_hostnames: bool`
+    - `redirect: int | None = 10`
+    - `referer: bool = True`
+    - `zstd: bool = True`
+    - `hickory_dns: bool = True`
+    - `http1_only: bool = False`
+    - `https_only: bool = False`
+    - `http1_title_case_headers: bool = False`
+    - `http1_allow_obsolete_multiline_headers_in_responses: bool = False`
+    - `http1_allow_spaces_after_header_name_in_responses: bool = False`
+    - `http1_ignore_invalid_headers_in_responses: bool = False`
+    - `http2_prior_knowledge: bool = False`
+    - `http2_initial_stream_window_size: int | None = None`
+    - `http2_initial_connection_window_size: int | None = None`
+    - `http2_adaptive_window: bool = False`
+    - `http2_max_frame_size: int | None = None`
+    - `http2_max_header_list_size: int | None = None`
+    - `http2_keep_alive_interval: Duration | None = None`
+    - `http2_keep_alive_timeout: Duration | None = None`
+    - `http2_keep_alive_while_idle: bool = False`
+    - `pool_idle_timeout: Duration | None = ...,  # 90 second`
+    - `pool_max_idle_per_host: int | None = ...,  # usize::MA`
+    - `tcp_keepalive: Duration | None = ...,  # 15 second`
+    - `tcp_keepalive_interval: Duration | None = ...,  # 15 second`
+    - `tcp_keepalive_retries: int | None = 3`
+    - `tcp_nodelay: bool = True`
+    - `tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None`
+    - `tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None`
+    - `tls_info: bool = False`
+    - `tls_sni: bool = True`
+    - `danger_accept_invalid_certs: bool = False`
+    - `danger_accept_invalid_hostnames: bool = False`
 
 ---
 
