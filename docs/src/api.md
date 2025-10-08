@@ -1,7 +1,6 @@
 # API
 
 ## Table of Contents
-
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.__about__`](#ry.ryo3.__about__)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)

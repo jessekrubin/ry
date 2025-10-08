@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.61 [unreleased]
+## v0.0.61 [2025-10-08]
 
 - `ryo3-std`
   - added `to_dict`/`from_dict` to `ry.Duration`
