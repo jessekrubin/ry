@@ -37,6 +37,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Programming Language :: Rust",
@@ -79,6 +80,15 @@ strip = true
 features = [ "pyo3/extension-module" ]
 module-name = "ry.ryo3"
 bindings = "pyo3"
+
+[tool.uv]
+package = false # don't build package w/ uv
+# UV problemo: https://github.com/astral-sh/setup-uv/issues/489
+# BUG IN UV: https://github.com/astral-sh/setup-uv/issues/489#issuecomment-3085384851
+required-version = ">=0.7.0"
+
+[tool.uv.sources]
+ry = { workspace = true }
 
 [tool.ruff]
 extend = "./ruff.toml"
@@ -132,12 +142,3 @@ check_untyped_defs = true
 [tool.pyright]
 include = [ 'ry', 'tests' ]
 reportUnnecessaryTypeIgnoreComment = true
-
-[tool.uv]
-package = false # don't build package w/ uv
-# UV problemo: https://github.com/astral-sh/setup-uv/issues/489
-# BUG IN UV: https://github.com/astral-sh/setup-uv/issues/489#issuecomment-3085384851
-required-version = ">=0.7.0"
-
-[tool.uv.sources]
-ry = { workspace = true }

@@ -31,6 +31,7 @@ pub struct ClientConfig {
     user_agent: Option<ryo3_http::HttpHeaderValue>,
     hickory_dns: bool,
     redirect: Option<usize>,
+    // misspelled of course :/
     referer: bool,
     // -- http preferences --
     http1_only: bool,
@@ -144,38 +145,40 @@ impl RyHttpClient {
             req = req.query(&pyser);
         }
 
-        // make sure only one of body, json, form, multipart is set
-        if u8::from(options.body.is_some())
-            + u8::from(options.json.is_some())
-            + u8::from(options.form.is_some())
-            + u8::from(options.multipart.is_some())
-            > 1
-        {
-            return py_value_err!("body, json, form, multipart are mutually exclusive");
-        }
-
-        if let Some(_multipart) = options.multipart {
-            pytodo!("multipart not implemented (yet)");
-        }
-        if let Some(json) = options.json {
-            let wrapped = ryo3_serde::SerializePyAny::new(json, None);
-            req = req.json(&wrapped);
-        }
-        if let Some(form) = options.form {
-            let pyser = ryo3_serde::SerializePyAny::new(form, None);
-            req = req.form(&pyser);
-        }
-        if let Some(body) = options.body {
-            if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
-                // short circuit for rs-py-bytes
-                let rsbytes: &Bytes = rsbytes.get().as_ref();
-                req = req.body(rsbytes.to_owned());
-            } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
-                // buffer protocol
-                req = req.body(bytes.into_inner());
-            } else {
-                return py_type_err!("body must be bytes-like or string");
+        // version 2
+        match (options.body, options.json, options.form, options.multipart) {
+            (Some(_), Some(_), _, _)
+            | (Some(_), _, Some(_), _)
+            | (Some(_), _, _, Some(_))
+            | (_, Some(_), Some(_), _)
+            | (_, Some(_), _, Some(_))
+            | (_, _, Some(_), Some(_)) => {
+                return py_value_err!("body, json, form, multipart are mutually exclusive");
             }
+            (Some(body), None, None, None) => {
+                if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
+                    // short circuit for rs-py-bytes
+                    let rsbytes: &Bytes = rsbytes.get().as_ref();
+                    req = req.body(rsbytes.to_owned());
+                } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
+                    // buffer protocol
+                    req = req.body(bytes.into_inner());
+                } else {
+                    return py_type_err!("body must be bytes-like or string");
+                }
+            }
+            (None, Some(json), None, None) => {
+                let wrapped = ryo3_serde::SerializePyAny::new(json, None);
+                req = req.json(&wrapped);
+            }
+            (None, None, Some(form), None) => {
+                let pyser = ryo3_serde::SerializePyAny::new(form, None);
+                req = req.form(&pyser);
+            }
+            (None, None, None, Some(_multipart)) => {
+                pytodo!("multipart not implemented (yet)");
+            }
+            (None, None, None, None) => {}
         }
         Ok(req)
     }
