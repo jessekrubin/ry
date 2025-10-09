@@ -181,32 +181,28 @@ impl FromPyObject<'_> for PyIndent {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // none go to default (2 spaces)
         if ob.is_none() {
-            return Ok(Self(sqlformat::Indent::Spaces(2)));
-        }
-
-        if let Ok(i) = ob.extract::<i16>() {
+            Ok(Self(sqlformat::Indent::Spaces(2)))
+        } else if let Ok(i) = ob.extract::<i16>() {
             if i < 0 {
-                return Ok(Self(sqlformat::Indent::Tabs));
+                Ok(Self(sqlformat::Indent::Tabs))
+            } else {
+                Ok(Self(sqlformat::Indent::Spaces(
+                    i.try_into().expect("i16 to u8 should not fail here"),
+                )))
             }
-            return Ok(Self(sqlformat::Indent::Spaces(
-                i.try_into().expect("i16 to u8 should not fail here"),
-            )));
-        }
-
-        if let Ok(s) = ob.extract::<&str>() {
+        } else if let Ok(s) = ob.extract::<&str>() {
             match s.to_lowercase().as_str() {
-                "tabs" | "\t" => return Ok(Self(sqlformat::Indent::Tabs)),
-                "spaces" => return Ok(Self(sqlformat::Indent::Spaces(2))),
-                _ => {
-                    return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                        PY_INDENT_ERR_MSG,
-                    ));
-                }
+                "tabs" | "\t" => Ok(Self(sqlformat::Indent::Tabs)),
+                "spaces" => Ok(Self(sqlformat::Indent::Spaces(2))),
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    PY_INDENT_ERR_MSG,
+                )),
             }
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                PY_INDENT_ERR_MSG,
+            ))
         }
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            PY_INDENT_ERR_MSG,
-        ))
     }
 }
 
@@ -405,7 +401,7 @@ mod tests {
             None,
             None,
             false,
-            SqlformatDialect(sqlformat::Dialect::Generic)
+            SqlformatDialect(sqlformat::Dialect::Generic),
         )
         .unwrap();
         let expected = "SELECT\n  *\nFROM\n  poopy\nWHERE\n  COLUMN = 1";
