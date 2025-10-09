@@ -14,6 +14,8 @@ class RequestKwargs(t.TypedDict, total=False):
     form: t.Any
     multipart: t.Any
     timeout: Duration | None
+    basic_auth: tuple[str, str | None] | None
+    bearer_auth: str | None
     version: HttpVersionLike | None
 
 @t.final
@@ -21,15 +23,46 @@ class HttpClient:
     def __init__(
         self,
         *,
-        headers: dict[str, str] | None = None,
+        headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
-        user_agent: str | None = None,  # default ~ 'ry-reqwest/<VERSION> ...'
+        user_agent: str | None = None,
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
+        redirect: int | None = 10,
+        referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
         deflate: bool = True,
+        zstd: bool = True,
+        hickory_dns: bool = True,
+        http1_only: bool = False,
+        https_only: bool = False,
+        http1_title_case_headers: bool = False,
+        http1_allow_obsolete_multiline_headers_in_responses: bool = False,
+        http1_allow_spaces_after_header_name_in_responses: bool = False,
+        http1_ignore_invalid_headers_in_responses: bool = False,
+        http2_prior_knowledge: bool = False,
+        http2_initial_stream_window_size: int | None = None,
+        http2_initial_connection_window_size: int | None = None,
+        http2_adaptive_window: bool = False,
+        http2_max_frame_size: int | None = None,
+        http2_max_header_list_size: int | None = None,
+        http2_keep_alive_interval: Duration | None = None,
+        http2_keep_alive_timeout: Duration | None = None,
+        http2_keep_alive_while_idle: bool = False,
+        pool_idle_timeout: Duration | None = ...,  # 90 seconds
+        pool_max_idle_per_host: int | None = ...,  # usize::MAX
+        tcp_keepalive: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_retries: int | None = 3,
+        tcp_nodelay: bool = True,
+        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_info: bool = False,
+        tls_sni: bool = True,
+        danger_accept_invalid_certs: bool = False,
+        danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
     async def get(
         self,

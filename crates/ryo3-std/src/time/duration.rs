@@ -27,6 +27,11 @@ impl From<Duration> for PyDuration {
         Self(d)
     }
 }
+impl From<PyDuration> for Option<Duration> {
+    fn from(d: PyDuration) -> Self {
+        Some(d.0)
+    }
+}
 
 impl PyDuration {
     fn new(secs: u64, nanos: u32) -> PyResult<Self> {
