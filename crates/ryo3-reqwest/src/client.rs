@@ -31,7 +31,7 @@ pub struct ClientConfig {
     user_agent: Option<ryo3_http::HttpHeaderValue>,
     hickory_dns: bool,
     redirect: Option<usize>,
-    // misspelled of course
+    // misspelled of course :/
     referer: bool,
     // -- http preferences --
     http1_only: bool,
@@ -180,30 +180,6 @@ impl RyHttpClient {
             }
             (None, None, None, None) => {}
         }
-
-        // // version 1
-        // // make sure only one of body, json, form, multipart is set
-        // if u8::from(options.body.is_some())
-        //     + u8::from(options.json.is_some())
-        //     + u8::from(options.form.is_some())
-        //     + u8::from(options.multipart.is_some())
-        //     > 1
-        // {
-        //     return py_value_err!("body, json, form, multipart are mutually exclusive");
-        // }
-
-        // if let Some(_multipart) = options.multipart {
-        //     pytodo!("multipart not implemented (yet)");
-        // }
-        // if let Some(json) = options.json {
-        //     let wrapped = ryo3_serde::SerializePyAny::new(json, None);
-        //     req = req.json(&wrapped);
-        // }
-        // if let Some(form) = options.form {
-        //     let pyser = ryo3_serde::SerializePyAny::new(form, None);
-        //     req = req.form(&pyser);
-        // }
-        // if let Some(body) = options.body {}
         Ok(req)
     }
 }
