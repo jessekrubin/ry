@@ -34,3 +34,33 @@ def sqlfmt(
     joins_as_top_level: bool = False,
     dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
 ) -> str: ...
+
+class SqlFormatter:
+    def __init__(
+        self,
+        *,
+        indent: int | t.Literal["tabs", "\t"] = 2,
+        uppercase: bool = False,
+        lines_between_statements: int = 1,
+        ignore_case_convert: list[str] | None = None,
+        inline: bool = False,
+        max_inline_block: int = 50,
+        max_inline_arguments: int | None = None,
+        max_inline_top_level: int | None = None,
+        joins_as_top_level: bool = False,
+        dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
+    ) -> None: ...
+    def fmt(
+        self,
+        sql: str,
+        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        | SqlfmtQueryParams
+        | None = None,
+    ) -> str: ...
+    def __call__(
+        self,
+        sql: str,
+        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        | SqlfmtQueryParams
+        | None = None,
+    ) -> str: ...

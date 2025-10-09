@@ -172,8 +172,33 @@ impl Display for QueryParamsFormatter<'_> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct PyIndent(sqlformat::Indent);
+
+impl Default for PyIndent {
+    fn default() -> Self {
+        Self(sqlformat::Indent::Spaces(2))
+    }
+}
+
+impl PartialEq for PyIndent {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.0, other.0) {
+            (sqlformat::Indent::Tabs, sqlformat::Indent::Tabs) => true,
+            (sqlformat::Indent::Spaces(a), sqlformat::Indent::Spaces(b)) => a == b,
+            _ => false,
+        }
+    }
+}
+
+impl std::fmt::Debug for PyIndent {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.0 {
+            sqlformat::Indent::Tabs => write!(f, "\"\t\""),
+            sqlformat::Indent::Spaces(n) => write!(f, "{n}"),
+        }
+    }
+}
 
 const PY_INDENT_ERR_MSG: &str =
     "Indent must be an integer, 'tabs'/'\\t', or 'spaces' (default 2 spaces)";
@@ -203,6 +228,12 @@ impl FromPyObject<'_> for PyIndent {
                 PY_INDENT_ERR_MSG,
             ))
         }
+    }
+}
+
+impl From<PyIndent> for sqlformat::Indent {
+    fn from(i: PyIndent) -> Self {
+        i.0
     }
 }
 
@@ -284,7 +315,7 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
         sql,
         params=None,
         *,
-        indent=None,
+        indent=PyIndent::default(),
         uppercase=None,
         lines_between_queries=1,
         ignore_case_convert=None,
@@ -293,7 +324,7 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
         max_inline_arguments=None,
         max_inline_top_level=None,
         joins_as_top_level=false,
-        dialect=SqlformatDialect(sqlformat::Dialect::Generic)
+        dialect=PyDialect::default()
     )
 )]
 #[expect(clippy::needless_pass_by_value)]
@@ -301,7 +332,7 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
 pub fn sqlfmt(
     sql: &str,
     params: Option<PyQueryParamsLike>,
-    indent: Option<PyIndent>,
+    indent: PyIndent,
     uppercase: Option<bool>,
     lines_between_queries: u8,
     ignore_case_convert: Option<Vec<String>>,
@@ -310,14 +341,13 @@ pub fn sqlfmt(
     max_inline_arguments: Option<usize>,
     max_inline_top_level: Option<usize>,
     joins_as_top_level: bool,
-    dialect: SqlformatDialect,
+    dialect: PyDialect,
 ) -> PyResult<String> {
-    let indent = indent.map_or(sqlformat::Indent::Spaces(2), |i| i.0);
     let ignore_case_convert: Option<Vec<&str>> = ignore_case_convert
         .as_ref()
         .map(|v| v.iter().map(String::as_str).collect());
     let options = sqlformat::FormatOptions {
-        indent,
+        indent: indent.into(),
         uppercase,
         lines_between_queries,
         ignore_case_convert,
@@ -341,17 +371,33 @@ pub fn sqlfmt(
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct SqlformatDialect(sqlformat::Dialect);
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PyDialect(sqlformat::Dialect);
 
-impl From<SqlformatDialect> for sqlformat::Dialect {
-    fn from(d: SqlformatDialect) -> Self {
+impl Default for PyDialect {
+    fn default() -> Self {
+        Self(sqlformat::Dialect::Generic)
+    }
+}
+
+impl From<PyDialect> for sqlformat::Dialect {
+    fn from(d: PyDialect) -> Self {
         d.0
     }
 }
 
+impl Display for PyDialect {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.0 {
+            sqlformat::Dialect::Generic => f.write_str("generic"),
+            sqlformat::Dialect::PostgreSql => f.write_str("postgresql"),
+            sqlformat::Dialect::SQLServer => f.write_str("sqlserver"),
+        }
+    }
+}
+
 const SQLFORMAT_DIALECT_STRINGS: &str = "'generic', 'postgresql', 'sqlserver'";
-impl FromPyObject<'_> for SqlformatDialect {
+impl FromPyObject<'_> for PyDialect {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // downcast to string...
         if let Ok(s) = ob.extract::<&str>() {
@@ -371,12 +417,180 @@ impl FromPyObject<'_> for SqlformatDialect {
     }
 }
 
+// ----------------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq)]
+struct PySqlFormatterOptions {
+    indent: PyIndent,
+    uppercase: Option<bool>,
+    lines_between_queries: u8,
+    ignore_case_convert: Option<Vec<String>>,
+    inline: bool,
+    max_inline_block: usize,
+    max_inline_arguments: Option<usize>,
+    max_inline_top_level: Option<usize>,
+    joins_as_top_level: bool,
+    dialect: PyDialect,
+}
+
+#[pyclass(name = "SqlFormatter", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+#[derive(Clone)]
+pub struct PySqlFormatter(PySqlFormatterOptions);
+
+impl PySqlFormatter {
+    fn ignore_case_convert(&self) -> Option<Vec<&str>> {
+        self.0
+            .ignore_case_convert
+            .as_ref()
+            .map(|v| v.iter().map(String::as_str).collect())
+    }
+}
+
+#[pymethods]
+impl PySqlFormatter {
+    #[new]
+    #[pyo3(
+    signature = (
+        *,
+        indent=PyIndent::default(),
+        uppercase=None,
+        lines_between_queries=1,
+        ignore_case_convert=None,
+        inline=false,
+        max_inline_block=50,
+        max_inline_arguments=None,
+        max_inline_top_level=None,
+        joins_as_top_level=false,
+        dialect=PyDialect::default()
+    )
+)]
+    #[expect(clippy::needless_pass_by_value)]
+    #[expect(clippy::too_many_arguments)]
+    fn py_new(
+        indent: PyIndent,
+        uppercase: Option<bool>,
+        lines_between_queries: u8,
+        ignore_case_convert: Option<Vec<String>>,
+        inline: bool,
+        max_inline_block: usize,
+        max_inline_arguments: Option<usize>,
+        max_inline_top_level: Option<usize>,
+        joins_as_top_level: bool,
+        dialect: PyDialect,
+    ) -> PyResult<Self> {
+        Ok(Self(PySqlFormatterOptions {
+            indent,
+            uppercase,
+            lines_between_queries,
+            ignore_case_convert,
+            inline,
+            max_inline_block,
+            max_inline_arguments,
+            max_inline_top_level,
+            joins_as_top_level,
+            dialect,
+        }))
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+
+    fn __ne__(&self, other: &Self) -> bool {
+        !self.__eq__(other)
+    }
+
+    #[pyo3(signature = (sql, params=None))]
+    fn fmt(&self, sql: &str, params: Option<PyQueryParamsLike>) -> PyResult<String> {
+        let opts = sqlformat::FormatOptions {
+            indent: self.0.indent.into(),
+            uppercase: self.0.uppercase,
+            lines_between_queries: self.0.lines_between_queries,
+            ignore_case_convert: self.ignore_case_convert(),
+            inline: self.0.inline,
+            max_inline_block: self.0.max_inline_block,
+            max_inline_arguments: self.0.max_inline_arguments,
+            max_inline_top_level: self.0.max_inline_top_level,
+            joins_as_top_level: self.0.joins_as_top_level,
+            dialect: self.0.dialect.into(),
+        };
+        if let Some(p) = params {
+            if let PyQueryParamsLike::PyQueryParams(p) = p {
+                Ok(sqlformat::format(sql, &p.params, &opts))
+            } else {
+                let py_params = PySqlfmtQueryParams::py_new(Some(p))?;
+                Ok(sqlformat::format(sql, &py_params.params, &opts))
+            }
+        } else {
+            let nada = QueryParams::None;
+            Ok(sqlformat::format(sql, &nada, &opts))
+        }
+    }
+
+    #[pyo3(signature = (sql, params=None))]
+    fn __call__(&self, sql: &str, params: Option<PyQueryParamsLike>) -> PyResult<String> {
+        self.fmt(sql, params)
+    }
+}
+
+impl std::fmt::Debug for PySqlFormatter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SqlFormatter(")?;
+        write!(f, "indent={:?}, ", self.0.indent)?;
+        if let Some(uc) = self.0.uppercase {
+            if uc {
+                write!(f, "uppercase=True, ")?;
+            } else {
+                write!(f, "uppercase=False, ")?;
+            }
+        }
+        write!(
+            f,
+            "lines_between_queries={}, ",
+            self.0.lines_between_queries
+        )?;
+        if let Some(v) = &self.0.ignore_case_convert {
+            write!(f, "ignore_case_convert={v:?}, ")?;
+        }
+        if self.0.inline {
+            write!(f, "inline=True, ")?;
+        } else {
+            write!(f, "inline=False, ")?;
+        }
+        write!(f, "max_inline_block={}, ", self.0.max_inline_block)?;
+        if let Some(v) = self.0.max_inline_arguments {
+            write!(f, "max_inline_arguments={v}, ")?;
+        }
+        if let Some(v) = self.0.max_inline_top_level {
+            write!(f, "max_inline_top_level={v}, ")?;
+        }
+        if self.0.joins_as_top_level {
+            write!(f, "joins_as_top_level=True, ")?;
+        } else {
+            write!(f, "joins_as_top_level=False, ")?;
+        }
+
+        write!(f, "dialect=\"{}\"", self.0.dialect)?;
+        f.write_str(")")
+    }
+}
+
+// ----------------------------------------------------------------------------
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySqlfmtQueryParams>()?;
+    m.add_class::<PySqlFormatter>()?;
     m.add_function(wrap_pyfunction!(sqlfmt, m)?)?;
     m.add_function(wrap_pyfunction!(sqlfmt_params, m)?)?;
     Ok(())
 }
+
+// ----------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -392,7 +606,7 @@ mod tests {
                 "value".to_string(),
                 PyQueryParamValue::PyString("1".to_string()),
             )])),
-            None,
+            PyIndent::default(),
             None,
             1,
             None,
@@ -401,7 +615,7 @@ mod tests {
             None,
             None,
             false,
-            SqlformatDialect(sqlformat::Dialect::Generic),
+            PyDialect(sqlformat::Dialect::Generic),
         )
         .unwrap();
         let expected = "SELECT\n  *\nFROM\n  poopy\nWHERE\n  COLUMN = 1";
