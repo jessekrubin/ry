@@ -297,6 +297,7 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
         max_inline_arguments=None,
         max_inline_top_level=None,
         joins_as_top_level=false,
+        dialect=SqlformatDialect(sqlformat::Dialect::Generic)
     )
 )]
 #[expect(clippy::needless_pass_by_value)]
@@ -313,6 +314,7 @@ pub fn sqlfmt(
     max_inline_arguments: Option<usize>,
     max_inline_top_level: Option<usize>,
     joins_as_top_level: bool,
+    dialect: SqlformatDialect,
 ) -> PyResult<String> {
     let indent = indent.map_or(sqlformat::Indent::Spaces(2), |i| i.0);
     let ignore_case_convert: Option<Vec<&str>> = ignore_case_convert
@@ -328,6 +330,7 @@ pub fn sqlfmt(
         max_inline_arguments,
         max_inline_top_level,
         joins_as_top_level,
+        dialect: dialect.into(),
     };
     if let Some(p) = params {
         if let PyQueryParamsLike::PyQueryParams(p) = p {
@@ -339,6 +342,36 @@ pub fn sqlfmt(
     } else {
         let nada = QueryParams::None;
         Ok(sqlformat::format(sql, &nada, &options))
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct SqlformatDialect(sqlformat::Dialect);
+
+impl From<SqlformatDialect> for sqlformat::Dialect {
+    fn from(d: SqlformatDialect) -> Self {
+        d.0
+    }
+}
+
+const SQLFORMAT_DIALECT_STRINGS: &str = "'generic', 'postgresql', 'sqlserver'";
+impl FromPyObject<'_> for SqlformatDialect {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+        // downcast to string...
+        if let Ok(s) = ob.extract::<&str>() {
+            match s {
+                "generic" => Ok(Self(sqlformat::Dialect::Generic)),
+                "postgresql" => Ok(Self(sqlformat::Dialect::PostgreSql)),
+                "sqlserver" => Ok(Self(sqlformat::Dialect::SQLServer)),
+                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Invalid dialect; valid options: {SQLFORMAT_DIALECT_STRINGS}"
+                ))),
+            }
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                "Invalid type for dialect expected string (options: {SQLFORMAT_DIALECT_STRINGS})"
+            )))
+        }
     }
 }
 
@@ -372,6 +405,7 @@ mod tests {
             None,
             None,
             false,
+            SqlformatDialect(sqlformat::Dialect::Generic)
         )
         .unwrap();
         let expected = "SELECT\n  *\nFROM\n  poopy\nWHERE\n  COLUMN = 1";

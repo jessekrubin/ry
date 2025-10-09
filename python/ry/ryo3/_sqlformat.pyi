@@ -32,4 +32,5 @@ def sqlfmt(
     max_inline_arguments: int | None = None,
     max_inline_top_level: int | None = None,
     joins_as_top_level: bool = False,
+    dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
 ) -> str: ...
