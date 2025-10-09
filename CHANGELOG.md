@@ -5,6 +5,7 @@
 - `ryo3-reqwest`
   - Added `basic_auth` and `bearer_auth` kwargs to fetch functions (`get`,
     `post`, `put`, `delete`, `head`, `patch`, and of course `fetch`)
+  - Internal refactoring of body/form/json/multipart parsing.
   - Added more client kwargs from `reqwest::ClientBuilder`:
     - `redirect: int | None = 10`
     - `referer: bool = True`
