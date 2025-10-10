@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
-use pyo3::prelude::PyModule;
-use pyo3::{IntoPyObjectExt, prelude::*};
+use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
+use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use sqlformat::{self, QueryParams};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -23,10 +23,6 @@ impl PySqlfmtQueryParams {
 
     fn __repr__(&self) -> String {
         format!("{self}")
-    }
-
-    fn __str__(&self) -> String {
-        self.__repr__()
     }
 
     fn __len__(&self) -> usize {
@@ -194,29 +190,55 @@ impl PartialEq for PyIndent {
 impl std::fmt::Debug for PyIndent {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.0 {
-            sqlformat::Indent::Tabs => write!(f, "\"\t\""),
+            sqlformat::Indent::Tabs => f.write_str("-1"),
             sqlformat::Indent::Spaces(n) => write!(f, "{n}"),
         }
     }
 }
 
-const PY_INDENT_ERR_MSG: &str =
-    "Indent must be an integer, 'tabs'/'\\t', or 'spaces' (default 2 spaces)";
+impl<'py> IntoPyObject<'py> for &PyIndent {
+    type Target = PyInt;
+    type Output = Bound<'py, Self::Target>;
+    type Error = pyo3::PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self.0 {
+            sqlformat::Indent::Tabs => Ok((-1i8).into_pyobject(py)?),
+            sqlformat::Indent::Spaces(n) => Ok(n.into_pyobject(py)?),
+        }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyIndent {
+    type Target = PyInt;
+    type Output = Bound<'py, Self::Target>;
+    type Error = pyo3::PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
+    }
+}
+
+const PY_INDENT_ERR_MSG: &str = "Indent must be an integer (0 <= indent < 256 | -1 for tabs), 'tabs'/'\\t', or 'spaces' (default 2 spaces)";
 impl FromPyObject<'_> for PyIndent {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // none go to default (2 spaces)
         if ob.is_none() {
             Ok(Self(sqlformat::Indent::Spaces(2)))
-        } else if let Ok(i) = ob.extract::<i16>() {
-            if i < 0 {
+        } else if let Ok(i) = ob.extract::<u8>() {
+            Ok(Self(sqlformat::Indent::Spaces(i)))
+        } else if let Ok(i) = ob.extract::<i8>() {
+            if i == -1 {
                 Ok(Self(sqlformat::Indent::Tabs))
             } else {
-                Ok(Self(sqlformat::Indent::Spaces(
-                    i.try_into().expect("i16 to u8 should not fail here"),
-                )))
+                Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                    PY_INDENT_ERR_MSG,
+                ))
             }
         } else if let Ok(s) = ob.extract::<&str>() {
-            match s.to_lowercase().as_str() {
+            match s {
                 "tabs" | "\t" => Ok(Self(sqlformat::Indent::Tabs)),
                 "spaces" => Ok(Self(sqlformat::Indent::Spaces(2))),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
@@ -396,6 +418,33 @@ impl Display for PyDialect {
     }
 }
 
+impl<'py> IntoPyObject<'py> for &PyDialect {
+    type Target = PyString;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let s = match self.0 {
+            sqlformat::Dialect::Generic => intern!(py, "generic"),
+            sqlformat::Dialect::PostgreSql => intern!(py, "postgresql"),
+            sqlformat::Dialect::SQLServer => intern!(py, "sqlserver"),
+        };
+        Ok(s.as_borrowed())
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyDialect {
+    type Target = PyString;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
+    }
+}
+
 const SQLFORMAT_DIALECT_STRINGS: &str = "'generic', 'postgresql', 'sqlserver'";
 impl FromPyObject<'_> for PyDialect {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -432,9 +481,9 @@ struct PySqlFormatterOptions {
     dialect: PyDialect,
 }
 
+#[derive(Clone)]
 #[pyclass(name = "SqlFormatter", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Clone)]
 pub struct PySqlFormatter(PySqlFormatterOptions);
 
 impl PySqlFormatter {
@@ -481,7 +530,7 @@ impl PySqlFormatter {
             indent,
             uppercase,
             lines_between_queries,
-            ignore_case_convert,
+            ignore_case_convert: ignore_case_convert.filter(|v| !v.is_empty()),
             inline,
             max_inline_block,
             max_inline_arguments,
@@ -501,6 +550,42 @@ impl PySqlFormatter {
 
     fn __ne__(&self, other: &Self) -> bool {
         !self.__eq__(other)
+    }
+
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::empty(py).into_bound_py_any(py)?;
+        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
+        PyTuple::new(py, vec![args, kwargs])
+    }
+
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        dict.set_item(intern!(py, "indent"), self.0.indent)?;
+        dict.set_item(intern!(py, "uppercase"), self.0.uppercase)?;
+        dict.set_item(
+            intern!(py, "lines_between_queries"),
+            self.0.lines_between_queries,
+        )?;
+        let ignore_case_convert_py_str = intern!(py, "ignore_case_convert");
+        if let Some(v) = &self.0.ignore_case_convert {
+            let pylist = pyo3::types::PyList::new(py, v)?;
+            dict.set_item(ignore_case_convert_py_str, pylist)?;
+        } else {
+            dict.set_item(ignore_case_convert_py_str, py.None())?;
+        }
+        dict.set_item(intern!(py, "inline"), self.0.inline)?;
+        dict.set_item(intern!(py, "max_inline_block"), self.0.max_inline_block)?;
+        dict.set_item(
+            intern!(py, "max_inline_arguments"),
+            self.0.max_inline_arguments,
+        )?;
+        dict.set_item(
+            intern!(py, "max_inline_top_level"),
+            self.0.max_inline_top_level,
+        )?;
+        dict.set_item(intern!(py, "joins_as_top_level"), self.0.joins_as_top_level)?;
+        dict.set_item(intern!(py, "dialect"), self.0.dialect)?;
+        Ok(dict)
     }
 
     #[pyo3(signature = (sql, params=None))]
@@ -539,6 +624,17 @@ impl PySqlFormatter {
 impl std::fmt::Debug for PySqlFormatter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // TODO: exclude defaults from output
+
+        // indent: PyIndent,
+        // uppercase: Option<bool>,
+        // lines_between_queries: u8,
+        // ignore_case_convert: Option<Vec<String>>,
+        // inline: bool,
+        // max_inline_block: usize,
+        // max_inline_arguments: Option<usize>,
+        // max_inline_top_level: Option<usize>,
+        // joins_as_top_level: bool,
+        // dialect: PyDialect,
         write!(f, "SqlFormatter(")?;
         write!(f, "indent={:?}, ", self.0.indent)?;
         if let Some(uc) = self.0.uppercase {
@@ -553,7 +649,9 @@ impl std::fmt::Debug for PySqlFormatter {
             "lines_between_queries={}, ",
             self.0.lines_between_queries
         )?;
-        if let Some(v) = &self.0.ignore_case_convert {
+        if let Some(v) = &self.0.ignore_case_convert
+            && !v.is_empty()
+        {
             write!(f, "ignore_case_convert={v:?}, ")?;
         }
         if self.0.inline {

@@ -2,6 +2,8 @@
 
 import typing as t
 
+Dialect: t.TypeAlias = t.Literal["generic", "postgresql", "sqlserver"]
+Indent: t.TypeAlias = t.Literal["tabs", "\t"] | int
 SqlfmtParamValue: t.TypeAlias = str | int | float | bool
 _TSqlfmtParamValue_co = t.TypeVar(
     "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
@@ -35,6 +37,18 @@ def sqlfmt(
     dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
 ) -> str: ...
 
+class _SqlFormatterDict(t.TypedDict):
+    indent: int | t.Literal["tabs"]
+    uppercase: bool
+    lines_between_queries: int
+    ignore_case_convert: list[str] | None
+    inline: bool
+    max_inline_block: int
+    max_inline_arguments: int | None
+    max_inline_top_level: int | None
+    joins_as_top_level: bool
+    dialect: t.Literal["generic", "postgresql", "sqlserver"]
+
 class SqlFormatter:
     def __init__(
         self,
@@ -50,6 +64,7 @@ class SqlFormatter:
         joins_as_top_level: bool = False,
         dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
     ) -> None: ...
+    def to_dict(self) -> _SqlFormatterDict: ...
     def fmt(
         self,
         sql: str,
@@ -64,3 +79,5 @@ class SqlFormatter:
         | SqlfmtQueryParams
         | None = None,
     ) -> str: ...
+    def __eq__(self, value: object) -> bool: ...
+    def __ne__(self, value: object) -> bool: ...
