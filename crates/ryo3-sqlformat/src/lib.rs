@@ -53,6 +53,22 @@ impl PySqlfmtQueryParams {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
+        self == other
+    }
+
+    fn __ne__(&self, other: &Self) -> bool {
+        !self.__eq__(other)
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
+}
+
+impl PartialEq for PySqlfmtQueryParams {
+    fn eq(&self, other: &Self) -> bool {
         match (&self.0, &other.0) {
             (QueryParams::Named(p1), QueryParams::Named(p2)) => {
                 // make 2 vecccccs o refs...
@@ -70,31 +86,22 @@ impl PySqlfmtQueryParams {
             _ => false,
         }
     }
+}
 
-    fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
-    }
-
-    fn __hash__(&self) -> u64 {
-        let mut hasher = std::hash::DefaultHasher::new();
+impl Hash for PySqlfmtQueryParams {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         match &self.0 {
             QueryParams::Named(p) => {
                 let mut p: Vec<(&str, &str)> =
                     p.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
                 p.sort_by(|a, b| a.0.cmp(b.0));
-                for (k, v) in p {
-                    k.hash(&mut hasher);
-                    v.hash(&mut hasher);
-                }
+                p.hash(state);
             }
             QueryParams::Indexed(p) => {
-                for v in p {
-                    v.hash(&mut hasher);
-                }
+                p.hash(state);
             }
             QueryParams::None => {}
         }
-        hasher.finish()
     }
 }
 
@@ -278,6 +285,9 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
     match params {
         Some(params) => match params {
             PyQueryParamsLike::NamedMap(p) => {
+                if p.is_empty() {
+                    return Ok(PySqlfmtQueryParams(QueryParams::None));
+                }
                 let named_params = p
                     .into_iter()
                     .map(|(k, v)| match v {
@@ -289,6 +299,9 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
                 Ok(QueryParams::Named(named_params).into())
             }
             PyQueryParamsLike::NamedVec(p) => {
+                if p.is_empty() {
+                    return Ok(PySqlfmtQueryParams(QueryParams::None));
+                }
                 let named_params = p
                     .into_iter()
                     .map(|(k, v)| match v {
@@ -301,6 +314,9 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
                 Ok(p.into())
             }
             PyQueryParamsLike::Indexed(p) => {
+                if p.is_empty() {
+                    return Ok(PySqlfmtQueryParams(QueryParams::None));
+                }
                 let strings: Vec<String> = p
                     .into_iter()
                     .map(|v| match v {
