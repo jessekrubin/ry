@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-10-09T11:35:10.328716092-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-10-10T11:48:53.979352118-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -481,6 +481,18 @@ dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0062-unreleased"><a class="header" href="#v0062-unreleased">v0.0.62 [unreleased]</a></h2>
 <ul>
+<li><code>ryo3-sqlformat</code>
+<ul>
+<li>Internal refactoring</li>
+<li>Fixed type annotations</li>
+<li>Starting to think that the <code>QueryParams</code> wrapper is totally stupid and
+useless and may remove/deprecate</li>
+<li>Upgrade sqlformat to <code>0.5.0</code> which adds the kwarg
+<code>dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic"</code></li>
+<li>Added <code>SqlFormatter</code> object for storing a “config”/set-o-opts and for re-use
+(which I was in need of)</li>
+</ul>
+</li>
 <li><code>ryo3-reqwest</code>
 <ul>
 <li>Added <code>basic_auth</code> and <code>bearer_auth</code> kwargs to fetch functions (<code>get</code>,
@@ -2513,6 +2525,7 @@ from ry.ryo3._size import SizeFormatter as SizeFormatter
 from ry.ryo3._size import fmt_size as fmt_size
 from ry.ryo3._size import parse_size as parse_size
 from ry.ryo3._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
+from ry.ryo3._sqlformat import SqlFormatter as SqlFormatter
 from ry.ryo3._sqlformat import sqlfmt as sqlfmt
 from ry.ryo3._sqlformat import sqlfmt_params as sqlfmt_params
 from ry.ryo3._std import DirEntry as DirEntry
@@ -6686,6 +6699,8 @@ class Size:
 
 import typing as t
 
+Dialect: t.TypeAlias = t.Literal["generic", "postgresql", "sqlserver"]
+Indent: t.TypeAlias = t.Literal["tabs", "\t"] | int
 SqlfmtParamValue: t.TypeAlias = str | int | float | bool
 _TSqlfmtParamValue_co = t.TypeVar(
     "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
@@ -6715,14 +6730,62 @@ def sqlfmt(
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
     uppercase: bool = False,
-    lines_between_statements: int = 1,
+    lines_between_queries: int = 1,
     ignore_case_convert: list[str] | None = None,
     inline: bool = False,
     max_inline_block: int = 50,
     max_inline_arguments: int | None = None,
     max_inline_top_level: int | None = None,
     joins_as_top_level: bool = False,
+    dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
 ) -&gt; str: ...
+
+
+class _SqlFormatterDict(t.TypedDict):
+    indent: int | t.Literal["tabs"]
+    uppercase: bool
+    lines_between_queries: int
+    ignore_case_convert: list[str] | None
+    inline: bool
+    max_inline_block: int
+    max_inline_arguments: int | None
+    max_inline_top_level: int | None
+    joins_as_top_level: bool
+    dialect: t.Literal["generic", "postgresql", "sqlserver"]
+
+
+class SqlFormatter:
+    def __init__(
+        self,
+        *,
+        indent: int | t.Literal["tabs", "\t"] = 2,
+        uppercase: bool = False,
+        lines_between_queries: int = 1,
+        ignore_case_convert: list[str] | None = None,
+        inline: bool = False,
+        max_inline_block: int = 50,
+        max_inline_arguments: int | None = None,
+        max_inline_top_level: int | None = None,
+        joins_as_top_level: bool = False,
+        dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
+    ) -&gt; None: ...
+    def to_dict(self) -&gt; _SqlFormatterDict: ...
+    def fmt(
+        self,
+        sql: str,
+        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        | SqlfmtQueryParams
+        | None = None,
+    ) -&gt; str: ...
+    def __call__(
+        self,
+        sql: str,
+        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        | SqlfmtQueryParams
+        | None = None,
+    ) -&gt; str: ...
+    def __eq__(self, value: object) -&gt; bool: ...
+    def __ne__(self, value: object) -&gt; bool: ...
 </code></pre>
 <h2 id="ry.ryo3._std"><a class="header" href="#ry.ryo3._std"><code>ry.ryo3._std</code></a></h2>
 <pre><code class="language-python">"""ryo3-std types"""

@@ -184,6 +184,18 @@
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0062-unreleased"><a class="header" href="#v0062-unreleased">v0.0.62 [unreleased]</a></h2>
 <ul>
+<li><code>ryo3-sqlformat</code>
+<ul>
+<li>Internal refactoring</li>
+<li>Fixed type annotations</li>
+<li>Starting to think that the <code>QueryParams</code> wrapper is totally stupid and
+useless and may remove/deprecate</li>
+<li>Upgrade sqlformat to <code>0.5.0</code> which adds the kwarg
+<code>dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic"</code></li>
+<li>Added <code>SqlFormatter</code> object for storing a “config”/set-o-opts and for re-use
+(which I was in need of)</li>
+</ul>
+</li>
 <li><code>ryo3-reqwest</code>
 <ul>
 <li>Added <code>basic_auth</code> and <code>bearer_auth</code> kwargs to fetch functions (<code>get</code>,
