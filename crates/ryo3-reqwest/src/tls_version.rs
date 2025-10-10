@@ -39,8 +39,9 @@ impl<'py> IntoPyObject<'py> for TlsVersion {
 
 const TLS_VERSION_STRINGS: &str = "'1.0', '1.1', '1.2', '1.3'";
 
-impl FromPyObject<'_> for TlsVersion {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for TlsVersion {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         // downcast to string...
         if let Ok(s) = ob.extract::<&str>() {
             match s {

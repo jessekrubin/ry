@@ -338,8 +338,9 @@ impl<'py> IntoPyObject<'py> for PySameSite {
     }
 }
 
-impl FromPyObject<'_> for PySameSite {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for PySameSite {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<&str>() {
             match s {
                 "Lax" | "lax" => Ok(Self(cookie::SameSite::Lax)),
@@ -350,9 +351,9 @@ impl FromPyObject<'_> for PySameSite {
                 ))),
             }
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                "Invalid SameSite value: {ob} (options: 'Lax', 'Strict', 'None')"
-            )))
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "Invalid SameSite value (options: 'Lax', 'Strict', 'None')",
+            ))
         }
     }
 }
