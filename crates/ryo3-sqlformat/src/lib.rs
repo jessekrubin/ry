@@ -9,9 +9,7 @@ use std::hash::{Hash, Hasher};
 #[pyclass(name = "SqlfmtQueryParams", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
-pub struct PySqlfmtQueryParams {
-    pub params: QueryParams,
-}
+pub struct PySqlfmtQueryParams(QueryParams);
 
 #[pymethods]
 impl PySqlfmtQueryParams {
@@ -26,7 +24,7 @@ impl PySqlfmtQueryParams {
     }
 
     fn __len__(&self) -> usize {
-        match &self.params {
+        match &self.0 {
             QueryParams::Named(p) => p.len(),
             QueryParams::Indexed(p) => p.len(),
             QueryParams::None => 0,
@@ -34,7 +32,7 @@ impl PySqlfmtQueryParams {
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, pyo3::types::PyTuple>> {
-        let params: Bound<'py, PyAny> = match &self.params {
+        let params: Bound<'py, PyAny> = match &self.0 {
             QueryParams::Named(p) => {
                 let dict = pyo3::types::PyDict::new(py);
                 for (k, v) in p {
@@ -55,7 +53,7 @@ impl PySqlfmtQueryParams {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        match (&self.params, &other.params) {
+        match (&self.0, &other.0) {
             (QueryParams::Named(p1), QueryParams::Named(p2)) => {
                 // make 2 vecccccs o refs...
                 let mut p1: Vec<(&str, &str)> =
@@ -79,7 +77,7 @@ impl PySqlfmtQueryParams {
 
     fn __hash__(&self) -> u64 {
         let mut hasher = std::hash::DefaultHasher::new();
-        match &self.params {
+        match &self.0 {
             QueryParams::Named(p) => {
                 let mut p: Vec<(&str, &str)> =
                     p.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
@@ -103,7 +101,7 @@ impl PySqlfmtQueryParams {
 impl Display for PySqlfmtQueryParams {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("SqlfmtQueryParams(")?;
-        QueryParamsFormatter(&self.params).fmt(f)?;
+        QueryParamsFormatter(&self.0).fmt(f)?;
         f.write_str(")")
     }
 }
@@ -278,53 +276,45 @@ pub enum PyQueryParamsLike {
 #[pyo3(signature = (params=None))]
 pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQueryParams> {
     match params {
-        Some(params) => {
-            let py_params = {
-                match params {
-                    PyQueryParamsLike::NamedMap(p) => {
-                        let named_params = p
-                            .into_iter()
-                            .map(|(k, v)| match v {
-                                PyQueryParamValue::PyString(s) => (k, s),
-                                PyQueryParamValue::PyInt(i) => (k, i.to_string()),
-                                PyQueryParamValue::PyFloat(f) => (k, f.to_string()),
-                            })
-                            .collect();
-                        let p = QueryParams::Named(named_params);
-                        PySqlfmtQueryParams { params: p }
-                    }
-                    PyQueryParamsLike::NamedVec(p) => {
-                        let named_params = p
-                            .into_iter()
-                            .map(|(k, v)| match v {
-                                PyQueryParamValue::PyString(s) => (k, s),
-                                PyQueryParamValue::PyInt(i) => (k, i.to_string()),
-                                PyQueryParamValue::PyFloat(f) => (k, f.to_string()),
-                            })
-                            .collect();
-                        let p = QueryParams::Named(named_params);
-                        PySqlfmtQueryParams { params: p }
-                    }
-                    PyQueryParamsLike::Indexed(p) => {
-                        let strings: Vec<String> = p
-                            .into_iter()
-                            .map(|v| match v {
-                                PyQueryParamValue::PyString(s) => s,
-                                PyQueryParamValue::PyInt(i) => i.to_string(),
-                                PyQueryParamValue::PyFloat(f) => f.to_string(),
-                            })
-                            .collect();
-                        let p = QueryParams::Indexed(strings);
-                        PySqlfmtQueryParams { params: p }
-                    }
-                    PyQueryParamsLike::PyQueryParams(p) => p,
-                }
-            };
-            Ok(py_params)
-        }
-        None => Ok(PySqlfmtQueryParams {
-            params: QueryParams::None,
-        }),
+        Some(params) => match params {
+            PyQueryParamsLike::NamedMap(p) => {
+                let named_params = p
+                    .into_iter()
+                    .map(|(k, v)| match v {
+                        PyQueryParamValue::PyString(s) => (k, s),
+                        PyQueryParamValue::PyInt(i) => (k, i.to_string()),
+                        PyQueryParamValue::PyFloat(f) => (k, f.to_string()),
+                    })
+                    .collect();
+                Ok(QueryParams::Named(named_params).into())
+            }
+            PyQueryParamsLike::NamedVec(p) => {
+                let named_params = p
+                    .into_iter()
+                    .map(|(k, v)| match v {
+                        PyQueryParamValue::PyString(s) => (k, s),
+                        PyQueryParamValue::PyInt(i) => (k, i.to_string()),
+                        PyQueryParamValue::PyFloat(f) => (k, f.to_string()),
+                    })
+                    .collect();
+                let p = QueryParams::Named(named_params);
+                Ok(p.into())
+            }
+            PyQueryParamsLike::Indexed(p) => {
+                let strings: Vec<String> = p
+                    .into_iter()
+                    .map(|v| match v {
+                        PyQueryParamValue::PyString(s) => s,
+                        PyQueryParamValue::PyInt(i) => i.to_string(),
+                        PyQueryParamValue::PyFloat(f) => f.to_string(),
+                    })
+                    .collect();
+                let p = QueryParams::Indexed(strings);
+                Ok(p.into())
+            }
+            PyQueryParamsLike::PyQueryParams(p) => Ok(p),
+        },
+        None => Ok(PySqlfmtQueryParams(QueryParams::None)),
     }
 }
 
@@ -382,10 +372,10 @@ pub fn sqlfmt(
     };
     if let Some(p) = params {
         if let PyQueryParamsLike::PyQueryParams(p) = p {
-            Ok(sqlformat::format(sql, &p.params, &options))
+            Ok(sqlformat::format(sql, &p.0, &options))
         } else {
             let py_params = PySqlfmtQueryParams::py_new(Some(p))?;
-            Ok(sqlformat::format(sql, &py_params.params, &options))
+            Ok(sqlformat::format(sql, &py_params.0, &options))
         }
     } else {
         let nada = QueryParams::None;
@@ -604,10 +594,10 @@ impl PySqlFormatter {
         };
         if let Some(p) = params {
             if let PyQueryParamsLike::PyQueryParams(p) = p {
-                Ok(sqlformat::format(sql, &p.params, &opts))
+                Ok(sqlformat::format(sql, &p.0, &opts))
             } else {
                 let py_params = PySqlfmtQueryParams::py_new(Some(p))?;
-                Ok(sqlformat::format(sql, &py_params.params, &opts))
+                Ok(sqlformat::format(sql, &py_params.0, &opts))
             }
         } else {
             let nada = QueryParams::None;
@@ -674,6 +664,16 @@ impl std::fmt::Debug for PySqlFormatter {
 
         write!(f, "dialect=\"{}\"", self.0.dialect)?;
         f.write_str(")")
+    }
+}
+
+// ----------------------------------------------------------------------------
+// FROM
+// ----------------------------------------------------------------------------
+
+impl From<QueryParams> for PySqlfmtQueryParams {
+    fn from(p: QueryParams) -> Self {
+        Self(p)
     }
 }
 
