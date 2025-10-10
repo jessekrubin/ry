@@ -399,7 +399,6 @@ impl Display for PyDialect {
 const SQLFORMAT_DIALECT_STRINGS: &str = "'generic', 'postgresql', 'sqlserver'";
 impl FromPyObject<'_> for PyDialect {
     fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        // downcast to string...
         if let Ok(s) = ob.extract::<&str>() {
             match s {
                 "generic" => Ok(Self(sqlformat::Dialect::Generic)),
@@ -451,21 +450,20 @@ impl PySqlFormatter {
 impl PySqlFormatter {
     #[new]
     #[pyo3(
-    signature = (
-        *,
-        indent=PyIndent::default(),
-        uppercase=None,
-        lines_between_queries=1,
-        ignore_case_convert=None,
-        inline=false,
-        max_inline_block=50,
-        max_inline_arguments=None,
-        max_inline_top_level=None,
-        joins_as_top_level=false,
-        dialect=PyDialect::default()
-    )
-)]
-    #[expect(clippy::needless_pass_by_value)]
+        signature = (
+            *,
+            indent=PyIndent::default(),
+            uppercase=None,
+            lines_between_queries=1,
+            ignore_case_convert=None,
+            inline=false,
+            max_inline_block=50,
+            max_inline_arguments=None,
+            max_inline_top_level=None,
+            joins_as_top_level=false,
+            dialect=PyDialect::default()
+        )
+    )]
     #[expect(clippy::too_many_arguments)]
     fn py_new(
         indent: PyIndent,
@@ -478,8 +476,8 @@ impl PySqlFormatter {
         max_inline_top_level: Option<usize>,
         joins_as_top_level: bool,
         dialect: PyDialect,
-    ) -> PyResult<Self> {
-        Ok(Self(PySqlFormatterOptions {
+    ) -> Self {
+        Self(PySqlFormatterOptions {
             indent,
             uppercase,
             lines_between_queries,
@@ -490,7 +488,7 @@ impl PySqlFormatter {
             max_inline_top_level,
             joins_as_top_level,
             dialect,
-        }))
+        })
     }
 
     fn __repr__(&self) -> String {
@@ -540,6 +538,7 @@ impl PySqlFormatter {
 
 impl std::fmt::Debug for PySqlFormatter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // TODO: exclude defaults from output
         write!(f, "SqlFormatter(")?;
         write!(f, "indent={:?}, ", self.0.indent)?;
         if let Some(uc) = self.0.uppercase {
