@@ -164,6 +164,7 @@ from ry.ryo3._size import SizeFormatter as SizeFormatter
 from ry.ryo3._size import fmt_size as fmt_size
 from ry.ryo3._size import parse_size as parse_size
 from ry.ryo3._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
+from ry.ryo3._sqlformat import SqlFormatter as SqlFormatter
 from ry.ryo3._sqlformat import sqlfmt as sqlfmt
 from ry.ryo3._sqlformat import sqlfmt_params as sqlfmt_params
 from ry.ryo3._std import DirEntry as DirEntry
@@ -4406,6 +4407,8 @@ class Size:
 
 import typing as t
 
+Dialect: t.TypeAlias = t.Literal["generic", "postgresql", "sqlserver"]
+Indent: t.TypeAlias = t.Literal["tabs", "\t"] | int
 SqlfmtParamValue: t.TypeAlias = str | int | float | bool
 _TSqlfmtParamValue_co = t.TypeVar(
     "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
@@ -4435,14 +4438,62 @@ def sqlfmt(
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
     uppercase: bool = False,
-    lines_between_statements: int = 1,
+    lines_between_queries: int = 1,
     ignore_case_convert: list[str] | None = None,
     inline: bool = False,
     max_inline_block: int = 50,
     max_inline_arguments: int | None = None,
     max_inline_top_level: int | None = None,
     joins_as_top_level: bool = False,
+    dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
 ) -> str: ...
+
+
+class _SqlFormatterDict(t.TypedDict):
+    indent: int | t.Literal["tabs"]
+    uppercase: bool
+    lines_between_queries: int
+    ignore_case_convert: list[str] | None
+    inline: bool
+    max_inline_block: int
+    max_inline_arguments: int | None
+    max_inline_top_level: int | None
+    joins_as_top_level: bool
+    dialect: t.Literal["generic", "postgresql", "sqlserver"]
+
+
+class SqlFormatter:
+    def __init__(
+        self,
+        *,
+        indent: int | t.Literal["tabs", "\t"] = 2,
+        uppercase: bool = False,
+        lines_between_queries: int = 1,
+        ignore_case_convert: list[str] | None = None,
+        inline: bool = False,
+        max_inline_block: int = 50,
+        max_inline_arguments: int | None = None,
+        max_inline_top_level: int | None = None,
+        joins_as_top_level: bool = False,
+        dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
+    ) -> None: ...
+    def to_dict(self) -> _SqlFormatterDict: ...
+    def fmt(
+        self,
+        sql: str,
+        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        | SqlfmtQueryParams
+        | None = None,
+    ) -> str: ...
+    def __call__(
+        self,
+        sql: str,
+        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        | SqlfmtQueryParams
+        | None = None,
+    ) -> str: ...
+    def __eq__(self, value: object) -> bool: ...
+    def __ne__(self, value: object) -> bool: ...
 ```
 
 <h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>

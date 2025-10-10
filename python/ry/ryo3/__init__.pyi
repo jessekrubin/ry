@@ -109,6 +109,7 @@ from ry.ryo3._size import SizeFormatter as SizeFormatter
 from ry.ryo3._size import fmt_size as fmt_size
 from ry.ryo3._size import parse_size as parse_size
 from ry.ryo3._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
+from ry.ryo3._sqlformat import SqlFormatter as SqlFormatter
 from ry.ryo3._sqlformat import sqlfmt as sqlfmt
 from ry.ryo3._sqlformat import sqlfmt_params as sqlfmt_params
 from ry.ryo3._std import DirEntry as DirEntry
