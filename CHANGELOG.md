@@ -2,6 +2,15 @@
 
 ## v0.0.62 [unreleased]
 
+- `ryo3-sqlformat`
+  - Internal refactoring
+  - Fixed type annotations
+  - Starting to think that the `QueryParams` wrapper is totally stupid and
+    useless and may remove/deprecate
+  - Upgrade sqlformat to `0.5.0` which adds the kwarg
+    `dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic"`
+  - Added `SqlFormatter` object for storing a "config"/set-o-opts and for re-use
+    (which I was in need of)
 - `ryo3-reqwest`
   - Added `basic_auth` and `bearer_auth` kwargs to fetch functions (`get`,
     `post`, `put`, `delete`, `head`, `patch`, and of course `fetch`)
