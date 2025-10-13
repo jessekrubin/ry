@@ -455,7 +455,7 @@ impl PyUuid {
     }
 }
 
-#[cfg(any(Py_3_14))]
+#[cfg(not(any(Py_3_7, Py_3_8, Py_3_9, Py_3_10, Py_3_11, Py_3_12, Py_3_13)))]
 impl PyUuid {
     fn py_time(&self) -> u64 {
         let version_rfc = (
