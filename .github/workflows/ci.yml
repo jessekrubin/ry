@@ -61,7 +61,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i 3.11 3.12 3.13 3.14 pypy3.11
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           sccache: "true"
           manylinux: ${{ matrix.platform.manylinux }} # SUPER WEIRD BUT ARRRRRRM IS A PITA
       - name: Upload wheels
@@ -133,7 +133,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i 3.11 3.12 3.13 3.14 pypy3.11
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           sccache: "true"
           manylinux: musllinux_1_2
       - name: Upload wheels
@@ -169,7 +169,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i 3.11 3.12 3.13 3.14 pypy3.11
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.14 pypy3.11
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -209,7 +209,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i 3.11 3.12 3.13 3.14 pypy3.11
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
