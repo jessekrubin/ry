@@ -76,7 +76,7 @@ def test_copy(py_obj: pyuuid.UUID) -> None:
     st.integers(min_value=0, max_value=ry.U16_MAX),
     st.integers(min_value=0, max_value=ry.U64_MAX),
 )
-def test_uuid8(a: int, b: int, c: int):
+def test_uuid8(a: int, b: int, c: int) -> None:
     ryu = ryuuid.uuid8(a, b, c)
     assert isinstance(ryu, ryuuid.UUID)
     assert ryu.version == 8
