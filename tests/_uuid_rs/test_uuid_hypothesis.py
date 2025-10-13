@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import copy
 import pickle
+import sys
 import uuid as pyuuid
 
 from hypothesis import given
 from hypothesis import strategies as st
 
+import ry
 import ry.uuid as ryuuid
 
 uuid_strategy = st.uuids()
@@ -67,3 +69,18 @@ def test_copy(py_obj: pyuuid.UUID) -> None:
     assert copy.deepcopy(ry_obj) == ry_obj
     assert copy.copy(ry_obj) is not ry_obj
     assert copy.deepcopy(ry_obj) is not ry_obj
+
+
+@given(
+    st.integers(min_value=0, max_value=ry.U64_MAX),
+    st.integers(min_value=0, max_value=ry.U16_MAX),
+    st.integers(min_value=0, max_value=ry.U64_MAX),
+)
+def test_uuid8(a: int, b: int, c: int):
+    ryu = ryuuid.uuid8(a, b, c)
+    assert isinstance(ryu, ryuuid.UUID)
+    assert ryu.version == 8
+    assert ryu.variant == pyuuid.RFC_4122
+    if sys.version_info >= (3, 14):
+        pyu = pyuuid.uuid8(a, b, c)
+        py_ry_equal(pyu, ryu)
