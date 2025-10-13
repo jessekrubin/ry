@@ -2174,6 +2174,7 @@ name = "ryo3-uuid"
 version = "0.0.62"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-macro-rules",
  "ryo3-pydantic",
