@@ -161,7 +161,6 @@ jobs:
             3.12
             3.13
             3.14
-            pypy3.11
           # Need to include architecture: https://github.com/PyO3/maturin-action/issues/375
           architecture: ${{ matrix.platform.target }}
           allow-prereleases: true
@@ -169,7 +168,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --interpreter 3.11 3.12 3.13 3.14 pypy3.11
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
