@@ -446,7 +446,8 @@ impl PyUuid {
     }
 }
 
-#[cfg(any(Py_3_7, Py_3_8, Py_3_9, Py_3_10, Py_3_11, Py_3_12, Py_3_13))]
+// #[cfg(any(Py_3_7, Py_3_8, Py_3_9, Py_3_10, Py_3_11, Py_3_12, Py_3_13))]
+#[cfg(not(Py_3_14))]
 impl PyUuid {
     fn py_time(&self) -> u64 {
         let high = u64::from(self.time_hi_version()) & 0x0fff;
@@ -455,7 +456,7 @@ impl PyUuid {
     }
 }
 
-#[cfg(not(any(Py_3_7, Py_3_8, Py_3_9, Py_3_10, Py_3_11, Py_3_12, Py_3_13)))]
+#[cfg(Py_3_14)]
 impl PyUuid {
     fn py_time(&self) -> u64 {
         let version_rfc = (
@@ -464,10 +465,9 @@ impl PyUuid {
         );
         match version_rfc {
             (6, true) => {
-                let high32 = (u64::from(self.time_low())) << 28;
-                let mid16 = (u64::from(self.time_mid())) << 12;
-                let low12 = u64::from(self.time_hi_version()) & 0x0fff;
-                high32 | mid16 | low12
+                (u64::from(self.time_low()) << 28)
+                    | (u64::from(self.time_mid()) << 12)
+                    | (u64::from(self.time_hi_version()) & 0x0fff)
             }
             (7, true) => (self.0.as_u128() >> 80) as u64,
             // should be 1 and/or any other versions but idk if it is actually
