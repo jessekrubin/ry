@@ -2,6 +2,8 @@
 
 ## v0.0.62 [unreleased]
 
+- `ryo3-uuid`
+  - Fixed uuid `.time` property on python 3.14+
 - `ryo3-sqlformat`
   - Internal refactoring
   - Fixed type annotations

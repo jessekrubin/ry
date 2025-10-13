@@ -19,6 +19,9 @@ ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
 uuid = { workspace = true, features = ["v4", "v8"] }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [dev-dependencies]
 serde = { workspace = true, features = ["derive"] }
 

@@ -48,14 +48,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      # - uses: actions/setup-python@v6
+      #   with:
+      #     python-version: 3.x
+      - name: install-uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: 3.x
+          enable-cache: true
+      - name: install-python
+        run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           sccache: "true"
           manylinux: ${{ matrix.platform.manylinux }} # SUPER WEIRD BUT ARRRRRRM IS A PITA
       - name: Upload wheels
@@ -117,14 +123,17 @@ jobs:
             target: armv7
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - name: install-uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: 3.x
+          enable-cache: true
+      - name: install-python
+        run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           sccache: "true"
           manylinux: musllinux_1_2
       - name: Upload wheels
@@ -132,36 +141,6 @@ jobs:
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: dist
-  #      - name: pytest
-  #        if: ${{ startsWith(matrix.platform.target, 'x86_64') }}
-  #        uses: addnab/docker-run-action@v3
-  #        with:
-  #          image: alpine:latest
-  #          options: -v ${{ github.workspace }}:/io -w /io
-  #          run: |
-  #            set -e
-  #            apk add py3-pip py3-virtualenv
-  #            python3 -m virtualenv .venv
-  #            source .venv/bin/activate
-  #            pip install ry --no-index --find-links dist --force-reinstall
-  #            pip install pytest
-  #            pytest
-  #      - name: pytest
-  #        if: ${{ !startsWith(matrix.platform.target, 'x86') }}
-  #        uses: uraimo/run-on-arch-action@v3
-  #        with:
-  #          arch: ${{ matrix.platform.target }}
-  #          distro: alpine_latest
-  #          githubToken: ${{ github.token }}
-  #          install: |
-  #            apk add py3-virtualenv
-  #          run: |
-  #            set -e
-  #            python3 -m virtualenv .venv
-  #            source .venv/bin/activate
-  #            pip install pytest
-  #            pip install ry --find-links dist --force-reinstall
-  #            pytest
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
@@ -211,30 +190,26 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      # - uses: actions/setup-python@v6
+      #   with:
+      #     python-version: 3.x
+      - name: install-uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: 3.x
+          enable-cache: true
+      - name: install-python
+        run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist
-
-  # TODO: FIGURE OUT WHY NOT WORKING ON MACOS!
-  #      - name: pytest
-  #        run: |
-  #          set -e
-  #          python3 -m venv .venv
-  #          source .venv/bin/activate
-  #          pip install ry --find-links dist --force-reinstall
-  #          pip install pytest
-  #          pytest
 
   sdist:
     runs-on: ubuntu-latest
