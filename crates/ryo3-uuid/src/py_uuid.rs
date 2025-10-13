@@ -538,17 +538,17 @@ pub fn uuid7() -> PyUuid {
 }
 
 #[pyfunction(
-    signature = (a = None, b = None, c = None, bin = None),
+    signature = (a = None, b = None, c = None, buf = None),
 )]
 pub fn uuid8(
     a: Option<u64>,
     b: Option<u16>,
     c: Option<u64>,
-    bin: Option<PyBytes>,
+    buf: Option<PyBytes>,
 ) -> PyResult<PyUuid> {
     use rand::RngCore;
 
-    if let Some(bts) = bin {
+    if let Some(bts) = buf {
         match (a, b, c) {
             (None, None, None) => {}
             _ => {
