@@ -532,16 +532,55 @@ pub fn uuid6() -> PyResult<PyUuid> {
 }
 
 #[pyfunction]
-pub fn uuid7() -> PyResult<PyUuid> {
-    pytodo!("UUID7 is not implemented yet")
+#[must_use]
+pub fn uuid7() -> PyUuid {
+    PyUuid::from(uuid::Uuid::now_v7())
 }
 
-#[pyfunction]
-#[expect(clippy::needless_pass_by_value)]
-pub fn uuid8(b: PyBytes) -> PyResult<PyUuid> {
-    uuid::Bytes::try_from(b.as_slice())
-        .map(|b| PyUuid::from(uuid::Uuid::new_v8(b)))
-        .map_err(|_| py_value_error!("UUID8 must be 16 bytes long"))
+#[pyfunction(
+    signature = (a = None, b = None, c = None, buf = None),
+)]
+pub fn uuid8(
+    a: Option<u64>,
+    b: Option<u16>,
+    c: Option<u64>,
+    buf: Option<PyBytes>,
+) -> PyResult<PyUuid> {
+    use rand::RngCore;
+
+    if let Some(bts) = buf {
+        match (a, b, c) {
+            (None, None, None) => {}
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "uuid8(): pass either bytes=... or a/b/c, not both",
+                ));
+            }
+        }
+        // extract the bytes as [u8; 16]
+        let slice: &[u8; 16] = bts.as_slice().try_into().map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err(
+                "uuid8(bytes=...): bytes must be exactly 16 bytes",
+            )
+        })?;
+        return Ok(PyUuid::from(uuid::Uuid::new_v8(*slice)));
+    }
+
+    let mut rng = rand::rng();
+
+    let mut ubuf: [u8; 16] = [0; 16];
+    let a48: u64 = a.unwrap_or_else(|| rng.next_u64()) & ((1u64 << 48) - 1);
+    let b12: u16 = b.unwrap_or_else(|| (rng.next_u32() & 0xFFFF) as u16) & 0x0FFF;
+    let c62: u64 = c.unwrap_or_else(|| rng.next_u64()) & ((1u64 << 62) - 1);
+
+    // least significant 48 bits of a
+    ubuf[0..6].copy_from_slice(&a48.to_be_bytes()[2..]);
+    // least significant 12 bits of b
+    ubuf[6..8].copy_from_slice(&b12.to_be_bytes());
+    // least significant 62 bits of c
+    ubuf[8..16].copy_from_slice(&c62.to_be_bytes());
+
+    Ok(PyUuid::from(uuid::Uuid::new_v8(ubuf)))
 }
 
 // ----------------------------------------------------------------------------
