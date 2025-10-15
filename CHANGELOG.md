@@ -20,6 +20,9 @@
 - `_future`
   - `ryo3-ignore` wrapper placeholder
   - `ryo3-tokio-websockets` crate placeholder
+- `ryo3-reqwest`
+  - `ry.Certificate` for `HttpClient` added
+  - `root_certificates` added to `ry.HttpClient`
 
 ---
 
