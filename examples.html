@@ -522,6 +522,51 @@ def main() -&gt; None:
 if __name__ == "__main__":
     main()
 </code></pre>
+<h1 id="sqlformat"><a class="header" href="#sqlformat">sqlformat</a></h1>
+<pre><code class="language-python">import ry
+
+QUERY_MBTILES_DUPLICATE_METADATA_ROWS = """
+-- returns the rows that are duplicate (name, value) pairs
+select name, value, count(*) as count from metadata group by name having count (*) &gt; 1 and count (distinct value) = 1;
+"""
+
+assert (
+    ry.sqlfmt(QUERY_MBTILES_DUPLICATE_METADATA_ROWS)
+    == """
+-- returns the rows that are duplicate (name, value) pairs
+select
+  name,
+  value,
+  count(*) as count
+from
+  metadata
+group by
+  name
+having
+  count (*) &gt; 1
+  and count (distinct value) = 1;
+""".strip()
+)
+
+
+assert (
+    ry.sqlfmt(QUERY_MBTILES_DUPLICATE_METADATA_ROWS, uppercase=True)
+    == """
+-- returns the rows that are duplicate (name, value) pairs
+SELECT
+  name,
+  value,
+  count(*) AS count
+FROM
+  metadata
+GROUP BY
+  name
+HAVING
+  count (*) &gt; 1
+  AND count (DISTINCT value) = 1;
+""".strip()
+)
+</code></pre>
 <h1 id="walking"><a class="header" href="#walking">walking</a></h1>
 <pre><code class="language-python">"""
 ry.walkdir example

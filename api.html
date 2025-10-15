@@ -798,7 +798,7 @@ from os import PathLike
 from pathlib import Path
 
 from ry._types import Buffer
-from ry.protocols import ToPy, ToString
+from ry.protocols import RyIterator, ToPy, ToString
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._regex import Regex
 from ry.ryo3._std import Metadata
@@ -944,12 +944,12 @@ class FsPath(ToPy[Path], ToString):
     def __bytes__(self) -&gt; bytes: ...
 
 
-class FsPathReaddir:
+class FsPathReaddir(RyIterator[FsPath]):
     def __init__(self) -&gt; t.NoReturn: ...
+    def __iter__(self) -&gt; t.Self: ...
     def __next__(self) -&gt; FsPath: ...
     def collect(self) -&gt; list[FsPath]: ...
-    def take(self, n: int) -&gt; list[FsPath]: ...
-    def __iter__(self) -&gt; t.Iterator[FsPath]: ...
+    def take(self, n: int = 1) -&gt; list[FsPath]: ...
 </code></pre>
 <h2 id="ry.ryo3._glob"><a class="header" href="#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></h2>
 <pre><code class="language-python">"""ryo3-glob types"""
@@ -958,13 +958,14 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
+from ry.protocols import RyIterator
 from ry.ryo3._fspath import FsPath
 
 _T = t.TypeVar("_T", bound=str | Path | FsPath)
 
 
 @t.final
-class GlobPaths(t.Generic[_T]):
+class GlobPaths(RyIterator[_T]):
     """glob::Paths iterable wrapper"""
 
     def __next__(self) -&gt; _T: ...
@@ -2905,7 +2906,7 @@ class ZonedDateTime(
 
 
 @t.final
-class ISOWeekDate:
+class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr):
     MIN: t.ClassVar[ISOWeekDate]
     MAX: t.ClassVar[ISOWeekDate]
     ZERO: t.ClassVar[ISOWeekDate]
@@ -2930,6 +2931,8 @@ class ISOWeekDate:
     @classmethod
     def from_date(cls, date: Date) -&gt; t.Self: ...
     @classmethod
+    def from_pydate(cls, date: pydt.date) -&gt; t.Self: ...
+    @classmethod
     def from_str(cls, s: str) -&gt; t.Self: ...
     @classmethod
     def parse(cls, s: str) -&gt; t.Self: ...
@@ -2952,6 +2955,8 @@ class ISOWeekDate:
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -&gt; Date: ...
+    def to_py(self) -&gt; pydt.date: ...
+    def to_pydate(self) -&gt; pydt.date: ...
     def to_string(self) -&gt; str: ...
     def to_dict(self) -&gt; ISOWeekDateTypedDict: ...
 
@@ -4034,6 +4039,7 @@ class Regex:
         unicode: bool = False,
     ) -&gt; None: ...
     def is_match(self, string: str) -&gt; bool: ...
+    def test(self, string: str) -&gt; bool: ...
     def find(self, string: str) -&gt; str | None: ...
     def find_all(self, string: str) -&gt; list[tuple[int, int]]: ...
     def findall(self, string: str) -&gt; list[tuple[int, int]]: ...
@@ -4623,7 +4629,7 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import ToPy, ToPyTimeDelta
+from ry.protocols import RyIterator, ToPy, ToPyTimeDelta
 from ry.ryo3._bytes import Bytes
 
 
@@ -4854,23 +4860,17 @@ class DirEntry:
     def file_type(self) -&gt; FileType: ...
 
 
-_T = t.TypeVar("_T")
-
-
-class RyIterable(t.Generic[_T]):
-    def __iter__(self) -&gt; t.Self: ...
-    def __next__(self) -&gt; _T: ...
-    def collect(self) -&gt; list[_T]: ...
-    def take(self, n: int = 1) -&gt; list[_T]: ...
-
-
 @t.final
-class ReadDir(RyIterable[DirEntry]):
+class ReadDir(RyIterator[DirEntry]):
     def __init__(self) -&gt; t.NoReturn: ...
+    def __iter__(self) -&gt; t.Self: ...
+    def __next__(self) -&gt; DirEntry: ...
+    def collect(self) -&gt; list[DirEntry]: ...
+    def take(self, n: int = 1) -&gt; list[DirEntry]: ...
 
 
 @t.final
-class FileReadStream:
+class FileReadStream(RyIterator[Bytes]):
     def __init__(
         self,
         path: FsPathLike,
@@ -5568,6 +5568,7 @@ import typing as t
 from os import PathLike
 
 from ry import FileType, FsPath, Glob, GlobSet, Globster
+from ry.protocols import RyIterator
 
 
 @t.final
@@ -5600,16 +5601,14 @@ _T_walkdir = t.TypeVar(
 
 
 @t.final
-class WalkdirGen(t.Generic[_T_walkdir]):
+class WalkdirGen(RyIterator[_T_walkdir]):
     """walkdir::Walkdir iterable wrapper"""
 
-    def __init__(
-        self,
-    ) -&gt; t.NoReturn: ...
+    def __init__(self) -&gt; t.NoReturn: ...
+    def __iter__(self) -&gt; t.Self: ...
     def __next__(self) -&gt; _T_walkdir: ...
     def collect(self) -&gt; list[_T_walkdir]: ...
     def take(self, n: int = 1) -&gt; list[_T_walkdir]: ...
-    def __iter__(self) -&gt; t.Iterator[_T_walkdir]: ...
 
 
 @t.overload
@@ -5982,13 +5981,13 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 """
 
 import builtins
+import typing as t
 import uuid as pyuuid
 from enum import Enum
-from typing import Any, TypeAlias
 
 from ry._types import Buffer
 
-_FieldsType: TypeAlias = tuple[int, int, int, int, int, int]
+_FieldsType: t.TypeAlias = tuple[int, int, int, int, int, int]
 
 
 class SafeUUID(Enum):
@@ -6060,13 +6059,18 @@ class UUID:
 
 def getnode() -&gt; builtins.int: ...
 def uuid1(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
-def uuid2(*args: Any, **kwargs: Any) -&gt; UUID: ...
+def uuid2(*args: t.Any, **kwargs: t.Any) -&gt; UUID: ...
 def uuid3(namespace: UUID, name: str | builtins.bytes) -&gt; UUID: ...
 def uuid4() -&gt; UUID: ...
 def uuid5(namespace: UUID, name: str | builtins.bytes) -&gt; UUID: ...
 def uuid6(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
 def uuid7(timestamp: int | None = None) -&gt; UUID: ...
-def uuid8(data: Buffer) -&gt; UUID: ...
+@t.overload
+def uuid8(*, buf: Buffer) -&gt; UUID: ...  # 16 bytes buffer
+@t.overload
+def uuid8(
+    a: int | None = None, b: int | None = None, c: int | None = None
+) -&gt; UUID: ...
 
 
 NAMESPACE_DNS: UUID
@@ -6273,12 +6277,11 @@ if TYPE_CHECKING:
     import datetime as pydt
 
 
-if sys.version_info &gt;= (3, 12):
+if sys.version_info &gt;= (3, 12):  # pragma: no cover
     from collections.abc import Buffer
     from typing import TypedDict, Unpack
-else:
+else:  # pragma: no cover
     from typing_extensions import Buffer, TypedDict, Unpack
-
 
 __all__ = (
     "Buffer",
@@ -6748,6 +6751,8 @@ import typing as t
 
 __all__ = (
     "FromStr",
+    "NoInit",
+    "RyIterator",
     "Strftime",
     "ToPy",
     "ToPyDate",
@@ -6758,6 +6763,7 @@ __all__ = (
     "ToString",
 )
 
+_T = t.TypeVar("_T")
 _T_co = t.TypeVar("_T_co", covariant=True)
 
 
@@ -6765,6 +6771,12 @@ class ToPy(t.Protocol[_T_co]):
     """Objects that can be converted to a python stdlib type (`_T_co`) via `obj.to_py()`."""
 
     def to_py(self) -&gt; _T_co: ...
+
+
+class NoInit(t.Protocol):
+    """Protocol for types that cannot be instantiated directly."""
+
+    def __init__(self) -&gt; t.NoReturn: ...
 
 
 # =============================================================================
@@ -6781,6 +6793,16 @@ class ToString(t.Protocol):
     """Protocol for types that have a `.to_string()` method."""
 
     def to_string(self) -&gt; str: ...
+
+
+# =============================================================================
+# ITERABLE
+# =============================================================================
+class RyIterator(t.Protocol[_T]):
+    def __iter__(self) -&gt; t.Self: ...
+    def __next__(self) -&gt; _T: ...
+    def collect(self) -&gt; list[_T]: ...
+    def take(self, n: int = 1) -&gt; list[_T]: ...
 
 
 # =============================================================================
