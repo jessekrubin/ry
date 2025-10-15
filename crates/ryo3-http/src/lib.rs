@@ -19,8 +19,6 @@ pub use status_code::{PyHttpStatus, status_code_pystring};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyHeaders>()?;
-    // PyHeaders::type_object_raw(py)
-    // let pyheaders_type = m.py().::<PyHeaders>();
     PyMapping::register::<PyHeaders>(m.py())?;
     m.add_class::<PyHttpStatus>()?;
     Ok(())

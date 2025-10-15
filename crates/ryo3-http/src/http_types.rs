@@ -7,13 +7,13 @@ use std::ops::Deref;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderMap(pub HeaderMap<HeaderValue>);
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct HttpMethod(pub http::Method);
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderName(pub http::HeaderName);
-#[derive(Debug)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct HttpHeaderNameRef<'a>(pub &'a http::HeaderName);
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct HttpStatusCode(pub http::StatusCode);
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderValue(pub HeaderValue);

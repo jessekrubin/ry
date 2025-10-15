@@ -21,13 +21,6 @@ pub(crate) fn py_decode<'py>(
     let slice = ryo3_bytes::extract_bytes_ref(data)?;
     let decoded = rs_zstd_decode_one_shot(slice)?;
     ryo3_bytes::PyBytes::from(decoded).into_bound_py_any(py)
-    // if pybytes {
-    //     let a =pyo3::types::PyBytes::new(py, &decoded).into_py(py);
-    //     Ok(a.into_bound_py_any(py)?)
-    // } else{
-    //     let a = ryo3_bytes::PyBytes::from(decoded) .into_py(py);
-    //     Ok(a.into_bound_py_any(py)?)
-    // }
 }
 
 pub(crate) fn py_encode<'py>(

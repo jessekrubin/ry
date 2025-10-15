@@ -76,6 +76,18 @@ impl RyISOWeekDate {
         Self(ISOWeekDate::from(date.0))
     }
 
+    /// Convert to `datetime.date`
+    #[expect(clippy::wrong_self_convention)]
+    fn to_py(&self) -> jiff::civil::Date {
+        self.to_pydate()
+    }
+
+    /// Convert to `datetime.date`
+    #[expect(clippy::wrong_self_convention)]
+    fn to_pydate(&self) -> jiff::civil::Date {
+        self.0.date()
+    }
+
     /// Returns the date today as an `ISOWeekDate`
     #[staticmethod]
     fn today() -> Self {

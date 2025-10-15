@@ -116,6 +116,6 @@ def test_parse_bytes_in_numpy_u8_arr() -> None:
 
     json_bytes = b"[1, 2, 3]"
     arr = np.frombuffer(json_bytes, dtype=np.uint8)
-    parsed_arr = ry.parse_json(arr)  # type: ignore[arg-type]
+    parsed_arr = ry.parse_json(arr)  # type: ignore[arg-type,unused-ignore]
     assert isinstance(parsed_arr, list), "Parsed result should be a list"
     assert parsed_arr == [1, 2, 3], "Parsed array does not match original"

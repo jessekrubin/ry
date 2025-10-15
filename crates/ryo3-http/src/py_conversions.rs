@@ -1,7 +1,4 @@
 //! http python conversions
-//!
-//! TODO: figure out how to `intern!()` the strings...
-
 use crate::HttpHeaderNameRef;
 use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpVersion};
 use pyo3::exceptions::PyValueError;
@@ -252,7 +249,7 @@ pub(crate) fn header_name_to_pystring<'py>(
 impl<'py> IntoPyObject<'py> for &HttpHeaderName {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
+    type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         header_name_to_pystring(py, &self.0)
@@ -291,7 +288,7 @@ impl FromPyObject<'_> for HttpHeaderName {
 impl<'py> IntoPyObject<'py> for &HttpHeaderNameRef<'_> {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
+    type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         header_name_to_pystring(py, self.0)
@@ -299,12 +296,9 @@ impl<'py> IntoPyObject<'py> for &HttpHeaderNameRef<'_> {
 }
 
 impl<'py> IntoPyObject<'py> for HttpHeaderNameRef<'_> {
-    // #[cfg(Py_LIMITED_API)]
     type Target = PyAny;
-    // #[cfg(not(Py_LIMITED_API))]
-    // type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
+    type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         header_name_to_pystring(py, self.0)
@@ -328,7 +322,7 @@ pub(crate) fn header_value_to_pystring<'py>(
 impl<'py> IntoPyObject<'py> for &HttpHeaderValue {
     type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr; // the conversion error type, has to be convertible to `PyErr`
+    type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         header_value_to_pystring(py, &self.0)

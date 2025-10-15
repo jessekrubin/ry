@@ -126,7 +126,25 @@ impl PyRegex {
         self.re.as_str() == other.re.as_str() && self.options == other.options
     }
 
+    fn __ne__(&self, other: &Self) -> bool {
+        !self.__eq__(other)
+    }
+
+    /// Returns true if and only if there is a match for the regex anywhere in the haystack given.
+    ///
+    /// It is recommended to use this method if all you need to do is test
+    /// whether a match exists, since the underlying matching engine may be
+    /// able to do less work.
     fn is_match(&self, text: &str) -> bool {
+        self.re.is_match(text)
+    }
+
+    /// Returns true if and only if there is a match for the regex anywhere in the haystack given.
+    ///
+    /// It is recommended to use this method if all you need to do is test
+    /// whether a match exists, since the underlying matching engine may be
+    /// able to do less work.
+    fn test(&self, text: &str) -> bool {
         self.re.is_match(text)
     }
 
@@ -177,9 +195,6 @@ impl Borrow<Regex> for PyRegex {
 impl std::fmt::Display for PyRegex {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(opts) = &self.options {
-            // if opts.is_default() {
-            //     write!(f, "Regex('{}')", self.re.as_str())
-            // } else {
             write!(f, "Regex(r'{}'", self.re.as_str())?;
             opts.write_regex_kwargs(f)?;
             write!(f, ")")
