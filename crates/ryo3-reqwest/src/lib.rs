@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 mod client;
+mod cert;
 mod cookie;
 mod default_client;
 mod errors;
@@ -19,8 +20,11 @@ use pyo3::prelude::*;
 pub use response_parking_lot::RyResponse;
 pub use response_stream::RyResponseStream;
 
+use crate::cert::PyCertificate;
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCookie>()?;
+    m.add_class::<PyCertificate>()?;
     m.add_class::<RyHttpClient>()?;
     m.add_class::<RyResponse>()?;
     m.add_class::<RyReqwestError>()?;
