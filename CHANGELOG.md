@@ -2,6 +2,7 @@
 
 ## v0.0.62 [2025-10-15]
 
+- python3.14 builds
 - `ryo3-uuid`
   - Fixed uuid `.time` property on python 3.14+
 - `ryo3-sqlformat`
