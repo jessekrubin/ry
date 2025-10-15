@@ -1,9 +1,8 @@
 use pyo3::prelude::*;
-use reqwest::multipart::Part;
 use ryo3_macro_rules::py_value_error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum CertificateKind {
+pub(crate) enum CertificateKind {
     Der,
     Pem,
 }
@@ -19,8 +18,16 @@ pub struct PyCertificate {
 
 #[pymethods]
 impl PyCertificate {
+    #[new]
+    fn py_new() -> PyResult<Self> {
+        Err(py_value_error!(
+            "Cannot create Certificate directly; use from_der or from_pem"
+        ))
+    }
+
     #[staticmethod]
-    pub fn from_der(der: ryo3_bytes::PyBytes) -> PyResult<Self> {
+    #[expect(clippy::needless_pass_by_value)]
+    fn from_der(der: ryo3_bytes::PyBytes) -> PyResult<Self> {
         ::reqwest::Certificate::from_der(der.as_ref())
             .map(|cert| Self {
                 kind: CertificateKind::Der,
@@ -31,7 +38,8 @@ impl PyCertificate {
     }
 
     #[staticmethod]
-    pub fn from_pem(pem: ryo3_bytes::PyBytes) -> PyResult<Self> {
+    #[expect(clippy::needless_pass_by_value)]
+    fn from_pem(pem: ryo3_bytes::PyBytes) -> PyResult<Self> {
         ::reqwest::Certificate::from_pem(pem.as_ref())
             .map(|cert| Self {
                 kind: CertificateKind::Pem,
@@ -42,7 +50,8 @@ impl PyCertificate {
     }
 
     #[staticmethod]
-    pub fn from_pem_bundle(path: ryo3_bytes::PyBytes) -> PyResult<Vec<Self>> {
+    #[expect(clippy::needless_pass_by_value)]
+    fn from_pem_bundle(path: ryo3_bytes::PyBytes) -> PyResult<Vec<Self>> {
         ::reqwest::Certificate::from_pem_bundle(path.as_ref())
             .map(|certs| {
                 certs
@@ -58,10 +67,14 @@ impl PyCertificate {
             .map_err(|e| py_value_error!("Failed to create certificate from PEM file: {}", e))
     }
 
-    fn __repr__(&self) -> PyResult<String> {
+    fn __repr__(&self) -> String {
         match self.kind {
-            CertificateKind::Der => Ok(format!("Certificate<DER; {:p}>", self as *const Self)),
-            CertificateKind::Pem => Ok(format!("Certificate<PEM; {:p}>", self as *const Self)),
+            CertificateKind::Der => {
+                format!("Certificate<DER; {:p}>", std::ptr::from_ref::<Self>(self))
+            }
+            CertificateKind::Pem => {
+                format!("Certificate<PEM; {:p}>", std::ptr::from_ref::<Self>(self))
+            }
         }
     }
 }
