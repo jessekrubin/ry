@@ -3,15 +3,6 @@
 version = 4
 
 [[package]]
-name = "addr2line"
-version = "0.25.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b5d307320b3181d6d7954e663bd7c774a838b8220fe0593c86d9fb09f498b4b"
-dependencies = [
- "gimli",
-]
-
-[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -24,7 +15,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
 dependencies = [
  "cfg-if",
- "getrandom 0.3.3",
+ "getrandom 0.3.4",
  "once_cell",
  "version_check",
  "zerocopy",
@@ -98,21 +89,6 @@ name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
-
-[[package]]
-name = "backtrace"
-version = "0.3.76"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb531853791a215d7c62a30daf0dde835f381ab5de4589cfe7c649d2cbe92bd6"
-dependencies = [
- "addr2line",
- "cfg-if",
- "libc",
- "miniz_oxide",
- "object",
- "rustc-demangle",
- "windows-link 0.2.1",
-]
 
 [[package]]
 name = "base64"
@@ -219,9 +195,9 @@ dependencies = [
 
 [[package]]
 name = "cfg-if"
-version = "1.0.3"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fd1289c04a9ea8cb22300a459a72a385d7c73d3259e2ed7dcb2af674838cfa9"
+checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "cfg_aliases"
@@ -607,29 +583,23 @@ dependencies = [
  "cfg-if",
  "js-sys",
  "libc",
- "wasi 0.11.1+wasi-snapshot-preview1",
+ "wasi",
  "wasm-bindgen",
 ]
 
 [[package]]
 name = "getrandom"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26145e563e54f2cadc477553f1ec5ee650b00862f0a58bcd12cbdc5f0ea2d2f4"
+checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
 dependencies = [
  "cfg-if",
  "js-sys",
  "libc",
  "r-efi",
- "wasi 0.14.7+wasi-0.2.4",
+ "wasip2",
  "wasm-bindgen",
 ]
-
-[[package]]
-name = "gimli"
-version = "0.32.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 
 [[package]]
 name = "glob"
@@ -966,17 +936,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "io-uring"
-version = "0.7.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "046fa2d4d00aea763528b4950358d0ead425372445dc8ff86312b3c69ff7727b"
-dependencies = [
- "bitflags",
- "cfg-if",
- "libc",
-]
-
-[[package]]
 name = "ipconfig"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1073,7 +1032,7 @@ version = "0.1.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9afb3de4395d6b3e67a780b6de64b51c978ecf11cb9a462c66be7d4ca9039d33"
 dependencies = [
- "getrandom 0.3.3",
+ "getrandom 0.3.4",
  "libc",
 ]
 
@@ -1237,7 +1196,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78bed444cc8a2160f01cbcf811ef18cac863ad68ae8ca62092e8db51d51c761c"
 dependencies = [
  "libc",
- "wasi 0.11.1+wasi-snapshot-preview1",
+ "wasi",
  "windows-sys 0.59.0",
 ]
 
@@ -1300,15 +1259,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "object"
-version = "0.37.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff76201f031d8863c38aa7f905eca4f53abbfa15f609db4277d44cd8938f33fe"
-dependencies = [
- "memchr",
 ]
 
 [[package]]
@@ -1549,7 +1499,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1906b49b0c3bc04b5fe5d86a77925ae6524a19b816ae38ce1e426255f1d8a31"
 dependencies = [
  "bytes",
- "getrandom 0.3.3",
+ "getrandom 0.3.4",
  "lru-slab",
  "rand",
  "ring",
@@ -1624,7 +1574,7 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
 dependencies = [
- "getrandom 0.3.3",
+ "getrandom 0.3.4",
 ]
 
 [[package]]
@@ -1747,12 +1697,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustc-demangle"
-version = "0.1.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56f7d92ca342cea22a06f2121d944b4fd82af56988c270852495420f961d4ace"
-
-[[package]]
 name = "rustc-hash"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1796,9 +1740,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-native-certs"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fcff2dd52b58a8d98a70243663a0d234c4e2b79235637849d15913394a247d3"
+checksum = "9980d917ebb0c0536119ba501e90834767bffc3d60641457fd84a1f3fd337923"
 dependencies = [
  "openssl-probe",
  "rustls-pki-types",
@@ -1835,7 +1779,7 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "ry"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1848,7 +1792,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1890,7 +1834,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "brotli",
  "pyo3",
@@ -1899,7 +1843,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bytes"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "ahash",
  "bytes",
@@ -1908,7 +1852,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -1917,7 +1861,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-core"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -1925,7 +1869,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "serde",
@@ -1936,7 +1880,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dirs"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "dirs",
  "pyo3",
@@ -1944,7 +1888,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "flate2",
  "pyo3",
@@ -1953,7 +1897,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "fnv",
  "pyo3",
@@ -1962,7 +1906,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fspath"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "parking_lot",
  "pyo3",
@@ -1976,7 +1920,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-glob"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "glob",
  "parking_lot",
@@ -1987,7 +1931,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "globset",
  "pyo3",
@@ -1996,7 +1940,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "heck",
  "pyo3",
@@ -2004,7 +1948,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-http"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "http",
  "parking_lot",
@@ -2017,7 +1961,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "jiff",
  "parking_lot",
@@ -2032,7 +1976,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "jiter",
  "pyo3",
@@ -2041,7 +1985,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2053,14 +1997,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macro-rules"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-memchr"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "memchr",
  "pyo3",
@@ -2070,21 +2014,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-pydantic"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "regex",
@@ -2093,7 +2037,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-reqwest"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "bytes",
  "cookie",
@@ -2118,7 +2062,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-same-file"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2127,7 +2071,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-serde"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2144,7 +2088,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "shlex",
@@ -2152,7 +2096,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-size"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "size",
@@ -2160,7 +2104,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -2168,7 +2112,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "bytes",
  "jiff",
@@ -2181,7 +2125,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "futures",
  "pyo3",
@@ -2194,7 +2138,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-twox-hash"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2204,7 +2148,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ulid"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "ryo3-pydantic",
@@ -2216,7 +2160,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-unindent"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "unindent",
@@ -2224,7 +2168,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "ryo3-macro-rules",
@@ -2235,7 +2179,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-uuid"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2249,7 +2193,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "parking_lot",
  "pyo3",
@@ -2261,7 +2205,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "ryo3-regex",
@@ -2270,7 +2214,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.62"
+version = "0.0.63"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2655,28 +2599,25 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.47.1"
+version = "1.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89e49afdadebb872d3145a5638b59eb0691ea23e46ca484037cfab3b76b95038"
+checksum = "ff360e02eab121e0bc37a2d3b4d4dc622e6eda3a8e5253d5435ecf5bd4c68408"
 dependencies = [
- "backtrace",
  "bytes",
- "io-uring",
  "libc",
  "mio",
  "parking_lot",
  "pin-project-lite",
- "slab",
  "socket2 0.6.1",
  "tokio-macros",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
 name = "tokio-macros"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e06d43f1345a3bcd39f6a56dbb7dcab2ba47e68e8ac134855e7e2bdbaf8cab8"
+checksum = "af407857209536a95c8e56f8231ef2c2e2aff839b22e07a1ffcbc617e9db9fa5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2897,7 +2838,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f87b8aa10b915a06587d0dec516c282ff295b475d94abf425d62b57710070a2"
 dependencies = [
  "atomic",
- "getrandom 0.3.3",
+ "getrandom 0.3.4",
  "js-sys",
  "md-5",
  "serde",
@@ -2941,15 +2882,6 @@ name = "wasi"
 version = "0.11.1+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
-
-[[package]]
-name = "wasi"
-version = "0.14.7+wasi-0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "883478de20367e224c0090af9cf5f9fa85bed63a95c1abf3afc5c083ebc06e8c"
-dependencies = [
- "wasip2",
-]
 
 [[package]]
 name = "wasip2"

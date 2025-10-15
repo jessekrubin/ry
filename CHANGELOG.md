@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.63 [unreleased]
+
+---
+
 ## v0.0.62 [2025-10-15]
 
 - python3.14 builds
