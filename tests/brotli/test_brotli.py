@@ -20,7 +20,6 @@ def test_10x10y_round_trip_magic_number() -> None:
     assert output_data_magic_true is not None
     decoded = ry.brotli_decode(output_data_magic_true)
     assert decoded == input_data
-    # ends with
 
 
 def test_decompress() -> None:

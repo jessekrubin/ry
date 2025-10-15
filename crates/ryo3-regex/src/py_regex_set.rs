@@ -1,33 +1,18 @@
 use crate::py_regex_options::PyRegexOptions;
-use pyo3::{IntoPyObjectExt, prelude::*};
-use regex::{Regex, RegexBuilder};
+use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
+use regex::{Regex, RegexBuilder, RegexSet, RegexSetBuilder};
 use std::borrow::{Borrow, Cow};
 
-#[pyclass(name = "Regex", frozen)]
+#[pyclass(name = "RegexSet", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyRegex {
-    pub re: std::sync::Arc<Regex>,
+pub struct PyRegexSet {
+    pub re: std::sync::Arc<RegexSet>,
     pub options: Option<PyRegexOptions>,
 }
 
-impl TryFrom<&str> for PyRegex {
-    type Error = PyErr;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Regex::new(s)
-            .map(|re| Self {
-                re: std::sync::Arc::new(re),
-                options: None,
-            })
-            .map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
-            })
-    }
-}
-
-impl From<Regex> for PyRegex {
-    fn from(re: Regex) -> Self {
+impl From<RegexSet> for PyRegexSet {
+    fn from(re: RegexSet) -> Self {
         Self {
             re: std::sync::Arc::new(re),
             options: None,
@@ -35,10 +20,10 @@ impl From<Regex> for PyRegex {
     }
 }
 
-impl TryFrom<RegexBuilder> for PyRegex {
+impl TryFrom<RegexSetBuilder> for PyRegexSet {
     type Error = PyErr;
 
-    fn try_from(rb: RegexBuilder) -> Result<Self, Self::Error> {
+    fn try_from(rb: RegexSetBuilder) -> Result<Self, Self::Error> {
         rb.build()
             .map(|re| Self {
                 re: std::sync::Arc::new(re),
@@ -51,7 +36,7 @@ impl TryFrom<RegexBuilder> for PyRegex {
 }
 
 #[pymethods]
-impl PyRegex {
+impl PyRegexSet {
     #[new]
     #[pyo3(signature = (
         pattern,
@@ -70,7 +55,7 @@ impl PyRegex {
     #[expect(clippy::too_many_arguments)]
     #[expect(clippy::fn_params_excessive_bools)]
     fn py_new(
-        pattern: &str,
+        pattern: Vec<PyBackedStr>,
         // kwargs
         case_insensitive: bool,
         crlf: bool,
@@ -97,7 +82,7 @@ impl PyRegex {
             unicode,
         };
 
-        let re = options.build_pattern(pattern)?;
+        let re = options.build_patterns(pattern)?;
         Ok(Self {
             re: std::sync::Arc::new(re),
             options: Some(options),
@@ -114,7 +99,13 @@ impl PyRegex {
             pyo3::types::PyDict::new(py).into_bound_py_any(py)?
         };
 
-        let args = pyo3::types::PyTuple::new(py, [self.re.as_str().into_bound_py_any(py)?])?;
+        let args = pyo3::types::PyTuple::new(
+            py,
+            [
+                // self.re.as_str().into_bound_py_any(py)?
+                self.re.patterns(),
+            ],
+        )?;
         pyo3::types::PyTuple::new(py, &[args.into_bound_py_any(py)?, kwargs])
     }
 
@@ -123,7 +114,7 @@ impl PyRegex {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.re.as_str() == other.re.as_str() && self.options == other.options
+        self.re.patterns() == other.re.patterns() && self.options == other.options
     }
 
     fn __ne__(&self, other: &Self) -> bool {
@@ -147,60 +138,22 @@ impl PyRegex {
     fn test(&self, text: &str) -> bool {
         self.re.is_match(text)
     }
-
-    fn find(&self, text: &str) -> Option<(usize, usize)> {
-        self.re.find(text).map(|m| (m.start(), m.end()))
-    }
-
-    fn find_all(&self, text: &str) -> Vec<(usize, usize)> {
-        self.re
-            .find_iter(text)
-            .map(|m| (m.start(), m.end()))
-            .collect()
-    }
-
-    fn findall(&self, text: &str) -> Vec<(usize, usize)> {
-        self.find_all(text)
-    }
-
-    fn replace<'py>(&self, text: &'py str, replace: &str) -> Cow<'py, str> {
-        self.re.replace(text, replace)
-    }
-
-    fn replace_all(&self, text: &str, replace: &str) -> String {
-        self.re.replace_all(text, replace).to_string()
-    }
-
-    fn split(&self, text: &str) -> Vec<String> {
-        self.re
-            .split(text)
-            .map(std::string::ToString::to_string)
-            .collect()
-    }
-
-    fn splitn(&self, text: &str, n: usize) -> Vec<String> {
-        self.re
-            .splitn(text, n)
-            .map(std::string::ToString::to_string)
-            .collect()
-    }
 }
 
-impl Borrow<Regex> for PyRegex {
-    fn borrow(&self) -> &Regex {
+impl Borrow<RegexSet> for PyRegexSet {
+    fn borrow(&self) -> &RegexSet {
         &self.re
     }
 }
 
-impl std::fmt::Display for PyRegex {
+impl std::fmt::Display for PyRegexSet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(opts) = &self.options {
-            write!(f, "Regex(r'{}'", self.re.as_str())?;
+            write!(f, "RegexSet({:?}", self.re.patterns())?;
             opts.write_regex_kwargs(f)?;
             write!(f, ")")
-            // }
         } else {
-            write!(f, "Regex(r'{}')", self.re.as_str())
+            write!(f, "RegexSet({:?}", self.re.patterns())
         }
     }
 }

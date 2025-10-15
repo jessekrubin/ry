@@ -246,7 +246,7 @@ impl PyCookie {
 impl std::fmt::Debug for PyCookie {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Cookie(\"{}\", \"{}\"", self.0.name(), self.0.value())?;
-        // this order...
+        // this is the kw ordering...
         // expires = None,
         // http_only = None,
         // max_age = None,

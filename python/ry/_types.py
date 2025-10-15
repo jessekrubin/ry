@@ -10,12 +10,11 @@ if TYPE_CHECKING:
     import datetime as pydt
 
 
-if sys.version_info >= (3, 12):
+if sys.version_info >= (3, 12):  # pragma: no cover
     from collections.abc import Buffer
     from typing import TypedDict, Unpack
-else:
+else:  # pragma: no cover
     from typing_extensions import Buffer, TypedDict, Unpack
-
 
 __all__ = (
     "Buffer",

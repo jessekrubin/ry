@@ -19,12 +19,8 @@ keywords = [
   "zstd",
 ]
 license = "MIT OR Apache-2.0"
-maintainers = [
-  { name = "jesse rubin", email = "jessekrubin@gmail.com" },
-]
-authors = [
-  { name = "jesse rubin", email = "jessekrubin@gmail.com" },
-]
+maintainers = [ { name = "jesse rubin", email = "jessekrubin@gmail.com" } ]
+authors = [ { name = "jesse rubin", email = "jessekrubin@gmail.com" } ]
 
 requires-python = ">=3.11"
 classifiers = [
@@ -54,6 +50,7 @@ urls.Source = "https://github.com/jessekrubin/ry"
 [dependency-groups]
 dev = [
   "anyio>=4.8",
+  "coverage[toml]>=7.10.7",
   "hypothesis>=6.124.2",
   "ipython>=9.5.0",
   "maturin>=1.8.6",
@@ -70,9 +67,7 @@ dev = [
   "tzdata>=2025.2",
   "uvicorn>=0.34",
 ]
-misc = [
-  "griffe>=1.12.1",
-]
+misc = [ "griffe>=1.12.1" ]
 
 [tool.maturin]
 python-source = "python"
@@ -94,15 +89,9 @@ ry = { workspace = true }
 extend = "./ruff.toml"
 
 [tool.pytest.ini_options]
-testpaths = [
-  "tests",
-]
-filterwarnings = [
-  "ignore:ry not compiled in release mode:RuntimeWarning",
-]
-addopts = [
-  "--doctest-modules",
-]
+testpaths = [ "tests" ]
+filterwarnings = [ "ignore:ry not compiled in release mode:RuntimeWarning" ]
+addopts = [ "--doctest-modules" ]
 asyncio_mode = 'auto'
 asyncio_default_fixture_loop_scope = "function"
 norecursedirs = [
@@ -126,13 +115,37 @@ markers = [
   "bench",
 ]
 
+[tool.coverage.run]
+source = [ "python/ry" ]
+omit = [ "python/ry/dev/__main__.py" ]
+branch = true
+relative_files = true
+context = '${CONTEXT}'
+
+[tool.coverage.report]
+precision = 2
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING:",
+  "if t.TYPE_CHECKING:",
+  '\(Protocol\):$',
+  # any generic protocol from `ry.protocols`
+  "^\\s*class\\s+\\w+\\(.*\\b(?:typing\\.|t\\.)?Protocol(?:\\[[^\\]]*\\])?.*\\):\\s*(?:#.*)?$",
+
+  # 'typing.assert_never',
+  # 'assert_never',
+]
+
+[tool.coverage.paths]
+source = [ 'python/ry/' ]
+
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
 python_version = "3.11"
-enable_error_code = [
-  "deprecated",
-]
+enable_error_code = [ "deprecated" ]
 
 [[tool.mypy.overrides]]
 module = "tests.*"

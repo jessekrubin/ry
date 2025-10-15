@@ -12,7 +12,7 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import ToPy, ToPyTimeDelta
+from ry.protocols import RyIterator, ToPy, ToPyTimeDelta
 from ry.ryo3._bytes import Bytes
 
 # =============================================================================
@@ -232,20 +232,16 @@ class DirEntry:
     @property
     def file_type(self) -> FileType: ...
 
-_T = t.TypeVar("_T")
-
-class RyIterable(t.Generic[_T]):
-    def __iter__(self) -> t.Self: ...
-    def __next__(self) -> _T: ...
-    def collect(self) -> list[_T]: ...
-    def take(self, n: int = 1) -> list[_T]: ...
-
 @t.final
-class ReadDir(RyIterable[DirEntry]):
+class ReadDir(RyIterator[DirEntry]):
     def __init__(self) -> t.NoReturn: ...
+    def __iter__(self) -> t.Self: ...
+    def __next__(self) -> DirEntry: ...
+    def collect(self) -> list[DirEntry]: ...
+    def take(self, n: int = 1) -> list[DirEntry]: ...
 
 @t.final
-class FileReadStream:
+class FileReadStream(RyIterator[Bytes]):
     def __init__(
         self,
         path: FsPathLike,

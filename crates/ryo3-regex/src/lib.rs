@@ -2,6 +2,7 @@
 
 mod py_regex;
 mod py_regex_options;
+// mod py_regex_set;
 
 pub use crate::py_regex::PyRegex;
 use pyo3::PyResult;

@@ -135,4 +135,29 @@ impl PyRegexOptions {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
         })
     }
+
+    // TODO: use for `regex::RegexSet` wrapper
+    // pub(crate) fn build_patterns<I, S>(&self, exprs: I) -> PyResult<regex::RegexSet>
+    // where
+    //     S: AsRef<str>,
+    //     I: IntoIterator<Item = S>,
+    // {
+    //     let mut builder = regex::RegexSetBuilder::new(exprs);
+    //     let mut builder = builder
+    //         .case_insensitive(self.case_insensitive)
+    //         .crlf(self.crlf)
+    //         .dot_matches_new_line(self.dot_matches_new_line)
+    //         .ignore_whitespace(self.ignore_whitespace)
+    //         .line_terminator(self.line_terminator)
+    //         .multi_line(self.multi_line)
+    //         .octal(self.octal)
+    //         .swap_greed(self.swap_greed)
+    //         .unicode(self.unicode);
+    //     if let Some(size_limit) = self.size_limit {
+    //         builder = builder.size_limit(size_limit);
+    //     }
+    //     builder.build().map_err(|e| {
+    //         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex-set: {e}"))
+    //     })
+    // }
 }

@@ -4,6 +4,7 @@ import typing as t
 from os import PathLike
 
 from ry import FileType, FsPath, Glob, GlobSet, Globster
+from ry.protocols import RyIterator
 
 @t.final
 class WalkDirEntry:
@@ -33,15 +34,13 @@ _T_walkdir = t.TypeVar(
 )
 
 @t.final
-class WalkdirGen(t.Generic[_T_walkdir]):
+class WalkdirGen(RyIterator[_T_walkdir]):
     """walkdir::Walkdir iterable wrapper"""
-    def __init__(
-        self,
-    ) -> t.NoReturn: ...
+    def __init__(self) -> t.NoReturn: ...
+    def __iter__(self) -> t.Self: ...
     def __next__(self) -> _T_walkdir: ...
     def collect(self) -> list[_T_walkdir]: ...
     def take(self, n: int = 1) -> list[_T_walkdir]: ...
-    def __iter__(self) -> t.Iterator[_T_walkdir]: ...
 
 @t.overload
 def walkdir(

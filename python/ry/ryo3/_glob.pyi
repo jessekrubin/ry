@@ -4,12 +4,13 @@ import typing as t
 from os import PathLike
 from pathlib import Path
 
+from ry.protocols import RyIterator
 from ry.ryo3._fspath import FsPath
 
 _T = t.TypeVar("_T", bound=str | Path | FsPath)
 
 @t.final
-class GlobPaths(t.Generic[_T]):
+class GlobPaths(RyIterator[_T]):
     """glob::Paths iterable wrapper"""
 
     def __next__(self) -> _T: ...

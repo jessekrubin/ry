@@ -5,6 +5,7 @@ mypy
 orjson
 pydantic
 pytest
+pytest-cov
 pytest-asyncio
 pytest-benchmark
 ruff

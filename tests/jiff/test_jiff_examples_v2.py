@@ -25,7 +25,6 @@ def test_get_current_time_in_system_tz() -> None:
     ```
     """
     now = ry.ZonedDateTime.now()
-    # smoke-test that we got a Zon edDateTime and timezone name is non-empty
     assert isinstance(now, ry.ZonedDateTime)
     assert now.tz.name
 
