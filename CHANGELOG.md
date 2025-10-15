@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.62 [unreleased]
+## v0.0.62 [2025-10-15]
 
 - `ryo3-uuid`
   - Fixed uuid `.time` property on python 3.14+
