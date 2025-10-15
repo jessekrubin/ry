@@ -25,7 +25,6 @@ def test_pickle() -> None:
 
 
 def test_uuid_weakref() -> None:
-    # bpo-35701: check that weak referencing to a UUID object can be created
     strong = ryuuid.uuid4()
     weak = weakref.ref(strong)
     assert isinstance(weak, weakref.ref)

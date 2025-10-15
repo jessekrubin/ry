@@ -8,11 +8,15 @@ attrs==25.4.0
     # via hypothesis
 click==8.3.0
     # via uvicorn
+colorama==0.4.6
+    # via
+    #   click
+    #   pytest
 h11==0.16.0
     # via uvicorn
-hypothesis==6.140.3
+hypothesis==6.141.0
     # via -r requirements.dev.in
-idna==3.10
+idna==3.11
     # via anyio
 iniconfig==2.1.0
     # via pytest
@@ -32,9 +36,9 @@ pluggy==1.6.0
     # via pytest
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pydantic==2.12.0
+pydantic==2.12.2
     # via -r requirements.dev.in
-pydantic-core==2.41.1
+pydantic-core==2.41.4
     # via pydantic
 pygments==2.19.2
     # via pytest

@@ -2,12 +2,14 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule};
 
+/// Unindent a string removing the maximum common leading whitespace
 #[pyfunction]
 #[must_use]
 pub fn unindent(input: &str) -> String {
     ::unindent::unindent(input)
 }
 
+/// Unindent a python bytes removing the maximum common leading whitespace
 #[pyfunction]
 #[must_use]
 pub fn unindent_bytes<'py>(py: Python<'py>, input: &[u8]) -> Bound<'py, PyBytes> {

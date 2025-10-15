@@ -75,9 +75,3 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
         Ok(pystr)
     }
 }
-// #[pyo3(signature = (data, *, seed = None))]
-// pub fn xxh3_64_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyResult<String> {
-//     Ok(format!(
-//         "{:016x}",
-//         xxh3_64_with_seed(data.as_ref(), seed.unwrap_or(0))
-//     ))

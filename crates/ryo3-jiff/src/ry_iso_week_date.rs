@@ -72,6 +72,12 @@ impl RyISOWeekDate {
 
     /// Returns the `ISOWeekDate` for the given `Date`.
     #[staticmethod]
+    fn from_pydate(d: jiff::civil::Date) -> Self {
+        Self::from(d)
+    }
+
+    /// Returns the `ISOWeekDate` for the given `Date`.
+    #[staticmethod]
     fn from_date(date: &RyDate) -> Self {
         Self(ISOWeekDate::from(date.0))
     }
@@ -204,5 +210,11 @@ impl std::fmt::Display for RyISOWeekDate {
 impl From<ISOWeekDate> for RyISOWeekDate {
     fn from(date: ISOWeekDate) -> Self {
         Self(date)
+    }
+}
+
+impl From<jiff::civil::Date> for RyISOWeekDate {
+    fn from(date: jiff::civil::Date) -> Self {
+        Self(ISOWeekDate::from(date))
     }
 }

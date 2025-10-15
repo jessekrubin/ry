@@ -765,6 +765,7 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "anyio" },
+    { name = "coverage", extra = ["toml"] },
     { name = "hypothesis" },
     { name = "ipython" },
     { name = "maturin" },
@@ -790,6 +791,7 @@ misc = [
 [package.metadata.requires-dev]
 dev = [
     { name = "anyio", specifier = ">=4.8" },
+    { name = "coverage", extras = ["toml"], specifier = ">=7.10.7" },
     { name = "hypothesis", specifier = ">=6.124.2" },
     { name = "ipython", specifier = ">=9.5.0" },
     { name = "maturin", specifier = ">=1.8.6" },

@@ -3,6 +3,8 @@ import typing as t
 
 __all__ = (
     "FromStr",
+    "NoInit",
+    "RyIterator",
     "Strftime",
     "ToPy",
     "ToPyDate",
@@ -13,6 +15,7 @@ __all__ = (
     "ToString",
 )
 
+_T = t.TypeVar("_T")
 _T_co = t.TypeVar("_T_co", covariant=True)
 
 
@@ -20,6 +23,12 @@ class ToPy(t.Protocol[_T_co]):
     """Objects that can be converted to a python stdlib type (`_T_co`) via `obj.to_py()`."""
 
     def to_py(self) -> _T_co: ...
+
+
+class NoInit(t.Protocol):
+    """Protocol for types that cannot be instantiated directly."""
+
+    def __init__(self) -> t.NoReturn: ...
 
 
 # =============================================================================
@@ -36,6 +45,16 @@ class ToString(t.Protocol):
     """Protocol for types that have a `.to_string()` method."""
 
     def to_string(self) -> str: ...
+
+
+# =============================================================================
+# ITERABLE
+# =============================================================================
+class RyIterator(t.Protocol[_T]):
+    def __iter__(self) -> t.Self: ...
+    def __next__(self) -> _T: ...
+    def collect(self) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
 
 
 # =============================================================================
