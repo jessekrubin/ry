@@ -183,6 +183,38 @@
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0063-unreleased"><a class="header" href="#v0063-unreleased">v0.0.63 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-std</code>
+<ul>
+<li>Missing <code>std::fs</code> function wrappers:
+<ul>
+<li><code>std::fs::hard_link</code> -&gt;
+<code>ry.hard_link(src: FsPathLike, dst: FsPathLike) -&gt; None</code></li>
+<li><code>std::fs::read_link</code> -&gt; <code>ry.read_link(path: FsPathLike) -&gt; FsPathLike</code></li>
+<li><code>std::fs::read_to_string</code> -&gt; <code>ry.read_to_string(path: FsPathLike) -&gt; str</code></li>
+<li><code>std::fs::set_permissions</code> -&gt;
+<code>ry.set_permissions(path: FsPathLike, permissions: ry.Permissions) -&gt; None</code></li>
+<li><code>std::fs::soft_link</code> -&gt;
+<code>ry.soft_link(from_path: FsPathLike, to_path: FsPathLike) -&gt; None</code></li>
+<li><code>std::fs::symlink_metadata</code> -&gt;
+<code>ry.symlink_metadata(path: FsPathLike) -&gt; ry.Metadata</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>ryo3-glob</code>
+<ul>
+<li>Detach implementation of <code>take</code> and <code>collect</code> (which is cleaner and probably
+a wee bit faster)</li>
+</ul>
+</li>
+<li><code>_future</code>
+<ul>
+<li><code>ryo3-ignore</code> wrapper placeholder</li>
+<li><code>ryo3-tokio-websockets</code> crate placeholder</li>
+</ul>
+</li>
+</ul>
 <hr />
 <h2 id="v0062-2025-10-15"><a class="header" href="#v0062-2025-10-15">v0.0.62 [2025-10-15]</a></h2>
 <ul>

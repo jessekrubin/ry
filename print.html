@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-10-17T10:59:29.717352167-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-10-17T14:30:00.129735214-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -480,6 +480,38 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0063-unreleased"><a class="header" href="#v0063-unreleased">v0.0.63 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-std</code>
+<ul>
+<li>Missing <code>std::fs</code> function wrappers:
+<ul>
+<li><code>std::fs::hard_link</code> -&gt;
+<code>ry.hard_link(src: FsPathLike, dst: FsPathLike) -&gt; None</code></li>
+<li><code>std::fs::read_link</code> -&gt; <code>ry.read_link(path: FsPathLike) -&gt; FsPathLike</code></li>
+<li><code>std::fs::read_to_string</code> -&gt; <code>ry.read_to_string(path: FsPathLike) -&gt; str</code></li>
+<li><code>std::fs::set_permissions</code> -&gt;
+<code>ry.set_permissions(path: FsPathLike, permissions: ry.Permissions) -&gt; None</code></li>
+<li><code>std::fs::soft_link</code> -&gt;
+<code>ry.soft_link(from_path: FsPathLike, to_path: FsPathLike) -&gt; None</code></li>
+<li><code>std::fs::symlink_metadata</code> -&gt;
+<code>ry.symlink_metadata(path: FsPathLike) -&gt; ry.Metadata</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>ryo3-glob</code>
+<ul>
+<li>Detach implementation of <code>take</code> and <code>collect</code> (which is cleaner and probably
+a wee bit faster)</li>
+</ul>
+</li>
+<li><code>_future</code>
+<ul>
+<li><code>ryo3-ignore</code> wrapper placeholder</li>
+<li><code>ryo3-tokio-websockets</code> crate placeholder</li>
+</ul>
+</li>
+</ul>
 <hr />
 <h2 id="v0062-2025-10-15"><a class="header" href="#v0062-2025-10-15">v0.0.62 [2025-10-15]</a></h2>
 <ul>
@@ -2599,6 +2631,7 @@ from ry.ryo3._std import copy as copy
 from ry.ryo3._std import create_dir as create_dir
 from ry.ryo3._std import create_dir_all as create_dir_all
 from ry.ryo3._std import exists as exists
+from ry.ryo3._std import hard_link as hard_link
 from ry.ryo3._std import instant as instant
 from ry.ryo3._std import is_dir as is_dir
 from ry.ryo3._std import is_file as is_file
@@ -2607,13 +2640,18 @@ from ry.ryo3._std import metadata as metadata
 from ry.ryo3._std import read as read
 from ry.ryo3._std import read_bytes as read_bytes
 from ry.ryo3._std import read_dir as read_dir
+from ry.ryo3._std import read_link as read_link
 from ry.ryo3._std import read_stream as read_stream
 from ry.ryo3._std import read_text as read_text
+from ry.ryo3._std import read_to_string as read_to_string
 from ry.ryo3._std import remove_dir as remove_dir
 from ry.ryo3._std import remove_dir_all as remove_dir_all
 from ry.ryo3._std import remove_file as remove_file
 from ry.ryo3._std import rename as rename
+from ry.ryo3._std import set_permissions as set_permissions
 from ry.ryo3._std import sleep as sleep
+from ry.ryo3._std import soft_link as soft_link
+from ry.ryo3._std import symlink_metadata as symlink_metadata
 from ry.ryo3._std import write as write
 from ry.ryo3._std import write_bytes as write_bytes
 from ry.ryo3._std import write_text as write_text
@@ -7120,34 +7158,35 @@ class FileReadStream(RyIterator[Bytes]):
 # ============================================================================
 # STD::FS ~ functions
 # =============================================================================
-def read(path: FsPathLike) -&gt; Bytes: ...
-def read_bytes(path: FsPathLike) -&gt; bytes: ...
-def read_dir(
-    path: FsPathLike,
-) -&gt; ReadDir: ...
-def read_text(path: FsPathLike) -&gt; str: ...
-def read_stream(
-    path: FsPathLike,
-    chunk_size: int = 65536,
-    *,
-    offset: int = 0,
-) -&gt; FileReadStream: ...
-def write(path: FsPathLike, data: Buffer | str) -&gt; int: ...
-def write_bytes(path: FsPathLike, data: bytes) -&gt; int: ...
-def write_text(path: FsPathLike, data: str) -&gt; int: ...
 def canonicalize(path: FsPathLike) -&gt; pathlib.Path: ...
 def copy(from_path: FsPathLike, to_path: FsPathLike) -&gt; int: ...
 def create_dir(path: FsPathLike) -&gt; None: ...
 def create_dir_all(path: FsPathLike) -&gt; None: ...
 def exists(path: FsPathLike) -&gt; bool: ...
+def hard_link(from_path: FsPathLike, to_path: FsPathLike) -&gt; None: ...
 def is_dir(path: FsPathLike) -&gt; bool: ...
 def is_file(path: FsPathLike) -&gt; bool: ...
 def is_symlink(path: FsPathLike) -&gt; bool: ...
 def metadata(path: FsPathLike) -&gt; Metadata: ...
+def read(path: FsPathLike) -&gt; Bytes: ...
+def read_bytes(path: FsPathLike) -&gt; bytes: ...
+def read_dir(path: FsPathLike) -&gt; ReadDir: ...
+def read_link(path: FsPathLike) -&gt; pathlib.Path: ...
+def read_stream(
+    path: FsPathLike, chunk_size: int = 65536, *, offset: int = 0
+) -&gt; FileReadStream: ...
+def read_text(path: FsPathLike) -&gt; str: ...
+def read_to_string(path: FsPathLike) -&gt; str: ...
 def remove_dir(path: FsPathLike) -&gt; None: ...
 def remove_dir_all(path: FsPathLike) -&gt; None: ...
 def remove_file(path: FsPathLike) -&gt; None: ...
 def rename(from_path: FsPathLike, to_path: FsPathLike) -&gt; None: ...
+def set_permissions(path: FsPathLike, permissions: Permissions) -&gt; None: ...
+def soft_link(from_path: FsPathLike, to_path: FsPathLike) -&gt; None: ...
+def symlink_metadata(path: FsPathLike) -&gt; Metadata: ...
+def write(path: FsPathLike, data: Buffer | str) -&gt; int: ...
+def write_bytes(path: FsPathLike, data: bytes) -&gt; int: ...
+def write_text(path: FsPathLike, data: str) -&gt; int: ...
 
 
 # =============================================================================
