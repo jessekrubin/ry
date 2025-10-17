@@ -16,6 +16,7 @@
 ---
 
 - [API](./api.md)
+- [DEP-GRAPH](./dep-graph.md)
 
 ---
 

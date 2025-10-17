@@ -223,3 +223,6 @@ gen: _gen-py
 # generate cargo docs for all crates (in workspace)
 cargo-doc:
     cargo doc --no-deps --workspace
+
+depgraph-svg:
+    python scripts/dep-graph-mmd.py --svg > docs/src/dep-graph.svg
