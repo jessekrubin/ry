@@ -1039,8 +1039,7 @@ dependencies = [
 [[package]]
 name = "jiter"
 version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e805fb15a8249d25213202b9098f7b9ad00f8042ccc6f0063d2ae7b33f3d7da"
+source = "git+https://github.com/jessekrubin/jiter.git?branch=pyo3-v0.27.x#ee6bc414f5dc9041fe29a90f676f85e4bad4850c"
 dependencies = [
  "ahash",
  "bitvec",
@@ -3534,8 +3533,3 @@ dependencies = [
  "cc",
  "pkg-config",
 ]
-
-[[patch.unused]]
-name = "jiter"
-version = "0.11.0"
-source = "git+https://github.com/jessekrubin/jiter.git?branch=pyo3-v0.27.x#46768d788b88061911d115987095d06f317d7f8b"
