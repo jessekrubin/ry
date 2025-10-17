@@ -3,7 +3,8 @@ mod file_type;
 use crate::fs::file_read_stream::{DEFAULT_CHUNK_SIZE, PyFileReadStream};
 pub use file_type::PyFileType;
 use pyo3::exceptions::{
-    PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError, PyValueError,
+    PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError,
+    PyValueError,
 };
 use pyo3::types::{PyBytes, PyDict};
 use pyo3::{intern, prelude::*};
@@ -130,6 +131,7 @@ impl PyMetadata {
 
 #[pyclass(name = "Permissions", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PyPermissions(pub std::fs::Permissions);
 
 impl From<std::fs::Permissions> for PyPermissions {
@@ -277,6 +279,17 @@ fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize
 }
 
 #[pyfunction]
+pub fn read_link(pth: PathBuf) -> PyResult<PathBuf> {
+    let p = std::fs::read_link(pth)?;
+    Ok(p)
+}
+
+#[pyfunction]
+pub fn read_to_string(pth: PathBuf) -> PyResult<String> {
+    std::fs::read_to_string(pth).map_err(|e| PyIOError::new_err(format!("read_to_string - {e}")))
+}
+
+#[pyfunction]
 pub fn write(fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
     let bref = extract_bytes_ref_str(b)?;
     write_impl(fspath, bref)
@@ -358,6 +371,55 @@ pub fn create_dir_all(pth: PathLike) -> PyResult<()> {
 pub fn canonicalize(pth: PathLike) -> PyResult<()> {
     std::fs::canonicalize(pth)?;
     Ok(())
+}
+
+#[pyfunction]
+pub fn exists(pth: PathBuf) -> PyResult<bool> {
+    std::fs::exists(pth).map_err(|e| PyIOError::new_err(format!("exists - {e}")))
+}
+
+#[pyfunction]
+pub fn hard_link(src: PathBuf, dst: PathBuf) -> PyResult<()> {
+    std::fs::hard_link(src, dst)?;
+    Ok(())
+}
+
+#[pyfunction]
+pub fn set_permissions(pth: PathBuf, perm: &PyPermissions) -> PyResult<()> {
+    std::fs::set_permissions(pth, perm.0.clone())
+        .map_err(|e| PyIOError::new_err(format!("set_permissions - {e}")))
+}
+
+#[pyfunction]
+pub fn soft_link(src: PathBuf, dst: PathBuf) -> PyResult<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs as unix_fs;
+        unix_fs::symlink(src, dst).map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs as windows_fs;
+        let metadata =
+            std::fs::metadata(&src).map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))?;
+        if metadata.is_dir() {
+            windows_fs::symlink_dir(src, dst)
+                .map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))
+        } else {
+            windows_fs::symlink_file(src, dst)
+                .map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))
+        }
+    }
+    #[cfg(not(any(unix, windows)))]
+    {
+        pytodo!("soft_link is not implemented on this platform");
+    }
+}
+
+#[pyfunction]
+pub fn symlink_metadata(pth: PathBuf) -> PyResult<PyMetadata> {
+    let m = std::fs::symlink_metadata(pth).map(PyMetadata::from)?;
+    Ok(m)
 }
 
 #[pyfunction]
@@ -460,16 +522,23 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(copy, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir_all, m)?)?;
+    m.add_function(wrap_pyfunction!(exists, m)?)?;
+    m.add_function(wrap_pyfunction!(hard_link, m)?)?;
     m.add_function(wrap_pyfunction!(metadata, m)?)?;
     m.add_function(wrap_pyfunction!(read, m)?)?;
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(read_dir, m)?)?;
+    m.add_function(wrap_pyfunction!(read_link, m)?)?;
     m.add_function(wrap_pyfunction!(read_stream, m)?)?;
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
+    m.add_function(wrap_pyfunction!(read_to_string, m)?)?;
     m.add_function(wrap_pyfunction!(remove_dir, m)?)?;
     m.add_function(wrap_pyfunction!(remove_dir_all, m)?)?;
     m.add_function(wrap_pyfunction!(remove_file, m)?)?;
     m.add_function(wrap_pyfunction!(rename, m)?)?;
+    m.add_function(wrap_pyfunction!(set_permissions, m)?)?;
+    m.add_function(wrap_pyfunction!(soft_link, m)?)?;
+    m.add_function(wrap_pyfunction!(symlink_metadata, m)?)?;
     m.add_function(wrap_pyfunction!(write, m)?)?;
     m.add_function(wrap_pyfunction!(write_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(write_text, m)?)?;
