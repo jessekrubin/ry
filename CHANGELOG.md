@@ -2,6 +2,25 @@
 
 ## v0.0.63 [unreleased]
 
+- `ryo3-std`
+  - Missing `std::fs` function wrappers:
+    - `std::fs::hard_link` ->
+      `ry.hard_link(src: FsPathLike, dst: FsPathLike) -> None`
+    - `std::fs::read_link` -> `ry.read_link(path: FsPathLike) -> FsPathLike`
+    - `std::fs::read_to_string` -> `ry.read_to_string(path: FsPathLike) -> str`
+    - `std::fs::set_permissions` ->
+      `ry.set_permissions(path: FsPathLike, permissions: ry.Permissions) -> None`
+    - `std::fs::soft_link` ->
+      `ry.soft_link(from_path: FsPathLike, to_path: FsPathLike) -> None`
+    - `std::fs::symlink_metadata` ->
+      `ry.symlink_metadata(path: FsPathLike) -> ry.Metadata`
+- `ryo3-glob`
+  - Detach implementation of `take` and `collect` (which is cleaner and probably
+    a wee bit faster)
+- `_future`
+  - `ryo3-ignore` wrapper placeholder
+  - `ryo3-tokio-websockets` crate placeholder
+
 ---
 
 ## v0.0.62 [2025-10-15]

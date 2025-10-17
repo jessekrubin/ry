@@ -130,6 +130,7 @@ from ry.ryo3._std import copy as copy
 from ry.ryo3._std import create_dir as create_dir
 from ry.ryo3._std import create_dir_all as create_dir_all
 from ry.ryo3._std import exists as exists
+from ry.ryo3._std import hard_link as hard_link
 from ry.ryo3._std import instant as instant
 from ry.ryo3._std import is_dir as is_dir
 from ry.ryo3._std import is_file as is_file
@@ -138,13 +139,18 @@ from ry.ryo3._std import metadata as metadata
 from ry.ryo3._std import read as read
 from ry.ryo3._std import read_bytes as read_bytes
 from ry.ryo3._std import read_dir as read_dir
+from ry.ryo3._std import read_link as read_link
 from ry.ryo3._std import read_stream as read_stream
 from ry.ryo3._std import read_text as read_text
+from ry.ryo3._std import read_to_string as read_to_string
 from ry.ryo3._std import remove_dir as remove_dir
 from ry.ryo3._std import remove_dir_all as remove_dir_all
 from ry.ryo3._std import remove_file as remove_file
 from ry.ryo3._std import rename as rename
+from ry.ryo3._std import set_permissions as set_permissions
 from ry.ryo3._std import sleep as sleep
+from ry.ryo3._std import soft_link as soft_link
+from ry.ryo3._std import symlink_metadata as symlink_metadata
 from ry.ryo3._std import write as write
 from ry.ryo3._std import write_bytes as write_bytes
 from ry.ryo3._std import write_text as write_text

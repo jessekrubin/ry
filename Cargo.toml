@@ -75,6 +75,8 @@ members = [
   "crates/_ryo3-dev",
   "crates/_ryo3-quick-maths",
   "crates/ryo3",
+  "crates/_future/ryo3-ignore",
+  "crates/_future/ryo3-tokio-websockets",
   # external wrappers
   "crates/ryo3-brotli",
   "crates/ryo3-bytes",
@@ -120,7 +122,8 @@ members = [
 # internal
 ryo3 = { path = "./crates/ryo3", features = [] }
 # dev/future
-# ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
+ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
+ryo3-tokio-websockets = { path = "./crates/_future/ryo3-tokio-websockets" }
 # wrappers
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bytes = { path = "./crates/ryo3-bytes" }
@@ -165,27 +168,28 @@ pyo3 = { version = "0.26.0", features = ["macros", "serde"] }
 # pyo3 async runtimes
 #pyo3-async-runtimes = { version = "0.26.0", features = ["tokio-runtime"] }
 pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes" , features = ["tokio-runtime"] }
-# pyo3-async-runtimes = { git = "https://github.com/jessekrubin/pyo3-async-runtimes", branch="unpaid-interns", features = ["tokio-runtime"] }
 pyo3-build-config = "0.26.0"
 
+# future
+tokio-websockets = { version = "0.13.0", features = [] }
+ignore = "0.4.24"
 # external
 ahash = "0.8.12"
 anyhow = "1.0"
 brotli = "8.0.2"
 bytes = "1.10.1"
-bzip2 = "0.6.0"
+bzip2 = "0.6.1"
 dirs = { version = "6.0.0", features = [] }
 flate2 = "1.1.4"
 fnv = "1.0.7"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
 glob = "0.3"
-globset = { version = "0.4.16", features = ["serde"] }
+globset = { version = "0.4.17", features = ["serde"] }
 heck = "0.5.0"
 http = "1.3.1"
-ignore = "0.4.23"
 jiff = { version = "0.2.14", features = ["default", "serde", "perf-inline"] }
-jiter = { version = "0.11.0", features = ["python"] }
+jiter = { version = "0.11.1", features = ["python"] }
 memchr = "2.7.5"
 parking_lot = "0.12.5"
 regex = "1.12.2"
@@ -251,6 +255,7 @@ use_self = "warn"
 # literal_string_with_formatting_args = "warn"
 # significant_drop_in_scrutinee = "warn"
 # __TBD__
+# significant_drop_in_scrutinee = "allow"
 # as_ptr_cast_mut = "allow"
 # derive_partial_eq_without_eq = "allow"
 # missing_const_for_fn = "allow"
@@ -259,4 +264,4 @@ use_self = "warn"
 # redundant_pub_crate = "allow"
 # significant_drop_tightening = "allow"
 # needless_pass_by_ref_mut = "allow"
-# cognitive_complexity = "allow"
+# cognitive_complexity = "allow" # f-off clippy

@@ -1,7 +1,8 @@
 # `ryo3-ignore`
 
-Wrapper around the `ignore` crate for Python.
+python + `ignore` crate.
 
-**NOT YET IMPLEMENTED**
+`ignore`:
 
-REF: https://docs.rs/ignore/latest/ignore/
+- [crates.io](https://crates.io/crates/ignore)
+- [docs.rs](https://docs.rs/ignore)
