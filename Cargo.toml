@@ -255,6 +255,7 @@ use_self = "warn"
 # literal_string_with_formatting_args = "warn"
 # significant_drop_in_scrutinee = "warn"
 # __TBD__
+# significant_drop_in_scrutinee = "allow"
 # as_ptr_cast_mut = "allow"
 # derive_partial_eq_without_eq = "allow"
 # missing_const_for_fn = "allow"
@@ -263,4 +264,4 @@ use_self = "warn"
 # redundant_pub_crate = "allow"
 # significant_drop_tightening = "allow"
 # needless_pass_by_ref_mut = "allow"
-# cognitive_complexity = "allow"
+# cognitive_complexity = "allow" # f-off clippy
