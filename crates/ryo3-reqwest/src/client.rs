@@ -209,7 +209,7 @@ impl RyHttpClient {
             brotli = true,
             deflate = true,
             zstd = true,
-            hickory_dns = true,
+            hickory_dns = false,
 
             http1_only = false,
             https_only = false,
