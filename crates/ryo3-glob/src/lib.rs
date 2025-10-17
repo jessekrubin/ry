@@ -6,7 +6,6 @@ use parking_lot::Mutex;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::PyList;
 use pyo3::types::{PyModule, PyType};
 use ryo3_macro_rules::py_value_err;
 use ryo3_macro_rules::py_value_error;

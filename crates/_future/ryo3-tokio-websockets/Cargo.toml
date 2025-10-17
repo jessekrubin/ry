@@ -1,5 +1,5 @@
 [package]
-name = "ryo3-ignore"
+name = "ryo3-tokio-websockets"
 version.workspace = true
 authors.workspace = true
 categories.workspace = true
@@ -9,11 +9,11 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "python + ignore (https://docs.rs/ignore/latest/ignore/)"
+description = "python + tokio-websockets crate (https://crates.io/crates/tokio-websockets)"
 
 [dependencies]
-ignore.workspace = true
 pyo3 = { workspace = true, features = [] }
+tokio-websockets = { workspace = true }
 
 [lints]
 workspace = true

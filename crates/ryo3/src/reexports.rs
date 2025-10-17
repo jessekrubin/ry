@@ -38,6 +38,10 @@ ryo3_features_reexport! {
     "url", ryo3_url,
     "walkdir", ryo3_walkdir,
     "which", ryo3_which,
-    // "twox-hash", ryo3_twox_hash,
+    "twox-hash", ryo3_twox_hash,
     "zstd", ryo3_zstd,
 }
+
+// -- FUTURE --
+// "ignore", ryo3_ignore,
+// "tokio-websockets", ryo3_tokio_websockets,
