@@ -16,6 +16,13 @@ pub struct PyCertificate {
     pub(crate) cert: ::reqwest::Certificate,
 }
 
+impl std::hash::Hash for PyCertificate {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.kind.hash(state);
+        self.bin.hash(state);
+    }
+}
+
 #[pymethods]
 impl PyCertificate {
     #[new]
@@ -23,6 +30,13 @@ impl PyCertificate {
         Err(py_value_error!(
             "Cannot create Certificate directly; use from_der or from_pem"
         ))
+    }
+
+    fn __hash__(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
     }
 
     #[staticmethod]

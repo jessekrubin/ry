@@ -32,7 +32,7 @@ pub struct ClientConfig {
     user_agent: Option<ryo3_http::HttpHeaderValue>,
     hickory_dns: bool,
     redirect: Option<usize>,
-    root_certs: Option<Vec<PyCertificate>>,
+    root_certificates: Option<Vec<PyCertificate>>,
     // misspelled of course :/
     referer: bool,
     // -- http preferences --
@@ -237,7 +237,7 @@ impl RyHttpClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
-            root_certs = None,
+            root_certificates = None,
             tls_min_version = None,
             tls_max_version = None,
             tls_info = false,
@@ -292,7 +292,7 @@ impl RyHttpClient {
         tcp_nodelay: bool,
 
         // -- tls --
-        root_certs: Option<Vec<PyCertificate>>,
+        root_certificates: Option<Vec<PyCertificate>>,
         tls_min_version: Option<TlsVersion>,
         tls_max_version: Option<TlsVersion>,
         tls_info: bool,
@@ -344,7 +344,7 @@ impl RyHttpClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
-            root_certs,
+            root_certificates,
             tls_min_version,
             tls_max_version,
             tls_info,
@@ -1086,7 +1086,7 @@ impl ClientConfig {
         }
 
         // tls
-        if let Some(root_certs) = &self.root_certs {
+        if let Some(root_certs) = &self.root_certificates {
             for cert in root_certs {
                 client_builder = client_builder.add_root_certificate(cert.cert.clone()); // ew a clone
             }

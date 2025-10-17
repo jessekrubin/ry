@@ -57,7 +57,7 @@ class HttpClient:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
-        root_certs: list[Certificate] | None = None,
+        root_certificates: list[Certificate] | None = None,
         tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
@@ -268,6 +268,9 @@ class Cookie:
 
 class Certificate:
     def __init__(self) -> t.NoReturn: ...
+    def __hash__(self) -> int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
     @staticmethod
     def from_der(der: Buffer) -> Certificate: ...
     @staticmethod
