@@ -35,7 +35,7 @@ class HttpClient:
         brotli: bool = True,
         deflate: bool = True,
         zstd: bool = True,
-        hickory_dns: bool = True,
+        hickory_dns: bool = False,
         http1_only: bool = False,
         https_only: bool = False,
         http1_title_case_headers: bool = False,
