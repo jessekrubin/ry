@@ -96,6 +96,7 @@ from ry.ryo3._memchr import memrchr2 as memrchr2
 from ry.ryo3._memchr import memrchr3 as memrchr3
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
+from ry.ryo3._reqwest import Certificate as Certificate
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
 from ry.ryo3._reqwest import ReqwestError as ReqwestError

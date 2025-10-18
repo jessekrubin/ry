@@ -1,4 +1,5 @@
 use crate::RyResponse;
+use crate::cert::PyCertificate;
 use crate::errors::map_reqwest_err;
 use crate::tls_version::TlsVersion;
 use crate::user_agent::parse_user_agent;
@@ -31,6 +32,7 @@ pub struct ClientConfig {
     user_agent: Option<ryo3_http::HttpHeaderValue>,
     hickory_dns: bool,
     redirect: Option<usize>,
+    root_certificates: Option<Vec<PyCertificate>>,
     // misspelled of course :/
     referer: bool,
     // -- http preferences --
@@ -207,7 +209,7 @@ impl RyHttpClient {
             brotli = true,
             deflate = true,
             zstd = true,
-            hickory_dns = true,
+            hickory_dns = false,
 
             http1_only = false,
             https_only = false,
@@ -235,6 +237,7 @@ impl RyHttpClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
+            root_certificates = None,
             tls_min_version = None,
             tls_max_version = None,
             tls_info = false,
@@ -289,6 +292,7 @@ impl RyHttpClient {
         tcp_nodelay: bool,
 
         // -- tls --
+        root_certificates: Option<Vec<PyCertificate>>,
         tls_min_version: Option<TlsVersion>,
         tls_max_version: Option<TlsVersion>,
         tls_info: bool,
@@ -340,6 +344,7 @@ impl RyHttpClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
+            root_certificates,
             tls_min_version,
             tls_max_version,
             tls_info,
@@ -1081,6 +1086,11 @@ impl ClientConfig {
         }
 
         // tls
+        if let Some(root_certs) = &self.root_certificates {
+            for cert in root_certs {
+                client_builder = client_builder.add_root_certificate(cert.cert.clone()); // ew a clone
+            }
+        }
         if let Some(tls_min_version) = &self.tls_min_version {
             client_builder = client_builder.min_tls_version(tls_min_version.into());
         }
