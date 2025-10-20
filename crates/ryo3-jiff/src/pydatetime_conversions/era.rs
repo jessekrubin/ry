@@ -33,12 +33,10 @@ impl<'py> IntoPyObject<'py> for JiffEra {
 impl<'py> FromPyObject<'_, 'py> for JiffEra {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        // downcast to string...
-        if let Ok(s) = obj.cast::<PyString>() {
-            let s = s.to_string().to_ascii_lowercase();
-            match s.as_str() {
-                "bce" | "bc" => Ok(Self(Era::BCE)),
-                "ce" | "ad" => Ok(Self(Era::CE)),
+        if let Ok(s) = obj.extract::<&str>() {
+            match s {
+                "bce" | "bc" | "BCE" | "BC" => Ok(Self(Era::BCE)),
+                "ce" | "ad" | "CE" | "AD" => Ok(Self(Era::CE)),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid era: {s} (options: {JIFF_ERA_STRINGS})"
                 ))),

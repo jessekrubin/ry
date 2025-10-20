@@ -12,9 +12,6 @@ fn datetime_to_pydatetime<'py>(
     datetime: &DateTime,
     fold: bool,
 ) -> PyResult<Bound<'py, PyDateTime>> {
-    // let tz = timezone
-    // .map(|tz| JiffTimeZoneRef(tz).into_pyobject(py))
-    // .transpose()?;
     PyDateTime::new_with_fold(
         py,
         datetime.year().into(),

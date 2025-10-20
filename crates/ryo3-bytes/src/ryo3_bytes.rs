@@ -556,12 +556,6 @@ impl PyBytes {
 }
 
 impl<'py> FromPyObject<'_, 'py> for PyBytes {
-    // fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-    //     let buffer = ob.extract::<PyBytesWrapper>()?;
-    //     let bytes = Bytes::from_owner(buffer);
-    //     Ok(Self(bytes))
-    // }
-
     type Error = pyo3::PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {

@@ -32,14 +32,11 @@ impl Display for Base {
 }
 
 const BASE_ERR_MSG: &str = "base must be be int(2)/int(10)";
-impl<'py> FromPyObject<'_, 'py> for Base {
-    // fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-    // }
 
+impl<'py> FromPyObject<'_, 'py> for Base {
     type Error = pyo3::PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        // if is int...
         if obj.is_none() {
             Ok(Self::default())
         } else if let Ok(i) = obj.cast::<PyInt>() {
