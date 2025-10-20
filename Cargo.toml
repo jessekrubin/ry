@@ -58,15 +58,6 @@ strip = true
 panic = "abort"
 lto = "thin"
 
-[profile.release-thin]
-inherits = "release"
-opt-level = 3
-codegen-units = 1
-strip = true
-panic = "abort"
-lto = "thin"
-
-# release fat profile
 [profile.bench]
 inherits = "release"
 lto = "fat"
