@@ -164,11 +164,11 @@ ryo3-which = { path = "./crates/ryo3-which" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
-pyo3 = { version = "0.26.0", features = ["macros", "serde"] }
+pyo3 = { version = "0.27.0", features = ["macros", "serde"] }
 # pyo3 async runtimes
 #pyo3-async-runtimes = { version = "0.26.0", features = ["tokio-runtime"] }
 pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes" , features = ["tokio-runtime"] }
-pyo3-build-config = "0.26.0"
+pyo3-build-config = "0.27.0"
 
 # future
 tokio-websockets = { version = "0.13.0", features = [] }
@@ -243,6 +243,8 @@ missing_errors_doc = "allow"
 module_name_repetitions = "allow"
 # cargo allowed
 multiple_crate_versions = "allow"
+# explicit auto deref always on
+explicit_auto_deref = "warn"
 
 # nursery always on
 use_self = "warn"
@@ -265,3 +267,8 @@ use_self = "warn"
 # significant_drop_tightening = "allow"
 # needless_pass_by_ref_mut = "allow"
 # cognitive_complexity = "allow" # f-off clippy
+
+[patch.crates-io]
+# pyo3 = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-build-config = { git = "https://github.com/pyo3/pyo3.git" }
+jiter = { git = "https://github.com/jessekrubin/jiter.git", branch = "pyo3-v0.27.x" }

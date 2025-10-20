@@ -6,12 +6,24 @@ pub struct JiffDate(pub jiff::civil::Date);
 pub struct JiffTime(pub jiff::civil::Time);
 #[derive(Debug, Clone, Copy)]
 pub struct JiffDateTime(pub jiff::civil::DateTime);
+
+#[derive(Debug, Clone, Copy)]
+pub struct JiffTimestamp(pub jiff::Timestamp);
+
 #[derive(Debug, Clone)]
 pub struct JiffZoned(pub jiff::Zoned);
+
+#[derive(Debug, Clone)]
+pub struct JiffZonedRef<'a>(pub &'a jiff::Zoned);
+
 #[derive(Debug, Clone, Copy)]
 pub struct JiffSpan(pub jiff::Span);
-#[derive(Debug, Clone)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct JiffTimeZone(pub jiff::tz::TimeZone);
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct JiffTimeZoneRef<'a>(pub &'a jiff::tz::TimeZone);
+
 #[derive(Clone, Copy, Debug)]
 pub struct JiffOffset(pub jiff::tz::Offset);
 #[derive(Clone, Copy, Debug)]
@@ -53,6 +65,12 @@ impl From<jiff::civil::DateTime> for JiffDateTime {
     }
 }
 
+impl From<jiff::Timestamp> for JiffTimestamp {
+    fn from(value: jiff::Timestamp) -> Self {
+        Self(value)
+    }
+}
+
 impl From<jiff::civil::Era> for JiffEra {
     fn from(value: jiff::civil::Era) -> Self {
         Self(value)
@@ -71,6 +89,12 @@ impl From<jiff::Zoned> for JiffZoned {
     }
 }
 
+impl<'a> From<&'a jiff::Zoned> for JiffZonedRef<'a> {
+    fn from(value: &'a jiff::Zoned) -> Self {
+        Self(value)
+    }
+}
+
 impl From<jiff::Span> for JiffSpan {
     fn from(value: jiff::Span) -> Self {
         Self(value)
@@ -79,6 +103,12 @@ impl From<jiff::Span> for JiffSpan {
 
 impl From<jiff::tz::TimeZone> for JiffTimeZone {
     fn from(value: jiff::tz::TimeZone) -> Self {
+        Self(value)
+    }
+}
+
+impl<'a> From<&'a jiff::tz::TimeZone> for JiffTimeZoneRef<'a> {
+    fn from(value: &'a jiff::tz::TimeZone) -> Self {
         Self(value)
     }
 }
@@ -148,6 +178,12 @@ impl From<JiffSpan> for jiff::Span {
 impl From<JiffTimeZone> for jiff::tz::TimeZone {
     fn from(val: JiffTimeZone) -> Self {
         val.0
+    }
+}
+
+impl From<JiffTimeZoneRef<'_>> for jiff::tz::TimeZone {
+    fn from(val: JiffTimeZoneRef) -> Self {
+        val.0.clone()
     }
 }
 

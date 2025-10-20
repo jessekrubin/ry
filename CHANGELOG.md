@@ -1,7 +1,9 @@
 # CHANGELOG
 
-## v0.0.63 [unreleased]
+## v0.0.63 [2025-10-20]
 
+- pyo3
+  - Upgrade pyo3 version to `0.27.x`
 - `ryo3-std`
   - Missing `std::fs` function wrappers:
     - `std::fs::hard_link` ->

@@ -227,8 +227,9 @@ impl<'py> IntoPyObject<'py> for PyIndent {
 }
 
 const PY_INDENT_ERR_MSG: &str = "Indent must be an integer (0 <= indent < 256 | -1 for tabs), 'tabs'/'\\t', or 'spaces' (default 2 spaces)";
-impl FromPyObject<'_> for PyIndent {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for PyIndent {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         // none go to default (2 spaces)
         if ob.is_none() {
             Ok(Self(sqlformat::Indent::Spaces(2)))
@@ -452,8 +453,9 @@ impl<'py> IntoPyObject<'py> for PyDialect {
 }
 
 const SQLFORMAT_DIALECT_STRINGS: &str = "'generic', 'postgresql', 'sqlserver'";
-impl FromPyObject<'_> for PyDialect {
-    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for PyDialect {
+    type Error = pyo3::PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<&str>() {
             match s {
                 "generic" => Ok(Self(sqlformat::Dialect::Generic)),
