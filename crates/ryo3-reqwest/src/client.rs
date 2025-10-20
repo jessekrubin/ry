@@ -81,7 +81,6 @@ pub struct ClientConfig {
     // == CLIENT BUILDER OPTIONS TODO ==
     // add_crl
     // add_crls
-    // add_root_certificate
     // connector_layer
     // cookie_provider
     // cookie_store
@@ -123,6 +122,7 @@ impl RyHttpClient {
 
     // TODO: replace this with custom python-y builder pattern that does not
     //       crudely wrap the reqwest::RequestBuilder
+    #[inline]
     fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
         let url = extract_url(options.url)?;
         let mut req = self.client.request(options.method, url);
@@ -209,7 +209,7 @@ impl RyHttpClient {
             brotli = true,
             deflate = true,
             zstd = true,
-            hickory_dns = false,
+            hickory_dns = true,
 
             http1_only = false,
             https_only = false,
@@ -256,13 +256,13 @@ impl RyHttpClient {
         connect_timeout: Option<PyDuration>,
         redirect: Option<usize>,
         referer: bool,
-        gzip: Option<bool>,
-        brotli: Option<bool>,
-        deflate: Option<bool>,
-        zstd: Option<bool>,
-        hickory_dns: Option<bool>,
-        http1_only: Option<bool>,
-        https_only: Option<bool>,
+        gzip: bool,
+        brotli: bool,
+        deflate: bool,
+        zstd: bool,
+        hickory_dns: bool,
+        http1_only: bool,
+        https_only: bool,
 
         // -- http1 --
         http1_title_case_headers: bool,
@@ -313,13 +313,13 @@ impl RyHttpClient {
             connect_timeout,
             redirect,
             referer,
-            gzip: gzip.unwrap_or(true),
-            brotli: brotli.unwrap_or(true),
-            deflate: deflate.unwrap_or(true),
-            zstd: zstd.unwrap_or(true),
-            hickory_dns: hickory_dns.unwrap_or(true),
-            http1_only: http1_only.unwrap_or(false),
-            https_only: https_only.unwrap_or(false),
+            gzip,
+            brotli,
+            deflate,
+            zstd,
+            hickory_dns,
+            http1_only,
+            https_only,
             // -- http1 --
             http1_title_case_headers,
             http1_allow_obsolete_multiline_headers_in_responses,
