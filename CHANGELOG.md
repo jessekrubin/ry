@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.0.64 [unreleased]
+
+- Turn on hickory-dns by default
+
+---
+
 ## v0.0.63 [2025-10-20]
 
 - pyo3
