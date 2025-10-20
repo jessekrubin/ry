@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CARGO_PROFILE: ${{ startsWith(github.ref, 'refs/tags/') && 'release-thin' || 'release' }}
+  CARGO_PROFILE: ${{ startsWith(github.ref, 'refs/tags/') && 'release' || 'release-thin' }}
 
 jobs:
   linux:
