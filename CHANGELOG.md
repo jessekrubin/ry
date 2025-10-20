@@ -2,6 +2,7 @@
 
 ## v0.0.63 [unreleased]
 
+- pyo3-v0.27.0
 - `ryo3-std`
   - Missing `std::fs` function wrappers:
     - `std::fs::hard_link` ->
