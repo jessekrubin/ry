@@ -2,7 +2,9 @@
 
 ## v0.0.64 [unreleased]
 
-- Turn on hickory-dns by default
+- `ryo3-reqwest`
+  - Turn on hickory-dns by default
+  - Use `rustls-tls-webpki-roots
 
 ---
 
