@@ -58,7 +58,7 @@ impl JiterParseOptions {
         let parser = self.parser();
         // parse each line and collect into a Vec
         let mut parsed_lines = Vec::new();
-        for line in lines_iter.clone() {
+        for line in lines_iter {
             let parsed = parser
                 .python_parse(py, line)
                 .map_err(|e| map_json_error(line, &e))?;

@@ -58,7 +58,6 @@ strip = true
 panic = "abort"
 lto = "thin"
 
-# release fat profile
 [profile.bench]
 inherits = "release"
 lto = "fat"
