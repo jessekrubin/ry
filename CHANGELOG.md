@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## v0.0.64 [unreleased]
+## v0.0.64 [2025-10-20]
 
-- Turn on hickory-dns by default
+- `ryo3-reqwest`
+  - Turn on hickory-dns by default
+  - Use `rustls-tls-webpki-roots
 
 ---
 
