@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.64 [unreleased]
+## v0.0.64 [2025-10-20]
 
 - `ryo3-reqwest`
   - Turn on hickory-dns by default
