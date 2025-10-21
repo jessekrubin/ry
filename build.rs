@@ -11,7 +11,6 @@ fn main() {
     // env var build profile
     let profile =
         std::env::var("PROFILE").expect("PROFILE env var not found which is SUPER strange!");
-    eprintln!("cargo:rustc-env=PROFILE={profile}");
     println!("cargo:rustc-env=PROFILE={profile}");
 
     let build_ts = Zoned::now()
