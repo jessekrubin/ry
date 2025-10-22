@@ -55,6 +55,10 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+      - name: install-build-deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
@@ -159,6 +163,8 @@ jobs:
           python-version: '3.13'
           # Need to include architecture: https://github.com/PyO3/maturin-action/issues/375
           architecture: ${{ matrix.platform.target }}
+      - name: install-NASM
+        run: choco install nasm -y
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
