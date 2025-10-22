@@ -51,9 +51,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      # - uses: actions/setup-python@v6
-      #   with:
-      #     python-version: 3.x
       - name: install-uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -187,15 +184,14 @@ jobs:
     strategy:
       matrix:
         platform:
-          - runner: macos-13
-            target: x86_64
-          - runner: macos-14
+          # - runner: macos-14
+          #   target: aarch64
+          - runner: macos-15
             target: aarch64
+          - runner: macos-15-intel
+            target: x86_64
     steps:
       - uses: actions/checkout@v5
-      # - uses: actions/setup-python@v6
-      #   with:
-      #     python-version: 3.x
       - name: install-uv
         uses: astral-sh/setup-uv@v7
         with:
