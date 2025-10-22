@@ -1,5 +1,5 @@
 //! ry = rust + python
-use pyo3::prelude::*;
+use pyo3::{IntoPyObjectExt, prelude::*};
 mod lager;
 
 const PACKAGE: &str = env!("CARGO_PKG_NAME");
@@ -8,7 +8,7 @@ const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const BUILD_PROFILE: &str = env!("PROFILE");
 const BUILD_TIMESTAMP: &str = env!("BUILD_TIMESTAMP");
 const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
-const OPT_LEVEL: &str = env!("OPT_LEVEL");
+const OPT_LEVEL_STR: &str = env!("OPT_LEVEL");
 const TARGET: &str = env!("TARGET");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -33,6 +33,14 @@ fn warn_debug_build(py: Python) -> PyResult<()> {
 #[pymodule(gil_used = false)]
 #[pyo3(name = "ryo3")]
 fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    let py = m.py();
+    let opt_level = match OPT_LEVEL_STR {
+        "0" => 0.into_py_any(py),
+        "1" => 1.into_py_any(py),
+        "2" => 2.into_py_any(py),
+        "3" => 3.into_py_any(py),
+        _ => OPT_LEVEL_STR.into_py_any(py),
+    }?;
     lager::tracing_init().map_err(|e| {
         pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to initialize logging: {e}"))
     })?;
@@ -46,7 +54,7 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", VERSION)?;
     m.add("__build_profile__", BUILD_PROFILE)?;
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
-    m.add("__opt_level__", OPT_LEVEL)?;
+    m.add("__opt_level__", opt_level)?;
     m.add("__authors__", AUTHORS)?;
     m.add("__target__", TARGET)?;
     // ------------------------------------------------------------------------

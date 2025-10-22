@@ -1,9 +1,21 @@
 //! python `reqwest` based `fetch` implementation
 
 use crate::RyHttpClient;
-use crate::default_client::default_client;
+use parking_lot::Mutex;
 use pyo3::{prelude::*, pybacked::PyBackedStr};
 use ryo3_http::{HttpVersion, PyHeadersLike};
+use std::sync::OnceLock;
+
+static DEFAULT_CLIENT: OnceLock<Mutex<RyHttpClient>> = OnceLock::new();
+
+#[inline]
+pub(crate) fn default_client() -> &'static Mutex<RyHttpClient> {
+    DEFAULT_CLIENT.get_or_init(|| {
+        let client = RyHttpClient::new(None)
+            .expect("Failed to create default client. This should never happen.");
+        Mutex::new(client)
+    })
+}
 
 // global fetch
 #[pyfunction(

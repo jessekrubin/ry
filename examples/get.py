@@ -9,7 +9,7 @@ except ImportError:
 
 
 async def main() -> None:
-    response = await ry.fetch("https://httpbin.org/anything")
+    response = await ry.fetch("https://httpbingo.org/anything")
     print("Raw response:", response)
     print("socket:", response.remote_addr)
     print("url:", response.url)
