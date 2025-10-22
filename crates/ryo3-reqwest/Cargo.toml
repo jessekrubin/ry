@@ -12,6 +12,7 @@ repository.workspace = true
 description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.html)"
 
 [dependencies]
+aws-lc-rs = { version = "1.14.1", features = ["bindgen"] }
 bytes.workspace = true
 cookie = { version = "0.18.1", features = ["percent-encode"] }
 futures-core.workspace = true
