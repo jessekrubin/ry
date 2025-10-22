@@ -171,11 +171,11 @@ ryo3-which = { path = "./crates/ryo3-which" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
-pyo3 = { version = "0.27.0", features = ["macros", "serde"] }
+pyo3 = { version = "0.27", features = ["macros", "serde"] }
 # pyo3 async runtimes
 #pyo3-async-runtimes = { version = "0.26.0", features = ["tokio-runtime"] }
 pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes" , features = ["tokio-runtime"] }
-pyo3-build-config = "0.27.0"
+pyo3-build-config = "0.27"
 
 # future
 tokio-websockets = { version = "0.13.0", features = [] }
@@ -200,7 +200,7 @@ jiter = { version = "0.11.1", features = ["python"] }
 memchr = "2.7.5"
 parking_lot = "0.12.5"
 regex = "1.12.2"
-reqwest = { version = "0.12.23", features = ["brotli", "charset", "cookies", "deflate", "gzip", "hickory-dns", "http2", "macos-system-configuration", "multipart", "json", "rustls-tls-webpki-roots", "stream", "zstd"], default-features = false }
+reqwest = { version = "0.12.23", features = ["brotli", "charset", "cookies", "deflate", "gzip", "hickory-dns", "http2", "macos-system-configuration", "multipart", "json", "rustls-tls-webpki-roots", "socks", "stream", "zstd"], default-features = false }
 same-file = "1.0.6"
 serde = { version = "1.0", features = ["derive"] }
 serde-transcode = "1.1.1"

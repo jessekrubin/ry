@@ -2,14 +2,14 @@ use crate::RyResponse;
 use crate::cert::PyCertificate;
 use crate::errors::map_reqwest_err;
 use crate::tls_version::TlsVersion;
-use crate::user_agent::parse_user_agent;
+use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};
 use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
-use reqwest::header::HeaderMap;
+use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
@@ -24,7 +24,7 @@ pub struct RyHttpClient {
     cfg: ClientConfig,
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 #[expect(clippy::struct_excessive_bools)]
 pub struct ClientConfig {
     headers: Option<PyHeaders>,
@@ -97,6 +97,64 @@ pub struct ClientConfig {
     // retry
 }
 
+impl Default for ClientConfig {
+    fn default() -> Self {
+        Self {
+            headers: None,
+            cookies: false,
+            user_agent: Some(HeaderValue::from_static(DEFAULT_USER_AGENT).into()),
+            hickory_dns: true,
+            redirect: Some(10),
+            referer: true,
+            // compression
+            gzip: true,
+            brotli: true,
+            deflate: true,
+            zstd: true,
+            // http prefs
+            http1_only: false,
+            https_only: false,
+            // http/1.x
+            http1_title_case_headers: false,
+            http1_allow_obsolete_multiline_headers_in_responses: false,
+            http1_allow_spaces_after_header_name_in_responses: false,
+            http1_ignore_invalid_headers_in_responses: false,
+            // http/2
+            http2_prior_knowledge: false,
+            http2_initial_stream_window_size: None,
+            http2_initial_connection_window_size: None,
+            http2_adaptive_window: false,
+            http2_max_frame_size: None,
+            http2_max_header_list_size: None,
+            http2_keep_alive_interval: None,
+            http2_keep_alive_timeout: None,
+            http2_keep_alive_while_idle: false,
+            // timeouts
+            timeout: None,
+            read_timeout: None,
+            connect_timeout: None,
+            // pool
+            pool_max_idle_per_host: usize::MAX,
+            pool_idle_timeout: Some(PyDuration::from(std::time::Duration::from_secs(90))),
+            // tcp
+            tcp_keepalive: Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive_interval: Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive_retries: Some(3),
+            tcp_nodelay: true,
+            // tls
+            tls_min_version: None,
+            tls_max_version: None,
+            tls_info: false,
+            tls_sni: true,
+            // danger
+            danger_accept_invalid_certs: false,
+            danger_accept_invalid_hostnames: false,
+            // roots
+            root_certificates: None,
+        }
+    }
+}
+
 struct RequestKwargs<'py> {
     url: &'py Bound<'py, PyAny>,
     method: Method,
@@ -166,7 +224,7 @@ impl RyHttpClient {
                     // buffer protocol
                     req = req.body(bytes.into_inner());
                 } else {
-                    return py_type_err!("body must be bytes-like or string");
+                    return py_type_err!("body must be bytes-like");
                 }
             }
             (None, Some(json), None, None) => {

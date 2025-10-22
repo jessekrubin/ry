@@ -2,7 +2,6 @@
 mod cert;
 mod client;
 mod cookie;
-mod default_client;
 mod errors;
 mod fetch;
 mod form_data;

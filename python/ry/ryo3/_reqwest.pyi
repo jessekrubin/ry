@@ -199,7 +199,6 @@ class ResponseStream:
 async def fetch(
     url: str | URL,
     *,
-    client: HttpClient | None = None,
     method: str = "GET",
     **kwargs: Unpack[RequestKwargs],
 ) -> Response: ...
