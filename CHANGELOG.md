@@ -4,6 +4,7 @@
 
 - `ryo3-reqwest`
   - Manually implement `ClientConfig::default` as global fetch was failing
+  - Use `aws-lc-rs` for tls provider (not ring)
 
 ---
 
