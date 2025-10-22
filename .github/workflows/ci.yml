@@ -55,10 +55,10 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-      - name: install-build-deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev clang llvm-dev libclang-dev pkg-config
+      # - name: install-build-deps
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y build-essential cmake libssl-dev clang llvm-dev libclang-dev pkg-config
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
@@ -68,6 +68,9 @@ jobs:
           args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
           sccache: "true"
           manylinux: ${{ matrix.platform.manylinux }} # SUPER WEIRD BUT ARRRRRRM IS A PITA
+          before-script-linux: |
+            sudo apt-get update
+            sudo apt-get install -y build-essential cmake libssl-dev clang llvm-dev libclang-dev pkg-config
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -127,10 +130,10 @@ jobs:
             target: armv7
     steps:
       - uses: actions/checkout@v5
-      - name: install-build-deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake libssl-dev clang llvm-dev libclang-dev pkg-config
+      # - name: install-build-deps
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y build-essential cmake libssl-dev clang llvm-dev libclang-dev pkg-config
       - name: install-uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -144,6 +147,9 @@ jobs:
           args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
           sccache: "true"
           manylinux: musllinux_1_2
+          before-script-linux: |
+            sudo apt-get update
+            sudo apt-get install -y build-essential cmake libssl-dev clang llvm-dev libclang-dev pkg-config
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
