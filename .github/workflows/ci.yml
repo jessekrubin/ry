@@ -188,8 +188,8 @@ jobs:
           #   target: aarch64
           - runner: macos-15
             target: aarch64
-          - runner: macos-15-intel
-            target: x86_64
+          # - runner: macos-15-intel # maybe enable?
+          #   target: x86_64
     steps:
       - uses: actions/checkout@v5
       - name: install-uv
