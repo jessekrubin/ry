@@ -21,6 +21,8 @@ parking_lot.workspace = true
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 reqwest.workspace = true
+rustls.workspace = true
+rustls-webpki = { version = "0.103.7", features = ["aws-lc-rs"] }
 ryo3-bytes.workspace = true
 ryo3-http.workspace = true
 ryo3-jiter.workspace = true

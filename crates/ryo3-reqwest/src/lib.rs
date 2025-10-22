@@ -21,6 +21,12 @@ pub use response_stream::RyResponseStream;
 
 use crate::cert::PyCertificate;
 
+// initialize aws-lc-rs for rustls
+fn init_rustls_aws_lc() {
+    rustls::crypto::CryptoProvider::install_default(rustls::crypto::aws_lc_rs::default_provider())
+        .expect("Failed to install default crypto provider");
+}
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCookie>()?;
     m.add_class::<PyCertificate>()?;
@@ -28,5 +34,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyResponse>()?;
     m.add_class::<RyReqwestError>()?;
     m.add_function(wrap_pyfunction!(fetch::fetch, m)?)?;
+
+    init_rustls_aws_lc();
     Ok(())
 }

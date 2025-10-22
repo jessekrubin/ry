@@ -1053,6 +1053,7 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
 impl ClientConfig {
     fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         let mut client_builder = client_builder
+            .use_rustls_tls()
             .gzip(self.gzip)
             .brotli(self.brotli)
             .deflate(self.deflate)
