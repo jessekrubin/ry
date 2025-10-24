@@ -6013,7 +6013,6 @@ class UUID:
 
 def getnode() -> builtins.int: ...
 def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid2(*args: t.Any, **kwargs: t.Any) -> UUID: ...
 def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
 def uuid4() -> UUID: ...
 def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
@@ -6841,7 +6840,6 @@ from ry.ryo3.uuid import (
     UUID,
     getnode,
     uuid1,
-    uuid2,
     uuid3,
     uuid4,
     uuid5,
@@ -6862,7 +6860,6 @@ __all__ = (
     "UUID",
     "getnode",
     "uuid1",
-    "uuid2",
     "uuid3",
     "uuid4",
     "uuid5",

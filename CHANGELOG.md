@@ -4,6 +4,10 @@
 
 - `ryo3-reqwest`
   - Manually implement `ClientConfig::default` as global fetch was failing
+- `ryo3-uuid`
+  - Fixed features problems as pointed out by clippy + cargo-hack
+  - Removed unused `uuid2` function as it is not implemented in the underlying
+    `uuid` crate
 
 ---
 
