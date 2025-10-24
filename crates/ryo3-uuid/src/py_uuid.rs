@@ -5,7 +5,7 @@ use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
 use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::PyBytes;
-use ryo3_macro_rules::{any_repr, py_type_err, py_value_error, pytodo};
+use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::OnceLock;
 
@@ -62,9 +62,7 @@ fn get_version(uuid: u8) -> PyResult<uuid::Version> {
         6 => Ok(uuid::Version::SortMac),
         7 => Ok(uuid::Version::SortRand),
         8 => Ok(uuid::Version::Custom),
-        _ => Err(PyValueError::new_err(format!(
-            "Invalid UUID version: {uuid}. Must be between 1 and 8."
-        ))),
+        _ => py_value_err!("Invalid UUID version: {uuid}. Must be between 1 and 8."),
     }
 }
 
@@ -431,6 +429,7 @@ impl PyUuid {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_macro_rules::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
     }
 
@@ -446,7 +445,6 @@ impl PyUuid {
     }
 }
 
-// #[cfg(any(Py_3_7, Py_3_8, Py_3_9, Py_3_10, Py_3_11, Py_3_12, Py_3_13))]
 #[cfg(not(Py_3_14))]
 impl PyUuid {
     fn py_time(&self) -> u64 {
@@ -488,7 +486,7 @@ pub fn getnode(py: Python<'_>) -> PyResult<u64> {
     }
     let node_py: u64 = py.import("uuid")?.getattr("getnode")?.call0()?.extract()?;
     if node_py > 0xFF_FFFF_FFFF_FFFF {
-        Err(PyValueError::new_err("uuid.getnode() returned >48 bits"))
+        py_value_err!("uuid.getnode() returned >48 bits")
     } else {
         let _ = NODE_CACHE.set(node_py);
         Ok(node_py)
@@ -504,11 +502,6 @@ pub fn getnode(py: Python<'_>) -> PyResult<u64> {
 #[expect(unused_variables)]
 pub fn uuid1(node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
     pytodo!("UUID1 is not implemented yet")
-}
-
-#[pyfunction]
-pub fn uuid2() -> PyResult<PyUuid> {
-    pytodo!("UUID2 is not implemented yet")
 }
 
 #[pyfunction]
@@ -552,17 +545,14 @@ pub fn uuid8(
         match (a, b, c) {
             (None, None, None) => {}
             _ => {
-                return Err(pyo3::exceptions::PyValueError::new_err(
-                    "uuid8(): pass either bytes=... or a/b/c, not both",
-                ));
+                return py_value_err!("uuid8(): pass either bytes=... or a/b/c, not both",);
             }
         }
         // extract the bytes as [u8; 16]
-        let slice: &[u8; 16] = bts.as_slice().try_into().map_err(|_| {
-            pyo3::exceptions::PyValueError::new_err(
-                "uuid8(bytes=...): bytes must be exactly 16 bytes",
-            )
-        })?;
+        let slice: &[u8; 16] = bts
+            .as_slice()
+            .try_into()
+            .map_err(|_| py_value_error!("uuid8(bytes=...): bytes must be exactly 16 bytes",))?;
         return Ok(PyUuid::from(uuid::Uuid::new_v8(*slice)));
     }
 
@@ -654,7 +644,7 @@ impl<'py> FromPyObject<'_, 'py> for CPythonUuid {
             let bytes = uuid_int.to_be_bytes();
             Ok(Self(uuid::Uuid::from_bytes(bytes)))
         } else {
-            Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
+            py_type_err!("Expected a `uuid.UUID` instance.",)
         }
     }
 }
