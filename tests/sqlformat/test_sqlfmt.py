@@ -315,7 +315,7 @@ def st_sqlformat_options() -> st.SearchStrategy[_SqlFormatOptions]:
     )
 
 
-def _cannonicalize_options(options: _SqlFormatOptions) -> _SqlFormatOptions:
+def _canonicalize_options(options: _SqlFormatOptions) -> _SqlFormatOptions:
     """Convert options to their canonical form for comparison with SqlFormatter.to_dict() output."""
     canonical: _SqlFormatOptions = options.copy()
     if (
@@ -334,7 +334,7 @@ def test_sql_formatter_to_dict(options: _SqlFormatOptions) -> None:
     sf = ry.SqlFormatter(**options)
     d = sf.to_dict()
     assert isinstance(d, dict)
-    assert d == _cannonicalize_options(options)
+    assert d == _canonicalize_options(options)
     assert all(key in d for key in _SQL_FORMAT_DEFAULTS.keys())
 
 
@@ -351,40 +351,40 @@ def test_sql_formattter_repr_eval(options: _SqlFormatOptions) -> None:
     sf = ry.SqlFormatter(**options)
     repr_str = repr(sf)
 
-    cannonical_options = _cannonicalize_options(options)
+    canonical_options = _canonicalize_options(options)
     indent_kwargs = (
         "indent=-1"
-        if cannonical_options["indent"] == -1
-        else f"indent={cannonical_options['indent']}"
+        if canonical_options["indent"] == -1
+        else f"indent={canonical_options['indent']}"
     )
     ignore_case_convert_kwarg = (
-        f"ignore_case_convert={cannonical_options['ignore_case_convert']!r}, ".replace(
+        f"ignore_case_convert={canonical_options['ignore_case_convert']!r}, ".replace(
             "'", '"'
         )
-        if cannonical_options["ignore_case_convert"]
+        if canonical_options["ignore_case_convert"]
         else ""
     )
 
     expected_repr = "".join([
         "SqlFormatter(",
         indent_kwargs + ", ",
-        f"uppercase={cannonical_options['uppercase']}, ",
-        f"lines_between_queries={cannonical_options['lines_between_queries']}, ",
+        f"uppercase={canonical_options['uppercase']}, ",
+        f"lines_between_queries={canonical_options['lines_between_queries']}, ",
         ignore_case_convert_kwarg,
-        f"inline={cannonical_options['inline']}, ",
-        f"max_inline_block={cannonical_options['max_inline_block']}, ",
+        f"inline={canonical_options['inline']}, ",
+        f"max_inline_block={canonical_options['max_inline_block']}, ",
         (
-            f"max_inline_arguments={cannonical_options['max_inline_arguments']!r}, "
-            if cannonical_options["max_inline_arguments"] is not None
+            f"max_inline_arguments={canonical_options['max_inline_arguments']!r}, "
+            if canonical_options["max_inline_arguments"] is not None
             else ""
         ),
         (
-            f"max_inline_top_level={cannonical_options['max_inline_top_level']!r}, "
-            if cannonical_options["max_inline_top_level"] is not None
+            f"max_inline_top_level={canonical_options['max_inline_top_level']!r}, "
+            if canonical_options["max_inline_top_level"] is not None
             else ""
         ),
-        f"joins_as_top_level={cannonical_options['joins_as_top_level']}, ",
-        f'dialect="{cannonical_options["dialect"]}"',
+        f"joins_as_top_level={canonical_options['joins_as_top_level']}, ",
+        f'dialect="{canonical_options["dialect"]}"',
         ")",
     ])
     assert repr_str == expected_repr
