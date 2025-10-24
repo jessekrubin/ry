@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.65 [unreleased]
+## v0.0.65 [2025-10-24]
 
 - `ryo3-reqwest`
   - Manually implement `ClientConfig::default` as global fetch was failing
