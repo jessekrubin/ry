@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-10-22T12:36:05.675470228-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-10-24T15:27:54.173754889-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -479,11 +479,18 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0065-unreleased"><a class="header" href="#v0065-unreleased">v0.0.65 [unreleased]</a></h2>
+<h2 id="v0065-2025-10-24"><a class="header" href="#v0065-2025-10-24">v0.0.65 [2025-10-24]</a></h2>
 <ul>
 <li><code>ryo3-reqwest</code>
 <ul>
 <li>Manually implement <code>ClientConfig::default</code> as global fetch was failing</li>
+</ul>
+</li>
+<li><code>ryo3-uuid</code>
+<ul>
+<li>Fixed features problems as pointed out by clippy + cargo-hack</li>
+<li>Removed unused <code>uuid2</code> function as it is not implemented in the underlying
+<code>uuid</code> crate</li>
 </ul>
 </li>
 </ul>
@@ -2057,7 +2064,7 @@ except ImportError:
 
 
 async def main() -&gt; None:
-    response = await ry.fetch("https://httpbin.org/anything")
+    response = await ry.fetch("https://httpbingo.org/anything")
     print("Raw response:", response)
     print("socket:", response.remote_addr)
     print("url:", response.url)
@@ -8375,7 +8382,6 @@ class UUID:
 
 def getnode() -&gt; builtins.int: ...
 def uuid1(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
-def uuid2(*args: t.Any, **kwargs: t.Any) -&gt; UUID: ...
 def uuid3(namespace: UUID, name: str | builtins.bytes) -&gt; UUID: ...
 def uuid4() -&gt; UUID: ...
 def uuid5(namespace: UUID, name: str | builtins.bytes) -&gt; UUID: ...
@@ -9179,7 +9185,6 @@ __all__ = ("ULID",)
     UUID,
     getnode,
     uuid1,
-    uuid2,
     uuid3,
     uuid4,
     uuid5,
@@ -9200,7 +9205,6 @@ __all__ = (
     "UUID",
     "getnode",
     "uuid1",
-    "uuid2",
     "uuid3",
     "uuid4",
     "uuid5",

@@ -6081,7 +6081,6 @@ class UUID:
 
 def getnode() -&gt; builtins.int: ...
 def uuid1(node: int | None = None, clock_seq: int | None = None) -&gt; UUID: ...
-def uuid2(*args: t.Any, **kwargs: t.Any) -&gt; UUID: ...
 def uuid3(namespace: UUID, name: str | builtins.bytes) -&gt; UUID: ...
 def uuid4() -&gt; UUID: ...
 def uuid5(namespace: UUID, name: str | builtins.bytes) -&gt; UUID: ...
@@ -6885,7 +6884,6 @@ __all__ = ("ULID",)
     UUID,
     getnode,
     uuid1,
-    uuid2,
     uuid3,
     uuid4,
     uuid5,
@@ -6906,7 +6904,6 @@ __all__ = (
     "UUID",
     "getnode",
     "uuid1",
-    "uuid2",
     "uuid3",
     "uuid4",
     "uuid5",
