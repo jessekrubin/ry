@@ -187,227 +187,6 @@ impl PyTypeCache {
         TYPE_LOOKUP.get_or_init(py, || Self::new(py))
     }
 
-    // ORIG IMPL
-    // pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
-    //     match ptr {
-    //         x if x == self.none => PyObType::None,
-    //         x if x == self.ellipsis => PyObType::Ellipsis,
-    //         x if x == self.int => PyObType::Int,
-    //         x if x == self.bool => PyObType::Bool,
-    //         x if x == self.float => PyObType::Float,
-    //         x if x == self.string => PyObType::String,
-    //         x if x == self.bytes => PyObType::Bytes,
-    //         x if x == self.bytearray => PyObType::ByteArray,
-    //         x if x == self.memoryview => PyObType::MemoryView,
-    //         x if x == self.list => PyObType::List,
-    //         x if x == self.tuple => PyObType::Tuple,
-    //         x if x == self.dict => PyObType::Dict,
-    //         x if x == self.set => PyObType::Set,
-    //         x if x == self.frozenset => PyObType::FrozenSet,
-    //         // py-datetime
-    //         x if x == self.datetime => PyObType::DateTime,
-    //         x if x == self.date => PyObType::Date,
-    //         x if x == self.time => PyObType::Time,
-    //         x if x == self.timedelta => PyObType::Timedelta,
-    //         // py-uuid
-    //         x if x == self.py_uuid => PyObType::PyUuid,
-    //         // =================================================================
-    //         // RY-TYPES
-    //         // =================================================================
-    //         // -----------------------------------------------------------------
-    //         // UUID
-    //         // -----------------------------------------------------------------
-    //         #[cfg(feature = "ryo3-uuid")]
-    //         x if x == self.ry_uuid => PyObType::RyUuid,
-    //         // -----------------------------------------------------------------
-    //         // ULID:wq
-    //         // -----------------------------------------------------------------
-    //         #[cfg(feature = "ryo3-ulid")]
-    //         x if x == self.ry_ulid => PyObType::RyUlid,
-    //         // -----------------------------------------------------------------
-    //         // URL
-    //         // -----------------------------------------------------------------
-    //         #[cfg(feature = "ryo3-url")]
-    //         x if x == self.ry_url => PyObType::RyUrl,
-
-    //         // -----------------------------------------------------------------
-    //         // HTTP
-    //         // -----------------------------------------------------------------
-    //         #[cfg(feature = "ryo3-http")]
-    //         x if x == self.ry_http_status => PyObType::RyHttpStatus,
-    //         #[cfg(feature = "ryo3-http")]
-    //         x if x == self.ry_headers => PyObType::RyHeaders,
-
-    //         // -----------------------------------------------------------------
-    //         // JIFF
-    //         // -----------------------------------------------------------------
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_date => PyObType::RyDate,
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_datetime => PyObType::RyDateTime,
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_signed_duration => PyObType::RySignedDuration,
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_time => PyObType::RyTime,
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_timespan => PyObType::RyTimeSpan,
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_timestamp => PyObType::RyTimestamp,
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_timezone => PyObType::RyTimeZone,
-    //         #[cfg(feature = "ryo3-jiff")]
-    //         x if x == self.ry_zoned => PyObType::RyZoned,
-
-    //         _ => PyObType::Unknown,
-    //     }
-    // }
-
-    #[inline]
-    #[allow(clippy::too_many_lines)]
-    pub(crate) fn ptr2type(&self, ptr: usize, ob: &Bound<'_, PyAny>) -> PyObType {
-        // python builtins
-        if ptr == self.none {
-            return PyObType::None;
-        }
-        if ptr == self.string {
-            return PyObType::String;
-        }
-        if ptr == self.int {
-            return PyObType::Int;
-        }
-        if ptr == self.float {
-            return PyObType::Float;
-        }
-        if ptr == self.list {
-            return PyObType::List;
-        }
-        if ptr == self.tuple {
-            return PyObType::Tuple;
-        }
-        if ptr == self.dict {
-            return PyObType::Dict;
-        }
-        if ptr == self.bool {
-            return PyObType::Bool;
-        }
-        if ptr == self.bytes {
-            return PyObType::Bytes;
-        }
-        if ptr == self.datetime {
-            return PyObType::DateTime;
-        }
-        if ptr == self.date {
-            return PyObType::Date;
-        }
-        if ptr == self.time {
-            return PyObType::Time;
-        }
-        if ptr == self.timedelta {
-            return PyObType::Timedelta;
-        }
-        if ptr == self.py_uuid {
-            return PyObType::PyUuid;
-        }
-        if ptr == self.bytearray {
-            return PyObType::ByteArray;
-        }
-        if ptr == self.memoryview {
-            return PyObType::MemoryView;
-        }
-        if ptr == self.ellipsis {
-            return PyObType::Ellipsis;
-        }
-        if ptr == self.frozenset {
-            return PyObType::FrozenSet;
-        }
-        if ptr == self.set {
-            return PyObType::Set;
-        }
-
-        #[cfg(feature = "ryo3-std")]
-        {
-            if ptr == self.ry_duration {
-                return PyObType::PyDuration;
-            }
-            if ptr == self.ry_ip_addr {
-                return PyObType::PyIpAddr;
-            }
-            if ptr == self.ry_ipv4_addr {
-                return PyObType::PyIpv4Addr;
-            }
-            if ptr == self.ry_ipv6_addr {
-                return PyObType::PyIpv6Addr;
-            }
-            if ptr == self.ry_socket_addr {
-                return PyObType::PySocketAddr;
-            }
-            if ptr == self.ry_socket_addr_v4 {
-                return PyObType::PySocketAddrV4;
-            }
-            if ptr == self.ry_socket_addr_v6 {
-                return PyObType::PySocketAddrV6;
-            }
-        }
-        #[cfg(feature = "ryo3-uuid")]
-        {
-            if ptr == self.ry_uuid {
-                return PyObType::RyUuid;
-            }
-        }
-        #[cfg(feature = "ryo3-ulid")]
-        {
-            if ptr == self.ry_ulid {
-                return PyObType::RyUlid;
-            }
-        }
-        #[cfg(feature = "ryo3-url")]
-        {
-            if ptr == self.ry_url {
-                return PyObType::RyUrl;
-            }
-        }
-        #[cfg(feature = "ryo3-jiff")]
-        {
-            if ptr == self.ry_date {
-                return PyObType::RyDate;
-            }
-            if ptr == self.ry_datetime {
-                return PyObType::RyDateTime;
-            }
-            if ptr == self.ry_signed_duration {
-                return PyObType::RySignedDuration;
-            }
-            if ptr == self.ry_time {
-                return PyObType::RyTime;
-            }
-            if ptr == self.ry_timespan {
-                return PyObType::RyTimeSpan;
-            }
-            if ptr == self.ry_timestamp {
-                return PyObType::RyTimestamp;
-            }
-            if ptr == self.ry_timezone {
-                return PyObType::RyTimeZone;
-            }
-            if ptr == self.ry_zoned {
-                return PyObType::RyZoned;
-            }
-        }
-        #[cfg(feature = "ryo3-http")]
-        {
-            if ptr == self.ry_http_status {
-                return PyObType::RyHttpStatus;
-            }
-            if ptr == self.ry_headers {
-                return PyObType::RyHeaders;
-            }
-        }
-
-        if is_dataclass(ob) {
-            return PyObType::Dataclass;
-        }
-        PyObType::Unknown
-    }
     #[must_use]
     #[inline]
     pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
@@ -424,4 +203,79 @@ fn get_uuid_ob_pointer(py: Python) -> usize {
     let uuid_type = uuid_ob.get_type();
 
     uuid_type.as_type_ptr() as usize
+}
+
+macro_rules! py_obj_ptr {
+    ($self:ident, $ptr:ident, $field:ident, $Variant:ident) => {
+        if $ptr == $self.$field {
+            return PyObType::$Variant;
+        }
+    };
+}
+
+macro_rules! py_obj_ptr_feat {
+    ($self:ident, $ptr:ident, $feat:literal, $field:ident, $Variant:ident) => {
+        #[cfg(feature = $feat)]
+        {
+            py_obj_ptr!($self, $ptr, $field, $Variant);
+        }
+    };
+}
+
+impl PyTypeCache {
+    pub(crate) fn ptr2type(&self, ptr: usize, ob: &Bound<'_, PyAny>) -> PyObType {
+        // --- das builtins ---
+        py_obj_ptr!(self, ptr, none, None);
+        py_obj_ptr!(self, ptr, string, String);
+        py_obj_ptr!(self, ptr, int, Int);
+        py_obj_ptr!(self, ptr, float, Float);
+        py_obj_ptr!(self, ptr, list, List);
+        py_obj_ptr!(self, ptr, tuple, Tuple);
+        py_obj_ptr!(self, ptr, dict, Dict);
+        py_obj_ptr!(self, ptr, bool, Bool);
+        py_obj_ptr!(self, ptr, bytes, Bytes);
+        py_obj_ptr!(self, ptr, datetime, DateTime);
+        py_obj_ptr!(self, ptr, date, Date);
+        py_obj_ptr!(self, ptr, time, Time);
+        py_obj_ptr!(self, ptr, timedelta, Timedelta);
+        py_obj_ptr!(self, ptr, py_uuid, PyUuid);
+        py_obj_ptr!(self, ptr, bytearray, ByteArray);
+        py_obj_ptr!(self, ptr, memoryview, MemoryView);
+        py_obj_ptr!(self, ptr, ellipsis, Ellipsis);
+        py_obj_ptr!(self, ptr, frozenset, FrozenSet);
+        py_obj_ptr!(self, ptr, set, Set);
+
+        // --- ryo3-* features ---
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_duration, PyDuration);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ip_addr, PyIpAddr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv4_addr, PyIpv4Addr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv6_addr, PyIpv6Addr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr, PySocketAddr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v4, PySocketAddrV4);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v6, PySocketAddrV6);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-uuid", ry_uuid, RyUuid);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-ulid", ry_ulid, RyUlid);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-url", ry_url, RyUrl);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_date, RyDate);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_datetime, RyDateTime);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_signed_duration, RySignedDuration);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_time, RyTime);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timespan, RyTimeSpan);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timestamp, RyTimestamp);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timezone, RyTimeZone);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned, RyZoned);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_http_status, RyHttpStatus);
+        py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_headers, RyHeaders);
+
+        // structural check last
+        if is_dataclass(ob) {
+            return PyObType::Dataclass;
+        }
+        PyObType::Unknown
+    }
 }
