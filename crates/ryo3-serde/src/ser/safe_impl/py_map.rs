@@ -5,13 +5,22 @@ use crate::errors::pyerr2sererr;
 
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::ob_type::PyObType;
+use crate::ser::PySerializeContext;
+#[cfg(any(
+    feature = "ryo3-http",
+    feature = "ryo3-jiff",
+    feature = "ryo3-ulid",
+    feature = "ryo3-url",
+    feature = "ryo3-uuid",
+    feature = "ryo3-std"
+))]
+use crate::ser::rytypes;
 use crate::ser::safe_impl::{
     SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
     SerializePyDateTime, SerializePyFloat, SerializePyFrozenSet, SerializePyInt, SerializePyList,
     SerializePyMappingKey, SerializePyNone, SerializePySet, SerializePyStr, SerializePyTime,
     SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
 };
-use crate::ser::{PySerializeContext, rytypes};
 use crate::{SerializePyAny, serde_err_recursion};
 use pyo3::Bound;
 use pyo3::types::{PyDict, PyMapping};
