@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.66 [unreleased]
+
+- misc
+  - fix typos in python tests
+
+---
+
 ## v0.0.65 [2025-10-24]
 
 - `ryo3-reqwest`
