@@ -1,12 +1,10 @@
 use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
-use crate::errors::pyerr2sererr;
 use crate::serde_err;
 
 use crate::any_repr::any_repr;
 use pyo3::Bound;
-use pyo3::types::PyString;
 
 pub(crate) struct SerializePyMappingKey<'a, 'py> {
     obj: &'a Bound<'py, PyAny>,
@@ -23,9 +21,12 @@ impl Serialize for SerializePyMappingKey<'_, '_> {
     where
         S: Serializer,
     {
-        if let Ok(py_string) = self.obj.cast::<PyString>() {
-            let v = py_string.to_str().map_err(pyerr2sererr)?;
-            serializer.serialize_str(v)
+        // if let Ok(py_string) = self.obj.cast_exact::<PyString>() {
+        // let v = py_string.to_str().map_err(pyerr2sererr)?;
+        // serializer.serialize_str(v)
+        if let Ok(s) = self.obj.extract::<&str>() {
+            // let v = py_string.to_str().map_err(pyerr2sererr)?;
+            serializer.serialize_str(s)
         } else if let Ok(key) = self.obj.extract::<bool>() {
             // Ok(if key { "true" } else { "false" })
             serializer.serialize_bool(key)

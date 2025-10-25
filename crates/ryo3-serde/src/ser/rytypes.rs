@@ -21,10 +21,15 @@
 //!       Regards,
 //!       fugue-state-jesse
 //!
-#![cfg(feature = "ry")]
-use crate::errors::pyerr2sererr;
+#[cfg(any(
+    feature = "ryo3-http",
+    feature = "ryo3-jiff",
+    feature = "ryo3-ulid",
+    feature = "ryo3-url",
+    feature = "ryo3-uuid",
+    feature = "ryo3-std"
+))]
 use pyo3::prelude::*;
-use serde::ser::Serialize;
 
 // THE FOLLOWING MACRO WAS WRITTEN BY FUGUE-STATE-JESSE (NOT AN LLM).
 // I (NORMAL JESSE) HAVE NO CLUE HOW IT WORKS :(
@@ -97,7 +102,7 @@ macro_rules! ry_type_serializer_struct {
         }
 
         $(#[$meta])*
-        impl<'py> Serialize for $name<'py> {
+        impl<'py> serde::ser::Serialize for $name<'py> {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: serde::Serializer,
@@ -105,7 +110,7 @@ macro_rules! ry_type_serializer_struct {
                 let ob = self
                     .ob
                     .cast_exact::<$ty>()
-                    .map_err(pyerr2sererr)?;
+                    .map_err(crate::errors::pyerr2sererr)?;
                 ob.get().serialize(serializer)
             }
         }
@@ -197,7 +202,7 @@ impl<'py> PyDurationSerializer<'py> {
 }
 
 #[cfg(feature = "ryo3-std")]
-impl Serialize for PyDurationSerializer<'_> {
+impl serde::ser::Serialize for PyDurationSerializer<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -205,7 +210,7 @@ impl Serialize for PyDurationSerializer<'_> {
         let ob = self
             .ob
             .cast_exact::<ryo3_std::time::PyDuration>()
-            .map_err(pyerr2sererr)?;
+            .map_err(crate::errors::pyerr2sererr)?;
         let pydur = ob.get();
 
         let dur = *pydur.inner();
