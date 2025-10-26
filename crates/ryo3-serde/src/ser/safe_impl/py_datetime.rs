@@ -4,7 +4,7 @@ use serde::ser::{Serialize, Serializer};
 use crate::errors::pyerr2sererr;
 
 use pyo3::Bound;
-use pyo3::types::{PyDate, PyDateTime, PyTime, PyTzInfoAccess};
+use pyo3::types::{PyDate, PyDateTime, PyTime};
 
 // ---------------------------------------------------------------------------
 // python stdlib `datetime.date`
@@ -74,6 +74,7 @@ impl Serialize for SerializePyDateTime<'_, '_> {
     where
         S: Serializer,
     {
+        use pyo3::types::PyTzInfoAccess;
         let py_dt: &Bound<'_, PyDateTime> = self.obj.cast().map_err(pyerr2sererr)?;
         // has tz?
         // let has_tzinfo = dt.get_tzinfo().is_some();
@@ -94,7 +95,7 @@ impl Serialize for SerializePyDateTime<'_, '_> {
     where
         S: Serializer,
     {
-        let py_dt: &Bound<'_, PyDateTime> = ser.obj.cast().map_err(pyerr2sererr)?;
+        let py_dt: &Bound<'_, PyDateTime> = self.obj.cast().map_err(pyerr2sererr)?;
         let dt_pystr = py_dt.str().map_err(pyerr2sererr)?;
         let dt_str = dt_pystr.to_str().map_err(pyerr2sererr)?;
         // TODO: use jiff to do all the date-time formatting
@@ -106,6 +107,7 @@ impl Serialize for SerializePyDateTime<'_, '_> {
 // ---------------------------------------------------------------------------
 // python stdlib `datetime.timedelta`
 // ---------------------------------------------------------------------------
+#[cfg_attr(not(feature = "jiff"), expect(dead_code))]
 pub(crate) struct SerializePyTimeDelta<'a, 'py> {
     obj: &'a Bound<'py, PyAny>,
 }
@@ -130,11 +132,11 @@ impl Serialize for SerializePyTimeDelta<'_, '_> {
 
 #[cfg(not(feature = "jiff"))]
 impl Serialize for SerializePyTimeDelta<'_, '_> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        Err(SerError::custom(
+        Err(serde::ser::Error::custom(
             "timedelta serialization requires the jiff feature",
         ))
     }
