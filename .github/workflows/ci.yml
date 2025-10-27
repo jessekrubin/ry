@@ -65,7 +65,7 @@ jobs:
           sccache: "true"
           manylinux: ${{ matrix.platform.manylinux }} # SUPER WEIRD BUT ARRRRRRM IS A PITA
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-linux-${{ matrix.platform.target }}
           path: dist
@@ -137,7 +137,7 @@ jobs:
           sccache: "true"
           manylinux: musllinux_1_2
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: dist
@@ -166,7 +166,7 @@ jobs:
           args: --out dist --find-interpreter --profile ${{ env.CARGO_PROFILE }}
           sccache: "true"
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-windows-${{ matrix.platform.target }}
           path: dist
@@ -205,7 +205,7 @@ jobs:
           args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
           sccache: "true"
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist
@@ -220,7 +220,7 @@ jobs:
           command: sdist
           args: --out dist
       - name: Upload sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-sdist
           path: dist
