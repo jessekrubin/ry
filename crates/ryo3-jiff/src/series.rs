@@ -129,7 +129,7 @@ impl RyTimestampSeries {
 #[pyclass(name = "ZonedSeries", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedSeries {
-    pub(crate) series: Mutex<ZonedSeries>,
+    pub(crate) series: Mutex<jiff::ZonedSeries>,
 }
 
 impl From<jiff::ZonedSeries> for RyZonedSeries {
