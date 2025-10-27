@@ -280,3 +280,4 @@ use_self = "warn"
 # pyo3-build-config = { git = "https://github.com/pyo3/pyo3.git" }
 # jiter = { git = "https://github.com/jessekrubin/jiter.git", branch = "pyo3-v0.27.x" }
 jiter = { git = "https://github.com/pydantic/jiter.git" }
+jiff = { git = "https://github.com/BurntSushi/jiff.git", branch = "master" }
