@@ -67,7 +67,6 @@ pub fn ls(
         let fspaths = v
             .into_iter()
             .flat_map(|s| PyFsPath::new(s).into_bound_py_any(py))
-            // .map(PyObject::from)
             .collect();
         Ok(fspaths)
     } else {
@@ -79,16 +78,39 @@ pub fn ls(
     }
 }
 
-#[pyfunction]
+#[pyfunction(
+    signature = (path, *, exist_ok = false, recursive = false)
+)]
 #[expect(clippy::needless_pass_by_value)]
-pub fn mkdir(path: PathLike) -> PyResult<String> {
+pub fn mkdir(path: PathLike, exist_ok: bool, recursive: bool) -> PyResult<()> {
     let path = path.as_ref();
-    match std::fs::create_dir(path) {
-        Ok(()) => Ok(path.to_string_lossy().to_string()),
+    if recursive {
+        mkdirp(PathLike::PathBuf(path.to_path_buf()))
+    } else {
+        match std::fs::create_dir(path) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                if exist_ok && e.kind() == std::io::ErrorKind::AlreadyExists {
+                    return Ok(());
+                }
+                let p_string = path.display();
+                let emsg = format!("{e}: {p_string}");
+                let pye = PyFileNotFoundError::new_err(format!("mkdir: {emsg}"));
+                Err(pye)
+            }
+        }
+    }
+}
+
+#[pyfunction]
+pub fn mkdirp(path: PathLike) -> PyResult<()> {
+    let path = path.as_ref();
+    match std::fs::create_dir_all(path) {
+        Ok(()) => Ok(()),
         Err(e) => {
             let p_string = path.display();
             let emsg = format!("{e}: {p_string}");
-            let pye = PyFileNotFoundError::new_err(format!("mkdir: {emsg}"));
+            let pye = PyFileNotFoundError::new_err(format!("mkdirp: {emsg}"));
             Err(pye)
         }
     }
@@ -109,6 +131,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cd, m)?)?;
     m.add_function(wrap_pyfunction!(ls, m)?)?;
     m.add_function(wrap_pyfunction!(mkdir, m)?)?;
+    m.add_function(wrap_pyfunction!(mkdirp, m)?)?;
     m.add_function(wrap_pyfunction!(pwd, m)?)?;
 
     #[cfg(feature = "dirs")]

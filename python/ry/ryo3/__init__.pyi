@@ -5,6 +5,7 @@ from ry.ryo3 import ulid as ulid
 from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
+from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
@@ -236,4 +237,5 @@ from ry.ryo3.sh import cd as cd
 from ry.ryo3.sh import home as home
 from ry.ryo3.sh import ls as ls
 from ry.ryo3.sh import mkdir as mkdir
+from ry.ryo3.sh import mkdirp as mkdirp
 from ry.ryo3.sh import pwd as pwd
