@@ -60,6 +60,7 @@ from ry.ryo3 import ulid as ulid
 from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
+from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
@@ -291,6 +292,7 @@ from ry.ryo3.sh import cd as cd
 from ry.ryo3.sh import home as home
 from ry.ryo3.sh import ls as ls
 from ry.ryo3.sh import mkdir as mkdir
+from ry.ryo3.sh import mkdirp as mkdirp
 from ry.ryo3.sh import pwd as pwd
 ```
 
@@ -307,6 +309,7 @@ __pkg_name__: str
 __description__: str
 __target__: str
 __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
+__allocator__: t.Literal["mimalloc", "system"]
 ```
 
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
@@ -5841,7 +5844,8 @@ def ls(
     """List directory contents - returns list of FsPath objects"""
 
 
-def mkdir(path: str | PathLike[str]) -> None: ...
+def mkdir(path: str | PathLike[str], *, recursive: bool = False) -> None: ...
+def mkdirp(path: str | PathLike[str]) -> None: ...
 ```
 
 <h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
