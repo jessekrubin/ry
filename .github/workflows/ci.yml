@@ -224,28 +224,28 @@ jobs:
           name: wheels-sdist
           path: dist
 
-  inspect-artifacts:
-    name: Inspect Artifacts
-    runs-on: ubuntu-latest
-    needs: [linux, musllinux, windows, macos, sdist]
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v6
-      - name: List all files
-        run: find . -name "wheels-*/*" -o -name "*.tar.gz"
-      - name: Inspect wheel files
-        run: |
-          set -e
-          for whl in $(find . -name "wheels-*/*"); do
-            echo "========================================"
-            echo "Inspecting $whl"
-            python3 -m pip install wheel
-            python3 -m wheel unpack "$whl" -d unpacked
-            pkg_dir=$(basename "$whl" .whl)
-            echo "Contents of $pkg_dir/METADATA:"
-            cat "unpacked/$pkg_dir/METADATA"
-            echo "----------------------------------------"
-          done
+  # inspect-artifacts:
+  #   name: Inspect Artifacts
+  #   runs-on: ubuntu-latest
+  #   needs: [linux, musllinux, windows, macos, sdist]
+  #   steps:
+  #     - name: Download all artifacts
+  #       uses: actions/download-artifact@v6
+  #     - name: List all files
+  #       run: find . -name "wheels-*/*" -o
+  #     - name: Inspect wheel files
+  #       run: |
+  #         set -e
+  #         for whl in $(find . -name "wheels-*/*"); do
+  #           echo "========================================"
+  #           echo "Inspecting $whl"
+  #           python3 -m pip install wheel
+  #           python3 -m wheel unpack "$whl" -d unpacked
+  #           pkg_dir=$(basename "$whl" .whl)
+  #           echo "Contents of $pkg_dir/METADATA:"
+  #           cat "unpacked/$pkg_dir/METADATA"
+  #           echo "----------------------------------------"
+  #         done
 
   release:
     name: Release
