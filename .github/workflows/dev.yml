@@ -13,6 +13,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -31,7 +35,6 @@ jobs:
         with:
           tool: just
       - run: just ci
-
 
   test-python:
     name: test-python-${{ matrix.python-version }}

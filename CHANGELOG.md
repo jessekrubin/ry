@@ -3,6 +3,7 @@
 ## v0.0.66 [unreleased]
 
 - fix typos in python tests
+- windows arm64 builds
 - global-allocator
   - `mimalloc` feature added to use `mimalloc` over the system allocator
   - added top level `__allocator__` constant
