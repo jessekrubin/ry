@@ -148,7 +148,7 @@ jobs:
         platform:
           - runner: windows-latest
             target: x64
-            architecture: x86
+            architecture: x64
           - runner: windows-latest
             target: x86
             architecture: x86
