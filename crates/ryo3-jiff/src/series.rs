@@ -2,7 +2,6 @@ use crate::{RyDate, RyDateTime, RyTime, RyTimestamp};
 use parking_lot::Mutex;
 use pyo3::prelude::*;
 
-
 macro_rules! define_py_jiff_series {
     (
         py_name: $py_name:literal,
@@ -41,7 +40,6 @@ macro_rules! define_py_jiff_series {
                 s.by_ref().take(n).map(Into::into).collect()
             }
         }
-
     };
 }
 
