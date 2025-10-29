@@ -36,7 +36,6 @@ jobs:
           tool: just
       - run: just ci
 
-
   test-python:
     name: test-python-${{ matrix.python-version }}
     runs-on: ubuntu-latest
