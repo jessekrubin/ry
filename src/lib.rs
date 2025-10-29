@@ -12,6 +12,16 @@ const OPT_LEVEL_STR: &str = env!("OPT_LEVEL");
 const TARGET: &str = env!("TARGET");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[cfg(feature = "mimalloc")]
+#[global_allocator]
+static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
+#[cfg(feature = "mimalloc")]
+const ALLOCATOR: &str = "mimalloc";
+
+#[cfg(not(feature = "mimalloc"))]
+const ALLOCATOR: &str = "system";
+
 /// Raise `pyo3::exceptions::PyRuntimeWarning` for debug build(s)
 ///
 /// Taken from `obstore` pyo3 library [obstore](https://github.com/developmentseed/obstore.git)
@@ -57,6 +67,7 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__opt_level__", opt_level)?;
     m.add("__authors__", AUTHORS)?;
     m.add("__target__", TARGET)?;
+    m.add("__allocator__", ALLOCATOR)?;
     // ------------------------------------------------------------------------
     ryo3::ry::pymod_add(m)?;
     // ------------------------------------------------------------------------
