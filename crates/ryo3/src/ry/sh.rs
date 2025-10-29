@@ -84,25 +84,27 @@ pub fn ls(
 #[expect(clippy::needless_pass_by_value)]
 pub fn mkdir(path: PathLike, exist_ok: bool, recursive: bool) -> PyResult<()> {
     let path = path.as_ref();
-    if recursive {
-        mkdirp(PathLike::PathBuf(path.to_path_buf()))
+    let result = if recursive {
+        std::fs::create_dir_all(path)
     } else {
-        match std::fs::create_dir(path) {
-            Ok(()) => Ok(()),
-            Err(e) => {
-                if exist_ok && e.kind() == std::io::ErrorKind::AlreadyExists {
-                    return Ok(());
-                }
-                let p_string = path.display();
-                let emsg = format!("{e}: {p_string}");
-                let pye = PyFileNotFoundError::new_err(format!("mkdir: {emsg}"));
-                Err(pye)
+        std::fs::create_dir(path)
+    };
+    match result {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            if exist_ok && e.kind() == std::io::ErrorKind::AlreadyExists {
+                return Ok(());
             }
+            let p_string = path.display();
+            let emsg = format!("{e}: {p_string}");
+            let pye = PyFileNotFoundError::new_err(format!("mkdir: {emsg}"));
+            Err(pye)
         }
     }
 }
 
 #[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
 pub fn mkdirp(path: PathLike) -> PyResult<()> {
     let path = path.as_ref();
     match std::fs::create_dir_all(path) {
