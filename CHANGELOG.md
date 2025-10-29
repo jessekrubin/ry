@@ -2,8 +2,10 @@
 
 ## v0.0.66 [unreleased]
 
-- misc
-  - fix typos in python tests
+- fix typos in python tests
+- global-allocator
+  - `mimalloc` feature added to use `mimalloc` over the system allocator
+  - added top level `__allocator__` constant
 
 ---
 

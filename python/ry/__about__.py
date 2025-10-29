@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ry.ryo3 import (
+    __allocator__,
     __authors__,
     __build_profile__,
     __build_timestamp__,
@@ -12,6 +13,7 @@ from ry.ryo3 import (
 )
 
 __all__ = (
+    "__allocator__",
     "__authors__",
     "__build_profile__",
     "__build_timestamp__",
