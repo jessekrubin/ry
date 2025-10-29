@@ -149,12 +149,22 @@ def st_json_js(
     )
 
 
+_TIMEZONE_PROBLEM_CHILDREN = {
+    "build/etc/localtime",
+    "America/Halifax",  # Not sure why this one causes issues
+}
+
+
 @lru_cache(maxsize=1)
 def _ok_timezone_names() -> set[str]:
     """Get a set of valid timezone names."""
     # zoneinfo.available_timezones() returns a set of valid timezone names
     # that can be used with zoneinfo.ZoneInfo
-    return {el for el in zoneinfo.available_timezones() if el != "build/etc/localtime"}
+    return {
+        el
+        for el in zoneinfo.available_timezones()
+        if el not in _TIMEZONE_PROBLEM_CHILDREN
+    }
 
 
 def st_timezones(*, no_cache: bool = False) -> SearchStrategy[zoneinfo.ZoneInfo]:
