@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-10-27T10:00:17.871170584-07:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-10-29T08:38:51.098703009-07:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -481,9 +481,11 @@ dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0066-unreleased"><a class="header" href="#v0066-unreleased">v0.0.66 [unreleased]</a></h2>
 <ul>
-<li>misc
-<ul>
 <li>fix typos in python tests</li>
+<li>global-allocator
+<ul>
+<li><code>mimalloc</code> feature added to use <code>mimalloc</code> over the system allocator</li>
+<li>added top level <code>__allocator__</code> constant</li>
 </ul>
 </li>
 </ul>
@@ -2552,6 +2554,7 @@ from ry.ryo3 import ulid as ulid
 from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
+from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
@@ -2783,6 +2786,7 @@ from ry.ryo3.sh import cd as cd
 from ry.ryo3.sh import home as home
 from ry.ryo3.sh import ls as ls
 from ry.ryo3.sh import mkdir as mkdir
+from ry.ryo3.sh import mkdirp as mkdirp
 from ry.ryo3.sh import pwd as pwd
 </code></pre>
 <h2 id="ry.ryo3.__about__"><a class="header" href="#ry.ryo3.__about__"><code>ry.ryo3.__about__</code></a></h2>
@@ -2796,6 +2800,7 @@ __pkg_name__: str
 __description__: str
 __target__: str
 __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
+__allocator__: t.Literal["mimalloc", "system"]
 </code></pre>
 <h2 id="ry.ryo3._brotli"><a class="header" href="#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></h2>
 <pre><code class="language-python">"""ryo3-brotli types"""
@@ -8225,7 +8230,8 @@ def ls(
     """List directory contents - returns list of FsPath objects"""
 
 
-def mkdir(path: str | PathLike[str]) -&gt; None: ...
+def mkdir(path: str | PathLike[str], *, recursive: bool = False) -&gt; None: ...
+def mkdirp(path: str | PathLike[str]) -&gt; None: ...
 </code></pre>
 <h2 id="ry.ryo3.ulid"><a class="header" href="#ry.ryo3.ulid"><code>ry.ryo3.ulid</code></a></h2>
 <pre><code class="language-python">import builtins
