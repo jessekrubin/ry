@@ -186,6 +186,11 @@
 <ul>
 <li>fix typos in python tests</li>
 <li>windows arm64 builds</li>
+<li><code>ryo3-http</code>
+<ul>
+<li>switch from <code>parking_lot::Mutex</code> to <code>parking_lot::RwLock</code> for <code>PyHeaders</code>:wq</li>
+</ul>
+</li>
 <li>global-allocator
 <ul>
 <li><code>mimalloc</code> feature added to use <code>mimalloc</code> over the system allocator</li>
