@@ -33,7 +33,7 @@ impl serde::Serialize for PyHeaders {
     where
         S: serde::Serializer,
     {
-        let header_map = self.0.lock();
+        let header_map = self.read();
         let header_map_ref = HttpHeaderMapRef(&header_map);
         header_map_ref.serialize(serializer)
     }

@@ -1,4 +1,4 @@
-use parking_lot::Mutex;
+use parking_lot::RwLock;
 use reqwest::StatusCode;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,7 +8,7 @@ pub(crate) struct RyResponseHead {
     /// das status code
     pub(crate) status: StatusCode,
     /// das headers
-    pub(crate) headers: Arc<Mutex<reqwest::header::HeaderMap>>,
+    pub(crate) headers: Arc<RwLock<reqwest::header::HeaderMap>>,
     /// das url
     pub(crate) url: reqwest::Url,
     /// das content length -- if it exists (tho it might not and/or be
@@ -25,7 +25,7 @@ impl RyResponseHead {
     pub(crate) fn new(res: &reqwest::Response) -> Self {
         Self {
             status: res.status(),
-            headers: Arc::new(Mutex::new(res.headers().clone())),
+            headers: Arc::new(RwLock::new(res.headers().clone())),
             url: res.url().clone(),
             content_length: res.content_length(),
             version: res.version(),

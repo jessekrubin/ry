@@ -43,7 +43,7 @@ impl TryFrom<PyHeadersLike> for HeaderMap {
     type Error = PyErr;
     fn try_from(h: PyHeadersLike) -> Result<Self, Self::Error> {
         match h {
-            PyHeadersLike::Headers(h) => Ok(h.0.lock().clone()),
+            PyHeadersLike::Headers(h) => Ok(h.read().clone()),
             PyHeadersLike::Map(d) => PyHeadersLike::map2headers(&d)
                 .map_err(|e| PyValueError::new_err(format!("header-map-error: {e}"))),
         }
