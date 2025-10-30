@@ -198,7 +198,7 @@ impl RyResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.lock()).get(CONTENT_ENCODING).map(|en| {
+        (*self.head.headers.read()).get(CONTENT_ENCODING).map(|en| {
             let s = en.to_str().expect("Invalid content encoding");
             s.to_string()
         })
@@ -207,7 +207,7 @@ impl RyResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.lock();
+        let headers = self.head.headers.read();
         let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
             .get_all(SET_COOKIE)
             .iter()

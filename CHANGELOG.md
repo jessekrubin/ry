@@ -4,6 +4,8 @@
 
 - fix typos in python tests
 - windows arm64 builds
+- `ryo3-http`
+  - switch from `parking_lot::Mutex` to `parking_lot::RwLock` for `PyHeaders`:wq
 - global-allocator
   - `mimalloc` feature added to use `mimalloc` over the system allocator
   - added top level `__allocator__` constant

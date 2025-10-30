@@ -1091,7 +1091,7 @@ impl ClientConfig {
             client_builder = client_builder.user_agent(user_agent.clone());
         }
         if let Some(headers) = &self.headers {
-            client_builder = client_builder.default_headers(headers.0.lock().clone());
+            client_builder = client_builder.default_headers(headers.0.read().clone());
         }
         if let Some(timeout) = &self.timeout {
             client_builder = client_builder.timeout(timeout.0);
