@@ -24,10 +24,12 @@ def test_benchmark_not_debug() -> None:
     assert ry.__build_profile__ == "release"
 
 
+TFn: t.TypeAlias = t.Callable[[bytes | ry.Bytes], int] | t.Callable[[bytes], int] | t.Callable[[ry.Bytes], int] | t.Callable[[memoryview], int]
+
 @dataclasses.dataclass
 class BytesSumFn:
     id: str
-    fn: t.Callable[[bytes | ry.Bytes], int]
+    fn: TFn
     accepts_py_bytes: bool = False
     """True if the function accepts python bytes"""
     accepts_ry_bytes: bool = False
@@ -37,7 +39,7 @@ class BytesSumFn:
     def from_fn(
         cls,
         id: str,
-        fn: t.Callable[[bytes | ry.Bytes], int],
+        fn: TFn,
         py_bytes: bool = False,
         ry_bytes: bool = False,
     ):
