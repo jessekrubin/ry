@@ -8,6 +8,7 @@ use bytes::{Bytes, BytesMut};
 use pyo3::buffer::PyBuffer;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
+use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
@@ -558,10 +559,17 @@ impl PyBytes {
 impl<'py> FromPyObject<'_, 'py> for PyBytes {
     type Error = pyo3::PyErr;
 
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        let buffer = obj.extract::<PyBytesWrapper>()?;
-        let bytes = Bytes::from_owner(buffer);
-        Ok(Self(bytes))
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if ob.is_exact_instance_of::<pyo3::types::PyBytes>() {
+            let pbb = ob.extract::<PyBackedBytes>()?;
+            Ok(Bytes::from_owner(pbb).into())
+        } else if let Ok(pb) = ob.cast_exact::<PyBytes>() {
+            Ok(Self(pb.get().0.clone()))
+        } else {
+            let buffer = ob.extract::<PyBytesWrapper>()?;
+            let bytes = Bytes::from_owner(buffer);
+            Ok(Self(bytes))
+        }
     }
 }
 

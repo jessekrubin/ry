@@ -47,7 +47,7 @@ jobs:
             manylinux: "2_28"
           - runner: ubuntu-latest
             target: ppc64le
-            manylinux: "2_28" # previously was
+            manylinux: "2_28" # previously was 'auto'
 
     steps:
       - uses: actions/checkout@v5
