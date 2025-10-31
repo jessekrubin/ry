@@ -770,8 +770,8 @@ impl PyFsPath {
     #[cfg(feature = "which")]
     #[staticmethod]
     #[pyo3(signature = (cmd, path=None))]
-    fn which(cmd: &str, path: Option<&str>) -> PyResult<Option<Self>> {
-        ryo3_which::which(cmd, path).map(|opt| opt.map(Self::from))
+    fn which(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Option<Self>> {
+        ryo3_which::which(py, cmd, path).map(|opt| opt.map(Self::from))
     }
 
     #[cfg(not(feature = "which"))]
@@ -786,8 +786,8 @@ impl PyFsPath {
     #[cfg(feature = "which")]
     #[staticmethod]
     #[pyo3(signature = (cmd, path=None))]
-    fn which_all(cmd: &str, path: Option<&str>) -> PyResult<Vec<Self>> {
-        ryo3_which::which_all(cmd, path)
+    fn which_all(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Vec<Self>> {
+        ryo3_which::which_all(py, cmd, path)
             .map(|opt| opt.into_iter().map(Self::from).collect::<Vec<_>>())
     }
 
@@ -803,8 +803,12 @@ impl PyFsPath {
     #[cfg(feature = "which-regex")]
     #[staticmethod]
     #[pyo3(signature = (regex, path=None))]
-    fn which_re(regex: &Bound<'_, PyAny>, path: Option<&str>) -> PyResult<Vec<Self>> {
-        ryo3_which::which_re(regex, path)
+    fn which_re(
+        py: Python<'_>,
+        regex: &Bound<'_, PyAny>,
+        path: Option<&str>,
+    ) -> PyResult<Vec<Self>> {
+        ryo3_which::which_re(py, regex, path)
             .map(|opt| opt.into_iter().map(Self::from).collect::<Vec<_>>())
     }
 

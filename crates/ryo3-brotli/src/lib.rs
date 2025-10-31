@@ -45,7 +45,7 @@ pub fn brotli_encode(
     magic_number: Option<bool>,
 ) -> PyResult<Py<PyAny>> {
     let bin: &[u8] = data.as_ref();
-    let encoded = encode(bin, quality, magic_number)?;
+    let encoded = py.detach(|| encode(bin, quality, magic_number))?;
     Ok(PyBytes::new(py, &encoded).into())
 }
 
@@ -59,18 +59,21 @@ pub fn brotli(
     magic_number: Option<bool>,
 ) -> PyResult<Py<PyAny>> {
     let bin: &[u8] = data.as_ref();
-    let encoded = encode(bin, quality, magic_number)?;
+    let encoded = py.detach(|| encode(bin, quality, magic_number))?;
     Ok(PyBytes::new(py, &encoded).into())
 }
 
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
 pub fn brotli_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<Py<PyAny>> {
-    let mut decompressed = Vec::new();
-    let bin: &[u8] = data.as_ref();
-    br::Decompressor::new(bin, 4 * 1024)
-        .read_to_end(&mut decompressed)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Error: {e:?}")))?;
+    let decompressed = py.detach(|| {
+        let mut decompressed = Vec::new();
+        let bin: &[u8] = data.as_ref();
+        let res = br::Decompressor::new(bin, 4 * 1024).read_to_end(&mut decompressed);
+        res.map(|_| decompressed).map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Brotli decode error: {e:?}"))
+        })
+    })?;
     Ok(PyBytes::new(py, &decompressed).into())
 }
 
