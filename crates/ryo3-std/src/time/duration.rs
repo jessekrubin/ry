@@ -500,12 +500,12 @@ impl PyDuration {
         let mut remaining = sleep_duration;
         while remaining > check_interval {
             py.check_signals()?; // This ensures signals are handled
-            std::thread::sleep(check_interval);
+            py.detach(|| std::thread::sleep(check_interval));
             remaining -= check_interval;
         }
         if remaining > Duration::ZERO {
             py.check_signals()?; // One last signal check before sleeping
-            std::thread::sleep(remaining);
+            py.detach(|| std::thread::sleep(remaining));
         }
 
         Ok(())

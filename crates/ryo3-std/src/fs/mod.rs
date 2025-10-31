@@ -242,20 +242,20 @@ pub fn read_stream(
 }
 
 #[pyfunction]
-pub fn read(pth: PathLike) -> PyResult<ryo3_bytes::PyBytes> {
-    let fbytes = std::fs::read(pth)?;
+pub fn read(py: Python<'_>, pth: PathLike) -> PyResult<ryo3_bytes::PyBytes> {
+    let fbytes = py.detach(|| std::fs::read(pth))?;
     Ok(fbytes.into())
 }
 
 #[pyfunction]
 pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<Py<PyAny>> {
-    let fbytes = std::fs::read(s)?;
+    let fbytes = py.detach(|| std::fs::read(s))?;
     Ok(PyBytes::new(py, &fbytes).into())
 }
 
 #[pyfunction]
 pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
-    let fbytes = std::fs::read(s)?;
+    let fbytes = py.detach(|| std::fs::read(s))?;
     match std::str::from_utf8(&fbytes).map(ToString::to_string) {
         Ok(s) => Ok(s),
         Err(e) => {
@@ -285,8 +285,9 @@ pub fn read_link(pth: PathBuf) -> PyResult<PathBuf> {
 }
 
 #[pyfunction]
-pub fn read_to_string(pth: PathBuf) -> PyResult<String> {
-    std::fs::read_to_string(pth).map_err(|e| PyIOError::new_err(format!("read_to_string - {e}")))
+pub fn read_to_string(py: Python<'_>, pth: PathBuf) -> PyResult<String> {
+    py.detach(|| std::fs::read_to_string(pth))
+        .map_err(|e| PyIOError::new_err(format!("read_to_string - {e}")))
 }
 
 #[pyfunction]
@@ -318,52 +319,51 @@ pub fn write_text(fspath: PathBuf, string: &str) -> PyResult<usize> {
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-pub fn rename(from: PathBuf, to: PathBuf) -> PyResult<()> {
-    std::fs::rename(&from, &to)?;
+pub fn rename(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<()> {
+    py.detach(|| std::fs::rename(&from, &to))?;
     Ok(())
 }
 
 #[pyfunction]
-pub fn metadata(pth: PathLike) -> PyResult<PyMetadata> {
-    std::fs::metadata(pth)
-        .map(PyMetadata::from)
-        .map_err(Into::into)
+pub fn metadata(py: Python<'_>, pth: PathLike) -> PyResult<PyMetadata> {
+    let metadata = py.detach(|| std::fs::metadata(pth))?;
+    Ok(PyMetadata::from(metadata))
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-pub fn copy(from: PathBuf, to: PathBuf) -> PyResult<u64> {
-    let copy_res = std::fs::copy(&from, &to)?;
+pub fn copy(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<u64> {
+    let copy_res = py.detach(|| std::fs::copy(&from, &to))?;
     Ok(copy_res)
 }
 
 #[pyfunction]
-pub fn remove_file(pth: PathLike) -> PyResult<()> {
-    std::fs::remove_file(pth)?;
+pub fn remove_file(py: Python<'_>, pth: PathLike) -> PyResult<()> {
+    py.detach(|| std::fs::remove_file(pth))?;
     Ok(())
 }
 
 #[pyfunction]
-pub fn remove_dir(pth: PathLike) -> PyResult<()> {
-    std::fs::remove_dir(pth)?;
+pub fn remove_dir(py: Python<'_>, pth: PathLike) -> PyResult<()> {
+    py.detach(|| std::fs::remove_dir(pth))?;
     Ok(())
 }
 
 #[pyfunction]
-pub fn remove_dir_all(pth: PathLike) -> PyResult<()> {
-    std::fs::remove_dir_all(pth)?;
+pub fn remove_dir_all(py: Python<'_>, pth: PathLike) -> PyResult<()> {
+    py.detach(|| std::fs::remove_dir_all(pth))?;
     Ok(())
 }
 
 #[pyfunction]
-pub fn create_dir(pth: PathLike) -> PyResult<()> {
-    std::fs::create_dir(pth)?;
+pub fn create_dir(py: Python<'_>, pth: PathLike) -> PyResult<()> {
+    py.detach(|| std::fs::create_dir(pth))?;
     Ok(())
 }
 
 #[pyfunction]
-pub fn create_dir_all(pth: PathLike) -> PyResult<()> {
-    std::fs::create_dir_all(pth)?;
+pub fn create_dir_all(py: Python<'_>, pth: PathLike) -> PyResult<()> {
+    py.detach(|| std::fs::create_dir_all(pth))?;
     Ok(())
 }
 
@@ -374,39 +374,42 @@ pub fn canonicalize(pth: PathLike) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn exists(pth: PathBuf) -> PyResult<bool> {
-    std::fs::exists(pth).map_err(|e| PyIOError::new_err(format!("exists - {e}")))
+pub fn exists(py: Python<'_>, pth: PathBuf) -> PyResult<bool> {
+    py.detach(|| std::fs::exists(pth))
+        .map_err(|e| PyIOError::new_err(format!("exists - {e}")))
 }
 
 #[pyfunction]
-pub fn hard_link(src: PathBuf, dst: PathBuf) -> PyResult<()> {
-    std::fs::hard_link(src, dst)?;
+pub fn hard_link(py: Python<'_>, src: PathBuf, dst: PathBuf) -> PyResult<()> {
+    py.detach(|| std::fs::hard_link(src, dst))?;
     Ok(())
 }
 
 #[pyfunction]
-pub fn set_permissions(pth: PathBuf, perm: &PyPermissions) -> PyResult<()> {
-    std::fs::set_permissions(pth, perm.0.clone())
+pub fn set_permissions(py: Python<'_>, pth: PathBuf, perm: &PyPermissions) -> PyResult<()> {
+    py.detach(|| std::fs::set_permissions(pth, perm.0.clone()))
         .map_err(|e| PyIOError::new_err(format!("set_permissions - {e}")))
 }
 
 #[pyfunction]
-pub fn soft_link(src: PathBuf, dst: PathBuf) -> PyResult<()> {
+pub fn soft_link(py: Python<'_>, src: PathBuf, dst: PathBuf) -> PyResult<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs as unix_fs;
-        unix_fs::symlink(src, dst).map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))
+        py.detach(|| unix_fs::symlink(src, dst))
+            .map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))
     }
     #[cfg(windows)]
     {
         use std::os::windows::fs as windows_fs;
-        let metadata =
-            std::fs::metadata(&src).map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))?;
+        let metadata = py
+            .detach(|| std::fs::metadata(&src))
+            .map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))?;
         if metadata.is_dir() {
-            windows_fs::symlink_dir(src, dst)
+            py.detach(|| windows_fs::symlink_dir(src, dst))
                 .map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))
         } else {
-            windows_fs::symlink_file(src, dst)
+            py.detach(|| windows_fs::symlink_file(src, dst))
                 .map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))
         }
     }
@@ -417,8 +420,10 @@ pub fn soft_link(src: PathBuf, dst: PathBuf) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn symlink_metadata(pth: PathBuf) -> PyResult<PyMetadata> {
-    let m = std::fs::symlink_metadata(pth).map(PyMetadata::from)?;
+pub fn symlink_metadata(py: Python<'_>, pth: PathBuf) -> PyResult<PyMetadata> {
+    let m = py
+        .detach(|| std::fs::symlink_metadata(pth))
+        .map(PyMetadata::from)?;
     Ok(m)
 }
 

@@ -46,6 +46,7 @@ impl PyHeaders {
     fn write(&self) -> RwLockWriteGuard<'_, HeaderMap> {
         self.0.write()
     }
+
     fn py_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let inner = self.read();
         if inner.is_empty() {
@@ -109,11 +110,13 @@ impl From<HeaderMap> for PyHeaders {
         Self(Arc::new(RwLock::new(hm)))
     }
 }
+
 impl From<Arc<RwLock<HeaderMap>>> for PyHeaders {
     fn from(hm: Arc<RwLock<HeaderMap>>) -> Self {
         Self(hm)
     }
 }
+
 #[pymethods]
 impl PyHeaders {
     #[new]
@@ -328,9 +331,6 @@ impl PyHeaders {
                 if append {
                     for (k, v) in other_inner.iter() {
                         inner.append(k, v.clone());
-                        // if let Some(k) = k {
-                        //     inner.append(k, v);
-                        // }
                     }
                 } else {
                     for (k, v) in other_inner.iter() {

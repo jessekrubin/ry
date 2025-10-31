@@ -4,6 +4,8 @@
 
 - fix typos in python tests
 - windows arm64 builds
+- `ryo3-std`
+  - use `py.detach` where blocking fs/io operations are done
 - `ryo3-bytes`
   - optimized extraction of `builtins.bytes`, `ry.Bytes`
 - `ryo3-http`
