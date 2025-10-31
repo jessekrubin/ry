@@ -563,8 +563,8 @@ impl<'py> FromPyObject<'_, 'py> for PyBytes {
         if ob.is_exact_instance_of::<pyo3::types::PyBytes>() {
             let pbb = ob.extract::<PyBackedBytes>()?;
             Ok(Bytes::from_owner(pbb).into())
-        } else if let Ok(pb) = ob.cast_exact::<PyBytes>() {
-            Ok(Self(pb.get().0.clone()))
+        } else if let Ok(pb) = ob.cast_exact::<Self>() {
+            Ok(Self(pb.get().0.clone())) // supa fast clone the inner bytes::Bytes
         } else {
             let buffer = ob.extract::<PyBytesWrapper>()?;
             let bytes = Bytes::from_owner(buffer);
