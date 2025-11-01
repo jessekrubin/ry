@@ -8,6 +8,8 @@ use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
 
+use crate::walkdir_entry::PyWalkDirEntry;
+
 #[pyclass(name = "WalkdirGen", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWalkdirGen {
@@ -24,11 +26,11 @@ impl PyWalkdirGen {
 
     /// __next__ just pulls one item from the underlying iterator
     fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
-        let value = self.iter.lock().next();
+        let value = py.detach(|| self.iter.lock().next());
         if let Some(entry) = value {
             let bound_py_any = if self.objects {
                 // if objects is true, we return a DirEntry object
-                walkdir_entry::PyWalkDirEntry::from(entry).into_bound_py_any(py)
+                PyWalkDirEntry::from(entry).into_bound_py_any(py)
             } else {
                 let path_str = entry.path().to_string_lossy().to_string();
                 path_str.into_bound_py_any(py)
@@ -41,47 +43,52 @@ impl PyWalkdirGen {
 
     /// Take n entries from the iterator
     #[pyo3(signature = (n = 1))]
-    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Vec<Bound<'py, PyAny>>> {
+    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
         if self.objects {
-            self.iter
-                .lock()
-                .by_ref()
-                .take(n)
-                .map(|entry| walkdir_entry::PyWalkDirEntry::from(entry).into_bound_py_any(py))
-                .collect::<PyResult<Vec<_>>>()
+            let entries = py.detach(|| {
+                self.iter
+                    .lock()
+                    .by_ref()
+                    .take(n)
+                    .map(PyWalkDirEntry::from)
+                    .collect::<Vec<_>>()
+            });
+            entries.into_bound_py_any(py)
         } else {
-            self.iter
-                .lock()
-                .by_ref()
-                .take(n)
-                .map(|entry| {
-                    let path_str = entry.path().to_string_lossy().to_string();
-                    path_str.into_bound_py_any(py)
-                })
-                .collect::<PyResult<Vec<_>>>()
+            let entries = py.detach(|| {
+                self.iter
+                    .lock()
+                    .by_ref()
+                    .take(n)
+                    .map(|entry| entry.path().to_string_lossy().to_string())
+                    .collect::<Vec<_>>()
+            });
+            entries.into_bound_py_any(py)
         }
     }
 
     /// Collect all the entries into a Vec<Bound<PyAny>>
-    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyAny>>> {
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         // if objects is true, we return a DirEntry object
         // if objects is false, we return a string
         if self.objects {
-            let mut results = Vec::new();
-            for entry in self.iter.lock().by_ref() {
-                let pyentry = walkdir_entry::PyWalkDirEntry::from(entry);
-                let py_any = pyentry.into_bound_py_any(py)?;
-                results.push(py_any);
-            }
-            Ok(results)
+            let entries = py.detach(|| {
+                self.iter
+                    .lock()
+                    .by_ref()
+                    .map(PyWalkDirEntry::from)
+                    .collect::<Vec<_>>()
+            });
+            entries.into_bound_py_any(py)
         } else {
-            let mut results = Vec::new();
-            for entry in self.iter.lock().by_ref() {
-                let path_str = entry.path().to_string_lossy().to_string();
-                let py_any = path_str.into_bound_py_any(py)?;
-                results.push(py_any);
-            }
-            Ok(results)
+            let entries = py.detach(|| {
+                self.iter
+                    .lock()
+                    .by_ref()
+                    .map(|entry| entry.path().to_string_lossy().to_string())
+                    .collect::<Vec<_>>()
+            });
+            entries.into_bound_py_any(py)
         }
     }
 }

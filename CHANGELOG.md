@@ -4,6 +4,13 @@
 
 - fix typos in python tests
 - windows arm64 builds
+- use `py.detach` where beneficial:
+  - `ryo3-brotli`
+  - `ryo3-fspath`
+  - `ryo3-same-file`
+  - `ryo3-std`
+  - `ryo3-walkdir`
+  - `ryo3-which`
 - `ryo3-bytes`
   - optimized extraction of `builtins.bytes`, `ry.Bytes`
 - `ryo3-http`

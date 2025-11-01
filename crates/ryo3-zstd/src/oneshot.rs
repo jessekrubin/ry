@@ -19,7 +19,7 @@ pub(crate) fn py_decode<'py>(
     data: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
     let slice = ryo3_bytes::extract_bytes_ref(data)?;
-    let decoded = rs_zstd_decode_one_shot(slice)?;
+    let decoded = py.detach(|| rs_zstd_decode_one_shot(slice))?;
     ryo3_bytes::PyBytes::from(decoded).into_bound_py_any(py)
 }
 
@@ -29,7 +29,7 @@ pub(crate) fn py_encode<'py>(
     level: Option<PyCompressionLevel>,
 ) -> PyResult<Bound<'py, PyAny>> {
     let slice = ryo3_bytes::extract_bytes_ref(data)?;
-    let encoded = rs_zstd_compress_oneshot(slice, level)?;
+    let encoded = py.detach(|| rs_zstd_compress_oneshot(slice, level))?;
     ryo3_bytes::PyBytes::from(encoded).into_bound_py_any(py)
 }
 
