@@ -41,6 +41,164 @@ impl<'a, 'py> SerializePyDict<'a, 'py> {
     }
 }
 
+macro_rules! serialize_map_key {
+    ($ob_type:expr, $map:expr, $self:expr, $value:expr) => {
+        match $ob_type {
+            PyObType::None | PyObType::Ellipsis => {
+                $map.serialize_key(&SerializePyNone::new())?;
+            }
+            PyObType::Bool => {
+                $map.serialize_key(&SerializePyBool::new(&$value))?;
+            }
+            PyObType::Int => {
+                $map.serialize_key(&SerializePyInt::new(&$value))?;
+            }
+            PyObType::Float => {
+                $map.serialize_key(&SerializePyFloat::new(&$value))?;
+            }
+            PyObType::String => {
+                $map.serialize_key(&SerializePyStr::new(&$value))?;
+            }
+            PyObType::List => {
+                $map.serialize_key(&SerializePyList::new(&$value, $self.ctx, $self.depth + 1))?;
+            }
+            PyObType::Tuple => {
+                $map.serialize_key(&SerializePyTuple::new(&$value, $self.ctx, $self.depth + 1))?;
+            }
+            PyObType::Dict => {
+                $map.serialize_key(&SerializePyDict::new(&$value, $self.ctx, $self.depth + 1))?;
+            }
+            PyObType::Set => {
+                $map.serialize_key(&SerializePySet::new(&$value, $self.ctx))?;
+            }
+            PyObType::FrozenSet => {
+                $map.serialize_key(&SerializePyFrozenSet::new(&$value, $self.ctx))?;
+            }
+            PyObType::DateTime => {
+                $map.serialize_key(&SerializePyDateTime::new(&$value))?;
+            }
+            PyObType::Date => {
+                $map.serialize_key(&SerializePyDate::new(&$value))?;
+            }
+            PyObType::Time => {
+                $map.serialize_key(&SerializePyTime::new(&$value))?;
+            }
+            PyObType::Timedelta => {
+                $map.serialize_key(&SerializePyTimeDelta::new(&$value))?;
+            }
+            PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
+                $map.serialize_key(&SerializePyBytesLike::new(&$value))?;
+            }
+            PyObType::PyUuid => {
+                $map.serialize_key(&SerializePyUuid::new(&$value))?;
+            }
+            PyObType::Dataclass => {
+                $map.serialize_key(&SerializePyDataclass::new(&$value, $self.ctx, $self.depth))?;
+            }
+            // ------------------------------------------------------------
+            // RY-TYPES
+            // ------------------------------------------------------------
+            // __STD__
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyDuration => {
+                $map.serialize_key(&rytypes::PyDurationSerializer::new(&$value))?;
+            }
+
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyIpAddr => {
+                $map.serialize_key(&rytypes::PyIpAddrSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyIpv4Addr => {
+                $map.serialize_key(&rytypes::PyIpv4AddrSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PyIpv6Addr => {
+                $map.serialize_key(&rytypes::PyIpv6AddrSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PySocketAddr => {
+                $map.serialize_key(&rytypes::PySocketAddrSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PySocketAddrV4 => {
+                $map.serialize_key(&rytypes::PySocketAddrV4Serializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-std")]
+            PyObType::PySocketAddrV6 => {
+                $map.serialize_key(&rytypes::PySocketAddrV6Serializer::new(&$value))?;
+            }
+
+            // __HTTP__
+            #[cfg(feature = "ryo3-http")]
+            PyObType::RyHeaders => {
+                $map.serialize_key(&rytypes::PyHeadersSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-http")]
+            PyObType::RyHttpStatus => {
+                $map.serialize_key(&rytypes::PyHttpStatusSerializer::new(&$value))?;
+            }
+            // __JIFF__
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyDate => {
+                $map.serialize_key(&rytypes::RyDateSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyDateTime => {
+                $map.serialize_key(&rytypes::RyDateTimeSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RySignedDuration => {
+                $map.serialize_key(&rytypes::RySignedDurationSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTime => {
+                $map.serialize_key(&rytypes::RyTimeSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTimeSpan => {
+                $map.serialize_key(&rytypes::RySpanSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTimestamp => {
+                $map.serialize_key(&rytypes::RyTimestampSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyTimeZone => {
+                $map.serialize_key(&rytypes::RyTimeZoneSerializer::new(&$value))?;
+            }
+            #[cfg(feature = "ryo3-jiff")]
+            PyObType::RyZoned => {
+                $map.serialize_key(&rytypes::RyZonedSerializer::new(&$value))?;
+            }
+            // __ULID__
+            #[cfg(feature = "ryo3-ulid")]
+            PyObType::RyUlid => {
+                $map.serialize_key(&rytypes::PyUlidSerializer::new(&$value))?;
+            }
+            // __URL__
+            #[cfg(feature = "ryo3-url")]
+            PyObType::RyUrl => {
+                $map.serialize_key(&rytypes::PyUrlSerializer::new(&$value))?;
+            }
+            // __UUID__
+            #[cfg(feature = "ryo3-uuid")]
+            PyObType::RyUuid => {
+                $map.serialize_key(&rytypes::PyUuidSerializer::new(&$value))?;
+            }
+            // ------------------------------------------------------------
+            // UNKNOWN
+            // ------------------------------------------------------------
+            PyObType::Unknown => {
+                $map.serialize_key(&SerializePyAny::new_with_depth(
+                    &$value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
+            }
+        }
+    };
+}
 // TODO: swap to serialize_entry
 macro_rules! serialize_map_value {
     ($ob_type:expr, $map:expr, $self:expr, $value:expr) => {
@@ -209,18 +367,20 @@ impl Serialize for SerializePyDict<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_dict: &Bound<'_, PyDict> = self.obj.cast_exact().map_err(pyerr2sererr)?;
+        let py_dict = self.obj.cast_exact::<PyDict>().map_err(pyerr2sererr)?;
         let len = py_dict.len();
         if len == 0 {
             return serializer.serialize_map(Some(0))?.end();
         }
-        let mut m = serializer.serialize_map(None)?;
+        let mut m = serializer.serialize_map(Some(len))?;
         for (k, element) in py_dict {
-            let sk = SerializePyMappingKey::new(&k);
+            let ob_type_key= self.ctx.typeref.obtype(&k);
+            // let sk = SerializePyMappingKey::new(&k);
             // let sv = SerializePyAny::new_with_depth(&v, self.ctx, self.depth + 1);
-            let ob_type = self.ctx.typeref.obtype(&element);
-            m.serialize_key(&sk)?;
-            serialize_map_value!(ob_type, m, self, element);
+            let op_type_value = self.ctx.typeref.obtype(&element);
+            // m.serialize_key(&sk)?;
+            serialize_map_key!(ob_type_key, m, self, k);
+            serialize_map_value!(op_type_value, m, self, element);
         }
         m.end()
     }

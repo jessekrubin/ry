@@ -32,7 +32,7 @@ impl Serialize for SerializePyMappingKey<'_, '_> {
             serializer.serialize_bool(key)
         } else {
             let key_repr = any_repr(self.obj);
-            serde_err!("{} is not JSON-serializable as map-key", key_repr)
+            serde_err!("{} is not serializable as map-key", key_repr)
         }
     }
 }
