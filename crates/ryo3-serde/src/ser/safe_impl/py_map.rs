@@ -374,7 +374,7 @@ impl Serialize for SerializePyDict<'_, '_> {
         }
         let mut m = serializer.serialize_map(Some(len))?;
         for (k, element) in py_dict {
-            let ob_type_key= self.ctx.typeref.obtype(&k);
+            let ob_type_key = self.ctx.typeref.obtype(&k);
             // let sk = SerializePyMappingKey::new(&k);
             // let sv = SerializePyAny::new_with_depth(&v, self.ctx, self.depth + 1);
             let op_type_value = self.ctx.typeref.obtype(&element);
