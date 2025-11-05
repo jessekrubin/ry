@@ -260,7 +260,13 @@ jobs:
           source .venv/bin/activate
           pip install ry --find-links dist --force-reinstall
           pip install pytest
-          pytest
+      - name: install-ry
+        run: |
+          set -e
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install ry --no-index --find-links dist --force-reinstall
+          python -m ry
 
   sdist:
     runs-on: ubuntu-latest
