@@ -178,8 +178,8 @@ jobs:
             uv venv .venv
             uv pip install ry --no-index --find-links dist --force-reinstall
             uv pip install -r requirements.dev.txt
-            uv python -m ry
-            uv pytest
+            uv run python -m ry
+            uv run pytest
       - name: pytest
         if: ${{ !startsWith(matrix.platform.target, 'x86') }}
         uses: uraimo/run-on-arch-action@v2
