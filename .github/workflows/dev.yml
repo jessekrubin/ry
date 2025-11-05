@@ -155,7 +155,7 @@ jobs:
           options: -v ${{ github.workspace }}:/io -w /io
           run: |
             set -e
-            apk add py3-pip py3-virtualenv
+            apk add py3-pip py3-virtualenv tzdata
             python3 -m virtualenv .venv
             source .venv/bin/activate
             pip install ry --no-index --find-links dist --force-reinstall
@@ -170,7 +170,7 @@ jobs:
           distro: alpine_latest
           githubToken: ${{ github.token }}
           install: |
-            apk add py3-virtualenv
+            apk add py3-virtualenv tzdata
           run: |
             set -e
             python3 -m virtualenv .venv
