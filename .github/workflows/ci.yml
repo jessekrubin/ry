@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  packages: write # Required to upload docker images to ghcr
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -109,6 +110,9 @@ jobs:
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
+    permissions:
+      contents: read
+      packages: write # Required to upload docker images to ghcr
     strategy:
       matrix:
         platform:
