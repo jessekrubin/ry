@@ -187,35 +187,27 @@ jobs:
           arch: ${{ matrix.platform.target }}
           distro: alpine_latest
           githubToken: ${{ github.token }}
-          env: |
-            TZ: America/Los_Angeles
           install: |
-            apk add py3-virtualenv tzdata
-          run: |
-            set -e
-            python3 -m virtualenv .venv
-            source .venv/bin/activate
-            pip install ry --no-index --find-links dist --force-reinstall
-            python -m ry
-            pip install -r requirements.dev.txt
-            pytest
-      - name: pytest-uv
-        if: ${{ !startsWith(matrix.platform.target, 'x86') }}
-        uses: uraimo/run-on-arch-action@v2
-        with:
-          arch: ${{ matrix.platform.target }}
-          distro: alpine_latest
-          githubToken: ${{ github.token }}
-          env: |
-            TZ: America/Los_Angeles
-          install: |
-            apk add py3-virtualenv tzdata
+            apk add --no-cache py3-virtualenv tzdata
             curl -LsSf https://astral.sh/uv/install.sh | sh
+          env: |
+            TZ: America/Los_Angeles
           run: |
             set -e
+
+            export PATH="$HOME/.local/bin:$PATH"
+            uv --version
             uv venv .venv
-            source .venv/bin/activate
             uv pip install ry --no-index --find-links dist --force-reinstall
-            uv python -m ry
             uv pip install -r requirements.dev.txt
+            uv python -m ry
             uv pytest
+
+
+          # python3 -m virtualenv .venv
+          # source .venv/bin/activate
+          # pip install ry --no-index --find-links dist --force-reinstall
+          # python -m ry
+          # pip install -r requirements.dev.txt
+          # pytest
+          # # UV
