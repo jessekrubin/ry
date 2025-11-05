@@ -156,6 +156,7 @@ jobs:
             pip install -r requirements.dev.txt
             python -m ry
             pytest
+
       - name: pytest
         if: ${{ !startsWith(matrix.platform.target, 'x86') }}
         uses: uraimo/run-on-arch-action@v2
@@ -175,7 +176,6 @@ jobs:
             python -m ry
             pip install -r requirements.dev.txt
             pytest
-
   windows:
     runs-on: ${{ matrix.platform.runner }}
     strategy:
