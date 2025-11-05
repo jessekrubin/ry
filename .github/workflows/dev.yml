@@ -161,7 +161,6 @@ jobs:
             pip install ry --no-index --find-links dist --force-reinstall
             pip install -r requirements.dev.txt
             python -m ry
-            pip install pytest
             pytest
       - name: pytest
         if: ${{ !startsWith(matrix.platform.target, 'x86') }}
@@ -176,8 +175,7 @@ jobs:
             set -e
             python3 -m virtualenv .venv
             source .venv/bin/activate
-            pip install pytest
-            pip install -r requirements.dev.txt
-            pip install ry --find-links dist --force-reinstall
+            pip install ry --no-index --find-links dist --force-reinstall
             python -m ry
+            pip install -r requirements.dev.txt
             pytest
