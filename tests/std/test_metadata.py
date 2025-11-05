@@ -16,5 +16,6 @@ def test_metadata() -> None:
     assert isinstance(d["len"], int)
     assert isinstance(d["readonly"], bool)
     assert isinstance(d["accessed"], pydt.datetime)
-    assert isinstance(d["created"], pydt.datetime)
+    if "created" in d:  # created may not be available on all platforms
+        assert isinstance(d["created"], pydt.datetime)
     assert isinstance(d["modified"], pydt.datetime)

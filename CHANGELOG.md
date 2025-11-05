@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## v0.0.66 [unreleased]
+## v0.0.67 [unreleased]
+
+- fix musl builds
+
+---
+
+## v0.0.66 [2025-10-31]
 
 - fix typos in python tests
 - windows arm64 builds

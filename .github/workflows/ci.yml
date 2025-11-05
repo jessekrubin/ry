@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  packages: write # Required to upload docker images to ghcr
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -61,7 +62,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
+          args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features "mimalloc"
           sccache: "true"
           manylinux: ${{ matrix.platform.manylinux }} # SUPER WEIRD BUT ARRRRRRM IS A PITA
       - name: Upload wheels
@@ -109,6 +110,9 @@ jobs:
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
+    permissions:
+      contents: read
+      packages: write # Required to upload docker images to ghcr
     strategy:
       matrix:
         platform:
@@ -141,6 +145,41 @@ jobs:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: dist
 
+      - name: pytest
+        if: ${{ startsWith(matrix.platform.target, 'x86_64') }}
+        uses: addnab/docker-run-action@v3
+        with:
+          image: alpine:latest
+          options: -v ${{ github.workspace }}:/io -w /io -e TZ=America/Los_Angeles
+          run: |
+            set -e
+            apk add py3-pip py3-virtualenv tzdata
+            python3 -m virtualenv .venv
+            source .venv/bin/activate
+            pip install ry --no-index --find-links dist --force-reinstall
+            pip install -r requirements.dev.txt
+            python -m ry
+            pytest
+
+      - name: pytest
+        if: ${{ !startsWith(matrix.platform.target, 'x86') }}
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.platform.target }}
+          distro: alpine_latest
+          githubToken: ${{ github.token }}
+          env: |
+            TZ: America/Los_Angeles
+          install: |
+            apk add py3-virtualenv tzdata
+          run: |
+            set -e
+            python3 -m virtualenv .venv
+            source .venv/bin/activate
+            pip install ry --no-index --find-links dist --force-reinstall
+            python -m ry
+            pip install -r requirements.dev.txt
+            pytest
   windows:
     runs-on: ${{ matrix.platform.runner }}
     strategy:
@@ -172,7 +211,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --out dist --profile ${{ env.CARGO_PROFILE }} --interpreter 3.11 3.12 3.13 3.14
+          args: --out dist --profile ${{ env.CARGO_PROFILE }} --interpreter 3.11 3.12 3.13 3.14 --features "mimalloc"
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v5
@@ -211,13 +250,20 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
+          args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features "mimalloc"
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v5
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist
+      - name: install-ry
+        run: |
+          set -e
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install ry --no-index --find-links dist --force-reinstall
+          python -m ry
 
   sdist:
     runs-on: ubuntu-latest
