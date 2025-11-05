@@ -188,13 +188,12 @@ jobs:
           distro: alpine_latest
           githubToken: ${{ github.token }}
           install: |
-            apk add --no-cache py3-virtualenv tzdata
+            apk add --no-cache bash curl py3-pip py3-virtualenv tzdata
             curl -LsSf https://astral.sh/uv/install.sh | sh
           env: |
             TZ: America/Los_Angeles
           run: |
             set -e
-
             export PATH="$HOME/.local/bin:$PATH"
             uv --version
             uv venv .venv
