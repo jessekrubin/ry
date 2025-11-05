@@ -170,7 +170,10 @@ jobs:
           options: -v ${{ github.workspace }}:/io -w /io -e TZ=America/Los_Angeles
           run: |
             set -e
-            apk add py3-pip py3-virtualenv tzdata
+            apk add --no-cache bash curl py3-pip py3-virtualenv tzdata
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.local/bin:$PATH"
+            uv --version
             curl -LsSf https://astral.sh/uv/install.sh | sh
             uv venv .venv
             uv pip install ry --no-index --find-links dist --force-reinstall
