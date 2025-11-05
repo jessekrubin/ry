@@ -57,7 +57,9 @@ impl PyMetadata {
         metadata_dict.set_item(intern!(py, "readonly"), self.readonly())?;
         metadata_dict.set_item(intern!(py, "file_type"), self.file_type().to_py(py))?;
         metadata_dict.set_item(intern!(py, "accessed"), self.accessed()?)?;
-        metadata_dict.set_item(intern!(py, "created"), self.created()?)?;
+        if let Ok(created) = self.created() {
+            metadata_dict.set_item(intern!(py, "created"), created)?;
+        }
         metadata_dict.set_item(intern!(py, "modified"), self.modified()?)?;
         Ok(metadata_dict)
     }

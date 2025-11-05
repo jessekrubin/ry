@@ -67,7 +67,7 @@ inherits = "release"
 lto = "fat"
 
 [workspace.package]
-version = "0.0.66"
+version = "0.0.67"
 authors = [
   "jesse k. rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
