@@ -132,14 +132,14 @@ jobs:
         with:
           enable-cache: true
       - name: install-python
-        run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
+        # run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
+        run: uv python install 3.11 3.12
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
           # args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
-          args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
-          sccache: "true"
+          args: --out dist --interpreter 3.11 3.12
           manylinux: musllinux_1_2
       - name: Upload wheels
         uses: actions/upload-artifact@v5
