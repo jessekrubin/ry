@@ -111,3 +111,68 @@ jobs:
           name: cov-python-${{ matrix.python-version }}
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: jessekrubin/ry
+
+  musllinux-test:
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      matrix:
+        platform:
+          - runner: ubuntu-latest
+            target: x86_64
+          - runner: ubuntu-latest
+            target: x86
+          - runner: ubuntu-latest
+            target: aarch64
+          - runner: ubuntu-latest
+            target: armv7
+    steps:
+      - uses: actions/checkout@v5
+      - name: install-uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: install-python
+        run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          # args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
+          args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
+          sccache: "true"
+          manylinux: musllinux_1_2
+      - name: Upload wheels
+        uses: actions/upload-artifact@v5
+        with:
+          name: wheels-musllinux-dev-${{ matrix.platform.target }}
+          path: dist
+      - name: pytest
+        if: ${{ startsWith(matrix.platform.target, 'x86_64') }}
+        uses: addnab/docker-run-action@v3
+        with:
+          image: alpine:latest
+          options: -v ${{ github.workspace }}:/io -w /io
+          run: |
+            set -e
+            apk add py3-pip py3-virtualenv
+            python3 -m virtualenv .venv
+            source .venv/bin/activate
+            pip install ry --no-index --find-links dist --force-reinstall
+            pip install pytest
+            pytest
+      - name: pytest
+        if: ${{ !startsWith(matrix.platform.target, 'x86') }}
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.platform.target }}
+          distro: alpine_latest
+          githubToken: ${{ github.token }}
+          install: |
+            apk add py3-virtualenv
+          run: |
+            set -e
+            python3 -m virtualenv .venv
+            source .venv/bin/activate
+            pip install pytest
+            pip install ry --find-links dist --force-reinstall
+            pytest
