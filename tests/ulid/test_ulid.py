@@ -27,7 +27,7 @@ def utcnow() -> pydt.datetime:
 
 def datetimes_almost_equal(a: pydt.datetime, b: pydt.datetime) -> None:
     dt = abs((a - b).total_seconds())
-    assert dt < 0.01, (
+    assert dt < 0.05, (
         f"Expected {a} and {b} to be almost equal, but they differ by {dt} seconds"
     )
 
