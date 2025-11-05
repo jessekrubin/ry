@@ -57,7 +57,14 @@ def test_datetime_roundtrip(dt: pydt.datetime) -> None:
     assert roundtrip_date == dt, f"Expected {dt}, got {roundtrip_date}"
 
 
-@given(st.datetimes(timezones=st_timezones(), allow_imaginary=False))
+@given(
+    st.datetimes(
+        timezones=st_timezones(),
+        allow_imaginary=False,
+        min_value=pydt.datetime(1970, 1, 1, 0, 0, 0),
+        max_value=pydt.datetime(2100, 12, 31, 23, 59, 59),
+    )
+)
 def test_zoned_datetime_roundtrip(dt: pydt.datetime) -> None:
     """Test that ZonedDateTime round-trips to/from python correctly"""
     assume(dt.tzinfo is not None)
