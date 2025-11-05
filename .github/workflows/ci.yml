@@ -253,13 +253,6 @@ jobs:
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist
-      - name: pytest
-        run: |
-          set -e
-          python3 -m venv .venv
-          source .venv/bin/activate
-          pip install ry --find-links dist --force-reinstall
-          pip install pytest
       - name: install-ry
         run: |
           set -e
