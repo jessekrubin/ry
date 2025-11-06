@@ -86,7 +86,7 @@
     useless and may remove/deprecate
   - Upgrade sqlformat to `0.5.0` which adds the kwarg
     `dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic"`
-  - Added `SqlFormatter` object for storing a "config"/set-o-opts and for re-use
+  - Added `SqlFormatter` object for storing a "config"/set-o-opts and for reuse
     (which I was in need of)
 - `ryo3-reqwest`
   - Added `basic_auth` and `bearer_auth` kwargs to fetch functions (`get`,
@@ -140,7 +140,7 @@
 - `ryo3-reqwest`
   - `ry.Cookie` class/struct and `cookies`/`set_cookies` properties on the
     `ry.Response` class/struct
-- removed deprecated `.string()` methods from several structs/clases:
+- removed deprecated `.string()` methods from several structs/classes:
   - `ry.FsPath`
   - `ry.UUID`
   - `ry.DateTime`
