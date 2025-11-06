@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-11-06T09:10:42.5526598-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-11-06T12:21:38.283425108-08:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -341,7 +341,7 @@ am still working out the kinks of using <code>uv</code> with maturin</li>
 <li>For python classes/structs/types prefer <code>AsyncXYZ</code> over <code>XYZAsync</code></li>
 <li>use <code>snake_case</code> for functions and variables</li>
 <li>use <code>CamelCase</code> for types and traits</li>
-<li>use <code>SCREAMING_SNAKE_CASE</code> for constants and statics</li>
+<li>use <code>SCREAMING_SNAKE_CASE</code> for constants and static-class-attributes</li>
 </ul>
 </li>
 <li><strong>NO UNWRAPPING</strong> – use <code>expect</code> over <code>unwrap</code></li>
@@ -603,7 +603,7 @@ a wee bit faster)</li>
 useless and may remove/deprecate</li>
 <li>Upgrade sqlformat to <code>0.5.0</code> which adds the kwarg
 <code>dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic"</code></li>
-<li>Added <code>SqlFormatter</code> object for storing a “config”/set-o-opts and for re-use
+<li>Added <code>SqlFormatter</code> object for storing a “config”/set-o-opts and for reuse
 (which I was in need of)</li>
 </ul>
 </li>
@@ -676,7 +676,7 @@ now):
 <code>ry.Response</code> class/struct</li>
 </ul>
 </li>
-<li>removed deprecated <code>.string()</code> methods from several structs/clases:
+<li>removed deprecated <code>.string()</code> methods from several structs/classes:
 <ul>
 <li><code>ry.FsPath</code></li>
 <li><code>ry.UUID</code></li>
