@@ -4,19 +4,13 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.11.0
     # via -r requirements.dev.in
-attrs==25.4.0
-    # via hypothesis
 click==8.3.0
     # via uvicorn
-colorama==0.4.6
-    # via
-    #   click
-    #   pytest
 coverage==7.11.0
     # via pytest-cov
 h11==0.16.0
     # via uvicorn
-hypothesis==6.142.4
+hypothesis==6.146.0
     # via -r requirements.dev.in
 idna==3.11
     # via anyio
@@ -40,9 +34,9 @@ pluggy==1.6.0
     #   pytest-cov
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pydantic==2.12.3
+pydantic==2.12.4
     # via -r requirements.dev.in
-pydantic-core==2.41.4
+pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via pytest
@@ -54,11 +48,11 @@ pytest==8.4.2
     #   pytest-cov
 pytest-asyncio==1.2.0
     # via -r requirements.dev.in
-pytest-benchmark==5.1.0
+pytest-benchmark==5.2.1
     # via -r requirements.dev.in
 pytest-cov==7.0.0
     # via -r requirements.dev.in
-ruff==0.14.2
+ruff==0.14.3
     # via -r requirements.dev.in
 sniffio==1.3.1
     # via anyio

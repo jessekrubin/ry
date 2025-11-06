@@ -4,12 +4,15 @@
 [files]
 extend-exclude = [
   "tests/xxhash/_xxhash_test_data.py",
+  "tests/xxhash/xxhash.ndjson",
 ]
 
 [default]
 extend-ignore-identifiers-re = [
   "arange", # range list fn
   "NdArray",
+  "SER",
+  "wee", # as in a "wee bit"
 ]
 extend-ignore-re = [
   # disable line with `# spellchecker:disable-line` or `// spellchecker:disable-line`

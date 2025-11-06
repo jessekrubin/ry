@@ -23,7 +23,7 @@
   - For python classes/structs/types prefer `AsyncXYZ` over `XYZAsync`
   - use `snake_case` for functions and variables
   - use `CamelCase` for types and traits
-  - use `SCREAMING_SNAKE_CASE` for constants and statics
+  - use `SCREAMING_SNAKE_CASE` for constants and static-class-attributes
 - **NO UNWRAPPING** -- use `expect` over `unwrap`
 - **NO PANICS** -- don't panic!
 - **NO `blazingly-fast`** -- `ry` is fast and does not need an adverb

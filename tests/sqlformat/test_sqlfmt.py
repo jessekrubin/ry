@@ -347,7 +347,7 @@ def test_sql_formatter_pickle(options: _SqlFormatOptions) -> None:
 
 
 @given(options=st_sqlformat_options())
-def test_sql_formattter_repr_eval(options: _SqlFormatOptions) -> None:
+def test_sql_formatter_repr_eval(options: _SqlFormatOptions) -> None:
     sf = ry.SqlFormatter(**options)
     repr_str = repr(sf)
 
