@@ -73,20 +73,35 @@ impl PyUrl {
 
     #[staticmethod]
     #[pyo3(signature = (url, *, params = None))]
-    fn parse(url: &str, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
-        if let Some(params) = params {
-            Self::parse_with_params(url, params)
+    fn parse(url: &Bound<'_, PyAny>, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        if let Ok(url) = url.extract::<&str>() {
+            if let Some(params) = params {
+                Self::parse_with_params(url, params)
+            } else {
+                Self::from_str(url)
+            }
+        } else if let Ok(b) = url.extract::<&[u8]>() {
+            let s = std::str::from_utf8(b).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Invalid UTF-8 sequence: {e} (bytes={b:?})"
+                ))
+            })?;
+            if let Some(params) = params {
+                Self::parse_with_params(s, params)
+            } else {
+                Self::from_str(s)
+            }
         } else {
-            url::Url::parse(url).map(PyUrl).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-            })
+            Err(pyo3::exceptions::PyTypeError::new_err(
+                "Expected str or bytes for URL.parse",
+            ))
         }
     }
 
     #[staticmethod]
     #[pyo3(name = "parse_with_params")]
-    fn py_parse_with_params(url: &str, params: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Self::parse_with_params(url, params)
+    fn py_parse_with_params(url: &Bound<'_, PyAny>, params: &Bound<'_, PyDict>) -> PyResult<Self> {
+        Self::parse(url, Some(params))
     }
 
     fn __str__(&self) -> &str {
@@ -94,7 +109,7 @@ impl PyUrl {
     }
 
     fn __repr__(&self) -> String {
-        format!("URL(\'{}\')", self.0.as_str())
+        format!("{self}")
     }
 
     fn __hash__(&self) -> u64 {
@@ -483,6 +498,58 @@ impl PyUrl {
         let socks = sockets.into_iter().map(|sock| sock.to_string()).collect();
         Ok(socks)
     }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use pyo3::IntoPyObjectExt;
+        use ryo3_macro_rules::{py_value_err, py_value_error};
+        if let Ok(url) = value.cast_exact::<Self>() {
+            url.into_bound_py_any(value.py())
+        } else if let Ok(s) = value.extract::<&str>() {
+            if s.is_empty() {
+                // match pydantic's AnyUrl err msg
+                return py_value_err!("URL validation error: input is empty");
+            }
+            let url = url::Url::parse(s)
+                .map_err(|e| py_value_error!("URL validation error: {e} (url={s})"))?;
+            let py_url = Self::from(url);
+            py_url.into_bound_py_any(value.py())
+        } else if let Ok(b) = value.extract::<&[u8]>() {
+            if b.is_empty() {
+                // match pydantic's AnyUrl err msg
+                return py_value_err!("URL validation error: input is empty");
+            }
+            // to str
+            let str = std::str::from_utf8(b).map_err(|e| {
+                py_value_error!("URL validation error: invalid UTF-8 sequence: {e} (url={b:?})")
+            })?;
+            let url = url::Url::parse(str)
+                .map_err(|e| py_value_error!("URL validation error: {e} (url={b:?})"))?;
+            let py_url = Self::from(url);
+            py_url.into_bound_py_any(value.py())
+        } else {
+            // TODO: figure out how to match pydantic's ability to do value-type-errors?
+            ryo3_macro_rules::py_value_err!("Expected str or bytes or URL object",)
+        }
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl AsRef<url::Url> for PyUrl {
@@ -494,5 +561,37 @@ impl AsRef<url::Url> for PyUrl {
 impl From<url::Url> for PyUrl {
     fn from(url: url::Url) -> Self {
         Self(url)
+    }
+}
+
+impl std::fmt::Display for PyUrl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "URL(\'{}\')", self.0.as_str())
+    }
+}
+
+#[cfg(feature = "pydantic")]
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
+    fn get_pydantic_core_schema<'py>(
+        cls: &Bound<'py, pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::interns;
+
+        let py = source.py();
+        let core_schema = ryo3_pydantic::core_schema(py)?;
+        let url_schema = core_schema.call_method(pyo3::intern!(py, "url_schema"), (), None)?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+        let args = PyTuple::new(py, vec![&validation_fn, &url_schema])?;
+        let string_serialization_schema =
+            core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+        let serialization_kwargs = pyo3::types::PyDict::new(py);
+        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        core_schema.call_method(
+            interns::no_info_wrap_validator_function(py),
+            args,
+            Some(&serialization_kwargs),
+        )
     }
 }

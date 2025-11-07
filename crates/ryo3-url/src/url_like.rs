@@ -12,7 +12,17 @@ impl<'py> FromPyObject<'_, 'py> for UrlLike {
         if let Ok(url) = obj.cast_exact::<PyUrl>() {
             let url = url.borrow();
             Ok(Self(url.0.clone()))
-        } else if let Ok(s) = obj.cast::<PyString>()?.to_str() {
+        } else if let Ok(s) = obj.extract::<&str>() {
+            let url = url::Url::parse(s).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={s})"))
+            })?;
+            Ok(Self(url))
+        } else if let Ok(b) = obj.extract::<&[u8]>() {
+            let s = std::str::from_utf8(b).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Invalid UTF-8 sequence: {e} (bytes={b:?})"
+                ))
+            })?;
             let url = url::Url::parse(s).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={s})"))
             })?;
