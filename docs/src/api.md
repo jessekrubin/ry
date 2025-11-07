@@ -5383,18 +5383,22 @@ from ry.ryo3._std import SocketAddr
 @t.final
 class URL(FromStr):
     def __init__(
-        self, url: str | URL, *, params: dict[str, str] | None = None
+        self, url: str | bytes | URL, *, params: dict[str, str] | None = None
     ) -> None: ...
 
     # =========================================================================
     # CLASSMETHODS
     # =========================================================================
     @classmethod
-    def parse(cls, url: str) -> URL: ...
+    def parse(
+        cls, url: str | bytes, params: dict[str, str] | None = None
+    ) -> URL: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse_with_params(cls, url: str, params: dict[str, str]) -> URL: ...
+    def parse_with_params(
+        cls, url: str | bytes, params: dict[str, str]
+    ) -> URL: ...
     @classmethod
     def from_directory_path(cls, path: FsPathLike) -> URL: ...
     @classmethod

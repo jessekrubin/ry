@@ -3,6 +3,8 @@
 ## v0.0.67 [unreleased]
 
 - fix musl builds
+- `ryo3-url`
+  - pydantic support
 
 ---
 

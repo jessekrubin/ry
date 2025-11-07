@@ -2,7 +2,9 @@
 
 Many tests for datetime-et-al parsing are adapted from pydantic's datetime tests.
 
-REF: https://github.com/pydantic/pydantic/blob/main/tests/test_datetime.py
+REF(s):
+    datetime: https://github.com/pydantic/pydantic/blob/main/tests/test_datetime.py
+    url: https://github.com/pydantic/pydantic/blob/main/tests/test_networks.py
 
 """
 
@@ -64,6 +66,15 @@ class RyTimeSpanModel(pydantic.BaseModel):
     d: ry.TimeSpan
 
 
+# URL MODELS
+class PyUrlModel(pydantic.BaseModel):
+    url: pydantic.AnyUrl
+
+
+class RyUrlModel(pydantic.BaseModel):
+    url: ry.URL
+
+
 class TestJsonSchemas:
     def _diff_schemas(self, left: dict[str, Any], right: dict[str, Any]) -> None:
         left_no_title = {k: v for k, v in left.items() if k != "title"}
@@ -96,6 +107,11 @@ class TestJsonSchemas:
             RyTimeSpanModel.model_json_schema(),
             PyTimedeltaModel.model_json_schema(),
         )
+
+    def test_url_model_schema(self) -> None:
+        py_schema = PyUrlModel.model_json_schema()
+        ry_schema = RyUrlModel.model_json_schema()
+        self._diff_schemas(py_schema, ry_schema)
 
 
 def create_tz(minutes: int) -> pydt.tzinfo:
@@ -583,3 +599,133 @@ class TestTimestamp:
         )
         from_json = RyTimestampModel.model_validate_json(as_json)
         assert from_json.ts == m.ts
+
+
+# ---------------------------------------------------------------------------
+# URL ~ URL ~ URL ~ URL ~ URL ~ URL ~ URL ~ URL ~ URL ~ URL ~ URL ~ URL ~ URL
+# ---------------------------------------------------------------------------
+
+_OK_URLS = [
+    "http://example.org",
+    "http://test",
+    "http://localhost",
+    "https://example.org/whatever/next/",
+    "postgres://user:pass@localhost:5432/app",
+    "postgres://just-user@localhost:5432/app",
+    "postgresql+asyncpg://user:pass@localhost:5432/app",
+    "postgresql+pg8000://user:pass@localhost:5432/app",
+    "postgresql+psycopg://postgres:postgres@localhost:5432/hatch",
+    "postgresql+psycopg2://postgres:postgres@localhost:5432/hatch",
+    "postgresql+psycopg2cffi://user:pass@localhost:5432/app",
+    "postgresql+py-postgresql://user:pass@localhost:5432/app",
+    "postgresql+pygresql://user:pass@localhost:5432/app",
+    "mysql://user:pass@localhost:3306/app",
+    "mysql+mysqlconnector://user:pass@localhost:3306/app",
+    "mysql+aiomysql://user:pass@localhost:3306/app",
+    "mysql+asyncmy://user:pass@localhost:3306/app",
+    "mysql+mysqldb://user:pass@localhost:3306/app",
+    "mysql+pymysql://user:pass@localhost:3306/app?charset=utf8mb4",
+    "mysql+cymysql://user:pass@localhost:3306/app",
+    "mysql+pyodbc://user:pass@localhost:3306/app",
+    "mariadb://user:pass@localhost:3306/app",
+    "mariadb+mariadbconnector://user:pass@localhost:3306/app",
+    "mariadb+pymysql://user:pass@localhost:3306/app",
+    "snowflake://user:pass@myorganization-myaccount",
+    "snowflake://user:pass@myorganization-myaccount/testdb/public?warehouse=testwh&role=myrole",
+    "foo-bar://example.org",
+    "foo.bar://example.org",
+    "foo0bar://example.org",
+    "https://example.org",
+    "http://localhost",
+    "http://localhost/",
+    "http://localhost:8000",
+    "http://localhost:8000/",
+    "https://foo_bar.example.com/",
+    "ftp://example.org",
+    "ftps://example.org",
+    "http://example.co.jp",
+    "http://www.example.com/a%C2%B1b",
+    "http://www.example.com/~username/",
+    "http://info.example.com?fred",
+    "http://info.example.com/?fred",
+    "http://xn--mgbh0fb.xn--kgbechtv/",
+    "http://example.com/blue/red%3Fand+green",
+    "http://www.example.com/?array%5Bkey%5D=value",
+    "http://xn--rsum-bpad.example.org/",
+    "http://123.45.67.8/",
+    "http://123.45.67.8:8329/",
+    "http://[2001:db8::ff00:42]:8329",
+    "http://[2001::1]:8329",
+    "http://[2001:db8::1]/",
+    "http://www.example.com:8000/foo",
+    "http://www.cwi.nl:80/%7Eguido/Python.html",
+    "https://www.python.org/путь",
+    "http://андрей@example.com",
+    "https://exam_ple.com/",
+    "http://twitter.com/@handle/",
+    "http://11.11.11.11.example.com/action",
+    "http://abc.11.11.11.11.example.com/action",
+    "http://example#",
+    "http://example/#",
+    "http://example/#fragment",
+    "http://example/?#",
+    "http://example.org/path#",
+    "http://example.org/path#fragment",
+    "http://example.org/path?query#",
+    "http://example.org/path?query#fragment",
+]
+
+
+@pytest.mark.parametrize(
+    "val",
+    [
+        *_OK_URLS,
+        *(b.encode("utf-8") for b in _OK_URLS),
+    ],
+)
+def test_url_parsing_ok(val: str | bytes) -> None:
+    model_obj = RyUrlModel(url=val)  # type: ignore[arg-type]
+    url_obj = ry.URL.parse(val)
+    assert isinstance(model_obj.url, ry.URL)
+    assert model_obj.url == url_obj
+    model_dumped_json = model_obj.model_dump_json()
+    from_json = RyUrlModel.model_validate_json(model_dumped_json)
+    assert from_json == model_obj
+    assert from_json.url == model_obj.url
+
+    model_obj_from_url = RyUrlModel(url=url_obj)
+    assert model_obj_from_url == model_obj
+
+
+@pytest.mark.parametrize(
+    "value,err_msg",
+    [
+        ("http:///", "empty host"),
+        ("http://??", "empty host"),
+        ("$https://example.org", "relative URL without a base"),
+        ("../icons/logo.gif", "relative URL without a base"),
+        ("abc", "relative URL without a base"),
+        ("..", "relative URL without a base"),
+        ("/", "relative URL without a base"),
+        ("+http://example.com/", "relative URL without a base"),
+        ("ht*tp://example.com/", "relative URL without a base"),
+        (" ", "relative URL without a base"),
+        ("", "input is empty"),
+        ("http://2001:db8::ff00:42:8329", "invalid port number"),
+        ("http://[192.168.1.1]:8329", "invalid IPv6 address"),
+        ("http://example.com:99999", "invalid port number"),
+        # TODO: figure out how to make validation errors more specific (eg `type_error`)
+        # TODO: Mimic Pydantic error message
+        #       The Pydantic error looks like: 'Input should be a valid URL, invalid port number',
+        (None, "Expected str or bytes or URL object"),
+    ],
+)
+def test_url_parsing_err(value: str | None, err_msg: str) -> None:
+    with pytest.raises(pydantic.ValidationError) as exc_info:
+        RyUrlModel(url=value)  # type: ignore[arg-type]
+    assert len(exc_info.value.errors(include_url=False)) == 1, exc_info.value.errors(
+        include_url=False
+    )
+    error = exc_info.value.errors(include_url=False)[0]
+    assert error["type"] == "value_error"
+    assert err_msg in error["msg"]

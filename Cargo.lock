@@ -2142,6 +2142,7 @@ version = "0.0.67"
 dependencies = [
  "pyo3",
  "ryo3-macro-rules",
+ "ryo3-pydantic",
  "ryo3-std",
  "serde",
  "url",
