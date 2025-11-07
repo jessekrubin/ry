@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-11-06T12:21:38.283425108-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-11-07T13:23:26.074927137-08:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -482,6 +482,11 @@ dumping, and async file I/O tools.</p>
 <h2 id="v0067-unreleased"><a class="header" href="#v0067-unreleased">v0.0.67 [unreleased]</a></h2>
 <ul>
 <li>fix musl builds</li>
+<li><code>ryo3-url</code>
+<ul>
+<li>pydantic support</li>
+</ul>
+</li>
 </ul>
 <hr />
 <h2 id="v0066-2025-10-31"><a class="header" href="#v0066-2025-10-31">v0.0.66 [2025-10-31]</a></h2>
@@ -7819,18 +7824,22 @@ from ry.ryo3._std import SocketAddr
 @t.final
 class URL(FromStr):
     def __init__(
-        self, url: str | URL, *, params: dict[str, str] | None = None
+        self, url: str | bytes | URL, *, params: dict[str, str] | None = None
     ) -&gt; None: ...
 
     # =========================================================================
     # CLASSMETHODS
     # =========================================================================
     @classmethod
-    def parse(cls, url: str) -&gt; URL: ...
+    def parse(
+        cls, url: str | bytes, params: dict[str, str] | None = None
+    ) -&gt; URL: ...
     @classmethod
     def from_str(cls, s: str) -&gt; t.Self: ...
     @classmethod
-    def parse_with_params(cls, url: str, params: dict[str, str]) -&gt; URL: ...
+    def parse_with_params(
+        cls, url: str | bytes, params: dict[str, str]
+    ) -&gt; URL: ...
     @classmethod
     def from_directory_path(cls, path: FsPathLike) -&gt; URL: ...
     @classmethod
