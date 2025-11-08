@@ -320,11 +320,10 @@ pub fn write_bytes(py: Python<'_>, fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyR
 #[pyfunction]
 pub fn write_text(py: Python<'_>, fspath: PathBuf, string: &str) -> PyResult<usize> {
     let str_bytes = string.as_bytes();
-    let r = py.detach(|| std::fs::write(&fspath, str_bytes).map(|_| str_bytes.len()))?;
+    let r = py.detach(|| std::fs::write(&fspath, str_bytes).map(|()| str_bytes.len()))?;
     Ok(r)
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 pub fn write_str(py: Python<'_>, fspath: PathBuf, string: &str) -> PyResult<usize> {
     write_text(py, fspath, string)
