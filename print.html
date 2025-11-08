@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-11-07T13:23:26.074927137-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-11-07T19:10:22.96092456-08:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -479,8 +479,13 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0067-unreleased"><a class="header" href="#v0067-unreleased">v0.0.67 [unreleased]</a></h2>
+<h2 id="v0067-2025-11-07"><a class="header" href="#v0067-2025-11-07">v0.0.67 [2025-11-07]</a></h2>
 <ul>
+<li><code>ryo3-std</code>
+<ul>
+<li><code>read_str</code> as <code>read_text</code> alias</li>
+</ul>
+</li>
 <li>fix musl builds</li>
 <li><code>ryo3-url</code>
 <ul>
@@ -2722,6 +2727,7 @@ from ry.ryo3._std import read as read
 from ry.ryo3._std import read_bytes as read_bytes
 from ry.ryo3._std import read_dir as read_dir
 from ry.ryo3._std import read_link as read_link
+from ry.ryo3._std import read_str as read_str
 from ry.ryo3._std import read_stream as read_stream
 from ry.ryo3._std import read_text as read_text
 from ry.ryo3._std import read_to_string as read_to_string
@@ -7273,6 +7279,7 @@ def read_stream(
     path: FsPathLike, chunk_size: int = 65536, *, offset: int = 0
 ) -&gt; FileReadStream: ...
 def read_text(path: FsPathLike) -&gt; str: ...
+def read_str(path: FsPathLike) -&gt; str: ...
 def read_to_string(path: FsPathLike) -&gt; str: ...
 def remove_dir(path: FsPathLike) -&gt; None: ...
 def remove_dir_all(path: FsPathLike) -&gt; None: ...
