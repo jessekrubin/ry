@@ -8,8 +8,8 @@ use pyo3::exceptions::{
 };
 use pyo3::types::{PyBytes, PyDict};
 use pyo3::{intern, prelude::*};
-use ryo3_bytes::extract_bytes_ref_str;
 use ryo3_core::types::PathLike;
+use ryo3_macro_rules::py_type_err;
 use std::convert::Into;
 
 use std::ffi::OsString;
@@ -281,8 +281,8 @@ fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize
 }
 
 #[pyfunction]
-pub fn read_link(pth: PathBuf) -> PyResult<PathBuf> {
-    let p = std::fs::read_link(pth)?;
+pub fn read_link(py: Python<'_>, pth: PathBuf) -> PyResult<PathBuf> {
+    let p = py.detach(|| std::fs::read_link(pth))?;
     Ok(p)
 }
 
@@ -293,30 +293,41 @@ pub fn read_to_string(py: Python<'_>, pth: PathBuf) -> PyResult<String> {
 }
 
 #[pyfunction]
-pub fn write(fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
-    let bref = extract_bytes_ref_str(b)?;
-    write_impl(fspath, bref)
+pub fn read_str(py: Python<'_>, pth: PathBuf) -> PyResult<String> {
+    read_to_string(py, pth)
 }
 
 #[pyfunction]
-pub fn write_bytes(fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
-    let bref = extract_bytes_ref_str(b)?;
-    write_impl(fspath, bref)
+pub fn write(py: Python<'_>, fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+    if let Ok(pystr) = b.cast_exact::<pyo3::types::PyString>() {
+        let s = pystr.extract::<&str>()?;
+        let bytes = s.as_bytes();
+        py.detach(|| write_impl(fspath, bytes))
+    } else if let Ok(b) = b.extract::<ryo3_bytes::PyBytes>() {
+        py.detach(|| write_impl(fspath, b))
+    } else {
+        py_type_err!("write - expected str, bytes, bytes-like or buffer-protocol object")
+    }
+}
+
+#[pyfunction]
+pub fn write_bytes(py: Python<'_>, fspath: PathBuf, b: &Bound<'_, PyAny>) -> PyResult<usize> {
+    let bref = b.extract::<ryo3_bytes::PyBytes>()?;
+    py.detach(|| write_impl(fspath, bref))
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-pub fn write_text(fspath: PathBuf, string: &str) -> PyResult<usize> {
+pub fn write_text(py: Python<'_>, fspath: PathBuf, string: &str) -> PyResult<usize> {
     let str_bytes = string.as_bytes();
-    match std::fs::write(&fspath, str_bytes) {
-        Ok(()) => Ok(str_bytes.len()),
-        Err(e) => {
-            let fspath_str = fspath.to_string_lossy();
-            Err(PyNotADirectoryError::new_err(format!(
-                "write_bytes - parent: {fspath_str} - {e}"
-            )))
-        }
-    }
+    let r = py.detach(|| std::fs::write(&fspath, str_bytes).map(|_| str_bytes.len()))?;
+    Ok(r)
+}
+
+#[expect(clippy::needless_pass_by_value)]
+#[pyfunction]
+pub fn write_str(py: Python<'_>, fspath: PathBuf, string: &str) -> PyResult<usize> {
+    write_text(py, fspath, string)
 }
 
 #[expect(clippy::needless_pass_by_value)]
@@ -536,6 +547,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(read_dir, m)?)?;
     m.add_function(wrap_pyfunction!(read_link, m)?)?;
+    m.add_function(wrap_pyfunction!(read_str, m)?)?;
     m.add_function(wrap_pyfunction!(read_stream, m)?)?;
     m.add_function(wrap_pyfunction!(read_text, m)?)?;
     m.add_function(wrap_pyfunction!(read_to_string, m)?)?;

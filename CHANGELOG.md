@@ -1,7 +1,9 @@
 # CHANGELOG
 
-## v0.0.67 [unreleased]
+## v0.0.67 [2025-11-07]
 
+- `ryo3-std`
+  - `read_str` as `read_text` alias
 - fix musl builds
 - `ryo3-url`
   - pydantic support
