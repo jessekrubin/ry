@@ -142,6 +142,7 @@ from ry.ryo3._std import read as read
 from ry.ryo3._std import read_bytes as read_bytes
 from ry.ryo3._std import read_dir as read_dir
 from ry.ryo3._std import read_link as read_link
+from ry.ryo3._std import read_str as read_str
 from ry.ryo3._std import read_stream as read_stream
 from ry.ryo3._std import read_text as read_text
 from ry.ryo3._std import read_to_string as read_to_string
