@@ -9,6 +9,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
+use crate::series::RyZonedSeries;
 use crate::spanish::Spanish;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
@@ -674,6 +675,11 @@ impl RyZoned {
         builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
+    fn series(&self, period: &RySpan) -> PyResult<RyZonedSeries> {
+        period.assert_non_zero()?;
+        let s = self.0.series(period.0);
+        Ok(RyZonedSeries::from(s))
+    }
     // -----------------------------------------------------------------------
     // getters
     // -----------------------------------------------------------------------

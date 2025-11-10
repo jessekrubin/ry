@@ -1,4 +1,4 @@
-use crate::{RyDate, RyDateTime, RyTime, RyTimestamp};
+use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
 use parking_lot::Mutex;
 use pyo3::prelude::*;
 
@@ -123,5 +123,36 @@ impl RyTimestampSeries {
     fn take(&self, n: usize) -> Vec<RyTimestamp> {
         let mut s = self.series.lock();
         s.by_ref().take(n).map(RyTimestamp::from).collect()
+    }
+}
+
+#[pyclass(name = "ZonedSeries", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct RyZonedSeries {
+    pub(crate) series: Mutex<jiff::ZonedSeries>,
+}
+
+impl From<jiff::ZonedSeries> for RyZonedSeries {
+    fn from(series: jiff::ZonedSeries) -> Self {
+        Self {
+            series: Mutex::new(series),
+        }
+    }
+}
+
+#[pymethods]
+impl RyZonedSeries {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(&self) -> Option<RyZoned> {
+        self.series.lock().next().map(RyZoned::from)
+    }
+
+    #[pyo3(signature = (n = 1))]
+    fn take(&self, n: usize) -> Vec<RyZoned> {
+        let mut s = self.series.lock();
+        s.by_ref().take(n).map(RyZoned::from).collect()
     }
 }
