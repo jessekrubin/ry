@@ -27,9 +27,11 @@ impl RyDateSeries {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyDate> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyDate::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyDate> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyDate::from).collect()
+        })
     }
 }
 
@@ -58,9 +60,11 @@ impl RyDateTimeSeries {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyDateTime> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyDateTime::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyDateTime> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyDateTime::from).collect()
+        })
     }
 }
 
@@ -88,10 +92,11 @@ impl RyTimeSeries {
         self.series.lock().next().map(RyTime::from)
     }
 
-    #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyTime> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyTime::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyTime> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyTime::from).collect()
+        })
     }
 }
 
@@ -120,9 +125,11 @@ impl RyTimestampSeries {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyTimestamp> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyTimestamp::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyTimestamp> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyTimestamp::from).collect()
+        })
     }
 }
 
@@ -151,8 +158,10 @@ impl RyZonedSeries {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyZoned> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyZoned::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyZoned> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyZoned::from).collect()
+        })
     }
 }
