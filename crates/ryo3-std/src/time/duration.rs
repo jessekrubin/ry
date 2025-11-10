@@ -1,9 +1,12 @@
+#[cfg(feature = "jiff")]
+use jiff::fmt::friendly::Designator;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDict, PyInt, PyTuple};
 use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
 use ryo3_macro_rules::{
-    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
+    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
+    py_zero_division_err,
 };
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
@@ -17,6 +20,40 @@ const DAYS_PER_WEEK: u64 = 7;
 const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY);
 const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
 
+// jiff
+#[cfg(feature = "jiff")]
+const TEMPORAL_SPAN_PARSER: jiff::fmt::temporal::SpanParser =
+    jiff::fmt::temporal::SpanParser::new();
+#[cfg(feature = "jiff")]
+const TEMPORAL_SPAN_PRINTER: jiff::fmt::temporal::SpanPrinter =
+    jiff::fmt::temporal::SpanPrinter::new();
+#[cfg(feature = "jiff")]
+const FRIENDLY_SPAN_PARSER: jiff::fmt::friendly::SpanParser =
+    jiff::fmt::friendly::SpanParser::new();
+
+// Maybe use?`HumanTime` designator for friendly parser/printer to avoid ambiguous `µ`:w
+// REF: https://github.com/jessekrubin/ry/discussions/229#discussioncomment-14928815
+// ```txt
+// RUF001 String contains ambiguous `µ` (MICRO SIGN). Did you mean `μ` (GREEK SMALL LETTER MU)?
+//   --> tests\std\test_duration_str.py:45:59
+//    |
+// 43 |         max_dur = ry.Duration.MAX
+// 44 |         iso_str = max_dur.friendly()
+// 45 |         assert iso_str == "5124095576030431h 15s 999ms 999µs 999ns"
+//    |                                                           ^
+// 46 |         parsed_max_dur = ry.Duration.from_str(iso_str)
+// 47 |         assert parsed_max_dur == max_dur
+//    |
+//
+// Found 1 error.
+// ```
+#[cfg(feature = "jiff")]
+const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
+    jiff::fmt::friendly::SpanPrinter::new();
+// const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter = jiff::fmt::friendly::SpanPrinter::new().designator(
+// jiff::fmt::friendly::Designator::HumanTime,
+// );
+
 #[derive(Copy, Clone, PartialEq)]
 #[pyclass(name = "Duration", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -27,6 +64,7 @@ impl From<Duration> for PyDuration {
         Self(d)
     }
 }
+
 impl From<PyDuration> for Option<Duration> {
     fn from(d: PyDuration) -> Self {
         Some(d.0)
@@ -478,9 +516,86 @@ impl PyDuration {
         Self::try_from_secs_f64(secs)
     }
 
+    #[staticmethod]
+    fn fromisoformat(isoformat: &str) -> PyResult<Self> {
+        use jiff::fmt::temporal::SpanParser;
+        let parser = SpanParser::new();
+        let duration = parser
+            .parse_unsigned_duration(isoformat)
+            .map_err(|e| py_value_error!("invalid isoformat string: {e}"))?;
+        Ok(Self(duration))
+    }
+
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        let dur = TEMPORAL_SPAN_PARSER
+            .parse_unsigned_duration(s)
+            .map(Self::from);
+        match dur {
+            Ok(dur) => Ok(dur),
+            Err(_) => FRIENDLY_SPAN_PARSER
+                .parse_unsigned_duration(s)
+                .map(Self::from)
+                .map_err(|_| py_value_error!("invalid duration string: {s}")),
+        }
+    }
+
     // ========================================================================
     // METHODS
     // ========================================================================
+    #[cfg(feature = "jiff")]
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> String {
+        self.__str__()
+    }
+
+    fn __str__(&self) -> String {
+        self.isoformat()
+    }
+
+    fn __format__(&self, fmt: &str) -> PyResult<String> {
+        if fmt == "#" {
+            Ok(FRIENDLY_SPAN_PRINTER.unsigned_duration_to_string(&self.0))
+        } else if fmt.is_empty() {
+            Ok(self.py_to_string())
+        } else {
+            py_type_err!("Invalid format specifier '{fmt}' for SignedDuration")
+        }
+    }
+
+    #[cfg(feature = "jiff")]
+    fn isoformat(&self) -> String {
+        TEMPORAL_SPAN_PRINTER.unsigned_duration_to_string(&self.0)
+    }
+
+    #[cfg(feature = "jiff")]
+    #[pyo3(signature = (designator = None))]
+    fn friendly(&self, designator: Option<&str>) -> PyResult<String> {
+        if let Some(designator) = designator {
+            match designator {
+                "human-time" | "human" => Ok(FRIENDLY_SPAN_PRINTER
+                    .designator(Designator::HumanTime)
+                    .unsigned_duration_to_string(&self.0)),
+                "short" => Ok(FRIENDLY_SPAN_PRINTER
+                    .designator(Designator::Short)
+                    .unsigned_duration_to_string(&self.0)),
+                "compact" => Ok(FRIENDLY_SPAN_PRINTER
+                    .designator(Designator::Compact)
+                    .unsigned_duration_to_string(&self.0)),
+                "verbose" => Ok(FRIENDLY_SPAN_PRINTER
+                    .designator(Designator::Verbose)
+                    .unsigned_duration_to_string(&self.0)),
+                other => {
+                    py_value_err!(
+                        "invalid designator: {other} (expected 'human'/'human-time', 'short', or 'compact')"
+                    )
+                }
+            }
+        } else {
+            Ok(FRIENDLY_SPAN_PRINTER.unsigned_duration_to_string(&self.0))
+        }
+    }
+
     #[pyo3(signature = (interval = None))]
     /// Sleep for the duration
     pub(crate) fn sleep(&self, py: Python<'_>, interval: Option<u64>) -> PyResult<()> {
