@@ -5,8 +5,7 @@ use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDict, PyInt, PyTuple};
 use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
 use ryo3_macro_rules::{
-    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
-    py_zero_division_err,
+    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
@@ -516,9 +515,11 @@ impl PyDuration {
         Self::try_from_secs_f64(secs)
     }
 
+    #[cfg(feature = "jiff")]
     #[staticmethod]
     fn fromisoformat(isoformat: &str) -> PyResult<Self> {
         use jiff::fmt::temporal::SpanParser;
+        use ryo3_macro_rules::py_value_error;
         let parser = SpanParser::new();
         let duration = parser
             .parse_unsigned_duration(isoformat)
@@ -526,8 +527,10 @@ impl PyDuration {
         Ok(Self(duration))
     }
 
+    #[cfg(feature = "jiff")]
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_macro_rules::py_value_error;
         let dur = TEMPORAL_SPAN_PARSER
             .parse_unsigned_duration(s)
             .map(Self::from);
@@ -549,10 +552,12 @@ impl PyDuration {
         self.__str__()
     }
 
+    #[cfg(feature = "jiff")]
     fn __str__(&self) -> String {
         self.isoformat()
     }
 
+    #[cfg(feature = "jiff")]
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         if fmt == "#" {
             Ok(FRIENDLY_SPAN_PRINTER.unsigned_duration_to_string(&self.0))
