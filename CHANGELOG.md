@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.68 [unreleased]
+
+- `ryo3-jiff`
+  - Update jiff to `0.2.16`
+  - Add `ZonedSeries`
+- `ryo3-std`
+  - Use jiff for duration formatting
+
+---
+
 ## v0.0.67 [2025-11-07]
 
 - `ryo3-std`

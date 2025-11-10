@@ -13,6 +13,11 @@ _SUPPORTS_SERIES = [
     (ry.datetime(2020, 8, 26, 6, 27, 0, 0), ry.timespan(days=1)),
     # timestamp
     (ry.Timestamp.from_millisecond(1598438400000), ry.timespan(seconds=1)),
+    # zoned datetime
+    (
+        ry.ZonedDateTime(2020, 8, 26, 6, 27, 0, 0, "America/New_York"),
+        ry.timespan(days=1),
+    ),
 ]
 
 
@@ -36,3 +41,12 @@ def test_series(
 def test_series_errors(obj: ry.Date | ry.DateTime | ry.Timestamp) -> None:
     with pytest.raises(ValueError):
         obj.series(ry.timespan())
+
+
+def test_zoned_series() -> None:
+    zdt = ry.ZonedDateTime(2012, 1, 1, 0, 0, 0, 0, "Pacific/Apia")
+    it = zdt.series(ry.timespan(days=-1))
+    assert next(it).to_string() == "2012-01-01T00:00:00+14:00[Pacific/Apia]"
+    assert next(it).to_string() == "2011-12-31T00:00:00+14:00[Pacific/Apia]"
+    assert next(it).to_string() == "2011-12-29T00:00:00-10:00[Pacific/Apia]"
+    assert next(it).to_string() == "2011-12-28T00:00:00-10:00[Pacific/Apia]"

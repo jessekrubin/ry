@@ -1,4 +1,4 @@
-use crate::{RyDate, RyDateTime, RyTime, RyTimestamp};
+use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
 use parking_lot::Mutex;
 use pyo3::prelude::*;
 
@@ -27,9 +27,11 @@ impl RyDateSeries {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyDate> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyDate::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyDate> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyDate::from).collect()
+        })
     }
 }
 
@@ -58,9 +60,11 @@ impl RyDateTimeSeries {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyDateTime> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyDateTime::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyDateTime> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyDateTime::from).collect()
+        })
     }
 }
 
@@ -88,10 +92,11 @@ impl RyTimeSeries {
         self.series.lock().next().map(RyTime::from)
     }
 
-    #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyTime> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyTime::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyTime> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyTime::from).collect()
+        })
     }
 }
 
@@ -120,8 +125,43 @@ impl RyTimestampSeries {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<RyTimestamp> {
-        let mut s = self.series.lock();
-        s.by_ref().take(n).map(RyTimestamp::from).collect()
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyTimestamp> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyTimestamp::from).collect()
+        })
+    }
+}
+
+#[pyclass(name = "ZonedSeries", frozen)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct RyZonedSeries {
+    pub(crate) series: Mutex<jiff::ZonedSeries>,
+}
+
+impl From<jiff::ZonedSeries> for RyZonedSeries {
+    fn from(series: jiff::ZonedSeries) -> Self {
+        Self {
+            series: Mutex::new(series),
+        }
+    }
+}
+
+#[pymethods]
+impl RyZonedSeries {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(&self) -> Option<RyZoned> {
+        self.series.lock().next().map(RyZoned::from)
+    }
+
+    #[pyo3(signature = (n = 1))]
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyZoned> {
+        py.detach(|| {
+            let mut s = self.series.lock();
+            s.by_ref().take(n).map(RyZoned::from).collect()
+        })
     }
 }
