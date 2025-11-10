@@ -17,6 +17,8 @@ class TestDurationIsoformat:
         assert iso_str == "PT0S"
         parsed_min_dur = ry.Duration.fromisoformat(iso_str)
         assert parsed_min_dur == min_dur
+        parsed_min_dur_from_str = ry.Duration.from_str(iso_str)
+        assert parsed_min_dur_from_str == min_dur
 
     def test_duration_isoformat_max(self) -> None:
         max_dur = ry.Duration.MAX
@@ -53,6 +55,7 @@ class TestDurationFriendlyStr:
             ("human", "5124095576030431h 15s 999ms 999us 999ns"),
             ("human-time", "5124095576030431h 15s 999ms 999us 999ns"),
             ("compact", "5124095576030431h 15s 999ms 999µs 999ns"),  # noqa: RUF001
+            ("short", "5124095576030431hrs 15secs 999msecs 999µsecs 999nsecs"),  # noqa: RUF001
             (
                 "verbose",
                 "5124095576030431hours 15seconds 999milliseconds 999microseconds 999nanoseconds",
@@ -69,6 +72,15 @@ class TestDurationFriendlyStr:
         assert iso_str == expected
         parsed_max_dur = ry.Duration.from_str(iso_str)
         assert parsed_max_dur == max_dur
+
+    def test_duration_friendly_max_designator_wrong(
+        self,
+    ) -> None:
+        max_dur = ry.Duration.MAX
+        with pytest.raises(ValueError):
+            _s = max_dur.friendly("dingo")  # type: ignore[arg-type]
+        with pytest.raises(TypeError):
+            _s = f"{max_dur:herm}"
 
     @given(st_durations())
     def test_duration_friendly(self, dur: ry.Duration) -> None:
