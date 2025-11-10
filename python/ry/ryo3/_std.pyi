@@ -12,14 +12,14 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import RyIterator, ToPy, ToPyTimeDelta
+from ry.protocols import RyIterator, ToPy, ToPyTimeDelta, ToString
 from ry.ryo3._bytes import Bytes
 
 # =============================================================================
 # STD::TIME
 # =============================================================================
 @t.final
-class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
+class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString):
     ZERO: t.ClassVar[Duration]
     MIN: t.ClassVar[Duration]
     MAX: t.ClassVar[Duration]
@@ -71,6 +71,7 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     # =========================================================================
     # TO/FROM STRING(s)
     # =========================================================================
+    def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
     @classmethod
     def fromisoformat(cls, s: str) -> t.Self: ...
