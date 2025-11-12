@@ -2743,6 +2743,7 @@ class ZonedDateTime(
         increment: int = 1,
     ) -> t.Self: ...
     def _round(self, options: ZonedDateTimeRound) -> t.Self: ...
+    def series(self, span: TimeSpan) -> JiffSeries[t.Self]: ...
     def start_of_day(self) -> t.Self: ...
     def time(self) -> Time: ...
     def timestamp(self) -> Timestamp: ...
@@ -4544,7 +4545,7 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import RyIterator, ToPy, ToPyTimeDelta
+from ry.protocols import RyIterator, ToPy, ToPyTimeDelta, ToString
 from ry.ryo3._bytes import Bytes
 
 
@@ -4552,7 +4553,7 @@ from ry.ryo3._bytes import Bytes
 # STD::TIME
 # =============================================================================
 @t.final
-class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
+class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString):
     ZERO: t.ClassVar[Duration]
     MIN: t.ClassVar[Duration]
     MAX: t.ClassVar[Duration]
@@ -4602,6 +4603,21 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def from_dict(cls, d: DurationDict) -> t.Self: ...
 
     # =========================================================================
+    # TO/FROM STRING(s)
+    # =========================================================================
+    def to_string(self) -> str: ...
+    def isoformat(self) -> str: ...
+    @classmethod
+    def fromisoformat(cls, s: str) -> t.Self: ...
+    def friendly(
+        self,
+        designator: t.Literal[
+            "compact", "human", "human-time", "short", "verbose"
+        ] = "compact",
+    ) -> str: ...
+    @classmethod
+    def from_str(cls, s: str) -> t.Self: ...
+    # =========================================================================
     # PROPERTIES
     # =========================================================================
     @property
@@ -4609,11 +4625,15 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     @property
     def nanos(self) -> int: ...
     @property
+    def ns(self) -> int: ...
+    @property
     def secs(self) -> int: ...
     @property
     def days(self) -> int: ...
     @property
     def seconds(self) -> int: ...
+    @property
+    def seconds_remainder(self) -> int: ...
     @property
     def microseconds(self) -> int: ...
     @property
