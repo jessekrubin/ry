@@ -103,3 +103,23 @@ macro_rules! py_zero_division_err {
         ::std::result::Result::Err(::pyo3::exceptions::PyZeroDivisionError::new_err(::std::format!($($arg)+)))
     };
 }
+
+#[macro_export]
+macro_rules! py_key_error {
+    () => {
+        ::pyo3::exceptions::PyKeyError::new_err("key error")
+    };
+    ($($arg:tt)+) => {
+        ::pyo3::exceptions::PyKeyError::new_err(::std::format!($($arg)+))
+    };
+}
+
+#[macro_export]
+macro_rules! py_key_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyKeyError::new_err("key error"))
+    };
+    ($($arg:tt)+) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyKeyError::new_err(::std::format!($($arg)+)))
+    };
+}

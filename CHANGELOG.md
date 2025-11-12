@@ -7,6 +7,12 @@
   - Add `ZonedSeries`
 - `ryo3-std`
   - Use jiff for duration formatting
+  - `ry.Duration.seconds` now returns total seconds in duration
+  - `ry.Duration.seconds_remainder` returns seconds % days (self.seconds
+    % 86400)
+  - Remove `datetime.timedelta` support for `ry.Duration.__richcmp__`
+- `ryo3-serde`
+  - Use jiff unsigned-duration serialization for `ry.Duration`
 
 ---
 

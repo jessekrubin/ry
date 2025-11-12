@@ -189,6 +189,8 @@ ry_type_serializer_struct! (
 // ===========================================================================
 // STD
 // ===========================================================================
+
+// TODO: flag for duration/timespan/signed_duration serialization format ("iso8601" | "friendly" | "obj")
 #[cfg(feature = "ryo3-std")]
 pub(crate) struct PyDurationSerializer<'py> {
     ob: &'py Bound<'py, PyAny>,
@@ -212,14 +214,8 @@ impl serde::ser::Serialize for PyDurationSerializer<'_> {
             .cast_exact::<ryo3_std::time::PyDuration>()
             .map_err(crate::errors::pyerr2sererr)?;
         let pydur = ob.get();
-
-        let dur = *pydur.inner();
-        if let Ok(signed_duration) = jiff::SignedDuration::try_from(dur) {
-            signed_duration.serialize(serializer)
-        } else {
-            // TODO: Figure out what to do in this case... I dont love this...
-            dur.serialize(serializer)
-        }
+        let dur = pydur.inner();
+        jiff::fmt::serde::unsigned_duration::required::serialize(dur, serializer)
     }
 }
 

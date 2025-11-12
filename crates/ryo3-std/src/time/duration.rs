@@ -1,11 +1,10 @@
 #[cfg(feature = "jiff")]
 use jiff::fmt::friendly::Designator;
 use pyo3::basic::CompareOp;
-use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDict, PyInt, PyTuple};
-use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
+use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyInt, PyTuple};
+use pyo3::{Bound, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
 use ryo3_macro_rules::{
-    py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
+    py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
@@ -17,7 +16,7 @@ const MINS_PER_HOUR: u64 = 60;
 const HOURS_PER_DAY: u64 = 24;
 const DAYS_PER_WEEK: u64 = 7;
 const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY);
-const MAX_WEEKS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK);
+const SECS_PER_WEEK: u64 = SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK;
 
 // jiff
 #[cfg(feature = "jiff")]
@@ -213,24 +212,35 @@ impl PyDuration {
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================
-    fn __richcmp__(&self, other: PyDurationComparable, op: CompareOp) -> bool {
-        match other {
-            PyDurationComparable::PyDuration(other) => match op {
-                CompareOp::Eq => self.0 == other.0,
-                CompareOp::Ne => self.0 != other.0,
-                CompareOp::Lt => self.0 < other.0,
-                CompareOp::Le => self.0 <= other.0,
-                CompareOp::Gt => self.0 > other.0,
-                CompareOp::Ge => self.0 >= other.0,
-            },
-            PyDurationComparable::Duration(other) => match op {
-                CompareOp::Eq => self.0 == other,
-                CompareOp::Ne => self.0 != other,
-                CompareOp::Lt => self.0 < other,
-                CompareOp::Le => self.0 <= other,
-                CompareOp::Gt => self.0 > other,
-                CompareOp::Ge => self.0 >= other,
-            },
+    // OLD VERSION ALLOWING FOR DURATION/DELTA COMPARISONS
+    // fn __richcmp__(&self, other: PyDurationComparable, op: CompareOp) -> bool {
+    //     match other {
+    //         PyDurationComparable::PyDuration(other) => match op {
+    //             CompareOp::Eq => self.0 == other.0,
+    //             CompareOp::Ne => self.0 != other.0,
+    //             CompareOp::Lt => self.0 < other.0,
+    //             CompareOp::Le => self.0 <= other.0,
+    //             CompareOp::Gt => self.0 > other.0,
+    //             CompareOp::Ge => self.0 >= other.0,
+    //         },
+    //         PyDurationComparable::Duration(other) => match op {
+    //             CompareOp::Eq => self.0 == other,
+    //             CompareOp::Ne => self.0 != other,
+    //             CompareOp::Lt => self.0 < other,
+    //             CompareOp::Le => self.0 <= other,
+    //             CompareOp::Gt => self.0 > other,
+    //             CompareOp::Ge => self.0 >= other,
+    //         },
+    //     }
+    // }
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
+        match op {
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -347,13 +357,29 @@ impl PyDuration {
     }
 
     #[getter]
+    fn nanoseconds(&self) -> u32 {
+        self.0.subsec_nanos()
+    }
+
+    #[getter]
+    fn ns(&self) -> u32 {
+        self.0.subsec_nanos()
+    }
+
+    #[getter]
     fn days(&self) -> u64 {
         self.0.as_secs() / 86400
     }
 
-    /// Return the number of seconds in the duration not counting days
+    /// Return the number of seconds in the duration counting days
     #[getter]
     fn seconds(&self) -> u64 {
+        self.0.as_secs()
+    }
+
+    /// Return the seconds % days (self.seconds % 86400)
+    #[getter]
+    fn seconds_remainder(&self) -> u64 {
         self.0.as_secs() % 86400
     }
 
@@ -439,9 +465,24 @@ impl PyDuration {
 
     #[staticmethod]
     fn from_dict(dict: &Bound<'_, PyDict>) -> PyResult<Self> {
-        let secs: u64 = dict.get_item(interns::secs(dict.py()))?.extract()?;
-        let nanos: u32 = dict.get_item(interns::nanos(dict.py()))?.extract()?;
-        Self::new(secs, nanos)
+        let secs = dict.get_item(interns::secs(dict.py()))?;
+        let nanos = dict.get_item(interns::nanos(dict.py()))?;
+        match (secs, nanos) {
+            (Some(secs), Some(nanos)) => {
+                let secs = secs.extract::<u64>()?;
+                let nanos = nanos.extract::<u32>()?;
+                Self::new(secs, nanos)
+            }
+            // (Some(secs), None) => {
+            //     let secs = secs.extract::<u64>()?;
+            //     Self::new(secs, 0)
+            // }
+            // (None, Some(nanos)) => {
+            //     let nanos = nanos.extract::<u32>()?;
+            //     Self::new(0, nanos)
+            // }
+            _ => py_key_err!("dict must contain 'secs' and/or 'nanos' keys"),
+        }
     }
 
     // ========================================================================
@@ -498,11 +539,11 @@ impl PyDuration {
 
     #[staticmethod]
     fn from_weeks(weeks: u64) -> PyResult<Self> {
-        if weeks > u64::MAX / (MAX_WEEKS) {
-            py_overflow_err!("overflow in Duration::from_weeks: {weeks} > {MAX_WEEKS}")
-        } else {
-            Ok(Self(Duration::from_secs(weeks * 60 * 60 * 24 * 7)))
-        }
+        weeks
+            .checked_mul(SECS_PER_WEEK)
+            .map(|v| Duration::from_secs(v).into())
+            .ok_or_else(|| py_overflow_error!("overflow in Duration::from_weeks"))
+        // Ok(Self(Duration::from_secs(total)))
     }
 
     #[staticmethod]
@@ -655,10 +696,18 @@ impl PyDuration {
     //     Ok(())
     // }
 
-    fn abs_diff(&self, other: PyDurationComparable) -> Self {
-        match other {
-            PyDurationComparable::PyDuration(other) => Self(self.0.abs_diff(other.0)),
-            PyDurationComparable::Duration(other) => Self(self.0.abs_diff(other)),
+    fn abs_diff(&self, other: Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = other.cast_exact::<Self>() {
+            let rs_dur = d.get();
+            Ok(Self(self.0.abs_diff(rs_dur.0)))
+        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
+            if let Ok(dur) = d.extract::<Duration>() {
+                Ok(Self(self.0.abs_diff(dur)))
+            } else {
+                py_value_err!("cannot compare with negative timedelta")
+            }
+        } else {
+            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
         }
     }
 
@@ -776,12 +825,6 @@ impl std::fmt::Debug for PyDuration {
             self.0.subsec_nanos()
         )
     }
-}
-
-#[derive(Debug, Clone, FromPyObject)]
-enum PyDurationComparable {
-    PyDuration(PyDuration),
-    Duration(Duration),
 }
 
 // ----------------------------------------------------------------------------
