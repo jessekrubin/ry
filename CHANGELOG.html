@@ -193,6 +193,15 @@
 <li><code>ryo3-std</code>
 <ul>
 <li>Use jiff for duration formatting</li>
+<li><code>ry.Duration.seconds</code> now returns total seconds in duration</li>
+<li><code>ry.Duration.seconds_remainder</code> returns seconds % days (self.seconds
+% 86400)</li>
+<li>Remove <code>datetime.timedelta</code> support for <code>ry.Duration.__richcmp__</code></li>
+</ul>
+</li>
+<li><code>ryo3-serde</code>
+<ul>
+<li>Use jiff unsigned-duration serialization for <code>ry.Duration</code></li>
 </ul>
 </li>
 </ul>

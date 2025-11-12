@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-11-10T13:13:50.803150513-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-11-12T14:14:13.369462035-08:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -490,6 +490,15 @@ dumping, and async file I/O tools.</p>
 <li><code>ryo3-std</code>
 <ul>
 <li>Use jiff for duration formatting</li>
+<li><code>ry.Duration.seconds</code> now returns total seconds in duration</li>
+<li><code>ry.Duration.seconds_remainder</code> returns seconds % days (self.seconds
+% 86400)</li>
+<li>Remove <code>datetime.timedelta</code> support for <code>ry.Duration.__richcmp__</code></li>
+</ul>
+</li>
+<li><code>ryo3-serde</code>
+<ul>
+<li>Use jiff unsigned-duration serialization for <code>ry.Duration</code></li>
 </ul>
 </li>
 </ul>
@@ -5249,6 +5258,7 @@ class ZonedDateTime(
         increment: int = 1,
     ) -&gt; t.Self: ...
     def _round(self, options: ZonedDateTimeRound) -&gt; t.Self: ...
+    def series(self, span: TimeSpan) -&gt; JiffSeries[t.Self]: ...
     def start_of_day(self) -&gt; t.Self: ...
     def time(self) -&gt; Time: ...
     def timestamp(self) -&gt; Timestamp: ...
@@ -7017,7 +7027,7 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import RyIterator, ToPy, ToPyTimeDelta
+from ry.protocols import RyIterator, ToPy, ToPyTimeDelta, ToString
 from ry.ryo3._bytes import Bytes
 
 
@@ -7025,7 +7035,7 @@ from ry.ryo3._bytes import Bytes
 # STD::TIME
 # =============================================================================
 @t.final
-class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
+class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString):
     ZERO: t.ClassVar[Duration]
     MIN: t.ClassVar[Duration]
     MAX: t.ClassVar[Duration]
@@ -7075,6 +7085,21 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     def from_dict(cls, d: DurationDict) -&gt; t.Self: ...
 
     # =========================================================================
+    # TO/FROM STRING(s)
+    # =========================================================================
+    def to_string(self) -&gt; str: ...
+    def isoformat(self) -&gt; str: ...
+    @classmethod
+    def fromisoformat(cls, s: str) -&gt; t.Self: ...
+    def friendly(
+        self,
+        designator: t.Literal[
+            "compact", "human", "human-time", "short", "verbose"
+        ] = "compact",
+    ) -&gt; str: ...
+    @classmethod
+    def from_str(cls, s: str) -&gt; t.Self: ...
+    # =========================================================================
     # PROPERTIES
     # =========================================================================
     @property
@@ -7082,11 +7107,15 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta):
     @property
     def nanos(self) -&gt; int: ...
     @property
+    def ns(self) -&gt; int: ...
+    @property
     def secs(self) -&gt; int: ...
     @property
     def days(self) -&gt; int: ...
     @property
     def seconds(self) -&gt; int: ...
+    @property
+    def seconds_remainder(self) -&gt; int: ...
     @property
     def microseconds(self) -&gt; int: ...
     @property
