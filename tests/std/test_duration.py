@@ -420,15 +420,17 @@ class TestDurationArithmetic:
 
     @given(
         st_durations(),
-        st.timedeltas(
-            min_value=pydt.timedelta(0),
-        ),
+        st.timedeltas(),
     )
     def test_abs_diff_with_timedelta(
         self, left: ry.Duration, right: pydt.timedelta
     ) -> None:
-        result = ry.Duration.abs_diff(left, right)
-        assert isinstance(result, ry.Duration)
+        if right.total_seconds() < 0:
+            with pytest.raises(ValueError):
+                _ = ry.Duration.abs_diff(left, right)
+        else:
+            result = ry.Duration.abs_diff(left, right)
+            assert isinstance(result, ry.Duration)
 
 
 class TestDurationOverflows:
@@ -450,7 +452,8 @@ class TestDurationPydeltaConversion:
         assert pydelta.microseconds == 5
 
         assert ryduration.days == 1
-        assert ryduration.seconds == (2 * 60 * 60) + (3 * 60) + 4
+        assert ryduration.seconds == 86400 + (2 * 60 * 60) + (3 * 60) + 4
+        assert ryduration.seconds_remainder == (2 * 60 * 60) + (3 * 60) + 4
         assert ryduration.microseconds == 5
 
     def test_duration_2_pydelta(self) -> None:
@@ -507,6 +510,7 @@ class TestDurationConstants:
         assert ry.Duration.SECOND == ry.Duration(1, 0)
 
 
+@pytest.mark.skip(reason="__richcmp__ no longer supports timedelta")
 def test_duration_equality_w_timedelta() -> None:
     pydelta = pydt.timedelta(days=1, hours=2, minutes=3, seconds=4, microseconds=5)
     ryduration = ry.Duration.from_pytimedelta(pydelta)
