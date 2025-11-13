@@ -15,3 +15,44 @@ impl<T> PyLock<T> for Mutex<T> {
         self.lock().map_err(|e| map_poison_error(&e))
     }
 }
+
+pub struct PyMutex<T, const THROW: bool = true>(pub Mutex<T>);
+
+impl<T, const THROW: bool> PyMutex<T, THROW> {
+    pub fn new(value: T) -> Self {
+        Self(Mutex::new(value))
+    }
+}
+
+impl<T> PyMutex<T, true> {
+    pub fn py_lock(&self) -> PyResult<MutexGuard<'_, T>> {
+        self.0.lock().map_err(|e| map_poison_error(&e))
+    }
+}
+
+impl<T> PyMutex<T, false> {
+    pub fn py_lock(&self) -> PyResult<MutexGuard<'_, T>> {
+        // yolo ~ ignore poisoning bc we don't care
+        Ok(self.0.lock().unwrap_or_else(PoisonError::into_inner))
+    }
+}
+
+// ==========================================================================
+// FROM FROM FROM FROM FROM FROM FROM FROM FROM FROM FROM FROM FROM FROM FROM
+// ==========================================================================
+impl<T> From<Mutex<T>> for PyMutex<T, true> {
+    fn from(mutex: Mutex<T>) -> Self {
+        Self(mutex)
+    }
+}
+
+impl<T> From<Mutex<T>> for PyMutex<T, false> {
+    fn from(mutex: Mutex<T>) -> Self {
+        Self(mutex)
+    }
+}
+impl<T, const THROW: bool> From<T> for PyMutex<T, THROW> {
+    fn from(value: T) -> Self {
+        Self(Mutex::new(value))
+    }
+}

@@ -3,16 +3,15 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
-use ryo3_core::PyLock;
+use ryo3_core::PyMutex;
 use std::hash::Hasher;
-use std::sync::Mutex;
 use twox_hash::XxHash32;
 
 #[pyclass(name = "xxh32", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash32 {
     seed: u32,
-    hasher: Mutex<XxHash32>,
+    hasher: PyMutex<XxHash32, true>,
 }
 
 #[pymethods]
@@ -28,12 +27,12 @@ impl PyXxHash32 {
                 hasher.write(s.as_ref());
                 Self {
                     seed,
-                    hasher: Mutex::new(hasher),
+                    hasher: hasher.into(),
                 }
             }
             None => Self {
                 seed,
-                hasher: Mutex::new(hasher),
+                hasher: hasher.into(),
             },
         }
     }
@@ -90,7 +89,7 @@ impl PyXxHash32 {
     fn copy(&self) -> PyResult<Self> {
         let hasher = self.hasher.py_lock()?;
         Ok(Self {
-            hasher: Mutex::new(hasher.clone()),
+            hasher: hasher.clone().into(),
             seed: self.seed,
         })
     }
