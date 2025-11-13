@@ -86,11 +86,12 @@ impl PyXxHash3_128 {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, data: ryo3_bytes::PyBytes) -> PyResult<()> {
-        // self.hasher.update(b.as_ref());
-        let mut hasher = self.hasher.py_lock()?;
-        hasher.write(data.as_ref());
-        Ok(())
+    fn update(&self, py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<()> {
+        py.detach(|| {
+            let mut hasher = self.hasher.py_lock()?;
+            hasher.write(data.as_ref());
+            Ok(())
+        })
     }
 
     fn copy(&self) -> PyResult<Self> {
@@ -111,23 +112,26 @@ impl PyXxHash3_128 {
     #[staticmethod]
     #[pyo3(signature = (data, *, seed = None, secret = None))]
     fn oneshot(
+        py: Python<'_>,
         data: ryo3_bytes::PyBytes,
         seed: Option<u64>,
         secret: Option<ryo3_bytes::PyBytes>,
     ) -> PyResult<u128> {
-        if let Some(secret) = secret {
-            twox_hash::XxHash3_128::oneshot_with_seed_and_secret(
-                seed.unwrap_or(0),
-                secret.as_ref(),
-                data.as_ref(),
-            )
-            .map_err(|e| PyValueError::new_err(format!("invalid secret: {e}")))
-        } else {
-            Ok(twox_hash::XxHash3_128::oneshot_with_seed(
-                seed.unwrap_or(0),
-                data.as_ref(),
-            ))
-        }
+        py.detach(|| {
+            if let Some(secret) = secret {
+                twox_hash::XxHash3_128::oneshot_with_seed_and_secret(
+                    seed.unwrap_or(0),
+                    secret.as_ref(),
+                    data.as_ref(),
+                )
+                .map_err(|e| PyValueError::new_err(format!("invalid secret: {e}")))
+            } else {
+                Ok(twox_hash::XxHash3_128::oneshot_with_seed(
+                    seed.unwrap_or(0),
+                    data.as_ref(),
+                ))
+            }
+        })
     }
 }
 

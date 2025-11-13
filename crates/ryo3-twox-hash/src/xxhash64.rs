@@ -102,31 +102,37 @@ impl PyXxHash64 {
     #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     #[pyo3(signature = (data, *, seed = None))]
-    fn oneshot(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> u64 {
-        twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref())
+    fn oneshot(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: Option<u64>) -> u64 {
+        py.detach(|| twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref()))
     }
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = None))]
-pub fn xxh64_digest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyDigest<u64> {
-    let digest = twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref());
-    PyDigest(digest)
+pub fn xxh64_digest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyDigest<u64> {
+    py.detach(|| {
+        let digest = twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref());
+        PyDigest(digest)
+    })
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = None))]
-pub fn xxh64_intdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> u64 {
-    twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref())
+pub fn xxh64_intdigest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: Option<u64>) -> u64 {
+    py.detach(|| twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref()))
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = None))]
-pub fn xxh64_hexdigest(data: ryo3_bytes::PyBytes, seed: Option<u64>) -> PyHexDigest<u64> {
-    twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref()).into()
+pub fn xxh64_hexdigest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: Option<u64>,
+) -> PyHexDigest<u64> {
+    py.detach(|| twox_hash::XxHash64::oneshot(seed.unwrap_or(0), data.as_ref()).into())
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
