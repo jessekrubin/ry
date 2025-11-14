@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.68 [unreleased]
+## v0.0.68 [2025-11-14]
 
 - `ryo3-glob`
   - fix error on `take`
