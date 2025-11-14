@@ -15,7 +15,10 @@
   - `ry.Duration.seconds` now returns total seconds in duration
   - `ry.Duration.seconds_remainder` returns seconds % days (self.seconds
     % 86400)
-  - Remove `datetime.timedelta` support for `ry.Duration.__richcmp__`
+  - Remove `datetime.timedelta` support for `ry.Duration.__richcmp__` as there
+    is not a one-2-uno direct mapping between timedeltas and durations (bc
+    durations are unsigned)
+  - pydantic support for `ry.Duration`
 - `ryo3-serde`
   - Use jiff unsigned-duration serialization for `ry.Duration`
 
