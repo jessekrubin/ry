@@ -6,8 +6,7 @@ mod py_errs;
 macro_rules! any_repr {
     ($obj:expr) => {{
         let typ = $obj.get_type();
-        let name = typ
-            .fully_qualified_name()
+        let name = pyo3::types::PyTypeMethods::fully_qualified_name(&typ)
             .unwrap_or_else(|_| pyo3::types::PyString::new($obj.py(), "unknown"));
         match $obj.repr() {
             Ok(repr) => format!("{repr} ({name})"),

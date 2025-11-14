@@ -17,19 +17,21 @@ pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 ryo3-core.workspace = true
 ryo3-macro-rules.workspace = true
+ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
 jiff = {workspace = true, optional = true}
 
 [features]
 default = []
+pydantic = ["ryo3-pydantic", "serde", "jiff"]
 ry = [
-  "dep:serde",
   "serde",
   "jiff",
   "time",
   "net",
   "fs",
   "process",
+  "pydantic",
 ]
 time = []
 net = []

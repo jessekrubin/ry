@@ -2082,6 +2082,7 @@ dependencies = [
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-macro-rules",
+ "ryo3-pydantic",
  "serde",
 ]
 

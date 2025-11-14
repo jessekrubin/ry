@@ -605,7 +605,7 @@ impl PyDuration {
         } else if fmt.is_empty() {
             Ok(self.py_to_string())
         } else {
-            py_type_err!("Invalid format specifier '{fmt}' for SignedDuration")
+            py_type_err!("Invalid format specifier '{fmt}' for Duration")
         }
     }
 
@@ -814,6 +814,70 @@ impl PyDuration {
     fn saturating_sub(&self, other: &Self) -> Self {
         Self::from(self.0.saturating_sub(other.0))
     }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = value.py();
+        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            use pyo3::types::PyBytesMethods;
+
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+        } else if value.is_exact_instance_of::<Self>() {
+            value.into_bound_py_any(py)
+        } else if let Ok(v) = value.cast_exact::<pyo3::types::PyFloat>() {
+            let f = v.extract::<f64>()?;
+            if f.is_nan() || f.is_infinite() {
+                return py_value_err!("Cannot convert NaN or infinite float to Duration");
+            }
+            if f.is_sign_negative() {
+                return py_value_err!("negative duration");
+            }
+            let duration = std::time::Duration::try_from_secs_f64(f)
+                .map_err(|e| py_overflow_error!("overflow converting float to Duration: {e}"))?;
+            Self::from(duration).into_bound_py_any(py)
+        } else if let Ok(v) = value.cast_exact::<pyo3::types::PyInt>() {
+            let i = v.extract::<u64>()?;
+            Self::from(Duration::new(i, 0)).into_bound_py_any(py)
+        } else if let Ok(d) = value.extract::<Duration>() {
+            Self::from(d).into_bound_py_any(py)
+        } else {
+            use ryo3_macro_rules::any_repr;
+
+            let valtype = any_repr!(value);
+            py_type_err!("Duration conversion error: {valtype}")
+        }
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        Self::from_any(value).map_err(|e| {
+            use ryo3_macro_rules::py_value_error;
+            py_value_error!("Duration validation error: {e}")
+        })
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl std::fmt::Debug for PyDuration {
@@ -837,4 +901,37 @@ mod interns {
 
     py_intern_fn!(secs);
     py_intern_fn!(nanos);
+}
+
+#[cfg(feature = "pydantic")]
+mod pydantic {
+    use super::PyDuration;
+    use pyo3::prelude::*;
+    use pyo3::types::PyType;
+    use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
+
+    impl GetPydanticCoreSchemaCls for PyDuration {
+        fn get_pydantic_core_schema<'py>(
+            cls: &Bound<'py, PyType>,
+            source: &Bound<'py, PyAny>,
+            _handler: &Bound<'py, PyAny>,
+        ) -> PyResult<Bound<'py, PyAny>> {
+            let py = source.py();
+            let core_schema = ryo3_pydantic::core_schema(py)?;
+            let timedelta_schema =
+                core_schema.call_method(interns::timedelta_schema(py), (), None)?;
+            let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+            let args = pyo3::types::PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
+            let string_serialization_schema =
+                core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+            let serialization_kwargs = pyo3::types::PyDict::new(py);
+            serialization_kwargs
+                .set_item(interns::serialization(py), &string_serialization_schema)?;
+            core_schema.call_method(
+                interns::no_info_wrap_validator_function(py),
+                args,
+                Some(&serialization_kwargs),
+            )
+        }
+    }
 }
