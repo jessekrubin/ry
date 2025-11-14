@@ -189,7 +189,7 @@ ignore = "0.4.24"
 ahash = "0.8.12"
 anyhow = "1.0"
 brotli = "8.0.2"
-bytes = "1.10.1"
+bytes = "1.11.0"
 bzip2 = "0.6.1"
 dirs = { version = "6.0.0", features = [] }
 flate2 = "1.1.4"
