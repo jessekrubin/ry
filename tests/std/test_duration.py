@@ -583,7 +583,9 @@ def test_duration_properties() -> None:
     assert dur.is_zero is False
     assert dur.subsec_millis == 123
     assert dur.secs == 90061
+    assert dur.nanoseconds == 123456789
     assert dur.nanos == 123456789
+    assert dur.ns == 123456789
 
 
 class TestDurationAs:

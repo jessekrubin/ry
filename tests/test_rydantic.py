@@ -13,6 +13,7 @@ from typing import Any
 
 import pydantic
 import pytest
+from typing_extensions import TypedDict
 
 import ry
 
@@ -58,6 +59,10 @@ class PyTimedeltaModel(pydantic.BaseModel):
     d: pydt.timedelta
 
 
+class RyDurationModel(pydantic.BaseModel):
+    d: ry.Duration
+
+
 class RySignedDurationModel(pydantic.BaseModel):
     d: ry.SignedDuration
 
@@ -75,47 +80,180 @@ class RyUrlModel(pydantic.BaseModel):
     url: ry.URL
 
 
+class _TestJsonSchemas(TypedDict):
+    name: str
+    ry_model: type[pydantic.BaseModel]
+    py_model: type[pydantic.BaseModel]
+
+
+_MODELS_SCHEMAS = [
+    # STD
+    _TestJsonSchemas(
+        name="duration",
+        ry_model=RySignedDurationModel,
+        py_model=PyTimedeltaModel,
+    ),
+    # JIFF
+    _TestJsonSchemas(
+        name="date",
+        ry_model=RyDateModel,
+        py_model=PyDateModel,
+    ),
+    _TestJsonSchemas(
+        name="time",
+        ry_model=RyTimeModel,
+        py_model=PyTimeModel,
+    ),
+    _TestJsonSchemas(
+        name="datetime",
+        ry_model=RyDatetimeModel,
+        py_model=PyDatetimeModel,
+    ),
+    _TestJsonSchemas(
+        name="signed_duration",
+        ry_model=RySignedDurationModel,
+        py_model=PyTimedeltaModel,
+    ),
+    _TestJsonSchemas(
+        name="timespan",
+        ry_model=RyTimeSpanModel,
+        py_model=PyTimedeltaModel,
+    ),
+    # URL
+    _TestJsonSchemas(
+        name="url",
+        ry_model=RyUrlModel,
+        py_model=PyUrlModel,
+    ),
+]
+
+
 class TestJsonSchemas:
     def _diff_schemas(self, left: dict[str, Any], right: dict[str, Any]) -> None:
         left_no_title = {k: v for k, v in left.items() if k != "title"}
         right_no_title = {k: v for k, v in right.items() if k != "title"}
         assert left_no_title == right_no_title
 
-    def test_date_json_schema(self) -> None:
-        py_model = PyDateModel.model_json_schema()
-        ry_model = RyDateModel.model_json_schema()
+    @pytest.mark.parametrize("schema", _MODELS_SCHEMAS)
+    def test_json_schemas(self, schema: _TestJsonSchemas) -> None:
+        py_model = schema["py_model"].model_json_schema()
+        ry_model = schema["ry_model"].model_json_schema()
         self._diff_schemas(py_model, ry_model)
 
-    def test_time_model_schema(self) -> None:
-        py_schema = PyTimeModel.model_json_schema()
-        ry_schema = RyTimeModel.model_json_schema()
-        self._diff_schemas(py_schema, ry_schema)
 
-    def test_datetime_model_schema(self) -> None:
-        py_schema = PyDatetimeModel.model_json_schema()
-        ry_schema = RyDatetimeModel.model_json_schema()
-        self._diff_schemas(py_schema, ry_schema)
-
-    def test_signed_duration_model_schema(self) -> None:
-        self._diff_schemas(
-            RySignedDurationModel.model_json_schema(),
-            PyTimedeltaModel.model_json_schema(),
-        )
-
-    def test_span_model_schema(self) -> None:
-        self._diff_schemas(
-            RyTimeSpanModel.model_json_schema(),
-            PyTimedeltaModel.model_json_schema(),
-        )
-
-    def test_url_model_schema(self) -> None:
-        py_schema = PyUrlModel.model_json_schema()
-        ry_schema = RyUrlModel.model_json_schema()
-        self._diff_schemas(py_schema, ry_schema)
-
-
-def create_tz(minutes: int) -> pydt.tzinfo:
+def _create_tz(minutes: int) -> pydt.tzinfo:
     return pydt.timezone(pydt.timedelta(minutes=minutes))
+
+
+class TestDuration:
+    @pytest.mark.parametrize(
+        "value,result",
+        [
+            # seconds
+            (ry.Duration.MAX, None),
+            (ry.Duration.MIN, pydt.timedelta(seconds=0)),
+            (ry.Duration(30), pydt.timedelta(seconds=30)),
+            (pydt.timedelta(seconds=30), pydt.timedelta(seconds=30)),
+            (30, pydt.timedelta(seconds=30)),
+            (30.1, pydt.timedelta(seconds=30, milliseconds=100)),
+            (9.9e-05, pydt.timedelta(microseconds=99)),
+            # minutes seconds
+            ("00:15:30", pydt.timedelta(minutes=15, seconds=30)),
+            ("00:05:30", pydt.timedelta(minutes=5, seconds=30)),
+            # hours minutes seconds
+            ("10:15:30", pydt.timedelta(hours=10, minutes=15, seconds=30)),
+            ("01:15:30", pydt.timedelta(hours=1, minutes=15, seconds=30)),
+            ("100:200:300", pydt.timedelta(hours=100, minutes=200, seconds=300)),
+            # days
+            # fractions of seconds
+            ("00:15:30.1", pydt.timedelta(minutes=15, seconds=30, milliseconds=100)),
+            ("00:15:30.01", pydt.timedelta(minutes=15, seconds=30, milliseconds=10)),
+            ("00:15:30.001", pydt.timedelta(minutes=15, seconds=30, milliseconds=1)),
+            ("00:15:30.0001", pydt.timedelta(minutes=15, seconds=30, microseconds=100)),
+            ("00:15:30.00001", pydt.timedelta(minutes=15, seconds=30, microseconds=10)),
+            ("00:15:30.000001", pydt.timedelta(minutes=15, seconds=30, microseconds=1)),
+            (
+                b"00:15:30.000001",
+                pydt.timedelta(minutes=15, seconds=30, microseconds=1),
+            ),
+            # iso_8601
+            ("PT5H", pydt.timedelta(hours=5)),
+            ("PT5M", pydt.timedelta(minutes=5)),
+            ("PT5S", pydt.timedelta(seconds=5)),
+            ("PT0.000005S", pydt.timedelta(microseconds=5)),
+            (b"PT0.000005S", pydt.timedelta(microseconds=5)),
+        ],
+    )
+    def test_parse_duration_ok(
+        self,
+        value: float | str | bytes | pydt.datetime,
+        result: pydt.timedelta | None,
+    ) -> None:
+        m = RyDurationModel(d=value)  # type: ignore[arg-type]
+        assert isinstance(m.d, ry.Duration)
+        if result is not None:
+            assert m.d.to_pytimedelta() == result
+        as_json = m.model_dump_json()
+        from_json = m.model_validate_json(as_json)
+        if result is not None:
+            assert from_json.d.to_pytimedelta() == result
+
+        # check json same
+        if value != "100:200:300" and result is not None:  # fails pydantic?
+            ry_json = m.model_dump_json()
+            tm = PyTimedeltaModel(d=result)
+            tm_json = tm.model_dump_json()
+            assert tm_json == ry_json
+
+    @pytest.mark.parametrize(
+        "value,result",
+        [
+            (-172800, pydt.timedelta(days=-2)),
+            ("-00:15:30", pydt.timedelta(minutes=-15, seconds=-30)),
+            ("-01:15:30", pydt.timedelta(hours=-1, minutes=-15, seconds=-30)),
+            (-30.1, pydt.timedelta(seconds=-30, milliseconds=-100)),
+        ],
+    )
+    def test_parse_duration_err_negative(
+        self, value: float | str, result: pydt.timedelta
+    ) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _m = RyDurationModel(d=value)  # type: ignore[arg-type]
+
+        # Convert negative values to positive for parsing to sanity check
+        positive_value = (
+            abs(value) if isinstance(value, (int, float)) else value.lstrip("-")
+        )
+        m = RyDurationModel(d=positive_value)  # type: ignore[arg-type]
+        assert m.d.to_pytimedelta() == -result
+        as_json = m.model_dump_json()
+        from_json = m.model_validate_json(as_json)
+        assert from_json.d.to_pytimedelta() == -result
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "30",
+            "4d,00:15:30",
+            "4d,10:15:30",
+            "-4d,00:15:30",
+            "-4d,10:15:30",
+            "P4Y",
+            "P4M",
+            "P4W",
+            "P4D",
+            "P0.5D",
+            # numbers nan/inf
+            float("inf"),
+            float("-inf"),
+            float("nan"),
+            # totally insane value
+            complex(1, 2),
+        ],
+    )
+    def test_parse_duration_err(self, value: Any) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _m = RyDurationModel(d=value)
 
 
 class TestDate:
@@ -218,11 +356,11 @@ class TestTime:
                 pydt.time(4, 8, 16),
             ),
             # NOT IMPLEMENTED
-            ("11:05:00-05:30", pydt.time(11, 5, 0, tzinfo=create_tz(-330))),
-            ("11:05:00-0530", pydt.time(11, 5, 0, tzinfo=create_tz(-330))),
+            ("11:05:00-05:30", pydt.time(11, 5, 0, tzinfo=_create_tz(-330))),
+            ("11:05:00-0530", pydt.time(11, 5, 0, tzinfo=_create_tz(-330))),
             ("11:05:00+00:00", pydt.time(11, 5, 0, tzinfo=pydt.UTC)),
-            ("11:05-06:00", pydt.time(11, 5, 0, tzinfo=create_tz(-360))),
-            ("11:05+06:00", pydt.time(11, 5, 0, tzinfo=create_tz(360))),
+            ("11:05-06:00", pydt.time(11, 5, 0, tzinfo=_create_tz(-360))),
+            ("11:05+06:00", pydt.time(11, 5, 0, tzinfo=_create_tz(360))),
             ("11:05:00-25:00", pydt.time(11, 5, 0)),
         ],
     )
@@ -292,19 +430,19 @@ class TestDatetime:
             ),
             (
                 "2012-04-23T10:20:30.400+02:30",
-                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(150)),
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, _create_tz(150)),
             ),
             (
                 "2012-04-23T10:20:30.400+02:00",
-                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(120)),
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, _create_tz(120)),
             ),
             (
                 "2012-04-23T10:20:30.400-02:00",
-                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(-120)),
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, _create_tz(-120)),
             ),
             (
                 b"2012-04-23T10:20:30.400-02:00",
-                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, create_tz(-120)),
+                pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, _create_tz(-120)),
             ),
             (pydt.datetime(2017, 5, 5), pydt.datetime(2017, 5, 5)),
         ],
@@ -729,3 +867,25 @@ def test_url_parsing_err(value: str | None, err_msg: str) -> None:
     error = exc_info.value.errors(include_url=False)[0]
     assert error["type"] == "value_error"
     assert err_msg in error["msg"]
+
+
+# =============================================================================
+class FutureThingsMaybe:
+    @staticmethod
+    def future_config_support_maybe() -> list[dict[str, Any]]:
+        _KWARG_OPTIONS = {  # noqa: N806
+            "ser_json_temporal": ["iso8601", "seconds", "milliseconds"],
+            "ser_json_timedelta": ["iso8601", "float"],
+        }
+
+        _CONFIG_COMBOS = [  # noqa: N806
+            {},
+            *({"ser_json_temporal": v} for v in _KWARG_OPTIONS["ser_json_temporal"]),
+            *({"ser_json_timedelta": v} for v in _KWARG_OPTIONS["ser_json_timedelta"]),
+            *(
+                {"ser_json_temporal": vt, "ser_json_timedelta": vd}
+                for vt in _KWARG_OPTIONS["ser_json_temporal"]
+                for vd in _KWARG_OPTIONS["ser_json_timedelta"]
+            ),
+        ]
+        return _CONFIG_COMBOS

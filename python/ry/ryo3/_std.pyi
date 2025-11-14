@@ -91,7 +91,11 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString):
     @property
     def nanos(self) -> int: ...
     @property
-    def ns(self) -> int: ...
+    def nanoseconds(self) -> int:
+        """Alias for .nanos"""
+    @property
+    def ns(self) -> int:
+        """Alias for .nanos"""
     @property
     def secs(self) -> int: ...
     @property
