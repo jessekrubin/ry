@@ -150,6 +150,7 @@ class TestDuration:
         "value,result",
         [
             # seconds
+            (ry.Duration(30), pydt.timedelta(seconds=30)),
             (pydt.timedelta(seconds=30), pydt.timedelta(seconds=30)),
             (30, pydt.timedelta(seconds=30)),
             (30.1, pydt.timedelta(seconds=30, milliseconds=100)),
@@ -238,6 +239,12 @@ class TestDuration:
             "P4W",
             "P4D",
             "P0.5D",
+            # numbers nan/inf
+            float("inf"),
+            float("-inf"),
+            float("nan"),
+            # totally insane value
+            complex(1, 2),
         ],
     )
     def test_parse_duration_err(self, value: Any) -> None:

@@ -833,15 +833,7 @@ impl PyDuration {
             Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if let Ok(v) = value.cast_exact::<pyo3::types::PyFloat>() {
             let f = v.extract::<f64>()?;
-            if f.is_nan() || f.is_infinite() {
-                return py_value_err!("Cannot convert NaN or infinite float to Duration");
-            }
-            if f.is_sign_negative() {
-                return py_value_err!("negative duration");
-            }
-            let duration = std::time::Duration::try_from_secs_f64(f)
-                .map_err(|e| py_overflow_error!("overflow converting float to Duration: {e}"))?;
-            Self::from(duration).into_bound_py_any(py)
+            Self::try_from_secs_f64(f).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
         } else if let Ok(v) = value.cast_exact::<pyo3::types::PyInt>() {
             let i = v.extract::<u64>()?;
             Self::from(Duration::new(i, 0)).into_bound_py_any(py)
