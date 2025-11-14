@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-11-13T16:02:51.915476478-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-11-14T14:35:37.254343409-08:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -479,7 +479,7 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0068-unreleased"><a class="header" href="#v0068-unreleased">v0.0.68 [unreleased]</a></h2>
+<h2 id="v0068-2025-11-14"><a class="header" href="#v0068-2025-11-14">v0.0.68 [2025-11-14]</a></h2>
 <ul>
 <li><code>ryo3-glob</code>
 <ul>
@@ -504,7 +504,10 @@ look at me)</li>
 <li><code>ry.Duration.seconds</code> now returns total seconds in duration</li>
 <li><code>ry.Duration.seconds_remainder</code> returns seconds % days (self.seconds
 % 86400)</li>
-<li>Remove <code>datetime.timedelta</code> support for <code>ry.Duration.__richcmp__</code></li>
+<li>Remove <code>datetime.timedelta</code> support for <code>ry.Duration.__richcmp__</code> as there
+is not a one-2-uno direct mapping between timedeltas and durations (bc
+durations are unsigned)</li>
+<li>pydantic support for <code>ry.Duration</code></li>
 </ul>
 </li>
 <li><code>ryo3-serde</code>

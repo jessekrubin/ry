@@ -182,7 +182,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0068-unreleased"><a class="header" href="#v0068-unreleased">v0.0.68 [unreleased]</a></h2>
+<h2 id="v0068-2025-11-14"><a class="header" href="#v0068-2025-11-14">v0.0.68 [2025-11-14]</a></h2>
 <ul>
 <li><code>ryo3-glob</code>
 <ul>
@@ -207,7 +207,10 @@ look at me)</li>
 <li><code>ry.Duration.seconds</code> now returns total seconds in duration</li>
 <li><code>ry.Duration.seconds_remainder</code> returns seconds % days (self.seconds
 % 86400)</li>
-<li>Remove <code>datetime.timedelta</code> support for <code>ry.Duration.__richcmp__</code></li>
+<li>Remove <code>datetime.timedelta</code> support for <code>ry.Duration.__richcmp__</code> as there
+is not a one-2-uno direct mapping between timedeltas and durations (bc
+durations are unsigned)</li>
+<li>pydantic support for <code>ry.Duration</code></li>
 </ul>
 </li>
 <li><code>ryo3-serde</code>
