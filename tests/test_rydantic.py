@@ -150,6 +150,8 @@ class TestDuration:
         "value,result",
         [
             # seconds
+            (ry.Duration.MAX, None),
+            (ry.Duration.MIN, pydt.timedelta(seconds=0)),
             (ry.Duration(30), pydt.timedelta(seconds=30)),
             (pydt.timedelta(seconds=30), pydt.timedelta(seconds=30)),
             (30, pydt.timedelta(seconds=30)),
@@ -185,17 +187,19 @@ class TestDuration:
     def test_parse_duration_ok(
         self,
         value: float | str | bytes | pydt.datetime,
-        result: pydt.timedelta,
+        result: pydt.timedelta | None,
     ) -> None:
         m = RyDurationModel(d=value)  # type: ignore[arg-type]
-
-        assert m.d.to_pytimedelta() == result
+        assert isinstance(m.d, ry.Duration)
+        if result is not None:
+            assert m.d.to_pytimedelta() == result
         as_json = m.model_dump_json()
         from_json = m.model_validate_json(as_json)
-        assert from_json.d.to_pytimedelta() == result
+        if result is not None:
+            assert from_json.d.to_pytimedelta() == result
 
         # check json same
-        if value != "100:200:300":  # fails pydantic?
+        if value != "100:200:300" and result is not None:  # fails pydantic?
             ry_json = m.model_dump_json()
             tm = PyTimedeltaModel(d=result)
             tm_json = tm.model_dump_json()
