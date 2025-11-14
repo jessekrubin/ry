@@ -117,6 +117,7 @@ impl PyGlobPaths {
             }
         }
     }
+
     fn collect(&self, py: Python<'_>) -> PyResult<GlobPathsVec> {
         let paths: Vec<PathBuf> = py
             .detach(|| {
@@ -161,8 +162,14 @@ impl PyGlobPaths {
                     }
                     Ok(results)
                 } else {
-                    let a = self.inner.lock().by_ref().flatten().collect::<Vec<_>>();
-                    Ok(a)
+                    let pathbufs = self
+                        .inner
+                        .lock()
+                        .by_ref()
+                        .flatten()
+                        .take(n)
+                        .collect::<Vec<_>>();
+                    Ok(pathbufs)
                 }
             })
             .map_err(|e| py_value_error!("{e}"))?;

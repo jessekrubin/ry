@@ -2,6 +2,11 @@
 
 ## v0.0.68 [unreleased]
 
+- `ryo3-glob`
+  - fix error on `take`
+- `ryo3-core`
+  - `PyMutex` that lets ya pick to throw or not via const generic (very fancy
+    look at me)
 - `ryo3-jiff`
   - Update jiff to `0.2.16`
   - Add `ZonedSeries`

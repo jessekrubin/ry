@@ -3,15 +3,14 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap_pyfunction};
-use ryo3_core::PyLock;
-use std::sync::Mutex;
+use ryo3_core::PyMutex;
 use twox_hash::XxHash3_128;
 
 #[pyclass(name = "xxh3_128", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash3_128 {
     seed: u64,
-    hasher: Mutex<XxHash3_128>,
+    hasher: PyMutex<XxHash3_128>,
 }
 
 #[pymethods]
@@ -36,12 +35,12 @@ impl PyXxHash3_128 {
                 hasher.write(s.as_ref());
                 Ok(Self {
                     seed,
-                    hasher: Mutex::new(hasher),
+                    hasher: PyMutex::new(hasher),
                 })
             }
             None => Ok(Self {
                 seed,
-                hasher: Mutex::new(hasher),
+                hasher: PyMutex::new(hasher),
             }),
         }
     }
@@ -87,17 +86,18 @@ impl PyXxHash3_128 {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, data: ryo3_bytes::PyBytes) -> PyResult<()> {
-        // self.hasher.update(b.as_ref());
-        let mut hasher = self.hasher.py_lock()?;
-        hasher.write(data.as_ref());
-        Ok(())
+    fn update(&self, py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<()> {
+        py.detach(|| {
+            let mut hasher = self.hasher.py_lock()?;
+            hasher.write(data.as_ref());
+            Ok(())
+        })
     }
 
     fn copy(&self) -> PyResult<Self> {
         let hasher = self.hasher.py_lock()?;
         Ok(Self {
-            hasher: Mutex::new(hasher.clone()),
+            hasher: hasher.clone().into(),
             seed: self.seed,
         })
     }
@@ -112,23 +112,26 @@ impl PyXxHash3_128 {
     #[staticmethod]
     #[pyo3(signature = (data, *, seed = None, secret = None))]
     fn oneshot(
+        py: Python<'_>,
         data: ryo3_bytes::PyBytes,
         seed: Option<u64>,
         secret: Option<ryo3_bytes::PyBytes>,
     ) -> PyResult<u128> {
-        if let Some(secret) = secret {
-            twox_hash::XxHash3_128::oneshot_with_seed_and_secret(
-                seed.unwrap_or(0),
-                secret.as_ref(),
-                data.as_ref(),
-            )
-            .map_err(|e| PyValueError::new_err(format!("invalid secret: {e}")))
-        } else {
-            Ok(twox_hash::XxHash3_128::oneshot_with_seed(
-                seed.unwrap_or(0),
-                data.as_ref(),
-            ))
-        }
+        py.detach(|| {
+            if let Some(secret) = secret {
+                twox_hash::XxHash3_128::oneshot_with_seed_and_secret(
+                    seed.unwrap_or(0),
+                    secret.as_ref(),
+                    data.as_ref(),
+                )
+                .map_err(|e| PyValueError::new_err(format!("invalid secret: {e}")))
+            } else {
+                Ok(twox_hash::XxHash3_128::oneshot_with_seed(
+                    seed.unwrap_or(0),
+                    data.as_ref(),
+                ))
+            }
+        })
     }
 }
 
