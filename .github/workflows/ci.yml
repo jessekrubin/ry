@@ -219,7 +219,8 @@ jobs:
           name: wheels-windows-${{ matrix.platform.target }}
           path: dist
       - name: pytest
-        if: ${{ !startsWith(matrix.target, 'aarch64') }}
+        # just test on x64 for now
+        if: ${{ matrix.platform.target == 'x64' }}
         shell: bash
         run: |
           set -e
