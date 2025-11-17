@@ -39,6 +39,16 @@ def test_fnv1a_pickling() -> None:
     assert unpickled2.intdigest() == ry.fnv1a(b"abcdef").intdigest()
 
 
+def test_fnv_key_bytes() -> None:
+    key = 0x1234567890ABCDEF
+    hasher1 = ry.fnv1a(key=key)
+    hasher2 = ry.fnv1a(key=key.to_bytes(8, "big"))
+    assert hasher1.intdigest() == hasher2.intdigest()
+    hasher1.update(b"test")
+    hasher2.update(b"test")
+    assert hasher1.intdigest() == hasher2.intdigest()
+
+
 @pytest.mark.parametrize("data,expected", FNV_TEST_DATA)
 def test_fnv1a(data: bytes, expected: int) -> None:
     fnvhash = ry.fnv1a(data)

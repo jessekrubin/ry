@@ -25,38 +25,6 @@ impl From<FnvHasher> for PyFnvHasher {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct FnvKey(u64);
-
-impl Default for FnvKey {
-    fn default() -> Self {
-        FnvKey(0xcbf29ce484222325)
-    }
-}
-
-impl<'a, 'py> FromPyObject<'a, 'py> for FnvKey {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(n) = obj.extract::<u64>() {
-            Ok(FnvKey(n))
-        } else if let Ok(b) = obj.extract::<[u8; 8]>() {
-            let key = u64::from_be_bytes(b);
-            Ok(FnvKey(key))
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "Key must be an integer or 8-byte bytes-like object",
-            ))
-        }
-    }
-}
-
-impl From<FnvKey> for u64 {
-    fn from(key: FnvKey) -> Self {
-        key.0
-    }
-}
-
 #[pymethods]
 impl PyFnvHasher {
     #[new]
@@ -154,5 +122,37 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 impl std::fmt::Display for PyFnvHasher {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "fnv1a<{:x}>", self.finish())
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct FnvKey(u64);
+
+impl Default for FnvKey {
+    fn default() -> Self {
+        Self(0xcbf2_9ce4_8422_2325)
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for FnvKey {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(n) = obj.extract::<u64>() {
+            Ok(Self(n))
+        } else if let Ok(b) = obj.extract::<[u8; 8]>() {
+            let key = u64::from_be_bytes(b);
+            Ok(Self(key))
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "Key must be an integer or 8-byte bytes-like object",
+            ))
+        }
+    }
+}
+
+impl From<FnvKey> for u64 {
+    fn from(key: FnvKey) -> Self {
+        key.0
     }
 }
