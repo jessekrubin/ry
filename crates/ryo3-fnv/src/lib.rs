@@ -14,8 +14,14 @@ use std::sync::Mutex;
 pub struct PyFnvHasher(pub Mutex<FnvHasher>);
 
 impl PyFnvHasher {
-    fn finish(&self) -> u64 {
-        self.0.lock().expect("Failed to lock hasher").finish()
+    fn lock(&self) -> PyResult<std::sync::MutexGuard<'_, FnvHasher>> {
+        self.0.lock().map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to lock hasher: {}", e))
+        })
+    }
+
+    fn finish(&self) -> PyResult<u64> {
+        self.lock().map(|h| h.finish())
     }
 }
 
@@ -61,7 +67,8 @@ impl PyFnvHasher {
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let args = PyTuple::new(py, [py.None().into_bound_py_any(py)?])?;
         let kw = pyo3::types::PyDict::new(py);
-        kw.set_item(pyo3::intern!(py, "key"), self.finish())?;
+        let key = self.finish()?;
+        kw.set_item(pyo3::intern!(py, "key"), key)?;
         PyTuple::new(py, [args.into_bound_py_any(py)?, kw.into_bound_py_any(py)?])
     }
 
@@ -74,18 +81,17 @@ impl PyFnvHasher {
         intern!(py, "fnv1a")
     }
 
-    fn intdigest(&self) -> u64 {
+    fn intdigest(&self) -> PyResult<u64> {
         self.finish()
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
-        let bytes = self.finish().to_be_bytes();
-        pyo3::types::PyBytes::new(py, &bytes)
+    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, pyo3::types::PyBytes>> {
+        self.finish()
+            .map(|n| pyo3::types::PyBytes::new(py, &(n.to_le_bytes())))
     }
 
-    fn hexdigest(&self) -> String {
-        // format hex string lowercase
-        format!("{:x}", self.finish())
+    fn hexdigest(&self) -> PyResult<String> {
+        self.finish().map(|n| format!("{:x}", n))
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -102,8 +108,8 @@ impl PyFnvHasher {
         })
     }
 
-    fn copy(&self) -> Self {
-        Self::from(FnvHasher::with_key(self.finish()))
+    fn copy(&self) -> PyResult<Self> {
+        self.finish().map(|k| Self::from(FnvHasher::with_key(k)))
     }
 }
 
@@ -121,7 +127,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 impl std::fmt::Display for PyFnvHasher {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "fnv1a<{:x}>", self.finish())
+        let key = self.finish().expect("no-way-jose");
+        write!(f, "fnv1a<{:x}>", key)
     }
 }
 

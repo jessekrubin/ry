@@ -39,7 +39,7 @@ def test_fnv1a_pickling() -> None:
     assert unpickled2.intdigest() == ry.fnv1a(b"abcdef").intdigest()
 
 
-def test_fnv_key_bytes() -> None:
+def test_fnv_key_parse() -> None:
     key = 0x1234567890ABCDEF
     hasher1 = ry.fnv1a(key=key)
     hasher2 = ry.fnv1a(key=key.to_bytes(8, "big"))
@@ -47,6 +47,12 @@ def test_fnv_key_bytes() -> None:
     hasher1.update(b"test")
     hasher2.update(b"test")
     assert hasher1.intdigest() == hasher2.intdigest()
+
+
+@pytest.mark.parametrize("bad_key", [b"short", b"way-2-fing-long", 3.14, "string"])
+def test_fnv_key_parse_err(bad_key: bytes | float | str) -> None:
+    with pytest.raises(TypeError):
+        ry.fnv1a(key=bad_key)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize("data,expected", FNV_TEST_DATA)
