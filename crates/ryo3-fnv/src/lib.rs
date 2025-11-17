@@ -25,25 +25,57 @@ impl From<FnvHasher> for PyFnvHasher {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct FnvKey(u64);
+
+impl Default for FnvKey {
+    fn default() -> Self {
+        FnvKey(0xcbf29ce484222325)
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for FnvKey {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(n) = obj.extract::<u64>() {
+            Ok(FnvKey(n))
+        } else if let Ok(b) = obj.extract::<[u8; 8]>() {
+            let key = u64::from_be_bytes(b);
+            Ok(FnvKey(key))
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "Key must be an integer or 8-byte bytes-like object",
+            ))
+        }
+    }
+}
+
+impl From<FnvKey> for u64 {
+    fn from(key: FnvKey) -> Self {
+        key.0
+    }
+}
+
 #[pymethods]
 impl PyFnvHasher {
     #[new]
-    #[pyo3(signature = (s = None, *, key = None))]
-    fn py_new(s: Option<ryo3_bytes::PyBytes>, key: Option<u64>) -> Self {
-        match (key, s) {
+    #[pyo3(signature = (s = None, *, key =  None))]
+    fn py_new(py: Python<'_>, s: Option<ryo3_bytes::PyBytes>, key: Option<FnvKey>) -> Self {
+        py.detach(|| match (key, s) {
             (Some(k), Some(s)) => {
-                let mut hasher = FnvHasher::with_key(k);
+                let mut hasher = FnvHasher::with_key(k.into());
                 hasher.write(s.as_ref());
                 Self::from(hasher)
             }
-            (Some(k), None) => Self::from(FnvHasher::with_key(k)),
+            (Some(k), None) => Self::from(FnvHasher::with_key(k.into())),
             (None, Some(s)) => {
                 let mut hasher = FnvHasher::default();
                 hasher.write(s.as_ref());
                 Self::from(hasher)
             }
             (None, None) => Self::from(FnvHasher::default()),
-        }
+        })
     }
 
     #[classattr]
@@ -78,9 +110,9 @@ impl PyFnvHasher {
         self.finish()
     }
 
-    fn digest(&self) -> ryo3_bytes::PyBytes {
-        let bytes = Vec::from(self.finish().to_be_bytes());
-        ryo3_bytes::PyBytes::from(bytes)
+    fn digest<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        let bytes = self.finish().to_be_bytes();
+        pyo3::types::PyBytes::new(py, &bytes)
     }
 
     fn hexdigest(&self) -> String {
@@ -89,15 +121,17 @@ impl PyFnvHasher {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, s: ryo3_bytes::PyBytes) -> PyResult<()> {
-        if let Ok(mut h) = self.0.lock() {
-            h.write(s.as_ref());
-            Ok(())
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                "Failed to lock hasher in update",
-            ))
-        }
+    fn update(&self, py: Python<'_>, s: ryo3_bytes::PyBytes) -> PyResult<()> {
+        py.detach(|| {
+            if let Ok(mut h) = self.0.lock() {
+                h.write(s.as_ref());
+                Ok(())
+            } else {
+                Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                    "Failed to lock hasher in update",
+                ))
+            }
+        })
     }
 
     fn copy(&self) -> Self {
@@ -107,8 +141,8 @@ impl PyFnvHasher {
 
 #[pyfunction]
 #[pyo3(signature = (s = None, key = None))]
-pub fn fnv1a(s: Option<ryo3_bytes::PyBytes>, key: Option<u64>) -> PyFnvHasher {
-    PyFnvHasher::py_new(s, key)
+pub fn fnv1a(py: Python<'_>, s: Option<ryo3_bytes::PyBytes>, key: Option<FnvKey>) -> PyFnvHasher {
+    PyFnvHasher::py_new(py, s, key)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
