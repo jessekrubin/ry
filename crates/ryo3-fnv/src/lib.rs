@@ -16,7 +16,7 @@ pub struct PyFnvHasher(pub Mutex<FnvHasher>);
 impl PyFnvHasher {
     fn lock(&self) -> PyResult<std::sync::MutexGuard<'_, FnvHasher>> {
         self.0.lock().map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to lock hasher: {}", e))
+            pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to lock hasher: {e}"))
         })
     }
 
@@ -91,7 +91,7 @@ impl PyFnvHasher {
     }
 
     fn hexdigest(&self) -> PyResult<String> {
-        self.finish().map(|n| format!("{:x}", n))
+        self.finish().map(|n| format!("{n:x}"))
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -128,7 +128,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 impl std::fmt::Display for PyFnvHasher {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let key = self.finish().expect("no-way-jose");
-        write!(f, "fnv1a<{:x}>", key)
+        write!(f, "fnv1a<{key:x}>")
     }
 }
 
