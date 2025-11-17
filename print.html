@@ -179,7 +179,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-11-14T16:27:57.288999059-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-11-17T14:15:01.614533675-08:00[America/Los_Angeles]</code></p>
 <hr />
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -479,6 +479,16 @@ releases was not previously a part of the cicd workflow.</p>
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0069-unreleased-yay"><a class="header" href="#v0069-unreleased-yay">v0.0.69 [unreleased] (yay)</a></h2>
+<ul>
+<li><code>ryo3-fnv</code>
+<ul>
+<li>Add <code>py.detach</code> where it makes sense</li>
+<li>Return python <code>builtins.bytes</code> from digest not <code>ry.Bytes</code></li>
+</ul>
+</li>
+</ul>
+<hr />
 <h2 id="v0068-2025-11-14"><a class="header" href="#v0068-2025-11-14">v0.0.68 [2025-11-14]</a></h2>
 <ul>
 <li><code>ryo3-glob</code>
@@ -3166,7 +3176,6 @@ def is_gzipped(data: Buffer) -&gt; bool: ...
 import typing as t
 
 from ry._types import Buffer
-from ry.ryo3._bytes import Bytes
 
 
 @t.final
@@ -3179,7 +3188,7 @@ class FnvHasher:
         self, data: Buffer | None = None, key: int | None = None
     ) -&gt; None: ...
     def update(self, data: Buffer) -&gt; None: ...
-    def digest(self) -&gt; Bytes: ...
+    def digest(self) -&gt; bytes: ...
     def intdigest(self) -&gt; int: ...
     def hexdigest(self) -&gt; str: ...
     def copy(self) -&gt; FnvHasher: ...
@@ -7121,7 +7130,13 @@ class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString):
     @property
     def nanos(self) -&gt; int: ...
     @property
-    def ns(self) -&gt; int: ...
+    def nanoseconds(self) -&gt; int:
+        """Alias for .nanos"""
+
+    @property
+    def ns(self) -&gt; int:
+        """Alias for .nanos"""
+
     @property
     def secs(self) -&gt; int: ...
     @property
