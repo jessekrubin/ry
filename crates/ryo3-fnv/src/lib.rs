@@ -11,7 +11,7 @@ use std::sync::Mutex;
 
 #[pyclass(name = "FnvHasher", frozen)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyFnvHasher(pub Mutex<FnvHasher>);
+pub struct PyFnvHasher(Mutex<FnvHasher>);
 
 impl PyFnvHasher {
     fn lock(&self) -> PyResult<std::sync::MutexGuard<'_, FnvHasher>> {
@@ -34,21 +34,15 @@ impl From<FnvHasher> for PyFnvHasher {
 #[pymethods]
 impl PyFnvHasher {
     #[new]
-    #[pyo3(signature = (s = None, *, key =  None))]
-    fn py_new(py: Python<'_>, s: Option<ryo3_bytes::PyBytes>, key: Option<FnvKey>) -> Self {
-        py.detach(|| match (key, s) {
-            (Some(k), Some(s)) => {
-                let mut hasher = FnvHasher::with_key(k.into());
-                hasher.write(s.as_ref());
+    #[pyo3(signature = (b = None, *, key = FnvKey::default()))]
+    fn py_new(py: Python<'_>, b: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> Self {
+        py.detach(|| match b {
+            Some(b) => {
+                let mut hasher = FnvHasher::with_key(key.into());
+                hasher.write(b.as_ref());
                 Self::from(hasher)
             }
-            (Some(k), None) => Self::from(FnvHasher::with_key(k.into())),
-            (None, Some(s)) => {
-                let mut hasher = FnvHasher::default();
-                hasher.write(s.as_ref());
-                Self::from(hasher)
-            }
-            (None, None) => Self::from(FnvHasher::default()),
+            None => Self::from(FnvHasher::with_key(key.into())),
         })
     }
 
@@ -97,14 +91,9 @@ impl PyFnvHasher {
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, py: Python<'_>, s: ryo3_bytes::PyBytes) -> PyResult<()> {
         py.detach(|| {
-            if let Ok(mut h) = self.0.lock() {
-                h.write(s.as_ref());
-                Ok(())
-            } else {
-                Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                    "Failed to lock hasher in update",
-                ))
-            }
+            let mut h = self.lock()?;
+            h.write(s.as_ref());
+            Ok(())
         })
     }
 
@@ -114,9 +103,9 @@ impl PyFnvHasher {
 }
 
 #[pyfunction]
-#[pyo3(signature = (s = None, key = None))]
-pub fn fnv1a(py: Python<'_>, s: Option<ryo3_bytes::PyBytes>, key: Option<FnvKey>) -> PyFnvHasher {
-    PyFnvHasher::py_new(py, s, key)
+#[pyo3(signature = (b = None, key = FnvKey::default()))]
+pub fn fnv1a(py: Python<'_>, b: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> PyFnvHasher {
+    PyFnvHasher::py_new(py, b, key)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
