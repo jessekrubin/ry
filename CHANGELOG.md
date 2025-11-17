@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.69 [unreleased] (yay)
+
+- `ryo3-fnv`
+  - Add `py.detach` where it makes sense
+  - Return python `builtins.bytes` from digest not `ry.Bytes`
+
+---
+
 ## v0.0.68 [2025-11-14]
 
 - `ryo3-glob`

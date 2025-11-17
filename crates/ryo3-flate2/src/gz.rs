@@ -13,7 +13,7 @@ fn rs_gzip_encode(py: Python<'_>, data: &[u8], quality: PyCompression) -> PyResu
     Ok(PyBytes::new(py, &encoded).into())
 }
 
-pub fn rs_gzip_decode(data: &[u8]) -> PyResult<ryo3_bytes::PyBytes> {
+fn rs_gzip_decode(data: &[u8]) -> PyResult<ryo3_bytes::PyBytes> {
     let mut decompressed = Vec::new();
     GzDecoder::new(data).read_to_end(&mut decompressed)?;
     Ok(ryo3_bytes::PyBytes::from(decompressed))
