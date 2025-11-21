@@ -32,7 +32,7 @@ impl<'py> FromPyObject<'_, 'py> for PyCompressionLevel {
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(level) = obj.extract::<i32>() {
-            PyCompressionLevel::try_from(level).map_err(|_| {
+            Self::try_from(level).map_err(|()| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Invalid compression level: {level}. Must be between 1 and 22."
                 ))
