@@ -13,21 +13,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="favicon.svg">
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-9dfbd86b.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
 
@@ -37,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex.js";
+            window.path_to_searchindex_js = "searchindex-a3d390f1.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc.js"></script>
+        <script src="toc-bff06b67.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -54,7 +53,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -83,12 +82,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -103,39 +102,39 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
-                            <i class="fa fa-search"></i>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
                         </button>
                     </div>
 
@@ -143,52 +142,52 @@
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
                         </a>
                         <a href="https://github.com/jessekrubin/ry" title="Git repository" aria-label="Git repository">
-                            <i id="git-repository-button" class="fa fa-github"></i>
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
                         </a>
 
                     </div>
                 </div>
 
-                <div id="search-wrapper" class="hidden">
-                    <form id="searchbar-outer" class="searchbar-outer">
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
                         <div class="search-wrapper">
-                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
                             <div class="spinner-wrapper">
-                                <i class="fa fa-spinner fa-spin"></i>
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
                             </div>
                         </div>
                     </form>
-                    <div id="searchresults-outer" class="searchresults-outer hidden">
-                        <div id="searchresults-header" class="searchresults-header"></div>
-                        <ul id="searchresults">
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
                         </ul>
                     </div>
                 </div>
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-11-17T14:15:01.614533675-08:00[America/Los_Angeles]</code></p>
-<hr />
+                        <p><strong>updated:</strong> <code>2025-11-20T22:36:05.151724451-08:00[America/Los_Angeles]</code></p>
+<hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
-<p><a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/v/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/pyversions/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Python Version" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/wheel/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Wheel" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/dm/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Downloads" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/status/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Status" /></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/l/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - License" /></a></p>
+<p><a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/v/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI"></a>
+<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/pyversions/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Python Version"></a>
+<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/wheel/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Wheel"></a>
+<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/dm/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Downloads"></a>
+<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/status/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Status"></a>
+<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/l/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - License"></a></p>
 <p>A growing collection of Python shims around Rust crates; fast, async-first, and
 ergonomic.</p>
 <p><strong>DOCS:</strong> <a href="https://ryo3.dev">ryo3.dev</a> (WIP)</p>
@@ -223,7 +222,7 @@ python -m ry
 <h2 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h2>
 <p>Check out the <a href="https://github.com/jessekrubin/ry/tree/main/examples">examples</a>
 directory for some quickstart examples.</p>
-<hr />
+<hr>
 <h2 id="what"><a class="header" href="#what">What?</a></h2>
 <ul>
 <li><code>ry</code> – the python package</li>
@@ -260,7 +259,12 @@ into separate packages</li>
 </li>
 </ul>
 <h2 id="crate-bindings"><a class="header" href="#crate-bindings">Crate bindings</a></h2>
-<div class="table-wrapper"><table><thead><tr><th><strong>crate</strong></th><th><strong>ryo3-crate</strong></th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><strong>crate</strong></th><th><strong>ryo3-crate</strong></th></tr>
+</thead>
+<tbody>
 <tr><td><code>std</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-std"><code>ryo3-std</code></a></td></tr>
 <tr><td><code>bytes</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bytes"><code>ryo3-bytes</code></a></td></tr>
 <tr><td><code>bzip2</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bzip2"><code>ryo3-bzip2</code></a></td></tr>
@@ -294,9 +298,10 @@ into separate packages</li>
 <tr><td><code>regex</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-regex"><code>ryo3-regex</code></a></td></tr>
 <tr><td><code>same-file</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-same-file"><code>ryo3-same-file</code></a></td></tr>
 <tr><td><code>walkdir</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-walkdir"><code>ryo3-walkdir</code></a></td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
-<hr />
+<hr>
 <h2 id="dev"><a class="header" href="#dev">DEV</a></h2>
 <ul>
 <li><code>just</code> is used to run tasks</li>
@@ -305,18 +310,21 @@ docs</li>
 <li>type annotations are required</li>
 <li><code>ruff</code> used for formatting and linting</li>
 </ul>
-<hr />
+<hr>
 <h2 id="see-also"><a class="header" href="#see-also">SEE ALSO</a></h2>
 <ul>
 <li><a href="https://github.com/jessekrubin/utiles">utiles</a>: web-map tile utils</li>
 </ul>
 <hr>
-<ol class="footnote-definition"><li id="footnote-1">
+<ol class="footnote-definition">
+<li id="footnote-1">
 <p>Release‑version benchmarks of <code>ry</code> (via <code>pytest-benchmark</code>) showed no real
 performance variance, regardless of whether “blazingly fast” appeared in the
 README or docs. <a href="#fr-1-1">↩</a></p>
 </li>
-</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">DEVELOPMENT</a></h1>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="development"><a class="header" href="#development">DEVELOPMENT</a></h1>
 <h2 id="goals"><a class="header" href="#goals">goals</a></h2>
 <ol>
 <li>Provide a really nice ergonomic API to work with (this is the highest
@@ -368,7 +376,7 @@ library as much as possible</li>
 <li>copy the template library <code>ryo3-quick-maths</code> library to your new library name</li>
 <li>refer to the above style guide for naming conventions</li>
 </ul>
-<hr />
+<hr>
 <h2 id="tools"><a class="header" href="#tools">tools</a></h2>
 <h3 id="python"><a class="header" href="#python">python</a></h3>
 <ul>
@@ -436,7 +444,8 @@ of tasks)</li>
     gen             # generate code tasks
     cargo-doc       # generate cargo docs for all crates (in workspace)
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="acknowledgements"><a class="header" href="#acknowledgements">ACKNOWLEDGEMENTS</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="acknowledgements"><a class="header" href="#acknowledgements">ACKNOWLEDGEMENTS</a></h1>
 <p>This project would not be possible without the incredible work of many others.</p>
 <h2 id="thank-you"><a class="header" href="#thank-you">THANK YOU</a></h2>
 <ul>
@@ -456,10 +465,11 @@ Imhoff (<a href="https://github.com/cpimhoff">@cpimhoff</a>) and Josh Coats
 naming-convention and style related questions/debates</li>
 <li>The Academy and the Hollywood Foreign Press</li>
 </ul>
-<hr />
+<hr>
 <p>If you want to be added to this list, please open an issue or PR! Happy to add
 you if you’ve helped in any way!</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="ry-dist-archives"><a class="header" href="#ry-dist-archives">ry-dist-archives</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ry-dist-archives"><a class="header" href="#ry-dist-archives">ry-dist-archives</a></h1>
 <p><strong>TLDR: If you are using an older version of <code>ry</code> and it is not longer on PyPI,
 you can find it either on primary ry-repo’s
 <a href="https://github.com/jessekrubin/ry/releases">releases</a> page, or in the
@@ -478,7 +488,8 @@ releases was not previously a part of the cicd workflow.</p>
 <a href="https://github.com/jessekrubin/ry-dist-archives/blob/main/scripts/dl_versions.py">ry-dist-archives/scripts/dl_versions.py</a>.
 It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON parsing and
 dumping, and async file I/O tools.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0069-unreleased-yay"><a class="header" href="#v0069-unreleased-yay">v0.0.69 [unreleased] (yay)</a></h2>
 <ul>
 <li><code>ryo3-fnv</code>
@@ -487,8 +498,14 @@ dumping, and async file I/O tools.</p>
 <li>Return python <code>builtins.bytes</code> from digest not <code>ry.Bytes</code></li>
 </ul>
 </li>
+<li><code>ryo3-url</code>
+<ul>
+<li><code>URL.host</code> property returns <code>None | str | ry.Ipv4Addr | ry.Ipv6ddr</code> if
+<code>ryo3-std</code> feature enabled</li>
 </ul>
-<hr />
+</li>
+</ul>
+<hr>
 <h2 id="v0068-2025-11-14"><a class="header" href="#v0068-2025-11-14">v0.0.68 [2025-11-14]</a></h2>
 <ul>
 <li><code>ryo3-glob</code>
@@ -526,7 +543,7 @@ durations are unsigned)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0067-2025-11-07"><a class="header" href="#v0067-2025-11-07">v0.0.67 [2025-11-07]</a></h2>
 <ul>
 <li><code>ryo3-std</code>
@@ -541,7 +558,7 @@ durations are unsigned)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0066-2025-10-31"><a class="header" href="#v0066-2025-10-31">v0.0.66 [2025-10-31]</a></h2>
 <ul>
 <li>fix typos in python tests</li>
@@ -573,7 +590,7 @@ durations are unsigned)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0065-2025-10-24"><a class="header" href="#v0065-2025-10-24">v0.0.65 [2025-10-24]</a></h2>
 <ul>
 <li><code>ryo3-reqwest</code>
@@ -589,7 +606,7 @@ durations are unsigned)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0064-2025-10-20"><a class="header" href="#v0064-2025-10-20">v0.0.64 [2025-10-20]</a></h2>
 <ul>
 <li><code>ryo3-reqwest</code>
@@ -599,7 +616,7 @@ durations are unsigned)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0063-2025-10-20"><a class="header" href="#v0063-2025-10-20">v0.0.63 [2025-10-20]</a></h2>
 <ul>
 <li>pyo3
@@ -644,7 +661,7 @@ a wee bit faster)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0062-2025-10-15"><a class="header" href="#v0062-2025-10-15">v0.0.62 [2025-10-15]</a></h2>
 <ul>
 <li>python3.14 builds</li>
@@ -708,7 +725,7 @@ useless and may remove/deprecate</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0061-2025-10-08"><a class="header" href="#v0061-2025-10-08">v0.0.61 [2025-10-08]</a></h2>
 <ul>
 <li><code>ryo3-std</code>
@@ -748,7 +765,7 @@ now):
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0060-2025-09-26"><a class="header" href="#v0060-2025-09-26">v0.0.60 [2025-09-26]</a></h2>
 <ul>
 <li>deprecations
@@ -777,7 +794,7 @@ now):
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0059-2025-09-24"><a class="header" href="#v0059-2025-09-24">v0.0.59 [2025-09-24]</a></h2>
 <ul>
 <li><code>ryo3-request</code>
@@ -828,7 +845,7 @@ more inline with the default behaviour of <code>sqlformat</code> crate</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0058-2025-09-18"><a class="header" href="#v0058-2025-09-18">v0.0.58 [2025-09-18]</a></h2>
 <ul>
 <li><code>ryo3-jiff</code>
@@ -845,7 +862,7 @@ f-string formatting</li>
 </li>
 <li>Min python version for ry is now 3.11+</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0057-2025-09-12"><a class="header" href="#v0057-2025-09-12">v0.0.57 [2025-09-12]</a></h2>
 <ul>
 <li><code>ryo3-jiff</code>
@@ -896,7 +913,7 @@ types.</li>
 <code>xxhash-rust</code> hashers liked to sometimes crash, whereas the <code>twox-hash</code>
 py-hashers dont</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0056-2025-09-05"><a class="header" href="#v0056-2025-09-05">v0.0.56 [2025-09-05]</a></h2>
 <ul>
 <li><code>ryo3-serde</code>
@@ -923,7 +940,7 @@ manually</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0055-2025-09-03"><a class="header" href="#v0055-2025-09-03">v0.0.55 [2025-09-03]</a></h2>
 <ul>
 <li>upgrade pyo3 v0.26.x</li>
@@ -944,7 +961,7 @@ manually</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0054-2025-08-28"><a class="header" href="#v0054-2025-08-28">v0.0.54 [2025-08-28]</a></h2>
 <ul>
 <li><code>ryo3-std</code>
@@ -985,7 +1002,7 @@ round objects</li>
 <li>Added ruff <code>A002</code> lint</li>
 <li>Added ruff <code>FBT</code> lints</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0053-2025-08-18"><a class="header" href="#v0053-2025-08-18">v0.0.53 [2025-08-18]</a></h2>
 <ul>
 <li><code>ry</code>
@@ -1000,7 +1017,7 @@ very much a WIP/in-beta, so the versioning schema is “yolo-versioning”</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0052-2025-07-30"><a class="header" href="#v0052-2025-07-30">v0.0.52 [2025-07-30]</a></h2>
 <ul>
 <li><code>ryo3-bytes</code>
@@ -1022,7 +1039,7 @@ very much a WIP/in-beta, so the versioning schema is “yolo-versioning”</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0051-2025-07-25"><a class="header" href="#v0051-2025-07-25">v0.0.51 [2025-07-25]</a></h2>
 <ul>
 <li><code>ryo3-bytes</code>
@@ -1058,7 +1075,7 @@ the underlying jiff <code>with</code> functions</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0050-2025-07-14"><a class="header" href="#v0050-2025-07-14">v0.0.50 [2025-07-14]</a></h2>
 <ul>
 <li>internal
@@ -1086,7 +1103,7 @@ cleanup)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0049-2025-07-04-fourth-o-july"><a class="header" href="#v0049-2025-07-04-fourth-o-july">v0.0.49 [2025-07-04] (fourth o july)</a></h2>
 <ul>
 <li>workspace
@@ -1119,7 +1136,7 @@ iterables)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0048-2025-06-24"><a class="header" href="#v0048-2025-06-24">v0.0.48 [2025-06-24]</a></h2>
 <ul>
 <li><code>ryo3-json</code>
@@ -1146,7 +1163,7 @@ sets the <code>Content-Type</code> header to <code>application/json</code></li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0047-2025-06-17"><a class="header" href="#v0047-2025-06-17">v0.0.47 [2025-06-17]</a></h2>
 <ul>
 <li>pyo3 v0.25.1</li>
@@ -1168,7 +1185,7 @@ advanced and optimized)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0046-2025-06-06"><a class="header" href="#v0046-2025-06-06">v0.0.46 [2025-06-06]</a></h2>
 <ul>
 <li>version 0.0.46</li>
@@ -1206,7 +1223,7 @@ icky, the default may be changed to <code>str</code> (from <code>pathlib.Path</c
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0045-2025-05-30"><a class="header" href="#v0045-2025-05-30">v0.0.45 [2025-05-30]</a></h2>
 <ul>
 <li>added <code>__target__</code> to python package metadata in <code>ry.__about__</code> with the
@@ -1250,7 +1267,7 @@ version of constructor moved to classmethod
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0044-2025-05-23"><a class="header" href="#v0044-2025-05-23">v0.0.44 [2025-05-23]</a></h2>
 <ul>
 <li>internal:
@@ -1292,7 +1309,7 @@ of the translation from <code>rust</code> to <code>ry</code>…</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0043-2025-05-17"><a class="header" href="#v0043-2025-05-17">v0.0.43 [2025-05-17]</a></h2>
 <ul>
 <li><code>ryo3-jiff</code>
@@ -1314,7 +1331,7 @@ etc</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0042-2025-05-12"><a class="header" href="#v0042-2025-05-12">v0.0.42 [2025-05-12]</a></h2>
 <ul>
 <li>panic=abort
@@ -1358,7 +1375,7 @@ encoding/decoding… was a lot of googling</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0041-2025-04-18"><a class="header" href="#v0041-2025-04-18">v0.0.41 [2025-04-18]</a></h2>
 <ul>
 <li><code>ryo3-jiter</code>
@@ -1388,7 +1405,7 @@ encoding/decoding… was a lot of googling</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0040-2025-04-11"><a class="header" href="#v0040-2025-04-11">v0.0.40 [2025-04-11]</a></h2>
 <ul>
 <li>scripts
@@ -1410,7 +1427,7 @@ pre-1-point-oh and old version(s) are being nuked from pypi as needed</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0039-2025-03-14"><a class="header" href="#v0039-2025-03-14">v0.0.39 [2025-03-14]</a></h2>
 <ul>
 <li>internal
@@ -1428,7 +1445,7 @@ encoding/decoding dictionary support</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0038-2025-03-13"><a class="header" href="#v0038-2025-03-13">v0.0.38 [2025-03-13]</a></h2>
 <ul>
 <li><code>ryo3-reqwest</code>
@@ -1454,14 +1471,14 @@ hand-rolled conversions we had before</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0037-2025-03-11"><a class="header" href="#v0037-2025-03-11">v0.0.37 [2025-03-11]</a></h2>
 <ul>
 <li>pyo3 version <code>0.24.0</code></li>
 <li><code>ryo3-which</code> functions return <code>pathlib.Path</code> now due to changes in pyo3-v24;
 this may change in the near future…</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0036-2025-03-11"><a class="header" href="#v0036-2025-03-11">v0.0.36 [2025-03-11]</a></h2>
 <ul>
 <li>dependencies updated</li>
@@ -1477,7 +1494,7 @@ this may change in the near future…</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0035-2025-03-06"><a class="header" href="#v0035-2025-03-06">v0.0.35 [2025-03-06]</a></h2>
 <ul>
 <li>internal
@@ -1498,7 +1515,7 @@ of size <code>usize</code></li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0034-2025-02-28"><a class="header" href="#v0034-2025-02-28">v0.0.34 [2025-02-28]</a></h2>
 <ul>
 <li><code>ryo3-std</code>
@@ -1523,12 +1540,12 @@ a <code>PathLike</code> object</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0033-2025-02-26"><a class="header" href="#v0033-2025-02-26">v0.0.33 [2025-02-26]</a></h2>
 <ul>
 <li>update to pyo3 v0.23.5</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0032-2025-02-25"><a class="header" href="#v0032-2025-02-25">v0.0.32 [2025-02-25]</a></h2>
 <ul>
 <li><code>ryo3-jiter</code>
@@ -1545,7 +1562,7 @@ a <code>PathLike</code> object</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0031-2025-02-21"><a class="header" href="#v0031-2025-02-21">v0.0.31 [2025-02-21]</a></h2>
 <ul>
 <li><code>ryo3-core</code>
@@ -1575,7 +1592,7 @@ should not be different</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0030-2025-02-18"><a class="header" href="#v0030-2025-02-18">v0.0.30 [2025-02-18]</a></h2>
 <ul>
 <li><code>jiff</code>
@@ -1601,7 +1618,7 @@ should not be different</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0029-2025-02-03"><a class="header" href="#v0029-2025-02-03">v0.0.29 [2025-02-03]</a></h2>
 <ul>
 <li>internal
@@ -1615,7 +1632,7 @@ should not be different</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0028-2025-01-31"><a class="header" href="#v0028-2025-01-31">v0.0.28 [2025-01-31]</a></h2>
 <ul>
 <li><code>jiff</code>
@@ -1664,7 +1681,7 @@ IntoTimestampDifference = (
     | tuple[JIFF_UNIT_STRING, ZonedDateTime]
 )
 </code></pre>
-<hr />
+<hr>
 <h2 id="v0027-2025-01-23"><a class="header" href="#v0027-2025-01-23">v0.0.27 [2025-01-23]</a></h2>
 <ul>
 <li><code>ry</code>
@@ -1703,7 +1720,7 @@ sushi)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0026-2025-01-13"><a class="header" href="#v0026-2025-01-13">v0.0.26 [2025-01-13]</a></h2>
 <ul>
 <li><code>reqwest</code>
@@ -1727,7 +1744,7 @@ sushi)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0025-2024-01-07-25-for-2025"><a class="header" href="#v0025-2024-01-07-25-for-2025">v0.0.25 [2024-01-07] (25 for 2025)</a></h2>
 <ul>
 <li><code>jiff</code>
@@ -1737,7 +1754,7 @@ letters</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0024-2024-12-24-the-night-b4-xmas"><a class="header" href="#v0024-2024-12-24-the-night-b4-xmas">v0.0.24 [2024-12-24] (the night b4 xmas…)</a></h2>
 <ul>
 <li><code>http</code>
@@ -1753,7 +1770,7 @@ letters</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0023-2024-12-19"><a class="header" href="#v0023-2024-12-19">v0.0.23 [2024-12-19]</a></h2>
 <ul>
 <li><code>python -m ry.dev</code> repl for ipython/python repl ~ handy nifty secret tool
@@ -1792,7 +1809,7 @@ sub-packages and where that organization should be</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0022-2024-12-16"><a class="header" href="#v0022-2024-12-16">v0.0.22 [2024-12-16]</a></h2>
 <ul>
 <li><code>regex</code>
@@ -1825,7 +1842,7 @@ whenever dude appears to be watching this repo (as of 2024-12-16)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0021-2024-12-13-friday-the-13th-spoogidy-oogidity"><a class="header" href="#v0021-2024-12-13-friday-the-13th-spoogidy-oogidity">v0.0.21 [2024-12-13] (friday the 13th… spoogidy oogidity)</a></h2>
 <ul>
 <li><code>walkdir</code>
@@ -1859,22 +1876,14 @@ libs</li>
 <li>conversions for jiff-round-mode/unit/weekday</li>
 <li>not-implemented placeholders and new impls
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RyDateTime</code></li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RyDate</code></li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RyOffset</code></li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RySignedDuration</code></li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RySpan</code></li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RyTimeZone</code></li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RyTime</code></li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>RyZoned</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RyDateTime</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RyDate</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RyOffset</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RySignedDuration</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RySpan</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RyTimeZone</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RyTime</code></li>
+<li><input disabled="" type="checkbox" checked=""> <code>RyZoned</code></li>
 </ul>
 </li>
 <li>span builder functions use form <code>s._hours(1)</code> for panic-inducing building,
@@ -1887,7 +1896,7 @@ and <code>s.try_hours(1)</code> for non-panic-inducing building</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0020-2024-12-10"><a class="header" href="#v0020-2024-12-10">v0.0.20 [2024-12-10]</a></h2>
 <ul>
 <li><code>regex</code>
@@ -1906,99 +1915,67 @@ and <code>s.try_hours(1)</code> for non-panic-inducing building</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0019-2024-12-05"><a class="header" href="#v0019-2024-12-05">v0.0.19 [2024-12-05]</a></h2>
 <ul>
 <li><code>jiff</code>
 <ul>
 <li>py-conversions
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffDateTime</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffDateTime</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffDate</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffDate</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffOffset</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffOffset</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffSignedDuration</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffSignedDuration</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffSpan</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffSpan</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffTimeZone</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffTimeZone</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffTime</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffTime</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>JiffZoned</code>
+<li><input disabled="" type="checkbox" checked=""> <code>JiffZoned</code>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-FromPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject</li>
-<li><input disabled="" type="checkbox" checked=""/>
-IntoPyObject (REF)</li>
+<li><input disabled="" type="checkbox" checked=""> FromPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject</li>
+<li><input disabled="" type="checkbox" checked=""> IntoPyObject (REF)</li>
 </ul>
 </li>
 </ul>
@@ -2006,7 +1983,7 @@ IntoPyObject (REF)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0018-2024-12-03"><a class="header" href="#v0018-2024-12-03">v0.0.18 [2024-12-03]</a></h2>
 <ul>
 <li><code>jiff</code>
@@ -2023,7 +2000,7 @@ IntoPyObject (REF)</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0017-2024-12-02"><a class="header" href="#v0017-2024-12-02">v0.0.17 [2024-12-02]</a></h2>
 <ul>
 <li><code>jiff</code>
@@ -2040,7 +2017,7 @@ problem (aka batman) w/ traits</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0016-2024-11-29"><a class="header" href="#v0016-2024-11-29">v0.0.16 [2024-11-29]</a></h2>
 <ul>
 <li>Moved walkdir to <code>ryo3-walkdir</code></li>
@@ -2058,13 +2035,13 @@ problem (aka batman) w/ traits</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0015-2024-11-20"><a class="header" href="#v0015-2024-11-20">v0.0.15 [2024-11-20]</a></h2>
 <ul>
 <li><code>from __future__ import annotations</code> added to all modules</li>
 <li>cicd updated to include more targets</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0014-2024-11-20"><a class="header" href="#v0014-2024-11-20">v0.0.14 [2024-11-20]</a></h2>
 <ul>
 <li>Primitive/crude wrappers around Mr. Sushi’s <code>jiff</code> library</li>
@@ -2073,35 +2050,35 @@ problem (aka batman) w/ traits</li>
 <li>Added iterdir gen wrapper</li>
 <li>(todo undo when jiter + pyo3 23 is public)</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0013-2024-11-20"><a class="header" href="#v0013-2024-11-20">v0.0.13 [2024-11-20]</a></h2>
 <ul>
 <li><strong>VERSION SKIPPED DUE TO <code>13</code> BEING SPOOKY AND ME BEING MODERATELY-STITCHOUS
 (AKA fully ‘superstitchous’)</strong></li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0012-2024-11-14"><a class="header" href="#v0012-2024-11-14">v0.0.12 [2024-11-14]</a></h2>
 <ul>
 <li>sqlformat wrapper(s) (this is the first <code>ryo3-*</code> sub-crate)</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0011-2024-09-22"><a class="header" href="#v0011-2024-09-22">v0.0.11 [2024-09-22]</a></h2>
 <ul>
 <li>dependencies updated</li>
 <li>prepare for python 3.13</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v0010-2024-09-22"><a class="header" href="#v0010-2024-09-22">v0.0.10 [2024-09-22]</a></h2>
 <ul>
 <li>dependencies updated</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v009-2024-08-22"><a class="header" href="#v009-2024-08-22">v0.0.9 [2024-08-22]</a></h2>
 <ul>
 <li>Added <code>globset</code> wrapper(s)</li>
 <li>Added <code>__init__.py</code> generator</li>
 </ul>
-<hr />
+<hr>
 <ul>
 <li>Upgraded to pyo3-v0.22</li>
 </ul>
@@ -2109,12 +2086,12 @@ problem (aka batman) w/ traits</li>
 <ul>
 <li>Upgraded to pyo3-v0.22</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v007-2024-06-08"><a class="header" href="#v007-2024-06-08">v0.0.7 [2024-06-08]</a></h2>
 <ul>
 <li>internal refactoring</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v006-2024-06-05"><a class="header" href="#v006-2024-06-05">v0.0.6 [2024-06-05]</a></h2>
 <ul>
 <li>Added zstd (<code>zstd_encode</code>/<code>zstd</code> and <code>zstd_decode</code>)</li>
@@ -2123,7 +2100,7 @@ problem (aka batman) w/ traits</li>
 <li>Added walkdir</li>
 <li>Reorg libs</li>
 </ul>
-<hr />
+<hr>
 <h2 id="v005-2024-04-19"><a class="header" href="#v005-2024-04-19">v0.0.5 [2024-04-19]</a></h2>
 <ul>
 <li>Added brotli (<code>brotli_encode</code> and <code>brotli_decode</code>)</li>
@@ -2134,7 +2111,8 @@ problem (aka batman) w/ traits</li>
 </ul>
 </li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="fspath"><a class="header" href="#fspath">fspath</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="fspath"><a class="header" href="#fspath">fspath</a></h1>
 <pre><code class="language-python">import ry
 
 # get current directory
@@ -2577,60 +2555,62 @@ def main() -&gt; None:
 if __name__ == "__main__":
     main()
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="api"><a class="header" href="#api">API</a></h1>
 <h2 id="table-of-contents"><a class="header" href="#table-of-contents">Table of Contents</a></h2>
 <ul>
-<li><a href="api.html#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></li>
-<li><a href="api.html#ry.ryo3.__about__"><code>ry.ryo3.__about__</code></a></li>
-<li><a href="api.html#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></li>
-<li><a href="api.html#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></li>
-<li><a href="api.html#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></li>
-<li><a href="api.html#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></li>
-<li><a href="api.html#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></li>
-<li><a href="api.html#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></li>
-<li><a href="api.html#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></li>
-<li><a href="api.html#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></li>
-<li><a href="api.html#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></li>
-<li><a href="api.html#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></li>
-<li><a href="api.html#ry.ryo3._http"><code>ry.ryo3._http</code></a></li>
-<li><a href="api.html#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></li>
-<li><a href="api.html#ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></a></li>
-<li><a href="api.html#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></li>
-<li><a href="api.html#ry.ryo3._memchr"><code>ry.ryo3._memchr</code></a></li>
-<li><a href="api.html#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></li>
-<li><a href="api.html#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></li>
-<li><a href="api.html#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></li>
-<li><a href="api.html#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></li>
-<li><a href="api.html#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></li>
-<li><a href="api.html#ry.ryo3._size"><code>ry.ryo3._size</code></a></li>
-<li><a href="api.html#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></li>
-<li><a href="api.html#ry.ryo3._std"><code>ry.ryo3._std</code></a></li>
-<li><a href="api.html#ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></a></li>
-<li><a href="api.html#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></li>
-<li><a href="api.html#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></li>
-<li><a href="api.html#ry.ryo3._url"><code>ry.ryo3._url</code></a></li>
-<li><a href="api.html#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></li>
-<li><a href="api.html#ry.ryo3._which"><code>ry.ryo3._which</code></a></li>
-<li><a href="api.html#ry.ryo3._zstd"><code>ry.ryo3._zstd</code></a></li>
-<li><a href="api.html#ry.ryo3.dirs"><code>ry.ryo3.dirs</code></a></li>
-<li><a href="api.html#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></li>
-<li><a href="api.html#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></li>
-<li><a href="api.html#ry.ryo3.orjson"><code>ry.ryo3.orjson</code></a></li>
-<li><a href="api.html#ry.ryo3.sh"><code>ry.ryo3.sh</code></a></li>
-<li><a href="api.html#ry.ryo3.ulid"><code>ry.ryo3.ulid</code></a></li>
-<li><a href="api.html#ry.ryo3.uuid"><code>ry.ryo3.uuid</code></a></li>
-<li><a href="api.html#ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></a></li>
-<li><a href="api.html#ry.ryo3.zstd"><code>ry.ryo3.zstd</code></a></li>
-<li><a href="api.html#ry._types"><code>ry._types</code></a></li>
-<li><a href="api.html#ry.dirs"><code>ry.dirs</code></a></li>
-<li><a href="api.html#ry.JSON"><code>ry.JSON</code></a></li>
-<li><a href="api.html#ry.protocols"><code>ry.protocols</code></a></li>
-<li><a href="api.html#ry.ulid"><code>ry.ulid</code></a></li>
-<li><a href="api.html#ry.uuid"><code>ry.uuid</code></a></li>
-<li><a href="api.html#ry.xxhash"><code>ry.xxhash</code></a></li>
-<li><a href="api.html#ry.zstd"><code>ry.zstd</code></a></li>
+<li><a href="#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></li>
+<li><a href="#ry.ryo3.__about__"><code>ry.ryo3.__about__</code></a></li>
+<li><a href="#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></li>
+<li><a href="#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></li>
+<li><a href="#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></li>
+<li><a href="#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></li>
+<li><a href="#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></li>
+<li><a href="#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></li>
+<li><a href="#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></li>
+<li><a href="#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></li>
+<li><a href="#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></li>
+<li><a href="#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></li>
+<li><a href="#ry.ryo3._http"><code>ry.ryo3._http</code></a></li>
+<li><a href="#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></li>
+<li><a href="#ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></a></li>
+<li><a href="#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></li>
+<li><a href="#ry.ryo3._memchr"><code>ry.ryo3._memchr</code></a></li>
+<li><a href="#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></li>
+<li><a href="#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></li>
+<li><a href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></li>
+<li><a href="#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></li>
+<li><a href="#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></li>
+<li><a href="#ry.ryo3._size"><code>ry.ryo3._size</code></a></li>
+<li><a href="#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></li>
+<li><a href="#ry.ryo3._std"><code>ry.ryo3._std</code></a></li>
+<li><a href="#ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></a></li>
+<li><a href="#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></li>
+<li><a href="#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></li>
+<li><a href="#ry.ryo3._url"><code>ry.ryo3._url</code></a></li>
+<li><a href="#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></li>
+<li><a href="#ry.ryo3._which"><code>ry.ryo3._which</code></a></li>
+<li><a href="#ry.ryo3._zstd"><code>ry.ryo3._zstd</code></a></li>
+<li><a href="#ry.ryo3.dirs"><code>ry.ryo3.dirs</code></a></li>
+<li><a href="#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></li>
+<li><a href="#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></li>
+<li><a href="#ry.ryo3.orjson"><code>ry.ryo3.orjson</code></a></li>
+<li><a href="#ry.ryo3.sh"><code>ry.ryo3.sh</code></a></li>
+<li><a href="#ry.ryo3.ulid"><code>ry.ryo3.ulid</code></a></li>
+<li><a href="#ry.ryo3.uuid"><code>ry.ryo3.uuid</code></a></li>
+<li><a href="#ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></a></li>
+<li><a href="#ry.ryo3.zstd"><code>ry.ryo3.zstd</code></a></li>
+<li><a href="#ry._types"><code>ry._types</code></a></li>
+<li><a href="#ry.dirs"><code>ry.dirs</code></a></li>
+<li><a href="#ry.JSON"><code>ry.JSON</code></a></li>
+<li><a href="#ry.protocols"><code>ry.protocols</code></a></li>
+<li><a href="#ry.ulid"><code>ry.ulid</code></a></li>
+<li><a href="#ry.uuid"><code>ry.uuid</code></a></li>
+<li><a href="#ry.xxhash"><code>ry.xxhash</code></a></li>
+<li><a href="#ry.zstd"><code>ry.zstd</code></a></li>
 </ul>
-<h2 id="ry.ryo3.__init__"><a class="header" href="#ry.ryo3.__init__"><code>ry.ryo3.__init__</code></a></h2>
+<h2 id="ry.ryo3.__init__"><code>ry.ryo3.__init__</code></h2>
+
 <pre><code class="language-python">"""ry api ~ type annotations"""
 
 from ry.ryo3 import JSON as JSON
@@ -2874,7 +2854,8 @@ from ry.ryo3.sh import mkdir as mkdir
 from ry.ryo3.sh import mkdirp as mkdirp
 from ry.ryo3.sh import pwd as pwd
 </code></pre>
-<h2 id="ry.ryo3.__about__"><a class="header" href="#ry.ryo3.__about__"><code>ry.ryo3.__about__</code></a></h2>
+<h2 id="ry.ryo3.__about__"><code>ry.ryo3.__about__</code></h2>
+
 <pre><code class="language-python">import typing as t
 
 __version__: str
@@ -2887,7 +2868,8 @@ __target__: str
 __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 </code></pre>
-<h2 id="ry.ryo3._brotli"><a class="header" href="#ry.ryo3._brotli"><code>ry.ryo3._brotli</code></a></h2>
+<h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
+
 <pre><code class="language-python">"""ryo3-brotli types"""
 
 from ry._types import Buffer
@@ -2902,7 +2884,8 @@ def brotli(
 ) -&gt; bytes:
     """Alias for brotli_encode"""
 </code></pre>
-<h2 id="ry.ryo3._bytes"><a class="header" href="#ry.ryo3._bytes"><code>ry.ryo3._bytes</code></a></h2>
+<h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
+
 <pre><code class="language-python">import sys
 from typing import overload
 
@@ -3108,7 +3091,8 @@ BytesLike: typing_extensions.TypeAlias = (
     Buffer | bytes | bytearray | memoryview | Bytes
 )
 </code></pre>
-<h2 id="ry.ryo3._bzip2"><a class="header" href="#ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></a></h2>
+<h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
+
 <pre><code class="language-python">"""ryo3-bzip2 types"""
 
 from ry._types import Buffer
@@ -3122,7 +3106,8 @@ def bzip2_decode(data: Buffer) -&gt; bytes: ...
 def bzip2(data: Buffer, quality: int = 9) -&gt; bytes:
     """Alias for bzip2_encode"""
 </code></pre>
-<h2 id="ry.ryo3._dev"><a class="header" href="#ry.ryo3._dev"><code>ry.ryo3._dev</code></a></h2>
+<h2 id="ry.ryo3._dev"><code>ry.ryo3._dev</code></h2>
+
 <pre><code class="language-python">"""ry.ryo3.dev"""
 
 import typing as t
@@ -3147,7 +3132,8 @@ def anystr_noop(s: t.AnyStr) -&gt; t.AnyStr: ...
 def string_noop(s: str) -&gt; str: ...
 def bytes_noop(s: bytes) -&gt; bytes: ...
 </code></pre>
-<h2 id="ry.ryo3._flate2"><a class="header" href="#ry.ryo3._flate2"><code>ry.ryo3._flate2</code></a></h2>
+<h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
+
 <pre><code class="language-python">"""ryo3-flate2 types"""
 
 from typing import Literal, TypeAlias
@@ -3170,7 +3156,8 @@ def gunzip(data: Buffer) -&gt; Bytes:
 
 def is_gzipped(data: Buffer) -&gt; bool: ...
 </code></pre>
-<h2 id="ry.ryo3._fnv"><a class="header" href="#ry.ryo3._fnv"><code>ry.ryo3._fnv</code></a></h2>
+<h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
+
 <pre><code class="language-python">"""ryo3-fnv types"""
 
 import typing as t
@@ -3185,7 +3172,7 @@ class FnvHasher:
     block_size: t.Literal[1]
 
     def __init__(
-        self, data: Buffer | None = None, key: int | None = None
+        self, data: Buffer | None = None, key: int | bytes | None = None
     ) -&gt; None: ...
     def update(self, data: Buffer) -&gt; None: ...
     def digest(self) -&gt; bytes: ...
@@ -3194,9 +3181,12 @@ class FnvHasher:
     def copy(self) -&gt; FnvHasher: ...
 
 
-def fnv1a(data: Buffer | None = None, key: int | None = None) -&gt; FnvHasher: ...
+def fnv1a(
+    data: Buffer | None = None, key: int | bytes | None = None
+) -&gt; FnvHasher: ...
 </code></pre>
-<h2 id="ry.ryo3._fspath"><a class="header" href="#ry.ryo3._fspath"><code>ry.ryo3._fspath</code></a></h2>
+<h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
+
 <pre><code class="language-python">"""ryo3-fspath types"""
 
 import typing as t
@@ -3357,7 +3347,8 @@ class FsPathReaddir(RyIterator[FsPath]):
     def collect(self) -&gt; list[FsPath]: ...
     def take(self, n: int = 1) -&gt; list[FsPath]: ...
 </code></pre>
-<h2 id="ry.ryo3._glob"><a class="header" href="#ry.ryo3._glob"><code>ry.ryo3._glob</code></a></h2>
+<h2 id="ry.ryo3._glob"><code>ry.ryo3._glob</code></h2>
+
 <pre><code class="language-python">"""ryo3-glob types"""
 
 import typing as t
@@ -3443,7 +3434,8 @@ class Pattern:
     def pattern(self) -&gt; str: ...
     def __hash__(self) -&gt; int: ...
 </code></pre>
-<h2 id="ry.ryo3._globset"><a class="header" href="#ry.ryo3._globset"><code>ry.ryo3._globset</code></a></h2>
+<h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
+
 <pre><code class="language-python">"""ryo3-globset types"""
 
 import typing as t
@@ -3530,7 +3522,8 @@ def globster(
     backslash_escape: bool | None = None,
 ) -&gt; Globster: ...
 </code></pre>
-<h2 id="ry.ryo3._heck"><a class="header" href="#ry.ryo3._heck"><code>ry.ryo3._heck</code></a></h2>
+<h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>
+
 <pre><code class="language-python">"""ryo3-heck types"""
 
 
@@ -3544,7 +3537,8 @@ def snek_case(string: str) -&gt; str: ...
 def title_case(string: str) -&gt; str: ...
 def train_case(string: str) -&gt; str: ...
 </code></pre>
-<h2 id="ry.ryo3._http"><a class="header" href="#ry.ryo3._http"><code>ry.ryo3._http</code></a></h2>
+<h2 id="ry.ryo3._http"><code>ry.ryo3._http</code></h2>
+
 <pre><code class="language-python">import typing as t
 from collections.abc import Mapping
 
@@ -3807,7 +3801,8 @@ class HttpStatus:
     NETWORK_AUTHENTICATION_REQUIRED: t.ClassVar[HttpStatus]  # 511 ~ Network Authentication Required
     # fmt: on
 </code></pre>
-<h2 id="ry.ryo3._jiff"><a class="header" href="#ry.ryo3._jiff"><code>ry.ryo3._jiff</code></a></h2>
+<h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
+
 <pre><code class="language-python">"""ryo3-jiff types"""
 
 import datetime as pydt
@@ -5721,7 +5716,8 @@ class TimeZoneDatabase:
     @classmethod
     def bundled(cls) -&gt; t.Self: ...
 </code></pre>
-<h2 id="ry.ryo3._jiff_tz"><a class="header" href="#ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></a></h2>
+<h2 id="ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></h2>
+
 <pre><code class="language-python">from typing import Literal, TypeAlias
 
 TimezoneDbName: TypeAlias = Literal[
@@ -6325,7 +6321,8 @@ TimezoneDbName: TypeAlias = Literal[
     "Zulu",
 ]
 </code></pre>
-<h2 id="ry.ryo3._jiter"><a class="header" href="#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></h2>
+<h2 id="ry.ryo3._jiter"><code>ry.ryo3._jiter</code></h2>
+
 <pre><code class="language-python">import typing as t
 from os import PathLike
 
@@ -6372,7 +6369,8 @@ def read_json(
 def json_cache_clear() -&gt; None: ...
 def json_cache_usage() -&gt; int: ...
 </code></pre>
-<h2 id="ry.ryo3._memchr"><a class="header" href="#ry.ryo3._memchr"><code>ry.ryo3._memchr</code></a></h2>
+<h2 id="ry.ryo3._memchr"><code>ry.ryo3._memchr</code></h2>
+
 <pre><code class="language-python">"""ryo3-memchr types"""
 
 from typing import TypeAlias
@@ -6393,7 +6391,8 @@ def memrchr3(
     needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
 ) -&gt; int | None: ...
 </code></pre>
-<h2 id="ry.ryo3._quick_maths"><a class="header" href="#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></h2>
+<h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
+
 <pre><code class="language-python">"""ryo3-quick-maths types"""
 
 import typing as t
@@ -6418,7 +6417,8 @@ def quick_maths() -&gt; t.Literal[3]:
     NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
     """
 </code></pre>
-<h2 id="ry.ryo3._regex"><a class="header" href="#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></h2>
+<h2 id="ry.ryo3._regex"><code>ry.ryo3._regex</code></h2>
+
 <pre><code class="language-python">"""ryo3-regex types"""
 
 import typing as t
@@ -6455,7 +6455,8 @@ class Regex:
     def split(self, string: str) -&gt; list[str]: ...
     def splitn(self, string: str, n: int) -&gt; list[str]: ...
 </code></pre>
-<h2 id="ry.ryo3._reqwest"><a class="header" href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></h2>
+<h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
+
 <pre><code class="language-python">import typing as t
 
 import ry
@@ -6752,7 +6753,8 @@ class Certificate:
     @staticmethod
     def from_pem_bundle(pem_bundle: Buffer) -&gt; list[Certificate]: ...
 </code></pre>
-<h2 id="ry.ryo3._same_file"><a class="header" href="#ry.ryo3._same_file"><code>ry.ryo3._same_file</code></a></h2>
+<h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
+
 <pre><code class="language-python">"""ryo3-same-file types"""
 
 from os import PathLike
@@ -6760,14 +6762,16 @@ from os import PathLike
 
 def is_same_file(a: PathLike[str], b: PathLike[str]) -&gt; bool: ...
 </code></pre>
-<h2 id="ry.ryo3._shlex"><a class="header" href="#ry.ryo3._shlex"><code>ry.ryo3._shlex</code></a></h2>
+<h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
+
 <pre><code class="language-python">"""ryo3-shlex types"""
 
 
 def shplit(s: str) -&gt; list[str]:
     """shlex::split wrapper much like python's stdlib shlex.split but faster"""
 </code></pre>
-<h2 id="ry.ryo3._size"><a class="header" href="#ry.ryo3._size"><code>ry.ryo3._size</code></a></h2>
+<h2 id="ry.ryo3._size"><code>ry.ryo3._size</code></h2>
+
 <pre><code class="language-python">import typing as t
 
 FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
@@ -6942,7 +6946,8 @@ class Size:
     def __bool__(self) -&gt; bool: ...
     def __int__(self) -&gt; int: ...
 </code></pre>
-<h2 id="ry.ryo3._sqlformat"><a class="header" href="#ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></a></h2>
+<h2 id="ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></h2>
+
 <pre><code class="language-python">"""ryo3-sqlformat types"""
 
 import typing as t
@@ -7035,7 +7040,8 @@ class SqlFormatter:
     def __eq__(self, value: object) -&gt; bool: ...
     def __ne__(self, value: object) -&gt; bool: ...
 </code></pre>
-<h2 id="ry.ryo3._std"><a class="header" href="#ry.ryo3._std"><code>ry.ryo3._std</code></a></h2>
+<h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>
+
 <pre><code class="language-python">"""ryo3-std types"""
 
 import datetime as pydt
@@ -7715,7 +7721,8 @@ class SocketAddr(
     @property
     def port(self) -&gt; int: ...
 </code></pre>
-<h2 id="ry.ryo3._std_constants"><a class="header" href="#ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></a></h2>
+<h2 id="ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></h2>
+
 <pre><code class="language-python">from typing import Literal
 
 # ruff: noqa: PYI054
@@ -7775,7 +7782,8 @@ ISIZE_BITS: Literal[32, 64]
 ISIZE_MAX: Literal[2_147_483_647, 9_223_372_036_854_775_807]
 ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 </code></pre>
-<h2 id="ry.ryo3._tokio"><a class="header" href="#ry.ryo3._tokio"><code>ry.ryo3._tokio</code></a></h2>
+<h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
+
 <pre><code class="language-python">"""ryo4-tokio types"""
 
 import pathlib
@@ -7885,20 +7893,22 @@ def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -&gt; AsyncFile: ...
 </code></pre>
-<h2 id="ry.ryo3._unindent"><a class="header" href="#ry.ryo3._unindent"><code>ry.ryo3._unindent</code></a></h2>
+<h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
+
 <pre><code class="language-python">"""ryo3-unindent types"""
 
 
 def unindent(string: str) -&gt; str: ...
 def unindent_bytes(string: bytes) -&gt; bytes: ...
 </code></pre>
-<h2 id="ry.ryo3._url"><a class="header" href="#ry.ryo3._url"><code>ry.ryo3._url</code></a></h2>
+<h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
+
 <pre><code class="language-python">import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
 from ry.protocols import FromStr
-from ry.ryo3._std import SocketAddr
+from ry.ryo3._std import Ipv4Addr, Ipv6Addr, SocketAddr
 
 
 @t.final
@@ -7940,7 +7950,7 @@ class URL(FromStr):
     @property
     def fragment(self) -&gt; str | None: ...
     @property
-    def host(self) -&gt; str | None: ...
+    def host(self) -&gt; str | Ipv4Addr | Ipv6Addr | None: ...
     @property
     def host_str(self) -&gt; str | None: ...
     @property
@@ -8013,7 +8023,8 @@ class URL(FromStr):
     def __ge__(self, other: URL) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
 </code></pre>
-<h2 id="ry.ryo3._walkdir"><a class="header" href="#ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></a></h2>
+<h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
+
 <pre><code class="language-python">"""ryo3-walkdir types"""
 
 import typing as t
@@ -8092,7 +8103,8 @@ def walkdir(
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
 ) -&gt; WalkdirGen[str]: ...
 </code></pre>
-<h2 id="ry.ryo3._which"><a class="header" href="#ry.ryo3._which"><code>ry.ryo3._which</code></a></h2>
+<h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
+
 <pre><code class="language-python">"""ryo3-which types"""
 
 from pathlib import Path
@@ -8104,7 +8116,8 @@ def which(cmd: str, path: None | str = None) -&gt; Path | None: ...
 def which_all(cmd: str, path: None | str = None) -&gt; list[Path]: ...
 def which_re(regex: str | Regex, path: None | str = None) -&gt; list[Path]: ...
 </code></pre>
-<h2 id="ry.ryo3._zstd"><a class="header" href="#ry.ryo3._zstd"><code>ry.ryo3._zstd</code></a></h2>
+<h2 id="ry.ryo3._zstd"><code>ry.ryo3._zstd</code></h2>
+
 <pre><code class="language-python">"""ry.ryo3 root level zstd exports"""
 
 from ry.ryo3.zstd import compress as zstd_compress
@@ -8121,7 +8134,8 @@ __all__ = (
     "zstd_encode",
 )
 </code></pre>
-<h2 id="ry.ryo3.dirs"><a class="header" href="#ry.ryo3.dirs"><code>ry.ryo3.dirs</code></a></h2>
+<h2 id="ry.ryo3.dirs"><code>ry.ryo3.dirs</code></h2>
+
 <pre><code class="language-python">def audio() -&gt; str | None: ...
 def audio_dir() -&gt; str | None: ...
 def cache() -&gt; str | None: ...
@@ -8161,11 +8175,13 @@ def template_dir() -&gt; str | None: ...
 def video() -&gt; str | None: ...
 def video_dir() -&gt; str | None: ...
 </code></pre>
-<h2 id="ry.ryo3.errors"><a class="header" href="#ry.ryo3.errors"><code>ry.ryo3.errors</code></a></h2>
+<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
+
 <pre><code class="language-python">class FeatureNotEnabledError(RuntimeError):
     """Raised when a feature is not enabled in the current build."""
 </code></pre>
-<h2 id="ry.ryo3.JSON"><a class="header" href="#ry.ryo3.JSON"><code>ry.ryo3.JSON</code></a></h2>
+<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
+
 <pre><code class="language-python">"""ry.ryo3.JSON"""
 
 import typing as t
@@ -8290,7 +8306,8 @@ def cache_usage() -&gt; int: ...
 # under construction
 def stringify_unsafe(data: t.Any) -&gt; Bytes: ...
 </code></pre>
-<h2 id="ry.ryo3.orjson"><a class="header" href="#ry.ryo3.orjson"><code>ry.ryo3.orjson</code></a></h2>
+<h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
+
 <pre><code class="language-python">"""orjson + ry types
 
 orjson-types: https://github.com/ijl/orjson/blob/master/pysrc/orjson/__init__.pyi
@@ -8313,7 +8330,8 @@ def orjson_default(obj: t.Any) -&gt; orjson.Fragment:
 
     """
 </code></pre>
-<h2 id="ry.ryo3.sh"><a class="header" href="#ry.ryo3.sh"><code>ry.ryo3.sh</code></a></h2>
+<h2 id="ry.ryo3.sh"><code>ry.ryo3.sh</code></h2>
+
 <pre><code class="language-python">import typing as t
 from os import PathLike
 
@@ -8348,7 +8366,8 @@ def ls(
 def mkdir(path: str | PathLike[str], *, recursive: bool = False) -&gt; None: ...
 def mkdirp(path: str | PathLike[str]) -&gt; None: ...
 </code></pre>
-<h2 id="ry.ryo3.ulid"><a class="header" href="#ry.ryo3.ulid"><code>ry.ryo3.ulid</code></a></h2>
+<h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
+
 <pre><code class="language-python">import builtins
 import datetime as pydt
 import uuid
@@ -8425,7 +8444,8 @@ class ULID:
     # -------
     def __bytes__(self) -&gt; builtins.bytes: ...
 </code></pre>
-<h2 id="ry.ryo3.uuid"><a class="header" href="#ry.ryo3.uuid"><code>ry.ryo3.uuid</code></a></h2>
+<h2 id="ry.ryo3.uuid"><code>ry.ryo3.uuid</code></h2>
+
 <pre><code class="language-python">"""ryo3-uuid types
 
 based on typeshed types for python's builtin uuid module
@@ -8534,7 +8554,8 @@ RFC_4122: str
 RESERVED_MICROSOFT: str
 RESERVED_FUTURE: str
 </code></pre>
-<h2 id="ry.ryo3.xxhash"><a class="header" href="#ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></a></h2>
+<h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
+
 <pre><code class="language-python">import typing as t
 
 from ry._types import Buffer
@@ -8678,7 +8699,8 @@ def xxh3_128_digest(data: Buffer, *, seed: int | None = None) -&gt; bytes: ...
 def xxh3_128_intdigest(data: Buffer, *, seed: int | None = None) -&gt; int: ...
 def xxh3_128_hexdigest(data: Buffer, *, seed: int | None = None) -&gt; str: ...
 </code></pre>
-<h2 id="ry.ryo3.zstd"><a class="header" href="#ry.ryo3.zstd"><code>ry.ryo3.zstd</code></a></h2>
+<h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
+
 <pre><code class="language-python">from ry import Bytes
 from ry._types import Buffer
 
@@ -8716,7 +8738,8 @@ def unzstd(data: Buffer) -&gt; Bytes: ...
 # __MAGIC__
 def is_zstd(data: Buffer) -&gt; bool: ...
 </code></pre>
-<h2 id="ry._types"><a class="header" href="#ry._types"><code>ry._types</code></a></h2>
+<h2 id="ry._types"><code>ry._types</code></h2>
+
 <pre><code class="language-python">"""ry-types"""
 
 from __future__ import annotations
@@ -9097,7 +9120,8 @@ OpenMode: TypeAlias = Literal[
     "xt+",
 ]
 </code></pre>
-<h2 id="ry.dirs"><a class="header" href="#ry.dirs"><code>ry.dirs</code></a></h2>
+<h2 id="ry.dirs"><code>ry.dirs</code></h2>
+
 <pre><code class="language-python">from ry.ryo3.dirs import audio as audio
 from ry.ryo3.dirs import audio_dir as audio_dir
 from ry.ryo3.dirs import cache as cache
@@ -9178,7 +9202,8 @@ __all__ = (
     "video_dir",
 )
 </code></pre>
-<h2 id="ry.JSON"><a class="header" href="#ry.JSON"><code>ry.JSON</code></a></h2>
+<h2 id="ry.JSON"><code>ry.JSON</code></h2>
+
 <pre><code class="language-python">"""ry.JSON"""
 
 from ry.ryo3.JSON import cache_clear as cache_clear
@@ -9197,7 +9222,8 @@ __all__ = (
     "stringify",
 )
 </code></pre>
-<h2 id="ry.protocols"><a class="header" href="#ry.protocols"><code>ry.protocols</code></a></h2>
+<h2 id="ry.protocols"><code>ry.protocols</code></h2>
+
 <pre><code class="language-python">import datetime as pydt
 import typing as t
 
@@ -9297,12 +9323,14 @@ class ToPyTzInfo(t.Protocol):
 
     def to_pytzinfo(self) -&gt; pydt.tzinfo: ...
 </code></pre>
-<h2 id="ry.ulid"><a class="header" href="#ry.ulid"><code>ry.ulid</code></a></h2>
+<h2 id="ry.ulid"><code>ry.ulid</code></h2>
+
 <pre><code class="language-python">from ry.ryo3.ulid import ULID
 
 __all__ = ("ULID",)
 </code></pre>
-<h2 id="ry.uuid"><a class="header" href="#ry.uuid"><code>ry.uuid</code></a></h2>
+<h2 id="ry.uuid"><code>ry.uuid</code></h2>
+
 <pre><code class="language-python">from ry.ryo3.uuid import (
     NAMESPACE_DNS,
     NAMESPACE_OID,
@@ -9343,7 +9371,8 @@ __all__ = (
     "uuid8",
 )
 </code></pre>
-<h2 id="ry.xxhash"><a class="header" href="#ry.xxhash"><code>ry.xxhash</code></a></h2>
+<h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
+
 <pre><code class="language-python">from ry.ryo3.xxhash import xxh3_64 as xxh3_64
 from ry.ryo3.xxhash import xxh3_64_digest as xxh3_64_digest
 from ry.ryo3.xxhash import xxh3_64_hexdigest as xxh3_64_hexdigest
@@ -9388,7 +9417,8 @@ __all__ = (
     "xxh128_intdigest",
 )
 </code></pre>
-<h2 id="ry.zstd"><a class="header" href="#ry.zstd"><code>ry.zstd</code></a></h2>
+<h2 id="ry.zstd"><code>ry.zstd</code></h2>
+
 <pre><code class="language-python">from ry.ryo3.zstd import BLOCKSIZE_MAX as BLOCKSIZE_MAX
 from ry.ryo3.zstd import BLOCKSIZELOG_MAX as BLOCKSIZELOG_MAX
 from ry.ryo3.zstd import CLEVEL_DEFAULT as CLEVEL_DEFAULT
@@ -9431,9 +9461,11 @@ __all__ = (
     "unzstd",
 )
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="dep-graph"><a class="header" href="#dep-graph">DEP-GRAPH</a></h1>
-<p><img src="./assets/dep-graph.svg" alt="ryo3-dep-graph" /></p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="food-4-thought"><a class="header" href="#food-4-thought">food-4-thought</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="dep-graph"><a class="header" href="#dep-graph">DEP-GRAPH</a></h1>
+<p><img src="assets/dep-graph.svg" alt="ryo3-dep-graph"></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="food-4-thought"><a class="header" href="#food-4-thought">food-4-thought</a></h1>
 <p>thinking out loud…</p>
 <h2 id="staticmethod-vs-classmethod-2025-08-28"><a class="header" href="#staticmethod-vs-classmethod-2025-08-28">staticmethod vs classmethod [2025-08-28]</a></h2>
 <p>Nowhere in ry are any of the <code>classmethod</code> functions actually used as
@@ -9478,7 +9510,7 @@ Legend:
   Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.
   OPS: Operations Per Second, computed as 1 / Mean
 </code></pre>
-<hr />
+<hr>
 <h2 id="fugue-state-jesse-2025-08-18"><a class="header" href="#fugue-state-jesse-2025-08-18">fugue-state-jesse [2025-08-18]</a></h2>
 <p>The most sophisticated rust code in this repository was written by
 <code>fugue-state-jesse</code> (aka FSJ), not me (<code>normal-jesse</code>) and not an AI/LLM.
@@ -9487,19 +9519,19 @@ has a vastly better understanding of rust and rust-macro-rules than I do.</p>
 <p>Throughout the repository I (normal-jesse) will sometimes leave notes to
 <code>fugue-state-jesse</code> with the hope that he might do what I ask, but he tends to
 do his own thing.</p>
-<hr />
+<hr>
 <h2 id="rydev"><a class="header" href="#rydev"><code>ry.dev</code></a></h2>
 <p>For people who find <code>ry.dev</code> it is a module that exports all the things in ry as
 well as can be used as a repl; <code>python -m ry.dev</code> will start a repl (with
 ipython if installed else python-repl) with all of ry already imported. I
 (jesse) use this super often for testing things out.</p>
-<hr />
+<hr>
 <h2 id="string-bridge"><a class="header" href="#string-bridge">string-bridge?</a></h2>
 <p>The <code>jiter</code> crate uses a string-cache to store python-strings to avoid the
 overhead of converting strings to python strings. A global string bridge and/or
 caching setup for other types of structs that often convert to strings might be
 worth considering?</p>
-<hr />
+<hr>
 <h2 id="naming"><a class="header" href="#naming">Naming</a></h2>
 <p>Coming up with names is hard… I (jesse) want to strike a balance between being
 clear but also close to the wrapped libraries…</p>
@@ -9511,7 +9543,7 @@ clear but also close to the wrapped libraries…</p>
 <li>Should reqwest’s <code>Client</code> be <code>Client</code> in python? or <code>HttpClient</code>? (currently
 <code>HttpClient</code>)</li>
 </ul>
-<hr />
+<hr>
 <h2 id="flat-nested-submodules"><a class="header" href="#flat-nested-submodules">Flat? Nested submodules?</a></h2>
 <p>I like flat more, but nesting submodules might be preferable for some people and
 would allow for more flexibility in naming…</p>
@@ -9558,7 +9590,7 @@ live and how are they laid out without having to duplicate/shim them?</li>
 </ul>
 </li>
 </ul>
-<hr />
+<hr>
 <h2 id="pypi-size-limit"><a class="header" href="#pypi-size-limit">pypi size limit</a></h2>
 <p>The pypi project size limit of 10gb was reached. I (jesse) won’t request a limit
 raise until the package is more stable and hits some sort of <code>v0.1.x</code>, SOOOOOO
@@ -9568,10 +9600,11 @@ for now I will be:</p>
 <li>update the release gh-action to push the built wheels to the releases page so
 they are not lost into the ether…</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="jiff"><a class="header" href="#jiff">jiff</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="jiff"><a class="header" href="#jiff">jiff</a></h1>
 <p>docs.rs: <a href="https://docs.rs/jiff">https://docs.rs/jiff</a></p>
 <p>crates: <a href="https://crates.io/crates/jiff">https://crates.io/crates/jiff</a></p>
-<hr />
+<hr>
 <p>The <code>jiff</code> crate has a super excellent API that is very ergonomic to use and
 <code>ry</code> provides a nearly complete wrapper around it.</p>
 <p>A good amount of time, and a greater amount of thought has gone into balancing
@@ -9587,7 +9620,7 @@ conversions via the <code>jiff-02</code> feature flag, which is what is used now
 <p><code>ry-v0.0.38</code> will be the first version with the <code>jiff-02</code> feature flag.</p>
 <p>As of 2025-03-12 <code>pyo3</code> does not seem to support converting <code>Span</code> -&gt;
 <code>datetime.timedelta</code>, so that is still hand rolled.</p>
-<hr />
+<hr>
 <h2 id="ry-vs-whenever"><a class="header" href="#ry-vs-whenever"><code>ry</code> vs <code>whenever</code></a></h2>
 <p>There is another library called
 <a href="https://github.com/ariebovenberg/whenever"><code>whenever</code></a> that provides a similar
@@ -9620,6 +9653,11 @@ the name of the library too!</p>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -9628,13 +9666,13 @@ the name of the library too!</p>
         </script>
 
 
-        <script src="elasticlunr.min.js"></script>
-        <script src="mark.min.js"></script>
-        <script src="searcher.js"></script>
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
 
-        <script src="clipboard.min.js"></script>
-        <script src="highlight.js"></script>
-        <script src="book.js"></script>
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 
