@@ -308,3 +308,19 @@ class TestFsPathWindows:
                 rypath.as_uri()
         else:
             assert rypath.as_uri() == pypath.as_uri()
+
+
+def test_read_text_unidecode_err(tmp_path: Path) -> None:
+    pypath = tmp_path / "test.txt"
+    # write bytes that are invalid utf-8
+    bad_bytes = b"oh-shit-this-aint-no-utf8-\xff\xfe\xfd"
+    pypath.write_bytes(bad_bytes)
+    rypath = ry.FsPath(pypath)
+    b = rypath.read_bytes()
+    assert b == bad_bytes
+
+    with pytest.raises(UnicodeDecodeError) as e:
+        _t = rypath.read_text()
+        err = e.value
+        assert err.start == 24
+        # now test that the err is shit

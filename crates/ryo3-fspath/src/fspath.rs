@@ -6,7 +6,7 @@ use pyo3::exceptions::{
     PyValueError,
 };
 use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{intern, prelude::*};
+use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::types::PathLike;
 use std::ffi::OsStr;
@@ -349,29 +349,19 @@ impl PyFsPath {
         Ok(fbytes.into())
     }
 
-    fn read_bytes(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
-        let fbytes = py.detach(|| std::fs::read(self.path()));
-        match fbytes {
-            Ok(b) => Ok(PyBytes::new(py, &b).into()),
-            Err(e) => {
-                // TODO: figure out cleaner way of doing this
-                let pathstr = self.py_to_string();
-                let emsg = format!("read_vec_u8 - path: {pathstr} - {e}");
-                Err(PyFileNotFoundError::new_err(emsg))
-            }
-        }
+    fn read_bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let fbytes = py
+            .detach(|| std::fs::read(self.path()))
+            .map(|b| PyBytes::new(py, &b))?;
+        Ok(fbytes)
     }
 
-    fn read_text(&self, py: Python<'_>) -> PyResult<String> {
-        let bvec = py.detach(|| std::fs::read(self.path())).map_err(|e| {
-            let pathstr = self.py_to_string();
-            PyFileNotFoundError::new_err(format!("read_text - path: {pathstr} - {e}"))
-        })?;
-        let r = std::str::from_utf8(&bvec);
-        match r {
-            Ok(s) => Ok(s.to_string()),
+    fn read_text<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let fbytes = py.detach(|| std::fs::read(self.path()))?;
+        match std::str::from_utf8(&fbytes) {
+            Ok(s) => s.into_bound_py_any(py),
             Err(e) => {
-                let decode_err = PyUnicodeDecodeError::new_utf8(py, &bvec, e)?;
+                let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
                 Err(decode_err.into())
             }
         }

@@ -55,7 +55,6 @@ impl<'py> SerializePyAny<'py> {
     }
 }
 impl Serialize for SerializePyAny<'_> {
-    // TODO: break this up...
     #[expect(clippy::too_many_lines)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

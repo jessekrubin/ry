@@ -1,7 +1,7 @@
 use crate::UrlLike;
 use pyo3::basic::CompareOp;
-use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
+use pyo3::{IntoPyObjectExt, prelude::*};
 use ryo3_macro_rules::py_value_error;
 use std::ffi::OsString;
 use std::hash::{Hash, Hasher};
@@ -217,10 +217,29 @@ impl PyUrl {
         self.0.domain()
     }
 
-    // TODO: figure out if we are going to return a host obj
+    #[cfg(not(feature = "ryo3-std"))]
     #[getter]
     fn host(&self) -> Option<&str> {
         self.0.host_str()
+    }
+
+    #[cfg(feature = "ryo3-std")]
+    #[getter]
+    fn host<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        if let Some(host) = self.0.host() {
+            match host {
+                url::Host::Domain(d) => d.into_bound_py_any(py),
+                url::Host::Ipv4(ipv4) => {
+                    ryo3_std::net::PyIpv4Addr::from(ipv4).into_bound_py_any(py)
+                }
+                url::Host::Ipv6(ipv6) => {
+                    ryo3_std::net::PyIpv6Addr::from(ipv6).into_bound_py_any(py)
+                }
+            }
+        } else {
+            let n = py.None();
+            n.into_bound_py_any(py)
+        }
     }
 
     #[getter]

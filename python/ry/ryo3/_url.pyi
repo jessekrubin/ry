@@ -3,7 +3,7 @@ from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
 from ry.protocols import FromStr
-from ry.ryo3._std import SocketAddr
+from ry.ryo3._std import Ipv4Addr, Ipv6Addr, SocketAddr
 
 @t.final
 class URL(FromStr):
@@ -40,7 +40,7 @@ class URL(FromStr):
     @property
     def fragment(self) -> str | None: ...
     @property
-    def host(self) -> str | None: ...
+    def host(self) -> str | Ipv4Addr | Ipv6Addr | None: ...
     @property
     def host_str(self) -> str | None: ...
     @property

@@ -5,7 +5,6 @@ authors = [
   # hopefully you!? plz help me build this thingy!
 ]
 language = "en"
-multilingual = false
 src = "src"
 
 [output.html]
@@ -15,7 +14,6 @@ smart-punctuation = true
 mathjax-support = false
 no-section-label = false
 git-repository-url = "https://github.com/jessekrubin/ry"
-git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/jessekrubin/ry/edit/main/docs/{path}"
 # site-url = "https://jessekrubin.github.io/ry" # gh-pages
 site-url = "https://ryo3.dev" # cf
