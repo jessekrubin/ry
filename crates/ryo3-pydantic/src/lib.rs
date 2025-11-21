@@ -16,6 +16,13 @@ pub trait GetPydanticCoreSchemaCls {
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>>;
 }
+pub trait GetPydanticJsonSchemaCls {
+    fn get_pydantic_json_schema<'py>(
+        cls: &Bound<'py, PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>>;
+}
 
 pub mod interns {
     /// String interns that are obviously unpaid and over worked...
@@ -51,6 +58,14 @@ pub mod interns {
     unpaid_intern!(to_string_ser_schema);
     unpaid_intern!(lax_or_strict_schema);
     unpaid_intern!(when_used);
+    // JSON schema related
+    unpaid_intern!(any_of, "anyOf");
+    unpaid_intern!(all_of, "allOf");
+    unpaid_intern!(format);
+    unpaid_intern!(ipv4);
+    unpaid_intern!(ipv6);
+    unpaid_intern!(r#type, "type");
+    unpaid_intern!(string);
     // kwargs
     unpaid_intern!(serialization);
     unpaid_intern!(min_length);
