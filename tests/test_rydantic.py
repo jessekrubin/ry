@@ -1082,19 +1082,19 @@ def test_ipv6addr_ok(value: str | bytes | int | IPv6Address | ry.Ipv6Addr) -> No
 
 
 @pytest.mark.parametrize("value", ["hello,world", "192.168.0.1.1.1", -1, 2**128 + 1])
-def test_ipaddr_err(value):
+def test_ipaddr_err(value: str | int) -> None:
 
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        RyIpAddr(ip=value)
+        RyIpAddr(ip=value)  # type: ignore[arg-type]
     assert exc_info.value.error_count() == 1
 
 
 @pytest.mark.parametrize(
     "value", ["hello,world", "192.168.0.1.1.1", -1, 2**32 + 1, IPv6Address("::0:1:0")]
 )
-def test_ipv4addr_err(value):
+def test_ipv4addr_err(value: str | int | IPv6Address) -> None:
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        RyIpv4Addr(ip=value)
+        RyIpv4Addr(ip=value)  # type: ignore[arg-type]
     assert exc_info.value.error_count() == 1
 
 
@@ -1102,7 +1102,7 @@ def test_ipv4addr_err(value):
     "value",
     ["hello,world", "192.168.0.1.1.1", -1, 2**128 + 1, IPv4Address("192.168.0.1")],
 )
-def test_ipv6addr_err(value):
+def test_ipv6addr_err(value: str | int | IPv4Address) -> None:
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        RyIpv6Addr(ip=value)
+        RyIpv6Addr(ip=value)  # type: ignore[arg-type]
     assert exc_info.value.error_count() == 1
