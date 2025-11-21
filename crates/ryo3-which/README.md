@@ -11,5 +11,5 @@ Wrapper around the `which` crate for Python.
 
 ## TODO
 
-- [ ] make `ryo3-regex` feature flag work
+- [x] make `ryo3-regex` feature flag work
 - [ ] make iterable w/ `collect`

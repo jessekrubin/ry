@@ -59,7 +59,7 @@ def main():
     for line in sys.stdin:
         if line:
             [_context, book] = orjson.loads(line)
-            for section in book["sections"]:
+            for section in book["items"]:
                 replace_section_content(section)
             b = orjson.dumps(book, option=orjson.OPT_APPEND_NEWLINE)
             sys.stdout.buffer.write(b)
