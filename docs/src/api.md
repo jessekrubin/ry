@@ -628,7 +628,7 @@ class FnvHasher:
     block_size: t.Literal[1]
 
     def __init__(
-        self, data: Buffer | None = None, key: int | None = None
+        self, data: Buffer | None = None, key: int | bytes | None = None
     ) -> None: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
@@ -637,7 +637,9 @@ class FnvHasher:
     def copy(self) -> FnvHasher: ...
 
 
-def fnv1a(data: Buffer | None = None, key: int | None = None) -> FnvHasher: ...
+def fnv1a(
+    data: Buffer | None = None, key: int | bytes | None = None
+) -> FnvHasher: ...
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -5404,7 +5406,7 @@ from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
 from ry.protocols import FromStr
-from ry.ryo3._std import SocketAddr
+from ry.ryo3._std import Ipv4Addr, Ipv6Addr, SocketAddr
 
 
 @t.final
@@ -5446,7 +5448,7 @@ class URL(FromStr):
     @property
     def fragment(self) -> str | None: ...
     @property
-    def host(self) -> str | None: ...
+    def host(self) -> str | Ipv4Addr | Ipv6Addr | None: ...
     @property
     def host_str(self) -> str | None: ...
     @property

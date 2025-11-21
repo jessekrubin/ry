@@ -77,6 +77,25 @@ def test_parse_url_readme() -> None:
     assert u == u_from_str
 
 
+@pytest.mark.parametrize(
+    "url_str, expected_type, expected_host_str",
+    [
+        ("https://127.0.0.1/", ry.Ipv4Addr.parse("127.0.0.1"), "127.0.0.1"),
+        ("https://[::1]/", ry.Ipv6Addr.parse("::1"), "[::1]"),
+        ("https://example.com/", "example.com", "example.com"),
+        ("mailto:rms@example.net", None, None),
+    ],
+)
+def test_host_type(
+    url_str: str,
+    expected_type: str | ry.Ipv4Addr | ry.Ipv6Addr | None,
+    expected_host_str: str | None,
+) -> None:
+    u = ry.URL(url_str)
+    assert u.host == expected_type
+    assert u.host_str == expected_host_str
+
+
 def test_inheritance() -> None:
     with pytest.raises(TypeError):
 
