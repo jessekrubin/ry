@@ -5,6 +5,9 @@
 - `ryo3-fnv`
   - Add `py.detach` where it makes sense
   - Return python `builtins.bytes` from digest not `ry.Bytes`
+- `ryo3-url`
+  - `URL.host` property returns `None | str | ry.Ipv4Addr | ry.Ipv6ddr` if
+    `ryo3-std` feature enabled
 
 ---
 

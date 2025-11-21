@@ -349,32 +349,20 @@ impl PyFsPath {
         Ok(fbytes.into())
     }
 
-    fn read_bytes(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
-        let fbytes = py.detach(|| std::fs::read(self.path()));
-        match fbytes {
-            Ok(b) => Ok(PyBytes::new(py, &b).into()),
-            Err(e) => {
-                // TODO: figure out cleaner way of doing this
-                let pathstr = self.py_to_string();
-                let emsg = format!("read_vec_u8 - path: {pathstr} - {e}");
-                Err(PyFileNotFoundError::new_err(emsg))
-            }
-        }
+    fn read_bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let fbytes = py
+            .detach(|| std::fs::read(self.path()))
+            .map(|b| PyBytes::new(py, &b))?;
+        Ok(fbytes)
     }
 
     fn read_text(&self, py: Python<'_>) -> PyResult<String> {
-        let bvec = py.detach(|| std::fs::read(self.path())).map_err(|e| {
-            let pathstr = self.py_to_string();
-            PyFileNotFoundError::new_err(format!("read_text - path: {pathstr} - {e}"))
+        let fbytes = py.detach(|| std::fs::read(self.path()))?;
+        let s = std::string::String::from_utf8(fbytes).map_err(|e| {
+            let fspath = self.py_to_string();
+            PyUnicodeDecodeError::new_err(format!("read_text - parent: {fspath} - {e}"))
         })?;
-        let r = std::str::from_utf8(&bvec);
-        match r {
-            Ok(s) => Ok(s.to_string()),
-            Err(e) => {
-                let decode_err = PyUnicodeDecodeError::new_utf8(py, &bvec, e)?;
-                Err(decode_err.into())
-            }
-        }
+        Ok(s)
     }
 
     fn write(&self, py: Python<'_>, b: &Bound<'_, PyAny>) -> PyResult<usize> {
