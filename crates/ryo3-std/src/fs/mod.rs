@@ -256,7 +256,7 @@ pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<Py<PyAny>> {
 }
 
 #[pyfunction]
-pub fn read_text<'py>(py: Python<'py>, s: PathLike) -> PyResult<Bound<'py, PyAny>> {
+pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<Bound<'_, PyAny>> {
     let fbytes = py.detach(|| std::fs::read(s))?;
     match std::str::from_utf8(&fbytes) {
         Ok(s) => s.into_bound_py_any(py),
