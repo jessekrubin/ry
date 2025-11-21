@@ -6,7 +6,7 @@ use pyo3::exceptions::{
     PyValueError,
 };
 use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{intern, prelude::*};
+use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::types::PathLike;
 use std::ffi::OsStr;
@@ -356,13 +356,15 @@ impl PyFsPath {
         Ok(fbytes)
     }
 
-    fn read_text(&self, py: Python<'_>) -> PyResult<String> {
+    fn read_text<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let fbytes = py.detach(|| std::fs::read(self.path()))?;
-        let s = std::string::String::from_utf8(fbytes).map_err(|e| {
-            let fspath = self.py_to_string();
-            PyUnicodeDecodeError::new_err(format!("read_text - parent: {fspath} - {e}"))
-        })?;
-        Ok(s)
+        match std::str::from_utf8(&fbytes) {
+            Ok(s) => s.into_bound_py_any(py),
+            Err(e) => {
+                let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
+                Err(decode_err.into())
+            }
+        }
     }
 
     fn write(&self, py: Python<'_>, b: &Bound<'_, PyAny>) -> PyResult<usize> {

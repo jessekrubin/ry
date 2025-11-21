@@ -7,7 +7,7 @@ use pyo3::exceptions::{
     PyValueError,
 };
 use pyo3::types::{PyBytes, PyDict};
-use pyo3::{intern, prelude::*};
+use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use ryo3_core::types::PathLike;
 use ryo3_macro_rules::py_type_err;
 use std::convert::Into;
@@ -256,10 +256,10 @@ pub fn read_bytes(py: Python<'_>, s: PathLike) -> PyResult<Py<PyAny>> {
 }
 
 #[pyfunction]
-pub fn read_text(py: Python<'_>, s: PathLike) -> PyResult<String> {
+pub fn read_text<'py>(py: Python<'py>, s: PathLike) -> PyResult<Bound<'py, PyAny>> {
     let fbytes = py.detach(|| std::fs::read(s))?;
-    match std::str::from_utf8(&fbytes).map(ToString::to_string) {
-        Ok(s) => Ok(s),
+    match std::str::from_utf8(&fbytes) {
+        Ok(s) => s.into_bound_py_any(py),
         Err(e) => {
             let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
             Err(decode_err.into())
