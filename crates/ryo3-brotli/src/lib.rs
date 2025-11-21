@@ -29,12 +29,12 @@ fn encode(data: &[u8], quality: PyBrQuality, magic_number: bool) -> PyResult<Vec
 #[pyfunction]
 #[pyo3(signature = (data, quality=PyBrQuality::default(), *, magic_number=false))]
 #[expect(clippy::needless_pass_by_value)]
-pub fn brotli_encode<'py>(
-    py: Python<'py>,
+pub fn brotli_encode(
+    py: Python<'_>,
     data: RyBytes,
     quality: PyBrQuality,
     magic_number: bool,
-) -> PyResult<Bound<'py, PyBytes>> {
+) -> PyResult<Bound<'_, PyBytes>> {
     let bin: &[u8] = data.as_ref();
     let encoded = py.detach(|| encode(bin, quality, magic_number))?;
     Ok(PyBytes::new(py, &encoded))
@@ -43,12 +43,12 @@ pub fn brotli_encode<'py>(
 #[pyfunction]
 #[pyo3(signature = (data, quality=PyBrQuality::default(), *, magic_number=false))]
 #[expect(clippy::needless_pass_by_value)]
-pub fn brotli<'py>(
-    py: Python<'py>,
+pub fn brotli(
+    py: Python<'_>,
     data: RyBytes,
     quality: PyBrQuality,
     magic_number: bool,
-) -> PyResult<Bound<'py, PyBytes>> {
+) -> PyResult<Bound<'_, PyBytes>> {
     let bin: &[u8] = data.as_ref();
     let encoded = py.detach(|| encode(bin, quality, magic_number))?;
     Ok(PyBytes::new(py, &encoded))
@@ -56,7 +56,7 @@ pub fn brotli<'py>(
 
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
-pub fn brotli_decode<'py>(py: Python<'py>, data: RyBytes) -> PyResult<Bound<'py, PyBytes>> {
+pub fn brotli_decode(py: Python<'_>, data: RyBytes) -> PyResult<Bound<'_, PyBytes>> {
     let decompressed = py.detach(|| {
         let mut decompressed = Vec::new();
         let bin: &[u8] = data.as_ref();
@@ -74,10 +74,10 @@ pub struct PyBrQuality(u8);
 impl<'py> FromPyObject<'_, 'py> for PyBrQuality {
     type Error = pyo3::PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(pyint) = ob.extract::<u8>() {
-            if pyint <= 11 {
-                return Ok(PyBrQuality(pyint));
-            }
+        if let Ok(pyint) = ob.extract::<u8>()
+            && pyint <= 11
+        {
+            return Ok(Self(pyint));
         }
         Err(PyErr::new::<PyValueError, _>(
             "Compression level must be an integer 0-11",
@@ -87,7 +87,7 @@ impl<'py> FromPyObject<'_, 'py> for PyBrQuality {
 
 impl Default for PyBrQuality {
     fn default() -> Self {
-        PyBrQuality(11)
+        Self(11)
     }
 }
 
