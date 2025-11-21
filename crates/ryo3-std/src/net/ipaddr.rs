@@ -212,7 +212,7 @@ impl PyIpv4Addr {
     }
 
     #[staticmethod]
-    fn parse<'py>(s: Bound<'py, PyAny>) -> PyResult<Self> {
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(s) = s.extract::<&str>() {
             Self::from_str(s)
         } else if let Ok(s) = s.extract::<&[u8]>() {
@@ -463,7 +463,7 @@ impl PyIpv6Addr {
     }
 
     #[staticmethod]
-    fn parse<'py>(s: Bound<'py, PyAny>) -> PyResult<Self> {
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(s) = s.extract::<&str>() {
             Self::from_str(s)
         } else if let Ok(s) = s.extract::<&[u8]>() {
@@ -740,18 +740,16 @@ impl PyIpAddr {
     }
 
     #[staticmethod]
-    fn parse<'py>(s: Bound<'py, PyAny>) -> PyResult<Self> {
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(s) = s.extract::<&str>() {
-            return s
-                .parse::<std::net::IpAddr>()
+            s.parse::<std::net::IpAddr>()
                 .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IP address"))
-                .map(Self);
+                .map(Self)
         } else if let Ok(s) = s.extract::<&[u8]>() {
             let s = String::from_utf8_lossy(s);
-            return s
-                .parse::<std::net::IpAddr>()
+            s.parse::<std::net::IpAddr>()
                 .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IP address"))
-                .map(Self);
+                .map(Self)
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
                 "expected str or bytes",
@@ -797,9 +795,9 @@ impl PyIpAddr {
         if ob.is_exact_instance_of::<Self>() {
             ob.into_bound_py_any(py)
         } else if let Ok(ip) = extract_ipv4_from_single_ob(ob) {
-            PyIpAddr::from(IpAddr::V4(ip)).into_bound_py_any(py)
+            Self::from(IpAddr::V4(ip)).into_bound_py_any(py)
         } else if let Ok(ip) = extract_ipv6_from_single_ob(ob) {
-            PyIpAddr::from(IpAddr::V6(ip)).into_bound_py_any(py)
+            Self::from(IpAddr::V6(ip)).into_bound_py_any(py)
         } else {
             let valtype = any_repr!(ob);
             py_type_err!("IpAddr conversion error: {valtype}",)
