@@ -35,9 +35,9 @@ def test_compression_level_range() -> None:
             ry.zstd_encode(input_data, bad_level)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("level", [-5, 0, 23, 100, "snorkel", complex(1, 2), None])
+@pytest.mark.parametrize("level", [-5, 0, 23, 100, "snorkel", b"dingo"])
 def test_compression_level_invalid(
-    level: str | complex | None,
+    level: int | str | bytes | None,
 ) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     if isinstance(level, int):
