@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess as sp
+import typing as t
 
 import pytest
 
@@ -14,17 +15,43 @@ ZSTD_COMPRESSION_FUNCTIONS = [
     ry.zstd_compress,
 ]
 
+_ZSTD_COMPRESSION_LEVELS: tuple[
+    t.Literal[
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
+    ],
+    ...,
+] = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
+
 
 def test_compression_level_range() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
-    for level in range(1, 23):  # max level is 22
+    for level in _ZSTD_COMPRESSION_LEVELS:
         output_data = ry.zstd_encode(input_data, level)
         assert output_data is not None
         decoded = ry.zstd_decode(output_data)
         assert decoded == input_data
-    for level in (-1, 0, 23, 24):
+    for bad_level in (-1, 0, 23, 24):
         with pytest.raises(ValueError):
-            ry.zstd_encode(input_data, level)
+            ry.zstd_encode(input_data, bad_level)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("level", [-5, 0, 23, 100, "snorkel", complex(1, 2), None])
+def test_compression_level_invalid(
+    level: str | complex | None,
+) -> None:
+    input_data = b"XXXXXXXXXXYYYYYYYYYY"
+    if isinstance(level, int):
+        with pytest.raises(ValueError):
+            ry.zstd_encode(input_data, level)  # type: ignore[arg-type]
+    else:
+        with pytest.raises(TypeError):
+            ry.zstd_encode(input_data, level)  # type: ignore[arg-type]
+
+
+def test_zstd_decode_error() -> None:
+    d = b"this is not zstd compressed data"
+    with pytest.raises(ValueError):
+        ry.zstd_decode(d)
 
 
 def test_10x10y_round_trip() -> None:
@@ -39,6 +66,7 @@ def test_zstd_compression_level() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     output_data = ry.zstd_encode(input_data, 1)
     assert output_data is not None
+    assert ry.is_zstd(output_data)
     decoded = ry.zstd_decode(output_data)
     assert decoded == input_data
 

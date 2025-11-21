@@ -7,47 +7,42 @@ use ::bzip2::write::BzEncoder;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyInt, PyString};
+use ryo3_bytes::PyBytes;
 
-fn rs_bzip2_encode(py: Python<'_>, data: &[u8], quality: Compression) -> PyResult<Py<PyAny>> {
+fn rs_bzip2_encode(data: &[u8], quality: Compression) -> PyResult<PyBytes> {
     let mut bzip2_encoder = BzEncoder::new(Vec::new(), quality);
     bzip2_encoder.write_all(data.as_ref())?;
     let encoded = bzip2_encoder.finish()?;
-    Ok(PyBytes::new(py, &encoded).into())
+    Ok(encoded.into())
 }
 
-#[pyfunction]
-#[pyo3(signature = (data, quality=None))]
-#[expect(clippy::needless_pass_by_value)]
-pub fn bzip2_encode(
-    py: Python<'_>,
-    data: ryo3_bytes::PyBytes,
-    quality: Option<PyCompression>,
-) -> PyResult<Py<PyAny>> {
-    let data = data.as_ref();
-    rs_bzip2_encode(py, data, quality.unwrap_or_default().0)
-}
-
-#[pyfunction]
-#[pyo3(signature = (data, quality=None))]
-#[expect(clippy::needless_pass_by_value)]
-pub fn bzip2(
-    py: Python<'_>,
-    data: ryo3_bytes::PyBytes,
-    quality: Option<PyCompression>,
-) -> PyResult<Py<PyAny>> {
-    let data = data.as_ref();
-    rs_bzip2_encode(py, data, quality.unwrap_or_default().0)
-}
-
-#[pyfunction]
-#[expect(clippy::needless_pass_by_value)]
-pub fn bzip2_decode(py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<Py<PyAny>> {
+fn rs_bzip2_decode(data: &[u8]) -> PyResult<ryo3_bytes::PyBytes> {
     let mut decompressed = Vec::new();
-    let data: &[u8] = data.as_ref();
     BzDecoder::new(data).read_to_end(&mut decompressed)?;
+    Ok(decompressed.into())
+}
 
-    Ok(PyBytes::new(py, &decompressed).into())
+#[pyfunction]
+#[pyo3(signature = (data, quality=PyCompression::default()))]
+#[expect(clippy::needless_pass_by_value)]
+pub fn bzip2_encode(py: Python<'_>, data: PyBytes, quality: PyCompression) -> PyResult<PyBytes> {
+    let data = data.as_ref();
+    py.detach(|| rs_bzip2_encode(data, quality.0))
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, quality=PyCompression::default()))]
+#[expect(clippy::needless_pass_by_value)]
+pub fn bzip2(py: Python<'_>, data: PyBytes, quality: PyCompression) -> PyResult<PyBytes> {
+    let data = data.as_ref();
+    py.detach(|| rs_bzip2_encode(data, quality.0))
+}
+
+#[pyfunction]
+#[expect(clippy::needless_pass_by_value)]
+pub fn bzip2_decode(py: Python<'_>, data: PyBytes) -> PyResult<PyBytes> {
+    let data: &[u8] = data.as_ref();
+    py.detach(|| rs_bzip2_decode(data))
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
@@ -56,25 +51,19 @@ pub struct PyCompression(pub(crate) Compression);
 impl<'py> FromPyObject<'_, 'py> for PyCompression {
     type Error = pyo3::PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(pyint) = ob.cast::<PyInt>() {
-            let level = pyint.extract::<u32>()?;
+        if let Ok(level) = ob.extract::<u32>() {
             if level < 10 {
                 return Ok(Self(Compression::new(level)));
             }
-        } else if let Ok(pystr) = ob.cast::<PyString>() {
-            let s = pystr.to_str()?;
-            let c = match s {
-                "fast" => Some(Self(Compression::fast())),
-                "default" => Some(Self(Compression::default())),
-                "best" => Some(Self(Compression::best())),
-                _ => None,
-            };
-            if let Some(c) = c {
-                return Ok(c);
+        } else if let Ok(c) = ob.extract::<&str>() {
+            match c {
+                "fast" => return Ok(Self(Compression::fast())),
+                "best" => return Ok(Self(Compression::best())),
+                _ => {}
             }
         }
         Err(PyValueError::new_err(
-            "Invalid compression level; valid levels are int 0-9 or string 'fast', 'default', 'best'",
+            "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
         ))
     }
 }

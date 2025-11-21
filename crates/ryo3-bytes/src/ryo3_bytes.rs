@@ -399,7 +399,7 @@ impl PyBytes {
     /// (encoding='utf-8', errors='strict')
     /// ```
     #[pyo3(signature = (encoding="utf-8", errors="strict"))]
-    pub fn decode<'py>(
+    fn decode<'py>(
         slf: PyRef<'py, Self>,
         py: Python<'py>,
         encoding: &str,
