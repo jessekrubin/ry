@@ -742,9 +742,7 @@ impl PyIpAddr {
     #[staticmethod]
     fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(s) = s.extract::<&str>() {
-            s.parse::<std::net::IpAddr>()
-                .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IP address"))
-                .map(Self)
+            Self::from_str(s)
         } else if let Ok(s) = s.extract::<&[u8]>() {
             let s = String::from_utf8_lossy(s);
             s.parse::<std::net::IpAddr>()
