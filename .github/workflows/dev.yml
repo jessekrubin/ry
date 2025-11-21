@@ -24,7 +24,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: install-rust-stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -46,7 +46,7 @@ jobs:
         target: [ x86_64 ]
         python-version: [ "3.11", "pypy3.11", "3.12", "3.13", "3.13t", "3.14", "3.14t" ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: install-rust-stable
         uses: dtolnay/rust-toolchain@stable
       - name: setup-rust-cache
@@ -78,7 +78,7 @@ jobs:
         target: [ x86_64 ]
         python-version: [ "3.12" ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
       - name: setup-rust-cache
         uses: Swatinem/rust-cache@v2
