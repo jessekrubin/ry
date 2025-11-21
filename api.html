@@ -16,7 +16,7 @@
         <link rel="shortcut icon" href="favicon-8114d1fc.png">
         <link rel="stylesheet" href="css/variables-8adf115d.css">
         <link rel="stylesheet" href="css/general-2459343d.css">
-        <link rel="stylesheet" href="css/chrome-9dfbd86b.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
         <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-615d5237.js";
+            window.path_to_searchindex_js = "searchindex-372e2aad.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-bff06b67.js"></script>
+        <script src="toc-e5c7d32c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -496,15 +496,19 @@ __allocator__: t.Literal["mimalloc", "system"]
 
 <pre><code class="language-python">"""ryo3-brotli types"""
 
+from typing import Literal, TypeAlias
+
 from ry._types import Buffer
+
+_Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
 def brotli_encode(
-    data: Buffer, quality: int = 11, magic_number: bool = False
+    data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
 ) -&gt; bytes: ...
 def brotli_decode(data: Buffer) -&gt; bytes: ...
 def brotli(
-    data: Buffer, quality: int = 11, magic_number: bool = False
+    data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
 ) -&gt; bytes:
     """Alias for brotli_encode"""
 </code></pre>
@@ -719,15 +723,17 @@ BytesLike: typing_extensions.TypeAlias = (
 
 <pre><code class="language-python">"""ryo3-bzip2 types"""
 
+from typing import Literal, TypeAlias
+
+from ry import Bytes
 from ry._types import Buffer
 
+_Quality: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
-# =============================================================================
-# BZIP2
-# =============================================================================
-def bzip2_encode(data: Buffer, quality: int = 9) -&gt; bytes: ...
-def bzip2_decode(data: Buffer) -&gt; bytes: ...
-def bzip2(data: Buffer, quality: int = 9) -&gt; bytes:
+
+def bzip2_decode(data: Buffer) -&gt; Bytes: ...
+def bzip2_encode(data: Buffer, quality: _Quality = 6) -&gt; Bytes: ...
+def bzip2(data: Buffer, quality: _Quality = 6) -&gt; Bytes:
     """Alias for bzip2_encode"""
 </code></pre>
 <h2 id="ry.ryo3._dev"><code>ry.ryo3._dev</code></h2>
@@ -6325,7 +6331,11 @@ def xxh3_128_hexdigest(data: Buffer, *, seed: int | None = None) -&gt; str: ...
 </code></pre>
 <h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
 
-<pre><code class="language-python">from ry import Bytes
+<pre><code class="language-python">"""ryo3-zstd types"""
+
+from typing import Literal, TypeAlias
+
+from ry import Bytes
 from ry._types import Buffer
 
 __zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
@@ -6343,14 +6353,36 @@ VERSION_MINOR: int
 VERSION_NUMBER: int
 VERSION_RELEASE: int
 
+_Quality: TypeAlias = Literal[
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+]
 
-# =============================================================================
-# PYFUNCTIONS
-# =============================================================================
+
 # __COMPRESSION__
-def compress(data: Buffer, level: int = 3) -&gt; Bytes: ...
-def encode(data: Buffer, level: int = 3) -&gt; Bytes: ...
-def zstd(data: Buffer, level: int = 3) -&gt; Bytes: ...
+def compress(data: Buffer, level: _Quality = 3) -&gt; Bytes: ...
+def encode(data: Buffer, level: _Quality = 3) -&gt; Bytes: ...
+def zstd(data: Buffer, level: _Quality = 3) -&gt; Bytes: ...
 
 
 # __DECOMPRESSION__
