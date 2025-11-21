@@ -318,15 +318,19 @@ __allocator__: t.Literal["mimalloc", "system"]
 ```python
 """ryo3-brotli types"""
 
+from typing import Literal, TypeAlias
+
 from ry._types import Buffer
+
+_Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
 def brotli_encode(
-    data: Buffer, quality: int = 11, magic_number: bool = False
+    data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
 ) -> bytes: ...
 def brotli_decode(data: Buffer) -> bytes: ...
 def brotli(
-    data: Buffer, quality: int = 11, magic_number: bool = False
+    data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
 ) -> bytes:
     """Alias for brotli_encode"""
 ```
@@ -545,15 +549,17 @@ BytesLike: typing_extensions.TypeAlias = (
 ```python
 """ryo3-bzip2 types"""
 
+from typing import Literal, TypeAlias
+
+from ry import Bytes
 from ry._types import Buffer
 
+_Quality: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
-# =============================================================================
-# BZIP2
-# =============================================================================
-def bzip2_encode(data: Buffer, quality: int = 9) -> bytes: ...
-def bzip2_decode(data: Buffer) -> bytes: ...
-def bzip2(data: Buffer, quality: int = 9) -> bytes:
+
+def bzip2_decode(data: Buffer) -> Bytes: ...
+def bzip2_encode(data: Buffer, quality: _Quality = 6) -> Bytes: ...
+def bzip2(data: Buffer, quality: _Quality = 6) -> Bytes:
     """Alias for bzip2_encode"""
 ```
 
@@ -6223,6 +6229,10 @@ def xxh3_128_hexdigest(data: Buffer, *, seed: int | None = None) -> str: ...
 <h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
 
 ```python
+"""ryo3-zstd types"""
+
+from typing import Literal, TypeAlias
+
 from ry import Bytes
 from ry._types import Buffer
 
@@ -6241,14 +6251,36 @@ VERSION_MINOR: int
 VERSION_NUMBER: int
 VERSION_RELEASE: int
 
+_Quality: TypeAlias = Literal[
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+]
 
-# =============================================================================
-# PYFUNCTIONS
-# =============================================================================
+
 # __COMPRESSION__
-def compress(data: Buffer, level: int = 3) -> Bytes: ...
-def encode(data: Buffer, level: int = 3) -> Bytes: ...
-def zstd(data: Buffer, level: int = 3) -> Bytes: ...
+def compress(data: Buffer, level: _Quality = 3) -> Bytes: ...
+def encode(data: Buffer, level: _Quality = 3) -> Bytes: ...
+def zstd(data: Buffer, level: _Quality = 3) -> Bytes: ...
 
 
 # __DECOMPRESSION__

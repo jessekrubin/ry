@@ -8,6 +8,12 @@
 - `ryo3-url`
   - `URL.host` property returns `None | str | ry.Ipv4Addr | ry.Ipv6ddr` if
     `ryo3-std` feature enabled
+- `ryo3-brotli`
+  - Internal refactoring & type-annotation updates
+- `ryo3-bzip2`
+  - Internal refactoring & type-annotation updates
+- `ryo3-flate2`
+  - Internal refactoring & type-annotation updates
 
 ---
 

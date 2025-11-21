@@ -1,3 +1,7 @@
+"""ryo3-zstd types"""
+
+from typing import Literal, TypeAlias
+
 from ry import Bytes
 from ry._types import Buffer
 
@@ -16,13 +20,14 @@ VERSION_MINOR: int
 VERSION_NUMBER: int
 VERSION_RELEASE: int
 
-# =============================================================================
-# PYFUNCTIONS
-# =============================================================================
+_Quality: TypeAlias = Literal[
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
+]
+
 # __COMPRESSION__
-def compress(data: Buffer, level: int = 3) -> Bytes: ...
-def encode(data: Buffer, level: int = 3) -> Bytes: ...
-def zstd(data: Buffer, level: int = 3) -> Bytes: ...
+def compress(data: Buffer, level: _Quality = 3) -> Bytes: ...
+def encode(data: Buffer, level: _Quality = 3) -> Bytes: ...
+def zstd(data: Buffer, level: _Quality = 3) -> Bytes: ...
 
 # __DECOMPRESSION__
 def decode(data: Buffer) -> Bytes: ...

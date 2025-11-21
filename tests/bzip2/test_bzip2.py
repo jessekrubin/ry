@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import bz2
+import typing as t
+
+import pytest
 
 import ry
+from ry._types import Buffer
 
 
 def test_10x10y_bzip2_round_trip() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     output_data = ry.bzip2_encode(input_data)
+    output_alias = ry.bzip2(input_data)
+    assert output_data == output_alias
     assert output_data is not None
     decoded = ry.bzip2_decode(output_data)
     assert decoded == input_data
@@ -25,6 +31,37 @@ def test_bzip2_compression_level() -> None:
     decoded = ry.bzip2_decode(output_data_c9)
     assert decoded == input_data
     assert output_data_c9 != output_data
+
+
+_BzipEncodeFn: t.TypeAlias = t.Callable[
+    [
+        Buffer,
+        t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"],
+    ],
+    ry.Bytes,
+]
+
+
+@pytest.mark.parametrize("quality", [*range(1, 10), "best", "fast"])
+@pytest.mark.parametrize("bzfn", [ry.bzip2_encode, ry.bzip2])
+def test_bzip2_compression_quality(
+    quality: t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"],
+    bzfn: _BzipEncodeFn,
+) -> None:
+    input_data = b"XXXXXXXXXXYYYYYYYYYY"
+    output_data = bzfn(input_data, quality)
+    assert output_data is not None
+    assert isinstance(output_data, ry.Bytes)
+    decoded = ry.bzip2_decode(output_data)
+    assert decoded == input_data
+
+
+@pytest.mark.parametrize("quality", [-1, 10, "invalid", 5.5, None])
+def test_bzip2_compression_level_invalid(quality: str | float | None) -> None:
+    with pytest.raises(ValueError):
+        ry.bzip2_encode(b"data", quality=quality)  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        ry.bzip2(b"data", quality=quality)  # type: ignore[arg-type]
 
 
 def test_bzip2_decompress() -> None:
