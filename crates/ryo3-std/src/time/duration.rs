@@ -577,7 +577,7 @@ impl PyDuration {
     }
 
     #[staticmethod]
-    fn parse<'py>(s: &Bound<'py, PyAny>) -> PyResult<Self> {
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
         Self::py_parse(s)
     }
 
