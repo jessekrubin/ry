@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-372e2aad.js";
+            window.path_to_searchindex_js = "searchindex-b224b21e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5c7d32c.js"></script>
@@ -181,8 +181,10 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0069-unreleased-yay"><a class="header" href="#v0069-unreleased-yay">v0.0.69 [unreleased] (yay)</a></h2>
+<h2 id="v0069-2025-11-21"><a class="header" href="#v0069-2025-11-21">v0.0.69 [2025-11-21]</a></h2>
 <ul>
+<li>added <code>immutable_type</code> attr to pyclasses bc many of the things in this crate
+are practically primitives</li>
 <li><code>ryo3-fnv</code>
 <ul>
 <li>Add <code>py.detach</code> where it makes sense</li>
@@ -193,6 +195,11 @@
 <ul>
 <li><code>URL.host</code> property returns <code>None | str | ry.Ipv4Addr | ry.Ipv6ddr</code> if
 <code>ryo3-std</code> feature enabled</li>
+</ul>
+</li>
+<li><code>ryo3-std</code>
+<ul>
+<li>pydantic support for <code>ry.Ipv4Addr</code>, <code>ry.Ipv6addr</code>, and <code>ry.Ipaddr</code></li>
 </ul>
 </li>
 <li><code>ryo3-brotli</code>

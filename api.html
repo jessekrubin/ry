@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-372e2aad.js";
+            window.path_to_searchindex_js = "searchindex-b224b21e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5c7d32c.js"></script>
@@ -4686,7 +4686,7 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import RyIterator, ToPy, ToPyTimeDelta, ToString
+from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString
 from ry.ryo3._bytes import Bytes
 
 
@@ -5064,6 +5064,7 @@ class ToPyIpAddress(t.Protocol[_T_ipaddress_co]):
 class Ipv4Addr(
     _Ipv4AddrProperties,
     _Version4,
+    FromStr,
     ToPy[ipaddress.IPv4Address],
     ToPyIpAddress[ipaddress.IPv4Address],
 ):
@@ -5094,7 +5095,9 @@ class Ipv4Addr(
     # CLASSMETHODS
     # ========================================================================
     @classmethod
-    def parse(cls, s: str) -&gt; Ipv4Addr: ...
+    def from_str(cls, s: str) -&gt; Ipv4Addr: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -&gt; Ipv4Addr: ...
     @classmethod
     def from_bits(cls, bits: int) -&gt; Ipv4Addr: ...
     @classmethod
@@ -5145,6 +5148,7 @@ class _Ipv6AddrProperties(t.Protocol):
 class Ipv6Addr(
     _Ipv6AddrProperties,
     _Version6,
+    FromStr,
     ToPy[ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv6Address],
 ):
@@ -5176,7 +5180,9 @@ class Ipv6Addr(
     # CLASSMETHODS
     # ========================================================================
     @classmethod
-    def parse(cls, s: str) -&gt; Ipv4Addr: ...
+    def from_str(cls, s: str) -&gt; Ipv6Addr: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -&gt; Ipv6Addr: ...
     @classmethod
     def from_bits(cls, bits: int) -&gt; IpAddr: ...
 
@@ -5195,6 +5201,7 @@ class IpAddr(
     _Ipv4AddrProperties,
     _Ipv6AddrProperties,
     _Version,
+    FromStr,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
@@ -5229,7 +5236,9 @@ class IpAddr(
     # CLASSMETHODS
     # =========================================================================
     @classmethod
-    def parse(cls, ip: str) -&gt; IpAddr: ...
+    def from_str(cls, s: str) -&gt; IpAddr: ...
+    @classmethod
+    def parse(cls, ip: str | bytes) -&gt; IpAddr: ...
 
     # ========================================================================
     # PROPERTIES
@@ -5280,8 +5289,10 @@ class SocketAddrV4(
     def __hash__(self) -&gt; int: ...
     def to_ipaddrv4(self) -&gt; Ipv4Addr: ...
     def to_ipaddr(self) -&gt; IpAddr: ...
+    @classmethod
+    def from_str(cls, s: str) -&gt; t.Self: ...
     @staticmethod
-    def parse(s: str) -&gt; SocketAddr: ...
+    def parse(s: str | bytes) -&gt; SocketAddrV4: ...
     @property
     def port(self) -&gt; int: ...
     @property
@@ -5306,8 +5317,10 @@ class SocketAddrV6(
     def __hash__(self) -&gt; int: ...
     def to_ipaddrv6(self) -&gt; Ipv6Addr: ...
     def to_ipaddr(self) -&gt; IpAddr: ...
+    @classmethod
+    def from_str(cls, s: str) -&gt; t.Self: ...
     @staticmethod
-    def parse(s: str) -&gt; SocketAddr: ...
+    def parse(s: str | bytes) -&gt; SocketAddrV6: ...
     @property
     def port(self) -&gt; int: ...
     @property
@@ -5321,6 +5334,7 @@ class SocketAddr(
     _Ipv4AddrProperties,
     _Ipv6AddrProperties,
     _Version,
+    FromStr,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
     def __init__(
@@ -5339,8 +5353,10 @@ class SocketAddr(
     def __gt__(self, other: SocketAddr) -&gt; bool: ...
     def __ge__(self, other: SocketAddr) -&gt; bool: ...
     def __hash__(self) -&gt; int: ...
+    @classmethod
+    def from_str(cls, s: str) -&gt; SocketAddr: ...
     @staticmethod
-    def parse(s: str) -&gt; SocketAddr: ...
+    def parse(s: str | bytes) -&gt; SocketAddr: ...
     def to_ipaddr(self) -&gt; IpAddr: ...
     @property
     def is_ipv4(self) -&gt; bool: ...
