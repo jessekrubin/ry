@@ -2,6 +2,8 @@
 
 ## v0.0.69 [2025-11-21]
 
+- added `immutable_type` attr to pyclasses bc many of the things in this crate
+  are practically primitives
 - `ryo3-fnv`
   - Add `py.detach` where it makes sense
   - Return python `builtins.bytes` from digest not `ry.Bytes`
