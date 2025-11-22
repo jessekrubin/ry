@@ -6,7 +6,7 @@ use pyo3::types::PyTuple;
 use std::ops::{Neg, Not};
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "Size", frozen)]
+#[pyclass(name = "Size", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySize(size::Size);
 

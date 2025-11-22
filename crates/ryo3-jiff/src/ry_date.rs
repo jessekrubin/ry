@@ -25,7 +25,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-#[pyclass(name = "Date", frozen)]
+#[pyclass(name = "Date", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDate(pub(crate) Date);
 

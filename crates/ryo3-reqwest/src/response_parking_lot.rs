@@ -14,7 +14,7 @@ use ryo3_std::net::PySocketAddr;
 use ryo3_url::PyUrl;
 use std::sync::Arc;
 
-#[pyclass(name = "Response", frozen)]
+#[pyclass(name = "Response", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyResponse {

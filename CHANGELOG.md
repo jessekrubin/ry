@@ -1,13 +1,17 @@
 # CHANGELOG
 
-## v0.0.69 [unreleased] (yay)
+## v0.0.69 [2025-11-21]
 
+- added `immutable_type` attr to pyclasses bc many of the things in this crate
+  are practically primitives
 - `ryo3-fnv`
   - Add `py.detach` where it makes sense
   - Return python `builtins.bytes` from digest not `ry.Bytes`
 - `ryo3-url`
   - `URL.host` property returns `None | str | ry.Ipv4Addr | ry.Ipv6ddr` if
     `ryo3-std` feature enabled
+- `ryo3-std`
+  - pydantic support for `ry.Ipv4Addr`, `ry.Ipv6addr`, and `ry.Ipaddr`
 - `ryo3-brotli`
   - Internal refactoring & type-annotation updates
 - `ryo3-bzip2`

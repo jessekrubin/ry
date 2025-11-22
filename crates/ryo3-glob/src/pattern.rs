@@ -4,7 +4,7 @@ use pyo3::{IntoPyObjectExt, prelude::*};
 use ryo3_macro_rules::{py_type_err, py_value_error};
 use std::path::PathBuf;
 
-#[pyclass(name = "Pattern", frozen)]
+#[pyclass(name = "Pattern", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
 pub struct PyPattern {

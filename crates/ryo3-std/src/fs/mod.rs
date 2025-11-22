@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
-#[pyclass(name = "Metadata", frozen)]
+#[pyclass(name = "Metadata", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
 pub struct PyMetadata(pub std::fs::Metadata);
@@ -131,7 +131,7 @@ impl PyMetadata {
     }
 }
 
-#[pyclass(name = "Permissions", frozen)]
+#[pyclass(name = "Permissions", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PyPermissions(pub std::fs::Permissions);
@@ -174,7 +174,7 @@ impl PyPermissions {
     }
 }
 
-#[pyclass(name = "DirEntry", frozen)]
+#[pyclass(name = "DirEntry", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDirEntry(std::fs::DirEntry);
 
@@ -462,7 +462,7 @@ pub fn read_dir(pth: PathLike) -> PyResult<PyReadDir> {
     }
 }
 
-#[pyclass(name = "ReadDir", frozen)]
+#[pyclass(name = "ReadDir", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyReadDir {
     path: PathBuf,

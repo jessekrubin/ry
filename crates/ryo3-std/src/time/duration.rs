@@ -3,11 +3,14 @@ use jiff::fmt::friendly::Designator;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyInt, PyTuple};
 use pyo3::{Bound, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
+use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
+#[cfg(feature = "jiff")]
+use std::str::FromStr;
 use std::time::Duration;
 
 const NANOS_PER_SEC: u32 = 1_000_000_000;
@@ -53,7 +56,7 @@ const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
 // );
 
 #[derive(Copy, Clone, PartialEq)]
-#[pyclass(name = "Duration", frozen)]
+#[pyclass(name = "Duration", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDuration(pub Duration);
 
@@ -568,20 +571,14 @@ impl PyDuration {
         Ok(Self(duration))
     }
 
-    #[cfg(feature = "jiff")]
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_macro_rules::py_value_error;
-        let dur = TEMPORAL_SPAN_PARSER
-            .parse_unsigned_duration(s)
-            .map(Self::from);
-        match dur {
-            Ok(dur) => Ok(dur),
-            Err(_) => FRIENDLY_SPAN_PARSER
-                .parse_unsigned_duration(s)
-                .map(Self::from)
-                .map_err(|_| py_value_error!("invalid duration string: {s}")),
-        }
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Self::py_parse(s)
     }
 
     // ========================================================================
@@ -879,6 +876,33 @@ impl std::fmt::Debug for PyDuration {
             self.0.as_secs(),
             self.0.subsec_nanos()
         )
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl FromStr for PyDuration {
+    type Err = jiff::Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        TEMPORAL_SPAN_PARSER
+            .parse_unsigned_duration(s)
+            .map(Self::from)
+            .or_else(|_| {
+                FRIENDLY_SPAN_PARSER
+                    .parse_unsigned_duration(s)
+                    .map(Self::from)
+            })
+    }
+}
+
+#[cfg(not(feature = "jiff"))]
+impl FromStr for PyDuration {
+    type Err = ryo3_macro_rules::PyErr;
+
+    fn from_str(_s: &str) -> Result<Self, Self::Err> {
+        use ryo3_macro_rules::py_not_implemented_error;
+        Err(py_not_implemented_error!(
+            "Duration::from_str is not implemented; enable the 'jiff' feature to use this functionality"
+        ))
     }
 }
 

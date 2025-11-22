@@ -15,7 +15,7 @@ macro_rules! pyerr_response_already_consumed {
     };
 }
 
-#[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError", frozen)]
+#[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError", frozen, immutable_type)]
 #[derive(Debug)]
 pub struct RyReqwestError(pub Arc<Mutex<Option<reqwest::Error>>>);
 

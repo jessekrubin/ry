@@ -6,7 +6,7 @@ use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap
 use ryo3_core::PyMutex;
 use twox_hash::XxHash3_128;
 
-#[pyclass(name = "xxh3_128", frozen)]
+#[pyclass(name = "xxh3_128", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash3_128 {
     seed: u64,

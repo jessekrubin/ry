@@ -1,26 +1,29 @@
 // #![expect(clippy::trivially_copy_pass_by_ref)]
 use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
-use pyo3::prelude::*;
 use pyo3::types::PyTuple;
+use pyo3::{IntoPyObjectExt, prelude::*};
+use ryo3_core::{PyFromStr, PyParse};
+use ryo3_macro_rules::{any_repr, py_type_err};
+use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "Ipv4Addr", frozen)]
+#[pyclass(name = "Ipv4Addr", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv4Addr(pub Ipv4Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "Ipv6Addr", frozen)]
+#[pyclass(name = "Ipv6Addr", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv6Addr(pub Ipv6Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "IpAddr", frozen)]
+#[pyclass(name = "IpAddr", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpAddr(pub IpAddr);
@@ -49,6 +52,12 @@ impl PyIpv4Addr {
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let str = self.0.to_string();
         PyTuple::new(py, &[str])
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
     }
 
     // ========================================================================
@@ -204,10 +213,13 @@ impl PyIpv4Addr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        s.parse::<std::net::Ipv4Addr>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"))
-            .map(Self)
+    fn from_str(s: &str) -> PyResult<Self> {
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Self::py_parse(s)
     }
 
     #[staticmethod]
@@ -218,6 +230,54 @@ impl PyIpv4Addr {
     #[staticmethod]
     fn from_octets(a: u8, b: u8, c: u8, d: u8) -> Self {
         Self(std::net::Ipv4Addr::new(a, b, c, d))
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = ob.py();
+        if ob.is_exact_instance_of::<Self>() {
+            ob.into_bound_py_any(py)
+        } else if let Ok(ip) = extract_ipv4_from_single_ob(ob) {
+            PyIpAddr::from(IpAddr::V4(ip)).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(ob);
+            py_type_err!("Ipv4Addr conversion error: {valtype}")
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // pydantic
+    // ------------------------------------------------------------------------
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_core::map_py_value_err;
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_json_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticJsonSchemaCls;
+        Self::get_pydantic_json_schema(cls, source, handler)
     }
 }
 
@@ -243,6 +303,11 @@ impl PyIpv6Addr {
         PyTuple::new(py, &[str])
     }
 
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     // ========================================================================
     // CMP
     // ========================================================================
@@ -389,15 +454,66 @@ impl PyIpv6Addr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        s.parse::<std::net::Ipv6Addr>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv6 address"))
-            .map(Self)
+    fn from_str(s: &str) -> PyResult<Self> {
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Self::py_parse(s)
     }
 
     #[staticmethod]
     fn from_bits(s: u128) -> Self {
         Self(std::net::Ipv6Addr::from(s))
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = ob.py();
+        if ob.is_exact_instance_of::<Self>() {
+            ob.into_bound_py_any(py)
+        } else if let Ok(ip) = extract_ipv6_from_single_ob(ob) {
+            PyIpAddr::from(IpAddr::V6(ip)).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(ob);
+            py_type_err!("IpAddr conversion error: {valtype}",)
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // pydantic
+    // ------------------------------------------------------------------------
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_core::map_py_value_err;
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_json_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticJsonSchemaCls;
+        Self::get_pydantic_json_schema(cls, source, handler)
     }
 }
 
@@ -432,6 +548,11 @@ impl PyIpAddr {
         PyTuple::new(py, &[str])
     }
 
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     // ========================================================================
     // CMP
     // ========================================================================
@@ -600,10 +721,13 @@ impl PyIpAddr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        s.parse::<std::net::IpAddr>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IP address"))
-            .map(Self)
+    fn from_str(s: &str) -> PyResult<Self> {
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Self::py_parse(s)
     }
 
     // ========================================================================
@@ -636,6 +760,57 @@ impl PyIpAddr {
             IpAddr::V4(addr) => PyIpv6Addr::from(addr.to_ipv6_mapped()),
             IpAddr::V6(addr) => PyIpv6Addr::from(addr),
         }
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+        let py = ob.py();
+        if ob.is_exact_instance_of::<Self>() {
+            ob.into_bound_py_any(py)
+        } else if let Ok(ip) = extract_ipv4_from_single_ob(ob) {
+            Self::from(IpAddr::V4(ip)).into_bound_py_any(py)
+        } else if let Ok(ip) = extract_ipv6_from_single_ob(ob) {
+            Self::from(IpAddr::V6(ip)).into_bound_py_any(py)
+        } else {
+            let valtype = any_repr!(ob);
+            py_type_err!("IpAddr conversion error: {valtype}",)
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // pydantic
+    // ------------------------------------------------------------------------
+
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_core::map_py_value_err;
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_json_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticJsonSchemaCls;
+        Self::get_pydantic_json_schema(cls, source, handler)
     }
 }
 
@@ -805,4 +980,145 @@ fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
     Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
         IPV6_ADDR_ERROR,
     ))
+}
+
+#[cfg(feature = "pydantic")]
+mod pydantic {
+    use pyo3::prelude::*;
+    use pyo3::types::{PyAny, PyDict, PyTuple, PyType};
+    use ryo3_pydantic::{GetPydanticCoreSchemaCls, GetPydanticJsonSchemaCls, interns};
+
+    use super::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
+
+    // =======================================================================
+    // Ipv4Addr
+    // ======================================================================
+    impl GetPydanticCoreSchemaCls for PyIpv4Addr {
+        fn get_pydantic_core_schema<'py>(
+            cls: &Bound<'py, PyType>,
+            source: &Bound<'py, PyAny>,
+            _handler: &Bound<'py, PyAny>,
+        ) -> PyResult<Bound<'py, PyAny>> {
+            let py = source.py();
+            let core_schema = ryo3_pydantic::core_schema(py)?;
+            let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
+            let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+            let args = PyTuple::new(py, vec![&validation_fn, &str_schema])?;
+            let string_serialization_schema =
+                core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+            let serialization_kwargs = PyDict::new(py);
+            serialization_kwargs
+                .set_item(interns::serialization(py), &string_serialization_schema)?;
+            core_schema.call_method(
+                interns::no_info_wrap_validator_function(py),
+                args,
+                Some(&serialization_kwargs),
+            )
+        }
+    }
+
+    impl GetPydanticJsonSchemaCls for PyIpv4Addr {
+        fn get_pydantic_json_schema<'py>(
+            _cls: &pyo3::Bound<'py, pyo3::types::PyType>,
+            core_schema: &pyo3::Bound<'py, pyo3::PyAny>,
+            handler: &pyo3::Bound<'py, pyo3::PyAny>,
+        ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
+            let py = handler.py();
+            let json_schema = handler.call1((core_schema,))?;
+            json_schema.set_item(interns::format(py), interns::ipv4(py))?;
+            Ok(json_schema)
+        }
+    }
+
+    // =======================================================================
+    // Ipv6Addr
+    // ======================================================================
+    impl GetPydanticCoreSchemaCls for PyIpv6Addr {
+        fn get_pydantic_core_schema<'py>(
+            cls: &pyo3::Bound<'py, pyo3::types::PyType>,
+            source: &pyo3::Bound<'py, pyo3::PyAny>,
+            _handler: &pyo3::Bound<'py, pyo3::PyAny>,
+        ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
+            let py = source.py();
+            let core_schema = ryo3_pydantic::core_schema(py)?;
+            let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
+            let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+            let args = PyTuple::new(py, vec![&validation_fn, &str_schema])?;
+            let string_serialization_schema =
+                core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+            let serialization_kwargs = PyDict::new(py);
+            serialization_kwargs
+                .set_item(interns::serialization(py), &string_serialization_schema)?;
+            core_schema.call_method(
+                interns::no_info_wrap_validator_function(py),
+                args,
+                Some(&serialization_kwargs),
+            )
+        }
+    }
+
+    impl GetPydanticJsonSchemaCls for PyIpv6Addr {
+        fn get_pydantic_json_schema<'py>(
+            _cls: &pyo3::Bound<'py, pyo3::types::PyType>,
+            core_schema: &pyo3::Bound<'py, pyo3::PyAny>,
+            handler: &pyo3::Bound<'py, pyo3::PyAny>,
+        ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
+            let py = handler.py();
+            let json_schema = handler.call1((core_schema,))?;
+            // just set format to ipv6
+            json_schema.set_item(interns::format(py), interns::ipv6(py))?;
+            Ok(json_schema)
+        }
+    }
+
+    // =======================================================================
+    // IpAddr
+    // ======================================================================
+    impl GetPydanticCoreSchemaCls for PyIpAddr {
+        fn get_pydantic_core_schema<'py>(
+            cls: &pyo3::Bound<'py, pyo3::types::PyType>,
+            source: &pyo3::Bound<'py, pyo3::PyAny>,
+            _handler: &pyo3::Bound<'py, pyo3::PyAny>,
+        ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
+            let py = source.py();
+            let core_schema = ryo3_pydantic::core_schema(py)?;
+            let ip_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
+            let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+            let args = PyTuple::new(py, vec![&validation_fn, &ip_schema])?;
+            let string_serialization_schema =
+                core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+            let serialization_kwargs = PyDict::new(py);
+            serialization_kwargs
+                .set_item(interns::serialization(py), &string_serialization_schema)?;
+            core_schema.call_method(
+                interns::no_info_wrap_validator_function(py),
+                args,
+                Some(&serialization_kwargs),
+            )
+        }
+    }
+
+    impl GetPydanticJsonSchemaCls for PyIpAddr {
+        fn get_pydantic_json_schema<'py>(
+            _cls: &pyo3::Bound<'py, pyo3::types::PyType>,
+            core_schema: &pyo3::Bound<'py, pyo3::PyAny>,
+            handler: &pyo3::Bound<'py, pyo3::PyAny>,
+        ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
+            let py = handler.py();
+            let json_schema = handler.call1((core_schema,))?;
+            json_schema.del_item(interns::r#type(py)).ok();
+
+            // Build the anyOf array bc I think that is the sanest way to represent it...
+            let ipv4 = PyDict::new(py);
+            ipv4.set_item(interns::r#type(py), interns::string(py))?;
+            ipv4.set_item(interns::format(py), interns::ipv4(py))?;
+
+            let ipv6 = PyDict::new(py);
+            ipv6.set_item(interns::r#type(py), interns::string(py))?;
+            ipv6.set_item(interns::format(py), interns::ipv6(py))?;
+            let anyof = pyo3::types::PyList::new(py, &[ipv4, ipv6])?;
+            json_schema.set_item(interns::any_of(py), anyof)?;
+            Ok(json_schema)
+        }
+    }
 }

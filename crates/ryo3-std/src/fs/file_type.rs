@@ -2,7 +2,7 @@ use pyo3::types::PyDict;
 use pyo3::{intern, prelude::*};
 use ryo3_macro_rules::py_value_err;
 
-#[pyclass(name = "FileType", frozen)]
+#[pyclass(name = "FileType", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PyFileType(FileTypeInner);

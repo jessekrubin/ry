@@ -24,7 +24,7 @@ use std::str::FromStr;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[pyclass(name = "Time", frozen)]
+#[pyclass(name = "Time", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTime(pub(crate) Time);
 

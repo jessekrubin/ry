@@ -9,6 +9,7 @@ REF(s):
 """
 
 import datetime as pydt
+from ipaddress import IPv4Address, IPv6Address
 from typing import Any
 
 import pydantic
@@ -889,3 +890,219 @@ class FutureThingsMaybe:
             ),
         ]
         return _CONFIG_COMBOS
+
+
+# ============================================================================
+# IP Address ~ IP Address ~ IP Address ~ IP Address ~ IP Address ~ IP Address
+# ---------------------------------------------------------------------------
+# adapted from pydantic tests.
+# REF: https://github.com/pydantic/pydantic/blob/main/tests/test_networks_ipaddress.py
+# ============================================================================
+
+
+class PyIpv4Addr(pydantic.BaseModel):
+    ip: IPv4Address
+
+
+class PyIpv6Addr(pydantic.BaseModel):
+    ip: IPv6Address
+
+
+class PyIpAddr(pydantic.BaseModel):
+    ip: pydantic.IPvAnyAddress
+
+
+class RyIpAddr(pydantic.BaseModel):
+    ip: ry.IpAddr
+
+
+class RyIpv4Addr(pydantic.BaseModel):
+    ip: ry.Ipv4Addr
+
+
+class RyIpv6Addr(pydantic.BaseModel):
+    ip: ry.Ipv6Addr
+
+
+def test_ipv4addr_schemas() -> None:
+    py_json_schema = PyIpv4Addr.model_json_schema()
+    ry_json_schema = RyIpv4Addr.model_json_schema()
+    assert py_json_schema == {
+        "properties": {"ip": {"format": "ipv4", "title": "Ip", "type": "string"}},
+        "required": ["ip"],
+        "title": "PyIpv4Addr",
+        "type": "object",
+    }
+    assert ry_json_schema == {
+        "properties": {"ip": {"format": "ipv4", "title": "Ip", "type": "string"}},
+        "required": ["ip"],
+        "title": "RyIpv4Addr",
+        "type": "object",
+    }
+
+
+def test_ipv6addr_schemas() -> None:
+    py_json_schema = PyIpv6Addr.model_json_schema()
+    ry_json_schema = RyIpv6Addr.model_json_schema()
+    assert py_json_schema == {
+        "properties": {"ip": {"format": "ipv6", "title": "Ip", "type": "string"}},
+        "required": ["ip"],
+        "title": "PyIpv6Addr",
+        "type": "object",
+    }
+    assert ry_json_schema == {
+        "properties": {"ip": {"format": "ipv6", "title": "Ip", "type": "string"}},
+        "required": ["ip"],
+        "title": "RyIpv6Addr",
+        "type": "object",
+    }
+
+
+def test_ipaddr_schemas() -> None:
+    py_json_schema = PyIpAddr.model_json_schema()
+    ry_json_schema = RyIpAddr.model_json_schema()
+
+    assert py_json_schema == {
+        "properties": {
+            "ip": {"format": "ipvanyaddress", "title": "Ip", "type": "string"}
+        },
+        "required": ["ip"],
+        "title": "PyIpAddr",
+        "type": "object",
+    }
+    assert ry_json_schema == {
+        "properties": {
+            "ip": {
+                "anyOf": [
+                    {"format": "ipv4", "type": "string"},
+                    {"format": "ipv6", "type": "string"},
+                ],
+                "title": "Ip",
+            }
+        },
+        "required": ["ip"],
+        "title": "RyIpAddr",
+        "type": "object",
+    }
+
+
+@pytest.mark.parametrize(
+    "value,cls",
+    [
+        ("0.0.0.0", IPv4Address),  # noqa: S104
+        ("1.1.1.1", IPv4Address),
+        ("10.10.10.10", IPv4Address),
+        ("192.168.0.1", IPv4Address),
+        ("255.255.255.255", IPv4Address),
+        ("::1:0:1", IPv6Address),
+        ("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", IPv6Address),
+        (b"\x00\x00\x00\x00", IPv4Address),
+        (b"\x01\x01\x01\x01", IPv4Address),
+        (b"\n\n\n\n", IPv4Address),
+        (b"\xc0\xa8\x00\x01", IPv4Address),
+        (b"\xff\xff\xff\xff", IPv4Address),
+        (
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01",
+            IPv6Address,
+        ),
+        (
+            b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",
+            IPv6Address,
+        ),
+        (0, IPv4Address),
+        (16_843_009, IPv4Address),
+        (168_430_090, IPv4Address),
+        (3_232_235_521, IPv4Address),
+        (4_294_967_295, IPv4Address),
+        (4_294_967_297, IPv6Address),
+        (340_282_366_920_938_463_463_374_607_431_768_211_455, IPv6Address),
+        (IPv4Address("192.168.0.1"), IPv4Address),
+        (IPv6Address("::1:0:1"), IPv6Address),
+    ],
+)
+def test_ipaddress_success(
+    value: str | bytes | int | IPv4Address | IPv6Address,
+    cls: type[IPv4Address] | type[IPv6Address],
+) -> None:
+    assert PyIpAddr(ip=value).ip == cls(value)  # type: ignore[arg-type]
+    assert RyIpAddr(ip=value).ip.to_pyipaddress() == cls(value)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "0.0.0.0",  # noqa: S104
+        "1.1.1.1",
+        "10.10.10.10",
+        "192.168.0.1",
+        "255.255.255.255",
+        b"\x00\x00\x00\x00",
+        b"\x01\x01\x01\x01",
+        b"\n\n\n\n",
+        b"\xc0\xa8\x00\x01",
+        b"\xff\xff\xff\xff",
+        0,
+        16_843_009,
+        168_430_090,
+        3_232_235_521,
+        4_294_967_295,
+        IPv4Address("0.0.0.0"),  # noqa: S104
+        IPv4Address("1.1.1.1"),
+        IPv4Address("10.10.10.10"),
+        IPv4Address("192.168.0.1"),
+        IPv4Address("255.255.255.255"),
+        ry.Ipv4Addr.from_str("0.0.0.0"),  # noqa: S104
+        ry.Ipv4Addr.from_str("1.1.1.1"),
+        ry.Ipv4Addr.from_str("10.10.10.10"),
+        ry.Ipv4Addr.from_str("192.168.0.1"),
+        ry.Ipv4Addr.from_str("255.255.255.255"),
+    ],
+)
+def test_ipv4addr_ok(value: str | bytes | int | IPv4Address | ry.Ipv4Addr) -> None:
+    assert PyIpv4Addr(ip=value).ip == IPv4Address(value)  # type: ignore[arg-type]
+    assert RyIpv4Addr(ip=value).ip.to_py() == IPv4Address(value)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "::1:0:1",
+        "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01",
+        b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",
+        4_294_967_297,
+        340_282_366_920_938_463_463_374_607_431_768_211_455,
+        IPv6Address("::1:0:1"),
+        IPv6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
+    ],
+)
+def test_ipv6addr_ok(value: str | bytes | int | IPv6Address | ry.Ipv6Addr) -> None:
+    assert PyIpv6Addr(ip=value).ip == IPv6Address(value)  # type: ignore[arg-type]
+    assert RyIpv6Addr(ip=value).ip.to_py() == IPv6Address(value)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("value", ["hello,world", "192.168.0.1.1.1", -1, 2**128 + 1])
+def test_ipaddr_err(value: str | int) -> None:
+
+    with pytest.raises(pydantic.ValidationError) as exc_info:
+        RyIpAddr(ip=value)  # type: ignore[arg-type]
+    assert exc_info.value.error_count() == 1
+
+
+@pytest.mark.parametrize(
+    "value", ["hello,world", "192.168.0.1.1.1", -1, 2**32 + 1, IPv6Address("::0:1:0")]
+)
+def test_ipv4addr_err(value: str | int | IPv6Address) -> None:
+    with pytest.raises(pydantic.ValidationError) as exc_info:
+        RyIpv4Addr(ip=value)  # type: ignore[arg-type]
+    assert exc_info.value.error_count() == 1
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["hello,world", "192.168.0.1.1.1", -1, 2**128 + 1, IPv4Address("192.168.0.1")],
+)
+def test_ipv6addr_err(value: str | int | IPv4Address) -> None:
+    with pytest.raises(pydantic.ValidationError) as exc_info:
+        RyIpv6Addr(ip=value)  # type: ignore[arg-type]
+    assert exc_info.value.error_count() == 1

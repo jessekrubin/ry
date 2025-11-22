@@ -7,7 +7,7 @@ use ryo3_macro_rules::{py_overflow_err, py_overflow_error};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 
-#[pyclass(name = "Instant", frozen)]
+#[pyclass(name = "Instant", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyInstant(Instant);

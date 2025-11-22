@@ -17,7 +17,7 @@ use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "HttpClient", frozen)]
+#[pyclass(name = "HttpClient", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyHttpClient {
     client: reqwest::Client,

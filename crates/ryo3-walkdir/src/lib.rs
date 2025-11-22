@@ -10,7 +10,7 @@ use std::path::Path;
 
 use crate::walkdir_entry::PyWalkDirEntry;
 
-#[pyclass(name = "WalkdirGen", frozen)]
+#[pyclass(name = "WalkdirGen", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWalkdirGen {
     objects: bool,
