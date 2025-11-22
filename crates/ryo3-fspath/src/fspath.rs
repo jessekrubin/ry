@@ -18,7 +18,7 @@ const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
 type ArcPathBuf = std::sync::Arc<PathBuf>;
 
-#[pyclass(name = "FsPath", frozen)]
+#[pyclass(name = "FsPath", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFsPath {
@@ -823,7 +823,7 @@ where
     }
 }
 
-#[pyclass(name = "FsPathReadDir", frozen)]
+#[pyclass(name = "FsPathReadDir", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFsPathReadDir {
     iter: Mutex<std::fs::ReadDir>,
@@ -878,7 +878,7 @@ impl From<std::fs::ReadDir> for PyFsPathReadDir {
     }
 }
 
-#[pyclass(name = "FsPathAncestors", frozen)]
+#[pyclass(name = "FsPathAncestors", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFsPathAncestors {
     path: ArcPathBuf,

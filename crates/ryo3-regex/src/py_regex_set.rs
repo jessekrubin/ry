@@ -3,7 +3,7 @@ use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
 use regex::{Regex, RegexBuilder, RegexSet, RegexSetBuilder};
 use std::borrow::{Borrow, Cow};
 
-#[pyclass(name = "RegexSet", frozen)]
+#[pyclass(name = "RegexSet", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyRegexSet {

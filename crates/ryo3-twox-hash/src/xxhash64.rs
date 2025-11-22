@@ -7,7 +7,7 @@ use ryo3_core::PyMutex;
 use std::hash::Hasher;
 use twox_hash::XxHash64 as XxHash3_64;
 
-#[pyclass(name = "xxh64", frozen)]
+#[pyclass(name = "xxh64", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash64 {
     seed: u64,

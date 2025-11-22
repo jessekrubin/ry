@@ -35,7 +35,7 @@ use crate::python_bytes_methods::PythonBytesMethods;
 /// data view without copies. In Python, this `PyBytes` object can be passed to Python `bytes` or
 /// `memoryview` constructors, `numpy.frombuffer`, or any other function that supports buffer
 /// protocol input.
-#[pyclass(name = "Bytes", subclass, frozen, sequence, weakref)]
+#[pyclass(name = "Bytes", subclass, frozen, immutable_type, sequence, weakref)]
 #[derive(Hash, PartialEq, PartialOrd, Eq, Ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyBytes(Bytes);
