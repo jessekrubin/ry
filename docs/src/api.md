@@ -4552,7 +4552,7 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import RyIterator, ToPy, ToPyTimeDelta, ToString
+from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString
 from ry.ryo3._bytes import Bytes
 
 
@@ -4930,6 +4930,7 @@ class ToPyIpAddress(t.Protocol[_T_ipaddress_co]):
 class Ipv4Addr(
     _Ipv4AddrProperties,
     _Version4,
+    FromStr,
     ToPy[ipaddress.IPv4Address],
     ToPyIpAddress[ipaddress.IPv4Address],
 ):
@@ -4960,7 +4961,9 @@ class Ipv4Addr(
     # CLASSMETHODS
     # ========================================================================
     @classmethod
-    def parse(cls, s: str) -> Ipv4Addr: ...
+    def from_str(cls, s: str) -> Ipv4Addr: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> Ipv4Addr: ...
     @classmethod
     def from_bits(cls, bits: int) -> Ipv4Addr: ...
     @classmethod
@@ -5011,6 +5014,7 @@ class _Ipv6AddrProperties(t.Protocol):
 class Ipv6Addr(
     _Ipv6AddrProperties,
     _Version6,
+    FromStr,
     ToPy[ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv6Address],
 ):
@@ -5042,7 +5046,9 @@ class Ipv6Addr(
     # CLASSMETHODS
     # ========================================================================
     @classmethod
-    def parse(cls, s: str) -> Ipv4Addr: ...
+    def from_str(cls, s: str) -> Ipv6Addr: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> Ipv6Addr: ...
     @classmethod
     def from_bits(cls, bits: int) -> IpAddr: ...
 
@@ -5061,6 +5067,7 @@ class IpAddr(
     _Ipv4AddrProperties,
     _Ipv6AddrProperties,
     _Version,
+    FromStr,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
@@ -5095,7 +5102,9 @@ class IpAddr(
     # CLASSMETHODS
     # =========================================================================
     @classmethod
-    def parse(cls, ip: str) -> IpAddr: ...
+    def from_str(cls, s: str) -> IpAddr: ...
+    @classmethod
+    def parse(cls, ip: str | bytes) -> IpAddr: ...
 
     # ========================================================================
     # PROPERTIES

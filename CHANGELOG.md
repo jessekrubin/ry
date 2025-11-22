@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.69 [unreleased] (yay)
+## v0.0.69 [2025-11-21]
 
 - `ryo3-fnv`
   - Add `py.detach` where it makes sense
