@@ -2,6 +2,7 @@ use crate::net::PyIpv6Addr;
 use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use crate::net::ipaddr_props::IpAddrProps;
 use pyo3::prelude::*;
+use ryo3_core::{PyFromStr, PyParse};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
@@ -84,9 +85,13 @@ impl PySocketAddrV4 {
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        let sock = s.parse()?;
-        Ok(Self(sock))
+    fn from_str(s: &str) -> PyResult<Self> {
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse<'py>(s: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Self::py_parse(s)
     }
 
     #[classattr]
@@ -227,9 +232,13 @@ impl PySocketAddrV6 {
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        let sock = s.parse()?;
-        Ok(Self(sock))
+    fn from_str(s: &str) -> PyResult<Self> {
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse<'py>(s: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Self::py_parse(s)
     }
 
     #[classattr]
@@ -367,9 +376,13 @@ impl PySocketAddr {
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        let sock = s.parse()?;
-        Ok(Self(sock))
+    fn from_str(s: &str) -> PyResult<Self> {
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse<'py>(s: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Self::py_parse(s)
     }
 
     #[expect(clippy::wrong_self_convention)]

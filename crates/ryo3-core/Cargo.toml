@@ -13,6 +13,7 @@ description = "ryo3-core ~ common/shared utils/tools/things"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
+ryo3-macro-rules = { workspace = true }
 
 [build-dependencies]
 pyo3-build-config = { workspace = true }

@@ -1819,6 +1819,7 @@ version = "0.0.69"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
+ "ryo3-macro-rules",
 ]
 
 [[package]]

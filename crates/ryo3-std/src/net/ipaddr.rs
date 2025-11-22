@@ -2,7 +2,9 @@
 use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
 use pyo3::types::PyTuple;
 use pyo3::{IntoPyObjectExt, prelude::*};
+use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::{any_repr, py_type_err};
+use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -50,6 +52,12 @@ impl PyIpv4Addr {
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let str = self.0.to_string();
         PyTuple::new(py, &[str])
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
     }
 
     // ========================================================================
@@ -206,27 +214,12 @@ impl PyIpv4Addr {
     // ========================================================================
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        s.parse::<std::net::Ipv4Addr>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address"))
-            .map(Self)
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
     fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = s.extract::<&str>() {
-            Self::from_str(s)
-        } else if let Ok(s) = s.extract::<&[u8]>() {
-            let s = String::from_utf8_lossy(s);
-            s.parse::<std::net::Ipv4Addr>()
-                .map_err(|_| {
-                    PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv4 address")
-                })
-                .map(Self)
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "expected str or bytes",
-            ))
-        }
+        Self::py_parse(s)
     }
 
     #[staticmethod]
@@ -310,6 +303,11 @@ impl PyIpv6Addr {
         PyTuple::new(py, &[str])
     }
 
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     // ========================================================================
     // CMP
     // ========================================================================
@@ -457,27 +455,12 @@ impl PyIpv6Addr {
     // ========================================================================
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        s.parse::<std::net::Ipv6Addr>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv6 address"))
-            .map(Self)
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
     fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = s.extract::<&str>() {
-            Self::from_str(s)
-        } else if let Ok(s) = s.extract::<&[u8]>() {
-            let s = String::from_utf8_lossy(s);
-            s.parse::<std::net::Ipv6Addr>()
-                .map_err(|_| {
-                    PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IPv6 address")
-                })
-                .map(Self)
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "expected str or bytes",
-            ))
-        }
+        Self::py_parse(s)
     }
 
     #[staticmethod]
@@ -565,6 +548,11 @@ impl PyIpAddr {
         PyTuple::new(py, &[str])
     }
 
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        hasher.finish()
+    }
     // ========================================================================
     // CMP
     // ========================================================================
@@ -734,25 +722,12 @@ impl PyIpAddr {
     // ========================================================================
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        s.parse::<std::net::IpAddr>()
-            .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IP address"))
-            .map(Self)
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
     fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = s.extract::<&str>() {
-            Self::from_str(s)
-        } else if let Ok(s) = s.extract::<&[u8]>() {
-            let s = String::from_utf8_lossy(s);
-            s.parse::<std::net::IpAddr>()
-                .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid IP address"))
-                .map(Self)
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "expected str or bytes",
-            ))
-        }
+        Self::py_parse(s)
     }
 
     // ========================================================================

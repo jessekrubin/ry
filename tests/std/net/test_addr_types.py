@@ -104,8 +104,17 @@ def test_string_and_parse(obj: _StdNetAddrLike) -> None:
     """
     s = str(obj)
     cls = type(obj)
-    parsed = cls.parse(s)
+    parsed = cls.from_str(s)
     assert parsed == obj
+
+    assert {
+        # from_str =
+        cls.from_str(s),
+        # parse string
+        cls.parse(s),
+        # parse bytes
+        cls.parse(s.encode("utf-8")),
+    } == {obj}
     assert isinstance(parsed, type(obj))
 
 

@@ -1,4 +1,5 @@
 pub use ipaddr::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
+mod from_str;
 use pyo3::prelude::*;
 pub use socketaddr::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};
 mod from;
