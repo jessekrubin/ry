@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.70 [unreleased]
+
+---
+
 ## v0.0.69 [2025-11-21]
 
 - added `immutable_type` attr to pyclasses bc many of the things in this crate
