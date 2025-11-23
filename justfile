@@ -26,11 +26,11 @@ sync:
 
 # maturin develop
 develop:
-    maturin develop
+    maturin develop --features "mimalloc"
 
 # maturin develop (with uv)
 develop-uv:
-    uv run maturin develop --uv
+    uv run maturin develop --features "mimalloc" --uv
 
 # maturin develop (shorthand)
 mat:
