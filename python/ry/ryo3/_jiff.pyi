@@ -1399,8 +1399,12 @@ class ZonedDateTime(
         nanosecond: int | None = None,
         subsec_nanosecond: int | None = None,
         offset: Offset | None = None,
-        offset_conflict: t.Any = None,
-        disambiguation: t.Any = None,
+        offset_conflict: t.Literal[
+            "always-offset", "always-timezone", "prefer-offset", "reject"
+        ]
+        | None = None,
+        disambiguation: t.Literal["compatible", "earliest", "latest", "reject"]
+        | None = None,
     ) -> t.Self: ...
     def round(
         self,
@@ -1759,7 +1763,8 @@ class OffsetRound(_Round[_OffsetRoundSmallest, OffsetRoundTypedDict]):
 class JiffSeries(t.Protocol[_T]):
     def __iter__(self) -> JiffSeries[_T]: ...
     def __next__(self) -> _T: ...
-    def take(self, n: int) -> list[_T]: ...
+    def take(self, n: int = 1) -> list[_T]: ...
+    def collect(self) -> list[_T]: ...
 
 def date(year: int, month: int, day: int) -> Date: ...
 def time(
