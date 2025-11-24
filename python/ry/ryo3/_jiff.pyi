@@ -23,6 +23,7 @@ from ry._types import (
     TimestampRoundTypedDict,
     TimestampTypedDict,
     TimeTypedDict,
+    TimeZoneDict,
     ZonedDateTimeDifferenceTypedDict,
     ZonedDateTimeRoundTypedDict,
     ZonedDateTimeTypedDict,
@@ -673,7 +674,7 @@ class TimeZone(
 
     def to_py(self) -> pydt.tzinfo: ...
     def to_pytzinfo(self) -> pydt.tzinfo: ...
-    def to_dict(self) -> OffsetTypedDict: ...
+    def to_dict(self) -> TimeZoneDict: ...
     @classmethod
     def from_str(cls, s: TimezoneName) -> t.Self: ...
     @classmethod
