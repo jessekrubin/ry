@@ -1,7 +1,7 @@
 use crate::jiff_types::JiffTzOffsetConflict;
 use pyo3::prelude::*;
 
-const JIFF_TZ_OFFSET_CONFLICTS: &str = "'always-offset', 'always-timezone', 'prefer-offset', 'reject' (case-insensitive; underscores and hyphens are interchangeable)";
+const JIFF_TZ_OFFSET_CONFLICTS: &str = "'always-offset', 'always-timezone', 'prefer-offset', 'reject' (underscores and hyphens are interchangeable)";
 impl<'py> FromPyObject<'_, 'py> for JiffTzOffsetConflict {
     type Error = PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {

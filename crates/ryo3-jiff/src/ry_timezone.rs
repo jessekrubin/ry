@@ -8,6 +8,7 @@ use jiff::Timestamp;
 use jiff::tz::{Offset, TimeZone};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
+use pyo3::types::PyTzInfo;
 use pyo3::types::{PyDict, PyString, PyTuple};
 use ryo3_macro_rules::pytodo;
 use std::fmt::Debug;
@@ -79,18 +80,7 @@ impl RyTimeZone {
     }
 
     fn __repr__(&self) -> String {
-        if self.0.is_unknown() {
-            return "TimeZone('unknown')".to_string();
-        }
-
-        let iana_name = self.0.iana_name();
-        if let Some(name) = iana_name {
-            format!("TimeZone(\"{name}\")")
-        } else {
-            // REALLY NOT SURE IF THIS IS CORRECT
-            let offset = self.0.to_offset(Timestamp::now());
-            format!("TimeZone('{offset}')")
-        }
+        format!("{self}")
     }
 
     fn __str__(&self) -> String {
@@ -116,15 +106,22 @@ impl RyTimeZone {
         hasher.finish()
     }
 
-    fn __eq__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<bool> {
+    fn __eq__(&self, other: &Self) -> bool {
+        self.0.eq(&other.0)
+    }
+
+    fn equiv<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<bool> {
         if let Ok(other) = other.cast::<Self>() {
             Ok(self.0.eq(&other.get().0))
+        } else if let Ok(other) = other.cast::<PyTzInfo>() {
+            let tz: jiff::tz::TimeZone = other.extract()?;
+            Ok((*self.0).eq(&tz))
         } else if let Ok(other) = other.cast::<PyString>() {
             let other_str = other.extract::<&str>()?;
             Ok(self.0.iana_name() == Some(other_str))
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "Expected a RyTimeZone or a string",
+                "Expected TimeZone, datetime.tzinfo or string",
             ))
         }
     }
@@ -285,5 +282,22 @@ impl RyTimeZone {
     #[expect(clippy::unused_self)]
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
         pytodo!()
+    }
+}
+
+impl std::fmt::Display for RyTimeZone {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TimeZone(")?;
+
+        if self.is_unknown() {
+            write!(f, "\"unknown\"")?;
+        } else if let Some(name) = self.iana_name() {
+            write!(f, "\"{name}\"")?;
+        } else {
+            // REALLY NOT SURE IF THIS IS CORRECT
+            let offset = self.0.to_offset(Timestamp::now());
+            write!(f, "'{offset}'")?;
+        }
+        write!(f, ")")
     }
 }
