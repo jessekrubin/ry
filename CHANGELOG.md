@@ -2,6 +2,10 @@
 
 ## v0.0.70 [unreleased]
 
+- `ryo3-jiff`
+  - `offset_conflict` and `disambiguation` type annotation fixes
+  - `collect()` methods for jiff series
+
 ---
 
 ## v0.0.69 [2025-11-21]
