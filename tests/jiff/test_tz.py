@@ -44,6 +44,26 @@ def test_timezone_from_str() -> None:
         assert ry_tz == ry.TimeZone.from_pytzinfo(pytzinfo)
 
 
+def test_timezone_equivalence() -> None:
+    tz_utc = ry.TimeZone("utc")
+    tz_utc2 = ry.TimeZone("utc")
+    assert tz_utc.equiv(tz_utc2)
+    assert tz_utc.equiv("UTC")
+    py_tzinfo = tz_utc.to_pytzinfo()
+    assert tz_utc.equiv(py_tzinfo)
+    with pytest.raises(TypeError):
+        tz_utc.equiv(123)  # type: ignore[arg-type]
+
+
+def test_tz_to_dict() -> None:
+    tz = ry.TimeZone("America/Los_Angeles")
+    tz_dict = tz.to_dict()
+    assert isinstance(tz_dict, dict)
+    assert len(tz_dict) == 1
+    assert "tz" in tz_dict
+    assert tz_dict["tz"] == "America/Los_Angeles"
+
+
 class TestTimeZone:
     def test_fixed_offset_hours(self) -> None:
         tz = ry.TimeZone.fixed(ry.Offset.from_hours(-8))
@@ -60,6 +80,15 @@ class TestTimeZone:
         assert repr(tz) == "TimeZone('-00:01:01')"
         assert str(tz) == "-00:01:01"
 
+    @pytest.mark.parametrize("tzname", ["", "unknown"])
+    def test_unknown_args(self, tzname: str) -> None:
+        tz = ry.TimeZone(tzname)
+        offset = tz.to_offset(ry.Timestamp(0, 0))
+        assert offset == ry.Offset(0)
+        assert tz.is_unknown
+
+        assert repr(tz) == 'TimeZone("unknown")'
+
 
 _TS_NOW = ry.Timestamp.now()
 
@@ -75,3 +104,16 @@ def test_offset_infos(tzname: str) -> None:
     val = tadapt.validate_python(info, strict=True)
     assert isinstance(val, dict)
     assert set(val.keys()) == {"offset", "dst", "abbreviation"}
+
+
+# NOT IMPLEMENTED YET
+def test_to_ambiguous_timestamp() -> None:
+    tz = ry.TimeZone("America/New_York")
+    with pytest.raises(NotImplementedError):
+        tz.to_ambiguous_timestamp()
+
+
+def test_to_ambiguous_zoned() -> None:
+    tz = ry.TimeZone("America/New_York")
+    with pytest.raises(NotImplementedError):
+        tz.to_ambiguous_zoned()

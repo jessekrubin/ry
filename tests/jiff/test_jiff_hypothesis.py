@@ -122,7 +122,7 @@ def test_zoned_datetime_creation(dt: ry.DateTime, tz: str) -> None:
     try:
         zdt = dt.in_tz(tz)
 
-        assert zdt.timezone == tz
+        assert zdt.timezone.iana_name() == tz
         assert isinstance(zdt, ry.ZonedDateTime)
     except ValueError:
         assume(False)
