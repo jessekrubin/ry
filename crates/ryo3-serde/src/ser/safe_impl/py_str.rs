@@ -25,3 +25,25 @@ impl Serialize for SerializePyStr<'_, '_> {
         serializer.serialize_str(s)
     }
 }
+
+// impl Serialize for SerializePyStr<'_, '_> {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
+//     {
+//         let py_str: &Bound<'_, PyString> = unsafe { self.obj.cast_unchecked() };
+
+//         #[expect(unsafe_code)]
+//         unsafe {
+//             let mut size: isize = 0;
+//             let ptr = pyo3::ffi::PyUnicode_AsUTF8AndSize(py_str.as_ptr(), &mut size);
+//             if ptr.is_null() {
+//                 // Turn the Python error into SerError once; this path should be very rare.
+//                 return Err(pyerr2sererr(PyErr::fetch(py_str.py())));
+//             }
+//             let slice = std::slice::from_raw_parts(ptr as *const u8, size as usize);
+//             let s = std::str::from_utf8_unchecked(slice); // guaranteed by CPython for UTF-8 repr
+//             serializer.serialize_str(s)
+//         }
+//     }
+// }

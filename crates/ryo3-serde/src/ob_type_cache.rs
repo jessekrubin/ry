@@ -183,6 +183,7 @@ impl PyTypeCache {
         }
     }
 
+    #[inline]
     pub(crate) fn cached(py: Python<'_>) -> &Self {
         TYPE_LOOKUP.get_or_init(py, || Self::new(py))
     }
@@ -223,21 +224,22 @@ macro_rules! py_obj_ptr_feat {
 }
 
 impl PyTypeCache {
+    #[inline]
     pub(crate) fn ptr2type(&self, ptr: usize, ob: &Bound<'_, PyAny>) -> PyObType {
         // --- das builtins ---
-        py_obj_ptr!(self, ptr, none, None);
         py_obj_ptr!(self, ptr, string, String);
         py_obj_ptr!(self, ptr, int, Int);
+        py_obj_ptr!(self, ptr, bool, Bool);
+        py_obj_ptr!(self, ptr, none, None);
         py_obj_ptr!(self, ptr, float, Float);
         py_obj_ptr!(self, ptr, list, List);
-        py_obj_ptr!(self, ptr, tuple, Tuple);
         py_obj_ptr!(self, ptr, dict, Dict);
-        py_obj_ptr!(self, ptr, bool, Bool);
-        py_obj_ptr!(self, ptr, bytes, Bytes);
         py_obj_ptr!(self, ptr, datetime, DateTime);
+        py_obj_ptr!(self, ptr, tuple, Tuple);
         py_obj_ptr!(self, ptr, date, Date);
         py_obj_ptr!(self, ptr, time, Time);
         py_obj_ptr!(self, ptr, timedelta, Timedelta);
+        py_obj_ptr!(self, ptr, bytes, Bytes);
         py_obj_ptr!(self, ptr, py_uuid, PyUuid);
         py_obj_ptr!(self, ptr, bytearray, ByteArray);
         py_obj_ptr!(self, ptr, memoryview, MemoryView);

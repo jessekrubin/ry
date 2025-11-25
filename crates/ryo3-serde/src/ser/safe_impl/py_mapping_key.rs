@@ -1,6 +1,8 @@
 use pyo3::prelude::*;
+use pyo3::types::PyBool;
 use serde::ser::{Serialize, Serializer};
 
+use crate::errors::pyerr2sererr;
 use crate::serde_err;
 
 use crate::any_repr::any_repr;
@@ -21,18 +23,17 @@ impl Serialize for SerializePyMappingKey<'_, '_> {
     where
         S: Serializer,
     {
-        // if let Ok(py_string) = self.obj.cast_exact::<PyString>() {
-        // let v = py_string.to_str().map_err(pyerr2sererr)?;
-        // serializer.serialize_str(v)
-        if let Ok(s) = self.obj.extract::<&str>() {
-            // let v = py_string.to_str().map_err(pyerr2sererr)?;
+        use pyo3::types::PyString;
+
+        if let Ok(py_str) = self.obj.cast::<PyString>() {
+            let s = py_str.to_str().map_err(pyerr2sererr)?;
             serializer.serialize_str(s)
-        } else if let Ok(key) = self.obj.extract::<bool>() {
-            // Ok(if key { "true" } else { "false" })
-            serializer.serialize_bool(key)
+        } else if let Ok(py_bool) = self.obj.cast::<PyBool>() {
+            let b = py_bool.is_true();
+            serializer.serialize_bool(b)
         } else {
             let key_repr = any_repr(self.obj);
-            serde_err!("{} is not JSON-serializable as map-key", key_repr)
+            serde_err!("{} is not serializable as map-key", key_repr)
         }
     }
 }
