@@ -116,6 +116,101 @@ class HttpClient:
     ) -> Response: ...
 
 @t.final
+class BlockingClient:
+    def __init__(
+        self,
+        *,
+        headers: dict[str, str] | Headers | None = None,
+        cookies: bool = False,
+        user_agent: str | None = None,
+        timeout: Duration | None = None,
+        connect_timeout: Duration | None = None,
+        read_timeout: Duration | None = None,
+        redirect: int | None = 10,
+        referer: bool = True,
+        gzip: bool = True,
+        brotli: bool = True,
+        deflate: bool = True,
+        zstd: bool = True,
+        hickory_dns: bool = True,
+        http1_only: bool = False,
+        https_only: bool = False,
+        http1_title_case_headers: bool = False,
+        http1_allow_obsolete_multiline_headers_in_responses: bool = False,
+        http1_allow_spaces_after_header_name_in_responses: bool = False,
+        http1_ignore_invalid_headers_in_responses: bool = False,
+        http2_prior_knowledge: bool = False,
+        http2_initial_stream_window_size: int | None = None,
+        http2_initial_connection_window_size: int | None = None,
+        http2_adaptive_window: bool = False,
+        http2_max_frame_size: int | None = None,
+        http2_max_header_list_size: int | None = None,
+        http2_keep_alive_interval: Duration | None = None,
+        http2_keep_alive_timeout: Duration | None = None,
+        http2_keep_alive_while_idle: bool = False,
+        pool_idle_timeout: Duration | None = ...,  # 90 seconds
+        pool_max_idle_per_host: int | None = ...,  # usize::MAX
+        tcp_keepalive: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_retries: int | None = 3,
+        tcp_nodelay: bool = True,
+        root_certificates: list[Certificate] | None = None,
+        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_info: bool = False,
+        tls_sni: bool = True,
+        danger_accept_invalid_certs: bool = False,
+        danger_accept_invalid_hostnames: bool = False,
+    ) -> None: ...
+    def get(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def post(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def put(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def delete(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def patch(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def options(
+        self, url: str | URL, **kwargs: Unpack[RequestKwargs]
+    ) -> BlockingResponse: ...
+    def head(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def fetch(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def __call__(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+
+@t.final
 class ReqwestError(Exception):
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
     def __dbg__(self) -> str: ...
@@ -187,6 +282,62 @@ class Response:
         """True if the status is a success (2xx)"""
 
 @t.final
+class BlockingResponse:
+    def __init__(self) -> t.NoReturn: ...
+    @property
+    def headers(self) -> Headers: ...
+    def text(self) -> str: ...
+    def json(
+        self,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> t.Any: ...
+    def bytes(self) -> ry.Bytes: ...
+    def bytes_stream(self) -> BlockingResponseStream: ...
+    def stream(self) -> BlockingResponseStream: ...
+    @property
+    def url(self) -> URL: ...
+    @property
+    def version(
+        self,
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    @property
+    def http_version(
+        self,
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    @property
+    def redirected(self) -> bool: ...
+    @property
+    def content_length(self) -> int | None: ...
+    @property
+    def content_encoding(self) -> str | None: ...
+    @property
+    def cookies(self) -> list[Cookie] | None: ...
+    @property
+    def set_cookies(self) -> list[Cookie] | None: ...
+    @property
+    def body_used(self) -> bool:
+        """True if the body has been consumed"""
+
+    @property
+    def ok(self) -> bool:
+        """True if the status is a success (2xx)"""
+
+    @property
+    def remote_addr(self) -> SocketAddr | None: ...
+    @property
+    def status(self) -> int: ...
+    @property
+    def status_text(self) -> str: ...
+    @property
+    def status_code(self) -> HttpStatus: ...
+    def __bool__(self) -> bool:
+        """True if the status is a success (2xx)"""
+
+@t.final
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
     async def __anext__(self) -> ry.Bytes: ...
@@ -195,6 +346,16 @@ class ResponseStream:
     async def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
     @t.overload
     async def collect(self, join: t.Literal[True] = True) -> ry.Bytes: ...
+
+@t.final
+class BlockingResponseStream:
+    def __iter__(self) -> BlockingResponseStream: ...
+    def __next__(self) -> ry.Bytes: ...
+    def take(self, n: int = 1) -> list[ry.Bytes]: ...
+    @t.overload
+    def collect(self, join: t.Literal[False]) -> list[ry.Bytes]: ...
+    @t.overload
+    def collect(self, join: t.Literal[True] = True) -> ry.Bytes: ...
 
 async def fetch(
     url: str | URL,

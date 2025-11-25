@@ -360,7 +360,7 @@ impl RyBlockingResponse {
     }
 
     /// Return the response body as bytes (consumes the response)
-    fn bytes<'py>(&self, py: Python<'py>) -> PyResult<ryo3_bytes::PyBytes> {
+    fn bytes(&self, py: Python<'_>) -> PyResult<ryo3_bytes::PyBytes> {
         let response = self.take_response()?;
 
         py.detach(|| {
@@ -408,7 +408,7 @@ impl RyBlockingResponse {
             catch_duplicate_keys,
         };
 
-        let a = py.detach(|| {
+        py.detach(|| {
             pyo3_async_runtimes::tokio::get_runtime().block_on(async {
                 response
                     .bytes()
@@ -416,16 +416,7 @@ impl RyBlockingResponse {
                     .map(|bytes| Pyo3JsonBytes::from((bytes, options)))
                     .map_err(map_reqwest_err)
             })
-        });
-        a
-
-        // pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        //     response
-        //         .bytes()
-        //         .await
-        //         .map(|bytes| Pyo3JsonBytes::from((bytes, options)))
-        //         .map_err(map_reqwest_err)
-        // })
+        })
     }
 
     /// Return a response consuming async iterator over the response body
@@ -477,7 +468,7 @@ impl std::fmt::Display for RyBlockingResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "<Response [{status}; {url}]>",
+            "<BlockingResponse [{status}; {url}]>",
             status = self.head.status.as_u16(),
             url = self.head.url,
         )

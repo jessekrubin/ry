@@ -155,12 +155,12 @@ impl RyBlockingResponseStream {
         this
     }
 
-    fn __next__<'py>(&self, py: Python<'py>) -> PyResult<ryo3_bytes::PyBytes> {
+    fn __next__(&self, py: Python<'_>) -> PyResult<ryo3_bytes::PyBytes> {
         let stream = self.stream.clone();
         let a = py.detach(|| {
             pyo3_async_runtimes::tokio::get_runtime()
                 .block_on(next_bytes(&stream))
-                .map_err(|e| map_reqwest_err(e))
+                .map_err(map_reqwest_err)
         })?;
         match a {
             Some(bytes) => Ok(ryo3_bytes::PyBytes::from(bytes)),
@@ -169,13 +169,13 @@ impl RyBlockingResponseStream {
     }
 
     #[pyo3(signature = (n=1))]
-    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
+    fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
         let stream = self.stream.clone();
         let items = py
             .detach(|| {
                 pyo3_async_runtimes::tokio::get_runtime()
                     .block_on(take_bytes(&stream, n))
-                    .map_err(|e| map_reqwest_err(e))
+                    .map_err(map_reqwest_err)
             })
             .map(|bytes_vec| {
                 bytes_vec
@@ -194,7 +194,7 @@ impl RyBlockingResponseStream {
             let py_bytes = py.detach(|| {
                 rt.block_on(collect_bytes_join(&stream))
                     .map(ryo3_bytes::PyBytes::from)
-                    .map_err(|e| map_reqwest_err(e))
+                    .map_err(map_reqwest_err)
             })?;
             py_bytes.into_bound_py_any(py)
         } else {
@@ -206,7 +206,7 @@ impl RyBlockingResponseStream {
                             .map(ryo3_bytes::PyBytes::from)
                             .collect()
                     })
-                    .map_err(|e| map_reqwest_err(e))
+                    .map_err(map_reqwest_err)
             })?;
             py_bytes_vec.into_bound_py_any(py)
         }
