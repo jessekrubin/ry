@@ -23,7 +23,10 @@ def test_get(server: ReqtestServer) -> None:
     assert res_text == '{"howdy": "partner"}'
     assert response.ok
     assert bool(response)
-    assert f"{response!r}" == f"<Response [{response.status_code}; {response.url}]>"
+    assert (
+        f"{response!r}"
+        == f"<BlockingResponse [{response.status_code}; {response.url}]>"
+    )
     assert response.content_encoding is None
     if response.remote_addr is not None:
         assert isinstance(response.remote_addr, ry.SocketAddr)
