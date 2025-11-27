@@ -107,6 +107,7 @@ from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
 from ry.ryo3._reqwest import ResponseStream as ResponseStream
 from ry.ryo3._reqwest import fetch as fetch
+from ry.ryo3._reqwest import fetch_sync as fetch_sync
 from ry.ryo3._same_file import is_same_file as is_same_file
 from ry.ryo3._shlex import shplit as shplit
 from ry.ryo3._size import Size as Size

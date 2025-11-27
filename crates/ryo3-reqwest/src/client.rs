@@ -252,6 +252,15 @@ impl RyHttpClient {
         Ok(Self { client, cfg })
     }
 
+    fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
+        pyo3_async_runtimes::tokio::get_runtime().block_on(async {
+            req.send()
+                .await
+                .map(RyBlockingResponse::from)
+                .map_err(map_reqwest_err)
+        })
+    }
+
     // TODO: replace this with custom python-y builder pattern that does not
     //       crudely wrap the reqwest::RequestBuilder
     #[inline]
@@ -268,7 +277,7 @@ impl RyBlockingClient {
         Ok(Self { client, cfg })
     }
 
-    fn send_request(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
+    fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
         pyo3_async_runtimes::tokio::get_runtime().block_on(async {
             req.send()
                 .await
@@ -947,6 +956,59 @@ impl RyHttpClient {
         )
     )]
     #[expect(clippy::too_many_arguments)]
+    pub(crate) fn fetch_sync<'py>(
+        &'py self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+        method: Option<ryo3_http::HttpMethod>,
+        body: Option<&Bound<'py, PyAny>>,
+        headers: Option<PyHeadersLike>,
+        query: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
+        form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
+        timeout: Option<&PyDuration>,
+        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
+        bearer_auth: Option<PyBackedStr>,
+        version: Option<HttpVersion>,
+    ) -> PyResult<RyBlockingResponse> {
+        let method = method.map_or_else(|| Method::GET, |m| m.0);
+        let opts = RequestKwargs {
+            url,
+            method,
+            body,
+            headers,
+            query,
+            json,
+            multipart,
+            form,
+            timeout,
+            basic_auth,
+            bearer_auth,
+            version,
+        };
+        let req = self.build_request(opts)?;
+        py.detach(|| Self::send_sync(req))
+    }
+
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            method = None,
+            body = None,
+            headers = None,
+            query = None,
+            json = None,
+            form = None,
+            multipart = None,
+            timeout = None,
+            basic_auth = None,
+            bearer_auth = None,
+            version = None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
     fn __call__<'py>(
         &'py self,
         py: Python<'py>,
@@ -1228,7 +1290,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(
@@ -1278,7 +1340,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(
@@ -1328,7 +1390,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(
@@ -1378,7 +1440,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(
@@ -1428,7 +1490,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(
@@ -1478,7 +1540,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(
@@ -1528,7 +1590,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(
@@ -1581,7 +1643,7 @@ impl RyBlockingClient {
             version,
         };
         let req = self.build_request(opts)?;
-        py.detach(|| Self::send_request(req))
+        py.detach(|| Self::send_sync(req))
     }
 
     #[pyo3(

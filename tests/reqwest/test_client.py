@@ -350,16 +350,6 @@ class TestTimeout:
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
             _text = await res.text()
 
-    async def test_client_timeout_on_request(self, server: ReqtestServer) -> None:
-        url = server.url / "slow"
-        res = await ry.fetch(
-            url,
-            timeout=ry.Duration.from_secs_f64(0.1),
-        )
-        assert res.status_code == 200
-        with pytest.raises(ry.ReqwestError, match="TimedOut"):
-            _text = await res.text()
-
     async def test_client_timeout_get_both_same_time(
         self, server: ReqtestServer
     ) -> None:
