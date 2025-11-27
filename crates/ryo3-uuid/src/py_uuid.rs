@@ -212,8 +212,8 @@ impl PyUuid {
     }
 
     #[staticmethod]
-    fn from_hex(s: &str) -> PyResult<Self> {
-        Self::from_str(s)
+    fn from_hex(hexstr: &str) -> PyResult<Self> {
+        Self::from_str(hexstr)
     }
 
     #[staticmethod]
