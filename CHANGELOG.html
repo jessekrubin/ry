@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-ac398320.js";
+            window.path_to_searchindex_js = "searchindex-0c4d42be.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5c7d32c.js"></script>
@@ -183,6 +183,19 @@
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0070-unreleased"><a class="header" href="#v0070-unreleased">v0.0.70 [unreleased]</a></h2>
 <ul>
+<li><code>ryo3-http</code>
+<ul>
+<li>Bump version to 1.4.0 which adds <code>103 Early Hints</code> status code among other
+things</li>
+</ul>
+</li>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li><code>BlockingClient</code> and <code>BlockingResponse</code> for sync/blocking reqs… This makes
+the <code>HttpClient</code> name awkward and may rename it to just <code>Client</code>… TBD</li>
+<li>added <code>fetch_sync</code> function for blocking/sync http requests</li>
+</ul>
+</li>
 <li><code>ryo3-jiff</code>
 <ul>
 <li><code>offset_conflict</code> and <code>disambiguation</code> type annotation fixes</li>
