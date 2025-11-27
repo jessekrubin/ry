@@ -194,6 +194,7 @@ class HttpStatus:
     CONTINUE: t.ClassVar[HttpStatus]  # 100 ~ Continue
     SWITCHING_PROTOCOLS: t.ClassVar[HttpStatus]  # 101 ~ Switching Protocols
     PROCESSING: t.ClassVar[HttpStatus]  # 102 ~ Processing
+    EARLY_HINTS: t.ClassVar[HttpStatus]  # 103 ~ Early Hints
     # 2xx: Success
     OK: t.ClassVar[HttpStatus]  # 200 ~ OK
     CREATED: t.ClassVar[HttpStatus]  # 201 ~ Created

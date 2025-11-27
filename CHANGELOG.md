@@ -2,6 +2,13 @@
 
 ## v0.0.70 [unreleased]
 
+- `ryo3-http`
+  - Bump version to 1.4.0 which adds `103 Early Hints` status code among other
+    things
+- `ryo3-reqwest`
+  - `BlockingClient` and `BlockingResponse` for sync/blocking reqs... This makes
+    the `HttpClient` name awkward and may rename it to just `Client`... TBD
+  - added `fetch_sync` function for blocking/sync http requests
 - `ryo3-jiff`
   - `offset_conflict` and `disambiguation` type annotation fixes
   - `collect()` methods for jiff series

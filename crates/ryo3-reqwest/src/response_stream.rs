@@ -2,8 +2,8 @@ use crate::errors::map_reqwest_err;
 use bytes::{Bytes, BytesMut};
 use futures_util::StreamExt;
 use futures_util::stream::{BoxStream, Fuse};
-use pyo3::exceptions::PyStopAsyncIteration;
-use pyo3::prelude::*;
+use pyo3::exceptions::{PyStopAsyncIteration, PyStopIteration};
+use pyo3::{IntoPyObjectExt, prelude::*};
 use reqwest::StatusCode;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -122,4 +122,144 @@ impl RyResponseStream {
             })
         }
     }
+}
+
+#[pyclass(name = "BlockingResponseStream", frozen, immutable_type)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct RyBlockingResponseStream {
+    status: StatusCode,
+    pub(crate) stream: AsyncResponseStreamInner,
+}
+
+impl RyBlockingResponseStream {
+    pub(crate) fn from_response(response: reqwest::Response) -> Self {
+        let status = response.status();
+        let bstream = response.bytes_stream();
+        let stream: BoxStream<'static, Result<Bytes, reqwest::Error>> = Box::pin(bstream);
+
+        let stream = Arc::new(Mutex::new(stream.fuse()));
+        Self {
+            status,
+            stream: stream as AsyncResponseStreamInner,
+        }
+    }
+}
+
+#[pymethods]
+impl RyBlockingResponseStream {
+    fn __repr__(&self) -> String {
+        format!("BlockingResponseStream<{}; >", self.status)
+    }
+
+    fn __iter__(this: PyRef<Self>) -> PyRef<Self> {
+        this
+    }
+
+    fn __next__(&self, py: Python<'_>) -> PyResult<ryo3_bytes::PyBytes> {
+        let stream = self.stream.clone();
+        let a = py.detach(|| {
+            pyo3_async_runtimes::tokio::get_runtime()
+                .block_on(next_bytes(&stream))
+                .map_err(map_reqwest_err)
+        })?;
+        match a {
+            Some(bytes) => Ok(ryo3_bytes::PyBytes::from(bytes)),
+            None => Err(PyStopIteration::new_err("response-stream-end")),
+        }
+    }
+
+    #[pyo3(signature = (n=1))]
+    fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
+        let stream = self.stream.clone();
+        let items = py
+            .detach(|| {
+                pyo3_async_runtimes::tokio::get_runtime()
+                    .block_on(take_bytes(&stream, n))
+                    .map_err(map_reqwest_err)
+            })
+            .map(|bytes_vec| {
+                bytes_vec
+                    .into_iter()
+                    .map(ryo3_bytes::PyBytes::from)
+                    .collect()
+            })?;
+        Ok(items)
+    }
+
+    #[pyo3(signature = (*, join=false))]
+    fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
+        let stream = self.stream.clone();
+        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        if join {
+            let py_bytes = py.detach(|| {
+                rt.block_on(collect_bytes_join(&stream))
+                    .map(ryo3_bytes::PyBytes::from)
+                    .map_err(map_reqwest_err)
+            })?;
+            py_bytes.into_bound_py_any(py)
+        } else {
+            let py_bytes_vec: Vec<ryo3_bytes::PyBytes> = py.detach(|| {
+                rt.block_on(collect_bytes_vec(&stream))
+                    .map(|bytes_vec| {
+                        bytes_vec
+                            .into_iter()
+                            .map(ryo3_bytes::PyBytes::from)
+                            .collect()
+                    })
+                    .map_err(map_reqwest_err)
+            })?;
+            py_bytes_vec.into_bound_py_any(py)
+        }
+    }
+}
+
+async fn next_bytes(stream: &AsyncResponseStreamInner) -> Result<Option<Bytes>, reqwest::Error> {
+    let mut guard = stream.lock().await;
+    match guard.next().await {
+        Some(Ok(bytes)) => Ok(Some(bytes)),
+        Some(Err(e)) => Err(e),
+        None => Ok(None),
+    }
+}
+
+async fn take_bytes(
+    stream: &AsyncResponseStreamInner,
+    n: usize,
+) -> Result<Vec<Bytes>, reqwest::Error> {
+    let mut stream = stream.lock().await;
+    let mut chunks = Vec::with_capacity(n);
+    for _ in 0..n {
+        match stream.next().await {
+            Some(Ok(bytes)) => chunks.push(bytes),
+            Some(Err(e)) => return Err(e),
+            None => break,
+        }
+    }
+    Ok(chunks)
+}
+
+async fn collect_bytes_join(stream: &AsyncResponseStreamInner) -> Result<Bytes, reqwest::Error> {
+    let mut guard = stream.lock().await;
+    let mut bytes_mut = BytesMut::new();
+    while let Some(item) = guard.next().await {
+        match item {
+            Ok(bytes) => bytes_mut.extend_from_slice(&bytes),
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(bytes_mut.freeze())
+}
+
+async fn collect_bytes_vec(
+    stream: &AsyncResponseStreamInner,
+) -> Result<Vec<Bytes>, reqwest::Error> {
+    let mut guard = stream.lock().await;
+    let mut items = Vec::new();
+    while let Some(item) = guard.next().await {
+        match item {
+            Ok(bytes) => items.push(bytes),
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(items)
 }
