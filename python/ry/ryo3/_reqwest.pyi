@@ -107,6 +107,13 @@ class HttpClient:
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
+    def fetch_sync(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
     async def __call__(
         self,
         url: str | URL,

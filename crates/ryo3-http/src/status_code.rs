@@ -182,6 +182,12 @@ impl PyHttpStatus {
 
     #[expect(non_snake_case)]
     #[classattr]
+    fn EARLY_HINTS() -> Self {
+        Self(http::StatusCode::EARLY_HINTS)
+    }
+
+    #[expect(non_snake_case)]
+    #[classattr]
     fn OK() -> Self {
         Self(http::StatusCode::OK)
     }
@@ -550,6 +556,7 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
         (100, "Continue"),
         (101, "Switching Protocols"),
         (102, "Processing"),
+        (103, "Early Hints"),
 
         // 2xx
         (200, "OK"),

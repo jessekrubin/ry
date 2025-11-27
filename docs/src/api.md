@@ -1213,6 +1213,7 @@ class HttpStatus:
     CONTINUE: t.ClassVar[HttpStatus]  # 100 ~ Continue
     SWITCHING_PROTOCOLS: t.ClassVar[HttpStatus]  # 101 ~ Switching Protocols
     PROCESSING: t.ClassVar[HttpStatus]  # 102 ~ Processing
+    EARLY_HINTS: t.ClassVar[HttpStatus]  # 103 ~ Early Hints
     # 2xx: Success
     OK: t.ClassVar[HttpStatus]  # 200 ~ OK
     CREATED: t.ClassVar[HttpStatus]  # 201 ~ Created
@@ -4064,6 +4065,13 @@ class HttpClient:
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
+    def fetch_sync(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
     async def __call__(
         self,
         url: str | URL,
@@ -4342,8 +4350,6 @@ async def fetch(
     method: str = "GET",
     **kwargs: Unpack[RequestKwargs],
 ) -> Response: ...
-
-
 def fetch_sync(
     url: str | URL,
     *,
