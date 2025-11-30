@@ -212,8 +212,8 @@ impl PyUuid {
     }
 
     #[staticmethod]
-    fn from_hex(hex: &str) -> PyResult<Self> {
-        Self::from_str(hex)
+    fn from_hex(hexstr: &str) -> PyResult<Self> {
+        Self::from_str(hexstr)
     }
 
     #[staticmethod]
@@ -224,23 +224,23 @@ impl PyUuid {
     }
 
     #[staticmethod]
-    fn from_int(int: u128) -> Self {
-        Self::from(uuid::Uuid::from_bytes(int.to_be_bytes()))
+    fn from_int(i: u128) -> Self {
+        Self::from(uuid::Uuid::from_bytes(i.to_be_bytes()))
     }
 
     #[staticmethod]
     #[pyo3(name = "from_bytes")]
     #[expect(clippy::needless_pass_by_value)]
-    fn from_pybytes(bytes: PyBytes) -> PyResult<Self> {
-        uuid::Uuid::from_slice(bytes.as_ref())
+    fn from_pybytes(b: PyBytes) -> PyResult<Self> {
+        uuid::Uuid::from_slice(b.as_ref())
             .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     #[staticmethod]
     #[expect(clippy::needless_pass_by_value)]
-    fn from_bytes_le(bytes: PyBytes) -> PyResult<Self> {
-        uuid::Uuid::from_slice_le(bytes.as_ref())
+    fn from_bytes_le(b: PyBytes) -> PyResult<Self> {
+        uuid::Uuid::from_slice_le(b.as_ref())
             .map(PyUuid)
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
@@ -270,7 +270,6 @@ impl PyUuid {
         Ok(Self(uuid))
     }
 
-    #[getter]
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
         let bytes = self.0.as_bytes().to_vec();
         pyo3::types::PyBytes::new(py, &bytes)
@@ -337,33 +336,13 @@ impl PyUuid {
         ((self.int().wrapping_shr(64)) & 0xffff) as u16
     }
 
-    #[getter]
     /// The 60-bit timestamp as a count of 100-nanosecond intervals since
     /// Gregorian epoch (1582-10-15 00:00:00) for versions 1 and 6, or the
     /// 48-bit timestamp in milliseconds since Unix epoch (1970-01-01 00:00:00)
     /// for version 7.
+    #[getter]
     fn time(&self) -> u64 {
         self.py_time()
-        // let version_rfc = (
-        //     self.version(),
-        //     matches!(self.0.get_variant(), uuid::Variant::RFC4122),
-        // );
-        // match version_rfc {
-        //     (6, true) => {
-        //         let high32 = (u64::from(self.time_low())) << 28;
-        //         let mid16 = (u64::from(self.time_mid())) << 12;
-        //         let low12 = u64::from(self.time_hi_version()) & 0x0fff;
-        //         high32 | mid16 | low12
-        //     }
-        //     (7, true) => (self.0.as_u128() >> 80) as u64,
-        //     // should be 1 and/or any other versions but idk if it is actually
-        //     // implemented?
-        //     _ => {
-        //         let high = u64::from(self.time_hi_version()) & 0x0fff;
-        //         let mid = u64::from(self.time_mid());
-        //         high.wrapping_shl(48) | mid.wrapping_shl(32) | u64::from(self.time_low())
-        //     }
-        // }
     }
 
     #[getter]

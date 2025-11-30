@@ -186,8 +186,8 @@ impl PyUlid {
     }
 
     #[staticmethod]
-    fn from_bytes(bytes: [u8; 16]) -> Self {
-        let ulid = Ulid::from_bytes(bytes);
+    fn from_bytes(b: [u8; 16]) -> Self {
+        let ulid = Ulid::from_bytes(b);
         Self(ulid)
     }
 
@@ -204,30 +204,30 @@ impl PyUlid {
     }
 
     #[staticmethod]
-    fn from_int(bytes: u128) -> Self {
-        let b = bytes.to_be_bytes();
+    fn from_int(i: u128) -> Self {
+        let b = i.to_be_bytes();
         let ul = Ulid::from_bytes(b);
         Self(ul)
     }
 
     #[staticmethod]
     fn from_string(cs: &str) -> PyResult<Self> {
-        if cs.len() == 26 {
-            let ulid = Ulid::from_string(cs)
+        Self::from_str(cs)
+    }
+
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        if s.len() == 26 {
+            let ulid = Ulid::from_string(s)
                 .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
             Ok(Self(ulid))
-        } else if cs.len() == 32 {
-            Self::from_hex(cs)
+        } else if s.len() == 32 {
+            Self::from_hex(s)
         } else {
             Err(PyValueError::new_err(
                 "ULID string must be either 26 or 32 characters long",
             ))
         }
-    }
-
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        Self::from_string(s)
     }
 
     #[staticmethod]
@@ -294,8 +294,8 @@ impl PyUlid {
     }
 
     #[staticmethod]
-    fn parse(other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(pyint) = other.cast::<pyo3::types::PyInt>() {
+    fn parse(value: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(pyint) = value.cast::<pyo3::types::PyInt>() {
             let i = pyint.extract::<u128>()?;
             if let Ok(smaller_int) = u64::try_from(i) {
                 let ulid = Ulid::from_datetime(
@@ -305,8 +305,8 @@ impl PyUlid {
             }
             // If the integer is too large, we treat it as a ULID.
             Ok(Self::from_int(i))
-        } else if other.is_instance_of::<pyo3::types::PyString>() {
-            let s = other.cast::<pyo3::types::PyString>()?;
+        } else if value.is_instance_of::<pyo3::types::PyString>() {
+            let s = value.cast::<pyo3::types::PyString>()?;
             let cs = s.to_str()?;
             // uuid string length
             match cs.len() {
@@ -329,24 +329,24 @@ impl PyUlid {
             }
         }
         // has to go through `isinstance` apparatus
-        else if other.is_instance_of::<pyo3::types::PyFloat>() {
-            let f = other.extract::<f64>()?;
+        else if value.is_instance_of::<pyo3::types::PyFloat>() {
+            let f = value.extract::<f64>()?;
             Self::from_timestamp_seconds(f)
-        } else if let Ok(rs_ulid) = other.cast::<Self>() {
+        } else if let Ok(rs_ulid) = value.cast::<Self>() {
             let inner = rs_ulid.borrow().0;
             Ok(Self(inner))
-        } else if other.is_instance_of::<PyBytes>() {
-            let pybytes = other.cast::<PyBytes>()?;
+        } else if value.is_instance_of::<PyBytes>() {
+            let pybytes = value.cast::<PyBytes>()?;
             let b = pybytes.extract::<[u8; 16]>()?;
             Ok(Self::from_bytes(b))
-        } else if let Ok(py_uuid) = other.cast::<PyUuid>() {
+        } else if let Ok(py_uuid) = value.cast::<PyUuid>() {
             return Ok(Self::from_uuid(UuidLike(*py_uuid.borrow().get())));
-        } else if let Ok(c_uuid) = other.extract::<CPythonUuid>() {
+        } else if let Ok(c_uuid) = value.extract::<CPythonUuid>() {
             Ok(Self::from_uuid(UuidLike(c_uuid.into())))
-        } else if let Ok(dt) = other.extract::<SystemTime>() {
+        } else if let Ok(dt) = value.extract::<SystemTime>() {
             Ok(Self::from_datetime(dt))
         } else {
-            let other_type = other.get_type();
+            let other_type = value.get_type();
             let other_type_name = other_type
                 .name()
                 .map_or_else(|_| String::from("Unknown"), |e| e.as_borrowed().to_string());
