@@ -14,10 +14,11 @@ pub struct PySizeFormatter {
 #[pymethods]
 impl PySizeFormatter {
     #[new]
-    #[pyo3(signature = (base = None, style = None))]
-    fn py_new(base: Option<Base>, style: Option<Style>) -> Self {
-        let base = base.unwrap_or_default();
-        let style = style.unwrap_or_default();
+    #[pyo3(
+        signature = (base = Base::default(), style = Style::default()),
+        text_signature = "(base=2, style='default')"
+    )]
+    fn py_new(base: Base, style: Style) -> Self {
         let formatter = size::fmt::SizeFormatter::new()
             .with_base(base.0)
             .with_style(style.0);

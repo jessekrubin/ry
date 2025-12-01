@@ -49,6 +49,7 @@ class _SqlFormatterDict(t.TypedDict):
     joins_as_top_level: bool
     dialect: t.Literal["generic", "postgresql", "sqlserver"]
 
+@t.final
 class SqlFormatter:
     def __init__(
         self,

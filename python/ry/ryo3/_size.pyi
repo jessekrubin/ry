@@ -52,6 +52,7 @@ class Size:
     def bytes(self) -> int: ...
     def format(
         self,
+        *,
         base: FormatSizeBase = 2,
         style: FormatSizeStyle = "default",
     ) -> str: ...

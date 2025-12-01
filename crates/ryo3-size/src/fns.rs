@@ -11,10 +11,13 @@ pub fn parse_size(s: &str) -> PyResult<i64> {
 /// Format a size of bytes into a human-readable string.
 #[must_use]
 #[pyfunction]
-#[pyo3(signature = (n, *, base = None, style = None))]
-pub fn fmt_size(n: i64, base: Option<Base>, style: Option<Style>) -> String {
+#[pyo3(
+    signature = (n, *, base = Base::default(), style = Style::default()),
+    text_signature = "(n, *, base=2, style='default')"
+)]
+pub fn fmt_size(n: i64, base: Base, style: Style) -> String {
     let formatter = size::fmt::SizeFormatter::new()
-        .with_base(base.unwrap_or_default().0)
-        .with_style(style.unwrap_or_default().0);
+        .with_base(base.0)
+        .with_style(style.0);
     formatter.format(n)
 }
