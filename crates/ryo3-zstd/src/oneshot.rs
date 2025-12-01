@@ -47,7 +47,7 @@ macro_rules! zstd_decode_pyfunction {
 
 macro_rules! zstd_encode_pyfunction {
     ($func_name:ident) => {
-        #[pyfunction(signature = (data, level = PyCompressionLevel::default()))]
+        #[pyfunction(signature = (data, level = PyCompressionLevel::default()), text_signature = "(data, level=3)")]
         pub fn $func_name<'py>(
             py: Python<'py>,
             data: &Bound<'py, PyAny>,

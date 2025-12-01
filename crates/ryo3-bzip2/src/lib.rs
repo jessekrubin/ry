@@ -23,7 +23,10 @@ fn rs_bzip2_decode(data: &[u8]) -> PyResult<ryo3_bytes::PyBytes> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, quality=PyCompression::default()))]
+#[pyo3(
+    signature = (data, quality=PyCompression::default()),
+    text_signature = "(data, quality=6)",
+)]
 #[expect(clippy::needless_pass_by_value)]
 pub fn bzip2_encode(py: Python<'_>, data: PyBytes, quality: PyCompression) -> PyResult<PyBytes> {
     let data = data.as_ref();
@@ -31,7 +34,10 @@ pub fn bzip2_encode(py: Python<'_>, data: PyBytes, quality: PyCompression) -> Py
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, quality=PyCompression::default()))]
+#[pyo3(
+    signature = (data, quality=PyCompression::default()),
+    text_signature = "(data, quality=6)",
+)]
 #[expect(clippy::needless_pass_by_value)]
 pub fn bzip2(py: Python<'_>, data: PyBytes, quality: PyCompression) -> PyResult<PyBytes> {
     let data = data.as_ref();

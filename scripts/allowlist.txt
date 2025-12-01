@@ -82,15 +82,8 @@ ry.write
 ry.write_async
 ry.write_bytes
 ry.write_text
-ry.zstd.compress
-ry.zstd_compress
-ry.zstd_encode
 ry.aiopen
 ry.asleep
-ry.brotli
-ry.brotli_encode
-ry.bzip2
-ry.bzip2_encode
 ry.canonicalize
 ry.canonicalize_async
 ry.cd
@@ -115,7 +108,6 @@ ry.metadata_async
 ry.mkdir
 ry.parse_json
 ry.parse_jsonl
-ry.parse_size
 ry.read
 ry.read_async
 ry.read_bytes

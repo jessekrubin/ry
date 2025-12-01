@@ -2,8 +2,8 @@ use crate::types::{Base, Style};
 use pyo3::prelude::*;
 
 #[pyfunction]
-pub fn parse_size(input: &str) -> PyResult<i64> {
-    size::Size::from_str(input)
+pub fn parse_size(s: &str) -> PyResult<i64> {
+    size::Size::from_str(s)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("{e}")))
         .map(|s| s.bytes())
 }
