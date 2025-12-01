@@ -89,10 +89,10 @@ impl PyFnvHasher {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, py: Python<'_>, s: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&self, py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<()> {
         py.detach(|| {
             let mut h = self.lock()?;
-            h.write(s.as_ref());
+            h.write(data.as_ref());
             Ok(())
         })
     }

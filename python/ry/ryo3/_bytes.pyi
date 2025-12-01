@@ -139,30 +139,30 @@ class Bytes(Buffer):
         """Return a hexadecimal representation of the binary data."""
 
     @classmethod
-    def fromhex(cls, hexstr: str) -> Bytes:
+    def fromhex(cls, string: str) -> Bytes:
         """Construct a `Bytes` object from a hexadecimal string."""
-    def startswith(self, prefix: Buffer) -> bool:
+    def startswith(self, prefix: Buffer, /) -> bool:
         """Return `True` if the binary data starts with the prefix string, `False` otherwise."""
-    def endswith(self, suffix: Buffer) -> bool:
+    def endswith(self, suffix: Buffer, /) -> bool:
         """Return `True` if the binary data ends with the suffix string, `False` otherwise."""
     def capitalize(self) -> Bytes:
         """
         Return a copy of the sequence with the first byte converted to uppercase and
         all other bytes converted to lowercase.
         """
-    def strip(self, chars: Buffer | None = None) -> Bytes:
+    def strip(self, chars: Buffer | None = None, /) -> Bytes:
         """
         Return a copy of the sequence with leading and trailing bytes removed.
         If `chars` is provided, remove all bytes in `chars` from both ends.
         If `chars` is not provided, remove all ASCII whitespace bytes.
         """
-    def lstrip(self, chars: Buffer | None = None) -> Bytes:
+    def lstrip(self, chars: Buffer | None = None, /) -> Bytes:
         """
         Return a copy of the sequence with leading bytes removed.
         If `chars` is provided, remove all bytes in `chars` from the left end.
         If `chars` is not provided, remove all ASCII whitespace bytes.
         """
-    def rstrip(self, chars: Buffer | None = None) -> Bytes:
+    def rstrip(self, chars: Buffer | None = None, /) -> Bytes:
         """
         Return a copy of the sequence with trailing bytes removed.
         If `chars` is provided, remove all bytes in `chars` from the right end.

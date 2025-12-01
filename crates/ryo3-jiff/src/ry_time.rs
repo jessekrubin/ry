@@ -98,8 +98,8 @@ impl RyTime {
     }
 
     #[staticmethod]
-    fn parse(input: &str) -> PyResult<Self> {
-        Self::from_str(input)
+    fn parse(value: &str) -> PyResult<Self> {
+        Self::from_str(value)
     }
 
     // ========================================================================
@@ -393,37 +393,35 @@ impl RyTime {
         RyDateTime::from(self.0.to_datetime(date.0))
     }
 
-    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
-    fn round(
-        &self,
-        smallest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
-    ) -> PyResult<Self> {
-        let mut timeround = TimeRound::new();
-        if let Some(smallest) = smallest {
-            timeround = timeround.smallest(smallest.0);
-        }
-        if let Some(mode) = mode {
-            timeround = timeround.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            timeround = timeround.increment(increment);
-        }
+    #[pyo3(
+        signature = (
+            smallest = JiffUnit(jiff::Unit::Nanosecond),
+            *,
+            mode = JiffRoundMode(jiff::RoundMode::HalfExpand),
+            increment = 1
+        ),
+        text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
+    )]
+    fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
+        let timeround = TimeRound::new()
+            .smallest(smallest.0)
+            .mode(mode.0)
+            .increment(increment);
         self.0
             .round(timeround)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, dt_round: &RyTimeRound) -> PyResult<Self> {
-        dt_round.round(self)
+    fn _round(&self, options: &RyTimeRound) -> PyResult<Self> {
+        options.round(self)
     }
     // ------------------------------------------------------------------------
     // SINCE/UNTIL
     // ------------------------------------------------------------------------
     #[pyo3(
        signature = (t, *, smallest=None, largest = None, mode = None, increment = None),
+       text_signature = "(self, t, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
@@ -442,6 +440,7 @@ impl RyTime {
 
     #[pyo3(
        signature = (t, *, smallest=None, largest = None, mode = None, increment = None),
+       text_signature = "(self, t, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,

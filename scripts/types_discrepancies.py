@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import dataclasses
 import shutil
+import typing as t
 from functools import lru_cache
 from pathlib import Path
 
 import griffe
 from rich import print  # noqa
 
-import ry.dev as ry
+import ry
+
+if t.TYPE_CHECKING:
+    from types import ModuleType
 
 PWD = Path.cwd()
 __dirname = Path(__file__).parent
@@ -100,6 +104,7 @@ OVERLOADS = {
 IGNORED_MEMBERS = {
     # TODO
     "__get_pydantic_core_schema__",
+    "__get_pydantic_json_schema__",
     "_pydantic_validate",
     "from_any",  # have not settled on this one yet...
     # MAYBE IGNORE
@@ -146,7 +151,7 @@ IGNORED_MEMBERS = {
 
 
 @dataclasses.dataclass
-class MembersComparison:
+class ClsMembersComparison:
     member: str
     missing_from_types: tuple[str, ...]
     missing_from_actual: tuple[str, ...]
@@ -160,9 +165,19 @@ def get_members(obj: griffe.Object | griffe.Alias) -> set[str]:
     }
 
 
-def compare_member(toget: str) -> MembersComparison:
+def resolve_runtime_obj(mod: ModuleType, path: str) -> t.Any:
+    obj: t.Any = mod
+    if not path:
+        return obj
+    for part in path.split("."):
+        obj = getattr(obj, part)
+    return obj
+
+
+def compare_cls_member(mod: ModuleType, toget: str) -> ClsMembersComparison:
     types_package = load_types()
-    ry_actual_members = getattr(ry, toget)
+    ry_actual_members = resolve_runtime_obj(mod, toget)
+
     types_info = types_package.get_member(toget)
 
     actual_members = set(dir(ry_actual_members))
@@ -171,31 +186,58 @@ def compare_member(toget: str) -> MembersComparison:
     # get missing in types, as well as missing in actual
     missing_from_types = (actual_members - types_members) - IGNORED_MEMBERS
     missing_from_actual = (types_members - actual_members) - IGNORED_MEMBERS
-    return MembersComparison(
+    return ClsMembersComparison(
         member=toget,
         missing_from_types=tuple(sorted(missing_from_types)),
         missing_from_actual=tuple(sorted(missing_from_actual)),
     )
 
 
-def ry_classes_n_types() -> list[str]:
-    return list(filter(lambda el: isinstance(getattr(ry, el), type), dir(ry)))
+def ry_classes_n_types(mod: ModuleType) -> list[str]:
+    return list(filter(lambda el: isinstance(getattr(mod, el), type), dir(mod)))
+
+
+def _is_module(obj: t.Any) -> bool:
+    return isinstance(obj, type(ry))
+
+
+def ry_modules() -> dict[str, ModuleType]:
+    return {
+        "ry": ry,
+        **{
+            f"ry.{mod_name}": getattr(ry, mod_name)
+            for mod_name in dir(ry)
+            if _is_module(getattr(ry, mod_name))
+            if not mod_name.startswith("_")
+            and mod_name
+            not in {
+                "dev",
+                "ryo3",
+            }
+        },
+    }
+
+
+def check_module(mod: ModuleType) -> None:
+    class_members = ry_classes_n_types(mod)
+    for member in class_members:
+        res = compare_cls_member(mod, member)
+        if not res.missing_from_actual and not res.missing_from_types:
+            continue
+        else:
+            print(res)
 
 
 def main() -> None:
-    classes2ignore = {"ReqwestError"}
-    class_members = [el for el in ry_classes_n_types() if el not in classes2ignore]
+    mods = ry_modules()
+    print(f"Found {len(mods)} modules in ry package:")
+    for modname in mods:
+        print(f" - {modname}")
 
-    all_good = []
-    problems = []
+    for mod_name, mod in mods.items():
+        print(f"\nChecking module: {mod_name}")
+        check_module(mod)
 
-    for member in class_members:
-        res = compare_member(member)
-        if not res.missing_from_actual and not res.missing_from_types:
-            all_good.append(res)
-        else:
-            problems.append(res)
-            print(res)
     shutil.rmtree(__dirname / "ryo3types")
 
 
