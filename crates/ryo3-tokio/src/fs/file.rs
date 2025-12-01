@@ -141,7 +141,7 @@ impl PyAsyncFileInner {
             if buf.len() > s {
                 buf.truncate(s);
             }
-            return Ok(Some(buf));
+            Ok(Some(buf))
         } else {
             let file = self.get_file_mut()?;
             let mut buf = Vec::new();
@@ -429,7 +429,7 @@ impl PyAsyncFile {
     #[pyo3(signature = (hint = None, /))]
     fn readlines<'py>(&self, py: Python<'py>, hint: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
-        if let Some(_h) = hint {
+        if let Some(hint) = hint {
             future_into_py(py, async move {
                 let mut locked = inner.lock().await;
                 let mut lines = Vec::new();
@@ -437,7 +437,7 @@ impl PyAsyncFile {
                 while let Ok(Some(line)) = locked.readline(None).await {
                     total_size += line.len();
                     lines.push(line);
-                    if total_size > _h {
+                    if total_size > hint {
                         break;
                     }
                 }
