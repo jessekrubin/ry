@@ -3874,14 +3874,14 @@ Byte: TypeAlias = int | bytes
 
 
 def memchr(needle: Byte, haystack: Buffer) -> int | None: ...
-def memchr2(needle: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memchr2(needle1: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
 def memchr3(
-    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+    needle1: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
 ) -> int | None: ...
 def memrchr(needle: Byte, haystack: Buffer) -> int | None: ...
-def memrchr2(needle: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memrchr2(needle1: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
 def memrchr3(
-    needle: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+    needle1: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
 ) -> int | None: ...
 ```
 
@@ -4666,7 +4666,9 @@ class SqlfmtQueryParams:
 
 
 def sqlfmt_params(
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
 ) -> SqlfmtQueryParams: ...
 def sqlfmt(
     sql: str,
@@ -4675,7 +4677,7 @@ def sqlfmt(
     | None = None,
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
-    uppercase: bool = False,
+    uppercase: bool | None = None,
     lines_between_queries: int = 1,
     ignore_case_convert: list[str] | None = None,
     inline: bool = False,
@@ -4689,7 +4691,7 @@ def sqlfmt(
 
 class _SqlFormatterDict(t.TypedDict):
     indent: int | t.Literal["tabs"]
-    uppercase: bool
+    uppercase: bool | None
     lines_between_queries: int
     ignore_case_convert: list[str] | None
     inline: bool
@@ -4705,7 +4707,7 @@ class SqlFormatter:
         self,
         *,
         indent: int | t.Literal["tabs", "\t"] = 2,
-        uppercase: bool = False,
+        uppercase: bool | None = None,
         lines_between_queries: int = 1,
         ignore_case_convert: list[str] | None = None,
         inline: bool = False,

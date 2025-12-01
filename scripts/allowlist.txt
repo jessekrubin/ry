@@ -110,10 +110,6 @@ ry.gzip_encode
 ry.hard_link
 ry.is_same_file
 ry.ls
-ry.memchr2
-ry.memchr3
-ry.memrchr2
-ry.memrchr3
 ry.metadata
 ry.metadata_async
 ry.mkdir
@@ -143,8 +139,7 @@ ry.set_permissions
 ry.sleep
 ry.sleep_async
 ry.soft_link
-ry.sqlfmt
-ry.sqlfmt_params
+
 ry.stringify
 ry.stringify_unsafe
 ry.symlink_metadata
