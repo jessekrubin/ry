@@ -1,5 +1,6 @@
 ry.*.__init__
 ry.*.__new__
+ry.*.__richcmp__
 ry.*.__all__
 ry.*.__getnewargs_ex__
 ry.ryo3.*
@@ -24,10 +25,23 @@ ry.Time.from_str
 ry.Time.midnight
 ry.Time.now
 ry.Time.utcnow
+ry.Duration.from_days
+ry.Duration.from_dict
+ry.Duration.from_hours
+ry.Duration.from_micros
+ry.Duration.from_millis
+ry.Duration.from_mins
+ry.Duration.from_nanos
+ry.Duration.from_pytimedelta
+ry.Duration.from_secs
+ry.Duration.from_secs_f32
+ry.Duration.from_secs_f64
+ry.Duration.from_weeks
+ry.Duration.fromisoformat
+ry.Duration.parse
 
 # --- CLASSES ---
 ry.BlockingClient.*
-ry.Duration.*
 ry.FsPath.*
 ry.Glob.*
 ry.Headers.*

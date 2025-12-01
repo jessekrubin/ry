@@ -527,28 +527,28 @@ impl PyBytes {
         self.py_expandtabs(tabsize)
     }
 
-    #[pyo3(signature = (bytes=None, /))]
-    fn strip(&self, bytes: Option<Self>) -> Self {
-        if let Some(bytes) = bytes {
-            self.py_strip(Some(bytes.as_ref()))
+    #[pyo3(signature = (chars=None, /))]
+    fn strip(&self, chars: Option<Self>) -> Self {
+        if let Some(chars) = chars {
+            self.py_strip(Some(chars.as_ref()))
         } else {
             self.py_strip(None)
         }
     }
 
-    #[pyo3(signature = (bytes=None, /))]
-    fn lstrip(&self, bytes: Option<Self>) -> Self {
-        if let Some(bytes) = bytes {
-            self.py_lstrip(Some(bytes.as_ref()))
+    #[pyo3(signature = (chars=None, /))]
+    fn lstrip(&self, chars: Option<Self>) -> Self {
+        if let Some(chars) = chars {
+            self.py_lstrip(Some(chars.as_ref()))
         } else {
             self.py_lstrip(None)
         }
     }
 
-    #[pyo3(signature = (bytes=None, /))]
-    fn rstrip(&self, bytes: Option<Self>) -> Self {
-        if let Some(bytes) = bytes {
-            self.py_rstrip(Some(bytes.as_ref()))
+    #[pyo3(signature = (chars=None, /))]
+    fn rstrip(&self, chars: Option<Self>) -> Self {
+        if let Some(chars) = chars {
+            self.py_rstrip(Some(chars.as_ref()))
         } else {
             self.py_rstrip(None)
         }
