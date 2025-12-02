@@ -478,7 +478,6 @@ impl RyZoned {
     #[pyo3(
         signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
-
     )]
     fn since(
         &self,

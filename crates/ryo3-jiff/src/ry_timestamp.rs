@@ -13,7 +13,7 @@ use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::PyTuple;
 use ryo3_macro_rules::{any_repr, py_type_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -80,8 +80,8 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn parse(input: &str) -> PyResult<Self> {
-        Self::from_str(input)
+    fn parse(s: &str) -> PyResult<Self> {
+        Self::from_str(s)
     }
 
     #[staticmethod]
@@ -118,8 +118,8 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn from_pydatetime<'py>(_cls: &Bound<'py, PyType>, dt: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let ts = dt.extract::<Timestamp>()?;
+    fn from_pydatetime(datetime: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let ts = datetime.extract::<Timestamp>()?;
         Ok(Self(ts))
     }
 
@@ -252,9 +252,9 @@ impl RyTimestamp {
         self.0.is_zero()
     }
 
-    fn in_tz(&self, time_zone_name: &str) -> PyResult<RyZoned> {
+    fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
         self.0
-            .in_tz(time_zone_name)
+            .in_tz(tz)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
@@ -315,7 +315,8 @@ impl RyTimestamp {
     }
 
     #[pyo3(
-       signature = (ts, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (ts, *, smallest=None, largest = None, mode = None, increment = None),
+        text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
@@ -334,6 +335,7 @@ impl RyTimestamp {
 
     #[pyo3(
        signature = (ts, *, smallest=None, largest = None, mode = None, increment = None),
+        text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
@@ -378,32 +380,27 @@ impl RyTimestamp {
     }
 
     #[pyo3(
-       signature = (smallest=None, mode = None, increment = None),
+        signature = (
+            smallest=JiffUnit(jiff::Unit::Nanosecond),
+            *,
+            mode=JiffRoundMode(jiff::RoundMode::HalfExpand),
+            increment=1
+        ),
+        text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
-    fn round(
-        &self,
-        smallest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
-    ) -> PyResult<Self> {
-        let mut ts_round = TimestampRound::new();
-        if let Some(smallest) = smallest {
-            ts_round = ts_round.smallest(smallest.0);
-        }
-        if let Some(mode) = mode {
-            ts_round = ts_round.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            ts_round = ts_round.increment(increment);
-        }
+    fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
+        let ts_round = TimestampRound::new()
+            .smallest(smallest.0)
+            .increment(increment)
+            .mode(mode.0);
         self.0
             .round(ts_round)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, opts: &RyTimestampRound) -> PyResult<Self> {
-        opts.round(self)
+    fn _round(&self, options: &RyTimestampRound) -> PyResult<Self> {
+        options.round(self)
     }
 
     fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {

@@ -19,10 +19,6 @@ ry.HttpClient.*
 ry.Response.json
 
 # --- jiff ---
-#ry.ZonedDateTime.*
-ry.DateTime.*
-ry.Date.*
-ry.Timestamp.*
 
 # --- submodules ---
 
@@ -155,3 +151,30 @@ ry.TimeZoneDatabase.bundled
 ry.TimeZoneDatabase.from_concatenated_path
 ry.TimeZoneDatabase.from_dir
 ry.TimeZoneDatabase.from_env
+ry.ZonedDateTime.from_parts
+ry.ZonedDateTime.from_pydatetime
+ry.ZonedDateTime.from_rfc2822
+ry.ZonedDateTime.now
+ry.ZonedDateTime.parse
+ry.ZonedDateTime.parse_rfc2822
+ry.ZonedDateTime.strptime
+ry.ZonedDateTime.utcnow
+ry.Date.from_iso_week_date
+ry.Date.from_pydate
+ry.Date.parse
+ry.Date.strptime
+ry.Date.today
+ry.DateTime.from_parts
+ry.DateTime.from_pydatetime
+ry.DateTime.now
+ry.DateTime.parse
+ry.DateTime.strptime
+ry.DateTime.today
+ry.Timestamp.from_microsecond
+ry.Timestamp.from_millisecond
+ry.Timestamp.from_nanosecond
+ry.Timestamp.from_pydatetime
+ry.Timestamp.from_second
+ry.Timestamp.now
+ry.Timestamp.parse
+ry.Timestamp.strptime
