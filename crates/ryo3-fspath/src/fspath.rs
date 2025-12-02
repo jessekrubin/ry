@@ -339,6 +339,7 @@ impl PyFsPath {
         }
     }
 
+    // TODO: allow *args for joinpath
     fn joinpath(&self, other: PathLike) -> Self {
         let p = self.path().join(other.as_ref());
         Self::from(p)
@@ -367,8 +368,8 @@ impl PyFsPath {
         }
     }
 
-    fn write(&self, py: Python<'_>, b: &Bound<'_, PyAny>) -> PyResult<usize> {
-        let b = extract_bytes_ref(b)?;
+    fn write(&self, py: Python<'_>, data: &Bound<'_, PyAny>) -> PyResult<usize> {
+        let b = extract_bytes_ref(data)?;
         let write_res = py.detach(|| std::fs::write(self.path(), b));
         match write_res {
             Ok(()) => Ok(b.len()),
@@ -381,12 +382,12 @@ impl PyFsPath {
         }
     }
 
-    fn write_bytes(&self, py: Python<'_>, b: &Bound<'_, PyAny>) -> PyResult<usize> {
-        self.write(py, b)
+    fn write_bytes(&self, py: Python<'_>, data: &Bound<'_, PyAny>) -> PyResult<usize> {
+        self.write(py, data)
     }
 
-    fn write_text(&self, py: Python<'_>, t: &str) -> PyResult<()> {
-        let write_result = py.detach(|| std::fs::write(self.path(), t));
+    fn write_text(&self, py: Python<'_>, data: &str) -> PyResult<()> {
+        let write_result = py.detach(|| std::fs::write(self.path(), data));
         match write_result {
             Ok(()) => Ok(()),
             Err(e) => {
@@ -563,7 +564,8 @@ impl PyFsPath {
         pypathlib_ob.call_method(intern!(py, "open"), args, kwargs)
     }
 
-    fn relative_to(&self, _other: PathLike) -> PyResult<Self> {
+    #[expect(unused_variables)]
+    fn relative_to(&self, other: PathLike) -> PyResult<Self> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "relative_to not implemented",
         ))
@@ -629,8 +631,8 @@ impl PyFsPath {
         self.path().display().to_string()
     }
 
-    fn ends_with(&self, path: PathLike) -> bool {
-        self.path().ends_with(path.as_ref())
+    fn ends_with(&self, child: PathLike) -> bool {
+        self.path().ends_with(child.as_ref())
     }
 
     fn exists(&self, py: Python<'_>) -> PyResult<bool> {
@@ -708,13 +710,13 @@ impl PyFsPath {
             .map_err(|e| PyFileNotFoundError::new_err(format!("read_link: {e}")))
     }
 
-    fn starts_with(&self, p: PathLike) -> bool {
-        self.path().starts_with(p.as_ref())
+    fn starts_with(&self, base: PathLike) -> bool {
+        self.path().starts_with(base.as_ref())
     }
 
-    fn strip_prefix(&self, p: PathLike) -> PyResult<Self> {
+    fn strip_prefix(&self, base: PathLike) -> PyResult<Self> {
         self.path()
-            .strip_prefix(p.as_ref())
+            .strip_prefix(base.as_ref())
             .map(Self::from)
             .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
     }
