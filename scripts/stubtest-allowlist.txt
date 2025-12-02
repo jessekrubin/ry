@@ -16,12 +16,7 @@ ry.__opt_level__
 # --- CLASSES ---
 ry.BlockingClient.*
 ry.Glob.*
-ry.Headers.*
 ry.HttpClient.*
-ry.IpAddr.*
-ry.Ipv4Addr.*
-ry.Ipv6Addr.*
-ry.Pattern.*
 ry.Regex.*
 ry.Response.json
 ry.SqlfmtQueryParams.*
@@ -126,3 +121,9 @@ ry.uuid.UUID.from_fields
 ry.uuid.UUID.from_hex
 ry.uuid.UUID.from_int
 ry.uuid.UUID.from_pyuuid
+ry.Ipv4Addr.from_bits
+ry.Ipv4Addr.from_octets
+ry.Ipv4Addr.parse
+ry.Ipv6Addr.from_bits
+ry.Ipv6Addr.parse
+ry.IpAddr.parse

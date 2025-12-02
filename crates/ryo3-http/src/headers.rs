@@ -322,9 +322,9 @@ impl PyHeaders {
         Ok(vals)
     }
 
-    #[pyo3(signature = (other, append = false))]
-    fn update(&self, other: PyHeadersLike, append: bool) -> PyResult<()> {
-        match other {
+    #[pyo3(signature = (headers, *, append = false))]
+    fn update(&self, headers: PyHeadersLike, append: bool) -> PyResult<()> {
+        match headers {
             PyHeadersLike::Headers(other) => {
                 let other_inner = other.read();
                 let mut inner = self.write();
@@ -423,8 +423,8 @@ impl PyHeaders {
 
     #[cfg(feature = "json")]
     #[staticmethod]
-    fn from_json(json: &str) -> PyResult<Self> {
-        serde_json::from_str::<crate::HttpHeaderMap>(json)
+    fn from_json(data: &str) -> PyResult<Self> {
+        serde_json::from_str::<crate::HttpHeaderMap>(data)
             .map(|e| Self::from(e.0))
             .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))
     }
