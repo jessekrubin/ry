@@ -484,7 +484,7 @@ pub fn uuid1(node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
 }
 
 #[pyfunction]
-pub fn uuid3<'py>(namespace: &PyUuid, name: &Bound<'py, PyAny>) -> PyResult<PyUuid> {
+pub fn uuid3(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
     if let Ok(s) = name.extract::<&str>() {
         Ok(uuid::Uuid::new_v3(&namespace.0, s.as_bytes()).into())
     } else if let Ok(b) = name.extract::<&[u8]>() {
@@ -500,7 +500,7 @@ pub fn uuid4() -> PyResult<PyUuid> {
 }
 
 #[pyfunction]
-pub fn uuid5<'py>(namespace: &PyUuid, name: &Bound<'py, PyAny>) -> PyResult<PyUuid> {
+pub fn uuid5(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
     if let Ok(s) = name.extract::<&str>() {
         Ok(uuid::Uuid::new_v5(&namespace.0, s.as_bytes()).into())
     } else if let Ok(b) = name.extract::<&[u8]>() {
@@ -512,30 +512,31 @@ pub fn uuid5<'py>(namespace: &PyUuid, name: &Bound<'py, PyAny>) -> PyResult<PyUu
 
 /// Generate a UUID from a sequence number and the current time according to RFC 9562, §5.6.
 ///
-/// This is an alternative to uuid1() to improve database locality.
+/// This is an alternative to `uuid1()` to improve database locality.
 ///
-/// When node is not specified, getnode() is used to obtain the hardware
-/// address as a 48-bit positive integer. When a sequence number clock_seq is
+/// When node is not specified, `getnode()` is used to obtain the hardware
+/// address as a 48-bit positive integer. When a sequence number `clock_seq` is
 /// not specified, a pseudo-random 14-bit positive integer is generated.
 ///
-/// If node or clock_seq exceed their expected bit count, only their least
+/// If node or `clock_seq` exceed their expected bit count, only their least
 /// significant bits are kept.
+///
+/// # Panics
+///
+/// This function will panic if it fails to convert the node ID to a 6-byte, but
+/// there is no-way-jose that could happen AFAICT.
 #[pyfunction(signature = (node=None, clock_seq=None))]
 pub fn uuid6(py: Python<'_>, node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
-    let node = node
-        .map(|n| Ok(n & 0xFFFF_FFFF_FFFF))
-        .unwrap_or_else(|| getnode(py))?;
+    let node = node.map_or_else(|| getnode(py), |n| Ok(n & 0xFFFF_FFFF_FFFF))?;
     let node_arr = node.to_be_bytes();
     let node_id: &[u8; 6] = &node_arr[2..8].try_into().expect("no-way-jose");
     if let Some(_clock_seq) = clock_seq {
         pytodo!("uuid6 with clock_seq is not implemented yet")
-    } else {
-        Ok(uuid::Uuid::now_v6(node_id).into())
     }
+    Ok(uuid::Uuid::now_v6(node_id).into())
 }
 
 #[pyfunction(signature = (timestamp=None))]
-#[must_use]
 pub fn uuid7(timestamp: Option<u64>) -> PyResult<PyUuid> {
     match timestamp {
         Some(ms) => {
@@ -545,6 +546,7 @@ pub fn uuid7(timestamp: Option<u64>) -> PyResult<PyUuid> {
                 py_value_err!("timestamp too large")
             } else {
                 let secs = ms / 1000;
+                #[expect(clippy::cast_possible_truncation)]
                 let nanos = ((ms % 1000) * 1_000_000) as u32;
                 let ts = uuid::Timestamp::from_unix(uuid::NoContext, secs, nanos);
                 Ok(uuid::Uuid::new_v7(ts).into())
