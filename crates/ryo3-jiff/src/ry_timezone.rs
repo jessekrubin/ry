@@ -139,8 +139,8 @@ impl RyTimeZone {
     }
 
     #[staticmethod]
-    fn from_pytzinfo(d: JiffTimeZone) -> Self {
-        Self::from(d.0)
+    fn from_pytzinfo(tz: JiffTimeZone) -> Self {
+        Self::from(tz.0)
     }
 
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
@@ -164,15 +164,17 @@ impl RyTimeZone {
     }
 
     #[staticmethod]
-    fn posix(string: &str) -> PyResult<Self> {
-        TimeZone::posix(string)
+    fn posix(tz_name: &str) -> PyResult<Self> {
+        TimeZone::posix(tz_name)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[staticmethod]
-    fn get(s: &str) -> PyResult<Self> {
-        TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
+    fn get(tz_name: &str) -> PyResult<Self> {
+        TimeZone::get(tz_name)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]

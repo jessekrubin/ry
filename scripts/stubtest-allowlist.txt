@@ -23,12 +23,8 @@ ry.ISOWeekDate.*
 ry.Offset.*
 ry.ZonedDateTime.*
 ry.DateTime.*
-ry.SignedDuration.*
 ry.Date.*
 ry.Timestamp.*
-ry.TimeSpan.*
-ry.TimeZone.*
-ry.TimeRound.*
 
 # --- submodules ---
 
@@ -124,3 +120,14 @@ ry.Ipv4Addr.parse
 ry.Ipv6Addr.from_bits
 ry.Ipv6Addr.parse
 ry.IpAddr.parse
+ry.SignedDuration.from_hours
+ry.SignedDuration.from_isoformat
+ry.SignedDuration.from_micros
+ry.SignedDuration.from_millis
+ry.SignedDuration.from_mins
+ry.SignedDuration.from_nanos
+ry.SignedDuration.from_pytimedelta
+ry.SignedDuration.from_secs
+ry.SignedDuration.from_secs_f32
+ry.SignedDuration.from_secs_f64
+ry.SignedDuration.parse
