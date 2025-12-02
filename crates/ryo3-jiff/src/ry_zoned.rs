@@ -113,8 +113,8 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn parse(input: &str) -> PyResult<Self> {
-        Self::from_str(input)
+    fn parse(s: &str) -> PyResult<Self> {
+        Self::from_str(s)
     }
 
     // ========================================================================
@@ -149,8 +149,8 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn parse_rfc2822(input: &str) -> PyResult<Self> {
-        ::jiff::fmt::rfc2822::parse(input)
+    fn parse_rfc2822(s: &str) -> PyResult<Self> {
+        ::jiff::fmt::rfc2822::parse(s)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -279,8 +279,8 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn from_pydatetime(d: JiffZoned) -> Self {
-        Self::from(d.0)
+    fn from_pydatetime(datetime: JiffZoned) -> Self {
+        Self::from(datetime.0)
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {
@@ -350,32 +350,27 @@ impl RyZoned {
     }
 
     #[pyo3(
-       signature = (smallest=None, *, mode = None, increment = None),
+        signature = (
+            smallest=JiffUnit(jiff::Unit::Nanosecond),
+            *,
+            mode=JiffRoundMode(jiff::RoundMode::HalfExpand),
+            increment=1
+        ),
+        text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
-    fn round(
-        &self,
-        smallest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
-    ) -> PyResult<Self> {
-        let mut zdt_round = ZonedRound::new();
-        if let Some(smallest) = smallest {
-            zdt_round = zdt_round.smallest(smallest.0);
-        }
-        if let Some(mode) = mode {
-            zdt_round = zdt_round.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            zdt_round = zdt_round.increment(increment);
-        }
+    fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
+        let zdt_round = ZonedRound::new()
+            .smallest(smallest.0)
+            .increment(increment)
+            .mode(mode.0);
         self.0
             .round(zdt_round)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, zdt_round: &RyZonedDateTimeRound) -> PyResult<Self> {
-        zdt_round.round(self)
+    fn _round(&self, options: &RyZonedDateTimeRound) -> PyResult<Self> {
+        options.round(self)
     }
 
     fn tomorrow(&self) -> PyResult<Self> {
@@ -481,17 +476,19 @@ impl RyZoned {
     }
 
     #[pyo3(
-       signature = (zdt, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
+        text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+
     )]
     fn since(
         &self,
-        zdt: &Self,
+        other: &Self,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&zdt.0);
+        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment);
         if let Some(smallest) = smallest {
             zdt_diff = zdt_diff.smallest(smallest.0);
         }
@@ -500,9 +497,6 @@ impl RyZoned {
         }
         if let Some(mode) = mode {
             zdt_diff = zdt_diff.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            zdt_diff = zdt_diff.increment(increment);
         }
         self.0
             .since(zdt_diff)
@@ -511,17 +505,18 @@ impl RyZoned {
     }
 
     #[pyo3(
-       signature = (zdt, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
+        text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
-        zdt: &Self,
+        other: &Self,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&zdt.0);
+        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment);
         if let Some(smallest) = smallest {
             zdt_diff = zdt_diff.smallest(smallest.0);
         }
@@ -530,9 +525,6 @@ impl RyZoned {
         }
         if let Some(mode) = mode {
             zdt_diff = zdt_diff.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            zdt_diff = zdt_diff.increment(increment);
         }
         self.0
             .until(zdt_diff)

@@ -484,25 +484,23 @@ impl RySpan {
                     }
                 }
             }
+        } else if days_are_24_hours {
+            let span_total = SpanRelativeTo::days_are_24_hours();
+            let r = self
+                .0
+                .compare((&other.0, span_total))
+                .map_err(map_py_value_err)?;
+            match r {
+                std::cmp::Ordering::Less => Ok(-1),
+                std::cmp::Ordering::Equal => Ok(0),
+                std::cmp::Ordering::Greater => Ok(1),
+            }
         } else {
-            if days_are_24_hours {
-                let span_total = SpanRelativeTo::days_are_24_hours();
-                let r = self
-                    .0
-                    .compare((&other.0, span_total))
-                    .map_err(map_py_value_err)?;
-                match r {
-                    std::cmp::Ordering::Less => Ok(-1),
-                    std::cmp::Ordering::Equal => Ok(0),
-                    std::cmp::Ordering::Greater => Ok(1),
-                }
-            } else {
-                let r = self.0.compare(other.0).map_err(map_py_value_err)?;
-                match r {
-                    std::cmp::Ordering::Less => Ok(-1),
-                    std::cmp::Ordering::Equal => Ok(0),
-                    std::cmp::Ordering::Greater => Ok(1),
-                }
+            let r = self.0.compare(other.0).map_err(map_py_value_err)?;
+            match r {
+                std::cmp::Ordering::Less => Ok(-1),
+                std::cmp::Ordering::Equal => Ok(0),
+                std::cmp::Ordering::Greater => Ok(1),
             }
         }
     }
