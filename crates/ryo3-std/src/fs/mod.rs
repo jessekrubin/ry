@@ -415,7 +415,7 @@ pub fn soft_link(py: Python<'_>, original: PathBuf, link: PathBuf) -> PyResult<(
     {
         use std::os::windows::fs as windows_fs;
         let metadata = py
-            .detach(|| std::fs::metadata(&src))
+            .detach(|| std::fs::metadata(&original))
             .map_err(|e| PyIOError::new_err(format!("soft_link - {e}")))?;
         if metadata.is_dir() {
             py.detach(|| windows_fs::symlink_dir(original, link))
