@@ -19,7 +19,6 @@ ry.HttpClient.*
 ry.Response.json
 
 # --- jiff ---
-ry.ISOWeekDate.*
 ry.Offset.*
 ry.ZonedDateTime.*
 ry.DateTime.*
