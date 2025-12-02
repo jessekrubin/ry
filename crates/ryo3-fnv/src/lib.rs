@@ -103,9 +103,12 @@ impl PyFnvHasher {
 }
 
 #[pyfunction]
-#[pyo3(signature = (b = None, key = FnvKey::default()))]
-pub fn fnv1a(py: Python<'_>, b: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> PyFnvHasher {
-    PyFnvHasher::py_new(py, b, key)
+#[pyo3(
+    signature = (data = None, *, key = FnvKey::default()),
+    text_signature = "(data=None, *, key=0xcbf29ce484222325)",
+)]
+pub fn fnv1a(py: Python<'_>, data: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> PyFnvHasher {
+    PyFnvHasher::py_new(py, data, key)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
