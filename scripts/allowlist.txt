@@ -25,7 +25,6 @@ ry.Pattern.*
 ry.Regex.*
 ry.Response.json
 ry.SqlfmtQueryParams.*
-ry.URL.*
 
 # --- jiff ---
 ry.ISOWeekDate.*
@@ -41,7 +40,7 @@ ry.TimeRound.*
 
 # --- submodules ---
 ry.uuid.*
-ry.ulid.*
+#ry.ulid.*
 ry.JSON.*
 
 # --- top level functions ---
@@ -79,6 +78,8 @@ ry.Duration.from_secs_f64
 ry.Duration.from_weeks
 ry.Duration.fromisoformat
 ry.Duration.parse
+ry.FsPath.cwd
+ry.FsPath.home
 ry.Instant.now
 ry.Size.from_bytes
 ry.Size.from_eb
@@ -113,5 +114,7 @@ ry.Time.now
 ry.Time.parse
 ry.Time.strptime
 ry.Time.utcnow
-ry.FsPath.cwd
-ry.FsPath.home
+ry.URL.from_directory_path
+ry.URL.from_filepath
+ry.URL.parse
+ry.URL.parse_with_params

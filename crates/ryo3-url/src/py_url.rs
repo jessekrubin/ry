@@ -1,8 +1,8 @@
 use crate::UrlLike;
 use pyo3::basic::CompareOp;
+use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{IntoPyObjectExt, prelude::*};
-use ryo3_macro_rules::py_value_error;
+use ryo3_macro_rules::{py_type_err, py_value_error};
 use std::ffi::OsString;
 use std::hash::{Hash, Hasher};
 use std::net::IpAddr;
@@ -226,6 +226,7 @@ impl PyUrl {
     #[cfg(feature = "ryo3-std")]
     #[getter]
     fn host<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        use pyo3::IntoPyObjectExt;
         if let Some(host) = self.0.host() {
             match host {
                 url::Host::Domain(d) => d.into_bound_py_any(py),
@@ -382,11 +383,11 @@ impl PyUrl {
             username = None
         )
     )]
-    fn replace(
+    fn replace<'py>(
         &self,
         fragment: Option<&str>,
         host: Option<&str>,
-        ip_host: Option<IpAddr>,
+        ip_host: Option<&Bound<'py, PyAny>>,
         password: Option<&str>,
         path: Option<&str>,
         port: Option<u16>,
@@ -403,6 +404,7 @@ impl PyUrl {
                 .map_err(|e| py_value_error!("{e} (host={host:?})"))?;
         }
         if let Some(ip_host) = ip_host {
+            let ip_host = extract_ip_host(ip_host)?;
             url.set_ip_host(ip_host)
                 .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))?;
         }
@@ -446,10 +448,11 @@ impl PyUrl {
         Ok(Self(url))
     }
 
-    fn replace_ip_host(&self, ip_host: IpAddr) -> PyResult<Self> {
+    fn replace_ip_host<'py>(&self, address: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let address = extract_ip_host(address)?;
         let mut url = self.0.clone();
-        url.set_ip_host(ip_host)
-            .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))?;
+        url.set_ip_host(address)
+            .map_err(|()| py_value_error!("Err setting ip_host (address={address})"))?;
         Ok(Self(url))
     }
 
@@ -612,5 +615,32 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
             args,
             Some(&serialization_kwargs),
         )
+    }
+}
+
+#[cfg(feature = "ryo3-std")]
+fn extract_ip_host<'py>(address: &Bound<'py, PyAny>) -> PyResult<IpAddr> {
+    use ryo3_std::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
+    if let Ok(pyipv4) = address.cast_exact::<PyIpv4Addr>() {
+        Ok(pyipv4.get().0.into())
+    } else if let Ok(pyipv6) = address.cast_exact::<PyIpv6Addr>() {
+        Ok(pyipv6.get().0.into())
+    } else if let Ok(pyipaddr) = address.cast_exact::<PyIpAddr>() {
+        Ok(pyipaddr.get().0)
+    } else if let Ok(ip) = address.extract::<std::net::IpAddr>() {
+        Ok(ip)
+    } else {
+        py_type_err!(
+            "Expected Ipv4Addr, Ipv6Addr, IpAddr, ipaddress.IPv4Address, ipaddress.IPv6Address",
+        )
+    }
+}
+
+#[cfg(not(feature = "ryo3-std"))]
+fn extract_ip_host<'py>(address: &Bound<'py, PyAny>) -> PyResult<IpAddr> {
+    if let Ok(ip) = address.extract::<std::net::IpAddr>() {
+        Ok(ip)
+    } else {
+        py_type_err!("Expected ipaddress.IPv4Address or ipaddress.IPv6Address",)
     }
 }
