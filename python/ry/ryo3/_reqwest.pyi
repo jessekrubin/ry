@@ -369,15 +369,32 @@ class BlockingResponseStream:
 async def fetch(
     url: str | URL,
     *,
-    client: HttpClient | None = None,
     method: str = "GET",
-    **kwargs: Unpack[RequestKwargs],
+    body: Buffer | None = None,
+    headers: Headers | dict[str, str] | None = None,
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+    json: t.Any = None,
+    form: t.Any = None,
+    multipart: t.Any | None = None,
+    timeout: Duration | None = None,
+    basic_auth: tuple[str, str | None] | None = None,
+    bearer_auth: str | None = None,
+    version: HttpVersionLike | None = None,
 ) -> Response: ...
 def fetch_sync(
     url: str | URL,
     *,
     method: str = "GET",
-    **kwargs: Unpack[RequestKwargs],
+    body: Buffer | None = None,
+    headers: Headers | dict[str, str] | None = None,
+    query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
+    json: t.Any = None,
+    form: t.Any = None,
+    multipart: t.Any | None = None,
+    timeout: Duration | None = None,
+    basic_auth: tuple[str, str | None] | None = None,
+    bearer_auth: str | None = None,
+    version: HttpVersionLike | None = None,
 ) -> BlockingResponse: ...
 
 @t.final

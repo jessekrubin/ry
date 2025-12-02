@@ -22,7 +22,6 @@ pub(crate) fn default_client() -> &'static Mutex<RyHttpClient> {
     signature = (
         url,
         *,
-        client = None,
         method = None,
         body = None,
         headers = None,
@@ -34,13 +33,13 @@ pub(crate) fn default_client() -> &'static Mutex<RyHttpClient> {
         basic_auth = None,
         bearer_auth = None,
         version = None,
-    )
+    ),
+    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
 )]
 #[expect(clippy::too_many_arguments)]
 pub(crate) fn fetch<'py>(
     py: Python<'py>,
     url: &Bound<'py, PyAny>,
-    client: Option<&'py RyHttpClient>,
     method: Option<ryo3_http::HttpMethod>,
     body: Option<&Bound<'py, PyAny>>,
     headers: Option<PyHeadersLike>,
@@ -53,8 +52,9 @@ pub(crate) fn fetch<'py>(
     bearer_auth: Option<PyBackedStr>,
     version: Option<HttpVersion>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    if let Some(c) = client {
-        c.fetch(
+    let obj: Py<PyAny> = {
+        let guard = default_client().lock();
+        let bound = guard.fetch(
             py,
             url,
             method,
@@ -68,29 +68,10 @@ pub(crate) fn fetch<'py>(
             basic_auth,
             bearer_auth,
             version,
-        )
-    } else {
-        let obj: Py<PyAny> = {
-            let guard = default_client().lock();
-            let bound = guard.fetch(
-                py,
-                url,
-                method,
-                body,
-                headers,
-                query,
-                json,
-                form,
-                multipart,
-                timeout,
-                basic_auth,
-                bearer_auth,
-                version,
-            )?;
-            bound.unbind()
-        };
-        Ok(obj.into_bound(py))
-    }
+        )?;
+        bound.unbind()
+    };
+    Ok(obj.into_bound(py))
 }
 
 #[pyfunction(
@@ -108,7 +89,8 @@ pub(crate) fn fetch<'py>(
         basic_auth = None,
         bearer_auth = None,
         version = None,
-    )
+    ),
+    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
 )]
 #[expect(clippy::too_many_arguments)]
 pub(crate) fn fetch_sync<'py>(

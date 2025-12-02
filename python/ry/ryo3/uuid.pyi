@@ -80,6 +80,8 @@ class UUID(FromStr):
     @classmethod
     def from_bytes_le(cls, b: builtins.bytes) -> t.Self: ...
     @classmethod
+    def from_fields(cls, fields: _FieldsType) -> t.Self: ...
+    @classmethod
     def from_hex(cls, hexstr: str) -> t.Self: ...
     @classmethod
     def from_int(cls, i: builtins.int) -> t.Self: ...
@@ -107,7 +109,13 @@ def uuid7(timestamp: int | None = None) -> UUID: ...
 @t.overload
 def uuid8(*, buf: Buffer) -> UUID: ...  # 16 bytes buffer
 @t.overload
-def uuid8(a: int | None = None, b: int | None = None, c: int | None = None) -> UUID: ...
+def uuid8(
+    a: int | None = None,
+    b: int | None = None,
+    c: int | None = None,
+    *,
+    buf: None = None,
+) -> UUID: ...
 
 NAMESPACE_DNS: UUID
 NAMESPACE_URL: UUID
