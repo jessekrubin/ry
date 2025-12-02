@@ -19,7 +19,6 @@ ry.HttpClient.*
 ry.Response.json
 
 # --- jiff ---
-ry.Offset.*
 ry.ZonedDateTime.*
 ry.DateTime.*
 ry.Date.*
@@ -130,3 +129,29 @@ ry.SignedDuration.from_secs
 ry.SignedDuration.from_secs_f32
 ry.SignedDuration.from_secs_f64
 ry.SignedDuration.parse
+ry.ISOWeekDate.from_date
+ry.ISOWeekDate.from_pydate
+ry.ISOWeekDate.now
+ry.ISOWeekDate.parse
+ry.ISOWeekDate.today
+ry.Offset.from_hours
+ry.Offset.from_pytzinfo
+ry.Offset.from_seconds
+ry.Offset.parse
+ry.Offset.utc
+ry.TimeSpan.from_isoformat
+ry.TimeSpan.from_pytimedelta
+ry.TimeSpan.parse
+ry.TimeSpan.parse_common_iso
+ry.TimeZone.fixed
+ry.TimeZone.from_pytzinfo
+ry.TimeZone.get
+ry.TimeZone.posix
+ry.TimeZone.system
+ry.TimeZone.try_system
+ry.TimeZone.tzif
+ry.TimeZone.utc
+ry.TimeZoneDatabase.bundled
+ry.TimeZoneDatabase.from_concatenated_path
+ry.TimeZoneDatabase.from_dir
+ry.TimeZoneDatabase.from_env
