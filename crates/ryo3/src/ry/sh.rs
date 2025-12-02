@@ -10,11 +10,11 @@ use std::fs::read_dir;
 /// Change the current working directory to the specified path
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
-pub fn cd(p: PathLike) -> PyResult<()> {
-    match std::env::set_current_dir(p.as_ref()) {
+pub fn cd(path: PathLike) -> PyResult<()> {
+    match std::env::set_current_dir(path.as_ref()) {
         Ok(()) => Ok(()),
         Err(e) => {
-            let p_string = p.to_string();
+            let p_string = path.to_string();
             let emsg = format!("{e}: {p_string:?}");
             let pye = PyFileNotFoundError::new_err(format!("cd: {emsg}"));
             Err(pye)
@@ -24,15 +24,15 @@ pub fn cd(p: PathLike) -> PyResult<()> {
 
 /// List the contents of the specified directory as a `Vec<String>`
 #[pyfunction]
-#[pyo3(signature = (fspath = None, *, absolute = false, sort = false, objects = false))]
+#[pyo3(signature = (path = None, *, absolute = false, sort = false, objects = false))]
 pub fn ls(
     py: Python<'_>,
-    fspath: Option<PathLike>,
+    path: Option<PathLike>,
     absolute: bool,
     sort: bool,
     objects: bool,
 ) -> PyResult<Vec<Bound<'_, PyAny>>> {
-    let p = if let Some(p) = fspath {
+    let p = if let Some(p) = path {
         p
     } else {
         let pwd = pwd()?;

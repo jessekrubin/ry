@@ -441,8 +441,8 @@ impl PyBytes {
     /// (string, /)
     /// ```
     #[staticmethod]
-    fn fromhex(s: &str) -> PyResult<Self> {
-        Self::py_fromhex(s)
+    fn fromhex(string: &str) -> PyResult<Self> {
+        Self::py_fromhex(string)
     }
 
     /// Return True if B is a titlecased string and there is at least one
@@ -527,28 +527,28 @@ impl PyBytes {
         self.py_expandtabs(tabsize)
     }
 
-    #[pyo3(signature = (bin=None))]
-    fn strip(&self, bin: Option<Self>) -> Self {
-        if let Some(bin) = bin {
-            self.py_strip(Some(bin.as_ref()))
+    #[pyo3(signature = (chars=None, /))]
+    fn strip(&self, chars: Option<Self>) -> Self {
+        if let Some(chars) = chars {
+            self.py_strip(Some(chars.as_ref()))
         } else {
             self.py_strip(None)
         }
     }
 
-    #[pyo3(signature = (bin=None))]
-    fn lstrip(&self, bin: Option<Self>) -> Self {
-        if let Some(bin) = bin {
-            self.py_lstrip(Some(bin.as_ref()))
+    #[pyo3(signature = (chars=None, /))]
+    fn lstrip(&self, chars: Option<Self>) -> Self {
+        if let Some(chars) = chars {
+            self.py_lstrip(Some(chars.as_ref()))
         } else {
             self.py_lstrip(None)
         }
     }
 
-    #[pyo3(signature = (bin=None))]
-    fn rstrip(&self, bin: Option<Self>) -> Self {
-        if let Some(bin) = bin {
-            self.py_rstrip(Some(bin.as_ref()))
+    #[pyo3(signature = (chars=None, /))]
+    fn rstrip(&self, chars: Option<Self>) -> Self {
+        if let Some(chars) = chars {
+            self.py_rstrip(Some(chars.as_ref()))
         } else {
             self.py_rstrip(None)
         }

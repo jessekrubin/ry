@@ -89,10 +89,10 @@ impl PyFnvHasher {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, py: Python<'_>, s: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&self, py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<()> {
         py.detach(|| {
             let mut h = self.lock()?;
-            h.write(s.as_ref());
+            h.write(data.as_ref());
             Ok(())
         })
     }
@@ -103,9 +103,12 @@ impl PyFnvHasher {
 }
 
 #[pyfunction]
-#[pyo3(signature = (b = None, key = FnvKey::default()))]
-pub fn fnv1a(py: Python<'_>, b: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> PyFnvHasher {
-    PyFnvHasher::py_new(py, b, key)
+#[pyo3(
+    signature = (data = None, *, key = FnvKey::default()),
+    text_signature = "(data=None, *, key=0xcbf29ce484222325)",
+)]
+pub fn fnv1a(py: Python<'_>, data: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> PyFnvHasher {
+    PyFnvHasher::py_new(py, data, key)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

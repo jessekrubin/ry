@@ -72,12 +72,15 @@ impl PySize {
         }
     }
 
-    #[pyo3(signature = (*, base = None, style = None))]
-    fn format(&self, base: Option<Base>, style: Option<Style>) -> String {
+    #[pyo3(
+        signature = (*, base = Base::default(), style = Style::default()),
+        text_signature = "(self, *, base=2, style='default')"
+    )]
+    fn format(&self, base: Base, style: Style) -> String {
         self.0
             .format()
-            .with_base(base.unwrap_or_default().0)
-            .with_style(style.unwrap_or_default().0)
+            .with_base(base.0)
+            .with_style(style.0)
             .to_string()
     }
 

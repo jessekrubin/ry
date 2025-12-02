@@ -12,7 +12,7 @@ pub fn sleep(py: Python<'_>, secs: f64) -> PyResult<f64> {
             .map(PyDuration::from)
             // overflow error here b/c negative handled above
             .map_err(|e| PyOverflowError::new_err(format!("{e}")))?;
-        py_duration.sleep(py, None)?;
+        py_duration.sleep(py, 10)?;
         Ok(py_duration.0.as_secs_f64())
     }
 }

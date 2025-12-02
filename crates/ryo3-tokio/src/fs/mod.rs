@@ -16,9 +16,9 @@ mod py_open_mode;
 mod read_dir;
 
 #[pyfunction]
-pub fn canonicalize_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn canonicalize_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::canonicalize(pth)
+        tokio::fs::canonicalize(path)
             .await
             .map(|p| p.to_string_lossy().to_string())
             .map_err(PyErr::from)
@@ -33,16 +33,16 @@ pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<
 }
 
 #[pyfunction]
-pub fn create_dir_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn create_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::create_dir(pth).await.map_err(PyErr::from)
+        tokio::fs::create_dir(path).await.map_err(PyErr::from)
     })
 }
 
 #[pyfunction]
-pub fn create_dir_all_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn create_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::create_dir_all(pth).await.map_err(PyErr::from)
+        tokio::fs::create_dir_all(path).await.map_err(PyErr::from)
     })
 }
 
@@ -54,9 +54,9 @@ pub fn hard_link_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<B
 }
 
 #[pyfunction]
-pub fn metadata_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::metadata(pth)
+        tokio::fs::metadata(path)
             .await
             .map(PyMetadata::from)
             .map_err(PyErr::from)
@@ -64,9 +64,9 @@ pub fn metadata_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>
 }
 
 #[pyfunction]
-pub fn read_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::read(pth)
+        tokio::fs::read(path)
             .await
             .map(ryo3_bytes::PyBytes::from)
             .map_err(PyErr::from)
@@ -74,17 +74,17 @@ pub fn read_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
 }
 
 #[pyfunction]
-pub fn read_dir_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        let readdir = tokio::fs::read_dir(pth).await.map_err(PyErr::from)?;
+        let readdir = tokio::fs::read_dir(path).await.map_err(PyErr::from)?;
         Ok(PyAsyncReadDir::from(readdir))
     })
 }
 
 #[pyfunction]
-pub fn read_link_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn read_link_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::read_link(pth)
+        tokio::fs::read_link(path)
             .await
             .map(|p| p.to_string_lossy().to_string())
             .map_err(PyErr::from)
@@ -92,30 +92,30 @@ pub fn read_link_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny
 }
 
 #[pyfunction]
-pub fn read_to_string_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn read_to_string_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::read_to_string(pth).await.map_err(PyErr::from)
+        tokio::fs::read_to_string(path).await.map_err(PyErr::from)
     })
 }
 
 #[pyfunction]
-pub fn remove_dir_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn remove_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::remove_dir(pth).await.map_err(PyErr::from)
+        tokio::fs::remove_dir(path).await.map_err(PyErr::from)
     })
 }
 
 #[pyfunction]
-pub fn remove_dir_all_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn remove_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::remove_dir_all(pth).await.map_err(PyErr::from)
+        tokio::fs::remove_dir_all(path).await.map_err(PyErr::from)
     })
 }
 
 #[pyfunction]
-pub fn remove_file_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn remove_file_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::remove_file(pth).await.map_err(PyErr::from)
+        tokio::fs::remove_file(path).await.map_err(PyErr::from)
     })
 }
 
@@ -127,9 +127,9 @@ pub fn rename_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Boun
 }
 
 #[pyfunction]
-pub fn try_exists_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn try_exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::try_exists(pth)
+        tokio::fs::try_exists(path)
             .await
             .map(|b| b.to_string())
             .map_err(PyErr::from)
@@ -137,9 +137,9 @@ pub fn try_exists_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAn
 }
 
 #[pyfunction]
-pub fn exists_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> {
+pub fn exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        tokio::fs::try_exists(pth)
+        tokio::fs::try_exists(path)
             .await
             .map(|b| b.to_string())
             .map_err(PyErr::from)
@@ -147,11 +147,11 @@ pub fn exists_async(py: Python<'_>, pth: PathBuf) -> PyResult<Bound<'_, PyAny>> 
 }
 
 #[pyfunction]
-pub fn write_async(py: Python<'_>, fspath: PathBuf, b: PyBytes) -> PyResult<Bound<'_, PyAny>> {
+pub fn write_async(py: Python<'_>, path: PathBuf, buf: PyBytes) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        let bref: &[u8] = b.as_ref();
+        let bref: &[u8] = buf.as_ref();
         let len = bref.len();
-        tokio::fs::write(fspath, b)
+        tokio::fs::write(path, buf)
             .await
             .map(|()| len)
             .map_err(PyErr::from)
@@ -161,19 +161,20 @@ pub fn write_async(py: Python<'_>, fspath: PathBuf, b: PyBytes) -> PyResult<Boun
 #[pyfunction]
 pub fn write_string_async(
     py: Python<'_>,
-    fspath: PathBuf,
+    path: PathBuf,
     s: PyBackedStr,
 ) -> PyResult<Bound<'_, PyAny>> {
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
         let nbytes = s.len();
 
-        tokio::fs::write(fspath, s).await.map_err(PyErr::from)?;
+        tokio::fs::write(path, s).await.map_err(PyErr::from)?;
         Ok(nbytes)
     })
 }
 
 #[pyfunction(
     signature = (path, mode = PyOpenMode::default(), **kwargs),
+    text_signature = "(path, mode=\"rb\", **kwargs)",
 )]
 pub fn aiopen<'py>(
     py: Python<'py>,

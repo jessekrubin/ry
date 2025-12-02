@@ -2,6 +2,8 @@
 
 ## v0.0.70 [unreleased]
 
+- type annotations
+  - Fixing type annotations and starting to use `stubtest`
 - `ryo3-http`
   - Bump version to 1.4.0 which adds `103 Early Hints` status code among other
     things

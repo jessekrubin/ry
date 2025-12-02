@@ -467,9 +467,9 @@ impl PyDuration {
     }
 
     #[staticmethod]
-    fn from_dict(dict: &Bound<'_, PyDict>) -> PyResult<Self> {
-        let secs = dict.get_item(interns::secs(dict.py()))?;
-        let nanos = dict.get_item(interns::nanos(dict.py()))?;
+    fn from_dict(d: &Bound<'_, PyDict>) -> PyResult<Self> {
+        let secs = d.get_item(interns::secs(d.py()))?;
+        let nanos = d.get_item(interns::nanos(d.py()))?;
         match (secs, nanos) {
             (Some(secs), Some(nanos)) => {
                 let secs = secs.extract::<u64>()?;
@@ -561,12 +561,12 @@ impl PyDuration {
 
     #[cfg(feature = "jiff")]
     #[staticmethod]
-    fn fromisoformat(isoformat: &str) -> PyResult<Self> {
+    fn fromisoformat(s: &str) -> PyResult<Self> {
         use jiff::fmt::temporal::SpanParser;
         use ryo3_macro_rules::py_value_error;
         let parser = SpanParser::new();
         let duration = parser
-            .parse_unsigned_duration(isoformat)
+            .parse_unsigned_duration(s)
             .map_err(|e| py_value_error!("invalid isoformat string: {e}"))?;
         Ok(Self(duration))
     }
@@ -612,47 +612,35 @@ impl PyDuration {
     }
 
     #[cfg(feature = "jiff")]
-    #[pyo3(signature = (designator = None))]
-    fn friendly(&self, designator: Option<&str>) -> PyResult<String> {
-        if let Some(designator) = designator {
-            match designator {
-                "human-time" | "human" => Ok(FRIENDLY_SPAN_PRINTER
-                    .designator(Designator::HumanTime)
-                    .unsigned_duration_to_string(&self.0)),
-                "short" => Ok(FRIENDLY_SPAN_PRINTER
-                    .designator(Designator::Short)
-                    .unsigned_duration_to_string(&self.0)),
-                "compact" => Ok(FRIENDLY_SPAN_PRINTER
-                    .designator(Designator::Compact)
-                    .unsigned_duration_to_string(&self.0)),
-                "verbose" => Ok(FRIENDLY_SPAN_PRINTER
-                    .designator(Designator::Verbose)
-                    .unsigned_duration_to_string(&self.0)),
-                other => {
-                    py_value_err!(
-                        "invalid designator: {other} (expected 'human'/'human-time', 'short', or 'compact')"
-                    )
-                }
+    #[pyo3(signature = (designator = "compact"))]
+    fn friendly(&self, designator: &str) -> PyResult<String> {
+        match designator {
+            "human-time" | "human" => Ok(FRIENDLY_SPAN_PRINTER
+                .designator(Designator::HumanTime)
+                .unsigned_duration_to_string(&self.0)),
+            "short" => Ok(FRIENDLY_SPAN_PRINTER
+                .designator(Designator::Short)
+                .unsigned_duration_to_string(&self.0)),
+            "compact" => Ok(FRIENDLY_SPAN_PRINTER.unsigned_duration_to_string(&self.0)),
+            "verbose" => Ok(FRIENDLY_SPAN_PRINTER
+                .designator(Designator::Verbose)
+                .unsigned_duration_to_string(&self.0)),
+            other => {
+                py_value_err!(
+                    "invalid designator: {other} (expected 'human'/'human-time', 'short', or 'compact')"
+                )
             }
-        } else {
-            Ok(FRIENDLY_SPAN_PRINTER.unsigned_duration_to_string(&self.0))
         }
     }
 
-    #[pyo3(signature = (interval = None))]
+    #[pyo3(signature = (*, interval = 10))]
     /// Sleep for the duration
-    pub(crate) fn sleep(&self, py: Python<'_>, interval: Option<u64>) -> PyResult<()> {
-        let interval = match interval {
-            Some(interval) => {
-                if interval > 1000 {
-                    return py_value_err!("interval must be less than or equal to 1000");
-                } else if interval == 0 {
-                    return py_value_err!("interval must be greater than 0");
-                }
-                interval
-            }
-            None => 10,
-        };
+    pub(crate) fn sleep(&self, py: Python<'_>, interval: u64) -> PyResult<()> {
+        if interval > 1000 {
+            return py_value_err!("interval must be less than or equal to 1000");
+        } else if interval == 0 {
+            return py_value_err!("interval must be greater than 0");
+        }
         let sleep_duration = self.0;
         let check_interval = Duration::from_millis(interval);
         let mut remaining = sleep_duration;

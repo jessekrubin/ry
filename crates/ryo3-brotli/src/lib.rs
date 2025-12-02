@@ -27,7 +27,10 @@ fn encode(data: &[u8], quality: PyBrQuality, magic_number: bool) -> PyResult<Vec
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, quality=PyBrQuality::default(), *, magic_number=false))]
+#[pyo3(
+    signature = (data, quality=PyBrQuality::default(), *, magic_number=false),
+    text_signature = "(data, quality=11, *, magic_number=False)",
+)]
 #[expect(clippy::needless_pass_by_value)]
 pub fn brotli_encode(
     py: Python<'_>,
@@ -41,7 +44,10 @@ pub fn brotli_encode(
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, quality=PyBrQuality::default(), *, magic_number=false))]
+#[pyo3(
+    signature = (data, quality=PyBrQuality::default(), *, magic_number=false),
+    text_signature = "(data, quality=11, *, magic_number=False)",
+)]
 #[expect(clippy::needless_pass_by_value)]
 pub fn brotli(
     py: Python<'_>,

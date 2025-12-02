@@ -127,17 +127,33 @@ impl PyAsyncFileInner {
             .map_err(|e| PyIOError::new_err(e.to_string()))
     }
 
-    async fn readline(&mut self) -> PyResult<Option<Vec<u8>>> {
-        let file = self.get_file_mut()?;
-        let mut buf = Vec::new();
-        let bytes_read = file
-            .read_until(b'\n', &mut buf)
-            .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to read line: {e}")))?;
-        if bytes_read == 0 {
-            Ok(None)
-        } else {
+    async fn readline(&mut self, size: Option<usize>) -> PyResult<Option<Vec<u8>>> {
+        if let Some(s) = size {
+            let file = self.get_file_mut()?;
+            let mut buf = Vec::new();
+            let bytes_read = file
+                .read_until(b'\n', &mut buf)
+                .await
+                .map_err(|e| PyIOError::new_err(format!("Failed to read line: {e}")))?;
+            if bytes_read == 0 {
+                return Ok(None);
+            }
+            if buf.len() > s {
+                buf.truncate(s);
+            }
             Ok(Some(buf))
+        } else {
+            let file = self.get_file_mut()?;
+            let mut buf = Vec::new();
+            let bytes_read = file
+                .read_until(b'\n', &mut buf)
+                .await
+                .map_err(|e| PyIOError::new_err(format!("Failed to read line: {e}")))?;
+            if bytes_read == 0 {
+                Ok(None)
+            } else {
+                Ok(Some(buf))
+            }
         }
     }
 
@@ -296,7 +312,7 @@ impl PyAsyncFile {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            let line = locked.readline().await?;
+            let line = locked.readline(None).await?;
             match line {
                 Some(line) => Ok(line),
                 None => Err(PyStopAsyncIteration::new_err("End of stream")),
@@ -345,18 +361,18 @@ impl PyAsyncFile {
         })
     }
 
-    #[pyo3(signature = (n = 1, /))]
-    fn peek<'py>(&'py self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (size = 1, /))]
+    fn peek<'py>(&'py self, py: Python<'py>, size: usize) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            let buf = locked.peek(n).await?;
+            let buf = locked.peek(size).await?;
             Ok(ryo3_bytes::PyBytes::from(buf))
         })
     }
 
     #[pyo3(
-        signature = (size = None),
+        signature = (size = None, /),
     )]
     fn read<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
@@ -392,11 +408,12 @@ impl PyAsyncFile {
         })
     }
 
-    fn readline<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (size = None, /))]
+    fn readline<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            let line = locked.readline().await?;
+            let line = locked.readline(size).await?;
             match line {
                 Some(line) => Ok(Some(ryo3_bytes::PyBytes::from(line))),
                 None => Ok(None),
@@ -404,22 +421,43 @@ impl PyAsyncFile {
         })
     }
 
-    fn readlines<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    /// Return a list of lines from the stream.
+    ///
+    /// hint can be specified to control the number of lines read: no more
+    /// lines will be read if the total size (in bytes/characters) of all
+    /// lines so far exceeds hint.
+    #[pyo3(signature = (hint = None, /))]
+    fn readlines<'py>(&self, py: Python<'py>, hint: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let mut lines = Vec::new();
-            while let Ok(Some(line)) = locked.readline().await {
-                lines.push(line);
-            }
-
-            Ok(lines)
-        })
+        if let Some(hint) = hint {
+            future_into_py(py, async move {
+                let mut locked = inner.lock().await;
+                let mut lines = Vec::new();
+                let mut total_size = 0;
+                while let Ok(Some(line)) = locked.readline(None).await {
+                    total_size += line.len();
+                    lines.push(line);
+                    if total_size > hint {
+                        break;
+                    }
+                }
+                Ok(lines)
+            })
+        } else {
+            future_into_py(py, async move {
+                let mut locked = inner.lock().await;
+                let mut lines = Vec::new();
+                while let Ok(Some(line)) = locked.readline(None).await {
+                    lines.push(line);
+                }
+                Ok(lines)
+            })
+        }
     }
 
     #[pyo3(
         signature = (offset, whence=0, /),
-        text_signature = "(offset, whence=os.SEEK_SET, /)")
+        text_signature = "(self, offset, whence=os.SEEK_SET, /)")
     ]
     fn seek<'py>(
         &'py self,
@@ -465,25 +503,26 @@ impl PyAsyncFile {
         })
     }
 
-    #[pyo3(signature = (size = None))]
-    fn truncate<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (pos = None, /))]
+    fn truncate<'py>(&self, py: Python<'py>, pos: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            let size = locked.truncate(size).await?;
+            let size = locked.truncate(pos).await?;
             Ok(size)
         })
     }
 
+    #[pyo3(signature = (buffer, /))]
     fn write<'py>(
         &self,
         py: Python<'py>,
-        data: ryo3_bytes::PyBytes,
+        buffer: ryo3_bytes::PyBytes,
     ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {
             let mut locked = inner.lock().await;
-            locked.write(data.as_ref()).await
+            locked.write(buffer.as_ref()).await
         })
     }
 
