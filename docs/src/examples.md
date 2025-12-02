@@ -46,40 +46,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-# get_sync
-
-```python
-import asyncio
-
-import ry
-
-try:
-    from rich import print  # noqa: A004
-except ImportError:
-    ...
-
-c = ry.BlockingClient()
-
-
-def main() -> None:
-    response = c.fetch("https://httpbingo.org/anything")
-    print("Raw response:", response)
-    print("socket:", response.remote_addr)
-    print("url:", response.url)
-    print("status:", response.status)
-    print("headers:", response.headers)
-    print("http-version:", response.http_version)
-    print("content-length:", response.content_length)
-    json_data = response.json()
-    print("JSON data: ", json_data)
-
-    print("stringified: ", ry.stringify(json_data, fmt=True).decode())
-
-
-if __name__ == "__main__":
-    main()
-```
-
 # http_fetch
 
 ```python
