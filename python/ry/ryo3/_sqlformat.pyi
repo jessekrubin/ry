@@ -14,6 +14,7 @@ SqlfmtParamsLike: t.TypeAlias = (
     | t.Sequence[_TSqlfmtParamValue_co]
 )
 
+@t.final
 class SqlfmtQueryParams:
     def __init__(self, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]) -> None: ...
     def __len__(self) -> int: ...

@@ -15,11 +15,8 @@ ry.__opt_level__
 
 # --- CLASSES ---
 ry.BlockingClient.*
-ry.Glob.*
 ry.HttpClient.*
-ry.Regex.*
 ry.Response.json
-ry.SqlfmtQueryParams.*
 
 # --- jiff ---
 ry.ISOWeekDate.*
