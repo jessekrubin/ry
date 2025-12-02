@@ -210,8 +210,8 @@ impl PyUlid {
     }
 
     #[staticmethod]
-    fn from_string(cs: &str) -> PyResult<Self> {
-        Self::from_str(cs)
+    fn from_string(s: &str) -> PyResult<Self> {
+        Self::from_str(s)
     }
 
     #[staticmethod]
@@ -268,8 +268,8 @@ impl PyUlid {
     }
 
     #[staticmethod]
-    fn from_datetime(bytes: SystemTime) -> Self {
-        Self::from(Ulid::from_datetime(bytes))
+    fn from_datetime(value: SystemTime) -> Self {
+        Self::from(Ulid::from_datetime(value))
     }
 
     #[staticmethod]

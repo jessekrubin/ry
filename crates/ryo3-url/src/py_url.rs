@@ -383,11 +383,11 @@ impl PyUrl {
             username = None
         )
     )]
-    fn replace<'py>(
+    fn replace(
         &self,
         fragment: Option<&str>,
         host: Option<&str>,
-        ip_host: Option<&Bound<'py, PyAny>>,
+        ip_host: Option<&Bound<'_, PyAny>>,
         password: Option<&str>,
         path: Option<&str>,
         port: Option<u16>,
@@ -448,7 +448,7 @@ impl PyUrl {
         Ok(Self(url))
     }
 
-    fn replace_ip_host<'py>(&self, address: &Bound<'py, PyAny>) -> PyResult<Self> {
+    fn replace_ip_host(&self, address: &Bound<'_, PyAny>) -> PyResult<Self> {
         let address = extract_ip_host(address)?;
         let mut url = self.0.clone();
         url.set_ip_host(address)
@@ -619,7 +619,7 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
 }
 
 #[cfg(feature = "ryo3-std")]
-fn extract_ip_host<'py>(address: &Bound<'py, PyAny>) -> PyResult<IpAddr> {
+fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
     use ryo3_std::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
     if let Ok(pyipv4) = address.cast_exact::<PyIpv4Addr>() {
         Ok(pyipv4.get().0.into())

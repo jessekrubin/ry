@@ -3,7 +3,7 @@
 maturin develop
 stubtest \
   --mypy-config-file pyproject.toml \
-  --whitelist scripts/allowlist.txt \
+  --whitelist scripts/stubtest-allowlist.txt \
   --ignore-disjoint-bases \
   --concise \
   ry
