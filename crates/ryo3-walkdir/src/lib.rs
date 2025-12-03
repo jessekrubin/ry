@@ -1,10 +1,9 @@
 #![doc = include_str!("../README.md")]
 
 mod walkdir_entry;
-
-use parking_lot::Mutex;
 use pyo3::{IntoPyObjectExt, prelude::*};
 use ryo3_core::types::PathLike;
+use ryo3_core::PyMutex;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
 
@@ -14,7 +13,7 @@ use crate::walkdir_entry::PyWalkDirEntry;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWalkdirGen {
     objects: bool,
-    iter: Mutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>>,
+    iter: PyMutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>, false>,
 }
 
 #[pymethods]
@@ -26,7 +25,7 @@ impl PyWalkdirGen {
 
     /// __next__ just pulls one item from the underlying iterator
     fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
-        let value = py.detach(|| self.iter.lock().next());
+        let value = py.detach(|| self.iter.py_lock().next());
         if let Some(entry) = value {
             let bound_py_any = if self.objects {
                 // if objects is true, we return a DirEntry object
@@ -47,7 +46,7 @@ impl PyWalkdirGen {
         if self.objects {
             let entries = py.detach(|| {
                 self.iter
-                    .lock()
+                    .py_lock()
                     .by_ref()
                     .take(n)
                     .map(PyWalkDirEntry::from)
@@ -57,7 +56,7 @@ impl PyWalkdirGen {
         } else {
             let entries = py.detach(|| {
                 self.iter
-                    .lock()
+                    .py_lock()
                     .by_ref()
                     .take(n)
                     .map(|entry| entry.path().to_string_lossy().to_string())
@@ -74,7 +73,7 @@ impl PyWalkdirGen {
         if self.objects {
             let entries = py.detach(|| {
                 self.iter
-                    .lock()
+                    .py_lock()
                     .by_ref()
                     .map(PyWalkDirEntry::from)
                     .collect::<Vec<_>>()
@@ -83,7 +82,7 @@ impl PyWalkdirGen {
         } else {
             let entries = py.detach(|| {
                 self.iter
-                    .lock()
+                    .py_lock()
                     .by_ref()
                     .map(|entry| entry.path().to_string_lossy().to_string())
                     .collect::<Vec<_>>()
@@ -96,9 +95,10 @@ impl PyWalkdirGen {
 impl From<::walkdir::WalkDir> for PyWalkdirGen {
     fn from(wd: ::walkdir::WalkDir) -> Self {
         let wdit = wd.into_iter();
+
         Self {
             objects: false,
-            iter: Mutex::new(Box::new(wdit.filter_map(Result::ok))),
+            iter: PyMutex::new(Box::new(wdit.filter_map(Result::ok))),
         }
     }
 }
@@ -190,32 +190,32 @@ impl WalkdirOptions {
 )]
 pub fn walkdir(
     path: Option<PathLike>,
-    files: Option<bool>,             // true
-    dirs: Option<bool>,              // true
-    contents_first: Option<bool>,    // false
-    min_depth: Option<usize>,        // default 0
-    max_depth: Option<usize>,        // default None
-    follow_links: Option<bool>,      // default false
-    follow_root_links: Option<bool>, // default true
-    same_file_system: Option<bool>,  // default false
-    sort_by_file_name: Option<bool>, // default false
-    glob: Option<GlobsterLike>,      // default None
-    objects: bool,                   // default false
+    files: bool,                // true
+    dirs: bool,                 // true
+    contents_first: bool,       // false
+    min_depth: usize,           // default 0
+    max_depth: Option<usize>,   // default None
+    follow_links: bool,         // default false
+    follow_root_links: bool,    // default true
+    same_file_system: bool,     // default false
+    sort_by_file_name: bool,    // default false
+    glob: Option<GlobsterLike>, // default None
+    objects: bool,              // default false
 ) -> PyResult<PyWalkdirGen> {
     let walk_globster = match glob {
         Some(g) => Some(PyGlobster::try_from(&g)?),
         None => None,
     };
     let opts = WalkdirOptions {
-        files: files.unwrap_or(true),
-        dirs: dirs.unwrap_or(true),
-        contents_first: contents_first.unwrap_or(false),
-        min_depth: min_depth.unwrap_or(0),
+        files,
+        dirs,
+        contents_first,
+        min_depth,
         max_depth,
-        follow_links: follow_links.unwrap_or(false),
-        follow_root_links: follow_root_links.unwrap_or(true),
-        same_file_system: same_file_system.unwrap_or(false),
-        sort_by_file_name: sort_by_file_name.unwrap_or(false),
+        follow_links,
+        follow_root_links,
+        same_file_system,
+        sort_by_file_name,
     };
     let wd_iter = opts.build_iter(path.unwrap_or_else(|| PathLike::Str(String::from("."))));
     let final_iter = if let Some(gs) = walk_globster {
@@ -226,7 +226,7 @@ pub fn walkdir(
     };
     Ok(PyWalkdirGen {
         objects,
-        iter: Mutex::new(final_iter),
+        iter: PyMutex::new(final_iter),
     })
 }
 

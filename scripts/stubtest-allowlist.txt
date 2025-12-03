@@ -23,7 +23,6 @@ ry.Response.json
 # --- submodules ---
 
 # --- top level functions ---
-ry.walkdir
 ry.aiopen
 ry.glob
 ry.parse_json
