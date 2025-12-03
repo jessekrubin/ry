@@ -123,8 +123,8 @@ impl RyOffset {
     }
 
     #[staticmethod]
-    fn from_pytzinfo(d: JiffOffset) -> Self {
-        Self::from(d.0)
+    fn from_pytzinfo(tz: JiffOffset) -> Self {
+        Self::from(tz.0)
     }
 
     #[pyo3(name = "to_string")]
@@ -232,8 +232,8 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, opts: &RyOffsetRound) -> PyResult<Self> {
-        opts.round(self)
+    fn _round(&self, options: &RyOffsetRound) -> PyResult<Self> {
+        options.round(self)
     }
 
     fn __hash__(&self) -> u64 {

@@ -253,6 +253,42 @@ class TestUrlReplace:
             == "http://[2001:db8:85a3::8a2e:370:7334]/"
         )
 
+    @pytest.mark.parametrize(
+        "ip_addr, expected_url",
+        [
+            (
+                pyip.ip_interface("2001:db8:85a3::8a2e:370:7334"),
+                "http://[2001:db8:85a3::8a2e:370:7334]/",
+            ),
+            (
+                ry.Ipv6Addr.parse("2001:db8:85a3::8a2e:370:7334"),
+                "http://[2001:db8:85a3::8a2e:370:7334]/",
+            ),
+            (
+                ry.IpAddr.parse("2001:db8:85a3::8a2e:370:7334"),
+                "http://[2001:db8:85a3::8a2e:370:7334]/",
+            ),
+            (
+                ry.Ipv4Addr.parse("192.168.1.1"),
+                "http://192.168.1.1/",
+            ),
+        ],
+    )
+    def test_replace_ip_host_ry_types(
+        self,
+        ip_addr: pyip.IPv4Interface
+        | pyip.IPv6Interface
+        | ry.Ipv4Addr
+        | ry.Ipv6Addr
+        | ry.IpAddr,
+        expected_url: str,
+    ) -> None:
+        u = ry.URL("http://example.com")
+        replaced = u.replace_ip_host(ip_addr)
+        assert str(replaced) == expected_url
+        replaced = u.replace(ip_host=ip_addr)
+        assert str(replaced) == expected_url
+
     def test_replace_username(self) -> None:
         u = ry.URL("http://example.com")
         replaced = u.replace(username="user")

@@ -45,6 +45,7 @@ class WalkdirGen(RyIterator[_T_walkdir]):
 @t.overload
 def walkdir(
     path: str | PathLike[str] | None = None,
+    /,
     *,
     files: bool = True,
     dirs: bool = True,
@@ -52,13 +53,16 @@ def walkdir(
     min_depth: int = 0,
     max_depth: int | None = None,
     follow_links: bool = False,
+    follow_root_links: bool = True,
     same_file_system: bool = False,
+    sort_by_file_name: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
     objects: t.Literal[True],
 ) -> WalkdirGen[WalkDirEntry]: ...
 @t.overload
 def walkdir(
     path: str | PathLike[str] | None = None,
+    /,
     *,
     objects: t.Literal[False] = False,
     files: bool = True,
@@ -67,6 +71,8 @@ def walkdir(
     min_depth: int = 0,
     max_depth: int | None = None,
     follow_links: bool = False,
+    follow_root_links: bool = True,
     same_file_system: bool = False,
+    sort_by_file_name: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
 ) -> WalkdirGen[str]: ...

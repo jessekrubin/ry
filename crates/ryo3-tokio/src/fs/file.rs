@@ -241,7 +241,10 @@ impl PyAsyncFile {
 #[pymethods]
 impl PyAsyncFile {
     #[new]
-    #[pyo3(signature = (p, mode= PyOpenMode::default()))]
+    #[pyo3(
+        signature = (p, mode=PyOpenMode::default()),
+        text_signature = "(path, mode='rb')"
+    )]
     fn py_new(p: PathBuf, mode: PyOpenMode) -> PyResult<Self> {
         if !mode.is_binary() {
             return Err(PyNotImplementedError::new_err(

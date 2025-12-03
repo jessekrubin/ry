@@ -31,9 +31,9 @@ impl<T> PyMutex<T, true> {
 }
 
 impl<T> PyMutex<T, false> {
-    pub fn py_lock(&self) -> PyResult<MutexGuard<'_, T>> {
+    pub fn py_lock(&self) -> MutexGuard<'_, T> {
         // yolo ~ ignore poisoning bc we don't care
-        Ok(self.0.lock().unwrap_or_else(PoisonError::into_inner))
+        self.0.lock().unwrap_or_else(PoisonError::into_inner)
     }
 }
 

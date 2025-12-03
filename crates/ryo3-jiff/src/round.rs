@@ -709,7 +709,7 @@ impl RyOffsetRound {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (smallest=None, *, mode=None, increment=None))]
+    #[pyo3(signature = (smallest=None, mode=None, increment=None))]
     fn replace(
         &self,
         smallest: Option<JiffUnit>,

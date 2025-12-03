@@ -8,6 +8,7 @@
   - Bump version to 1.4.0 which adds `103 Early Hints` status code among other
     things
 - `ryo3-reqwest`
+  - Removed `client` kwarg from `fetch` function as it is kinda stupid
   - `BlockingClient` and `BlockingResponse` for sync/blocking reqs... This makes
     the `HttpClient` name awkward and may rename it to just `Client`... TBD
   - added `fetch_sync` function for blocking/sync http requests

@@ -72,8 +72,8 @@ impl RyISOWeekDate {
 
     /// Returns the `ISOWeekDate` for the given `Date`.
     #[staticmethod]
-    fn from_pydate(d: jiff::civil::Date) -> Self {
-        Self::from(d)
+    fn from_pydate(date: jiff::civil::Date) -> Self {
+        Self::from(date)
     }
 
     /// Returns the `ISOWeekDate` for the given `Date`.

@@ -1,19 +1,23 @@
 import builtins
 import datetime as pydt
+import typing as t
 import uuid
 from collections.abc import Callable as Callable
-from typing import Any
 
 from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
 from pydantic import ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler
 from pydantic_core import CoreSchema as CoreSchema
 
-class ULID:
+from ry.protocols import FromStr
+
+@t.final
+class ULID(FromStr):
     def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
 
     # ----------------
     # INSTANCE METHODS
     # ----------------
+    def to_bytes(self) -> builtins.bytes: ...
     def to_uuid(self) -> uuid.UUID: ...
     def to_uuid4(self) -> uuid.UUID: ...
 
@@ -39,6 +43,10 @@ class ULID:
     @classmethod
     def from_timestamp(cls, value: float) -> ULID: ...
     @classmethod
+    def from_timestamp_seconds(cls, value: float) -> ULID: ...
+    @classmethod
+    def from_timestamp_milliseconds(cls, value: int) -> ULID: ...
+    @classmethod
     def from_uuid(cls, uu: uuid.UUID) -> ULID: ...
     @classmethod
     def from_bytes(cls, b: builtins.bytes) -> ULID: ...
@@ -47,9 +55,12 @@ class ULID:
     @classmethod
     def from_str(cls, s: str) -> ULID: ...
     @classmethod
+    def from_string(cls, s: str) -> ULID:
+        """Alias for `from_str` to match python-ulid lib"""
+    @classmethod
     def from_int(cls, i: int) -> ULID: ...
     @classmethod
-    def parse(cls, value: Any) -> ULID: ...
+    def parse(cls, value: t.Any) -> ULID: ...
 
     # -------
     # DUNDERS
@@ -68,5 +79,5 @@ class ULID:
     # --------
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, source: Any, handler: GetCoreSchemaHandler
+        cls, source: t.Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema: ...

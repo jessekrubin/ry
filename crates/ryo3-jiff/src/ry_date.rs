@@ -63,16 +63,16 @@ impl RyDate {
     }
 
     #[staticmethod]
-    fn from_str(input: &str) -> PyResult<Self> {
+    fn from_str(s: &str) -> PyResult<Self> {
         DATETIME_PARSER
-            .parse_date(input)
+            .parse_date(s)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[staticmethod]
-    fn parse(input: &str) -> PyResult<Self> {
-        Self::from_str(input)
+    fn parse(s: &str) -> PyResult<Self> {
+        Self::from_str(s)
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond=0))]
@@ -239,8 +239,8 @@ impl RyDate {
     }
 
     #[staticmethod]
-    fn from_pydate(d: Date) -> Self {
-        Self(d)
+    fn from_pydate(date: Date) -> Self {
+        Self(date)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -315,6 +315,7 @@ impl RyDate {
     fn duration_since(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_since(other.0))
     }
+
     fn duration_until(&self, other: &Self) -> RySignedDuration {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
@@ -386,17 +387,18 @@ impl RyDate {
     }
 
     #[pyo3(
-       signature = (d, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
+        text_signature = "(self, other, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
-        d: DateDifferenceArg,
+        other: DateDifferenceArg,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> PyResult<RySpan> {
-        let dt_diff = d.build(smallest, largest, mode, increment);
+        let dt_diff = other.build(smallest, largest, mode, increment);
         self.0
             .since(dt_diff)
             .map(RySpan::from)
@@ -404,17 +406,18 @@ impl RyDate {
     }
 
     #[pyo3(
-       signature = (d, *, smallest=None, largest = None, mode = None, increment = None),
+       signature = (other, *, smallest=None, largest = None, mode = None, increment = None),
+        text_signature = "(self, other, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
-        d: DateDifferenceArg,
+        other: DateDifferenceArg,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> PyResult<RySpan> {
-        let dt_diff = d.build(smallest, largest, mode, increment);
+        let dt_diff = other.build(smallest, largest, mode, increment);
         self.0
             .until(dt_diff)
             .map(RySpan::from)

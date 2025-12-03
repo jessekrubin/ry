@@ -18,8 +18,15 @@ ryo3-macro-rules.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
 rand = { workspace = true, optional = false }
-uuid = { workspace = true, features = ["v4", "v7", "v8"] }
-
+uuid = { workspace = true, features = [
+  "v1",
+  "v3",
+  "v4",
+  "v5",
+  "v6",
+  "v7",
+  "v8",
+] }
 [build-dependencies]
 pyo3-build-config = { workspace = true }
 
@@ -29,27 +36,13 @@ serde = { workspace = true, features = ["derive"] }
 [features]
 default = []
 # v1 = ["uuid/v1"]
-# v3 = ["uuid/v3"]
 # v4 = ["uuid/v4"]
-# v5 = ["uuid/v5"]
 # v6 = ["uuid/v6"]
 # v7 = ["uuid/v7"]
 # v8 = ["uuid/v8", "rand"]
-ry = [
-  # "v3",
-  # "v5",
-  # "v6",
-  "serde",
-  "pydantic",
-]
-serde = [
-  "dep:serde",
-  "uuid/serde",
-]
-pydantic = [
-  "serde",
-  "ryo3-pydantic"
-]
+ry = ["serde", "pydantic"]
+serde = ["dep:serde", "uuid/serde"]
+pydantic = ["serde", "ryo3-pydantic"]
 
 [lints]
 workspace = true

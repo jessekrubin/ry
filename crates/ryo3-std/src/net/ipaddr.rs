@@ -223,8 +223,8 @@ impl PyIpv4Addr {
     }
 
     #[staticmethod]
-    fn from_bits(s: u32) -> Self {
-        Self(std::net::Ipv4Addr::from(s))
+    fn from_bits(bits: u32) -> Self {
+        Self(std::net::Ipv4Addr::from(bits))
     }
 
     #[staticmethod]
@@ -464,8 +464,8 @@ impl PyIpv6Addr {
     }
 
     #[staticmethod]
-    fn from_bits(s: u128) -> Self {
-        Self(std::net::Ipv6Addr::from(s))
+    fn from_bits(bits: u128) -> Self {
+        Self(std::net::Ipv6Addr::from(bits))
     }
 
     #[staticmethod]

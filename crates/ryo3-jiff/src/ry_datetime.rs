@@ -325,8 +325,8 @@ impl RyDateTime {
     }
 
     #[staticmethod]
-    fn from_pydatetime(d: DateTime) -> Self {
-        Self::from(d)
+    fn from_pydatetime(datetime: DateTime) -> Self {
+        Self::from(datetime)
     }
 
     fn series(&self, period: &RySpan) -> PyResult<RyDateTimeSeries> {
@@ -456,32 +456,27 @@ impl RyDateTime {
     }
 
     #[pyo3(
-       signature = (smallest=None, *, mode = None, increment = None),
+        signature = (
+            smallest=JiffUnit(jiff::Unit::Nanosecond),
+            *,
+            mode=JiffRoundMode(jiff::RoundMode::HalfExpand),
+            increment=1
+        ),
+        text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
-    fn round(
-        &self,
-        smallest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
-    ) -> PyResult<Self> {
-        let mut dt_round = DateTimeRound::new();
-        if let Some(smallest) = smallest {
-            dt_round = dt_round.smallest(smallest.0);
-        }
-        if let Some(mode) = mode {
-            dt_round = dt_round.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            dt_round = dt_round.increment(increment);
-        }
+    fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
+        let dt_round = DateTimeRound::new()
+            .smallest(smallest.0)
+            .increment(increment)
+            .mode(mode.0);
         self.0
             .round(dt_round)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, dt_round: &RyDateTimeRound) -> PyResult<Self> {
-        dt_round.round(self)
+    fn _round(&self, options: &RyDateTimeRound) -> PyResult<Self> {
+        options.round(self)
     }
 
     fn day_of_year(&self) -> i16 {
@@ -500,12 +495,12 @@ impl RyDateTime {
         self.0.days_in_year()
     }
 
-    fn duration_since(&self, dt: &Self) -> RySignedDuration {
-        self.0.duration_since(dt.0).into()
+    fn duration_since(&self, other: &Self) -> RySignedDuration {
+        self.0.duration_since(other.0).into()
     }
 
-    fn duration_until(&self, dt: &Self) -> RySignedDuration {
-        self.0.duration_until(dt.0).into()
+    fn duration_until(&self, other: &Self) -> RySignedDuration {
+        self.0.duration_until(other.0).into()
     }
 
     /// Returns the end of the day `DateTime`
@@ -560,17 +555,18 @@ impl RyDateTime {
     }
 
     #[pyo3(
-       signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (other, *, smallest=None, largest = None, mode = None, increment = None),
+        text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
-        datetime: DateTimeDifferenceArg,
+        other: DateTimeDifferenceArg,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> PyResult<RySpan> {
-        let dt_diff = datetime.build(smallest, largest, mode, increment);
+        let dt_diff = other.build(smallest, largest, mode, increment);
         self.0
             .since(dt_diff)
             .map(RySpan::from)
@@ -578,17 +574,18 @@ impl RyDateTime {
     }
 
     #[pyo3(
-       signature = (datetime, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (other, *, smallest=None, largest = None, mode = None, increment = None),
+        text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
-        datetime: DateTimeDifferenceArg,
+        other: DateTimeDifferenceArg,
         smallest: Option<JiffUnit>,
         largest: Option<JiffUnit>,
         mode: Option<JiffRoundMode>,
         increment: Option<i64>,
     ) -> PyResult<RySpan> {
-        let dt_diff = datetime.build(smallest, largest, mode, increment);
+        let dt_diff = other.build(smallest, largest, mode, increment);
         self.0
             .until(dt_diff)
             .map(RySpan::from)

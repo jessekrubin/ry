@@ -157,8 +157,8 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn parse(input: &str) -> PyResult<Self> {
-        Self::from_str(input)
+    fn parse(s: &str) -> PyResult<Self> {
+        Self::from_str(s)
     }
 
     #[staticmethod]
@@ -624,33 +624,28 @@ impl RySignedDuration {
     // ROUND
     // ========================================================================
     #[pyo3(
-       signature = (smallest=None, *, mode = None, increment = None),
+        signature = (
+            smallest=JiffUnit(jiff::Unit::Nanosecond),
+            *,
+            mode = JiffRoundMode( jiff::RoundMode::HalfExpand),
+            increment = 1,
+        ),
+        text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)",
     )]
-    fn round(
-        &self,
-        smallest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
-    ) -> PyResult<Self> {
-        let mut dt_round = SignedDurationRound::new();
-        if let Some(smallest) = smallest {
-            dt_round = dt_round.smallest(smallest.0);
-        }
-        if let Some(mode) = mode {
-            dt_round = dt_round.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            dt_round = dt_round.increment(increment);
-        }
+    fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
+        let dt_round = SignedDurationRound::new()
+            .smallest(smallest.0)
+            .mode(mode.0)
+            .increment(increment);
         self.0
             .round(dt_round)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn _round(&self, dt_round: &RySignedDurationRound) -> PyResult<Self> {
+    fn _round(&self, options: &RySignedDurationRound) -> PyResult<Self> {
         self.0
-            .round(dt_round.jiff_round)
+            .round(options.jiff_round)
             .map(Self::from)
             .map_err(map_py_value_err)
     }

@@ -118,8 +118,8 @@ impl PyPattern {
         glob::Pattern::escape(pattern)
     }
 
-    fn matches(&self, path: &str) -> bool {
-        self.pattern.matches(path)
+    fn matches(&self, s: &str) -> bool {
+        self.pattern.matches(s)
     }
 
     #[expect(clippy::needless_pass_by_value)]

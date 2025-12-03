@@ -6,7 +6,7 @@ from ry._types import Buffer, Unpack
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JsonParseKwargs, JsonValue
 
-def minify(data: Buffer | str) -> Bytes:
+def minify(buf: Buffer | str, /) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:
@@ -31,7 +31,7 @@ def minify(data: Buffer | str) -> Bytes:
 
     """
 
-def fmt(data: Buffer | str) -> Bytes:
+def fmt(buf: Buffer | str, /) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:
@@ -64,7 +64,7 @@ def fmt(data: Buffer | str) -> Bytes:
 
 @t.overload
 def stringify(
-    data: t.Any,
+    obj: t.Any,
     *,
     default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
@@ -74,7 +74,7 @@ def stringify(
 ) -> bytes: ...
 @t.overload
 def stringify(
-    data: t.Any,
+    obj: t.Any,
     *,
     default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
@@ -84,7 +84,7 @@ def stringify(
 ) -> Bytes: ...
 @t.overload
 def dumps(
-    data: t.Any,
+    obj: t.Any,
     *,
     default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
@@ -94,7 +94,7 @@ def dumps(
 ) -> bytes: ...
 @t.overload
 def dumps(
-    data: t.Any,
+    obj: t.Any,
     *,
     default: t.Callable[[t.Any], t.Any] | None = None,
     fmt: bool = False,
@@ -116,4 +116,12 @@ def cache_clear() -> None: ...
 def cache_usage() -> int: ...
 
 # under construction
-def stringify_unsafe(data: t.Any) -> Bytes: ...
+def stringify_unsafe(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: bool = False,
+) -> t.NoReturn: ...

@@ -135,8 +135,8 @@ impl PyRegex {
     /// It is recommended to use this method if all you need to do is test
     /// whether a match exists, since the underlying matching engine may be
     /// able to do less work.
-    fn is_match(&self, text: &str) -> bool {
-        self.re.is_match(text)
+    fn is_match(&self, haystack: &str) -> bool {
+        self.re.is_match(haystack)
     }
 
     /// Returns true if and only if there is a match for the regex anywhere in the haystack given.
@@ -144,43 +144,43 @@ impl PyRegex {
     /// It is recommended to use this method if all you need to do is test
     /// whether a match exists, since the underlying matching engine may be
     /// able to do less work.
-    fn test(&self, text: &str) -> bool {
-        self.re.is_match(text)
+    fn test(&self, haystack: &str) -> bool {
+        self.re.is_match(haystack)
     }
 
-    fn find(&self, text: &str) -> Option<(usize, usize)> {
-        self.re.find(text).map(|m| (m.start(), m.end()))
+    fn find(&self, haystack: &str) -> Option<(usize, usize)> {
+        self.re.find(haystack).map(|m| (m.start(), m.end()))
     }
 
-    fn find_all(&self, text: &str) -> Vec<(usize, usize)> {
+    fn find_all(&self, haystack: &str) -> Vec<(usize, usize)> {
         self.re
-            .find_iter(text)
+            .find_iter(haystack)
             .map(|m| (m.start(), m.end()))
             .collect()
     }
 
-    fn findall(&self, text: &str) -> Vec<(usize, usize)> {
-        self.find_all(text)
+    fn findall(&self, haystack: &str) -> Vec<(usize, usize)> {
+        self.find_all(haystack)
     }
 
-    fn replace<'py>(&self, text: &'py str, replace: &str) -> Cow<'py, str> {
-        self.re.replace(text, replace)
+    fn replace<'py>(&self, haystack: &'py str, replacement: &str) -> Cow<'py, str> {
+        self.re.replace(haystack, replacement)
     }
 
-    fn replace_all(&self, text: &str, replace: &str) -> String {
-        self.re.replace_all(text, replace).to_string()
+    fn replace_all(&self, haystack: &str, replacement: &str) -> String {
+        self.re.replace_all(haystack, replacement).to_string()
     }
 
-    fn split(&self, text: &str) -> Vec<String> {
+    fn split(&self, haystack: &str) -> Vec<String> {
         self.re
-            .split(text)
+            .split(haystack)
             .map(std::string::ToString::to_string)
             .collect()
     }
 
-    fn splitn(&self, text: &str, n: usize) -> Vec<String> {
+    fn splitn(&self, haystack: &str, n: usize) -> Vec<String> {
         self.re
-            .splitn(text, n)
+            .splitn(haystack, n)
             .map(std::string::ToString::to_string)
             .collect()
     }
