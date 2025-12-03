@@ -2158,6 +2158,7 @@ dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
  "ryo3-bytes",
+ "ryo3-macro-rules",
  "ryo3-std",
  "tokio",
  "tracing",

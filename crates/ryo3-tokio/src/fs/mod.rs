@@ -173,15 +173,19 @@ pub fn write_string_async(
 }
 
 #[pyfunction(
-    signature = (path, mode = PyOpenMode::default(), **kwargs),
-    text_signature = "(path, mode=\"rb\", **kwargs)",
+    signature = (path, mode = PyOpenMode::default(), buffering = -1, **kwargs),
+    text_signature = "(path, mode=\"rb\", buffering=-1, **kwargs)",
 )]
 pub fn aiopen<'py>(
     py: Python<'py>,
     path: PathBuf,
     mode: PyOpenMode,
+    buffering: i8,
     kwargs: Option<&Bound<'py, PyDict>>,
 ) -> PyResult<Bound<'py, PyAny>> {
+    if buffering != -1 {
+        warn!("aiopen non-buffered not impl: {kwargs:?}");
+    }
     if let Some(kwargs) = kwargs {
         warn!("aiopen kwargs not impl: {kwargs:?}");
     }

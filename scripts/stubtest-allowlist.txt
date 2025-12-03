@@ -13,27 +13,28 @@ ry.*.__get_pydantic_core_schema__
 ry.*.__get_pydantic_json_schema__
 ry.__opt_level__
 
+# ---------------
 # --- CLASSES ---
+# ---------------
 ry.BlockingClient.*
 ry.HttpClient.*
 ry.Response.json
 
-# --- jiff ---
-
-# --- submodules ---
-
+# ---------------------------
 # --- top level functions ---
-ry.aiopen
+# ---------------------------
 ry.parse_json
 ry.parse_jsonl
 ry.read_json
 ry.JSON.loads
 ry.JSON.parse
 
+# -----------------------------------------
 # --- classmethod/staticmethod problems ---
+# -----------------------------------------
 ry.*.from_any
 ry.*.from_str
-
+# --- discrete ---
 ry.Bytes.fromhex
 ry.Certificate.from_pem_bundle
 ry.Duration.from_days
