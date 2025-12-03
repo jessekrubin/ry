@@ -168,7 +168,7 @@ impl WalkdirOptions {
     }
 }
 
-#[expect(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
 #[pyfunction]
 #[pyo3(
     signature = (

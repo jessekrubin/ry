@@ -857,6 +857,7 @@ def glob(
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
     strict: bool = False,
+    dtype: None = None,
 ) -> GlobPaths[Path]: ...
 @t.overload
 def glob(

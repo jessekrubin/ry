@@ -24,7 +24,6 @@ ry.Response.json
 
 # --- top level functions ---
 ry.aiopen
-ry.glob
 ry.parse_json
 ry.parse_jsonl
 ry.read_json

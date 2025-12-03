@@ -7,7 +7,7 @@ import ry
 try:
     from rich import print as echo
 except ImportError:
-    echo = print
+    echo = print  # type: ignore[assignment]
 
 
 async def main_async() -> None:
