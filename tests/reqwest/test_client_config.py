@@ -39,7 +39,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "http2_keep_alive_timeout": None,
     "http2_keep_alive_while_idle": False,
     "pool_idle_timeout": ry.Duration(secs=90, nanos=0),
-    "pool_max_idle_per_host": 18446744073709551615,
+    "pool_max_idle_per_host": ry.USIZE_MAX,
     "tcp_keepalive": ry.Duration(secs=15, nanos=0),
     "tcp_keepalive_interval": ry.Duration(secs=15, nanos=0),
     "tcp_keepalive_retries": 3,
