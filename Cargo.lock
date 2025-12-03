@@ -2231,7 +2231,6 @@ dependencies = [
 name = "ryo3-walkdir"
 version = "0.0.70"
 dependencies = [
- "parking_lot",
  "pyo3",
  "ryo3-core",
  "ryo3-globset",
