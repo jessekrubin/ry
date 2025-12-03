@@ -25,5 +25,5 @@ pub(crate) use py_none::SerializePyNone;
 pub(crate) use py_seq::{
     SerializePyFrozenSet, SerializePyList, SerializePySequence, SerializePySet, SerializePyTuple,
 };
-pub(crate) use py_str::SerializePyStr;
+pub(crate) use py_str::{SerializePyStr, SerializePyStrSubclass};
 pub(crate) use py_uuid::SerializePyUuid;

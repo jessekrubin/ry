@@ -16,11 +16,12 @@ use crate::ser::safe_impl::{
     SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
     SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
     SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
-    SerializePyStr, SerializePyTime, SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
+    SerializePyStr, SerializePyStrSubclass, SerializePyTime, SerializePyTimeDelta,
+    SerializePyTuple, SerializePyUuid,
 };
 use crate::{Depth, MAX_DEPTH, serde_err, serde_err_recursion};
 use pyo3::Bound;
-use pyo3::types::{PyAnyMethods, PyMapping, PySequence};
+use pyo3::types::{PyAnyMethods, PyMapping, PySequence, PyString};
 
 pub struct SerializePyAny<'py> {
     pub(crate) obj: &'py Bound<'py, PyAny>,
@@ -173,7 +174,9 @@ impl Serialize for SerializePyAny<'_> {
             // UNKNOWN
             // ------------------------------------------------------------
             PyObType::Unknown => {
-                if let Ok(py_map) = self.obj.cast::<PyMapping>() {
+                if let Ok(pystr_subclass) = self.obj.cast::<PyString>() {
+                    SerializePyStrSubclass::new(pystr_subclass).serialize(serializer)
+                } else if let Ok(py_map) = self.obj.cast::<PyMapping>() {
                     SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth)
                         .serialize(serializer)
                 } else if let Ok(py_seq) = self.obj.cast::<PySequence>() {
