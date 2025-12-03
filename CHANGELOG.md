@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.70 [unreleased]
+## v0.0.70 [2025-12-02] (30 is the new 70)
 
 - type annotations
   - Fixing type annotations and starting to use `stubtest`
