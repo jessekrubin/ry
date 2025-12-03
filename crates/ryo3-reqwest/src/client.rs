@@ -481,9 +481,8 @@ impl RyHttpClient {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let kwargs = self.cfg.into_bound_py_any(py)?;
-        Ok(kwargs)
+    fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.cfg.into_pyobject(py)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -1230,9 +1229,8 @@ impl RyBlockingClient {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let kwargs = self.cfg.into_bound_py_any(py)?;
-        Ok(kwargs)
+    fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.cfg.into_pyobject(py)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -1697,113 +1695,14 @@ impl RyBlockingClient {
         )
     }
 }
+
 impl<'py> IntoPyObject<'py> for &ClientConfig {
     type Target = PyDict;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "headers"), self.headers.clone())?;
-        dict.set_item(intern!(py, "cookies"), self.cookies)?;
-        dict.set_item(intern!(py, "user_agent"), self.user_agent.clone())?;
-        dict.set_item(intern!(py, "timeout"), self.timeout)?;
-        dict.set_item(intern!(py, "read_timeout"), self.read_timeout)?;
-        dict.set_item(intern!(py, "connect_timeout"), self.connect_timeout)?;
-        dict.set_item(intern!(py, "redirect"), self.redirect)?;
-        dict.set_item(intern!(py, "referer"), self.referer)?;
-        dict.set_item(intern!(py, "gzip"), self.gzip)?;
-        dict.set_item(intern!(py, "brotli"), self.brotli)?;
-        dict.set_item(intern!(py, "deflate"), self.deflate)?;
-        dict.set_item(intern!(py, "zstd"), self.zstd)?;
-        dict.set_item(intern!(py, "hickory_dns"), self.hickory_dns)?;
-        dict.set_item(intern!(py, "http1_only"), self.http1_only)?;
-        dict.set_item(intern!(py, "https_only"), self.https_only)?;
-        // -- http1 --
-        dict.set_item(
-            intern!(py, "http1_title_case_headers"),
-            self.http1_title_case_headers,
-        )?;
-        dict.set_item(
-            intern!(py, "http1_allow_obsolete_multiline_headers_in_responses"),
-            self.http1_allow_obsolete_multiline_headers_in_responses,
-        )?;
-        dict.set_item(
-            intern!(py, "http1_allow_spaces_after_header_name_in_responses"),
-            self.http1_allow_spaces_after_header_name_in_responses,
-        )?;
-        dict.set_item(
-            intern!(py, "http1_ignore_invalid_headers_in_responses"),
-            self.http1_ignore_invalid_headers_in_responses,
-        )?;
-        // -- http2 --
-        dict.set_item(
-            intern!(py, "http2_prior_knowledge"),
-            self.http2_prior_knowledge,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_initial_stream_window_size"),
-            self.http2_initial_stream_window_size,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_initial_connection_window_size"),
-            self.http2_initial_connection_window_size,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_adaptive_window"),
-            self.http2_adaptive_window,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_max_frame_size"),
-            self.http2_max_frame_size,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_max_header_list_size"),
-            self.http2_max_header_list_size,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_keep_alive_interval"),
-            self.http2_keep_alive_interval,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_keep_alive_timeout"),
-            self.http2_keep_alive_timeout,
-        )?;
-        dict.set_item(
-            intern!(py, "http2_keep_alive_while_idle"),
-            self.http2_keep_alive_while_idle,
-        )?;
-        // -- pool --
-        dict.set_item(intern!(py, "pool_idle_timeout"), self.pool_idle_timeout)?;
-        dict.set_item(
-            intern!(py, "pool_max_idle_per_host"),
-            self.pool_max_idle_per_host,
-        )?;
-        // -- tcp --
-        dict.set_item(intern!(py, "tcp_keepalive"), self.tcp_keepalive)?;
-        dict.set_item(
-            intern!(py, "tcp_keepalive_interval"),
-            self.tcp_keepalive_interval,
-        )?;
-        dict.set_item(
-            intern!(py, "tcp_keepalive_retries"),
-            self.tcp_keepalive_retries,
-        )?;
-        dict.set_item(intern!(py, "tcp_nodelay"), self.tcp_nodelay)?;
-        // -- tls --
-        dict.set_item(intern!(py, "tls_min_version"), self.tls_min_version)?;
-        dict.set_item(intern!(py, "tls_max_version"), self.tls_max_version)?;
-        dict.set_item(intern!(py, "tls_info"), self.tls_info)?;
-        dict.set_item(intern!(py, "tls_sni"), self.tls_sni)?;
-        dict.set_item(
-            intern!(py, "danger_accept_invalid_certs"),
-            self.danger_accept_invalid_certs,
-        )?;
-        dict.set_item(
-            intern!(py, "danger_accept_invalid_hostnames"),
-            self.danger_accept_invalid_hostnames,
-        )?;
-        Ok(dict)
+        self.as_pydict(py)
     }
 }
 
@@ -1913,6 +1812,71 @@ impl ClientConfig {
             client_builder = client_builder.max_tls_version(tls_max_version.into());
         }
         client_builder
+    }
+
+    fn as_pydict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        macro_rules! set_item {
+            ($key:expr, $value:expr) => {
+                dict.set_item(intern!(py, $key), $value)?
+            };
+        }
+        macro_rules! set_items {
+            ($( $key:expr => $value:expr),* ) => {
+                $(
+                    set_item!($key, $value);
+                )*
+            };
+        }
+
+        set_items! {
+            "headers" => self.headers.clone(),
+            "cookies" => self.cookies,
+            "user_agent" => self.user_agent.clone(),
+            "timeout" => self.timeout,
+            "read_timeout" => self.read_timeout,
+            "connect_timeout" => self.connect_timeout,
+            "redirect" => self.redirect,
+            "referer" => self.referer,
+            "gzip" => self.gzip,
+            "brotli" => self.brotli,
+            "deflate" => self.deflate,
+            "zstd" => self.zstd,
+            "hickory_dns" => self.hickory_dns,
+            "http1_only" => self.http1_only,
+            "https_only" => self.https_only,
+            // -- http1 --
+            "http1_title_case_headers" => self.http1_title_case_headers,
+            "http1_allow_obsolete_multiline_headers_in_responses" => self.http1_allow_obsolete_multiline_headers_in_responses,
+            "http1_allow_spaces_after_header_name_in_responses" => self.http1_allow_spaces_after_header_name_in_responses,
+            "http1_ignore_invalid_headers_in_responses" => self.http1_ignore_invalid_headers_in_responses,
+            // -- http2 --
+            "http2_prior_knowledge" => self.http2_prior_knowledge,
+            "http2_initial_stream_window_size" => self.http2_initial_stream_window_size,
+            "http2_initial_connection_window_size" => self.http2_initial_connection_window_size,
+            "http2_adaptive_window" => self.http2_adaptive_window,
+            "http2_max_frame_size" => self.http2_max_frame_size,
+            "http2_max_header_list_size" => self.http2_max_header_list_size,
+            "http2_keep_alive_interval" => self.http2_keep_alive_interval,
+            "http2_keep_alive_timeout" => self.http2_keep_alive_timeout,
+            "http2_keep_alive_while_idle" => self.http2_keep_alive_while_idle,
+            // -- pool --
+            "pool_idle_timeout" => self.pool_idle_timeout,
+            "pool_max_idle_per_host" => self.pool_max_idle_per_host,
+            // -- tcp --
+            "tcp_keepalive" => self.tcp_keepalive,
+            "tcp_keepalive_interval" => self.tcp_keepalive_interval,
+            "tcp_keepalive_retries" => self.tcp_keepalive_retries,
+            "tcp_nodelay" => self.tcp_nodelay,
+            // -- tls --
+            "tls_min_version" => self.tls_min_version,
+            "tls_max_version" => self.tls_max_version,
+            "tls_info" => self.tls_info,
+            "tls_sni" => self.tls_sni,
+            "danger_accept_invalid_certs" => self.danger_accept_invalid_certs,
+            "danger_accept_invalid_hostnames" => self.danger_accept_invalid_hostnames
+        }
+        Ok(dict)
     }
 
     fn client_builder(&self) -> reqwest::ClientBuilder {
