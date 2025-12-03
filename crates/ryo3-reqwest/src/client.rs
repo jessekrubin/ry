@@ -1869,6 +1869,7 @@ impl ClientConfig {
             "tcp_keepalive_retries" => self.tcp_keepalive_retries,
             "tcp_nodelay" => self.tcp_nodelay,
             // -- tls --
+            "root_certificates" => self.root_certificates.clone(),
             "tls_min_version" => self.tls_min_version,
             "tls_max_version" => self.tls_max_version,
             "tls_info" => self.tls_info,
