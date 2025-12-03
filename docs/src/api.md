@@ -5647,9 +5647,7 @@ class AsyncFile:
 
 
 def aiopen(
-    path: FsPathLike,
-    mode: OpenBinaryMode | str = "rb",
-    buffering: t.Literal[-1] = -1,
+    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
 ```
 
