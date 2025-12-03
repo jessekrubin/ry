@@ -2,8 +2,8 @@
 
 mod walkdir_entry;
 use pyo3::{IntoPyObjectExt, prelude::*};
-use ryo3_core::types::PathLike;
 use ryo3_core::PyMutex;
+use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
 
