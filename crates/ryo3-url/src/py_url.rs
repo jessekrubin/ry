@@ -274,6 +274,11 @@ impl PyUrl {
     }
 
     #[getter]
+    fn query_string(&self) -> &str {
+        self.0.query().unwrap_or("")
+    }
+
+    #[getter]
     fn query_pairs<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let query_pairs = self
             .0
@@ -286,6 +291,11 @@ impl PyUrl {
     #[getter]
     fn fragment(&self) -> Option<&str> {
         self.0.fragment()
+    }
+
+    #[getter]
+    fn user(&self) -> &str {
+        self.0.username()
     }
 
     #[getter]
