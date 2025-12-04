@@ -1,4 +1,3 @@
-use crate::constants::DATETIME_PARSER;
 use crate::difference::{DateDifferenceArg, RyDateDifference};
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_datetime::RyDateTime;

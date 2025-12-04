@@ -1,4 +1,3 @@
-use crate::constants::DATETIME_PARSER;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::round::RyOffsetRound;
 use crate::ry_datetime::RyDateTime;

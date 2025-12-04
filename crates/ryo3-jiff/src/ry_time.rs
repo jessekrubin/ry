@@ -14,7 +14,6 @@ use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::any_repr;
 use ryo3_macro_rules::py_type_err;
 use std::fmt::Display;

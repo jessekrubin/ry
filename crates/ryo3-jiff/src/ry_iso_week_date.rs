@@ -1,5 +1,5 @@
 use crate::errors::map_py_value_err;
-use crate::isoformat::{iso_weekdate_to_string, parse_iso_week_date};
+use crate::isoformat::iso_weekdate_to_string;
 use crate::{JiffWeekday, RyDate};
 use jiff::Zoned;
 use jiff::civil::ISOWeekDate;

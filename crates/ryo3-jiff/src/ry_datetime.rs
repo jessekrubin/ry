@@ -15,7 +15,6 @@ use crate::{
 };
 use jiff::Zoned;
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
-use jiff::tz::TimeZone;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -24,7 +23,6 @@ use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
-use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]

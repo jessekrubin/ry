@@ -11,7 +11,6 @@ use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
