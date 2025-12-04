@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::PyTuple;
 use std::ops::{Neg, Not};
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy)]
 #[pyclass(name = "Size", frozen, immutable_type)]
@@ -85,19 +86,15 @@ impl PySize {
     }
 
     #[staticmethod]
-    fn parse(size: &str) -> PyResult<Self> {
-        match size::Size::from_str(size) {
-            Ok(s) => Ok(Self(s)),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn from_str(size: &str) -> PyResult<Self> {
-        match size::Size::from_str(size) {
-            Ok(s) => Ok(Self(s)),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     fn __abs__(&self) -> Self {
@@ -386,6 +383,15 @@ impl<'py> FromPyObject<'_, 'py> for SizeWrapper {
         } else {
             Err(PyTypeError::new_err("Must be Size or i64"))
         }
+    }
+}
+
+impl FromStr for PySize {
+    type Err = size::ParseSizeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let size = size::Size::from_str(s)?;
+        Ok(Self(size))
     }
 }
 

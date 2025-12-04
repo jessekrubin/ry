@@ -274,7 +274,24 @@ class FileReadStream(RyIterator[Bytes]):
         chunk_size: int = 65536,
         offset: int = 0,
         buffered: bool = True,
-    ) -> None: ...
+        strict: bool = True,
+    ) -> None:
+        """Return a FileReadStream
+
+        Args:
+            path: path-like object
+            chunk_size: chunk size. Defaults to 65536.
+            offset: offset to start reading from. Defaults to 0.
+            buffered: whether the stream is buffered. Defaults to True.
+            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+        Raises:
+            FileNotFoundError: If file does not exist.
+            IsADirectoryError: If path is a directory.
+            ValueError: If offset is beyond EOF and strict is True.
+
+        """
+
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> Bytes: ...
     def collect(self) -> list[Bytes]: ...
@@ -298,8 +315,29 @@ def read_bytes(path: FsPathLike) -> bytes: ...
 def read_dir(path: FsPathLike) -> ReadDir: ...
 def read_link(path: FsPathLike) -> pathlib.Path: ...
 def read_stream(
-    path: FsPathLike, chunk_size: int = 65536, *, offset: int = 0, buffered: bool = True
-) -> FileReadStream: ...
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    offset: int = 0,
+    buffered: bool = True,
+    strict: bool = True,
+) -> FileReadStream:
+    """Return a FileReadStream
+
+    Args:
+        path: path-like object
+        chunk_size: chunk size. Defaults to 65536.
+        offset: offset to start reading from. Defaults to 0.
+        buffered: whether the stream is buffered. Defaults to True.
+        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+    Raises:
+        FileNotFoundError: If file does not exist.
+        IsADirectoryError: If path is a directory.
+        ValueError: If offset is beyond EOF and strict is True.
+
+    """
+
 def read_text(path: FsPathLike) -> str: ...
 def read_str(path: FsPathLike) -> str: ...
 def read_to_string(path: FsPathLike) -> str: ...

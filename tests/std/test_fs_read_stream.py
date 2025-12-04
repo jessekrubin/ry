@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+import typing as t
 from pathlib import Path
 
 import pytest
 
 import ry
-from ry._types import TypedDict
 
 _THIS_FILEPATH_ABOSLUTE = Path(__file__).resolve()
 _DEFAULT_CHUNK_SIZE = 65_536
 
 
 @pytest.mark.parametrize("buffered", [True, False])
-def test_fs_read_stream(tmp_path: Path, *, buffered: bool) -> None:
+def test_read_stream(tmp_path: Path, *, buffered: bool) -> None:
     """Test that reading a file in chunks works w/ and w/o offset."""
     p = tmp_path / "test.txt"
     string = "\n".join([str(i) for i in range(1000)])
@@ -33,7 +33,7 @@ def test_fs_read_stream(tmp_path: Path, *, buffered: bool) -> None:
 
 
 @pytest.mark.parametrize("buffered", [True, False])
-def test_fs_read_stream_str(tmp_path: Path, *, buffered: bool) -> None:
+def test_read_stream_str(tmp_path: Path, *, buffered: bool) -> None:
     """Test that reading a file in chunks works w/ and w/o offset."""
     p = tmp_path / "test.txt"
     string = "\n".join([str(i) for i in range(1000)])
@@ -51,7 +51,7 @@ def test_fs_read_stream_str(tmp_path: Path, *, buffered: bool) -> None:
     assert len(restante) == 386
 
 
-def test_fs_read_stream_file_not_found(tmp_path: Path) -> None:
+def test_read_stream_file_not_found(tmp_path: Path) -> None:
     """Test that reading a file in chunks works w/ and w/o offset."""
     ry.cd(tmp_path)
     with pytest.raises(FileNotFoundError):
@@ -66,7 +66,8 @@ def test_read_stream_is_directory(tmp_path: Path) -> None:
         list(ry.read_stream(tmp_path, chunk_size=10))
 
 
-def test_read_offset_greater_than_file_size(tmp_path: Path) -> None:
+@pytest.mark.parametrize("strict", [True, False])
+def test_read_offset_greater_than_file_size(tmp_path: Path, *, strict: bool) -> None:
     """Test that reading a file in chunks works w/ and w/o offset."""
     p = tmp_path / "test.txt"
     string = "123"
@@ -75,20 +76,26 @@ def test_read_offset_greater_than_file_size(tmp_path: Path) -> None:
         size = f.write(string_bytes)
     ry.cd(tmp_path)
     read_offset = size + 1
-    chunks = list(ry.read_stream("test.txt", offset=read_offset))
-    assert b"".join(chunks) == b""
-    assert len(chunks) == 0
+    if strict:
+        with pytest.raises(ValueError):
+            _ = list(ry.read_stream("test.txt", offset=read_offset, strict=strict))
+    else:
+        chunks = list(ry.read_stream("test.txt", offset=read_offset, strict=strict))
+        assert b"".join(chunks) == b""
+        assert len(chunks) == 0
 
 
-class _FileReadStreamOptionsDict(TypedDict, total=False):
+class _FileReadStreamOptionsDict(t.TypedDict, total=False):
     chunk_size: int
     offset: int
     buffered: bool
+    strict: bool
 
 
 @pytest.mark.parametrize("chunk_size", [None, 1, 100, 512, 1024])
 @pytest.mark.parametrize("offset", [None, 0, 1])
 @pytest.mark.parametrize("buffered", [None, True, False])
+@pytest.mark.parametrize("strict", [None, True, False])
 class TestFileReadStream:
     def _setup_method(self, tmp_path: Path) -> bytes:
         p = tmp_path / "test.txt"
@@ -103,6 +110,7 @@ class TestFileReadStream:
         offset: int | None,
         *,
         buffered: bool | None,
+        strict: bool | None,
     ) -> _FileReadStreamOptionsDict:
         kwargs: _FileReadStreamOptionsDict = {}
         if chunk_size is not None:
@@ -111,6 +119,8 @@ class TestFileReadStream:
             kwargs["offset"] = offset
         if buffered is not None:
             kwargs["buffered"] = buffered
+        if strict is not None:
+            kwargs["strict"] = strict
         return kwargs
 
     def test_file_readstream_collect(
@@ -120,6 +130,7 @@ class TestFileReadStream:
         offset: int | None,
         *,
         buffered: bool | None,
+        strict: bool | None,
     ) -> None:
         string_bytes = self._setup_method(tmp_path)
         stream = ry.read_stream(
@@ -128,6 +139,7 @@ class TestFileReadStream:
                 chunk_size,
                 offset,
                 buffered=buffered,
+                strict=strict,
             ),
         )
         # test collect
@@ -141,6 +153,7 @@ class TestFileReadStream:
         offset: int | None,
         *,
         buffered: bool | None,
+        strict: bool | None,
     ) -> None:
         string_bytes = self._setup_method(tmp_path)
         stream = ry.read_stream(
@@ -149,6 +162,7 @@ class TestFileReadStream:
                 chunk_size,
                 offset,
                 buffered=buffered,
+                strict=strict,
             ),
         )
         first_five = stream.take(5)
@@ -166,6 +180,7 @@ class TestFileReadStream:
         offset: int | None,
         *,
         buffered: bool | None,
+        strict: bool | None,
     ) -> None:
         p = tmp_path / "test.txt"
         string = "hello world"
@@ -177,6 +192,7 @@ class TestFileReadStream:
             chunk_size,
             offset,
             buffered=buffered,
+            strict=strict,
         )
 
         stream = ry.read_stream("test.txt", **kwargs)
@@ -191,6 +207,7 @@ class TestFileReadStream:
                     else f"chunk_size={_DEFAULT_CHUNK_SIZE}",
                     f"offset={offset}" if offset is not None and offset != 0 else None,
                     "buffered=True" if buffered is None else f"buffered={buffered}",
+                    "strict=True" if strict is None else f"strict={strict}",
                 ],
             )
         )

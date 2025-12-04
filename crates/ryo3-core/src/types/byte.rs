@@ -10,6 +10,7 @@ use pyo3::{
 pub struct Byte(u8);
 
 impl std::fmt::Debug for Byte {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.0 {
             // https://doc.rust-lang.org/reference/tokens.html#byte-escapes
@@ -46,6 +47,7 @@ impl From<u8> for Byte {
 impl<'py> FromPyObject<'_, 'py> for Byte {
     type Error = pyo3::PyErr;
 
+    #[inline]
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(i) = obj.cast::<PyInt>() {
             if let Ok(b) = i.extract::<u8>() {
@@ -76,6 +78,7 @@ impl<'py> IntoPyObject<'py> for &Byte {
     type Output = Bound<'py, Self::Target>;
     type Error = std::convert::Infallible;
 
+    #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         Ok(PyBytes::new(py, &[self.0]))
     }
@@ -86,6 +89,7 @@ impl<'py> IntoPyObject<'py> for Byte {
     type Output = Bound<'py, Self::Target>;
     type Error = std::convert::Infallible;
 
+    #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         Ok(PyBytes::new(py, &[self.0]))
     }

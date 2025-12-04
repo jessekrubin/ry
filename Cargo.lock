@@ -2125,6 +2125,7 @@ name = "ryo3-size"
 version = "0.0.72"
 dependencies = [
  "pyo3",
+ "ryo3-core",
  "size",
 ]
 

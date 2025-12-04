@@ -8,6 +8,7 @@ pub enum PathLike {
 }
 
 impl From<PathLike> for String {
+    #[inline]
     fn from(p: PathLike) -> Self {
         match p {
             PathLike::PathBuf(p) => p.to_string_lossy().to_string(),
@@ -17,6 +18,7 @@ impl From<PathLike> for String {
 }
 
 impl AsRef<Path> for PathLike {
+    #[inline]
     fn as_ref(&self) -> &Path {
         match self {
             Self::PathBuf(p) => p.as_ref(),
@@ -26,12 +28,14 @@ impl AsRef<Path> for PathLike {
 }
 
 impl From<&Path> for PathLike {
+    #[inline]
     fn from(p: &Path) -> Self {
         Self::PathBuf(p.to_path_buf())
     }
 }
 
 impl std::fmt::Display for PathLike {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PathBuf(p) => write!(f, "{}", p.to_string_lossy()),
