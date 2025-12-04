@@ -1,6 +1,7 @@
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3::{PyRef, PyResult, pyclass, pymethods};
+use ryo3_core::PyMutex;
 use ryo3_macro_rules::{py_runtime_err, py_value_err};
 use std::fs::File;
 use std::io::{self, BufReader, Read, Seek, SeekFrom};
@@ -85,38 +86,45 @@ impl Iterator for FileReadStreamWrapper {
     }
 }
 
-#[pyclass(name = "FileReadStream", frozen, immutable_type)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyFileReadStream {
-    pub(crate) pth: PathBuf,
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub(crate) struct PyFileReadStreamOptions {
+    pub(crate) path: PathBuf,
     pub(crate) chunk_size: usize,
     pub(crate) offset: u64,
     pub(crate) buffered: bool,
-    pub(crate) file_read_stream: Mutex<FileReadStreamWrapper>,
+}
+
+#[pyclass(name = "FileReadStream", frozen, immutable_type)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct PyFileReadStream {
+    pub(crate) options: PyFileReadStreamOptions,
+    pub(crate) file_read_stream: PyMutex<FileReadStreamWrapper>,
 }
 
 #[pymethods]
 impl PyFileReadStream {
     #[new]
-    #[pyo3(signature = (pth, *, chunk_size = DEFAULT_CHUNK_SIZE, offset = 0, buffered = true))]
-    pub fn py_new(pth: PathBuf, chunk_size: usize, offset: u64, buffered: bool) -> PyResult<Self> {
+    #[pyo3(signature = (path, *, chunk_size = DEFAULT_CHUNK_SIZE, offset = 0, buffered = true))]
+    pub fn py_new(path: PathBuf, chunk_size: usize, offset: u64, buffered: bool) -> PyResult<Self> {
         if chunk_size == 0 {
             return py_value_err!("chunk_size must be greater than 0");
         }
         let mut stream = if buffered {
-            FileReadStreamWrapper::Buffered(FileReadStream::from_path_buffered(&pth, chunk_size)?)
+            FileReadStreamWrapper::Buffered(FileReadStream::from_path_buffered(&path, chunk_size)?)
         } else {
-            FileReadStreamWrapper::Unbuffered(FileReadStream::from_path(&pth, chunk_size)?)
+            FileReadStreamWrapper::Unbuffered(FileReadStream::from_path(&path, chunk_size)?)
         };
         if offset > 0 {
             stream.seek_to(offset)?;
         }
         Ok(Self {
-            pth,
-            chunk_size,
-            offset,
-            buffered,
-            file_read_stream: Mutex::new(stream),
+            options: PyFileReadStreamOptions {
+                path,
+                chunk_size,
+                offset,
+                buffered,
+            },
+            file_read_stream: PyMutex::new(stream),
         })
     }
 
@@ -124,68 +132,61 @@ impl PyFileReadStream {
         format!("{self:?}")
     }
 
+    fn __eq__(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
 
     fn __next__(&self) -> PyResult<Option<ryo3_bytes::PyBytes>> {
-        if let Ok(mut inner) = self.file_read_stream.lock() {
-            match inner.next() {
-                Some(Ok(b)) => Ok(Some(b.into())),
-                Some(Err(e)) => Err(e.into()),
-                None => Ok(None),
-            }
-        } else {
-            py_runtime_err!("lock error on file read stream")
+        let mut inner = self.file_read_stream.py_lock()?;
+        match inner.next() {
+            Some(Ok(b)) => Ok(Some(b.into())),
+            Some(Err(e)) => Err(e.into()),
+            None => Ok(None),
         }
     }
 
     #[pyo3(signature = (n = 1))]
     fn take(&self, n: usize) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
-        if let Ok(mut inner) = self.file_read_stream.lock() {
-            let mut result = Vec::with_capacity(n);
-            for _ in 0..n {
-                match inner.next() {
-                    Some(Ok(b)) => result.push(b.into()),
-                    Some(Err(e)) => return Err(e.into()),
-                    None => break,
-                }
+        let mut inner = self.file_read_stream.py_lock()?;
+        let mut result = Vec::with_capacity(n);
+        for _ in 0..n {
+            match inner.next() {
+                Some(Ok(b)) => result.push(b.into()),
+                Some(Err(e)) => return Err(e.into()),
+                None => break,
             }
-            Ok(result)
-        } else {
-            py_runtime_err!("lock error on file read stream")
         }
+        Ok(result)
     }
 
     fn collect(&self, py: Python<'_>) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
-        if let Ok(mut inner) = self.file_read_stream.lock() {
-            let mut result = Vec::new();
-            while let Some(Ok(b)) = inner.next() {
-                result.push(b.into());
-                if result.len().is_multiple_of(256) {
-                    py.check_signals()?;
-                }
+        let mut inner = self.file_read_stream.py_lock()?;
+        let mut result = Vec::new();
+        while let Some(Ok(b)) = inner.next() {
+            result.push(b.into());
+            if result.len().is_multiple_of(256) {
+                py.check_signals()?;
             }
-            Ok(result)
-        } else {
-            py_runtime_err!("lock error on file read stream")
         }
+        Ok(result)
     }
 }
 
 impl std::fmt::Debug for PyFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FileReadStream(path='{}'", self.pth.display(),)?;
-        if self.chunk_size != DEFAULT_CHUNK_SIZE {
-            write!(f, ", chunk_size={}", self.chunk_size)?;
+        write!(f, "FileReadStream(path='{}'", self.options.path.display(),)?;
+        write!(f, ", chunk_size={}", self.options.chunk_size)?;
+        if self.options.offset != 0 {
+            write!(f, ", offset={}", self.options.offset)?;
         }
-        if self.offset != 0 {
-            write!(f, ", offset={}", self.offset)?;
-        }
-        if self.buffered {
-            write!(f, ", buffered=true")?;
+        if self.options.buffered {
+            write!(f, ", buffered=True")?;
         } else {
-            write!(f, ", buffered=false")?;
+            write!(f, ", buffered=False")?;
         }
         write!(f, ")")
     }

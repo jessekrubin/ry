@@ -12,7 +12,7 @@ if t.TYPE_CHECKING:
 _DEFAULT_CONFIG: ClientConfig = {
     "headers": None,
     "cookies": False,
-    "user_agent": "ry/0.0.71",
+    "user_agent": f"ry/{ry.__version__}",
     "timeout": None,
     "read_timeout": None,
     "connect_timeout": None,

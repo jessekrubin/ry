@@ -229,5 +229,6 @@ gen: _gen-py
 cargo-doc:
     cargo doc --no-deps --workspace
 
+# generate depgraph for docs
 depgraph-svg:
     python scripts/dep-graph-mmd.py | mmdc -i - -o docs/src/assets/dep-graph.svg -t dark -b transparent

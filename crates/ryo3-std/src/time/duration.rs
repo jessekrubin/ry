@@ -2,7 +2,9 @@
 use jiff::fmt::friendly::Designator;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyInt, PyTuple};
-use pyo3::{Bound, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods};
+use pyo3::{
+    Bound, BoundObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
+};
 use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
@@ -803,27 +805,26 @@ impl PyDuration {
     // ========================================================================
     // PYDANTIC
     // ========================================================================
-    #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
         } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dur| dur.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             use pyo3::types::PyBytesMethods;
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(v) = value.cast_exact::<pyo3::types::PyFloat>() {
             let f = v.extract::<f64>()?;
-            Self::try_from_secs_f64(f).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::try_from_secs_f64(f).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(v) = value.cast_exact::<pyo3::types::PyInt>() {
             let i = v.extract::<u64>()?;
-            Self::from(Duration::new(i, 0)).into_bound_py_any(py)
+            Self::from(Duration::new(i, 0)).into_pyobject(py)
         } else if let Ok(d) = value.extract::<Duration>() {
-            Self::from(d).into_bound_py_any(py)
+            Self::from(d).into_pyobject(py)
         } else {
             use ryo3_macro_rules::any_repr;
 
@@ -837,7 +838,7 @@ impl PyDuration {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(|e| {
             use ryo3_macro_rules::py_value_error;
             py_value_error!("Duration validation error: {e}")
