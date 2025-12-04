@@ -52,11 +52,12 @@
 ### python
 
 - we use `maturin` for building the python wheels
-- we support `python-3.9+`
+- we support `python-3.11+`
 - we use `pytest` for testing as well as the following plugins:
-  - `pytest-benchmark`
-  - `pytest-asyncio` (may switch to `anyio` in the future)
+  - `anyio` (which I am increasingly thinking is actually a bit of a turd)
   - `hypothesis`
+  - `pytest-benchmark`
+  - `pytest-cov`
 
 ### just
 
