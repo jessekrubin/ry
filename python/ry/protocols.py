@@ -13,6 +13,7 @@ __all__ = (
     "ToPyTimeDelta",
     "ToPyTzInfo",
     "ToString",
+    "_Parse",
 )
 
 _T = t.TypeVar("_T")
@@ -39,6 +40,13 @@ class FromStr(t.Protocol):
 
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
+
+
+class _Parse(t.Protocol):
+    """Protocol for types that have a `.parse()` class method."""
+
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
 
 class ToString(t.Protocol):

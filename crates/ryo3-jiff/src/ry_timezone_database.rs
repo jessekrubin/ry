@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct RyTimeZoneDatabase {
-    inner: Option<TimeZoneDatabase>,
+    pub(crate) inner: Option<TimeZoneDatabase>,
 }
 
 impl RyTimeZoneDatabase {
@@ -95,11 +95,5 @@ impl RyTimeZoneDatabase {
         TimeZoneDatabase::from_concatenated_path(path)
             .map(Self::from)
             .map_err(map_py_value_err)
-    }
-}
-
-impl From<TimeZoneDatabase> for RyTimeZoneDatabase {
-    fn from(db: TimeZoneDatabase) -> Self {
-        Self { inner: Some(db) }
     }
 }

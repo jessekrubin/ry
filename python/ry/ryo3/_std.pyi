@@ -12,14 +12,14 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString
+from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString, _Parse
 from ry.ryo3._bytes import Bytes
 
 # =============================================================================
 # STD::TIME
 # =============================================================================
 @t.final
-class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString):
+class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString, FromStr, _Parse):
     ZERO: t.ClassVar[Duration]
     MIN: t.ClassVar[Duration]
     MAX: t.ClassVar[Duration]
@@ -370,6 +370,7 @@ class Ipv4Addr(
     _Ipv4AddrProperties,
     _Version4,
     FromStr,
+    _Parse,
     ToPy[ipaddress.IPv4Address],
     ToPyIpAddress[ipaddress.IPv4Address],
 ):
@@ -452,6 +453,7 @@ class Ipv6Addr(
     _Ipv6AddrProperties,
     _Version6,
     FromStr,
+    _Parse,
     ToPy[ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv6Address],
 ):
@@ -504,6 +506,7 @@ class IpAddr(
     _Ipv6AddrProperties,
     _Version,
     FromStr,
+    _Parse,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
@@ -574,7 +577,12 @@ class IpAddr(
 
 @t.final
 class SocketAddrV4(
-    _Ipv4AddrProperties, _Version4, ToPyIpAddress[ipaddress.IPv4Address]
+    _Ipv4AddrProperties,
+    _Version4,
+    # protocols
+    FromStr,
+    _Parse,
+    ToPyIpAddress[ipaddress.IPv4Address],
 ):
     def __init__(
         self,
@@ -592,8 +600,8 @@ class SocketAddrV4(
     def to_ipaddr(self) -> IpAddr: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
-    @staticmethod
-    def parse(s: str | bytes) -> SocketAddrV4: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @property
     def port(self) -> int: ...
     @property
@@ -601,7 +609,12 @@ class SocketAddrV4(
 
 @t.final
 class SocketAddrV6(
-    _Ipv6AddrProperties, _Version6, ToPyIpAddress[ipaddress.IPv6Address]
+    _Ipv6AddrProperties,
+    _Version6,
+    # protocols
+    ToPyIpAddress[ipaddress.IPv6Address],
+    FromStr,
+    _Parse,
 ):
     def __init__(
         self,
@@ -619,8 +632,8 @@ class SocketAddrV6(
     def to_ipaddr(self) -> IpAddr: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
-    @staticmethod
-    def parse(s: str | bytes) -> SocketAddrV6: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @property
     def port(self) -> int: ...
     @property
@@ -633,7 +646,9 @@ class SocketAddr(
     _Ipv4AddrProperties,
     _Ipv6AddrProperties,
     _Version,
+    # protocols
     FromStr,
+    _Parse,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
     def __init__(
@@ -654,8 +669,8 @@ class SocketAddr(
     def __hash__(self) -> int: ...
     @classmethod
     def from_str(cls, s: str) -> SocketAddr: ...
-    @staticmethod
-    def parse(s: str | bytes) -> SocketAddr: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> SocketAddr: ...
     def to_ipaddr(self) -> IpAddr: ...
     @property
     def is_ipv4(self) -> bool: ...

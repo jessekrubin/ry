@@ -15,16 +15,14 @@ use crate::{
 };
 use jiff::Zoned;
 use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
-use jiff::tz::TimeZone;
-use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
+use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
-use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -32,12 +30,6 @@ use std::str::FromStr;
 #[pyclass(name = "DateTime", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTime(pub(crate) DateTime);
-
-impl From<DateTime> for RyDateTime {
-    fn from(value: DateTime) -> Self {
-        Self(value)
-    }
-}
 
 #[pymethods]
 impl RyDateTime {
@@ -110,22 +102,14 @@ impl RyDateTime {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        // if ends with 'Z', parse via timezone...
-        if s.ends_with('Z') {
-            jiff::Timestamp::from_str(s)
-                .map(|ts| ts.to_zoned(TimeZone::UTC).datetime())
-                .map(Self::from)
-                .map_err(map_py_value_err)
-        } else {
-            DateTime::from_str(s)
-                .map(Self::from)
-                .map_err(map_py_value_err)
-        }
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        Self::from_str(s)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -642,29 +626,29 @@ impl RyDateTime {
     }
 
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
-            let dt = d.get().time();
-            dt.into_bound_py_any(py)
+            let dt = d.get().datetime();
+            dt.into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
-            let dt = d.get().time();
-            dt.into_bound_py_any(py)
+            d.get().datetime().into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffDateTime>() {
-            Self::from(d.0).into_bound_py_any(py)
+            Self::from(d.0).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("DateTime conversion error: {valtype}",)
         }
     }
+
     // ========================================================================
     // PYDANTIC
     // ========================================================================
@@ -673,7 +657,7 @@ impl RyDateTime {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

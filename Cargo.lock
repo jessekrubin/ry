@@ -1993,6 +1993,7 @@ dependencies = [
  "parking_lot",
  "pyo3",
  "pyo3-build-config",
+ "ryo3-core",
  "ryo3-macro-rules",
  "ryo3-pydantic",
  "ryo3-std",

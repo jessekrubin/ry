@@ -38,6 +38,7 @@ from ry.protocols import (
     ToPyTimeDelta,
     ToPyTzInfo,
     ToString,
+    _Parse,
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
@@ -137,7 +138,15 @@ WeekdayInt: t.TypeAlias = t.Literal[
 Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
+class Date(
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPy[pydt.date],
+    ToString,
+    _Parse,
+):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -185,7 +194,7 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -294,7 +303,14 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     ) -> TimeSpan: ...
 
 @t.final
-class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
+class Time(
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyTime,
+    ToPy[pydt.time],
+    _Parse,
+):
     MIN: t.ClassVar[Time]
     MAX: t.ClassVar[Time]
 
@@ -353,7 +369,7 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, value: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
     # =========================================================================
     # PROPERTIES
@@ -464,7 +480,14 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
 
 @t.final
 class DateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPyDateTime,
+    ToPyTime,
+    ToPy[pydt.datetime],
+    _Parse,
 ):
     MIN: t.ClassVar[DateTime]
     MAX: t.ClassVar[DateTime]
@@ -493,7 +516,7 @@ class DateTime(
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -661,9 +684,11 @@ class DateTime(
 
 @t.final
 class TimeZone(
-    ToPy[pydt.tzinfo],
-    ToPyTzInfo,
+    # protocols
     FromStr,
+    ToPyTzInfo,
+    ToPy[pydt.tzinfo],
+    _Parse,
 ):
     UTC: t.ClassVar[TimeZone]
 
@@ -680,6 +705,8 @@ class TimeZone(
     def to_dict(self) -> TimeZoneDict: ...
     @classmethod
     def from_str(cls, s: TimezoneName) -> t.Self: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -> t.Self: ...
     def to_offset_info(self, timestamp: Timestamp) -> OffsetInfoDict: ...
@@ -738,7 +765,13 @@ class TimeZone(
     def to_ambiguous_zoned(self) -> t.NoReturn: ...
 
 @t.final
-class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
+class SignedDuration(
+    # protocols
+    FromStr,
+    ToPyTimeDelta,
+    ToPy[pydt.timedelta],
+    _Parse,
+):
     MIN: t.ClassVar[SignedDuration]
     MAX: t.ClassVar[SignedDuration]
     ZERO: t.ClassVar[SignedDuration]
@@ -798,7 +831,7 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_hours(cls, hours: int) -> t.Self: ...
     @classmethod
@@ -887,7 +920,13 @@ TimeSpanArithmetic: t.TypeAlias = (
 )
 
 @t.final
-class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
+class TimeSpan(
+    # protocols
+    ToPy[pydt.timedelta],
+    ToPyTimeDelta,
+    FromStr,
+    _Parse,
+):
     def __init__(
         self,
         years: int = 0,
@@ -926,7 +965,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def parse_common_iso(cls, s: str) -> t.Self: ...
 
@@ -1053,7 +1092,14 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
 
 @t.final
 class Timestamp(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPyDateTime,
+    ToPyTime,
+    ToPy[pydt.datetime],
+    _Parse,
 ):
     """
     A representation of a timestamp with second and nanosecond precision.
@@ -1075,7 +1121,7 @@ class Timestamp(
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_millisecond(cls, millisecond: int) -> t.Self: ...
     @classmethod
@@ -1219,7 +1265,15 @@ class Timestamp(
 
 @t.final
 class ZonedDateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, ToPyTzInfo, FromStr, Strftime
+    # protocols
+    ToPy[pydt.datetime],
+    ToPyDate,
+    ToPyTime,
+    ToPyDateTime,
+    ToPyTzInfo,
+    FromStr,
+    _Parse,
+    Strftime,
 ):
     def __init__(
         self,
@@ -1255,7 +1309,7 @@ class ZonedDateTime(
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_rfc2822(cls, s: str) -> t.Self: ...
     @classmethod
@@ -1449,7 +1503,13 @@ class ZonedDateTime(
     ) -> TimeSpan: ...
 
 @t.final
-class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr):
+class ISOWeekDate(
+    # protocols
+    ToPy[pydt.date],
+    ToPyDate,
+    FromStr,
+    _Parse,
+):
     MIN: t.ClassVar[ISOWeekDate]
     MAX: t.ClassVar[ISOWeekDate]
     ZERO: t.ClassVar[ISOWeekDate]
@@ -1478,7 +1538,7 @@ class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def today(cls) -> t.Self: ...
     @classmethod
@@ -1504,7 +1564,13 @@ class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr):
     def to_dict(self) -> ISOWeekDateTypedDict: ...
 
 @t.final
-class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
+class Offset(
+    # protocols
+    ToPy[pydt.tzinfo],
+    ToPyTzInfo,
+    FromStr,
+    _Parse,
+):
     MIN: t.ClassVar[Offset]
     MAX: t.ClassVar[Offset]
     UTC: t.ClassVar[Offset]
@@ -1538,7 +1604,7 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
 

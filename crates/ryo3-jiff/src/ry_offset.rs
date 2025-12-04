@@ -1,4 +1,3 @@
-use crate::constants::DATETIME_PARSER;
 use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::round::RyOffsetRound;
 use crate::ry_datetime::RyDateTime;
@@ -79,17 +78,14 @@ impl RyOffset {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        let o = DATETIME_PARSER
-            .parse_time_zone(s)
-            .map_err(map_py_value_err)?;
-        o.to_fixed_offset()
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        Self::from_str(s)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     #[staticmethod]
@@ -289,18 +285,6 @@ impl RyOffset {
     fn saturating_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(self.0.saturating_sub(spanish).into())
-    }
-}
-
-impl From<Offset> for RyOffset {
-    fn from(value: Offset) -> Self {
-        Self(value)
-    }
-}
-
-impl From<JiffOffset> for RyOffset {
-    fn from(value: JiffOffset) -> Self {
-        Self::from(value.0)
     }
 }
 

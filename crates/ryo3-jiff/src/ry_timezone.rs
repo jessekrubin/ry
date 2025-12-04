@@ -19,30 +19,6 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) std::sync::Arc<TimeZone>);
 
-impl From<TimeZone> for RyTimeZone {
-    fn from(value: TimeZone) -> Self {
-        Self(std::sync::Arc::new(value))
-    }
-}
-
-impl From<&TimeZone> for RyTimeZone {
-    fn from(value: &TimeZone) -> Self {
-        Self(std::sync::Arc::new(value.clone()))
-    }
-}
-
-impl From<RyTimeZone> for TimeZone {
-    fn from(value: RyTimeZone) -> Self {
-        (*value.0).clone()
-    }
-}
-
-impl From<&RyTimeZone> for TimeZone {
-    fn from(value: &RyTimeZone) -> Self {
-        (*value.0).clone()
-    }
-}
-
 #[pymethods]
 impl RyTimeZone {
     #[new]
@@ -155,7 +131,14 @@ impl RyTimeZone {
     // =====================================================================
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        TimeZone::get(s).map(Self::from).map_err(map_py_value_err)
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     #[staticmethod]

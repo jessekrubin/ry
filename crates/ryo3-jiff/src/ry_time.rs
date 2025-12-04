@@ -19,7 +19,6 @@ use ryo3_macro_rules::py_type_err;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
-use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -94,12 +93,14 @@ impl RyTime {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        Time::from_str(s).map(Self::from).map_err(map_py_value_err)
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(value: &str) -> PyResult<Self> {
-        Self::from_str(value)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     // ========================================================================
@@ -533,17 +534,5 @@ impl Display for RyTime {
             self.0.second(),
             self.0.subsec_nanosecond()
         )
-    }
-}
-
-impl From<Time> for RyTime {
-    fn from(value: Time) -> Self {
-        Self(value)
-    }
-}
-
-impl From<JiffTime> for RyTime {
-    fn from(value: JiffTime) -> Self {
-        Self(value.0)
     }
 }

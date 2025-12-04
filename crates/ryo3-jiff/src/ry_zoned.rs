@@ -18,14 +18,13 @@ use crate::{
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::{Offset, TimeZone};
 use jiff::{Zoned, ZonedDifference, ZonedRound};
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
+use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -109,27 +108,19 @@ impl RyZoned {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        Zoned::from_str(s).map(Self::from).map_err(map_py_value_err)
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        Self::from_str(s)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
-    // Orig version but idk if it is needed....
-    // fn __format__(&self, fmt: &str) -> String {
-    //     self.0.strftime(fmt).to_string()
-    // }
-
-    // fn strftime(&self, fmt: &str) -> String {
-    //     self.0.strftime(fmt).to_string()
-    // }
-
-    // NOT SURE THIS IS NEEDED AS AFAICT jiff::Zoned doesn't fail?
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         self.strftime(fmt)
     }
@@ -237,7 +228,7 @@ impl RyZoned {
         RyTime::from(self.0.time())
     }
 
-    fn datetime(&self) -> RyDateTime {
+    pub(crate) fn datetime(&self) -> RyDateTime {
         RyDateTime::from(self.0.datetime())
     }
 
@@ -748,36 +739,36 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
-            let dt = d.get().0.to_zoned(TimeZone::UTC);
-            dt.into_bound_py_any(py)
+            let ts: Self = d.get().into();
+            ts.into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffZoned>() {
-            Self::from(d.0).into_bound_py_any(py)
+            Self::from(d.0).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("ZonedDateTime conversion error: {valtype}",)
         }
     }
+
     // ========================================================================
     // PYDANTIC
     // ========================================================================
-
     #[cfg(feature = "pydantic")]
     #[staticmethod]
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 
@@ -811,11 +802,5 @@ impl Display for RyZoned {
         } else {
             write!(f, "ZonedDateTime.parse(\"{}\")", self.0)
         }
-    }
-}
-
-impl From<Zoned> for RyZoned {
-    fn from(value: Zoned) -> Self {
-        Self(value)
     }
 }

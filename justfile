@@ -174,6 +174,7 @@ clippy-features:
     cargo hack --feature-powerset clippy --package ryo3-serde
     cargo hack --feature-powerset clippy --package ryo3-reqwest
 
+# run cargo check with feature-powerset via cargo-hack
 check-features:
     cargo hack --feature-powerset check --package ryo3-bytes
     cargo hack --feature-powerset check --package ryo3-fspath
@@ -229,4 +230,4 @@ cargo-doc:
     cargo doc --no-deps --workspace
 
 depgraph-svg:
-    python scripts/dep-graph-mmd.py --svg > docs/src/dep-graph.svg
+    python scripts/dep-graph-mmd.py | mmdc -i - -o docs/src/assets/dep-graph.svg -t dark -b transparent

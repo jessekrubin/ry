@@ -22,7 +22,6 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Div;
 use std::ops::Mul;
-use std::str::FromStr;
 
 const NANOS_PER_SEC: i32 = 1_000_000_000;
 // const NANOS_PER_MILLI: i32 = 1_000_000;
@@ -151,14 +150,14 @@ impl RySignedDuration {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        SignedDuration::from_str(s)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        Self::from_str(s)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     #[staticmethod]
@@ -699,18 +698,6 @@ impl RySignedDuration {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
-    }
-}
-
-impl From<SignedDuration> for RySignedDuration {
-    fn from(d: SignedDuration) -> Self {
-        Self(d)
-    }
-}
-
-impl From<JiffSignedDuration> for RySignedDuration {
-    fn from(d: JiffSignedDuration) -> Self {
-        Self(d.0)
     }
 }
 
