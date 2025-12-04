@@ -156,6 +156,7 @@ from ry.ryo3._reqwest import BlockingClient as BlockingClient
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
+from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
@@ -1336,6 +1337,7 @@ from ry.protocols import (
     ToPyTimeDelta,
     ToPyTzInfo,
     ToString,
+    _Parse,
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
@@ -1436,7 +1438,15 @@ Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
+class Date(
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPy[pydt.date],
+    ToString,
+    _Parse,
+):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -1484,7 +1494,7 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -1594,7 +1604,14 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, Strftime):
 
 
 @t.final
-class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
+class Time(
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyTime,
+    ToPy[pydt.time],
+    _Parse,
+):
     MIN: t.ClassVar[Time]
     MAX: t.ClassVar[Time]
 
@@ -1653,7 +1670,7 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, value: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
     # =========================================================================
     # PROPERTIES
@@ -1785,7 +1802,14 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr, Strftime):
 
 @t.final
 class DateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPyDateTime,
+    ToPyTime,
+    ToPy[pydt.datetime],
+    _Parse,
 ):
     MIN: t.ClassVar[DateTime]
     MAX: t.ClassVar[DateTime]
@@ -1814,7 +1838,7 @@ class DateTime(
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -1983,9 +2007,11 @@ class DateTime(
 
 @t.final
 class TimeZone(
-    ToPy[pydt.tzinfo],
-    ToPyTzInfo,
+    # protocols
     FromStr,
+    ToPyTzInfo,
+    ToPy[pydt.tzinfo],
+    _Parse,
 ):
     UTC: t.ClassVar[TimeZone]
 
@@ -2002,6 +2028,8 @@ class TimeZone(
     def to_dict(self) -> TimeZoneDict: ...
     @classmethod
     def from_str(cls, s: TimezoneName) -> t.Self: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -> t.Self: ...
     def to_offset_info(self, timestamp: Timestamp) -> OffsetInfoDict: ...
@@ -2061,7 +2089,13 @@ class TimeZone(
 
 
 @t.final
-class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
+class SignedDuration(
+    # protocols
+    FromStr,
+    ToPyTimeDelta,
+    ToPy[pydt.timedelta],
+    _Parse,
+):
     MIN: t.ClassVar[SignedDuration]
     MAX: t.ClassVar[SignedDuration]
     ZERO: t.ClassVar[SignedDuration]
@@ -2121,7 +2155,7 @@ class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_hours(cls, hours: int) -> t.Self: ...
     @classmethod
@@ -2214,7 +2248,13 @@ TimeSpanArithmetic: t.TypeAlias = (
 
 
 @t.final
-class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
+class TimeSpan(
+    # protocols
+    ToPy[pydt.timedelta],
+    ToPyTimeDelta,
+    FromStr,
+    _Parse,
+):
     def __init__(
         self,
         years: int = 0,
@@ -2253,7 +2293,7 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def parse_common_iso(cls, s: str) -> t.Self: ...
 
@@ -2381,7 +2421,14 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr):
 
 @t.final
 class Timestamp(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, Strftime
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPyDateTime,
+    ToPyTime,
+    ToPy[pydt.datetime],
+    _Parse,
 ):
     """
     A representation of a timestamp with second and nanosecond precision.
@@ -2403,7 +2450,7 @@ class Timestamp(
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_millisecond(cls, millisecond: int) -> t.Self: ...
     @classmethod
@@ -2569,12 +2616,14 @@ class Timestamp(
 
 @t.final
 class ZonedDateTime(
+    # protocols
     ToPy[pydt.datetime],
     ToPyDate,
     ToPyTime,
     ToPyDateTime,
     ToPyTzInfo,
     FromStr,
+    _Parse,
     Strftime,
 ):
     def __init__(
@@ -2611,7 +2660,7 @@ class ZonedDateTime(
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_rfc2822(cls, s: str) -> t.Self: ...
     @classmethod
@@ -2808,7 +2857,13 @@ class ZonedDateTime(
 
 
 @t.final
-class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr):
+class ISOWeekDate(
+    # protocols
+    ToPy[pydt.date],
+    ToPyDate,
+    FromStr,
+    _Parse,
+):
     MIN: t.ClassVar[ISOWeekDate]
     MAX: t.ClassVar[ISOWeekDate]
     ZERO: t.ClassVar[ISOWeekDate]
@@ -2837,7 +2892,7 @@ class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def today(cls) -> t.Self: ...
     @classmethod
@@ -2864,7 +2919,13 @@ class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr):
 
 
 @t.final
-class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
+class Offset(
+    # protocols
+    ToPy[pydt.tzinfo],
+    ToPyTzInfo,
+    FromStr,
+    _Parse,
+):
     MIN: t.ClassVar[Offset]
     MAX: t.ClassVar[Offset]
     UTC: t.ClassVar[Offset]
@@ -2898,7 +2959,7 @@ class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr):
     @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -> t.Self: ...
     @classmethod
-    def parse(cls, s: str) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
 
@@ -3992,6 +4053,50 @@ class RequestKwargs(t.TypedDict, total=False):
     version: HttpVersionLike | None
 
 
+class ClientConfig(t.TypedDict):
+    headers: Headers | None
+    cookies: bool
+    user_agent: str | None
+    timeout: Duration | None
+    connect_timeout: Duration | None
+    read_timeout: Duration | None
+    redirect: int | None
+    referer: bool
+    gzip: bool
+    brotli: bool
+    deflate: bool
+    zstd: bool
+    hickory_dns: bool
+    http1_only: bool
+    https_only: bool
+    http1_title_case_headers: bool
+    http1_allow_obsolete_multiline_headers_in_responses: bool
+    http1_allow_spaces_after_header_name_in_responses: bool
+    http1_ignore_invalid_headers_in_responses: bool
+    http2_prior_knowledge: bool
+    http2_initial_stream_window_size: int | None
+    http2_initial_connection_window_size: int | None
+    http2_adaptive_window: bool
+    http2_max_frame_size: int | None
+    http2_max_header_list_size: int | None
+    http2_keep_alive_interval: Duration | None
+    http2_keep_alive_timeout: Duration | None
+    http2_keep_alive_while_idle: bool
+    pool_idle_timeout: Duration | None
+    pool_max_idle_per_host: int | None
+    tcp_keepalive: Duration | None
+    tcp_keepalive_interval: Duration | None
+    tcp_keepalive_retries: int | None
+    tcp_nodelay: bool
+    root_certificates: list[Certificate] | None
+    tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_info: bool
+    tls_sni: bool
+    danger_accept_invalid_certs: bool
+    danger_accept_invalid_hostnames: bool
+
+
 @t.final
 class HttpClient:
     def __init__(
@@ -4039,6 +4144,7 @@ class HttpClient:
         danger_accept_invalid_certs: bool = False,
         danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
+    def config(self) -> ClientConfig: ...
     async def get(
         self,
         url: str | URL,
@@ -4144,6 +4250,7 @@ class BlockingClient:
         danger_accept_invalid_certs: bool = False,
         danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
+    def config(self) -> ClientConfig: ...
     def get(
         self,
         url: str | URL,
@@ -4787,7 +4894,14 @@ from ry._types import (
     FsPathLike,
     MetadataDict,
 )
-from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString
+from ry.protocols import (
+    FromStr,
+    RyIterator,
+    ToPy,
+    ToPyTimeDelta,
+    ToString,
+    _Parse,
+)
 from ry.ryo3._bytes import Bytes
 
 
@@ -4795,7 +4909,7 @@ from ry.ryo3._bytes import Bytes
 # STD::TIME
 # =============================================================================
 @t.final
-class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString):
+class Duration(ToPy[pydt.timedelta], ToPyTimeDelta, ToString, FromStr, _Parse):
     ZERO: t.ClassVar[Duration]
     MIN: t.ClassVar[Duration]
     MAX: t.ClassVar[Duration]
@@ -5172,6 +5286,7 @@ class Ipv4Addr(
     _Ipv4AddrProperties,
     _Version4,
     FromStr,
+    _Parse,
     ToPy[ipaddress.IPv4Address],
     ToPyIpAddress[ipaddress.IPv4Address],
 ):
@@ -5256,6 +5371,7 @@ class Ipv6Addr(
     _Ipv6AddrProperties,
     _Version6,
     FromStr,
+    _Parse,
     ToPy[ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv6Address],
 ):
@@ -5309,6 +5425,7 @@ class IpAddr(
     _Ipv6AddrProperties,
     _Version,
     FromStr,
+    _Parse,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
@@ -5380,7 +5497,12 @@ class IpAddr(
 
 @t.final
 class SocketAddrV4(
-    _Ipv4AddrProperties, _Version4, ToPyIpAddress[ipaddress.IPv4Address]
+    _Ipv4AddrProperties,
+    _Version4,
+    # protocols
+    FromStr,
+    _Parse,
+    ToPyIpAddress[ipaddress.IPv4Address],
 ):
     def __init__(
         self,
@@ -5398,8 +5520,8 @@ class SocketAddrV4(
     def to_ipaddr(self) -> IpAddr: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
-    @staticmethod
-    def parse(s: str | bytes) -> SocketAddrV4: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @property
     def port(self) -> int: ...
     @property
@@ -5408,7 +5530,12 @@ class SocketAddrV4(
 
 @t.final
 class SocketAddrV6(
-    _Ipv6AddrProperties, _Version6, ToPyIpAddress[ipaddress.IPv6Address]
+    _Ipv6AddrProperties,
+    _Version6,
+    # protocols
+    ToPyIpAddress[ipaddress.IPv6Address],
+    FromStr,
+    _Parse,
 ):
     def __init__(
         self,
@@ -5426,8 +5553,8 @@ class SocketAddrV6(
     def to_ipaddr(self) -> IpAddr: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
-    @staticmethod
-    def parse(s: str | bytes) -> SocketAddrV6: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @property
     def port(self) -> int: ...
     @property
@@ -5441,7 +5568,9 @@ class SocketAddr(
     _Ipv4AddrProperties,
     _Ipv6AddrProperties,
     _Version,
+    # protocols
     FromStr,
+    _Parse,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
     def __init__(
@@ -5462,8 +5591,8 @@ class SocketAddr(
     def __hash__(self) -> int: ...
     @classmethod
     def from_str(cls, s: str) -> SocketAddr: ...
-    @staticmethod
-    def parse(s: str | bytes) -> SocketAddr: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> SocketAddr: ...
     def to_ipaddr(self) -> IpAddr: ...
     @property
     def is_ipv4(self) -> bool: ...
@@ -7118,6 +7247,7 @@ __all__ = (
     "ToPyTimeDelta",
     "ToPyTzInfo",
     "ToString",
+    "_Parse",
 )
 
 _T = t.TypeVar("_T")
@@ -7144,6 +7274,13 @@ class FromStr(t.Protocol):
 
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
+
+
+class _Parse(t.Protocol):
+    """Protocol for types that have a `.parse()` class method."""
+
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
 
 
 class ToString(t.Protocol):
