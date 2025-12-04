@@ -4,6 +4,9 @@
 
 - `ryo3-serde`
   - crude string subclass support
+- `ryo3-jiff`
+  - Fix pydantic paring problems caused by lazy copy-pasta-ing w/o using
+    eyeballs to read what I had copy-pasta-ed
 
 ---
 
