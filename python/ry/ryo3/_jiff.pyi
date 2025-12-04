@@ -138,7 +138,15 @@ WeekdayInt: t.TypeAlias = t.Literal[
 Weekday: t.TypeAlias = WeekdayStr | WeekdayInt
 
 @t.final
-class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, _Parse, Strftime):
+class Date(
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPy[pydt.date],
+    ToString,
+    _Parse,
+):
     MIN: t.ClassVar[Date]
     MAX: t.ClassVar[Date]
     ZERO: t.ClassVar[Date]
@@ -295,7 +303,14 @@ class Date(ToPy[pydt.date], ToPyDate, ToString, FromStr, _Parse, Strftime):
     ) -> TimeSpan: ...
 
 @t.final
-class Time(ToPy[pydt.time], ToPyTime, FromStr, _Parse, Strftime):
+class Time(
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyTime,
+    ToPy[pydt.time],
+    _Parse,
+):
     MIN: t.ClassVar[Time]
     MAX: t.ClassVar[Time]
 
@@ -465,7 +480,14 @@ class Time(ToPy[pydt.time], ToPyTime, FromStr, _Parse, Strftime):
 
 @t.final
 class DateTime(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, _Parse, Strftime
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPyDateTime,
+    ToPyTime,
+    ToPy[pydt.datetime],
+    _Parse,
 ):
     MIN: t.ClassVar[DateTime]
     MAX: t.ClassVar[DateTime]
@@ -662,9 +684,11 @@ class DateTime(
 
 @t.final
 class TimeZone(
-    ToPy[pydt.tzinfo],
-    ToPyTzInfo,
+    # protocols
     FromStr,
+    ToPyTzInfo,
+    ToPy[pydt.tzinfo],
+    _Parse,
 ):
     UTC: t.ClassVar[TimeZone]
 
@@ -741,7 +765,13 @@ class TimeZone(
     def to_ambiguous_zoned(self) -> t.NoReturn: ...
 
 @t.final
-class SignedDuration(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr, _Parse):
+class SignedDuration(
+    # protocols
+    FromStr,
+    ToPyTimeDelta,
+    ToPy[pydt.timedelta],
+    _Parse,
+):
     MIN: t.ClassVar[SignedDuration]
     MAX: t.ClassVar[SignedDuration]
     ZERO: t.ClassVar[SignedDuration]
@@ -890,7 +920,13 @@ TimeSpanArithmetic: t.TypeAlias = (
 )
 
 @t.final
-class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr, _Parse):
+class TimeSpan(
+    # protocols
+    ToPy[pydt.timedelta],
+    ToPyTimeDelta,
+    FromStr,
+    _Parse,
+):
     def __init__(
         self,
         years: int = 0,
@@ -1056,7 +1092,14 @@ class TimeSpan(ToPy[pydt.timedelta], ToPyTimeDelta, FromStr, _Parse):
 
 @t.final
 class Timestamp(
-    ToPy[pydt.datetime], ToPyDate, ToPyTime, ToPyDateTime, FromStr, _Parse, Strftime
+    # protocols
+    FromStr,
+    Strftime,
+    ToPyDate,
+    ToPyDateTime,
+    ToPyTime,
+    ToPy[pydt.datetime],
+    _Parse,
 ):
     """
     A representation of a timestamp with second and nanosecond precision.
@@ -1222,6 +1265,7 @@ class Timestamp(
 
 @t.final
 class ZonedDateTime(
+    # protocols
     ToPy[pydt.datetime],
     ToPyDate,
     ToPyTime,
@@ -1459,7 +1503,13 @@ class ZonedDateTime(
     ) -> TimeSpan: ...
 
 @t.final
-class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr, _Parse):
+class ISOWeekDate(
+    # protocols
+    ToPy[pydt.date],
+    ToPyDate,
+    FromStr,
+    _Parse,
+):
     MIN: t.ClassVar[ISOWeekDate]
     MAX: t.ClassVar[ISOWeekDate]
     ZERO: t.ClassVar[ISOWeekDate]
@@ -1514,7 +1564,13 @@ class ISOWeekDate(ToPy[pydt.date], ToPyDate, FromStr, _Parse):
     def to_dict(self) -> ISOWeekDateTypedDict: ...
 
 @t.final
-class Offset(ToPy[pydt.tzinfo], ToPyTzInfo, FromStr, _Parse):
+class Offset(
+    # protocols
+    ToPy[pydt.tzinfo],
+    ToPyTzInfo,
+    FromStr,
+    _Parse,
+):
     MIN: t.ClassVar[Offset]
     MAX: t.ClassVar[Offset]
     UTC: t.ClassVar[Offset]
