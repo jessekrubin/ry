@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.71 [unreleased]
+## v0.0.71 [2025-12-03]
 
 - `ryo3-serde`
   - crude string subclass support

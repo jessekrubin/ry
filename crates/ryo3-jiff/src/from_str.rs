@@ -6,15 +6,6 @@ use jiff::{civil::DateTime, tz::TimeZone};
 use ryo3_core::PyFromStr;
 use std::str::FromStr;
 
-// impl FromStr for RyDate {
-//     type Err = jiff::Error;
-
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         let jiff_ob = s.parse()?;
-//         Ok(Self(jiff_ob))
-//     }
-// }
-
 macro_rules! impl_ry_jiff_from_str {
     (
         $ryo3_type:ty
@@ -77,5 +68,3 @@ impl FromStr for RyDateTime {
         }
     }
 }
-// impl_ry_jiff_from_str!(RyISOWeekDate);
-// impl_ry_jiff_from_str!(RyOffset);
