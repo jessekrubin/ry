@@ -530,9 +530,3 @@ impl Display for RyDate {
         )
     }
 }
-
-impl From<Date> for RyDate {
-    fn from(value: Date) -> Self {
-        Self(value)
-    }
-}

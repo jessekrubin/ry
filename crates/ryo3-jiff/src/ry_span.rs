@@ -828,28 +828,6 @@ impl Display for RySpan {
     }
 }
 
-impl From<Span> for RySpan {
-    fn from(span: Span) -> Self {
-        Self(span)
-    }
-}
-
-impl From<JiffSpan> for RySpan {
-    fn from(span: JiffSpan) -> Self {
-        Self(span.0)
-    }
-}
-
-impl TryFrom<SignedDuration> for RySpan {
-    type Error = PyErr;
-
-    fn try_from(value: SignedDuration) -> Result<Self, Self::Error> {
-        Span::try_from(value)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
-    }
-}
-
 #[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum SpanCompareRelative {
     Zoned(RyZoned),

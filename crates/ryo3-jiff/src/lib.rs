@@ -21,6 +21,7 @@ mod deprecations;
 mod dev;
 mod difference;
 mod errors;
+mod from;
 mod functions;
 mod interns;
 mod into_span_arithmetic;

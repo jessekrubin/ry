@@ -19,30 +19,6 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) std::sync::Arc<TimeZone>);
 
-impl From<TimeZone> for RyTimeZone {
-    fn from(value: TimeZone) -> Self {
-        Self(std::sync::Arc::new(value))
-    }
-}
-
-impl From<&TimeZone> for RyTimeZone {
-    fn from(value: &TimeZone) -> Self {
-        Self(std::sync::Arc::new(value.clone()))
-    }
-}
-
-impl From<RyTimeZone> for TimeZone {
-    fn from(value: RyTimeZone) -> Self {
-        (*value.0).clone()
-    }
-}
-
-impl From<&RyTimeZone> for TimeZone {
-    fn from(value: &RyTimeZone) -> Self {
-        (*value.0).clone()
-    }
-}
-
 #[pymethods]
 impl RyTimeZone {
     #[new]

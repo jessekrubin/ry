@@ -473,9 +473,3 @@ impl Display for RyTimestamp {
         )
     }
 }
-
-impl From<Timestamp> for RyTimestamp {
-    fn from(value: Timestamp) -> Self {
-        Self(value)
-    }
-}

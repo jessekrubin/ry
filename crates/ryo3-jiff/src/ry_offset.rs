@@ -292,18 +292,6 @@ impl RyOffset {
     }
 }
 
-impl From<Offset> for RyOffset {
-    fn from(value: Offset) -> Self {
-        Self(value)
-    }
-}
-
-impl From<JiffOffset> for RyOffset {
-    fn from(value: JiffOffset) -> Self {
-        Self::from(value.0)
-    }
-}
-
 impl std::fmt::Display for RyOffset {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = self.0.seconds();

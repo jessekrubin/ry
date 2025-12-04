@@ -535,15 +535,3 @@ impl Display for RyTime {
         )
     }
 }
-
-impl From<Time> for RyTime {
-    fn from(value: Time) -> Self {
-        Self(value)
-    }
-}
-
-impl From<JiffTime> for RyTime {
-    fn from(value: JiffTime) -> Self {
-        Self(value.0)
-    }
-}

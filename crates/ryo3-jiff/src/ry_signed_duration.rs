@@ -702,18 +702,6 @@ impl RySignedDuration {
     }
 }
 
-impl From<SignedDuration> for RySignedDuration {
-    fn from(d: SignedDuration) -> Self {
-        Self(d)
-    }
-}
-
-impl From<JiffSignedDuration> for RySignedDuration {
-    fn from(d: JiffSignedDuration) -> Self {
-        Self(d.0)
-    }
-}
-
 #[derive(Debug, Clone, FromPyObject)]
 enum RySignedDurationComparable<'py> {
     RySignedDuration(RySignedDuration),

@@ -446,6 +446,19 @@ class TestDatetime:
                 pydt.datetime(2012, 4, 23, 10, 20, 30, 400_000, _create_tz(-120)),
             ),
             (pydt.datetime(2017, 5, 5), pydt.datetime(2017, 5, 5)),
+            # --- ry-jiff-types ---
+            # ry.DateTime
+            (ry.date(2024, 1, 1).at(4, 8, 16), pydt.datetime(2024, 1, 1, 4, 8, 16)),
+            # ry.ZonedDateTime
+            (
+                ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC"),
+                pydt.datetime(2024, 1, 1, 4, 8, 16, tzinfo=pydt.UTC),
+            ),
+            # ry.Timestamp
+            (
+                ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC").timestamp(),
+                pydt.datetime(2024, 1, 1, 4, 8, 16),
+            ),
         ],
     )
     def test_datetime_parsing_ok(
@@ -500,6 +513,25 @@ class TestZonedDatetime:
             (
                 "2012-04-23T09:15:00+00:00[UTC]",
                 pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.UTC),
+            ),
+            (
+                b"2012-04-23T09:15:00+00:00[UTC]",
+                pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.UTC),
+            ),
+            (
+                pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.UTC),
+                pydt.datetime(2012, 4, 23, 9, 15, tzinfo=pydt.UTC),
+            ),
+            # --- ry-jiff-types ---
+            # ry.ZonedDateTime
+            (
+                ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC"),
+                pydt.datetime(2024, 1, 1, 4, 8, 16, tzinfo=pydt.UTC),
+            ),
+            # ry.Timestamp
+            (
+                ry.date(2024, 1, 1).at(4, 8, 16).in_tz("UTC").timestamp(),
+                pydt.datetime(2024, 1, 1, 4, 8, 16, tzinfo=pydt.UTC),
             ),
         ],
     )
@@ -738,6 +770,23 @@ class TestTimestamp:
         )
         from_json = RyTimestampModel.model_validate_json(as_json)
         assert from_json.ts == m.ts
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            # Invalid inputs
+            "2024-01-01T04:08:16",  # no tzinfo
+            "dickbutt",
+            # totally wrong type
+            complex(1, 2),
+        ],
+    )
+    def test_timestamp_parsing_err(
+        self,
+        value: str,
+    ) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _d = RyTimestampModel(ts=value)  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------

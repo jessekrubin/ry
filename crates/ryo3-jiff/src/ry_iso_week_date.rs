@@ -3,6 +3,7 @@ use crate::isoformat::{iso_weekdate_to_string, parse_iso_week_date};
 use crate::{JiffWeekday, RyDate};
 use jiff::Zoned;
 use jiff::civil::ISOWeekDate;
+use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -163,31 +164,16 @@ impl RyISOWeekDate {
     // ========================================================================
     // DUNDERS/OPERATORS
     // ========================================================================
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
+        match op {
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
+        }
     }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.0 != other.0
-    }
-
-    fn __lt__(&self, other: &Self) -> bool {
-        self.0 < other.0
-    }
-
-    fn __le__(&self, other: &Self) -> bool {
-        self.0 <= other.0
-    }
-
-    fn __gt__(&self, other: &Self) -> bool {
-        self.0 > other.0
-    }
-
-    fn __ge__(&self, other: &Self) -> bool {
-        self.0 >= other.0
-    }
-
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
@@ -204,17 +190,5 @@ impl std::fmt::Display for RyISOWeekDate {
             self.week(),
             self.weekday()
         )
-    }
-}
-
-impl From<ISOWeekDate> for RyISOWeekDate {
-    fn from(date: ISOWeekDate) -> Self {
-        Self(date)
-    }
-}
-
-impl From<jiff::civil::Date> for RyISOWeekDate {
-    fn from(date: jiff::civil::Date) -> Self {
-        Self(ISOWeekDate::from(date))
     }
 }
