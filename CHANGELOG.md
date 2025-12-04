@@ -5,6 +5,8 @@
 - `ryo3-serde`
   - crude string subclass support
 - `ryo3-jiff`
+  - use `py_parse` and `py_from_str` for jiff types so that str/bytes are
+    allowed `def parse(cls, s: str | bytes) -> t.Self:`
   - Fix pydantic paring problems caused by lazy copy-pasta-ing w/o using
     eyeballs to read what I had copy-pasta-ed
 
