@@ -15,6 +15,7 @@ description = "ryo3 + jiff https://github.com/BurntSushi/jiff"
 jiff.workspace = true
 parking_lot.workspace = true
 pyo3 = { workspace = true, features = ["jiff-02"] }
+ryo3-core.workspace = true
 ryo3-macro-rules.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }
 ryo3-std = { workspace = true, features = ["time"] }

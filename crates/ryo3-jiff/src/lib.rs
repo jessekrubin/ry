@@ -22,6 +22,7 @@ mod dev;
 mod difference;
 mod errors;
 mod from;
+mod from_str;
 mod functions;
 mod interns;
 mod into_span_arithmetic;

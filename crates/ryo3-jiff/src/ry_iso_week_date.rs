@@ -63,12 +63,14 @@ impl RyISOWeekDate {
     // ========================================================================
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        parse_iso_week_date(s).map(Self::from)
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        parse_iso_week_date(s).map(Self::from)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     /// Returns the `ISOWeekDate` for the given `Date`.

@@ -104,22 +104,14 @@ impl RyDateTime {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        // if ends with 'Z', parse via timezone...
-        if s.ends_with('Z') {
-            jiff::Timestamp::from_str(s)
-                .map(|ts| ts.to_zoned(TimeZone::UTC).datetime())
-                .map(Self::from)
-                .map_err(map_py_value_err)
-        } else {
-            DateTime::from_str(s)
-                .map(Self::from)
-                .map_err(map_py_value_err)
-        }
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        Self::from_str(s)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {

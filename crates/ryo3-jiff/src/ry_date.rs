@@ -64,15 +64,14 @@ impl RyDate {
 
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
-        DATETIME_PARSER
-            .parse_date(s)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        Self::from_str(s)
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond=0))]
