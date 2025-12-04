@@ -18,6 +18,49 @@ class RequestKwargs(t.TypedDict, total=False):
     bearer_auth: str | None
     version: HttpVersionLike | None
 
+class ClientConfig(t.TypedDict):
+    headers: Headers | None
+    cookies: bool
+    user_agent: str | None
+    timeout: Duration | None
+    connect_timeout: Duration | None
+    read_timeout: Duration | None
+    redirect: int | None
+    referer: bool
+    gzip: bool
+    brotli: bool
+    deflate: bool
+    zstd: bool
+    hickory_dns: bool
+    http1_only: bool
+    https_only: bool
+    http1_title_case_headers: bool
+    http1_allow_obsolete_multiline_headers_in_responses: bool
+    http1_allow_spaces_after_header_name_in_responses: bool
+    http1_ignore_invalid_headers_in_responses: bool
+    http2_prior_knowledge: bool
+    http2_initial_stream_window_size: int | None
+    http2_initial_connection_window_size: int | None
+    http2_adaptive_window: bool
+    http2_max_frame_size: int | None
+    http2_max_header_list_size: int | None
+    http2_keep_alive_interval: Duration | None
+    http2_keep_alive_timeout: Duration | None
+    http2_keep_alive_while_idle: bool
+    pool_idle_timeout: Duration | None
+    pool_max_idle_per_host: int | None
+    tcp_keepalive: Duration | None
+    tcp_keepalive_interval: Duration | None
+    tcp_keepalive_retries: int | None
+    tcp_nodelay: bool
+    root_certificates: list[Certificate] | None
+    tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_info: bool
+    tls_sni: bool
+    danger_accept_invalid_certs: bool
+    danger_accept_invalid_hostnames: bool
+
 @t.final
 class HttpClient:
     def __init__(
@@ -65,6 +108,7 @@ class HttpClient:
         danger_accept_invalid_certs: bool = False,
         danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
+    def config(self) -> ClientConfig: ...
     async def get(
         self,
         url: str | URL,
@@ -169,6 +213,7 @@ class BlockingClient:
         danger_accept_invalid_certs: bool = False,
         danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
+    def config(self) -> ClientConfig: ...
     def get(
         self,
         url: str | URL,

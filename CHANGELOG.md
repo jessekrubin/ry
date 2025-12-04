@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.71 [unreleased]
+
+- `ryo3-serde`
+  - crude string subclass support
+
+---
+
 ## v0.0.70 [2025-12-02] (30 is the new 70)
 
 - type annotations

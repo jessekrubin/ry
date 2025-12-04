@@ -20,12 +20,31 @@ impl Serialize for SerializePyStr<'_, '_> {
     where
         S: Serializer,
     {
-        let py_str: &Bound<'_, PyString> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_str = self.obj.cast_exact::<PyString>().map_err(pyerr2sererr)?;
         let s = py_str.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(s)
     }
 }
 
+pub(crate) struct SerializePyStrSubclass<'a, 'py> {
+    obj: &'a Bound<'py, PyString>,
+}
+
+impl<'a, 'py> SerializePyStrSubclass<'a, 'py> {
+    pub(crate) fn new(obj: &'a Bound<'py, PyString>) -> Self {
+        Self { obj }
+    }
+}
+
+impl Serialize for SerializePyStrSubclass<'_, '_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let s = self.obj.to_str().map_err(pyerr2sererr)?;
+        serializer.serialize_str(s)
+    }
+}
 // impl Serialize for SerializePyStr<'_, '_> {
 //     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 //     where

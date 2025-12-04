@@ -596,3 +596,21 @@ def test_stringify_non_dict_like_mapping() -> None:
         "key1": "value1",
         "key2": "value2",
     }
+
+
+def test_stringify_string_subclass() -> None:
+    """Test that `stringify` handles string subclasses correctly."""
+
+    class MyStr(str):
+        pass
+
+    data = {
+        "key1": MyStr("value1"),
+        "key2": MyStr("value2"),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert parsed == {
+        "key1": "value1",
+        "key2": "value2",
+    }
