@@ -3,13 +3,13 @@ use pyo3::prelude::*;
 use crate::map_py_value_err;
 
 pub trait PyFromStr: Sized {
-    /// Parse from a string (basically FromStr but maps errors to PyResult)
+    /// Parse from a string (basically `FromStr` but maps errors to `PyResult`)
     fn py_from_str(ob: &str) -> PyResult<Self>
     where
         Self: Sized;
 }
 
-/// Blanket impl for any type that implements FromStr
+/// Blanket impl for any type that implements `FromStr`
 impl<T> PyFromStr for T
 where
     T: std::str::FromStr,
@@ -29,7 +29,7 @@ pub trait PyParse: Sized {
         Self: Sized;
 }
 
-/// Blanket impl for any type that implements PyFromStr
+/// Blanket impl for any type that implements `PyFromStr`
 impl<T> PyParse for T
 where
     T: PyFromStr,
