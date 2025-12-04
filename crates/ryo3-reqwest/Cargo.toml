@@ -22,6 +22,7 @@ pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 reqwest.workspace = true
 ryo3-bytes.workspace = true
+ryo3-core.workspace = true
 ryo3-http.workspace = true
 ryo3-jiter.workspace = true
 ryo3-macro-rules.workspace = true

@@ -2,6 +2,7 @@ import typing as t
 
 import ry
 from ry._types import Buffer, Unpack
+from ry.protocols import FromStr, _Parse
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
@@ -443,7 +444,7 @@ def fetch_sync(
 ) -> BlockingResponse: ...
 
 @t.final
-class Cookie:
+class Cookie(FromStr, _Parse):
     def __init__(
         self,
         name: str,
@@ -460,8 +461,10 @@ class Cookie:
         same_site: t.Literal["Lax", "Strict", "None"] | None = None,
         secure: bool | None = None,
     ) -> None: ...
-    @staticmethod
-    def parse(s: str) -> Cookie: ...
+    @classmethod
+    def from_str(cls, s: str) -> Cookie: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> Cookie: ...
     @staticmethod
     def parse_encoded(s: str) -> Cookie: ...
 
