@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a3c2a242.js";
+            window.path_to_searchindex_js = "searchindex-edb2effd.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5c7d32c.js"></script>
@@ -237,12 +237,13 @@ library as much as possible</li>
 <h3 id="python"><a class="header" href="#python">python</a></h3>
 <ul>
 <li>we use <code>maturin</code> for building the python wheels</li>
-<li>we support <code>python-3.9+</code></li>
+<li>we support <code>python-3.11+</code></li>
 <li>we use <code>pytest</code> for testing as well as the following plugins:
 <ul>
-<li><code>pytest-benchmark</code></li>
-<li><code>pytest-asyncio</code> (may switch to <code>anyio</code> in the future)</li>
+<li><code>anyio</code> (which I am increasingly thinking is actually a bit of a turd)</li>
 <li><code>hypothesis</code></li>
+<li><code>pytest-benchmark</code></li>
+<li><code>pytest-cov</code></li>
 </ul>
 </li>
 </ul>
