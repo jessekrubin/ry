@@ -11,6 +11,7 @@ use pyo3::types::PyString;
 ///
 /// Ascii only (as jiter ppl describe)
 #[must_use]
+#[inline]
 pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bound<'py, PyString> {
     if ascii_only {
         #[expect(unsafe_code)]
@@ -36,6 +37,7 @@ pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bou
 #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
 #[expect(unsafe_code, clippy::cast_possible_wrap)]
 #[must_use]
+#[inline]
 pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     unsafe {
         let ptr = pyo3::ffi::PyUnicode_New(s.len() as isize, 127);
@@ -52,6 +54,7 @@ pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, Py
 }
 
 #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+#[inline]
 pub fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     PyString::new(py, s)
 }

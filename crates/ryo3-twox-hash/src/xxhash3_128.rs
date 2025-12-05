@@ -1,4 +1,5 @@
-use crate::py_digest::{PyDigest, PyHexDigest};
+use ryo3_core::types::{PyDigest, PyHexDigest};
+
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyModuleMethods, PyString};

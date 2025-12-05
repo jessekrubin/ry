@@ -1,6 +1,8 @@
 mod byte;
 mod pathlike;
+mod py_digest;
 mod string_or_strings;
 pub use byte::Byte;
 pub use pathlike::PathLike;
+pub use py_digest::{PyDigest, PyHexDigest};
 pub use string_or_strings::StringOrStrings;

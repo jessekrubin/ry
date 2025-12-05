@@ -13,6 +13,7 @@ macro_rules! impl_ry_jiff_from_str {
         impl FromStr for $ryo3_type {
             type Err = jiff::Error;
 
+            #[inline]
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 let jiff_ob = s.parse()?;
                 Ok(Self(jiff_ob))
@@ -32,12 +33,14 @@ impl_ry_jiff_from_str!(RyZoned);
 // I think they don't have FromStr impls in jiff? herm...
 
 impl PyFromStr for RyISOWeekDate {
+    #[inline]
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
         parse_iso_week_date(s).map(Self::from)
     }
 }
 
 impl PyFromStr for RyTimeZone {
+    #[inline]
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
         TimeZone::get(s)
             .map(Self::from)
@@ -48,6 +51,7 @@ impl PyFromStr for RyTimeZone {
 impl FromStr for RyOffset {
     type Err = jiff::Error;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use crate::constants::DATETIME_PARSER;
         let o = DATETIME_PARSER.parse_time_zone(s)?;
@@ -57,6 +61,7 @@ impl FromStr for RyOffset {
 
 impl FromStr for RyDateTime {
     type Err = jiff::Error;
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // if ends with 'Z', parse via timezone...
         if s.ends_with('Z') {

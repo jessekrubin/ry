@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -101,17 +103,27 @@ impl PyCookie {
     // STATIC/"CLASS" METHODS
     // ------------------------------------------------------------------------
 
+    // #[staticmethod]
+    // fn parse(s: &str) -> PyResult<Self> {
+    //     match cookie::Cookie::parse(s) {
+    //         Ok(c) => Ok(Self(c.into_owned())),
+    //         Err(e) => py_value_err!("failed to parse cookie: {e}"),
+    //     }
+    // }
     #[staticmethod]
-    fn parse(s: &str) -> PyResult<Self> {
-        match cookie::Cookie::parse(s.to_string()) {
-            Ok(c) => Ok(Self(c.into_owned())),
-            Err(e) => py_value_err!("failed to parse cookie: {e}"),
-        }
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+    #[staticmethod]
     fn parse_encoded(s: &str) -> PyResult<Self> {
-        match cookie::Cookie::parse_encoded(s.to_string()) {
+        match cookie::Cookie::parse_encoded(s) {
             Ok(c) => Ok(Self(c.into_owned())),
             Err(e) => py_value_err!("failed to parse cookie: {e}"),
         }
@@ -355,5 +367,15 @@ impl<'py> FromPyObject<'_, 'py> for PySameSite {
                 "Invalid SameSite value (options: 'Lax', 'Strict', 'None')",
             ))
         }
+    }
+}
+
+impl FromStr for PyCookie {
+    type Err = cookie::ParseError;
+
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let c = cookie::Cookie::parse(s)?;
+        Ok(Self(c.into_owned()))
     }
 }

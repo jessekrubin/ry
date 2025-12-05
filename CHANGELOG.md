@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.72 [unreleased]
+
+- `ryo3-jiff`
+  - use `PyMutex` and get rid of `parking_lot::Mutex` for jiff series iterators
+
+---
+
 ## v0.0.71 [2025-12-03]
 
 - `ryo3-serde`

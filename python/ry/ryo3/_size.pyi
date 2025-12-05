@@ -1,4 +1,7 @@
+import builtins
 import typing as t
+
+from ry.protocols import FromStr, _Parse
 
 FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
 FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
@@ -44,7 +47,7 @@ class SizeFormatter:
         """Return human-readable string representation of bytes-size."""
 
 @t.final
-class Size:
+class Size(FromStr, _Parse):
     """Bytes-size object."""
 
     def __init__(self, size: int) -> None: ...
@@ -65,9 +68,9 @@ class Size:
     # PARSING
     # -------------------------------------------------------------------------
     @classmethod
-    def parse(cls, size: str) -> Size: ...
+    def parse(cls, s: str | builtins.bytes) -> Size: ...
     @classmethod
-    def from_str(cls, size: str) -> Size: ...
+    def from_str(cls, s: str) -> Size: ...
 
     # -------------------------------------------------------------------------
     # BYTES
