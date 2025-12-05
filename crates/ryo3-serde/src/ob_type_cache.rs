@@ -193,6 +193,12 @@ impl PyTypeCache {
     pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
         self.ptr2type(ob.get_type_ptr() as usize, ob)
     }
+
+    #[must_use]
+    #[inline]
+    pub(crate) fn obtype_key(&self, ob: &Bound<'_, PyAny>) -> PyObType {
+        self.ptr2type_key(ob.get_type_ptr() as usize)
+    }
 }
 
 fn get_uuid_ob_pointer(py: Python) -> usize {
@@ -278,6 +284,14 @@ impl PyTypeCache {
         if is_dataclass(ob) {
             return PyObType::Dataclass;
         }
+        PyObType::Unknown
+    }
+
+    #[inline]
+    pub(crate) fn ptr2type_key(&self, ptr: usize) -> PyObType {
+        // --- das builtins ---
+        py_obj_ptr!(self, ptr, string, String);
+        py_obj_ptr!(self, ptr, bool, Bool);
         PyObType::Unknown
     }
 }

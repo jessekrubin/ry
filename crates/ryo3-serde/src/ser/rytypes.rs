@@ -103,6 +103,7 @@ macro_rules! ry_type_serializer_struct {
 
         $(#[$meta])*
         impl<'py> serde::ser::Serialize for $name<'py> {
+            #[inline]
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: serde::Serializer,

@@ -18,6 +18,7 @@ impl<'a, 'py> SerializePyFloat<'a, 'py> {
 }
 
 impl Serialize for SerializePyFloat<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -28,6 +29,7 @@ impl Serialize for SerializePyFloat<'_, '_> {
 }
 
 impl PySerializeUnsafe for SerializePyFloat<'_, '_> {
+    #[inline]
     fn serialize_unsafe<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

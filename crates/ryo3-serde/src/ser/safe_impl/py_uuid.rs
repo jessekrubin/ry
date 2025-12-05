@@ -10,12 +10,14 @@ pub(crate) struct SerializePyUuid<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyUuid<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
 impl Serialize for SerializePyUuid<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

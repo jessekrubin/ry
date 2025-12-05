@@ -10,12 +10,14 @@ pub(crate) struct SerializePyBytesLike<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyBytesLike<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
 impl Serialize for SerializePyBytesLike<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
