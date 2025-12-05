@@ -1,6 +1,8 @@
 use jiff::{Unit, Zoned};
 
 fn main() {
+    pyo3_build_config::use_pyo3_cfgs();
+
     // env var build profile
     let profile =
         std::env::var("PROFILE").expect("PROFILE env var not found which is SUPER strange!");

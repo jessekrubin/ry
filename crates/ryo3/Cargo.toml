@@ -13,6 +13,7 @@ description = "ry(o3) = rust & pyo3 & python"
 
 [build-dependencies]
 jiff.workspace = true
+pyo3-build-config = { workspace = true }
 
 [lints]
 workspace = true

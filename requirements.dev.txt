@@ -2,7 +2,7 @@
 #    uv pip compile requirements.dev.in -n
 annotated-types==0.7.0
     # via pydantic
-anyio==4.11.0
+anyio==4.12.0
     # via -r requirements.dev.in
 click==8.3.1
     # via uvicorn
@@ -10,15 +10,17 @@ coverage==7.12.0
     # via pytest-cov
 h11==0.16.0
     # via uvicorn
-hypothesis==6.148.2
+hypothesis==6.148.7
     # via -r requirements.dev.in
 idna==3.11
     # via anyio
 iniconfig==2.3.0
     # via pytest
+librt==0.7.0
+    # via mypy
 maturin==1.10.2
     # via -r requirements.dev.in
-mypy==1.18.2
+mypy==1.19.0
     # via -r requirements.dev.in
 mypy-extensions==1.1.0
     # via mypy
@@ -34,7 +36,7 @@ pluggy==1.6.0
     #   pytest-cov
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pydantic==2.12.4
+pydantic==2.12.5
     # via -r requirements.dev.in
 pydantic-core==2.41.5
     # via pydantic
@@ -52,10 +54,8 @@ pytest-benchmark==5.2.3
     # via -r requirements.dev.in
 pytest-cov==7.0.0
     # via -r requirements.dev.in
-ruff==0.14.6
+ruff==0.14.8
     # via -r requirements.dev.in
-sniffio==1.3.1
-    # via anyio
 sortedcontainers==2.4.0
     # via hypothesis
 typing-extensions==4.15.0

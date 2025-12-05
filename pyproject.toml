@@ -58,7 +58,7 @@ dev = [
   "orjson>=3.10.18; implementation_name=='cpython'",
   "prek>=0.2.2",
   "pydantic>=2.11.7",
-  "pytest>=8.3.5",
+  "pytest>=9.0.1",
   "pytest-asyncio>=1.0.0",
   "pytest-benchmark>=5.1",
   "pytest-cov>=6.2.1",

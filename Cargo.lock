@@ -1811,6 +1811,7 @@ version = "0.0.72"
 dependencies = [
  "jiff",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-brotli",
  "ryo3-bytes",
  "ryo3-bzip2",
