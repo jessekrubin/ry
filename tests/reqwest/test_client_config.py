@@ -76,3 +76,15 @@ def test_client_config_headers(
     config = client.config()
     assert isinstance(config["headers"], ry.Headers)
     assert config["headers"].to_dict() == headers
+
+
+def test_client_config_pickle(
+    client_cls: type[ry.HttpClient | ry.BlockingClient],
+) -> None:
+    import pickle
+
+    client = client_cls()
+    pickled = pickle.dumps(client)
+    unpickled = pickle.loads(pickled)
+    assert isinstance(unpickled, client_cls)
+    assert unpickled.config() == client.config()
