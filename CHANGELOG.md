@@ -2,6 +2,12 @@
 
 ## v0.0.72 [unreleased]
 
+- RENAMES:
+  - `ry.URL.replace_*` -> `ry.URL.with_*`: the `replace_*` methods are
+    deprecated in favor of `with_*` methods. The `ry.URL.replace` still exists as
+    a way to replace multiple parts at once.
+  - `ry.aiopen` -> `ry.aopen`: it was supposed to be "asyncio-open", but it
+    could be easily confused with "artificial-intellegence-open"/"llm-open"
 - `ryo3-jiff`
   - use `PyMutex` and get rid of `parking_lot::Mutex` for jiff series iterators
 

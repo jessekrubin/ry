@@ -1,6 +1,7 @@
 """ryo4-tokio types"""
 
 import pathlib
+import sys
 import typing as t
 from collections.abc import Generator
 from types import TracebackType
@@ -8,6 +9,11 @@ from types import TracebackType
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
 from ry.ryo3._std import FileType, Metadata
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 # =============================================================================
 # FS
@@ -96,6 +102,10 @@ class AsyncFile:
         exc_tb: TracebackType | None,
     ) -> None: ...
 
+def aopen(
+    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
+) -> AsyncFile: ...
+@deprecated("`aiopen` is deprecated, use `aopen` instead")
 def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...

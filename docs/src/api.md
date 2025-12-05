@@ -256,7 +256,8 @@ from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen
+from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
+from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
 from ry.ryo3._tokio import copy_async as copy_async
@@ -5714,6 +5715,7 @@ ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 """ryo4-tokio types"""
 
 import pathlib
+import sys
 import typing as t
 from collections.abc import Generator
 from types import TracebackType
@@ -5721,6 +5723,11 @@ from types import TracebackType
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
 from ry.ryo3._std import FileType, Metadata
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 
 # =============================================================================
@@ -5816,6 +5823,10 @@ class AsyncFile:
     ) -> None: ...
 
 
+def aopen(
+    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
+) -> AsyncFile: ...
+@deprecated("`aiopen` is deprecated, use `aopen` instead")
 def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
@@ -5834,12 +5845,18 @@ def unindent_bytes(b: bytes, /) -> bytes: ...
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
 
 ```python
+import sys
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
 from ry.protocols import FromStr
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 
 @t.final
@@ -5920,21 +5937,48 @@ class URL(FromStr):
     def is_special(self) -> bool: ...
     def join(self, *parts: str) -> URL: ...
     def make_relative(self, other: URL) -> t.Self: ...
-    def to_filepath(self) -> str: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_host(self, host: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_ip_host(
         self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
     ) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_password(self, password: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_path(self, path: str) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_port(self, port: int | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_query(self, query: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_scheme(self, scheme: str) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_username(self, username: str) -> t.Self: ...
     def socket_addrs(
         self, default_port_number: int | None = None
     ) -> list[SocketAddr]: ...
+    def to_filepath(self) -> str: ...
     def replace(
         self,
         *,
@@ -5953,6 +5997,17 @@ class URL(FromStr):
         scheme: str | None = None,
         username: str | None = None,
     ) -> t.Self: ...
+    def with_fragment(self, fragment: str | None = None) -> t.Self: ...
+    def with_host(self, host: str | None = None) -> t.Self: ...
+    def with_ip_host(
+        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
+    ) -> t.Self: ...
+    def with_password(self, password: str | None = None) -> t.Self: ...
+    def with_path(self, path: str) -> t.Self: ...
+    def with_port(self, port: int | None = None) -> t.Self: ...
+    def with_query(self, query: str | None = None) -> t.Self: ...
+    def with_scheme(self, scheme: str) -> t.Self: ...
+    def with_username(self, username: str) -> t.Self: ...
 
     # =========================================================================
     # OPERATORS/DUNDER
