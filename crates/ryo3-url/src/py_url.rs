@@ -7,6 +7,7 @@ use std::ffi::OsString;
 use std::hash::{Hash, Hasher};
 use std::net::IpAddr;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -19,24 +20,8 @@ impl PyUrl {
     pub fn new(url: url::Url) -> Self {
         Self(url)
     }
-
-    fn parse_with_params(url: &str, params: &Bound<'_, PyDict>) -> PyResult<Self> {
-        let params = params
-            .into_iter()
-            .map(|(k, v)| {
-                let k_str: String = k.extract()?;
-                let v_str: String = v.extract()?;
-                Ok((k_str, v_str))
-            })
-            .collect::<PyResult<Vec<(String, String)>>>()?;
-
-        url::Url::parse_with_params(url, params)
-            .map(PyUrl)
-            .map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-            })
-    }
 }
+
 
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for PyUrl {
@@ -54,7 +39,7 @@ impl PyUrl {
     #[pyo3(signature = (url, *, params = None))]
     fn py_new(url: UrlLike, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         if let Some(params) = params {
-            Self::parse_with_params(url.0.as_str(), params)
+            url.py_with_params(params).map(Self::from)
         } else {
             Ok(Self::from(url.0))
         }
@@ -65,43 +50,21 @@ impl PyUrl {
     }
 
     #[staticmethod]
-    fn from_str(url: &str) -> PyResult<Self> {
-        url::Url::parse(url).map(PyUrl).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={url})"))
-        })
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
 
     #[staticmethod]
-    #[pyo3(signature = (url, *, params = None))]
-    fn parse(url: &Bound<'_, PyAny>, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
-        if let Ok(url) = url.extract::<&str>() {
-            if let Some(params) = params {
-                Self::parse_with_params(url, params)
-            } else {
-                Self::from_str(url)
-            }
-        } else if let Ok(b) = url.extract::<&[u8]>() {
-            let s = std::str::from_utf8(b).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid UTF-8 sequence: {e} (bytes={b:?})"
-                ))
-            })?;
-            if let Some(params) = params {
-                Self::parse_with_params(s, params)
-            } else {
-                Self::from_str(s)
-            }
-        } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(
-                "Expected str or bytes for URL.parse",
-            ))
-        }
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
     }
 
     #[staticmethod]
-    #[pyo3(name = "parse_with_params")]
-    fn py_parse_with_params(url: &Bound<'_, PyAny>, params: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Self::parse(url, Some(params))
+    #[pyo3(name = "parse_with_params", signature = (url, params))]
+    fn py_parse_with_params(url: UrlLike, params: &Bound<'_, PyDict>) -> PyResult<Self> {
+        url.py_with_params(params).map(Self::from)
     }
 
     fn __str__(&self) -> &str {
@@ -679,6 +642,14 @@ impl PyUrl {
     )]
     fn replace_username(&self, username: &str) -> PyResult<Self> {
         self.with_username(username)
+    }
+}
+
+impl FromStr for PyUrl {
+    type Err = url::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        url::Url::parse(s).map(PyUrl)
     }
 }
 

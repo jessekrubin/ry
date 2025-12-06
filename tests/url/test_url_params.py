@@ -45,12 +45,13 @@ def test_parse_with_params_none() -> None:
     assert str(url) == "https://example.net/?dont=clobberme"
 
 
-def test_parse_new_params_kwarg_only() -> None:
+def test_parse_params_no_dict_with_kwargs() -> None:
     with pytest.raises(TypeError):
-        _url = ry.URL(  # type: ignore[misc]
+        _url = ry.URL(  # type: ignore[call-overload]
             "https://example.net",
             {
                 "lang": "rust",
                 "browser": "servo",
             },
+            something="else",
         )

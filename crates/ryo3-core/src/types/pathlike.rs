@@ -12,12 +12,12 @@ pub enum PathLike {
 impl<'a, 'py> FromPyObject<'a, 'py> for PathLike {
     type Error = pyo3::PyErr;
 
-    fn extract(obj: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+    fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         if let Ok(s) = obj.extract::<PyBackedStr>() {
-            Ok(PathLike::PyStr(s))
+            Ok(Self::PyStr(s))
         } else {
             let p: PathBuf = obj.extract()?;
-            Ok(PathLike::PathBuf(p))
+            Ok(Self::PathBuf(p))
         }
     }
 }
@@ -30,9 +30,9 @@ impl<'py> IntoPyObject<'py> for PathLike {
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self {
-            PathLike::PathBuf(p) => p.into_bound_py_any(py),
-            PathLike::PyStr(s) => s.into_bound_py_any(py),
-            PathLike::Str(s) => s.into_bound_py_any(py),
+            Self::PathBuf(p) => p.into_bound_py_any(py),
+            Self::PyStr(s) => s.into_bound_py_any(py),
+            Self::Str(s) => s.into_bound_py_any(py),
         }
     }
 }
