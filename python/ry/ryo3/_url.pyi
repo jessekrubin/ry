@@ -3,7 +3,7 @@ import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
-from ry.protocols import FromStr
+from ry.protocols import FromStr, _Parse
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
 
 if sys.version_info >= (3, 13):
@@ -12,18 +12,15 @@ else:
     from typing_extensions import deprecated
 
 @t.final
-class URL(FromStr):
+class URL(FromStr, _Parse):
     def __init__(
         self, url: str | bytes | URL, *, params: dict[str, str] | None = None
     ) -> None: ...
-
     # =========================================================================
     # CLASSMETHODS
     # =========================================================================
     @classmethod
-    def parse(
-        cls, url: str | bytes, *, params: dict[str, str] | None = None
-    ) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod

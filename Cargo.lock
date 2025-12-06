@@ -2162,6 +2162,7 @@ dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
  "ryo3-bytes",
+ "ryo3-core",
  "ryo3-macro-rules",
  "ryo3-std",
  "tokio",
@@ -2211,6 +2212,7 @@ name = "ryo3-url"
 version = "0.0.72"
 dependencies = [
  "pyo3",
+ "ryo3-core",
  "ryo3-macro-rules",
  "ryo3-pydantic",
  "ryo3-std",

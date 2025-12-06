@@ -5,6 +5,30 @@ use pyo3::{Bound, FromPyObject, PyAny, PyErr, PyResult};
 
 pub struct UrlLike(pub url::Url);
 
+impl UrlLike {
+    fn apply_with_params<'py>(
+        &mut self,
+        params: &'py Bound<'py, pyo3::types::PyDict>,
+    ) -> PyResult<()> {
+        let mut query_pairs = self.0.query_pairs_mut();
+
+        for (k, v) in params {
+            let k_str: &str = k.extract()?;
+            let v_str: &str = v.extract()?;
+            query_pairs.append_pair(k_str, v_str);
+        }
+        Ok(())
+    }
+
+    pub fn py_with_params<'py>(
+        mut self,
+        params: &'py Bound<'py, pyo3::types::PyDict>,
+    ) -> PyResult<Self> {
+        self.apply_with_params(params)?;
+        Ok(self)
+    }
+}
+
 impl<'py> FromPyObject<'_, 'py> for UrlLike {
     type Error = PyErr;
 
@@ -46,5 +70,11 @@ pub fn extract_url(ob: &Bound<'_, PyAny>) -> PyResult<url::Url> {
         Err(pyo3::exceptions::PyTypeError::new_err(
             "Expected str or URL object",
         ))
+    }
+}
+
+impl From<UrlLike> for PyUrl {
+    fn from(ul: UrlLike) -> Self {
+        ul.0.into()
     }
 }
