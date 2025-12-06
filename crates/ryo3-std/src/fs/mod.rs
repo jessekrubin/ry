@@ -381,9 +381,27 @@ pub fn create_dir_all(py: Python<'_>, path: PathLike) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn canonicalize(path: PathLike) -> PyResult<()> {
-    std::fs::canonicalize(path)?;
-    Ok(())
+pub fn canonicalize(py: Python<'_>, path: PathLike) -> PyResult<PathLike> {
+    match path {
+        PathLike::PathBuf(p) => {
+            let resolved = py
+                .detach(|| std::fs::canonicalize(&p))
+                .map_err(|e| PyIOError::new_err(format!("canonicalize - {e}")))?;
+            return Ok(PathLike::PathBuf(resolved));
+        }
+        PathLike::PyStr(s) => {
+            let resolved = py
+                .detach(|| std::fs::canonicalize(&*s))
+                .map_err(|e| PyIOError::new_err(format!("canonicalize - {e}")))?;
+            return Ok(PathLike::Str(resolved.to_string_lossy().to_string()));
+        }
+        PathLike::Str(s) => {
+            let resolved = py
+                .detach(|| std::fs::canonicalize(&s))
+                .map_err(|e| PyIOError::new_err(format!("canonicalize - {e}")))?;
+            return Ok(PathLike::Str(resolved.to_string_lossy().to_string()));
+        }
+    }
 }
 
 #[pyfunction]

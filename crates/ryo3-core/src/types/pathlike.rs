@@ -1,10 +1,40 @@
-use pyo3::FromPyObject;
+use pyo3::{FromPyObject, IntoPyObject, pybacked::PyBackedStr};
+use pyo3::{IntoPyObjectExt, prelude::*};
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone, FromPyObject)]
+#[derive(Debug)]
 pub enum PathLike {
     PathBuf(PathBuf),
+    PyStr(PyBackedStr),
     Str(String),
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PathLike {
+    type Error = pyo3::PyErr;
+
+    fn extract(obj: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(s) = obj.extract::<PyBackedStr>() {
+            Ok(PathLike::PyStr(s))
+        } else {
+            let p: PathBuf = obj.extract()?;
+            Ok(PathLike::PathBuf(p))
+        }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PathLike {
+    type Target = pyo3::PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            PathLike::PathBuf(p) => p.into_bound_py_any(py),
+            PathLike::PyStr(s) => s.into_bound_py_any(py),
+            PathLike::Str(s) => s.into_bound_py_any(py),
+        }
+    }
 }
 
 impl From<PathLike> for String {
@@ -12,6 +42,7 @@ impl From<PathLike> for String {
     fn from(p: PathLike) -> Self {
         match p {
             PathLike::PathBuf(p) => p.to_string_lossy().to_string(),
+            PathLike::PyStr(s) => s.to_string(),
             PathLike::Str(s) => s,
         }
     }
@@ -22,6 +53,7 @@ impl AsRef<Path> for PathLike {
     fn as_ref(&self) -> &Path {
         match self {
             Self::PathBuf(p) => p.as_ref(),
+            Self::PyStr(s) => Path::new(&**s),
             Self::Str(s) => Path::new(s),
         }
     }
@@ -39,6 +71,7 @@ impl std::fmt::Display for PathLike {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PathBuf(p) => write!(f, "{}", p.to_string_lossy()),
+            Self::PyStr(s) => write!(f, "{s}"),
             Self::Str(s) => write!(f, "{s}"),
         }
     }
