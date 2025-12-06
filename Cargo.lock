@@ -2158,6 +2158,7 @@ dependencies = [
 name = "ryo3-tokio"
 version = "0.0.72"
 dependencies = [
+ "bytes",
  "futures",
  "pyo3",
  "pyo3-async-runtimes",

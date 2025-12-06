@@ -1,16 +1,17 @@
 //! python `tokio::fs` module
-pub use crate::fs::file::PyAsyncFile;
-use crate::fs::read_dir::PyAsyncReadDir;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
+pub use read_dir::PyAsyncReadDir;
 use ryo3_bytes::PyBytes;
 use ryo3_core::types::PyOpenMode;
 use ryo3_std::fs::PyMetadata;
 use std::path::PathBuf;
 use tracing::warn;
-
-pub mod file;
+mod async_file_read_stream;
+mod file;
+pub use async_file_read_stream::PyAsyncFileReadStream;
+pub use file::PyAsyncFile;
 mod read_dir;
 
 #[pyfunction]
@@ -211,13 +212,27 @@ pub fn aiopen(
     aopen(path, mode, buffering, kwargs)
 }
 
+#[pyfunction]
+#[pyo3(signature = (path, chunk_size = 65536, *, offset = 0, buffered = true, strict = true))]
+pub fn read_stream_async(
+    path: PathBuf,
+    chunk_size: usize,
+    offset: u64,
+    buffered: bool,
+    strict: bool,
+) -> PyResult<PyAsyncFileReadStream> {
+    PyAsyncFileReadStream::py_new(path, chunk_size, offset, buffered, strict)
+}
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // file
+    // classes
     m.add_class::<PyAsyncFile>()?;
+    m.add_class::<PyAsyncFileReadStream>()?;
     //fns
     m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(aiopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;
+    m.add_function(wrap_pyfunction!(read_stream_async, m)?)?;
     m.add_function(wrap_pyfunction!(copy_async, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir_async, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir_all_async, m)?)?;

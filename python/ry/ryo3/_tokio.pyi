@@ -8,7 +8,8 @@ from types import TracebackType
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
-from ry.ryo3._std import FileType, Metadata
+from ry.protocols import RyAsyncIterator, RyIterator
+from ry.ryo3._std import FileReadStream, FileType, Metadata
 
 if sys.version_info >= (3, 13):
     from warnings import deprecated
@@ -109,3 +110,60 @@ def aopen(
 def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
+
+@t.final
+class AsyncFileReadStream(RyAsyncIterator[Bytes]):
+    def __init__(
+        self,
+        path: FsPathLike,
+        *,
+        chunk_size: int = 65536,
+        offset: int = 0,
+        buffered: bool = True,
+        strict: bool = True,
+    ) -> None:
+        """Return an AsyncFileReadStream
+
+        Args:
+            path: path-like object
+            chunk_size: chunk size. Defaults to 65536.
+            offset: offset to start reading from. Defaults to 0.
+            buffered: whether the stream is buffered. Defaults to True.
+            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+        Raises:
+            FileNotFoundError: If file does not exist.
+            IsADirectoryError: If path is a directory.
+            ValueError: If offset is beyond EOF and strict is True.
+
+        """
+
+    def __await__(self) -> Generator[t.Any, t.Any, t.Self]: ...
+    def __aiter__(self) -> t.Self: ...
+    async def __anext__(self) -> Bytes: ...
+    async def collect(self) -> list[Bytes]: ...
+    async def take(self, n: int = 1) -> list[Bytes]: ...
+
+def read_stream_async(
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    offset: int = 0,
+    buffered: bool = True,
+    strict: bool = True,
+) -> AsyncFileReadStream:
+    """Return a FileReadStream
+
+    Args:
+        path: path-like object
+        chunk_size: chunk size. Defaults to 65536.
+        offset: offset to start reading from. Defaults to 0.
+        buffered: whether the stream is buffered. Defaults to True.
+        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+    Raises:
+        FileNotFoundError: If file does not exist.
+        IsADirectoryError: If path is a directory.
+        ValueError: If offset is beyond EOF and strict is True.
+
+    """

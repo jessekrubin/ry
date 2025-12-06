@@ -22,6 +22,7 @@ ryo3-macro-rules = {workspace = true, features = [] }
 # tokio = { version = "1.45.1", features = ["bytes", "fs", "macros", "parking_lot", "rt", "rt-multi-thread", "sync", "io-util"] }
 tokio= { workspace = true, features = [] }
 tracing.workspace = true
+bytes.workspace = true
 
 [features]
 default = []
