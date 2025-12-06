@@ -11,6 +11,7 @@ pub(crate) struct SerializePyInt<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyInt<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
         Self { obj }
     }

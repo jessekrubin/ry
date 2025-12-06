@@ -141,28 +141,37 @@ impl PyXxHash3_64 {
 // ONCE SHOT FUNCTIONS
 // ====================================================================================
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-#[pyo3(signature = (data, *, seed = 0))]
-pub fn xxh3_64_digest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: u64) -> PyDigest<u64> {
-    py.detach(|| {
-        let digest = twox_hash::XxHash3_64::oneshot_with_seed(seed, data.as_ref());
-        PyDigest(digest)
-    })
+#[pyo3(signature = (data, *, seed = 0, secret = None))]
+pub fn xxh3_64_digest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: u64,
+    secret: Option<ryo3_bytes::PyBytes>,
+) -> PyResult<PyDigest<u64>> {
+    PyXxHash3_64::oneshot(py, data, seed, secret).map(PyDigest::from)
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-#[pyo3(signature = (data, *, seed = 0))]
-pub fn xxh3_64_intdigest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: u64) -> u64 {
-    py.detach(|| twox_hash::XxHash3_64::oneshot_with_seed(seed, data.as_ref()))
+#[pyo3(signature = (data, *, seed = 0, secret = None))]
+pub fn xxh3_64_intdigest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: u64,
+    secret: Option<ryo3_bytes::PyBytes>,
+) -> PyResult<u64> {
+    PyXxHash3_64::oneshot(py, data, seed, secret)
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-#[pyo3(signature = (data, *, seed = 0))]
-pub fn xxh3_64_hexdigest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: u64) -> PyHexDigest<u64> {
-    py.detach(|| twox_hash::XxHash3_64::oneshot_with_seed(seed, data.as_ref()).into())
+#[pyo3(signature = (data, *, seed = 0, secret = None))]
+pub fn xxh3_64_hexdigest(
+    py: Python<'_>,
+    data: ryo3_bytes::PyBytes,
+    seed: u64,
+    secret: Option<ryo3_bytes::PyBytes>,
+) -> PyResult<PyHexDigest<u64>> {
+    PyXxHash3_64::oneshot(py, data, seed, secret).map(PyHexDigest::from)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

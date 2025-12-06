@@ -1,15 +1,15 @@
 #![doc = include_str!("../README.md")]
+use ryo3_core::types::{PyDigest, PyHexDigest};
 use std::hash::Hasher;
 
+use pyo3::PyResult;
 use pyo3::types::{PyModule, PyString, PyTuple};
-
 use pyo3::{IntoPyObjectExt, intern, prelude::*};
-use pyo3::{PyResult, wrap_pyfunction};
 
 use fnv::FnvHasher;
 use std::sync::Mutex;
 
-#[pyclass(name = "FnvHasher", frozen, immutable_type)]
+#[pyclass(name = "fnv1a", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFnvHasher(Mutex<FnvHasher>);
 
@@ -31,12 +31,23 @@ impl From<FnvHasher> for PyFnvHasher {
     }
 }
 
+#[inline]
+fn fnv1a_oneshot(bytes: &[u8], key: u64) -> u64 {
+    bytes.iter().fold(key, |hash, &byte| {
+        let hash = hash ^ u64::from(byte);
+        hash.wrapping_mul(0x0100_0000_01b3)
+    })
+}
+
 #[pymethods]
 impl PyFnvHasher {
     #[new]
-    #[pyo3(signature = (b = None, *, key = FnvKey::default()))]
-    fn py_new(py: Python<'_>, b: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> Self {
-        py.detach(|| match b {
+    #[pyo3(
+        signature = (data = None, *, key = FnvKey::default()),
+        text_signature = "(data=None, *, key=0xcbf29ce484222325)",
+    )]
+    fn py_new(py: Python<'_>, data: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> Self {
+        py.detach(|| match data {
             Some(b) => {
                 let mut hasher = FnvHasher::with_key(key.into());
                 hasher.write(b.as_ref());
@@ -79,13 +90,12 @@ impl PyFnvHasher {
         self.finish()
     }
 
-    fn digest<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, pyo3::types::PyBytes>> {
-        self.finish()
-            .map(|n| pyo3::types::PyBytes::new(py, &(n.to_le_bytes())))
+    fn digest(&self) -> PyResult<PyDigest<u64>> {
+        self.finish().map(PyDigest::from)
     }
 
-    fn hexdigest(&self) -> PyResult<String> {
-        self.finish().map(|n| format!("{n:x}"))
+    fn hexdigest(&self) -> PyResult<PyHexDigest<u64>> {
+        self.finish().map(PyHexDigest::from)
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -100,20 +110,20 @@ impl PyFnvHasher {
     fn copy(&self) -> PyResult<Self> {
         self.finish().map(|k| Self::from(FnvHasher::with_key(k)))
     }
-}
 
-#[pyfunction]
-#[pyo3(
-    signature = (data = None, *, key = FnvKey::default()),
-    text_signature = "(data=None, *, key=0xcbf29ce484222325)",
-)]
-pub fn fnv1a(py: Python<'_>, data: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> PyFnvHasher {
-    PyFnvHasher::py_new(py, data, key)
+    #[expect(clippy::needless_pass_by_value)]
+    #[pyo3(
+        signature = (data, *, key = FnvKey::default()),
+        text_signature = "(data, *, key=0xcbf29ce484222325)",
+    )]
+    #[staticmethod]
+    fn oneshot(data: ryo3_bytes::PyBytes, key: FnvKey) -> u64 {
+        fnv1a_oneshot(data.as_ref(), key.into())
+    }
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFnvHasher>()?;
-    m.add_function(wrap_pyfunction!(self::fnv1a, m)?)?;
     Ok(())
 }
 

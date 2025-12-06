@@ -203,53 +203,53 @@ def test_url_relative(base_url_expected: tuple[str, str, str]) -> None:
 
 
 class TestUrlReplace:
-    def test_replace_scheme(self) -> None:
+    def test_with_scheme(self) -> None:
         u = ry.URL("http://example.com")
         replaced = u.replace(scheme="https")
         assert str(replaced) == "https://example.com/"
-        assert str(u.replace_scheme("https")) == "https://example.com/"
+        assert str(u.with_scheme("https")) == "https://example.com/"
 
-    def test_replace_host(self) -> None:
+    def test_with_host(self) -> None:
         u = ry.URL("http://example.com")
         replaced = u.replace(host="example.org")
         assert str(replaced) == "http://example.org/"
-        assert str(u.replace_host("example.org")) == "http://example.org/"
+        assert str(u.with_host("example.org")) == "http://example.org/"
         assert u.host_str == "example.com"
         assert u.host == "example.com"
 
-    def test_replace_port(self) -> None:
+    def test_with_port(self) -> None:
         u = ry.URL("http://example.com")
-        replaced = u.replace(port=8080)
+        replaced = u.with_port(8080)
         assert str(replaced) == "http://example.com:8080/"
-        assert str(u.replace_port(8080)) == "http://example.com:8080/"
+        assert str(u.with_port(8080)) == "http://example.com:8080/"
 
-    def test_replace_path(self) -> None:
+    def test_with_path(self) -> None:
         u = ry.URL("http://example.com/foo")
         replaced = u.replace(path="/bar/baz")
         assert str(replaced) == "http://example.com/bar/baz"
-        assert str(u.replace_path("bar/baz")) == "http://example.com/bar/baz"
+        assert str(u.with_path("bar/baz")) == "http://example.com/bar/baz"
 
-    def test_replace_query(self) -> None:
+    def test_with_query(self) -> None:
         u = ry.URL("http://example.com/foo?a=1&b=2")
         replaced = u.replace(query="c=3&d=4")
         assert str(replaced) == "http://example.com/foo?c=3&d=4"
-        assert str(u.replace_query("c=3&d=4")) == "http://example.com/foo?c=3&d=4"
+        assert str(u.with_query("c=3&d=4")) == "http://example.com/foo?c=3&d=4"
 
-    def test_replace_fragment(self) -> None:
+    def test_with_fragment(self) -> None:
         u = ry.URL("http://example.com/foo#a_section")
         replaced = u.replace(fragment="another_section")
         assert str(replaced) == "http://example.com/foo#another_section"
         assert (
-            str(u.replace_fragment("another_section"))
+            str(u.with_fragment("another_section"))
             == "http://example.com/foo#another_section"
         )
 
-    def test_replace_ip_host(self) -> None:
+    def test_with_ip_host(self) -> None:
         u = ry.URL("http://example.com")
         replaced = u.replace(ip_host=pyip.ip_interface("2001:db8:85a3::8a2e:370:7334"))
         assert str(replaced) == "http://[2001:db8:85a3::8a2e:370:7334]/"
         assert (
-            str(u.replace_ip_host(pyip.ip_interface("2001:db8:85a3::8a2e:370:7334")))
+            str(u.with_ip_host(pyip.ip_interface("2001:db8:85a3::8a2e:370:7334")))
             == "http://[2001:db8:85a3::8a2e:370:7334]/"
         )
 
@@ -274,7 +274,7 @@ class TestUrlReplace:
             ),
         ],
     )
-    def test_replace_ip_host_ry_types(
+    def test_with_ip_host_ry_types(
         self,
         ip_addr: pyip.IPv4Interface
         | pyip.IPv6Interface
@@ -284,24 +284,24 @@ class TestUrlReplace:
         expected_url: str,
     ) -> None:
         u = ry.URL("http://example.com")
-        replaced = u.replace_ip_host(ip_addr)
+        replaced = u.with_ip_host(ip_addr)
         assert str(replaced) == expected_url
         replaced = u.replace(ip_host=ip_addr)
         assert str(replaced) == expected_url
 
-    def test_replace_username(self) -> None:
+    def test_with_username(self) -> None:
         u = ry.URL("http://example.com")
         replaced = u.replace(username="user")
         expected = "http://user@example.com/"
         assert str(replaced) == expected
-        assert str(u.replace_username("user")) == expected
+        assert str(u.with_username("user")) == expected
 
-    def test_replace_password(self) -> None:
+    def test_with_password(self) -> None:
         u = ry.URL("http://example.com")
         replaced = u.replace(password="pass")  # noqa: S106
         expected = "http://:pass@example.com/"
         assert str(replaced) == expected
-        assert str(u.replace_password("pass")) == expected
+        assert str(u.with_password("pass")) == expected
 
 
 def test_socket_addrs() -> None:

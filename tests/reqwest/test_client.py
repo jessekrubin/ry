@@ -312,14 +312,38 @@ async def test_client_default_headers_get(server: ReqtestServer) -> None:
     assert res_json["headers"]["babydog"] == "dingo"
 
 
-async def test_client_post(server: ReqtestServer) -> None:
+@pytest.mark.parametrize(
+    "body",
+    [
+        b"BABOOM",
+        ry.Bytes(b"BABOOM"),
+    ],
+)
+async def test_client_post(server: ReqtestServer, body: bytes | ry.Bytes) -> None:
     url = server.url
     client = ry.HttpClient()
-    response = await client.post(str(url) + "echo", body=b"BABOOM")
-
+    response = await client.post(str(url) + "echo", body=body)
     assert response.status_code == 200
     res_json = await response.json()
     assert res_json["body"] == "BABOOM"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        # Invalid type for body
+        12345,
+        complex(1, 2),
+        ["list", "of", "strings"],
+    ],
+)
+async def test_client_post_body_err(
+    server: ReqtestServer, body: complex | list[str]
+) -> None:
+    url = server.url
+    client = ry.HttpClient()
+    with pytest.raises(TypeError, match="body must be bytes-like"):
+        _ = await client.post(str(url) + "echo", body=body)  # type: ignore[arg-type]
 
 
 async def test_client_post_json(server: ReqtestServer) -> None:

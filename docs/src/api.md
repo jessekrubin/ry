@@ -18,6 +18,7 @@
 - [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
 - [`ry.ryo3._memchr`](#ry.ryo3._memchr)
+- [`ry.ryo3._protocols`](#ry.ryo3._protocols)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
 - [`ry.ryo3._regex`](#ry.ryo3._regex)
 - [`ry.ryo3._reqwest`](#ry.ryo3._reqwest)
@@ -81,7 +82,6 @@ from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
 from ry.ryo3._flate2 import gzip_encode as gzip_encode
 from ry.ryo3._flate2 import is_gzipped as is_gzipped
-from ry.ryo3._fnv import FnvHasher as FnvHasher
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
 from ry.ryo3._glob import Pattern as Pattern
@@ -159,6 +159,7 @@ from ry.ryo3._reqwest import Certificate as Certificate
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
 from ry.ryo3._reqwest import ResponseStream as ResponseStream
@@ -191,6 +192,7 @@ from ry.ryo3._std import canonicalize as canonicalize
 from ry.ryo3._std import copy as copy
 from ry.ryo3._std import create_dir as create_dir
 from ry.ryo3._std import create_dir_all as create_dir_all
+from ry.ryo3._std import duration as duration
 from ry.ryo3._std import exists as exists
 from ry.ryo3._std import hard_link as hard_link
 from ry.ryo3._std import instant as instant
@@ -256,7 +258,8 @@ from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen
+from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
+from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
 from ry.ryo3._tokio import copy_async as copy_async
@@ -633,7 +636,7 @@ from ry._types import Buffer
 
 
 @t.final
-class FnvHasher:
+class fnv1a:  # noqa: N801
     name: t.Literal["fnv1a"]
     digest_size: t.Literal[8]
     block_size: t.Literal[1]
@@ -648,14 +651,11 @@ class FnvHasher:
     def digest(self) -> bytes: ...
     def intdigest(self) -> int: ...
     def hexdigest(self) -> str: ...
-    def copy(self) -> FnvHasher: ...
-
-
-def fnv1a(
-    data: Buffer | None = None,
-    *,
-    key: int | bytes = 0xCBF29CE484222325,  # noqa: PYI054
-) -> FnvHasher: ...
+    def copy(self) -> t.Self: ...
+    @staticmethod
+    def oneshot(
+        data: Buffer, *, key: int | bytes = 0xCBF29CE484222325
+    ) -> int: ...  # noqa: PYI054
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -3960,6 +3960,26 @@ def memrchr3(
 ) -> int | None: ...
 ```
 
+<h2 id="ry.ryo3._protocols"><code>ry.ryo3._protocols</code></h2>
+
+```python
+import typing as t
+
+from ry._types import Buffer
+
+
+class HasherProtocol(t.Protocol):
+    name: str
+    digest_size: int
+    block_size: int
+
+    def update(self, data: Buffer) -> None: ...
+    def digest(self) -> bytes: ...
+    def intdigest(self) -> int: ...
+    def hexdigest(self) -> str: ...
+    def copy(self) -> t.Self: ...
+```
+
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
 
 ```python
@@ -5090,8 +5110,27 @@ class Instant:
     def saturating_duration_since(self, earlier: t.Self) -> Duration: ...
 
 
-def instant() -> Instant: ...
-def sleep(secs: float) -> float: ...
+def duration(secs: int = 0, nanos: int = 0) -> Duration:
+    """constructor alias for Duration"""
+
+
+def instant() -> Instant:
+    """constructor alias for Instant"""
+
+
+def sleep(secs: float) -> float:
+    """sleep for given seconds
+
+    Args:
+        secs: number of seconds to sleep
+
+    Returns:
+        number of seconds actually slept
+
+    Raises:
+        ValueError: if secs is negative
+        OverflowError: if NaN or secs is too large to convert to a duration
+    """
 
 
 # =============================================================================
@@ -5714,6 +5753,7 @@ ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 """ryo4-tokio types"""
 
 import pathlib
+import sys
 import typing as t
 from collections.abc import Generator
 from types import TracebackType
@@ -5721,6 +5761,11 @@ from types import TracebackType
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
 from ry.ryo3._std import FileType, Metadata
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 
 # =============================================================================
@@ -5816,6 +5861,10 @@ class AsyncFile:
     ) -> None: ...
 
 
+def aopen(
+    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
+) -> AsyncFile: ...
+@deprecated("`aiopen` is deprecated, use `aopen` instead")
 def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
@@ -5834,12 +5883,18 @@ def unindent_bytes(b: bytes, /) -> bytes: ...
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
 
 ```python
+import sys
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
 from ry.protocols import FromStr
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 
 @t.final
@@ -5920,21 +5975,48 @@ class URL(FromStr):
     def is_special(self) -> bool: ...
     def join(self, *parts: str) -> URL: ...
     def make_relative(self, other: URL) -> t.Self: ...
-    def to_filepath(self) -> str: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_host(self, host: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_ip_host(
         self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
     ) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_password(self, password: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_path(self, path: str) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_port(self, port: int | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_query(self, query: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_scheme(self, scheme: str) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
     def replace_username(self, username: str) -> t.Self: ...
     def socket_addrs(
         self, default_port_number: int | None = None
     ) -> list[SocketAddr]: ...
+    def to_filepath(self) -> str: ...
     def replace(
         self,
         *,
@@ -5953,6 +6035,17 @@ class URL(FromStr):
         scheme: str | None = None,
         username: str | None = None,
     ) -> t.Self: ...
+    def with_fragment(self, fragment: str | None = None) -> t.Self: ...
+    def with_host(self, host: str | None = None) -> t.Self: ...
+    def with_ip_host(
+        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
+    ) -> t.Self: ...
+    def with_password(self, password: str | None = None) -> t.Self: ...
+    def with_path(self, path: str) -> t.Self: ...
+    def with_port(self, port: int | None = None) -> t.Self: ...
+    def with_query(self, query: str | None = None) -> t.Self: ...
+    def with_scheme(self, scheme: str) -> t.Self: ...
+    def with_username(self, username: str) -> t.Self: ...
 
     # =========================================================================
     # OPERATORS/DUNDER
@@ -6696,22 +6789,40 @@ def xxh64_hexdigest(data: Buffer, *, seed: int = 0) -> str: ...
 def xxh64_intdigest(data: Buffer, *, seed: int = 0) -> int: ...
 
 
-# xxh128
-def xxh128_digest(data: Buffer, *, seed: int = 0) -> bytes: ...
-def xxh128_hexdigest(data: Buffer, *, seed: int = 0) -> str: ...
-def xxh128_intdigest(data: Buffer, *, seed: int = 0) -> int: ...
-
-
 # xxh3
-def xxh3_64_digest(data: Buffer, *, seed: int = 0) -> bytes: ...
-def xxh3_64_intdigest(data: Buffer, *, seed: int = 0) -> int: ...
-def xxh3_64_hexdigest(data: Buffer, *, seed: int = 0) -> str: ...
+def xxh3_64_digest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> bytes: ...
+def xxh3_64_intdigest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> int: ...
+def xxh3_64_hexdigest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> str: ...
 
 
 # xxh128
-def xxh3_128_digest(data: Buffer, *, seed: int = 0) -> bytes: ...
-def xxh3_128_intdigest(data: Buffer, *, seed: int = 0) -> int: ...
-def xxh3_128_hexdigest(data: Buffer, *, seed: int = 0) -> str: ...
+def xxh3_128_digest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> bytes: ...
+def xxh3_128_intdigest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> int: ...
+def xxh3_128_hexdigest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> str: ...
+
+
+# xxh128
+def xxh128_digest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> bytes: ...
+def xxh128_hexdigest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> str: ...
+def xxh128_intdigest(
+    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+) -> int: ...
 ```
 
 <h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>

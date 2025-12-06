@@ -27,7 +27,7 @@ Scope: TypeAlias = dict[str, Any]
 
 
 async def echo(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     body = b""
     more_body = True
@@ -35,30 +35,33 @@ async def echo(
         message = await receive()
         body += message.get("body", b"")
         more_body = message.get("more_body", False)
-
-    yield uvt.HTTPResponseStartEvent(
-        type="http.response.start",
-        status=200,
-        headers=[(b"content-type", b"application/json")],
-    )
     data_body_dict = {
         "method": scope["method"],
         "path": scope["path"],
         "query_string": scope["query_string"].decode(),
-        "headers": {
-            name.decode(): value.decode() for name, value in scope.get("headers", [])
-        },
+        "headers": {k.decode(): v.decode() for k, v in scope["headers"]},
         "body": body.decode(),
     }
+    body = json.dumps(data_body_dict).encode()
+
+    yield uvt.HTTPResponseStartEvent(
+        type="http.response.start",
+        status=200,
+        headers=[
+            (b"content-type", b"application/json"),
+            (b"content-length", str(len(body)).encode()),
+            (b"x-request-method", scope["method"].encode()),
+        ],
+    )
     yield uvt.HTTPResponseBodyEvent(
         type="http.response.body",
-        body=json.dumps(data_body_dict).encode(),
+        body=body,
         more_body=False,
     )
 
 
 async def cookie_monster(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     """Route for testing cookies
 
@@ -88,7 +91,7 @@ async def cookie_monster(
 
 
 async def four_oh_four(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
@@ -103,7 +106,7 @@ async def four_oh_four(
 
 
 async def five_hundred(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
@@ -118,7 +121,7 @@ async def five_hundred(
 
 
 async def howdy(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     body = b'{"howdy": "partner"}'
     yield uvt.HTTPResponseStartEvent(
@@ -139,7 +142,7 @@ async def howdy(
 
 
 async def slow_response(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
@@ -163,7 +166,7 @@ async def slow_response(
 
 
 async def loooooooong_response(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
@@ -185,7 +188,7 @@ async def loooooooong_response(
 
 
 async def upload_file(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     assert scope["method"] == "POST"
     headers = {k.decode(): v.decode() for k, v in scope.get("headers", [])}
@@ -227,7 +230,7 @@ async def upload_file(
 
 
 async def broken_json(
-    scope: Scope, receive: Receive, send: Send
+    scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
@@ -243,8 +246,8 @@ async def broken_json(
 
 
 def router(
-    scope: Scope, receive: Receive, send: Send
-) -> Callable[[Scope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]]:
+    scope: uvt.HTTPScope, receive: Receive, send: Send
+) -> Callable[[uvt.HTTPScope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]]:
     if scope["path"].startswith("/echo"):
         return echo
     elif scope["path"].startswith("/howdy"):
@@ -265,7 +268,7 @@ def router(
         return four_oh_four
 
 
-async def reqtest_server(scope: Scope, receive: Receive, send: Send) -> None:
+async def reqtest_server(scope: uvt.HTTPScope, receive: Receive, send: Send) -> None:
     assert scope["type"] == "http"
     handler = router(scope, receive, send)
     async for message in handler(scope, receive, send):

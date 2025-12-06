@@ -217,6 +217,7 @@ impl<'a, 'py> SerializePyList<'a, 'py> {
     }
 }
 impl Serialize for SerializePyList<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -258,6 +259,7 @@ impl<'a, 'py> SerializePyTuple<'a, 'py> {
     }
 }
 impl Serialize for SerializePyTuple<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -392,6 +394,7 @@ impl<'a, 'py> SerializePySequence<'a, 'py> {
 }
 
 impl Serialize for SerializePySequence<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -399,9 +402,9 @@ impl Serialize for SerializePySequence<'_, '_> {
         let len = self.obj.len().map_err(pyerr2sererr)?;
         let mut seq = serializer.serialize_seq(Some(len))?;
         for i in 0..len {
-            let item = self.obj.get_item(i).map_err(pyerr2sererr)?;
-            let item_ser = SerializePyAny::new_with_depth(&item, self.ctx, self.depth + 1);
-            seq.serialize_element(&item_ser)?;
+            let pyany = self.obj.get_item(i).map_err(pyerr2sererr)?;
+            let ob_type = self.ctx.typeref.obtype(&pyany);
+            serialize_seq_element!(ob_type, seq, self, pyany);
         }
         seq.end()
     }

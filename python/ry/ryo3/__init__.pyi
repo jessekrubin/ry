@@ -26,7 +26,6 @@ from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
 from ry.ryo3._flate2 import gzip_encode as gzip_encode
 from ry.ryo3._flate2 import is_gzipped as is_gzipped
-from ry.ryo3._fnv import FnvHasher as FnvHasher
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
 from ry.ryo3._glob import Pattern as Pattern
@@ -104,6 +103,7 @@ from ry.ryo3._reqwest import Certificate as Certificate
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
 from ry.ryo3._reqwest import ResponseStream as ResponseStream
@@ -136,6 +136,7 @@ from ry.ryo3._std import canonicalize as canonicalize
 from ry.ryo3._std import copy as copy
 from ry.ryo3._std import create_dir as create_dir
 from ry.ryo3._std import create_dir_all as create_dir_all
+from ry.ryo3._std import duration as duration
 from ry.ryo3._std import exists as exists
 from ry.ryo3._std import hard_link as hard_link
 from ry.ryo3._std import instant as instant
@@ -201,7 +202,8 @@ from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen
+from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
+from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
 from ry.ryo3._tokio import copy_async as copy_async

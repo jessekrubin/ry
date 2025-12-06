@@ -216,7 +216,7 @@ impl Serialize for SerializePyDict<'_, '_> {
         }
         let mut m = serializer.serialize_map(None)?;
         for (k, element) in py_dict {
-            let sk = SerializePyMappingKey::new(&k);
+            let sk = SerializePyMappingKey::new(self.ctx, &k);
             // let sv = SerializePyAny::new_with_depth(&v, self.ctx, self.depth + 1);
             let ob_type = self.ctx.typeref.obtype(&element);
             m.serialize_key(&sk)?;
@@ -259,7 +259,7 @@ impl Serialize for SerializePyMapping<'_, '_> {
         let keys = py_mapping.keys().map_err(pyerr2sererr)?;
         let values = py_mapping.values().map_err(pyerr2sererr)?;
         for (k, v) in keys.iter().zip(values.iter()) {
-            let sk = SerializePyMappingKey::new(&k);
+            let sk = SerializePyMappingKey::new(self.ctx, &k);
             // let sv = SerializePyAny::new_with_depth(&v, self.ctx, self.depth + 1);
             let ob_type = self.ctx.typeref.obtype(&v);
             m.serialize_key(&sk)?;

@@ -444,21 +444,21 @@ impl PyUrl {
     }
 
     #[pyo3(signature = (fragment = None))]
-    fn replace_fragment(&self, fragment: Option<&str>) -> Self {
+    fn with_fragment(&self, fragment: Option<&str>) -> Self {
         let mut url = self.0.clone();
         url.set_fragment(fragment);
         Self(url)
     }
 
     #[pyo3(signature = (host = None))]
-    fn replace_host(&self, host: Option<&str>) -> PyResult<Self> {
+    fn with_host(&self, host: Option<&str>) -> PyResult<Self> {
         let mut url = self.0.clone();
         url.set_host(host)
             .map_err(|e| py_value_error!("{e} (host={host:?})"))?;
         Ok(Self(url))
     }
 
-    fn replace_ip_host(&self, address: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn with_ip_host(&self, address: &Bound<'_, PyAny>) -> PyResult<Self> {
         let address = extract_ip_host(address)?;
         let mut url = self.0.clone();
         url.set_ip_host(address)
@@ -467,21 +467,21 @@ impl PyUrl {
     }
 
     #[pyo3(signature = (password = None))]
-    fn replace_password(&self, password: Option<&str>) -> PyResult<Self> {
+    fn with_password(&self, password: Option<&str>) -> PyResult<Self> {
         let mut url = self.0.clone();
         url.set_password(password)
             .map_err(|()| py_value_error!("Err setting password (password={password:?})"))?;
         Ok(Self(url))
     }
 
-    fn replace_path(&self, path: &str) -> Self {
+    fn with_path(&self, path: &str) -> Self {
         let mut url = self.0.clone();
         url.set_path(path);
         Self::from(url)
     }
 
     #[pyo3(signature = (port = None))]
-    fn replace_port(&self, port: Option<u16>) -> PyResult<Self> {
+    fn with_port(&self, port: Option<u16>) -> PyResult<Self> {
         let mut url = self.0.clone();
         url.set_port(port)
             .map_err(|()| py_value_error!("Err setting port (port={port:?})"))?;
@@ -489,20 +489,20 @@ impl PyUrl {
     }
 
     #[pyo3(signature = (query = None))]
-    fn replace_query(&self, query: Option<&str>) -> Self {
+    fn with_query(&self, query: Option<&str>) -> Self {
         let mut url = self.0.clone();
         url.set_query(query);
         Self::from(url)
     }
 
-    fn replace_scheme(&self, scheme: &str) -> PyResult<Self> {
+    fn with_scheme(&self, scheme: &str) -> PyResult<Self> {
         let mut url = self.0.clone();
         url.set_scheme(scheme)
             .map_err(|()| py_value_error!("Err setting scheme (scheme={scheme})"))?;
         Ok(Self::from(url))
     }
 
-    fn replace_username(&self, username: &str) -> PyResult<Self> {
+    fn with_username(&self, username: &str) -> PyResult<Self> {
         let mut url = self.0.clone();
         url.set_username(username)
             .map_err(|()| py_value_error!("Err setting username (username={username:?})"))?;
@@ -581,6 +581,104 @@ impl PyUrl {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
+    }
+
+    // ========================================================================
+    // DEPRECATED METHODS
+    // ========================================================================
+    #[pyo3(
+        signature = (fragment = None),
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_fragment(&self, fragment: Option<&str>) -> Self {
+        self.with_fragment(fragment)
+    }
+
+    #[pyo3(
+        signature = (host = None),
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_host(&self, host: Option<&str>) -> PyResult<Self> {
+        self.with_host(host)
+    }
+
+    #[pyo3(
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_ip_host(&self, address: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.with_ip_host(address)
+    }
+
+    #[pyo3(
+        signature = (password = None),
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_password(&self, password: Option<&str>) -> PyResult<Self> {
+        self.with_password(password)
+    }
+
+    #[pyo3(
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_path(&self, path: &str) -> Self {
+        self.with_path(path)
+    }
+
+    #[pyo3(
+        signature = (port = None),
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_port(&self, port: Option<u16>) -> PyResult<Self> {
+        self.with_port(port)
+    }
+
+    #[pyo3(
+        signature = (query = None),
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_query(&self, query: Option<&str>) -> Self {
+        self.with_query(query)
+    }
+
+    #[pyo3(
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_scheme(&self, scheme: &str) -> PyResult<Self> {
+        self.with_scheme(scheme)
+    }
+
+    #[pyo3(
+        warn(
+            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn replace_username(&self, username: &str) -> PyResult<Self> {
+        self.with_username(username)
     }
 }
 

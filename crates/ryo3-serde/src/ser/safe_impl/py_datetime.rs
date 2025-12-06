@@ -20,6 +20,7 @@ impl<'a, 'py> SerializePyDate<'a, 'py> {
 }
 
 impl Serialize for SerializePyDate<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -39,12 +40,14 @@ pub(crate) struct SerializePyTime<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyTime<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
 impl Serialize for SerializePyTime<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -64,12 +67,14 @@ pub(crate) struct SerializePyDateTime<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyDateTime<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 #[cfg(feature = "jiff")]
 impl Serialize for SerializePyDateTime<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -91,6 +96,7 @@ impl Serialize for SerializePyDateTime<'_, '_> {
 
 #[cfg(not(feature = "jiff"))]
 impl Serialize for SerializePyDateTime<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -112,6 +118,7 @@ pub(crate) struct SerializePyTimeDelta<'a, 'py> {
     obj: &'a Bound<'py, PyAny>,
 }
 impl<'a, 'py> SerializePyTimeDelta<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
         Self { obj }
     }
@@ -119,6 +126,7 @@ impl<'a, 'py> SerializePyTimeDelta<'a, 'py> {
 
 #[cfg(feature = "jiff")]
 impl Serialize for SerializePyTimeDelta<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -132,6 +140,7 @@ impl Serialize for SerializePyTimeDelta<'_, '_> {
 
 #[cfg(not(feature = "jiff"))]
 impl Serialize for SerializePyTimeDelta<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

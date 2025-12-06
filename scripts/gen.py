@@ -28,7 +28,7 @@ def main() -> None:
     # import lines for __init__.py
     import_lines = [
         "from ry import ryo3",
-        "from ry.ryo3 import (",
+        "from ry.ryo3 import (  # type: ignore[deprecated]",
         *(f"    {x}," for x in all_tuple_sorted),
         ")",
     ]

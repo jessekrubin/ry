@@ -27,6 +27,7 @@ uuid = { workspace = true, features = [
   "v7",
   "v8",
 ] }
+
 [build-dependencies]
 pyo3-build-config = { workspace = true }
 

@@ -2,7 +2,6 @@
 pub use crate::fs::file::PyAsyncFile;
 use crate::fs::py_open_mode::PyOpenMode;
 use crate::fs::read_dir::PyAsyncReadDir;
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
@@ -176,31 +175,48 @@ pub fn write_string_async(
     signature = (path, mode = PyOpenMode::default(), buffering = -1, **kwargs),
     text_signature = "(path, mode=\"rb\", buffering=-1, **kwargs)",
 )]
-pub fn aiopen<'py>(
-    py: Python<'py>,
+pub fn aopen(
     path: PathBuf,
     mode: PyOpenMode,
     buffering: i8,
-    kwargs: Option<&Bound<'py, PyDict>>,
-) -> PyResult<Bound<'py, PyAny>> {
+    kwargs: Option<&Bound<'_, PyDict>>,
+) -> PyResult<PyAsyncFile> {
     if buffering != -1 {
-        warn!("aiopen non-buffered not impl: {kwargs:?}");
+        warn!("aopen non-buffered not impl: {kwargs:?}");
     }
     if let Some(kwargs) = kwargs {
-        warn!("aiopen kwargs not impl: {kwargs:?}");
+        warn!("aopen kwargs not impl: {kwargs:?}");
     }
     if !mode.is_binary() {
         return Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "aiopen text mode not implemented",
+            "aopen text mode not implemented",
         ));
     }
-    PyAsyncFile::new(path, mode.into()).into_bound_py_any(py)
+    Ok(PyAsyncFile::new(path, mode.into()))
+}
+
+#[pyfunction(
+    signature = (path, mode = PyOpenMode::default(), buffering = -1, **kwargs),
+    text_signature = "(path, mode=\"rb\", buffering=-1, **kwargs)",
+    warn(
+        message = "`aiopen` is deprecated, use `aopen` instead",
+        category = pyo3::exceptions::PyDeprecationWarning
+    )
+)]
+pub fn aiopen(
+    path: PathBuf,
+    mode: PyOpenMode,
+    buffering: i8,
+    kwargs: Option<&Bound<'_, PyDict>>,
+) -> PyResult<PyAsyncFile> {
+    aopen(path, mode, buffering, kwargs)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // file
     m.add_class::<PyAsyncFile>()?;
     //fns
+    m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(aiopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;
     m.add_function(wrap_pyfunction!(copy_async, m)?)?;

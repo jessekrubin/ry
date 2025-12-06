@@ -10,12 +10,14 @@ pub(crate) struct SerializePyStr<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyStr<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
 impl Serialize for SerializePyStr<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -31,12 +33,14 @@ pub(crate) struct SerializePyStrSubclass<'a, 'py> {
 }
 
 impl<'a, 'py> SerializePyStrSubclass<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: &'a Bound<'py, PyString>) -> Self {
         Self { obj }
     }
 }
 
 impl Serialize for SerializePyStrSubclass<'_, '_> {
+    #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

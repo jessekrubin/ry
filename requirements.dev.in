@@ -1,10 +1,9 @@
 anyio
 hypothesis
 maturin
-mypy
 orjson
 pydantic
-pytest
+pytest>=9.0.1
 pytest-cov
 pytest-asyncio
 pytest-benchmark

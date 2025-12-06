@@ -1,7 +1,7 @@
 """ry = rust + python"""
 
 from ry import ryo3
-from ry.ryo3 import (
+from ry.ryo3 import (  # type: ignore[deprecated]
     I8_BITS,
     I8_MAX,
     I8_MIN,
@@ -54,7 +54,6 @@ from ry.ryo3 import (
     Duration,
     FileReadStream,
     FileType,
-    FnvHasher,
     FsPath,
     Glob,
     GlobSet,
@@ -108,6 +107,7 @@ from ry.ryo3 import (
     __version__,
     _dev,
     aiopen,
+    aopen,
     asleep,
     brotli,
     brotli_decode,
@@ -128,6 +128,7 @@ from ry.ryo3 import (
     date,
     datetime,
     dirs,
+    duration,
     exists,
     exists_async,
     fetch,
@@ -285,7 +286,6 @@ __all__ = (
     "Duration",
     "FileReadStream",
     "FileType",
-    "FnvHasher",
     "FsPath",
     "Glob",
     "GlobSet",
@@ -339,6 +339,7 @@ __all__ = (
     "__version__",
     "_dev",
     "aiopen",
+    "aopen",
     "asleep",
     "brotli",
     "brotli_decode",
@@ -359,6 +360,7 @@ __all__ = (
     "date",
     "datetime",
     "dirs",
+    "duration",
     "exists",
     "exists_async",
     "fetch",

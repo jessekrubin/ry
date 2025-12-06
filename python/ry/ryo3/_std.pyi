@@ -190,8 +190,25 @@ class Instant:
     def elapsed(self) -> Duration: ...
     def saturating_duration_since(self, earlier: t.Self) -> Duration: ...
 
-def instant() -> Instant: ...
-def sleep(secs: float) -> float: ...
+def duration(secs: int = 0, nanos: int = 0) -> Duration:
+    """constructor alias for Duration"""
+
+def instant() -> Instant:
+    """constructor alias for Instant"""
+
+def sleep(secs: float) -> float:
+    """sleep for given seconds
+
+    Args:
+        secs: number of seconds to sleep
+
+    Returns:
+        number of seconds actually slept
+
+    Raises:
+        ValueError: if secs is negative
+        OverflowError: if NaN or secs is too large to convert to a duration
+    """
 
 # =============================================================================
 # STD::FS
