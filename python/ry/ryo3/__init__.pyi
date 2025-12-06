@@ -26,7 +26,6 @@ from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
 from ry.ryo3._flate2 import gzip_encode as gzip_encode
 from ry.ryo3._flate2 import is_gzipped as is_gzipped
-from ry.ryo3._fnv import FnvHasher as FnvHasher
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
 from ry.ryo3._glob import Pattern as Pattern
@@ -137,6 +136,7 @@ from ry.ryo3._std import canonicalize as canonicalize
 from ry.ryo3._std import copy as copy
 from ry.ryo3._std import create_dir as create_dir
 from ry.ryo3._std import create_dir_all as create_dir_all
+from ry.ryo3._std import duration as duration
 from ry.ryo3._std import exists as exists
 from ry.ryo3._std import hard_link as hard_link
 from ry.ryo3._std import instant as instant

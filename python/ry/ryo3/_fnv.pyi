@@ -5,7 +5,7 @@ import typing as t
 from ry._types import Buffer
 
 @t.final
-class FnvHasher:
+class fnv1a:  # noqa: N801
     name: t.Literal["fnv1a"]
     digest_size: t.Literal[8]
     block_size: t.Literal[1]
@@ -20,10 +20,6 @@ class FnvHasher:
     def digest(self) -> bytes: ...
     def intdigest(self) -> int: ...
     def hexdigest(self) -> str: ...
-    def copy(self) -> FnvHasher: ...
-
-def fnv1a(
-    data: Buffer | None = None,
-    *,
-    key: int | bytes = 0xCBF29CE484222325,  # noqa: PYI054
-) -> FnvHasher: ...
+    def copy(self) -> t.Self: ...
+    @staticmethod
+    def oneshot(data: Buffer, *, key: int | bytes = 0xCBF29CE484222325) -> int: ...  # noqa: PYI054

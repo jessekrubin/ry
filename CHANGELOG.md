@@ -8,6 +8,10 @@
     as a way to replace multiple parts at once.
   - `ry.aiopen` -> `ry.aopen`: it was supposed to be "asyncio-open", but it
     could be easily confused with "artificial-intellegence-open"/"llm-open"
+  - `ryo3-fnv`
+    - `FnvHasher` -> `fnv1a`
+    - `fnv1a` function removed as it was just a stupid proxy for `fnv1a` class
+      constructor
 - `ryo3-jiff`
   - use `PyMutex` and get rid of `parking_lot::Mutex` for jiff series iterators
 
