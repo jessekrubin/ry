@@ -16,20 +16,12 @@ idna==3.11
     # via anyio
 iniconfig==2.3.0
     # via pytest
-librt==0.7.0
-    # via mypy
 maturin==1.10.2
     # via -r requirements.dev.in
-mypy==1.19.0
-    # via -r requirements.dev.in
-mypy-extensions==1.1.0
-    # via mypy
 orjson==3.11.4
     # via -r requirements.dev.in
 packaging==25.0
     # via pytest
-pathspec==0.12.1
-    # via mypy
 pluggy==1.6.0
     # via
     #   pytest
@@ -60,7 +52,6 @@ sortedcontainers==2.4.0
     # via hypothesis
 typing-extensions==4.15.0
     # via
-    #   mypy
     #   pydantic
     #   pydantic-core
     #   typing-inspection

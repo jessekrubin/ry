@@ -1,7 +1,6 @@
 anyio
 hypothesis
 maturin
-mypy
 orjson
 pydantic
 pytest>=9.0.1
