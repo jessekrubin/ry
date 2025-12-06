@@ -22,7 +22,6 @@ impl PyUrl {
     }
 }
 
-
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for PyUrl {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

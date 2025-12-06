@@ -2,16 +2,21 @@ import pathlib
 
 import ry
 
-_UNCANNONICAL_PATH = "tests/std/../../tests/std/test_cannonicalize.py"
 
-_EXPECTED_PATH_TRAILER = pathlib.Path("tests/std/test_cannonicalize.py")
+def test_canonicalize_str(
+    tmp_path: pathlib.Path,
+) -> None:
+    tmp_path.joinpath("a/b/c").mkdir(parents=True)
+    file_path = tmp_path.joinpath("a/b/c/file.txt")
+    file_path.write_text("test content")
 
+    ry.cd(tmp_path)
 
-def test_canonicalize_str() -> None:
-    cannon = ry.canonicalize(_UNCANNONICAL_PATH)
-    assert cannon.endswith(str(_EXPECTED_PATH_TRAILER))
+    _uncannonical_path = "a/../a/b/../b/c/./file.txt"
+    _expected_trailer = str(pathlib.Path("a/b/c/file.txt"))
+    cannonical_path = ry.canonicalize(_uncannonical_path)
+    assert str(cannonical_path).endswith(_expected_trailer)
 
-
-def test_canonicalize_path() -> None:
-    cannon = ry.canonicalize(pathlib.Path(_UNCANNONICAL_PATH))
-    assert str(cannon).endswith(str(_EXPECTED_PATH_TRAILER))
+    # test pathlib
+    cannonical_path_pathlib = ry.canonicalize(pathlib.Path(_uncannonical_path))
+    assert str(cannonical_path_pathlib).endswith(_expected_trailer)
