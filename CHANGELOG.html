@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-86661fb1.js";
+            window.path_to_searchindex_js = "searchindex-879f9129.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5c7d32c.js"></script>
@@ -183,6 +183,22 @@
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0072-unreleased"><a class="header" href="#v0072-unreleased">v0.0.72 [unreleased]</a></h2>
 <ul>
+<li>RENAMES:
+<ul>
+<li><code>ry.URL.replace_*</code> -&gt; <code>ry.URL.with_*</code>: the <code>replace_*</code> methods are
+deprecated in favor of <code>with_*</code> methods. The <code>ry.URL.replace</code> still exists
+as a way to replace multiple parts at once.</li>
+<li><code>ry.aiopen</code> -&gt; <code>ry.aopen</code>: it was supposed to be “asyncio-open”, but it
+could be easily confused with “artificial-intellegence-open”/“llm-open”</li>
+<li><code>ryo3-fnv</code>
+<ul>
+<li><code>FnvHasher</code> -&gt; <code>fnv1a</code></li>
+<li><code>fnv1a</code> function removed as it was just a stupid proxy for <code>fnv1a</code> class
+constructor</li>
+</ul>
+</li>
+</ul>
+</li>
 <li><code>ryo3-jiff</code>
 <ul>
 <li>use <code>PyMutex</code> and get rid of <code>parking_lot::Mutex</code> for jiff series iterators</li>
