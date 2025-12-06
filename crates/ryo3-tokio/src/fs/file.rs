@@ -1,9 +1,9 @@
-use pyo3::exceptions::{PyIOError, PyNotImplementedError, PyRuntimeError, PyStopAsyncIteration};
 use pyo3::prelude::*;
 
-use crate::fs::py_open_mode::{PyOpenMode, PyOpenOptions};
 use pyo3::intern;
 use pyo3_async_runtimes::tokio::future_into_py;
+use ryo3_core::types::{PyOpenMode, PyOpenOptions};
+use ryo3_macro_rules::{py_io_error, py_runtime_err, py_stop_async_iteration_err, pytodo};
 use std::io::SeekFrom;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -17,6 +17,7 @@ enum FileState {
     Open(BufStream<File>),
     // Consumed,
 }
+
 struct PyAsyncFileInner {
     state: FileState,
     path: PathBuf,
@@ -32,19 +33,23 @@ impl Drop for PyAsyncFileInner {
     }
 }
 
+fn apply_py_open_options_to_tokio(py_opts: PyOpenOptions, tokio_opts: &mut tokio::fs::OpenOptions) {
+    tokio_opts.read(py_opts.read);
+    tokio_opts.write(py_opts.write);
+    tokio_opts.append(py_opts.append);
+    tokio_opts.truncate(py_opts.truncate);
+    tokio_opts.create(py_opts.create);
+    tokio_opts.create_new(py_opts.create_new);
+}
+
 impl PyAsyncFileInner {
     async fn open(&mut self) -> PyResult<()> {
-        let opts = &self.open_options;
+        let opts = self.open_options;
         let mut open_opts = tokio::fs::OpenOptions::new();
-        opts.apply_to(&mut open_opts);
+        apply_py_open_options_to_tokio(opts, &mut open_opts);
         let file_res = open_opts.open(&self.path).await;
-        let file = file_res.map_err(|e| {
-            PyIOError::new_err(format!(
-                "Failed to open file {}: {}",
-                self.path.display(),
-                e
-            ))
-        })?;
+        let file = file_res
+            .map_err(|e| py_io_error!("Failed to open file {}: {}", self.path.display(), e))?;
         self.state = FileState::Open(BufStream::new(file));
         Ok(())
     }
@@ -55,17 +60,17 @@ impl PyAsyncFileInner {
         let pos = file
             .stream_position()
             .await
-            .map_err(|e| PyIOError::new_err(e.to_string()))?;
+            .map_err(|e| py_io_error!("Failed to get stream position: {e}"))?;
         let mut buf = vec![0; n];
         let bytes_read = file
             .read(&mut buf)
             .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to read: {e}")))?;
+            .map_err(|e| py_io_error!("Failed to read: {e}"))?;
         buf.truncate(bytes_read);
         // seek back to the original position
         file.seek(SeekFrom::Start(pos))
             .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to seek: {e}")))?;
+            .map_err(|e| py_io_error!("Failed to seek: {e}"))?;
         Ok(buf)
     }
 
@@ -74,7 +79,7 @@ impl PyAsyncFileInner {
         let r = file
             .seek(seek_from)
             .await
-            .map_err(|e| PyIOError::new_err(e.to_string()))?;
+            .map_err(|e| py_io_error!("Failed to seek: {e}"))?;
         file.flush().await?;
         Ok(r)
     }
@@ -83,7 +88,7 @@ impl PyAsyncFileInner {
         let file = self.get_file_mut()?;
         file.flush()
             .await
-            .map_err(|e| PyIOError::new_err(e.to_string()))?;
+            .map_err(|e| py_io_error!("Failed to flush: {e}"))?;
         Ok(())
     }
 
@@ -92,8 +97,7 @@ impl PyAsyncFileInner {
             FileState::Open(mut file) => {
                 file.flush()
                     .await
-                    .map_err(|e| PyIOError::new_err(e.to_string()))?;
-                // File is flushed and dropped now
+                    .map_err(|e| py_io_error!("Failed to flush: {e}"))?;
             }
             FileState::Closed => {
                 // Nothing to flush, no-op
@@ -107,7 +111,7 @@ impl PyAsyncFileInner {
         let pos = file
             .stream_position()
             .await
-            .map_err(|e| PyIOError::new_err(e.to_string()))?;
+            .map_err(|e| py_io_error!("Failed to get stream position: {e}"))?;
         Ok(pos)
     }
 
@@ -116,7 +120,7 @@ impl PyAsyncFileInner {
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)
             .await
-            .map_err(|e| PyIOError::new_err(e.to_string()))?;
+            .map_err(|e| py_io_error!("Failed to read to end: {e}"))?;
         Ok(buf)
     }
 
@@ -124,7 +128,7 @@ impl PyAsyncFileInner {
         let file = self.get_file_mut()?;
         file.read(buf)
             .await
-            .map_err(|e| PyIOError::new_err(e.to_string()))
+            .map_err(|e| py_io_error!("Failed to read: {e}"))
     }
 
     async fn readline(&mut self, size: Option<usize>) -> PyResult<Option<Vec<u8>>> {
@@ -134,7 +138,7 @@ impl PyAsyncFileInner {
             let bytes_read = file
                 .read_until(b'\n', &mut buf)
                 .await
-                .map_err(|e| PyIOError::new_err(format!("Failed to read line: {e}")))?;
+                .map_err(|e| py_io_error!("Failed to read line: {e}"))?;
             if bytes_read == 0 {
                 return Ok(None);
             }
@@ -148,7 +152,7 @@ impl PyAsyncFileInner {
             let bytes_read = file
                 .read_until(b'\n', &mut buf)
                 .await
-                .map_err(|e| PyIOError::new_err(format!("Failed to read line: {e}")))?;
+                .map_err(|e| py_io_error!("Failed to read line: {e}"))?;
             if bytes_read == 0 {
                 Ok(None)
             } else {
@@ -174,7 +178,7 @@ impl PyAsyncFileInner {
         inner_file
             .set_len(size)
             .await
-            .map_err(|e| PyIOError::new_err(format!("Failed to truncate: {e}")))?;
+            .map_err(|e| py_io_error!("Failed to truncate: {e}"))?;
         Ok(size)
     }
 
@@ -182,14 +186,14 @@ impl PyAsyncFileInner {
         let file = self.get_file_mut()?;
         file.write_all(buf)
             .await
-            .map_err(|e| PyIOError::new_err(e.to_string()))?;
+            .map_err(|e| py_io_error!("Failed to write: {e}"))?;
         Ok(buf.len())
     }
 
     fn get_file_mut(&mut self) -> PyResult<&mut BufStream<File>> {
         match self.state {
             FileState::Open(ref mut file) => Ok(file),
-            FileState::Closed => Err(PyRuntimeError::new_err("File is closed; must open first")),
+            FileState::Closed => py_runtime_err!("File is closed; must open first"),
             // FileState::Consumed => Err(PyRuntimeError::new_err(
             //     "File is consumed; cannot be used again",
             // )),
@@ -247,9 +251,7 @@ impl PyAsyncFile {
     )]
     fn py_new(p: PathBuf, mode: PyOpenMode) -> PyResult<Self> {
         if !mode.is_binary() {
-            return Err(PyNotImplementedError::new_err(
-                "Text mode not implemented for AsyncFile",
-            ));
+            pytodo!("Text mode not implemented for AsyncFile");
         }
         Ok(Self::new(p, mode.into()))
     }
@@ -293,14 +295,14 @@ impl PyAsyncFile {
             let mut locked = inner.lock().await;
             match std::mem::replace(&mut locked.state, FileState::Closed) {
                 FileState::Open(mut file) => {
-                    file.flush().await.map_err(PyErr::from)?;
-                    // File is flushed and dropped now
+                    file.flush()
+                        .await
+                        .map_err(|e| py_io_error!("Failed to flush file on __aexit__: {e}"))?;
+                    // file is flushed and dropped now
                 }
                 FileState::Closed => {
-                    // Nothing to flush, no-op
-                } // FileState::Consumed => {
-                  //     return Err(PyRuntimeError::new_err("File already closed"));
-                  // }
+                    // nothing to flush...
+                }
             }
 
             Ok(())
@@ -318,7 +320,7 @@ impl PyAsyncFile {
             let line = locked.readline(None).await?;
             match line {
                 Some(line) => Ok(line),
-                None => Err(PyStopAsyncIteration::new_err("End of stream")),
+                None => py_stop_async_iteration_err!("End of stream"),
             }
         })
     }
@@ -340,9 +342,7 @@ impl PyAsyncFile {
 
     #[expect(clippy::unused_self)]
     fn isatty<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        future_into_py::<_, Py<PyAny>>(py, async move {
-            Err(PyNotImplementedError::new_err("isatty() not implemented"))
-        })
+        future_into_py::<_, Py<PyAny>>(py, async move { pytodo!("isatty() not implemented") })
     }
 
     fn flush<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -384,10 +384,7 @@ impl PyAsyncFile {
             let mut file = inner.lock().await;
             if let Some(s) = size {
                 let mut buf = vec![0u8; s];
-                let n = file
-                    .read(&mut buf)
-                    .await
-                    .map_err(|e| PyIOError::new_err(format!("Failed to read: {e}")))?;
+                let n = file.read(&mut buf).await?;
                 buf.truncate(n);
                 Ok(ryo3_bytes::PyBytes::from(buf))
             } else {
@@ -472,15 +469,13 @@ impl PyAsyncFile {
             0 => {
                 let offset = offset
                     .try_into()
-                    .map_err(|_| PyIOError::new_err("Offset out of range"))?;
+                    .map_err(|e| py_io_error!("Offset out of range: {e}"))?;
                 SeekFrom::Start(offset)
             }
             1 => SeekFrom::Current(offset as _),
             2 => SeekFrom::End(offset as _),
             other => {
-                return Err(PyIOError::new_err(format!(
-                    "Invalid value for whence in seek: {other}"
-                )));
+                return Err(py_io_error!("Invalid value for whence in seek: {other}"));
             }
         };
         let inner = Arc::clone(&self.inner);

@@ -5,6 +5,26 @@
 //! py_*_err! creates a `Result<_, PyErr>`
 
 #[macro_export]
+macro_rules! py_io_error {
+    () => {
+        ::pyo3::exceptions::PyIOError::new_err("io error")
+    };
+    ($($arg:tt)+) => {
+        ::pyo3::exceptions::PyIOError::new_err(::std::format!($($arg)+))
+    };
+}
+
+#[macro_export]
+macro_rules! py_io_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyIOError::new_err("io error"))
+    };
+    ($($arg:tt)+) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyIOError::new_err(::std::format!($($arg)+)))
+    };
+}
+
+#[macro_export]
 macro_rules! py_overflow_error {
     () => {
         ::pyo3::exceptions::PyOverflowError::new_err("overflow error")
@@ -41,6 +61,26 @@ macro_rules! py_runtime_err {
     };
     ($($arg:tt)+) => {
         ::std::result::Result::Err(::pyo3::exceptions::PyRuntimeError::new_err(::std::format!($($arg)+)))
+    };
+}
+
+#[macro_export]
+macro_rules! py_stop_async_iteration_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyStopAsyncIteration::new_err("stop async iteration"))
+    };
+    ($($arg:tt)+) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyStopAsyncIteration::new_err(::std::format!($($arg)+)))
+    };
+}
+
+#[macro_export]
+macro_rules! py_stop_async_iteration_erorr {
+    () => {
+        ::pyo3::exceptions::PyStopAsyncIteration::new_err("stop async iteration")
+    };
+    ($($arg:tt)+) => {
+        ::pyo3::exceptions::PyStopAsyncIteration::new_err(::std::format!($($arg)+))
     };
 }
 

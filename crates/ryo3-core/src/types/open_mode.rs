@@ -19,7 +19,7 @@ trait OpenOptionsLike {
 
 #[derive(Debug, Clone, Copy)]
 #[expect(clippy::struct_excessive_bools)]
-pub(crate) struct PyOpenOptions {
+pub struct PyOpenOptions {
     pub append: bool,
     pub create: bool,
     pub create_new: bool,
@@ -50,6 +50,8 @@ pub enum PyOpenMode {
 }
 
 impl PyOpenMode {
+    #[inline]
+    #[must_use]
     pub fn is_binary(self) -> bool {
         matches!(
             self,
@@ -192,18 +194,7 @@ impl FromStr for PyOpenMode {
     }
 }
 
-// #[rustfmt::skip]
-// pub(crate) fn canonical_open_mode(s: &str) -> bool {
-//     matches!(
-//         s,
-//         "ab" | "ab+" | "at" | "at+" |
-//         "rb" | "rb+" | "rt" | "rt+" |
-//         "wb" | "wb+" | "wt" | "wt+" |
-//         "xb" | "xb+" | "xt" | "xt+"
-//     )
-// }
-
-pub(super) fn canonical_open_mode(s: &str) -> Option<&'static str> {
+fn canonical_open_mode(s: &str) -> Option<&'static str> {
     match s {
         "ab" | "ba" => Some("ab"),
         "+ab" | "+ba" | "a+b" | "ab+" | "b+a" | "ba+" => Some("ab+"),
@@ -243,16 +234,5 @@ impl From<PyOpenMode> for PyOpenOptions {
             truncate: mode.truncate(),
             write: mode.write(),
         }
-    }
-}
-//
-impl PyOpenOptions {
-    pub(crate) fn apply_to(self, open: &mut tokio::fs::OpenOptions) {
-        open.read(self.read);
-        open.write(self.write);
-        open.append(self.append);
-        open.create(self.create);
-        open.truncate(self.truncate);
-        open.create_new(self.create_new);
     }
 }
