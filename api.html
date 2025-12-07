@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-74a3d791.js";
+            window.path_to_searchindex_js = "searchindex-dcd96d85.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5c7d32c.js"></script>
@@ -200,7 +200,6 @@
 <li><a href="#ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></a></li>
 <li><a href="#ry.ryo3._jiter"><code>ry.ryo3._jiter</code></a></li>
 <li><a href="#ry.ryo3._memchr"><code>ry.ryo3._memchr</code></a></li>
-<li><a href="#ry.ryo3._protocols"><code>ry.ryo3._protocols</code></a></li>
 <li><a href="#ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></a></li>
 <li><a href="#ry.ryo3._regex"><code>ry.ryo3._regex</code></a></li>
 <li><a href="#ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></a></li>
@@ -439,6 +438,7 @@ from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
 from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
+from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
 from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
 from ry.ryo3._tokio import aopen as aopen
@@ -453,6 +453,7 @@ from ry.ryo3._tokio import metadata_async as metadata_async
 from ry.ryo3._tokio import read_async as read_async
 from ry.ryo3._tokio import read_dir_async as read_dir_async
 from ry.ryo3._tokio import read_link_async as read_link_async
+from ry.ryo3._tokio import read_stream_async as read_stream_async
 from ry.ryo3._tokio import read_to_string_async as read_to_string_async
 from ry.ryo3._tokio import remove_dir_all_async as remove_dir_all_async
 from ry.ryo3._tokio import remove_dir_async as remove_dir_async
@@ -4109,24 +4110,6 @@ def memrchr3(
     needle1: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
 ) -&gt; int | None: ...
 </code></pre>
-<h2 id="ry.ryo3._protocols"><code>ry.ryo3._protocols</code></h2>
-
-<pre><code class="language-python">import typing as t
-
-from ry._types import Buffer
-
-
-class HasherProtocol(t.Protocol):
-    name: str
-    digest_size: int
-    block_size: int
-
-    def update(self, data: Buffer) -&gt; None: ...
-    def digest(self) -&gt; bytes: ...
-    def intdigest(self) -&gt; int: ...
-    def hexdigest(self) -&gt; str: ...
-    def copy(self) -&gt; t.Self: ...
-</code></pre>
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
 
 <pre><code class="language-python">"""ryo3-quick-maths types"""
@@ -5381,7 +5364,10 @@ class FileReadStream(RyIterator[Bytes]):
 # ============================================================================
 # STD::FS ~ functions
 # =============================================================================
-def canonicalize(path: FsPathLike) -&gt; pathlib.Path: ...
+_TPath = t.TypeVar("_TPath", bound=FsPathLike)
+
+
+def canonicalize(path: _TPath) -&gt; _TPath: ...
 def copy(from_path: FsPathLike, to_path: FsPathLike) -&gt; int: ...
 def create_dir(path: FsPathLike) -&gt; None: ...
 def create_dir_all(path: FsPathLike) -&gt; None: ...
@@ -5888,7 +5874,8 @@ from types import TracebackType
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
-from ry.ryo3._std import FileType, Metadata
+from ry.protocols import RyAsyncIterator, RyIterator
+from ry.ryo3._std import FileReadStream, FileType, Metadata
 
 if sys.version_info &gt;= (3, 13):
     from warnings import deprecated
@@ -5996,6 +5983,65 @@ def aopen(
 def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -&gt; AsyncFile: ...
+
+
+@t.final
+class AsyncFileReadStream(RyAsyncIterator[Bytes]):
+    def __init__(
+        self,
+        path: FsPathLike,
+        *,
+        chunk_size: int = 65536,
+        offset: int = 0,
+        buffered: bool = True,
+        strict: bool = True,
+    ) -&gt; None:
+        """Return an AsyncFileReadStream
+
+        Args:
+            path: path-like object
+            chunk_size: chunk size. Defaults to 65536.
+            offset: offset to start reading from. Defaults to 0.
+            buffered: whether the stream is buffered. Defaults to True.
+            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+        Raises:
+            FileNotFoundError: If file does not exist.
+            IsADirectoryError: If path is a directory.
+            ValueError: If offset is beyond EOF and strict is True.
+
+        """
+
+    def __await__(self) -&gt; Generator[t.Any, t.Any, t.Self]: ...
+    def __aiter__(self) -&gt; t.Self: ...
+    async def __anext__(self) -&gt; Bytes: ...
+    async def collect(self) -&gt; list[Bytes]: ...
+    async def take(self, n: int = 1) -&gt; list[Bytes]: ...
+
+
+def read_stream_async(
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    offset: int = 0,
+    buffered: bool = True,
+    strict: bool = True,
+) -&gt; AsyncFileReadStream:
+    """Return a FileReadStream
+
+    Args:
+        path: path-like object
+        chunk_size: chunk size. Defaults to 65536.
+        offset: offset to start reading from. Defaults to 0.
+        buffered: whether the stream is buffered. Defaults to True.
+        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+    Raises:
+        FileNotFoundError: If file does not exist.
+        IsADirectoryError: If path is a directory.
+        ValueError: If offset is beyond EOF and strict is True.
+
+    """
 </code></pre>
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
 
@@ -6012,7 +6058,7 @@ import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
-from ry.protocols import FromStr
+from ry.protocols import FromStr, _Parse
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
 
 if sys.version_info &gt;= (3, 13):
@@ -6022,18 +6068,15 @@ else:
 
 
 @t.final
-class URL(FromStr):
+class URL(FromStr, _Parse):
     def __init__(
         self, url: str | bytes | URL, *, params: dict[str, str] | None = None
     ) -&gt; None: ...
-
     # =========================================================================
     # CLASSMETHODS
     # =========================================================================
     @classmethod
-    def parse(
-        cls, url: str | bytes, *, params: dict[str, str] | None = None
-    ) -&gt; t.Self: ...
+    def parse(cls, s: str | bytes) -&gt; t.Self: ...
     @classmethod
     def from_str(cls, s: str) -&gt; t.Self: ...
     @classmethod
@@ -7546,6 +7589,13 @@ class RyIterator(t.Protocol[_T]):
     def __next__(self) -&gt; _T: ...
     def collect(self) -&gt; list[_T]: ...
     def take(self, n: int = 1) -&gt; list[_T]: ...
+
+
+class RyAsyncIterator(t.Protocol[_T]):
+    def __aiter__(self) -&gt; t.Self: ...
+    async def __anext__(self) -&gt; _T: ...
+    async def collect(self) -&gt; list[_T]: ...
+    async def take(self, n: int = 1) -&gt; list[_T]: ...
 
 
 # =============================================================================
