@@ -66,44 +66,41 @@ enum AsyncFileReadStreamWrapper {
 
 impl AsyncFileReadStreamWrapper {
     async fn ensure_open(&mut self) -> io::Result<()> {
-        if !matches!(self, Self::Closed(_)) {
-            return Ok(());
-        }
-        let options = match self {
-            Self::Closed(opts) => opts.clone(),
-            _ => unreachable!(), // see above
-        };
-        let file = File::open(&options.path).await?;
+        match self {
+            Self::Unbuffered(_) | Self::Buffered(_) => return Ok(()),
+            Self::Closed(options) => {
+                let file = File::open(&options.path).await?;
+                if options.strict {
+                    let meta = file.metadata().await?;
+                    let len = meta.len();
+                    if options.offset > len {
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidInput,
+                            format!("offset ({}) > len ({})", options.offset, len),
+                        ));
+                    }
+                }
 
-        if options.strict {
-            let meta = file.metadata().await?;
-            let len = meta.len();
-            if options.offset > len {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("offset ({}) > len ({})", options.offset, len),
-                ));
+                let mut stream = if options.buffered {
+                    Self::Buffered(AsyncFileReadStream::new(
+                        BufReader::new(file),
+                        options.chunk_size,
+                    ))
+                } else {
+                    Self::Unbuffered(AsyncFileReadStream::new(file, options.chunk_size))
+                };
+
+                if options.offset > 0 {
+                    match &mut stream {
+                        Self::Unbuffered(s) => s.seek_to(options.offset).await?,
+                        Self::Buffered(s) => s.seek_to(options.offset).await?,
+                        Self::Closed(_) => unreachable!(),
+                    };
+                }
+                *self = stream;
+                Ok(())
             }
         }
-
-        let mut stream = if options.buffered {
-            Self::Buffered(AsyncFileReadStream::new(
-                BufReader::new(file),
-                options.chunk_size,
-            ))
-        } else {
-            Self::Unbuffered(AsyncFileReadStream::new(file, options.chunk_size))
-        };
-
-        if options.offset > 0 {
-            match &mut stream {
-                Self::Unbuffered(s) => s.seek_to(options.offset).await?,
-                Self::Buffered(s) => s.seek_to(options.offset).await?,
-                Self::Closed(_) => unreachable!(),
-            };
-        }
-        *self = stream;
-        Ok(())
     }
 
     async fn next_chunk(&mut self) -> io::Result<Option<Bytes>> {
@@ -242,11 +239,8 @@ impl PyAsyncFileReadStream {
 
 impl std::fmt::Debug for PyAsyncFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "AsyncFileReadStream(path='{}'",
-            self.options.path.display(),
-        )?;
+        write!(f, "AsyncFileReadStream(")?;
+        write!(f, "path='{}'", self.options.path.display(),)?;
         write!(f, ", chunk_size={}", self.options.chunk_size)?;
         if self.options.offset != 0 {
             write!(f, ", offset={}", self.options.offset)?;
