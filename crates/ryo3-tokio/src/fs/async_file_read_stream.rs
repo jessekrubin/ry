@@ -67,7 +67,7 @@ enum AsyncFileReadStreamWrapper {
 impl AsyncFileReadStreamWrapper {
     async fn ensure_open(&mut self) -> io::Result<()> {
         match self {
-            Self::Unbuffered(_) | Self::Buffered(_) => return Ok(()),
+            Self::Unbuffered(_) | Self::Buffered(_) => Ok(()),
             Self::Closed(options) => {
                 let file = File::open(&options.path).await?;
                 if options.strict {
