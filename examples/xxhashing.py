@@ -5,7 +5,7 @@ Demonstrates:
   - xxhashing is done via `ry.xxhash.xxh64` hasher
   - files are found via `ry.glob`
   - timing is done via `ry.instant()` to compute `ry.Duration`
-  - timing is friendly printed w/ `{duration:#}` formatting (see `ry.Duration.__format__`)
+  - timing is friendly printed w/ `{duration:#}` (see `ry.Duration.__format__`)
 
 """
 
