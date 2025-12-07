@@ -47,7 +47,7 @@ def test_parse_with_params_none() -> None:
 
 def test_parse_params_no_dict_with_kwargs() -> None:
     with pytest.raises(TypeError):
-        _url = ry.URL(  # type: ignore[call-overload]
+        _url = ry.URL(  # type: ignore[call-arg,misc]
             "https://example.net",
             {
                 "lang": "rust",

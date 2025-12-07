@@ -115,6 +115,7 @@ impl AsyncFileReadStreamWrapper {
 impl AsyncFileReadStreamWrapper {}
 
 #[pyclass(name = "AsyncFileReadStream", frozen, immutable_type)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncFileReadStream {
     options: Arc<PyFileReadStreamOptions>,
     inner: Arc<Mutex<AsyncFileReadStreamWrapper>>,
