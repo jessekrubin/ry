@@ -18,7 +18,6 @@
 - [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
 - [`ry.ryo3._memchr`](#ry.ryo3._memchr)
-- [`ry.ryo3._protocols`](#ry.ryo3._protocols)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
 - [`ry.ryo3._regex`](#ry.ryo3._regex)
 - [`ry.ryo3._reqwest`](#ry.ryo3._reqwest)
@@ -257,6 +256,7 @@ from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
 from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
+from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
 from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
 from ry.ryo3._tokio import aopen as aopen
@@ -271,6 +271,7 @@ from ry.ryo3._tokio import metadata_async as metadata_async
 from ry.ryo3._tokio import read_async as read_async
 from ry.ryo3._tokio import read_dir_async as read_dir_async
 from ry.ryo3._tokio import read_link_async as read_link_async
+from ry.ryo3._tokio import read_stream_async as read_stream_async
 from ry.ryo3._tokio import read_to_string_async as read_to_string_async
 from ry.ryo3._tokio import remove_dir_all_async as remove_dir_all_async
 from ry.ryo3._tokio import remove_dir_async as remove_dir_async
@@ -3960,26 +3961,6 @@ def memrchr3(
 ) -> int | None: ...
 ```
 
-<h2 id="ry.ryo3._protocols"><code>ry.ryo3._protocols</code></h2>
-
-```python
-import typing as t
-
-from ry._types import Buffer
-
-
-class HasherProtocol(t.Protocol):
-    name: str
-    digest_size: int
-    block_size: int
-
-    def update(self, data: Buffer) -> None: ...
-    def digest(self) -> bytes: ...
-    def intdigest(self) -> int: ...
-    def hexdigest(self) -> str: ...
-    def copy(self) -> t.Self: ...
-```
-
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
 
 ```python
@@ -5249,7 +5230,10 @@ class FileReadStream(RyIterator[Bytes]):
 # ============================================================================
 # STD::FS ~ functions
 # =============================================================================
-def canonicalize(path: FsPathLike) -> pathlib.Path: ...
+_TPath = t.TypeVar("_TPath", bound=FsPathLike)
+
+
+def canonicalize(path: _TPath) -> _TPath: ...
 def copy(from_path: FsPathLike, to_path: FsPathLike) -> int: ...
 def create_dir(path: FsPathLike) -> None: ...
 def create_dir_all(path: FsPathLike) -> None: ...
@@ -5760,7 +5744,8 @@ from types import TracebackType
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
-from ry.ryo3._std import FileType, Metadata
+from ry.protocols import RyAsyncIterator, RyIterator
+from ry.ryo3._std import FileReadStream, FileType, Metadata
 
 if sys.version_info >= (3, 13):
     from warnings import deprecated
@@ -5868,6 +5853,65 @@ def aopen(
 def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
+
+
+@t.final
+class AsyncFileReadStream(RyAsyncIterator[Bytes]):
+    def __init__(
+        self,
+        path: FsPathLike,
+        *,
+        chunk_size: int = 65536,
+        offset: int = 0,
+        buffered: bool = True,
+        strict: bool = True,
+    ) -> None:
+        """Return an AsyncFileReadStream
+
+        Args:
+            path: path-like object
+            chunk_size: chunk size. Defaults to 65536.
+            offset: offset to start reading from. Defaults to 0.
+            buffered: whether the stream is buffered. Defaults to True.
+            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+        Raises:
+            FileNotFoundError: If file does not exist.
+            IsADirectoryError: If path is a directory.
+            ValueError: If offset is beyond EOF and strict is True.
+
+        """
+
+    def __await__(self) -> Generator[t.Any, t.Any, t.Self]: ...
+    def __aiter__(self) -> t.Self: ...
+    async def __anext__(self) -> Bytes: ...
+    async def collect(self) -> list[Bytes]: ...
+    async def take(self, n: int = 1) -> list[Bytes]: ...
+
+
+def read_stream_async(
+    path: FsPathLike,
+    chunk_size: int = 65536,
+    *,
+    offset: int = 0,
+    buffered: bool = True,
+    strict: bool = True,
+) -> AsyncFileReadStream:
+    """Return a FileReadStream
+
+    Args:
+        path: path-like object
+        chunk_size: chunk size. Defaults to 65536.
+        offset: offset to start reading from. Defaults to 0.
+        buffered: whether the stream is buffered. Defaults to True.
+        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+
+    Raises:
+        FileNotFoundError: If file does not exist.
+        IsADirectoryError: If path is a directory.
+        ValueError: If offset is beyond EOF and strict is True.
+
+    """
 ```
 
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
@@ -5888,7 +5932,7 @@ import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
-from ry.protocols import FromStr
+from ry.protocols import FromStr, _Parse
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
 
 if sys.version_info >= (3, 13):
@@ -5898,18 +5942,15 @@ else:
 
 
 @t.final
-class URL(FromStr):
+class URL(FromStr, _Parse):
     def __init__(
         self, url: str | bytes | URL, *, params: dict[str, str] | None = None
     ) -> None: ...
-
     # =========================================================================
     # CLASSMETHODS
     # =========================================================================
     @classmethod
-    def parse(
-        cls, url: str | bytes, *, params: dict[str, str] | None = None
-    ) -> t.Self: ...
+    def parse(cls, s: str | bytes) -> t.Self: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
@@ -7454,6 +7495,13 @@ class RyIterator(t.Protocol[_T]):
     def __next__(self) -> _T: ...
     def collect(self) -> list[_T]: ...
     def take(self, n: int = 1) -> list[_T]: ...
+
+
+class RyAsyncIterator(t.Protocol[_T]):
+    def __aiter__(self) -> t.Self: ...
+    async def __anext__(self) -> _T: ...
+    async def collect(self) -> list[_T]: ...
+    async def take(self, n: int = 1) -> list[_T]: ...
 
 
 # =============================================================================

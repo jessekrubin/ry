@@ -12,6 +12,9 @@
     - `FnvHasher` -> `fnv1a`
     - `fnv1a` function removed as it was just a stupid proxy for `fnv1a` class
       constructor
+- `ryo3-tokio`
+  - Added `AsyncFileReadStream` pyclass for async file read streams
+  - Helper function `read_str_async` for creating an `AsyncFileReadStream`
 - `ryo3-jiff`
   - use `PyMutex` and get rid of `parking_lot::Mutex` for jiff series iterators
 

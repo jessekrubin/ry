@@ -34,6 +34,7 @@ ry.JSON.parse
 # -----------------------------------------
 ry.*.from_any
 ry.*.from_str
+ry.*.parse
 # --- discrete ---
 ry.Bytes.fromhex
 ry.Certificate.from_pem_bundle

@@ -201,6 +201,7 @@ from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
 from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
+from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
 from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
 from ry.ryo3._tokio import aopen as aopen
@@ -215,6 +216,7 @@ from ry.ryo3._tokio import metadata_async as metadata_async
 from ry.ryo3._tokio import read_async as read_async
 from ry.ryo3._tokio import read_dir_async as read_dir_async
 from ry.ryo3._tokio import read_link_async as read_link_async
+from ry.ryo3._tokio import read_stream_async as read_stream_async
 from ry.ryo3._tokio import read_to_string_async as read_to_string_async
 from ry.ryo3._tokio import remove_dir_all_async as remove_dir_all_async
 from ry.ryo3._tokio import remove_dir_async as remove_dir_async

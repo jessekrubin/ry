@@ -8,6 +8,7 @@ import ry
 
 _RY_TYPES: list[type] = [
     ry.AsyncFile,
+    ry.AsyncFileReadStream,
     ry.BlockingClient,
     ry.Bytes,
     ry.Certificate,
