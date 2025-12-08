@@ -13,7 +13,7 @@ use crate::ser::PySerializeContext;
 #[cfg(feature = "ry")]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
+    SerializePyBool, SerializePyBytesLike, SerializePyComplex, SerializePyDataclass, SerializePyDate,
     SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
     SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
     SerializePyStr, SerializePyStrSubclass, SerializePyTime, SerializePyTimeDelta,
@@ -71,6 +71,7 @@ impl Serialize for SerializePyAny<'_> {
             PyObType::Bool => SerializePyBool::new(self.obj).serialize(serializer),
             PyObType::Int => SerializePyInt::new(self.obj).serialize(serializer),
             PyObType::Float => SerializePyFloat::new(self.obj).serialize(serializer),
+            PyObType::Complex => SerializePyComplex::new(self.obj).serialize(serializer),
             PyObType::String => SerializePyStr::new(self.obj).serialize(serializer),
             PyObType::List => {
                 SerializePyList::new(self.obj, self.ctx, self.depth).serialize(serializer)

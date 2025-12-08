@@ -13,6 +13,7 @@ pub(crate) enum PyObType {
     // ------------------------------------------------------------------------
     Int,
     Bool,
+    Complex,
     Float,
     String,
     Bytes,

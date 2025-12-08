@@ -13,7 +13,7 @@ use crate::ser::PySerializeContext;
 ))]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
+    SerializePyBool, SerializePyComplex, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
     SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyInt, SerializePyNone,
     SerializePyStr, SerializePyTime, SerializePyTimeDelta, SerializePyUuid,
 };
@@ -37,6 +37,9 @@ macro_rules! serialize_seq_element {
             }
             PyObType::Float => {
                 $seq.serialize_element(&SerializePyFloat::new(&$element))?;
+            }
+            PyObType::Complex => {
+                $seq.serialize_element(&SerializePyComplex::new(&$element))?;
             }
             PyObType::String => {
                 $seq.serialize_element(&SerializePyStr::new(&$element))?;

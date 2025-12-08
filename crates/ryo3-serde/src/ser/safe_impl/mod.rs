@@ -1,5 +1,6 @@
 mod py_bool;
 mod py_byteslike;
+mod py_complex;
 mod py_dataclass;
 mod py_datetime;
 mod py_float;
@@ -19,6 +20,7 @@ pub(crate) use py_datetime::{
 };
 pub(crate) use py_float::SerializePyFloat;
 pub(crate) use py_int::SerializePyInt;
+pub(crate) use py_complex::SerializePyComplex;
 pub(crate) use py_map::{SerializePyDict, SerializePyMapping};
 pub(crate) use py_mapping_key::SerializePyMappingKey;
 pub(crate) use py_none::SerializePyNone;

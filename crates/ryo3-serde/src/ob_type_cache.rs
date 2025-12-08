@@ -4,6 +4,7 @@ use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{
     PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis, PyFloat,
+    PyComplex,
     PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
@@ -17,6 +18,7 @@ pub(crate) struct PyTypeCache {
     pub int: usize,
     pub bool: usize,
     pub float: usize,
+    pub complex: usize,
     // string types
     pub string: usize,
     // bytes types
@@ -96,9 +98,10 @@ impl PyTypeCache {
         Self {
             none: PyNone::type_object_raw(py) as usize,
             ellipsis: PyEllipsis::type_object_raw(py) as usize,
-            // numeric types
-            int: PyInt::type_object_raw(py) as usize,
             bool: PyBool::type_object_raw(py) as usize,
+            // numeric types
+            complex: PyComplex::type_object_raw(py) as usize,
+            int: PyInt::type_object_raw(py) as usize,
             float: PyFloat::type_object_raw(py) as usize,
             // string types
             string: PyString::type_object_raw(py) as usize,
@@ -246,6 +249,7 @@ impl PyTypeCache {
         py_obj_ptr!(self, ptr, time, Time);
         py_obj_ptr!(self, ptr, timedelta, Timedelta);
         py_obj_ptr!(self, ptr, bytes, Bytes);
+        py_obj_ptr!(self, ptr, complex, Complex);
         py_obj_ptr!(self, ptr, py_uuid, PyUuid);
         py_obj_ptr!(self, ptr, bytearray, ByteArray);
         py_obj_ptr!(self, ptr, memoryview, MemoryView);
