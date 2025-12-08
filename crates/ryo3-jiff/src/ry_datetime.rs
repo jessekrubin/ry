@@ -268,7 +268,7 @@ impl RyDateTime {
         }
     }
 
-    fn iso_week_date(&self) -> RyISOWeekDate {
+    pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {
         RyISOWeekDate::from(self.0.iso_week_date())
     }
 

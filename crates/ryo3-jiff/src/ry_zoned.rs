@@ -526,7 +526,7 @@ impl RyZoned {
         self.0.with_time_zone(tz.into()).into()
     }
 
-    fn iso_week_date(&self) -> RyISOWeekDate {
+    pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {
         let d = self.0.date();
         d.iso_week_date().into()
     }

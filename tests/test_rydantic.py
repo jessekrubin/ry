@@ -28,6 +28,10 @@ class RyDateModel(pydantic.BaseModel):
     date: ry.Date
 
 
+class RyIsoWeekDateModel(pydantic.BaseModel):
+    iwd: ry.ISOWeekDate
+
+
 # TIME MODELS
 class PyTimeModel(pydantic.BaseModel):
     d: pydt.time
@@ -330,6 +334,81 @@ class TestDate:
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
             _d = RyDateModel(date=raw)  # type: ignore[arg-type]
+
+
+class TestISOWeekdateDate:
+    @pytest.mark.parametrize(
+        "data",
+        [
+            pydt.date(2020, 1, 1),
+            pydt.datetime(2020, 1, 1, 12, 0, 0, tzinfo=pydt.UTC),
+            ry.Date(2020, 1, 1),
+            ry.Date(2020, 1, 1).at(1, 2, 3, 4),
+            ry.Date(2020, 1, 1).at(1, 2, 3, 4).in_tz("America/Los_Angeles"),
+            "2020-01-01",
+        ],
+    )
+    def test_date_inputs(self, data: pydt.date | pydt.datetime | ry.Date | str) -> None:
+        ry_model = RyIsoWeekDateModel(iwd=data)  # type: ignore[arg-type]
+        assert isinstance(ry_model.iwd, ry.ISOWeekDate)
+
+        model_dumped_json = ry_model.model_dump_json()
+
+        from_json = RyIsoWeekDateModel.model_validate_json(model_dumped_json)
+        assert from_json == ry_model
+        assert from_json.iwd == ry_model.iwd
+
+    @pytest.mark.parametrize(
+        "value,result",
+        [
+            ("2012-04-23", pydt.date(2012, 4, 23)),
+            (b"2012-04-23", pydt.date(2012, 4, 23)),
+            (pydt.date(2012, 4, 9), pydt.date(2012, 4, 9)),
+            (pydt.datetime(2012, 4, 9, 0, 0), pydt.date(2012, 4, 9)),
+        ],
+    )
+    def test_date_parsing_ok(
+        self, value: pydt.date | pydt.datetime | ry.Date | str, result: pydt.date
+    ) -> None:
+        ry_date = ry.ISOWeekDate.from_pydate(result)
+        m = RyIsoWeekDateModel(iwd=value)  # type: ignore[arg-type]
+        assert m.iwd == ry_date
+        assert m.iwd.to_pydate() == result
+
+        as_json = m.model_dump_json()
+        from_json = RyIsoWeekDateModel.model_validate_json(as_json)
+        assert from_json.iwd == ry_date
+        assert from_json.iwd.to_pydate() == result
+
+    @pytest.mark.parametrize(
+        "raw",
+        [
+            # TBD if we want to support int/float inputs
+            0,
+            1_493_942_400,
+            1_493_942_400_000,
+            "x20120423",
+            "2012-04-56",
+            19_999_958_400,
+            20000044800,
+            1_549_238_400,
+            1_549_238_400_000,
+            1_549_238_400_000_000,
+            1_549_238_400_000_000_000,
+            "infinity",
+            float("inf"),
+            int("1" + "0" * 100),
+            1e1000,
+            float("-infinity"),
+            float("nan"),
+        ],
+    )
+    def test_iwd_parsing_err(
+        self,
+        raw: pydt.date | pydt.datetime | ry.ISOWeekDate | str,
+    ) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _d = RyIsoWeekDateModel(iwd=raw)  # type: ignore[arg-type]
 
 
 class TestTime:

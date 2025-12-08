@@ -1,8 +1,8 @@
 #![doc = include_str!("../README.md")]
 use pyo3::exceptions::{PyTypeError, PyValueError};
-use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
+use pyo3::{BoundObject, prelude::*};
 use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::PyBytes;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
@@ -379,20 +379,20 @@ impl PyUuid {
     }
 
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
         } else if let Ok(s) = value.extract::<&str>() {
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(b) = value.extract::<[u8; 16]>() {
             // let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_int(u128::from_be_bytes(b)).into_bound_py_any(py)
+            Self::from_int(u128::from_be_bytes(b)).into_pyobject(py)
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(v) = value.extract::<CPythonUuid>() {
-            Self::from(v.0).into_bound_py_any(py)
+            Self::from(v.0).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("UUID conversion error: {valtype}")
@@ -407,7 +407,7 @@ impl PyUuid {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         use ryo3_macro_rules::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
     }

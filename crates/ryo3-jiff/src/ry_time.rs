@@ -10,6 +10,7 @@ use crate::{RyDate, RyDateTime};
 use crate::{RySignedDuration, RyTimestamp, RyZoned};
 use jiff::Zoned;
 use jiff::civil::{Time, TimeRound};
+use pyo3::BoundObject;
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
@@ -473,27 +474,24 @@ impl RyTime {
     }
 
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
-            let dt = d.get().time();
-            dt.into_bound_py_any(py)
+            d.get().time().into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
-            let dt = d.get().time();
-            dt.into_bound_py_any(py)
+            d.get().time().into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
-            let dt = d.get().time();
-            dt.into_bound_py_any(py)
+            d.get().time().into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffTime>() {
-            Self::from_pytime(d).into_bound_py_any(py)
+            Self::from_pytime(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("Time conversion error: {valtype}")
@@ -508,7 +506,7 @@ impl RyTime {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

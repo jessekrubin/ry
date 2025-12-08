@@ -35,7 +35,13 @@ impl_ry_jiff_from_str!(RyZoned);
 impl PyFromStr for RyISOWeekDate {
     #[inline]
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
-        parse_iso_week_date(s).map(Self::from)
+        let iwd = parse_iso_week_date(s).map(Self::from);
+        // try parse as jiff::civil::Date
+        if let Ok(date) = jiff::civil::Date::from_str(s) {
+            Ok(Self::from(date.iso_week_date()))
+        } else {
+            iwd.map_err(crate::errors::map_py_value_err)
+        }
     }
 }
 

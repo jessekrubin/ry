@@ -2,9 +2,11 @@
 use jiff::fmt::friendly::Designator;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyInt, PyTuple};
-use pyo3::{
-    Bound, BoundObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
-};
+use pyo3::{BoundObject, IntoPyObjectExt};
+// use pyo3::{
+//     Bound, BoundObject, IntoPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pyclass, pymethods,
+// };
+use pyo3::prelude::*;
 use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
@@ -802,9 +804,6 @@ impl PyDuration {
         Self::from(self.0.saturating_sub(other.0))
     }
 
-    // ========================================================================
-    // PYDANTIC
-    // ========================================================================
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
@@ -833,6 +832,9 @@ impl PyDuration {
         }
     }
 
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
     #[cfg(feature = "pydantic")]
     #[staticmethod]
     fn _pydantic_validate<'py>(
