@@ -13,10 +13,10 @@ use crate::ser::PySerializeContext;
 #[cfg(feature = "ry")]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    SerializePyBool, SerializePyBytesLike, SerializePyComplex, SerializePyDataclass, SerializePyDate,
-    SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
-    SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
-    SerializePyStr, SerializePyStrSubclass, SerializePyTime, SerializePyTimeDelta,
+    SerializePyBool, SerializePyBytesLike, SerializePyComplex, SerializePyDataclass,
+    SerializePyDate, SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet,
+    SerializePyInt, SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence,
+    SerializePySet, SerializePyStr, SerializePyStrSubclass, SerializePyTime, SerializePyTimeDelta,
     SerializePyTuple, SerializePyUuid,
 };
 use crate::{Depth, MAX_DEPTH, serde_err, serde_err_recursion};

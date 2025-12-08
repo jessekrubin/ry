@@ -14,13 +14,13 @@ mod py_uuid;
 
 pub(crate) use py_bool::SerializePyBool;
 pub(crate) use py_byteslike::SerializePyBytesLike;
+pub(crate) use py_complex::SerializePyComplex;
 pub(crate) use py_dataclass::SerializePyDataclass;
 pub(crate) use py_datetime::{
     SerializePyDate, SerializePyDateTime, SerializePyTime, SerializePyTimeDelta,
 };
 pub(crate) use py_float::SerializePyFloat;
 pub(crate) use py_int::SerializePyInt;
-pub(crate) use py_complex::SerializePyComplex;
 pub(crate) use py_map::{SerializePyDict, SerializePyMapping};
 pub(crate) use py_mapping_key::SerializePyMappingKey;
 pub(crate) use py_none::SerializePyNone;

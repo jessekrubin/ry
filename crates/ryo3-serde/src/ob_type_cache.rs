@@ -3,9 +3,8 @@ use crate::ser::dataclass::is_dataclass;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{
-    PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis, PyFloat,
-    PyComplex,
-    PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
+    PyBool, PyByteArray, PyBytes, PyComplex, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis,
+    PyFloat, PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Bound, PyAny, PyTypeInfo, Python};
 

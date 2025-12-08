@@ -16,6 +16,35 @@ impl<'a, 'py> SerializePyComplex<'a, 'py> {
     }
 }
 
+enum IntOrFloat {
+    Int(i64),
+    Float(f64),
+}
+
+impl Serialize for IntOrFloat {
+    #[inline(always)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Int(i) => serializer.serialize_i64(*i),
+            Self::Float(f) => serializer.serialize_f64(*f),
+        }
+    }
+}
+
+impl From<f64> for IntOrFloat {
+    #[expect(clippy::cast_possible_truncation)]
+    fn from(value: f64) -> Self {
+        if value.fract() == 0.0 {
+            Self::Int(value as i64)
+        } else {
+            Self::Float(value)
+        }
+    }
+}
+
 impl Serialize for SerializePyComplex<'_, '_> {
     #[inline(always)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -25,21 +54,11 @@ impl Serialize for SerializePyComplex<'_, '_> {
         let c = self.obj.cast_exact::<PyComplex>().map_err(pyerr2sererr)?;
         let mut struct_ser = serializer.serialize_tuple_struct("complex", 2)?;
 
-        let r = c.real();
-        // how to tell if it's float or int?
-        if r.fract() == 0.0 {
-            let integer = r as i64;
-            struct_ser.serialize_field(&integer)?; // integer
-        } else {
-            struct_ser.serialize_field(&r)?; // float
-        }
-        let i = c.imag();
-        if i.fract() == 0.0 {
-            let integer = i as i64;
-            struct_ser.serialize_field(&integer)?; // integer
-        } else {
-            struct_ser.serialize_field(&i)?; // float
-        }
+        let r = IntOrFloat::from(c.real());
+        struct_ser.serialize_field(&r)?;
+
+        let i = IntOrFloat::from(c.imag());
+        struct_ser.serialize_field(&i)?;
         struct_ser.end()
     }
 }

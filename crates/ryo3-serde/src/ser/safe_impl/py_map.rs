@@ -16,10 +16,10 @@ use crate::ser::PySerializeContext;
 ))]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    SerializePyBool, SerializePyComplex, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
-    SerializePyDateTime, SerializePyFloat, SerializePyFrozenSet, SerializePyInt, SerializePyList,
-    SerializePyMappingKey, SerializePyNone, SerializePySet, SerializePyStr, SerializePyTime,
-    SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
+    SerializePyBool, SerializePyBytesLike, SerializePyComplex, SerializePyDataclass,
+    SerializePyDate, SerializePyDateTime, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
+    SerializePyList, SerializePyMappingKey, SerializePyNone, SerializePySet, SerializePyStr,
+    SerializePyTime, SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
 };
 use crate::{SerializePyAny, serde_err_recursion};
 use pyo3::Bound;
