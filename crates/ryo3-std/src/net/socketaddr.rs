@@ -1,8 +1,9 @@
 use crate::net::PyIpv6Addr;
 use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use crate::net::ipaddr_props::IpAddrProps;
-use pyo3::prelude::*;
+use pyo3::{BoundObject, prelude::*};
 use ryo3_core::{PyFromStr, PyParse};
+use ryo3_macro_rules::{any_repr, py_type_err, py_value_err};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
@@ -65,7 +66,7 @@ impl PySocketAddrV4 {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipaddrv4(&self) -> PyIpv4Addr {
+    fn to_ipv4(&self) -> PyIpv4Addr {
         PyIpv4Addr::from(self.0.ip())
     }
 
@@ -167,6 +168,62 @@ impl PySocketAddrV4 {
     fn is_unicast(&self) -> bool {
         <Self as IpAddrProps>::is_unicast(self)
     }
+
+    #[expect(clippy::wrong_self_convention)]
+    fn to_socketaddr(&self) -> PySocketAddr {
+        PySocketAddr(SocketAddr::V4(self.0))
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(sockaddr) = value.cast::<PySocketAddr>() {
+            match sockaddr.get().0 {
+                SocketAddr::V4(sa) => Self::from(sa).into_pyobject(py),
+                SocketAddr::V6(_) => {
+                    py_type_err!(
+                        "SocketAddrV4 conversion error: expected SocketAddrV4, got SocketAddrV6"
+                    )
+                }
+            }
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("SocketAddrV4 conversion error: {valtype}")
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        use ryo3_core::map_py_value_err;
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 #[pymethods]
@@ -212,7 +269,7 @@ impl PySocketAddrV6 {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipaddrv6(&self) -> PyIpv6Addr {
+    fn to_ipv6(&self) -> PyIpv6Addr {
         PyIpv6Addr::from(self.0.ip())
     }
 
@@ -317,6 +374,62 @@ impl PySocketAddrV6 {
     #[getter]
     fn is_shared(&self) -> bool {
         <Self as IpAddrProps>::is_shared(self)
+    }
+
+    #[expect(clippy::wrong_self_convention)]
+    fn to_socketaddr(&self) -> PySocketAddr {
+        PySocketAddr(SocketAddr::V6(self.0))
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(socketaddr) = value.cast::<PySocketAddr>() {
+            match socketaddr.get().0 {
+                SocketAddr::V6(sa6) => Self::from(sa6).into_pyobject(py),
+                SocketAddr::V4(_) => {
+                    py_type_err!(
+                        "SocketAddrV6 conversion error: expected SocketAddrV6, got SocketAddrV4"
+                    )
+                }
+            }
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("SocketAddrV6 conversion error: {valtype}")
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        use ryo3_core::map_py_value_err;
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 
@@ -511,5 +624,69 @@ impl PySocketAddr {
     #[getter]
     fn is_unique_local(&self) -> bool {
         <Self as IpAddrProps>::is_unique_local(self)
+    }
+
+    #[expect(clippy::wrong_self_convention)]
+    fn to_socketaddr_v4(&self) -> PyResult<PySocketAddrV4> {
+        match self.0 {
+            SocketAddr::V4(sa4) => Ok(PySocketAddrV4(sa4)),
+            SocketAddr::V6(_) => py_value_err!("Cannot convert SocketAddr (v6) to SocketAddrV4"),
+        }
+    }
+
+    #[expect(clippy::wrong_self_convention)]
+    fn to_socketaddr_v6(&self) -> PyResult<PySocketAddrV6> {
+        match self.0 {
+            SocketAddr::V6(sa6) => Ok(PySocketAddrV6(sa6)),
+            SocketAddr::V4(_) => py_value_err!("Cannot convert SocketAddr (v4) to SocketAddrV6"),
+        }
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(sockaddrv4) = value.cast::<PySocketAddrV4>() {
+            let sockaddr = Self::from(SocketAddr::V4(sockaddrv4.get().0));
+            sockaddr.into_pyobject(py)
+        } else if let Ok(sockaddrv6) = value.cast::<PySocketAddrV6>() {
+            let sockaddr = Self::from(SocketAddr::V6(sockaddrv6.get().0));
+            sockaddr.into_pyobject(py)
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("SocketAddr conversion error: {valtype}")
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        use ryo3_core::map_py_value_err;
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }

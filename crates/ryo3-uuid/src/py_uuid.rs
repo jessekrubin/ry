@@ -1,9 +1,9 @@
 #![doc = include_str!("../README.md")]
 use pyo3::exceptions::{PyTypeError, PyValueError};
+use pyo3::intern;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, prelude::*};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::PyBytes;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
 use std::hash::{DefaultHasher, Hash, Hasher};

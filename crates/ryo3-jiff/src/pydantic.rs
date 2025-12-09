@@ -208,9 +208,9 @@ impl GetPydanticCoreSchemaCls for RyISOWeekDate {
     ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
-        let ip_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
+        let schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &ip_schema])?;
+        let args = PyTuple::new(py, vec![&validation_fn, &schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let serialization_kwargs = PyDict::new(py);

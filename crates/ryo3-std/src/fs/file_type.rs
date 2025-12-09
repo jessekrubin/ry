@@ -1,5 +1,6 @@
 use pyo3::types::PyDict;
 use pyo3::{intern, prelude::*};
+use ryo3_core::PyFromStr;
 use ryo3_macro_rules::py_value_err;
 
 #[pyclass(name = "FileType", frozen, immutable_type)]
@@ -77,17 +78,7 @@ impl From<std::fs::FileType> for PyFileType {
 impl PyFileType {
     #[new]
     fn py_new(t: &str) -> PyResult<Self> {
-        let ft = match t {
-            "d" | "dir" | "directory" => FauxFileType::Dir,
-            "f" | "file" => FauxFileType::File,
-            "s" | "symlink" | "link" => FauxFileType::Symlink,
-            other => {
-                return py_value_err!(
-                    "invalid file type string: {other} - must be one of 'd'/'dir'/'directory', 'f'/'file', 's'/'symlink'/'link'"
-                );
-            }
-        };
-        Ok(Self(FileTypeInner::FauxFileType(ft)))
+        Self::py_from_str(t)
     }
 
     fn __str__<'py>(&self, py: Python<'py>) -> &'py Bound<'py, pyo3::types::PyString> {
@@ -140,5 +131,22 @@ impl PyFileType {
     #[expect(clippy::wrong_self_convention, clippy::trivially_copy_pass_by_ref)]
     pub(crate) fn to_py<'py>(&self, py: Python<'py>) -> &'py Bound<'py, pyo3::types::PyString> {
         self.__str__(py)
+    }
+}
+
+impl PyFromStr for PyFileType {
+    #[inline]
+    fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
+        let ft = match s {
+            "d" | "dir" | "directory" => FauxFileType::Dir,
+            "f" | "file" => FauxFileType::File,
+            "s" | "symlink" | "link" => FauxFileType::Symlink,
+            other => {
+                return py_value_err!(
+                    "invalid file type string: {other} - must be one of 'd'/'dir'/'directory', 'f'/'file', 's'/'symlink'/'link'"
+                );
+            }
+        };
+        Ok(Self(FileTypeInner::FauxFileType(ft)))
     }
 }

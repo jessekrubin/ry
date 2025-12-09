@@ -9,8 +9,8 @@ REF(s):
 """
 
 import datetime as pydt
+import typing as t
 from ipaddress import IPv4Address, IPv6Address
-from typing import Any
 
 import pydantic
 import pytest
@@ -134,7 +134,7 @@ _MODELS_SCHEMAS = [
 
 
 class TestJsonSchemas:
-    def _diff_schemas(self, left: dict[str, Any], right: dict[str, Any]) -> None:
+    def _diff_schemas(self, left: dict[str, t.Any], right: dict[str, t.Any]) -> None:
         left_no_title = {k: v for k, v in left.items() if k != "title"}
         right_no_title = {k: v for k, v in right.items() if k != "title"}
         assert left_no_title == right_no_title
@@ -256,7 +256,7 @@ class TestDuration:
             complex(1, 2),
         ],
     )
-    def test_parse_duration_err(self, value: Any) -> None:
+    def test_parse_duration_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
             _m = RyDurationModel(d=value)
 
@@ -717,7 +717,7 @@ class TestSignedDuration:
             "P0.5D",
         ],
     )
-    def test_parse_signed_duration_err(self, value: Any) -> None:
+    def test_parse_signed_duration_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
             _m = RySignedDurationModel(d=value)
 
@@ -1001,7 +1001,7 @@ def test_url_parsing_err(value: str | None, err_msg: str) -> None:
 # =============================================================================
 class FutureThingsMaybe:
     @staticmethod
-    def future_config_support_maybe() -> list[dict[str, Any]]:
+    def future_config_support_maybe() -> list[dict[str, t.Any]]:
         _KWARG_OPTIONS = {  # noqa: N806
             "ser_json_temporal": ["iso8601", "seconds", "milliseconds"],
             "ser_json_timedelta": ["iso8601", "float"],
@@ -1234,3 +1234,152 @@ def test_ipv6addr_err(value: str | int | IPv4Address) -> None:
     with pytest.raises(pydantic.ValidationError) as exc_info:
         RyIpv6Addr(ip=value)  # type: ignore[arg-type]
     assert exc_info.value.error_count() == 1
+
+
+class RySocketAddr(pydantic.BaseModel):
+    sock: ry.SocketAddr
+
+
+class RySocketAddrV4(pydantic.BaseModel):
+    sock: ry.SocketAddrV4
+
+
+class RySocketAddrV6(pydantic.BaseModel):
+    sock: ry.SocketAddrV6
+
+
+def test_socketaddr_schemas() -> None:
+    ry_json_schema = RySocketAddr.model_json_schema()
+    assert ry_json_schema == {
+        "properties": {"sock": {"title": "Sock", "type": "string"}},
+        "required": ["sock"],
+        "title": "RySocketAddr",
+        "type": "object",
+    }
+
+    ryv4_json_schema = RySocketAddrV4.model_json_schema()
+    assert ryv4_json_schema == {
+        "properties": {"sock": {"title": "Sock", "type": "string"}},
+        "required": ["sock"],
+        "title": "RySocketAddrV4",
+        "type": "object",
+    }
+
+    ryv6_json_schema = RySocketAddrV6.model_json_schema()
+    assert ryv6_json_schema == {
+        "properties": {"sock": {"title": "Sock", "type": "string"}},
+        "required": ["sock"],
+        "title": "RySocketAddrV6",
+        "type": "object",
+    }
+
+
+class TestSocketAddr:
+    @pytest.mark.parametrize(
+        "value,result",
+        [
+            ("192.168.0.1:8080", "192.168.0.1:8080"),
+            (b"192.168.0.1:8080", "192.168.0.1:8080"),
+            (ry.SocketAddrV4(ry.Ipv4Addr(192, 168, 0, 1), 8080), "192.168.0.1:8080"),
+            (ry.SocketAddr(ry.Ipv4Addr(192, 168, 0, 1), 8080), "192.168.0.1:8080"),
+            (ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080), "[::1]:8080"),
+        ],
+    )
+    def test_socketaddrv4_parsing_ok(
+        self,
+        value: str | bytes | ry.SocketAddr | ry.SocketAddrV4 | ry.SocketAddrV6,
+        result: str,
+    ) -> None:
+        m = RySocketAddr(sock=value)  # type: ignore[arg-type]
+        assert isinstance(m.sock, ry.SocketAddr)
+        assert str(m.sock) == result
+
+        as_json = m.model_dump_json()
+        from_json = RySocketAddr.model_validate_json(as_json)
+        assert str(from_json.sock) == result
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            complex(1, 2),
+        ],
+    )
+    def test_socketaddrv4_parsing_err(self, value: t.Any) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _d = RySocketAddr(sock=value)  # type: ignore[arg-type]
+
+
+class TestSocketAddrV4:
+    @pytest.mark.parametrize(
+        "value,result",
+        [
+            ("192.168.0.1:8080", "192.168.0.1:8080"),
+            (b"192.168.0.1:8080", "192.168.0.1:8080"),
+            (ry.SocketAddrV4(ry.Ipv4Addr(192, 168, 0, 1), 8080), "192.168.0.1:8080"),
+            (
+                ry.SocketAddrV4(ry.Ipv4Addr(192, 168, 0, 1), 8080).to_socketaddr(),
+                "192.168.0.1:8080",
+            ),
+        ],
+    )
+    def test_socketaddrv4_parsing_ok(
+        self,
+        value: str | bytes | ry.SocketAddr | ry.SocketAddrV4 | ry.SocketAddrV6,
+        result: str,
+    ) -> None:
+        m = RySocketAddrV4(sock=value)  # type: ignore[arg-type]
+        assert isinstance(m.sock, ry.SocketAddrV4)
+        assert str(m.sock) == result
+
+        as_json = m.model_dump_json()
+        from_json = RySocketAddrV4.model_validate_json(as_json)
+        assert str(from_json.sock) == result
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            complex(1, 2),
+            ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080),
+            ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080).to_socketaddr(),
+        ],
+    )
+    def test_socketaddrv4_parsing_err(self, value: t.Any) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _d = RySocketAddrV4(sock=value)  # type: ignore[arg-type]
+
+
+class TestSocketAddrV6:
+    @pytest.mark.parametrize(
+        "value,result",
+        [
+            (ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080), "[::1]:8080"),
+            (ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080).to_socketaddr(), "[::1]:8080"),
+            ("[::1]:8080", "[::1]:8080"),
+            (b"[::1]:8080", "[::1]:8080"),
+        ],
+    )
+    def test_socketaddrv6_parsing_ok(
+        self,
+        value: str | bytes | ry.SocketAddr | ry.SocketAddrV4 | ry.SocketAddrV6,
+        result: str,
+    ) -> None:
+        m = RySocketAddrV6(sock=value)  # type: ignore[arg-type]
+        assert isinstance(m.sock, ry.SocketAddrV6)
+        assert str(m.sock) == result
+
+        as_json = m.model_dump_json()
+        from_json = RySocketAddrV6.model_validate_json(as_json)
+        assert str(from_json.sock) == result
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            complex(1, 2),
+            ry.SocketAddrV4(ry.Ipv4Addr(192, 168, 0, 1), 8080),
+            ry.SocketAddrV4(ry.Ipv4Addr(192, 168, 0, 1), 8080).to_socketaddr(),
+            ry.SocketAddr(ry.Ipv4Addr(192, 168, 0, 1), 8080),
+        ],
+    )
+    def test_socketaddrv6_parsing_err(self, value: t.Any) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _d = RySocketAddrV6(sock=value)  # type: ignore[arg-type]
