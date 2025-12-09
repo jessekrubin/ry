@@ -8,11 +8,11 @@ use pyo3::Bound;
 use pyo3::ffi::PyFloat_AsDouble;
 
 pub(crate) struct SerializePyFloat<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyFloat<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>,) -> Self {
         Self { obj }
     }
 }

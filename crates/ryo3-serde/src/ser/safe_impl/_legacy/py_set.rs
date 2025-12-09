@@ -11,14 +11,14 @@ use pyo3::types::{PyFrozenSet, PyIterator, PySet};
 
 pub(crate) struct SerializePySet<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) depth: Depth,
     // default: Option<&'py Bound<'py, PyAny>>,
     // ob_type_lookup: &'py PyTypeCache,
 }
 
 impl<'a, 'py> SerializePySet<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
         Self {
             obj,
             ctx,
@@ -53,12 +53,12 @@ impl Serialize for SerializePySet<'_, '_> {
 // ----------------------------------------------------------------------------
 pub(crate) struct SerializePyFrozenSet<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> SerializePyFrozenSet<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
         Self {
             obj,
             ctx,

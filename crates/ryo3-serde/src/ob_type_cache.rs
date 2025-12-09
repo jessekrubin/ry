@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use crate::ob_type::PyObType;
 use crate::ser::dataclass::is_dataclass;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
@@ -6,7 +8,7 @@ use pyo3::types::{
     PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis, PyFloat,
     PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
-use pyo3::{Bound, PyAny, PyTypeInfo, Python};
+use pyo3::{Borrowed, Bound, PyAny, PyTypeInfo, Python};
 
 #[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
@@ -193,10 +195,20 @@ impl PyTypeCache {
     pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
         self.ptr2type(ob.get_type_ptr() as usize, ob)
     }
-
+    // #[must_use]
+    // #[inline]
+    // pub(crate) fn obtype_borrowed(&self, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
+    //     self.ptr2type(ob.get_type_ptr() as usize, ob)
+    // }
     #[must_use]
     #[inline]
     pub(crate) fn obtype_key(&self, ob: &Bound<'_, PyAny>) -> PyObType {
+        self.ptr2type_key(ob.get_type_ptr() as usize)
+    }
+
+    #[must_use]
+    #[inline]
+    pub(crate) fn obtype_key_borrowed(&self, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
         self.ptr2type_key(ob.get_type_ptr() as usize)
     }
 }

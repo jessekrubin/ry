@@ -30,65 +30,65 @@ macro_rules! serialize_seq_element {
                 $seq.serialize_element(&SerializePyNone::new())?;
             }
             PyObType::Bool => {
-                $seq.serialize_element(&SerializePyBool::new(&$element))?;
+                $seq.serialize_element(&SerializePyBool::new($element))?;
             }
             PyObType::Int => {
-                $seq.serialize_element(&SerializePyInt::new(&$element))?;
+                $seq.serialize_element(&SerializePyInt::new($element))?;
             }
             PyObType::Float => {
-                $seq.serialize_element(&SerializePyFloat::new(&$element))?;
+                $seq.serialize_element(&SerializePyFloat::new($element))?;
             }
             PyObType::String => {
-                $seq.serialize_element(&SerializePyStr::new(&$element))?;
+                $seq.serialize_element(&SerializePyStr::new($element))?;
             }
             PyObType::List => {
                 $seq.serialize_element(&SerializePyList::new(
-                    &$element,
+                    $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Tuple => {
                 $seq.serialize_element(&SerializePyTuple::new(
-                    &$element,
+                    $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Dict => {
                 $seq.serialize_element(&SerializePyDict::new(
-                    &$element,
+                    $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Set => {
-                $seq.serialize_element(&SerializePySet::new(&$element, $self.ctx))?;
+                $seq.serialize_element(&SerializePySet::new($element, $self.ctx))?;
             }
             PyObType::FrozenSet => {
-                $seq.serialize_element(&SerializePyFrozenSet::new(&$element, $self.ctx))?;
+                $seq.serialize_element(&SerializePyFrozenSet::new($element, $self.ctx))?;
             }
             PyObType::DateTime => {
-                $seq.serialize_element(&SerializePyDateTime::new(&$element))?;
+                $seq.serialize_element(&SerializePyDateTime::new($element))?;
             }
             PyObType::Date => {
-                $seq.serialize_element(&SerializePyDate::new(&$element))?;
+                $seq.serialize_element(&SerializePyDate::new($element))?;
             }
             PyObType::Time => {
-                $seq.serialize_element(&SerializePyTime::new(&$element))?;
+                $seq.serialize_element(&SerializePyTime::new($element))?;
             }
             PyObType::Timedelta => {
-                $seq.serialize_element(&SerializePyTimeDelta::new(&$element))?;
+                $seq.serialize_element(&SerializePyTimeDelta::new($element))?;
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
-                $seq.serialize_element(&SerializePyBytesLike::new(&$element))?;
+                $seq.serialize_element(&SerializePyBytesLike::new($element))?;
             }
             PyObType::PyUuid => {
-                $seq.serialize_element(&SerializePyUuid::new(&$element))?;
+                $seq.serialize_element(&SerializePyUuid::new($element))?;
             }
             PyObType::Dataclass => {
                 $seq.serialize_element(&SerializePyDataclass::new(
-                    &$element,
+                    $element,
                     $self.ctx,
                     $self.depth,
                 ))?;
@@ -99,90 +99,90 @@ macro_rules! serialize_seq_element {
             // __STD__
             #[cfg(feature = "ryo3-std")]
             PyObType::PyDuration => {
-                $seq.serialize_element(&rytypes::PyDurationSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyDurationSerializer::new($element))?;
             }
 
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpAddr => {
-                $seq.serialize_element(&rytypes::PyIpAddrSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyIpAddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv4Addr => {
-                $seq.serialize_element(&rytypes::PyIpv4AddrSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyIpv4AddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv6Addr => {
-                $seq.serialize_element(&rytypes::PyIpv6AddrSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyIpv6AddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddr => {
-                $seq.serialize_element(&rytypes::PySocketAddrSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PySocketAddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV4 => {
-                $seq.serialize_element(&rytypes::PySocketAddrV4Serializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PySocketAddrV4Serializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV6 => {
-                $seq.serialize_element(&rytypes::PySocketAddrV6Serializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PySocketAddrV6Serializer::new($element))?;
             }
 
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                $seq.serialize_element(&rytypes::PyHeadersSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyHeadersSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                $seq.serialize_element(&rytypes::PyHttpStatusSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyHttpStatusSerializer::new($element))?;
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDate => {
-                $seq.serialize_element(&rytypes::RyDateSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RyDateSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDateTime => {
-                $seq.serialize_element(&rytypes::RyDateTimeSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RyDateTimeSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RySignedDuration => {
-                $seq.serialize_element(&rytypes::RySignedDurationSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RySignedDurationSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTime => {
-                $seq.serialize_element(&rytypes::RyTimeSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RyTimeSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeSpan => {
-                $seq.serialize_element(&rytypes::RySpanSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RySpanSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimestamp => {
-                $seq.serialize_element(&rytypes::RyTimestampSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RyTimestampSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeZone => {
-                $seq.serialize_element(&rytypes::RyTimeZoneSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RyTimeZoneSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyZoned => {
-                $seq.serialize_element(&rytypes::RyZonedSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::RyZonedSerializer::new($element))?;
             }
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
             PyObType::RyUlid => {
-                $seq.serialize_element(&rytypes::PyUlidSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyUlidSerializer::new($element))?;
             }
             // __URL__
             #[cfg(feature = "ryo3-url")]
             PyObType::RyUrl => {
-                $seq.serialize_element(&rytypes::PyUrlSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyUrlSerializer::new($element))?;
             }
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]
             PyObType::RyUuid => {
-                $seq.serialize_element(&rytypes::PyUuidSerializer::new(&$element))?;
+                $seq.serialize_element(&rytypes::PyUuidSerializer::new($element))?;
             }
             // ------------------------------------------------------------
             // UNKNOWN
@@ -203,13 +203,13 @@ macro_rules! serialize_seq_element {
 // ----------------------------------------------------------------------------
 pub(crate) struct SerializePyList<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> SerializePyList<'a, 'py> {
     pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
@@ -225,15 +225,15 @@ impl Serialize for SerializePyList<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_list: &Bound<'_, PyList> = self.obj.cast_exact().map_err(pyerr2sererr)?;
+        let py_list = self.obj.cast_exact::<PyList>().map_err(pyerr2sererr)?;
         let len = py_list.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
         } else {
             let mut seq = serializer.serialize_seq(Some(len))?;
-            for element in py_list {
+            for element in py_list.iter() {
                 let ob_type = self.ctx.typeref.obtype(&element);
-                serialize_seq_element!(ob_type, seq, self, element);
+                serialize_seq_element!(ob_type, seq, self, element.as_borrowed());
             }
             seq.end()
         }
@@ -244,14 +244,14 @@ impl Serialize for SerializePyList<'_, '_> {
 // PyTuple
 // ----------------------------------------------------------------------------
 pub(crate) struct SerializePyTuple<'a, 'py> {
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> SerializePyTuple<'a, 'py> {
     pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
@@ -267,13 +267,13 @@ impl Serialize for SerializePyTuple<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_tuple: &Bound<'_, PyTuple> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_tuple = self.obj.cast_exact::<PyTuple>().map_err(pyerr2sererr)?;
         let len = py_tuple.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
         } else {
             let mut tup = serializer.serialize_tuple(len)?;
-            for element in py_tuple {
+            for element in py_tuple.iter_borrowed() {
                 let ob_type = self.ctx.typeref.obtype(&element);
                 serialize_seq_element!(ob_type, tup, self, element);
             }
@@ -295,14 +295,14 @@ impl Serialize for SerializePyTuple<'_, '_> {
 // ----------------------------------------------------------------------------
 pub(crate) struct SerializePySet<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) depth: Depth,
     // default: Option<&'py Bound<'py, PyAny>>,
     // ob_type_lookup: &'py PyTypeCache,
 }
 
 impl<'a, 'py> SerializePySet<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
         Self {
             obj,
             ctx,
@@ -316,17 +316,17 @@ impl Serialize for SerializePySet<'_, '_> {
     where
         S: Serializer,
     {
-        let py_set: &Bound<'_, PyAny> = self.obj.cast::<PySet>().map_err(pyerr2sererr)?;
-        let len = py_set.len().map_err(pyerr2sererr)?;
+        let py_set = self.obj.cast_exact::<PySet>().map_err(pyerr2sererr)?;
+        let len = py_set.len();
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
-        let py_iter = PyIterator::from_object(py_set).expect("set is always iterable");
+        // let py_iter = PyIterator::from_object(py_set).expect("set is always iterable");
         let mut seq = serializer.serialize_seq(Some(len))?;
-        for element in py_iter {
-            let pyany = element.map_err(pyerr2sererr)?;
-            let ob_type = self.ctx.typeref.obtype(&pyany);
-            serialize_seq_element!(ob_type, seq, self, pyany);
+        for element in py_set.iter() {
+            let ob_type = self.ctx.typeref.obtype(&element);
+            let element_borrowed = element.as_borrowed();
+            serialize_seq_element!(ob_type, seq, self, element_borrowed);
         }
         seq.end()
     }
@@ -337,12 +337,12 @@ impl Serialize for SerializePySet<'_, '_> {
 // ----------------------------------------------------------------------------
 pub(crate) struct SerializePyFrozenSet<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> SerializePyFrozenSet<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
         Self {
             obj,
             ctx,
@@ -356,16 +356,15 @@ impl Serialize for SerializePyFrozenSet<'_, '_> {
     where
         S: Serializer,
     {
-        let py_frozenset: &Bound<'_, PyAny> =
-            self.obj.cast::<PyFrozenSet>().map_err(pyerr2sererr)?;
-        let len = py_frozenset.len().map_err(pyerr2sererr)?;
+        let py_frozenset = self.obj.cast_exact::<PyFrozenSet>().map_err(pyerr2sererr)?;
+        let len = py_frozenset.len();
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
-        let py_iter = PyIterator::from_object(py_frozenset).expect("frozenset is always iterable");
+        // let py_iter = PyIterator::from_object(py_frozenset).expect("frozenset is always iterable");
         let mut seq = serializer.serialize_seq(Some(len))?;
-        for element in py_iter {
-            let pyany = element.map_err(pyerr2sererr)?;
+        for element in py_frozenset.iter(){
+            let pyany = element.as_borrowed();
             let ob_type = self.ctx.typeref.obtype(&pyany);
             serialize_seq_element!(ob_type, seq, self, pyany);
         }
@@ -404,7 +403,7 @@ impl Serialize for SerializePySequence<'_, '_> {
         for i in 0..len {
             let pyany = self.obj.get_item(i).map_err(pyerr2sererr)?;
             let ob_type = self.ctx.typeref.obtype(&pyany);
-            serialize_seq_element!(ob_type, seq, self, pyany);
+            serialize_seq_element!(ob_type, seq, self, pyany.as_borrowed());
         }
         seq.end()
     }

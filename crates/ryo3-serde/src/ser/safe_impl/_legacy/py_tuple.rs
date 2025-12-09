@@ -16,14 +16,14 @@ use crate::{SerializePyAny, serde_err_recursion};
 use pyo3::types::PyTuple;
 
 pub(crate) struct SerializePyTuple<'a, 'py> {
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> SerializePyTuple<'a, 'py> {
     pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {

@@ -12,13 +12,13 @@ use pyo3::{Bound, types::PyDict};
 
 pub(crate) struct SerializePyDataclass<'a, 'py> {
     ctx: PySerializeContext<'py>,
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
     depth: Depth,
 }
 
 impl<'a, 'py> SerializePyDataclass<'a, 'py> {
     pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {

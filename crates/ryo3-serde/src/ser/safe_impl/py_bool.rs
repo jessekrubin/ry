@@ -8,12 +8,12 @@ use pyo3::types::PyBool;
 use pyo3::{Bound, ffi};
 
 pub(crate) struct SerializePyBool<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyBool<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
@@ -24,11 +24,10 @@ impl Serialize for SerializePyBool<'_, '_> {
     where
         S: Serializer,
     {
-        let tf = self
-            .obj
-            .cast::<PyBool>()
-            .map(pyo3::types::PyBoolMethods::is_true)
-            .map_err(pyerr2sererr)?;
+        let pyb = self.obj.cast_exact::<PyBool>().map_err(pyerr2sererr)?;
+        let tf = pyb.is_true();
+        // .map(pyo3::types::PyBoolMethods::is_true)
+        // .map_err(pyerr2sererr)?;
         serializer.serialize_bool(tf)
     }
 }

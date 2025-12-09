@@ -8,3 +8,11 @@ pub(crate) fn any_repr(obj: &Bound<'_, PyAny>) -> String {
         .unwrap_or_else(|_| PyString::new(obj.py(), "unknown"))
         .to_string()
 }
+
+#[inline]
+pub(crate) fn any_repr_borrowed(obj: Borrowed<'_, '_, PyAny>) -> String {
+    obj.get_type()
+        .name()
+        .unwrap_or_else(|_| PyString::new(obj.py(), "unknown"))
+        .to_string()
+}

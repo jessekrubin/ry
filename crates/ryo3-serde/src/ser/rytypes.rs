@@ -87,14 +87,14 @@ macro_rules! ry_type_serializer_struct {
         $name:ident => $ty:path
     ) => (
         $(#[$meta])*
-        pub(crate) struct $name<'py>{
-            ob:  &'py Bound<'py, PyAny>
+        pub(crate) struct $name<'a, 'py>{
+            ob:Borrowed<'a, 'py, PyAny>
         }
 
         $(#[$meta])*
-        impl<'py> $name<'py> {
+        impl<'a, 'py> $name<'a, 'py> {
             #[inline]
-            pub(crate) fn new(obj: &'py Bound<'py, PyAny>) -> Self {
+            pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
                 Self {
                     ob: obj,
                 }
@@ -102,7 +102,7 @@ macro_rules! ry_type_serializer_struct {
         }
 
         $(#[$meta])*
-        impl<'py> serde::ser::Serialize for $name<'py> {
+        impl<'a, 'py> serde::ser::Serialize for $name<'a, 'py> {
             #[inline]
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -193,19 +193,19 @@ ry_type_serializer_struct! (
 
 // TODO: flag for duration/timespan/signed_duration serialization format ("iso8601" | "friendly" | "obj")
 #[cfg(feature = "ryo3-std")]
-pub(crate) struct PyDurationSerializer<'py> {
-    ob: &'py Bound<'py, PyAny>,
+pub(crate) struct PyDurationSerializer<'a, 'py> {
+    ob: Borrowed<'a, 'py, PyAny>,
 }
 
 #[cfg(feature = "ryo3-std")]
-impl<'py> PyDurationSerializer<'py> {
-    pub(crate) fn new(obj: &'py Bound<'py, PyAny>) -> Self {
+impl<'a, 'py> PyDurationSerializer<'a, 'py> {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { ob: obj }
     }
 }
 
 #[cfg(feature = "ryo3-std")]
-impl serde::ser::Serialize for PyDurationSerializer<'_> {
+impl<'a, 'py> serde::ser::Serialize for PyDurationSerializer<'a, 'py> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
