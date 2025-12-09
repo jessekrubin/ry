@@ -25,7 +25,7 @@ impl Serialize for SerializePyDate<'_, '_> {
     where
         S: Serializer,
     {
-        let py_date: &Bound<'_, PyDate> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_date = self.obj.cast_exact::<PyDate>().map_err(pyerr2sererr)?;
         let date_pystr = py_date.str().map_err(pyerr2sererr)?;
         let date_str = date_pystr.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(date_str)
@@ -52,7 +52,7 @@ impl Serialize for SerializePyTime<'_, '_> {
     where
         S: Serializer,
     {
-        let py_time: &Bound<'_, PyTime> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_time = self.obj.cast_exact::<PyTime>().map_err(pyerr2sererr)?;
         let time_pystr = py_time.str().map_err(pyerr2sererr)?;
         let time_str = time_pystr.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(time_str)
@@ -80,7 +80,7 @@ impl Serialize for SerializePyDateTime<'_, '_> {
         S: Serializer,
     {
         use pyo3::types::PyTzInfoAccess;
-        let py_dt: &Bound<'_, PyDateTime> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_dt = self.obj.cast_exact::<PyDateTime>().map_err(pyerr2sererr)?;
         // has tz?
         // let has_tzinfo = dt.get_tzinfo().is_some();
         if let Some(_tzinfo) = py_dt.get_tzinfo() {
@@ -101,7 +101,7 @@ impl Serialize for SerializePyDateTime<'_, '_> {
     where
         S: Serializer,
     {
-        let py_dt: &Bound<'_, PyDateTime> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_dt = self.obj.cast_exact::<PyDateTime>().map_err(pyerr2sererr)?;
         let dt_pystr = py_dt.str().map_err(pyerr2sererr)?;
         let dt_str = dt_pystr.to_str().map_err(pyerr2sererr)?;
         // TODO: use jiff to do all the date-time formatting
@@ -131,8 +131,10 @@ impl Serialize for SerializePyTimeDelta<'_, '_> {
     where
         S: Serializer,
     {
-        let py_timedelta: &Bound<'_, pyo3::types::PyDelta> =
-            self.obj.cast().map_err(pyerr2sererr)?;
+        let py_timedelta = self
+            .obj
+            .cast_exact::<pyo3::types::PyDelta>()
+            .map_err(pyerr2sererr)?;
         let signed_duration: jiff::SignedDuration = py_timedelta.extract().map_err(pyerr2sererr)?;
         signed_duration.serialize(serializer)
     }

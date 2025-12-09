@@ -248,7 +248,7 @@ impl Serialize for SerializePyMapping<'_, '_> {
     where
         S: Serializer,
     {
-        let py_mapping: &Bound<'_, PyMapping> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_mapping = self.obj.cast_exact::<PyMapping>().map_err(pyerr2sererr)?;
         let len = py_mapping.len().ok();
         if let Some(len) = len
             && len == 0
