@@ -181,6 +181,8 @@ def test_properties_v6(
     assert not obj.is_unique_local
     assert not obj.is_unspecified
     assert obj.version == 6
+    assert not obj.is_ipv4
+    assert obj.is_ipv6
     assert obj.to_pyipaddress() == pyip.IPv6Address("::1")
 
     with pytest.raises(NotImplementedError):
