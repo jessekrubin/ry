@@ -8,6 +8,7 @@ use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
 use jiff::SignedDurationRound;
 use jiff::{SignedDuration, Span};
+use pyo3::BoundObject;
 use pyo3::prelude::*;
 
 use pyo3::IntoPyObjectExt;
@@ -650,27 +651,27 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(v) = value.cast_exact::<PyFloat>() {
             let f = v.extract::<f64>()?;
             if f.is_nan() || f.is_infinite() {
                 return py_value_err!("Cannot convert NaN or infinite float to SignedDuration");
             }
-            Self::py_try_from_secs_f64(f).and_then(|dt| dt.into_bound_py_any(py))
+            Self::py_try_from_secs_f64(f).and_then(|dt| dt.into_pyobject(py))
         } else if let Ok(v) = value.cast_exact::<PyInt>() {
             let i = v.extract::<i64>()?;
-            Self::from(SignedDuration::new(i, 0)).into_bound_py_any(py)
+            Self::from(SignedDuration::new(i, 0)).into_pyobject(py)
         } else if let Ok(d) = value.extract::<SignedDuration>() {
-            Self::from(d).into_bound_py_any(py)
+            Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("SignedDuration conversion error: {valtype}")
@@ -685,7 +686,7 @@ impl RySignedDuration {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

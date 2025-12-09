@@ -1,7 +1,7 @@
 // #![expect(clippy::trivially_copy_pass_by_ref)]
 use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
 use pyo3::types::PyTuple;
-use pyo3::{IntoPyObjectExt, prelude::*};
+use pyo3::{BoundObject, prelude::*};
 use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{Hash, Hasher};
@@ -118,6 +118,16 @@ impl PyIpv4Addr {
     // PROPERTIES
     // ========================================================================
     #[getter]
+    fn is_ipv4(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv4(self)
+    }
+
+    #[getter]
+    fn is_ipv6(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
+
+    #[getter]
     fn is_benchmarking(&self) -> bool {
         <Self as IpAddrProps>::is_benchmarking(self)
     }
@@ -197,13 +207,13 @@ impl PyIpv4Addr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr_v4(&self, port: u16) -> PySocketAddrV4 {
+    fn to_socketaddrv4(&self, port: u16) -> PySocketAddrV4 {
         PySocketAddrV4::from(SocketAddrV4::new(self.0, port))
     }
 
     #[pyo3(signature = (port, flowinfo = 0, scope_id = 0))]
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr_v6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
+    fn to_socketaddrv6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
         // IPv4 addresses can be converted to IPv6-mapped addresses
         let ipv6_mapped = self.0.to_ipv6_mapped();
         PySocketAddrV6::from(SocketAddrV6::new(ipv6_mapped, port, flowinfo, scope_id))
@@ -233,14 +243,14 @@ impl PyIpv4Addr {
     }
 
     #[staticmethod]
-    fn from_any<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
-        let py = ob.py();
-        if ob.is_exact_instance_of::<Self>() {
-            ob.into_bound_py_any(py)
-        } else if let Ok(ip) = extract_ipv4_from_single_ob(ob) {
-            PyIpAddr::from(IpAddr::V4(ip)).into_bound_py_any(py)
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(ip) = extract_ipv4_from_single_ob(value) {
+            Self::from(ip).into_pyobject(py)
         } else {
-            let valtype = any_repr!(ob);
+            let valtype = any_repr!(value);
             py_type_err!("Ipv4Addr conversion error: {valtype}")
         }
     }
@@ -253,7 +263,7 @@ impl PyIpv4Addr {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::map_py_value_err;
         Self::from_any(value).map_err(map_py_value_err)
     }
@@ -345,6 +355,17 @@ impl PyIpv6Addr {
     // ========================================================================
     // PROPERTIES
     // ========================================================================
+
+    #[getter]
+    fn is_ipv4(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv4(self)
+    }
+
+    #[getter]
+    fn is_ipv6(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
+
     #[getter]
     fn is_documentation(&self) -> bool {
         <Self as IpAddrProps>::is_documentation(self)
@@ -434,7 +455,7 @@ impl PyIpv6Addr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr_v4(&self, port: u16) -> PyResult<PySocketAddrV4> {
+    fn to_socketaddrv4(&self, port: u16) -> PyResult<PySocketAddrV4> {
         if let Some(addr) = self.0.to_ipv4() {
             Ok(PySocketAddrV4::from(SocketAddrV4::new(addr, port)))
         } else {
@@ -446,7 +467,7 @@ impl PyIpv6Addr {
 
     #[pyo3(signature = (port, flowinfo = 0, scope_id = 0))]
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr_v6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
+    fn to_socketaddrv6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
         PySocketAddrV6::from(SocketAddrV6::new(self.0, port, flowinfo, scope_id))
     }
 
@@ -469,15 +490,15 @@ impl PyIpv6Addr {
     }
 
     #[staticmethod]
-    fn from_any<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
-        let py = ob.py();
-        if ob.is_exact_instance_of::<Self>() {
-            ob.into_bound_py_any(py)
-        } else if let Ok(ip) = extract_ipv6_from_single_ob(ob) {
-            PyIpAddr::from(IpAddr::V6(ip)).into_bound_py_any(py)
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(ip) = extract_ipv6_from_single_ob(value) {
+            Self::from(ip).into_pyobject(py)
         } else {
-            let valtype = any_repr!(ob);
-            py_type_err!("IpAddr conversion error: {valtype}",)
+            let valtype = any_repr!(value);
+            py_type_err!("Ipv4Addr conversion error: {valtype}")
         }
     }
 
@@ -489,7 +510,7 @@ impl PyIpv6Addr {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::map_py_value_err;
         Self::from_any(value).map_err(map_py_value_err)
     }
@@ -763,17 +784,17 @@ impl PyIpAddr {
     }
 
     #[staticmethod]
-    fn from_any<'py>(ob: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
-        let py = ob.py();
-        if ob.is_exact_instance_of::<Self>() {
-            ob.into_bound_py_any(py)
-        } else if let Ok(ip) = extract_ipv4_from_single_ob(ob) {
-            Self::from(IpAddr::V4(ip)).into_bound_py_any(py)
-        } else if let Ok(ip) = extract_ipv6_from_single_ob(ob) {
-            Self::from(IpAddr::V6(ip)).into_bound_py_any(py)
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(ip) = extract_ipv4_from_single_ob(value) {
+            Self::from(IpAddr::V4(ip)).into_pyobject(py)
+        } else if let Ok(ip) = extract_ipv6_from_single_ob(value) {
+            Self::from(IpAddr::V6(ip)).into_pyobject(py)
         } else {
-            let valtype = any_repr!(ob);
-            py_type_err!("IpAddr conversion error: {valtype}",)
+            let valtype = any_repr!(value);
+            py_type_err!("Ipv4Addr conversion error: {valtype}")
         }
     }
 
@@ -786,7 +807,7 @@ impl PyIpAddr {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::map_py_value_err;
         Self::from_any(value).map_err(map_py_value_err)
     }

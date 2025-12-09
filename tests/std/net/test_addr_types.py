@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress as pyip
 from typing import TypeAlias
 
 import pytest
@@ -45,6 +46,8 @@ _IPV4_PROPERTIES = [
     "is_broadcast",
     "is_documentation",
     "is_global",
+    "is_ipv4",
+    "is_ipv6",
     "is_link_local",
     "is_loopback",
     "is_multicast",
@@ -58,7 +61,9 @@ _IPV6_PROPERTIES = [
     "is_benchmarking",
     "is_documentation",
     "is_global",
+    "is_ipv4",
     "is_ipv4_mapped",
+    "is_ipv6",
     "is_loopback",
     "is_multicast",
     "is_reserved",
@@ -72,8 +77,6 @@ _IPV6_PROPERTIES = [
 _IPADDR_PROPERTIES = sorted({
     *_IPV4_PROPERTIES,
     *_IPV6_PROPERTIES,
-    "is_ipv4",
-    "is_ipv6",
     "version",
 })
 
@@ -118,29 +121,72 @@ def test_string_and_parse(obj: _StdNetAddrLike) -> None:
     assert isinstance(parsed, type(obj))
 
 
-def test_properties_v4() -> None:
-    ip = ry.Ipv4Addr(192, 168, 0, 1)
-    socket_addr = ry.SocketAddrV4(ip, 8080)
-    assert ip.is_broadcast == socket_addr.is_broadcast
-    assert ip.is_link_local == socket_addr.is_link_local
-    assert ip.is_loopback == socket_addr.is_loopback
-    assert ip.is_multicast == socket_addr.is_multicast
-    assert ip.is_private == socket_addr.is_private
-    assert ip.is_unspecified == socket_addr.is_unspecified
-    assert ip.to_pyipaddress() == socket_addr.to_pyipaddress()
+@pytest.mark.parametrize(
+    "obj",
+    [
+        ry.Ipv4Addr(192, 168, 0, 1),  # ry.Ipv4Addr
+        ry.Ipv4Addr(192, 168, 0, 1).to_ipaddr(),  # ry.IpAddr
+        ry.SocketAddrV4(ry.Ipv4Addr(192, 168, 0, 1), 8080),  # ry.SocketAddrV4
+        ry.SocketAddrV4(
+            ry.Ipv4Addr(192, 168, 0, 1), 8080
+        ).to_socketaddr(),  # ry.SocketAddr
+    ],
+)
+def test_properties_v4_testv2(
+    obj: ry.Ipv4Addr | ry.IpAddr | ry.SocketAddrV4 | ry.SocketAddr,
+) -> None:
+
+    assert not obj.is_benchmarking
+    assert not obj.is_broadcast
+    assert not obj.is_documentation
+    assert not obj.is_link_local
+    assert not obj.is_loopback
+    assert not obj.is_multicast
+    assert obj.is_private
+    assert not obj.is_reserved
+    assert not obj.is_shared
+    assert not obj.is_unspecified
+    assert obj.is_unicast
+    assert obj.version == 4
+    assert obj.is_ipv4
+    assert not obj.is_ipv6
+    assert obj.to_pyipaddress() == pyip.IPv4Address("192.168.0.1")
+    with pytest.raises(NotImplementedError):
+        _r = obj.is_global  # type: ignore[var-annotated]
 
 
-def test_properties_v6() -> None:
-    ip = ry.Ipv6Addr("::1")
-    socket_addr = ry.SocketAddrV6(ip, 8080)
-    assert ip.is_loopback == socket_addr.is_loopback
-    assert ip.is_multicast == socket_addr.is_multicast
-    assert ip.is_unicast_link_local == socket_addr.is_unicast_link_local
-    assert ip.is_unique_local == socket_addr.is_unique_local
-    assert ip.is_unspecified == socket_addr.is_unspecified
-    assert not socket_addr.is_ipv4_mapped
-    assert not ip.is_ipv4_mapped
-    assert ip.to_pyipaddress() == socket_addr.to_pyipaddress()
+@pytest.mark.parametrize(
+    "obj",
+    [
+        ry.Ipv6Addr("::1"),  # ry.Ipv6Addr
+        ry.Ipv6Addr("::1").to_ipaddr(),  # ry.IpAddr
+        ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080),  # ry.SocketAddrV6
+        ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080).to_socketaddr(),  # ry.SocketAddr
+    ],
+)
+def test_properties_v6(
+    obj: ry.Ipv6Addr | ry.IpAddr | ry.SocketAddrV6 | ry.SocketAddr,
+) -> None:
+
+    assert not obj.is_benchmarking
+    assert not obj.is_documentation
+    assert not obj.is_ipv4_mapped
+    assert obj.is_loopback
+    assert not obj.is_multicast
+    assert not obj.is_reserved
+    assert not obj.is_shared
+    assert obj.is_unicast
+    assert not obj.is_unicast_link_local
+    assert not obj.is_unicast_global
+    assert not obj.is_unique_local
+    assert not obj.is_unspecified
+    assert obj.version == 6
+    assert not obj.is_ipv4
+    assert obj.is_ipv6
+    assert obj.to_pyipaddress() == pyip.IPv6Address("::1")
+
+    with pytest.raises(NotImplementedError):
+        _r = obj.is_global
 
 
 class TestSocketAddrV4:
@@ -161,13 +207,13 @@ def test_ip2socket_v4() -> None:
     """
     ip_v4 = ry.Ipv4Addr(192, 168, 0, 1)
 
-    sock_v4 = ip_v4.to_socketaddr_v4(8080)
+    sock_v4 = ip_v4.to_socketaddrv4(8080)
     assert isinstance(sock_v4, ry.SocketAddrV4)
 
 
 def test_ip2socket_v6() -> None:
     ip_v6 = ry.Ipv6Addr("::1")
-    sock_v6 = ip_v6.to_socketaddr_v6(8080)
+    sock_v6 = ip_v6.to_socketaddrv6(8080)
     assert isinstance(sock_v6, ry.SocketAddrV6)
     assert sock_v6.ip == ip_v6
 

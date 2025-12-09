@@ -5,6 +5,8 @@ pub use socketaddr::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};
 mod from;
 mod ipaddr;
 mod ipaddr_props;
+#[cfg(feature = "pydantic")]
+mod pydantic;
 mod socketaddr;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

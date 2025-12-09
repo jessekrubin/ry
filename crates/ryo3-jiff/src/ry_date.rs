@@ -12,9 +12,9 @@ use crate::spanish::Spanish;
 use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use jiff::Zoned;
 use jiff::civil::{Date, Weekday};
-use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
+use pyo3::{BoundObject, prelude::*};
 use pyo3::{IntoPyObject, IntoPyObjectExt};
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 use std::fmt::Display;
@@ -455,40 +455,27 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
-    fn iso_week_date(&self) -> RyISOWeekDate {
+    pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {
         self.0.iso_week_date().into()
     }
 
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
-        // } else if let Ok(v) = value.cast::<PyInt>() {
-        //     let i = v.extract::<i64>()?;
-        //     let ts = if (-20_000_000_000..=20_000_000_000).contains(&i) {
-        //         jiff::Timestamp::from_second(i)
-        //     } else {
-        //         jiff::Timestamp::from_millisecond(i)
-        //     }
-        //     .map_err(map_py_value_err)?;
-        //     let zdt = ts.to_zoned(TimeZone::UTC);
-        //     let date = zdt.date();
-        //     Self::from(date).into_bound_py_any(py)
-        } else if let Ok(d) = value.extract::<RyDateTime>() {
-            let dt = d.date();
-            dt.into_bound_py_any(py)
-        } else if let Ok(d) = value.extract::<RyZoned>() {
-            let dt = d.date();
-            dt.into_bound_py_any(py)
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
+            d.get().date().into_pyobject(py)
+        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+            d.get().date().into_pyobject(py)
         } else if let Ok(d) = value.extract::<Date>() {
-            Self::from_pydate(d).into_bound_py_any(py)
+            Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("Date conversion error: {valtype}",)
@@ -501,7 +488,7 @@ impl RyDate {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

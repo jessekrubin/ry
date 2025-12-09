@@ -5,9 +5,9 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
 use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
 use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound, Unit};
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
+use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -680,30 +680,30 @@ impl RySpan {
     }
 
     #[staticmethod]
-    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
-            Self::from_str(&s).map(|dt| dt.into_bound_py_any(py).map(Bound::into_any))?
-        } else if value.is_exact_instance_of::<Self>() {
-            value.into_bound_py_any(py)
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(v) = value.cast_exact::<PyFloat>() {
             let f = v.extract::<f64>()?;
             let sd = RySignedDuration::py_try_from_secs_f64(f)?;
             let span = jiff::Span::try_from(sd.0).map_err(map_py_overflow_err)?;
-            Self::from(span).into_bound_py_any(py)
+            Self::from(span).into_pyobject(py)
         } else if let Ok(v) = value.cast_exact::<PyInt>() {
             let i = v.extract::<i64>()?;
             let sd = SignedDuration::from_secs(i);
             Span::try_from(sd)
                 .map(Self::from)
                 .map_err(map_py_overflow_err)
-                .and_then(|dt| dt.into_bound_py_any(py))
+                .and_then(|dt| dt.into_pyobject(py))
         } else if let Ok(d) = value.extract::<Span>() {
-            Self::from(d).into_bound_py_any(py)
+            Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("TimeSpan conversion error: {valtype}")
@@ -718,7 +718,7 @@ impl RySpan {
     fn _pydantic_validate<'py>(
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

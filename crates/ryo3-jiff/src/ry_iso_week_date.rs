@@ -1,11 +1,12 @@
 use crate::errors::map_py_value_err;
 use crate::isoformat::iso_weekdate_to_string;
-use crate::{JiffWeekday, RyDate};
+use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
 use jiff::Zoned;
 use jiff::civil::ISOWeekDate;
 use pyo3::basic::CompareOp;
-use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
+use pyo3::{BoundObject, prelude::*};
+use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone, Copy)]
@@ -180,6 +181,58 @@ impl RyISOWeekDate {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(d) = value.cast_exact::<RyDate>() {
+            d.get().iso_week_date().into_pyobject(py)
+        } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
+            d.get().iso_week_date().into_pyobject(py)
+        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+            d.get().iso_week_date().into_pyobject(py)
+        } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
+            d.get().iso_week_date().into_pyobject(py)
+        } else if let Ok(d) = value.extract::<jiff::civil::Date>() {
+            Self::from(d).into_pyobject(py)
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("Date conversion error: {valtype}",)
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    /// Try to create a Date from a variety of python objects
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 
