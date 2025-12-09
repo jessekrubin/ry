@@ -46,6 +46,8 @@ _IPV4_PROPERTIES = [
     "is_broadcast",
     "is_documentation",
     "is_global",
+    "is_ipv4",
+    "is_ipv6",
     "is_link_local",
     "is_loopback",
     "is_multicast",
@@ -59,7 +61,9 @@ _IPV6_PROPERTIES = [
     "is_benchmarking",
     "is_documentation",
     "is_global",
+    "is_ipv4",
     "is_ipv4_mapped",
+    "is_ipv6",
     "is_loopback",
     "is_multicast",
     "is_reserved",
@@ -73,8 +77,6 @@ _IPV6_PROPERTIES = [
 _IPADDR_PROPERTIES = sorted({
     *_IPV4_PROPERTIES,
     *_IPV6_PROPERTIES,
-    "is_ipv4",
-    "is_ipv6",
     "version",
 })
 
@@ -146,9 +148,11 @@ def test_properties_v4_testv2(
     assert not obj.is_unspecified
     assert obj.is_unicast
     assert obj.version == 4
+    assert obj.is_ipv4
+    assert not obj.is_ipv6
     assert obj.to_pyipaddress() == pyip.IPv4Address("192.168.0.1")
     with pytest.raises(NotImplementedError):
-        _r = obj.is_global
+        _r = obj.is_global  # type: ignore[var-annotated]
 
 
 @pytest.mark.parametrize(

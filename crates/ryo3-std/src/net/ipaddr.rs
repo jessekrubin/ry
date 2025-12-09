@@ -118,6 +118,16 @@ impl PyIpv4Addr {
     // PROPERTIES
     // ========================================================================
     #[getter]
+    fn is_ipv4(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv4(self)
+    }
+
+    #[getter]
+    fn is_ipv6(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
+
+    #[getter]
     fn is_benchmarking(&self) -> bool {
         <Self as IpAddrProps>::is_benchmarking(self)
     }
@@ -345,6 +355,17 @@ impl PyIpv6Addr {
     // ========================================================================
     // PROPERTIES
     // ========================================================================
+
+    #[getter]
+    fn is_ipv4(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv4(self)
+    }
+
+    #[getter]
+    fn is_ipv6(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
+
     #[getter]
     fn is_documentation(&self) -> bool {
         <Self as IpAddrProps>::is_documentation(self)

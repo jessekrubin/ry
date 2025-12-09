@@ -110,6 +110,16 @@ impl PySocketAddrV4 {
     // Ipv4 forwarded
     // ========================================================================
     #[getter]
+    fn is_ipv4(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv4(self)
+    }
+
+    #[getter]
+    fn is_ipv6(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
+
+    #[getter]
     fn is_benchmarking(&self) -> bool {
         <Self as IpAddrProps>::is_benchmarking(self)
     }
@@ -306,6 +316,15 @@ impl PySocketAddrV6 {
     // ========================================================================
     // IpAddr forwarded
     // ========================================================================
+    #[getter]
+    fn is_ipv4(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv4(self)
+    }
+
+    #[getter]
+    fn is_ipv6(&self) -> bool {
+        <Self as IpAddrProps>::is_ipv6(self)
+    }
 
     #[getter]
     fn is_documentation(&self) -> bool {
@@ -532,7 +551,6 @@ impl PySocketAddr {
     // ========================================================================
     // IpAddr forwarded
     // ========================================================================
-
     #[getter]
     fn is_ipv4(&self) -> bool {
         <Self as IpAddrProps>::is_ipv4(self)
