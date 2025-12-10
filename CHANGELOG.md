@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## v0.0.72 [unreleased]
+## v0.0.73 [unreleased]
+
+---
+
+## v0.0.72 [2025-12-10]
 
 - RENAMES:
   - `ry.URL.replace_*` -> `ry.URL.with_*`: the `replace_*` methods are
