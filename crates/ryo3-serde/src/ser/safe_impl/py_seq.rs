@@ -225,7 +225,7 @@ impl Serialize for SerializePyList<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_list: &Bound<'_, PyList> = self.obj.cast_exact().map_err(pyerr2sererr)?;
+        let py_list = self.obj.cast_exact::<PyList>().map_err(pyerr2sererr)?;
         let len = py_list.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
@@ -267,7 +267,7 @@ impl Serialize for SerializePyTuple<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_tuple: &Bound<'_, PyTuple> = self.obj.cast().map_err(pyerr2sererr)?;
+        let py_tuple = self.obj.cast_exact::<PyTuple>().map_err(pyerr2sererr)?;
         let len = py_tuple.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
@@ -316,8 +316,8 @@ impl Serialize for SerializePySet<'_, '_> {
     where
         S: Serializer,
     {
-        let py_set: &Bound<'_, PyAny> = self.obj.cast::<PySet>().map_err(pyerr2sererr)?;
-        let len = py_set.len().map_err(pyerr2sererr)?;
+        let py_set = self.obj.cast_exact::<PySet>().map_err(pyerr2sererr)?;
+        let len = py_set.len();
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
@@ -356,9 +356,8 @@ impl Serialize for SerializePyFrozenSet<'_, '_> {
     where
         S: Serializer,
     {
-        let py_frozenset: &Bound<'_, PyAny> =
-            self.obj.cast::<PyFrozenSet>().map_err(pyerr2sererr)?;
-        let len = py_frozenset.len().map_err(pyerr2sererr)?;
+        let py_frozenset = self.obj.cast_exact::<PyFrozenSet>().map_err(pyerr2sererr)?;
+        let len = py_frozenset.len();
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
