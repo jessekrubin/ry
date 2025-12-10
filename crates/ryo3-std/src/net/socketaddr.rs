@@ -645,7 +645,7 @@ impl PySocketAddr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr_v4(&self) -> PyResult<PySocketAddrV4> {
+    fn to_socketaddrv4(&self) -> PyResult<PySocketAddrV4> {
         match self.0 {
             SocketAddr::V4(sa4) => Ok(PySocketAddrV4(sa4)),
             SocketAddr::V6(_) => py_value_err!("Cannot convert SocketAddr (v6) to SocketAddrV4"),
@@ -653,7 +653,7 @@ impl PySocketAddr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr_v6(&self) -> PyResult<PySocketAddrV6> {
+    fn to_socketaddrv6(&self) -> PyResult<PySocketAddrV6> {
         match self.0 {
             SocketAddr::V6(sa6) => Ok(PySocketAddrV6(sa6)),
             SocketAddr::V4(_) => py_value_err!("Cannot convert SocketAddr (v4) to SocketAddrV6"),
