@@ -10,6 +10,7 @@ REF(s):
 
 import datetime as pydt
 import typing as t
+import zoneinfo
 from ipaddress import IPv4Address, IPv6Address
 
 import pydantic
@@ -57,6 +58,11 @@ class RyZonedDatetimeModel(pydantic.BaseModel):
 # TIMESTAMP MODELS
 class RyTimestampModel(pydantic.BaseModel):
     ts: ry.Timestamp
+
+
+# TIMESTAMP MODELS
+class RyOffsetModel(pydantic.BaseModel):
+    off: ry.Offset
 
 
 # DURATION MODELS
@@ -1383,3 +1389,50 @@ class TestSocketAddrV6:
     def test_socketaddrv6_parsing_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
             _d = RySocketAddrV6(sock=value)  # type: ignore[arg-type]
+
+
+class TestOffset:
+    @pytest.mark.parametrize(
+        "value,result",
+        [
+            # self
+            (ry.Offset.UTC, pydt.timedelta(0)),
+            (ry.Offset.MIN, pydt.timedelta(days=-2, seconds=79201)),
+            (ry.Offset.MAX, pydt.timedelta(days=1, seconds=7199)),
+            # strings/bytes
+            ("+02:30", pydt.timedelta(hours=2, minutes=30)),
+            ("-05:00", pydt.timedelta(hours=-5)),
+            (b"+02:30", pydt.timedelta(hours=2, minutes=30)),
+            (b"-05:00", pydt.timedelta(hours=-5)),
+            # seconds
+            (pydt.timedelta(seconds=30), pydt.timedelta(seconds=30)),
+            (ry.SignedDuration(secs=30), pydt.timedelta(seconds=30)),
+            (-pydt.timedelta(seconds=30), pydt.timedelta(seconds=-30)),
+            (-ry.SignedDuration(secs=30), pydt.timedelta(seconds=-30)),
+            # tzinfo
+            (zoneinfo.ZoneInfo("UTC"), pydt.timedelta(0)),
+        ],
+    )
+    def test_offset_parsing_ok(self, value: t.Any, result: pydt.timedelta) -> None:
+        m = RyOffsetModel(off=value)  # type: ignore[arg-type]
+        assert m.off.to_pytimedelta() == result
+
+        as_json = m.model_dump_json()
+        from_json = RyOffsetModel.model_validate_json(as_json)
+        assert from_json.off.to_pytimedelta() == result
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            # bad type
+            complex(1, 2),
+            # too big
+            pydt.timedelta(seconds=93599 + 1),
+            ry.SignedDuration(secs=93599 + 1),
+            pydt.timedelta(seconds=-93599 - 1),
+            ry.SignedDuration(secs=-93599 - 1),
+        ],
+    )
+    def test_offset_parsing_err(self, value: t.Any) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _m = RyOffsetModel(off=value)  # type: ignore[arg-type]

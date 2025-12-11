@@ -342,7 +342,7 @@ impl RyZoned {
 
     #[pyo3(
         signature = (
-            smallest=JiffUnit(jiff::Unit::Nanosecond),
+            smallest=JiffUnit::NANOSECOND,
             *,
             mode=JiffRoundMode(jiff::RoundMode::HalfExpand),
             increment=1

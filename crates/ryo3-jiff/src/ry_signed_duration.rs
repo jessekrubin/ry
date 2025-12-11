@@ -625,10 +625,10 @@ impl RySignedDuration {
     // ========================================================================
     #[pyo3(
         signature = (
-            smallest=JiffUnit(jiff::Unit::Nanosecond),
+            smallest=JiffUnit::NANOSECOND,
             *,
-            mode = JiffRoundMode( jiff::RoundMode::HalfExpand),
-            increment = 1,
+            mode=JiffRoundMode::HALF_EXPAND,
+            increment=1,
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)",
     )]

@@ -140,7 +140,7 @@ impl RyDateTimeRound {
         _check: bool,
     ) -> Self {
         let opts = RoundOptions::new(
-            smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond)),
+            smallest.unwrap_or(JiffUnit::NANOSECOND),
             mode.unwrap_or(JiffRoundMode(jiff::RoundMode::HalfExpand)),
             increment,
         );
@@ -810,7 +810,7 @@ impl_from_round_options_for!(ZonedRound);
 //             pub fn new() -> Self {
 //                 Self {
 //                     options: RoundOptions::new(
-//                         JiffUnit(jiff::Unit::Nanosecond),
+//                         JiffUnit::NANOSECOND,
 //                         JiffRoundMode(jiff::RoundMode::HalfExpand),
 //                         1,
 //                     ),

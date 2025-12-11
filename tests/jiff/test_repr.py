@@ -26,7 +26,8 @@ _JIFF_OBJECTS = [
     # signed-duration
     ry.SignedDuration(1, 1),
     # offset
-    ry.Offset(1),
+    ry.Offset(hours=1),
+    ry.Offset(seconds=90),
     # iso-week-date
     ry.date(2020, 8, 26).iso_week_date(),
 ]
@@ -65,6 +66,7 @@ def test_repr_span() -> None:
         ry.ZonedDateTimeRound,
         ry.TimeRound,
         ry.SignedDurationRound,
+        ry.OffsetRound,
     ],
 )
 def test_round_reprs(
@@ -74,6 +76,7 @@ def test_round_reprs(
         | ry.ZonedDateTimeRound
         | ry.TimeRound
         | ry.SignedDurationRound
+        | ry.OffsetRound
     ],
     jiff_unit: JiffUnit,
     jiff_round_mode: JiffRoundMode,

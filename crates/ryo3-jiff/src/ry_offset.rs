@@ -6,13 +6,14 @@ use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
-use crate::{JiffOffset, JiffRoundMode, JiffUnit};
+use crate::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
+use jiff::SignedDuration;
 use jiff::tz::{Offset, OffsetRound};
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_macro_rules::py_type_error;
+use pyo3::{BoundObject, IntoPyObjectExt};
+use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[pyclass(name = "Offset", frozen, immutable_type)]
@@ -102,12 +103,16 @@ impl RyOffset {
             .map_err(map_py_value_err)
     }
 
-    fn to_py(&self) -> &Offset {
-        self.to_pytzinfo()
+    fn to_py(&self) -> JiffSignedDuration {
+        self.to_pytimedelta()
     }
 
     fn to_pytzinfo(&self) -> &Offset {
         &self.0
+    }
+
+    fn to_pytimedelta(&self) -> JiffSignedDuration {
+        SignedDuration::from_secs(self.0.seconds().into()).into()
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -116,6 +121,13 @@ impl RyOffset {
         dict.set_item(crate::interns::seconds(py), self.seconds())?;
         dict.set_item(crate::interns::fmt(py), self.py_to_string())?;
         Ok(dict)
+    }
+
+    #[staticmethod]
+    fn from_pytimedelta(delta: JiffSignedDuration) -> PyResult<Self> {
+        Offset::try_from(delta.0)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]
@@ -203,25 +215,19 @@ impl RyOffset {
     }
 
     #[pyo3(
-        signature = (smallest = None, *, mode = None, increment = None),
+        signature=(
+            smallest=JiffUnit::SECOND,
+            *,
+            mode=JiffRoundMode::HALF_EXPAND,
+            increment=1
+        ),
         text_signature = "($self, smallest=\"second\", *, mode=\"half-expand\", increment=1)"
     )]
-    fn round(
-        &self,
-        smallest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
-    ) -> PyResult<Self> {
-        let mut round_ob = OffsetRound::new();
-        if let Some(smallest) = smallest {
-            round_ob = round_ob.smallest(smallest.0);
-        }
-        if let Some(mode) = mode {
-            round_ob = round_ob.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            round_ob = round_ob.increment(increment);
-        }
+    fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
+        let mut round_ob = OffsetRound::new()
+            .increment(increment)
+            .mode(mode.into())
+            .smallest(smallest.into());
         self.0
             .round(round_ob)
             .map(Self::from)
@@ -285,6 +291,58 @@ impl RyOffset {
     fn saturating_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
         let spanish = Spanish::try_from(other)?;
         Ok(self.0.saturating_sub(spanish).into())
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(val) = value.cast_exact::<RySignedDuration>() {
+            // let sd = val.get().0;
+            Offset::try_from(val.get().0)
+                .map(Self::from)
+                .map_err(map_py_value_err)
+                .map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(d) = value.cast_exact::<pyo3::types::PyDelta>() {
+            let signed_dur = d.extract::<JiffSignedDuration>()?;
+            Self::from_pytimedelta(signed_dur).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(d) = value.cast::<pyo3::types::PyTzInfo>() {
+            let wrapped_offset = d.extract::<JiffOffset>()?;
+            Self::from(wrapped_offset.0).into_pyobject(py)
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("Offset conversion error: {valtype}")
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
     }
 }
 
