@@ -2,6 +2,9 @@
 
 ## v0.0.73 [unreleased]
 
+- `ryo3-jiff`
+  - offset pydantic integration
+
 ---
 
 ## v0.0.72 [2025-12-10]
