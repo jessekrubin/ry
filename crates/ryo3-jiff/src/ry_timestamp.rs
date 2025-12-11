@@ -318,16 +318,16 @@ impl RyTimestamp {
     }
 
     #[pyo3(
-        signature = (ts, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (ts, *, smallest=JiffUnit::NANOSECOND, largest=None, mode=JiffRoundMode::TRUNC, increment=1),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
         ts: TimestampDifferenceArg,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> PyResult<RySpan> {
         let dt_diff = ts.build(smallest, largest, mode, increment);
         self.0
@@ -337,16 +337,16 @@ impl RyTimestamp {
     }
 
     #[pyo3(
-       signature = (ts, *, smallest=None, largest = None, mode = None, increment = None),
+        signature = (ts, *, smallest=JiffUnit::NANOSECOND, largest=None, mode=JiffRoundMode::TRUNC, increment=1),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
         ts: TimestampDifferenceArg,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> PyResult<RySpan> {
         let dt_diff = ts.build(smallest, largest, mode, increment);
         self.0
@@ -386,7 +386,7 @@ impl RyTimestamp {
         signature = (
             smallest=JiffUnit::NANOSECOND,
             *,
-            mode=JiffRoundMode(jiff::RoundMode::HalfExpand),
+            mode=JiffRoundMode::HALF_EXPAND,
             increment=1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"

@@ -467,26 +467,27 @@ impl RyZoned {
     }
 
     #[pyo3(
-        signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
+        signature=(
+            other,
+            *,
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
+        ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
         other: &Self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment);
-        if let Some(smallest) = smallest {
-            zdt_diff = zdt_diff.smallest(smallest.0);
-        }
+        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment).mode(mode.0).smallest(smallest.0);
         if let Some(largest) = largest {
             zdt_diff = zdt_diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            zdt_diff = zdt_diff.mode(mode.0);
         }
         self.0
             .since(zdt_diff)
@@ -495,26 +496,27 @@ impl RyZoned {
     }
 
     #[pyo3(
-        signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
+        signature=(
+            other,
+            *,
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
+        ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
         other: &Self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment);
-        if let Some(smallest) = smallest {
-            zdt_diff = zdt_diff.smallest(smallest.0);
-        }
+        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment).mode(mode.0).smallest(smallest.0);
         if let Some(largest) = largest {
             zdt_diff = zdt_diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            zdt_diff = zdt_diff.mode(mode.0);
         }
         self.0
             .until(zdt_diff)

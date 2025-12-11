@@ -578,12 +578,12 @@ impl RySpan {
     // ========================================================================
     #[pyo3(
         signature = (
-            smallest=JiffUnit(Unit::Nanosecond),
+            smallest=JiffUnit::NANOSECOND,
             increment=1,
             *,
             relative=None,
             largest=None,
-            mode=JiffRoundMode(jiff::RoundMode::HalfExpand)
+            mode=JiffRoundMode::HALF_EXPAND,
         ),
         text_signature = "(self, smallest=\"nanosecond\", increment=1, *, relative=None, largest=None, mode=\"half-expand\")"
     )]

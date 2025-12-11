@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import pickle
-from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
+import typing as t
 
 import pytest
 
 import ry
 from ry import Date, DateTime, Time, Timestamp, ZonedDateTime
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from ry.ryo3 import JiffRoundMode, JiffUnit
 
-DiffType: TypeAlias = (
+DiffType: t.TypeAlias = (
     ry.TimeDifference
     | ry.TimestampDifference
     | ry.DateDifference
@@ -32,11 +32,12 @@ _JIFF_UNITS: tuple[JiffUnit, ...] = (
 )
 
 
-class _DifferenceClasses(TypedDict):
+class _DifferenceClasses(t.TypedDict):
     diff_type: type[DiffType]
     obj: Date | DateTime | Time | Timestamp | ZonedDateTime
     cls_name: str
     dict_key: str
+    smallest_default: JiffUnit
 
 
 _DIFFERENCE_CLASSES: list[_DifferenceClasses] = [
@@ -45,35 +46,40 @@ _DIFFERENCE_CLASSES: list[_DifferenceClasses] = [
         "obj": Date.today(),
         "cls_name": "DateDifference",
         "dict_key": "date",
+        "smallest_default": "day",
     },
     {
         "diff_type": ry.DateTimeDifference,
         "obj": DateTime.now(),
         "cls_name": "DateTimeDifference",
         "dict_key": "datetime",
+        "smallest_default": "nanosecond",
     },
     {
         "diff_type": ry.TimeDifference,
         "obj": Time(hour=1, minute=30, second=15),
         "cls_name": "TimeDifference",
         "dict_key": "time",
+        "smallest_default": "nanosecond",
     },
     {
         "diff_type": ry.TimestampDifference,
         "obj": Timestamp.now(),
         "cls_name": "TimestampDifference",
         "dict_key": "timestamp",
+        "smallest_default": "nanosecond",
     },
     {
         "diff_type": ry.ZonedDateTimeDifference,
         "obj": ZonedDateTime.now(),
         "cls_name": "ZonedDateTimeDifference",
         "dict_key": "zoned",
+        "smallest_default": "nanosecond",
     },
 ]
 
 
-class _DifferenceOptions(TypedDict):
+class _DifferenceOptions(t.TypedDict):
     largest: JiffUnit | None
     smallest: JiffUnit | None
     mode: JiffRoundMode
@@ -81,12 +87,12 @@ class _DifferenceOptions(TypedDict):
 
 @pytest.fixture(params=[None, *_JIFF_UNITS])
 def jiff_unit_smallest(request: pytest.FixtureRequest) -> JiffUnit | None:
-    return cast("JiffUnit | None", request.param)
+    return t.cast("JiffUnit | None", request.param)
 
 
 @pytest.fixture(params=[None, *_JIFF_UNITS])
 def jiff_unit_largest(request: pytest.FixtureRequest) -> JiffUnit | None:
-    return cast("JiffUnit | None", request.param)
+    return t.cast("JiffUnit | None", request.param)
 
 
 @pytest.fixture()
@@ -111,9 +117,10 @@ def test_difference_obj(
     diff_opts: _DifferenceOptions,
 ) -> None:
     obj = diff_cls["obj"]
-    diff_ob = diff_cls["diff_type"](obj, increment=2, **diff_opts)  # type: ignore[arg-type]
+    _kwargs_no_none = {k: v for k, v in diff_opts.items() if v is not None}
+    diff_ob = diff_cls["diff_type"](obj, increment=2, **_kwargs_no_none)  # type: ignore[arg-type]
     if diff_opts["smallest"] is None:
-        assert diff_ob.smallest == "nanosecond"
+        assert diff_ob.smallest == diff_cls["smallest_default"]
     else:
         assert diff_ob.smallest == diff_opts["smallest"]
 
@@ -129,7 +136,7 @@ def test_difference_obj(
         diff_cls["dict_key"]: obj,
         "smallest": diff_opts["smallest"]
         if diff_opts["smallest"] is not None
-        else "nanosecond",
+        else diff_cls["smallest_default"],
         "largest": diff_opts["largest"] if diff_opts["largest"] is not None else None,
         "mode": diff_opts["mode"],
         "increment": 2,

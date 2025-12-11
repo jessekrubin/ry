@@ -1312,7 +1312,7 @@ class TestSocketAddr:
     )
     def test_socketaddrv4_parsing_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RySocketAddr(sock=value)  # type: ignore[arg-type]
+            _d = RySocketAddr(sock=value)
 
 
 class TestSocketAddrV4:
