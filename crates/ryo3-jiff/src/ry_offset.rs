@@ -224,7 +224,7 @@ impl RyOffset {
         text_signature = "($self, smallest=\"second\", *, mode=\"half-expand\", increment=1)"
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
-        let mut round_ob = OffsetRound::new()
+        let round_ob = OffsetRound::new()
             .increment(increment)
             .mode(mode.into())
             .smallest(smallest.into());

@@ -33,31 +33,31 @@ pub struct JiffSignedDuration(pub jiff::SignedDuration);
 pub struct JiffUnit(pub(crate) jiff::Unit);
 
 impl JiffUnit {
-    pub(crate) const YEAR: Self = Self(jiff::Unit::Year);
-    pub(crate) const MONTH: Self = Self(jiff::Unit::Month);
-    pub(crate) const WEEK: Self = Self(jiff::Unit::Week);
-    pub(crate) const DAY: Self = Self(jiff::Unit::Day);
-    pub(crate) const HOUR: Self = Self(jiff::Unit::Hour);
-    pub(crate) const MINUTE: Self = Self(jiff::Unit::Minute);
-    pub(crate) const SECOND: Self = Self(jiff::Unit::Second);
-    pub(crate) const MILLISECOND: Self = Self(jiff::Unit::Millisecond);
-    pub(crate) const MICROSECOND: Self = Self(jiff::Unit::Microsecond);
-    pub(crate) const NANOSECOND: Self = Self(jiff::Unit::Nanosecond);
+    // pub(crate) const YEAR: Self = Self(jiff::Unit::Year);
+    pub const MONTH: Self = Self(jiff::Unit::Month);
+    pub const WEEK: Self = Self(jiff::Unit::Week);
+    pub const DAY: Self = Self(jiff::Unit::Day);
+    pub const HOUR: Self = Self(jiff::Unit::Hour);
+    pub const MINUTE: Self = Self(jiff::Unit::Minute);
+    pub const SECOND: Self = Self(jiff::Unit::Second);
+    pub const MILLISECOND: Self = Self(jiff::Unit::Millisecond);
+    pub const MICROSECOND: Self = Self(jiff::Unit::Microsecond);
+    pub const NANOSECOND: Self = Self(jiff::Unit::Nanosecond);
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
 
 impl JiffRoundMode {
-    pub(crate) const CEIL: Self = Self(jiff::RoundMode::Ceil);
-    pub(crate) const FLOOR: Self = Self(jiff::RoundMode::Floor);
-    pub(crate) const EXPAND: Self = Self(jiff::RoundMode::Expand);
-    pub(crate) const TRUNC: Self = Self(jiff::RoundMode::Trunc);
-    pub(crate) const HALF_CEIL: Self = Self(jiff::RoundMode::HalfCeil);
-    pub(crate) const HALF_FLOOR: Self = Self(jiff::RoundMode::HalfFloor);
-    pub(crate) const HALF_EXPAND: Self = Self(jiff::RoundMode::HalfExpand);
-    pub(crate) const HALF_TRUNC: Self = Self(jiff::RoundMode::HalfTrunc);
-    pub(crate) const HALF_EVEN: Self = Self(jiff::RoundMode::HalfEven);
+    pub const CEIL: Self = Self(jiff::RoundMode::Ceil);
+    pub const FLOOR: Self = Self(jiff::RoundMode::Floor);
+    pub const EXPAND: Self = Self(jiff::RoundMode::Expand);
+    pub const TRUNC: Self = Self(jiff::RoundMode::Trunc);
+    pub const HALF_CEIL: Self = Self(jiff::RoundMode::HalfCeil);
+    pub const HALF_FLOOR: Self = Self(jiff::RoundMode::HalfFloor);
+    pub const HALF_EXPAND: Self = Self(jiff::RoundMode::HalfExpand);
+    pub const HALF_TRUNC: Self = Self(jiff::RoundMode::HalfTrunc);
+    pub const HALF_EVEN: Self = Self(jiff::RoundMode::HalfEven);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -485,7 +485,10 @@ impl RyZoned {
         mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment).mode(mode.0).smallest(smallest.0);
+        let mut zdt_diff = ZonedDifference::from(&other.0)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
         if let Some(largest) = largest {
             zdt_diff = zdt_diff.largest(largest.0);
         }
@@ -514,7 +517,10 @@ impl RyZoned {
         mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment).mode(mode.0).smallest(smallest.0);
+        let mut zdt_diff = ZonedDifference::from(&other.0)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
         if let Some(largest) = largest {
             zdt_diff = zdt_diff.largest(largest.0);
         }

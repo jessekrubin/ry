@@ -52,7 +52,7 @@ use crate::{
 };
 use jiff::civil::{DateTimeRound, TimeRound};
 use jiff::tz::OffsetRound;
-use jiff::{RoundMode, SignedDurationRound, TimestampRound, Unit, ZonedRound};
+use jiff::{SignedDurationRound, TimestampRound, ZonedRound};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
