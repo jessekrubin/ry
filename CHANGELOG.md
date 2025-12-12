@@ -5,6 +5,7 @@
 - `ryo3-jiff`
   - offset pydantic integration
   - use defaults for all round/difference objects/function calls
+  - fixed f-str formatting when emptry fmt string given
 
 ---
 

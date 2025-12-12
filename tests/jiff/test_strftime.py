@@ -6,6 +6,23 @@ import ry
 from ry.protocols import Strftime
 
 
+@pytest.mark.parametrize(
+    "cls",
+    [
+        ry.Timestamp,
+        ry.Time,
+        ry.Date,
+        ry.DateTime,
+        ry.ZonedDateTime,
+    ],
+)
+def test_fstring_no_spec_is_string(
+    cls: type[ry.Timestamp | ry.Time | ry.Date | ry.DateTime | ry.ZonedDateTime],
+) -> None:
+    ob = cls.now()
+    assert f"{ob}" == str(ob)
+
+
 def test_strftime_timestamp() -> None:
     """Test strftime method of Timestamp.
 

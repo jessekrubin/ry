@@ -192,6 +192,10 @@ class Date(
     @classmethod
     def today(cls) -> t.Self: ...
     @classmethod
+    def now(cls) -> t.Self:
+        """Same as today for parity with other date/time types"""
+
+    @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
     def parse(cls, s: str | bytes) -> t.Self: ...

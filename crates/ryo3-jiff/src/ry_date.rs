@@ -57,8 +57,12 @@ impl RyDate {
 
     #[staticmethod]
     fn today() -> Self {
-        let z = jiff::civil::Date::from(Zoned::now());
-        Self::from(z)
+        Self::now()
+    }
+
+    #[staticmethod]
+    fn now() -> Self {
+        Self::from(Zoned::now().date())
     }
 
     #[staticmethod]
