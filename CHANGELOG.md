@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.73 [unreleased]
+## v0.0.73 [2025-12-12]
 
 - `ryo3-jiff`
   - offset pydantic integration

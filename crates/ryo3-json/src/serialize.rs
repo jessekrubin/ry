@@ -11,12 +11,10 @@ fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     }
 }
 
-#[expect(clippy::struct_excessive_bools)]
 struct JsonOptions {
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
-    pybytes: bool,
 }
 
 struct JsonSerializer<'py> {
@@ -49,7 +47,7 @@ impl<'py> JsonSerializer<'py> {
         Ok(())
     }
 
-    fn serialize(&self, py: Python<'py>, obj: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    pub(crate) fn serialize_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
         let s = SerializePyAny::new(obj, self.default);
         let mut bytes: Vec<u8> = Vec::with_capacity(4096);
         if self.opts.sort_keys {
@@ -74,11 +72,7 @@ impl<'py> JsonSerializer<'py> {
         if self.opts.append_newline {
             bytes.push(b'\n');
         }
-        if self.opts.pybytes {
-            pyo3::types::PyBytes::new(py, &bytes).into_bound_py_any(py)
-        } else {
-            ryo3_bytes::PyBytes::from(bytes).into_bound_py_any(py)
-        }
+        Ok(bytes)
     }
 
     #[expect(clippy::unused_self)]
@@ -93,42 +87,112 @@ impl<'py> JsonSerializer<'py> {
     }
 }
 
-// MACRO TO CREATE THE STRINGIFY FUNCTION (USED TO CREATE "ALIASES" eg `stringify`/`loads`)
-macro_rules! stringify_fn {
-    ($name:ident) => {
-        #[pyfunction(
-            signature = (obj,*, default = None, fmt = false, sort_keys = false, append_newline = false, pybytes = false))
-        ]
-        pub fn $name<'py>(
-            py: Python<'py>,
-            obj: &Bound<'py, PyAny>,
-            default: Option<&'py Bound<'py, PyAny>>,
-            fmt: bool,
-            sort_keys: bool,
-            append_newline: bool,
-            pybytes: bool,
-        ) -> PyResult<Bound<'py, PyAny>> {
-            let serializer = JsonSerializer::new(
-                default,
-                JsonOptions {
-                    fmt,
-                    sort_keys,
-                    append_newline,
-                    pybytes,
-                },
-            )?;
-            serializer.serialize(py, obj)
+// **retired**
+// MACRO TO CREATE THE STRINGIFY FUNCTION (USED TO CREATE "ALIASES" eg `stringify`/`dumps`)
+// macro_rules! stringify_fn {
+//     ($name:ident) => {
+//         #[pyfunction(
+//             signature = (obj,*, default = None, fmt = false, sort_keys = false, append_newline = false, pybytes = false))
+//         ]
+//         pub fn $name<'py>(
+//             py: Python<'py>,
+//             obj: &Bound<'py, PyAny>,
+//             default: Option<&'py Bound<'py, PyAny>>,
+//             fmt: bool,
+//             sort_keys: bool,
+//             append_newline: bool,
+//             pybytes: bool,
+//         ) -> PyResult<Bound<'py, PyAny>> {
+//             let serializer = JsonSerializer::new(
+//                 default,
+//                 JsonOptions {
+//                     fmt,
+//                     sort_keys,
+//                     append_newline,
+//                     pybytes,
+//                 },
+//             )?;
+//             serializer.serialize(py, obj)
+//         }
+//     };
+// }
+// stringify_fn!(stringify);
+// stringify_fn!(dumps);
+
+#[expect(clippy::fn_params_excessive_bools)]
+#[pyfunction(
+    signature=(
+        obj,
+        *,
+        default = None,
+        fmt = false,
+        sort_keys = false,
+        append_newline = false,
+        pybytes = false
+    )
+)]
+pub fn stringify<'py>(
+    py: Python<'py>,
+    obj: &Bound<'py, PyAny>,
+    default: Option<&'py Bound<'py, PyAny>>,
+    fmt: bool,
+    sort_keys: bool,
+    append_newline: bool,
+    pybytes: bool,
+) -> PyResult<Bound<'py, PyAny>> {
+    let serializer = JsonSerializer::new(
+        default,
+        JsonOptions {
+            fmt,
+            sort_keys,
+            append_newline,
+        },
+    )?;
+    serializer.serialize_to_vec(obj).map(|v| {
+        if pybytes {
+            pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
+        } else {
+            ryo3_bytes::PyBytes::from(v).into_bound_py_any(py)
         }
-    };
+    })?
 }
 
-stringify_fn!(stringify);
-stringify_fn!(dumps);
+#[expect(clippy::fn_params_excessive_bools)]
+#[pyfunction(
+    signature=(
+        obj,
+        *,
+        default = None,
+        fmt = false,
+        sort_keys = false,
+        append_newline = false,
+        pybytes = false
+    )
+)]
+pub fn dumps<'py>(
+    py: Python<'py>,
+    obj: &Bound<'py, PyAny>,
+    default: Option<&'py Bound<'py, PyAny>>,
+    fmt: bool,
+    sort_keys: bool,
+    append_newline: bool,
+    pybytes: bool,
+) -> PyResult<Bound<'py, PyAny>> {
+    stringify(py, obj, default, fmt, sort_keys, append_newline, pybytes)
+}
 
 #[pyfunction(
-    signature = (obj, *, default = None, fmt = false, sort_keys = false, append_newline = false, pybytes = false)
+    signature=(
+        obj,
+        *,
+        default = None,
+        fmt = false,
+        sort_keys = false,
+        append_newline = false,
+        pybytes = false
+    )
 )]
-#[expect(clippy::fn_params_excessive_bools)]
+#[expect(unused_variables, clippy::fn_params_excessive_bools)]
 pub(crate) fn stringify_unsafe<'py>(
     py: Python<'py>,
     obj: &Bound<'py, PyAny>,
@@ -144,7 +208,6 @@ pub(crate) fn stringify_unsafe<'py>(
             fmt,
             sort_keys,
             append_newline,
-            pybytes,
         },
     )?;
     serializer.serialize_unsafe(py, obj)
