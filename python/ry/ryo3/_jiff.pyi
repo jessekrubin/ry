@@ -1583,7 +1583,10 @@ class Offset(
     ZERO: t.ClassVar[Offset]
 
     def __init__(
-        self, hours: int | None = None, seconds: int | None = None
+        self,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
     ) -> None: ...
 
     # =========================================================================

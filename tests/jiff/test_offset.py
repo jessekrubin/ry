@@ -1,5 +1,9 @@
 import datetime as pydt
 
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
 import ry
 
 
@@ -56,3 +60,46 @@ def test_offset_to_pytzinfo() -> None:
     assert pytz_info == expected
     roundtripped_off = ry.Offset.from_pytzinfo(pytz_info)
     assert roundtripped_off == off
+
+
+class TestOffsetHypothesis:
+    _MAX_OFFSET_SECONDS = ry.Offset.MAX.seconds
+    _MIN_OFFSET_SECONDS = ry.Offset.MIN.seconds
+
+    @given(
+        st.integers(min_value=ry.Offset.MIN.seconds, max_value=ry.Offset.MAX.seconds)
+    )
+    def test_offset_to_from_py_roundtrip(self, seconds: int) -> None:
+        off = ry.Offset(seconds=seconds)
+        assert isinstance(off, ry.Offset)
+        assert off.seconds == seconds
+        # check that the repr evals to the same thing
+        off_repr = repr(off)
+        off_from_repr = eval(off_repr, {"Offset": ry.Offset})
+        assert off_from_repr == off
+
+    @given(
+        st.integers(min_value=ry.I8_MIN, max_value=ry.I8_MAX),
+        st.integers(min_value=ry.I16_MIN, max_value=ry.I16_MAX),
+        st.integers(min_value=ry.Offset.MIN.seconds, max_value=ry.Offset.MAX.seconds),
+    )
+    def test_offset_creation(self, hours: int, minutes: int, seconds: int) -> None:
+        # total seconds
+        total_seconds = (hours * 3600) + (minutes * 60) + seconds
+        if (
+            total_seconds > self._MAX_OFFSET_SECONDS
+            or total_seconds < self._MIN_OFFSET_SECONDS
+        ):
+            # msg will look like
+            # parameter 'offset-seconds' with value 93600 is not in the required range of -93599..=93599
+            match_str = f"parameter 'offset-seconds' with value {total_seconds} is not in the required range of {self._MIN_OFFSET_SECONDS}..={self._MAX_OFFSET_SECONDS}"
+            with pytest.raises(ValueError, match=match_str):
+                _off = ry.Offset(hours=hours, minutes=minutes, seconds=seconds)
+        else:
+            off = ry.Offset(seconds=seconds)
+            assert isinstance(off, ry.Offset)
+            assert off.seconds == seconds
+            # check that the repr evals to the same thing
+            off_repr = repr(off)
+            off_from_repr = eval(off_repr, {"Offset": ry.Offset})
+            assert off_from_repr == off
