@@ -3,7 +3,10 @@
 ## v0.0.73 [2025-12-12]
 
 - `ryo3-jiff`
-  - offset pydantic integration
+  - offset
+    - pydantic integration
+    - Changed signature of constructor to be
+      `ry.Offset(hours=0, minutes=0, seconds=0)`
   - use defaults for all round/difference objects/function calls
   - fixed f-str formatting when emptry fmt string given
 
