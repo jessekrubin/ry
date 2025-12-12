@@ -192,6 +192,10 @@ class Date(
     @classmethod
     def today(cls) -> t.Self: ...
     @classmethod
+    def now(cls) -> t.Self:
+        """Same as today for parity with other date/time types"""
+
+    @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
     def parse(cls, s: str | bytes) -> t.Self: ...
@@ -1569,6 +1573,7 @@ class Offset(
     # protocols
     ToPy[pydt.tzinfo],
     ToPyTzInfo,
+    ToPyTimeDelta,
     FromStr,
     _Parse,
 ):
@@ -1603,6 +1608,8 @@ class Offset(
     # =========================================================================
     # __FROM__
     @classmethod
+    def from_pytimedelta(cls, tz: pydt.timedelta) -> t.Self: ...
+    @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -> t.Self: ...
     @classmethod
     def parse(cls, s: str | bytes) -> t.Self: ...
@@ -1610,9 +1617,10 @@ class Offset(
     def from_str(cls, s: str) -> t.Self: ...
 
     # __TO__
-    def to_py(self) -> pydt.tzinfo: ...
-    def to_pytzinfo(self) -> pydt.tzinfo: ...
     def to_dict(self) -> OffsetTypedDict: ...
+    def to_py(self) -> pydt.tzinfo: ...
+    def to_pytimedelta(self) -> pydt.timedelta: ...
+    def to_pytzinfo(self) -> pydt.tzinfo: ...
 
     # =========================================================================
     # PROPERTIES
@@ -1677,15 +1685,15 @@ class Offset(
 # =============================================================================
 # DIFFERENCE
 # =============================================================================
-_Tobj = t.TypeVar("_Tobj", Date, DateTime, Time, Timestamp, ZonedDateTime)
+_TObj = t.TypeVar("_TObj", Date, DateTime, Time, Timestamp, ZonedDateTime)
 
 @t.type_check_only
-class _Difference(t.Generic[_Tobj, _TDict]):
+class _Difference(t.Generic[_TObj, _TDict]):
     def __init__(
         self,
-        obj: _Tobj,
+        obj: _TObj,
         *,
-        smallest: JiffUnit | None = None,
+        smallest: JiffUnit,
         largest: JiffUnit | None = None,
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
@@ -1707,21 +1715,57 @@ class _Difference(t.Generic[_Tobj, _TDict]):
 
 @t.final
 class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
+    def __init__(
+        self,
+        obj: Date,
+        *,
+        smallest: JiffUnit = "day",
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
+    ) -> None: ...
     @property
     def date(self) -> Date: ...
 
 @t.final
 class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
+    def __init__(
+        self,
+        obj: DateTime,
+        *,
+        smallest: JiffUnit = "nanosecond",
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
+    ) -> None: ...
     @property
     def datetime(self) -> DateTime: ...
 
 @t.final
 class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
+    def __init__(
+        self,
+        obj: Time,
+        *,
+        smallest: JiffUnit = "nanosecond",
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
+    ) -> None: ...
     @property
     def time(self) -> Time: ...
 
 @t.final
 class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
+    def __init__(
+        self,
+        obj: Timestamp,
+        *,
+        smallest: JiffUnit = "nanosecond",
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
+    ) -> None: ...
     @property
     def timestamp(self) -> Timestamp: ...
 
@@ -1729,6 +1773,15 @@ class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
 class ZonedDateTimeDifference(
     _Difference[ZonedDateTime, ZonedDateTimeDifferenceTypedDict]
 ):
+    def __init__(
+        self,
+        obj: ZonedDateTime,
+        *,
+        smallest: JiffUnit = "nanosecond",
+        largest: JiffUnit | None = None,
+        mode: JiffRoundMode = "trunc",
+        increment: int = 1,
+    ) -> None: ...
     @property
     def zoned(self) -> ZonedDateTime: ...
 

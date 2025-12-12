@@ -109,22 +109,20 @@ impl RyDateDifference {
         signature = (
             date,
             *,
-            smallest = None,
-            largest = None,
-            mode = None,
+            smallest = JiffUnit::DAY,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
             increment = 1
         ),
     )]
     #[must_use]
     fn py_new(
         date: &RyDate,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> Self {
-        let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
-        let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::Trunc));
         let mut diff = DateDifference::new(date.0)
             .smallest(smallest.0)
             .mode(mode.0)
@@ -272,6 +270,7 @@ impl std::fmt::Display for RyDateDifference {
         write!(f, ")")
     }
 }
+
 #[derive(Debug, Clone, FromPyObject)]
 pub(crate) enum DateDifferenceArg {
     Zoned(RyZoned),
@@ -282,27 +281,27 @@ pub(crate) enum DateDifferenceArg {
 impl DateDifferenceArg {
     pub(crate) fn build(
         self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> DateDifference {
         let mut diff = match self {
-            Self::Zoned(zoned) => DateDifference::from(zoned.0),
-            Self::Date(date) => DateDifference::from(date.0),
-            Self::DateTime(date_time) => DateDifference::from(date_time.0),
+            Self::Zoned(zoned) => DateDifference::from(zoned.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
+            Self::Date(date) => DateDifference::from(date.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
+            Self::DateTime(date_time) => DateDifference::from(date_time.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
         };
-        if let Some(smallest) = smallest {
-            diff = diff.smallest(smallest.0);
-        }
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            diff = diff.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            diff = diff.increment(increment);
         }
         diff
     }
@@ -328,22 +327,20 @@ impl RyDateTimeDifference {
         signature = (
             datetime,
             *,
-            smallest = None,
-            largest = None,
-            mode = None,
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
             increment = 1
         ),
     )]
     #[must_use]
     fn py_new(
         datetime: &RyDateTime,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> Self {
-        let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
-        let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::Trunc));
         let mut diff = DateTimeDifference::new(datetime.0)
             .smallest(smallest.0)
             .mode(mode.0)
@@ -498,27 +495,27 @@ pub(crate) enum DateTimeDifferenceArg {
 impl DateTimeDifferenceArg {
     pub(crate) fn build(
         self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> DateTimeDifference {
         let mut diff = match self {
-            Self::Zoned(other) => DateTimeDifference::from(other.0),
-            Self::DateTime(other) => DateTimeDifference::from(other.0),
-            Self::Date(other) => DateTimeDifference::from(other.0),
+            Self::Zoned(other) => DateTimeDifference::from(other.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
+            Self::DateTime(other) => DateTimeDifference::from(other.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
+            Self::Date(other) => DateTimeDifference::from(other.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
         };
-        if let Some(smallest) = smallest {
-            diff = diff.smallest(smallest.0);
-        }
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            diff = diff.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            diff = diff.increment(increment);
         }
         diff
     }
@@ -543,22 +540,20 @@ impl RyTimeDifference {
         signature = (
             time,
             *,
-            smallest = None,
-            largest = None,
-            mode = None,
-            increment = 1
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
         ),
     )]
     #[must_use]
     fn py_new(
         time: &RyTime,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> Self {
-        let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
-        let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::Trunc));
         let mut diff = TimeDifference::new(time.0)
             .smallest(smallest.0)
             .mode(mode.0)
@@ -723,27 +718,27 @@ pub(crate) enum TimeDifferenceArg {
 impl TimeDifferenceArg {
     pub(crate) fn build(
         self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> TimeDifference {
         let mut diff = match self {
-            Self::Time(other) => TimeDifference::from(other.0),
-            Self::Zoned(other) => TimeDifference::from(other.0),
-            Self::DateTime(other) => TimeDifference::from(other.0),
+            Self::Time(other) => TimeDifference::from(other.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
+            Self::Zoned(other) => TimeDifference::from(other.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
+            Self::DateTime(other) => TimeDifference::from(other.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
         };
-        if let Some(smallest) = smallest {
-            diff = diff.smallest(smallest.0);
-        }
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            diff = diff.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            diff = diff.increment(increment);
         }
         diff
     }
@@ -768,22 +763,20 @@ impl RyTimestampDifference {
         signature = (
             timestamp,
             *,
-            smallest = None,
-            largest = None,
-            mode = None,
-            increment = 1
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
         ),
     )]
     #[must_use]
     fn py_new(
         timestamp: &RyTimestamp,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> Self {
-        let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
-        let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::Trunc));
         let mut diff = TimestampDifference::new(timestamp.0)
             .smallest(smallest.0)
             .mode(mode.0)
@@ -944,26 +937,23 @@ pub(crate) enum TimestampDifferenceArg {
 impl TimestampDifferenceArg {
     pub(crate) fn build(
         self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> TimestampDifference {
         let mut diff = match self {
-            Self::Zoned(zoned) => TimestampDifference::from(zoned.0),
-            Self::Timestamp(date) => TimestampDifference::from(date.0),
+            Self::Zoned(zoned) => TimestampDifference::from(zoned.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
+            Self::Timestamp(date) => TimestampDifference::from(date.0)
+                .increment(increment)
+                .mode(mode.0)
+                .smallest(smallest.0),
         };
-        if let Some(smallest) = smallest {
-            diff = diff.smallest(smallest.0);
-        }
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            diff = diff.mode(mode.0);
-        }
-        if let Some(increment) = increment {
-            diff = diff.increment(increment);
         }
         diff
     }
@@ -987,22 +977,20 @@ impl RyZonedDifference {
         signature = (
             zoned,
             *,
-            smallest = None,
-            largest = None,
-            mode = None,
-            increment = 1
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
         ),
     )]
     #[must_use]
     fn py_new(
         zoned: &RyZoned,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> Self {
-        let smallest = smallest.unwrap_or(JiffUnit(jiff::Unit::Nanosecond));
-        let mode = mode.unwrap_or(JiffRoundMode(jiff::RoundMode::Trunc));
         let options = DifferenceOptions {
             smallest,
             largest,

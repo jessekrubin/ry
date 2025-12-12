@@ -4,7 +4,7 @@ use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
 use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
-use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound, Unit};
+use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -578,12 +578,12 @@ impl RySpan {
     // ========================================================================
     #[pyo3(
         signature = (
-            smallest=JiffUnit(Unit::Nanosecond),
+            smallest=JiffUnit::NANOSECOND,
             increment=1,
             *,
             relative=None,
             largest=None,
-            mode=JiffRoundMode(jiff::RoundMode::HalfExpand)
+            mode=JiffRoundMode::HALF_EXPAND,
         ),
         text_signature = "(self, smallest=\"nanosecond\", increment=1, *, relative=None, largest=None, mode=\"half-expand\")"
     )]

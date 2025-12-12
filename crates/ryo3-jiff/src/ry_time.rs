@@ -108,7 +108,11 @@ impl RyTime {
     // STRPTIME/STRFTIME
     // ========================================================================
     fn __format__(&self, fmt: &str) -> PyResult<String> {
-        self.strftime(fmt)
+        if fmt.is_empty() {
+            Ok(self.__str__())
+        } else {
+            self.strftime(fmt)
+        }
     }
 
     #[pyo3(signature = (fmt))]
@@ -397,9 +401,9 @@ impl RyTime {
 
     #[pyo3(
         signature = (
-            smallest = JiffUnit(jiff::Unit::Nanosecond),
+            smallest=JiffUnit::NANOSECOND,
             *,
-            mode = JiffRoundMode(jiff::RoundMode::HalfExpand),
+            mode=JiffRoundMode::HALF_EXPAND,
             increment = 1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
@@ -422,16 +426,23 @@ impl RyTime {
     // SINCE/UNTIL
     // ------------------------------------------------------------------------
     #[pyo3(
-       signature = (t, *, smallest=None, largest = None, mode = None, increment = None),
+        signature=(
+            t,
+            *,
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
+        ),
        text_signature = "(self, t, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
         t: TimeDifferenceArg,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> PyResult<RySpan> {
         let t_diff = t.build(smallest, largest, mode, increment);
         self.0
@@ -441,16 +452,23 @@ impl RyTime {
     }
 
     #[pyo3(
-       signature = (t, *, smallest=None, largest = None, mode = None, increment = None),
+        signature=(
+            t,
+            *,
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
+        ),
        text_signature = "(self, t, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
         t: TimeDifferenceArg,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
-        increment: Option<i64>,
+        mode: JiffRoundMode,
+        increment: i64,
     ) -> PyResult<RySpan> {
         let t_diff = t.build(smallest, largest, mode, increment);
         self.0

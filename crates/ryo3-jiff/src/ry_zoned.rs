@@ -122,7 +122,11 @@ impl RyZoned {
     // STRPTIME/STRFTIME
     // ========================================================================
     fn __format__(&self, fmt: &str) -> PyResult<String> {
-        self.strftime(fmt)
+        if fmt.is_empty() {
+            Ok(self.__str__())
+        } else {
+            self.strftime(fmt)
+        }
     }
 
     #[pyo3(signature = (fmt))]
@@ -342,7 +346,7 @@ impl RyZoned {
 
     #[pyo3(
         signature = (
-            smallest=JiffUnit(jiff::Unit::Nanosecond),
+            smallest=JiffUnit::NANOSECOND,
             *,
             mode=JiffRoundMode(jiff::RoundMode::HalfExpand),
             increment=1
@@ -467,26 +471,30 @@ impl RyZoned {
     }
 
     #[pyo3(
-        signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
+        signature=(
+            other,
+            *,
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
+        ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
         &self,
         other: &Self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment);
-        if let Some(smallest) = smallest {
-            zdt_diff = zdt_diff.smallest(smallest.0);
-        }
+        let mut zdt_diff = ZonedDifference::from(&other.0)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
         if let Some(largest) = largest {
             zdt_diff = zdt_diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            zdt_diff = zdt_diff.mode(mode.0);
         }
         self.0
             .since(zdt_diff)
@@ -495,26 +503,30 @@ impl RyZoned {
     }
 
     #[pyo3(
-        signature = (other, *, smallest=None, largest = None, mode = None, increment = 1),
+        signature=(
+            other,
+            *,
+            smallest=JiffUnit::NANOSECOND,
+            largest=None,
+            mode=JiffRoundMode::TRUNC,
+            increment=1
+        ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
         &self,
         other: &Self,
-        smallest: Option<JiffUnit>,
+        smallest: JiffUnit,
         largest: Option<JiffUnit>,
-        mode: Option<JiffRoundMode>,
+        mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0).increment(increment);
-        if let Some(smallest) = smallest {
-            zdt_diff = zdt_diff.smallest(smallest.0);
-        }
+        let mut zdt_diff = ZonedDifference::from(&other.0)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
         if let Some(largest) = largest {
             zdt_diff = zdt_diff.largest(largest.0);
-        }
-        if let Some(mode) = mode {
-            zdt_diff = zdt_diff.mode(mode.0);
         }
         self.0
             .until(zdt_diff)

@@ -64,3 +64,33 @@ class TestZonedRound:
             ValueError
         ):  # TODO: figure out how to change to OverflowError
             zdt.round("day")
+
+
+class TestOffsetRound:
+    """
+    REF: https://docs.rs/jiff/latest/jiff/tz/struct.Offset.html#method.round
+    """
+
+    def test_rounding_to_the_nearest_multiple_of_15_minutes(self) -> None:
+        """
+        REF: https://docs.rs/jiff/latest/jiff/tz/struct.Offset.html#example-rounding-to-the-nearest-multiple-of-15-minutes
+        """
+        off = ry.Offset.from_seconds(-(44 * 60 + 30))
+        rounded = off.round("minute", mode="half-expand", increment=15)
+        assert rounded == ry.Offset.from_seconds(-45 * 60)
+        # obj round
+        rounded_via_obj = off._round(
+            ry.OffsetRound("minute", mode="half-expand", increment=15)
+        )
+        assert rounded_via_obj == ry.Offset.from_seconds(-45 * 60)
+
+    def test_rounding_can_fail_via_overflow(self) -> None:
+        """
+        REF: https://docs.rs/jiff/latest/jiff/tz/struct.Offset.html#example-rounding-can-fail-via-overflow
+        """
+        assert str(ry.Offset.MAX) == "+25:59:59"
+        with pytest.raises(
+            ValueError,
+            match="rounding offset `\\+25:59:59` resulted in a duration of 26h, which overflows `Offset`",
+        ):
+            _r = ry.Offset.MAX.round("minute")
