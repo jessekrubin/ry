@@ -301,7 +301,11 @@ impl RyTimestamp {
     // STRPTIME/STRFTIME
     // ========================================================================
     fn __format__(&self, fmt: &str) -> PyResult<String> {
-        self.strftime(fmt)
+        if fmt.is_empty() {
+            Ok(self.__str__())
+        } else {
+            self.strftime(fmt)
+        }
     }
 
     fn strftime(&self, fmt: &str) -> PyResult<String> {
