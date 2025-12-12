@@ -4,6 +4,7 @@ use pyo3::{intern, prelude::*};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
+use crate::ser::safe_impl::SerializePyDict;
 use crate::{Depth, MAX_DEPTH, SerializePyAny, serde_err, serde_err_recursion};
 
 use crate::ser::PySerializeContext;
@@ -45,12 +46,11 @@ impl Serialize for SerializePyDataclass<'_, '_> {
         let py = self.obj.py();
         // check for __dict__
         if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
-            if let Ok(dict) = dunder_dict.cast_into::<PyDict>() {
+            if let Ok(dict) = dunder_dict.cast::<PyDict>() {
                 // serialize the __dict__ as a dict
-                SerializePyAny::new_with_depth(&dict, self.ctx, self.depth + 1)
-                    .serialize(serializer)
+                SerializePyDict::new(dict, self.ctx, self.depth + 1).serialize(serializer)
             } else {
-                serde_err!("__dict__ is not a dict")
+                serde_err!("dataclass::__dict__ is not a dict")
             }
         } else if let Some(fields) = dataclass_fields(self.obj) {
             let field_marker = get_field_marker(py).map_err(pyerr2sererr)?;

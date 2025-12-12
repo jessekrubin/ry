@@ -1351,7 +1351,7 @@ class TestSocketAddrV4:
     )
     def test_socketaddrv4_parsing_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RySocketAddrV4(sock=value)  # type: ignore[arg-type]
+            _d = RySocketAddrV4(sock=value)
 
 
 class TestSocketAddrV6:
@@ -1388,7 +1388,7 @@ class TestSocketAddrV6:
     )
     def test_socketaddrv6_parsing_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RySocketAddrV6(sock=value)  # type: ignore[arg-type]
+            _d = RySocketAddrV6(sock=value)
 
 
 class TestOffset:
@@ -1414,7 +1414,7 @@ class TestOffset:
         ],
     )
     def test_offset_parsing_ok(self, value: t.Any, result: pydt.timedelta) -> None:
-        m = RyOffsetModel(off=value)  # type: ignore[arg-type]
+        m = RyOffsetModel(off=value)
         assert m.off.to_pytimedelta() == result
 
         as_json = m.model_dump_json()
@@ -1435,4 +1435,4 @@ class TestOffset:
     )
     def test_offset_parsing_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _m = RyOffsetModel(off=value)  # type: ignore[arg-type]
+            _m = RyOffsetModel(off=value)

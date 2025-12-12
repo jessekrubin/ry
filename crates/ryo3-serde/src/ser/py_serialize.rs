@@ -55,6 +55,7 @@ impl<'py> SerializePyAny<'py> {
         }
     }
 }
+
 impl Serialize for SerializePyAny<'_> {
     #[expect(clippy::too_many_lines)]
     #[inline]

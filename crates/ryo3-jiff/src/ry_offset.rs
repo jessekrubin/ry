@@ -9,41 +9,55 @@ use crate::spanish::Spanish;
 use crate::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
 use jiff::SignedDuration;
 use jiff::tz::{Offset, OffsetRound};
+use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
+use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::vec;
 
 #[pyclass(name = "Offset", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);
 
+impl RyOffset {
+    #[expect(clippy::arithmetic_side_effects)]
+    fn py_from_hms(hours: i8, minutes: i16, seconds: i32) -> PyResult<Self> {
+        let total_seconds = (i32::from(hours) * 3600) + (i32::from(minutes) * 60) + seconds;
+        Offset::from_seconds(total_seconds)
+            .map(Self::from)
+            .map_err(map_py_value_err)
+    }
+
+    #[expect(clippy::cast_possible_truncation)]
+    fn hms(&self) -> (i8, i16, i32) {
+        let total_seconds = self.0.seconds();
+        let hours = total_seconds / 3600;
+        let minutes = (total_seconds % 3600) / 60;
+        let seconds = total_seconds % 60;
+        (hours as i8, minutes as i16, seconds)
+    }
+}
+
 #[expect(clippy::wrong_self_convention)]
 #[pymethods]
 impl RyOffset {
     #[new]
-    #[pyo3(signature = (hours = None, seconds = None))]
-    fn py_new(hours: Option<i8>, seconds: Option<i32>) -> PyResult<Self> {
-        match (hours, seconds) {
-            (Some(h), None) => Offset::from_hours(h)
-                .map(Self::from)
-                .map_err(map_py_value_err),
-            (None, Some(s)) => Offset::from_seconds(s)
-                .map(Self::from)
-                .map_err(map_py_value_err),
-            _ => Err(py_type_error!("Offset() takes either hours or seconds")),
-        }
+    #[pyo3(signature = (hours = 0, minutes = 0, seconds = 0))]
+    fn py_new(hours: i8, minutes: i16, seconds: i32) -> PyResult<Self> {
+        Self::py_from_hms(hours, minutes, seconds)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let (hours, minutes, seconds) = self.hms();
         PyTuple::new(
             py,
             vec![
-                py.None().into_bound_py_any(py)?,
-                self.0.seconds().into_bound_py_any(py)?,
+                hours.into_pyobject(py)?,
+                minutes.into_pyobject(py)?,
+                seconds.into_pyobject(py)?,
             ],
         )
     }
