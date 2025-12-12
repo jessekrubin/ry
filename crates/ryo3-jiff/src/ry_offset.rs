@@ -23,14 +23,16 @@ use std::vec;
 pub struct RyOffset(pub(crate) Offset);
 
 impl RyOffset {
+    #[expect(clippy::arithmetic_side_effects)]
     fn py_from_hms(hours: i8, minutes: i16, seconds: i32) -> PyResult<Self> {
-        let total_seconds = (hours as i32 * 3600) + (minutes as i32 * 60) + seconds;
+        let total_seconds = (i32::from(hours) * 3600) + (i32::from(minutes) * 60) + seconds;
         Offset::from_seconds(total_seconds)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
-    fn to_hms(&self) -> (i8, i16, i32) {
+    #[expect(clippy::cast_possible_truncation)]
+    fn hms(&self) -> (i8, i16, i32) {
         let total_seconds = self.0.seconds();
         let hours = total_seconds / 3600;
         let minutes = (total_seconds % 3600) / 60;
@@ -49,7 +51,7 @@ impl RyOffset {
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let (hours, minutes, seconds) = self.to_hms();
+        let (hours, minutes, seconds) = self.hms();
         PyTuple::new(
             py,
             vec![
