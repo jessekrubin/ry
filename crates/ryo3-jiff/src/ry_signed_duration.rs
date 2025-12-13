@@ -13,7 +13,7 @@ use pyo3::prelude::*;
 
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
-use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
+use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple};
 use ryo3_macro_rules::py_overflow_err;
 use ryo3_macro_rules::{
     any_repr, py_overflow_error, py_type_err, py_value_err, py_value_error, py_zero_division_err,
@@ -35,7 +35,7 @@ const MINS_PER_HOUR: i64 = 60;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[pyclass(name = "SignedDuration", frozen, immutable_type)]
+#[pyclass(name = "SignedDuration", frozen, immutable_type, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
@@ -374,27 +374,28 @@ impl RySignedDuration {
         self.0.subsec_micros()
     }
 
-    fn __richcmp__(&self, other: RySignedDurationComparable<'_>, op: CompareOp) -> PyResult<bool> {
-        match other {
-            RySignedDurationComparable::RySignedDuration(other) => match op {
-                CompareOp::Eq => Ok(self.0 == other.0),
-                CompareOp::Ne => Ok(self.0 != other.0),
-                CompareOp::Lt => Ok(self.0 < other.0),
-                CompareOp::Le => Ok(self.0 <= other.0),
-                CompareOp::Gt => Ok(self.0 > other.0),
-                CompareOp::Ge => Ok(self.0 >= other.0),
-            },
-            RySignedDurationComparable::PyDelta(other) => {
-                let other = signed_duration_from_pyobject(&other)?;
-                match op {
-                    CompareOp::Eq => Ok(self.0 == other),
-                    CompareOp::Ne => Ok(self.0 != other),
-                    CompareOp::Lt => Ok(self.0 < other),
-                    CompareOp::Le => Ok(self.0 <= other),
-                    CompareOp::Gt => Ok(self.0 > other),
-                    CompareOp::Ge => Ok(self.0 >= other),
-                }
-            }
+    fn equiv<'py>(&self, other: &Bound<'py, PyAny>) -> PyResult<bool> {
+        if let Ok(other_sd) = other.cast_exact::<Self>() {
+            let sd = other_sd.get();
+            Ok(self.0 == sd.0)
+        } else if let Ok(other_ud) = other.cast_exact::<PyDuration>() {
+            Ok(self.0.unsigned_abs() == other_ud.get().0)
+        } else if let Ok(other_td) = other.cast::<pyo3::types::PyDelta>() {
+            let extract_ed = signed_duration_from_pyobject(&other_td)?;
+            Ok(self.0 == extract_ed)
+        } else {
+            py_type_err!("comparison not supported between SignedDuration and given type")
+        }
+    }
+
+    fn __richcmp__<'py>(&self, other: &Self, op: CompareOp) -> bool {
+        match op {
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 
@@ -702,11 +703,11 @@ impl RySignedDuration {
     }
 }
 
-#[derive(Debug, Clone, FromPyObject)]
-enum RySignedDurationComparable<'py> {
-    RySignedDuration(RySignedDuration),
-    PyDelta(Bound<'py, PyDelta>),
-}
+// #[derive(Debug, Clone, FromPyObject)]
+// enum RySignedDurationComparable<'py> {
+//     RySignedDuration(RySignedDuration),
+//     PyDelta(Bound<'py, PyDelta>),
+// }
 
 impl Display for RySignedDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

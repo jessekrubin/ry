@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.0.74 [unreleased]
+
+- updating pyo3 to use `skip_from_py_object`
+- `ryo3-jiff`
+  - Removed equality with `datetime.timedelta` can use `ry.SignedDuration.equiv`
+    to compare to `datetime.timedelta`, `ry.SignedDuration`, or `ry.Duration`.
+
+---
+
 ## v0.0.73 [2025-12-12]
 
 - `ryo3-jiff`

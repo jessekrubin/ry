@@ -9,7 +9,7 @@ use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use fnv::FnvHasher;
 use std::sync::Mutex;
 
-#[pyclass(name = "fnv1a", frozen, immutable_type)]
+#[pyclass(name = "fnv1a", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFnvHasher(Mutex<FnvHasher>);
 

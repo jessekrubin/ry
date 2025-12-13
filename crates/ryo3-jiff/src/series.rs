@@ -2,7 +2,7 @@ use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
 use pyo3::prelude::*;
 use ryo3_core::PyMutex;
 
-#[pyclass(name = "DateSeries", frozen, immutable_type)]
+#[pyclass(name = "DateSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateSeries {
     pub(crate) series: PyMutex<jiff::civil::DateSeries, false>,
@@ -46,7 +46,7 @@ impl RyDateSeries {
     }
 }
 
-#[pyclass(name = "DateTimeSeries", frozen, immutable_type)]
+#[pyclass(name = "DateTimeSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeSeries {
     pub(crate) series: PyMutex<jiff::civil::DateTimeSeries, false>,
@@ -90,7 +90,7 @@ impl RyDateTimeSeries {
     }
 }
 
-#[pyclass(name = "TimeSeries", frozen, immutable_type)]
+#[pyclass(name = "TimeSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeSeries {
     pub(crate) series: PyMutex<jiff::civil::TimeSeries, false>,
@@ -133,7 +133,7 @@ impl RyTimeSeries {
     }
 }
 
-#[pyclass(name = "TimestampSeries", frozen, immutable_type)]
+#[pyclass(name = "TimestampSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampSeries {
     pub(crate) series: PyMutex<jiff::TimestampSeries, false>,
@@ -177,7 +177,7 @@ impl RyTimestampSeries {
     }
 }
 
-#[pyclass(name = "ZonedSeries", frozen, immutable_type)]
+#[pyclass(name = "ZonedSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedSeries {
     pub(crate) series: PyMutex<jiff::ZonedSeries, false>,

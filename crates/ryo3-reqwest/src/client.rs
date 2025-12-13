@@ -18,7 +18,7 @@ use ryo3_std::time::PyDuration;
 use ryo3_url::extract_url;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "HttpClient", frozen, immutable_type)]
+#[pyclass(name = "HttpClient", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyHttpClient {
     client: reqwest::Client,
@@ -26,7 +26,7 @@ pub struct RyHttpClient {
 }
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "BlockingClient", frozen, immutable_type)]
+#[pyclass(name = "BlockingClient", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingClient {
     client: reqwest::Client,

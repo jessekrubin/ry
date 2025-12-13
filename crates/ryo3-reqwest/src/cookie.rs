@@ -7,7 +7,7 @@ use ryo3_macro_rules::py_value_error;
 use ryo3_macro_rules::{py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 
-#[pyclass(name = "Cookie", frozen, immutable_type)]
+#[pyclass(name = "Cookie", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCookie(pub(crate) ::cookie::Cookie<'static>);
 

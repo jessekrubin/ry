@@ -7,7 +7,7 @@ pub(crate) enum CertificateKind {
     Pem,
 }
 
-#[pyclass(name = "Certificate", frozen, immutable_type)]
+#[pyclass(name = "Certificate", frozen, immutable_type, from_py_object)]
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCertificate {
