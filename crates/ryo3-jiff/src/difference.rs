@@ -360,7 +360,7 @@ impl RyDateTimeDifference {
             increment,
         };
         Self {
-            datetime: datetime,
+            datetime,
             options,
             diff,
         }

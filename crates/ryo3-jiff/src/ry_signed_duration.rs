@@ -374,14 +374,14 @@ impl RySignedDuration {
         self.0.subsec_micros()
     }
 
-    fn equiv<'py>(&self, other: &Bound<'py, PyAny>) -> PyResult<bool> {
+    fn equiv(&self, other: &Bound<'_, PyAny>) -> PyResult<bool> {
         if let Ok(other_sd) = other.cast_exact::<Self>() {
             let sd = other_sd.get();
             Ok(self.0 == sd.0)
         } else if let Ok(other_ud) = other.cast_exact::<PyDuration>() {
             Ok(self.0.unsigned_abs() == other_ud.get().0)
         } else if let Ok(other_td) = other.cast::<pyo3::types::PyDelta>() {
-            let extract_ed = signed_duration_from_pyobject(&other_td)?;
+            let extract_ed = signed_duration_from_pyobject(other_td)?;
             Ok(self.0 == extract_ed)
         } else {
             py_type_err!("comparison not supported between SignedDuration and given type")
