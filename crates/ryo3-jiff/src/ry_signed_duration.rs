@@ -388,7 +388,7 @@ impl RySignedDuration {
         }
     }
 
-    fn __richcmp__<'py>(&self, other: &Self, op: CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,
             CompareOp::Ne => self.0 != other.0,
