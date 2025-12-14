@@ -6,7 +6,7 @@ use pyo3::types::{
     PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis, PyFloat,
     PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
-use pyo3::{Borrowed, Bound, PyAny, PyTypeInfo, Python};
+use pyo3::{Borrowed, PyAny, PyTypeInfo, Python};
 
 #[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]

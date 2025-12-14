@@ -3,7 +3,6 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 
-use pyo3::Bound;
 use pyo3::types::PyInt;
 
 pub(crate) struct SerializePyInt<'a, 'py> {

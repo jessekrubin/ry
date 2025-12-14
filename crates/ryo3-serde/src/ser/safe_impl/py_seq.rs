@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use crate::SerializePyAny;
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
@@ -20,9 +18,8 @@ use crate::ser::safe_impl::{
     SerializePyStr, SerializePyTime, SerializePyTimeDelta, SerializePyUuid,
 };
 use crate::serde_err_recursion;
-use pyo3::Bound;
 use pyo3::prelude::*;
-use pyo3::types::{PyAny, PyFrozenSet, PyIterator, PyList, PySequence, PySet, PyTuple};
+use pyo3::types::{PyAny, PyFrozenSet, PyList, PySequence, PySet, PyTuple};
 use serde::ser::{Serialize, SerializeSeq, SerializeTuple, Serializer};
 
 macro_rules! serialize_seq_element {

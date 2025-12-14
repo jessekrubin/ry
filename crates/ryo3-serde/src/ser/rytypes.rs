@@ -203,7 +203,7 @@ impl<'a, 'py> PyDurationSerializer<'a, 'py> {
 }
 
 #[cfg(feature = "ryo3-std")]
-impl<'a, 'py> serde::ser::Serialize for PyDurationSerializer<'a, 'py> {
+impl serde::ser::Serialize for PyDurationSerializer<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,

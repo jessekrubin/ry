@@ -3,8 +3,6 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 
-use pyo3::Bound;
-
 pub(crate) struct SerializePyBytesLike<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }

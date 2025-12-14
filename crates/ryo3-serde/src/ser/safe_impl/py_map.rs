@@ -22,7 +22,6 @@ use crate::ser::safe_impl::{
     SerializePyTimeDelta, SerializePyTuple, SerializePyUuid,
 };
 use crate::{SerializePyAny, serde_err_recursion};
-use pyo3::Bound;
 use pyo3::types::{PyDict, PyMapping};
 
 pub(crate) struct SerializePyDict<'a, 'py> {

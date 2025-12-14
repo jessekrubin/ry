@@ -7,7 +7,6 @@ use crate::ser::safe_impl::{SerializePyBool, SerializePyStr};
 use crate::serde_err;
 
 use crate::any_repr::any_repr;
-use pyo3::Bound;
 
 pub(crate) struct SerializePyMappingKey<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,

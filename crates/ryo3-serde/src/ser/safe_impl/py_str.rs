@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
-use pyo3::Bound;
 use pyo3::types::PyString;
 
 pub(crate) struct SerializePyStr<'a, 'py> {
