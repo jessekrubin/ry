@@ -247,7 +247,7 @@ class Date(
         self, hour: int, minute: int, second: int, nanosecond: int = 0
     ) -> DateTime: ...
     def to_dict(self) -> DateTypedDict: ...
-    def astuple(self) -> tuple[int, int, int]: ...
+    @property
     def day_of_year(self) -> int: ...
     def day_of_year_no_leap(self) -> int | None: ...
     def days_in_month(self) -> int: ...
@@ -1200,9 +1200,80 @@ class Timestamp(
     def __format__(self, fmt: str) -> str: ...
 
     # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def subsec_microsecond(self) -> int:
+        """Return the subsecond microsecond component (-999_999..999_999)
+
+        Returns:
+            int: subsecond microsecond component of the timestamp
+
+        Examples:
+            >>> import ry
+            >>> ts = ry.Timestamp(5, 123_456_789)
+            >>> ts.subsec_microsecond
+            123456
+            >>> ts = ry.Timestamp(5, 999_999_999)
+            >>> ts.subsec_microsecond
+            999999
+            >>> ts = ry.Timestamp(-5, -123_456_789)
+            >>> ts.subsec_microsecond
+            -123456
+            >>> ts = ry.Timestamp(-5, -999_999_999)
+            >>> ts.subsec_microsecond
+            -999999
+
+        """
+    @property
+    def subsec_millisecond(self) -> int:
+        """Return the subsecond millisecond component (-999..999)
+
+        Returns:
+            int: The subsecond millisecond component of the timestamp (-999..999).
+
+        Examples:
+            >>> import ry
+            >>> ts = ry.Timestamp(5, 123_456_789)
+            >>> ts.subsec_millisecond
+            123
+            >>> ts = ry.Timestamp(5, 999_999_999)
+            >>> ts.subsec_millisecond
+            999
+            >>> ts = ry.Timestamp(-5, -123_456_789)
+            >>> ts.subsec_millisecond
+            -123
+            >>> ts = ry.Timestamp(-5, -999_999_999)
+            >>> ts.subsec_millisecond
+            -999
+
+        """
+    @property
+    def subsec_nanosecond(self) -> int:
+        """Return the subsecond nanosecond component (-999_999_999..999_999_999)
+
+        Returns:
+            int: The subsecond nanosecond component of the timestamp (-999_999_999..999_999_999).
+
+        Examples:
+            >>> import ry
+            >>> ts = ry.Timestamp(5, 123_456_789)
+            >>> ts.subsec_nanosecond
+            123456789
+            >>> ts = ry.Timestamp(5, 999_999_999)
+            >>> ts.subsec_nanosecond
+            999999999
+            >>> ts = ry.Timestamp(-5, -123_456_789)
+            >>> ts.subsec_nanosecond
+            -123456789
+            >>> ts = ry.Timestamp(-5, -999_999_999)
+            >>> ts.subsec_nanosecond
+            -999999999
+
+        """
+    # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
-
     def date(self) -> Date: ...
     def datetime(self) -> DateTime: ...
     def iso_week_date(self) -> ISOWeekDate: ...
@@ -1221,9 +1292,6 @@ class Timestamp(
     def series(self, period: TimeSpan) -> JiffSeries[t.Self]: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_string(self) -> str: ...
-    def subsec_microsecond(self) -> int: ...
-    def subsec_millisecond(self) -> int: ...
-    def subsec_nanosecond(self) -> int: ...
     def to_zoned(self, time_zone: TimeZone) -> ZonedDateTime: ...
 
     # =========================================================================
