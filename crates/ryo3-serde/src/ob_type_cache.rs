@@ -231,7 +231,7 @@ macro_rules! py_obj_ptr_feat {
 
 impl PyTypeCache {
     #[inline]
-    pub(crate) fn ptr2type(&self, ptr: usize, ob: &Bound<'_, PyAny>) -> PyObType {
+    pub(crate) fn ptr2type(&self, ptr: usize, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
         // --- das builtins ---
         py_obj_ptr!(self, ptr, string, String);
         py_obj_ptr!(self, ptr, int, Int);

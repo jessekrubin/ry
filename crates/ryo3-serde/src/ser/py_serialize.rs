@@ -23,15 +23,15 @@ use crate::{Depth, MAX_DEPTH, serde_err, serde_err_recursion};
 use pyo3::Bound;
 use pyo3::types::{PyAnyMethods, PyMapping, PySequence, PyString};
 
-pub struct SerializePyAny<'py> {
-    pub(crate) obj: Borrowed<'py, 'py, PyAny>,
+pub struct SerializePyAny<'a, 'py> {
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
-impl<'py> SerializePyAny<'py> {
+impl<'a, 'py> SerializePyAny<'a, 'py> {
     #[must_use]
-    pub fn new(obj: Borrowed<'py, 'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+    pub fn new(obj: Borrowed<'a, 'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
         let py = obj.py();
         let typeref = PyTypeCache::cached(py);
         let ctx = PySerializeContext::new(default, typeref);
@@ -40,14 +40,14 @@ impl<'py> SerializePyAny<'py> {
 
     #[must_use]
     pub(crate) fn new_with_depth(
-        obj: Borrowed<'py, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { obj, ctx, depth }
     }
 
-    pub(crate) fn with_obj(&self, obj: Borrowed<'py, 'py, PyAny>) -> Self {
+    pub(crate) fn with_obj(&self, obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self {
             obj,
             ctx: self.ctx,
@@ -56,7 +56,7 @@ impl<'py> SerializePyAny<'py> {
     }
 }
 
-impl Serialize for SerializePyAny<'_> {
+impl Serialize for SerializePyAny<'_, '_> {
     #[expect(clippy::too_many_lines)]
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -187,7 +187,7 @@ impl Serialize for SerializePyAny<'_> {
                 } else if let Some(default) = self.ctx.default {
                     // call the default transformer fn and attempt to then serialize the result
                     let r = default.call1((&self.obj,)).map_err(pyerr2sererr)?;
-                    self.with_obj(&r).serialize(serializer)
+                    self.with_obj(r.as_borrowed()).serialize(serializer)
                 } else {
                     serde_err!("{} is not json-serializable", any_repr(self.obj))
                 }

@@ -215,15 +215,14 @@ impl Serialize for SerializePyDict<'_, '_> {
             return serializer.serialize_map(Some(0))?.end();
         }
         let mut m = serializer.serialize_map(None)?;
-        for (k, element) in py_dict.iter().map(
-            |(k, v)| (k.as_borrowed(), v.as_borrowed()  )
-
-        ) {
-            let sk = SerializePyMappingKey::new(self.ctx, k);
+        for (map_key, map_val) in py_dict.iter() {
+            let map_key = map_key.as_borrowed();
+            let map_val = map_val.as_borrowed();
+            let sk = SerializePyMappingKey::new(self.ctx, map_key);
             // let sv = SerializePyAny::new_with_depth(&v, self.ctx, self.depth + 1);
-            let ob_type = self.ctx.typeref.obtype(element);
+            let ob_type = self.ctx.typeref.obtype(map_val);
             m.serialize_key(&sk)?;
-            serialize_map_value!(ob_type, m, self, element);
+            serialize_map_value!(ob_type, m, self, map_val);
         }
         m.end()
     }
@@ -261,11 +260,9 @@ impl Serialize for SerializePyMapping<'_, '_> {
         let mut m = serializer.serialize_map(len)?;
         let keys = py_mapping.keys().map_err(pyerr2sererr)?;
         let values = py_mapping.values().map_err(pyerr2sererr)?;
-        for (k, v) in keys
-            .iter()
-            .zip(values.iter())
-            .map(|(k, v)| (k.as_borrowed(), v.as_borrowed()))
-        {
+        for (k, v) in keys.iter().zip(values.iter()) {
+            let k = k.as_borrowed();
+            let v = v.as_borrowed();
             let sk = SerializePyMappingKey::new(self.ctx, k);
             let ob_type = self.ctx.typeref.obtype(v);
             m.serialize_key(&sk)?;

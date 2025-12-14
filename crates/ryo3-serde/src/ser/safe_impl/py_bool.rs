@@ -5,7 +5,7 @@ use std::ptr;
 use crate::errors::pyerr2sererr;
 use crate::ser::traits::PySerializeUnsafe;
 use pyo3::types::PyBool;
-use pyo3::{Bound, Borrowed, ffi};
+use pyo3::{Borrowed, Bound, ffi};
 
 pub(crate) struct SerializePyBool<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,

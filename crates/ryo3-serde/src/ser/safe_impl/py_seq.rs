@@ -233,9 +233,8 @@ impl Serialize for SerializePyList<'_, '_> {
             serializer.serialize_seq(Some(0))?.end()
         } else {
             let mut seq = serializer.serialize_seq(Some(len))?;
-            for element in py_list.into_iter().map(
-                |e| e.as_borrowed()
-            ) {
+            for element in py_list.iter() {
+                let element = element.as_borrowed();
                 let ob_type = self.ctx.typeref.obtype(element);
                 serialize_seq_element!(ob_type, seq, self, element);
             }
@@ -248,14 +247,14 @@ impl Serialize for SerializePyList<'_, '_> {
 // PyTuple
 // ----------------------------------------------------------------------------
 pub(crate) struct SerializePyTuple<'a, 'py> {
-    pub(crate) obj: &'a Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> SerializePyTuple<'a, 'py> {
     pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
@@ -277,14 +276,13 @@ impl Serialize for SerializePyTuple<'_, '_> {
             serializer.serialize_seq(Some(0))?.end()
         } else {
             let mut tup = serializer.serialize_tuple(len)?;
-            for element in py_tuple .into_iter().map(
-                |e| e.as_borrowed()){
+            for element in py_tuple.iter() {
+                let element = element.as_borrowed();
                 let ob_type = self.ctx.typeref.obtype(element);
                 serialize_seq_element!(ob_type, tup, self, element);
             }
             tup.end()
         }
-
     }
 }
 
@@ -319,7 +317,8 @@ impl Serialize for SerializePySet<'_, '_> {
         }
         // let py_iter = PyIterator::from_object(py_set).expect("set is always iterable");
         let mut seq = serializer.serialize_seq(Some(len))?;
-        for element in py_set.iter().map(|e| e.as_borrowed()) {
+        for element in py_set.iter() {
+            let element = element.as_borrowed();
             let ob_type = self.ctx.typeref.obtype(element);
             serialize_seq_element!(ob_type, seq, self, element);
         }
@@ -358,7 +357,8 @@ impl Serialize for SerializePyFrozenSet<'_, '_> {
         }
         // let py_iter = PyIterator::from_object(py_frozenset).expect("frozenset is always iterable");
         let mut seq = serializer.serialize_seq(Some(len))?;
-        for element in py_frozenset.iter().map(|e| e.as_borrowed()) {
+        for element in py_frozenset.iter() {
+            let element = element.as_borrowed();
             let ob_type = self.ctx.typeref.obtype(element);
             serialize_seq_element!(ob_type, seq, self, element);
         }
@@ -395,7 +395,7 @@ impl Serialize for SerializePySequence<'_, '_> {
         let len = self.obj.len().map_err(pyerr2sererr)?;
         let mut seq = serializer.serialize_seq(Some(len))?;
         for i in 0..len {
-            let bound_pyany = self.obj.get_item   (i).map_err(pyerr2sererr)?;
+            let bound_pyany = self.obj.get_item(i).map_err(pyerr2sererr)?;
             let borrowed_pyany = bound_pyany.as_borrowed();
             let ob_type = self.ctx.typeref.obtype(borrowed_pyany);
             serialize_seq_element!(ob_type, seq, self, borrowed_pyany);

@@ -32,7 +32,7 @@ impl Serialize for SerializePyMappingKey<'_, '_> {
             PyObType::Bool => SerializePyBool::new(self.obj).serialize(serializer),
             PyObType::String => SerializePyStr::new(self.obj).serialize(serializer),
             _ => {
-                let key_repr = any_repr(self.obj.as_any());
+                let key_repr = any_repr(self.obj);
                 serde_err!("{} is not serializable as map-key", key_repr)
             }
         }

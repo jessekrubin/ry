@@ -48,7 +48,9 @@ impl Serialize for SerializePyDataclass<'_, '_> {
         if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
             if let Ok(dict) = dunder_dict.cast::<PyDict>() {
                 // serialize the __dict__ as a dict
-                SerializePyDict::new(dict.into(), self.ctx, self.depth + 1).serialize(serializer)
+                // revisit the as any?
+                SerializePyDict::new(dict.as_any().as_borrowed(), self.ctx, self.depth + 1)
+                    .serialize(serializer)
             } else {
                 serde_err!("dataclass::__dict__ is not a dict")
             }
@@ -65,8 +67,11 @@ impl Serialize for SerializePyDataclass<'_, '_> {
                     let field_name_py_str =
                         field_name.cast_into::<PyString>().map_err(pyerr2sererr)?;
                     let value = self.obj.getattr(&field_name_py_str).map_err(pyerr2sererr)?;
-                    let field_ser =
-                        SerializePyAny::new_with_depth(&value, self.ctx, self.depth + 1);
+                    let field_ser = SerializePyAny::new_with_depth(
+                        value.as_borrowed(),
+                        self.ctx,
+                        self.depth + 1,
+                    );
 
                     // actual string
                     let s = field_name_py_str
