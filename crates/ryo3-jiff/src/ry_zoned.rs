@@ -600,6 +600,9 @@ impl RyZoned {
             } else if let Ok(time) = obj.cast_exact::<RyTime>() {
                 // if obj is a Time, use it as the base
                 builder = builder.time(time.get().0);
+            } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+                // if obj is a Time, use it as the base
+                builder = builder.time(dt.get().0.time()).date(dt.get().0.date());
             } else if let Ok(offset) = obj.cast_exact::<RyOffset>() {
                 builder = builder.offset(offset.get().0);
             } else {
