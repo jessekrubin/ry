@@ -245,8 +245,7 @@ impl RyTimestamp {
     }
 
     fn series(&self, period: &RySpan) -> PyResult<RyTimestampSeries> {
-        period.assert_non_zero()?;
-        Ok(self.0.series(period.0).into())
+        (self, period).try_into()
     }
 
     #[getter]

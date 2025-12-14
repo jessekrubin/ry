@@ -361,9 +361,7 @@ impl RyTime {
     }
 
     fn series(&self, period: &RySpan) -> PyResult<RyTimeSeries> {
-        period.assert_non_zero()?;
-        let s = self.0.series(period.0);
-        Ok(RyTimeSeries::from(s))
+        (self, period).try_into()
     }
 
     fn duration_since(&self, other: &Self) -> RySignedDuration {

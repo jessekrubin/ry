@@ -1,222 +1,273 @@
-use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
+use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
 use pyo3::prelude::*;
 use ryo3_core::PyMutex;
+use ryo3_macro_rules::py_value_err;
 
 #[pyclass(name = "DateSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateSeries {
+    start: jiff::civil::Date,
+    period: jiff::Span,
     pub(crate) series: PyMutex<jiff::civil::DateSeries, false>,
 }
 
-impl From<jiff::civil::DateSeries> for RyDateSeries {
-    fn from(series: jiff::civil::DateSeries) -> Self {
-        Self {
-            series: PyMutex::new(series),
-        }
-    }
-}
+impl TryFrom<(&RyDate, &RySpan)> for RyDateSeries {
+    type Error = PyErr;
 
-#[pymethods]
-impl RyDateSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(&self) -> Option<RyDate> {
-        self.series.py_lock().next().map(RyDate::from)
-    }
-
-    #[pyo3(signature = (n = 1))]
-    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyDate> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref().take(n).map(RyDate::from).collect()
-        })
-    }
-
-    fn collect(&self, py: Python<'_>) -> Vec<RyDate> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref()
-                .collect::<Vec<_>>()
-                .into_iter()
-                .map(RyDate::from)
-                .collect()
+    fn try_from(value: (&RyDate, &RySpan)) -> Result<Self, Self::Error> {
+        let (start, period) = value;
+        period.assert_non_zero()?;
+        let s = start.0.series(period.0);
+        Ok(Self {
+            start: start.0,
+            period: period.0,
+            series: PyMutex::new(s),
         })
     }
 }
 
+impl std::fmt::Debug for RyDateSeries {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "DateSeries(start={}, period={})",
+            RyDate::from(self.start),
+            RySpan::from(self.period)
+        )
+    }
+}
 #[pyclass(name = "DateTimeSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeSeries {
+    start: jiff::civil::DateTime,
+    period: jiff::Span,
     pub(crate) series: PyMutex<jiff::civil::DateTimeSeries, false>,
 }
 
-impl From<jiff::civil::DateTimeSeries> for RyDateTimeSeries {
-    fn from(series: jiff::civil::DateTimeSeries) -> Self {
-        Self {
-            series: PyMutex::new(series),
-        }
+impl TryFrom<(&RyDateTime, &RySpan)> for RyDateTimeSeries {
+    type Error = PyErr;
+
+    fn try_from(value: (&RyDateTime, &RySpan)) -> Result<Self, Self::Error> {
+        let (start, period) = value;
+        period.assert_non_zero()?;
+        let s = start.0.series(period.0);
+        Ok(Self {
+            start: start.0,
+            period: period.0,
+            series: PyMutex::new(s),
+        })
     }
 }
 
-#[pymethods]
-impl RyDateTimeSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(&self) -> Option<RyDateTime> {
-        self.series.py_lock().next().map(RyDateTime::from)
-    }
-
-    #[pyo3(signature = (n = 1))]
-    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyDateTime> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref().take(n).map(RyDateTime::from).collect()
-        })
-    }
-
-    fn collect(&self, py: Python<'_>) -> Vec<RyDateTime> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref()
-                .collect::<Vec<_>>()
-                .into_iter()
-                .map(RyDateTime::from)
-                .collect()
-        })
+impl std::fmt::Debug for RyDateTimeSeries {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "DateTimeSeries(start={}, period={})",
+            RyDateTime::from(self.start),
+            RySpan::from(self.period)
+        )
     }
 }
 
 #[pyclass(name = "TimeSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeSeries {
+    start: jiff::civil::Time,
+    period: jiff::Span,
     pub(crate) series: PyMutex<jiff::civil::TimeSeries, false>,
 }
 
-impl From<jiff::civil::TimeSeries> for RyTimeSeries {
-    fn from(series: jiff::civil::TimeSeries) -> Self {
-        Self {
-            series: PyMutex::new(series),
-        }
+impl TryFrom<(&RyTime, &RySpan)> for RyTimeSeries {
+    type Error = PyErr;
+
+    fn try_from(value: (&RyTime, &RySpan)) -> Result<Self, Self::Error> {
+        let (start, period) = value;
+        period.assert_non_zero()?;
+        let s = start.0.series(period.0);
+        Ok(Self {
+            start: start.0,
+            period: period.0,
+            series: PyMutex::new(s),
+        })
     }
 }
 
-#[pymethods]
-impl RyTimeSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(&self) -> Option<RyTime> {
-        self.series.py_lock().next().map(RyTime::from)
-    }
-
-    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyTime> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref().take(n).map(RyTime::from).collect()
-        })
-    }
-
-    fn collect(&self, py: Python<'_>) -> Vec<RyTime> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref()
-                .collect::<Vec<_>>()
-                .into_iter()
-                .map(RyTime::from)
-                .collect()
-        })
+impl std::fmt::Debug for RyTimeSeries {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "TimeSeries(start={}, period={})",
+            RyTime::from(self.start),
+            RySpan::from(self.period)
+        )
     }
 }
 
 #[pyclass(name = "TimestampSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampSeries {
+    start: jiff::Timestamp,
+    period: jiff::Span,
     pub(crate) series: PyMutex<jiff::TimestampSeries, false>,
 }
 
-impl From<jiff::TimestampSeries> for RyTimestampSeries {
-    fn from(series: jiff::TimestampSeries) -> Self {
-        Self {
-            series: PyMutex::new(series),
-        }
+impl TryFrom<(&RyTimestamp, &RySpan)> for RyTimestampSeries {
+    type Error = PyErr;
+
+    fn try_from(value: (&RyTimestamp, &RySpan)) -> Result<Self, Self::Error> {
+        let (start, period) = value;
+        period.assert_non_zero()?;
+        let s = start.0.series(period.0);
+        Ok(Self {
+            start: start.0,
+            period: period.0,
+            series: PyMutex::new(s),
+        })
     }
 }
 
-#[pymethods]
-impl RyTimestampSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __next__(&self) -> Option<RyTimestamp> {
-        self.series.py_lock().next().map(RyTimestamp::from)
-    }
-
-    #[pyo3(signature = (n = 1))]
-    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyTimestamp> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref().take(n).map(RyTimestamp::from).collect()
-        })
-    }
-
-    fn collect(&self, py: Python<'_>) -> Vec<RyTimestamp> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref()
-                .collect::<Vec<_>>()
-                .into_iter()
-                .map(RyTimestamp::from)
-                .collect()
-        })
+impl std::fmt::Debug for RyTimestampSeries {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "TimestampSeries(start={}, period={})",
+            RyTimestamp::from(self.start),
+            RySpan::from(self.period)
+        )
     }
 }
 
 #[pyclass(name = "ZonedSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedSeries {
+    start: jiff::Zoned,
+    period: jiff::Span,
     pub(crate) series: PyMutex<jiff::ZonedSeries, false>,
 }
 
-impl From<jiff::ZonedSeries> for RyZonedSeries {
-    fn from(series: jiff::ZonedSeries) -> Self {
-        Self {
-            series: PyMutex::new(series),
-        }
+impl TryFrom<(&RyZoned, &RySpan)> for RyZonedSeries {
+    type Error = PyErr;
+
+    fn try_from(value: (&RyZoned, &RySpan)) -> Result<Self, Self::Error> {
+        let (start, period) = value;
+        period.assert_non_zero()?;
+        let s = start.0.series(period.0);
+        Ok(Self {
+            start: start.0.clone(),
+            period: period.0,
+            series: PyMutex::new(s),
+        })
     }
 }
 
-#[pymethods]
-impl RyZonedSeries {
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
+macro_rules! impl_py_series_pymethods(
+    ($ry_series:ty, $ry_item:ty, $jiff_series:ty, $jiff_item:ty) => {
+        #[pymethods]
+        impl $ry_series {
+            #[new]
+            fn py_new(start: &$ry_item, period: &RySpan) -> PyResult<Self> {
+                Self::try_from((start, period))
+            }
 
-    fn __next__(&self) -> Option<RyZoned> {
-        self.series.py_lock().next().map(RyZoned::from)
-    }
+            fn __repr__(&self) -> String {
+                format!("{self:?}")
+            }
 
-    #[pyo3(signature = (n = 1))]
-    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyZoned> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref().take(n).map(RyZoned::from).collect()
-        })
-    }
+            fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+                slf
+            }
 
-    fn collect(&self, py: Python<'_>) -> Vec<RyZoned> {
-        py.detach(|| {
-            let mut s = self.series.py_lock();
-            s.by_ref()
-                .collect::<Vec<_>>()
-                .into_iter()
-                .map(RyZoned::from)
-                .collect()
-        })
+            fn __next__(&self) -> Option<$ry_item> {
+                self.series.py_lock().next().map(<$ry_item>::from)
+            }
+
+            #[pyo3(signature = (n = 1))]
+            fn take(&self, py: Python<'_>, n: usize) -> Vec<$ry_item> {
+                py.detach(|| {
+                    let mut s = self.series.py_lock();
+                    s.by_ref().take(n).map(<$ry_item>::from).collect()
+                })
+            }
+
+            fn take_until(&self, py: Python<'_>, value: &$ry_item) -> PyResult<Vec<$ry_item>> {
+                // make sure it is sane...
+                if !self.period.is_positive() {
+                    if value.0 > self.start {
+                        py_value_err!("cannot take_until vallue greater than start with negative period")
+                    } else {
+                        py.detach(|| {
+                            let mut s = self.series.py_lock();
+                            let items = s.by_ref().take_while(|item| item >= &value.0)
+                                .map(<$ry_item>::from)
+                                .collect::<Vec<$ry_item>>();
+                            Ok(items)
+                        })
+                    }
+                } else if self.period.is_positive(){
+                    if  value.0 < self.start {
+                        py_value_err!("cannot take_until vallue less than start with positive period")
+                    } else {
+                        py.detach(|| {
+                            let mut s = self.series.py_lock();
+                            let items = s.by_ref().take_while(|item| item <= &value.0)
+                                .map(<$ry_item>::from)
+                                .collect::<Vec<$ry_item>>();
+                            Ok(items)
+                        })
+                    }
+                } else{
+                    unreachable!() // already checked cant be 0 no way jose
+                }
+            }
+
+            fn collect(&self, py: Python<'_>) -> Vec<$ry_item> {
+                py.detach(|| {
+                    let mut s = self.series.py_lock();
+                    s.by_ref()
+                        .collect::<Vec<$jiff_item>>()
+                        .into_iter()
+                        .map(<$ry_item>::from)
+                        .collect()
+                })
+            }
+        }
+    };
+);
+
+impl_py_series_pymethods!(RyZonedSeries, RyZoned, jiff::ZonedSeries, jiff::Zoned);
+impl_py_series_pymethods!(
+    RyTimestampSeries,
+    RyTimestamp,
+    jiff::TimestampSeries,
+    jiff::Timestamp
+);
+impl_py_series_pymethods!(
+    RyTimeSeries,
+    RyTime,
+    jiff::civil::TimeSeries,
+    jiff::civil::Time
+);
+impl_py_series_pymethods!(
+    RyDateTimeSeries,
+    RyDateTime,
+    jiff::civil::DateTimeSeries,
+    jiff::civil::DateTime
+);
+impl_py_series_pymethods!(
+    RyDateSeries,
+    RyDate,
+    jiff::civil::DateSeries,
+    jiff::civil::Date
+);
+
+impl std::fmt::Debug for RyZonedSeries {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ZonedSeries(start={}, period={})",
+            RyZoned::from(self.start.clone()),
+            RySpan::from(self.period)
+        )
     }
 }

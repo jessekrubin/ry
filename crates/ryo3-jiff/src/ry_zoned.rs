@@ -670,10 +670,9 @@ impl RyZoned {
     }
 
     fn series(&self, period: &RySpan) -> PyResult<RyZonedSeries> {
-        period.assert_non_zero()?;
-        let s = self.0.series(period.0);
-        Ok(RyZonedSeries::from(s))
+        (self, period).try_into()
     }
+
     // -----------------------------------------------------------------------
     // getters
     // -----------------------------------------------------------------------
