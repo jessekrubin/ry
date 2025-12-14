@@ -194,7 +194,7 @@ macro_rules! impl_py_series_pymethods(
                 // make sure it is sane...
                 if !self.period.is_positive() {
                     if value.0 > self.start {
-                        py_value_err!("cannot take_until vallue greater than start with negative period")
+                        py_value_err!("cannot `take_until` for value greater than start w/ negative period")
                     } else {
                         py.detach(|| {
                             let mut s = self.series.py_lock();
@@ -206,7 +206,7 @@ macro_rules! impl_py_series_pymethods(
                     }
                 } else if self.period.is_positive(){
                     if  value.0 < self.start {
-                        py_value_err!("cannot take_until vallue less than start with positive period")
+                        py_value_err!("cannot `take_until` for value less than start w/ positive period")
                     } else {
                         py.detach(|| {
                             let mut s = self.series.py_lock();
