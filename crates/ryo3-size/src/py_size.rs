@@ -7,7 +7,7 @@ use std::ops::{Neg, Not};
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "Size", frozen, immutable_type)]
+#[pyclass(name = "Size", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySize(size::Size);
 
@@ -363,6 +363,23 @@ impl PySize {
     #[staticmethod]
     fn from_tib(size: PySizeIntermediate) -> Self {
         Self(size::Size::from_tib(size.float64()))
+    }
+}
+impl<'py> FromPyObject<'_, 'py> for PySize {
+    type Error = pyo3::PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(s) = obj.cast_exact::<Self>() {
+            Ok(Self::from(s))
+        } else {
+            Err(PyTypeError::new_err("Must be Size"))
+        }
+    }
+}
+
+impl From<Borrowed<'_, '_, Self>> for PySize {
+    fn from(value: Borrowed<'_, '_, Self>) -> Self {
+        Self(value.get().0)
     }
 }
 

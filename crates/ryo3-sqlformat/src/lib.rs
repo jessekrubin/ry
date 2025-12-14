@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 
-#[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type)]
+#[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct PySqlfmtQueryParams(QueryParams);
@@ -491,7 +491,7 @@ struct PySqlFormatterOptions {
 }
 
 #[derive(Clone)]
-#[pyclass(name = "SqlFormatter", frozen, immutable_type)]
+#[pyclass(name = "SqlFormatter", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySqlFormatter(PySqlFormatterOptions);
 

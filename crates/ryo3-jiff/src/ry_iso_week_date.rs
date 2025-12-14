@@ -10,7 +10,7 @@ use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "ISOWeekDate", frozen, immutable_type)]
+#[pyclass(name = "ISOWeekDate", frozen, immutable_type, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 

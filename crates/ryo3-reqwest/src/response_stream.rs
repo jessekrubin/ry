@@ -30,7 +30,7 @@ use tokio::sync::Mutex;
 
 type AsyncResponseStreamInner = Arc<Mutex<Fuse<BoxStream<'static, Result<Bytes, reqwest::Error>>>>>;
 
-#[pyclass(name = "ResponseStream", frozen, immutable_type)]
+#[pyclass(name = "ResponseStream", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyResponseStream {
     status: StatusCode,
@@ -124,7 +124,12 @@ impl RyResponseStream {
     }
 }
 
-#[pyclass(name = "BlockingResponseStream", frozen, immutable_type)]
+#[pyclass(
+    name = "BlockingResponseStream",
+    frozen,
+    immutable_type,
+    skip_from_py_object
+)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingResponseStream {
     status: StatusCode,

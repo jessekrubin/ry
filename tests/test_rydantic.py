@@ -662,6 +662,8 @@ class TestSignedDuration:
     @pytest.mark.parametrize(
         "value,result",
         [
+            # self
+            (ry.SignedDuration(secs=30), pydt.timedelta(seconds=30)),
             # seconds
             (pydt.timedelta(seconds=30), pydt.timedelta(seconds=30)),
             (30, pydt.timedelta(seconds=30)),
@@ -703,10 +705,10 @@ class TestSignedDuration:
         self, value: float | str | bytes | pydt.datetime, result: pydt.timedelta
     ) -> None:
         m = RySignedDurationModel(d=value)  # type: ignore[arg-type]
-        assert m.d == result
+        assert m.d.to_py() == result
         as_json = m.model_dump_json()
         from_json = m.model_validate_json(as_json)
-        assert from_json.d == result
+        assert from_json.d == m.d
 
     @pytest.mark.parametrize(
         "value",
@@ -721,6 +723,11 @@ class TestSignedDuration:
             "P4W",
             "P4D",
             "P0.5D",
+            # bad val
+            float("inf"),
+            float("nan"),
+            # wrong type
+            complex(1, 2),  # hot damn too complex for signed duration
         ],
     )
     def test_parse_signed_duration_err(self, value: t.Any) -> None:
