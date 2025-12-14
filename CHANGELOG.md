@@ -5,7 +5,8 @@
 - updating pyo3 to use `skip_from_py_object` where applicable (this will be a
   staged effort)
 - `ryo3-serde`
-  - move to using `borrowed` over `&bound`; benchmarks show 10-20% perf in serializing
+  - move to using `borrowed` over `&bound`; benchmarks show 10-20% perf in
+    serializing
 - `ryo3-jiff`
   - Removed equality with `datetime.timedelta` can use `ry.SignedDuration.equiv`
     to compare to `datetime.timedelta`, `ry.SignedDuration`, or `ry.Duration`.
