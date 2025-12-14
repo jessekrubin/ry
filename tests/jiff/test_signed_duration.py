@@ -196,7 +196,12 @@ def test_equality() -> None:
         (ry.SignedDuration(1, 0), ry.Duration(2), False),
     ],
 )
-def test_equiv(left, right, is_equiv) -> None:
+def test_equiv(
+    left: ry.SignedDuration,
+    right: ry.SignedDuration | pydt.timedelta | ry.Duration,
+    *,
+    is_equiv: bool,
+) -> None:
     assert left.equiv(right) is is_equiv
 
 

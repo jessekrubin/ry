@@ -42,3 +42,7 @@ def test_timestamp_series_jiff_example() -> None:
         ry.Timestamp.parse("2023-07-17 08:30:00-04:00"),
         ry.Timestamp.parse("2023-07-17 13:30:00-04:00"),
     ]
+    # alternatively testing take_until
+    series = start.series(ry.TimeSpan()._hours(5))
+    values = series.take_until(end)
+    assert values == scan_times

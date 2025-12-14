@@ -291,11 +291,7 @@ impl RyDate {
     }
 
     fn series(&self, period: &RySpan) -> PyResult<RyDateSeries> {
-        if period.0.is_zero() {
-            Err(py_value_error!("period cannot be zero"))
-        } else {
-            Ok(RyDateSeries::from(self.0.series(period.0)))
-        }
+        (self, period).try_into()
     }
 
     fn day_of_year(&self) -> i16 {

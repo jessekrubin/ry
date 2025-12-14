@@ -316,9 +316,6 @@ impl RySpan {
     }
 
     fn __repr__(&self) -> String {
-        // parts that we want are the years, months, weeks, days, hours,
-        // minutes, seconds, milliseconds, microseconds, nanoseconds if not
-        // zero in the form of kwargs i guess??? tbd
         format!("{self}")
     }
 
@@ -736,6 +733,9 @@ impl RySpan {
 
 impl Display for RySpan {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // parts that we want are the years, months, weeks, days, hours,
+        // minutes, seconds, milliseconds, microseconds, nanoseconds if not
+        // zero in the form of kwargs i guess??? tbd
         f.write_str("TimeSpan(")?;
         let mut write_sep = false;
 

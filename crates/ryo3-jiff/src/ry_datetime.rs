@@ -314,9 +314,7 @@ impl RyDateTime {
     }
 
     fn series(&self, period: &RySpan) -> PyResult<RyDateTimeSeries> {
-        period.assert_non_zero()?;
-        let s = self.0.series(period.0);
-        Ok(RyDateTimeSeries::from(s))
+        (self, period).try_into()
     }
 
     #[expect(clippy::wrong_self_convention)]

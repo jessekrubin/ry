@@ -40,6 +40,7 @@ ry.Bytes.fromhex
 ry.Certificate.from_pem_bundle
 ry.Date.from_iso_week_date
 ry.Date.from_pydate
+ry.Date.now
 ry.Date.parse
 ry.Date.strptime
 ry.Date.today
@@ -78,6 +79,7 @@ ry.Ipv4Addr.parse
 ry.Ipv6Addr.from_bits
 ry.Ipv6Addr.parse
 ry.Offset.from_hours
+ry.Offset.from_pytimedelta
 ry.Offset.from_pytzinfo
 ry.Offset.from_seconds
 ry.Offset.parse

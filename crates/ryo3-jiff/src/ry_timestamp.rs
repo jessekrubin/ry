@@ -167,11 +167,7 @@ impl RyTimestamp {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Timestamp({:?}, {:?})",
-            self.0.as_second(),
-            self.0.subsec_nanosecond()
-        )
+        format!("{self}")
     }
 
     fn __hash__(&self) -> u64 {
@@ -233,21 +229,23 @@ impl RyTimestamp {
         self.0.as_nanosecond()
     }
 
+    #[getter]
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
 
+    #[getter]
     fn subsec_microsecond(&self) -> i32 {
         self.0.subsec_microsecond()
     }
 
+    #[getter]
     fn subsec_millisecond(&self) -> i32 {
         self.0.subsec_millisecond()
     }
 
     fn series(&self, period: &RySpan) -> PyResult<RyTimestampSeries> {
-        period.assert_non_zero()?;
-        Ok(self.0.series(period.0).into())
+        (self, period).try_into()
     }
 
     #[getter]
