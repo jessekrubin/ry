@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-211ec706.js";
+            window.path_to_searchindex_js = "searchindex-7d994b96.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-13T19:41:59.158005721-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-14T03:03:50.734413759-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -4937,7 +4937,7 @@ class SignedDuration(
     @classmethod
     def from_nanos(cls, nanos: int) -&gt; t.Self: ...
     @classmethod
-    def from_secs(cls, secs: int) -&gt; t.Self: ...
+    def from_secs(cls, secs: float) -&gt; t.Self: ...
     @classmethod
     def from_secs_f32(cls, secs: float) -&gt; t.Self: ...
     @classmethod
@@ -5293,9 +5293,83 @@ class Timestamp(
     def __format__(self, fmt: str) -&gt; str: ...
 
     # =========================================================================
+    # PROPERTIES
+    # =========================================================================
+    @property
+    def subsec_microsecond(self) -&gt; int:
+        """Return the subsecond microsecond component (-999_999..999_999)
+
+        Returns:
+            int: subsecond microsecond component of the timestamp
+
+        Examples:
+            &gt;&gt;&gt; import ry
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 123_456_789)
+            &gt;&gt;&gt; ts.subsec_microsecond
+            123456
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 999_999_999)
+            &gt;&gt;&gt; ts.subsec_microsecond
+            999999
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -123_456_789)
+            &gt;&gt;&gt; ts.subsec_microsecond
+            -123456
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -999_999_999)
+            &gt;&gt;&gt; ts.subsec_microsecond
+            -999999
+
+        """
+
+    @property
+    def subsec_millisecond(self) -&gt; int:
+        """Return the subsecond millisecond component (-999..999)
+
+        Returns:
+            int: The subsecond millisecond component of the timestamp (-999..999).
+
+        Examples:
+            &gt;&gt;&gt; import ry
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 123_456_789)
+            &gt;&gt;&gt; ts.subsec_millisecond
+            123
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 999_999_999)
+            &gt;&gt;&gt; ts.subsec_millisecond
+            999
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -123_456_789)
+            &gt;&gt;&gt; ts.subsec_millisecond
+            -123
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -999_999_999)
+            &gt;&gt;&gt; ts.subsec_millisecond
+            -999
+
+        """
+
+    @property
+    def subsec_nanosecond(self) -&gt; int:
+        """Return the subsecond nanosecond component (-999_999_999..999_999_999)
+
+        Returns:
+            int: The subsecond nanosecond component of the timestamp (-999_999_999..999_999_999).
+
+        Examples:
+            &gt;&gt;&gt; import ry
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 123_456_789)
+            &gt;&gt;&gt; ts.subsec_nanosecond
+            123456789
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 999_999_999)
+            &gt;&gt;&gt; ts.subsec_nanosecond
+            999999999
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -123_456_789)
+            &gt;&gt;&gt; ts.subsec_nanosecond
+            -123456789
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -999_999_999)
+            &gt;&gt;&gt; ts.subsec_nanosecond
+            -999999999
+
+        """
+
+    # =========================================================================
     # INSTANCE METHODS
     # =========================================================================
-
     def date(self) -&gt; Date: ...
     def datetime(self) -&gt; DateTime: ...
     def iso_week_date(self) -&gt; ISOWeekDate: ...
@@ -5315,9 +5389,6 @@ class Timestamp(
     def series(self, period: TimeSpan) -&gt; JiffSeries[t.Self]: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
     def to_string(self) -&gt; str: ...
-    def subsec_microsecond(self) -&gt; int: ...
-    def subsec_millisecond(self) -&gt; int: ...
-    def subsec_nanosecond(self) -&gt; int: ...
     def to_zoned(self, time_zone: TimeZone) -&gt; ZonedDateTime: ...
 
     # =========================================================================
@@ -5732,7 +5803,7 @@ class Offset(
     # =========================================================================
     # __FROM__
     @classmethod
-    def from_pytimedelta(cls, tz: pydt.timedelta) -&gt; t.Self: ...
+    def from_pytimedelta(cls, delta: pydt.timedelta) -&gt; t.Self: ...
     @classmethod
     def from_pytzinfo(cls, tz: pydt.tzinfo) -&gt; t.Self: ...
     @classmethod
