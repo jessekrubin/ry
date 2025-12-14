@@ -23,7 +23,7 @@ pub(crate) struct SerializePyTuple<'a, 'py> {
 
 impl<'a, 'py> SerializePyTuple<'a, 'py> {
     pub(crate) fn new(
-        obj: &'a Bound<'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {

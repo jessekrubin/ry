@@ -88,13 +88,13 @@ macro_rules! ry_type_serializer_struct {
     ) => (
         $(#[$meta])*
         pub(crate) struct $name<'py>{
-            ob:  &'py Bound<'py, PyAny>
+            ob:  Borrowed<'py, 'py, PyAny>
         }
 
         $(#[$meta])*
         impl<'py> $name<'py> {
             #[inline]
-            pub(crate) fn new(obj: &'py Bound<'py, PyAny>) -> Self {
+            pub(crate) fn new(obj: Borrowed<'py, 'py, PyAny>) -> Self {
                 Self {
                     ob: obj,
                 }

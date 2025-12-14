@@ -24,14 +24,14 @@ use pyo3::Bound;
 use pyo3::types::{PyAnyMethods, PyMapping, PySequence, PyString};
 
 pub struct SerializePyAny<'py> {
-    pub(crate) obj: &'py Bound<'py, PyAny>,
+    pub(crate) obj: Borrowed<'py, 'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
 impl<'py> SerializePyAny<'py> {
     #[must_use]
-    pub fn new(obj: &'py Bound<'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+    pub fn new(obj: Borrowed<'py, 'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
         let py = obj.py();
         let typeref = PyTypeCache::cached(py);
         let ctx = PySerializeContext::new(default, typeref);
@@ -40,14 +40,14 @@ impl<'py> SerializePyAny<'py> {
 
     #[must_use]
     pub(crate) fn new_with_depth(
-        obj: &'py Bound<'py, PyAny>,
+        obj: Borrowed<'py, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { obj, ctx, depth }
     }
 
-    pub(crate) fn with_obj(&self, obj: &'py Bound<'py, PyAny>) -> Self {
+    pub(crate) fn with_obj(&self, obj: Borrowed<'py, 'py, PyAny>) -> Self {
         Self {
             obj,
             ctx: self.ctx,

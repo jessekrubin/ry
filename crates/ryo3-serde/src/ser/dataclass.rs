@@ -3,7 +3,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyType};
 use pyo3::{Bound, intern};
 
-pub(crate) fn dataclass_fields<'a, 'py>(obj: &'a Bound<'py, PyAny>) -> Option<Bound<'py, PyDict>>
+pub(crate) fn dataclass_fields<'a, 'py>(obj: Borrowed<'a, 'py, PyAny>) -> Option<Bound<'py, PyDict>>
+
 where
     'py: 'a,
 {

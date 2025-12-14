@@ -10,11 +10,11 @@ use pyo3::types::{PyDate, PyDateTime, PyTime};
 // python stdlib `datetime.date`
 // ---------------------------------------------------------------------------
 pub(crate) struct SerializePyDate<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyDate<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
@@ -36,12 +36,12 @@ impl Serialize for SerializePyDate<'_, '_> {
 // python stdlib `datetime.date`
 // ---------------------------------------------------------------------------
 pub(crate) struct SerializePyTime<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyTime<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
@@ -63,12 +63,12 @@ impl Serialize for SerializePyTime<'_, '_> {
 // python stdlib `datetime.datetime`
 // ---------------------------------------------------------------------------
 pub(crate) struct SerializePyDateTime<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyDateTime<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
@@ -115,11 +115,11 @@ impl Serialize for SerializePyDateTime<'_, '_> {
 // ---------------------------------------------------------------------------
 #[cfg_attr(not(feature = "jiff"), expect(dead_code))]
 pub(crate) struct SerializePyTimeDelta<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 impl<'a, 'py> SerializePyTimeDelta<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
