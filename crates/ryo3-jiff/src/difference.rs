@@ -94,7 +94,7 @@ impl DifferenceOptions {
 // DateDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateDifference", frozen, immutable_type)]
+#[pyclass(name = "DateDifference", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateDifference {
     date: RyDate,
@@ -117,7 +117,7 @@ impl RyDateDifference {
     )]
     #[must_use]
     fn py_new(
-        date: &RyDate,
+        date: RyDate,
         smallest: JiffUnit,
         largest: Option<JiffUnit>,
         mode: JiffRoundMode,
@@ -137,7 +137,7 @@ impl RyDateDifference {
             increment,
         };
         Self {
-            date: *date,
+            date,
             options,
             diff,
         }
@@ -312,7 +312,12 @@ impl DateDifferenceArg {
 // ============================================================================
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateTimeDifference", frozen, immutable_type)]
+#[pyclass(
+    name = "DateTimeDifference",
+    frozen,
+    immutable_type,
+    skip_from_py_object
+)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeDifference {
     datetime: RyDateTime,
@@ -335,7 +340,7 @@ impl RyDateTimeDifference {
     )]
     #[must_use]
     fn py_new(
-        datetime: &RyDateTime,
+        datetime: RyDateTime,
         smallest: JiffUnit,
         largest: Option<JiffUnit>,
         mode: JiffRoundMode,
@@ -355,7 +360,7 @@ impl RyDateTimeDifference {
             increment,
         };
         Self {
-            datetime: *datetime,
+            datetime,
             options,
             diff,
         }
@@ -525,7 +530,7 @@ impl DateTimeDifferenceArg {
 // TimeDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeDifference", frozen, immutable_type)]
+#[pyclass(name = "TimeDifference", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeDifference {
     time: RyTime,
@@ -548,7 +553,7 @@ impl RyTimeDifference {
     )]
     #[must_use]
     fn py_new(
-        time: &RyTime,
+        time: RyTime,
         smallest: JiffUnit,
         largest: Option<JiffUnit>,
         mode: JiffRoundMode,
@@ -568,7 +573,7 @@ impl RyTimeDifference {
             increment,
         };
         Self {
-            time: *time,
+            time,
             options,
             diff,
         }
@@ -748,7 +753,12 @@ impl TimeDifferenceArg {
 // TimestampDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimestampDifference", frozen, immutable_type)]
+#[pyclass(
+    name = "TimestampDifference",
+    frozen,
+    immutable_type,
+    skip_from_py_object
+)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampDifference {
     timestamp: RyTimestamp,
@@ -771,7 +781,7 @@ impl RyTimestampDifference {
     )]
     #[must_use]
     fn py_new(
-        timestamp: &RyTimestamp,
+        timestamp: RyTimestamp,
         smallest: JiffUnit,
         largest: Option<JiffUnit>,
         mode: JiffRoundMode,
@@ -791,7 +801,7 @@ impl RyTimestampDifference {
             increment,
         };
         Self {
-            timestamp: *timestamp,
+            timestamp,
             options,
             diff,
         }
@@ -963,7 +973,12 @@ impl TimestampDifferenceArg {
 // ZonedDateTimeDifference
 // ============================================================================
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTimeDifference", frozen, immutable_type)]
+#[pyclass(
+    name = "ZonedDateTimeDifference",
+    frozen,
+    immutable_type,
+    skip_from_py_object
+)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDifference {
     zoned: RyZoned,
@@ -985,7 +1000,7 @@ impl RyZonedDifference {
     )]
     #[must_use]
     fn py_new(
-        zoned: &RyZoned,
+        zoned: RyZoned,
         smallest: JiffUnit,
         largest: Option<JiffUnit>,
         mode: JiffRoundMode,
@@ -997,10 +1012,7 @@ impl RyZonedDifference {
             mode,
             increment,
         };
-        Self {
-            zoned: zoned.clone(),
-            options,
-        }
+        Self { zoned, options }
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

@@ -17,7 +17,7 @@ use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::vec;
 
-#[pyclass(name = "Offset", frozen, immutable_type)]
+#[pyclass(name = "Offset", frozen, immutable_type, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);

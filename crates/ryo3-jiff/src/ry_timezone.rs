@@ -15,7 +15,7 @@ use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeZone", frozen, immutable_type)]
+#[pyclass(name = "TimeZone", frozen, immutable_type, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) std::sync::Arc<TimeZone>);
 

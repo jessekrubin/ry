@@ -13,7 +13,7 @@ use ryo3_url::PyUrl;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-#[pyclass(name = "Response", frozen, immutable_type)]
+#[pyclass(name = "Response", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature="ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyResponse {

@@ -7,8 +7,9 @@ fn extract_regex(regex: &Bound<PyAny>) -> PyResult<PyRegex> {
     if let Ok(regex) = regex.cast::<PyString>() {
         let regex = regex.to_str()?;
         PyRegex::try_from(regex)
-    } else if let Ok(regex) = regex.extract::<PyRegex>() {
-        Ok(regex)
+    } else if let Ok(regex) = regex.cast_exact::<PyRegex>() {
+        // TODO: rethink cloning etc...
+        Ok(regex.get().clone())
     } else {
         Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
             "which-re: regex must be a string or a compiled regex",

@@ -1,5 +1,6 @@
 // #![expect(clippy::trivially_copy_pass_by_ref)]
 use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
+use pyo3::exceptions::PyTypeError;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, prelude::*};
 use ryo3_core::{PyFromStr, PyParse};
@@ -9,21 +10,21 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "Ipv4Addr", frozen, immutable_type)]
+#[pyclass(name = "Ipv4Addr", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv4Addr(pub Ipv4Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "Ipv6Addr", frozen, immutable_type)]
+#[pyclass(name = "Ipv6Addr", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv6Addr(pub Ipv6Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "IpAddr", frozen, immutable_type)]
+#[pyclass(name = "IpAddr", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpAddr(pub IpAddr);
@@ -838,13 +839,36 @@ impl PyIpAddr {
 // ========================================================================
 // IpAddrLike
 // ========================================================================
-#[derive(FromPyObject, Clone, Debug)]
+#[derive(Debug)]
 pub(crate) enum IpAddrLike {
     Ryv4(PyIpv4Addr),
     Ryv6(PyIpv6Addr),
     Ry(PyIpAddr),
     Str(String),
     Py(IpAddr),
+}
+
+impl<'py> FromPyObject<'_, 'py> for IpAddrLike {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(addr) = obj.cast_exact::<PyIpv4Addr>() {
+            Ok(Self::Ryv4(addr.get().0.into()))
+        } else if let Ok(addr) = obj.cast_exact::<PyIpv6Addr>() {
+            Ok(Self::Ryv6(addr.get().0.into()))
+        } else if let Ok(addr) = obj.cast_exact::<PyIpAddr>() {
+            Ok(Self::Ry(addr.get().0.into()))
+        } else if let Ok(addr) = obj.extract::<IpAddr>() {
+            Ok(Self::Py(addr))
+        } else if let Ok(s) = obj.extract::<String>() {
+            Ok(Self::Str(s))
+        } else {
+            let valtype = any_repr!(obj);
+            Err(PyTypeError::new_err(format!(
+                "IpAddrLike conversion error: {valtype}"
+            )))
+        }
+    }
 }
 
 impl IpAddrLike {

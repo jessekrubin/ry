@@ -3,27 +3,27 @@ use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use crate::net::ipaddr_props::IpAddrProps;
 use pyo3::{BoundObject, prelude::*};
 use ryo3_core::{PyFromStr, PyParse};
-use ryo3_macro_rules::{any_repr, py_type_err, py_value_err};
+use ryo3_macro_rules::{any_repr, py_type_err, py_type_error, py_value_err};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "SocketAddrV4", frozen, immutable_type)]
+#[pyclass(name = "SocketAddrV4", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddrV4(pub(crate) SocketAddrV4);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "SocketAddrV6", frozen, immutable_type)]
+#[pyclass(name = "SocketAddrV6", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddrV6(pub(crate) SocketAddrV6);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[pyclass(name = "SocketAddr", frozen, immutable_type)]
+#[pyclass(name = "SocketAddr", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddr(pub(crate) SocketAddr);
@@ -456,14 +456,14 @@ impl PySocketAddrV6 {
 impl PySocketAddr {
     #[new]
     #[pyo3(signature = (ip, port, flowinfo = None, scope_id = None))]
-    #[expect(clippy::needless_pass_by_value)]
     pub(crate) fn py_new(
-        ip: IpAddrLike,
+        ip: &Bound<'_, PyAny>,
         port: u16,
         flowinfo: Option<u32>,
         scope_id: Option<u32>,
     ) -> PyResult<Self> {
-        let ip = ip.get_ip()?;
+        let iplike = ip.extract::<IpAddrLike>()?;
+        let ip = iplike.get_ip()?;
         match ip {
             IpAddr::V4(ipv4) => {
                 let sa = SocketAddr::V4(SocketAddrV4::new(ipv4, port));
@@ -706,5 +706,35 @@ impl PySocketAddr {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PySocketAddrV4 {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        obj.cast_exact::<Self>()
+            .map(|val| *(val.get()))
+            .map_err(|_| py_type_error!("Expected SocketAddrV4"))
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PySocketAddrV6 {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        obj.cast_exact::<Self>()
+            .map(|val| *(val.get()))
+            .map_err(|_| py_type_error!("Expected SocketAddrV6"))
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PySocketAddr {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        obj.cast_exact::<Self>()
+            .map(|val| *(val.get()))
+            .map_err(|_| py_type_error!("Expected SocketAddr"))
     }
 }

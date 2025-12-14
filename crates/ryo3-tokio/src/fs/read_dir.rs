@@ -11,7 +11,7 @@ use tokio::sync::Mutex;
 
 type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 
-#[pyclass(name = "AsyncReadDir", frozen, immutable_type)]
+#[pyclass(name = "AsyncReadDir", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncReadDir {
     stream: AsyncResponseStreamInner,
@@ -80,7 +80,7 @@ impl PyAsyncReadDir {
     }
 }
 
-#[pyclass(name = "AsyncDirEntry", frozen, immutable_type)]
+#[pyclass(name = "AsyncDirEntry", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct PyAsyncDirEntry(pub Arc<tokio::fs::DirEntry>);
 

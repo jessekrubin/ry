@@ -7,7 +7,7 @@ use ryo3_core::types::{PyDigest, PyHexDigest};
 use std::hash::Hasher;
 use twox_hash::XxHash32;
 
-#[pyclass(name = "xxh32", frozen, immutable_type)]
+#[pyclass(name = "xxh32", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash32 {
     seed: u32,

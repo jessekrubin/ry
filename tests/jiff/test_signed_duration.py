@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
+import typing as t
 from math import isnan
 
 import pytest
@@ -10,7 +11,7 @@ from hypothesis import strategies as st
 import ry
 
 from ..strategies import st_i32, st_i64
-from .strategies import st_signed_duration_args, st_signed_durations
+from .strategies import st_signed_durations
 
 _NANOS_PER_SEC: int = 1_000_000_000
 _NANOS_PER_MILLI: int = 1_000_000
@@ -21,19 +22,32 @@ _SECS_PER_MINUTE: int = 60
 _MINS_PER_HOUR: int = 60
 
 
-@given(st_signed_duration_args())
-def test_signed_duration_new(duration_args: tuple[int, int]) -> None:
-    secs, nanos = duration_args
-    try:
-        dur = ry.SignedDuration(secs, nanos)
-        assert isinstance(dur, ry.SignedDuration)
-    except OverflowError:
-        ...
-
-
 def test_signed_duration_min_max() -> None:
     assert ry.SignedDuration.MIN == ry.SignedDuration(-(1 << 63), -999_999_999)
     assert ry.SignedDuration.MAX == ry.SignedDuration((1 << 63) - 1, 999_999_999)
+
+
+@given(st_i64, st_i32)
+def test_signed_duration_new(secs: int, nanos: int) -> None:
+    # WTF this is some fugue-state-jesse oneliner unreadable bullshit shit from
+    # the other day
+    will_overflow = (abs(nanos) >= _NANOS_PER_SEC) and not (
+        ry.I64_MIN
+        <= (
+            secs
+            + ((nanos // _NANOS_PER_SEC) if nanos > 0 else -(-nanos // _NANOS_PER_SEC))
+        )
+        <= ry.I64_MAX
+    )
+    if will_overflow:
+        with pytest.raises(OverflowError):
+            _ = ry.SignedDuration(secs, nanos)
+    else:
+        dur = ry.SignedDuration(secs, nanos)
+        assert isinstance(dur, ry.SignedDuration)
+        expected_float = secs + (nanos / _NANOS_PER_SEC)
+        # check close enough
+        assert abs(float(dur) - expected_float) < 1e-9
 
 
 def test_signed_duration_cmp() -> None:
@@ -72,6 +86,7 @@ def test_cast_bool(dur: ry.SignedDuration) -> None:
     assert b == (not dur.is_zero)
 
 
+@pytest.mark.skip(reason="legacy behavior ~ remove this test me")
 def test_signed_duration_cmp_timedelta() -> None:
     left = ry.SignedDuration(1, 2)
     right = ry.SignedDuration(3, 4).to_py()
@@ -95,6 +110,14 @@ def test_duration_from_pydelta() -> None:
     assert ryduration.days == 1
     assert ryduration.seconds == (2 * 60 * 60) + (3 * 60) + 4
     assert ryduration.microseconds == 5
+
+
+def test_to_timespan() -> None:
+    dur = ry.SignedDuration(10, 500_000_000)
+    timespan = dur.to_timespan()
+    assert isinstance(timespan, ry.TimeSpan)
+    assert timespan.seconds == 10
+    assert timespan.milliseconds == 500
 
 
 def test_truediv() -> None:
@@ -143,15 +166,46 @@ def test_equality() -> None:
     assert ryduration2 == ryduration2
     assert ryduration2 != ryduration
 
-    assert ryduration == pydelta
-    assert pydelta == ryduration
-    assert ryduration2 == pydelta2
-    assert pydelta2 == ryduration2
+    assert ryduration.equiv(pydelta)
+    assert pydelta == ryduration.to_py()
+    assert ryduration2.equiv(pydelta2)
+    assert pydelta2 == ryduration2.to_py()
 
-    assert ryduration != pydelta2
-    assert pydelta2 != ryduration
-    assert ryduration2 != pydelta
-    assert pydelta != ryduration2
+    assert not ryduration.equiv(pydelta2)
+    assert not ryduration2.equiv(pydelta)
+    assert not pydelta2 == ryduration.to_py()
+    assert not ryduration2.to_py() == pydelta
+    assert not pydelta == ryduration2.to_py()
+
+
+@pytest.mark.parametrize(
+    "left,right,is_equiv",
+    [
+        # equiv
+        (ry.SignedDuration(1, 0), ry.SignedDuration(1, 0), True),
+        (ry.SignedDuration(1, 0), pydt.timedelta(seconds=1), True),
+        (ry.SignedDuration(1, 0), ry.Duration(1), True),
+        # not equiv
+        (ry.SignedDuration(1, 0), ry.SignedDuration(2, 0), False),
+        (ry.SignedDuration(1, 0), pydt.timedelta(seconds=2), False),
+        (ry.SignedDuration(1, 0), ry.Duration(2), False),
+    ],
+)
+def test_equiv(left, right, is_equiv) -> None:
+    assert left.equiv(right) is is_equiv
+
+
+@pytest.mark.parametrize(
+    "obj",
+    (
+        complex(1, 2),
+        1234,
+        [1, 2, 3],
+    ),
+)
+def test_equiv_invalid_type(obj) -> None:
+    with pytest.raises(TypeError):
+        _e = ry.SignedDuration(1, 0).equiv(obj)
 
 
 class TestSignedDurationProperties:
@@ -598,6 +652,26 @@ class TestDurationArithmetic:
         except OverflowError:
             ...
 
+    @pytest.mark.parametrize(
+        "opperator,value",
+        [
+            (op, value)
+            for op in [
+                "__add__",
+                "__radd__",
+                "__sub__",
+                "__rsub__",
+                "__truediv__",
+                "__mul__",
+            ]
+            for value in ["string", [], complex(1, 2)]
+        ],
+    )
+    def test_operators_type_errors(self, opperator: str, value: t.Any) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(TypeError):
+            _ = getattr(dur, opperator)(value)  # type: ignore[operator]
+
 
 class TestSignedDurationCheckedArithmetic:
     @given(st_signed_durations(), st_signed_durations())
@@ -900,7 +974,7 @@ class TestSignedDurationFromIntegers:
         with pytest.raises(AttributeError):
             _ = ry.SignedDuration.from_days(1)  # type: ignore[attr-defined]
 
-    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    @given(st.floats(width=32))
     def test_from_secs_f32(self, secs: float) -> None:
         if isnan(secs):
             with pytest.raises(ValueError):
@@ -915,17 +989,28 @@ class TestSignedDurationFromIntegers:
             except OverflowError:
                 ...
 
-    @given(st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX))
+    @given(st.floats(width=64))
     def test_from_secs_f64(self, secs: float) -> None:
         if isnan(secs):
             with pytest.raises(ValueError):
                 _dur = ry.SignedDuration.from_secs_f64(secs)
+            with pytest.raises(ValueError):
+                _dur = ry.SignedDuration.from_secs(secs)
         elif secs == float("inf"):
             with pytest.raises(OverflowError):
                 _dur = ry.SignedDuration.from_secs_f64(secs)
+            with pytest.raises(OverflowError):
+                _dur = ry.SignedDuration.from_secs(secs)
         else:
             try:
                 dur = ry.SignedDuration.from_secs_f64(secs)
+                dur2 = ry.SignedDuration.from_secs(secs)
                 assert isinstance(dur, ry.SignedDuration)
+                assert isinstance(dur2, ry.SignedDuration)
+                assert dur == dur2
             except OverflowError:
                 ...
+
+    def test_from_secs_type_error(self) -> None:
+        with pytest.raises(TypeError):
+            _ = ry.SignedDuration.from_secs("string")  # type: ignore[arg-type]
