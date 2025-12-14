@@ -132,12 +132,6 @@ duration_strategy = st.builds(
 
 
 # unsigned ────────────────────────────────────────────────────────────
-def st_signed_duration_args() -> SearchStrategy[tuple[int, int]]:
-    """Strategy for `ry.Duration` constructor arguments"""
-    return st.tuples(
-        st.integers(min_value=-(1 << 63), max_value=(1 << 63) - 1),
-        st.integers(min_value=-999_999_999, max_value=999_999_999),
-    )
 
 
 def st_signed_durations(
