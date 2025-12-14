@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-cbae114d.js";
+            window.path_to_searchindex_js = "searchindex-51dfdf29.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-12T13:37:11.985103641-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-13T18:01:20.905529422-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -491,6 +491,18 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0074-unreleased"><a class="header" href="#v0074-unreleased">v0.0.74 [unreleased]</a></h2>
+<ul>
+<li>updating pyo3 to use <code>skip_from_py_object</code> where applicable (this will be a
+staged effort)</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>Removed equality with <code>datetime.timedelta</code> can use <code>ry.SignedDuration.equiv</code>
+to compare to <code>datetime.timedelta</code>, <code>ry.SignedDuration</code>, or <code>ry.Duration</code>.</li>
+</ul>
+</li>
+</ul>
+<hr>
 <h2 id="v0073-2025-12-12"><a class="header" href="#v0073-2025-12-12">v0.0.73 [2025-12-12]</a></h2>
 <ul>
 <li><code>ryo3-jiff</code>
@@ -4879,8 +4891,11 @@ class SignedDuration(
     def __truediv__(self, other: float) -&gt; t.Self: ...
     def abs(self) -&gt; t.Self: ...
     def unsigned_abs(self) -&gt; Duration: ...
-    def __richcmp__(self, other: t.Self | pydt.timedelta, op: int) -&gt; bool: ...
-
+    def __richcmp__(self, other: t.Self, op: int) -&gt; bool: ...
+    # =========================================================================
+    # EQUIV
+    # =========================================================================
+    def equiv(self, other: t.Self | Duration | pydt.timedelta) -&gt; bool: ...
     # =========================================================================
     # STRING
     # =========================================================================
@@ -4898,7 +4913,6 @@ class SignedDuration(
     def to_py(self) -&gt; pydt.timedelta: ...
     def to_pytimedelta(self) -&gt; pydt.timedelta: ...
     def to_dict(self) -&gt; SignedDurationTypedDict: ...
-
     # =========================================================================
     # CLASS METHODS
     # =========================================================================

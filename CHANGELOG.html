@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-cbae114d.js";
+            window.path_to_searchindex_js = "searchindex-51dfdf29.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -181,6 +181,18 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0074-unreleased"><a class="header" href="#v0074-unreleased">v0.0.74 [unreleased]</a></h2>
+<ul>
+<li>updating pyo3 to use <code>skip_from_py_object</code> where applicable (this will be a
+staged effort)</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>Removed equality with <code>datetime.timedelta</code> can use <code>ry.SignedDuration.equiv</code>
+to compare to <code>datetime.timedelta</code>, <code>ry.SignedDuration</code>, or <code>ry.Duration</code>.</li>
+</ul>
+</li>
+</ul>
+<hr>
 <h2 id="v0073-2025-12-12"><a class="header" href="#v0073-2025-12-12">v0.0.73 [2025-12-12]</a></h2>
 <ul>
 <li><code>ryo3-jiff</code>
