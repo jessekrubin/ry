@@ -11,7 +11,7 @@ from hypothesis import strategies as st
 import ry
 
 from ..strategies import st_i32, st_i64
-from .strategies import st_signed_duration_args, st_signed_durations
+from .strategies import st_signed_durations
 
 _NANOS_PER_SEC: int = 1_000_000_000
 _NANOS_PER_MILLI: int = 1_000_000
@@ -22,19 +22,32 @@ _SECS_PER_MINUTE: int = 60
 _MINS_PER_HOUR: int = 60
 
 
-@given(st_signed_duration_args())
-def test_signed_duration_new(duration_args: tuple[int, int]) -> None:
-    secs, nanos = duration_args
-    try:
-        dur = ry.SignedDuration(secs, nanos)
-        assert isinstance(dur, ry.SignedDuration)
-    except OverflowError:
-        ...
-
-
 def test_signed_duration_min_max() -> None:
     assert ry.SignedDuration.MIN == ry.SignedDuration(-(1 << 63), -999_999_999)
     assert ry.SignedDuration.MAX == ry.SignedDuration((1 << 63) - 1, 999_999_999)
+
+
+@given(st_i64, st_i32)
+def test_signed_duration_new(secs: int, nanos: int) -> None:
+    # WTF this is some fugue-state-jesse oneliner unreadable bullshit shit from
+    # the other day
+    will_overflow = (abs(nanos) >= _NANOS_PER_SEC) and not (
+        ry.I64_MIN
+        <= (
+            secs
+            + ((nanos // _NANOS_PER_SEC) if nanos > 0 else -(-nanos // _NANOS_PER_SEC))
+        )
+        <= ry.I64_MAX
+    )
+    if will_overflow:
+        with pytest.raises(OverflowError):
+            _ = ry.SignedDuration(secs, nanos)
+    else:
+        dur = ry.SignedDuration(secs, nanos)
+        assert isinstance(dur, ry.SignedDuration)
+        expected_float = secs + (nanos / _NANOS_PER_SEC)
+        # check close enough
+        assert abs(float(dur) - expected_float) < 1e-9
 
 
 def test_signed_duration_cmp() -> None:
@@ -643,7 +656,14 @@ class TestDurationArithmetic:
         "opperator,value",
         [
             (op, value)
-            for op in ["__add__", "__radd__", "__sub__", "__rsub__", "__truediv__"]
+            for op in [
+                "__add__",
+                "__radd__",
+                "__sub__",
+                "__rsub__",
+                "__truediv__",
+                "__mul__",
+            ]
             for value in ["string", [], complex(1, 2)]
         ],
     )
@@ -974,12 +994,23 @@ class TestSignedDurationFromIntegers:
         if isnan(secs):
             with pytest.raises(ValueError):
                 _dur = ry.SignedDuration.from_secs_f64(secs)
+            with pytest.raises(ValueError):
+                _dur = ry.SignedDuration.from_secs(secs)
         elif secs == float("inf"):
             with pytest.raises(OverflowError):
                 _dur = ry.SignedDuration.from_secs_f64(secs)
+            with pytest.raises(OverflowError):
+                _dur = ry.SignedDuration.from_secs(secs)
         else:
             try:
                 dur = ry.SignedDuration.from_secs_f64(secs)
+                dur2 = ry.SignedDuration.from_secs(secs)
                 assert isinstance(dur, ry.SignedDuration)
+                assert isinstance(dur2, ry.SignedDuration)
+                assert dur == dur2
             except OverflowError:
                 ...
+
+    def test_from_secs_type_error(self) -> None:
+        with pytest.raises(TypeError):
+            _ = ry.SignedDuration.from_secs("string")  # type: ignore[arg-type]
