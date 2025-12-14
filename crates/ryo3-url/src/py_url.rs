@@ -715,7 +715,7 @@ fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
 }
 
 #[cfg(not(feature = "ryo3-std"))]
-fn extract_ip_host<'py>(address: &Bound<'py, PyAny>) -> PyResult<IpAddr> {
+fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
     if let Ok(ip) = address.extract::<std::net::IpAddr>() {
         Ok(ip)
     } else {

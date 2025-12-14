@@ -202,7 +202,7 @@ fn client_request_builder(
         req = req.timeout(timeout.0);
     }
     if let Some(query) = options.query {
-        let pyser = ryo3_serde::SerializePyAny::new(query, None);
+        let pyser = ryo3_serde::SerializePyAny::new(query.into(), None);
         req = req.query(&pyser);
     }
 
@@ -229,11 +229,11 @@ fn client_request_builder(
             }
         }
         (None, Some(json), None, None) => {
-            let wrapped = ryo3_serde::SerializePyAny::new(json, None);
+            let wrapped = ryo3_serde::SerializePyAny::new(json.into(), None);
             req = req.json(&wrapped);
         }
         (None, None, Some(form), None) => {
-            let pyser = ryo3_serde::SerializePyAny::new(form, None);
+            let pyser = ryo3_serde::SerializePyAny::new(form.into(), None);
             req = req.form(&pyser);
         }
         (None, None, None, Some(_multipart)) => {

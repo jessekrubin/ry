@@ -3,15 +3,13 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 
-use pyo3::Bound;
-
 pub(crate) struct SerializePyBytesLike<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyBytesLike<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }

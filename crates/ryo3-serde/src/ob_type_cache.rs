@@ -6,7 +6,7 @@ use pyo3::types::{
     PyBool, PyByteArray, PyBytes, PyDate, PyDateTime, PyDelta, PyDict, PyEllipsis, PyFloat,
     PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
-use pyo3::{Bound, PyAny, PyTypeInfo, Python};
+use pyo3::{Borrowed, PyAny, PyTypeInfo, Python};
 
 #[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
@@ -190,13 +190,13 @@ impl PyTypeCache {
 
     #[must_use]
     #[inline]
-    pub(crate) fn obtype(&self, ob: &Bound<'_, PyAny>) -> PyObType {
+    pub(crate) fn obtype(&self, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
         self.ptr2type(ob.get_type_ptr() as usize, ob)
     }
 
     #[must_use]
     #[inline]
-    pub(crate) fn obtype_key(&self, ob: &Bound<'_, PyAny>) -> PyObType {
+    pub(crate) fn obtype_key(&self, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
         self.ptr2type_key(ob.get_type_ptr() as usize)
     }
 }
@@ -231,7 +231,7 @@ macro_rules! py_obj_ptr_feat {
 
 impl PyTypeCache {
     #[inline]
-    pub(crate) fn ptr2type(&self, ptr: usize, ob: &Bound<'_, PyAny>) -> PyObType {
+    pub(crate) fn ptr2type(&self, ptr: usize, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
         // --- das builtins ---
         py_obj_ptr!(self, ptr, string, String);
         py_obj_ptr!(self, ptr, int, Int);

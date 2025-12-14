@@ -7,16 +7,15 @@ use crate::ser::safe_impl::{SerializePyBool, SerializePyStr};
 use crate::serde_err;
 
 use crate::any_repr::any_repr;
-use pyo3::Bound;
 
 pub(crate) struct SerializePyMappingKey<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyMappingKey<'a, 'py> {
     #[inline]
-    pub(crate) fn new(ctx: PySerializeContext<'py>, obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(ctx: PySerializeContext<'py>, obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { ctx, obj }
     }
 }

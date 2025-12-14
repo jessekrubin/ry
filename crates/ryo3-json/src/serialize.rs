@@ -48,7 +48,7 @@ impl<'py> JsonSerializer<'py> {
     }
 
     pub(crate) fn serialize_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
-        let s = SerializePyAny::new(obj, self.default);
+        let s = SerializePyAny::new(obj.as_borrowed(), self.default);
         let mut bytes: Vec<u8> = Vec::with_capacity(4096);
         if self.opts.sort_keys {
             // TODO: This is a very hacky way of handling sorting the keys...

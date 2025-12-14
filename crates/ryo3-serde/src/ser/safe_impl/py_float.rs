@@ -4,15 +4,14 @@ use serde::ser::{Serialize, Serializer};
 use crate::errors::pyerr2sererr;
 
 use crate::ser::traits::PySerializeUnsafe;
-use pyo3::Bound;
-use pyo3::ffi::PyFloat_AsDouble;
+use pyo3::Borrowed;
 
 pub(crate) struct SerializePyFloat<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyFloat<'a, 'py> {
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
@@ -34,6 +33,8 @@ impl PySerializeUnsafe for SerializePyFloat<'_, '_> {
     where
         S: Serializer,
     {
+        use pyo3::ffi::PyFloat_AsDouble;
+
         #[expect(unsafe_code)]
         let f = unsafe { PyFloat_AsDouble(self.obj.as_ptr()) };
         serializer.serialize_f64(f)

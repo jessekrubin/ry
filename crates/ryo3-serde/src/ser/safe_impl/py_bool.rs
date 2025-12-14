@@ -5,15 +5,15 @@ use std::ptr;
 use crate::errors::pyerr2sererr;
 use crate::ser::traits::PySerializeUnsafe;
 use pyo3::types::PyBool;
-use pyo3::{Bound, ffi};
+use pyo3::{Borrowed, ffi};
 
 pub(crate) struct SerializePyBool<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyBool<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
@@ -27,8 +27,8 @@ impl Serialize for SerializePyBool<'_, '_> {
         let tf = self
             .obj
             .cast_exact::<PyBool>()
-            .map(pyo3::types::PyBoolMethods::is_true)
-            .map_err(pyerr2sererr)?;
+            .map_err(pyerr2sererr)?
+            .is_true();
         serializer.serialize_bool(tf)
     }
 }

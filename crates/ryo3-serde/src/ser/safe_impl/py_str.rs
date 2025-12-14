@@ -2,16 +2,15 @@ use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
-use pyo3::Bound;
 use pyo3::types::PyString;
 
 pub(crate) struct SerializePyStr<'a, 'py> {
-    obj: &'a Bound<'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyAny>,
 }
 
 impl<'a, 'py> SerializePyStr<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
@@ -29,12 +28,12 @@ impl Serialize for SerializePyStr<'_, '_> {
 }
 
 pub(crate) struct SerializePyStrSubclass<'a, 'py> {
-    obj: &'a Bound<'py, PyString>,
+    obj: Borrowed<'a, 'py, PyString>,
 }
 
 impl<'a, 'py> SerializePyStrSubclass<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: &'a Bound<'py, PyString>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyString>) -> Self {
         Self { obj }
     }
 }
