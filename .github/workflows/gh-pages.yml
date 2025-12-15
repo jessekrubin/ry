@@ -34,7 +34,7 @@ jobs:
       - name: build-docs
         run: cd docs && mdbook build && lychee book --exclude=http://www.adobe.com/
       - name: upload-artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: book
           path: docs/book
