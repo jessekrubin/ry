@@ -2622,7 +2622,6 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
- "parking_lot",
  "pin-project-lite",
  "socket2 0.6.1",
  "tokio-macros",
