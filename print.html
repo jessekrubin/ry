@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-65f8d76b.js";
+            window.path_to_searchindex_js = "searchindex-0714873b.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-15T16:14:49.901269823-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-16T12:57:37.960714921-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -491,7 +491,7 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0074-unreleased"><a class="header" href="#v0074-unreleased">v0.0.74 [unreleased]</a></h2>
+<h2 id="v0074-2025-12-16"><a class="header" href="#v0074-2025-12-16">v0.0.74 [2025-12-16]</a></h2>
 <ul>
 <li>updating pyo3 to use <code>skip_from_py_object</code> where applicable (this will be a
 staged effort)</li>
@@ -505,6 +505,11 @@ serializing</li>
 <ul>
 <li>Removed equality with <code>datetime.timedelta</code> can use <code>ry.SignedDuration.equiv</code>
 to compare to <code>datetime.timedelta</code>, <code>ry.SignedDuration</code>, or <code>ry.Duration</code>.</li>
+</ul>
+</li>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li>Fix race condition when creating error from reqwest-client-wrapper</li>
 </ul>
 </li>
 </ul>
@@ -6099,6 +6104,7 @@ class JiffSeries(t.Protocol[_T]):
     def __iter__(self) -&gt; JiffSeries[_T]: ...
     def __next__(self) -&gt; _T: ...
     def take(self, n: int = 1) -&gt; list[_T]: ...
+    def take_until(self, value: _T) -&gt; list[_T]: ...
     def collect(self) -&gt; list[_T]: ...
 
 

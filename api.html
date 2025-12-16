@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-65f8d76b.js";
+            window.path_to_searchindex_js = "searchindex-0714873b.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -3492,6 +3492,7 @@ class JiffSeries(t.Protocol[_T]):
     def __iter__(self) -&gt; JiffSeries[_T]: ...
     def __next__(self) -&gt; _T: ...
     def take(self, n: int = 1) -&gt; list[_T]: ...
+    def take_until(self, value: _T) -&gt; list[_T]: ...
     def collect(self) -&gt; list[_T]: ...
 
 
