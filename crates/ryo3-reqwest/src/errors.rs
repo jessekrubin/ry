@@ -175,8 +175,10 @@ pub(crate) fn map_reqwest_err(e: reqwest::Error) -> pyo3::PyErr {
             std::thread::park();
         }
     }
-    let req_err = RyReqwestError(Arc::new(Mutex::new(Some(e))));
-    let maybe_pyerr = Python::try_attach(|_py| pyo3::PyErr::from(req_err));
+    let maybe_pyerr = Python::try_attach(|_py| {
+        let req_err = RyReqwestError::from(e);
+        pyo3::PyErr::from(req_err)
+    });
     if maybe_pyerr.is_none() {
         tracing::warn!("Interpreter died while processing error. Parking thread.");
         loop {
