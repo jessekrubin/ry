@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.74 [unreleased]
+## v0.0.74 [2025-12-16]
 
 - updating pyo3 to use `skip_from_py_object` where applicable (this will be a
   staged effort)
