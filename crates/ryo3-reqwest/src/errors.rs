@@ -164,7 +164,7 @@ impl From<RyReqwestError> for pyo3::PyErr {
     }
 }
 
-/// Maps a `reqwest::Error`` to a `pyo3::PyErr``, handling the case where the
+/// Maps a `reqwest::Error` to a `pyo3::PyErr`, handling the case where the
 /// Python interpreter is shutting down
 ///
 /// Should prevent panics during interpreter shutdown when background threads
