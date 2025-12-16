@@ -5,6 +5,7 @@ use jiff::civil::Date;
 use jiff::tz::TimeZone;
 use jiff::{Span, Zoned};
 use pyo3::prelude::*;
+use ryo3_macro_rules::py_overflow_error;
 
 #[pyfunction]
 #[must_use]
@@ -19,12 +20,7 @@ pub fn date(year: i16, month: i8, day: i8) -> PyResult<RyDate> {
 
 #[pyfunction]
 #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
-pub fn time(
-    hour: Option<i8>,
-    minute: Option<i8>,
-    second: Option<i8>,
-    nanosecond: Option<i32>,
-) -> PyResult<RyTime> {
+pub fn time(hour: i8, minute: i8, second: i8, nanosecond: i32) -> PyResult<RyTime> {
     RyTime::py_new(hour, minute, second, nanosecond)
 }
 
@@ -39,15 +35,7 @@ pub fn datetime(
     second: i8,
     nanosecond: i32,
 ) -> PyResult<RyDateTime> {
-    RyDateTime::py_new(
-        year,
-        month,
-        day,
-        Some(hour),
-        Some(minute),
-        Some(second),
-        Some(nanosecond),
-    )
+    RyDateTime::py_new(year, month, day, hour, minute, second, nanosecond)
 }
 
 #[pyfunction]
@@ -118,12 +106,7 @@ pub fn timespan(
         name: &str,
     ) -> Result<Span, PyErr> {
         if value != 0 {
-            // span.and_then(|s| {
-            method(span, value).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyOverflowError, _>(format!(
-                    "span-overflow: {name}: {e}"
-                ))
-            })
+            method(span, value).map_err(|e| py_overflow_error!("span-overflow: {name}: {e}"))
         } else {
             Ok(span)
         }

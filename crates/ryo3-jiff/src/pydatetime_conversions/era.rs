@@ -2,6 +2,7 @@ use crate::jiff_types::JiffEra;
 use jiff::civil::Era;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
+use ryo3_macro_rules::{py_type_err, py_value_err};
 
 const JIFF_ERA_STRINGS: &str = "'BCE'/'BC', 'CE'/'AD' (case insensitive)";
 
@@ -37,14 +38,10 @@ impl<'py> FromPyObject<'_, 'py> for JiffEra {
             match s {
                 "bce" | "bc" | "BCE" | "BC" => Ok(Self(Era::BCE)),
                 "ce" | "ad" | "CE" | "AD" => Ok(Self(Era::CE)),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid era: {s} (options: {JIFF_ERA_STRINGS})"
-                ))),
+                _ => py_value_err!("Invalid era: {s} (options: {JIFF_ERA_STRINGS})"),
             }
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                "Expected a string with one of the options: {JIFF_ERA_STRINGS}"
-            )))
+            py_type_err!("Invalid type for era, expected a string (options: {JIFF_ERA_STRINGS})")
         }
     }
 }

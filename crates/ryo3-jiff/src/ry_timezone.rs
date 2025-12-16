@@ -10,7 +10,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyTzInfo;
 use pyo3::types::{PyDict, PyString, PyTuple};
-use ryo3_macro_rules::pytodo;
+use ryo3_macro_rules::{py_type_err, pytodo};
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -96,9 +96,7 @@ impl RyTimeZone {
             let other_str = other.extract::<&str>()?;
             Ok(self.0.iana_name() == Some(other_str))
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "Expected TimeZone, datetime.tzinfo or string",
-            ))
+            py_type_err!("Expected TimeZone, datetime.tzinfo or string")
         }
     }
 

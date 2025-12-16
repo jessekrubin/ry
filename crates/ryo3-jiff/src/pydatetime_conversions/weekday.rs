@@ -1,6 +1,7 @@
 use crate::JiffWeekday;
 use pyo3::prelude::*;
 use pyo3::types::PyInt;
+use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
 
 impl<'py> IntoPyObject<'py> for JiffWeekday {
     type Target = PyInt;
@@ -28,9 +29,8 @@ impl<'py> IntoPyObject<'py> for &JiffWeekday {
             jiff::civil::Weekday::Saturday => 6,
             jiff::civil::Weekday::Sunday => 7,
         };
-        num.into_pyobject(py).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (weekday={num})"))
-        })
+        num.into_pyobject(py)
+            .map_err(|e| py_value_error!("{e} (weekday={num})"))
     }
 }
 
@@ -50,12 +50,9 @@ impl<'py> FromPyObject<'_, 'py> for JiffWeekday {
                 "friday" | "FRIDAY" => Ok(Self(jiff::civil::Weekday::Friday)),
                 "saturday" | "SATURDAY" => Ok(Self(jiff::civil::Weekday::Saturday)),
                 "sunday" | "SUNDAY" => Ok(Self(jiff::civil::Weekday::Sunday)),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid weekday: {s} (options: {JIFF_WEEKDAY_STRING})"
-                ))),
+                _ => py_value_err!("Invalid weekday: {s} (options: {JIFF_WEEKDAY_STRING})"),
             }
-        } else {
-            let i = ob.extract::<u8>()?;
+        } else if let Ok(i) = ob.extract::<u8>() {
             match i {
                 1 => Ok(Self(jiff::civil::Weekday::Monday)),
                 2 => Ok(Self(jiff::civil::Weekday::Tuesday)),
@@ -64,10 +61,12 @@ impl<'py> FromPyObject<'_, 'py> for JiffWeekday {
                 5 => Ok(Self(jiff::civil::Weekday::Friday)),
                 6 => Ok(Self(jiff::civil::Weekday::Saturday)),
                 7 => Ok(Self(jiff::civil::Weekday::Sunday)),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid weekday: {i} (options: {JIFF_WEEKDAY_STRING})"
-                ))),
+                _ => py_value_err!("Invalid weekday: {i} (options: {JIFF_WEEKDAY_STRING})"),
             }
+        } else {
+            py_type_err!(
+                "Invalid type for weekday, expected a string or integer (options: {JIFF_WEEKDAY_STRING})"
+            )
         }
     }
 }
