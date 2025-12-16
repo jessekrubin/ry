@@ -13,8 +13,8 @@ description = "python + glob crate (https://crates.io/crates/glob)"
 
 [dependencies]
 glob.workspace = true
-parking_lot.workspace = true
 pyo3.workspace = true
+ryo3-core.workspace = true
 ryo3-fspath.workspace = true
 ryo3-macro-rules.workspace = true
 

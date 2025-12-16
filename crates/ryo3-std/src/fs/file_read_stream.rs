@@ -1,7 +1,7 @@
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3::{PyRef, PyResult, pyclass, pymethods};
-use ryo3_core::PyMutex;
+use ryo3_core::RyMutex;
 use ryo3_macro_rules::py_value_err;
 use std::fs::File;
 use std::io::{self, BufReader, Read, Seek, SeekFrom};
@@ -103,7 +103,7 @@ pub(crate) struct PyFileReadStreamOptions {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFileReadStream {
     pub(crate) options: PyFileReadStreamOptions,
-    pub(crate) file_read_stream: PyMutex<FileReadStreamWrapper>,
+    pub(crate) file_read_stream: RyMutex<FileReadStreamWrapper>,
 }
 
 impl PyFileReadStream {
@@ -142,7 +142,7 @@ impl PyFileReadStream {
         }
         Ok(Self {
             options,
-            file_read_stream: PyMutex::new(stream),
+            file_read_stream: RyMutex::new(stream),
         })
     }
 }

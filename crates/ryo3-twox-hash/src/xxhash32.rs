@@ -2,7 +2,7 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
-use ryo3_core::PyMutex;
+use ryo3_core::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
 use std::hash::Hasher;
 use twox_hash::XxHash32;
@@ -11,7 +11,7 @@ use twox_hash::XxHash32;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash32 {
     seed: u32,
-    hasher: PyMutex<XxHash32, true>,
+    hasher: RyMutex<XxHash32, true>,
 }
 
 #[pymethods]
