@@ -10,6 +10,8 @@
 - `ryo3-jiff`
   - Removed equality with `datetime.timedelta` can use `ry.SignedDuration.equiv`
     to compare to `datetime.timedelta`, `ry.SignedDuration`, or `ry.Duration`.
+- `ryo3-reqwest`
+  - Fix race condition when creating error from reqwest-client-wrapper
 
 ---
 
