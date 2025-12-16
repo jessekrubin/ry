@@ -5,23 +5,23 @@ use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ser::safe_impl::{
-    SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
-    SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
-    SerializePyList, SerializePyNone, SerializePySet, SerializePyStr, SerializePyTime,
-    SerializePyTimeDelta, SerializePyUuid,
+    PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
+    PyDateTimeSerializer, PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer,
+    PyListSerializer, PyNoneSerializer, PySetSerializer, PyStrSerializer, PyTimeSerializer,
+    PyTimeDeltaSerializer, PyUuidSerializer,
 };
 use crate::ser::{PySerializeContext, rytypes};
-use crate::{SerializePyAny, serde_err_recursion};
+use crate::{PyAnySerializer, serde_err_recursion};
 
 use pyo3::types::PyTuple;
 
-pub(crate) struct SerializePyTuple<'a, 'py> {
+pub(crate) struct PyTupleSerializer<'a, 'py> {
     pub(crate) obj: &'a Bound<'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> SerializePyTuple<'a, 'py> {
+impl<'a, 'py> PyTupleSerializer<'a, 'py> {
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
@@ -35,67 +35,67 @@ macro_rules! serialize_tuple_element {
     ($ob_type:expr, $seq:expr, $self:expr, $element:expr) => {
         match $ob_type {
             PyObType::None | PyObType::Ellipsis => {
-                $seq.serialize_element(&SerializePyNone::new())?;
+                $seq.serialize_element(&PyNoneSerializer::new())?;
             }
             PyObType::Bool => {
-                $seq.serialize_element(&SerializePyBool::new(&$element))?;
+                $seq.serialize_element(&PyBoolSerializer::new(&$element))?;
             }
             PyObType::Int => {
-                $seq.serialize_element(&SerializePyInt::new(&$element))?;
+                $seq.serialize_element(&PyIntSerializer::new(&$element))?;
             }
             PyObType::Float => {
-                $seq.serialize_element(&SerializePyFloat::new(&$element))?;
+                $seq.serialize_element(&PyFloatSerializer::new(&$element))?;
             }
             PyObType::String => {
-                $seq.serialize_element(&SerializePyStr::new(&$element))?;
+                $seq.serialize_element(&PyStrSerializer::new(&$element))?;
             }
             PyObType::List => {
-                $seq.serialize_element(&SerializePyList::new(
+                $seq.serialize_element(&PyListSerializer::new(
                     &$element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Tuple => {
-                $seq.serialize_element(&SerializePyTuple::new(
+                $seq.serialize_element(&PyTupleSerializer::new(
                     &$element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Dict => {
-                $seq.serialize_element(&SerializePyDict::new(
+                $seq.serialize_element(&PyDictSerializer::new(
                     &$element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Set => {
-                $seq.serialize_element(&SerializePySet::new(&$element, $self.ctx))?;
+                $seq.serialize_element(&PySetSerializer::new(&$element, $self.ctx))?;
             }
             PyObType::FrozenSet => {
-                $seq.serialize_element(&SerializePyFrozenSet::new(&$element, $self.ctx))?;
+                $seq.serialize_element(&PyFrozenSetSerializer::new(&$element, $self.ctx))?;
             }
             PyObType::DateTime => {
-                $seq.serialize_element(&SerializePyDateTime::new(&$element))?;
+                $seq.serialize_element(&PyDateTimeSerializer::new(&$element))?;
             }
             PyObType::Date => {
-                $seq.serialize_element(&SerializePyDate::new(&$element))?;
+                $seq.serialize_element(&PyDateSerializer::new(&$element))?;
             }
             PyObType::Time => {
-                $seq.serialize_element(&SerializePyTime::new(&$element))?;
+                $seq.serialize_element(&PyTimeSerializer::new(&$element))?;
             }
             PyObType::Timedelta => {
-                $seq.serialize_element(&SerializePyTimeDelta::new(&$element))?;
+                $seq.serialize_element(&PyTimeDeltaSerializer::new(&$element))?;
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
-                $seq.serialize_element(&SerializePyBytesLike::new(&$element))?;
+                $seq.serialize_element(&PyBytesLikeSerializer::new(&$element))?;
             }
             PyObType::PyUuid => {
-                $seq.serialize_element(&SerializePyUuid::new(&$element))?;
+                $seq.serialize_element(&PyUuidSerializer::new(&$element))?;
             }
             PyObType::Dataclass => {
-                $seq.serialize_element(&SerializePyDataclass::new(
+                $seq.serialize_element(&PyDataclassSerializer::new(
                     &$element,
                     $self.ctx,
                     $self.depth,
@@ -196,7 +196,7 @@ macro_rules! serialize_tuple_element {
             // UNKNOWN
             // ------------------------------------------------------------
             PyObType::Unknown => {
-                $seq.serialize_element(&SerializePyAny::new_with_depth(
+                $seq.serialize_element(&PyAnySerializer::new_with_depth(
                     &$element,
                     $self.ctx,
                     $self.depth + 1,
@@ -206,7 +206,7 @@ macro_rules! serialize_tuple_element {
     };
 }
 
-impl Serialize for SerializePyTuple<'_, '_> {
+impl Serialize for PyTupleSerializer<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

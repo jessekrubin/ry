@@ -4,18 +4,18 @@ use serde::ser::{Serialize, Serializer};
 use crate::errors::pyerr2sererr;
 use pyo3::types::PyString;
 
-pub(crate) struct SerializePyStr<'a, 'py> {
+pub(crate) struct PyStrSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> SerializePyStr<'a, 'py> {
+impl<'a, 'py> PyStrSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
-impl Serialize for SerializePyStr<'_, '_> {
+impl Serialize for PyStrSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -27,18 +27,18 @@ impl Serialize for SerializePyStr<'_, '_> {
     }
 }
 
-pub(crate) struct SerializePyStrSubclass<'a, 'py> {
+pub(crate) struct PyStrSubclassSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyString>,
 }
 
-impl<'a, 'py> SerializePyStrSubclass<'a, 'py> {
+impl<'a, 'py> PyStrSubclassSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyString>) -> Self {
         Self { obj }
     }
 }
 
-impl Serialize for SerializePyStrSubclass<'_, '_> {
+impl Serialize for PyStrSubclassSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -48,7 +48,7 @@ impl Serialize for SerializePyStrSubclass<'_, '_> {
         serializer.serialize_str(s)
     }
 }
-// impl Serialize for SerializePyStr<'_, '_> {
+// impl Serialize for PyStrSerializer<'_, '_> {
 //     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 //     where
 //         S: Serializer,

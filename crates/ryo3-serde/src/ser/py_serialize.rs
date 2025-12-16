@@ -13,23 +13,23 @@ use crate::ser::PySerializeContext;
 #[cfg(feature = "ry")]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    SerializePyBool, SerializePyBytesLike, SerializePyDataclass, SerializePyDate,
-    SerializePyDateTime, SerializePyDict, SerializePyFloat, SerializePyFrozenSet, SerializePyInt,
-    SerializePyList, SerializePyMapping, SerializePyNone, SerializePySequence, SerializePySet,
-    SerializePyStr, SerializePyStrSubclass, SerializePyTime, SerializePyTimeDelta,
-    SerializePyTuple, SerializePyUuid,
+    PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
+    PyDateTimeSerializer, PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer,
+    PyIntSerializer, PyListSerializer, PyMappingSerializer, PyNoneSerializer, PySequenceSerializer,
+    PySetSerializer, PyStrSerializer, PyStrSubclassSerializer, PyTimeDeltaSerializer,
+    PyTimeSerializer, PyTupleSerializer, PyUuidSerializer,
 };
 use crate::{Depth, MAX_DEPTH, serde_err, serde_err_recursion};
 use pyo3::Bound;
 use pyo3::types::{PyAnyMethods, PyMapping, PySequence, PyString};
 
-pub struct SerializePyAny<'a, 'py> {
+pub struct PyAnySerializer<'a, 'py> {
     pub(crate) obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> SerializePyAny<'a, 'py> {
+impl<'a, 'py> PyAnySerializer<'a, 'py> {
     #[must_use]
     pub fn new(obj: Borrowed<'a, 'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
         let py = obj.py();
@@ -56,7 +56,7 @@ impl<'a, 'py> SerializePyAny<'a, 'py> {
     }
 }
 
-impl Serialize for SerializePyAny<'_, '_> {
+impl Serialize for PyAnySerializer<'_, '_> {
     #[expect(clippy::too_many_lines)]
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -68,34 +68,34 @@ impl Serialize for SerializePyAny<'_, '_> {
         }
         let ob_type = self.ctx.typeref.obtype(self.obj);
         match ob_type {
-            PyObType::None | PyObType::Ellipsis => SerializePyNone::new().serialize(serializer),
-            PyObType::Bool => SerializePyBool::new(self.obj).serialize(serializer),
-            PyObType::Int => SerializePyInt::new(self.obj).serialize(serializer),
-            PyObType::Float => SerializePyFloat::new(self.obj).serialize(serializer),
-            PyObType::String => SerializePyStr::new(self.obj).serialize(serializer),
+            PyObType::None | PyObType::Ellipsis => PyNoneSerializer::new().serialize(serializer),
+            PyObType::Bool => PyBoolSerializer::new(self.obj).serialize(serializer),
+            PyObType::Int => PyIntSerializer::new(self.obj).serialize(serializer),
+            PyObType::Float => PyFloatSerializer::new(self.obj).serialize(serializer),
+            PyObType::String => PyStrSerializer::new(self.obj).serialize(serializer),
             PyObType::List => {
-                SerializePyList::new(self.obj, self.ctx, self.depth).serialize(serializer)
+                PyListSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
             PyObType::Tuple => {
-                SerializePyTuple::new(self.obj, self.ctx, self.depth).serialize(serializer)
+                PyTupleSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
             PyObType::Dict => {
-                SerializePyDict::new(self.obj, self.ctx, self.depth).serialize(serializer)
+                PyDictSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
-            PyObType::Set => SerializePySet::new(self.obj, self.ctx).serialize(serializer),
+            PyObType::Set => PySetSerializer::new(self.obj, self.ctx).serialize(serializer),
             PyObType::FrozenSet => {
-                SerializePyFrozenSet::new(self.obj, self.ctx).serialize(serializer)
+                PyFrozenSetSerializer::new(self.obj, self.ctx).serialize(serializer)
             }
-            PyObType::DateTime => SerializePyDateTime::new(self.obj).serialize(serializer),
-            PyObType::Date => SerializePyDate::new(self.obj).serialize(serializer),
-            PyObType::Time => SerializePyTime::new(self.obj).serialize(serializer),
-            PyObType::Timedelta => SerializePyTimeDelta::new(self.obj).serialize(serializer),
+            PyObType::DateTime => PyDateTimeSerializer::new(self.obj).serialize(serializer),
+            PyObType::Date => PyDateSerializer::new(self.obj).serialize(serializer),
+            PyObType::Time => PyTimeSerializer::new(self.obj).serialize(serializer),
+            PyObType::Timedelta => PyTimeDeltaSerializer::new(self.obj).serialize(serializer),
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
-                SerializePyBytesLike::new(self.obj).serialize(serializer)
+                PyBytesLikeSerializer::new(self.obj).serialize(serializer)
             }
-            PyObType::PyUuid => SerializePyUuid::new(self.obj).serialize(serializer),
+            PyObType::PyUuid => PyUuidSerializer::new(self.obj).serialize(serializer),
             PyObType::Dataclass => {
-                SerializePyDataclass::new(self.obj, self.ctx, self.depth).serialize(serializer)
+                PyDataclassSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
             // ------------------------------------------------------------
             // RY-TYPES
@@ -177,12 +177,12 @@ impl Serialize for SerializePyAny<'_, '_> {
             // ------------------------------------------------------------
             PyObType::Unknown => {
                 if let Ok(pystr_subclass) = self.obj.cast::<PyString>() {
-                    SerializePyStrSubclass::new(pystr_subclass).serialize(serializer)
+                    PyStrSubclassSerializer::new(pystr_subclass).serialize(serializer)
                 } else if let Ok(py_map) = self.obj.cast::<PyMapping>() {
-                    SerializePyMapping::new_with_depth(py_map, self.ctx, self.depth)
+                    PyMappingSerializer::new_with_depth(py_map, self.ctx, self.depth)
                         .serialize(serializer)
                 } else if let Ok(py_seq) = self.obj.cast::<PySequence>() {
-                    SerializePySequence::new_with_depth(py_seq, self.ctx, self.depth)
+                    PySequenceSerializer::new_with_depth(py_seq, self.ctx, self.depth)
                         .serialize(serializer)
                 } else if let Some(default) = self.ctx.default {
                     // call the default transformer fn and attempt to then serialize the result
