@@ -1,5 +1,4 @@
 use parking_lot::Mutex;
-use pyo3::PyErr;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -15,9 +14,15 @@ macro_rules! pyerr_response_already_consumed {
     };
 }
 
-#[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError", frozen, immutable_type, skip_from_py_object)]
 #[derive(Debug)]
+#[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError", frozen, immutable_type, skip_from_py_object)]
 pub struct RyReqwestError(pub Arc<Mutex<Option<reqwest::Error>>>);
+
+impl From<reqwest::Error> for RyReqwestError {
+    fn from(e: reqwest::Error) -> Self {
+        Self(Arc::new(Mutex::new(Some(e))))
+    }
+}
 
 #[pymethods]
 impl RyReqwestError {
@@ -148,7 +153,7 @@ impl RyReqwestError {
     }
 }
 
-impl From<RyReqwestError> for PyErr {
+impl From<RyReqwestError> for pyo3::PyErr {
     fn from(e: RyReqwestError) -> Self {
         let value = e.0.lock().take();
         if let Some(e) = value {
@@ -159,7 +164,26 @@ impl From<RyReqwestError> for PyErr {
     }
 }
 
-pub(crate) fn map_reqwest_err(e: reqwest::Error) -> PyErr {
-    let e = RyReqwestError(Arc::new(Mutex::new(Some(e))));
-    e.into()
+/// Maps a `reqwest::Error` to a `pyo3::PyErr`, handling the case where the
+/// Python interpreter is shutting down
+///
+/// Should prevent panics during interpreter shutdown when background threads
+pub(crate) fn map_reqwest_err(e: reqwest::Error) -> pyo3::PyErr {
+    #[expect(unsafe_code)]
+    if unsafe { pyo3::ffi::Py_IsInitialized() } == 0 {
+        loop {
+            std::thread::park();
+        }
+    }
+    let maybe_pyerr = Python::try_attach(|_py| {
+        let req_err = RyReqwestError::from(e);
+        pyo3::PyErr::from(req_err)
+    });
+    if maybe_pyerr.is_none() {
+        tracing::warn!("Interpreter died while processing error. Parking thread.");
+        loop {
+            std::thread::park();
+        }
+    }
+    maybe_pyerr.expect("no-way-jose")
 }
