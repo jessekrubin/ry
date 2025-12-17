@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as pydt
-import typing as t
 from math import isnan
 
 import pytest
@@ -213,9 +212,9 @@ def test_equiv(
         [1, 2, 3],
     ),
 )
-def test_equiv_invalid_type(obj) -> None:
+def test_equiv_invalid_type(obj: complex | list[int]) -> None:
     with pytest.raises(TypeError):
-        _e = ry.SignedDuration(1, 0).equiv(obj)
+        _e = ry.SignedDuration(1, 0).equiv(obj)  # type: ignore[arg-type]
 
 
 class TestSignedDurationProperties:
@@ -674,13 +673,15 @@ class TestDurationArithmetic:
                 "__truediv__",
                 "__mul__",
             ]
-            for value in ["string", [], complex(1, 2)]
+            for value in ["string", ["asdf"], complex(1, 2)]
         ],
     )
-    def test_operators_type_errors(self, opperator: str, value: t.Any) -> None:
+    def test_operators_type_errors(
+        self, opperator: str, value: complex | list[int] | str
+    ) -> None:
         dur = ry.SignedDuration(1, 0)
         with pytest.raises(TypeError):
-            _ = getattr(dur, opperator)(value)  # type: ignore[operator]
+            _ = getattr(dur, opperator)(value)
 
 
 class TestSignedDurationCheckedArithmetic:
