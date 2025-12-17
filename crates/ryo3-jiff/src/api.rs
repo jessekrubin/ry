@@ -18,6 +18,9 @@ pub use crate::ry_timestamp::RyTimestamp;
 pub use crate::ry_timezone::RyTimeZone;
 pub use crate::ry_timezone_database::RyTimeZoneDatabase;
 pub use crate::ry_zoned::RyZoned;
+pub use crate::series::{
+    RyDateSeries, RyDateTimeSeries, RyTimeSeries, RyTimestampSeries, RyZonedSeries,
+};
 use pyo3::prelude::*;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

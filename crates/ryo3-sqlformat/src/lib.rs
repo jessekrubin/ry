@@ -723,7 +723,7 @@ mod tests {
                 PyQueryParamValue::PyString("1".to_string()),
             )])),
             PyIndent::default(),
-            None,
+            Some(true),
             1,
             None,
             false,
