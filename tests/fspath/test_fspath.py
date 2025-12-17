@@ -269,6 +269,32 @@ class TestFsPathBytes:
         assert pypath.read_bytes() == b"newer content"
 
 
+class TestFsPathStringMethods:
+    # test `starts_with` and `ends_with` methods, `strip_prefix`
+    # 'with_extension, `with_file_name`
+    def test_starts_with(self) -> None:
+        fsp = ry.FsPath("some/path/file.tar.gz")
+        assert fsp.starts_with("some")
+        assert not fsp.starts_with("other")
+
+    def test_ends_with(self) -> None:
+        fsp = ry.FsPath("some/path/file.tar.gz")
+        assert fsp.ends_with("file.tar.gz")
+        assert not fsp.ends_with("file.txt")
+
+    def test_strip_prefix(self) -> None:
+        fsp = ry.FsPath("some/path/file.tar.gz")
+        stripped = fsp.strip_prefix("some/path")
+        assert stripped == ry.FsPath("file.tar.gz")
+        with pytest.raises(ValueError):
+            _ = fsp.strip_prefix("other/path")
+
+    def test_with_extension(self) -> None:
+        fsp = ry.FsPath("some/path/file.tar.gz")
+        new_fsp = fsp.with_extension("md")
+        assert new_fsp == ry.FsPath("some/path/file.tar.md")
+
+
 class TestFsPathPosix:
     @pytest.mark.parametrize(
         "path_cls",
@@ -408,6 +434,32 @@ class TestFsPathNonWindows:
     def test_drive(self) -> None:
         p = ry.FsPath("/some/path")
         assert p.drive is None
+
+
+def test_ancestors_repr() -> None:
+    p = ry.FsPath("rooot") / "dir1" / "dir2" / "file.txt"
+    ancestors_iter = p.ancestors()
+    assert repr(ancestors_iter) == "FsPathAncestors<rooot/dir1/dir2/file.txt>"
+
+
+def test_ancestors() -> None:
+    p = ry.FsPath("rooot") / "dir1" / "dir2" / "file.txt"
+    ancestors = list(p.ancestors())
+    ancestor_paths = [a.as_posix() for a in ancestors]
+    expected_paths = [
+        p.as_posix(),
+        p.parent.as_posix(),
+        p.parent.parent.as_posix(),
+        p.parent.parent.parent.as_posix(),
+    ]
+    assert ancestor_paths == expected_paths
+    collected = p.ancestors().collect()
+    collected_paths = [a.as_posix() for a in collected]
+    assert collected_paths == expected_paths
+    taken = p.ancestors().take(2)
+    taken_paths = [a.as_posix() for a in taken]
+    expected_taken_paths = expected_paths[:2]
+    assert taken_paths == expected_taken_paths
 
 
 def test_read_text_unidecode_err(tmp_path: Path) -> None:

@@ -60,3 +60,53 @@ def test_which_nada() -> None:
     ry_which_all = ry.which_all(exe)
     assert py_which == ry_which  # type: ignore[comparison-overlap]
     assert len(ry_which_all) == 0 and isinstance(ry_which_all, list)
+
+
+class TestWhichFsPath:
+    def test_which_python(self) -> None:
+        py_which = shutil.which("python")
+        ry_which = ry.FsPath.which("python")
+        assert isinstance(ry_which, ry.FsPath)
+        # clean path
+        py_clean = _clean_path(py_which)
+        ry_clean = _clean_path(str(ry_which))
+        assert py_clean == ry_clean
+
+    def test_which_path(self, tmp_path: Path) -> None:
+        # make exes
+        path_list = _mk_test_bin_dirs(tmp_path)
+        path_kwarg = os.pathsep.join(path_list)
+        py_which = shutil.which("notavirus", path=path_kwarg)
+        ry_which = ry.FsPath.which("notavirus", path=path_kwarg)
+        # clean path
+        py_clean = _clean_path(py_which)
+        ry_clean = _clean_path(str(ry_which))
+        assert py_clean == ry_clean
+
+    def test_which_all_path(self, tmp_path: Path) -> None:
+        path_list = _mk_test_bin_dirs(tmp_path)
+        path_kwarg = os.pathsep.join(path_list)
+        ry_which = ry.FsPath.which_all("notavirus", path=path_kwarg)
+        assert len(ry_which) >= 2
+        assert all(isinstance(p, ry.FsPath) for p in ry_which)
+
+    def test_which_path_cwd(self, tmp_path: Path) -> None:
+        # make exes
+        path_list = _mk_test_bin_dirs(tmp_path)
+        path_kwarg = os.pathsep.join(path_list)
+        ry.cd(tmp_path)
+        py_which = shutil.which("notavirus", path=path_kwarg)
+        ry_which = ry.FsPath.which("notavirus", path=path_kwarg)
+        # clean path
+        py_clean = _clean_path(py_which)
+        ry_clean = _clean_path(str(ry_which))
+        assert py_clean == ry_clean
+
+    def test_which_nada(self) -> None:
+        exe = "idontexist"
+        py_which = shutil.which(exe)
+        ry_which = ry.FsPath.which(exe)
+        ry_which_all = ry.FsPath.which_all(exe)
+        assert py_which == ry_which  # type: ignore[comparison-overlap]
+        assert ry_which is None
+        assert len(ry_which_all) == 0 and isinstance(ry_which_all, list)

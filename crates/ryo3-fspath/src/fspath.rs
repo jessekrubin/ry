@@ -947,12 +947,19 @@ impl PyFsPathAncestors {
 
     fn __next__(&self) -> Option<PyFsPath> {
         let mut current = self.current.py_lock();
-        let taken = current.take().map(|p| PyFsPath::from(p.as_ref()));
-        if let Some(ref p) = taken {
-            let next = p.path().parent().map(|p| ArcPathBuf::new(p.to_path_buf()));
-            *current = next;
-        }
-        taken
+
+        // Take the current path; if we're done, stop.
+        let cur = current.take()?;
+        let out = PyFsPath::from(cur.as_ref());
+
+        // Compute the next state.
+        *current = match out.path().parent() {
+            None => None,                                // no parent => done
+            Some(p) if p.as_os_str().is_empty() => None, // "root-ish" sentinel => done
+            Some(p) => Some(ArcPathBuf::new(p.to_path_buf())),
+        };
+
+        Some(out)
     }
 
     fn collect(&self) -> Vec<PyFsPath> {
