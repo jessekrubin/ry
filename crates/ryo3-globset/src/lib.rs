@@ -226,7 +226,7 @@ impl PyGlobSet {
 impl std::fmt::Display for PyGlob {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // TODO: fix this
-        write!(f, "Glob(\"{}\"", self.pattern)
+        write!(f, "Glob(\"{}\")", self.pattern)
     }
 }
 
