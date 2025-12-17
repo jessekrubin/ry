@@ -1,8 +1,8 @@
 use crate::JiffRoundMode;
 use jiff::RoundMode;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
+use ryo3_macro_rules::{py_type_err, py_value_err};
 
 impl<'py> IntoPyObject<'py> for JiffRoundMode {
     type Target = PyString;
@@ -53,14 +53,14 @@ impl<'py> FromPyObject<'_, 'py> for JiffRoundMode {
                 "half-expand" | "half_expand" => Ok(Self(RoundMode::HalfExpand)),
                 "half-trunc" | "half_trunc" => Ok(Self(RoundMode::HalfTrunc)),
                 "half-even" | "half_even" => Ok(Self(RoundMode::HalfEven)),
-                _ => Err(PyValueError::new_err(format!(
-                    "Invalid round mode: {str_mode} (options: {JIFF_ROUND_MODE_ACCEPTED})"
-                ))),
+                _ => py_value_err!(
+                    "Invalid type for round mode, expected a string (options: {JIFF_ROUND_MODE_ACCEPTED})"
+                ),
             }
         } else {
-            Err(PyValueError::new_err(format!(
+            py_type_err!(
                 "Invalid type for round mode, expected a string (options: {JIFF_ROUND_MODE_ACCEPTED})"
-            )))
+            )
         }
     }
 }

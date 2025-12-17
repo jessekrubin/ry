@@ -44,7 +44,7 @@ use pyo3::prelude::*;
 //             $( #[$meta] )*
 //             #[inline]
 //             pub(crate) fn $fn_name<S>(
-//                 ser: &SerializePyAny<'_>,
+//                 ser: &PyAnySerializer<'_>,
 //                 serializer: S,
 //             ) -> Result<S::Ok, S::Error>
 //             where

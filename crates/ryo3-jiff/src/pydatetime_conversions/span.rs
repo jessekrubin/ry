@@ -24,7 +24,7 @@ impl<'py> IntoPyObject<'py> for &JiffSpan {
             .0
             .to_duration(SpanRelativeTo::days_are_24_hours())
             .map(JiffSignedDuration::from)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e}")))?;
+            .map_err(map_py_value_err)?;
         signed_duration.into_pyobject(py)
     }
 }

@@ -43,20 +43,20 @@ trait PyGlobPatternsString: PyGlobPatterns {
 impl PyGlob {
     #[new]
     #[pyo3(
-        signature = (pattern, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
+        signature = (pattern, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
     )]
     fn py_new(
         pattern: String,
-        case_insensitive: Option<bool>,
-        literal_separator: Option<bool>,
-        backslash_escape: Option<bool>,
+        case_insensitive: bool,
+        literal_separator: bool,
+        backslash_escape: bool,
     ) -> PyResult<Self> {
         let negative = pattern.starts_with('!');
         let mut glob_builder = GlobBuilder::new(&pattern);
         glob_builder
-            .backslash_escape(backslash_escape.unwrap_or(DEFAULT_BACKSLASH_ESCAPE))
-            .literal_separator(literal_separator.unwrap_or(false))
-            .case_insensitive(case_insensitive.unwrap_or(false));
+            .backslash_escape(backslash_escape)
+            .literal_separator(literal_separator)
+            .case_insensitive(case_insensitive);
         let glob = glob_builder.build();
         match glob {
             Ok(glob) => {
@@ -95,12 +95,8 @@ impl PyGlob {
         self.is_match(path)
     }
 
-    fn __str__(&self) -> String {
-        format!("Glob(\"{}\")", self.pattern)
-    }
-
     fn __repr__(&self) -> String {
-        self.__str__()
+        format!("{self}")
     }
 
     #[getter]
@@ -145,18 +141,15 @@ pub struct PyGlobSet {
 impl PyGlobSet {
     #[new]
     #[pyo3(
-        signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
+        signature = (patterns, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
     )]
     fn py_new(
         patterns: StringOrStrings,
-        case_insensitive: Option<bool>,
-        literal_separator: Option<bool>,
-        backslash_escape: Option<bool>,
+        case_insensitive: bool,
+        literal_separator: bool,
+        backslash_escape: bool,
     ) -> PyResult<Self> {
         let mut globset_builder = GlobSetBuilder::new();
-        let case_insensitive = case_insensitive.unwrap_or(false);
-        let literal_separator = literal_separator.unwrap_or(false);
-        let backslash_escape = backslash_escape.unwrap_or(DEFAULT_BACKSLASH_ESCAPE);
         let patterns = Vec::from(patterns);
 
         {
@@ -185,13 +178,8 @@ impl PyGlobSet {
         })
     }
 
-    fn __str__(&self) -> String {
-        let tuple_str = self.patterns_string();
-        format!("GlobSet({tuple_str})")
-    }
-
     fn __repr__(&self) -> String {
-        self.__str__()
+        format!("{self}")
     }
 
     fn __len__(&self) -> usize {
@@ -232,6 +220,20 @@ impl PyGlobSet {
             nglobset: None,
             length: self.patterns.len(),
         })
+    }
+}
+
+impl std::fmt::Display for PyGlob {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // TODO: fix this
+        write!(f, "Glob(\"{}\")", self.pattern)
+    }
+}
+
+impl std::fmt::Display for PyGlobSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let tuple_str = self.patterns_string();
+        write!(f, "GlobSet({tuple_str})")
     }
 }
 
@@ -298,13 +300,13 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
 #[pyfunction]
 #[pyo3(
     name = "globster",
-    signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
+    signature = (patterns, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
 )]
 fn py_globster(
     patterns: StringOrStrings,
-    case_insensitive: Option<bool>,
-    literal_separator: Option<bool>,
-    backslash_escape: Option<bool>,
+    case_insensitive: bool,
+    literal_separator: bool,
+    backslash_escape: bool,
 ) -> PyResult<PyGlobster> {
     let patterns = Vec::from(patterns);
     PyGlobster::py_new(

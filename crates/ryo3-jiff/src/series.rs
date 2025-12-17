@@ -1,6 +1,6 @@
 use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
 use pyo3::prelude::*;
-use ryo3_core::PyMutex;
+use ryo3_core::RyMutex;
 use ryo3_macro_rules::py_value_err;
 
 #[pyclass(name = "DateSeries", frozen, immutable_type, skip_from_py_object)]
@@ -8,7 +8,7 @@ use ryo3_macro_rules::py_value_err;
 pub struct RyDateSeries {
     start: jiff::civil::Date,
     period: jiff::Span,
-    pub(crate) series: PyMutex<jiff::civil::DateSeries, false>,
+    pub(crate) series: RyMutex<jiff::civil::DateSeries, false>,
 }
 
 impl TryFrom<(&RyDate, &RySpan)> for RyDateSeries {
@@ -21,7 +21,7 @@ impl TryFrom<(&RyDate, &RySpan)> for RyDateSeries {
         Ok(Self {
             start: start.0,
             period: period.0,
-            series: PyMutex::new(s),
+            series: RyMutex::new(s),
         })
     }
 }
@@ -41,7 +41,7 @@ impl std::fmt::Debug for RyDateSeries {
 pub struct RyDateTimeSeries {
     start: jiff::civil::DateTime,
     period: jiff::Span,
-    pub(crate) series: PyMutex<jiff::civil::DateTimeSeries, false>,
+    pub(crate) series: RyMutex<jiff::civil::DateTimeSeries, false>,
 }
 
 impl TryFrom<(&RyDateTime, &RySpan)> for RyDateTimeSeries {
@@ -54,7 +54,7 @@ impl TryFrom<(&RyDateTime, &RySpan)> for RyDateTimeSeries {
         Ok(Self {
             start: start.0,
             period: period.0,
-            series: PyMutex::new(s),
+            series: RyMutex::new(s),
         })
     }
 }
@@ -75,7 +75,7 @@ impl std::fmt::Debug for RyDateTimeSeries {
 pub struct RyTimeSeries {
     start: jiff::civil::Time,
     period: jiff::Span,
-    pub(crate) series: PyMutex<jiff::civil::TimeSeries, false>,
+    pub(crate) series: RyMutex<jiff::civil::TimeSeries, false>,
 }
 
 impl TryFrom<(&RyTime, &RySpan)> for RyTimeSeries {
@@ -88,7 +88,7 @@ impl TryFrom<(&RyTime, &RySpan)> for RyTimeSeries {
         Ok(Self {
             start: start.0,
             period: period.0,
-            series: PyMutex::new(s),
+            series: RyMutex::new(s),
         })
     }
 }
@@ -109,7 +109,7 @@ impl std::fmt::Debug for RyTimeSeries {
 pub struct RyTimestampSeries {
     start: jiff::Timestamp,
     period: jiff::Span,
-    pub(crate) series: PyMutex<jiff::TimestampSeries, false>,
+    pub(crate) series: RyMutex<jiff::TimestampSeries, false>,
 }
 
 impl TryFrom<(&RyTimestamp, &RySpan)> for RyTimestampSeries {
@@ -122,7 +122,7 @@ impl TryFrom<(&RyTimestamp, &RySpan)> for RyTimestampSeries {
         Ok(Self {
             start: start.0,
             period: period.0,
-            series: PyMutex::new(s),
+            series: RyMutex::new(s),
         })
     }
 }
@@ -143,7 +143,7 @@ impl std::fmt::Debug for RyTimestampSeries {
 pub struct RyZonedSeries {
     start: jiff::Zoned,
     period: jiff::Span,
-    pub(crate) series: PyMutex<jiff::ZonedSeries, false>,
+    pub(crate) series: RyMutex<jiff::ZonedSeries, false>,
 }
 
 impl TryFrom<(&RyZoned, &RySpan)> for RyZonedSeries {
@@ -156,7 +156,7 @@ impl TryFrom<(&RyZoned, &RySpan)> for RyZonedSeries {
         Ok(Self {
             start: start.0.clone(),
             period: period.0,
-            series: PyMutex::new(s),
+            series: RyMutex::new(s),
         })
     }
 }

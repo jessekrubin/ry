@@ -1,13 +1,14 @@
 //! `FsPath` struct python module
-use parking_lot::Mutex;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
     PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
     PyValueError,
 };
+
 use pyo3::types::{PyBytes, PyTuple};
 use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref;
+use ryo3_core::RyMutex;
 use ryo3_core::types::PathLike;
 use std::ffi::OsStr;
 use std::hash::{Hash, Hasher};
@@ -828,7 +829,7 @@ where
 #[pyclass(name = "FsPathReadDir", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFsPathReadDir {
-    iter: Mutex<std::fs::ReadDir>,
+    iter: RyMutex<std::fs::ReadDir, false>,
 }
 
 #[pymethods]
@@ -838,7 +839,7 @@ impl PyFsPathReadDir {
     }
 
     fn __next__(&self, py: Python<'_>) -> Option<PyFsPath> {
-        let value = py.detach(|| self.iter.lock().next());
+        let value = py.detach(|| self.iter.py_lock().next());
         match value {
             Some(Ok(entry)) => Some(PyFsPath::from(entry.path())),
             _ => None,
@@ -848,7 +849,7 @@ impl PyFsPathReadDir {
     fn collect(&self, py: Python<'_>) -> Vec<PyFsPath> {
         py.detach(|| {
             let mut paths = vec![];
-            for entry in self.iter.lock().by_ref() {
+            for entry in self.iter.py_lock().by_ref() {
                 match entry {
                     Ok(entry) => paths.push(PyFsPath::from(entry.path())),
                     Err(_e) => break, // TODO: handle error
@@ -862,7 +863,7 @@ impl PyFsPathReadDir {
     fn take(&self, py: Python<'_>, n: usize) -> Vec<PyFsPath> {
         py.detach(|| {
             self.iter
-                .lock()
+                .py_lock()
                 .by_ref()
                 .take(n)
                 .filter_map(|entry| match entry {
@@ -884,14 +885,14 @@ impl From<std::fs::ReadDir> for PyFsPathReadDir {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFsPathAncestors {
     path: ArcPathBuf,
-    current: Mutex<Option<ArcPathBuf>>,
+    current: RyMutex<Option<ArcPathBuf>, false>,
 }
 
 impl PyFsPathAncestors {
     pub fn new<P: AsRef<Path>>(p: P) -> Self {
         Self {
             path: ArcPathBuf::new(p.as_ref().to_path_buf()),
-            current: Mutex::new(Some(ArcPathBuf::new(p.as_ref().to_path_buf()))),
+            current: RyMutex::new(Some(ArcPathBuf::new(p.as_ref().to_path_buf()))),
         }
     }
 }
@@ -907,7 +908,7 @@ impl PyFsPathAncestors {
     }
 
     fn __next__(&self) -> Option<PyFsPath> {
-        let mut current = self.current.lock();
+        let mut current = self.current.py_lock();
         let taken = current.take().map(|p| PyFsPath::from(p.as_ref()));
         if let Some(ref p) = taken {
             let next = p.path().parent().map(|p| ArcPathBuf::new(p.to_path_buf()));

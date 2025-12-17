@@ -32,20 +32,10 @@ pub struct RyTime(pub(crate) Time);
 impl RyTime {
     #[new]
     #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
-    pub(crate) fn py_new(
-        hour: Option<i8>,
-        minute: Option<i8>,
-        second: Option<i8>,
-        nanosecond: Option<i32>,
-    ) -> PyResult<Self> {
-        Time::new(
-            hour.unwrap_or(0),
-            minute.unwrap_or(0),
-            second.unwrap_or(0),
-            nanosecond.unwrap_or(0),
-        )
-        .map(Self::from)
-        .map_err(map_py_value_err)
+    pub(crate) fn py_new(hour: i8, minute: i8, second: i8, nanosecond: i32) -> PyResult<Self> {
+        Time::new(hour, minute, second, nanosecond)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

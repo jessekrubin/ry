@@ -6,17 +6,17 @@ use crate::errors::pyerr2sererr;
 use crate::ser::traits::PySerializeUnsafe;
 use pyo3::Borrowed;
 
-pub(crate) struct SerializePyFloat<'a, 'py> {
+pub(crate) struct PyFloatSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> SerializePyFloat<'a, 'py> {
+impl<'a, 'py> PyFloatSerializer<'a, 'py> {
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
-impl Serialize for SerializePyFloat<'_, '_> {
+impl Serialize for PyFloatSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -27,7 +27,7 @@ impl Serialize for SerializePyFloat<'_, '_> {
     }
 }
 
-impl PySerializeUnsafe for SerializePyFloat<'_, '_> {
+impl PySerializeUnsafe for PyFloatSerializer<'_, '_> {
     #[inline]
     fn serialize_unsafe<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

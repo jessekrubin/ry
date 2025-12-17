@@ -4,20 +4,20 @@ use pyo3::{intern, prelude::*};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::safe_impl::SerializePyDict;
-use crate::{Depth, MAX_DEPTH, SerializePyAny, serde_err, serde_err_recursion};
+use crate::ser::safe_impl::PyDictSerializer;
+use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
 
 use crate::ser::PySerializeContext;
 use crate::ser::dataclass::dataclass_fields;
 use pyo3::{Bound, types::PyDict};
 
-pub(crate) struct SerializePyDataclass<'a, 'py> {
+pub(crate) struct PyDataclassSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,
     obj: Borrowed<'a, 'py, PyAny>,
     depth: Depth,
 }
 
-impl<'a, 'py> SerializePyDataclass<'a, 'py> {
+impl<'a, 'py> PyDataclassSerializer<'a, 'py> {
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyAny>,
         ctx: PySerializeContext<'py>,
@@ -34,7 +34,7 @@ fn get_field_marker(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
     DC_FIELD_MARKER.import(py, "dataclasses", "_FIELD")
 }
 
-impl Serialize for SerializePyDataclass<'_, '_> {
+impl Serialize for PyDataclassSerializer<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -49,7 +49,7 @@ impl Serialize for SerializePyDataclass<'_, '_> {
             if let Ok(dict) = dunder_dict.cast::<PyDict>() {
                 // serialize the __dict__ as a dict
                 // revisit the as any?
-                SerializePyDict::new(dict.as_any().as_borrowed(), self.ctx, self.depth + 1)
+                PyDictSerializer::new(dict.as_any().as_borrowed(), self.ctx, self.depth + 1)
                     .serialize(serializer)
             } else {
                 serde_err!("dataclass::__dict__ is not a dict")
@@ -67,7 +67,7 @@ impl Serialize for SerializePyDataclass<'_, '_> {
                     let field_name_py_str =
                         field_name.cast_into::<PyString>().map_err(pyerr2sererr)?;
                     let value = self.obj.getattr(&field_name_py_str).map_err(pyerr2sererr)?;
-                    let field_ser = SerializePyAny::new_with_depth(
+                    let field_ser = PyAnySerializer::new_with_depth(
                         value.as_borrowed(),
                         self.ctx,
                         self.depth + 1,

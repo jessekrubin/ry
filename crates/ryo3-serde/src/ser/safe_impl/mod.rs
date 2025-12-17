@@ -11,19 +11,20 @@ mod py_seq;
 mod py_str;
 mod py_uuid;
 
-pub(crate) use py_bool::SerializePyBool;
-pub(crate) use py_byteslike::SerializePyBytesLike;
-pub(crate) use py_dataclass::SerializePyDataclass;
+pub(crate) use py_bool::PyBoolSerializer;
+pub(crate) use py_byteslike::PyBytesLikeSerializer;
+pub(crate) use py_dataclass::PyDataclassSerializer;
 pub(crate) use py_datetime::{
-    SerializePyDate, SerializePyDateTime, SerializePyTime, SerializePyTimeDelta,
+    PyDateSerializer, PyDateTimeSerializer, PyTimeDeltaSerializer, PyTimeSerializer,
 };
-pub(crate) use py_float::SerializePyFloat;
-pub(crate) use py_int::SerializePyInt;
-pub(crate) use py_map::{SerializePyDict, SerializePyMapping};
-pub(crate) use py_mapping_key::SerializePyMappingKey;
-pub(crate) use py_none::SerializePyNone;
+pub(crate) use py_float::PyFloatSerializer;
+pub(crate) use py_int::PyIntSerializer;
+pub(crate) use py_map::{PyDictSerializer, PyMappingSerializer};
+pub(crate) use py_mapping_key::PyMappingKeySerializer;
+pub(crate) use py_none::PyNoneSerializer;
 pub(crate) use py_seq::{
-    SerializePyFrozenSet, SerializePyList, SerializePySequence, SerializePySet, SerializePyTuple,
+    PyFrozenSetSerializer, PyListSerializer, PySequenceSerializer, PySetSerializer,
+    PyTupleSerializer,
 };
-pub(crate) use py_str::{SerializePyStr, SerializePyStrSubclass};
-pub(crate) use py_uuid::SerializePyUuid;
+pub(crate) use py_str::{PyStrSerializer, PyStrSubclassSerializer};
+pub(crate) use py_uuid::PyUuidSerializer;

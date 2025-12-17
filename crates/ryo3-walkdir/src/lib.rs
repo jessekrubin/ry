@@ -2,7 +2,7 @@
 
 mod walkdir_entry;
 use pyo3::{IntoPyObjectExt, prelude::*};
-use ryo3_core::PyMutex;
+use ryo3_core::RyMutex;
 use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
@@ -13,7 +13,7 @@ use crate::walkdir_entry::PyWalkDirEntry;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWalkdirGen {
     objects: bool,
-    iter: PyMutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>, false>,
+    iter: RyMutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>, false>,
 }
 
 #[pymethods]
@@ -98,7 +98,7 @@ impl From<::walkdir::WalkDir> for PyWalkdirGen {
 
         Self {
             objects: false,
-            iter: PyMutex::new(Box::new(wdit.filter_map(Result::ok))),
+            iter: RyMutex::new(Box::new(wdit.filter_map(Result::ok))),
         }
     }
 }
@@ -226,7 +226,7 @@ pub fn walkdir(
     };
     Ok(PyWalkdirGen {
         objects,
-        iter: PyMutex::new(final_iter),
+        iter: RyMutex::new(final_iter),
     })
 }
 

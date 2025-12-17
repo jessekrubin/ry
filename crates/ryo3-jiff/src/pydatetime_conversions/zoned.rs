@@ -4,11 +4,11 @@ use crate::{JiffTimeZone, JiffTimeZoneRef, JiffZoned, JiffZonedRef};
 use jiff::Zoned;
 use jiff::civil::DateTime;
 use jiff::tz::TimeZone;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyTimeAccess;
 use pyo3::types::{PyDateTime, PyTzInfoAccess};
+use ryo3_macro_rules::py_value_err;
 
 fn datetime_to_pydatetime<'py>(
     py: Python<'py>,
@@ -103,11 +103,7 @@ impl<'py> FromPyObject<'_, 'py> for JiffZoned {
     fn extract(dt: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let dt = dt.cast::<PyDateTime>()?;
         let tzinfo = dt.get_tzinfo().map_or_else(
-            || {
-                Err(PyErr::new::<PyValueError, _>(
-                    "expected a datetime with non-None tzinfo",
-                ))
-            },
+            || py_value_err!("expected a datetime with non-None tzinfo"),
             |tz| tz.extract::<JiffTimeZone>(),
         )?;
         // #[expect(clippy::explicit_auto_deref)]

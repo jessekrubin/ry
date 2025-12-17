@@ -6,7 +6,7 @@ use pyo3::types::PyDelta;
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyDeltaAccess;
 
-use pyo3::exceptions::PyOverflowError;
+use ryo3_macro_rules::py_overflow_error;
 const SECONDS_PER_DAY: i64 = 86_400;
 
 pub fn signed_duration_to_pyobject<'py>(
@@ -51,12 +51,12 @@ pub fn signed_duration_from_pyobject(obj: &Bound<'_, PyAny>) -> PyResult<SignedD
     let total_seconds = days
         .checked_mul(SECONDS_PER_DAY)
         .and_then(|d| d.checked_add(seconds))
-        .ok_or_else(|| PyErr::new::<PyOverflowError, _>("Overflow in total_seconds calculation"))?;
+        .ok_or_else(|| py_overflow_error!("Overflow in total_seconds calculation"))?;
 
     // Convert microseconds to nanoseconds
     let nanoseconds = microseconds
         .checked_mul(1_000)
-        .ok_or_else(|| PyErr::new::<PyOverflowError, _>("Overflow in nanoseconds calculation"))?;
+        .ok_or_else(|| py_overflow_error!("Overflow in nanoseconds calculation"))?;
     Ok(SignedDuration::new(total_seconds, nanoseconds))
 }
 

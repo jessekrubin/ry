@@ -8,17 +8,17 @@ use pyo3::types::{PyDate, PyDateTime, PyTime};
 // ---------------------------------------------------------------------------
 // python stdlib `datetime.date`
 // ---------------------------------------------------------------------------
-pub(crate) struct SerializePyDate<'a, 'py> {
+pub(crate) struct PyDateSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> SerializePyDate<'a, 'py> {
+impl<'a, 'py> PyDateSerializer<'a, 'py> {
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
-impl Serialize for SerializePyDate<'_, '_> {
+impl Serialize for PyDateSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -34,18 +34,18 @@ impl Serialize for SerializePyDate<'_, '_> {
 // ---------------------------------------------------------------------------
 // python stdlib `datetime.date`
 // ---------------------------------------------------------------------------
-pub(crate) struct SerializePyTime<'a, 'py> {
+pub(crate) struct PyTimeSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> SerializePyTime<'a, 'py> {
+impl<'a, 'py> PyTimeSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
-impl Serialize for SerializePyTime<'_, '_> {
+impl Serialize for PyTimeSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -61,18 +61,18 @@ impl Serialize for SerializePyTime<'_, '_> {
 // ---------------------------------------------------------------------------
 // python stdlib `datetime.datetime`
 // ---------------------------------------------------------------------------
-pub(crate) struct SerializePyDateTime<'a, 'py> {
+pub(crate) struct PyDateTimeSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> SerializePyDateTime<'a, 'py> {
+impl<'a, 'py> PyDateTimeSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 #[cfg(feature = "jiff")]
-impl Serialize for SerializePyDateTime<'_, '_> {
+impl Serialize for PyDateTimeSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -94,7 +94,7 @@ impl Serialize for SerializePyDateTime<'_, '_> {
 }
 
 #[cfg(not(feature = "jiff"))]
-impl Serialize for SerializePyDateTime<'_, '_> {
+impl Serialize for PyDateTimeSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -113,10 +113,10 @@ impl Serialize for SerializePyDateTime<'_, '_> {
 // python stdlib `datetime.timedelta`
 // ---------------------------------------------------------------------------
 #[cfg_attr(not(feature = "jiff"), expect(dead_code))]
-pub(crate) struct SerializePyTimeDelta<'a, 'py> {
+pub(crate) struct PyTimeDeltaSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
-impl<'a, 'py> SerializePyTimeDelta<'a, 'py> {
+impl<'a, 'py> PyTimeDeltaSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
@@ -124,7 +124,7 @@ impl<'a, 'py> SerializePyTimeDelta<'a, 'py> {
 }
 
 #[cfg(feature = "jiff")]
-impl Serialize for SerializePyTimeDelta<'_, '_> {
+impl Serialize for PyTimeDeltaSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -140,7 +140,7 @@ impl Serialize for SerializePyTimeDelta<'_, '_> {
 }
 
 #[cfg(not(feature = "jiff"))]
-impl Serialize for SerializePyTimeDelta<'_, '_> {
+impl Serialize for PyTimeDeltaSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
     where

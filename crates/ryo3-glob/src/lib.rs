@@ -2,11 +2,11 @@
 mod pattern;
 
 use crate::pattern::PyPattern;
-use parking_lot::Mutex;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyModule, PyType};
+use ryo3_core::RyMutex;
 use ryo3_macro_rules::py_value_err;
 use ryo3_macro_rules::py_value_error;
 use std::ffi::OsString;
@@ -82,7 +82,7 @@ impl GlobDType {
 #[pyclass(name = "GlobPaths", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyGlobPaths {
-    inner: Arc<Mutex<::glob::Paths>>,
+    inner: Arc<RyMutex<::glob::Paths, false>>,
     strict: bool,
     dtype: GlobDType,
 }
@@ -91,7 +91,7 @@ impl PyGlobPaths {
     /// Pull exactly one item -- fix `clippy::significant-drop-in-scrutinee`
     #[inline]
     fn next_path(&self) -> Option<Result<PathBuf, glob::GlobError>> {
-        self.inner.lock().next()
+        self.inner.py_lock().next()
     }
 }
 
@@ -123,7 +123,7 @@ impl PyGlobPaths {
             .detach(|| {
                 if self.strict {
                     let mut results = Vec::new();
-                    for path in self.inner.lock().by_ref() {
+                    for path in self.inner.py_lock().by_ref() {
                         match path {
                             Ok(path) => {
                                 results.push(path);
@@ -135,7 +135,7 @@ impl PyGlobPaths {
                     }
                     Ok(results)
                 } else {
-                    let a = self.inner.lock().by_ref().flatten().collect::<Vec<_>>();
+                    let a = self.inner.py_lock().by_ref().flatten().collect::<Vec<_>>();
                     Ok(a)
                 }
             })
@@ -150,7 +150,7 @@ impl PyGlobPaths {
             .detach(|| {
                 if self.strict {
                     let mut results = Vec::new();
-                    for path_result in self.inner.lock().by_ref().take(n) {
+                    for path_result in self.inner.py_lock().by_ref().take(n) {
                         match path_result {
                             Ok(path) => {
                                 results.push(path);
@@ -164,7 +164,7 @@ impl PyGlobPaths {
                 } else {
                     let pathbufs = self
                         .inner
-                        .lock()
+                        .py_lock()
                         .by_ref()
                         .flatten()
                         .take(n)
@@ -242,7 +242,7 @@ pub fn py_glob(
         },
     )
     .map(|paths| PyGlobPaths {
-        inner: Arc::new(Mutex::new(paths)),
+        inner: Arc::new(RyMutex::new(paths)),
         strict,
         dtype,
     })

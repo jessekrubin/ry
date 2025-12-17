@@ -39,22 +39,14 @@ impl RyDateTime {
         year: i16,
         month: i8,
         day: i8,
-        hour: Option<i8>,
-        minute: Option<i8>,
-        second: Option<i8>,
-        subsec_nanosecond: Option<i32>,
+        hour: i8,
+        minute: i8,
+        second: i8,
+        subsec_nanosecond: i32,
     ) -> PyResult<Self> {
-        DateTime::new(
-            year,
-            month,
-            day,
-            hour.unwrap_or(0),
-            minute.unwrap_or(0),
-            second.unwrap_or(0),
-            subsec_nanosecond.unwrap_or(0),
-        )
-        .map(Self::from)
-        .map_err(map_py_value_err)
+        DateTime::new(year, month, day, hour, minute, second, subsec_nanosecond)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

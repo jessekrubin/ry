@@ -3,18 +3,18 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 
-pub(crate) struct SerializePyUuid<'a, 'py> {
+pub(crate) struct PyUuidSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> SerializePyUuid<'a, 'py> {
+impl<'a, 'py> PyUuidSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
-impl Serialize for SerializePyUuid<'_, '_> {
+impl Serialize for PyUuidSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

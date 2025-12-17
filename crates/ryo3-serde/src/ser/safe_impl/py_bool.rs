@@ -7,18 +7,18 @@ use crate::ser::traits::PySerializeUnsafe;
 use pyo3::types::PyBool;
 use pyo3::{Borrowed, ffi};
 
-pub(crate) struct SerializePyBool<'a, 'py> {
+pub(crate) struct PyBoolSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> SerializePyBool<'a, 'py> {
+impl<'a, 'py> PyBoolSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { obj }
     }
 }
 
-impl Serialize for SerializePyBool<'_, '_> {
+impl Serialize for PyBoolSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -33,7 +33,7 @@ impl Serialize for SerializePyBool<'_, '_> {
     }
 }
 
-impl PySerializeUnsafe for SerializePyBool<'_, '_> {
+impl PySerializeUnsafe for PyBoolSerializer<'_, '_> {
     fn serialize_unsafe<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

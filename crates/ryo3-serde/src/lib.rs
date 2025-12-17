@@ -10,4 +10,4 @@ mod ob_type_cache;
 pub mod ser;
 
 pub(crate) use constants::{Depth, MAX_DEPTH};
-pub use ser::py_serialize::SerializePyAny;
+pub use ser::py_serialize::PyAnySerializer;

@@ -25,7 +25,7 @@ impl FromStr for PyGlobster {
 
     fn from_str(pattern: &str) -> PyResult<Self> {
         let patterns = vec![pattern.to_string()];
-        Self::py_new(patterns, None, None, None)
+        Self::py_new(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
     }
 }
 
@@ -33,7 +33,7 @@ impl TryFrom<Vec<String>> for PyGlobster {
     type Error = PyErr;
 
     fn try_from(patterns: Vec<String>) -> PyResult<Self> {
-        Self::py_new(patterns, None, None, None)
+        Self::py_new(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
     }
 }
 
@@ -53,19 +53,16 @@ impl PyGlobster {
 impl PyGlobster {
     #[new]
     #[pyo3(
-        signature = (patterns, /, *, case_insensitive=None, literal_separator=None, backslash_escape=None)
+        signature = (patterns, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
     )]
     pub(crate) fn py_new(
         patterns: Vec<String>,
-        case_insensitive: Option<bool>,
-        literal_separator: Option<bool>,
-        backslash_escape: Option<bool>,
+        case_insensitive: bool,
+        literal_separator: bool,
+        backslash_escape: bool,
     ) -> PyResult<Self> {
         let mut globset_builder = GlobSetBuilder::new();
         let mut nglobset_builder = GlobSetBuilder::new();
-        let case_insensitive = case_insensitive.unwrap_or(false);
-        let literal_separator = literal_separator.unwrap_or(false);
-        let backslash_escape = backslash_escape.unwrap_or(DEFAULT_BACKSLASH_ESCAPE);
         let mut positive_patterns: Vec<String> = vec![];
         let mut negative_patterns: Vec<String> = vec![];
 
@@ -120,13 +117,8 @@ impl PyGlobster {
         Ok(Self(globster))
     }
 
-    fn __str__(&self) -> String {
-        let tuple_str = self.patterns_string();
-        format!("Globster({tuple_str})")
-    }
-
     fn __repr__(&self) -> String {
-        self.__str__()
+        format!("{self}")
     }
 
     fn __len__(&self) -> usize {
@@ -167,5 +159,12 @@ impl PyGlobster {
     fn patterns<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let patterns = self.0.patterns.clone();
         PyTuple::new(py, patterns)
+    }
+}
+
+impl std::fmt::Display for PyGlobster {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let tuple_str = self.patterns_string();
+        write!(f, "Globster({tuple_str})")
     }
 }

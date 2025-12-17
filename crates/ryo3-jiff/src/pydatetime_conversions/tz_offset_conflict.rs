@@ -1,5 +1,6 @@
 use crate::jiff_types::JiffTzOffsetConflict;
 use pyo3::prelude::*;
+use ryo3_macro_rules::{py_type_err, py_value_err};
 
 const JIFF_TZ_OFFSET_CONFLICTS: &str = "'always-offset', 'always-timezone', 'prefer-offset', 'reject' (underscores and hyphens are interchangeable)";
 impl<'py> FromPyObject<'_, 'py> for JiffTzOffsetConflict {
@@ -17,14 +18,12 @@ impl<'py> FromPyObject<'_, 'py> for JiffTzOffsetConflict {
                     Ok(jiff::tz::OffsetConflict::PreferOffset.into())
                 }
                 "reject" => Ok(jiff::tz::OffsetConflict::Reject.into()),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid era: {s} (options: {JIFF_TZ_OFFSET_CONFLICTS})"
-                ))),
+                _ => py_value_err!("Invalid era: {s} (options: {JIFF_TZ_OFFSET_CONFLICTS})"),
             }
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                "Invalid type, expected str (options: {JIFF_TZ_OFFSET_CONFLICTS})"
-            )))
+            py_type_err!(
+                "Invalid type for tz offset conflict, expected a string (options: {JIFF_TZ_OFFSET_CONFLICTS})"
+            )
         }
     }
 }
