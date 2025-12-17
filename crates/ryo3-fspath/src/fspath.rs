@@ -828,7 +828,7 @@ where
 
 #[pyclass(name = "FsPathReadDir", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyFsPathReadDir {
+struct PyFsPathReadDir {
     iter: RyMutex<std::fs::ReadDir, false>,
 }
 
@@ -883,13 +883,13 @@ impl From<std::fs::ReadDir> for PyFsPathReadDir {
 
 #[pyclass(name = "FsPathAncestors", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyFsPathAncestors {
+struct PyFsPathAncestors {
     path: ArcPathBuf,
     current: RyMutex<Option<ArcPathBuf>, false>,
 }
 
 impl PyFsPathAncestors {
-    pub fn new<P: AsRef<Path>>(p: P) -> Self {
+    fn new<P: AsRef<Path>>(p: P) -> Self {
         Self {
             path: ArcPathBuf::new(p.as_ref().to_path_buf()),
             current: RyMutex::new(Some(ArcPathBuf::new(p.as_ref().to_path_buf()))),

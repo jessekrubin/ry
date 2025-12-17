@@ -18,7 +18,7 @@ struct Stuff {
 // the test
 #[test]
 fn test_deserialize_and_serialize() {
-    let ry_time = RyTime::py_new(Some(4), Some(3), Some(2), Option::from(1)).unwrap();
+    let ry_time = RyTime::py_new(4, 3, 2, 1).unwrap();
     let ry_date = RyDate::py_new(2025, 5, 21).unwrap();
     let ry_datetime = ry_date.at(4, 3, 2, 1);
     let ry_zoned = ry_datetime.in_tz("America/New_York").unwrap();

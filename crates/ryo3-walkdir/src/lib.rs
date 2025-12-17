@@ -7,7 +7,7 @@ use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
 
-use crate::walkdir_entry::PyWalkDirEntry;
+pub use crate::walkdir_entry::PyWalkDirEntry;
 
 #[pyclass(name = "WalkdirGen", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]

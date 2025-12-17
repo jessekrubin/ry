@@ -9,17 +9,17 @@
 //! it were, I would do it all the time.
 //!
 //! TODO (fugue-state-jesse):
-//!     if/when you revisit this file, idk what is going on here, chad-gpt also
-//!     doesn't know, can you please refactor this to be saner?
-//!     --yourself
+//! if/when you revisit this file, idk what is going on here, chad-gpt also
+//! doesn't know, can you please refactor this to be saner?
+//! --yourself
 //!
-//!     Response:
-//!       Hello normal-jesse,
+//! __Response__:
+//! Hello normal-jesse,
 //!
-//!       Perhaps. What I can do is make it way more complicated/unreadable..
+//! Perhaps. What I can do is make it way more complicated/unreadable..
 //!
-//!       Regards,
-//!       fugue-state-jesse
+//! Regards,
+//! fugue-state-jesse
 //!
 #[cfg(any(
     feature = "ryo3-http",
