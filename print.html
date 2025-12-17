@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-0714873b.js";
+            window.path_to_searchindex_js = "searchindex-0db7e044.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-16T12:57:37.960714921-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-17T09:33:26.914171565-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -491,6 +491,40 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0075-unrleased"><a class="header" href="#v0075-unrleased">v0.0.75 [unrleased]</a></h2>
+<ul>
+<li><code>ryo3-serde</code>
+<ul>
+<li>Renamed all <code>SerializePy*</code> structs to <code>Py*Serializer</code> w/ the below one
+liner:
+<ul>
+<li><code>find . -type f -name "*.rs" -print0 | xargs -0 sed -i -E 's/SerializePy([A-Z][A-Za-z0-9_]*)/Py\1Serializer/g'</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>Consolidate <code>map_py_err_*</code> functions into <code>ryo3_core</code></li>
+</ul>
+</li>
+<li><code>ryo3-core</code>
+<ul>
+<li>renamed <code>PyMutex</code> to <code>RyMutex</code> to avoid confusion with <code>pyo3</code>’s <code>PyMutex</code></li>
+</ul>
+</li>
+<li><code>ryo3-fspath</code>
+<ul>
+<li>Use <code>RyMutex</code> instead of <code>parking_lot::Mutex</code></li>
+</ul>
+</li>
+<li><code>ryo3-glob</code>
+<ul>
+<li>Use <code>RyMutex</code> instead of <code>parking_lot::Mutex</code></li>
+</ul>
+</li>
+</ul>
+<hr>
 <h2 id="v0074-2025-12-16"><a class="header" href="#v0074-2025-12-16">v0.0.74 [2025-12-16]</a></h2>
 <ul>
 <li>updating pyo3 to use <code>skip_from_py_object</code> where applicable (this will be a
