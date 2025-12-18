@@ -1,19 +1,17 @@
 //! python `reqwest` based `fetch` implementation
 
 use crate::{RyBlockingResponse, RyHttpClient};
-use parking_lot::Mutex;
 use pyo3::{prelude::*, pybacked::PyBackedStr};
 use ryo3_http::{HttpVersion, PyHeadersLike};
 use std::sync::OnceLock;
 
-static DEFAULT_CLIENT: OnceLock<Mutex<RyHttpClient>> = OnceLock::new();
+static DEFAULT_CLIENT: OnceLock<RyHttpClient> = OnceLock::new();
 
 #[inline]
-pub(crate) fn default_client() -> &'static Mutex<RyHttpClient> {
+pub(crate) fn default_client() -> &'static RyHttpClient {
     DEFAULT_CLIENT.get_or_init(|| {
-        let client = RyHttpClient::new(None)
-            .expect("Failed to create default client. This should never happen.");
-        Mutex::new(client)
+        RyHttpClient::new(None)
+            .expect("Failed to create default client. This should never happen.")
     })
 }
 
@@ -53,7 +51,7 @@ pub(crate) fn fetch<'py>(
     version: Option<HttpVersion>,
 ) -> PyResult<Bound<'py, PyAny>> {
     let obj: Py<PyAny> = {
-        let guard = default_client().lock();
+        let guard = default_client();
         let bound = guard.fetch(
             py,
             url,
@@ -108,7 +106,7 @@ pub(crate) fn fetch_sync<'py>(
     bearer_auth: Option<PyBackedStr>,
     version: Option<HttpVersion>,
 ) -> PyResult<RyBlockingResponse> {
-    let guard = default_client().lock();
+    let guard = default_client();
     // let bound =
     guard.fetch_sync(
         py,
