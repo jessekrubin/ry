@@ -63,6 +63,8 @@ def test_which_nada() -> None:
 
 
 class TestWhichFsPath:
+    """Testing which w/ respect to `ry.FsPath` ~ copy-pastaed from above"""
+
     def test_which_python(self) -> None:
         py_which = shutil.which("python")
         ry_which = ry.FsPath.which("python")
@@ -107,6 +109,6 @@ class TestWhichFsPath:
         py_which = shutil.which(exe)
         ry_which = ry.FsPath.which(exe)
         ry_which_all = ry.FsPath.which_all(exe)
-        assert py_which == ry_which  # type: ignore[comparison-overlap]
+        assert py_which == ry_which
         assert ry_which is None
         assert len(ry_which_all) == 0 and isinstance(ry_which_all, list)
