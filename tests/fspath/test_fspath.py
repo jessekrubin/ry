@@ -144,7 +144,7 @@ class TestFsPath:
         pypath = tmp_path
         rypath = path_cls(tmp_path)
         assert all(
-            _paths_equiv(rp, pp)
+            _paths_equiv(rp, pp)  # type: ignore[arg-type]
             for rp, pp in zip(
                 sorted(rypath.iterdir()), sorted(pypath.iterdir()), strict=True
             )
@@ -329,7 +329,7 @@ class TestFsPathPosix:
     def test_root(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")
         rypath = path_cls("/some/path")
-        assert rypath.root == pypath.root
+        assert str(rypath.root) == pypath.root
 
 
 @pytest.fixture(

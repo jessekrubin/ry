@@ -104,7 +104,7 @@ impl PyFsPath {
 
     fn equiv(&self, other: PathLike) -> bool {
         let other = other.as_ref();
-        self.path() == other
+        self.path() == other || self.py_to_string() == path2str(other)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
