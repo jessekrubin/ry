@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-032b6e1b.js";
+            window.path_to_searchindex_js = "searchindex-79403483.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -1099,9 +1099,9 @@ class Glob:
         pattern: str,
         /,
         *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
+        case_insensitive: bool = False,
+        literal_separator: bool = False,
+        backslash_escape: bool = ...,  # True on windows, False otherwise
     ) -&gt; None: ...
     @property
     def regex(self) -&gt; str: ...
@@ -1122,9 +1122,9 @@ class GlobSet:
         patterns: list[str],
         /,
         *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
+        case_insensitive: bool = False,
+        literal_separator: bool = False,
+        backslash_escape: bool = ...,  # True on windows, False otherwise
     ) -&gt; None: ...
     def is_empty(self) -&gt; bool: ...
     def is_match(self, path: str) -&gt; bool: ...
@@ -1150,9 +1150,9 @@ class Globster:
         patterns: list[str],
         /,
         *,
-        case_insensitive: bool | None = None,
-        literal_separator: bool | None = None,
-        backslash_escape: bool | None = None,
+        case_insensitive: bool = False,
+        literal_separator: bool = False,
+        backslash_escape: bool = ...,  # True on windows, False otherwise
     ) -&gt; None: ...
     def is_empty(self) -&gt; bool: ...
     def is_match(self, path: str | PathLike[str]) -&gt; bool: ...
@@ -1166,9 +1166,9 @@ def globster(
     patterns: list[str] | tuple[str, ...],
     /,
     *,
-    case_insensitive: bool | None = None,
-    literal_separator: bool | None = None,
-    backslash_escape: bool | None = None,
+    case_insensitive: bool = False,
+    literal_separator: bool = False,
+    backslash_escape: bool = ...,  # True on windows, False otherwise
 ) -&gt; Globster: ...
 </code></pre>
 <h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>

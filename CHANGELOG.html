@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-032b6e1b.js";
+            window.path_to_searchindex_js = "searchindex-79403483.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -205,12 +205,19 @@ liner:
 </li>
 <li><code>ryo3-fspath</code>
 <ul>
+<li>Removed richcmp between non <code>FsPath</code> objects and <code>ry.FsPath</code> (can use
+<code>equiv</code>) to check for equality</li>
 <li>Use <code>RyMutex</code> instead of <code>parking_lot::Mutex</code></li>
 </ul>
 </li>
 <li><code>ryo3-glob</code>
 <ul>
 <li>Use <code>RyMutex</code> instead of <code>parking_lot::Mutex</code></li>
+</ul>
+</li>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li>Remove mutex wrapping global client</li>
 </ul>
 </li>
 </ul>
