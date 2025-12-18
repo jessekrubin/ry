@@ -15,17 +15,26 @@ TPath: TypeAlias = type[Path] | type[ry.FsPath]
 is_windows = os.name == "nt"
 
 
-def test_new_path() -> None:
-    pypath = Path()
-    rypath = ry.FsPath()
-    assert rypath == pypath
-
-
 def test_hash_path() -> None:
     rypath = ry.FsPath(".").resolve()
     another_rypath = rypath.parent
     assert hash(rypath) != hash(another_rypath)
     assert rypath != another_rypath
+
+
+def _paths_equiv(left: ry.FsPath | Path, right: ry.FsPath | Path) -> bool:
+    match (left, right):
+        case (ry.FsPath(), ry.FsPath()):
+            return left == right
+        case (Path(), Path()):
+            return left == right
+        case (ry.FsPath(), Path()):
+            return left.equiv(right)
+        case (Path(), ry.FsPath()):
+            return right.equiv(left)
+        case _:
+            msg = "Invalid types for _paths_equiv"
+            raise TypeError(msg)
 
 
 # parametrize the tests for parity with pathlib.Path
@@ -46,19 +55,19 @@ class TestFsPath:
     def test_new_path(self, path_cls: TPath) -> None:
         pypath = Path()
         rypath = path_cls()
-        assert rypath == pypath
+        assert _paths_equiv(rypath, pypath)
 
     def test_parent(self, path_cls: TPath) -> None:
         pypath = Path()
         rypath = path_cls()
-        assert rypath.parent == pypath.parent
+        assert _paths_equiv(rypath.parent, pypath.parent)
 
     def test_absolute(self, path_cls: TPath) -> None:
         pypath = Path()
         rypath = path_cls()
         pypath_abs = pypath.absolute()
         rypath_abs = rypath.absolute()
-        assert rypath_abs == pypath_abs
+        assert _paths_equiv(rypath_abs, pypath_abs)
 
     def test_read_text(self, path_cls: TPath, tmp_path: Path) -> None:
         pypath = tmp_path / "test.txt"
@@ -89,7 +98,7 @@ class TestFsPath:
     def test_joinpath(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")
         rypath = path_cls("/some/path")
-        assert rypath.joinpath("child") == pypath.joinpath("child")
+        assert _paths_equiv(rypath.joinpath("child"), pypath.joinpath("child"))
 
     def test_exists(self, path_cls: TPath, tmp_path: Path) -> None:
         pypath = tmp_path / "test.txt"
@@ -110,12 +119,14 @@ class TestFsPath:
     def test_with_name(self, path_cls: TPath) -> None:
         pypath = Path("file.txt")
         rypath = path_cls("file.txt")
-        assert rypath.with_name("newfile.txt") == pypath.with_name("newfile.txt")
+        assert _paths_equiv(
+            rypath.with_name("newfile.txt"), pypath.with_name("newfile.txt")
+        )
 
     def test_with_suffix(self, path_cls: TPath) -> None:
         pypath = Path("file.txt")
         rypath = path_cls("file.txt")
-        assert rypath.with_suffix(".md") == pypath.with_suffix(".md")
+        assert _paths_equiv(rypath.with_suffix(".md"), pypath.with_suffix(".md"))
 
     def test_stem(self, path_cls: TPath) -> None:
         pypath = Path("file.txt")
@@ -132,7 +143,12 @@ class TestFsPath:
         (tmp_path / "file2.txt").touch()
         pypath = tmp_path
         rypath = path_cls(tmp_path)
-        assert sorted(rypath.iterdir()) == sorted(pypath.iterdir())
+        assert all(
+            _paths_equiv(rp, pp)
+            for rp, pp in zip(
+                sorted(rypath.iterdir()), sorted(pypath.iterdir()), strict=True
+            )
+        )
 
     def test_relative_to(self, path_cls: TPath) -> None:
         pypath = Path("/some/path/file.txt")
@@ -156,25 +172,25 @@ class TestFsPath:
         rypath1 = path_cls("/some/path")
         rypath2 = path_cls("/some/path")
         for a, b in it.combinations([pypath1, pypath2, rypath1, rypath2], 2):
-            assert a == b, f"{a} != {b} ({type(a)} != {type(b)})"
+            assert _paths_equiv(a, b), f"{a} != {b} ({type(a)} != {type(b)})"
 
     def test_inequality(self, path_cls: TPath) -> None:
         rypath1 = path_cls("/some/path")
         rypath2 = path_cls("/other/path")
-        assert rypath1 != rypath2
+        assert not _paths_equiv(rypath1, rypath2)
 
     def test_truediv_operators(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")
         rypath = path_cls("/some/path")
-        assert rypath / "file.txt" == pypath / "file.txt"
-        assert "file.txt" / rypath == "file.txt" / pypath
-        assert rypath / Path("file.txt") == pypath / Path("file.txt")
-        assert Path("file.txt") / rypath == Path("file.txt") / pypath
+        assert _paths_equiv(rypath / "file.txt", pypath / "file.txt")
+        assert _paths_equiv("file.txt" / rypath, "file.txt" / pypath)
+        assert _paths_equiv(rypath / Path("file.txt"), pypath / Path("file.txt"))
+        assert _paths_equiv(Path("file.txt") / rypath, Path("file.txt") / pypath)
 
     def test_root(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")
         rypath = path_cls("/some/path")
-        assert rypath.root == pypath.root
+        assert str(rypath.root) == pypath.root
 
     def test_bytes(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")
@@ -215,12 +231,12 @@ class TestFsPath:
     def test_home(self, path_cls: TPath) -> None:
         pypath = Path.home()
         rypath = path_cls.home()
-        assert rypath == pypath
+        assert _paths_equiv(rypath, pypath)
 
     def test_cwd(self, path_cls: TPath) -> None:
         pypath = Path.cwd()
         rypath = path_cls.cwd()
-        assert rypath == pypath
+        assert _paths_equiv(rypath, pypath)
 
 
 class TestFsPathRustMethods:

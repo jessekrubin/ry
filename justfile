@@ -34,7 +34,7 @@ develop-uv:
 
 # maturin develop (shorthand)
 mat *ARGS:
-    maturin develop {{ARGS}}
+    maturin develop {{ ARGS }}
 
 # cargo test
 cargo-test:

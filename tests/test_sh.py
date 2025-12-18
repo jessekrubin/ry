@@ -42,8 +42,9 @@ def test_pwd() -> None:
 
 class TestRyPath:
     def test_path(self) -> None:
-        p = ry.FsPath(os.getcwd())
-        assert p == pathlib.Path(os.getcwd())
+        rs_path = ry.FsPath(os.getcwd())
+        py_path = pathlib.Path(os.getcwd())
+        assert rs_path.equiv(py_path)
 
 
 def test_cd() -> None:

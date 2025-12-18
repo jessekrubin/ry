@@ -12,5 +12,5 @@ def test_fspath2pathlib(tmp_path: Path) -> None:
     pypath_conversion_as_py = p.to_py()
     assert pypath_conversion == pypath_conversion_as_py
     assert isinstance(pypath_conversion, tmp_path.__class__)
-    assert p == pypath
+    assert p.equiv(pypath)
     assert pypath == pypath_conversion
