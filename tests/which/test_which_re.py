@@ -87,3 +87,85 @@ def test_which_regex_ignore_case(tmp_path: Path) -> None:
     assert isinstance(result, list)
     assert len(result) > 0, "Expected a match for executables starting with 'notavirus'"
     assert all("notavirus" in str(r).lower() for r in result)
+
+
+class TestWhichReRegexFsPath:
+    """Testing which-re w/ respect to `ry.FsPath` ~ copy-pastaed from above"""
+
+    def test_which_regex_existing_exe(self, tmp_path: Path) -> None:
+        """Test `which_re` with an existing executable using a regex pattern."""
+        test_bin_dirs = _mk_test_bin_dirs(tmp_path)
+
+        # Modify PATH to include test_bin_dirs
+        original_path = os.environ["PATH"]
+        search_path = os.pathsep.join(test_bin_dirs) + os.pathsep + original_path
+        regex = ry.Regex(r"^uwot.*")
+        result = ry.FsPath.which_re(regex, search_path)
+        assert isinstance(result, list)
+        assert result is not None
+
+        assert len(result) > 0, "Expected a match for executables starting with 'uwot'"
+        assert all(isinstance(r, ry.FsPath) for r in result)
+
+    def test_which_regex_existing_exe_accepts_string(self, tmp_path: Path) -> None:
+        """Test `which_re` with an existing executable using a regex pattern."""
+        test_bin_dirs = _mk_test_bin_dirs(tmp_path)
+
+        # Modify PATH to include test_bin_dirs
+        original_path = os.environ["PATH"]
+        search_path = os.pathsep.join(test_bin_dirs) + os.pathsep + original_path
+        regex = r"^uwot.*"
+        result = ry.FsPath.which_re(regex, search_path)
+        assert isinstance(result, list)
+        assert result is not None
+        assert len(result) > 0, "Expected a match for executables starting with 'uwot'"
+        assert all(isinstance(r, ry.FsPath) for r in result)
+
+    def test_which_regex_nonexistent_exe(self, tmp_path: Path) -> None:
+        """
+        Test `which_re` with a regex pattern that matches no executables.
+        """
+        test_bin_dirs = _mk_test_bin_dirs(tmp_path)
+
+        original_path = os.environ["PATH"]
+        search_path = os.pathsep.join(test_bin_dirs) + os.pathsep + original_path
+
+        regex = ry.Regex(r"^idontexist.*")
+        result = ry.FsPath.which_re(regex, search_path)
+        assert not result
+        assert isinstance(result, list)
+        assert len(result) == 0
+
+    def test_which_regex_multiple_matches(self, tmp_path: Path) -> None:
+        test_bin_dirs = _mk_test_bin_dirs(tmp_path)
+        original_path = os.environ["PATH"]
+        search_path = os.pathsep.join(test_bin_dirs) + os.pathsep + original_path
+        regex = ry.Regex(r"^notavirus.*")
+        results = ry.FsPath.which_re(regex, path=search_path)
+
+        assert results is not None
+        assert len(results) > 0, (
+            "Expected multiple matches for executables starting with 'notavirus'"
+        )
+        for result in results:
+            assert "notavirus" in str(result)
+            assert isinstance(result, ry.FsPath)
+
+    def test_which_regex_ignore_case(self, tmp_path: Path) -> None:
+        """
+        Test `which_re` with a regex pattern that is case-insensitive.
+        """
+        test_bin_dirs = _mk_test_bin_dirs(tmp_path)
+        original_path = os.environ["PATH"]
+        search_path = os.pathsep.join(test_bin_dirs) + os.pathsep + original_path
+
+        regex = ry.Regex(r"^NOTAVIRUS.*", case_insensitive=True)
+        result = ry.FsPath.which_re(regex, search_path)
+
+        assert result is not None, "Expected a match for case-insensitive regex"
+        assert isinstance(result, list)
+        assert len(result) > 0, (
+            "Expected a match for executables starting with 'notavirus'"
+        )
+        assert all("notavirus" in str(r).lower() for r in result)
+        assert all(isinstance(r, ry.FsPath) for r in result)

@@ -10,6 +10,7 @@ use pyo3::{IntoPyObjectExt, intern, prelude::*};
 use ryo3_bytes::extract_bytes_ref;
 use ryo3_core::RyMutex;
 use ryo3_core::types::PathLike;
+use ryo3_macro_rules::pytodo;
 use std::ffi::OsStr;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
@@ -329,15 +330,7 @@ impl PyFsPath {
     }
 
     fn as_posix(&self) -> String {
-        #[cfg(target_os = "windows")]
-        {
-            let p = self.path().to_string_lossy().to_string();
-            p.replace('\\', "/")
-        }
-        #[cfg(not(target_os = "windows"))]
-        {
-            self.path().to_string_lossy().to_string()
-        }
+        self.path().as_posix_str()
     }
 
     // TODO: allow *args for joinpath
@@ -397,6 +390,43 @@ impl PyFsPath {
                     "write_bytes - parent: {fspath} - {e}"
                 )))
             }
+        }
+    }
+    // Path.touch(mode=0o666, exist_ok=True)
+    // Create a file at this given path. If mode is given, it is combined with the process’s umask value to determine the file mode and access flags. If the file already exists, the function succeeds when exist_ok is true (and its modification time is updated to the current time), otherwise FileExistsError is raised.
+
+    // See also The open(), write_text() and write_bytes() methods are often used to create files.
+    #[pyo3(signature = (mode = None, exist_ok = true))]
+    fn touch(&self, py: Python<'_>, mode: Option<u32>, exist_ok: bool) -> PyResult<bool> {
+        if mode.is_some() {
+            pytodo!("touch - mode parameter not implemented yet")
+        }
+        let path = self.path();
+        let exists = path.exists();
+        if exists {
+            if exist_ok {
+                Ok(false)
+            } else {
+                Err(PyFileExistsError::new_err(format!(
+                    "{}",
+                    self.path().display()
+                )))
+            }
+        } else {
+            py.detach(|| {
+                std::fs::OpenOptions::new()
+                    .create(true)
+                    .write(true)
+                    .truncate(false)
+                    .open(path)
+            })
+            .map_err(|e| {
+                let fspath_display = self.path().display();
+                PyFileNotFoundError::new_err(format!(
+                    "No such file or directory: {fspath_display} ~ {e}"
+                ))
+            })?;
+            Ok(true)
         }
     }
 
@@ -909,12 +939,19 @@ impl PyFsPathAncestors {
 
     fn __next__(&self) -> Option<PyFsPath> {
         let mut current = self.current.py_lock();
-        let taken = current.take().map(|p| PyFsPath::from(p.as_ref()));
-        if let Some(ref p) = taken {
-            let next = p.path().parent().map(|p| ArcPathBuf::new(p.to_path_buf()));
-            *current = next;
-        }
-        taken
+
+        // Take the current path; if we're done, stop.
+        let cur = current.take()?;
+        let out = PyFsPath::from(cur.as_ref());
+
+        // Compute the next state.
+        *current = match out.path().parent() {
+            None => None,                                // no parent => done
+            Some(p) if p.as_os_str().is_empty() => None, // "root-ish" sentinel => done
+            Some(p) => Some(ArcPathBuf::new(p.to_path_buf())),
+        };
+
+        Some(out)
     }
 
     fn collect(&self) -> Vec<PyFsPath> {
@@ -941,6 +978,29 @@ impl PyFsPathAncestors {
 
 impl std::fmt::Display for PyFsPathAncestors {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FsPathAncestors<{}>", self.path.display())
+        write!(f, "FsPathAncestors<{}>", self.path.as_posix_str())
+    }
+}
+
+trait AsPosixStr {
+    fn as_posix_str(&self) -> String;
+}
+
+impl<T> AsPosixStr for T
+where
+    T: AsRef<Path>,
+{
+    fn as_posix_str(&self) -> String {
+        #[cfg(target_os = "windows")]
+        {
+            self.as_ref()
+                .to_string_lossy()
+                .to_string()
+                .replace('\\', "/")
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            self.as_ref().to_string_lossy().to_string()
+        }
     }
 }

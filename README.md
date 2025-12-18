@@ -34,6 +34,7 @@ ergonomic.
   Python-native behavior with minimal friction.
 - **Type Annotated:** All public APIs are (painstakingly) type annotated.
 - **Performant:** Speed without the words "blazingly fast." [^1]
+- **Not slop:** written by a human
 
 ## Install
 
