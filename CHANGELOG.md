@@ -14,6 +14,8 @@
   - Use `RyMutex` instead of `parking_lot::Mutex`
 - `ryo3-glob`
   - Use `RyMutex` instead of `parking_lot::Mutex`
+- `ryo3-reqwest`
+  - Remove mutex wrapping global client
 
 ---
 
