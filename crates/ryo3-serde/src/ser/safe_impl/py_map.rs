@@ -26,17 +26,32 @@ use pyo3::types::{PyDict, PyMapping};
 
 pub(crate) struct PyDictSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,
-    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyDict>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> PyDictSerializer<'a, 'py> {
     pub(crate) fn new(
-        obj: Borrowed<'a, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyDict>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
+    }
+
+    #[inline]
+    #[expect(unsafe_code)]
+    pub(crate) fn new_unchecked(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        let py_dict = unsafe { obj.cast_unchecked::<PyDict>() };
+        Self {
+            ctx,
+            obj: py_dict,
+            depth,
+        }
     }
 }
 
@@ -48,16 +63,16 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyNoneSerializer::new())?;
             }
             PyObType::Bool => {
-                $map.serialize_value(&PyBoolSerializer::new($value))?;
+                $map.serialize_value(&PyBoolSerializer::new_unchecked($value))?;
             }
             PyObType::Int => {
-                $map.serialize_value(&PyIntSerializer::new($value))?;
+                $map.serialize_value(&PyIntSerializer::new_unchecked($value))?;
             }
             PyObType::Float => {
-                $map.serialize_value(&PyFloatSerializer::new($value))?;
+                $map.serialize_value(&PyFloatSerializer::new_unchecked($value))?;
             }
             PyObType::String => {
-                $map.serialize_value(&PyStrSerializer::new($value))?;
+                $map.serialize_value(&PyStrSerializer::new_unchecked($value))?;
             }
             PyObType::List => {
                 $map.serialize_value(&PyListSerializer::new($value, $self.ctx, $self.depth + 1))?;
@@ -66,7 +81,11 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyTupleSerializer::new($value, $self.ctx, $self.depth + 1))?;
             }
             PyObType::Dict => {
-                $map.serialize_value(&PyDictSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyDictSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Set => {
                 $map.serialize_value(&PySetSerializer::new($value, $self.ctx))?;

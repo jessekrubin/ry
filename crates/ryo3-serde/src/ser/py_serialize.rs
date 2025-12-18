@@ -69,10 +69,10 @@ impl Serialize for PyAnySerializer<'_, '_> {
         let ob_type = self.ctx.typeref.obtype(self.obj);
         match ob_type {
             PyObType::None | PyObType::Ellipsis => PyNoneSerializer::new().serialize(serializer),
-            PyObType::Bool => PyBoolSerializer::new(self.obj).serialize(serializer),
-            PyObType::Int => PyIntSerializer::new(self.obj).serialize(serializer),
-            PyObType::Float => PyFloatSerializer::new(self.obj).serialize(serializer),
-            PyObType::String => PyStrSerializer::new(self.obj).serialize(serializer),
+            PyObType::Bool => PyBoolSerializer::new_unchecked(self.obj).serialize(serializer),
+            PyObType::Int => PyIntSerializer::new_unchecked(self.obj).serialize(serializer),
+            PyObType::Float => PyFloatSerializer::new_unchecked(self.obj).serialize(serializer),
+            PyObType::String => PyStrSerializer::new_unchecked(self.obj).serialize(serializer),
             PyObType::List => {
                 PyListSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
@@ -80,7 +80,7 @@ impl Serialize for PyAnySerializer<'_, '_> {
                 PyTupleSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
             PyObType::Dict => {
-                PyDictSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
+                PyDictSerializer::new_unchecked(self.obj, self.ctx, self.depth).serialize(serializer)
             }
             PyObType::Set => PySetSerializer::new(self.obj, self.ctx).serialize(serializer),
             PyObType::FrozenSet => {

@@ -5,13 +5,20 @@ use crate::errors::pyerr2sererr;
 use pyo3::types::PyString;
 
 pub(crate) struct PyStrSerializer<'a, 'py> {
-    obj: Borrowed<'a, 'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyString>,
 }
 
 impl<'a, 'py> PyStrSerializer<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyString>) -> Self {
         Self { obj }
+    }
+
+    #[inline]
+    #[expect(unsafe_code)]
+    pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        let py_str = unsafe { obj.cast_unchecked::<PyString>() };
+        Self { obj: py_str }
     }
 }
 
@@ -21,8 +28,7 @@ impl Serialize for PyStrSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let py_str = self.obj.cast_exact::<PyString>().map_err(pyerr2sererr)?;
-        let s = py_str.to_str().map_err(pyerr2sererr)?;
+        let s = self.obj.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(s)
     }
 }

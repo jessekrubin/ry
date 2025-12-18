@@ -29,16 +29,16 @@ macro_rules! serialize_seq_element {
                 $seq.serialize_element(&PyNoneSerializer::new())?;
             }
             PyObType::Bool => {
-                $seq.serialize_element(&PyBoolSerializer::new($element))?;
+                $seq.serialize_element(&PyBoolSerializer::new_unchecked($element))?;
             }
             PyObType::Int => {
-                $seq.serialize_element(&PyIntSerializer::new($element))?;
+                $seq.serialize_element(&PyIntSerializer::new_unchecked($element))?;
             }
             PyObType::Float => {
-                $seq.serialize_element(&PyFloatSerializer::new($element))?;
+                $seq.serialize_element(&PyFloatSerializer::new_unchecked($element))?;
             }
             PyObType::String => {
-                $seq.serialize_element(&PyStrSerializer::new($element))?;
+                $seq.serialize_element(&PyStrSerializer::new_unchecked($element))?;
             }
             PyObType::List => {
                 $seq.serialize_element(&PyListSerializer::new(
@@ -55,7 +55,7 @@ macro_rules! serialize_seq_element {
                 ))?;
             }
             PyObType::Dict => {
-                $seq.serialize_element(&PyDictSerializer::new(
+                $seq.serialize_element(&PyDictSerializer::new_unchecked(
                     $element,
                     $self.ctx,
                     $self.depth + 1,
