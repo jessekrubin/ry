@@ -10,8 +10,7 @@ static DEFAULT_CLIENT: OnceLock<RyHttpClient> = OnceLock::new();
 #[inline]
 pub(crate) fn default_client() -> &'static RyHttpClient {
     DEFAULT_CLIENT.get_or_init(|| {
-        RyHttpClient::new(None)
-            .expect("Failed to create default client. This should never happen.")
+        RyHttpClient::new(None).expect("Failed to create default client. This should never happen.")
     })
 }
 
