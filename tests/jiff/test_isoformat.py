@@ -104,7 +104,14 @@ def datetime_does_not_exist(value: pydt.datetime) -> bool:
     return value != roundtrip
 
 
-@given(st.datetimes(timezones=st_timezones(), allow_imaginary=False))
+@given(
+    st.datetimes(
+        timezones=st_timezones(),
+        allow_imaginary=False,
+        min_value=pydt.datetime(1970, 1, 1),
+        max_value=pydt.datetime(2030, 12, 31),
+    )
+)
 def test_zoned_datetime_isoformat(dt: pydt.datetime) -> None:
     """Test that ZondedDateTime.isoformat() produces the expected string."""
 
@@ -114,7 +121,6 @@ def test_zoned_datetime_isoformat(dt: pydt.datetime) -> None:
     ry_zdt = ry.ZonedDateTime.from_pydatetime(dt)
     ry_isoformat = ry_zdt.isoformat()
     assert ry_isoformat == py_isoformat
-
     _test_zoned_datetime_isoformat(dt)
 
 

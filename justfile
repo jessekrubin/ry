@@ -33,8 +33,8 @@ develop-uv:
     uv run maturin develop --features "mimalloc" --uv
 
 # maturin develop (shorthand)
-mat:
-    maturin develop
+mat *ARGS:
+    maturin develop {{ ARGS }}
 
 # cargo test
 cargo-test:

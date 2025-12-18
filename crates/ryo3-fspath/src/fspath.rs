@@ -22,7 +22,7 @@ type ArcPathBuf = std::sync::Arc<PathBuf>;
 
 #[pyclass(name = "FsPath", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PyFsPath {
     pth: ArcPathBuf,
 }
@@ -88,11 +88,6 @@ impl PyFsPath {
         format!("FsPath(\'{posix_str}\')")
     }
 
-    fn equiv(&self, other: PathLike) -> bool {
-        let other = other.as_ref();
-        self.path() == other
-    }
-
     fn to_pathlib(&self) -> &Path {
         self.path()
     }
@@ -107,30 +102,19 @@ impl PyFsPath {
         hasher.finish()
     }
 
-    fn __richcmp__(&self, other: PathLike, op: CompareOp) -> bool {
-        let o = other.as_ref();
-        let p = self.path();
+    fn equiv(&self, other: PathLike) -> bool {
+        let other = other.as_ref();
+        self.path() == other || self.py_to_string() == path2str(other)
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
-            CompareOp::Eq => {
-                // start by comparing as paths
-                if p == other.as_ref() {
-                    return true;
-                }
-                // if that fails, compare as strings
-                self.py_to_string() == path2str(other.as_ref())
-            }
-            CompareOp::Ne => {
-                // start by comparing as paths
-                if p != other.as_ref() {
-                    return true;
-                }
-                // if that fails, compare as strings
-                self.py_to_string() != path2str(other.as_ref())
-            }
-            CompareOp::Lt => p < o,
-            CompareOp::Le => p <= o,
-            CompareOp::Gt => p > o,
-            CompareOp::Ge => p >= o,
+            CompareOp::Eq => self == other,
+            CompareOp::Ne => self != other,
+            CompareOp::Lt => self < other,
+            CompareOp::Le => self <= other,
+            CompareOp::Gt => self > other,
+            CompareOp::Ge => self >= other,
         }
     }
 

@@ -300,7 +300,13 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
 #[pyfunction]
 #[pyo3(
     name = "globster",
-    signature = (patterns, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
+    signature = (
+        patterns,
+        /, *,
+        case_insensitive=false,
+        literal_separator=false,
+        backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+    )
 )]
 fn py_globster(
     patterns: StringOrStrings,

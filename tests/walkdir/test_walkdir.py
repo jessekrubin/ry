@@ -74,7 +74,7 @@ def test_walk_dir_dirpath_none_use_pwd(tmp_path: Path) -> None:
     dirtree = mk_dir_tree(tmp_path)
     tmp_fspath = ry.FsPath(tmp_path)
     ry.cd(tmp_fspath)
-    assert ry.pwd() == tmp_fspath
+    assert tmp_fspath.equiv(ry.pwd())
     walkdir_paths = [
         e if e != "" else "."
         for e in (

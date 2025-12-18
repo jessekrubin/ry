@@ -11,9 +11,13 @@
 - `ryo3-core`
   - renamed `PyMutex` to `RyMutex` to avoid confusion with `pyo3`'s `PyMutex`
 - `ryo3-fspath`
+  - Removed richcmp between non `FsPath` objects and `ry.FsPath` (can use
+    `equiv`) to check for equality
   - Use `RyMutex` instead of `parking_lot::Mutex`
 - `ryo3-glob`
   - Use `RyMutex` instead of `parking_lot::Mutex`
+- `ryo3-reqwest`
+  - Remove mutex wrapping global client
 
 ---
 
