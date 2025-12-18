@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-77f20acb.js";
+            window.path_to_searchindex_js = "searchindex-032b6e1b.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -857,6 +857,9 @@ class FsPath(ToPy[Path], ToString):
     def write(self, data: Buffer | bytes) -&gt; None: ...
     def write_bytes(self, data: Buffer | bytes) -&gt; None: ...
     def write_text(self, data: str) -&gt; None: ...
+    def touch(self, mode: int | None = None, exist_ok: bool = True) -&gt; bool:
+        """Returns `True` if file was created `False` if already existed."""
+
     def open(
         self,
         mode: str,
@@ -931,7 +934,7 @@ class FsPath(ToPy[Path], ToString):
     # =========================================================================
     # std::path::PathBuf (deref -&gt; std::path::Path)
     # =========================================================================
-    def ancestors(self) -&gt; t.Iterator[t.Self]: ...
+    def ancestors(self) -&gt; RyIterator[t.Self]: ...
     def canonicalize(self) -&gt; t.Self: ...
     def components(self) -&gt; t.Iterator[t.Self]: ...
     def display(self) -&gt; str: ...
@@ -967,7 +970,7 @@ class FsPath(ToPy[Path], ToString):
     @staticmethod
     def which_re(
         regex: str | Regex, path: str | None = None
-    ) -&gt; FsPath | None: ...
+    ) -&gt; list[FsPath]: ...
 
     # =========================================================================
     # DUNDERS
