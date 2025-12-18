@@ -686,6 +686,12 @@ class DateTime(
         increment: int = 1,
     ) -> TimeSpan: ...
 
+class TimeZoneTransition(t.TypedDict):
+    timestamp: Timestamp
+    offset: Offset
+    dst: bool
+    abbreviation: str
+
 @t.final
 class TimeZone(
     # protocols
@@ -761,7 +767,12 @@ class TimeZone(
     def to_offset(self, timestamp: Timestamp) -> Offset: ...
     def to_timestamp(self, datetime: DateTime) -> Timestamp: ...
     def to_zoned(self, datetime: DateTime) -> ZonedDateTime: ...
-
+    def preceding(
+        self, timestamp: Timestamp, limit: int | None = None, /
+    ) -> list[TimeZoneTransition]: ...
+    def following(
+        self, timestamp: Timestamp, limit: int | None = None, /
+    ) -> list[TimeZoneTransition]: ...
     # =========================================================================
     # NOT IMPLEMENTED
     # =========================================================================
