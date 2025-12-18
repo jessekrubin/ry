@@ -68,6 +68,9 @@ class TestWhichFsPath:
     def test_which_python(self) -> None:
         py_which = shutil.which("python")
         ry_which = ry.FsPath.which("python")
+        if ry_which is None:
+            assert py_which is None
+            return
         assert isinstance(ry_which, ry.FsPath)
         # clean path
         py_clean = _clean_path(py_which)

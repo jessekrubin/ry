@@ -330,15 +330,7 @@ impl PyFsPath {
     }
 
     fn as_posix(&self) -> String {
-        #[cfg(target_os = "windows")]
-        {
-            let p = self.path().to_string_lossy().to_string();
-            p.replace('\\', "/")
-        }
-        #[cfg(not(target_os = "windows"))]
-        {
-            self.path().to_string_lossy().to_string()
-        }
+        self.path().as_posix_str()
     }
 
     // TODO: allow *args for joinpath
@@ -986,6 +978,29 @@ impl PyFsPathAncestors {
 
 impl std::fmt::Display for PyFsPathAncestors {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FsPathAncestors<{}>", self.path.display())
+        write!(f, "FsPathAncestors<{}>", self.path.as_posix_str())
+    }
+}
+
+trait AsPosixStr {
+    fn as_posix_str(&self) -> String;
+}
+
+impl<T> AsPosixStr for T
+where
+    T: AsRef<Path>,
+{
+    fn as_posix_str(&self) -> String {
+        #[cfg(target_os = "windows")]
+        {
+            self.as_ref()
+                .to_string_lossy()
+                .to_string()
+                .replace('\\', "/")
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            self.as_ref().to_string_lossy().to_string()
+        }
     }
 }
