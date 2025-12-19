@@ -5,6 +5,7 @@ use futures_util::stream::{BoxStream, Fuse};
 use pyo3::exceptions::{PyStopAsyncIteration, PyStopIteration};
 use pyo3::{IntoPyObjectExt, prelude::*};
 use reqwest::StatusCode;
+use ryo3_bytes::PyBytes as RyBytes;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -51,10 +52,16 @@ impl RyResponseStream {
     }
 }
 
+impl std::fmt::Display for RyResponseStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ResponseStream<{}>", self.status)
+    }
+}
+
 #[pymethods]
 impl RyResponseStream {
     fn __repr__(&self) -> String {
-        format!("ResponseStream<{}; >", self.status)
+        format!("{self}")
     }
 
     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
@@ -82,7 +89,7 @@ impl RyResponseStream {
             let mut items = Vec::with_capacity(n);
             for _ in 0..n {
                 match guard.next().await {
-                    Some(Ok(bytes)) => items.push(ryo3_bytes::PyBytes::from(bytes)),
+                    Some(Ok(bytes)) => items.push(RyBytes::from(bytes)),
                     Some(Err(e)) => return Err(map_reqwest_err(e)),
                     None => break,
                 }
@@ -105,7 +112,7 @@ impl RyResponseStream {
                     }
                 }
                 let bytes = bytes_mut.freeze();
-                let py_bytes = ryo3_bytes::PyBytes::from(bytes);
+                let py_bytes = RyBytes::from(bytes);
                 Ok(py_bytes)
             })
         } else {
@@ -114,13 +121,138 @@ impl RyResponseStream {
                 let mut items = Vec::new();
                 while let Some(item) = guard.next().await {
                     match item {
-                        Ok(bytes) => items.push(ryo3_bytes::PyBytes::from(bytes)),
+                        Ok(bytes) => items.push(RyBytes::from(bytes)),
                         Err(e) => return Err(map_reqwest_err(e)),
                     }
                 }
                 Ok(items)
             })
         }
+    }
+}
+
+#[cfg(feature = "experimental-async")]
+#[pyclass(
+    name = "AsyncResponseStream",
+    frozen,
+    immutable_type,
+    skip_from_py_object
+)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct RyAsyncResponseStream {
+    status: StatusCode,
+    pub(crate) stream: AsyncResponseStreamInner,
+}
+
+#[cfg(feature = "experimental-async")]
+impl RyAsyncResponseStream {
+    pub(crate) fn from_response(response: reqwest::Response) -> Self {
+        let status = response.status();
+        let bstream = response.bytes_stream();
+        let stream: BoxStream<'static, Result<Bytes, reqwest::Error>> = Box::pin(bstream);
+
+        let stream = Arc::new(Mutex::new(stream.fuse()));
+        Self {
+            status,
+            stream: stream as AsyncResponseStreamInner,
+        }
+    }
+}
+
+#[cfg(feature = "experimental-async")]
+impl std::fmt::Display for RyAsyncResponseStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AsyncResponseStream<{}>", self.status)
+    }
+}
+
+#[cfg(feature = "experimental-async")]
+#[pymethods]
+impl RyAsyncResponseStream {
+    fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+
+    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
+        this
+    }
+
+    // CURRENTLY USING OLD VERSION TO AVOID LIFETIME ISSUES
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let stream = self.stream.clone();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let mut guard = stream.lock().await;
+            match guard.next().await {
+                Some(Ok(bytes)) => Ok(Some(ryo3_bytes::PyBytes::from(bytes))),
+                Some(Err(e)) => Err(map_reqwest_err(e)),
+                // I totally forgot that this was a thing and that I couldn't just return None
+                None => Err(PyStopAsyncIteration::new_err("response-stream-end")),
+            }
+        })
+    }
+
+    // // FUTURE: use future_into_py here?
+    // async fn __anext__(&self) -> PyResult<RyBytes> {
+    //     let stream = self.stream.clone();
+    //     // get next item
+    //     let rt = pyo3_async_runtimes::tokio::get_runtime();
+    //     let r = rt
+    //         .spawn(async move {
+    //             let mut guard = stream.lock().await;
+    //             guard.next().await
+    //         })
+    //         .await
+    //         .map_err(|e| py_runtime_error!("{e}"))?;
+    //     match r {
+    //         Some(Ok(bytes)) => Ok(RyBytes::from(bytes)),
+    //         Some(Err(e)) => Err(map_reqwest_err(e)),
+    //         // I totally forgot that this was a thing and that I couldn't just return None
+    //         None => Err(PyStopAsyncIteration::new_err("async-response-stream-end")),
+    //     }
+    // }
+
+    #[pyo3(signature = (n=1))]
+    async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
+        use ryo3_macro_rules::py_runtime_error;
+        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let stream = self.stream.clone();
+        rt.spawn(async move {
+            let mut guard = stream.lock().await;
+            let mut items = Vec::with_capacity(n);
+            for _ in 0..n {
+                match guard.next().await {
+                    Some(Ok(bytes)) => items.push(RyBytes::from(bytes)),
+                    Some(Err(e)) => return Err(map_reqwest_err(e)),
+                    None => break,
+                }
+            }
+            Ok(items)
+        })
+        .await
+        .map_err(|e| py_runtime_error!("{e}"))?
+    }
+
+    async fn collect(&self) -> PyResult<Vec<RyBytes>> {
+        use ryo3_macro_rules::py_runtime_error;
+        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let stream = self.stream.clone();
+        let py_bytes_vec = rt
+            .spawn(async move {
+                let mut guard = stream.lock().await;
+                let mut items = Vec::new();
+                while let Some(item) = guard.next().await {
+                    match item {
+                        Ok(bytes) => items.push(bytes),
+                        Err(e) => return Err(e),
+                    }
+                }
+                Ok(items)
+            })
+            .await
+            .map_err(|e| py_runtime_error!("{e}"))?
+            .map(|bytes_vec| bytes_vec.into_iter().map(RyBytes::from).collect())
+            .map_err(map_reqwest_err)?;
+        Ok(py_bytes_vec)
     }
 }
 

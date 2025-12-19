@@ -1,11 +1,13 @@
 use std::time::Duration;
 
+use crate::RyResponse;
 use crate::cert::PyCertificate;
 use crate::errors::map_reqwest_err;
-use crate::response_parking_lot::{RyBlockingResponse, RyResponseV2};
+#[cfg(feature = "experimental-async")]
+use crate::response_parking_lot::RyAsyncResponse;
+use crate::response_parking_lot::RyBlockingResponse;
 use crate::tls_version::TlsVersion;
 use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};
-use crate::{RyReqwestError, RyResponse};
 use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -19,7 +21,7 @@ use ryo3_http::{
 };
 use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
-use ryo3_url::{UrlLike, extract_url};
+use ryo3_url::UrlLike;
 
 //============================================================================
 
@@ -33,6 +35,7 @@ pub struct RyHttpClient {
     cfg: ClientConfig,
 }
 
+#[cfg(feature = "experimental-async")]
 #[derive(Debug, Clone)]
 #[pyclass(name = "Client", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -199,7 +202,7 @@ fn client_request_builder(
     client: &reqwest::Client,
     options: RequestKwargs,
 ) -> PyResult<RequestBuilder> {
-    let url = extract_url(options.url)?;
+    let url = options.url.extract::<UrlLike>()?.0;
     let mut req = client.request(options.method, url);
     if let Some((username, password)) = options.basic_auth {
         req = req.basic_auth(username, password);
@@ -285,6 +288,7 @@ impl RyHttpClient {
     }
 }
 
+#[cfg(feature = "experimental-async")]
 impl RyClient {
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
@@ -302,27 +306,43 @@ impl RyClient {
         })
     }
 
+    /// Return the reqwest builder instance...
+    fn request_builder(
+        &self,
+        url: UrlLike,
+        method: Method,
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RequestBuilder> {
+        // we can avoid the weird little hackyh query serde song and dance
+        // TODO: FIX THIS?
+        // Cases are:
+        //    - query for the url is set from the UrlLike and query in kwargs is None -- we are done
+        //    - query in kwargs is Some -- and the url already has a query -- here we do the song and dance
+        //    - query in kwargs is Some -- and the url has NO query so we can just set the string I think
+        // url is empty and the kwargs do not contain a
+        let url = url.0;
+        if let Some(kwargs) = kwargs {
+            kwargs.apply(self.client.request(method, url))
+        } else {
+            Ok(self.client.request(method, url))
+        }
+    }
+
     async fn request(
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs2>,
-    ) -> PyResult<RyResponseV2> {
-        let req = {
-            let req = self.client.request(method, url.0);
-            if let Some(kwargs) = kwargs {
-                kwargs.apply(req)?
-            } else {
-                req
-            }
-        };
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RyAsyncResponse> {
+        let req = self.request_builder(url, method, kwargs)?;
+
         let rt = pyo3_async_runtimes::tokio::get_runtime();
         let r = rt
             .spawn(async move { req.send().await })
             .await
-            .map_err(|e| PyValueError::new_err(format!("Join error: {}", e)))?
-            .map(RyResponseV2::from)
-            .map_err(RyReqwestError::from)?;
+            .map_err(|e| PyValueError::new_err(format!("Join error: {e}")))?
+            .map(RyAsyncResponse::from)
+            .map_err(crate::RyReqwestError::from)?;
         Ok(r)
     }
 
@@ -965,7 +985,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<ryo3_http::HttpMethod>,
+        method: Option<PyHttpMethod>,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -1024,7 +1044,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<ryo3_http::HttpMethod>,
+        method: Option<PyHttpMethod>,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -1077,7 +1097,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<ryo3_http::HttpMethod>,
+        method: Option<PyHttpMethod>,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -1107,6 +1127,7 @@ impl RyHttpClient {
     }
 }
 
+#[cfg(feature = "experimental-async")]
 #[pymethods]
 impl RyClient {
     #[expect(
@@ -1285,7 +1306,7 @@ impl RyClient {
     }
 
     fn __repr__(&self) -> String {
-        format!("HttpClient<{:?}>", self.cfg)
+        format!("Client<{:?}>", self.cfg)
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -1307,70 +1328,69 @@ impl RyClient {
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
-    async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+    async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::GET, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
-    async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+    async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::POST, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
-    async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+    async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::PUT, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
-    async fn patch(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+    async fn patch(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::PATCH, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
-    async fn delete(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+    async fn delete(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::DELETE, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
-    async fn head(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+    async fn head(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::HEAD, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
     async fn options(
         &self,
         url: UrlLike,
-        kwargs: Option<ReqwestKwargs2>,
-    ) -> PyResult<RyResponseV2> {
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::OPTIONS, kwargs).await
     }
 
-    #[pyo3(signature = (url, method = ryo3_http::HttpMethod::GET, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
+    #[pyo3(signature = (url, method = PyHttpMethod::GET, **kwargs))]
     async fn fetch(
         &self,
         url: UrlLike,
-        method: ryo3_http::HttpMethod,
-        kwargs: Option<ReqwestKwargs2>,
-    ) -> PyResult<RyResponseV2> {
+        method: PyHttpMethod,
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, method.into(), kwargs).await
     }
 
     #[pyo3(signature = (url, method = PyHttpMethod::GET, **kwargs))]
-    #[expect(clippy::too_many_arguments)]
     async fn __call__(
         &self,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs2>,
-    ) -> PyResult<RyResponseV2> {
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, method.into(), kwargs).await
     }
 
@@ -1396,7 +1416,7 @@ impl RyClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<ryo3_http::HttpMethod>,
+        method: Option<PyHttpMethod>,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -1426,57 +1446,6 @@ impl RyClient {
         let req = self.build_request(opts)?;
         py.detach(|| Self::send_sync(req))
     }
-
-    // #[pyo3(
-    //     signature = (
-    //         url,
-    //         *,
-    //         method = None,
-    //         body = None,
-    //         headers = None,
-    //         query = None,
-    //         json = None,
-    //         form = None,
-    //         multipart = None,
-    //         timeout = None,
-    //         basic_auth = None,
-    //         bearer_auth = None,
-    //         version = None,
-    //     )
-    // )]
-    // #[expect(clippy::too_many_arguments)]
-    // fn __call__<'py>(
-    //     &'py self,
-    //     py: Python<'py>,
-    //     url: &Bound<'py, PyAny>,
-    //     method: Option<ryo3_http::HttpMethod>,
-    //     body: Option<&Bound<'py, PyAny>>,
-    //     headers: Option<PyHeadersLike>,
-    //     query: Option<&Bound<'py, PyAny>>,
-    //     json: Option<&Bound<'py, PyAny>>,
-    //     form: Option<&Bound<'py, PyAny>>,
-    //     multipart: Option<&Bound<'py, PyAny>>,
-    //     timeout: Option<&PyDuration>,
-    //     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-    //     bearer_auth: Option<PyBackedStr>,
-    //     version: Option<PyHttpVersion>,
-    // ) -> PyResult<Bound<'py, PyAny>> {
-    //     self.fetch(
-    //         py,
-    //         url,
-    //         method,
-    //         body,
-    //         headers,
-    //         query,
-    //         json,
-    //         form,
-    //         multipart,
-    //         timeout,
-    //         basic_auth,
-    //         bearer_auth,
-    //         version,
-    //     )
-    // }
 }
 
 #[pymethods]
@@ -2323,27 +2292,35 @@ impl ClientConfig {
     }
 }
 
+// maybe dont actually need this?
+
+#[cfg(feature = "experimental-async")]
 struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+
+#[cfg(feature = "experimental-async")]
 impl<'py> FromPyObject<'_, 'py> for BasicAuth {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
-        Ok(BasicAuth(tuple.0, tuple.1))
+        Ok(Self(tuple.0, tuple.1))
     }
 }
 
-struct ReqwestKwargs2 {
+#[cfg(feature = "experimental-async")]
+struct ReqwestKwargs {
     headers: Option<HeaderMap>,
     query: Option<String>,
-    body: ReqwestBody2,
+    body: AsyncReqwestBody,
     timeout: Option<Duration>,
-    basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
+    basic_auth: Option<BasicAuth>,
     bearer_auth: Option<PyBackedStr>,
     version: Option<PyHttpVersion>,
 }
 
-impl ReqwestKwargs2 {
+#[cfg(feature = "experimental-async")]
+impl ReqwestKwargs {
+    /// Apply the kwargs to the `reqwest::RequestBuilder`
     fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
         let mut req = req;
 
@@ -2357,26 +2334,26 @@ impl ReqwestKwargs2 {
             // temp hack we know that the query is already url-encoded so we
             // decode it and then re-encode it...
             let decoded: Vec<(&str, &str)> = serde_urlencoded::from_str(&query).map_err(|err| {
-                PyValueError::new_err(format!("failed to decode query params: {}", err))
+                PyValueError::new_err(format!("failed to decode query params: {err}"))
             })?;
             req = req.query(&decoded);
         }
 
         // body
         req = match self.body {
-            ReqwestBody2::Bytes(b) => req.body(b),
-            ReqwestBody2::Json(j) => req
-                .body(j)
-                .header(reqwest::header::CONTENT_TYPE, "application/json"),
-            ReqwestBody2::Form(f) => req.body(f).header(
+            AsyncReqwestBody::Bytes(b) => req.body(b),
+            AsyncReqwestBody::Json(j) => req.body(j).header(
                 reqwest::header::CONTENT_TYPE,
-                "application/x-www-form-urlencoded",
+                HeaderValue::from_static("application/json"),
             ),
-            ReqwestBody2::Multipart(_m) => {
+            AsyncReqwestBody::Form(f) => req.body(f).header(
+                reqwest::header::CONTENT_TYPE,
+                HeaderValue::from_static("application/x-www-form-urlencoded"),
+            ),
+            AsyncReqwestBody::Multipart(_m) => {
                 pytodo!("multipart not implemented (yet)");
-                req
             }
-            ReqwestBody2::None => req,
+            AsyncReqwestBody::None => req,
         };
 
         // timeout
@@ -2385,8 +2362,8 @@ impl ReqwestKwargs2 {
         }
 
         // basic auth
-        if let Some((username, password)) = self.basic_auth {
-            req = req.basic_auth(username, password.map(|p| p));
+        if let Some(BasicAuth(username, password)) = self.basic_auth {
+            req = req.basic_auth(username, password);
         }
 
         // bearer auth
@@ -2403,7 +2380,9 @@ impl ReqwestKwargs2 {
     }
 }
 
-enum ReqwestBody2 {
+#[cfg(feature = "experimental-async")]
+#[derive(Debug)]
+enum AsyncReqwestBody {
     Bytes(Bytes),
     Json(Vec<u8>),
     Form(String),
@@ -2412,7 +2391,8 @@ enum ReqwestBody2 {
     None,
 }
 
-impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
+#[cfg(feature = "experimental-async")]
+impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
@@ -2431,7 +2411,7 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(q.as_borrowed(), None);
                 let url_encoded_query =
                     serde_urlencoded::to_string(py_any_serializer).map_err(|err| {
-                        PyValueError::new_err(format!("failed to serialize query params: {}", err))
+                        PyValueError::new_err(format!("failed to serialize query params: {err}"))
                     })?;
                 // have to annotate the err type...
                 Ok::<_, PyErr>(Some(url_encoded_query))
@@ -2440,7 +2420,7 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
             }
         })??;
 
-        let req_body: ReqwestBody2 = match (body, json, form, multipart) {
+        let body: AsyncReqwestBody = match (body, json, form, multipart) {
             (Some(_), Some(_), _, _)
             | (Some(_), _, Some(_), _)
             | (Some(_), _, _, Some(_))
@@ -2453,38 +2433,32 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
                 if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
                     // short circuit for rs-py-bytes
                     let rsbytes: &Bytes = rsbytes.get().as_ref();
-                    ReqwestBody2::Bytes(rsbytes.clone())
+                    AsyncReqwestBody::Bytes(rsbytes.clone())
                 } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
                     // buffer protocol
-                    // req = req.body(bytes.into_inner());
-                    ReqwestBody2::Bytes(bytes.into_inner())
+                    AsyncReqwestBody::Bytes(bytes.into_inner())
                 } else {
                     return py_type_err!("body must be bytes-like");
                 }
             }
             (None, Some(json), None, None) => {
                 let b = ryo3_json::to_vec(&json)?;
-                ReqwestBody2::Json(b)
+                AsyncReqwestBody::Json(b)
             }
             (None, None, Some(form), None) => {
                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
                 let url_encoded_form =
                     serde_urlencoded::to_string(py_any_serializer).map_err(|e| {
-                        PyValueError::new_err(format!("failed to serialize form data: {}", e))
+                        PyValueError::new_err(format!("failed to serialize form data: {e}"))
                     })?;
-                // todo: YOU WERE HERE KEEP GOING
-                // let pyser = ryo3_serde::PyAnySerializer::new(form.into(), None);
-                // req = req.form(&pyser);
-                // pytodo!("form extraction not implemented (yet)");
-                // (None, None, None, Some(form_bytes))
-                ReqwestBody2::Form(url_encoded_form)
+                AsyncReqwestBody::Form(url_encoded_form)
             }
             (None, None, None, Some(_multipart)) => {
                 pytodo!("multipart not implemented (yet)");
 
                 // (None, None, None, Some(true))
             }
-            (None, None, None, None) => ReqwestBody2::None,
+            (None, None, None, None) => AsyncReqwestBody::None,
         };
 
         let timeout = dict
@@ -2496,7 +2470,7 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
             .get_item(intern!(py, "headers"))?
             .map(|h| h.extract::<PyHeadersLike>())
             .transpose()?
-            .map(|h| HeaderMap::try_from(h))
+            .map(HeaderMap::try_from)
             .transpose()?;
         let bearer_auth: Option<PyBackedStr> = dict
             .get_item(intern!(py, "bearer_auth"))?
@@ -2506,14 +2480,10 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
             .get_item(intern!(py, "version"))?
             .map(|v| v.extract())
             .transpose()?;
-        Ok(ReqwestKwargs2 {
-            // body: None,
-            body: req_body,
+        Ok(Self {
+            body,
             headers,
             query,
-            // json: real_json.map(PyBytes::from), // revisit?
-            // multipart: None,
-            // form: None,
             timeout,
             basic_auth: dict
                 .get_item(intern!(obj.py(), "basic_auth"))?
@@ -2537,11 +2507,11 @@ impl<'py> FromPyObject<'_, 'py> for Timeout {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(pydur) = obj.cast_exact::<PyDuration>() {
-            Ok(Timeout(pydur.get().into()))
+            Ok(Self(pydur.get().into()))
         } else if let Ok(dur) = obj.extract::<Duration>() {
-            Ok(Timeout(dur))
+            Ok(Self(dur))
         } else {
-            return py_type_err!("timeout must be a Duration | datetime.timedelta");
+            py_type_err!("timeout must be a Duration | datetime.timedelta")
         }
     }
 }

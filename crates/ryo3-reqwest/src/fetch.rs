@@ -14,6 +14,8 @@ pub(crate) fn default_client() -> &'static RyHttpClient {
     })
 }
 
+// TODO move to using the new client version...
+
 // global fetch
 #[pyfunction(
     signature = (
@@ -106,7 +108,6 @@ pub(crate) fn fetch_sync<'py>(
     version: Option<HttpVersion>,
 ) -> PyResult<RyBlockingResponse> {
     let guard = default_client();
-    // let bound =
     guard.fetch_sync(
         py,
         url,
@@ -122,5 +123,4 @@ pub(crate) fn fetch_sync<'py>(
         bearer_auth,
         version,
     )
-    // bound.unbind()
 }

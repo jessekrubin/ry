@@ -18,7 +18,8 @@ futures-core.workspace = true
 futures-util.workspace = true
 jiter.workspace = true
 parking_lot.workspace = true
-pyo3 = { workspace = true, features = ["experimental-async"] }
+pyo3 = { workspace = true, features = [
+] }
 pyo3-async-runtimes.workspace = true
 reqwest.workspace = true
 ryo3-bytes.workspace = true
@@ -39,8 +40,9 @@ tracing.workspace = true
 workspace = true
 
 [features]
+experimental-async = ["pyo3/experimental-async"]
 default = []
-ry = []
+ry = ["experimental-async"]
 # blocking = [
 #   "reqwest/blocking",
 # ]
