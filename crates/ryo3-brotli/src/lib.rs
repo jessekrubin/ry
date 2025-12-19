@@ -15,11 +15,17 @@ fn encode(data: &[u8], quality: PyBrQuality, magic_number: bool) -> PyResult<Vec
             lgwin: 22,
             ..Default::default()
         };
-        let mut encoder = br::CompressorWriter::with_params(Vec::new(), 4 * 1024, &params);
+        let mut encoder =
+            br::CompressorWriter::with_params(Vec::with_capacity(data.len()), 4 * 1024, &params);
         encoder.write_all(data)?;
         encoder.into_inner()
     } else {
-        let mut encoder = br::CompressorWriter::new(Vec::new(), 4 * 1024, quality.0.into(), 22);
+        let mut encoder = br::CompressorWriter::new(
+            Vec::with_capacity(data.len()),
+            4 * 1024,
+            quality.0.into(),
+            22,
+        );
         encoder.write_all(data)?;
         encoder.into_inner()
     };
@@ -64,7 +70,7 @@ pub fn brotli(
 #[expect(clippy::needless_pass_by_value)]
 pub fn brotli_decode(py: Python<'_>, data: RyBytes) -> PyResult<Bound<'_, PyBytes>> {
     let decompressed = py.detach(|| {
-        let mut decompressed = Vec::new();
+        let mut decompressed = Vec::with_capacity(data.len());
         let bin: &[u8] = data.as_ref();
         let res = br::Decompressor::new(bin, 4 * 1024).read_to_end(&mut decompressed);
         res.map(|_| decompressed).map_err(|e| {

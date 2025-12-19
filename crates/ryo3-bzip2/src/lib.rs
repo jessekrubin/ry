@@ -10,14 +10,14 @@ use pyo3::prelude::*;
 use ryo3_bytes::PyBytes;
 
 fn rs_bzip2_encode(data: &[u8], quality: Compression) -> PyResult<PyBytes> {
-    let mut bzip2_encoder = BzEncoder::new(Vec::new(), quality);
+    let mut bzip2_encoder = BzEncoder::new(Vec::with_capacity(data.len()), quality);
     bzip2_encoder.write_all(data.as_ref())?;
     let encoded = bzip2_encoder.finish()?;
     Ok(encoded.into())
 }
 
 fn rs_bzip2_decode(data: &[u8]) -> PyResult<ryo3_bytes::PyBytes> {
-    let mut decompressed = Vec::new();
+    let mut decompressed = Vec::with_capacity(data.len());
     BzDecoder::new(data).read_to_end(&mut decompressed)?;
     Ok(decompressed.into())
 }
