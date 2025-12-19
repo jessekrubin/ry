@@ -9,6 +9,19 @@ use std::ops::Deref;
 pub struct HttpHeaderMap(pub HeaderMap<HeaderValue>);
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct HttpMethod(pub http::Method);
+
+impl HttpMethod {
+    pub const GET: Self = Self(http::Method::GET);
+    pub const POST: Self = Self(http::Method::POST);
+    pub const PUT: Self = Self(http::Method::PUT);
+    pub const DELETE: Self = Self(http::Method::DELETE);
+    pub const HEAD: Self = Self(http::Method::HEAD);
+    pub const OPTIONS: Self = Self(http::Method::OPTIONS);
+    pub const PATCH: Self = Self(http::Method::PATCH);
+    pub const TRACE: Self = Self(http::Method::TRACE);
+    pub const CONNECT: Self = Self(http::Method::CONNECT);
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderName(pub http::HeaderName);
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]

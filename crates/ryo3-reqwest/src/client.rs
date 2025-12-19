@@ -1,21 +1,22 @@
 use std::time::Duration;
 
-use crate::RyResponse;
 use crate::cert::PyCertificate;
 use crate::errors::map_reqwest_err;
-use crate::response_parking_lot::RyBlockingResponse;
+use crate::response_parking_lot::{RyBlockingResponse, RyResponseV2};
 use crate::tls_version::TlsVersion;
 use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};
+use crate::{RyReqwestError, RyResponse};
 use bytes::Bytes;
-use pyo3::exceptions::{PyNotImplementedError, PyValueError};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Method, RequestBuilder};
-use ryo3_bytes::PyBytes;
-use ryo3_http::{HttpMethod, HttpVersion, PyHeaders, PyHeadersLike};
+use ryo3_http::{
+    HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
+};
 use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 use ryo3_url::{UrlLike, extract_url};
@@ -191,7 +192,7 @@ struct RequestKwargs<'py> {
     timeout: Option<&'py PyDuration>,
     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
     bearer_auth: Option<PyBackedStr>,
-    version: Option<HttpVersion>,
+    version: Option<PyHttpVersion>,
 }
 
 fn client_request_builder(
@@ -299,6 +300,30 @@ impl RyClient {
                 .map(RyBlockingResponse::from)
                 .map_err(map_reqwest_err)
         })
+    }
+
+    async fn request(
+        &self,
+        url: UrlLike,
+        method: Method,
+        kwargs: Option<ReqwestKwargs2>,
+    ) -> PyResult<RyResponseV2> {
+        let req = {
+            let req = self.client.request(method, url.0);
+            if let Some(kwargs) = kwargs {
+                kwargs.apply(req)?
+            } else {
+                req
+            }
+        };
+        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let r = rt
+            .spawn(async move { req.send().await })
+            .await
+            .map_err(|e| PyValueError::new_err(format!("Join error: {}", e)))?
+            .map(RyResponseV2::from)
+            .map_err(RyReqwestError::from)?;
+        Ok(r)
     }
 
     // TODO: replace this with custom python-y builder pattern that does not
@@ -563,7 +588,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
             url,
@@ -618,7 +643,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
             url,
@@ -673,7 +698,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
             url,
@@ -728,7 +753,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
             url,
@@ -783,7 +808,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
             url,
@@ -838,7 +863,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
             url,
@@ -893,7 +918,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let opts = RequestKwargs {
             url,
@@ -950,7 +975,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let method = method.map_or_else(|| Method::GET, |m| m.0);
         let opts = RequestKwargs {
@@ -1009,7 +1034,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let method = method.map_or_else(|| Method::GET, |m| m.0);
         let opts = RequestKwargs {
@@ -1062,7 +1087,7 @@ impl RyHttpClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
         self.fetch(
             py,
@@ -1281,104 +1306,74 @@ impl RyClient {
         self.cfg != other.cfg
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            // body = None,
-            // headers = None,
-            // query = None,
-            // json = None,
-            // form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
+    #[pyo3(signature = (url, **kwargs))]
     #[expect(clippy::too_many_arguments)]
-    async fn get(
+    async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+        self.request(url, Method::GET, kwargs).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+        self.request(url, Method::POST, kwargs).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+        self.request(url, Method::PUT, kwargs).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn patch(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+        self.request(url, Method::PATCH, kwargs).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn delete(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+        self.request(url, Method::DELETE, kwargs).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn head(&self, url: UrlLike, kwargs: Option<ReqwestKwargs2>) -> PyResult<RyResponseV2> {
+        self.request(url, Method::HEAD, kwargs).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn options(
         &self,
         url: UrlLike,
-        // body: Option<&Bound<'_, PyAny>>,
-        // headers: Option<PyHeadersLike>,
-        // query: Option<&Bound<'_, PyAny>>,
-        // json: Option<&Bound<'_, PyAny>>,
-        // form: Option<&Bound<'_, PyAny>>,
-        multipart: Option<bool>,
-        timeout: Option<PyDuration>,
-        basic_auth: Option<BasicAuth>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
-    ) -> PyResult<RyResponse> {
-        let req = {
-            let mut req = self.client.get(url.0);
-            if let Some(_m) = multipart {
-                return Err(PyNotImplementedError::new_err(
-                    "Multipart not implemented in this method",
-                ));
-            }
-            if let Some(v) = version {
-                req = req.version(v.into());
-            }
-            if let Some(ba) = basic_auth {
-                let u = ba.0;
-                req = req.basic_auth(u, ba.1);
-            }
-            if let Some(token) = bearer_auth {
-                req = req.bearer_auth(token);
-            }
-            if let Some(timeout) = timeout {
-                req = req.timeout(timeout.into());
-            }
-            req
-        };
-        // let opts = RequestKwargs {
-        //     url,
-        //     method: Method::GET,
-        //     // body,
-        //     // headers,
-        //     // query,
-        //     // json,
-        //     // multipart,
-        //     // form,
-        //     // timeout,
-        //     // basic_auth,
-        //     // bearer_auth,
-        //     version,
-        // };
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
-        // let req = self.build_request(opts)?;
-        // let req = self.client.get(url.to_string());
-        let r = rt
-            .spawn(async move {
-                // let req = self.client.get(url.as_str());
-                // let opts = RequestKwargs {
-
-                //     url,
-                //     method: Method::GET,
-                //     body : None,
-                //     headers: None,
-                //     query: None,
-                //     json: None,
-                //     multipart: None,
-                //     form: None,
-                //     timeout: None,
-                //     basic_auth: None,
-                //     bearer_auth: None,
-                //     version: None,
-                // };
-                // let req = self.build_request(opts)?;
-                req.send()
-                    .await
-                    .map(RyResponse::from)
-                    .map_err(map_reqwest_err)
-            })
-            .await
-            .map_err(|e| PyValueError::new_err(format!("Join error: {}", e)))?;
-        r
+        kwargs: Option<ReqwestKwargs2>,
+    ) -> PyResult<RyResponseV2> {
+        self.request(url, Method::OPTIONS, kwargs).await
     }
+
+    #[pyo3(signature = (url, method = ryo3_http::HttpMethod::GET, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn fetch(
+        &self,
+        url: UrlLike,
+        method: ryo3_http::HttpMethod,
+        kwargs: Option<ReqwestKwargs2>,
+    ) -> PyResult<RyResponseV2> {
+        self.request(url, method.into(), kwargs).await
+    }
+
+    #[pyo3(signature = (url, method = PyHttpMethod::GET, **kwargs))]
+    #[expect(clippy::too_many_arguments)]
+    async fn __call__(
+        &self,
+        url: UrlLike,
+        method: PyHttpMethod,
+        kwargs: Option<ReqwestKwargs2>,
+    ) -> PyResult<RyResponseV2> {
+        self.request(url, method.into(), kwargs).await
+    }
+
     #[pyo3(
         signature = (
             url,
@@ -1411,7 +1406,7 @@ impl RyClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let method = method.map_or_else(|| Method::GET, |m| m.0);
         let opts = RequestKwargs {
@@ -1464,7 +1459,7 @@ impl RyClient {
     //     timeout: Option<&PyDuration>,
     //     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
     //     bearer_auth: Option<PyBackedStr>,
-    //     version: Option<HttpVersion>,
+    //     version: Option<PyHttpVersion>,
     // ) -> PyResult<Bound<'py, PyAny>> {
     //     self.fetch(
     //         py,
@@ -1713,7 +1708,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let opts = RequestKwargs {
             url,
@@ -1763,7 +1758,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let opts = RequestKwargs {
             url,
@@ -1813,7 +1808,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let opts = RequestKwargs {
             url,
@@ -1863,7 +1858,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let opts = RequestKwargs {
             url,
@@ -1913,7 +1908,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let opts = RequestKwargs {
             url,
@@ -1963,7 +1958,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let opts = RequestKwargs {
             url,
@@ -2013,7 +2008,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let opts = RequestKwargs {
             url,
@@ -2065,7 +2060,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         let method = method.map_or_else(|| Method::GET, |m| m.0);
         let opts = RequestKwargs {
@@ -2118,7 +2113,7 @@ impl RyBlockingClient {
         timeout: Option<&PyDuration>,
         basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
         bearer_auth: Option<PyBackedStr>,
-        version: Option<HttpVersion>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
         self.fetch(
             py,
@@ -2339,98 +2334,113 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
 }
 
 struct ReqwestKwargs2 {
-    body: Option<PyBytes>,
     headers: Option<HeaderMap>,
-    query: Option<PyBackedStr>,
-    json: Option<PyBytes>,
-    multipart: Option<bool>,
-    form: Option<PyBytes>,
+    query: Option<String>,
+    body: ReqwestBody2,
     timeout: Option<Duration>,
     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
     bearer_auth: Option<PyBackedStr>,
-    version: Option<HttpVersion>,
+    version: Option<PyHttpVersion>,
+}
+
+impl ReqwestKwargs2 {
+    fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
+        let mut req = req;
+
+        // headers
+        if let Some(headers) = self.headers {
+            req = req.headers(headers);
+        }
+
+        // query
+        if let Some(query) = self.query {
+            // temp hack we know that the query is already url-encoded so we
+            // decode it and then re-encode it...
+            let decoded: Vec<(&str, &str)> = serde_urlencoded::from_str(&query).map_err(|err| {
+                PyValueError::new_err(format!("failed to decode query params: {}", err))
+            })?;
+            req = req.query(&decoded);
+        }
+
+        // body
+        req = match self.body {
+            ReqwestBody2::Bytes(b) => req.body(b),
+            ReqwestBody2::Json(j) => req
+                .body(j)
+                .header(reqwest::header::CONTENT_TYPE, "application/json"),
+            ReqwestBody2::Form(f) => req.body(f).header(
+                reqwest::header::CONTENT_TYPE,
+                "application/x-www-form-urlencoded",
+            ),
+            ReqwestBody2::Multipart(_m) => {
+                pytodo!("multipart not implemented (yet)");
+                req
+            }
+            ReqwestBody2::None => req,
+        };
+
+        // timeout
+        if let Some(timeout) = self.timeout {
+            req = req.timeout(timeout);
+        }
+
+        // basic auth
+        if let Some((username, password)) = self.basic_auth {
+            req = req.basic_auth(username, password.map(|p| p));
+        }
+
+        // bearer auth
+        if let Some(token) = self.bearer_auth {
+            req = req.bearer_auth(token);
+        }
+
+        // version
+        if let Some(version) = self.version {
+            req = req.version(version.into());
+        }
+
+        Ok(req)
+    }
+}
+
+enum ReqwestBody2 {
+    Bytes(Bytes),
+    Json(Vec<u8>),
+    Form(String),
+    #[allow(dead_code)]
+    Multipart(bool), // placeholder
+    None,
 }
 
 impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        // let url = extract_url(options.url)?;
-        // let mut req = client.request(options.method, url);
-        // if let Some((username, password)) = options.basic_auth {
-        // req = req.basic_auth(username, password);
-        // }
-        // if let Some(token) = options.bearer_auth {
-        // req = req.bearer_auth(token);
-        // if let Some(ref version) = options.version {
-        //     req = req.version(version.0);
-        // }
-        // if let Some(headers) = options.headers {
-        //     let headers = HeaderMap::try_from(headers)?;
-        //     req = req.headers(headers);
-        // }
-        // if let Some(timeout) = options.timeout {
-        //     req = req.timeout(timeout.0);
-        // }
-        // if let Some(query) = options.query {
-        //     let pyser = ryo3_serde::PyAnySerializer::new(query.into(), None);
-        //     req = req.query(&pyser);
-        // }
-
-        // version 2
-        // match (options.body, options.json, options.form, options.multipart) {
-        //     (Some(_), Some(_), _, _)
-        //     | (Some(_), _, Some(_), _)
-        //     | (Some(_), _, _, Some(_))
-        //     | (_, Some(_), Some(_), _)
-        //     | (_, Some(_), _, Some(_))
-        //     | (_, _, Some(_), Some(_)) => {
-        //         return py_value_err!("body, json, form, multipart are mutually exclusive");
-        //     }
-        //     (Some(body), None, None, None) => {
-        //         if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
-        //             // short circuit for rs-py-bytes
-        //             let rsbytes: &Bytes = rsbytes.get().as_ref();
-        //             req = req.body(rsbytes.to_owned());
-        //         } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
-        //             // buffer protocol
-        //             req = req.body(bytes.into_inner());
-        //         } else {
-        //             return py_type_err!("body must be bytes-like");
-        //         }
-        //     }
-        //     (None, Some(json), None, None) => {
-        //         let wrapped = ryo3_serde::PyAnySerializer::new(json.into(), None);
-        //         req = req.json(&wrapped);
-        //     }
-        //     (None, None, Some(form), None) => {
-        //         let pyser = ryo3_serde::PyAnySerializer::new(form.into(), None);
-        //         req = req.form(&pyser);
-        //     }
-        //     (None, None, None, Some(_multipart)) => {
-        //         pytodo!("multipart not implemented (yet)");
-        //     }
-        //     (None, None, None, None) => {}
-        // }
-        // Ok(req)
-
+        let py = obj.py();
         let dict = obj.cast_exact::<PyDict>()?;
-        // method
-        // let method: Method = dict
-        //     .get_item(intern!(obj.py(), "method"))
-        //     .map_or(Ok(Method::GET), |m| {
-        //         let a = m.map(|m| m.extract::<ryo3_http::HttpMethod>()).get;
-
-        //             .transpose()
-        //             .map(|m| m.map(|m| m.0))
-        //     })?;
 
         // body parts...
-        let body = dict.get_item(intern!(obj.py(), "body"))?;
-        let json = dict.get_item(intern!(obj.py(), "json"))?;
-        let form = dict.get_item(intern!(obj.py(), "form"))?;
-        let multipart = dict.get_item(intern!(obj.py(), "multipart"))?;
-        let (real_body,real_json, real_form, real_multipart) = match (body, json, form, multipart) {
+        let body = dict.get_item(intern!(py, "body"))?;
+        let json = dict.get_item(intern!(py, "json"))?;
+        let form = dict.get_item(intern!(py, "form"))?;
+        let multipart = dict.get_item(intern!(py, "multipart"))?;
+
+        // let query: PyResult<Option<String>> =
+        let query: Option<String> = dict.get_item(intern!(py, "query")).map(|e| {
+            if let Some(q) = e {
+                let py_any_serializer = ryo3_serde::PyAnySerializer::new(q.as_borrowed(), None);
+                let url_encoded_query =
+                    serde_urlencoded::to_string(py_any_serializer).map_err(|err| {
+                        PyValueError::new_err(format!("failed to serialize query params: {}", err))
+                    })?;
+                // have to annotate the err type...
+                Ok::<_, PyErr>(Some(url_encoded_query))
+            } else {
+                Ok(None)
+            }
+        })??;
+
+        let req_body: ReqwestBody2 = match (body, json, form, multipart) {
             (Some(_), Some(_), _, _)
             | (Some(_), _, Some(_), _)
             | (Some(_), _, _, Some(_))
@@ -2443,97 +2453,68 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
                 if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
                     // short circuit for rs-py-bytes
                     let rsbytes: &Bytes = rsbytes.get().as_ref();
-                    (Some(rsbytes.clone()), None, None, None)
+                    ReqwestBody2::Bytes(rsbytes.clone())
                 } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
                     // buffer protocol
                     // req = req.body(bytes.into_inner());
-                    (Some(bytes.into_inner()), None, None, None)
+                    ReqwestBody2::Bytes(bytes.into_inner())
                 } else {
                     return py_type_err!("body must be bytes-like");
                 }
             }
             (None, Some(json), None, None) => {
-
                 let b = ryo3_json::to_vec(&json)?;
-                (None, Some(b), None, None)
-
+                ReqwestBody2::Json(b)
             }
             (None, None, Some(form), None) => {
+                let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
+                let url_encoded_form =
+                    serde_urlencoded::to_string(py_any_serializer).map_err(|e| {
+                        PyValueError::new_err(format!("failed to serialize form data: {}", e))
+                    })?;
                 // todo: YOU WERE HERE KEEP GOING
                 // let pyser = ryo3_serde::PyAnySerializer::new(form.into(), None);
                 // req = req.form(&pyser);
                 // pytodo!("form extraction not implemented (yet)");
                 // (None, None, None, Some(form_bytes))
-                (None, None, Some(true), None)
+                ReqwestBody2::Form(url_encoded_form)
             }
             (None, None, None, Some(_multipart)) => {
-                // pytodo!("multipart not implemented (yet)");
-                (None, None, None, Some(true))
+                pytodo!("multipart not implemented (yet)");
+
+                // (None, None, None, Some(true))
             }
-            (None, None, None, None) => {
-                (None, None, None, None)
-            }
+            (None, None, None, None) => ReqwestBody2::None,
         };
+
+        let timeout = dict
+            .get_item(intern!(py, "timeout"))?
+            .map(|t| t.extract::<Timeout>())
+            .transpose()?
+            .map(|d| d.0);
         let headers = dict
-            .get_item(intern!(obj.py(), "headers"))?
+            .get_item(intern!(py, "headers"))?
             .map(|h| h.extract::<PyHeadersLike>())
             .transpose()?
             .map(|h| HeaderMap::try_from(h))
             .transpose()?;
-
-        // let method: Method = dict
-        //     .get_item(intern!(obj.py(), "method"))
-        //     .map_or(Ok(Method::GET), |m| {
-        //         m.extract().map(|m: ryo3_http::HttpMethod| m.0)
-        //     })?;
-        // // let body: Option<PyBytes> = dict
-        //     .get_item(intern!(obj.py(), "body"))
-        //     .map(|b| b.extract())
-        //     .transpose()?;
-        // let headers = dict
-        //     .get_item(intern!(obj.py(), "headers"))?
-        //     .map(|h| h.extract::<PyHeadersLike>())
-        //     .transpose()?;
-
-        // .map(|h| h.extract())
-        // .transpose()?;
-        // let query: Option<PyBackedStr> = dict
-        //     .get_item(intern!(obj.py(), "query"))
-        //     .map(|q| q.extract())
-        //     .transpose()?;
-        // let json: Option<PyBytes> = dict
-        //     .get_item(intern!(obj.py(), "json"))
-        //     .map(|j| j.extract())
-        //     .transpose()?;
-        // let multipart: Option<bool> = dict
-        //     .get_item(intern!(obj.py(), "multipart"))
-        //     .map(|m| m.extract())
-        //     .transpose()?;
-        // let form: Option<PyBytes> = dict
-        //     .get_item(intern!(obj.py(), "form"))
-        //     .map(|f| f.extract())
-        //     .transpose()?;
-        // let timeout: Option<Duration> = dict
-        //     .get_item(intern!(obj.py(), "timeout"))
-        //     .map(|t| t.extract::<PyDuration>().map(|d| d.0))
-        //     .transpose()?;
-
         let bearer_auth: Option<PyBackedStr> = dict
-            .get_item(intern!(obj.py(), "bearer_auth"))?
+            .get_item(intern!(py, "bearer_auth"))?
             .map(|b| b.extract())
             .transpose()?;
-        let version: Option<HttpVersion> = dict
-            .get_item(intern!(obj.py(), "version"))?
+        let version: Option<PyHttpVersion> = dict
+            .get_item(intern!(py, "version"))?
             .map(|v| v.extract())
             .transpose()?;
         Ok(ReqwestKwargs2 {
-            body: None,
+            // body: None,
+            body: req_body,
             headers,
-            query: None,
-            json: None,
-            multipart: None,
-            form: None,
-            timeout: None,
+            query,
+            // json: real_json.map(PyBytes::from), // revisit?
+            // multipart: None,
+            // form: None,
+            timeout,
             basic_auth: dict
                 .get_item(intern!(obj.py(), "basic_auth"))?
                 .map(|b| b.extract())
@@ -2544,12 +2525,23 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
     }
 }
 
-// struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
-// impl<'py> FromPyObject<'_, 'py> for BasicAuth {
-//     type Error = PyErr;
+struct Timeout(Duration);
 
-//     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-//         let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
-//         Ok(BasicAuth(tuple.0, tuple.1))
-//     }
-// }
+impl From<Timeout> for Duration {
+    fn from(t: Timeout) -> Self {
+        t.0
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for Timeout {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(pydur) = obj.cast_exact::<PyDuration>() {
+            Ok(Timeout(pydur.get().into()))
+        } else if let Ok(dur) = obj.extract::<Duration>() {
+            Ok(Timeout(dur))
+        } else {
+            return py_type_err!("timeout must be a Duration | datetime.timedelta");
+        }
+    }
+}

@@ -31,6 +31,7 @@ ryo3-serde.workspace = true
 ryo3-std = { workspace = true, features = ["time"] }
 ryo3-url.workspace = true
 serde.workspace = true
+serde_urlencoded = "0.7.1"
 tokio.workspace = true
 tracing.workspace = true
 

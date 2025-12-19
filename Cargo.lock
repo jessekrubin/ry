@@ -2085,6 +2085,7 @@ dependencies = [
  "ryo3-std",
  "ryo3-url",
  "serde",
+ "serde_urlencoded",
  "tokio",
  "tracing",
 ]

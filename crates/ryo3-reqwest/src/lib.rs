@@ -14,8 +14,8 @@ mod user_agent;
 
 pub use cert::PyCertificate;
 pub use client::RyBlockingClient;
-pub use client::RyHttpClient;
 pub use client::RyClient;
+pub use client::RyHttpClient;
 pub use cookie::PyCookie;
 pub use errors::RyReqwestError;
 use pyo3::prelude::*;
@@ -28,6 +28,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCookie>()?;
     m.add_class::<PyCertificate>()?;
     m.add_class::<RyHttpClient>()?;
+    m.add_class::<RyClient>()?;
     m.add_class::<RyBlockingClient>()?;
     m.add_class::<RyResponse>()?;
     m.add_class::<RyReqwestError>()?;

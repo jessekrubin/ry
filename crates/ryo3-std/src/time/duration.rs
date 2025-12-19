@@ -928,7 +928,6 @@ mod pydantic {
     }
 }
 
-
 impl From<Duration> for PyDuration {
     fn from(d: Duration) -> Self {
         Self(d)
