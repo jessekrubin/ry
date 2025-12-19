@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-79403483.js";
+            window.path_to_searchindex_js = "searchindex-063f9788.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -923,7 +923,7 @@ class FsPath(ToPy[Path], ToString):
     @property
     def parts(self) -&gt; tuple[str, ...]: ...
     @property
-    def root(self) -&gt; str: ...
+    def root(self) -&gt; t.Self | None: ...
     @property
     def stem(self) -&gt; str: ...
     @property
@@ -2169,6 +2169,13 @@ class DateTime(
     ) -&gt; TimeSpan: ...
 
 
+class TimeZoneTransition(t.TypedDict):
+    timestamp: Timestamp
+    offset: Offset
+    dst: bool
+    abbreviation: str
+
+
 @t.final
 class TimeZone(
     # protocols
@@ -2244,7 +2251,12 @@ class TimeZone(
     def to_offset(self, timestamp: Timestamp) -&gt; Offset: ...
     def to_timestamp(self, datetime: DateTime) -&gt; Timestamp: ...
     def to_zoned(self, datetime: DateTime) -&gt; ZonedDateTime: ...
-
+    def preceding(
+        self, timestamp: Timestamp, limit: int | None = None, /
+    ) -&gt; list[TimeZoneTransition]: ...
+    def following(
+        self, timestamp: Timestamp, limit: int | None = None, /
+    ) -&gt; list[TimeZoneTransition]: ...
     # =========================================================================
     # NOT IMPLEMENTED
     # =========================================================================

@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-79403483.js";
+            window.path_to_searchindex_js = "searchindex-063f9788.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-18T11:08:30.097235909-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-18T19:39:11.488656747-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -507,6 +507,7 @@ liner:
 <li><code>ryo3-jiff</code>
 <ul>
 <li>Consolidate <code>map_py_err_*</code> functions into <code>ryo3_core</code></li>
+<li><code>ry.TimeZone.preceding</code> &amp; <code>ry.TimeZone.following</code> for timezone transitions</li>
 </ul>
 </li>
 <li><code>ryo3-core</code>
@@ -3577,7 +3578,7 @@ class FsPath(ToPy[Path], ToString):
     @property
     def parts(self) -&gt; tuple[str, ...]: ...
     @property
-    def root(self) -&gt; str: ...
+    def root(self) -&gt; t.Self | None: ...
     @property
     def stem(self) -&gt; str: ...
     @property
@@ -4823,6 +4824,13 @@ class DateTime(
     ) -&gt; TimeSpan: ...
 
 
+class TimeZoneTransition(t.TypedDict):
+    timestamp: Timestamp
+    offset: Offset
+    dst: bool
+    abbreviation: str
+
+
 @t.final
 class TimeZone(
     # protocols
@@ -4898,7 +4906,12 @@ class TimeZone(
     def to_offset(self, timestamp: Timestamp) -&gt; Offset: ...
     def to_timestamp(self, datetime: DateTime) -&gt; Timestamp: ...
     def to_zoned(self, datetime: DateTime) -&gt; ZonedDateTime: ...
-
+    def preceding(
+        self, timestamp: Timestamp, limit: int | None = None, /
+    ) -&gt; list[TimeZoneTransition]: ...
+    def following(
+        self, timestamp: Timestamp, limit: int | None = None, /
+    ) -&gt; list[TimeZoneTransition]: ...
     # =========================================================================
     # NOT IMPLEMENTED
     # =========================================================================
