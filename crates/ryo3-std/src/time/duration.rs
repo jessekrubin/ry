@@ -62,18 +62,6 @@ const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDuration(pub Duration);
 
-impl From<Duration> for PyDuration {
-    fn from(d: Duration) -> Self {
-        Self(d)
-    }
-}
-
-impl From<PyDuration> for Option<Duration> {
-    fn from(d: PyDuration) -> Self {
-        Some(d.0)
-    }
-}
-
 impl PyDuration {
     fn new(secs: u64, nanos: u32) -> PyResult<Self> {
         if nanos < NANOS_PER_SEC {
@@ -937,5 +925,30 @@ mod pydantic {
                 Some(&serialization_kwargs),
             )
         }
+    }
+}
+
+
+impl From<Duration> for PyDuration {
+    fn from(d: Duration) -> Self {
+        Self(d)
+    }
+}
+
+impl From<&PyDuration> for Duration {
+    fn from(d: &PyDuration) -> Self {
+        d.0
+    }
+}
+
+impl From<PyDuration> for Duration {
+    fn from(d: PyDuration) -> Self {
+        d.0
+    }
+}
+
+impl From<PyDuration> for Option<Duration> {
+    fn from(d: PyDuration) -> Self {
+        Some(d.0)
     }
 }

@@ -15,6 +15,7 @@ mod user_agent;
 pub use cert::PyCertificate;
 pub use client::RyBlockingClient;
 pub use client::RyHttpClient;
+pub use client::RyClient;
 pub use cookie::PyCookie;
 pub use errors::RyReqwestError;
 use pyo3::prelude::*;

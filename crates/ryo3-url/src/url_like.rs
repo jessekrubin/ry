@@ -5,6 +5,12 @@ use pyo3::{Bound, FromPyObject, PyAny, PyErr, PyResult};
 
 pub struct UrlLike(pub url::Url);
 
+impl From<UrlLike> for url::Url {
+    fn from(ul: UrlLike) -> Self {
+        ul.0
+    }
+}
+
 impl UrlLike {
     fn apply_with_params<'py>(
         &mut self,

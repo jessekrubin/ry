@@ -78,6 +78,12 @@ impl From<http::Version> for HttpVersion {
     }
 }
 
+impl From<HttpVersion> for http::Version {
+    fn from(h: HttpVersion) -> Self {
+        h.0
+    }
+}
+
 // impl from ref
 impl From<&HeaderValue> for HttpHeaderValue {
     // clone should be totally fine bc the http lib uses the `Bytes` crate

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::RyResponse;
 use crate::cert::PyCertificate;
 use crate::errors::map_reqwest_err;
@@ -5,22 +7,35 @@ use crate::response_parking_lot::RyBlockingResponse;
 use crate::tls_version::TlsVersion;
 use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};
 use bytes::Bytes;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyNotImplementedError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Method, RequestBuilder};
-use ryo3_http::{HttpVersion, PyHeaders, PyHeadersLike};
+use ryo3_bytes::PyBytes;
+use ryo3_http::{HttpMethod, HttpVersion, PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
-use ryo3_url::extract_url;
+use ryo3_url::{UrlLike, extract_url};
+
+//============================================================================
+
+//============================================================================
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "HttpClient", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyHttpClient {
+    client: reqwest::Client,
+    cfg: ClientConfig,
+}
+
+#[derive(Debug, Clone)]
+#[pyclass(name = "Client", frozen, immutable_type, skip_from_py_object)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct RyClient {
     client: reqwest::Client,
     cfg: ClientConfig,
 }
@@ -245,6 +260,31 @@ fn client_request_builder(
 }
 
 impl RyHttpClient {
+    pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
+        let cfg = cfg.unwrap_or_default();
+        let client_builder = cfg.client_builder();
+        let client = client_builder.build().map_err(map_reqwest_err)?;
+        Ok(Self { client, cfg })
+    }
+
+    fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
+        pyo3_async_runtimes::tokio::get_runtime().block_on(async {
+            req.send()
+                .await
+                .map(RyBlockingResponse::from)
+                .map_err(map_reqwest_err)
+        })
+    }
+
+    // TODO: replace this with custom python-y builder pattern that does not
+    //       crudely wrap the reqwest::RequestBuilder
+    #[inline]
+    fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
+        client_request_builder(&self.client, options)
+    }
+}
+
+impl RyClient {
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
         let client_builder = cfg.client_builder();
@@ -1040,6 +1080,408 @@ impl RyHttpClient {
             version,
         )
     }
+}
+
+#[pymethods]
+impl RyClient {
+    #[expect(
+        clippy::fn_params_excessive_bools,
+        clippy::similar_names,
+        clippy::too_many_arguments
+    )]
+    #[new]
+    #[pyo3(
+        signature = (
+            *,
+            headers = None,
+            cookies = false,
+            user_agent = None,
+            timeout = None,
+            read_timeout = None,
+            connect_timeout = None,
+            redirect = Some(10),
+            referer = true,
+            gzip = true,
+            brotli = true,
+            deflate = true,
+            zstd = true,
+            hickory_dns = true,
+
+            http1_only = false,
+            https_only = false,
+
+            http1_title_case_headers = false,
+            http1_allow_obsolete_multiline_headers_in_responses = false,
+            http1_allow_spaces_after_header_name_in_responses = false,
+            http1_ignore_invalid_headers_in_responses = false,
+
+            http2_prior_knowledge = false,
+            http2_initial_stream_window_size = None,
+            http2_initial_connection_window_size = None,
+            http2_adaptive_window = false,
+            http2_max_frame_size = None,
+            http2_max_header_list_size = None,
+            http2_keep_alive_interval = None,
+            http2_keep_alive_timeout = None,
+            http2_keep_alive_while_idle = false,
+
+            pool_idle_timeout = Some(PyDuration::from(std::time::Duration::from_secs(90))),
+            pool_max_idle_per_host = usize::MAX,
+
+            tcp_keepalive = Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive_interval = Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive_retries = Some(3),
+            tcp_nodelay = true,
+
+            root_certificates = None,
+            tls_min_version = None,
+            tls_max_version = None,
+            tls_info = false,
+            tls_sni = true,
+
+            danger_accept_invalid_certs = false,
+            danger_accept_invalid_hostnames = false,
+        )
+    )]
+    fn py_new(
+        headers: Option<PyHeadersLike>,
+        cookies: bool,
+        user_agent: Option<String>,
+        timeout: Option<PyDuration>,
+        read_timeout: Option<PyDuration>,
+        connect_timeout: Option<PyDuration>,
+        redirect: Option<usize>,
+        referer: bool,
+        gzip: bool,
+        brotli: bool,
+        deflate: bool,
+        zstd: bool,
+        hickory_dns: bool,
+        http1_only: bool,
+        https_only: bool,
+
+        // -- http1 --
+        http1_title_case_headers: bool,
+        http1_allow_obsolete_multiline_headers_in_responses: bool,
+        http1_allow_spaces_after_header_name_in_responses: bool,
+        http1_ignore_invalid_headers_in_responses: bool,
+
+        // -- http2 --
+        http2_prior_knowledge: bool,
+        http2_initial_stream_window_size: Option<u32>,
+        http2_initial_connection_window_size: Option<u32>,
+        http2_adaptive_window: bool,
+        http2_max_frame_size: Option<u32>,
+        http2_max_header_list_size: Option<u32>,
+        http2_keep_alive_interval: Option<PyDuration>,
+        http2_keep_alive_timeout: Option<PyDuration>,
+        http2_keep_alive_while_idle: bool,
+
+        // -- pool --
+        pool_idle_timeout: Option<PyDuration>,
+        pool_max_idle_per_host: usize,
+
+        // -- tcp --
+        tcp_keepalive: Option<PyDuration>,
+        tcp_keepalive_interval: Option<PyDuration>,
+        tcp_keepalive_retries: Option<u32>,
+        tcp_nodelay: bool,
+
+        // -- tls --
+        root_certificates: Option<Vec<PyCertificate>>,
+        tls_min_version: Option<TlsVersion>,
+        tls_max_version: Option<TlsVersion>,
+        tls_info: bool,
+        tls_sni: bool,
+
+        // -- danger --
+        danger_accept_invalid_certs: bool,
+        danger_accept_invalid_hostnames: bool,
+    ) -> PyResult<Self> {
+        let user_agent = parse_user_agent(user_agent)?;
+        let headers = headers.map(PyHeaders::try_from).transpose()?;
+        let client_cfg = ClientConfig {
+            headers,
+            cookies,
+            user_agent: Some(user_agent.into()),
+            timeout,
+            read_timeout,
+            connect_timeout,
+            redirect,
+            referer,
+            gzip,
+            brotli,
+            deflate,
+            zstd,
+            hickory_dns,
+            http1_only,
+            https_only,
+            // -- http1 --
+            http1_title_case_headers,
+            http1_allow_obsolete_multiline_headers_in_responses,
+            http1_allow_spaces_after_header_name_in_responses,
+            http1_ignore_invalid_headers_in_responses,
+            // -- http2 --
+            http2_prior_knowledge,
+            http2_initial_stream_window_size,
+            http2_initial_connection_window_size,
+            http2_adaptive_window,
+            http2_max_frame_size,
+            http2_max_header_list_size,
+            http2_keep_alive_interval,
+            http2_keep_alive_timeout,
+            http2_keep_alive_while_idle,
+            // --- pool ---
+            pool_idle_timeout,
+            pool_max_idle_per_host,
+            // --- tcp ---
+            tcp_keepalive,
+            tcp_keepalive_interval,
+            tcp_keepalive_retries,
+            tcp_nodelay,
+            // --- TLS ---
+            root_certificates,
+            tls_min_version,
+            tls_max_version,
+            tls_info,
+            tls_sni,
+            // -- danger --
+            danger_accept_invalid_certs,
+            danger_accept_invalid_hostnames,
+        };
+        let client_builder = client_cfg.client_builder();
+        let client = client_builder
+            .build()
+            .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+        Ok(Self {
+            client,
+            cfg: client_cfg,
+        })
+    }
+
+    fn __repr__(&self) -> String {
+        format!("HttpClient<{:?}>", self.cfg)
+    }
+
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let args = PyTuple::empty(py).into_bound_py_any(py)?;
+        let kwargs = self.cfg.into_bound_py_any(py)?;
+        PyTuple::new(py, vec![args, kwargs])
+    }
+
+    fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.cfg.into_pyobject(py)
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.cfg == other.cfg
+    }
+
+    fn __ne__(&self, other: &Self) -> bool {
+        self.cfg != other.cfg
+    }
+
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            // body = None,
+            // headers = None,
+            // query = None,
+            // json = None,
+            // form = None,
+            multipart = None,
+            timeout = None,
+            basic_auth = None,
+            bearer_auth = None,
+            version = None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    async fn get(
+        &self,
+        url: UrlLike,
+        // body: Option<&Bound<'_, PyAny>>,
+        // headers: Option<PyHeadersLike>,
+        // query: Option<&Bound<'_, PyAny>>,
+        // json: Option<&Bound<'_, PyAny>>,
+        // form: Option<&Bound<'_, PyAny>>,
+        multipart: Option<bool>,
+        timeout: Option<PyDuration>,
+        basic_auth: Option<BasicAuth>,
+        bearer_auth: Option<PyBackedStr>,
+        version: Option<HttpVersion>,
+    ) -> PyResult<RyResponse> {
+        let req = {
+            let mut req = self.client.get(url.0);
+            if let Some(_m) = multipart {
+                return Err(PyNotImplementedError::new_err(
+                    "Multipart not implemented in this method",
+                ));
+            }
+            if let Some(v) = version {
+                req = req.version(v.into());
+            }
+            if let Some(ba) = basic_auth {
+                let u = ba.0;
+                req = req.basic_auth(u, ba.1);
+            }
+            if let Some(token) = bearer_auth {
+                req = req.bearer_auth(token);
+            }
+            if let Some(timeout) = timeout {
+                req = req.timeout(timeout.into());
+            }
+            req
+        };
+        // let opts = RequestKwargs {
+        //     url,
+        //     method: Method::GET,
+        //     // body,
+        //     // headers,
+        //     // query,
+        //     // json,
+        //     // multipart,
+        //     // form,
+        //     // timeout,
+        //     // basic_auth,
+        //     // bearer_auth,
+        //     version,
+        // };
+        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        // let req = self.build_request(opts)?;
+        // let req = self.client.get(url.to_string());
+        let r = rt
+            .spawn(async move {
+                // let req = self.client.get(url.as_str());
+                // let opts = RequestKwargs {
+
+                //     url,
+                //     method: Method::GET,
+                //     body : None,
+                //     headers: None,
+                //     query: None,
+                //     json: None,
+                //     multipart: None,
+                //     form: None,
+                //     timeout: None,
+                //     basic_auth: None,
+                //     bearer_auth: None,
+                //     version: None,
+                // };
+                // let req = self.build_request(opts)?;
+                req.send()
+                    .await
+                    .map(RyResponse::from)
+                    .map_err(map_reqwest_err)
+            })
+            .await
+            .map_err(|e| PyValueError::new_err(format!("Join error: {}", e)))?;
+        r
+    }
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            method = None,
+            body = None,
+            headers = None,
+            query = None,
+            json = None,
+            form = None,
+            multipart = None,
+            timeout = None,
+            basic_auth = None,
+            bearer_auth = None,
+            version = None,
+        )
+    )]
+    #[expect(clippy::too_many_arguments)]
+    pub(crate) fn fetch_sync<'py>(
+        &'py self,
+        py: Python<'py>,
+        url: &Bound<'py, PyAny>,
+        method: Option<ryo3_http::HttpMethod>,
+        body: Option<&Bound<'py, PyAny>>,
+        headers: Option<PyHeadersLike>,
+        query: Option<&Bound<'py, PyAny>>,
+        json: Option<&Bound<'py, PyAny>>,
+        form: Option<&Bound<'py, PyAny>>,
+        multipart: Option<&Bound<'py, PyAny>>,
+        timeout: Option<&PyDuration>,
+        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
+        bearer_auth: Option<PyBackedStr>,
+        version: Option<HttpVersion>,
+    ) -> PyResult<RyBlockingResponse> {
+        let method = method.map_or_else(|| Method::GET, |m| m.0);
+        let opts = RequestKwargs {
+            url,
+            method,
+            body,
+            headers,
+            query,
+            json,
+            multipart,
+            form,
+            timeout,
+            basic_auth,
+            bearer_auth,
+            version,
+        };
+        let req = self.build_request(opts)?;
+        py.detach(|| Self::send_sync(req))
+    }
+
+    // #[pyo3(
+    //     signature = (
+    //         url,
+    //         *,
+    //         method = None,
+    //         body = None,
+    //         headers = None,
+    //         query = None,
+    //         json = None,
+    //         form = None,
+    //         multipart = None,
+    //         timeout = None,
+    //         basic_auth = None,
+    //         bearer_auth = None,
+    //         version = None,
+    //     )
+    // )]
+    // #[expect(clippy::too_many_arguments)]
+    // fn __call__<'py>(
+    //     &'py self,
+    //     py: Python<'py>,
+    //     url: &Bound<'py, PyAny>,
+    //     method: Option<ryo3_http::HttpMethod>,
+    //     body: Option<&Bound<'py, PyAny>>,
+    //     headers: Option<PyHeadersLike>,
+    //     query: Option<&Bound<'py, PyAny>>,
+    //     json: Option<&Bound<'py, PyAny>>,
+    //     form: Option<&Bound<'py, PyAny>>,
+    //     multipart: Option<&Bound<'py, PyAny>>,
+    //     timeout: Option<&PyDuration>,
+    //     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
+    //     bearer_auth: Option<PyBackedStr>,
+    //     version: Option<HttpVersion>,
+    // ) -> PyResult<Bound<'py, PyAny>> {
+    //     self.fetch(
+    //         py,
+    //         url,
+    //         method,
+    //         body,
+    //         headers,
+    //         query,
+    //         json,
+    //         form,
+    //         multipart,
+    //         timeout,
+    //         basic_auth,
+    //         bearer_auth,
+    //         version,
+    //     )
+    // }
 }
 
 #[pymethods]
@@ -1885,3 +2327,223 @@ impl ClientConfig {
         self.apply(client_builder)
     }
 }
+
+struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+impl<'py> FromPyObject<'_, 'py> for BasicAuth {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
+        Ok(BasicAuth(tuple.0, tuple.1))
+    }
+}
+
+struct ReqwestKwargs2 {
+    body: Option<PyBytes>,
+    headers: Option<HeaderMap>,
+    query: Option<PyBackedStr>,
+    json: Option<PyBytes>,
+    multipart: Option<bool>,
+    form: Option<PyBytes>,
+    timeout: Option<Duration>,
+    basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
+    bearer_auth: Option<PyBackedStr>,
+    version: Option<HttpVersion>,
+}
+
+impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        // let url = extract_url(options.url)?;
+        // let mut req = client.request(options.method, url);
+        // if let Some((username, password)) = options.basic_auth {
+        // req = req.basic_auth(username, password);
+        // }
+        // if let Some(token) = options.bearer_auth {
+        // req = req.bearer_auth(token);
+        // if let Some(ref version) = options.version {
+        //     req = req.version(version.0);
+        // }
+        // if let Some(headers) = options.headers {
+        //     let headers = HeaderMap::try_from(headers)?;
+        //     req = req.headers(headers);
+        // }
+        // if let Some(timeout) = options.timeout {
+        //     req = req.timeout(timeout.0);
+        // }
+        // if let Some(query) = options.query {
+        //     let pyser = ryo3_serde::PyAnySerializer::new(query.into(), None);
+        //     req = req.query(&pyser);
+        // }
+
+        // version 2
+        // match (options.body, options.json, options.form, options.multipart) {
+        //     (Some(_), Some(_), _, _)
+        //     | (Some(_), _, Some(_), _)
+        //     | (Some(_), _, _, Some(_))
+        //     | (_, Some(_), Some(_), _)
+        //     | (_, Some(_), _, Some(_))
+        //     | (_, _, Some(_), Some(_)) => {
+        //         return py_value_err!("body, json, form, multipart are mutually exclusive");
+        //     }
+        //     (Some(body), None, None, None) => {
+        //         if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
+        //             // short circuit for rs-py-bytes
+        //             let rsbytes: &Bytes = rsbytes.get().as_ref();
+        //             req = req.body(rsbytes.to_owned());
+        //         } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
+        //             // buffer protocol
+        //             req = req.body(bytes.into_inner());
+        //         } else {
+        //             return py_type_err!("body must be bytes-like");
+        //         }
+        //     }
+        //     (None, Some(json), None, None) => {
+        //         let wrapped = ryo3_serde::PyAnySerializer::new(json.into(), None);
+        //         req = req.json(&wrapped);
+        //     }
+        //     (None, None, Some(form), None) => {
+        //         let pyser = ryo3_serde::PyAnySerializer::new(form.into(), None);
+        //         req = req.form(&pyser);
+        //     }
+        //     (None, None, None, Some(_multipart)) => {
+        //         pytodo!("multipart not implemented (yet)");
+        //     }
+        //     (None, None, None, None) => {}
+        // }
+        // Ok(req)
+
+        let dict = obj.cast_exact::<PyDict>()?;
+        // method
+        // let method: Method = dict
+        //     .get_item(intern!(obj.py(), "method"))
+        //     .map_or(Ok(Method::GET), |m| {
+        //         let a = m.map(|m| m.extract::<ryo3_http::HttpMethod>()).get;
+
+        //             .transpose()
+        //             .map(|m| m.map(|m| m.0))
+        //     })?;
+
+        // body parts...
+        let body = dict.get_item(intern!(obj.py(), "body"))?;
+        let json = dict.get_item(intern!(obj.py(), "json"))?;
+        let form = dict.get_item(intern!(obj.py(), "form"))?;
+        let multipart = dict.get_item(intern!(obj.py(), "multipart"))?;
+        let (real_body, rea,_json, real_form, real_multipart) = match (body, json, form, multipart) {
+            (Some(_), Some(_), _, _)
+            | (Some(_), _, Some(_), _)
+            | (Some(_), _, _, Some(_))
+            | (_, Some(_), Some(_), _)
+            | (_, Some(_), _, Some(_))
+            | (_, _, Some(_), Some(_)) => {
+                return py_value_err!("body, json, form, multipart are mutually exclusive");
+            }
+            (Some(body), None, None, None) => {
+                if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
+                    // short circuit for rs-py-bytes
+                    let rsbytes: &Bytes = rsbytes.get().as_ref();
+                    (Some(rsbytes.clone()), None, None, None)
+                } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
+                    // buffer protocol
+                    // req = req.body(bytes.into_inner());
+                    (Some(bytes), None, None, None, None)
+                } else {
+                    return py_type_err!("body must be bytes-like");
+                }
+            }
+            (None, Some(json), None, None) => {
+
+                let b = ryo3_json::to_vec(&json)?;
+                (None, Some(b), None, None, None)
+
+            }
+            (None, None, Some(form), None) => {
+                // todo: YOU WERE HERE KEEP GOING
+                // let pyser = ryo3_serde::PyAnySerializer::new(form.into(), None);
+                // req = req.form(&pyser);
+            }
+            (None, None, None, Some(_multipart)) => {
+                pytodo!("multipart not implemented (yet)");
+            }
+            (None, None, None, None) => {}
+        }
+        let headers = dict
+            .get_item(intern!(obj.py(), "headers"))?
+            .map(|h| h.extract::<PyHeadersLike>())
+            .transpose()?
+            .map(|h| HeaderMap::try_from(h))
+            .transpose()?;
+
+        // let method: Method = dict
+        //     .get_item(intern!(obj.py(), "method"))
+        //     .map_or(Ok(Method::GET), |m| {
+        //         m.extract().map(|m: ryo3_http::HttpMethod| m.0)
+        //     })?;
+        // // let body: Option<PyBytes> = dict
+        //     .get_item(intern!(obj.py(), "body"))
+        //     .map(|b| b.extract())
+        //     .transpose()?;
+        // let headers = dict
+        //     .get_item(intern!(obj.py(), "headers"))?
+        //     .map(|h| h.extract::<PyHeadersLike>())
+        //     .transpose()?;
+
+        // .map(|h| h.extract())
+        // .transpose()?;
+        // let query: Option<PyBackedStr> = dict
+        //     .get_item(intern!(obj.py(), "query"))
+        //     .map(|q| q.extract())
+        //     .transpose()?;
+        // let json: Option<PyBytes> = dict
+        //     .get_item(intern!(obj.py(), "json"))
+        //     .map(|j| j.extract())
+        //     .transpose()?;
+        // let multipart: Option<bool> = dict
+        //     .get_item(intern!(obj.py(), "multipart"))
+        //     .map(|m| m.extract())
+        //     .transpose()?;
+        // let form: Option<PyBytes> = dict
+        //     .get_item(intern!(obj.py(), "form"))
+        //     .map(|f| f.extract())
+        //     .transpose()?;
+        // let timeout: Option<Duration> = dict
+        //     .get_item(intern!(obj.py(), "timeout"))
+        //     .map(|t| t.extract::<PyDuration>().map(|d| d.0))
+        //     .transpose()?;
+
+        let bearer_auth: Option<PyBackedStr> = dict
+            .get_item(intern!(obj.py(), "bearer_auth"))?
+            .map(|b| b.extract())
+            .transpose()?;
+        let version: Option<HttpVersion> = dict
+            .get_item(intern!(obj.py(), "version"))?
+            .map(|v| v.extract())
+            .transpose()?;
+        Ok(ReqwestKwargs2 {
+            body: None,
+            headers,
+            query: None,
+            json: None,
+            multipart: None,
+            form: None,
+            timeout: None,
+            basic_auth: dict
+                .get_item(intern!(obj.py(), "basic_auth"))?
+                .map(|b| b.extract())
+                .transpose()?,
+            bearer_auth,
+            version,
+        })
+    }
+}
+
+// struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+// impl<'py> FromPyObject<'_, 'py> for BasicAuth {
+//     type Error = PyErr;
+
+//     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+//         let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
+//         Ok(BasicAuth(tuple.0, tuple.1))
+//     }
+// }

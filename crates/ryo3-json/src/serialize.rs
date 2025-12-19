@@ -157,6 +157,19 @@ pub fn stringify<'py>(
     })?
 }
 
+pub fn to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
+    let serializer = JsonSerializer::new(
+        None,
+        JsonOptions {
+            fmt: false,
+            sort_keys: false,
+            append_newline: false,
+        },
+    )
+    .expect("no-way-jose");
+    serializer.serialize_to_vec(obj)
+}
+
 #[expect(clippy::fn_params_excessive_bools)]
 #[pyfunction(
     signature=(
