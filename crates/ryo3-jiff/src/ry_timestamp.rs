@@ -29,11 +29,9 @@ pub struct RyTimestamp(pub(crate) Timestamp);
 #[pymethods]
 impl RyTimestamp {
     #[new]
-    #[pyo3(signature = (second = None, nanosecond = None))]
-    pub fn py_new(second: Option<i64>, nanosecond: Option<i32>) -> PyResult<Self> {
-        let s = second.unwrap_or(0);
-        let ns = nanosecond.unwrap_or(0);
-        Timestamp::new(s, ns)
+    #[pyo3(signature = (second =0, nanosecond =0))]
+    pub fn py_new(second: i64, nanosecond: i32) -> PyResult<Self> {
+        Timestamp::new(second, nanosecond)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -472,7 +470,7 @@ impl Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Timestamp({:?}, {:?})",
+            "Timestamp(second={:?}, nanosecond={:?})",
             self.0.as_second(),
             self.0.subsec_nanosecond()
         )
