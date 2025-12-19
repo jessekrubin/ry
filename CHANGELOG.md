@@ -8,6 +8,7 @@
     - `find . -type f -name "*.rs" -print0 | xargs -0 sed -i -E 's/SerializePy([A-Z][A-Za-z0-9_]*)/Py\1Serializer/g'`
 - `ryo3-jiff`
   - Consolidate `map_py_err_*` functions into `ryo3_core`
+  - `ry.TimeZone.preceding` & `ry.TimeZone.following` for timezone transitions
 - `ryo3-core`
   - renamed `PyMutex` to `RyMutex` to avoid confusion with `pyo3`'s `PyMutex`
 - `ryo3-fspath`
