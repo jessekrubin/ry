@@ -306,7 +306,7 @@ impl RyZoned {
         other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         #[expect(clippy::arithmetic_side_effects)]
-        if let Ok(zoned) = other.cast::<Self>() {
+        if let Ok(zoned) = other.cast_exact::<Self>() {
             // if other is a Zoned, return a Span
             let span = &self.0 - &zoned.get().0;
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;

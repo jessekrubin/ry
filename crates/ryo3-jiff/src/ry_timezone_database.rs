@@ -27,10 +27,6 @@ impl RyTimeZoneDatabase {
         Self::from(TimeZoneDatabase::from_env())
     }
 
-    fn __str__(&self) -> String {
-        self.__repr__()
-    }
-
     fn __repr__(&self) -> String {
         format!("{:?}", self.db())
     }

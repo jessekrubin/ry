@@ -21,6 +21,9 @@ macro_rules! unpaid_intern {
     };
 }
 
+// struct-keys
+unpaid_intern!(timestamp);
+
 // singular duration(s)
 unpaid_intern!(year);
 unpaid_intern!(month);

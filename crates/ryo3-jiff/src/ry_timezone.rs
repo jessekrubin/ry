@@ -5,11 +5,11 @@ use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
 use jiff::Timestamp;
-use jiff::tz::{Offset, TimeZone};
+use jiff::tz::{Offset, TimeZone, TimeZoneTransition};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
-use pyo3::types::PyTzInfo;
 use pyo3::types::{PyDict, PyString, PyTuple};
+use pyo3::types::{PyList, PyTzInfo};
 use ryo3_macro_rules::{py_type_err, pytodo};
 use std::fmt::Debug;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -87,7 +87,7 @@ impl RyTimeZone {
     }
 
     fn equiv<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<bool> {
-        if let Ok(other) = other.cast::<Self>() {
+        if let Ok(other) = other.cast_exact::<Self>() {
             Ok(self.0.eq(&other.get().0))
         } else if let Ok(other) = other.cast::<PyTzInfo>() {
             let tz: jiff::tz::TimeZone = other.extract()?;
@@ -266,6 +266,34 @@ impl RyTimeZone {
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
         pytodo!()
     }
+
+    #[pyo3(signature = (timestamp, limit=None))]
+    fn preceding(
+        &self,
+        timestamp: &RyTimestamp,
+        limit: Option<usize>,
+    ) -> PyTimeZoneTransitionsVec<'_> {
+        let transitions = if let Some(lim) = limit {
+            self.0.preceding(timestamp.0).take(lim).collect::<Vec<_>>()
+        } else {
+            self.0.preceding(timestamp.0).collect::<Vec<_>>()
+        };
+        PyTimeZoneTransitionsVec(transitions)
+    }
+
+    #[pyo3(signature = (timestamp, limit=None))]
+    fn following(
+        &self,
+        timestamp: &RyTimestamp,
+        limit: Option<usize>,
+    ) -> PyTimeZoneTransitionsVec<'_> {
+        let transitions = if let Some(lim) = limit {
+            self.0.following(timestamp.0).take(lim).collect::<Vec<_>>()
+        } else {
+            self.0.following(timestamp.0).collect::<Vec<_>>()
+        };
+        PyTimeZoneTransitionsVec(transitions)
+    }
 }
 
 impl std::fmt::Display for RyTimeZone {
@@ -282,5 +310,57 @@ impl std::fmt::Display for RyTimeZone {
             write!(f, "'{offset}'")?;
         }
         write!(f, ")")
+    }
+}
+
+struct PyTimeZoneTransitionsVec<'t>(Vec<TimeZoneTransition<'t>>);
+
+impl<'py> IntoPyObject<'py> for PyTimeZoneTransitionsVec<'_> {
+    type Target = PyList;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        use crate::interns;
+        let mut abbrev_set = {
+            // this is in a block bc I find the lint that clippy flips out
+            // over ('clippy::redundant_closure_for_method_calls') annoying as
+            // fuck I do think in some casese it makes more sense but wtf...
+            // it wants me to replace the following:
+            //    `|t| t.abbreviation()`
+            // with this:
+            //    `jiff::tz::TimeZoneTransition::abbreviation`
+            #[expect(clippy::redundant_closure_for_method_calls)]
+            self.0
+                .iter()
+                .map(|t| t.abbreviation())
+                .collect::<std::collections::HashSet<_>>()
+        };
+        let mut abbrev_pystrings: Vec<(&str, Bound<PyAny>)> = Vec::with_capacity(8);
+        for abbrev in abbrev_set.drain() {
+            let py_abbrev = PyString::new(py, abbrev);
+            abbrev_pystrings.push((abbrev, py_abbrev.into_bound_py_any(py)?));
+        }
+
+        let mut objects = vec![];
+        for t in &self.0 {
+            let d = PyDict::new(py);
+            d.set_item(interns::timestamp(py), RyTimestamp::from(t.timestamp()))?;
+            d.set_item(interns::offset(py), RyOffset::from(t.offset()))?;
+            d.set_item(interns::dst(py), t.dst().is_dst())?;
+            let py_abrev_str = abbrev_pystrings
+                .iter()
+                .find_map(|(abbrev, pystr)| {
+                    if *abbrev == t.abbreviation() {
+                        Some(pystr.clone())
+                    } else {
+                        None
+                    }
+                })
+                .expect("no-way-jose");
+            d.set_item(interns::abbreviation(py), py_abrev_str)?;
+            objects.push(d);
+        }
+        PyList::new(py, objects)
     }
 }
