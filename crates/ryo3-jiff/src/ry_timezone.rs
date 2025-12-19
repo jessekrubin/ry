@@ -87,7 +87,7 @@ impl RyTimeZone {
     }
 
     fn equiv<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<bool> {
-        if let Ok(other) = other.cast::<Self>() {
+        if let Ok(other) = other.cast_exact::<Self>() {
             Ok(self.0.eq(&other.get().0))
         } else if let Ok(other) = other.cast::<PyTzInfo>() {
             let tz: jiff::tz::TimeZone = other.extract()?;

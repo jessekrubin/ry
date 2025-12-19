@@ -182,7 +182,7 @@ impl RyTimestamp {
         py: Python<'py>,
         other: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        if let Ok(ob) = other.cast::<Self>() {
+        if let Ok(ob) = other.cast_exact::<Self>() {
             let span = self.0.sub(ob.get().0);
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)

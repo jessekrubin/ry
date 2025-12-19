@@ -139,7 +139,7 @@ impl PyUrl {
     }
 
     fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        if let Ok(other) = other.cast::<Self>() {
+        if let Ok(other) = other.cast_exact::<Self>() {
             let other = other.borrow();
             match op {
                 CompareOp::Eq => Ok(self.0 == other.0),

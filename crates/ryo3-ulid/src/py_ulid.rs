@@ -139,7 +139,7 @@ impl PyUlid {
                 pyo3::basic::CompareOp::Gt => Ok(this_str.as_str() > cs),
                 pyo3::basic::CompareOp::Ge => Ok(this_str.as_str() >= cs),
             }
-        } else if let Ok(rs_ulid) = other.cast::<Self>() {
+        } else if let Ok(rs_ulid) = other.cast_exact::<Self>() {
             let other = rs_ulid.borrow().0;
             match op {
                 pyo3::basic::CompareOp::Eq => Ok(self.0 == other),
@@ -331,7 +331,7 @@ impl PyUlid {
         else if value.is_instance_of::<pyo3::types::PyFloat>() {
             let f = value.extract::<f64>()?;
             Self::from_timestamp_seconds(f)
-        } else if let Ok(rs_ulid) = value.cast::<Self>() {
+        } else if let Ok(rs_ulid) = value.cast_exact::<Self>() {
             let inner = rs_ulid.borrow().0;
             Ok(Self(inner))
         } else if value.is_instance_of::<PyBytes>() {
@@ -414,7 +414,7 @@ impl PyUlid {
             cls.call_method1(intern!(py, "from_int"), (pyint,))
         } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             cls.call_method1(intern!(py, "from_str"), (pystr,))
-        } else if let Ok(pyulid) = value.cast::<Self>() {
+        } else if let Ok(pyulid) = value.cast_exact::<Self>() {
             pyulid.into_bound_py_any(py)
         } else if let Ok(pybytes) = value.cast::<PyBytes>() {
             cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
@@ -433,7 +433,7 @@ impl PyUlid {
         let py = value.py();
         let ulid = if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             cls.call_method1(intern!(py, "from_str"), (pystr,))
-        } else if let Ok(pyulid) = value.cast::<Self>() {
+        } else if let Ok(pyulid) = value.cast_exact::<Self>() {
             pyulid.into_bound_py_any(py)
         } else {
             Err(PyValueError::new_err(
