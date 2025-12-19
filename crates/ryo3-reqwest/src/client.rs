@@ -2430,7 +2430,7 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
         let json = dict.get_item(intern!(obj.py(), "json"))?;
         let form = dict.get_item(intern!(obj.py(), "form"))?;
         let multipart = dict.get_item(intern!(obj.py(), "multipart"))?;
-        let (real_body, rea,_json, real_form, real_multipart) = match (body, json, form, multipart) {
+        let (real_body,real_json, real_form, real_multipart) = match (body, json, form, multipart) {
             (Some(_), Some(_), _, _)
             | (Some(_), _, Some(_), _)
             | (Some(_), _, _, Some(_))
@@ -2447,7 +2447,7 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
                 } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
                     // buffer protocol
                     // req = req.body(bytes.into_inner());
-                    (Some(bytes), None, None, None, None)
+                    (Some(bytes.into_inner()), None, None, None)
                 } else {
                     return py_type_err!("body must be bytes-like");
                 }
@@ -2455,19 +2455,25 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs2 {
             (None, Some(json), None, None) => {
 
                 let b = ryo3_json::to_vec(&json)?;
-                (None, Some(b), None, None, None)
+                (None, Some(b), None, None)
 
             }
             (None, None, Some(form), None) => {
                 // todo: YOU WERE HERE KEEP GOING
                 // let pyser = ryo3_serde::PyAnySerializer::new(form.into(), None);
                 // req = req.form(&pyser);
+                // pytodo!("form extraction not implemented (yet)");
+                // (None, None, None, Some(form_bytes))
+                (None, None, Some(true), None)
             }
             (None, None, None, Some(_multipart)) => {
-                pytodo!("multipart not implemented (yet)");
+                // pytodo!("multipart not implemented (yet)");
+                (None, None, None, Some(true))
             }
-            (None, None, None, None) => {}
-        }
+            (None, None, None, None) => {
+                (None, None, None, None)
+            }
+        };
         let headers = dict
             .get_item(intern!(obj.py(), "headers"))?
             .map(|h| h.extract::<PyHeadersLike>())
