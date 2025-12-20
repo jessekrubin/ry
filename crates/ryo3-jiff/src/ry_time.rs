@@ -2,7 +2,6 @@ use crate::RySpan;
 use crate::RyTimeRound;
 use crate::difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::errors::{map_py_overflow_err, map_py_value_err};
-use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
 use crate::series::RyTimeSeries;
 use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
@@ -15,6 +14,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::any_repr;
 use ryo3_macro_rules::py_type_err;
 use std::fmt::Display;
@@ -82,18 +82,6 @@ impl RyTime {
         Self(Time::midnight())
     }
 
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
-    }
-
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
@@ -135,13 +123,23 @@ impl RyTime {
         format!("{self}")
     }
 
-    fn isoformat(&self) -> String {
-        if self.0.subsec_nanosecond() == 0 {
-            ISOFORMAT_PRINTER_NO_MICROS.time_to_string(&self.0)
-        } else {
-            ISOFORMAT_PRINTER.time_to_string(&self.0)
-        }
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
     }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
 
     // ========================================================================
     // OPERATORS/DUNDERS

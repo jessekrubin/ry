@@ -1,9 +1,9 @@
-use crate::errors::{map_py_overflow_err, map_py_runtime_err, map_py_value_err};
-use crate::isoformat::{ISOFORMAT_PRINTER, ISOFORMAT_PRINTER_NO_MICROS};
+use crate::errors::{map_py_overflow_err, map_py_value_err};
+use crate::isoformat::PyIsoFormat;
 use crate::round::RyZonedDateTimeRound;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
-use crate::ry_offset::{RyOffset, print_isoformat_offset};
+use crate::ry_offset::RyOffset;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
@@ -16,12 +16,13 @@ use crate::{
     JiffWeekday, JiffZoned, RyDate,
 };
 use jiff::civil::{Date, Time, Weekday};
-use jiff::tz::{Offset, TimeZone};
+use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -99,25 +100,13 @@ impl RyZoned {
     pub(crate) fn utcnow() -> Self {
         Self::from(Zoned::now().with_time_zone(TimeZone::UTC))
     }
+
     #[staticmethod]
     #[pyo3(signature = (timestamp, time_zone))]
     fn from_parts(timestamp: &RyTimestamp, time_zone: &RyTimeZone) -> Self {
         let ts = timestamp.0;
         Self::from(Zoned::new(ts, time_zone.into()))
     }
-
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
-    }
-
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
@@ -163,26 +152,6 @@ impl RyZoned {
 
     fn to_rfc2822(&self) -> PyResult<String> {
         jiff::fmt::rfc2822::to_string(&self.0).map_err(map_py_value_err)
-    }
-    // ISO format mismatch:
-    // input datetime: 7639-01-01 00:00:00.395000+00:00 (repr: datetime.datetime(7639, 1, 1, 0, 0, 0, 395000, tzinfo=zoneinfo.ZoneInfo(key='UTC')))
-    // py: 7639-01-01T00:00:00.395000+00:00
-    // ry: 7639-01-01T00:00:00+00
-    // is_eq: False
-    // ry_prefix_ok: False
-    fn isoformat(&self) -> PyResult<String> {
-        let offset: Offset = self.0.offset();
-        // let ts = self.0.timestamp();
-        let dattie = self.0.datetime();
-        let mut s = String::with_capacity(32);
-        if self.0.datetime().microsecond() == 0 && self.0.subsec_nanosecond() == 0 {
-            ISOFORMAT_PRINTER_NO_MICROS.print_datetime(&dattie, &mut s)
-        } else {
-            ISOFORMAT_PRINTER.print_datetime(&dattie, &mut s)
-        }
-        .map_err(map_py_runtime_err)?;
-        print_isoformat_offset(&offset, &mut s).map_err(map_py_runtime_err)?;
-        Ok(s)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -793,6 +762,27 @@ impl RyZoned {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
+
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
 }
 
 impl Display for RyZoned {

@@ -14,6 +14,7 @@ use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::py_overflow_err;
 use ryo3_macro_rules::{
     any_repr, py_overflow_error, py_type_err, py_value_err, py_value_error, py_zero_division_err,
@@ -150,18 +151,6 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
-    }
-
-    #[staticmethod]
     fn from_pytimedelta(delta: SignedDuration) -> Self {
         Self(delta)
     }
@@ -209,10 +198,6 @@ impl RySignedDuration {
         } else {
             py_type_err!("Invalid format specifier '{fmt}' for SignedDuration")
         }
-    }
-
-    fn isoformat(&self) -> String {
-        crate::constants::SPAN_PRINTER.duration_to_string(&self.0)
     }
 
     #[staticmethod]
@@ -701,13 +686,28 @@ impl RySignedDuration {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
-}
 
-// #[derive(Debug, Clone, FromPyObject)]
-// enum RySignedDurationComparable<'py> {
-//     RySignedDuration(RySignedDuration),
-//     PyDelta(Bound<'py, PyDelta>),
-// }
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
+}
 
 impl Display for RySignedDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

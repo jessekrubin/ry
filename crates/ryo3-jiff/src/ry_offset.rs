@@ -13,6 +13,7 @@ use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::vec;
@@ -89,18 +90,6 @@ impl RyOffset {
     #[staticmethod]
     fn utc() -> Self {
         Self::from(Offset::UTC)
-    }
-
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
     }
 
     #[staticmethod]
@@ -358,6 +347,27 @@ impl RyOffset {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
+
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
 }
 
 impl std::fmt::Display for RyOffset {
@@ -371,28 +381,5 @@ impl std::fmt::Display for RyOffset {
             write!(f, "seconds={s}")?;
         }
         write!(f, ")")
-    }
-}
-
-pub(crate) fn print_isoformat_offset<W: std::fmt::Write>(
-    offset: &Offset,
-    w: &mut W,
-) -> std::fmt::Result {
-    if offset.is_zero() {
-        return write!(w, "+00:00");
-    }
-    // total number of seconds
-    let sign = if offset.is_negative() { "-" } else { "+" };
-    let total_seconds = offset.seconds();
-    // calculate hours and minutes, and seconds
-    let hours = total_seconds.abs() / 3600;
-    let minutes = (total_seconds.abs() % 3600) / 60;
-    let seconds = total_seconds.abs() % 60;
-
-    // write the formatted string
-    if seconds == 0 {
-        write!(w, "{sign}{hours:02}:{minutes:02}")
-    } else {
-        write!(w, "{sign}{hours:02}:{minutes:02}:{seconds:02}")
     }
 }

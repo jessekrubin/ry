@@ -1,11 +1,11 @@
 use crate::errors::map_py_value_err;
-use crate::isoformat::iso_weekdate_to_string;
 use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
 use jiff::Zoned;
 use jiff::civil::ISOWeekDate;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, prelude::*};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -62,17 +62,6 @@ impl RyISOWeekDate {
     // ========================================================================
     // CLASSMETHOD
     // ========================================================================
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
-    }
 
     /// Returns the `ISOWeekDate` for the given `Date`.
     #[staticmethod]
@@ -136,17 +125,16 @@ impl RyISOWeekDate {
     // ========================================================================
     // METHODS
     // ========================================================================
-
     fn date(&self) -> RyDate {
         self.0.date().into()
     }
 
-    fn __str__(&self) -> String {
-        iso_weekdate_to_string(&self.0)
+    fn __str__(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
     }
 
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> String {
+    fn py_to_string(&self) -> PyAsciiString {
         self.__str__()
     }
 
@@ -234,6 +222,27 @@ impl RyISOWeekDate {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
+
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
 }
 
 impl std::fmt::Display for RyISOWeekDate {

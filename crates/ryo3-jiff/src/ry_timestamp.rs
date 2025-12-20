@@ -14,6 +14,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, IntoPyObjectExt};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::{any_repr, py_type_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -67,18 +68,6 @@ impl RyTimestamp {
     #[staticmethod]
     fn now() -> Self {
         Self::from(Timestamp::now())
-    }
-
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
     }
 
     #[staticmethod]
@@ -464,6 +453,27 @@ impl RyTimestamp {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
+
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
 }
 
 impl Display for RyTimestamp {
