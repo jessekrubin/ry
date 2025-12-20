@@ -138,34 +138,25 @@ impl PyUrl {
         })
     }
 
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+    fn equiv(&self, other: &Bound<'_, PyAny>) -> bool {
         if let Ok(other) = other.cast_exact::<Self>() {
-            let other = other.borrow();
-            match op {
-                CompareOp::Eq => Ok(self.0 == other.0),
-                CompareOp::Ne => Ok(self.0 != other.0),
-                CompareOp::Lt => Ok(self.0 < other.0),
-                CompareOp::Le => Ok(self.0 <= other.0),
-                CompareOp::Gt => Ok(self.0 > other.0),
-                CompareOp::Ge => Ok(self.0 >= other.0),
-            }
+            let other = other.get();
+            self.0 == other.0
         } else if let Ok(other) = other.extract::<&str>() {
-            match op {
-                CompareOp::Eq => Ok(self.0.as_str() == other),
-                CompareOp::Ne => Ok(self.0.as_str() != other),
-                CompareOp::Lt => Ok(self.0.as_str() < other),
-                CompareOp::Le => Ok(self.0.as_str() <= other),
-                CompareOp::Gt => Ok(self.0.as_str() > other),
-                CompareOp::Ge => Ok(self.0.as_str() >= other),
-            }
+            self.0.as_str() == other
         } else {
-            match op {
-                CompareOp::Eq => Ok(false),
-                CompareOp::Ne => Ok(true),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                    "unsupported operand type(s) for comparison",
-                )),
-            }
+            false
+        }
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
+        match op {
+            CompareOp::Eq => self.0 == other.0,
+            CompareOp::Ne => self.0 != other.0,
+            CompareOp::Lt => self.0 < other.0,
+            CompareOp::Le => self.0 <= other.0,
+            CompareOp::Gt => self.0 > other.0,
+            CompareOp::Ge => self.0 >= other.0,
         }
     }
 

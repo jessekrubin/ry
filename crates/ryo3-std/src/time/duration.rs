@@ -13,8 +13,6 @@ use ryo3_macro_rules::{
 };
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
-#[cfg(feature = "jiff")]
-use std::str::FromStr;
 use std::time::Duration;
 
 const NANOS_PER_SEC: u32 = 1_000_000_000;
@@ -871,7 +869,7 @@ impl std::fmt::Debug for PyDuration {
 }
 
 #[cfg(feature = "jiff")]
-impl FromStr for PyDuration {
+impl std::str::FromStr for PyDuration {
     type Err = jiff::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         TEMPORAL_SPAN_PARSER
@@ -886,8 +884,8 @@ impl FromStr for PyDuration {
 }
 
 #[cfg(not(feature = "jiff"))]
-impl FromStr for PyDuration {
-    type Err = ryo3_macro_rules::PyErr;
+impl std::str::FromStr for PyDuration {
+    type Err = pyo3::PyErr;
 
     fn from_str(_s: &str) -> Result<Self, Self::Err> {
         use ryo3_macro_rules::py_not_implemented_error;

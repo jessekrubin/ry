@@ -19,6 +19,7 @@ enum RySpanishObject<'py> {
 pub(crate) struct Spanish<'py> {
     inner: RySpanishObject<'py>,
 }
+
 impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
     type Error = PyErr;
 
