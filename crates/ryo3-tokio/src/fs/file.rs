@@ -13,7 +13,7 @@ use tokio::sync::Mutex;
 
 enum FileState {
     Closed,
-    Open(BufStream<File>),
+    Open(Box<BufStream<File>>),
     // Consumed,
 }
 
@@ -49,7 +49,7 @@ impl PyAsyncFileInner {
         let file_res = open_opts.open(&self.path).await;
         let file = file_res
             .map_err(|e| py_io_error!("Failed to open file {}: {}", self.path.display(), e))?;
-        self.state = FileState::Open(BufStream::new(file));
+        self.state = FileState::Open(Box::new(BufStream::new(file)));
         Ok(())
     }
 

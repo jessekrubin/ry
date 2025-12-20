@@ -19,6 +19,14 @@
   - Use `RyMutex` instead of `parking_lot::Mutex`
 - `ryo3-reqwest`
   - Remove mutex wrapping global client
+- `ryo3-uuid`
+  - made `__hash__` equiv to python's `__hash__` impl so that rich comparisons
+    between `ry.UUID` and `uuid.UUID` work as expected in hashed collections
+- `ryo3-url`
+  - Added `equiv` method for comparing `ry.URL` with other `ry.URL` instances or
+    python `str` objects
+  - Removed richcmp between non `URL` objects and `ry.URL` (can use `equiv`) to
+    check for equality
 
 ---
 

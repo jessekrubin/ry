@@ -6,7 +6,6 @@ use pyo3::types::PyTuple;
 use pyo3::{BoundObject, prelude::*};
 use ryo3_bytes::PyBytes;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
-use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::OnceLock;
 
 static NODE_CACHE: OnceLock<u64> = OnceLock::new();
@@ -142,7 +141,20 @@ impl PyUuid {
         PyTuple::new(py, vec![self.0.hyphenated().to_string()])
     }
 
+    #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
+    fn __hash__(&self) -> isize {
+        #[cfg(target_pointer_width = "64")]
+        const M: u128 = (1u128 << 61) - 1;
+
+        #[cfg(target_pointer_width = "32")]
+        const M: u128 = (1u128 << 31) - 1;
+        (self.0.as_u128() % M) as isize
+    }
+
+    // not totally sure if this is needed...
+    #[cfg(not(any(target_pointer_width = "32", target_pointer_width = "64")))]
     fn __hash__(&self) -> u64 {
+        use std::hash::{DefaultHasher, Hash, Hasher};
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
@@ -165,10 +177,10 @@ impl PyUuid {
         self.0.as_u128()
     }
 
+    // this is aight bc the hash is stable and does match python...
     fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
         if let Ok(rs_uuid) = other.cast_exact::<Self>() {
             let other = rs_uuid.get();
-
             match op {
                 pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
                 pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),

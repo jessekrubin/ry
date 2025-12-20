@@ -205,6 +205,7 @@ impl RyTime {
     fn minute(&self) -> i8 {
         self.0.minute()
     }
+
     #[getter]
     fn second(&self) -> i8 {
         self.0.second()

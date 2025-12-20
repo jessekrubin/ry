@@ -25,6 +25,47 @@ macro_rules! py_io_err {
 }
 
 #[macro_export]
+macro_rules! py_key_error {
+    () => {
+        ::pyo3::exceptions::PyKeyError::new_err("key error")
+    };
+    ($($arg:tt)+) => {
+        ::pyo3::exceptions::PyKeyError::new_err(::std::format!($($arg)+))
+    };
+}
+
+#[macro_export]
+macro_rules! py_key_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyKeyError::new_err("key error"))
+    };
+    ($($arg:tt)+) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyKeyError::new_err(::std::format!($($arg)+)))
+    };
+}
+
+// NotImplementedError
+#[macro_export]
+macro_rules! py_not_implemented_error {
+    () => {
+        ::pyo3::exceptions::PyNotImplementedError::new_err("not implemented")
+    };
+    ($($arg:tt)+) => {
+        ::pyo3::exceptions::PyNotImplementedError::new_err(::std::format!($($arg)+))
+    };
+}
+
+#[macro_export]
+macro_rules! py_not_implemented_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyNotImplementedError::new_err("not implemented"))
+    };
+    ($($arg:tt)+) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyNotImplementedError::new_err(::std::format!($($arg)+)))
+    };
+}
+
+#[macro_export]
 macro_rules! py_overflow_error {
     () => {
         ::pyo3::exceptions::PyOverflowError::new_err("overflow error")
@@ -141,25 +182,5 @@ macro_rules! py_zero_division_err {
     };
     ($($arg:tt)+) => {
         ::std::result::Result::Err(::pyo3::exceptions::PyZeroDivisionError::new_err(::std::format!($($arg)+)))
-    };
-}
-
-#[macro_export]
-macro_rules! py_key_error {
-    () => {
-        ::pyo3::exceptions::PyKeyError::new_err("key error")
-    };
-    ($($arg:tt)+) => {
-        ::pyo3::exceptions::PyKeyError::new_err(::std::format!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! py_key_err {
-    () => {
-        ::std::result::Result::Err(::pyo3::exceptions::PyKeyError::new_err("key error"))
-    };
-    ($($arg:tt)+) => {
-        ::std::result::Result::Err(::pyo3::exceptions::PyKeyError::new_err(::std::format!($($arg)+)))
     };
 }
