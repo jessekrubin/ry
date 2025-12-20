@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-903c6ffe.js";
+            window.path_to_searchindex_js = "searchindex-2be3c071.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -219,6 +219,20 @@ liner:
 <li><code>ryo3-reqwest</code>
 <ul>
 <li>Remove mutex wrapping global client</li>
+</ul>
+</li>
+<li><code>ryo3-uuid</code>
+<ul>
+<li>made <code>__hash__</code> equiv to python’s <code>__hash__</code> impl so that rich comparisons
+between <code>ry.UUID</code> and <code>uuid.UUID</code> work as expected in hashed collections</li>
+</ul>
+</li>
+<li><code>ryo3-url</code>
+<ul>
+<li>Added <code>equiv</code> method for comparing <code>ry.URL</code> with other <code>ry.URL</code> instances or
+python <code>str</code> objects</li>
+<li>Removed richcmp between non <code>URL</code> objects and <code>ry.URL</code> (can use <code>equiv</code>) to
+check for equality</li>
 </ul>
 </li>
 </ul>
