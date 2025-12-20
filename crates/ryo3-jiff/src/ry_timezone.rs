@@ -256,7 +256,7 @@ impl RyTimeZone {
         pytodo!()
     }
 
-    #[pyo3(signature = (timestamp, limit=None))]
+    #[pyo3(signature = (timestamp, /, limit=None))]
     fn preceding(
         &self,
         timestamp: &RyTimestamp,
@@ -270,7 +270,7 @@ impl RyTimeZone {
         PyTimeZoneTransitionsVec(transitions)
     }
 
-    #[pyo3(signature = (timestamp, limit=None))]
+    #[pyo3(signature = (timestamp, /, limit=None))]
     fn following(
         &self,
         timestamp: &RyTimestamp,
