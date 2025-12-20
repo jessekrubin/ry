@@ -16,6 +16,7 @@ use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, prelude::*};
 use pyo3::{IntoPyObject, IntoPyObjectExt};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -63,18 +64,6 @@ impl RyDate {
     #[staticmethod]
     fn now() -> Self {
         Self::from(Zoned::now().date())
-    }
-
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond=0))]
@@ -125,10 +114,6 @@ impl RyDate {
             CompareOp::Gt => self.0 > other.0,
             CompareOp::Ge => self.0 >= other.0,
         }
-    }
-
-    fn isoformat(&self) -> String {
-        self.0.to_string()
     }
 
     #[pyo3(name = "to_string")]
@@ -520,6 +505,27 @@ impl RyDate {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
+
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
 }
 
 impl Display for RyDate {

@@ -8,6 +8,7 @@ use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -80,10 +81,6 @@ impl RySpan {
             microseconds,
             nanoseconds,
         )
-    }
-
-    fn isoformat(&self) -> String {
-        crate::constants::SPAN_PRINTER.span_to_string(&self.0)
     }
 
     #[staticmethod]
@@ -184,6 +181,7 @@ impl RySpan {
             .map_err(map_py_value_err)
     }
 
+    // <UNIFORM>
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
         use ryo3_core::PyFromStr;
@@ -195,6 +193,11 @@ impl RySpan {
         use ryo3_core::PyParse;
         Self::py_parse(s)
     }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </UNIFORM>
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(signature = (years=None, months=None, weeks=None, days=None, hours=None, minutes=None, seconds=None, milliseconds=None, microseconds=None, nanoseconds=None))]

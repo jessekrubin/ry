@@ -5,6 +5,57 @@
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 
+pub struct PyAsciiStr<'s>(&'s str);
+
+impl<'py> IntoPyObject<'py> for PyAsciiStr<'_> {
+    type Target = pyo3::types::PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    #[expect(unsafe_code)]
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        debug_assert!(
+            self.0.is_ascii(),
+            "PyAsciiStr(ing) must be ascii only: {:?}",
+            self.0
+        );
+        unsafe { Ok(pystring_ascii_new(py, self.0)) }
+    }
+}
+
+impl From<String> for PyAsciiString {
+    #[inline]
+    fn from(s: String) -> Self {
+        debug_assert!(s.is_ascii(), "PyAsciiString must be ascii only: {s:?}");
+        Self(s)
+    }
+}
+
+pub struct PyAsciiString(String);
+
+impl<'py> IntoPyObject<'py> for &PyAsciiString {
+    type Target = pyo3::types::PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        PyAsciiStr(&self.0).into_pyobject(py)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyAsciiString {
+    type Target = pyo3::types::PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        PyAsciiStr(&self.0).into_pyobject(py)
+    }
+}
+
 /// Faster py-string creation as done by jiter + orjson
 ///
 /// # Safety

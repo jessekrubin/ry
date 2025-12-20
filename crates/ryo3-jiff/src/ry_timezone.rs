@@ -127,17 +127,6 @@ impl RyTimeZone {
     // =====================================================================
     // CLASS METHODS
     // =====================================================================
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
-    }
 
     #[staticmethod]
     fn fixed(offset: &RyOffset) -> Self {
@@ -294,6 +283,23 @@ impl RyTimeZone {
         };
         PyTimeZoneTransitionsVec(transitions)
     }
+
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+    // </STD-METHODS>
 }
 
 impl std::fmt::Display for RyTimeZone {
