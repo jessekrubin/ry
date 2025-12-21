@@ -1,10 +1,10 @@
 use crate::RyZoned;
-use crate::errors::map_py_value_err;
 use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime};
 use jiff::civil::Date;
 use jiff::tz::TimeZone;
 use jiff::{Span, Zoned};
 use pyo3::prelude::*;
+use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::py_overflow_error;
 
 #[pyfunction]

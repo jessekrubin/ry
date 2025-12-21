@@ -1,4 +1,3 @@
-use crate::errors::map_py_value_err;
 use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time};
 use crate::{JiffTimeZone, JiffTimeZoneRef, JiffZoned, JiffZonedRef};
 use jiff::Zoned;
@@ -8,6 +7,7 @@ use pyo3::prelude::*;
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyTimeAccess;
 use pyo3::types::{PyDateTime, PyTzInfoAccess};
+use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::py_value_err;
 
 fn datetime_to_pydatetime<'py>(

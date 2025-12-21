@@ -1,4 +1,3 @@
-use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::round::RyOffsetRound;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_signed_duration::RySignedDuration;
@@ -14,6 +13,8 @@ use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::PyAsciiString;
+use ryo3_core::map_py_overflow_err;
+use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::vec;

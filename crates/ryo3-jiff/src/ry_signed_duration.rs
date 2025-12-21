@@ -1,8 +1,6 @@
 use crate::JiffRoundMode;
 use crate::JiffSignedDuration;
 use crate::JiffUnit;
-use crate::errors::map_py_overflow_err;
-use crate::errors::map_py_value_err;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
@@ -10,6 +8,8 @@ use jiff::SignedDurationRound;
 use jiff::{SignedDuration, Span};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
+use ryo3_core::map_py_overflow_err;
+use ryo3_core::map_py_value_err;
 
 use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;

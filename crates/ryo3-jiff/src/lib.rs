@@ -20,7 +20,6 @@ mod constants;
 mod deprecations;
 mod dev;
 mod difference;
-mod errors;
 mod from;
 mod from_str;
 mod functions;

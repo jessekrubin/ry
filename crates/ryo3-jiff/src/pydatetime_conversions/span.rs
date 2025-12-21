@@ -1,7 +1,7 @@
-use crate::errors::map_py_value_err;
 use crate::{JiffSignedDuration, JiffSpan};
 use jiff::{Span, SpanRelativeTo};
 use pyo3::prelude::*;
+use ryo3_core::map_py_value_err;
 
 impl<'py> IntoPyObject<'py> for JiffSpan {
     type Target = pyo3::types::PyDelta;

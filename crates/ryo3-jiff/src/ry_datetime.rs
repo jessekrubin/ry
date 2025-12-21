@@ -1,5 +1,4 @@
 use crate::difference::{DateTimeDifferenceArg, RyDateTimeDifference};
-use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -19,6 +18,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::PyAsciiString;
+use ryo3_core::map_py_overflow_err;
+use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -214,12 +215,12 @@ impl RyDateTime {
         Ok(Self::from(self.0.saturating_sub(spanish)))
     }
 
-    pub(crate) fn time(&self) -> RyTime {
-        RyTime::from(self.0.time())
+    fn time(&self) -> RyTime {
+        self.into()
     }
 
-    pub(crate) fn date(&self) -> RyDate {
-        RyDate::from(self.0.date())
+    fn date(&self) -> RyDate {
+        self.into()
     }
 
     pub(crate) fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
@@ -239,8 +240,8 @@ impl RyDateTime {
         self.in_tz(tz)
     }
 
-    pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {
-        RyISOWeekDate::from(self.0.iso_week_date())
+    fn iso_week_date(&self) -> RyISOWeekDate {
+        RyISOWeekDate::from(self)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -624,10 +625,9 @@ impl RyDateTime {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
-            let dt = d.get().datetime();
-            dt.into_pyobject(py)
-        } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
-            d.get().datetime().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
+        } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
+            Self::from(ts.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffDateTime>() {
             Self::from(d.0).into_pyobject(py)
         } else {

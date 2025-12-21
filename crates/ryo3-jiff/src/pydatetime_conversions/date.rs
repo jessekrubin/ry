@@ -1,7 +1,7 @@
 use crate::JiffDate;
-use crate::errors::map_py_value_err;
 use jiff::civil::Date;
 use pyo3::prelude::*;
+use ryo3_core::map_py_value_err;
 
 impl<'py> IntoPyObject<'py> for JiffDate {
     type Target = pyo3::types::PyDate;

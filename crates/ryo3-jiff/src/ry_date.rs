@@ -1,5 +1,4 @@
 use crate::difference::{DateDifferenceArg, RyDateDifference};
-use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
@@ -17,6 +16,8 @@ use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, prelude::*};
 use pyo3::{IntoPyObject, IntoPyObjectExt};
 use ryo3_core::PyAsciiString;
+use ryo3_core::map_py_overflow_err;
+use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -458,8 +459,8 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
-    pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {
-        self.0.iso_week_date().into()
+    fn iso_week_date(&self) -> RyISOWeekDate {
+        self.into()
     }
 
     #[staticmethod]
@@ -468,15 +469,15 @@ impl RyDate {
         if let Ok(val) = value.cast_exact::<Self>() {
             Ok(val.as_borrowed().into_bound())
         } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
-            let s = pystr.extract::<&str>()?;
-            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
+            let s = pystr.to_cow()?;
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
-            d.get().date().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
-            d.get().date().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<Date>() {
             Self::from(d).into_pyobject(py)
         } else {
