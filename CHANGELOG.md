@@ -19,6 +19,7 @@
   - Use `RyMutex` instead of `parking_lot::Mutex`
 - `ryo3-reqwest`
   - Remove mutex wrapping global client
+  - Experimental new `ry.Client` that uses `pyo3`'s `experimental-async` feat
 - `ryo3-uuid`
   - made `__hash__` equiv to python's `__hash__` impl so that rich comparisons
     between `ry.UUID` and `uuid.UUID` work as expected in hashed collections
