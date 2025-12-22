@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-6306664b.js";
+            window.path_to_searchindex_js = "searchindex-ea826497.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-22T10:37:05.580908631-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-22T11:37:40.18436452-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -492,12 +492,11 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0075-unrleased"><a class="header" href="#v0075-unrleased">v0.0.75 [unrleased]</a></h2>
+<h2 id="v0075-2025-12-22"><a class="header" href="#v0075-2025-12-22">v0.0.75 [2025-12-22]</a></h2>
 <ul>
 <li><code>ryo3-serde</code>
 <ul>
-<li>Renamed all <code>SerializePy*</code> structs to <code>Py*Serializer</code> w/ the below one
-liner:
+<li>Renamed all <code>SerializePy*</code> structs to <code>Py*Serializer</code> w/ this one-liner:
 <ul>
 <li><code>find . -type f -name "*.rs" -print0 | xargs -0 sed -i -E 's/SerializePy([A-Z][A-Za-z0-9_]*)/Py\1Serializer/g'</code></li>
 </ul>
@@ -530,6 +529,7 @@ liner:
 <li><code>ryo3-reqwest</code>
 <ul>
 <li>Remove mutex wrapping global client</li>
+<li>Experimental new <code>ry.Client</code> that uses <code>pyo3</code>’s <code>experimental-async</code> feat</li>
 </ul>
 </li>
 <li><code>ryo3-uuid</code>
