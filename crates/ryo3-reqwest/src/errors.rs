@@ -169,22 +169,21 @@ impl From<RyReqwestError> for pyo3::PyErr {
 ///
 /// Should prevent panics during interpreter shutdown when background threads
 pub(crate) fn map_reqwest_err(e: reqwest::Error) -> pyo3::PyErr {
-    RyReqwestError::from(e).into()
-    // #[expect(unsafe_code)]
-    // if unsafe { pyo3::ffi::Py_IsInitialized() } == 0 {
-    //     loop {
-    //         std::thread::park();
-    //     }
-    // }
-    // let maybe_pyerr = Python::try_attach(|_py| {
-    //     let req_err = RyReqwestError::from(e);
-    //     pyo3::PyErr::from(req_err)
-    // });
-    // if maybe_pyerr.is_none() {
-    //     tracing::warn!("Interpreter died while processing error. Parking thread.");
-    //     loop {
-    //         std::thread::park();
-    //     }
-    // }
-    // maybe_pyerr.expect("no-way-jose")
+    #[expect(unsafe_code)]
+    if unsafe { pyo3::ffi::Py_IsInitialized() } == 0 {
+        loop {
+            std::thread::park();
+        }
+    }
+    let maybe_pyerr = Python::try_attach(|_py| {
+        let req_err = RyReqwestError::from(e);
+        pyo3::PyErr::from(req_err)
+    });
+    if maybe_pyerr.is_none() {
+        tracing::warn!("Interpreter died while processing error. Parking thread.");
+        loop {
+            std::thread::park();
+        }
+    }
+    maybe_pyerr.expect("no-way-jose")
 }

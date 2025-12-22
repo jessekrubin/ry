@@ -2,7 +2,6 @@
 mod py_uuid;
 use crate::py_uuid::{RESERVED_FUTURE, RESERVED_MICROSOFT, RESERVED_NCS, RFC_4122};
 pub use py_uuid::{CPythonUuid, PyUuid, getnode, uuid1, uuid3, uuid4, uuid5, uuid6, uuid7, uuid8};
-use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 pub use uuid;
 

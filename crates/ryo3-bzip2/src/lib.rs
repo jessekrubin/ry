@@ -5,7 +5,6 @@ use ::bzip2::Compression;
 use ::bzip2::read::BzDecoder;
 use ::bzip2::write::BzEncoder;
 use pyo3::exceptions::PyValueError;
-use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use ryo3_bytes::PyBytes;
 

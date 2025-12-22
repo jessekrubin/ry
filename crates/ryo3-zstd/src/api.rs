@@ -1,5 +1,4 @@
 use crate::{constants, oneshot};
-use pyo3::prelude::PyModule;
 use pyo3::prelude::*;
 use pyo3::{Bound, PyResult};
 

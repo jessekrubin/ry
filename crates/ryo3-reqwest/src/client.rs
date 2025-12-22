@@ -1375,7 +1375,7 @@ impl RyClient {
     }
 
     #[pyo3(signature = (url, method = PyHttpMethod::GET, **kwargs))]
-    async fn fetch(
+    pub(crate) async fn fetch(
         &self,
         url: UrlLike,
         method: PyHttpMethod,
@@ -2308,7 +2308,7 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
 }
 
 #[cfg(feature = "experimental-async")]
-struct ReqwestKwargs {
+pub(crate) struct ReqwestKwargs {
     headers: Option<HeaderMap>,
     query: Option<String>,
     body: AsyncReqwestBody,

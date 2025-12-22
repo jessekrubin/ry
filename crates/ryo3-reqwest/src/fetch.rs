@@ -1,22 +1,41 @@
 //! python `reqwest` based `fetch` implementation
 
-use crate::{RyBlockingResponse, RyHttpClient};
+use crate::RyBlockingResponse;
+use ryo3_http::HttpMethod as PyHttpMethod;
+
+#[cfg(feature = "experimental-async")]
+use crate::RyClient;
+#[cfg(not(feature = "experimental-async"))]
+use crate::RyHttpClient;
+#[cfg(feature = "experimental-async")]
+use crate::response_parking_lot::RyAsyncResponse;
 use pyo3::{prelude::*, pybacked::PyBackedStr};
 use ryo3_http::{HttpVersion, PyHeadersLike};
 use std::sync::OnceLock;
 
-static DEFAULT_CLIENT: OnceLock<RyHttpClient> = OnceLock::new();
+#[cfg(not(feature = "experimental-async"))]
+static FETCH_CLIENT: OnceLock<RyHttpClient> = OnceLock::new();
+#[cfg(feature = "experimental-async")]
+static FETCH_CLIENT: OnceLock<RyClient> = OnceLock::new();
 
-#[inline]
-pub(crate) fn default_client() -> &'static RyHttpClient {
-    DEFAULT_CLIENT.get_or_init(|| {
-        RyHttpClient::new(None).expect("Failed to create default client. This should never happen.")
+#[cfg(not(feature = "experimental-async"))]
+pub(crate) fn fetch_client() -> &'static RyHttpClient {
+    FETCH_CLIENT.get_or_init(|| {
+        RyHttpClient::new(None).expect("Failed to create fetch client. This should never happen.")
+    })
+}
+
+#[cfg(feature = "experimental-async")]
+pub(crate) fn fetch_client() -> &'static RyClient {
+    FETCH_CLIENT.get_or_init(|| {
+        RyClient::new(None).expect("Failed to create fetch client. This should never happen.")
     })
 }
 
 // TODO move to using the new client version...
 
 // global fetch
+#[cfg(not(feature = "experimental-async"))]
 #[pyfunction(
     signature = (
         url,
@@ -39,7 +58,7 @@ pub(crate) fn default_client() -> &'static RyHttpClient {
 pub(crate) fn fetch<'py>(
     py: Python<'py>,
     url: &Bound<'py, PyAny>,
-    method: Option<ryo3_http::HttpMethod>,
+    method: Option<PyHttpMethod>,
     body: Option<&Bound<'py, PyAny>>,
     headers: Option<PyHeadersLike>,
     query: Option<&Bound<'py, PyAny>>,
@@ -52,7 +71,7 @@ pub(crate) fn fetch<'py>(
     version: Option<HttpVersion>,
 ) -> PyResult<Bound<'py, PyAny>> {
     let obj: Py<PyAny> = {
-        let guard = default_client();
+        let guard = fetch_client();
         let bound = guard.fetch(
             py,
             url,
@@ -73,6 +92,17 @@ pub(crate) fn fetch<'py>(
     Ok(obj.into_bound(py))
 }
 
+#[cfg(feature = "experimental-async")]
+#[pyfunction(signature = (url, method = PyHttpMethod::GET, **kwargs))]
+pub(crate) async fn fetch(
+    url: ryo3_url::UrlLike,
+    method: PyHttpMethod,
+    kwargs: Option<crate::client::ReqwestKwargs>,
+) -> PyResult<RyAsyncResponse> {
+    let guard = fetch_client();
+    guard.fetch(url, method, kwargs).await
+}
+
 #[pyfunction(
     signature = (
         url,
@@ -90,7 +120,7 @@ pub(crate) fn fetch<'py>(
         version = None,
     ),
     text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
-)]
+    )]
 #[expect(clippy::too_many_arguments)]
 pub(crate) fn fetch_sync<'py>(
     py: Python<'py>,
@@ -107,7 +137,7 @@ pub(crate) fn fetch_sync<'py>(
     bearer_auth: Option<PyBackedStr>,
     version: Option<HttpVersion>,
 ) -> PyResult<RyBlockingResponse> {
-    let guard = default_client();
+    let guard = fetch_client();
     guard.fetch_sync(
         py,
         url,
