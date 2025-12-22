@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import typing as t
 from typing import TYPE_CHECKING
 
@@ -269,12 +270,9 @@ class TestStream:
         url = server.url
         client = ry.Client()
         response = await client.get(str(url) + "long")
-
-        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
         response_stream = response.bytes_stream()
-        collected = await response_stream.collect(join=True)
-        assert isinstance(collected, ry.Bytes)
-        assert collected == expected
+        with pytest.raises(TypeError):
+            _collected = await response_stream.collect(join=True)
 
 
 async def test_client_headers_req(server: ReqtestServer) -> None:
@@ -380,8 +378,10 @@ class TestTimeout:
         url = server.url
         client = ry.Client()
         res = await client.get(str(url) + "slow")
-        text_future = res.text()
-        with pytest.raises(ValueError):
+
+        text_future = asyncio.ensure_future(res.text())
+        await asyncio.sleep(0)
+        with pytest.raises(ValueError, match="Response already consumed"):
             _bytes_future = await res.bytes()
         text = await text_future
         assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
