@@ -1,4 +1,3 @@
-use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::isoformat::PyIsoFormat;
 use crate::round::RyZonedDateTimeRound;
 use crate::ry_datetime::RyDateTime;
@@ -22,7 +21,7 @@ use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::PyAsciiString;
+use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -189,20 +188,20 @@ impl RyZoned {
         hasher.finish()
     }
 
-    pub(crate) fn timestamp(&self) -> RyTimestamp {
-        RyTimestamp::from(self.0.timestamp())
+    fn timestamp(&self) -> RyTimestamp {
+        RyTimestamp::from(self)
     }
 
-    pub(crate) fn date(&self) -> RyDate {
-        RyDate::from(self.0.date())
+    fn date(&self) -> RyDate {
+        RyDate::from(self)
     }
 
-    pub(crate) fn time(&self) -> RyTime {
-        RyTime::from(self.0.time())
+    fn time(&self) -> RyTime {
+        RyTime::from(self)
     }
 
-    pub(crate) fn datetime(&self) -> RyDateTime {
-        RyDateTime::from(self.0.datetime())
+    fn datetime(&self) -> RyDateTime {
+        RyDateTime::from(self)
     }
 
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
@@ -729,9 +728,8 @@ impl RyZoned {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
-            let ts: Self = d.get().into();
-            ts.into_pyobject(py)
+        } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
+            Self::from(ts.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffZoned>() {
             Self::from(d.0).into_pyobject(py)
         } else {

@@ -1,11 +1,10 @@
-use crate::errors::map_py_value_err;
 use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
 use jiff::Zoned;
 use jiff::civil::ISOWeekDate;
 use pyo3::basic::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, prelude::*};
-use ryo3_core::PyAsciiString;
+use ryo3_core::{PyAsciiString, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -183,13 +182,13 @@ impl RyISOWeekDate {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyDate>() {
-            d.get().iso_week_date().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
-            d.get().iso_week_date().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
-            d.get().iso_week_date().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
-            d.get().iso_week_date().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<jiff::civil::Date>() {
             Self::from(d).into_pyobject(py)
         } else {

@@ -1,5 +1,4 @@
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
-use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::round::RyTimestampRound;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -14,9 +13,8 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::PyAsciiString;
-use ryo3_macro_rules::{any_repr, py_type_error};
-use std::fmt::Display;
+use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
@@ -30,7 +28,7 @@ pub struct RyTimestamp(pub(crate) Timestamp);
 #[pymethods]
 impl RyTimestamp {
     #[new]
-    #[pyo3(signature = (second =0, nanosecond =0))]
+    #[pyo3(signature = (second = 0, nanosecond = 0))]
     pub fn py_new(second: i64, nanosecond: i32) -> PyResult<Self> {
         Timestamp::new(second, nanosecond)
             .map(Self::from)
@@ -77,20 +75,20 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    pub(crate) fn date(&self) -> RyDate {
-        self.0.to_zoned(TimeZone::UTC).date().into()
+    fn date(&self) -> RyDate {
+        RyDate::from(self)
     }
 
-    pub(crate) fn time(&self) -> RyTime {
-        self.0.to_zoned(TimeZone::UTC).time().into()
+    fn time(&self) -> RyTime {
+        RyTime::from(self)
     }
 
-    pub(crate) fn datetime(&self) -> RyDateTime {
-        self.0.to_zoned(TimeZone::UTC).datetime().into()
+    fn datetime(&self) -> RyDateTime {
+        RyDateTime::from(self)
     }
 
-    pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {
-        self.0.to_zoned(TimeZone::UTC).iso_week_date().into()
+    fn iso_week_date(&self) -> RyISOWeekDate {
+        RyISOWeekDate::from(self)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -145,16 +143,16 @@ impl RyTimestamp {
     }
 
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> String {
-        self.0.to_string()
+    fn py_to_string(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __hash__(&self) -> u64 {
@@ -287,7 +285,7 @@ impl RyTimestamp {
     // ========================================================================
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         if fmt.is_empty() {
-            Ok(self.__str__())
+            Ok(self.0.to_string())
         } else {
             self.strftime(fmt)
         }
@@ -419,7 +417,7 @@ impl RyTimestamp {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
-            d.get().timestamp().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(dt) = value.cast_exact::<RyDateTime>() {
             let zdt = dt.get().0.to_zoned(TimeZone::UTC)?;
             let ts = zdt.timestamp();
@@ -428,7 +426,7 @@ impl RyTimestamp {
             Self::from(ts).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
-            Err(py_type_error!("Timestamp conversion error: {valtype}"))
+            py_type_err!("Timestamp conversion error: {valtype}")
         }
     }
     // ========================================================================
@@ -476,7 +474,7 @@ impl RyTimestamp {
     // </STD-METHODS>
 }
 
-impl Display for RyTimestamp {
+impl std::fmt::Display for RyTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

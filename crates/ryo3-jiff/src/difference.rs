@@ -812,6 +812,7 @@ impl RyTimestampDifference {
         let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
     }
+
     fn __repr__(&self) -> String {
         format!("{self}")
     }

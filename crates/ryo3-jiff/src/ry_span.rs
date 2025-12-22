@@ -1,5 +1,4 @@
 use crate::constants::SPAN_PARSER;
-use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::into_span_arithmetic::IntoSpanArithmetic;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_relative_to::RySpanRelativeTo;
@@ -8,7 +7,7 @@ use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::PyAsciiString;
+use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};

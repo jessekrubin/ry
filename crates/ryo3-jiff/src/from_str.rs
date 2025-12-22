@@ -40,7 +40,7 @@ impl PyFromStr for RyISOWeekDate {
         if let Ok(date) = jiff::civil::Date::from_str(s) {
             Ok(Self::from(date.iso_week_date()))
         } else {
-            iwd.map_err(crate::errors::map_py_value_err)
+            iwd.map_err(ryo3_core::map_py_value_err)
         }
     }
 }
@@ -50,7 +50,7 @@ impl PyFromStr for RyTimeZone {
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
         TimeZone::get(s)
             .map(Self::from)
-            .map_err(crate::errors::map_py_value_err)
+            .map_err(ryo3_core::map_py_value_err)
     }
 }
 

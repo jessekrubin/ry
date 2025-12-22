@@ -1,7 +1,6 @@
 use crate::RySpan;
 use crate::RyTimeRound;
 use crate::difference::{RyTimeDifference, TimeDifferenceArg};
-use crate::errors::{map_py_overflow_err, map_py_value_err};
 use crate::series::RyTimeSeries;
 use crate::spanish::Spanish;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
@@ -14,7 +13,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_core::PyAsciiString;
+use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::any_repr;
 use ryo3_macro_rules::py_type_err;
 use std::fmt::Display;
@@ -87,7 +86,7 @@ impl RyTime {
     // ========================================================================
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         if fmt.is_empty() {
-            Ok(self.__str__())
+            Ok(self.0.to_string())
         } else {
             self.strftime(fmt)
         }
@@ -111,35 +110,17 @@ impl RyTime {
     // STRING
     // ========================================================================
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> String {
+    fn py_to_string(&self) -> PyAsciiString {
         self.__str__()
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
     fn __repr__(&self) -> String {
         format!("{self}")
     }
-
-    // <STD-METHODS>
-    #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
-    }
-
-    #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
-    }
-
-    fn isoformat(&self) -> PyAsciiString {
-        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
-    }
-    // </STD-METHODS>
 
     // ========================================================================
     // OPERATORS/DUNDERS
@@ -490,11 +471,11 @@ impl RyTime {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
-            d.get().time().into_pyobject(py)
-        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
-            d.get().time().into_pyobject(py)
-        } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
-            d.get().time().into_pyobject(py)
+            Self::from(d.get()).into_pyobject(py)
+        } else if let Ok(zdt) = value.cast_exact::<RyZoned>() {
+            Self::from(zdt.get()).into_pyobject(py)
+        } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
+            Self::from(ts.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffTime>() {
             Self::from_pytime(d).into_pyobject(py)
         } else {
@@ -525,6 +506,27 @@ impl RyTime {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
     }
+
+    // ========================================================================
+    // STANDARD METHODS
+    // ========================================================================
+    // <STD-METHODS>
+    #[staticmethod]
+    fn from_str(s: &str) -> PyResult<Self> {
+        use ryo3_core::PyFromStr;
+        Self::py_from_str(s)
+    }
+
+    #[staticmethod]
+    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyParse;
+        Self::py_parse(s)
+    }
+
+    fn isoformat(&self) -> PyAsciiString {
+        <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
+    }
+    // </STD-METHODS>
 }
 
 impl Display for RyTime {

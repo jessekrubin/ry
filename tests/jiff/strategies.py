@@ -121,7 +121,6 @@ timezone_strategy = st.sampled_from([
     "Europe/Berlin",
     "Africa/Cairo",
     "America/Los_Angeles",
-    # Add more timezones as needed
 ])
 
 duration_strategy = st.builds(

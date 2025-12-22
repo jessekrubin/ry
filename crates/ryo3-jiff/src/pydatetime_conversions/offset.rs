@@ -1,8 +1,8 @@
-use crate::errors::map_py_value_err;
 use crate::{JiffOffset, JiffSignedDuration, JiffTimeZone};
 use jiff::tz::Offset;
 use pyo3::prelude::*;
 use pyo3::types::{PyNone, PyTzInfo};
+use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::py_type_err;
 
 impl<'py> IntoPyObject<'py> for JiffOffset {

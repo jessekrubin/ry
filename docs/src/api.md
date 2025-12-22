@@ -2458,17 +2458,16 @@ class Timestamp(
     ToPy[pydt.datetime],
     _Parse,
 ):
-    """
-    A representation of a timestamp with second and nanosecond precision.
+    """An instant in time represented as the number of nanoseconds since the Unix epoch.
+
+    A timestamp is always in the Unix timescale with a UTC offset of zero.
     """
 
     MIN: t.ClassVar[Timestamp]
     MAX: t.ClassVar[Timestamp]
     UNIX_EPOCH: t.ClassVar[Timestamp]
 
-    def __init__(
-        self, second: int | None = None, nanosecond: int | None = None
-    ) -> None: ...
+    def __init__(self, second: int = 0, nanosecond: int = 0) -> None: ...
 
     # =========================================================================
     # CLASS METHODS
