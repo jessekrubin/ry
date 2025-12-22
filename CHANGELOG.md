@@ -1,10 +1,9 @@
 # CHANGELOG
 
-## v0.0.75 [unrleased]
+## v0.0.75 [2025-12-22]
 
 - `ryo3-serde`
-  - Renamed all `SerializePy*` structs to `Py*Serializer` w/ the below one
-    liner:
+  - Renamed all `SerializePy*` structs to `Py*Serializer` w/ this one-liner:
     - `find . -type f -name "*.rs" -print0 | xargs -0 sed -i -E 's/SerializePy([A-Z][A-Za-z0-9_]*)/Py\1Serializer/g'`
 - `ryo3-jiff`
   - Consolidate `map_py_err_*` functions into `ryo3_core`
