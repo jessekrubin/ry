@@ -53,9 +53,6 @@ const FRIENDLY_SPAN_PARSER: jiff::fmt::friendly::SpanParser =
 #[cfg(feature = "jiff")]
 const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
     jiff::fmt::friendly::SpanPrinter::new();
-// const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter = jiff::fmt::friendly::SpanPrinter::new().designator(
-// jiff::fmt::friendly::Designator::HumanTime,
-// );
 
 #[derive(Copy, Clone, PartialEq)]
 #[pyclass(name = "Duration", frozen, immutable_type, from_py_object)]
@@ -484,7 +481,7 @@ impl PyDuration {
 
     /// Create a new `Duration` from the specified number of seconds.
     #[staticmethod]
-    fn from_secs(secs: u64) -> Self {
+    const fn from_secs(secs: u64) -> Self {
         Self(Duration::from_secs(secs))
     }
 
