@@ -1,9 +1,13 @@
 use crate::PyUrl;
 use pyo3::prelude::*;
-use pyo3::types::PyString;
 use pyo3::{Bound, FromPyObject, PyAny, PyErr, PyResult};
-
 pub struct UrlLike(pub url::Url);
+
+impl From<UrlLike> for url::Url {
+    fn from(ul: UrlLike) -> Self {
+        ul.0
+    }
+}
 
 impl UrlLike {
     fn apply_with_params<'py>(
@@ -59,19 +63,19 @@ impl<'py> FromPyObject<'_, 'py> for UrlLike {
     }
 }
 
-pub fn extract_url(ob: &Bound<'_, PyAny>) -> PyResult<url::Url> {
-    if let Ok(url) = ob.cast::<PyUrl>() {
-        let url = url.borrow();
-        Ok(url.0.clone())
-    } else if let Ok(s) = ob.cast::<PyString>()?.to_str() {
-        url::Url::parse(s)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={ob})")))
-    } else {
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "Expected str or URL object",
-        ))
-    }
-}
+// pub fn extract_url(ob: &Bound<'_, PyAny>) -> PyResult<url::Url> {
+//     if let Ok(url) = ob.cast_exact::<PyUrl>() {
+//         let url = url.borrow();
+//         Ok(url.0.clone())
+//     } else if let Ok(s) = ob.cast::<PyString>()?.to_str() {
+//         url::Url::parse(s)
+//             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={ob})")))
+//     } else {
+//         Err(pyo3::exceptions::PyTypeError::new_err(
+//             "Expected str or URL object",
+//         ))
+//     }
+// }
 
 impl From<UrlLike> for PyUrl {
     fn from(ul: UrlLike) -> Self {

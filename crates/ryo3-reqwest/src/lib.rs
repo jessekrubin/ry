@@ -23,10 +23,15 @@ pub use response_parking_lot::RyResponse;
 pub use response_stream::RyBlockingResponseStream;
 pub use response_stream::RyResponseStream;
 
+#[cfg(feature = "experimental-async")]
+pub use client::RyClient;
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCookie>()?;
     m.add_class::<PyCertificate>()?;
     m.add_class::<RyHttpClient>()?;
+    #[cfg(feature = "experimental-async")]
+    m.add_class::<RyClient>()?;
     m.add_class::<RyBlockingClient>()?;
     m.add_class::<RyResponse>()?;
     m.add_class::<RyReqwestError>()?;

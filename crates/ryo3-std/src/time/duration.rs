@@ -53,26 +53,11 @@ const FRIENDLY_SPAN_PARSER: jiff::fmt::friendly::SpanParser =
 #[cfg(feature = "jiff")]
 const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
     jiff::fmt::friendly::SpanPrinter::new();
-// const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter = jiff::fmt::friendly::SpanPrinter::new().designator(
-// jiff::fmt::friendly::Designator::HumanTime,
-// );
 
 #[derive(Copy, Clone, PartialEq)]
 #[pyclass(name = "Duration", frozen, immutable_type, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDuration(pub Duration);
-
-impl From<Duration> for PyDuration {
-    fn from(d: Duration) -> Self {
-        Self(d)
-    }
-}
-
-impl From<PyDuration> for Option<Duration> {
-    fn from(d: PyDuration) -> Self {
-        Some(d.0)
-    }
-}
 
 impl PyDuration {
     fn new(secs: u64, nanos: u32) -> PyResult<Self> {
@@ -496,7 +481,7 @@ impl PyDuration {
 
     /// Create a new `Duration` from the specified number of seconds.
     #[staticmethod]
-    fn from_secs(secs: u64) -> Self {
+    const fn from_secs(secs: u64) -> Self {
         Self(Duration::from_secs(secs))
     }
 
@@ -937,5 +922,29 @@ mod pydantic {
                 Some(&serialization_kwargs),
             )
         }
+    }
+}
+
+impl From<Duration> for PyDuration {
+    fn from(d: Duration) -> Self {
+        Self(d)
+    }
+}
+
+impl From<&PyDuration> for Duration {
+    fn from(d: &PyDuration) -> Self {
+        d.0
+    }
+}
+
+impl From<PyDuration> for Duration {
+    fn from(d: PyDuration) -> Self {
+        d.0
+    }
+}
+
+impl From<PyDuration> for Option<Duration> {
+    fn from(d: PyDuration) -> Self {
+        Some(d.0)
     }
 }

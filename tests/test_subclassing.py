@@ -10,6 +10,7 @@ _RY_TYPES: list[type] = [
     ry.AsyncFile,
     ry.AsyncFileReadStream,
     ry.BlockingClient,
+    ry.Client,
     ry.Bytes,
     ry.Certificate,
     ry.Cookie,

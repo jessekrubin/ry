@@ -4,7 +4,7 @@ pub mod orjson;
 mod serialize;
 mod transcode;
 
-pub use serialize::{dumps, stringify};
+pub use serialize::{dumps, stringify, to_vec};
 
 use pyo3::prelude::*;
 use pyo3::types::PyModule;

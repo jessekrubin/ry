@@ -11,12 +11,14 @@ fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default)]
 struct JsonOptions {
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
 }
 
+#[derive(Debug, Default)]
 struct JsonSerializer<'py> {
     default: Option<&'py Bound<'py, PyAny>>,
     opts: JsonOptions,
@@ -30,6 +32,13 @@ impl<'py> JsonSerializer<'py> {
         };
         slf.check_default()?;
         Ok(slf)
+    }
+
+    fn new_no_default(options: JsonOptions) -> Self {
+        JsonSerializer {
+            default: None,
+            opts: options,
+        }
     }
 
     fn check_default(&self) -> PyResult<()> {
@@ -155,6 +164,15 @@ pub fn stringify<'py>(
             ryo3_bytes::PyBytes::from(v).into_bound_py_any(py)
         }
     })?
+}
+
+pub fn to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
+    JsonSerializer::new_no_default(JsonOptions {
+        fmt: false,
+        sort_keys: false,
+        append_newline: false,
+    })
+    .serialize_to_vec(obj)
 }
 
 #[expect(clippy::fn_params_excessive_bools)]

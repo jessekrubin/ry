@@ -2079,11 +2079,13 @@ dependencies = [
  "ryo3-core",
  "ryo3-http",
  "ryo3-jiter",
+ "ryo3-json",
  "ryo3-macro-rules",
  "ryo3-serde",
  "ryo3-std",
  "ryo3-url",
  "serde",
+ "serde_urlencoded",
  "tokio",
  "tracing",
 ]

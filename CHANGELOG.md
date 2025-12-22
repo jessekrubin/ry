@@ -1,10 +1,9 @@
 # CHANGELOG
 
-## v0.0.75 [unrleased]
+## v0.0.75 [2025-12-22]
 
 - `ryo3-serde`
-  - Renamed all `SerializePy*` structs to `Py*Serializer` w/ the below one
-    liner:
+  - Renamed all `SerializePy*` structs to `Py*Serializer` w/ this one-liner:
     - `find . -type f -name "*.rs" -print0 | xargs -0 sed -i -E 's/SerializePy([A-Z][A-Za-z0-9_]*)/Py\1Serializer/g'`
 - `ryo3-jiff`
   - Consolidate `map_py_err_*` functions into `ryo3_core`
@@ -19,6 +18,7 @@
   - Use `RyMutex` instead of `parking_lot::Mutex`
 - `ryo3-reqwest`
   - Remove mutex wrapping global client
+  - Experimental new `ry.Client` that uses `pyo3`'s `experimental-async` feat
 - `ryo3-uuid`
   - made `__hash__` equiv to python's `__hash__` impl so that rich comparisons
     between `ry.UUID` and `uuid.UUID` work as expected in hashed collections
