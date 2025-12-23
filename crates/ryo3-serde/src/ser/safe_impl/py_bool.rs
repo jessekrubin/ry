@@ -12,8 +12,8 @@ impl<'a, 'py> PyBoolSerializer<'a, 'py> {
         Self { obj }
     }
 
-    #[inline]
     #[expect(unsafe_code)]
+    #[inline]
     pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         let py_bool = unsafe { obj.cast_unchecked::<PyBool>() };
         Self { obj: py_bool }

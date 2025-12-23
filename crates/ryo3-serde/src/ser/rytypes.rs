@@ -87,17 +87,25 @@ macro_rules! ry_type_serializer_struct {
     ) => (
         $(#[$meta])*
         pub(crate) struct $name<'a, 'py>{
-            ob: Borrowed<'a, 'py, PyAny>
+            ob: Borrowed<'a, 'py, $ty>,
         }
 
         $(#[$meta])*
         impl<'a, 'py> $name<'a, 'py> {
             #[inline]
-            pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+            pub(crate) fn new(obj: Borrowed<'a, 'py, $ty>) -> Self {
                 Self {
                     ob: obj,
                 }
             }
+
+            #[expect(unsafe_code)]
+            #[inline]
+            pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+                let obj = unsafe { obj.cast_unchecked::<$ty>() };
+                Self::new(obj)
+            }
+
         }
 
         $(#[$meta])*
@@ -107,11 +115,7 @@ macro_rules! ry_type_serializer_struct {
             where
                 S: serde::Serializer,
             {
-                let ob = self
-                    .ob
-                    .cast_exact::<$ty>()
-                    .map_err(crate::errors::pyerr2sererr)?;
-                ob.get().serialize(serializer)
+                self.ob.get().serialize(serializer)
             }
         }
     );
@@ -192,13 +196,20 @@ ry_type_serializer_struct! (
 // TODO: flag for duration/timespan/signed_duration serialization format ("iso8601" | "friendly" | "obj")
 #[cfg(feature = "ryo3-std")]
 pub(crate) struct PyDurationSerializer<'a, 'py> {
-    ob: Borrowed<'a, 'py, PyAny>,
+    obj: Borrowed<'a, 'py, ryo3_std::time::PyDuration>,
 }
 
 #[cfg(feature = "ryo3-std")]
 impl<'a, 'py> PyDurationSerializer<'a, 'py> {
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
-        Self { ob: obj }
+    pub(crate) fn new(obj: Borrowed<'a, 'py, ryo3_std::time::PyDuration>) -> Self {
+        Self { obj }
+    }
+
+    #[expect(unsafe_code)]
+    #[inline]
+    pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        let obj = unsafe { obj.cast_unchecked::<ryo3_std::time::PyDuration>() };
+        Self::new(obj)
     }
 }
 
@@ -208,11 +219,7 @@ impl serde::ser::Serialize for PyDurationSerializer<'_, '_> {
     where
         S: serde::Serializer,
     {
-        let ob = self
-            .ob
-            .cast_exact::<ryo3_std::time::PyDuration>()
-            .map_err(crate::errors::pyerr2sererr)?;
-        let pydur = ob.get();
+        let pydur = self.obj.get();
         let dur = pydur.inner();
         jiff::fmt::serde::unsigned_duration::required::serialize(dur, serializer)
     }
