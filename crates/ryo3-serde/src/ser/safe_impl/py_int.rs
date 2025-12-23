@@ -19,7 +19,7 @@ impl<'a, 'py> PyIntSerializer<'a, 'py> {
     #[expect(unsafe_code)]
     pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         let py_int = unsafe { obj.cast_unchecked::<PyInt>() };
-        Self { obj: py_int }
+        Self::new(py_int)
     }
 }
 

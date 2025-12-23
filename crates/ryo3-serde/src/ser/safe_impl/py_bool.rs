@@ -1,10 +1,6 @@
 use pyo3::prelude::*;
-use serde::ser::{Serialize, Serializer};
-use std::ptr;
-
-use crate::errors::pyerr2sererr;
 use pyo3::types::PyBool;
-use pyo3::{Borrowed, ffi};
+use serde::ser::{Serialize, Serializer};
 
 pub(crate) struct PyBoolSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyBool>,

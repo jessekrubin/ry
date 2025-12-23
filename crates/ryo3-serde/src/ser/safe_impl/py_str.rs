@@ -18,7 +18,7 @@ impl<'a, 'py> PyStrSerializer<'a, 'py> {
     #[expect(unsafe_code)]
     pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         let py_str = unsafe { obj.cast_unchecked::<PyString>() };
-        Self { obj: py_str }
+        Self::new(py_str)
     }
 }
 

@@ -31,6 +31,7 @@ pub(crate) struct PyDictSerializer<'a, 'py> {
 }
 
 impl<'a, 'py> PyDictSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyDict>,
         ctx: PySerializeContext<'py>,
@@ -47,11 +48,7 @@ impl<'a, 'py> PyDictSerializer<'a, 'py> {
         depth: Depth,
     ) -> Self {
         let py_dict = unsafe { obj.cast_unchecked::<PyDict>() };
-        Self {
-            ctx,
-            obj: py_dict,
-            depth,
-        }
+        Self::new(py_dict, ctx, depth)
     }
 }
 
@@ -75,10 +72,18 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyStrSerializer::new_unchecked($value))?;
             }
             PyObType::List => {
-                $map.serialize_value(&PyListSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyListSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Tuple => {
-                $map.serialize_value(&PyTupleSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyTupleSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Dict => {
                 $map.serialize_value(&PyDictSerializer::new_unchecked(
@@ -88,10 +93,10 @@ macro_rules! serialize_map_value {
                 ))?;
             }
             PyObType::Set => {
-                $map.serialize_value(&PySetSerializer::new($value, $self.ctx))?;
+                $map.serialize_value(&PySetSerializer::new_unchecked($value, $self.ctx))?;
             }
             PyObType::FrozenSet => {
-                $map.serialize_value(&PyFrozenSetSerializer::new($value, $self.ctx))?;
+                $map.serialize_value(&PyFrozenSetSerializer::new_unchecked($value, $self.ctx))?;
             }
             PyObType::DateTime => {
                 $map.serialize_value(&PyDateTimeSerializer::new($value))?;
@@ -227,7 +232,7 @@ impl Serialize for PyDictSerializer<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_dict = self.obj.cast_exact::<PyDict>().map_err(pyerr2sererr)?;
+        let py_dict = self.obj;
         let len = py_dict.len();
         if len == 0 {
             return serializer.serialize_map(Some(0))?.end();
@@ -268,7 +273,7 @@ impl Serialize for PyMappingSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let py_mapping = self.obj.cast::<PyMapping>().map_err(pyerr2sererr)?;
+        let py_mapping = self.obj;
         let len = py_mapping.len().ok();
         if let Some(len) = len
             && len == 0

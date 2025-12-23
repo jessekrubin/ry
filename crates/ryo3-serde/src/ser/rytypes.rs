@@ -87,7 +87,7 @@ macro_rules! ry_type_serializer_struct {
     ) => (
         $(#[$meta])*
         pub(crate) struct $name<'a, 'py>{
-            ob:Borrowed<'a, 'py, PyAny>
+            ob: Borrowed<'a, 'py, PyAny>
         }
 
         $(#[$meta])*

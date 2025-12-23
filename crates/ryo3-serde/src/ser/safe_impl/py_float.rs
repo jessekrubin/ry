@@ -2,8 +2,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyFloat;
 use serde::ser::{Serialize, Serializer};
 
-use crate::errors::pyerr2sererr;
-
 use crate::ser::traits::PySerializeUnsafe;
 use pyo3::Borrowed;
 
@@ -12,6 +10,7 @@ pub(crate) struct PyFloatSerializer<'a, 'py> {
 }
 
 impl<'a, 'py> PyFloatSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(obj: Borrowed<'a, 'py, PyFloat>) -> Self {
         Self { obj }
     }
@@ -20,7 +19,7 @@ impl<'a, 'py> PyFloatSerializer<'a, 'py> {
     #[expect(unsafe_code)]
     pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         let py_float = unsafe { obj.cast_unchecked::<PyFloat>() };
-        Self { obj: py_float }
+        Self::new(py_float)
     }
 }
 
