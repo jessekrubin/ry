@@ -12,7 +12,7 @@ impl<'py> IntoPyObject<'py> for PyAsciiStr<'_> {
     type Output = Bound<'py, Self::Target>;
     type Error = std::convert::Infallible;
 
-    #[expect(unsafe_code)]
+    #[cfg_attr(not(any(PyPy, GraalPy, Py_LIMITED_API)), expect(unsafe_code))]
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         debug_assert!(
@@ -20,7 +20,14 @@ impl<'py> IntoPyObject<'py> for PyAsciiStr<'_> {
             "PyAsciiStr(ing) must be ascii only: {:?}",
             self.0
         );
-        unsafe { Ok(pystring_ascii_new(py, self.0)) }
+        #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
+        {
+            unsafe { Ok(pystring_ascii_new(py, self.0)) }
+        }
+        #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+        {
+            Ok(pystring_ascii_new(py, self.0))
+        }
     }
 }
 
@@ -105,6 +112,7 @@ pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, Py
 }
 
 #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+#[must_use]
 #[inline]
 pub fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     PyString::new(py, s)
