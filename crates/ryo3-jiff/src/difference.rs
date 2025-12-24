@@ -746,13 +746,6 @@ impl std::fmt::Display for RyTimeDifference {
 // Zoned/Time/DateTime
 // ============================================================================
 
-// #[derive(Debug, Clone, FromPyObject)]
-// pub(crate) enum TimeDifferenceArg {
-//     Zoned(RyZoned),
-//     Time(RyTime),
-//     DateTime(RyDateTime),
-// }
-
 #[derive(Debug, Clone)]
 pub(crate) enum TimeDifferenceArg<'a, 'py> {
     Zoned(Borrowed<'a, 'py, RyZoned>),
