@@ -374,17 +374,17 @@ impl RySpan {
             match r {
                 RySpanRelativeTo::Zoned(z) => self
                     .0
-                    .to_duration(&z.0)
+                    .to_duration(&z.get().0)
                     .map(RySignedDuration)
                     .map_err(map_py_value_err),
                 RySpanRelativeTo::Date(d) => self
                     .0
-                    .to_duration(d.0)
+                    .to_duration(d.get().0)
                     .map(RySignedDuration)
                     .map_err(map_py_value_err),
                 RySpanRelativeTo::DateTime(dt) => self
                     .0
-                    .to_duration(dt.0)
+                    .to_duration(dt.get().0)
                     .map(RySignedDuration)
                     .map_err(map_py_value_err),
             }
