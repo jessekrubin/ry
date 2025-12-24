@@ -99,7 +99,6 @@ mod pystr_danger_zone {
 
     #[inline(always)]
     #[expect(unsafe_code)]
-    #[cfg(target_endian = "little")]
     unsafe fn str_from_slice_fn(ptr: *const u8, size: usize) -> &'static str {
         unsafe { core::str::from_utf8_unchecked(core::slice::from_raw_parts(ptr, size)) }
     }
