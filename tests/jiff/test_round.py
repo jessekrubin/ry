@@ -94,3 +94,98 @@ class TestOffsetRound:
             match="rounding offset `\\+25:59:59` resulted in a duration of 26h, which overflows `Offset`",
         ):
             _r = ry.Offset.MAX.round("minute")
+
+
+class TestSpanRound:
+    """Translated (by hand) from the jiff::Span::round docs
+
+    REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#method.round
+    """
+
+    def test_example_balancing(self):
+        """
+        REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-balancing
+        """
+        span = ry.TimeSpan(nanoseconds=123_456_789_123_456_789)
+        rounded = span.round(largest="hour")
+        assert (
+            rounded.to_dict()
+            == ry.TimeSpan(
+                hours=34_293,
+                minutes=33,
+                seconds=9,
+                milliseconds=123,
+                microseconds=456,
+                nanoseconds=789,
+            ).to_dict()
+        )
+        # with days_are_24_hours
+        rounded = span.round(largest="day", days_are_24_hours=True)
+        assert (
+            rounded.to_dict()
+            == ry.TimeSpan(
+                days=1_428,
+                hours=21,
+                minutes=33,
+                seconds=9,
+                milliseconds=123,
+                microseconds=456,
+                nanoseconds=789,
+            ).to_dict()
+        )
+
+    def test_example_balancing_and_rounding(self):
+        """
+        REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-balancing-and-rounding
+        """
+        span = ry.TimeSpan(nanoseconds=123_456_789_123_456_789)
+        rounded = span.round(largest="hour", smallest="second")
+        assert (
+            rounded.to_dict()
+            == ry.TimeSpan(hours=34_293, minutes=33, seconds=9).to_dict()
+        )
+        # just rounding to the nearest hour
+        rounded = span.round("hour")  # smallest
+        assert rounded.to_dict() == ry.TimeSpan(hours=34_294).to_dict()
+
+    def test_example_balancing_with_a_relative_datetime(self):
+        """
+        REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-balancing-with-a-relative-datetime
+        """
+        span = ry.TimeSpan(days=1_000)
+        rounded = span.round(largest="year", relative=ry.date(2000, 1, 1))
+        assert rounded.to_dict() == ry.TimeSpan(years=2, months=8, days=26).to_dict()
+
+    def test_example_round_to_the_nearest_half_hour(self):
+        """
+        REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-round-to-the-nearest-half-hour
+        """
+        span = ry.TimeSpan.from_str("PT23h50m3.123s")
+        rounded = span.round("minute", increment=30)
+        assert rounded.to_dict() == ry.TimeSpan(hours=24).to_dict()
+
+    def test_example_yearly_quarters_in_a_span(self):
+        """
+        REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-yearly-quarters-in-a-span
+        """
+        span1 = ry.TimeSpan(months=10, days=15)
+        rounded = span1.round(
+            smallest="month",
+            increment=3,
+            mode="trunc",
+            relative=ry.date(2024, 1, 1),
+        )
+        assert rounded.months // 3 == 3
+
+    def test_errors_with_reltative_n_days_are_24_hours(self) -> None:
+        """NOT AN EXAMPLE IN THE DOCS"""
+        span = ry.TimeSpan(days=10)
+        with pytest.raises(
+            ValueError,
+            match="`relative` and `days_are_24_hours=True` are mutually exclusive",
+        ):
+            _r = span.round(
+                largest="day",
+                relative=ry.date(2024, 1, 1),
+                days_are_24_hours=True,
+            )

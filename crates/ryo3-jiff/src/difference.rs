@@ -62,6 +62,7 @@ use jiff::civil::{DateDifference, DateTimeDifference, TimeDifference};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_macro_rules::py_type_err;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct DifferenceOptions {
@@ -271,14 +272,40 @@ impl std::fmt::Display for RyDateDifference {
     }
 }
 
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum DateDifferenceArg {
-    Zoned(RyZoned),
-    Date(RyDate),
-    DateTime(RyDateTime),
+#[derive(Debug, Clone)]
+pub(crate) enum DateDifferenceArg<'a, 'py> {
+    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Date(Borrowed<'a, 'py, RyDate>),
+    DateTime(Borrowed<'a, 'py, RyDateTime>),
 }
 
-impl DateDifferenceArg {
+impl<'a, 'py> FromPyObject<'a, 'py> for DateDifferenceArg<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+            Ok(Self::Zoned(z))
+        } else if let Ok(t) = obj.cast_exact::<RyDate>() {
+            Ok(Self::Date(t))
+        } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+            Ok(Self::DateTime(dt))
+        } else {
+            py_type_err!("Expected ZonedDateTime, DateTime, or Date")
+        }
+    }
+}
+
+impl<'a, 'py> From<DateDifferenceArg<'a, 'py>> for DateDifference {
+    fn from(val: DateDifferenceArg<'a, 'py>) -> Self {
+        match val {
+            DateDifferenceArg::Zoned(z) => DateDifference::from(&z.get().0),
+            DateDifferenceArg::Date(t) => DateDifference::from(t.get().0),
+            DateDifferenceArg::DateTime(dt) => DateDifference::from(dt.get().0),
+        }
+    }
+}
+
+impl<'a, 'py> DateDifferenceArg<'a, 'py> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,
@@ -286,20 +313,10 @@ impl DateDifferenceArg {
         mode: JiffRoundMode,
         increment: i64,
     ) -> DateDifference {
-        let mut diff = match self {
-            Self::Zoned(zoned) => DateDifference::from(zoned.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-            Self::Date(date) => DateDifference::from(date.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-            Self::DateTime(date_time) => DateDifference::from(date_time.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-        };
+        let mut diff = DateDifference::from(self)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
         }
@@ -490,14 +507,40 @@ impl std::fmt::Display for RyDateTimeDifference {
     }
 }
 
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum DateTimeDifferenceArg {
-    Zoned(RyZoned),
-    Date(RyDate),
-    DateTime(RyDateTime),
+#[derive(Debug, Clone)]
+pub(crate) enum DateTimeDifferenceArg<'a, 'py> {
+    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Date(Borrowed<'a, 'py, RyDate>),
+    DateTime(Borrowed<'a, 'py, RyDateTime>),
 }
 
-impl DateTimeDifferenceArg {
+impl<'a, 'py> FromPyObject<'a, 'py> for DateTimeDifferenceArg<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+            Ok(Self::Zoned(z))
+        } else if let Ok(t) = obj.cast_exact::<RyDate>() {
+            Ok(Self::Date(t))
+        } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+            Ok(Self::DateTime(dt))
+        } else {
+            py_type_err!("Expected ZonedDateTime, DateTime, or Date")
+        }
+    }
+}
+
+impl<'a, 'py> From<DateTimeDifferenceArg<'a, 'py>> for DateTimeDifference {
+    fn from(val: DateTimeDifferenceArg<'a, 'py>) -> Self {
+        match val {
+            DateTimeDifferenceArg::Zoned(z) => DateTimeDifference::from(&z.get().0),
+            DateTimeDifferenceArg::Date(t) => DateTimeDifference::from(t.get().0),
+            DateTimeDifferenceArg::DateTime(dt) => DateTimeDifference::from(dt.get().0),
+        }
+    }
+}
+
+impl<'a, 'py> DateTimeDifferenceArg<'a, 'py> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,
@@ -505,26 +548,51 @@ impl DateTimeDifferenceArg {
         mode: JiffRoundMode,
         increment: i64,
     ) -> DateTimeDifference {
-        let mut diff = match self {
-            Self::Zoned(other) => DateTimeDifference::from(other.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-            Self::DateTime(other) => DateTimeDifference::from(other.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-            Self::Date(other) => DateTimeDifference::from(other.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-        };
+        let mut diff = DateTimeDifference::from(self)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
         }
         diff
     }
 }
+// #[derive(Debug, Clone, FromPyObject)]
+// pub(crate) enum DateTimeDifferenceArg {
+//     Zoned(RyZoned),
+//     Date(RyDate),
+//     DateTime(RyDateTime),
+// }
+
+// impl DateTimeDifferenceArg {
+//     pub(crate) fn build(
+//         self,
+//         smallest: JiffUnit,
+//         largest: Option<JiffUnit>,
+//         mode: JiffRoundMode,
+//         increment: i64,
+//     ) -> DateTimeDifference {
+//         let mut diff = match self {
+//             Self::Zoned(other) => DateTimeDifference::from(other.0)
+//                 .increment(increment)
+//                 .mode(mode.0)
+//                 .smallest(smallest.0),
+//             Self::DateTime(other) => DateTimeDifference::from(other.0)
+//                 .increment(increment)
+//                 .mode(mode.0)
+//                 .smallest(smallest.0),
+//             Self::Date(other) => DateTimeDifference::from(other.0)
+//                 .increment(increment)
+//                 .mode(mode.0)
+//                 .smallest(smallest.0),
+//         };
+//         if let Some(largest) = largest {
+//             diff = diff.largest(largest.0);
+//         }
+//         diff
+//     }
+// }
 
 // ============================================================================
 // TimeDifference
@@ -713,14 +781,47 @@ impl std::fmt::Display for RyTimeDifference {
 // Zoned/Time/DateTime
 // ============================================================================
 
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum TimeDifferenceArg {
-    Zoned(RyZoned),
-    Time(RyTime),
-    DateTime(RyDateTime),
+// #[derive(Debug, Clone, FromPyObject)]
+// pub(crate) enum TimeDifferenceArg {
+//     Zoned(RyZoned),
+//     Time(RyTime),
+//     DateTime(RyDateTime),
+// }
+
+#[derive(Debug, Clone)]
+pub(crate) enum TimeDifferenceArg<'a, 'py> {
+    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Time(Borrowed<'a, 'py, RyTime>),
+    DateTime(Borrowed<'a, 'py, RyDateTime>),
 }
 
-impl TimeDifferenceArg {
+impl<'a, 'py> FromPyObject<'a, 'py> for TimeDifferenceArg<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+            Ok(Self::Zoned(z))
+        } else if let Ok(t) = obj.cast_exact::<RyTime>() {
+            Ok(Self::Time(t))
+        } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+            Ok(Self::DateTime(dt))
+        } else {
+            py_type_err!("Expected ZonedDateTime, Time, or DateTime")
+        }
+    }
+}
+
+impl<'a, 'py> From<TimeDifferenceArg<'a, 'py>> for TimeDifference {
+    fn from(val: TimeDifferenceArg<'a, 'py>) -> Self {
+        match val {
+            TimeDifferenceArg::Zoned(z) => TimeDifference::from(&z.get().0),
+            TimeDifferenceArg::Time(t) => TimeDifference::from(t.get().0),
+            TimeDifferenceArg::DateTime(dt) => TimeDifference::from(dt.get().0),
+        }
+    }
+}
+
+impl<'a, 'py> TimeDifferenceArg<'a, 'py> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,
@@ -728,20 +829,24 @@ impl TimeDifferenceArg {
         mode: JiffRoundMode,
         increment: i64,
     ) -> TimeDifference {
-        let mut diff = match self {
-            Self::Time(other) => TimeDifference::from(other.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-            Self::Zoned(other) => TimeDifference::from(other.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-            Self::DateTime(other) => TimeDifference::from(other.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-        };
+        let mut diff = TimeDifference::from(self)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
+        // let mut diff = match self {
+        //     Self::Time(other) => TimeDifference::from(other.0)
+        //         .increment(increment)
+        //         .mode(mode.0)
+        //         .smallest(smallest.0),
+        //     Self::Zoned(other) => TimeDifference::from(other.0)
+        //         .increment(increment)
+        //         .mode(mode.0)
+        //         .smallest(smallest.0),
+        //     Self::DateTime(other) => TimeDifference::from(other.0)
+        //         .increment(increment)
+        //         .mode(mode.0)
+        //         .smallest(smallest.0),
+        // };
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
         }
@@ -939,13 +1044,41 @@ impl std::fmt::Display for RyTimestampDifference {
 // Zoned/Time/DateTime
 // ============================================================================
 
-#[derive(Debug, Clone, FromPyObject)]
-pub(crate) enum TimestampDifferenceArg {
-    Zoned(RyZoned),
-    Timestamp(RyTimestamp),
+// #[derive(Debug, Clone, FromPyObject)]
+// pub(crate) enum TimestampDifferenceArg {
+//     Zoned(RyZoned),
+//     Timestamp(RyTimestamp),
+// }
+#[derive(Debug, Clone)]
+pub(crate) enum TimestampDifferenceArg<'a, 'py> {
+    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Timestamp(Borrowed<'a, 'py, RyTimestamp>),
 }
 
-impl TimestampDifferenceArg {
+impl<'a, 'py> FromPyObject<'a, 'py> for TimestampDifferenceArg<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+            Ok(Self::Zoned(z))
+        } else if let Ok(t) = obj.cast_exact::<RyTimestamp>() {
+            Ok(Self::Timestamp(t))
+        } else {
+            py_type_err!("Expected ZonedDateTime or Timestamp")
+        }
+    }
+}
+
+impl<'a, 'py> From<TimestampDifferenceArg<'a, 'py>> for TimestampDifference {
+    fn from(val: TimestampDifferenceArg<'a, 'py>) -> Self {
+        match val {
+            TimestampDifferenceArg::Zoned(z) => TimestampDifference::from(&z.get().0),
+            TimestampDifferenceArg::Timestamp(t) => TimestampDifference::from(t.get().0),
+        }
+    }
+}
+
+impl<'a, 'py> TimestampDifferenceArg<'a, 'py> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,
@@ -953,16 +1086,10 @@ impl TimestampDifferenceArg {
         mode: JiffRoundMode,
         increment: i64,
     ) -> TimestampDifference {
-        let mut diff = match self {
-            Self::Zoned(zoned) => TimestampDifference::from(zoned.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-            Self::Timestamp(date) => TimestampDifference::from(date.0)
-                .increment(increment)
-                .mode(mode.0)
-                .smallest(smallest.0),
-        };
+        let mut diff = TimestampDifference::from(self)
+            .increment(increment)
+            .mode(mode.0)
+            .smallest(smallest.0);
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
         }
