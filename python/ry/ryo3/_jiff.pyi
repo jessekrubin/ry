@@ -1088,6 +1088,7 @@ class TimeSpan(
         relative: ZonedDateTime | Date | DateTime | None = None,
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "half-expand",
+        days_are_24_hours: bool = False,
     ) -> t.Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_signed_duration(

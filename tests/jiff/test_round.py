@@ -102,7 +102,7 @@ class TestSpanRound:
     REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#method.round
     """
 
-    def test_example_balancing(self):
+    def test_example_balancing(self) -> None:
         """
         REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-balancing
         """
@@ -134,7 +134,7 @@ class TestSpanRound:
             ).to_dict()
         )
 
-    def test_example_balancing_and_rounding(self):
+    def test_example_balancing_and_rounding(self) -> None:
         """
         REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-balancing-and-rounding
         """
@@ -148,7 +148,7 @@ class TestSpanRound:
         rounded = span.round("hour")  # smallest
         assert rounded.to_dict() == ry.TimeSpan(hours=34_294).to_dict()
 
-    def test_example_balancing_with_a_relative_datetime(self):
+    def test_example_balancing_with_a_relative_datetime(self) -> None:
         """
         REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-balancing-with-a-relative-datetime
         """
@@ -156,7 +156,7 @@ class TestSpanRound:
         rounded = span.round(largest="year", relative=ry.date(2000, 1, 1))
         assert rounded.to_dict() == ry.TimeSpan(years=2, months=8, days=26).to_dict()
 
-    def test_example_round_to_the_nearest_half_hour(self):
+    def test_example_round_to_the_nearest_half_hour(self) -> None:
         """
         REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-round-to-the-nearest-half-hour
         """
@@ -164,7 +164,7 @@ class TestSpanRound:
         rounded = span.round("minute", increment=30)
         assert rounded.to_dict() == ry.TimeSpan(hours=24).to_dict()
 
-    def test_example_yearly_quarters_in_a_span(self):
+    def test_example_yearly_quarters_in_a_span(self) -> None:
         """
         REF: https://docs.rs/jiff/latest/jiff/struct.Span.html#example-yearly-quarters-in-a-span
         """

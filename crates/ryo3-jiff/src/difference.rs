@@ -298,14 +298,14 @@ impl<'a, 'py> FromPyObject<'a, 'py> for DateDifferenceArg<'a, 'py> {
 impl<'a, 'py> From<DateDifferenceArg<'a, 'py>> for DateDifference {
     fn from(val: DateDifferenceArg<'a, 'py>) -> Self {
         match val {
-            DateDifferenceArg::Zoned(z) => DateDifference::from(&z.get().0),
-            DateDifferenceArg::Date(t) => DateDifference::from(t.get().0),
-            DateDifferenceArg::DateTime(dt) => DateDifference::from(dt.get().0),
+            DateDifferenceArg::Zoned(z) => Self::from(&z.get().0),
+            DateDifferenceArg::Date(t) => Self::from(t.get().0),
+            DateDifferenceArg::DateTime(dt) => Self::from(dt.get().0),
         }
     }
 }
 
-impl<'a, 'py> DateDifferenceArg<'a, 'py> {
+impl DateDifferenceArg<'_, '_> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,
@@ -530,17 +530,17 @@ impl<'a, 'py> FromPyObject<'a, 'py> for DateTimeDifferenceArg<'a, 'py> {
     }
 }
 
-impl<'a, 'py> From<DateTimeDifferenceArg<'a, 'py>> for DateTimeDifference {
-    fn from(val: DateTimeDifferenceArg<'a, 'py>) -> Self {
+impl From<DateTimeDifferenceArg<'_, '_>> for DateTimeDifference {
+    fn from(val: DateTimeDifferenceArg<'_, '_>) -> Self {
         match val {
-            DateTimeDifferenceArg::Zoned(z) => DateTimeDifference::from(&z.get().0),
-            DateTimeDifferenceArg::Date(t) => DateTimeDifference::from(t.get().0),
-            DateTimeDifferenceArg::DateTime(dt) => DateTimeDifference::from(dt.get().0),
+            DateTimeDifferenceArg::Zoned(z) => Self::from(&z.get().0),
+            DateTimeDifferenceArg::Date(t) => Self::from(t.get().0),
+            DateTimeDifferenceArg::DateTime(dt) => Self::from(dt.get().0),
         }
     }
 }
 
-impl<'a, 'py> DateTimeDifferenceArg<'a, 'py> {
+impl DateTimeDifferenceArg<'_, '_> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,
@@ -558,41 +558,6 @@ impl<'a, 'py> DateTimeDifferenceArg<'a, 'py> {
         diff
     }
 }
-// #[derive(Debug, Clone, FromPyObject)]
-// pub(crate) enum DateTimeDifferenceArg {
-//     Zoned(RyZoned),
-//     Date(RyDate),
-//     DateTime(RyDateTime),
-// }
-
-// impl DateTimeDifferenceArg {
-//     pub(crate) fn build(
-//         self,
-//         smallest: JiffUnit,
-//         largest: Option<JiffUnit>,
-//         mode: JiffRoundMode,
-//         increment: i64,
-//     ) -> DateTimeDifference {
-//         let mut diff = match self {
-//             Self::Zoned(other) => DateTimeDifference::from(other.0)
-//                 .increment(increment)
-//                 .mode(mode.0)
-//                 .smallest(smallest.0),
-//             Self::DateTime(other) => DateTimeDifference::from(other.0)
-//                 .increment(increment)
-//                 .mode(mode.0)
-//                 .smallest(smallest.0),
-//             Self::Date(other) => DateTimeDifference::from(other.0)
-//                 .increment(increment)
-//                 .mode(mode.0)
-//                 .smallest(smallest.0),
-//         };
-//         if let Some(largest) = largest {
-//             diff = diff.largest(largest.0);
-//         }
-//         diff
-//     }
-// }
 
 // ============================================================================
 // TimeDifference
@@ -811,17 +776,17 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimeDifferenceArg<'a, 'py> {
     }
 }
 
-impl<'a, 'py> From<TimeDifferenceArg<'a, 'py>> for TimeDifference {
-    fn from(val: TimeDifferenceArg<'a, 'py>) -> Self {
+impl From<TimeDifferenceArg<'_, '_>> for TimeDifference {
+    fn from(val: TimeDifferenceArg<'_, '_>) -> Self {
         match val {
-            TimeDifferenceArg::Zoned(z) => TimeDifference::from(&z.get().0),
-            TimeDifferenceArg::Time(t) => TimeDifference::from(t.get().0),
-            TimeDifferenceArg::DateTime(dt) => TimeDifference::from(dt.get().0),
+            TimeDifferenceArg::Zoned(z) => Self::from(&z.get().0),
+            TimeDifferenceArg::Time(t) => Self::from(t.get().0),
+            TimeDifferenceArg::DateTime(dt) => Self::from(dt.get().0),
         }
     }
 }
 
-impl<'a, 'py> TimeDifferenceArg<'a, 'py> {
+impl TimeDifferenceArg<'_, '_> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,
@@ -833,20 +798,6 @@ impl<'a, 'py> TimeDifferenceArg<'a, 'py> {
             .increment(increment)
             .mode(mode.0)
             .smallest(smallest.0);
-        // let mut diff = match self {
-        //     Self::Time(other) => TimeDifference::from(other.0)
-        //         .increment(increment)
-        //         .mode(mode.0)
-        //         .smallest(smallest.0),
-        //     Self::Zoned(other) => TimeDifference::from(other.0)
-        //         .increment(increment)
-        //         .mode(mode.0)
-        //         .smallest(smallest.0),
-        //     Self::DateTime(other) => TimeDifference::from(other.0)
-        //         .increment(increment)
-        //         .mode(mode.0)
-        //         .smallest(smallest.0),
-        // };
         if let Some(largest) = largest {
             diff = diff.largest(largest.0);
         }
@@ -1044,11 +995,6 @@ impl std::fmt::Display for RyTimestampDifference {
 // Zoned/Time/DateTime
 // ============================================================================
 
-// #[derive(Debug, Clone, FromPyObject)]
-// pub(crate) enum TimestampDifferenceArg {
-//     Zoned(RyZoned),
-//     Timestamp(RyTimestamp),
-// }
 #[derive(Debug, Clone)]
 pub(crate) enum TimestampDifferenceArg<'a, 'py> {
     Zoned(Borrowed<'a, 'py, RyZoned>),
@@ -1072,13 +1018,13 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimestampDifferenceArg<'a, 'py> {
 impl<'a, 'py> From<TimestampDifferenceArg<'a, 'py>> for TimestampDifference {
     fn from(val: TimestampDifferenceArg<'a, 'py>) -> Self {
         match val {
-            TimestampDifferenceArg::Zoned(z) => TimestampDifference::from(&z.get().0),
-            TimestampDifferenceArg::Timestamp(t) => TimestampDifference::from(t.get().0),
+            TimestampDifferenceArg::Zoned(z) => Self::from(&z.get().0),
+            TimestampDifferenceArg::Timestamp(t) => Self::from(t.get().0),
         }
     }
 }
 
-impl<'a, 'py> TimestampDifferenceArg<'a, 'py> {
+impl TimestampDifferenceArg<'_, '_> {
     pub(crate) fn build(
         self,
         smallest: JiffUnit,

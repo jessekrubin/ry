@@ -784,7 +784,8 @@ class TestTimeSpan:
         m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]
         assert isinstance(m.d, ry.TimeSpan)
         assert (
-            m.d.total_seconds() == ry.TimeSpan.from_pytimedelta(result).total_seconds()
+            m.d.total_seconds(days_are_24_hours=True)
+            == ry.TimeSpan.from_pytimedelta(result).total_seconds()
         )
         as_json = m.model_dump_json()
         from_json = RyTimeSpanModel.model_validate_json(as_json)
