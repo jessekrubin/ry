@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.76 [unreleased]
+
+- `ryo3-serde`
+  - Custom faster string extraction w/ orjson as the inspiration
+
+---
+
 ## v0.0.75 [2025-12-22]
 
 - `ryo3-serde`
