@@ -2,6 +2,9 @@
 
 ## v0.0.76 [unreleased]
 
+- `ryo3-jiff`
+  - Custom extractors for enums to avoid clones
+  - Cleaner `SpanRelativeTo` impl that does not involve cloning
 - `ryo3-serde`
   - Custom faster string extraction w/ orjson as the inspiration
 

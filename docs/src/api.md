@@ -155,6 +155,7 @@ from ry.ryo3._reqwest import BlockingClient as BlockingClient
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
+from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
@@ -2421,6 +2422,7 @@ class TimeSpan(
         relative: ZonedDateTime | Date | DateTime | None = None,
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "half-expand",
+        days_are_24_hours: bool = False,
     ) -> t.Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
@@ -2433,8 +2435,13 @@ class TimeSpan(
         relative: ZonedDateTime | Date | DateTime | None = None,
         *,
         days_are_24_hours: bool = False,
-    ) -> int: ...
-    def total_seconds(self) -> float: ...
+    ) -> float: ...
+    def total_seconds(
+        self,
+        relative: ZonedDateTime | Date | DateTime | None = None,
+        *,
+        days_are_24_hours: bool = False,
+    ) -> float: ...
     def _years(self, years: int, /) -> t.Self: ...
     def _months(self, months: int, /) -> t.Self: ...
     def _weeks(self, weeks: int, /) -> t.Self: ...
@@ -4255,6 +4262,114 @@ class ClientConfig(t.TypedDict):
 
 @t.final
 class HttpClient:
+    def __init__(
+        self,
+        *,
+        headers: dict[str, str] | Headers | None = None,
+        cookies: bool = False,
+        user_agent: str | None = None,
+        timeout: Duration | None = None,
+        connect_timeout: Duration | None = None,
+        read_timeout: Duration | None = None,
+        redirect: int | None = 10,
+        referer: bool = True,
+        gzip: bool = True,
+        brotli: bool = True,
+        deflate: bool = True,
+        zstd: bool = True,
+        hickory_dns: bool = True,
+        http1_only: bool = False,
+        https_only: bool = False,
+        http1_title_case_headers: bool = False,
+        http1_allow_obsolete_multiline_headers_in_responses: bool = False,
+        http1_allow_spaces_after_header_name_in_responses: bool = False,
+        http1_ignore_invalid_headers_in_responses: bool = False,
+        http2_prior_knowledge: bool = False,
+        http2_initial_stream_window_size: int | None = None,
+        http2_initial_connection_window_size: int | None = None,
+        http2_adaptive_window: bool = False,
+        http2_max_frame_size: int | None = None,
+        http2_max_header_list_size: int | None = None,
+        http2_keep_alive_interval: Duration | None = None,
+        http2_keep_alive_timeout: Duration | None = None,
+        http2_keep_alive_while_idle: bool = False,
+        pool_idle_timeout: Duration | None = ...,  # 90 seconds
+        pool_max_idle_per_host: int | None = ...,  # usize::MAX
+        tcp_keepalive: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_retries: int | None = 3,
+        tcp_nodelay: bool = True,
+        root_certificates: list[Certificate] | None = None,
+        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_info: bool = False,
+        tls_sni: bool = True,
+        danger_accept_invalid_certs: bool = False,
+        danger_accept_invalid_hostnames: bool = False,
+    ) -> None: ...
+    def config(self) -> ClientConfig: ...
+    async def get(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def post(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def put(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def delete(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def patch(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def options(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def head(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def fetch(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    def fetch_sync(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    async def __call__(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+
+
+@t.final
+class Client:
+    """experimental client using the `pyo3/experimental-async` feature"""
+
     def __init__(
         self,
         *,
