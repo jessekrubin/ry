@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-ea826497.js";
+            window.path_to_searchindex_js = "searchindex-c6bf15a1.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -180,7 +180,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-22T11:37:40.18436452-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-23T20:31:20.942252709-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -197,7 +197,7 @@ ergonomic.</p>
 <p><strong>This is a work in progress ~ feedback and PRs are welcome.</strong></p>
 <h2 id="highlights"><a class="header" href="#highlights">Highlights</a></h2>
 <ul>
-<li><strong>Async-first HTTP client:</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
+<li><strong>Async-first client and blocking/sync client:</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
 Supports streaming, zero-copy IO via the buffer protocol, timeouts,
 redirect-following, and native JSON parsing via <code>jiter</code>.</li>
 <li><strong>Async file I/O:</strong> Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to
@@ -214,6 +214,7 @@ Python-native behavior with minimal friction.</li>
 <li><strong>Type Annotated:</strong> All public APIs are (painstakingly) type annotated.</li>
 <li><strong>Performant:</strong> Speed without the words “blazingly fast.” <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></li>
 <li><strong>Not slop:</strong> written by a human</li>
+<li><strong>No emojis</strong></li>
 </ul>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
 <pre><code class="language-bash">pip install ry
