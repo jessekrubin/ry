@@ -35,7 +35,7 @@ ergonomic.
 - **Type Annotated:** All public APIs are (painstakingly) type annotated.
 - **Performant:** Speed without the words "blazingly fast." [^1]
 - **Not slop:** written by a human
-- **No emojis:** written by an adult
+- **No emojis**
 
 ## Install
 
