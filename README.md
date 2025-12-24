@@ -18,7 +18,7 @@ ergonomic.
 
 ## Highlights
 
-- **Async-first HTTP client:** Built on `reqwest`, with a `fetch`-like API.
+- **Async-first client and blocking/sync client:** Built on `reqwest`, with a `fetch`-like API.
   Supports streaming, zero-copy IO via the buffer protocol, timeouts,
   redirect-following, and native JSON parsing via `jiter`.
 - **Async file I/O:** Built on `tokio`, with an `AsyncFile` API similar to
@@ -35,6 +35,7 @@ ergonomic.
 - **Type Annotated:** All public APIs are (painstakingly) type annotated.
 - **Performant:** Speed without the words "blazingly fast." [^1]
 - **Not slop:** written by a human
+- **No emojis:** written by an adult
 
 ## Install
 
