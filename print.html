@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c6bf15a1.js";
+            window.path_to_searchindex_js = "searchindex-2da73d65.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2025-12-23T20:31:20.942252709-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2025-12-24T13:42:45.61847722-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -495,6 +495,12 @@ dumping, and async file I/O tools.</p>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
 <h2 id="v0076-unreleased"><a class="header" href="#v0076-unreleased">v0.0.76 [unreleased]</a></h2>
 <ul>
+<li><code>ryo3-jiff</code>
+<ul>
+<li>Custom extractors for enums to avoid clones</li>
+<li>Cleaner <code>SpanRelativeTo</code> impl that does not involve cloning</li>
+</ul>
+</li>
 <li><code>ryo3-serde</code>
 <ul>
 <li>Custom faster string extraction w/ orjson as the inspiration</li>
@@ -3016,6 +3022,7 @@ from ry.ryo3._reqwest import BlockingClient as BlockingClient
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
+from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
@@ -5256,6 +5263,7 @@ class TimeSpan(
         relative: ZonedDateTime | Date | DateTime | None = None,
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "half-expand",
+        days_are_24_hours: bool = False,
     ) -&gt; t.Self: ...
     def signum(self) -&gt; t.Literal[-1, 0, 1]: ...
     def to_signed_duration(
@@ -5268,8 +5276,13 @@ class TimeSpan(
         relative: ZonedDateTime | Date | DateTime | None = None,
         *,
         days_are_24_hours: bool = False,
-    ) -&gt; int: ...
-    def total_seconds(self) -&gt; float: ...
+    ) -&gt; float: ...
+    def total_seconds(
+        self,
+        relative: ZonedDateTime | Date | DateTime | None = None,
+        *,
+        days_are_24_hours: bool = False,
+    ) -&gt; float: ...
     def _years(self, years: int, /) -&gt; t.Self: ...
     def _months(self, months: int, /) -&gt; t.Self: ...
     def _weeks(self, weeks: int, /) -&gt; t.Self: ...
@@ -7078,6 +7091,114 @@ class ClientConfig(t.TypedDict):
 
 @t.final
 class HttpClient:
+    def __init__(
+        self,
+        *,
+        headers: dict[str, str] | Headers | None = None,
+        cookies: bool = False,
+        user_agent: str | None = None,
+        timeout: Duration | None = None,
+        connect_timeout: Duration | None = None,
+        read_timeout: Duration | None = None,
+        redirect: int | None = 10,
+        referer: bool = True,
+        gzip: bool = True,
+        brotli: bool = True,
+        deflate: bool = True,
+        zstd: bool = True,
+        hickory_dns: bool = True,
+        http1_only: bool = False,
+        https_only: bool = False,
+        http1_title_case_headers: bool = False,
+        http1_allow_obsolete_multiline_headers_in_responses: bool = False,
+        http1_allow_spaces_after_header_name_in_responses: bool = False,
+        http1_ignore_invalid_headers_in_responses: bool = False,
+        http2_prior_knowledge: bool = False,
+        http2_initial_stream_window_size: int | None = None,
+        http2_initial_connection_window_size: int | None = None,
+        http2_adaptive_window: bool = False,
+        http2_max_frame_size: int | None = None,
+        http2_max_header_list_size: int | None = None,
+        http2_keep_alive_interval: Duration | None = None,
+        http2_keep_alive_timeout: Duration | None = None,
+        http2_keep_alive_while_idle: bool = False,
+        pool_idle_timeout: Duration | None = ...,  # 90 seconds
+        pool_max_idle_per_host: int | None = ...,  # usize::MAX
+        tcp_keepalive: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
+        tcp_keepalive_retries: int | None = 3,
+        tcp_nodelay: bool = True,
+        root_certificates: list[Certificate] | None = None,
+        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_info: bool = False,
+        tls_sni: bool = True,
+        danger_accept_invalid_certs: bool = False,
+        danger_accept_invalid_hostnames: bool = False,
+    ) -&gt; None: ...
+    def config(self) -&gt; ClientConfig: ...
+    async def get(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    async def post(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    async def put(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    async def delete(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    async def patch(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    async def options(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    async def head(
+        self,
+        url: str | URL,
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    async def fetch(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+    def fetch_sync(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; BlockingResponse: ...
+    async def __call__(
+        self,
+        url: str | URL,
+        *,
+        method: str = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -&gt; Response: ...
+
+
+@t.final
+class Client:
+    """experimental client using the `pyo3/experimental-async` feature"""
+
     def __init__(
         self,
         *,
