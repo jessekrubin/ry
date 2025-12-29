@@ -183,7 +183,7 @@ pyo3-build-config = "0.27"
 # allocator(s)
 mimalloc = "0.1.48"
 # future
-tokio-websockets = { version = "0.13.0", features = [] }
+tokio-websockets = { version = "0.13.1", features = [] }
 ignore = "0.4.24"
 # external
 ahash = "0.8.12"
