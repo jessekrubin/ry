@@ -191,6 +191,7 @@ anyhow = "1.0"
 brotli = "8.0.2"
 bytes = "1.11.0"
 bzip2 = "0.6.1"
+cookie = { version = "0.18.1", features = ["percent-encode"] }
 dirs = { version = "6.0.0", features = [] }
 flate2 = "1.1.4"
 fnv = "1.0.7"
@@ -206,7 +207,7 @@ jiter = { version = "0.12", features = ["python"] }
 memchr = "2.7.5"
 parking_lot = "0.12.5"
 regex = "1.12.2"
-reqwest = { version = "0.12.23", features = ["brotli", "charset", "cookies", "deflate", "gzip", "hickory-dns", "http2", "macos-system-configuration", "multipart", "json", "rustls-tls-webpki-roots", "socks", "stream", "zstd"], default-features = false }
+reqwest = { version = "0.13.1", features = ["brotli", "charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "multipart", "json", "query", "rustls", "socks", "stream", "zstd"], default-features = false }
 same-file = "1.0.6"
 serde = { version = "1.0", features = ["derive"] }
 serde-transcode = "1.1.1"
