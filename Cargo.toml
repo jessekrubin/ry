@@ -224,7 +224,6 @@ reqwest = { version = "0.13.1", features = [
   "rustls",
   "socks",
   "stream",
-  # "webpki-roots",
   "zstd",
 ], default-features = false }
 same-file = "1.0.6"
