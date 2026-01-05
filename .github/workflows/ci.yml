@@ -55,7 +55,7 @@ jobs:
           - runner: ubuntu-latest
             target: ppc64le
             manylinux: "2_28" # previously was 'auto'
-            features: "\"mimalloc,ring\""
+            features: "\"mimalloc,ring\" --no-default-features"
 
     steps:
       - uses: actions/checkout@v6
