@@ -9,6 +9,7 @@ from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
+from ry.ryo3.__about__ import __crypto_provider__ as __crypto_provider__
 from ry.ryo3.__about__ import __description__ as __description__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
