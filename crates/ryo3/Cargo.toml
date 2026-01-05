@@ -124,6 +124,10 @@ ry = [
   "ryo3-walkdir/ry",
 ] # `ry` uses all features
 
+# tls provider(s)
+ring = ["ryo3-reqwest/ring"]
+aws-lc-rs = ["ryo3-reqwest/aws-lc-rs"]
+
 # wrappers
 brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:ryo3-bzip2"]

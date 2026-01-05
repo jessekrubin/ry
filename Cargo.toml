@@ -28,9 +28,10 @@ tracing-log = { workspace = true }
 tracing-subscriber.workspace = true
 
 [features]
-default = []
+default = ["aws-lc-rs"]
 mimalloc = ["dep:mimalloc"]
-ring = []
+ring = ["ryo3/ring"]
+aws-lc-rs = ["ryo3/aws-lc-rs"]
 
 [build-dependencies]
 pyo3-build-config.workspace = true
@@ -222,7 +223,7 @@ reqwest = { version = "0.13.1", features = [
   "json",
   "multipart",
   "query",
-  "rustls",
+  "rustls-no-provider",
   "socks",
   "stream",
   "zstd",

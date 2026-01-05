@@ -22,6 +22,13 @@ const ALLOCATOR: &str = "mimalloc";
 #[cfg(not(feature = "mimalloc"))]
 const ALLOCATOR: &str = "system";
 
+// if not ring
+#[cfg(not(feature = "ring"))]
+const CRYPTO_PROVIDER: &str = "aws-lc-rs";
+
+#[cfg(feature = "ring")]
+const CRYPTO_PROVIDER: &str = "ring";
+
 /// Raise `pyo3::exceptions::PyRuntimeWarning` for debug build(s)
 ///
 /// Taken from `obstore` pyo3 library [obstore](https://github.com/developmentseed/obstore.git)
@@ -66,6 +73,8 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__authors__", AUTHORS)?;
     m.add("__target__", TARGET)?;
     m.add("__allocator__", ALLOCATOR)?;
+    m.add("__crypto_provider__", CRYPTO_PROVIDER)?;
+
     // ------------------------------------------------------------------------
     ryo3::ry::pymod_add(m)?;
     // ------------------------------------------------------------------------
