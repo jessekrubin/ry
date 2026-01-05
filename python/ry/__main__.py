@@ -9,6 +9,7 @@ from ry.__about__ import (
     __authors__,
     __build_profile__,
     __build_timestamp__,
+    __crypto_provider__,
     __opt_level__,
     __pkgroot__,
     __target__,
@@ -28,6 +29,7 @@ def _ext_info() -> dict[str, str | int]:
         "fsize_str": ryo3.fmt_size(size),
         "opt-level": __opt_level__,
         "target": __target__,
+        "crypto_provider": __crypto_provider__,
     }
 
 

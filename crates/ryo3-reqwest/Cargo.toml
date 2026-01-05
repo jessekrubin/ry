@@ -13,15 +13,20 @@ description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.ht
 
 [dependencies]
 bytes.workspace = true
-cookie = { version = "0.18.1", features = ["percent-encode"] }
+cookie.workspace = true
 futures-core.workspace = true
 futures-util.workspace = true
 jiter.workspace = true
 parking_lot.workspace = true
-pyo3 = { workspace = true, features = [
-] }
+pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 reqwest.workspace = true
+rustls = { version = "0.23.36", default-features = false, features = [
+    "logging",
+    "prefer-post-quantum",
+    "std",
+    "tls12",
+] }
 ryo3-bytes.workspace = true
 ryo3-core.workspace = true
 ryo3-http.workspace = true
@@ -40,9 +45,8 @@ tracing.workspace = true
 workspace = true
 
 [features]
-experimental-async = ["pyo3/experimental-async"]
 default = []
+experimental-async = ["pyo3/experimental-async"]
+ring = ["rustls/ring"]
+aws-lc-rs = ["rustls/aws-lc-rs"]
 ry = ["experimental-async"]
-# blocking = [
-#   "reqwest/blocking",
-# ]
