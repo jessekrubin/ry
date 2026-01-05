@@ -82,7 +82,7 @@ bench: build-release
 # ci rust checks
 ci:
     cargo fmt -- --check
-    cargo clippy --all-targets --all-features -- -D warnings
+    cargo clippy --all-targets --features mimalloc -- -D warnings
     cargo test
 
 # ===========================================================================

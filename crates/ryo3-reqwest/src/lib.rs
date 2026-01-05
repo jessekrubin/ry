@@ -9,6 +9,7 @@ mod pyo3_json_bytes;
 mod response_head;
 mod response_parking_lot;
 mod response_stream;
+mod rustls_provider;
 mod tls_version;
 mod user_agent;
 
@@ -27,6 +28,9 @@ pub use response_stream::RyResponseStream;
 pub use client::RyClient;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // setup tls provider
+    rustls_provider::rustls_provider_install_default();
+
     m.add_class::<PyCookie>()?;
     m.add_class::<PyCertificate>()?;
     m.add_class::<RyHttpClient>()?;

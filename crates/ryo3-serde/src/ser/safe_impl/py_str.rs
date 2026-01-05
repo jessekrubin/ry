@@ -78,7 +78,7 @@ mod pystr_danger_zone {
     //!
     //! REF: <https://github.com/ijl/orjson/blob/master/src/str/pystr.rs>
 
-    use pyo3::ffi::{PyASCIIObject, PyCompactUnicodeObject, PyObject};
+    use pyo3::ffi::PyObject;
 
     #[cfg(all(target_endian = "little", Py_3_14, Py_GIL_DISABLED))]
     const STATE_KIND_SHIFT: usize = 8;
@@ -120,6 +120,8 @@ mod pystr_danger_zone {
     #[expect(unsafe_code)]
     #[cfg(target_endian = "little")]
     pub(crate) unsafe fn fast_pystr_read<'a>(op: *mut PyObject) -> Option<&'a str> {
+        // local use for little-endian only ~ good no more warning
+        use pyo3::ffi::{PyASCIIObject, PyCompactUnicodeObject};
         unsafe {
             let state = (*op.cast::<PyASCIIObject>()).state;
             if state & STATE_COMPACT_ASCII == STATE_COMPACT_ASCII {

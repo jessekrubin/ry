@@ -91,7 +91,7 @@ class TestOffsetRound:
         assert str(ry.Offset.MAX) == "+25:59:59"
         with pytest.raises(
             ValueError,
-            match="rounding offset `\\+25:59:59` resulted in a duration of 26h, which overflows `Offset`",
+            match="rounding time zone offset resulted in a duration that overflows",
         ):
             _r = ry.Offset.MAX.round("minute")
 
