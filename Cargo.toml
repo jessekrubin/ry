@@ -30,6 +30,7 @@ tracing-subscriber.workspace = true
 [features]
 default = []
 mimalloc = ["dep:mimalloc"]
+ring = []
 
 [build-dependencies]
 pyo3-build-config.workspace = true
