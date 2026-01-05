@@ -24,7 +24,6 @@ mod from;
 mod from_str;
 mod functions;
 mod interns;
-mod into_span_arithmetic;
 mod isoformat;
 mod jiff_types;
 #[cfg(feature = "pydantic")]
