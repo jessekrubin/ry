@@ -215,6 +215,16 @@ impl RyTimestamp {
     }
 
     #[getter]
+    fn second(&self) -> i64 {
+        self.0.as_second()
+    }
+
+    #[getter]
+    fn nanosecond(&self) -> i32 {
+        self.0.subsec_nanosecond()
+    }
+
+    #[getter]
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
@@ -356,9 +366,9 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    fn display_with_offset(&self, offset: &RyOffset) -> String {
+    fn display_with_offset(&self, offset: &RyOffset) -> PyAsciiString {
         let dwo = self.0.display_with_offset(offset.0);
-        dwo.to_string()
+        dwo.to_string().into()
     }
 
     fn duration_since(&self, other: &Self) -> RySignedDuration {

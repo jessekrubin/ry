@@ -1225,6 +1225,48 @@ class Timestamp(
     # PROPERTIES
     # =========================================================================
     @property
+    def second(self) -> int:
+        """Return the second component of the timestamp
+
+        Returns:
+            int: The second component of the timestamp.
+
+        Examples:
+            >>> import ry
+            >>> ts = ry.Timestamp(5, 123_456_789)
+            >>> ts.second
+            5
+            >>> ts = ry.Timestamp(-5, -123_456_789)
+            >>> ts.second
+            -5
+
+        """
+
+    @property
+    def nanosecond(self) -> int:
+        """Return the nanosecond component (-999_999_999..999_999_999)
+
+        Returns:
+            int: The nanosecond component of the timestamp (-999_999_999..999_999_999).
+
+        Examples:
+            >>> import ry
+            >>> ts = ry.Timestamp(5, 123_456_789)
+            >>> ts.nanosecond
+            123456789
+            >>> ts = ry.Timestamp(5, 999_999_999)
+            >>> ts.nanosecond
+            999999999
+            >>> ts = ry.Timestamp(-5, -123_456_789)
+            >>> ts.nanosecond
+            -123456789
+            >>> ts = ry.Timestamp(-5, -999_999_999)
+            >>> ts.nanosecond
+            -999999999
+
+        """
+
+    @property
     def subsec_microsecond(self) -> int:
         """Return the subsecond microsecond component (-999_999..999_999)
 

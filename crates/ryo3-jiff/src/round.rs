@@ -56,6 +56,7 @@ use jiff::{SignedDurationRound, TimestampRound, ZonedRound};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::py_value_error;
 use std::fmt::Display;
 
@@ -138,8 +139,8 @@ impl RyDateTimeRound {
         Self::from(opts)
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -244,8 +245,8 @@ impl RySignedDurationRound {
         }
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -348,8 +349,8 @@ impl RyTimeRound {
         }
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -457,8 +458,8 @@ impl RyTimestampRound {
         Self::from(RoundOptions::new(smallest, mode, increment))
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -567,8 +568,8 @@ impl RyZonedDateTimeRound {
         Self::from(RoundOptions::new(smallest, mode, increment))
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -671,8 +672,8 @@ impl RyOffsetRound {
         }
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {

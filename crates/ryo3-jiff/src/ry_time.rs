@@ -118,8 +118,8 @@ impl RyTime {
         self.0.to_string().into()
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     // ========================================================================

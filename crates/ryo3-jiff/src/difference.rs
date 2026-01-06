@@ -62,6 +62,7 @@ use jiff::civil::{DateDifference, DateTimeDifference, TimeDifference};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::py_type_err;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -149,8 +150,9 @@ impl RyDateDifference {
         let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
     }
-    fn __repr__(&self) -> String {
-        format!("{self}")
+
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -388,8 +390,8 @@ impl RyDateTimeDifference {
         let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
     }
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -617,8 +619,9 @@ impl RyTimeDifference {
         let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
     }
-    fn __repr__(&self) -> String {
-        format!("{self}")
+
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -862,8 +865,8 @@ impl RyTimestampDifference {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -1088,8 +1091,8 @@ impl RyZonedDifference {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
