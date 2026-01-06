@@ -11,6 +11,17 @@ pub(crate) enum PyBodyStream {
     Async(PyBodyAsyncStream),
 }
 
+impl std::fmt::Debug for PyBodyStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PyBodyStream::Sync(_) => f.debug_struct("PyBodyStream::Sync").finish(),
+            PyBodyStream::Async(_) => f.debug_struct("PyBodyStream::Async").finish(),
+        }
+    }
+}
+
+
+#[derive(Debug)]
 pub(crate) enum PyBody {
     Stream(PyBodyStream),
     Bytes(RyBytes),
