@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from hypothesis import given
+from hypothesis.strategies import sampled_from
+
 import ry
+
+from .strategies import st_timestamps
 
 
 def test_timestamp_series_jiff_example() -> None:
@@ -46,3 +51,36 @@ def test_timestamp_series_jiff_example() -> None:
     series = start.series(ry.TimeSpan()._hours(5))
     values = series.take_until(end)
     assert values == scan_times
+
+
+@given(
+    ts=st_timestamps(
+        # wiggle room for offset testing bc could mayhaps overflow
+        min_value=(ry.Timestamp.MIN + ry.TimeSpan(hours=48)),
+        max_value=(ry.Timestamp.MAX - ry.TimeSpan(hours=48)),
+    ),
+    # sample from -18 hours to +18 hours
+    off=sampled_from([
+        ry.Offset.from_seconds(s) for s in range(-18 * 3600, 18 * 3600 + 1, 3600)
+    ]),
+)
+def test_timestamp_display_with_offset(ts: ry.Timestamp, off: ry.Offset) -> None:
+    s = ts.display_with_offset(off)
+    assert isinstance(s, str)
+    assert s.isascii()
+    try:
+        parsed = ry.Timestamp.parse(s)
+        diff = ts - parsed
+        assert (
+            ts == parsed
+            or diff.total_seconds() < ry.TimeSpan(seconds=1).total_seconds()
+        ), (
+            f"Expected parsed timestamp {parsed} to be equal to original {ts} "
+            f"or differ by less than 1 seconds, got difference of {diff}"
+        )
+    except ValueError as ve:
+        msg = (
+            f"Failed to parse timestamp string '{s}' generated from "
+            f"timestamp {ts} with offset {off}"
+        )
+        raise AssertionError(msg) from ve

@@ -161,3 +161,48 @@ def st_signed_durations(
         st.integers(min_value=ry.I64_MIN, max_value=ry.I64_MAX),
         st.integers(min_value=-999_999_999, max_value=999_999_999),
     ).filter(lambda d: min_value <= d <= max_value)
+
+
+def st_offsets(
+    min_value: ry.Offset = ry.Offset.MIN, max_value: ry.Offset = ry.Offset.MAX
+) -> SearchStrategy[ry.Offset]:
+    """Strategy for `ry.Offset` instances"""
+    if not isinstance(min_value, ry.Offset):
+        msg = f"min_value must be a ry.Offset, got {type(min_value)}"
+        raise TypeError(msg)
+    if not isinstance(max_value, ry.Offset):
+        msg = f"max_value must be a ry.Offset, got {type(max_value)}"
+        raise TypeError(msg)
+    if min_value > max_value:
+        emsg = f"min_value {min_value} must be <= max_value {max_value}"
+        raise ValueError(emsg)
+
+    return st.builds(
+        ry.Offset.from_seconds,
+        st.integers(min_value=min_value.seconds, max_value=max_value.seconds),
+    )
+
+
+def st_timestamps(
+    *,
+    min_value: ry.Timestamp = ry.Timestamp.MIN,
+    max_value: ry.Timestamp = ry.Timestamp.MAX,
+) -> SearchStrategy[ry.Timestamp]:
+    """Strategy for `ry.Timestamp` instances"""
+    if not isinstance(min_value, ry.Timestamp):
+        msg = f"min_value must be a ry.Timestamp, got {type(min_value)}"
+        raise TypeError(msg)
+    if not isinstance(max_value, ry.Timestamp):
+        msg = f"max_value must be a ry.Timestamp, got {type(max_value)}"
+        raise TypeError(msg)
+    if min_value > max_value:
+        emsg = f"min_value {min_value} must be <= max_value {max_value}"
+        raise ValueError(emsg)
+    if min_value == max_value:
+        return st.just(min_value)
+
+    return st.builds(
+        ry.Timestamp,
+        st.integers(min_value=min_value.second, max_value=max_value.second),
+        st.integers(min_value=0, max_value=999_999_999),
+    )

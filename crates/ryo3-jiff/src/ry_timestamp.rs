@@ -215,6 +215,16 @@ impl RyTimestamp {
     }
 
     #[getter]
+    fn second(&self) -> i64 {
+        self.0.as_second()
+    }
+
+    #[getter]
+    fn nanosecond(&self) -> i32 {
+        self.0.subsec_nanosecond()
+    }
+
+    #[getter]
     fn subsec_nanosecond(&self) -> i32 {
         self.0.subsec_nanosecond()
     }
