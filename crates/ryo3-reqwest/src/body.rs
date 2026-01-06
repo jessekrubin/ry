@@ -4,8 +4,17 @@ use std::task::{Context, Poll};
 use futures_core::stream::BoxStream;
 use futures_util::ready;
 use pyo3::prelude::*;
-use reqwest::Body;
 use ryo3_bytes::PyBytes as RyBytes;
+
+pub(crate) enum PyBodyStream {
+    Sync(PyBodySyncStream),
+    Async(PyBodyAsyncStream),
+}
+
+pub(crate) enum PyBody {
+    Stream(PyBodyStream),
+    Bytes(RyBytes),
+}
 
 pub(crate) struct PyBodySyncStream {
     obj: Py<PyAny>,
@@ -54,15 +63,6 @@ impl futures_util::stream::Stream for PyBodySyncStream {
     }
 }
 
-impl From<PyBodyStream> for reqwest::Body {
-    fn from(val: PyBodyStream) -> Self{
-        match val {
-            PyBodyStream::Sync(sync_stream) => Self::wrap_stream(sync_stream),
-            PyBodyStream::Async(async_stream) => Self::wrap_stream(async_stream),
-        }
-    }
-}
-
 impl futures_util::stream::Stream for PyBodyAsyncStream {
     type Item = PyResult<RyBytes>;
 
@@ -86,16 +86,6 @@ impl futures_util::stream::Stream for PyBodyAsyncStream {
             None => Poll::Ready(None),
         }
     }
-}
-
-pub(crate) enum PyBodyStream {
-    Sync(PyBodySyncStream),
-    Async(PyBodyAsyncStream),
-}
-
-pub(crate) enum PyBody {
-    Stream(PyBodyStream),
-    Bytes(RyBytes),
 }
 
 impl<'py> FromPyObject<'_, 'py> for PyBody {
@@ -130,6 +120,30 @@ impl<'py> FromPyObject<'_, 'py> for PyBody {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
                 "Expected bytes-like object or an async or sync iterable for request body",
             ))
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+// INTO-BODY
+// ----------------------------------------------------------------------------
+impl From<PyBodyAsyncStream> for reqwest::Body {
+    fn from(val: PyBodyAsyncStream) -> Self {
+        Self::wrap_stream(val)
+    }
+}
+
+impl From<PyBodySyncStream> for reqwest::Body {
+    fn from(val: PyBodySyncStream) -> Self {
+        Self::wrap_stream(val)
+    }
+}
+
+impl From<PyBodyStream> for reqwest::Body {
+    fn from(val: PyBodyStream) -> Self {
+        match val {
+            PyBodyStream::Sync(s) => s.into(),
+            PyBodyStream::Async(s) => s.into(),
         }
     }
 }
