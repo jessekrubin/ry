@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+mod body;
 mod cert;
 mod client;
 mod cookie;

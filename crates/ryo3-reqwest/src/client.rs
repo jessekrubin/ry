@@ -236,15 +236,30 @@ fn client_request_builder(
             return py_value_err!("body, json, form, multipart are mutually exclusive");
         }
         (Some(body), None, None, None) => {
-            if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
-                // short circuit for rs-py-bytes
-                let rsbytes: &Bytes = rsbytes.get().as_ref();
-                req = req.body(rsbytes.to_owned());
-            } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
-                // buffer protocol
-                req = req.body(bytes.into_inner());
-            } else {
-                return py_type_err!("body must be bytes-like");
+            use crate::body::PyBody;
+
+            let bod = body.extract::<PyBody>()?;
+            // if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
+            //     // short circuit for rs-py-bytes
+            //     let rsbytes: &Bytes = rsbytes.get().as_ref();
+            //     req = req.body(rsbytes.to_owned());
+            // } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
+            //     // buffer protocol
+            //     req = req.body(bytes.into_inner());
+            // } else {
+            //     return py_type_err!("body must be bytes-like");
+            // }
+            match bod {
+                PyBody::Bytes(b) => {
+                    req = req.body(b.into_inner());
+                }
+
+                // PyBody::Empty => {
+                //     req = req.body(Bytes::new());
+                // }
+                PyBody::Stream(s) => {
+                    req = req.body(s);
+                }
             }
         }
         (None, Some(json), None, None) => {
