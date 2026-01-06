@@ -1,10 +1,11 @@
 # CHANGELOG
 
-## v0.0.76 [unreleased]
+## v0.0.76 [2026-01-05]
 
 - `ryo3-jiff`
   - Custom extractors for enums to avoid clones
   - Cleaner `SpanRelativeTo` impl that does not involve cloning
+  - bump jiff version:wq
 - `ryo3-reqwest`
   - Update to reqwest `v0.13.1+`
 - `ryo3-serde`
