@@ -106,12 +106,13 @@ impl RyZoned {
         let ts = timestamp.0;
         Self::from(Zoned::new(ts, time_zone.into()))
     }
+
     // ========================================================================
     // STRPTIME/STRFTIME
     // ========================================================================
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         if fmt.is_empty() {
-            Ok(self.__str__())
+            Ok(self.0.to_string())
         } else {
             self.strftime(fmt)
         }
@@ -165,16 +166,16 @@ impl RyZoned {
     }
 
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> String {
+    fn py_to_string(&self) -> PyAsciiString {
         self.__str__()
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __hash__(&self) -> u64 {

@@ -137,8 +137,8 @@ impl RyISOWeekDate {
         self.__str__()
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     #[expect(clippy::wrong_self_convention)]

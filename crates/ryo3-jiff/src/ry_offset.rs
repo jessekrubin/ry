@@ -141,18 +141,18 @@ impl RyOffset {
 
     #[pyo3(name = "to_string")]
     #[must_use]
-    fn py_to_string(&self) -> String {
+    fn py_to_string(&self) -> PyAsciiString {
         self.__str__()
     }
 
     #[must_use]
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
     #[must_use]
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     #[getter]

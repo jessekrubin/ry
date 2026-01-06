@@ -154,17 +154,17 @@ impl RyDateTime {
         self.0.subsec_nanosecond()
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> String {
+    fn py_to_string(&self) -> PyAsciiString {
         self.__str__()
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __hash__(&self) -> u64 {
@@ -492,7 +492,7 @@ impl RyDateTime {
 
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         if fmt.is_empty() {
-            Ok(self.__str__())
+            Ok(self.0.to_string())
         } else {
             self.strftime(fmt)
         }

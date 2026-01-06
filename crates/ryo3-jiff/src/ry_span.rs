@@ -89,8 +89,8 @@ impl RySpan {
             .map_err(map_py_value_err)
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -316,11 +316,11 @@ impl RySpan {
             .map_err(|e| py_overflow_error!("Failed at try_nanoseconds: {e}"))
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
-    fn repr_full(&self) -> String {
+    fn repr_full(&self) -> PyAsciiString {
         format!(
             "TimeSpan(years={}, months={}, weeks={}, days={}, hours={}, minutes={}, seconds={}, milliseconds={}, microseconds={}, nanoseconds={})",
             self.0.get_years(),
@@ -333,7 +333,7 @@ impl RySpan {
             self.0.get_milliseconds(),
             self.0.get_microseconds(),
             self.0.get_nanoseconds()
-        )
+        ) .into()
     }
 
     fn __hash__(&self) -> u64 {
