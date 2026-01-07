@@ -7,8 +7,16 @@ from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
+Body: t.TypeAlias = (
+    Buffer
+    | t.Generator[Buffer]
+    | t.AsyncGenerator[Buffer]
+    | t.Iterable[Buffer]
+    | t.AsyncIterable[Buffer]
+)
+
 class RequestKwargs(t.TypedDict, total=False):
-    body: Buffer | None
+    body: Body | None
     headers: Headers | dict[str, str] | None
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
     json: t.Any
@@ -522,7 +530,7 @@ async def fetch(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Buffer | None = None,
+    body: Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
@@ -537,7 +545,7 @@ def fetch_sync(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Buffer | None = None,
+    body: Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,

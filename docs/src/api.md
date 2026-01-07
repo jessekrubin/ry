@@ -64,6 +64,7 @@ from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
+from ry.ryo3.__about__ import __crypto_provider__ as __crypto_provider__
 from ry.ryo3.__about__ import __description__ as __description__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
@@ -321,6 +322,7 @@ __description__: str
 __target__: str
 __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
+__crypto_provider__: t.Literal["ring", "aws-lc-rs"]
 ```
 
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
@@ -2560,6 +2562,48 @@ class Timestamp(
     # PROPERTIES
     # =========================================================================
     @property
+    def second(self) -> int:
+        """Return the second component of the timestamp
+
+        Returns:
+            int: The second component of the timestamp.
+
+        Examples:
+            >>> import ry
+            >>> ts = ry.Timestamp(5, 123_456_789)
+            >>> ts.second
+            5
+            >>> ts = ry.Timestamp(-5, -123_456_789)
+            >>> ts.second
+            -5
+
+        """
+
+    @property
+    def nanosecond(self) -> int:
+        """Return the nanosecond component (-999_999_999..999_999_999)
+
+        Returns:
+            int: The nanosecond component of the timestamp (-999_999_999..999_999_999).
+
+        Examples:
+            >>> import ry
+            >>> ts = ry.Timestamp(5, 123_456_789)
+            >>> ts.nanosecond
+            123456789
+            >>> ts = ry.Timestamp(5, 999_999_999)
+            >>> ts.nanosecond
+            999999999
+            >>> ts = ry.Timestamp(-5, -123_456_789)
+            >>> ts.nanosecond
+            -123456789
+            >>> ts = ry.Timestamp(-5, -999_999_999)
+            >>> ts.nanosecond
+            -999999999
+
+        """
+
+    @property
     def subsec_microsecond(self) -> int:
         """Return the subsecond microsecond component (-999_999..999_999)
 
@@ -4202,9 +4246,17 @@ from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
+Body: t.TypeAlias = (
+    Buffer
+    | t.Generator[Buffer]
+    | t.AsyncGenerator[Buffer]
+    | t.Iterable[Buffer]
+    | t.AsyncIterable[Buffer]
+)
+
 
 class RequestKwargs(t.TypedDict, total=False):
-    body: Buffer | None
+    body: Body | None
     headers: Headers | dict[str, str] | None
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
     json: t.Any
@@ -4743,7 +4795,7 @@ async def fetch(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Buffer | None = None,
+    body: Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
@@ -4758,7 +4810,7 @@ def fetch_sync(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Buffer | None = None,
+    body: Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,

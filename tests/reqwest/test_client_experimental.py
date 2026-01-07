@@ -332,7 +332,6 @@ async def test_client_post(server: ReqtestServer, body: bytes | ry.Bytes) -> Non
         # Invalid type for body
         12345,
         complex(1, 2),
-        ["list", "of", "strings"],
     ],
 )
 async def test_client_post_body_err(
@@ -340,7 +339,10 @@ async def test_client_post_body_err(
 ) -> None:
     url = server.url
     client = ry.Client()
-    with pytest.raises(TypeError, match="body must be bytes-like"):
+    with pytest.raises(
+        TypeError,
+        match="Expected bytes-like object or an async or sync iterable for request body",
+    ):
         _ = await client.post(str(url) + "echo", body=body)  # type: ignore[arg-type]
 
 

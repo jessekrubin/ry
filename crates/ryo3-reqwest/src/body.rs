@@ -14,12 +14,11 @@ pub(crate) enum PyBodyStream {
 impl std::fmt::Debug for PyBodyStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PyBodyStream::Sync(_) => f.debug_struct("PyBodyStream::Sync").finish(),
-            PyBodyStream::Async(_) => f.debug_struct("PyBodyStream::Async").finish(),
+            Self::Sync(_) => f.debug_struct("PyBodyStream::Sync").finish(),
+            Self::Async(_) => f.debug_struct("PyBodyStream::Async").finish(),
         }
     }
 }
-
 
 #[derive(Debug)]
 pub(crate) enum PyBody {
@@ -104,6 +103,7 @@ impl<'py> FromPyObject<'_, 'py> for PyBody {
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         let py = obj.py();
+        // check is str so we don't hit the iterable checks below
         if let Ok(buffer) = obj.extract::<RyBytes>() {
             Ok(Self::Bytes(buffer))
         } else if obj.hasattr(pyo3::intern!(py, "__aiter__"))? {

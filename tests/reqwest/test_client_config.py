@@ -55,21 +55,23 @@ _DEFAULT_CONFIG: ClientConfig = {
 
 
 # param fixture
-@pytest.fixture(params=[ry.HttpClient, ry.BlockingClient])
+@pytest.fixture(params=[ry.HttpClient, ry.Client, ry.BlockingClient])
 def client_cls(
     request: pytest.FixtureRequest,
-) -> type[ry.HttpClient | ry.BlockingClient]:
-    return t.cast("type[ry.HttpClient | ry.BlockingClient]", request.param)
+) -> type[ry.HttpClient | ry.Client | ry.BlockingClient]:
+    return t.cast("type[ry.HttpClient | ry.Client | ry.BlockingClient]", request.param)
 
 
-def test_config_equality(client_cls: type[ry.HttpClient | ry.BlockingClient]) -> None:
+def test_config_equality(
+    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+) -> None:
     client = client_cls()
     assert isinstance(client.config(), dict)
     assert client.config() == _DEFAULT_CONFIG
 
 
 def test_client_config_headers(
-    client_cls: type[ry.HttpClient | ry.BlockingClient],
+    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
 ) -> None:
     headers = {"user-agent": "ryo3-reqwest-test", "accept": "application/json"}
     client = client_cls(headers=headers)
@@ -79,7 +81,7 @@ def test_client_config_headers(
 
 
 def test_client_config_pickle(
-    client_cls: type[ry.HttpClient | ry.BlockingClient],
+    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
 ) -> None:
     import pickle
 
