@@ -2395,6 +2395,7 @@ class TimeSpan(
 
     def abs(self) -> t.Self: ...
     def to_dict(self) -> TimeSpanTypedDict: ...
+    def fieldwise(self) -> TimeSpanTypedDict: ...
     def compare(
         self,
         other: t.Self,
@@ -4246,7 +4247,7 @@ from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
-Body: t.TypeAlias = (
+_Body: t.TypeAlias = (
     Buffer
     | t.Generator[Buffer]
     | t.AsyncGenerator[Buffer]
@@ -4256,7 +4257,7 @@ Body: t.TypeAlias = (
 
 
 class RequestKwargs(t.TypedDict, total=False):
-    body: Body | None
+    body: _Body | None
     headers: Headers | dict[str, str] | None
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
     json: t.Any
@@ -4304,8 +4305,8 @@ class ClientConfig(t.TypedDict):
     tcp_keepalive_retries: int | None
     tcp_nodelay: bool
     root_certificates: list[Certificate] | None
-    tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
     tls_info: bool
     tls_sni: bool
     danger_accept_invalid_certs: bool
@@ -4352,8 +4353,8 @@ class HttpClient:
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
         root_certificates: list[Certificate] | None = None,
-        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
         danger_accept_invalid_certs: bool = False,
@@ -4460,8 +4461,8 @@ class Client:
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
         root_certificates: list[Certificate] | None = None,
-        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
         danger_accept_invalid_certs: bool = False,
@@ -4566,8 +4567,8 @@ class BlockingClient:
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
         root_certificates: list[Certificate] | None = None,
-        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
         danger_accept_invalid_certs: bool = False,
@@ -4658,8 +4659,12 @@ class Response:
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(self) -> ResponseStream: ...
-    def stream(self) -> ResponseStream: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -> ResponseStream: ...  # min_read_size=0 -> None
+    def stream(
+        self, min_read_size: int = 0, /
+    ) -> ResponseStream: ...  # min_read_size=0 -> None
     @property
     def url(self) -> URL: ...
     @property
@@ -4721,8 +4726,10 @@ class BlockingResponse:
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(self) -> BlockingResponseStream: ...
-    def stream(self) -> BlockingResponseStream: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -> BlockingResponseStream: ...
+    def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     @property
     def url(self) -> URL: ...
     @property
@@ -4795,7 +4802,7 @@ async def fetch(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Body | None = None,
+    body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
@@ -4810,7 +4817,7 @@ def fetch_sync(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Body | None = None,
+    body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,

@@ -9,7 +9,8 @@
   - Renamed tls version kwargs to match reqwest naming:
     - `tls_max_version` -> `tls_version_max`
     - `tls_min_version` -> `tls_version_min`
-  - `Response.stream()` now takes a `chunk_size` kwarg
+  - `Response.stream()` now takes a `min_read_size` kwarg; must be positive int,
+    and `default=0` meaning no buffering
 
 ---
 
