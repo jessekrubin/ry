@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v0.0.77 [unreleased]
+
+- `ryo3-reqwest`
+  - Allow
+    `Generator[Buffer] | AsyncGenerator[Buffer] | Iterable[Buffer] | AsyncIterable[Buffer]`
+    as body input
+  - Renamed tls version kwargs to match reqwest naming:
+    - `tls_max_version` -> `tls_version_max`
+    - `tls_min_version` -> `tls_version_min`
+  - `Response.stream()` now takes a `chunk_size` kwarg
+
+---
+
 ## v0.0.76 [2026-01-05]
 
 - `ryo3-jiff`

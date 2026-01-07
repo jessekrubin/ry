@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import typing as t
 
 import pytest
@@ -45,8 +46,8 @@ _DEFAULT_CONFIG: ClientConfig = {
     "tcp_keepalive_retries": 3,
     "tcp_nodelay": True,
     "root_certificates": None,
-    "tls_min_version": None,
-    "tls_max_version": None,
+    "tls_version_min": None,
+    "tls_version_max": None,
     "tls_info": False,
     "tls_sni": True,
     "danger_accept_invalid_certs": False,
@@ -90,3 +91,64 @@ def test_client_config_pickle(
     unpickled = pickle.loads(pickled)
     assert isinstance(unpickled, client_cls)
     assert unpickled.config() == client.config()
+
+
+class TestTlsVersions:
+    @pytest.mark.parametrize(
+        "tls_version_max",
+        [None, "1.0", "1.1", "1.2", "1.3"],
+    )
+    @pytest.mark.parametrize(
+        "tls_version_min",
+        [None, "1.0", "1.1", "1.2", "1.3"],
+    )
+    def test_client_config_tls_versions(
+        self,
+        client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None,
+        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None,
+    ) -> None:
+        if (
+            tls_version_min is not None
+            and tls_version_max is not None
+            and tls_version_min > tls_version_max
+        ) or (
+            # problem childs
+            (tls_version_min, tls_version_max)
+            in {
+                (None, "1.0"),
+                (None, "1.1"),
+                ("1.0", "1.0"),
+                ("1.0", "1.1"),
+                ("1.1", "1.1"),
+            }
+        ):
+            with pytest.raises(ry.ReqwestError):
+                _ = client_cls(
+                    tls_version_min=tls_version_min,
+                    tls_version_max=tls_version_max,
+                )
+            return
+        client = client_cls(
+            tls_version_min=tls_version_min, tls_version_max=tls_version_max
+        )
+        config = client.config()
+        assert config["tls_version_min"] == tls_version_min
+        assert config["tls_version_max"] == tls_version_max
+
+    def test_client_tls_versions_wrong_type(
+        self, client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient]
+    ) -> None:
+        match_pat = "TLS version must be a string (options: '1.0', '1.1', '1.2', '1.3')"
+        with pytest.raises(TypeError, match=re.escape(match_pat)):
+            _ = client_cls(tls_version_min=1.2)  # type: ignore[arg-type]
+
+    def test_client_config_tls_versions_value_problemo(
+        self,
+        client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+    ) -> None:
+        match_pat = (
+            "Invalid TLS version: snorkling (options: '1.0', '1.1', '1.2', '1.3')"
+        )
+        with pytest.raises(ValueError, match=re.escape(match_pat)):
+            _ = client_cls(tls_version_min="snorkling")  # type: ignore[arg-type]

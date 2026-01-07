@@ -8,8 +8,6 @@ use crate::response_parking_lot::RyAsyncResponse;
 use crate::response_parking_lot::RyBlockingResponse;
 use crate::tls_version::TlsVersion;
 use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};
-use bytes::Bytes;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
@@ -19,7 +17,7 @@ use reqwest::{Method, RequestBuilder};
 use ryo3_http::{
     HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
 };
-use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
+use ryo3_macro_rules::*;
 use ryo3_std::time::PyDuration;
 use ryo3_url::UrlLike;
 
@@ -99,8 +97,8 @@ pub struct ClientConfig {
     tcp_keepalive_retries: Option<u32>, // default: 3
     tcp_nodelay: bool,                 // default: true
     // -- tls --
-    tls_max_version: Option<TlsVersion>,
-    tls_min_version: Option<TlsVersion>,
+    tls_version_max: Option<TlsVersion>,
+    tls_version_min: Option<TlsVersion>,
     tls_info: bool, // default: false
     tls_sni: bool,  // default: true
     // -- danger zone --
@@ -170,8 +168,8 @@ impl Default for ClientConfig {
             tcp_keepalive_retries: Some(3),
             tcp_nodelay: true,
             // tls
-            tls_min_version: None,
-            tls_max_version: None,
+            tls_version_min: None,
+            tls_version_max: None,
             tls_info: false,
             tls_sni: true,
             // danger
@@ -237,30 +235,8 @@ fn client_request_builder(
         }
         (Some(body), None, None, None) => {
             use crate::body::PyBody;
-
             let bod = body.extract::<PyBody>()?;
-            // if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
-            //     // short circuit for rs-py-bytes
-            //     let rsbytes: &Bytes = rsbytes.get().as_ref();
-            //     req = req.body(rsbytes.to_owned());
-            // } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
-            //     // buffer protocol
-            //     req = req.body(bytes.into_inner());
-            // } else {
-            //     return py_type_err!("body must be bytes-like");
-            // }
-            match bod {
-                PyBody::Bytes(b) => {
-                    req = req.body(b.into_inner());
-                }
-
-                // PyBody::Empty => {
-                //     req = req.body(Bytes::new());
-                // }
-                PyBody::Stream(s) => {
-                    req = req.body(s);
-                }
-            }
+            req = req.body(bod);
         }
         (None, Some(json), None, None) => {
             let wrapped = ryo3_serde::PyAnySerializer::new(json.into(), None);
@@ -349,24 +325,36 @@ impl RyClient {
         method: Method,
         kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyAsyncResponse> {
+        use ryo3_macro_rules::py_runtime_error;
+
         let req = self.request_builder(url, method, kwargs)?;
 
         let rt = pyo3_async_runtimes::tokio::get_runtime();
         let r = rt
             .spawn(async move { req.send().await })
             .await
-            .map_err(|e| PyValueError::new_err(format!("Join error: {e}")))?
+            .map_err(|e| py_runtime_error!("Join error: {e}"))?
             .map(RyAsyncResponse::from)
             .map_err(crate::RyReqwestError::from)?;
         Ok(r)
     }
 
+    fn request_sync(
+        &self,
+        url: UrlLike,
+        method: Method,
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<RyBlockingResponse> {
+        let req = self.request_builder(url, method, kwargs)?;
+        Self::send_sync(req)
+    }
+
     // TODO: replace this with custom python-y builder pattern that does not
     //       crudely wrap the reqwest::RequestBuilder
-    #[inline]
-    fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
-        client_request_builder(&self.client, options)
-    }
+    // #[inline]
+    // fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
+    //     client_request_builder(&self.client, options)
+    // }
 }
 
 impl RyBlockingClient {
@@ -446,8 +434,8 @@ impl RyHttpClient {
             tcp_nodelay = true,
 
             root_certificates = None,
-            tls_min_version = None,
-            tls_max_version = None,
+            tls_version_min = None,
+            tls_version_max = None,
             tls_info = false,
             tls_sni = true,
 
@@ -501,8 +489,8 @@ impl RyHttpClient {
 
         // -- tls --
         root_certificates: Option<Vec<PyCertificate>>,
-        tls_min_version: Option<TlsVersion>,
-        tls_max_version: Option<TlsVersion>,
+        tls_version_min: Option<TlsVersion>,
+        tls_version_max: Option<TlsVersion>,
         tls_info: bool,
         tls_sni: bool,
 
@@ -553,8 +541,8 @@ impl RyHttpClient {
             tcp_nodelay,
             // --- TLS ---
             root_certificates,
-            tls_min_version,
-            tls_max_version,
+            tls_version_min,
+            tls_version_max,
             tls_info,
             tls_sni,
             // -- danger --
@@ -562,9 +550,7 @@ impl RyHttpClient {
             danger_accept_invalid_hostnames,
         };
         let client_builder = client_cfg.client_builder();
-        let client = client_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+        let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self {
             client,
             cfg: client_cfg,
@@ -982,7 +968,7 @@ impl RyHttpClient {
         signature = (
             url,
             *,
-            method = None,
+            method = PyHttpMethod::GET,
             body = None,
             headers = None,
             query = None,
@@ -1000,7 +986,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<PyHttpMethod>,
+        method: PyHttpMethod,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -1012,10 +998,9 @@ impl RyHttpClient {
         bearer_auth: Option<PyBackedStr>,
         version: Option<PyHttpVersion>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let method = method.map_or_else(|| Method::GET, |m| m.0);
         let opts = RequestKwargs {
             url,
-            method,
+            method: method.0,
             body,
             headers,
             query,
@@ -1041,7 +1026,7 @@ impl RyHttpClient {
         signature = (
             url,
             *,
-            method = None,
+            method = PyHttpMethod::GET,
             body = None,
             headers = None,
             query = None,
@@ -1059,7 +1044,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<PyHttpMethod>,
+        method: PyHttpMethod,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -1071,10 +1056,9 @@ impl RyHttpClient {
         bearer_auth: Option<PyBackedStr>,
         version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
-        let method = method.map_or_else(|| Method::GET, |m| m.0);
         let opts = RequestKwargs {
             url,
-            method,
+            method: method.0,
             body,
             headers,
             query,
@@ -1094,7 +1078,7 @@ impl RyHttpClient {
         signature = (
             url,
             *,
-            method = None,
+            method = PyHttpMethod::GET,
             body = None,
             headers = None,
             query = None,
@@ -1112,7 +1096,7 @@ impl RyHttpClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<PyHttpMethod>,
+        method: PyHttpMethod,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -1195,8 +1179,8 @@ impl RyClient {
             tcp_nodelay = true,
 
             root_certificates = None,
-            tls_min_version = None,
-            tls_max_version = None,
+            tls_version_min = None,
+            tls_version_max = None,
             tls_info = false,
             tls_sni = true,
 
@@ -1250,8 +1234,8 @@ impl RyClient {
 
         // -- tls --
         root_certificates: Option<Vec<PyCertificate>>,
-        tls_min_version: Option<TlsVersion>,
-        tls_max_version: Option<TlsVersion>,
+        tls_version_min: Option<TlsVersion>,
+        tls_version_max: Option<TlsVersion>,
         tls_info: bool,
         tls_sni: bool,
 
@@ -1302,8 +1286,8 @@ impl RyClient {
             tcp_nodelay,
             // --- TLS ---
             root_certificates,
-            tls_min_version,
-            tls_max_version,
+            tls_version_min,
+            tls_version_max,
             tls_info,
             tls_sni,
             // -- danger --
@@ -1311,9 +1295,7 @@ impl RyClient {
             danger_accept_invalid_hostnames,
         };
         let client_builder = client_cfg.client_builder();
-        let client = client_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+        let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self {
             client,
             cfg: client_cfg,
@@ -1389,7 +1371,7 @@ impl RyClient {
         self.request(url, Method::OPTIONS, kwargs).await
     }
 
-    #[pyo3(signature = (url, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     pub(crate) async fn fetch(
         &self,
         url: UrlLike,
@@ -1399,7 +1381,7 @@ impl RyClient {
         self.request(url, method.into(), kwargs).await
     }
 
-    #[pyo3(signature = (url, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     async fn __call__(
         &self,
         url: UrlLike,
@@ -1409,58 +1391,67 @@ impl RyClient {
         self.request(url, method.into(), kwargs).await
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            method = None,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
+    // #[pyo3(
+    //     signature = (
+    //         url,
+    //         *,
+    //         method = PyHttpMethod::GET,
+    //         body = None,
+    //         headers = None,
+    //         query = None,
+    //         json = None,
+    //         form = None,
+    //         multipart = None,
+    //         timeout = None,
+    //         basic_auth = None,
+    //         bearer_auth = None,
+    //         version = None,
+    //     )
+    // )]
     #[expect(clippy::too_many_arguments)]
-    pub(crate) fn fetch_sync<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        method: Option<PyHttpMethod>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    pub(crate) fn fetch_sync(
+        &self,
+        url: UrlLike,
+        method: PyHttpMethod,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let method = method.map_or_else(|| Method::GET, |m| m.0);
-        let opts = RequestKwargs {
-            url,
-            method,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        self.request_sync(url, method.into(), kwargs)
     }
+    // pub(crate) fn fetch_sync<'py>(
+    //     &'py self,
+    //     py: Python<'py>,
+    //     url: &Bound<'py, PyAny>,
+    //     method: PyHttpMethod,
+    //     body: Option<&Bound<'py, PyAny>>,
+    //     headers: Option<PyHeadersLike>,
+    //     query: Option<&Bound<'py, PyAny>>,
+    //     json: Option<&Bound<'py, PyAny>>,
+    //     form: Option<&Bound<'py, PyAny>>,
+    //     multipart: Option<&Bound<'py, PyAny>>,
+    //     timeout: Option<&PyDuration>,
+    //     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
+    //     bearer_auth: Option<PyBackedStr>,
+    //     version: Option<PyHttpVersion>,
+    // ) -> PyResult<RyBlockingResponse> {
+    //     let method = method.0;
+    //     let opts = RequestKwargs {
+    //         url,
+    //         method,
+    //         body,
+    //         headers,
+    //         query,
+    //         json,
+    //         multipart,
+    //         form,
+    //         timeout,
+    //         basic_auth,
+    //         bearer_auth,
+    //         version,
+    //     };
+    //     let req = self.build_request(opts)?;
+    //     py.detach(|| Self::send_sync(req))
+    // }
 }
 
 #[pymethods]
@@ -1515,8 +1506,8 @@ impl RyBlockingClient {
             tcp_nodelay = true,
 
             root_certificates = None,
-            tls_min_version = None,
-            tls_max_version = None,
+            tls_version_min = None,
+            tls_version_max = None,
             tls_info = false,
             tls_sni = true,
 
@@ -1570,8 +1561,8 @@ impl RyBlockingClient {
 
         // -- tls --
         root_certificates: Option<Vec<PyCertificate>>,
-        tls_min_version: Option<TlsVersion>,
-        tls_max_version: Option<TlsVersion>,
+        tls_version_min: Option<TlsVersion>,
+        tls_version_max: Option<TlsVersion>,
         tls_info: bool,
         tls_sni: bool,
 
@@ -1622,8 +1613,8 @@ impl RyBlockingClient {
             tcp_nodelay,
             // --- TLS ---
             root_certificates,
-            tls_min_version,
-            tls_max_version,
+            tls_version_min,
+            tls_version_max,
             tls_info,
             tls_sni,
             // -- danger --
@@ -1631,9 +1622,7 @@ impl RyBlockingClient {
             danger_accept_invalid_hostnames,
         };
         let client_builder = client_cfg.client_builder();
-        let client = client_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("{e}")))?;
+        let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self {
             client,
             cfg: client_cfg,
@@ -2016,7 +2005,7 @@ impl RyBlockingClient {
         signature = (
             url,
             *,
-            method = None,
+            method = PyHttpMethod::GET,
             body = None,
             headers = None,
             query = None,
@@ -2034,7 +2023,7 @@ impl RyBlockingClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<ryo3_http::HttpMethod>,
+        method: PyHttpMethod,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -2046,10 +2035,9 @@ impl RyBlockingClient {
         bearer_auth: Option<PyBackedStr>,
         version: Option<PyHttpVersion>,
     ) -> PyResult<RyBlockingResponse> {
-        let method = method.map_or_else(|| Method::GET, |m| m.0);
         let opts = RequestKwargs {
             url,
-            method,
+            method: method.0,
             body,
             headers,
             query,
@@ -2069,7 +2057,7 @@ impl RyBlockingClient {
         signature = (
             url,
             *,
-            method = None,
+            method = PyHttpMethod::GET,
             body = None,
             headers = None,
             query = None,
@@ -2087,7 +2075,7 @@ impl RyBlockingClient {
         &'py self,
         py: Python<'py>,
         url: &Bound<'py, PyAny>,
-        method: Option<ryo3_http::HttpMethod>,
+        method: PyHttpMethod,
         body: Option<&Bound<'py, PyAny>>,
         headers: Option<PyHeadersLike>,
         query: Option<&Bound<'py, PyAny>>,
@@ -2226,11 +2214,11 @@ impl ClientConfig {
                 client_builder = client_builder.add_root_certificate(cert.cert.clone()); // ew a clone
             }
         }
-        if let Some(tls_min_version) = &self.tls_min_version {
-            client_builder = client_builder.min_tls_version(tls_min_version.into());
+        if let Some(tls_version_min) = &self.tls_version_min {
+            client_builder = client_builder.tls_version_min(tls_version_min.into());
         }
-        if let Some(tls_max_version) = &self.tls_max_version {
-            client_builder = client_builder.max_tls_version(tls_max_version.into());
+        if let Some(tls_version_max) = &self.tls_version_max {
+            client_builder = client_builder.tls_version_max(tls_version_max.into());
         }
         client_builder
     }
@@ -2291,8 +2279,8 @@ impl ClientConfig {
             "tcp_nodelay" => self.tcp_nodelay,
             // -- tls --
             "root_certificates" => self.root_certificates.clone(),
-            "tls_min_version" => self.tls_min_version,
-            "tls_max_version" => self.tls_max_version,
+            "tls_version_min" => self.tls_version_min,
+            "tls_version_max" => self.tls_version_max,
             "tls_info" => self.tls_info,
             "tls_sni" => self.tls_sni,
             "danger_accept_invalid_certs" => self.danger_accept_invalid_certs,
@@ -2348,9 +2336,8 @@ impl ReqwestKwargs {
         if let Some(query) = self.query {
             // temp hack we know that the query is already url-encoded so we
             // decode it and then re-encode it...
-            let decoded: Vec<(&str, &str)> = serde_urlencoded::from_str(&query).map_err(|err| {
-                PyValueError::new_err(format!("failed to decode query params: {err}"))
-            })?;
+            let decoded: Vec<(&str, &str)> = serde_urlencoded::from_str(&query)
+                .map_err(|err| py_value_error!("failed to decode query params: {err}"))?;
             req = req.query(&decoded);
         }
 
@@ -2399,7 +2386,7 @@ impl ReqwestKwargs {
 #[cfg(feature = "experimental-async")]
 #[derive(Debug)]
 enum AsyncReqwestBody {
-    Bytes(Bytes),
+    Bytes(bytes::Bytes),
     Stream(crate::body::PyBodyStream),
     Json(Vec<u8>),
     Form(String),
@@ -2426,10 +2413,8 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
         let query: Option<String> = dict.get_item(intern!(py, "query")).map(|e| {
             if let Some(q) = e {
                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(q.as_borrowed(), None);
-                let url_encoded_query =
-                    serde_urlencoded::to_string(py_any_serializer).map_err(|err| {
-                        PyValueError::new_err(format!("failed to serialize query params: {err}"))
-                    })?;
+                let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
+                    .map_err(|err| py_value_error!("failed to serialize query params: {err}"))?;
                 // have to annotate the err type...
                 Ok::<_, PyErr>(Some(url_encoded_query))
             } else {
@@ -2471,11 +2456,11 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
                 AsyncReqwestBody::Json(b)
             }
             (None, None, Some(form), None) => {
+                use ryo3_macro_rules::py_value_error;
+
                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
-                let url_encoded_form =
-                    serde_urlencoded::to_string(py_any_serializer).map_err(|e| {
-                        PyValueError::new_err(format!("failed to serialize form data: {e}"))
-                    })?;
+                let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
+                    .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
                 AsyncReqwestBody::Form(url_encoded_form)
             }
             (None, None, None, Some(_multipart)) => {

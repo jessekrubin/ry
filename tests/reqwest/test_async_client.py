@@ -243,6 +243,44 @@ class TestStream:
 
     @pytest.mark.anyio
     @staticmethod
+    async def test_stream_min_read_size(server: ReqtestServer, client: TClient) -> None:
+        url = server.url
+
+        response = await client.get(str(url) + "long")
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        expected_length = len(expected)
+        parts = b""
+        async for thing in response.bytes_stream(expected_length):
+            assert (
+                len(thing) >= expected_length
+                or len(parts) + len(thing) == expected_length
+            )
+            assert len(thing) != 0, "stream yielded empty chunk"
+            parts += thing
+        assert parts == expected
+
+    @pytest.mark.anyio
+    @staticmethod
+    async def test_stream_min_read_size_one_chunk(
+        server: ReqtestServer, client: TClient
+    ) -> None:
+        url = server.url
+
+        response = await client.get(str(url) + "howdy")
+        expected = b'{"howdy": "partner"}'
+        expected_length = len(expected)
+        parts = b""
+        async for thing in response.bytes_stream(expected_length):
+            assert (
+                len(thing) >= expected_length
+                or len(parts) + len(thing) == expected_length
+            )
+            assert len(thing) != 0, "stream yielded empty chunk"
+            parts += thing
+        assert parts == expected
+
+    @pytest.mark.anyio
+    @staticmethod
     async def test_get_stream(server: ReqtestServer, client: TClient) -> None:
         url = server.url
         response = await client.get(str(url) + "long")

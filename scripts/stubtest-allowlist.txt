@@ -18,6 +18,7 @@ ry.__opt_level__
 # ---------------
 ry.BlockingClient.*
 ry.HttpClient.*
+ry.Client.*
 ry.Response.json
 
 # ---------------------------
