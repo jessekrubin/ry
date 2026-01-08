@@ -1423,24 +1423,6 @@ impl RyClient {
         self.request(url, method.into(), kwargs).await
     }
 
-    // #[pyo3(
-    //     signature = (
-    //         url,
-    //         *,
-    //         method = PyHttpMethod::GET,
-    //         body = None,
-    //         headers = None,
-    //         query = None,
-    //         json = None,
-    //         form = None,
-    //         multipart = None,
-    //         timeout = None,
-    //         basic_auth = None,
-    //         bearer_auth = None,
-    //         version = None,
-    //     )
-    // )]
-    #[expect(clippy::too_many_arguments)]
     #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     pub(crate) fn fetch_sync(
         &self,
@@ -1450,40 +1432,6 @@ impl RyClient {
     ) -> PyResult<RyBlockingResponse> {
         self.request_sync(url, method.into(), kwargs)
     }
-    // pub(crate) fn fetch_sync<'py>(
-    //     &'py self,
-    //     py: Python<'py>,
-    //     url: &Bound<'py, PyAny>,
-    //     method: PyHttpMethod,
-    //     body: Option<&Bound<'py, PyAny>>,
-    //     headers: Option<PyHeadersLike>,
-    //     query: Option<&Bound<'py, PyAny>>,
-    //     json: Option<&Bound<'py, PyAny>>,
-    //     form: Option<&Bound<'py, PyAny>>,
-    //     multipart: Option<&Bound<'py, PyAny>>,
-    //     timeout: Option<&PyDuration>,
-    //     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-    //     bearer_auth: Option<PyBackedStr>,
-    //     version: Option<PyHttpVersion>,
-    // ) -> PyResult<RyBlockingResponse> {
-    //     let method = method.0;
-    //     let opts = RequestKwargs {
-    //         url,
-    //         method,
-    //         body,
-    //         headers,
-    //         query,
-    //         json,
-    //         multipart,
-    //         form,
-    //         timeout,
-    //         basic_auth,
-    //         bearer_auth,
-    //         version,
-    //     };
-    //     let req = self.build_request(opts)?;
-    //     py.detach(|| Self::send_sync(req))
-    // }
 }
 
 #[pymethods]

@@ -162,7 +162,6 @@ pub(crate) fn fetch_sync<'py>(
 }
 
 #[cfg(feature = "experimental-async")]
-#[expect(clippy::too_many_arguments)]
 #[pyfunction(
     signature = (url, *, method = PyHttpMethod::GET, **kwargs),
     text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
@@ -172,6 +171,5 @@ pub(crate) fn fetch_sync(
     method: PyHttpMethod,
     kwargs: Option<crate::client::ReqwestKwargs<true>>,
 ) -> PyResult<RyBlockingResponse> {
-    let a = fetch_client().fetch_sync(url, method, kwargs);
-    a
+    fetch_client().fetch_sync(url, method, kwargs)
 }
