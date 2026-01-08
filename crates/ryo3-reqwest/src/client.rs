@@ -17,7 +17,9 @@ use reqwest::{Method, RequestBuilder};
 use ryo3_http::{
     HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
 };
-use ryo3_macro_rules::*;
+#[cfg(feature = "experimental-async")]
+use ryo3_macro_rules::py_value_error;
+use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 use ryo3_url::UrlLike;
 
@@ -1391,7 +1393,6 @@ impl RyClient {
         self.request(url, method.into(), kwargs).await
     }
 
-    #[expect(clippy::too_many_arguments)]
     #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     pub(crate) fn fetch_sync(
         &self,
