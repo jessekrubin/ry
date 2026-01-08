@@ -1,11 +1,11 @@
 use std::time::Duration;
 
 use crate::RyResponse;
-use crate::cert::PyCertificate;
 use crate::errors::map_reqwest_err;
 #[cfg(feature = "experimental-async")]
 use crate::response_parking_lot::RyAsyncResponse;
 use crate::response_parking_lot::RyBlockingResponse;
+use crate::tls::{PyCertificate, PyCertificateRevocationList};
 use crate::tls_version::TlsVersion;
 use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};
 use pyo3::prelude::*;
@@ -60,7 +60,6 @@ pub struct ClientConfig {
     user_agent: Option<ryo3_http::HttpHeaderValue>,
     hickory_dns: bool,
     redirect: Option<usize>,
-    root_certificates: Option<Vec<PyCertificate>>,
     // misspelled of course :/
     referer: bool,
     // -- http preferences --
@@ -99,13 +98,16 @@ pub struct ClientConfig {
     tcp_keepalive_retries: Option<u32>, // default: 3
     tcp_nodelay: bool,                 // default: true
     // -- tls --
-    tls_version_max: Option<TlsVersion>,
-    tls_version_min: Option<TlsVersion>,
+    tls_certs_merge: Option<Vec<PyCertificate>>,
+    tls_certs_only: Option<Vec<PyCertificate>>,
+    tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
     tls_info: bool, // default: false
     tls_sni: bool,  // default: true
-    // -- danger zone --
-    danger_accept_invalid_certs: bool,
-    danger_accept_invalid_hostnames: bool,
+    tls_version_max: Option<TlsVersion>,
+    tls_version_min: Option<TlsVersion>,
+    // -- tls danger zone --
+    tls_danger_accept_invalid_certs: bool,
+    tls_danger_accept_invalid_hostnames: bool,
     // == CLIENT BUILDER OPTIONS TODO ==
     // add_crl
     // add_crls
@@ -170,15 +172,16 @@ impl Default for ClientConfig {
             tcp_keepalive_retries: Some(3),
             tcp_nodelay: true,
             // tls
-            tls_version_min: None,
-            tls_version_max: None,
+            tls_certs_merge: None,
+            tls_certs_only: None,
+            tls_crls_only: None,
             tls_info: false,
             tls_sni: true,
-            // danger
-            danger_accept_invalid_certs: false,
-            danger_accept_invalid_hostnames: false,
-            // roots
-            root_certificates: None,
+            tls_version_max: None,
+            tls_version_min: None,
+            // tls-danger
+            tls_danger_accept_invalid_certs: false,
+            tls_danger_accept_invalid_hostnames: false,
         }
     }
 }
@@ -455,14 +458,16 @@ impl RyHttpClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
-            root_certificates = None,
-            tls_version_min = None,
-            tls_version_max = None,
+            tls_certs_merge = None,
+            tls_certs_only = None,
+            tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
+            tls_version_max = None,
+            tls_version_min = None,
 
-            danger_accept_invalid_certs = false,
-            danger_accept_invalid_hostnames = false,
+            tls_danger_accept_invalid_certs = false,
+            tls_danger_accept_invalid_hostnames = false,
         )
     )]
     fn py_new(
@@ -510,15 +515,17 @@ impl RyHttpClient {
         tcp_nodelay: bool,
 
         // -- tls --
-        root_certificates: Option<Vec<PyCertificate>>,
-        tls_version_min: Option<TlsVersion>,
-        tls_version_max: Option<TlsVersion>,
+        tls_certs_merge: Option<Vec<PyCertificate>>,
+        tls_certs_only: Option<Vec<PyCertificate>>,
+        tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
+        tls_version_max: Option<TlsVersion>,
+        tls_version_min: Option<TlsVersion>,
 
         // -- danger --
-        danger_accept_invalid_certs: bool,
-        danger_accept_invalid_hostnames: bool,
+        tls_danger_accept_invalid_certs: bool,
+        tls_danger_accept_invalid_hostnames: bool,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -562,14 +569,16 @@ impl RyHttpClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
-            root_certificates,
-            tls_version_min,
-            tls_version_max,
+            tls_certs_merge,
+            tls_certs_only,
+            tls_crls_only,
             tls_info,
             tls_sni,
+            tls_version_max,
+            tls_version_min,
             // -- danger --
-            danger_accept_invalid_certs,
-            danger_accept_invalid_hostnames,
+            tls_danger_accept_invalid_certs,
+            tls_danger_accept_invalid_hostnames,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1200,14 +1209,15 @@ impl RyClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
-            root_certificates = None,
-            tls_version_min = None,
-            tls_version_max = None,
+            tls_certs_merge = None,
+            tls_certs_only = None,
+            tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
-
-            danger_accept_invalid_certs = false,
-            danger_accept_invalid_hostnames = false,
+            tls_version_max = None,
+            tls_version_min = None,
+            tls_danger_accept_invalid_certs = false,
+            tls_danger_accept_invalid_hostnames = false,
         )
     )]
     fn py_new(
@@ -1255,15 +1265,15 @@ impl RyClient {
         tcp_nodelay: bool,
 
         // -- tls --
-        root_certificates: Option<Vec<PyCertificate>>,
-        tls_version_min: Option<TlsVersion>,
-        tls_version_max: Option<TlsVersion>,
+        tls_certs_merge: Option<Vec<PyCertificate>>,
+        tls_certs_only: Option<Vec<PyCertificate>>,
+        tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
-
-        // -- danger --
-        danger_accept_invalid_certs: bool,
-        danger_accept_invalid_hostnames: bool,
+        tls_version_max: Option<TlsVersion>,
+        tls_version_min: Option<TlsVersion>,
+        tls_danger_accept_invalid_certs: bool,
+        tls_danger_accept_invalid_hostnames: bool,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1307,14 +1317,15 @@ impl RyClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
-            root_certificates,
-            tls_version_min,
-            tls_version_max,
+            tls_certs_merge,
+            tls_certs_only,
+            tls_crls_only,
             tls_info,
             tls_sni,
-            // -- danger --
-            danger_accept_invalid_certs,
-            danger_accept_invalid_hostnames,
+            tls_version_max,
+            tls_version_min,
+            tls_danger_accept_invalid_certs,
+            tls_danger_accept_invalid_hostnames,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1476,14 +1487,15 @@ impl RyBlockingClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
-            root_certificates = None,
-            tls_version_min = None,
-            tls_version_max = None,
+            tls_certs_merge = None,
+            tls_certs_only = None,
+            tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
-
-            danger_accept_invalid_certs = false,
-            danger_accept_invalid_hostnames = false,
+            tls_version_max = None,
+            tls_version_min = None,
+            tls_danger_accept_invalid_certs = false,
+            tls_danger_accept_invalid_hostnames = false,
         )
     )]
     fn py_new(
@@ -1531,15 +1543,15 @@ impl RyBlockingClient {
         tcp_nodelay: bool,
 
         // -- tls --
-        root_certificates: Option<Vec<PyCertificate>>,
-        tls_version_min: Option<TlsVersion>,
-        tls_version_max: Option<TlsVersion>,
+        tls_certs_merge: Option<Vec<PyCertificate>>,
+        tls_certs_only: Option<Vec<PyCertificate>>,
+        tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
-
-        // -- danger --
-        danger_accept_invalid_certs: bool,
-        danger_accept_invalid_hostnames: bool,
+        tls_version_max: Option<TlsVersion>,
+        tls_version_min: Option<TlsVersion>,
+        tls_danger_accept_invalid_certs: bool,
+        tls_danger_accept_invalid_hostnames: bool,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1583,14 +1595,16 @@ impl RyBlockingClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
-            root_certificates,
-            tls_version_min,
-            tls_version_max,
+            tls_certs_merge,
+            tls_certs_only,
+            tls_crls_only,
             tls_info,
             tls_sni,
+            tls_version_max,
+            tls_version_min,
             // -- danger --
-            danger_accept_invalid_certs,
-            danger_accept_invalid_hostnames,
+            tls_danger_accept_invalid_certs,
+            tls_danger_accept_invalid_hostnames,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1726,6 +1740,67 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
 }
 
 impl ClientConfig {
+    fn apply_http2_opts(
+        &self,
+        mut client_builder: reqwest::ClientBuilder,
+    ) -> reqwest::ClientBuilder {
+        if self.http2_prior_knowledge {
+            client_builder = client_builder.http2_prior_knowledge();
+        }
+        if let Some(http2_initial_stream_window_size) = self.http2_initial_stream_window_size {
+            client_builder =
+                client_builder.http2_initial_stream_window_size(http2_initial_stream_window_size);
+        }
+        if let Some(http2_initial_connection_window_size) =
+            self.http2_initial_connection_window_size
+        {
+            client_builder = client_builder
+                .http2_initial_connection_window_size(http2_initial_connection_window_size);
+        }
+        if self.http2_adaptive_window {
+            client_builder = client_builder.http2_adaptive_window(true);
+        }
+        if let Some(http2_max_frame_size) = self.http2_max_frame_size {
+            client_builder = client_builder.http2_max_frame_size(http2_max_frame_size);
+        }
+        if let Some(http2_max_header_list_size) = self.http2_max_header_list_size {
+            client_builder = client_builder.http2_max_header_list_size(http2_max_header_list_size);
+        }
+        if let Some(http2_keep_alive_interval) = &self.http2_keep_alive_interval {
+            client_builder = client_builder.http2_keep_alive_interval(http2_keep_alive_interval.0);
+        }
+        if let Some(http2_keep_alive_timeout) = &self.http2_keep_alive_timeout {
+            client_builder = client_builder.http2_keep_alive_timeout(http2_keep_alive_timeout.0);
+        }
+        if self.http2_keep_alive_while_idle {
+            client_builder = client_builder.http2_keep_alive_while_idle(true);
+        }
+        client_builder
+    }
+
+    fn apply_tls_opts(&self, mut client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
+        if let Some(tls_certs_only) = &self.tls_certs_only {
+            client_builder = client_builder
+                .tls_certs_only(tls_certs_only.iter().map(|py_cert| py_cert.cert.clone()));
+        }
+        if let Some(tls_certs_merge) = &self.tls_certs_merge {
+            client_builder = client_builder
+                .tls_certs_merge(tls_certs_merge.iter().map(|py_cert| py_cert.cert.clone()));
+        }
+        if let Some(tls_crls_only) = &self.tls_crls_only {
+            client_builder = client_builder
+                .tls_crls_only(tls_crls_only.clone().into_iter().map(|py_crl| py_crl.crl));
+        }
+
+        if let Some(tls_version_min) = &self.tls_version_min {
+            client_builder = client_builder.tls_version_min(tls_version_min.into());
+        }
+        if let Some(tls_version_max) = &self.tls_version_max {
+            client_builder = client_builder.tls_version_max(tls_version_max.into());
+        }
+        client_builder
+    }
+
     fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         let mut client_builder = client_builder
             .gzip(self.gzip)
@@ -1759,8 +1834,8 @@ impl ClientConfig {
             .tcp_nodelay(self.tcp_nodelay)
             .tls_sni(self.tls_sni)
             .tls_info(self.tls_info)
-            .danger_accept_invalid_certs(self.danger_accept_invalid_certs)
-            .danger_accept_invalid_hostnames(self.danger_accept_invalid_hostnames);
+            .tls_danger_accept_invalid_certs(self.tls_danger_accept_invalid_certs)
+            .tls_danger_accept_invalid_hostnames(self.tls_danger_accept_invalid_hostnames);
 
         if let Some(user_agent) = &self.user_agent {
             client_builder = client_builder.user_agent(user_agent.clone());
@@ -1786,50 +1861,10 @@ impl ClientConfig {
         }
 
         // http2
-        if self.http2_prior_knowledge {
-            client_builder = client_builder.http2_prior_knowledge();
-        }
-        if let Some(http2_initial_stream_window_size) = self.http2_initial_stream_window_size {
-            client_builder =
-                client_builder.http2_initial_stream_window_size(http2_initial_stream_window_size);
-        }
-        if let Some(http2_initial_connection_window_size) =
-            self.http2_initial_connection_window_size
-        {
-            client_builder = client_builder
-                .http2_initial_connection_window_size(http2_initial_connection_window_size);
-        }
-        if self.http2_adaptive_window {
-            client_builder = client_builder.http2_adaptive_window(true);
-        }
-        if let Some(http2_max_frame_size) = self.http2_max_frame_size {
-            client_builder = client_builder.http2_max_frame_size(http2_max_frame_size);
-        }
-        if let Some(http2_max_header_list_size) = self.http2_max_header_list_size {
-            client_builder = client_builder.http2_max_header_list_size(http2_max_header_list_size);
-        }
-        if let Some(http2_keep_alive_interval) = &self.http2_keep_alive_interval {
-            client_builder = client_builder.http2_keep_alive_interval(http2_keep_alive_interval.0);
-        }
-        if let Some(http2_keep_alive_timeout) = &self.http2_keep_alive_timeout {
-            client_builder = client_builder.http2_keep_alive_timeout(http2_keep_alive_timeout.0);
-        }
-        if self.http2_keep_alive_while_idle {
-            client_builder = client_builder.http2_keep_alive_while_idle(true);
-        }
+        client_builder = self.apply_http2_opts(client_builder);
+        // apply_tls
+        client_builder = self.apply_tls_opts(client_builder);
 
-        // tls
-        if let Some(root_certs) = &self.root_certificates {
-            for cert in root_certs {
-                client_builder = client_builder.add_root_certificate(cert.cert.clone()); // ew a clone
-            }
-        }
-        if let Some(tls_version_min) = &self.tls_version_min {
-            client_builder = client_builder.tls_version_min(tls_version_min.into());
-        }
-        if let Some(tls_version_max) = &self.tls_version_max {
-            client_builder = client_builder.tls_version_max(tls_version_max.into());
-        }
         client_builder
     }
 
@@ -1888,13 +1923,15 @@ impl ClientConfig {
             "tcp_keepalive_retries" => self.tcp_keepalive_retries,
             "tcp_nodelay" => self.tcp_nodelay,
             // -- tls --
-            "root_certificates" => self.root_certificates.clone(),
-            "tls_version_min" => self.tls_version_min,
-            "tls_version_max" => self.tls_version_max,
+            "tls_crls_only" => self.tls_crls_only.clone(),
+            "tls_certs_merge" => self.tls_certs_merge.clone(),
+            "tls_certs_only" => self.tls_certs_only.clone(),
             "tls_info" => self.tls_info,
             "tls_sni" => self.tls_sni,
-            "danger_accept_invalid_certs" => self.danger_accept_invalid_certs,
-            "danger_accept_invalid_hostnames" => self.danger_accept_invalid_hostnames
+            "tls_version_max" => self.tls_version_max,
+            "tls_version_min" => self.tls_version_min,
+            "tls_danger_accept_invalid_certs" => self.tls_danger_accept_invalid_certs,
+            "tls_danger_accept_invalid_hostnames" => self.tls_danger_accept_invalid_hostnames
         }
         Ok(dict)
     }
