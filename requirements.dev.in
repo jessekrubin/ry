@@ -1,7 +1,7 @@
 anyio
 hypothesis
 maturin
-orjson
+orjson==3.11.4
 pydantic
 pytest>=9.0.1
 pytest-cov
