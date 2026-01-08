@@ -13,6 +13,7 @@ _RY_TYPES: list[type] = [
     ry.Client,
     ry.Bytes,
     ry.Certificate,
+    ry.CertificateRevocationList,
     ry.Cookie,
     ry.Date,
     ry.DateDifference,

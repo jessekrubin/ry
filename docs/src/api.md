@@ -156,6 +156,9 @@ from ry.ryo3._reqwest import BlockingClient as BlockingClient
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
+from ry.ryo3._reqwest import (
+    CertificateRevocationList as CertificateRevocationList,
+)
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
@@ -4304,13 +4307,15 @@ class ClientConfig(t.TypedDict):
     tcp_keepalive_interval: Duration | None
     tcp_keepalive_retries: int | None
     tcp_nodelay: bool
-    root_certificates: list[Certificate] | None
-    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_certs_merge: list[Certificate] | None
+    tls_certs_only: list[Certificate] | None
+    tls_crls_only: list[CertificateRevocationList] | None
     tls_info: bool
     tls_sni: bool
-    danger_accept_invalid_certs: bool
-    danger_accept_invalid_hostnames: bool
+    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_danger_accept_invalid_certs: bool
+    tls_danger_accept_invalid_hostnames: bool
 
 
 @t.final
@@ -4352,13 +4357,15 @@ class HttpClient:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
-        root_certificates: list[Certificate] | None = None,
+        tls_certs_only: list[Certificate] | None = None,
+        tls_certs_merge: list[Certificate] | None = None,
+        tls_crls_only: list[CertificateRevocationList] | None = None,
         tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
-        danger_accept_invalid_certs: bool = False,
-        danger_accept_invalid_hostnames: bool = False,
+        tls_danger_accept_invalid_certs: bool = False,
+        tls_danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -4460,13 +4467,15 @@ class Client:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
-        root_certificates: list[Certificate] | None = None,
+        tls_certs_only: list[Certificate] | None = None,
+        tls_certs_merge: list[Certificate] | None = None,
+        tls_crls_only: list[CertificateRevocationList] | None = None,
         tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
-        danger_accept_invalid_certs: bool = False,
-        danger_accept_invalid_hostnames: bool = False,
+        tls_danger_accept_invalid_certs: bool = False,
+        tls_danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -4566,13 +4575,15 @@ class BlockingClient:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
-        root_certificates: list[Certificate] | None = None,
+        tls_certs_only: list[Certificate] | None = None,
+        tls_certs_merge: list[Certificate] | None = None,
+        tls_crls_only: list[CertificateRevocationList] | None = None,
         tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
-        danger_accept_invalid_certs: bool = False,
-        danger_accept_invalid_hostnames: bool = False,
+        tls_danger_accept_invalid_certs: bool = False,
+        tls_danger_accept_invalid_hostnames: bool = False,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     def get(
@@ -4907,6 +4918,20 @@ class Certificate:
     def from_pem(pem: Buffer) -> Certificate: ...
     @staticmethod
     def from_pem_bundle(pem_bundle: Buffer) -> list[Certificate]: ...
+
+
+@t.final
+class CertificateRevocationList:
+    def __init__(self) -> t.NoReturn: ...
+    def __hash__(self) -> int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    @staticmethod
+    def from_pem(pem: Buffer) -> CertificateRevocationList: ...
+    @staticmethod
+    def from_pem_bundle(
+        pem_bundle: Buffer,
+    ) -> list[CertificateRevocationList]: ...
 ```
 
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
