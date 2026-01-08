@@ -371,18 +371,34 @@ async def test_client_default_headers_get(
     assert res_json["headers"]["babydog"] == "dingo"
 
 
+def _sync_generator_o_bytes() -> t.Generator[bytes, None, None]:
+    yield from (b"B", b"A", b"B", b"O", b"O", b"M")
+
+
+async def _async_generator_o_bytes() -> t.AsyncGenerator[bytes, None]:
+    for b in (b"B", b"A", b"B", b"O", b"O", b"M"):
+        yield b
+        await asyncio.sleep(0)
+
+
 @pytest.mark.parametrize(
     "body",
     [
         b"BABOOM",
         ry.Bytes(b"BABOOM"),
+        _sync_generator_o_bytes,
+        _async_generator_o_bytes,
     ],
 )
 async def test_client_post(
-    server: ReqtestServer, body: bytes | ry.Bytes, client: TClient
+    server: ReqtestServer,
+    body: bytes | ry.Bytes | t.Callable[[], t.Any],
+    client: TClient,
 ) -> None:
     url = server.url
-    response = await client.post(str(url) + "echo", body=body)
+
+    _body = body() if callable(body) else body
+    response = await client.post(str(url) + "echo", body=_body)
     assert response.status_code == 200
     res_json = await response.json()
     assert res_json["body"] == "BABOOM"
