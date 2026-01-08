@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d0874638.js";
+            window.path_to_searchindex_js = "searchindex-0ca5d828.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2026-01-05T19:23:45.074204873-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2026-01-07T21:02:19.203213674-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -493,6 +493,25 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0077-2026-01-07"><a class="header" href="#v0077-2026-01-07">v0.0.77 [2026-01-07]</a></h2>
+<ul>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li>Allow
+<code>Generator[Buffer] | AsyncGenerator[Buffer] | Iterable[Buffer] | AsyncIterable[Buffer]</code>
+as body input</li>
+<li>Renamed tls version kwargs to match reqwest naming:
+<ul>
+<li><code>tls_max_version</code> -&gt; <code>tls_version_max</code></li>
+<li><code>tls_min_version</code> -&gt; <code>tls_version_min</code></li>
+</ul>
+</li>
+<li><code>Response.stream()</code> now takes a <code>min_read_size</code> kwarg; must be positive int,
+and <code>default=0</code> meaning no buffering</li>
+</ul>
+</li>
+</ul>
+<hr>
 <h2 id="v0076-2026-01-05"><a class="header" href="#v0076-2026-01-05">v0.0.76 [2026-01-05]</a></h2>
 <ul>
 <li><code>ryo3-jiff</code>
@@ -2937,6 +2956,7 @@ from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
+from ry.ryo3.__about__ import __crypto_provider__ as __crypto_provider__
 from ry.ryo3.__about__ import __description__ as __description__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
@@ -3192,6 +3212,7 @@ __description__: str
 __target__: str
 __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
+__crypto_provider__: t.Literal["ring", "aws-lc-rs"]
 </code></pre>
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
 
@@ -5240,6 +5261,7 @@ class TimeSpan(
 
     def abs(self) -&gt; t.Self: ...
     def to_dict(self) -&gt; TimeSpanTypedDict: ...
+    def fieldwise(self) -&gt; TimeSpanTypedDict: ...
     def compare(
         self,
         other: t.Self,
@@ -5406,6 +5428,48 @@ class Timestamp(
     # =========================================================================
     # PROPERTIES
     # =========================================================================
+    @property
+    def second(self) -&gt; int:
+        """Return the second component of the timestamp
+
+        Returns:
+            int: The second component of the timestamp.
+
+        Examples:
+            &gt;&gt;&gt; import ry
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 123_456_789)
+            &gt;&gt;&gt; ts.second
+            5
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -123_456_789)
+            &gt;&gt;&gt; ts.second
+            -5
+
+        """
+
+    @property
+    def nanosecond(self) -&gt; int:
+        """Return the nanosecond component (-999_999_999..999_999_999)
+
+        Returns:
+            int: The nanosecond component of the timestamp (-999_999_999..999_999_999).
+
+        Examples:
+            &gt;&gt;&gt; import ry
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 123_456_789)
+            &gt;&gt;&gt; ts.nanosecond
+            123456789
+            &gt;&gt;&gt; ts = ry.Timestamp(5, 999_999_999)
+            &gt;&gt;&gt; ts.nanosecond
+            999999999
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -123_456_789)
+            &gt;&gt;&gt; ts.nanosecond
+            -123456789
+            &gt;&gt;&gt; ts = ry.Timestamp(-5, -999_999_999)
+            &gt;&gt;&gt; ts.nanosecond
+            -999999999
+
+        """
+
     @property
     def subsec_microsecond(self) -&gt; int:
         """Return the subsecond microsecond component (-999_999..999_999)
@@ -7037,9 +7101,17 @@ from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
+_Body: t.TypeAlias = (
+    Buffer
+    | t.Generator[Buffer]
+    | t.AsyncGenerator[Buffer]
+    | t.Iterable[Buffer]
+    | t.AsyncIterable[Buffer]
+)
+
 
 class RequestKwargs(t.TypedDict, total=False):
-    body: Buffer | None
+    body: _Body | None
     headers: Headers | dict[str, str] | None
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
     json: t.Any
@@ -7087,8 +7159,8 @@ class ClientConfig(t.TypedDict):
     tcp_keepalive_retries: int | None
     tcp_nodelay: bool
     root_certificates: list[Certificate] | None
-    tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
     tls_info: bool
     tls_sni: bool
     danger_accept_invalid_certs: bool
@@ -7135,8 +7207,8 @@ class HttpClient:
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
         root_certificates: list[Certificate] | None = None,
-        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
         danger_accept_invalid_certs: bool = False,
@@ -7243,8 +7315,8 @@ class Client:
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
         root_certificates: list[Certificate] | None = None,
-        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
         danger_accept_invalid_certs: bool = False,
@@ -7349,8 +7421,8 @@ class BlockingClient:
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
         root_certificates: list[Certificate] | None = None,
-        tls_min_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_max_version: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
+        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
         danger_accept_invalid_certs: bool = False,
@@ -7441,8 +7513,12 @@ class Response:
         catch_duplicate_keys: bool = False,
     ) -&gt; t.Any: ...
     async def bytes(self) -&gt; ry.Bytes: ...
-    def bytes_stream(self) -&gt; ResponseStream: ...
-    def stream(self) -&gt; ResponseStream: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -&gt; ResponseStream: ...  # min_read_size=0 -&gt; None
+    def stream(
+        self, min_read_size: int = 0, /
+    ) -&gt; ResponseStream: ...  # min_read_size=0 -&gt; None
     @property
     def url(self) -&gt; URL: ...
     @property
@@ -7504,8 +7580,10 @@ class BlockingResponse:
         catch_duplicate_keys: bool = False,
     ) -&gt; t.Any: ...
     def bytes(self) -&gt; ry.Bytes: ...
-    def bytes_stream(self) -&gt; BlockingResponseStream: ...
-    def stream(self) -&gt; BlockingResponseStream: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -&gt; BlockingResponseStream: ...
+    def stream(self, min_read_size: int = 0, /) -&gt; BlockingResponseStream: ...
     @property
     def url(self) -&gt; URL: ...
     @property
@@ -7578,7 +7656,7 @@ async def fetch(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Buffer | None = None,
+    body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
@@ -7593,7 +7671,7 @@ def fetch_sync(
     url: str | URL,
     *,
     method: str = "GET",
-    body: Buffer | None = None,
+    body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
