@@ -57,7 +57,8 @@ class TestDateDifference:
         d1 = ry.date(2024, 3, 15)
         d2 = ry.date(2030, 11, 22)
         span = d1._until(
-            ry.DateDifference(d2)
+            ry
+            .DateDifference(d2)
             ._smallest("week")
             ._largest("week")
             ._mode("half-expand")
@@ -169,7 +170,8 @@ class TestTimeDifference:
         t1 = ry.time(8, 14, 0, 123456789)
         t2 = ry.time(15, 0, 0, 0)
         span = t1._until(
-            ry.TimeDifference(t2)
+            ry
+            .TimeDifference(t2)
             ._smallest("minute")
             ._mode("half-expand")
             ._increment(30)
@@ -178,7 +180,8 @@ class TestTimeDifference:
 
         t2 = ry.time(14, 59, 0, 0)
         span = t1._until(
-            ry.TimeDifference(t2)
+            ry
+            .TimeDifference(t2)
             ._smallest("minute")
             ._mode("half-expand")
             ._increment(30)
@@ -259,7 +262,8 @@ class TestDateTimeDifference:
         dt1 = ry.DateTime.parse("2024-03-15 08:14:00.123456789")
         dt2 = ry.DateTime.parse("2030-03-22 15:00")
         span = dt1._until(
-            ry.DateTimeDifference(dt2)
+            ry
+            .DateTimeDifference(dt2)
             ._smallest("minute")
             ._largest("year")
             ._mode("half-expand")
@@ -294,7 +298,8 @@ class TestDateTimeDifference:
         dt1 = ry.DateTime.parse("2024-03-15 08:14")
         dt2 = ry.DateTime.parse("2030-11-22 08:30")
         span = dt1._until(
-            ry.DateTimeDifference(dt2)
+            ry
+            .DateTimeDifference(dt2)
             ._smallest("week")
             ._largest("week")
             ._mode("half-expand")
@@ -390,7 +395,8 @@ class TestTimestampDifference:
         ts1 = ry.Timestamp.parse("2024-03-15 08:14:00.123456789Z")
         ts2 = ry.Timestamp.parse("2024-03-22 15:00Z")
         span = ts1._until(
-            ry.TimestampDifference(ts2)
+            ry
+            .TimestampDifference(ts2)
             ._smallest("minute")
             ._largest("hour")
             ._mode("half-expand")
@@ -401,7 +407,8 @@ class TestTimestampDifference:
 
         ts2 = ry.Timestamp.parse("2024-03-22 14:59Z")
         span = ts1._until(
-            ry.TimestampDifference(ts2)
+            ry
+            .TimestampDifference(ts2)
             ._smallest("minute")
             ._largest("hour")
             ._mode("half-expand")
@@ -503,7 +510,8 @@ class TestTimestampDifference:
         ts1 = ry.Timestamp.parse("2024-03-15 08:19Z")
         ts2 = ry.Timestamp.parse("2024-03-15 12:52Z")
         span = ts1._until(
-            ry.TimestampDifference(ts2)
+            ry
+            .TimestampDifference(ts2)
             ._smallest("minute")
             ._increment(5)
             ._mode("half-expand")

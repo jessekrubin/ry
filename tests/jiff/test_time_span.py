@@ -45,7 +45,8 @@ def test_span_dict() -> None:
 
 def test_builder_pattern() -> None:
     s = (
-        ry.TimeSpan()
+        ry
+        .TimeSpan()
         ._years(1)
         ._months(1)
         ._weeks(1)

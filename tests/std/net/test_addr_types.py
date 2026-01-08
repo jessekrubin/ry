@@ -135,7 +135,6 @@ def test_string_and_parse(obj: _StdNetAddrLike) -> None:
 def test_properties_v4_testv2(
     obj: ry.Ipv4Addr | ry.IpAddr | ry.SocketAddrV4 | ry.SocketAddr,
 ) -> None:
-
     assert not obj.is_benchmarking
     assert not obj.is_broadcast
     assert not obj.is_documentation
@@ -167,7 +166,6 @@ def test_properties_v4_testv2(
 def test_properties_v6(
     obj: ry.Ipv6Addr | ry.IpAddr | ry.SocketAddrV6 | ry.SocketAddr,
 ) -> None:
-
     assert not obj.is_benchmarking
     assert not obj.is_documentation
     assert not obj.is_ipv4_mapped

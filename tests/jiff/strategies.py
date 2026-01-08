@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 from hypothesis import strategies as st
 
@@ -9,39 +9,6 @@ import ry
 
 if TYPE_CHECKING:
     from hypothesis.strategies import SearchStrategy
-# unsigned ──────────────────────────────────────────────────────────
-_MIN_U8: Final = 0
-_MAX_U8: Final = (1 << 8) - 1  # 255
-
-_MIN_U16: Final = 0
-_MAX_U16: Final = (1 << 16) - 1  # 65_535
-
-_MIN_U32: Final = 0
-_MAX_U32: Final = (1 << 32) - 1  # 4_294_967_295
-
-_MIN_U64: Final = 0
-_MAX_U64: Final = (1 << 64) - 1  # 18_446_744_073_709_551_615
-
-_MIN_U128: Final = 0
-_MAX_U128: Final = (
-    1 << 128
-) - 1  # 340_282_366_841_710_656_408_393_487_639_999_999_999_999_999_999_999_999_999_999
-
-# signed ────────────────────────────────────────────────────────────
-_MIN_I8: Final = -(1 << 7)  # -128
-_MAX_I8: Final = (1 << 7) - 1  # 127
-
-_MIN_I16: Final = -(1 << 15)  # -32_768
-_MAX_I16: Final = (1 << 15) - 1  # 32_767
-
-_MIN_I32: Final = -(1 << 31)  # -2_147_483_648
-_MAX_I32: Final = (1 << 31) - 1  # 2_147_483_647
-
-_MIN_I64: Final = -(1 << 63)  # -9_223_372_036_854_775_808
-_MAX_I64: Final = (1 << 63) - 1  # 9_223_372_036_854_775_807
-
-_MIN_I128: Final = -(1 << 127)  # -170_141_183_460_469_231_731_687_303_715_884_105_728
-_MAX_I128: Final = (1 << 127) - 1  # 170_141_183_460_469_231_731_687_303_715_884_105_727
 
 date_strategy = st.dates(
     min_value=pydt.date(1, 1, 1), max_value=pydt.date(9999, 12, 31)
