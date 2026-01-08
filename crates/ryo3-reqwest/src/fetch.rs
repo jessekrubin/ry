@@ -101,7 +101,7 @@ pub(crate) fn fetch<'py>(
 pub(crate) async fn fetch(
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs<false>>,
+    kwargs: Option<crate::client::ReqwestKwargs>,
 ) -> PyResult<RyAsyncResponse> {
     fetch_client().fetch(url, method, kwargs).await
 }

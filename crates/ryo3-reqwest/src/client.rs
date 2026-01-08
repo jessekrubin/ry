@@ -304,7 +304,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs<false>>,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RequestBuilder> {
         // we can avoid the weird little hackyh query serde song and dance
         // TODO: FIX THIS?
@@ -325,7 +325,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs<true>>,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RequestBuilder> {
         let url = url.0;
         if let Some(kwargs) = kwargs {
@@ -339,7 +339,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs<false>>,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyAsyncResponse> {
         use ryo3_macro_rules::py_runtime_error;
 
@@ -359,7 +359,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs<true>>,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
         let req = self.request_builder_sync(url, method, kwargs)?;
         Self::send_sync(req)
@@ -1341,29 +1341,17 @@ impl RyClient {
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn get(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs<false>>,
-    ) -> PyResult<RyAsyncResponse> {
+    async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::GET, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn post(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs<false>>,
-    ) -> PyResult<RyAsyncResponse> {
+    async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::POST, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn put(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs<false>>,
-    ) -> PyResult<RyAsyncResponse> {
+    async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::PUT, kwargs).await
     }
 
@@ -1371,7 +1359,7 @@ impl RyClient {
     async fn patch(
         &self,
         url: UrlLike,
-        kwargs: Option<ReqwestKwargs<false>>,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::PATCH, kwargs).await
     }
@@ -1380,17 +1368,13 @@ impl RyClient {
     async fn delete(
         &self,
         url: UrlLike,
-        kwargs: Option<ReqwestKwargs<false>>,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::DELETE, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn head(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs<false>>,
-    ) -> PyResult<RyAsyncResponse> {
+    async fn head(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::HEAD, kwargs).await
     }
 
@@ -1398,7 +1382,7 @@ impl RyClient {
     async fn options(
         &self,
         url: UrlLike,
-        kwargs: Option<ReqwestKwargs<false>>,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::OPTIONS, kwargs).await
     }
@@ -1408,7 +1392,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs<false>>,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, method.into(), kwargs).await
     }
@@ -1418,7 +1402,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs<false>>,
+        kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, method.into(), kwargs).await
     }
@@ -2291,7 +2275,7 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
 }
 
 #[cfg(feature = "experimental-async")]
-pub(crate) struct ReqwestKwargs<const BLOCKING: bool> {
+pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     headers: Option<HeaderMap>,
     query: Option<String>,
     body: PyReqwestBody,
@@ -2300,6 +2284,8 @@ pub(crate) struct ReqwestKwargs<const BLOCKING: bool> {
     bearer_auth: Option<PyBackedStr>,
     version: Option<PyHttpVersion>,
 }
+
+pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 
 #[cfg(feature = "experimental-async")]
 impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
