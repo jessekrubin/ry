@@ -6,6 +6,13 @@
   - use uv publishing
   - update pre-commit stuff
   - update dev/testing deps
+- `ryo3-reqwest`
+  - added new `tls_crls_only` kwarg
+  - added `ry.CertificateRevocationList`
+  - renames/deprecations:
+    - `root_certificates` -> `tls_certs_merge` and `tls_certs_only`
+    - `danger_accept_invalid_certs` -> `tls_danger_accept_invalid_certs`
+    - `danger_accept_invalid_hostnames` -> `tls_danger_accept_invalid_hostnames`
 
 ---
 

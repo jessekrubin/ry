@@ -45,13 +45,15 @@ _DEFAULT_CONFIG: ClientConfig = {
     "tcp_keepalive_interval": ry.Duration(secs=15, nanos=0),
     "tcp_keepalive_retries": 3,
     "tcp_nodelay": True,
-    "root_certificates": None,
+    "tls_certs_only": None,
+    "tls_certs_merge": None,
+    "tls_crls_only": None,
     "tls_version_min": None,
     "tls_version_max": None,
     "tls_info": False,
     "tls_sni": True,
-    "danger_accept_invalid_certs": False,
-    "danger_accept_invalid_hostnames": False,
+    "tls_danger_accept_invalid_certs": False,
+    "tls_danger_accept_invalid_hostnames": False,
 }
 
 

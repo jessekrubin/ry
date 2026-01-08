@@ -101,6 +101,7 @@ from ry.ryo3._reqwest import BlockingClient as BlockingClient
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
+from ry.ryo3._reqwest import CertificateRevocationList as CertificateRevocationList
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
