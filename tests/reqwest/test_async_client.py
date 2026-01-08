@@ -9,6 +9,8 @@ import pytest
 import ry
 
 if TYPE_CHECKING:
+    from ry._types import Buffer
+
     from .conftest import ReqtestServer
 
 TClient: t.TypeAlias = ry.HttpClient | ry.Client
@@ -371,37 +373,103 @@ async def test_client_default_headers_get(
     assert res_json["headers"]["babydog"] == "dingo"
 
 
+# ---------------------------------------------------------------------------
+# POST TESTS ~ POST TESTS ~ POST TESTS ~ POST TESTS ~ POST TESTS ~ POST TESTS
+# ---------------------------------------------------------------------------
+
+
 def _sync_generator_o_bytes() -> t.Generator[bytes, None, None]:
-    yield from (b"B", b"A", b"B", b"O", b"O", b"M")
+    yield from (b"BA", b"BY", b"DOG")
 
 
 async def _async_generator_o_bytes() -> t.AsyncGenerator[bytes, None]:
-    for b in (b"B", b"A", b"B", b"O", b"O", b"M"):
+    for b in (b"BA", b"BY", b"DOG"):
         yield b
         await asyncio.sleep(0)
+
+
+class _SyncIterator:
+    def __init__(self) -> None:
+        self._data = (b"BA", b"BY", b"DOG")
+        self._index = 0
+
+    def __iter__(self) -> _SyncIterator:
+        return self
+
+    def __next__(self) -> bytes:
+        if self._index >= len(self._data):
+            raise StopIteration
+        value = self._data[self._index]
+        self._index += 1
+        return value
+
+
+class _SyncIterable:
+    def __init__(self) -> None:
+        self._data = (b"BA", b"BY", b"DOG")
+        self._index = 0
+
+    def __iter__(self) -> _SyncIterator:
+        return _SyncIterator()
+
+
+class _AsyncIterator:
+    def __init__(self) -> None:
+        self._data = (b"BA", b"BY", b"DOG")
+        self._index = 0
+
+    def __aiter__(self) -> _AsyncIterator:
+        return self
+
+    async def __anext__(self) -> bytes:
+        if self._index >= len(self._data):
+            raise StopAsyncIteration
+        value = self._data[self._index]
+        self._index += 1
+        await asyncio.sleep(0)
+        return value
+
+
+class _AsyncIterable:
+    def __init__(self) -> None:
+        self._data = (b"BA", b"BY", b"DOG")
+        self._index = 0
+
+    def __aiter__(self) -> _AsyncIterator:
+        return _AsyncIterator()
 
 
 @pytest.mark.parametrize(
     "body",
     [
-        b"BABOOM",
-        ry.Bytes(b"BABOOM"),
+        b"BABYDOG",
+        ry.Bytes(b"BABYDOG"),
         _sync_generator_o_bytes,
         _async_generator_o_bytes,
+        _SyncIterable,
+        _SyncIterator,
+        _AsyncIterable,
+        _AsyncIterator,
     ],
 )
 async def test_client_post(
     server: ReqtestServer,
-    body: bytes | ry.Bytes | t.Callable[[], t.Any],
+    body: bytes
+    | ry.Bytes
+    | t.AsyncGenerator[Buffer]
+    | t.AsyncIterable[Buffer]
+    | t.AsyncIterator[Buffer]
+    | t.Generator[Buffer]
+    | t.Iterable[Buffer]
+    | t.Iterator[Buffer],
     client: TClient,
 ) -> None:
     url = server.url
-
     _body = body() if callable(body) else body
     response = await client.post(str(url) + "echo", body=_body)
     assert response.status_code == 200
     res_json = await response.json()
-    assert res_json["body"] == "BABOOM"
+    assert res_json["body"] == "BABYDOG"
 
 
 @pytest.mark.parametrize(
