@@ -167,9 +167,10 @@ pub(crate) fn fetch_sync<'py>(
     text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
 )]
 pub(crate) fn fetch_sync(
+    py: Python<'_>,
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
     kwargs: Option<crate::client::ReqwestKwargs<true>>,
 ) -> PyResult<RyBlockingResponse> {
-    fetch_client().fetch_sync(url, method, kwargs)
+    fetch_client().fetch_sync(py, url, method, kwargs)
 }
