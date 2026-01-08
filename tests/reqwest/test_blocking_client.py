@@ -302,11 +302,16 @@ def test_client_default_headers_get(server: ReqtestServer) -> None:
     assert res_json["headers"]["babydog"] == "dingo"
 
 
-def test_client_post(server: ReqtestServer) -> None:
+@pytest.mark.parametrize(
+    "body", [b"BABOOM", ry.Bytes(b"BABOOM"), lambda: [b"BA", b"BOOM"]]
+)
+def test_client_post(
+    server: ReqtestServer, body: bytes | ry.Bytes | t.Callable[[], t.Any]
+) -> None:
     url = server.url
     client = ry.BlockingClient()
-    response = client.post(str(url) + "echo", body=b"BABOOM")
-
+    _body = body() if callable(body) else body
+    response = client.post(str(url) + "echo", body=_body)
     assert response.status_code == 200
     res_json = response.json()
     assert res_json["body"] == "BABOOM"
