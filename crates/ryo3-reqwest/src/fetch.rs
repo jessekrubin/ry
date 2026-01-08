@@ -101,7 +101,7 @@ pub(crate) fn fetch<'py>(
 pub(crate) async fn fetch(
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs>,
+    kwargs: Option<crate::client::ReqwestKwargs<false>>,
 ) -> PyResult<RyAsyncResponse> {
     fetch_client().fetch(url, method, kwargs).await
 }
@@ -170,7 +170,7 @@ pub(crate) fn fetch_sync<'py>(
 pub(crate) fn fetch_sync(
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs>,
+    kwargs: Option<crate::client::ReqwestKwargs<true>>,
 ) -> PyResult<RyBlockingResponse> {
     let a = fetch_client().fetch_sync(url, method, kwargs);
     a

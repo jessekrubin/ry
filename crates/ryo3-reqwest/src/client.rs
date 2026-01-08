@@ -17,7 +17,9 @@ use reqwest::{Method, RequestBuilder};
 use ryo3_http::{
     HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
 };
-use ryo3_macro_rules::*;
+#[cfg(feature = "experimental-async")]
+use ryo3_macro_rules::py_value_error;
+use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 use ryo3_url::UrlLike;
 
@@ -302,7 +304,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<false>>,
     ) -> PyResult<RequestBuilder> {
         // we can avoid the weird little hackyh query serde song and dance
         // TODO: FIX THIS?
@@ -319,11 +321,25 @@ impl RyClient {
         }
     }
 
+    fn request_builder_sync(
+        &self,
+        url: UrlLike,
+        method: Method,
+        kwargs: Option<ReqwestKwargs<true>>,
+    ) -> PyResult<RequestBuilder> {
+        let url = url.0;
+        if let Some(kwargs) = kwargs {
+            kwargs.apply(self.client.request(method, url))
+        } else {
+            Ok(self.client.request(method, url))
+        }
+    }
+
     async fn request(
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<false>>,
     ) -> PyResult<RyAsyncResponse> {
         use ryo3_macro_rules::py_runtime_error;
 
@@ -343,9 +359,9 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<true>>,
     ) -> PyResult<RyBlockingResponse> {
-        let req = self.request_builder(url, method, kwargs)?;
+        let req = self.request_builder_sync(url, method, kwargs)?;
         Self::send_sync(req)
     }
 
@@ -1325,17 +1341,29 @@ impl RyClient {
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
+    async fn get(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs<false>>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::GET, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
+    async fn post(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs<false>>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::POST, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
+    async fn put(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs<false>>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::PUT, kwargs).await
     }
 
@@ -1343,7 +1371,7 @@ impl RyClient {
     async fn patch(
         &self,
         url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<false>>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::PATCH, kwargs).await
     }
@@ -1352,13 +1380,17 @@ impl RyClient {
     async fn delete(
         &self,
         url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<false>>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::DELETE, kwargs).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn head(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
+    async fn head(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs<false>>,
+    ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::HEAD, kwargs).await
     }
 
@@ -1366,7 +1398,7 @@ impl RyClient {
     async fn options(
         &self,
         url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<false>>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, Method::OPTIONS, kwargs).await
     }
@@ -1376,7 +1408,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<false>>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, method.into(), kwargs).await
     }
@@ -1386,7 +1418,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<false>>,
     ) -> PyResult<RyAsyncResponse> {
         self.request(url, method.into(), kwargs).await
     }
@@ -1414,7 +1446,7 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<true>>,
     ) -> PyResult<RyBlockingResponse> {
         self.request_sync(url, method.into(), kwargs)
     }
@@ -2311,10 +2343,10 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
 }
 
 #[cfg(feature = "experimental-async")]
-pub(crate) struct ReqwestKwargs {
+pub(crate) struct ReqwestKwargs<const BLOCKING: bool> {
     headers: Option<HeaderMap>,
     query: Option<String>,
-    body: AsyncReqwestBody,
+    body: PyReqwestBody,
     timeout: Option<Duration>,
     basic_auth: Option<BasicAuth>,
     bearer_auth: Option<PyBackedStr>,
@@ -2322,7 +2354,7 @@ pub(crate) struct ReqwestKwargs {
 }
 
 #[cfg(feature = "experimental-async")]
-impl ReqwestKwargs {
+impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     /// Apply the kwargs to the `reqwest::RequestBuilder`
     fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
         let mut req = req;
@@ -2343,20 +2375,20 @@ impl ReqwestKwargs {
 
         // body
         req = match self.body {
-            AsyncReqwestBody::Bytes(b) => req.body(b),
-            AsyncReqwestBody::Stream(s) => req.body(s),
-            AsyncReqwestBody::Json(j) => req.body(j).header(
+            PyReqwestBody::Bytes(b) => req.body(b),
+            PyReqwestBody::Stream(s) => req.body(s),
+            PyReqwestBody::Json(j) => req.body(j).header(
                 reqwest::header::CONTENT_TYPE,
                 HeaderValue::from_static("application/json"),
             ),
-            AsyncReqwestBody::Form(f) => req.body(f).header(
+            PyReqwestBody::Form(f) => req.body(f).header(
                 reqwest::header::CONTENT_TYPE,
                 HeaderValue::from_static("application/x-www-form-urlencoded"),
             ),
-            AsyncReqwestBody::Multipart(_m) => {
+            PyReqwestBody::Multipart(_m) => {
                 pytodo!("multipart not implemented (yet)");
             }
-            AsyncReqwestBody::None => req,
+            PyReqwestBody::None => req,
         };
 
         // timeout
@@ -2385,7 +2417,7 @@ impl ReqwestKwargs {
 
 #[cfg(feature = "experimental-async")]
 #[derive(Debug)]
-enum AsyncReqwestBody {
+enum PyReqwestBody {
     Bytes(bytes::Bytes),
     Stream(crate::body::PyBodyStream),
     Json(Vec<u8>),
@@ -2396,7 +2428,7 @@ enum AsyncReqwestBody {
 }
 
 #[cfg(feature = "experimental-async")]
-impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
+impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
@@ -2422,7 +2454,7 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
             }
         })??;
 
-        let body: AsyncReqwestBody = match (body, json, form, multipart) {
+        let body: PyReqwestBody = match (body, json, form, multipart) {
             (Some(_), Some(_), _, _)
             | (Some(_), _, Some(_), _)
             | (Some(_), _, _, Some(_))
@@ -2434,13 +2466,25 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
             (Some(body), None, None, None) => {
                 let py_body = body.extract::<crate::body::PyBody>()?;
                 match py_body {
-                    crate::body::PyBody::Bytes(bs) => AsyncReqwestBody::Bytes(bs.into_inner()),
-                    crate::body::PyBody::Stream(s) => AsyncReqwestBody::Stream(s),
+                    crate::body::PyBody::Bytes(bs) => PyReqwestBody::Bytes(bs.into_inner()),
+                    crate::body::PyBody::Stream(s) => {
+                        // using an async stream with blocking client is a no-go (yo)
+                        if BLOCKING {
+                            if s.is_async() {
+                                return py_type_err!(
+                                    "cannot use async stream body with blocking client"
+                                );
+                            }
+                            PyReqwestBody::Stream(s)
+                        } else {
+                            PyReqwestBody::Stream(s)
+                        }
+                    }
                 }
             }
             (None, Some(json), None, None) => {
                 let b = ryo3_json::to_vec(&json)?;
-                AsyncReqwestBody::Json(b)
+                PyReqwestBody::Json(b)
             }
             (None, None, Some(form), None) => {
                 use ryo3_macro_rules::py_value_error;
@@ -2448,14 +2492,14 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
                 let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
                     .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
-                AsyncReqwestBody::Form(url_encoded_form)
+                PyReqwestBody::Form(url_encoded_form)
             }
             (None, None, None, Some(_multipart)) => {
                 pytodo!("multipart not implemented (yet)");
 
                 // (None, None, None, Some(true))
             }
-            (None, None, None, None) => AsyncReqwestBody::None,
+            (None, None, None, None) => PyReqwestBody::None,
         };
 
         let timeout = dict
