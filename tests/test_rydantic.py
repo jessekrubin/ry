@@ -1225,7 +1225,6 @@ def test_ipv6addr_ok(value: str | bytes | int | IPv6Address | ry.Ipv6Addr) -> No
 
 @pytest.mark.parametrize("value", ["hello,world", "192.168.0.1.1.1", -1, 2**128 + 1])
 def test_ipaddr_err(value: str | int) -> None:
-
     with pytest.raises(pydantic.ValidationError) as exc_info:
         RyIpAddr(ip=value)  # type: ignore[arg-type]
     assert exc_info.value.error_count() == 1

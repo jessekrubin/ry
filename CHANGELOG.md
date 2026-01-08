@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.0.78 [unreleased]:wq
+
+- internal
+  - use uv publishing
+  - update pre-commit stuff
+  - update dev/testing deps
+
+---
+
 ## v0.0.77 [2026-01-07]
 
 - `ryo3-reqwest`

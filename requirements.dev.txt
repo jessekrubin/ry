@@ -2,21 +2,21 @@
 #    uv pip compile requirements.dev.in -n
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.0
+anyio==4.12.1
     # via -r requirements.dev.in
 click==8.3.1
     # via uvicorn
-coverage==7.12.0
+coverage==7.13.1
     # via pytest-cov
 h11==0.16.0
     # via uvicorn
-hypothesis==6.148.7
+hypothesis==6.150.0
     # via -r requirements.dev.in
 idna==3.11
     # via anyio
 iniconfig==2.3.0
     # via pytest
-maturin==1.10.2
+maturin==1.11.4
     # via -r requirements.dev.in
 orjson==3.11.4
     # via -r requirements.dev.in
@@ -34,7 +34,7 @@ pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via pytest
-pytest==9.0.1
+pytest==9.0.2
     # via
     #   -r requirements.dev.in
     #   pytest-asyncio
@@ -46,7 +46,7 @@ pytest-benchmark==5.2.3
     # via -r requirements.dev.in
 pytest-cov==7.0.0
     # via -r requirements.dev.in
-ruff==0.14.8
+ruff==0.14.10
     # via -r requirements.dev.in
 sortedcontainers==2.4.0
     # via hypothesis
@@ -57,7 +57,7 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-tzdata==2025.2
+tzdata==2025.3
     # via -r requirements.dev.in
-uvicorn==0.38.0
+uvicorn==0.40.0
     # via -r requirements.dev.in
