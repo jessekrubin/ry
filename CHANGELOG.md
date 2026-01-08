@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.77 [unreleased]
+## v0.0.77 [2026-01-07]
 
 - `ryo3-reqwest`
   - Allow
