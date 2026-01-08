@@ -2432,24 +2432,11 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
                 return py_value_err!("body, json, form, multipart are mutually exclusive");
             }
             (Some(body), None, None, None) => {
-                let b = body.extract::<crate::body::PyBody>()?;
-
-                match b {
+                let py_body = body.extract::<crate::body::PyBody>()?;
+                match py_body {
                     crate::body::PyBody::Bytes(bs) => AsyncReqwestBody::Bytes(bs.into_inner()),
                     crate::body::PyBody::Stream(s) => AsyncReqwestBody::Stream(s),
                 }
-                // if let Ok(rsbytes) = body.cast_exact::<ryo3_bytes::PyBytes>() {
-                //     // short circuit for rs-py-bytes
-                //     let rsbytes: &Bytes = rsbytes.get().as_ref();
-                //     AsyncReqwestBody::Bytes(rsbytes.clone())
-                // } else if let Ok(bytes) = body.extract::<ryo3_bytes::PyBytes>() {
-                //     // buffer protocol
-                //     AsyncReqwestBody::Bytes(bytes.into_inner())
-                // } else if let Ok(stream) = body.extract::<crate::body::PyBodyStream>() {
-                //     AsyncReqwestBody::Stream(stream)
-                // } else {
-                //     return py_type_err!("body must be bytes-like");
-                // }
             }
             (None, Some(json), None, None) => {
                 let b = ryo3_json::to_vec(&json)?;
