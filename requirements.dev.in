@@ -1,6 +1,6 @@
 anyio
 hypothesis
-maturin
+maturin>=1.11.4
 orjson==3.11.4
 pydantic
 pytest>=9.0.1
