@@ -321,6 +321,20 @@ impl RyClient {
         }
     }
 
+    fn request_builder_sync(
+        &self,
+        url: UrlLike,
+        method: Method,
+        kwargs: Option<BlockingReqwestKwargs>,
+    ) -> PyResult<RequestBuilder> {
+        let url = url.0;
+        if let Some(kwargs) = kwargs {
+            kwargs.apply(self.client.request(method, url))
+        } else {
+            Ok(self.client.request(method, url))
+        }
+    }
+
     async fn request(
         &self,
         url: UrlLike,
@@ -345,18 +359,11 @@ impl RyClient {
         &self,
         url: UrlLike,
         method: Method,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let req = self.request_builder(url, method, kwargs)?;
+        let req = self.request_builder_sync(url, method, kwargs)?;
         Self::send_sync(req)
     }
-
-    // TODO: replace this with custom python-y builder pattern that does not
-    //       crudely wrap the reqwest::RequestBuilder
-    // #[inline]
-    // fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
-    //     client_request_builder(&self.client, options)
-    // }
 }
 
 impl RyBlockingClient {
@@ -368,19 +375,32 @@ impl RyBlockingClient {
     }
 
     fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
-        pyo3_async_runtimes::tokio::get_runtime().block_on(async {
-            req.send()
-                .await
-                .map(RyBlockingResponse::from)
-                .map_err(map_reqwest_err)
-        })
+        let a = pyo3_async_runtimes::tokio::get_runtime().block_on(async { req.send().await });
+        a.map(RyBlockingResponse::from).map_err(map_reqwest_err)
     }
 
-    // TODO: replace this with custom python-y builder pattern that does not
-    //       crudely wrap the reqwest::RequestBuilder
-    #[inline]
-    fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
-        client_request_builder(&self.client, options)
+    fn request_builder_sync(
+        &self,
+        url: UrlLike,
+        method: Method,
+        kwargs: Option<BlockingReqwestKwargs>,
+    ) -> PyResult<RequestBuilder> {
+        let url = url.0;
+        if let Some(kwargs) = kwargs {
+            kwargs.apply(self.client.request(method, url))
+        } else {
+            Ok(self.client.request(method, url))
+        }
+    }
+
+    fn request_sync(
+        &self,
+        url: UrlLike,
+        method: Method,
+        kwargs: Option<BlockingReqwestKwargs>,
+    ) -> PyResult<RyBlockingResponse> {
+        let req = self.request_builder_sync(url, method, kwargs)?;
+        Self::send_sync(req)
     }
 }
 
@@ -1396,11 +1416,12 @@ impl RyClient {
     #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     pub(crate) fn fetch_sync(
         &self,
+        py: Python<'_>,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<true>>,
     ) -> PyResult<RyBlockingResponse> {
-        self.request_sync(url, method.into(), kwargs)
+        py.detach(|| self.request_sync(url, method.into(), kwargs))
     }
 }
 
@@ -1601,457 +1622,96 @@ impl RyBlockingClient {
         self.cfg != other.cfg
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn get<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn get(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: Method::GET,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, Method::GET, kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn post<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn post(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: Method::POST,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, Method::POST, kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn put<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn put(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: Method::PUT,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, Method::PUT, kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn patch<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn patch(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: Method::PATCH,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, Method::PATCH, kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn delete<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn delete(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: Method::DELETE,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, Method::DELETE, kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn head<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn head(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: Method::HEAD,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, Method::HEAD, kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn options<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn options(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: Method::OPTIONS,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, Method::OPTIONS, kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            method = PyHttpMethod::GET,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    pub(crate) fn fetch<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    pub(crate) fn fetch(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
         method: PyHttpMethod,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let opts = RequestKwargs {
-            url,
-            method: method.0,
-            body,
-            headers,
-            query,
-            json,
-            multipart,
-            form,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        let req = self.build_request(opts)?;
-        py.detach(|| Self::send_sync(req))
+        py.detach(|| self.request_sync(url, method.into(), kwargs))
     }
 
-    #[pyo3(
-        signature = (
-            url,
-            *,
-            method = PyHttpMethod::GET,
-            body = None,
-            headers = None,
-            query = None,
-            json = None,
-            form = None,
-            multipart = None,
-            timeout = None,
-            basic_auth = None,
-            bearer_auth = None,
-            version = None,
-        )
-    )]
-    #[expect(clippy::too_many_arguments)]
-    fn __call__<'py>(
-        &'py self,
-        py: Python<'py>,
-        url: &Bound<'py, PyAny>,
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    pub(crate) fn __call__(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
         method: PyHttpMethod,
-        body: Option<&Bound<'py, PyAny>>,
-        headers: Option<PyHeadersLike>,
-        query: Option<&Bound<'py, PyAny>>,
-        json: Option<&Bound<'py, PyAny>>,
-        form: Option<&Bound<'py, PyAny>>,
-        multipart: Option<&Bound<'py, PyAny>>,
-        timeout: Option<&PyDuration>,
-        basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-        bearer_auth: Option<PyBackedStr>,
-        version: Option<PyHttpVersion>,
+        kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        self.fetch(
-            py,
-            url,
-            method,
-            body,
-            headers,
-            query,
-            json,
-            form,
-            multipart,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        )
+        py.detach(|| self.request_sync(url, method.into(), kwargs))
     }
 }
 
@@ -2261,18 +1921,20 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
 }
 
 #[cfg(feature = "experimental-async")]
-pub(crate) struct ReqwestKwargs {
+pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     headers: Option<HeaderMap>,
     query: Option<String>,
-    body: AsyncReqwestBody,
+    body: PyReqwestBody,
     timeout: Option<Duration>,
     basic_auth: Option<BasicAuth>,
     bearer_auth: Option<PyBackedStr>,
     version: Option<PyHttpVersion>,
 }
 
+pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
+
 #[cfg(feature = "experimental-async")]
-impl ReqwestKwargs {
+impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     /// Apply the kwargs to the `reqwest::RequestBuilder`
     fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
         let mut req = req;
@@ -2293,20 +1955,20 @@ impl ReqwestKwargs {
 
         // body
         req = match self.body {
-            AsyncReqwestBody::Bytes(b) => req.body(b),
-            AsyncReqwestBody::Stream(s) => req.body(s),
-            AsyncReqwestBody::Json(j) => req.body(j).header(
+            PyReqwestBody::Bytes(b) => req.body(b),
+            PyReqwestBody::Stream(s) => req.body(s),
+            PyReqwestBody::Json(j) => req.body(j).header(
                 reqwest::header::CONTENT_TYPE,
                 HeaderValue::from_static("application/json"),
             ),
-            AsyncReqwestBody::Form(f) => req.body(f).header(
+            PyReqwestBody::Form(f) => req.body(f).header(
                 reqwest::header::CONTENT_TYPE,
                 HeaderValue::from_static("application/x-www-form-urlencoded"),
             ),
-            AsyncReqwestBody::Multipart(_m) => {
+            PyReqwestBody::Multipart(_m) => {
                 pytodo!("multipart not implemented (yet)");
             }
-            AsyncReqwestBody::None => req,
+            PyReqwestBody::None => req,
         };
 
         // timeout
@@ -2335,7 +1997,7 @@ impl ReqwestKwargs {
 
 #[cfg(feature = "experimental-async")]
 #[derive(Debug)]
-enum AsyncReqwestBody {
+enum PyReqwestBody {
     Bytes(bytes::Bytes),
     Stream(crate::body::PyBodyStream),
     Json(Vec<u8>),
@@ -2346,7 +2008,7 @@ enum AsyncReqwestBody {
 }
 
 #[cfg(feature = "experimental-async")]
-impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
+impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
@@ -2372,7 +2034,7 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
             }
         })??;
 
-        let body: AsyncReqwestBody = match (body, json, form, multipart) {
+        let body: PyReqwestBody = match (body, json, form, multipart) {
             (Some(_), Some(_), _, _)
             | (Some(_), _, Some(_), _)
             | (Some(_), _, _, Some(_))
@@ -2384,13 +2046,25 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
             (Some(body), None, None, None) => {
                 let py_body = body.extract::<crate::body::PyBody>()?;
                 match py_body {
-                    crate::body::PyBody::Bytes(bs) => AsyncReqwestBody::Bytes(bs.into_inner()),
-                    crate::body::PyBody::Stream(s) => AsyncReqwestBody::Stream(s),
+                    crate::body::PyBody::Bytes(bs) => PyReqwestBody::Bytes(bs.into_inner()),
+                    crate::body::PyBody::Stream(s) => {
+                        // using an async stream with blocking client is a no-go (yo)
+                        if BLOCKING {
+                            if s.is_async() {
+                                return py_type_err!(
+                                    "cannot use async stream body with blocking client"
+                                );
+                            }
+                            PyReqwestBody::Stream(s)
+                        } else {
+                            PyReqwestBody::Stream(s)
+                        }
+                    }
                 }
             }
             (None, Some(json), None, None) => {
                 let b = ryo3_json::to_vec(&json)?;
-                AsyncReqwestBody::Json(b)
+                PyReqwestBody::Json(b)
             }
             (None, None, Some(form), None) => {
                 use ryo3_macro_rules::py_value_error;
@@ -2398,14 +2072,14 @@ impl<'py> FromPyObject<'_, 'py> for ReqwestKwargs {
                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
                 let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
                     .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
-                AsyncReqwestBody::Form(url_encoded_form)
+                PyReqwestBody::Form(url_encoded_form)
             }
             (None, None, None, Some(_multipart)) => {
                 pytodo!("multipart not implemented (yet)");
 
                 // (None, None, None, Some(true))
             }
-            (None, None, None, None) => AsyncReqwestBody::None,
+            (None, None, None, None) => PyReqwestBody::None,
         };
 
         let timeout = dict
