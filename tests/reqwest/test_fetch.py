@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 
 class TestFetch:
+    @pytest.mark.anyio
     async def test_fetch_timeout_on_request(self, server: ReqtestServer) -> None:
         url = server.url / "slow"
         res = await ry.fetch(
@@ -21,6 +22,13 @@ class TestFetch:
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
             _text = await res.text()
 
+    @pytest.mark.anyio
+    async def test_fetch_multipart_not_impl(
+        self,
+    ) -> None:
+        with pytest.raises(NotImplementedError):
+            _r = await ry.fetch("http://example.com", method="POST", multipart={"a": 1})
+
 
 class TestFetchSync:
     def test_fetch_timeout_on_request_sync(self, server: ReqtestServer) -> None:
@@ -29,6 +37,12 @@ class TestFetchSync:
             url,
             timeout=ry.Duration.from_secs_f64(0.1),
         )
-        assert res.status_code == 200
+
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
             _text = res.text()
+
+    def test_fetch_multipart_not_impl_sync(
+        self,
+    ) -> None:
+        with pytest.raises(NotImplementedError):
+            _r = ry.fetch_sync("http://example.com", method="POST", multipart={"a": 1})

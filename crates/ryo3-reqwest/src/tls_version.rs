@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::types::PyString;
+use ryo3_macro_rules::{py_type_err, py_value_err};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum TlsVersion {
@@ -43,20 +44,17 @@ impl<'py> FromPyObject<'_, 'py> for TlsVersion {
     type Error = pyo3::PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         // downcast to string...
-        if let Ok(s) = ob.extract::<&str>() {
+        if let Ok(pystr) = ob.cast_exact::<PyString>() {
+            let s = pystr.to_str()?;
             match s {
                 "1.0" => Ok(Self::Tlsv1_0),
                 "1.1" => Ok(Self::Tlsv1_1),
                 "1.2" => Ok(Self::Tlsv1_2),
                 "1.3" => Ok(Self::Tlsv1_3),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid TLS version: {s} (options: {TLS_VERSION_STRINGS})"
-                ))),
+                _ => py_value_err!("Invalid TLS version: {s} (options: {TLS_VERSION_STRINGS})"),
             }
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                "TLS version must be a string (options: {TLS_VERSION_STRINGS})"
-            )))
+            py_type_err!("TLS version must be a string (options: {TLS_VERSION_STRINGS})")
         }
     }
 }
