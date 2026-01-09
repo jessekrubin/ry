@@ -2196,6 +2196,7 @@ impl<'py> FromPyObject<'_, 'py> for Timeout {
 }
 
 // RESOLVE-MAP
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct PySocketAddrLike(std::net::SocketAddr);
 
 impl<'py> FromPyObject<'_, 'py> for PySocketAddrLike {
@@ -2226,43 +2227,17 @@ enum PyResolveMapValue {
 impl<'py> FromPyObject<'_, 'py> for PyResolveMapValue {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        // lots of copy pasta here
         if let Ok(addr) = obj.extract::<PySocketAddrLike>() {
             Ok(Self::Single(addr.0))
-        } else if let Ok(addr_list) = obj.cast::<pyo3::types::PyList>() {
-            let mut addrs = Vec::new();
-            for addr in addr_list.try_iter()? {
-                let py_addr = addr?.extract::<PySocketAddrLike>()?;
-                addrs.push(py_addr.0);
-            }
+        } else if let Ok(addr_list) = obj.extract::<Vec<PySocketAddrLike>>() {
+            // love that turbo fissssh
+            let mut addrs = addr_list.into_iter().map(|a| a.0).collect::<Vec<_>>();
+            addrs.sort_unstable();
+            addrs.dedup();
+
             Ok(Self::Multiple(addrs))
-        } else if let Ok(addr_list) = obj.cast::<pyo3::types::PyTuple>() {
-            let mut addrs = Vec::new();
-            for addr in addr_list.try_iter()? {
-                let py_addr = addr?.extract::<PySocketAddrLike>()?;
-                addrs.push(py_addr.0);
-            }
-            Ok(Self::Multiple(addrs))
-        } else if let Ok(addr_list) = obj.cast::<pyo3::types::PySet>() {
-            let mut addrs = Vec::new();
-            for addr in addr_list.try_iter()? {
-                let py_addr = addr?.extract::<PySocketAddrLike>()?;
-                addrs.push(py_addr.0);
-            }
-            Ok(Self::Multiple(addrs))
-        } else if let Ok(addr_list) = obj.cast::<pyo3::types::PyFrozenSet>() {
-            let mut addrs = Vec::new();
-            for addr in addr_list.try_iter()? {
-                let py_addr = addr?.extract::<PySocketAddrLike>()?;
-                addrs.push(py_addr.0);
-            }
-            Ok(Self::Multiple(addrs))
-        } else if let Ok(addr_list) = obj.cast::<pyo3::types::PySequence>() {
-            let mut addrs = Vec::new();
-            for addr in addr_list.try_iter()? {
-                let py_addr = addr?.extract::<PySocketAddrLike>()?;
-                addrs.push(py_addr.0);
-            }
+        } else if let Ok(addr_list) = obj.extract::<std::collections::HashSet<PySocketAddrLike>>() {
+            let addrs = addr_list.into_iter().map(|a| a.0).collect();
             Ok(Self::Multiple(addrs))
         } else {
             py_type_err!("expected SocketAddr, SocketAddrV4, SocketAddrV6, str, or list of these")
@@ -2295,14 +2270,6 @@ impl<'py> FromPyObject<'_, 'py> for PyResolveMap {
             .into_iter()
             .filter(
                 |(_domain, addrs)| !addrs.is_empty(), // filter out empty addr lists
-            )
-            .map(
-                // Oh this shit was a problem gotta remove duplicates within each addr list
-                |(domain, mut addrs)| {
-                    addrs.sort_unstable();
-                    addrs.dedup(); // literally just learned this exists!
-                    (domain, addrs)
-                },
             )
             .collect::<Vec<(String, Vec<std::net::SocketAddr>)>>();
         Ok(Self(vecify))
