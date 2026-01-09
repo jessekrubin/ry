@@ -1,5 +1,6 @@
-use pyo3::prelude::*;
+use pyo3::{IntoPyObjectExt, prelude::*};
 use ryo3_macro_rules::py_value_error;
+use ryo3_url::UrlLike;
 
 #[pyclass(name = "Proxy", frozen, immutable_type, skip_from_py_object)]
 #[derive(Debug, Clone)]
@@ -71,30 +72,27 @@ impl std::hash::Hash for PyProxy {
 impl PyProxy {
     #[staticmethod]
     #[pyo3(signature = (url, **kwds))]
-    fn http(url: String, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
-        let proxy = ::reqwest::Proxy::http(&url)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-        let inner = PyProxyInner::new(ProxyScheme::Http(url));
+    fn http(url: UrlLike, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
+        let inner = PyProxyInner::new(ProxyScheme::Http(url.to_string()));
+        let proxy = ::reqwest::Proxy::http(url.0).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
         p.apply_kwargs(kwds)
     }
 
     #[staticmethod]
     #[pyo3(signature = (url, **kwds))]
-    fn https(url: String, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
-        let proxy = ::reqwest::Proxy::https(&url)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-        let inner = PyProxyInner::new(ProxyScheme::Https(url));
+    fn https(url: UrlLike, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
+        let inner = PyProxyInner::new(ProxyScheme::Https(url.to_string()));
+        let proxy = ::reqwest::Proxy::https(url.0).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
         p.apply_kwargs(kwds)
     }
 
     #[staticmethod]
     #[pyo3(signature = (url, **kwds))]
-    fn all(url: String, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
-        let proxy = ::reqwest::Proxy::all(&url)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-        let inner = PyProxyInner::new(ProxyScheme::All(url));
+    fn all(url: UrlLike, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
+        let inner = PyProxyInner::new(ProxyScheme::All(url.to_string()));
+        let proxy = ::reqwest::Proxy::all(url.0).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
         p.apply_kwargs(kwds)
     }
@@ -187,19 +185,81 @@ impl PartialEq for PyProxy {
     }
 }
 
+impl From<&PyProxy> for ::reqwest::Proxy {
+    fn from(value: &PyProxy) -> Self {
+        value.proxy.clone()
+    }
+}
+
 impl Eq for PyProxy {}
 
 impl<'a, 'py> FromPyObject<'a, 'py> for PyProxy {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        // If it's a PyProxy, extract it.
         if let Ok(proxy) = obj.cast_exact::<Self>() {
-            return Ok(proxy.get().clone());
+            Ok(proxy.get().clone())
+        } else if let Ok(url) = obj.extract::<UrlLike>() {
+            Self::all(url, None)
+        } else {
+            Err(py_value_error!("Expected Proxy object or string URL"))
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub(crate) struct PyProxies(Vec<PyProxy>);
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyProxies {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(proxy) = obj.cast_exact::<PyProxy>() {
+            return Ok(Self::from(proxy.get()));
         }
         // If it's a string, assume Proxy::all(url)
-        if let Ok(url) = obj.extract::<String>() {
-            return Self::all(url, None);
+        if let Ok(url) = obj.cast_exact::<pyo3::types::PyString>() {
+            let pyprox = url.extract::<PyProxy>()?;
+            return Ok(Self::from(pyprox));
         }
+
         Err(py_value_error!("Expected Proxy object or string URL"))
+    }
+}
+
+impl PyProxies {
+    pub(crate) fn apply2client(&self, cb: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
+        self.0.iter().fold(cb, |cb, el| cb.proxy(el.into()))
+    }
+}
+
+impl From<PyProxy> for PyProxies {
+    fn from(value: PyProxy) -> Self {
+        Self(vec![value])
+    }
+}
+
+impl From<&PyProxy> for PyProxies {
+    fn from(value: &PyProxy) -> Self {
+        Self(vec![value.clone()])
+    }
+}
+
+impl<'py> IntoPyObject<'py> for &PyProxies {
+    type Target = pyo3::types::PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self.0.len() {
+            0 => {
+                unreachable!()
+            }
+            1 => self
+                .0
+                .first()
+                .expect("wenodis")
+                .clone()
+                .into_bound_py_any(py),
+            _ => self.0.clone().into_bound_py_any(py),
+        }
     }
 }

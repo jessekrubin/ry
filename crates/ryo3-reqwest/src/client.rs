@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::RyResponse;
 use crate::errors::map_reqwest_err;
+use crate::proxy::PyProxies;
 #[cfg(feature = "experimental-async")]
 use crate::response_parking_lot::RyAsyncResponse;
 use crate::response_parking_lot::RyBlockingResponse;
@@ -110,7 +111,7 @@ pub struct ClientConfig {
     // -- tls danger zone --
     tls_danger_accept_invalid_certs: bool,
     tls_danger_accept_invalid_hostnames: bool,
-    proxy: Option<crate::PyProxy>,
+    proxy: Option<PyProxies>,
     // == CLIENT BUILDER OPTIONS TODO ==
     // connector_layer
     // cookie_provider
@@ -529,7 +530,7 @@ impl RyHttpClient {
         tls_version_min: Option<TlsVersion>,
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
-        proxy: Option<crate::PyProxy>,
+        proxy: Option<PyProxies>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1285,7 +1286,7 @@ impl RyClient {
         tls_version_min: Option<TlsVersion>,
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
-        proxy: Option<crate::PyProxy>,
+        proxy: Option<PyProxies>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1572,7 +1573,7 @@ impl RyBlockingClient {
         tls_version_min: Option<TlsVersion>,
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
-        proxy: Option<crate::PyProxy>,
+        proxy: Option<PyProxies>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1883,7 +1884,7 @@ impl ClientConfig {
         }
 
         if let Some(proxy) = &self.proxy {
-            client_builder = client_builder.proxy(proxy.proxy.clone());
+            client_builder = proxy.apply2client(client_builder);
         }
 
         // http1
@@ -1969,7 +1970,7 @@ impl ClientConfig {
             "tls_version_min" => self.tls_version_min,
             "tls_danger_accept_invalid_certs" => self.tls_danger_accept_invalid_certs,
             "tls_danger_accept_invalid_hostnames" => self.tls_danger_accept_invalid_hostnames,
-            "proxy" => self.proxy.clone()
+            "proxy" => &self.proxy
         }
         Ok(dict)
     }
@@ -2247,7 +2248,6 @@ impl<'py> FromPyObject<'_, 'py> for PyResolveMapValue {
         if let Ok(addr) = obj.extract::<PySocketAddrLike>() {
             Ok(Self::Single(addr.0))
         } else if let Ok(addr_list) = obj.extract::<Vec<PySocketAddrLike>>() {
-            // love that turbo fissssh
             let mut addrs = addr_list.into_iter().map(|a| a.0).collect::<Vec<_>>();
             addrs.sort_unstable();
             addrs.dedup();

@@ -137,7 +137,9 @@ pyprojectfmt:
     uvx pyproject-fmt . --keep-full-version
 
 # format
-fmt: cargo-fmt fmtpy justfilefmt mdfmt pyprojectfmt
+
+# fmt: cargo-fmt fmtpy justfilefmt mdfmt pyprojectfmt
+fmt: cargo-fmt fmtpy justfilefmt
 
 # format check
 fmtc: cargo-fmtc fmtcpy justfilefmtc

@@ -14,6 +14,7 @@ _Body: t.TypeAlias = (
     | t.Iterable[Buffer]
     | t.AsyncIterable[Buffer]
 )
+_ProxyKw: t.TypeAlias = t.Sequence[Proxy | URL | str] | Proxy | URL | str
 _ResolveMapLike: t.TypeAlias = dict[str, t.Sequence[SocketAddr]]
 
 class RequestKwargs(t.TypedDict, total=False):
@@ -28,11 +29,6 @@ class RequestKwargs(t.TypedDict, total=False):
     bearer_auth: str | None
     version: HttpVersionLike | None
 
-class ProxyKwargs(t.TypedDict, total=False):
-    basic_auth: tuple[str, str] | None
-    no_proxy: str | None
-    headers: Headers | dict[str, str] | None
-
 class ClientConfig(t.TypedDict):
     headers: Headers | None
     cookies: bool
@@ -43,7 +39,7 @@ class ClientConfig(t.TypedDict):
     redirect: int | None
     resolve: _ResolveMapLike | None
     referer: bool
-    proxy: Proxy | str | None
+    proxy: list[Proxy] | Proxy
     gzip: bool
     brotli: bool
     deflate: bool
@@ -130,7 +126,7 @@ class HttpClient:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
-        proxy: Proxy | str | None = None,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -240,7 +236,7 @@ class Client:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
-        proxy: Proxy | str | None = None,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -349,7 +345,7 @@ class BlockingClient:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
-        proxy: Proxy | str | None = None,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     def get(
@@ -683,16 +679,46 @@ class Identity:
     @classmethod
     def from_pem(cls, pem: Buffer) -> t.Self: ...
 
+class ProxyKwargs(t.TypedDict, total=False):
+    basic_auth: tuple[str, str] | None
+    no_proxy: str | None
+    headers: Headers | dict[str, str] | None
+
 @t.final
 class Proxy:
     @staticmethod
-    def http(url: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    def all(
+        url: str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy: ...
     @staticmethod
-    def https(url: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    def http(
+        url: str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy: ...
     @staticmethod
-    def all(url: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    def https(
+        url: str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy: ...
     @staticmethod
-    def unix(path: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    def unix(
+        url: str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy: ...
+    # builder style pattern
     def basic_auth(self, username: str, password: str) -> Proxy: ...
     def no_proxy(self, url: str) -> Proxy: ...
     def headers(self, headers: Headers | dict[str, str]) -> Proxy: ...
