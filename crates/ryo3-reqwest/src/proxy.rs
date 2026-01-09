@@ -48,10 +48,10 @@ impl PyProxy {
     fn apply_kwargs(mut self, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
         if let Some(kwds) = kwds {
             if let Some((u, p)) = kwds.basic_auth {
-                self = self.basic_auth(u, p)?;
+                self = self.basic_auth(u, p);
             }
             if let Some(np) = kwds.no_proxy {
-                self = self.no_proxy(np)?;
+                self = self.no_proxy(np);
             }
             if let Some(headers) = kwds.headers {
                 self = self.headers(headers)?;
@@ -75,7 +75,7 @@ impl PyProxy {
         let proxy = ::reqwest::Proxy::http(&url)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         let inner = PyProxyInner::new(ProxyScheme::Http(url));
-        let p = PyProxy { proxy, inner };
+        let p = Self { proxy, inner };
         p.apply_kwargs(kwds)
     }
 
@@ -85,7 +85,7 @@ impl PyProxy {
         let proxy = ::reqwest::Proxy::https(&url)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         let inner = PyProxyInner::new(ProxyScheme::Https(url));
-        let p = PyProxy { proxy, inner };
+        let p = Self { proxy, inner };
         p.apply_kwargs(kwds)
     }
 
@@ -95,7 +95,7 @@ impl PyProxy {
         let proxy = ::reqwest::Proxy::all(&url)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         let inner = PyProxyInner::new(ProxyScheme::All(url));
-        let p = PyProxy { proxy, inner };
+        let p = Self { proxy, inner };
         p.apply_kwargs(kwds)
     }
 
@@ -103,33 +103,34 @@ impl PyProxy {
     #[allow(unused)]
     #[staticmethod]
     #[pyo3(signature = (path, **kwds))]
+    #[allow(clippy::needless_pass_by_value)]
     fn unix(path: String, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
         use ryo3_macro_rules::py_not_implemented_err;
         py_not_implemented_err!("unix socket proxy not yet implemented")
     }
 
-    fn basic_auth(&self, username: String, password: String) -> PyResult<Self> {
+    fn basic_auth(&self, username: String, password: String) -> Self {
         let proxy = self.proxy.clone().basic_auth(&username, &password);
         let mut inner = self.inner.clone();
         inner.basic_auth = Some((username, password));
-        Ok(PyProxy { proxy, inner })
+        Self { proxy, inner }
     }
 
-    fn no_proxy(&self, url: String) -> PyResult<Self> {
+    fn no_proxy(&self, url: String) -> Self {
         let mut inner = self.inner.clone();
         inner.no_proxy.push(url);
 
         let combined = inner.no_proxy.join(",");
         let no_proxy = ::reqwest::NoProxy::from_string(&combined);
         let proxy = self.proxy.clone().no_proxy(no_proxy);
-        Ok(PyProxy { proxy, inner })
+        Self { proxy, inner }
     }
 
     fn headers(&self, headers: ryo3_http::PyHeadersLike) -> PyResult<Self> {
         let headers_map = reqwest::header::HeaderMap::try_from(headers)?;
         let proxy = self.proxy.clone().headers(headers_map.clone());
         let mut inner = self.inner.clone();
-        for (k, v) in headers_map.iter() {
+        for (k, v) in &headers_map {
             inner.headers.push((
                 k.to_string(),
                 v.to_str()
@@ -137,7 +138,7 @@ impl PyProxy {
                     .to_string(),
             ));
         }
-        Ok(PyProxy { proxy, inner })
+        Ok(Self { proxy, inner })
     }
 
     fn __repr__(&self) -> String {
@@ -159,23 +160,24 @@ impl PyProxy {
 
 impl std::fmt::Display for PyProxy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use std::fmt::Write;
         let base = match &self.inner.scheme {
-            ProxyScheme::Http(u) => format!("Proxy.http({:?})", u),
-            ProxyScheme::Https(u) => format!("Proxy.https({:?})", u),
-            ProxyScheme::All(u) => format!("Proxy.all({:?})", u),
-            ProxyScheme::Unix(u) => format!("Proxy.unix({:?})", u),
+            ProxyScheme::Http(u) => format!("Proxy.http({u:?})"),
+            ProxyScheme::Https(u) => format!("Proxy.https({u:?})"),
+            ProxyScheme::All(u) => format!("Proxy.all({u:?})"),
+            ProxyScheme::Unix(u) => format!("Proxy.unix({u:?})"),
         };
         let mut res = base;
         if let Some((u, p)) = &self.inner.basic_auth {
-            res.push_str(&format!(".basic_auth({:?}, {:?})", u, p));
+            write!(res, ".basic_auth({u:?}, {p:?})").expect("write to string failed");
         }
         for np in &self.inner.no_proxy {
-            res.push_str(&format!(".no_proxy({:?})", np));
+            write!(res, ".no_proxy({np:?})").expect("write to string failed");
         }
         if !self.inner.headers.is_empty() {
-            res.push_str(&format!(".headers({:?})", self.inner.headers));
+            write!(res, ".headers({:?})", self.inner.headers).expect("write to string failed");
         }
-        write!(f, "{}", res)
+        write!(f, "{res}")
     }
 }
 
@@ -191,12 +193,12 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyProxy {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         // If it's a PyProxy, extract it.
-        if let Ok(proxy) = obj.cast_exact::<PyProxy>() {
+        if let Ok(proxy) = obj.cast_exact::<Self>() {
             return Ok(proxy.get().clone());
         }
         // If it's a string, assume Proxy::all(url)
         if let Ok(url) = obj.extract::<String>() {
-            return PyProxy::all(url, None);
+            return Self::all(url, None);
         }
         Err(py_value_error!("Expected Proxy object or string URL"))
     }
