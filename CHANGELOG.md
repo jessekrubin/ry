@@ -9,6 +9,8 @@
 - `ryo3-reqwest`
   - added new `tls_crls_only` kwarg
   - added `ry.CertificateRevocationList`
+  - added `ry.Identity`
+  - added `resolve` mapping support for clients
   - renames/deprecations:
     - `root_certificates` -> `tls_certs_merge` and `tls_certs_only`
     - `danger_accept_invalid_certs` -> `tls_danger_accept_invalid_certs`
