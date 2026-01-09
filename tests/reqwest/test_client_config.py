@@ -25,6 +25,8 @@ _DEFAULT_CONFIG: ClientConfig = {
     "deflate": True,
     "zstd": True,
     "hickory_dns": True,
+    "proxy": None,
+    "proxy_bypass_local": False,
     "http1_only": False,
     "https_only": False,
     "http1_title_case_headers": False,

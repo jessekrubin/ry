@@ -29,7 +29,7 @@ async def test_read_dir_take() -> None:
 
     readdir_async = await ry.read_dir_async(PWD)
     take_two = []
-    # take 2 at a time until we run out of items
+    # take 2 at a time until out o' items
     while True:
         taken = await readdir_async.take(2)
 

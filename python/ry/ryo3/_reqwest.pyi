@@ -28,6 +28,11 @@ class RequestKwargs(t.TypedDict, total=False):
     bearer_auth: str | None
     version: HttpVersionLike | None
 
+class ProxyKwargs(t.TypedDict, total=False):
+    basic_auth: tuple[str, str] | None
+    no_proxy: str | None
+    headers: Headers | dict[str, str] | None
+
 class ClientConfig(t.TypedDict):
     headers: Headers | None
     cookies: bool
@@ -38,6 +43,7 @@ class ClientConfig(t.TypedDict):
     redirect: int | None
     resolve: _ResolveMapLike | None
     referer: bool
+    proxy: Proxy | str | None
     gzip: bool
     brotli: bool
     deflate: bool
@@ -124,6 +130,7 @@ class HttpClient:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: Proxy | str | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -233,6 +240,7 @@ class Client:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: Proxy | str | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -341,6 +349,7 @@ class BlockingClient:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: Proxy | str | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     def get(
@@ -673,3 +682,20 @@ class Identity:
     def __ne__(self, other: object) -> bool: ...
     @classmethod
     def from_pem(cls, pem: Buffer) -> t.Self: ...
+
+@t.final
+class Proxy:
+    @staticmethod
+    def http(url: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    @staticmethod
+    def https(url: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    @staticmethod
+    def all(url: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    @staticmethod
+    def unix(path: str, **kwargs: Unpack[ProxyKwargs]) -> Proxy: ...
+    def basic_auth(self, username: str, password: str) -> Proxy: ...
+    def no_proxy(self, url: str) -> Proxy: ...
+    def headers(self, headers: Headers | dict[str, str]) -> Proxy: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
+

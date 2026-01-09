@@ -22,14 +22,14 @@ def test_parse_error() -> None:
 
 
 def test_url_from_url() -> None:
-    """Test that we can create a URL from a URL"""
+    """Test that URL can be created from a URL"""
     url = ry.URL("http://example.com")
     url_from_url = ry.URL(url)
     assert url == url_from_url
 
 
 def test_url_parse() -> None:
-    """Test that we can create a URL from a URL"""
+    """Test that URL can be created from a URL"""
     url = ry.URL("http://example.com")
     url_from_url = ry.URL(url)
     assert url == url_from_url
