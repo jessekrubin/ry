@@ -110,6 +110,7 @@ pub struct ClientConfig {
     // -- tls danger zone --
     tls_danger_accept_invalid_certs: bool,
     tls_danger_accept_invalid_hostnames: bool,
+    proxy: Option<crate::PyProxy>,
     // == CLIENT BUILDER OPTIONS TODO ==
     // connector_layer
     // cookie_provider
@@ -181,6 +182,7 @@ impl Default for ClientConfig {
             // tls-danger
             tls_danger_accept_invalid_certs: false,
             tls_danger_accept_invalid_hostnames: false,
+            proxy: None,
         }
     }
 }
@@ -468,6 +470,7 @@ impl RyHttpClient {
             tls_version_min = None,
             tls_danger_accept_invalid_certs = false,
             tls_danger_accept_invalid_hostnames = false,
+            proxy = None,
         )
     )]
     fn py_new(
@@ -526,6 +529,7 @@ impl RyHttpClient {
         tls_version_min: Option<TlsVersion>,
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
+        proxy: Option<crate::PyProxy>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -580,6 +584,7 @@ impl RyHttpClient {
             tls_version_min,
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
+            proxy,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1221,6 +1226,7 @@ impl RyClient {
             tls_version_min = None,
             tls_danger_accept_invalid_certs = false,
             tls_danger_accept_invalid_hostnames = false,
+            proxy = None,
         )
     )]
     fn py_new(
@@ -1279,6 +1285,7 @@ impl RyClient {
         tls_version_min: Option<TlsVersion>,
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
+        proxy: Option<crate::PyProxy>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1333,6 +1340,7 @@ impl RyClient {
             tls_version_min,
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
+            proxy,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1505,6 +1513,7 @@ impl RyBlockingClient {
             tls_version_min = None,
             tls_danger_accept_invalid_certs = false,
             tls_danger_accept_invalid_hostnames = false,
+            proxy = None,
         )
     )]
     fn py_new(
@@ -1563,6 +1572,7 @@ impl RyBlockingClient {
         tls_version_min: Option<TlsVersion>,
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
+        proxy: Option<crate::PyProxy>,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1617,6 +1627,7 @@ impl RyBlockingClient {
             tls_version_min,
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
+            proxy,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1870,6 +1881,11 @@ impl ClientConfig {
                 client_builder = client_builder.resolve_to_addrs(domain, addrs);
             }
         }
+
+        if let Some(proxy) = &self.proxy {
+            client_builder = client_builder.proxy(proxy.proxy.clone());
+        }
+
         // http1
         if self.http1_only {
             client_builder = client_builder.http1_only();
@@ -1952,7 +1968,8 @@ impl ClientConfig {
             "tls_version_max" => self.tls_version_max,
             "tls_version_min" => self.tls_version_min,
             "tls_danger_accept_invalid_certs" => self.tls_danger_accept_invalid_certs,
-            "tls_danger_accept_invalid_hostnames" => self.tls_danger_accept_invalid_hostnames
+            "tls_danger_accept_invalid_hostnames" => self.tls_danger_accept_invalid_hostnames,
+            "proxy" => self.proxy.clone()
         }
         Ok(dict)
     }

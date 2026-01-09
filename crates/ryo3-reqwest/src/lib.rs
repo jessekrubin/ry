@@ -5,6 +5,7 @@ mod cookie;
 mod errors;
 mod fetch;
 mod form_data;
+mod proxy;
 mod pyo3_json_bytes;
 mod response_head;
 mod response_parking_lot;
@@ -18,6 +19,7 @@ pub use client::RyBlockingClient;
 pub use client::RyHttpClient;
 pub use cookie::PyCookie;
 pub use errors::RyReqwestError;
+pub use proxy::PyProxy;
 use pyo3::prelude::*;
 pub use response_parking_lot::RyBlockingResponse;
 pub use response_parking_lot::RyResponse;
@@ -36,6 +38,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCookie>()?;
     m.add_class::<PyCertificate>()?;
     m.add_class::<PyCertificateRevocationList>()?;
+    m.add_class::<PyProxy>()?;
     m.add_class::<RyHttpClient>()?;
     #[cfg(feature = "experimental-async")]
     m.add_class::<RyClient>()?;
