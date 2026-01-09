@@ -2,7 +2,7 @@ use crate::net::PyIpv6Addr;
 use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use crate::net::ipaddr_props::IpAddrProps;
 use pyo3::{BoundObject, prelude::*};
-use ryo3_core::{PyFromStr, PyParse};
+use ryo3_core::{PyAsciiString, PyFromStr, PyParse};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error, py_value_err};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
@@ -39,8 +39,13 @@ impl PySocketAddrV4 {
         Ok(Self(sa))
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> PyAsciiString {
+        self.__str__()
     }
 
     fn __repr__(&self) -> String {
@@ -247,8 +252,13 @@ impl PySocketAddrV6 {
         Ok(Self(sa))
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> PyAsciiString {
+        self.__str__()
     }
 
     fn __repr__(&self) -> String {
@@ -478,8 +488,13 @@ impl PySocketAddr {
         }
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> PyAsciiString {
+        self.__str__()
     }
 
     fn __repr__(&self) -> String {

@@ -73,6 +73,10 @@ impl PyCertificate {
         ))
     }
 
+    fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        pyo3::types::PyBytes::new(py, self.bin.as_ref())
+    }
+
     fn __hash__(&self) -> u64 {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::hash::DefaultHasher::new();
@@ -102,12 +106,26 @@ impl PyCertificate {
     }
 
     fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+}
+
+impl std::fmt::Display for PyCertificate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.kind {
             CertificateKind::Der => {
-                format!("Certificate<DER; {:p}>", std::ptr::from_ref::<Self>(self))
+                write!(
+                    f,
+                    "Certificate<DER; {:p}>",
+                    std::ptr::from_ref::<Self>(self)
+                )
             }
             CertificateKind::Pem => {
-                format!("Certificate<PEM; {:p}>", std::ptr::from_ref::<Self>(self))
+                write!(
+                    f,
+                    "Certificate<PEM; {:p}>",
+                    std::ptr::from_ref::<Self>(self)
+                )
             }
         }
     }
@@ -209,6 +227,10 @@ impl PyCertificateRevocationList {
         Self::from_pem(pem.as_ref())
     }
 
+    fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        pyo3::types::PyBytes::new(py, self.bin.as_ref())
+    }
+
     fn __hash__(&self) -> u64 {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::hash::DefaultHasher::new();
@@ -238,7 +260,14 @@ impl PyCertificateRevocationList {
     }
 
     fn __repr__(&self) -> String {
-        format!(
+        format!("{self}")
+    }
+}
+
+impl std::fmt::Display for PyCertificateRevocationList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "CertificateRevocationList<{:p}>",
             std::ptr::from_ref::<Self>(self)
         )
@@ -276,3 +305,112 @@ impl From<PyCertificateRevocationList> for CertificateRevocationList {
         py_crl.crl
     }
 }
+
+// ==== IDENTITY ====
+
+#[pyclass(name = "Identity", frozen, immutable_type, skip_from_py_object)]
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct PyIdentity {
+    pub(crate) bin: bytes::Bytes,
+    pub(crate) cert: ::reqwest::Identity,
+}
+
+impl PyIdentity {
+    pub fn inner(&self) -> &::reqwest::Identity {
+        &self.cert
+    }
+
+    fn from_pem(pem: &[u8]) -> PyResult<Self> {
+        ::reqwest::Identity::from_pem(pem)
+            .map(|cert| Self {
+                bin: bytes::Bytes::copy_from_slice(pem),
+                cert,
+            })
+            .map_err(|e| py_value_error!("Failed to create Identity from PEM: {}", e))
+    }
+}
+
+impl std::hash::Hash for PyIdentity {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.bin.hash(state);
+    }
+}
+
+#[pymethods]
+impl PyIdentity {
+    #[new]
+    #[expect(clippy::needless_pass_by_value)]
+    fn py_new(pem: Self) -> PyResult<Self> {
+        Self::from_pem(pem.as_ref())
+    }
+
+    fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        pyo3::types::PyBytes::new(py, self.bin.as_ref())
+    }
+
+    fn __hash__(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::hash::DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.bin == other.bin
+    }
+
+    fn __ne__(&self, other: &Self) -> bool {
+        self.bin != other.bin
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[pyo3(name = "from_pem")]
+    #[staticmethod]
+    fn py_from_pem(pem: ryo3_bytes::PyBytes) -> PyResult<Self> {
+        Self::from_pem(pem.as_ref())
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+}
+
+impl std::fmt::Display for PyIdentity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Identity<PEM; {:p}>", std::ptr::from_ref::<Self>(self))
+    }
+}
+
+impl PartialEq for PyIdentity {
+    fn eq(&self, other: &Self) -> bool {
+        self.bin == other.bin
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyIdentity {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(cert) = obj.cast_exact::<Self>() {
+            Ok(cert.get().clone())
+        } else if let Ok(b) = obj.extract::<ryo3_bytes::PyBytes>() {
+            Self::py_from_pem(b)
+        } else {
+            Err(py_value_error!("Expected Identity object"))
+        }
+    }
+}
+
+macro_rules! impl_as_ref_bytes {
+    ($ty:ty) => {
+        impl AsRef<[u8]> for $ty {
+            fn as_ref(&self) -> &[u8] {
+                self.bin.as_ref()
+            }
+        }
+    };
+}
+
+impl_as_ref_bytes!(PyCertificate);
+impl_as_ref_bytes!(PyCertificateRevocationList);
+impl_as_ref_bytes!(PyIdentity);

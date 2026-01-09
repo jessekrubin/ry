@@ -2,7 +2,7 @@ import pytest
 
 import ry
 
-_PEM = """
+_PEM: str = """
 -----BEGIN CERTIFICATE-----
 MIIBtjCCAVugAwIBAgITBmyf1XSXNmY/Owua2eiedgPySjAKBggqhkjOPQQDAjA5
 MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g
@@ -16,7 +16,7 @@ BqWTrBqYaGFy+uGh0PsceGCmQ5nFuMQCIQCcAu/xlJyzlvnrxir4tiz+OpAUFteM
 YyRIHN8wfdVoOw==
 -----END CERTIFICATE-----
 """
-_PEM_BUNDLE = """
+_PEM_BUNDLE: str = """
 -----BEGIN CERTIFICATE-----
 MIIBtjCCAVugAwIBAgITBmyf1XSXNmY/Owua2eiedgPySjAKBggqhkjOPQQDAjA5
 MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g

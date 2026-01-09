@@ -18,6 +18,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "read_timeout": None,
     "connect_timeout": None,
     "redirect": 10,
+    "resolve": None,
     "referer": True,
     "gzip": True,
     "brotli": True,
@@ -45,6 +46,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "tcp_keepalive_interval": ry.Duration(secs=15, nanos=0),
     "tcp_keepalive_retries": 3,
     "tcp_nodelay": True,
+    "identity": None,
     "tls_certs_only": None,
     "tls_certs_merge": None,
     "tls_crls_only": None,
@@ -154,3 +156,55 @@ class TestTlsVersions:
         )
         with pytest.raises(ValueError, match=re.escape(match_pat)):
             _ = client_cls(tls_version_min="snorkling")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "seq_type",
+    [list, tuple, set, frozenset],
+)
+def test_client_config_resolve(
+    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient], seq_type: t.Any
+) -> None:
+    _resolve_map = {
+        "uno.com": [
+            ry.SocketAddr.parse("127.0.0.1:80"),
+            ry.SocketAddrV4.parse("127.0.0.1:80"),  # duplicate of the one above
+            ry.SocketAddrV6.parse("[::1]:80"),
+        ],
+        "dos.com": [
+            ry.SocketAddr.parse("127.0.0.1:80").to_string(),
+            "198.51.100.250:1234",
+        ],
+        "tres.com": [],
+        # single
+        "quatro.com": ry.SocketAddr.parse("127.0.0.1:80"),
+    }
+    resolve_map = {
+        k: seq_type(v if isinstance(v, t.Collection) else [v])
+        for k, v in _resolve_map.items()
+    }
+    expected = {
+        "dos.com": [
+            ry.SocketAddr(ry.Ipv4Addr("127.0.0.1"), 80),
+            ry.SocketAddr(ry.Ipv4Addr("198.51.100.250"), 1234),
+        ],
+        "quatro.com": [
+            ry.SocketAddr(ry.Ipv4Addr("127.0.0.1"), 80),
+        ],
+        "uno.com": [
+            ry.SocketAddr(ry.Ipv6Addr("::1"), 80),
+            ry.SocketAddr(ry.Ipv4Addr("127.0.0.1"), 80),
+            ry.SocketAddr(ry.Ipv6Addr("::1"), 80),
+        ],
+    }
+    cfg = client_cls(resolve=resolve_map).config()
+    assert isinstance(cfg["resolve"], dict)
+    # make sure no duplicates for each
+    for addrs in cfg["resolve"].values():
+        assert len(addrs) == len(set(addrs))
+
+    # check each entry
+    expected_w_sets = {k: set(v) for k, v in expected.items()}
+    cfg_w_sets = {k: set(v) for k, v in cfg["resolve"].items()}
+    assert cfg_w_sets == expected_w_sets
+    assert len(cfg["resolve"]) == sum(1 for v in expected.values() if v)

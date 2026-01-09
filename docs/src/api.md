@@ -163,6 +163,7 @@ from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
@@ -4257,6 +4258,7 @@ _Body: t.TypeAlias = (
     | t.Iterable[Buffer]
     | t.AsyncIterable[Buffer]
 )
+_ResolveMapLike: t.TypeAlias = dict[str, t.Sequence[SocketAddr]]
 
 
 class RequestKwargs(t.TypedDict, total=False):
@@ -4280,6 +4282,7 @@ class ClientConfig(t.TypedDict):
     connect_timeout: Duration | None
     read_timeout: Duration | None
     redirect: int | None
+    resolve: _ResolveMapLike | None
     referer: bool
     gzip: bool
     brotli: bool
@@ -4307,6 +4310,7 @@ class ClientConfig(t.TypedDict):
     tcp_keepalive_interval: Duration | None
     tcp_keepalive_retries: int | None
     tcp_nodelay: bool
+    identity: Identity | None
     tls_certs_merge: list[Certificate] | None
     tls_certs_only: list[Certificate] | None
     tls_crls_only: list[CertificateRevocationList] | None
@@ -4330,6 +4334,7 @@ class HttpClient:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -4440,6 +4445,7 @@ class Client:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -4548,6 +4554,7 @@ class BlockingClient:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -4908,30 +4915,40 @@ class Cookie(FromStr, _Parse):
 
 @t.final
 class Certificate:
-    def __init__(self) -> t.NoReturn: ...
+    def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
-    @staticmethod
-    def from_der(der: Buffer) -> Certificate: ...
-    @staticmethod
-    def from_pem(pem: Buffer) -> Certificate: ...
-    @staticmethod
-    def from_pem_bundle(pem_bundle: Buffer) -> list[Certificate]: ...
+    @classmethod
+    def from_der(cls, der: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem_bundle(cls, pem_bundle: Buffer) -> list[t.Self]: ...
 
 
 @t.final
 class CertificateRevocationList:
-    def __init__(self) -> t.NoReturn: ...
+    def __init__(self, pem: Buffer) -> None: ...
+    def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
-    @staticmethod
-    def from_pem(pem: Buffer) -> CertificateRevocationList: ...
-    @staticmethod
-    def from_pem_bundle(
-        pem_bundle: Buffer,
-    ) -> list[CertificateRevocationList]: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem_bundle(cls, pem_bundle: Buffer) -> list[t.Self]: ...
+
+
+@t.final
+class Identity:
+    def __init__(self, pem: Buffer) -> None: ...
+    def __bytes__(self) -> bytes: ...
+    def __hash__(self) -> int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
 ```
 
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
@@ -5706,6 +5723,7 @@ class Ipv4Addr(
     _Parse,
     ToPy[ipaddress.IPv4Address],
     ToPyIpAddress[ipaddress.IPv4Address],
+    ToString,
 ):
     BROADCAST: Ipv4Addr
     LOCALHOST: Ipv4Addr
@@ -5725,6 +5743,7 @@ class Ipv4Addr(
     def __ge__(self, other: Ipv4Addr) -> bool: ...
     def __hash__(self) -> int: ...
     def to_py(self) -> ipaddress.IPv4Address: ...
+    def to_string(self) -> str: ...
     @property
     def version(self) -> t.Literal[4]: ...
     @property
@@ -5794,6 +5813,7 @@ class Ipv6Addr(
     _Parse,
     ToPy[ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv6Address],
+    ToString,
 ):
     LOCALHOST: Ipv6Addr
     UNSPECIFIED: Ipv6Addr
@@ -5814,6 +5834,7 @@ class Ipv6Addr(
     def __ge__(self, other: Ipv6Addr) -> bool: ...
     def __hash__(self) -> int: ...
     def to_py(self) -> ipaddress.IPv6Address: ...
+    def to_string(self) -> str: ...
     @property
     def version(self) -> t.Literal[6]: ...
     @property
@@ -5851,6 +5872,7 @@ class IpAddr(
     _Parse,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
+    ToString,
 ):
     BROADCAST: IpAddr
     LOCALHOST_V4: IpAddr
@@ -5875,6 +5897,7 @@ class IpAddr(
     def __gt__(self, other: IpAddr) -> bool: ...
     def __ge__(self, other: IpAddr) -> bool: ...
     def __hash__(self) -> int: ...
+    def to_string(self) -> str: ...
     def to_py(self) -> ipaddress.IPv4Address | ipaddress.IPv6Address: ...
     def to_ipv4(self) -> Ipv4Addr: ...
     def to_ipv6(self) -> Ipv6Addr: ...
@@ -5924,8 +5947,9 @@ class SocketAddrV4(
     _Version4,
     # protocols
     FromStr,
-    _Parse,
     ToPyIpAddress[ipaddress.IPv4Address],
+    ToString,
+    _Parse,
 ):
     def __init__(
         self,
@@ -5942,6 +5966,7 @@ class SocketAddrV4(
     def to_ipv4(self) -> Ipv4Addr: ...
     def to_ipaddr(self) -> IpAddr: ...
     def to_socketaddr(self) -> SocketAddr: ...
+    def to_string(self) -> str: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
@@ -5961,8 +5986,9 @@ class SocketAddrV6(
     _Ipv6AddrProperties,
     _Version6,
     # protocols
-    ToPyIpAddress[ipaddress.IPv6Address],
     FromStr,
+    ToPyIpAddress[ipaddress.IPv6Address],
+    ToString,
     _Parse,
 ):
     def __init__(
@@ -5977,6 +6003,7 @@ class SocketAddrV6(
     def __gt__(self, other: SocketAddrV6) -> bool: ...
     def __ge__(self, other: SocketAddrV6) -> bool: ...
     def __hash__(self) -> int: ...
+    def to_string(self) -> str: ...
     def to_ipv6(self) -> Ipv6Addr: ...
     def to_ipaddr(self) -> IpAddr: ...
     def to_socketaddr(self) -> SocketAddr: ...
@@ -6004,6 +6031,7 @@ class SocketAddr(
     # protocols
     FromStr,
     _Parse,
+    ToString,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
     def __init__(
@@ -6027,6 +6055,7 @@ class SocketAddr(
     @classmethod
     def parse(cls, s: str | bytes) -> SocketAddr: ...
     def to_ipaddr(self) -> IpAddr: ...
+    def to_string(self) -> str: ...
     def to_socketaddrv4(self) -> SocketAddrV4:
         """Return SocketAddrV4 representation
 

@@ -5,7 +5,7 @@ use crate::errors::map_reqwest_err;
 #[cfg(feature = "experimental-async")]
 use crate::response_parking_lot::RyAsyncResponse;
 use crate::response_parking_lot::RyBlockingResponse;
-use crate::tls::{PyCertificate, PyCertificateRevocationList};
+use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
 use crate::tls_version::TlsVersion;
 use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};
 use pyo3::prelude::*;
@@ -60,6 +60,7 @@ pub struct ClientConfig {
     user_agent: Option<ryo3_http::HttpHeaderValue>,
     hickory_dns: bool,
     redirect: Option<usize>,
+    resolve: Option<PyResolveMap>,
     // misspelled of course :/
     referer: bool,
     // -- http preferences --
@@ -98,6 +99,7 @@ pub struct ClientConfig {
     tcp_keepalive_retries: Option<u32>, // default: 3
     tcp_nodelay: bool,                 // default: true
     // -- tls --
+    identity: Option<PyIdentity>,
     tls_certs_merge: Option<Vec<PyCertificate>>,
     tls_certs_only: Option<Vec<PyCertificate>>,
     tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
@@ -109,22 +111,17 @@ pub struct ClientConfig {
     tls_danger_accept_invalid_certs: bool,
     tls_danger_accept_invalid_hostnames: bool,
     // == CLIENT BUILDER OPTIONS TODO ==
-    // add_crl
-    // add_crls
     // connector_layer
     // cookie_provider
     // cookie_store
     // dns_resolver
     // dns_resolver2
     // http09_responses
-    // identity
     // interface
     // local_address
     // proxy
-    // referer
     // resolve
     // resolve_to_addrs
-    // retry
 }
 
 impl Default for ClientConfig {
@@ -135,6 +132,7 @@ impl Default for ClientConfig {
             user_agent: Some(HeaderValue::from_static(DEFAULT_USER_AGENT).into()),
             hickory_dns: true,
             redirect: Some(10),
+            resolve: None,
             referer: true,
             // compression
             gzip: true,
@@ -172,6 +170,7 @@ impl Default for ClientConfig {
             tcp_keepalive_retries: Some(3),
             tcp_nodelay: true,
             // tls
+            identity: None,
             tls_certs_merge: None,
             tls_certs_only: None,
             tls_crls_only: None,
@@ -425,6 +424,7 @@ impl RyHttpClient {
             read_timeout = None,
             connect_timeout = None,
             redirect = Some(10),
+            resolve = None,
             referer = true,
             gzip = true,
             brotli = true,
@@ -458,6 +458,7 @@ impl RyHttpClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
+            identity = None,
             tls_certs_merge = None,
             tls_certs_only = None,
             tls_crls_only = None,
@@ -465,7 +466,6 @@ impl RyHttpClient {
             tls_sni = true,
             tls_version_max = None,
             tls_version_min = None,
-
             tls_danger_accept_invalid_certs = false,
             tls_danger_accept_invalid_hostnames = false,
         )
@@ -478,6 +478,7 @@ impl RyHttpClient {
         read_timeout: Option<PyDuration>,
         connect_timeout: Option<PyDuration>,
         redirect: Option<usize>,
+        resolve: Option<PyResolveMap>,
         referer: bool,
         gzip: bool,
         brotli: bool,
@@ -515,6 +516,7 @@ impl RyHttpClient {
         tcp_nodelay: bool,
 
         // -- tls --
+        identity: Option<PyIdentity>,
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
@@ -522,8 +524,6 @@ impl RyHttpClient {
         tls_sni: bool,
         tls_version_max: Option<TlsVersion>,
         tls_version_min: Option<TlsVersion>,
-
-        // -- danger --
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
     ) -> PyResult<Self> {
@@ -537,6 +537,7 @@ impl RyHttpClient {
             read_timeout,
             connect_timeout,
             redirect,
+            resolve,
             referer,
             gzip,
             brotli,
@@ -569,6 +570,7 @@ impl RyHttpClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
+            identity,
             tls_certs_merge,
             tls_certs_only,
             tls_crls_only,
@@ -576,7 +578,6 @@ impl RyHttpClient {
             tls_sni,
             tls_version_max,
             tls_version_min,
-            // -- danger --
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
         };
@@ -1176,6 +1177,7 @@ impl RyClient {
             read_timeout = None,
             connect_timeout = None,
             redirect = Some(10),
+            resolve = None,
             referer = true,
             gzip = true,
             brotli = true,
@@ -1209,6 +1211,7 @@ impl RyClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
+            identity = None,
             tls_certs_merge = None,
             tls_certs_only = None,
             tls_crls_only = None,
@@ -1228,6 +1231,7 @@ impl RyClient {
         read_timeout: Option<PyDuration>,
         connect_timeout: Option<PyDuration>,
         redirect: Option<usize>,
+        resolve: Option<PyResolveMap>,
         referer: bool,
         gzip: bool,
         brotli: bool,
@@ -1265,6 +1269,7 @@ impl RyClient {
         tcp_nodelay: bool,
 
         // -- tls --
+        identity: Option<PyIdentity>,
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
@@ -1285,6 +1290,7 @@ impl RyClient {
             read_timeout,
             connect_timeout,
             redirect,
+            resolve,
             referer,
             gzip,
             brotli,
@@ -1317,6 +1323,7 @@ impl RyClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
+            identity,
             tls_certs_merge,
             tls_certs_only,
             tls_crls_only,
@@ -1454,6 +1461,7 @@ impl RyBlockingClient {
             read_timeout = None,
             connect_timeout = None,
             redirect = Some(10),
+            resolve = None,
             referer = true,
             gzip = true,
             brotli = true,
@@ -1487,6 +1495,7 @@ impl RyBlockingClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
+            identity = None,
             tls_certs_merge = None,
             tls_certs_only = None,
             tls_crls_only = None,
@@ -1506,6 +1515,7 @@ impl RyBlockingClient {
         read_timeout: Option<PyDuration>,
         connect_timeout: Option<PyDuration>,
         redirect: Option<usize>,
+        resolve: Option<PyResolveMap>,
         referer: bool,
         gzip: bool,
         brotli: bool,
@@ -1543,6 +1553,7 @@ impl RyBlockingClient {
         tcp_nodelay: bool,
 
         // -- tls --
+        identity: Option<PyIdentity>,
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
@@ -1563,6 +1574,7 @@ impl RyBlockingClient {
             read_timeout,
             connect_timeout,
             redirect,
+            resolve,
             referer,
             gzip,
             brotli,
@@ -1595,6 +1607,7 @@ impl RyBlockingClient {
             tcp_keepalive_retries,
             tcp_nodelay,
             // --- TLS ---
+            identity,
             tls_certs_merge,
             tls_certs_only,
             tls_crls_only,
@@ -1602,7 +1615,6 @@ impl RyBlockingClient {
             tls_sni,
             tls_version_max,
             tls_version_min,
-            // -- danger --
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
         };
@@ -1852,6 +1864,12 @@ impl ClientConfig {
         if let Some(connect_timeout) = &self.connect_timeout {
             client_builder = client_builder.connect_timeout(connect_timeout.0);
         }
+
+        if let Some(resolve) = &self.resolve {
+            for (domain, addrs) in &resolve.0 {
+                client_builder = client_builder.resolve_to_addrs(domain, addrs);
+            }
+        }
         // http1
         if self.http1_only {
             client_builder = client_builder.http1_only();
@@ -1882,6 +1900,7 @@ impl ClientConfig {
                 )*
             };
         }
+        let resolve = self.resolve.into_pyobject(py)?;
 
         set_items! {
             "headers" => self.headers.clone(),
@@ -1891,6 +1910,7 @@ impl ClientConfig {
             "read_timeout" => self.read_timeout,
             "connect_timeout" => self.connect_timeout,
             "redirect" => self.redirect,
+            "resolve" => resolve,
             "referer" => self.referer,
             "gzip" => self.gzip,
             "brotli" => self.brotli,
@@ -1923,6 +1943,7 @@ impl ClientConfig {
             "tcp_keepalive_retries" => self.tcp_keepalive_retries,
             "tcp_nodelay" => self.tcp_nodelay,
             // -- tls --
+            "identity" => self.identity.clone(),
             "tls_crls_only" => self.tls_crls_only.clone(),
             "tls_certs_merge" => self.tls_certs_merge.clone(),
             "tls_certs_only" => self.tls_certs_only.clone(),
@@ -2171,5 +2192,105 @@ impl<'py> FromPyObject<'_, 'py> for Timeout {
         } else {
             py_type_err!("timeout must be a Duration | datetime.timedelta")
         }
+    }
+}
+
+// RESOLVE-MAP
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct PySocketAddrLike(std::net::SocketAddr);
+
+impl<'py> FromPyObject<'_, 'py> for PySocketAddrLike {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(addr) = obj.cast_exact::<ryo3_std::net::PySocketAddr>() {
+            Ok(Self(addr.get().into()))
+        } else if let Ok(addr_str) = obj.cast_exact::<ryo3_std::net::PySocketAddrV4>() {
+            Ok(Self(addr_str.get().into()))
+        } else if let Ok(addr_str) = obj.cast_exact::<ryo3_std::net::PySocketAddrV6>() {
+            Ok(Self(addr_str.get().into()))
+        } else if let Ok(s) = obj.extract::<pyo3::pybacked::PyBackedStr>() {
+            let addr: std::net::SocketAddr = s
+                .parse()
+                .map_err(|err| py_value_error!("failed to parse socket addr '{s}': {err}"))?;
+            Ok(Self(addr))
+        } else {
+            py_type_err!("expected SocketAddr, SocketAddrV4, SocketAddrV6, or str")
+        }
+    }
+}
+
+enum PyResolveMapValue {
+    Single(std::net::SocketAddr),
+    Multiple(Vec<std::net::SocketAddr>),
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyResolveMapValue {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(addr) = obj.extract::<PySocketAddrLike>() {
+            Ok(Self::Single(addr.0))
+        } else if let Ok(addr_list) = obj.extract::<Vec<PySocketAddrLike>>() {
+            // love that turbo fissssh
+            let mut addrs = addr_list.into_iter().map(|a| a.0).collect::<Vec<_>>();
+            addrs.sort_unstable();
+            addrs.dedup();
+
+            Ok(Self::Multiple(addrs))
+        } else if let Ok(addr_list) = obj.extract::<std::collections::HashSet<PySocketAddrLike>>() {
+            let addrs = addr_list.into_iter().map(|a| a.0).collect();
+            Ok(Self::Multiple(addrs))
+        } else {
+            py_type_err!("expected SocketAddr, SocketAddrV4, SocketAddrV6, str, or list of these")
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct PyResolveMap(Vec<(String, Vec<std::net::SocketAddr>)>);
+
+impl<'py> FromPyObject<'_, 'py> for PyResolveMap {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let dict = obj.cast_exact::<PyDict>()?;
+        let mut map: std::collections::HashMap<String, Vec<std::net::SocketAddr>> =
+            std::collections::HashMap::new();
+        for (key, value) in dict.iter() {
+            let key_str = key.extract::<pyo3::pybacked::PyBackedStr>()?.to_string();
+            let resolve_value = value.extract::<PyResolveMapValue>()?;
+            match resolve_value {
+                PyResolveMapValue::Single(addr) => {
+                    map.entry(key_str).or_default().push(addr);
+                }
+                PyResolveMapValue::Multiple(addrs) => {
+                    map.entry(key_str).or_default().extend(addrs);
+                }
+            }
+        }
+        let vecify = map
+            .into_iter()
+            .filter(
+                |(_domain, addrs)| !addrs.is_empty(), // filter out empty addr lists
+            )
+            .collect::<Vec<(String, Vec<std::net::SocketAddr>)>>();
+        Ok(Self(vecify))
+    }
+}
+
+impl<'py> IntoPyObject<'py> for &PyResolveMap {
+    type Target = PyDict;
+    type Output = Bound<'py, PyDict>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let dict = PyDict::new(py);
+        for (key, addrs) in &self.0 {
+            // map 2 PySocketAddr,
+            let py_sock_addrs = addrs
+                .iter()
+                .map(ryo3_std::net::PySocketAddr::from)
+                .collect::<Vec<_>>();
+            dict.set_item(key, py_sock_addrs)?;
+        }
+        Ok(dict)
     }
 }

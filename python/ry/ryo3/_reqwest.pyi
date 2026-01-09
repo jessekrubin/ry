@@ -14,6 +14,7 @@ _Body: t.TypeAlias = (
     | t.Iterable[Buffer]
     | t.AsyncIterable[Buffer]
 )
+_ResolveMapLike: t.TypeAlias = dict[str, t.Sequence[SocketAddr]]
 
 class RequestKwargs(t.TypedDict, total=False):
     body: _Body | None
@@ -35,6 +36,7 @@ class ClientConfig(t.TypedDict):
     connect_timeout: Duration | None
     read_timeout: Duration | None
     redirect: int | None
+    resolve: _ResolveMapLike | None
     referer: bool
     gzip: bool
     brotli: bool
@@ -62,6 +64,7 @@ class ClientConfig(t.TypedDict):
     tcp_keepalive_interval: Duration | None
     tcp_keepalive_retries: int | None
     tcp_nodelay: bool
+    identity: Identity | None
     tls_certs_merge: list[Certificate] | None
     tls_certs_only: list[Certificate] | None
     tls_crls_only: list[CertificateRevocationList] | None
@@ -84,6 +87,7 @@ class HttpClient:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -192,6 +196,7 @@ class Client:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -299,6 +304,7 @@ class BlockingClient:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -635,24 +641,35 @@ class Cookie(FromStr, _Parse):
 
 @t.final
 class Certificate:
-    def __init__(self) -> t.NoReturn: ...
+    def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
-    @staticmethod
-    def from_der(der: Buffer) -> Certificate: ...
-    @staticmethod
-    def from_pem(pem: Buffer) -> Certificate: ...
-    @staticmethod
-    def from_pem_bundle(pem_bundle: Buffer) -> list[Certificate]: ...
+    @classmethod
+    def from_der(cls, der: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem_bundle(cls, pem_bundle: Buffer) -> list[t.Self]: ...
 
 @t.final
 class CertificateRevocationList:
-    def __init__(self) -> t.NoReturn: ...
+    def __init__(self, pem: Buffer) -> None: ...
+    def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
-    @staticmethod
-    def from_pem(pem: Buffer) -> CertificateRevocationList: ...
-    @staticmethod
-    def from_pem_bundle(pem_bundle: Buffer) -> list[CertificateRevocationList]: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem_bundle(cls, pem_bundle: Buffer) -> list[t.Self]: ...
+
+@t.final
+class Identity:
+    def __init__(self, pem: Buffer) -> None: ...
+    def __bytes__(self) -> bytes: ...
+    def __hash__(self) -> int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
