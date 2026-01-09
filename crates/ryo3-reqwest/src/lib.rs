@@ -27,6 +27,7 @@ pub use response_stream::RyBlockingResponseStream;
 pub use response_stream::RyResponseStream;
 pub use tls::PyCertificate;
 pub use tls::PyCertificateRevocationList;
+pub use tls::PyIdentity;
 
 #[cfg(feature = "experimental-async")]
 pub use client::RyClient;
@@ -38,6 +39,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCookie>()?;
     m.add_class::<PyCertificate>()?;
     m.add_class::<PyCertificateRevocationList>()?;
+    m.add_class::<PyIdentity>()?;
     m.add_class::<PyProxy>()?;
     m.add_class::<RyHttpClient>()?;
     #[cfg(feature = "experimental-async")]
