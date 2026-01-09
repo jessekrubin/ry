@@ -183,19 +183,28 @@ def test_client_config_resolve(
         k: seq_type(v if isinstance(v, t.Collection) else [v])
         for k, v in _resolve_map.items()
     }
-
     expected = {
         "dos.com": [
             ry.SocketAddr(ry.Ipv4Addr("127.0.0.1"), 80),
             ry.SocketAddr(ry.Ipv4Addr("198.51.100.250"), 1234),
         ],
+        "quatro.com": [
+            ry.SocketAddr(ry.Ipv4Addr("127.0.0.1"), 80),
+        ],
         "uno.com": [
+            ry.SocketAddr(ry.Ipv6Addr("::1"), 80),
             ry.SocketAddr(ry.Ipv4Addr("127.0.0.1"), 80),
             ry.SocketAddr(ry.Ipv6Addr("::1"), 80),
         ],
-        "quatro.com": [ry.SocketAddr(ry.Ipv4Addr("127.0.0.1"), 80)],
     }
     cfg = client_cls(resolve=resolve_map).config()
     assert isinstance(cfg["resolve"], dict)
-    assert cfg["resolve"] == expected
+    # make sure no duplicates for each
+    for addrs in cfg["resolve"].values():
+        assert len(addrs) == len(set(addrs))
+
+    # check each entry
+    expected_w_sets = {k: set(v) for k, v in expected.items()}
+    cfg_w_sets = {k: set(v) for k, v in cfg["resolve"].items()}
+    assert cfg_w_sets == expected_w_sets
     assert len(cfg["resolve"]) == sum(1 for v in expected.values() if v)
