@@ -106,6 +106,7 @@ from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
