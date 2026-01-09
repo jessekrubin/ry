@@ -3,7 +3,7 @@ use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
 use pyo3::exceptions::PyTypeError;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, prelude::*};
-use ryo3_core::{PyFromStr, PyParse};
+use ryo3_core::{PyAsciiString, PyFromStr, PyParse};
 use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
@@ -46,12 +46,17 @@ impl PyIpv4Addr {
     }
 
     #[must_use]
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> PyAsciiString {
+        self.__str__()
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let str = self.0.to_string();
+        let str = self.py_to_string();
         PyTuple::new(py, &[str])
     }
 
@@ -305,12 +310,17 @@ impl PyIpv6Addr {
     }
 
     #[must_use]
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> PyAsciiString {
+        self.__str__()
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let str = self.0.to_string();
+        let str = self.py_to_string();
         PyTuple::new(py, &[str])
     }
 
@@ -561,12 +571,17 @@ impl PyIpAddr {
     }
 
     #[must_use]
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> PyAsciiString {
+        self.__str__()
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let str = self.0.to_string();
+        let str = self.py_to_string();
         PyTuple::new(py, &[str])
     }
 

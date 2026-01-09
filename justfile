@@ -34,7 +34,7 @@ develop-uv:
 
 # maturin develop (shorthand)
 mat *ARGS:
-    maturin develop {{ ARGS }}
+    uv run maturin develop --uv {{ ARGS }}
 
 # cargo test
 cargo-test:
@@ -54,11 +54,11 @@ dev-rel:
 
 # run pytest
 doctest:
-    pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" python
+    uv run pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" python
 
 # run pytest
-pytest:
-    pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" python tests
+pytest +ARGS='python tests':
+    uv run pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" {{ ARGS }}
 
 # run pytest
 pytest-uv:
@@ -66,7 +66,7 @@ pytest-uv:
 
 # run pytest (printing captured output)
 pytestv:
-    pytest --benchmark-skip -rP
+    uv run pytest --benchmark-skip -rP
 
 # run all test
 test: pytest

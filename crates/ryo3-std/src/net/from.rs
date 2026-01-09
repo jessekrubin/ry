@@ -165,9 +165,32 @@ impl From<SocketAddrV6> for PySocketAddrV6 {
 // ==========================================================================
 // PySocketAddr
 // ==========================================================================
-
 impl From<SocketAddr> for PySocketAddr {
     fn from(addr: SocketAddr) -> Self {
         Self(addr)
+    }
+}
+
+impl From<&SocketAddr> for PySocketAddr {
+    fn from(addr: &SocketAddr) -> Self {
+        Self(*addr)
+    }
+}
+
+impl From<&PySocketAddr> for SocketAddr {
+    fn from(addr: &PySocketAddr) -> Self {
+        addr.0
+    }
+}
+
+impl From<&PySocketAddrV4> for SocketAddr {
+    fn from(addr: &PySocketAddrV4) -> Self {
+        addr.0.into()
+    }
+}
+
+impl From<&PySocketAddrV6> for SocketAddr {
+    fn from(addr: &PySocketAddrV6) -> Self {
+        addr.0.into()
     }
 }
