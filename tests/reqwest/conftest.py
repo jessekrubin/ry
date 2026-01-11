@@ -10,9 +10,9 @@ import contextlib
 import json
 import threading
 import time
+import typing as t
 from asyncio import sleep as aiosleep
 from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Iterator
-from typing import Any, TypeAlias
 
 import pytest
 from uvicorn import _types as uvt
@@ -21,9 +21,9 @@ from uvicorn.server import Server
 
 import ry
 
-Receive: TypeAlias = Callable[[], Awaitable[dict[str, Any]]]
-Send: TypeAlias = Callable[[uvt.ASGISendEvent], Coroutine[None, None, None]]
-Scope: TypeAlias = dict[str, Any]
+Receive: t.TypeAlias = t.Callable[[], Awaitable[dict[str, t.Any]]]
+Send: t.TypeAlias = t.Callable[[uvt.ASGISendEvent], Coroutine[None, None, None]]
+Scope: t.TypeAlias = dict[str, t.Any]
 
 
 async def echo(
@@ -286,7 +286,7 @@ class ReqtestServer(Server):
         # because it can only be done in the main thread.
         ...  # pragma: nocover
 
-    async def serve(self, sockets: Any = None) -> None:
+    async def serve(self, sockets: t.Any = None) -> None:
         self.restart_requested = asyncio.Event()
 
         loop = asyncio.get_event_loop()
@@ -297,10 +297,12 @@ class ReqtestServer(Server):
         await asyncio.wait(tasks)
 
     async def restart(self) -> None:  # pragma: no cover
+        # I am not sure where I found this fix, but I believe it was the httpx repo?
+        # ------
         # This coroutine may be called from a different thread than the one the
         # server is running on, and from an async environment that's not asyncio.
-        # For this reason, we use an event to coordinate with the server
-        # instead of calling shutdown()/startup() directly, and should not make
+        # For this reason, an event is used to coordinate with the server
+        # instead of calling shutdown()/startup(), and should not make
         # any asyncio-specific operations.
         self.started = False
         self.restart_requested.set()
@@ -349,6 +351,13 @@ def server() -> Iterator[ReqtestServer]:
         bound_port = running.servers[0].sockets[0].getsockname()[1]
         running.config.port = bound_port  # make .url work
         yield running
+
+
+@pytest.fixture(params=[ry.HttpClient, ry.Client, ry.BlockingClient])
+def client_cls(
+    request: pytest.FixtureRequest,
+) -> type[ry.HttpClient | ry.Client | ry.BlockingClient]:
+    return t.cast("type[ry.HttpClient | ry.Client | ry.BlockingClient]", request.param)
 
 
 def _main() -> None:

@@ -26,15 +26,14 @@ ergonomic.
   truncation, streaming reads, and `anyio` compatibility.
 - **(de)compression:** (de)compression tools for `zstd`, `brotli`, `gzip`, and
   `bzip2`.
-- **Datetime utilities via `jiff`:** Fast, accurate, timezone-aware datetime
-  parsing and formatting, with `datetime` interop and much more
+- **`jiff` based datetime library:** Fast, accurate, timezone-aware datetime parsing and formatting, with `datetime` interop.
 - **Miscellaneous bindings:** Includes crates like `globset`, `walkdir`,
   `sqlformat`, `unindent`, `twox-hash`, and more.
 - **Designed for ergonomics:** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
 - **Type Annotated:** All public APIs are (painstakingly) type annotated.
 - **Performant:** Speed without the words "blazingly fast." [^1]
-- **Not slop:** written by a human
+- **Not slop:** written by a human [^2]
 - **No emojis**
 
 ## Install
@@ -139,3 +138,5 @@ _(aka: questions that I have been asking myself)_
     Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
     performance variance, regardless of whether "blazingly fast" appeared in the
     README or docs.
+[^2]:
+    Artisanal, hand-crafted, small-batch software.

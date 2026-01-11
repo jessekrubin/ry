@@ -73,7 +73,7 @@ def datetime_does_not_exist(value: pydt.datetime) -> bool:
     from UTC.  It is an exact inverse of (and very similar to) the dateutil method
     https://dateutil.readthedocs.io/en/stable/tz.html#dateutil.tz.datetime_exists
 
-    NOTE: Taken from `hypothesis.strategies._internal.datetime`
+    **NOTE**: Taken from `hypothesis.strategies._internal.datetime`
     """
     # Naive datetimes cannot be imaginary, but we need this special case because
     # chaining .astimezone() ends with *the system local timezone*, not None.

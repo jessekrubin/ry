@@ -18,7 +18,6 @@ use reqwest::{Method, RequestBuilder};
 use ryo3_http::{
     HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
 };
-#[cfg(feature = "experimental-async")]
 use ryo3_macro_rules::py_value_error;
 use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
@@ -121,9 +120,6 @@ pub struct ClientConfig {
     // http09_responses
     // interface
     // local_address
-    // proxy
-    // resolve
-    // resolve_to_addrs
 }
 
 impl Default for ClientConfig {
@@ -429,6 +425,8 @@ impl RyHttpClient {
             redirect = Some(10),
             resolve = None,
             referer = true,
+            identity = None,
+
             gzip = true,
             brotli = true,
             deflate = true,
@@ -461,7 +459,6 @@ impl RyHttpClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
-            identity = None,
             tls_certs_merge = None,
             tls_certs_only = None,
             tls_crls_only = None,
@@ -484,6 +481,8 @@ impl RyHttpClient {
         redirect: Option<usize>,
         resolve: Option<PyResolveMap>,
         referer: bool,
+        identity: Option<PyIdentity>,
+
         gzip: bool,
         brotli: bool,
         deflate: bool,
@@ -520,7 +519,6 @@ impl RyHttpClient {
         tcp_nodelay: bool,
 
         // -- tls --
-        identity: Option<PyIdentity>,
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
@@ -1185,6 +1183,8 @@ impl RyClient {
             redirect = Some(10),
             resolve = None,
             referer = true,
+            identity = None,
+
             gzip = true,
             brotli = true,
             deflate = true,
@@ -1217,7 +1217,6 @@ impl RyClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
-            identity = None,
             tls_certs_merge = None,
             tls_certs_only = None,
             tls_crls_only = None,
@@ -1240,6 +1239,8 @@ impl RyClient {
         redirect: Option<usize>,
         resolve: Option<PyResolveMap>,
         referer: bool,
+        identity: Option<PyIdentity>,
+
         gzip: bool,
         brotli: bool,
         deflate: bool,
@@ -1276,7 +1277,6 @@ impl RyClient {
         tcp_nodelay: bool,
 
         // -- tls --
-        identity: Option<PyIdentity>,
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
@@ -1472,6 +1472,8 @@ impl RyBlockingClient {
             redirect = Some(10),
             resolve = None,
             referer = true,
+            identity = None,
+
             gzip = true,
             brotli = true,
             deflate = true,
@@ -1504,7 +1506,6 @@ impl RyBlockingClient {
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
-            identity = None,
             tls_certs_merge = None,
             tls_certs_only = None,
             tls_crls_only = None,
@@ -1527,6 +1528,8 @@ impl RyBlockingClient {
         redirect: Option<usize>,
         resolve: Option<PyResolveMap>,
         referer: bool,
+        identity: Option<PyIdentity>,
+
         gzip: bool,
         brotli: bool,
         deflate: bool,
@@ -1563,7 +1566,6 @@ impl RyBlockingClient {
         tcp_nodelay: bool,
 
         // -- tls --
-        identity: Option<PyIdentity>,
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
@@ -1983,10 +1985,10 @@ impl ClientConfig {
 
 // maybe dont actually need this?
 
-#[cfg(feature = "experimental-async")]
+// #[cfg(feature = "experimental-async")]
 struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
 
-#[cfg(feature = "experimental-async")]
+// #[cfg(feature = "experimental-async")]
 impl<'py> FromPyObject<'_, 'py> for BasicAuth {
     type Error = PyErr;
 
@@ -1996,7 +1998,7 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
     }
 }
 
-#[cfg(feature = "experimental-async")]
+// #[cfg(feature = "experimental-async")]
 pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     headers: Option<HeaderMap>,
     query: Option<String>,
@@ -2009,7 +2011,6 @@ pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
 
 pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 
-#[cfg(feature = "experimental-async")]
 impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     /// Apply the kwargs to the `reqwest::RequestBuilder`
     fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
@@ -2071,7 +2072,7 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     }
 }
 
-#[cfg(feature = "experimental-async")]
+// #[cfg(feature = "experimental-async")]
 #[derive(Debug)]
 enum PyReqwestBody {
     Bytes(bytes::Bytes),
@@ -2083,7 +2084,7 @@ enum PyReqwestBody {
     None,
 }
 
-#[cfg(feature = "experimental-async")]
+// #[cfg(feature = "experimental-async")]
 impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
 
