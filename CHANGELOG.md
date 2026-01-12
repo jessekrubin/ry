@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.78 [unreleased]:wq
+## v0.0.78 [2026-01-12]
 
 - internal
   - use uv publishing

@@ -255,8 +255,8 @@ impl PyCertificateRevocationList {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(name = "from_pem_bundle")]
     #[staticmethod]
-    fn py_from_pem_bundle(path: ryo3_bytes::PyBytes) -> PyResult<Vec<Self>> {
-        Self::from_pem_bundle(path.as_ref())
+    fn py_from_pem_bundle(pem_bundle: ryo3_bytes::PyBytes) -> PyResult<Vec<Self>> {
+        Self::from_pem_bundle(pem_bundle.as_ref())
     }
 
     fn __repr__(&self) -> String {
