@@ -31,8 +31,8 @@ ryo3-fspath = { workspace = true, optional = false }
 ryo3-std = { workspace = true, optional = false }
 
 # FUTURE
-ryo3-tokio-websockets = { workspace = true, optional = true }
-ryo3-ignore = { workspace = true, optional = true }
+#ryo3-tokio-websockets = { workspace = true, optional = true }
+#ryo3-ignore = { workspace = true, optional = true }
 # optional ryo3-* dependencies
 ryo3-brotli = { workspace = true, optional = true }
 ryo3-bytes = { workspace = true, optional = true }
