@@ -197,7 +197,7 @@ bytes = "1.11.0"
 bzip2 = "0.6.1"
 cookie = { version = "0.18.1", features = ["percent-encode"] }
 dirs = { version = "6.0.0", features = [] }
-flate2 = "1.1.4"
+flate2 = "1.1.8"
 fnv = "1.0.7"
 futures = "0.3.31"
 futures-core = "0.3.31"
