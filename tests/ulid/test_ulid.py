@@ -178,7 +178,7 @@ Params: t.TypeAlias = bytes | str | int | float
         (ULID, b"sdf"),  # invalid length
         (ULID.from_timestamp, b"not-a-timestamp"),  # invalid type
         # NOTE [2025-06-18]:
-        #   pytest-xdist freaks (the fuck) out collecting the tests if we call
+        #   pytest-xdist freaks (the fuck) out collecting the tests if called
         #   `time.time()`, so the "datetime" input param has been replaced with
         #   the ret-value of `time.time()` at the `time.time()` of writing this
         #   semi-incoherent comment

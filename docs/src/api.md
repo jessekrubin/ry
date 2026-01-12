@@ -156,10 +156,15 @@ from ry.ryo3._reqwest import BlockingClient as BlockingClient
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
+from ry.ryo3._reqwest import (
+    CertificateRevocationList as CertificateRevocationList,
+)
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import Identity as Identity
+from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
@@ -4239,6 +4244,7 @@ class Regex:
 
 ```python
 import typing as t
+from typing import TypeVar
 
 import ry
 from ry._types import Buffer, Unpack
@@ -4254,6 +4260,16 @@ _Body: t.TypeAlias = (
     | t.Iterable[Buffer]
     | t.AsyncIterable[Buffer]
 )
+# proxy
+_HttpProxy: t.TypeAlias = t.Literal["http"]
+_HttpsProxy: t.TypeAlias = t.Literal["https"]
+_AllProxy: t.TypeAlias = t.Literal["all"]
+_AnyProxy: t.TypeAlias = _HttpProxy | _HttpsProxy | _AllProxy
+_ProxyKw: t.TypeAlias = (
+    t.Sequence[Proxy[_AnyProxy] | URL | str] | Proxy[_AnyProxy] | URL | str
+)
+# resolve
+_ResolveMapLike: t.TypeAlias = dict[str, t.Sequence[SocketAddr]]
 
 
 class RequestKwargs(t.TypedDict, total=False):
@@ -4270,25 +4286,31 @@ class RequestKwargs(t.TypedDict, total=False):
 
 
 class ClientConfig(t.TypedDict):
-    headers: Headers | None
+    headers: Headers | None  # default: None
     cookies: bool
-    user_agent: str | None
-    timeout: Duration | None
-    connect_timeout: Duration | None
-    read_timeout: Duration | None
+    user_agent: str | None  # default: "ry/{ry.__version__}"
     redirect: int | None
+    resolve: _ResolveMapLike | None  # default: None
     referer: bool
+    proxy: list[Proxy[_AnyProxy]] | Proxy[_AnyProxy] | None  # default: None
+    hickory_dns: bool
+    # ____ TIMEOUT ____
+    timeout: Duration | None  # default: None
+    connect_timeout: Duration | None  # default: None
+    read_timeout: Duration | None  # default: None
+    # ____ COMPRESSION / CONTENT-ENCODING ____
     gzip: bool
     brotli: bool
     deflate: bool
     zstd: bool
-    hickory_dns: bool
+    # ____ HTTP1 ____
     http1_only: bool
     https_only: bool
     http1_title_case_headers: bool
     http1_allow_obsolete_multiline_headers_in_responses: bool
     http1_allow_spaces_after_header_name_in_responses: bool
     http1_ignore_invalid_headers_in_responses: bool
+    # ____ HTTP2 ____
     http2_prior_knowledge: bool
     http2_initial_stream_window_size: int | None
     http2_initial_connection_window_size: int | None
@@ -4298,19 +4320,29 @@ class ClientConfig(t.TypedDict):
     http2_keep_alive_interval: Duration | None
     http2_keep_alive_timeout: Duration | None
     http2_keep_alive_while_idle: bool
+    # ____ POOL ____
     pool_idle_timeout: Duration | None
     pool_max_idle_per_host: int | None
+    # ____ TCP ____
     tcp_keepalive: Duration | None
     tcp_keepalive_interval: Duration | None
     tcp_keepalive_retries: int | None
     tcp_nodelay: bool
-    root_certificates: list[Certificate] | None
-    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    # ____ TLS ____
+    identity: Identity | None
+    tls_certs_merge: list[Certificate] | None
+    tls_certs_only: list[Certificate] | None
+    tls_crls_only: list[CertificateRevocationList] | None
     tls_info: bool
     tls_sni: bool
-    danger_accept_invalid_certs: bool
-    danger_accept_invalid_hostnames: bool
+    tls_version_max: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
+    tls_version_min: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
+    tls_danger_accept_invalid_certs: bool  # default: False
+    tls_danger_accept_invalid_hostnames: bool  # default: False
 
 
 @t.final
@@ -4325,6 +4357,7 @@ class HttpClient:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -4352,67 +4385,70 @@ class HttpClient:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
-        root_certificates: list[Certificate] | None = None,
+        tls_certs_only: list[Certificate] | None = None,
+        tls_certs_merge: list[Certificate] | None = None,
+        tls_crls_only: list[CertificateRevocationList] | None = None,
         tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
-        danger_accept_invalid_certs: bool = False,
-        danger_accept_invalid_hostnames: bool = False,
+        tls_danger_accept_invalid_certs: bool = False,
+        tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def post(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def put(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def delete(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def patch(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def options(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def head(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     def fetch_sync(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     async def __call__(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
@@ -4433,6 +4469,7 @@ class Client:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -4460,67 +4497,68 @@ class Client:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
-        root_certificates: list[Certificate] | None = None,
+        tls_certs_only: list[Certificate] | None = None,
+        tls_certs_merge: list[Certificate] | None = None,
+        tls_crls_only: list[CertificateRevocationList] | None = None,
         tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
-        danger_accept_invalid_certs: bool = False,
-        danger_accept_invalid_hostnames: bool = False,
+        tls_danger_accept_invalid_certs: bool = False,
+        tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+    ) -> AsyncResponse: ...
     async def post(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+    ) -> AsyncResponse: ...
     async def put(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+    ) -> AsyncResponse: ...
     async def delete(
-        self,
-        url: str | URL,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+        self, url: URL | str, **kwargs: Unpack[RequestKwargs]
+    ) -> AsyncResponse: ...
     async def patch(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def options(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def head(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     def fetch_sync(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     async def __call__(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
@@ -4539,6 +4577,7 @@ class BlockingClient:
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
+        resolve: _ResolveMapLike | None = None,
         referer: bool = True,
         gzip: bool = True,
         brotli: bool = True,
@@ -4566,58 +4605,61 @@ class BlockingClient:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
-        root_certificates: list[Certificate] | None = None,
+        tls_certs_only: list[Certificate] | None = None,
+        tls_certs_merge: list[Certificate] | None = None,
+        tls_crls_only: list[CertificateRevocationList] | None = None,
         tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
         tls_info: bool = False,
         tls_sni: bool = True,
-        danger_accept_invalid_certs: bool = False,
-        danger_accept_invalid_hostnames: bool = False,
+        tls_danger_accept_invalid_certs: bool = False,
+        tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     def get(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def post(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def put(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def delete(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def patch(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def options(
-        self, url: str | URL, **kwargs: Unpack[RequestKwargs]
+        self, url: URL | str, **kwargs: Unpack[RequestKwargs]
     ) -> BlockingResponse: ...
     def head(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def fetch(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def __call__(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
@@ -4644,6 +4686,75 @@ class ReqwestError(Exception):
 
 @t.final
 class Response:
+    def __init__(self) -> t.NoReturn: ...
+    @property
+    def headers(self) -> Headers: ...
+    async def text(self) -> str: ...
+    async def json(
+        self,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> t.Any: ...
+    async def bytes(self) -> ry.Bytes: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -> ResponseStream: ...  # min_read_size=0 -> None
+    def stream(
+        self, min_read_size: int = 0, /
+    ) -> ResponseStream: ...  # min_read_size=0 -> None
+    @property
+    def url(self) -> URL: ...
+    @property
+    def version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def http_version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def redirected(self) -> bool: ...
+    @property
+    def content_length(self) -> int | None: ...
+    @property
+    def content_encoding(self) -> str | None: ...
+    @property
+    def cookies(self) -> list[Cookie] | None: ...
+    @property
+    def set_cookies(self) -> list[Cookie] | None: ...
+    @property
+    def body_used(self) -> bool:
+        """True if the body has been consumed"""
+
+    @property
+    def ok(self) -> bool:
+        """True if the status is a success (2xx)"""
+
+    @property
+    def remote_addr(self) -> SocketAddr | None: ...
+    @property
+    def status(self) -> int: ...
+    @property
+    def status_text(self) -> str: ...
+    @property
+    def status_code(self) -> HttpStatus: ...
+    def __bool__(self) -> bool:
+        """True if the status is a success (2xx)"""
+
+
+@t.final
+class AsyncResponse:
+    """'experimental-async' response type"""
+
     def __init__(self) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
@@ -4788,6 +4899,14 @@ class ResponseStream:
 
 
 @t.final
+class _AsyncResponseStream:
+    def __aiter__(self) -> ResponseStream: ...
+    async def __anext__(self) -> ry.Bytes: ...
+    async def take(self, n: int = 1) -> list[ry.Bytes]: ...
+    async def collect(self) -> list[ry.Bytes]: ...
+
+
+@t.final
 class BlockingResponseStream:
     def __iter__(self) -> BlockingResponseStream: ...
     def __next__(self) -> ry.Bytes: ...
@@ -4799,7 +4918,7 @@ class BlockingResponseStream:
 
 
 async def fetch(
-    url: str | URL,
+    url: URL | str,
     *,
     method: str = "GET",
     body: _Body | None = None,
@@ -4814,7 +4933,7 @@ async def fetch(
     version: HttpVersionLike | None = None,
 ) -> Response: ...
 def fetch_sync(
-    url: str | URL,
+    url: URL | str,
     *,
     method: str = "GET",
     body: _Body | None = None,
@@ -4897,16 +5016,118 @@ class Cookie(FromStr, _Parse):
 
 @t.final
 class Certificate:
-    def __init__(self) -> t.NoReturn: ...
+    def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
+    @classmethod
+    def from_der(cls, der: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem_bundle(cls, pem_bundle: Buffer) -> list[t.Self]: ...
+
+
+@t.final
+class CertificateRevocationList:
+    def __init__(self, pem: Buffer) -> None: ...
+    def __bytes__(self) -> bytes: ...
+    def __hash__(self) -> int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
+    @classmethod
+    def from_pem_bundle(cls, pem_bundle: Buffer) -> list[t.Self]: ...
+
+
+@t.final
+class Identity:
+    def __init__(self, pem: Buffer) -> None: ...
+    def __bytes__(self) -> bytes: ...
+    def __hash__(self) -> int: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
+    @classmethod
+    def from_pem(cls, pem: Buffer) -> t.Self: ...
+
+
+class ProxyKwargs(t.TypedDict, total=False):
+    basic_auth: tuple[str, str] | None
+    no_proxy: str | None
+    headers: Headers | dict[str, str] | None
+
+
+_TProxy = t.TypeVar("_TProxy", bound=_AnyProxy)
+
+
+@t.final
+class Proxy(t.Generic[_TProxy]):
+    @t.overload
+    def __init__(
+        self,
+        url: URL | str,
+        ptype: _HttpProxy = "http",
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> None: ...
+    @t.overload
+    def __init__(
+        self,
+        url: URL | str,
+        ptype: _HttpsProxy = "https",
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> None: ...
+    @t.overload
+    def __init__(
+        self,
+        url: URL | str,
+        ptype: _AllProxy = "all",
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> None: ...
     @staticmethod
-    def from_der(der: Buffer) -> Certificate: ...
+    def all(
+        url: URL | str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy[_AllProxy]: ...
     @staticmethod
-    def from_pem(pem: Buffer) -> Certificate: ...
+    def http(
+        url: URL | str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy[_HttpProxy]: ...
     @staticmethod
-    def from_pem_bundle(pem_bundle: Buffer) -> list[Certificate]: ...
+    def https(
+        url: URL | str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy[_HttpsProxy]: ...
+    # -------------------------------------------------------------------------
+    # BUILDERS
+    # -------------------------------------------------------------------------
+    def basic_auth(self, username: str, password: str) -> Proxy[_TProxy]: ...
+    def no_proxy(self, url: str) -> Proxy[_TProxy]: ...
+    def headers(self, headers: Headers | dict[str, str]) -> Proxy[_TProxy]: ...
+    # -------------------------------------------------------------------------
+    # DUNDERS
+    # -------------------------------------------------------------------------
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
 ```
 
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
@@ -5681,6 +5902,7 @@ class Ipv4Addr(
     _Parse,
     ToPy[ipaddress.IPv4Address],
     ToPyIpAddress[ipaddress.IPv4Address],
+    ToString,
 ):
     BROADCAST: Ipv4Addr
     LOCALHOST: Ipv4Addr
@@ -5700,6 +5922,7 @@ class Ipv4Addr(
     def __ge__(self, other: Ipv4Addr) -> bool: ...
     def __hash__(self) -> int: ...
     def to_py(self) -> ipaddress.IPv4Address: ...
+    def to_string(self) -> str: ...
     @property
     def version(self) -> t.Literal[4]: ...
     @property
@@ -5769,6 +5992,7 @@ class Ipv6Addr(
     _Parse,
     ToPy[ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv6Address],
+    ToString,
 ):
     LOCALHOST: Ipv6Addr
     UNSPECIFIED: Ipv6Addr
@@ -5789,6 +6013,7 @@ class Ipv6Addr(
     def __ge__(self, other: Ipv6Addr) -> bool: ...
     def __hash__(self) -> int: ...
     def to_py(self) -> ipaddress.IPv6Address: ...
+    def to_string(self) -> str: ...
     @property
     def version(self) -> t.Literal[6]: ...
     @property
@@ -5826,6 +6051,7 @@ class IpAddr(
     _Parse,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
+    ToString,
 ):
     BROADCAST: IpAddr
     LOCALHOST_V4: IpAddr
@@ -5850,6 +6076,7 @@ class IpAddr(
     def __gt__(self, other: IpAddr) -> bool: ...
     def __ge__(self, other: IpAddr) -> bool: ...
     def __hash__(self) -> int: ...
+    def to_string(self) -> str: ...
     def to_py(self) -> ipaddress.IPv4Address | ipaddress.IPv6Address: ...
     def to_ipv4(self) -> Ipv4Addr: ...
     def to_ipv6(self) -> Ipv6Addr: ...
@@ -5899,8 +6126,9 @@ class SocketAddrV4(
     _Version4,
     # protocols
     FromStr,
-    _Parse,
     ToPyIpAddress[ipaddress.IPv4Address],
+    ToString,
+    _Parse,
 ):
     def __init__(
         self,
@@ -5917,6 +6145,7 @@ class SocketAddrV4(
     def to_ipv4(self) -> Ipv4Addr: ...
     def to_ipaddr(self) -> IpAddr: ...
     def to_socketaddr(self) -> SocketAddr: ...
+    def to_string(self) -> str: ...
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
@@ -5936,8 +6165,9 @@ class SocketAddrV6(
     _Ipv6AddrProperties,
     _Version6,
     # protocols
-    ToPyIpAddress[ipaddress.IPv6Address],
     FromStr,
+    ToPyIpAddress[ipaddress.IPv6Address],
+    ToString,
     _Parse,
 ):
     def __init__(
@@ -5952,6 +6182,7 @@ class SocketAddrV6(
     def __gt__(self, other: SocketAddrV6) -> bool: ...
     def __ge__(self, other: SocketAddrV6) -> bool: ...
     def __hash__(self) -> int: ...
+    def to_string(self) -> str: ...
     def to_ipv6(self) -> Ipv6Addr: ...
     def to_ipaddr(self) -> IpAddr: ...
     def to_socketaddr(self) -> SocketAddr: ...
@@ -5979,6 +6210,7 @@ class SocketAddr(
     # protocols
     FromStr,
     _Parse,
+    ToString,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
     def __init__(
@@ -6002,6 +6234,7 @@ class SocketAddr(
     @classmethod
     def parse(cls, s: str | bytes) -> SocketAddr: ...
     def to_ipaddr(self) -> IpAddr: ...
+    def to_string(self) -> str: ...
     def to_socketaddrv4(self) -> SocketAddrV4:
         """Return SocketAddrV4 representation
 
@@ -6290,7 +6523,7 @@ import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
-from ry.protocols import FromStr, _Parse
+from ry.protocols import FromStr, ToString, _Parse
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
 
 if sys.version_info >= (3, 13):
@@ -6300,7 +6533,7 @@ else:
 
 
 @t.final
-class URL(FromStr, _Parse):
+class URL(FromStr, ToString, _Parse):
     def __init__(
         self, url: str | bytes | URL, *, params: dict[str, str] | None = None
     ) -> None: ...
@@ -6322,6 +6555,7 @@ class URL(FromStr, _Parse):
     # =========================================================================
     # STRING
     # =========================================================================
+    def to_string(self) -> str: ...
     def __fspath__(self) -> str: ...
 
     # =========================================================================

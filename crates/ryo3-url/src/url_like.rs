@@ -63,22 +63,14 @@ impl<'py> FromPyObject<'_, 'py> for UrlLike {
     }
 }
 
-// pub fn extract_url(ob: &Bound<'_, PyAny>) -> PyResult<url::Url> {
-//     if let Ok(url) = ob.cast_exact::<PyUrl>() {
-//         let url = url.borrow();
-//         Ok(url.0.clone())
-//     } else if let Ok(s) = ob.cast::<PyString>()?.to_str() {
-//         url::Url::parse(s)
-//             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={ob})")))
-//     } else {
-//         Err(pyo3::exceptions::PyTypeError::new_err(
-//             "Expected str or URL object",
-//         ))
-//     }
-// }
-
 impl From<UrlLike> for PyUrl {
     fn from(ul: UrlLike) -> Self {
         ul.0.into()
+    }
+}
+
+impl std::fmt::Display for UrlLike {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", &self.0)
     }
 }
