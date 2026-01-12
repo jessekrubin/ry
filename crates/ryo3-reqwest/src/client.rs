@@ -1672,10 +1672,8 @@ impl ClientConfig {
 
 // maybe dont actually need this?
 
-// #[cfg(feature = "experimental-async")]
 struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
 
-// #[cfg(feature = "experimental-async")]
 impl<'py> FromPyObject<'_, 'py> for BasicAuth {
     type Error = PyErr;
 
@@ -1685,7 +1683,6 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
     }
 }
 
-// #[cfg(feature = "experimental-async")]
 pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     headers: Option<HeaderMap>,
     query: Option<String>,
@@ -1759,7 +1756,6 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     }
 }
 
-// #[cfg(feature = "experimental-async")]
 #[derive(Debug)]
 enum PyReqwestBody {
     Bytes(bytes::Bytes),
@@ -1771,7 +1767,6 @@ enum PyReqwestBody {
     None,
 }
 
-// #[cfg(feature = "experimental-async")]
 impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
 
