@@ -26,7 +26,6 @@ pub(crate) enum PyBodyStream {
     Async(PyBodyAsyncStream),
 }
 
-#[cfg(feature = "experimental-async")]
 impl PyBodyStream {
     pub(crate) fn is_async(&self) -> bool {
         matches!(self, Self::Async(_))

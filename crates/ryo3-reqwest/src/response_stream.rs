@@ -237,23 +237,12 @@ impl RyAsyncResponseStream {
         pyo3_async_runtimes::tokio::future_into_py(py, async move { inner.py_anext().await })
     }
 
-    // // FUTURE: use future_into_py here?
-    // async fn __anext__(&self) -> PyResult<RyBytes> {
-    //     let stream = self.stream.clone();
-    //     // get next item
-    //     let rt = pyo3_async_runtimes::tokio::get_runtime();
-    //     let r = rt
-    //         .spawn(async move {
-    //             let mut guard = stream.lock().await;
-    //             guard.next().await
-    //         })
-    //         .await
-    //         .map_err(|e| py_runtime_error!("{e}"))?;
-    //     match r {
-    //         Some(Ok(bytes)) => Ok(RyBytes::from(bytes)),
-    //         Some(Err(e)) => Err(map_reqwest_err(e)),
-    //         // I totally forgot that this was a thing and that I couldn't just return None
-    //         None => Err(PyStopAsyncIteration::new_err("async-response-stream-end")),
+    // async fn _anext( &self) -> PyResult<RyBytes> {
+    //     let res = self.inner.next().await;
+    //     match res {
+    //         Ok(Some(bytes)) => Ok(RyBytes::from(bytes)),
+    //         Ok(None) => Err(PyStopAsyncIteration::new_err("response-stream-end")),
+    //         Err(e) => Err(map_reqwest_err(e)),
     //     }
     // }
 
