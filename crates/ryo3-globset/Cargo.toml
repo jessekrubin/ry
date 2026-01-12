@@ -12,7 +12,7 @@ repository.workspace = true
 description = "python + globset (https://docs.rs/globset/latest/globset/)"
 
 [dependencies]
-globset.workspace = true
+globset = { workspace = true }
 pyo3 = { workspace = true, features = [] }
 ryo3-core.workspace = true
 
