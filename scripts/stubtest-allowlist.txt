@@ -38,7 +38,11 @@ ry.*.from_str
 ry.*.parse
 # --- discrete ---
 ry.Bytes.fromhex
+ry.Certificate.from_der
+ry.Certificate.from_pem
 ry.Certificate.from_pem_bundle
+ry.CertificateRevocationList.from_pem
+ry.CertificateRevocationList.from_pem_bundle
 ry.Date.from_iso_week_date
 ry.Date.from_pydate
 ry.Date.now
@@ -72,6 +76,7 @@ ry.ISOWeekDate.from_pydate
 ry.ISOWeekDate.now
 ry.ISOWeekDate.parse
 ry.ISOWeekDate.today
+ry.Identity.from_pem
 ry.Instant.now
 ry.IpAddr.parse
 ry.Ipv4Addr.from_bits
