@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b1860262.js";
+            window.path_to_searchindex_js = "searchindex-853ed1af.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -188,6 +188,21 @@
 <li>use uv publishing</li>
 <li>update pre-commit stuff</li>
 <li>update dev/testing deps</li>
+</ul>
+</li>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li>added new <code>tls_crls_only</code> kwarg</li>
+<li>added <code>ry.CertificateRevocationList</code></li>
+<li>added <code>ry.Identity</code></li>
+<li>added <code>resolve</code> mapping support for clients</li>
+<li>renames/deprecations:
+<ul>
+<li><code>root_certificates</code> -&gt; <code>tls_certs_merge</code> and <code>tls_certs_only</code></li>
+<li><code>danger_accept_invalid_certs</code> -&gt; <code>tls_danger_accept_invalid_certs</code></li>
+<li><code>danger_accept_invalid_hostnames</code> -&gt; <code>tls_danger_accept_invalid_hostnames</code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
