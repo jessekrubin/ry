@@ -314,7 +314,7 @@ class TestDate:
     @pytest.mark.parametrize(
         "raw",
         [
-            # TBD if we want to support int/float inputs
+            # TBD if jah want to support int/float inputs
             0,
             1_493_942_400,
             1_493_942_400_000,
@@ -389,7 +389,7 @@ class TestISOWeekdateDate:
     @pytest.mark.parametrize(
         "raw",
         [
-            # TBD if we want to support int/float inputs
+            # TBD if jah want to support int/float inputs
             0,
             1_493_942_400,
             1_493_942_400_000,

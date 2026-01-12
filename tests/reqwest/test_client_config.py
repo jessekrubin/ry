@@ -25,6 +25,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "deflate": True,
     "zstd": True,
     "hickory_dns": True,
+    "proxy": None,
     "http1_only": False,
     "https_only": False,
     "http1_title_case_headers": False,
@@ -208,3 +209,89 @@ def test_client_config_resolve(
     cfg_w_sets = {k: set(v) for k, v in cfg["resolve"].items()}
     assert cfg_w_sets == expected_w_sets
     assert len(cfg["resolve"]) == sum(1 for v in expected.values() if v)
+
+
+class TestProxy:
+    @pytest.mark.parametrize(
+        "proxy",
+        [
+            "http://localhost:8080",
+            ry.URL("http://localhost:8080"),
+            (
+                ry.Proxy.all("http://localhost:8080"),
+                ry.Proxy.http("http://localhost:8080"),
+            ),
+            [
+                ry.Proxy.all("http://localhost:8080"),
+                ry.Proxy.http("http://localhost:8080"),
+            ],
+        ],
+    )
+    def test_client_with_proxy(
+        self,
+        client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+        proxy: list[ry.Proxy | ry.URL | str] | ry.URL | str,
+    ) -> None:
+        """Test that those things ^ can be splooped into a client
+
+        NOTE: getting the config should return:
+              lt-1-proxy => None
+              eq-1-proxy => proxy object
+              gt-1-proxy => list of proxy objects
+
+        """
+        client = client_cls(proxy=proxy)
+        config = client.config()
+        assert config["proxy"] == (
+            list(proxy) if isinstance(proxy, (list, tuple)) else ry.Proxy.all(proxy)
+        )
+
+    @pytest.mark.parametrize(
+        "u",
+        [
+            "http://proxy.example.com",
+            "http://proxy.example.com/",
+            ry.URL("http://proxy.example.com"),
+            ry.URL("http://proxy.example.com/"),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "proxy_type",
+        [
+            "all",
+            "http",
+            "https",
+        ],
+    )
+    @pytest.mark.parametrize(
+        "kw",
+        [
+            {},
+            {"basic_auth": ("user", "pass")},
+            {"no_proxy": "google.com"},
+            {"headers": {"x-custom": "value"}},
+            {
+                "basic_auth": ("user", "pass"),
+                "no_proxy": "google.com",
+                "headers": {"x-custom": "value"},
+            },
+        ],
+    )
+    def test_proxy_repr(
+        self,
+        u: ry.URL | str,
+        proxy_type: t.Literal["all", "http", "https"],
+        kw: dict[str, t.Any],
+    ) -> None:
+        builder_fn = getattr(ry.Proxy, proxy_type)
+        p = builder_fn(u, **kw)
+        expeted_url_str = ry.URL(u).to_string()
+        assert isinstance(p, ry.Proxy)
+        expected_start = (
+            f'Proxy("{expeted_url_str}")'
+            if proxy_type == "all"
+            else f'Proxy("{expeted_url_str}", "{proxy_type}")'
+        )
+        assert str(p).startswith(expected_start)
+        p2 = eval(repr(p), {"Proxy": ry.Proxy, "Headers": ry.Headers})
+        assert p == p2

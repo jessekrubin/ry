@@ -275,10 +275,9 @@ impl RyResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.read()).get(CONTENT_ENCODING).map(|en| {
-            let s = en.to_str().expect("Invalid content encoding");
-            s.to_string()
-        })
+        (*self.head.headers.read())
+            .get(CONTENT_ENCODING)
+            .map(|en| en.to_str().expect("wildly unlikely").to_string())
     }
 
     /// Return the cookies set in the response headers
@@ -396,14 +395,11 @@ impl RyAsyncResponse {
     async fn bytes(&self) -> PyResult<RyBytes> {
         let rt = pyo3_async_runtimes::tokio::get_runtime();
         let response = self.take_response()?;
-
-        // let b =
         rt.spawn(async move { response.bytes().await })
             .await
             .map_err(|e| py_runtime_error!("{e}"))?
             .map(RyBytes::from)
             .map_err(map_reqwest_err)
-        // b
     }
 
     /// Return the response body as text/string (consumes the response)
@@ -465,6 +461,7 @@ impl RyAsyncResponse {
         self.bytes_stream(min_read_size)
     }
 
+    /// Return the `content-encoding` header value of the response or `None`
     #[getter]
     fn content_encoding(&self) -> Option<String> {
         (*self.head.headers.read()).get(CONTENT_ENCODING).map(|en| {

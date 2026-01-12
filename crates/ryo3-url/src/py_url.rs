@@ -70,6 +70,11 @@ impl PyUrl {
         self.0.as_str()
     }
 
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> &str {
+        self.0.as_str()
+    }
+
     fn __repr__(&self) -> String {
         format!("{self}")
     }

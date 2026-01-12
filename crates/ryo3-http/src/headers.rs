@@ -14,6 +14,7 @@ use std::sync::Arc;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub Arc<RwLock<HeaderMap>>);
+
 impl Deref for PyHeaders {
     type Target = Arc<RwLock<HeaderMap>>;
 
@@ -95,7 +96,11 @@ impl PyHeaders {
 impl Display for PyHeaders {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let inner = self.read();
-        write!(f, "Headers({inner:?})")
+        if f.alternate() {
+            write!(f, "{inner:?}")
+        } else {
+            write!(f, "Headers({inner:?})")
+        }
     }
 }
 
@@ -104,6 +109,8 @@ impl PartialEq for PyHeaders {
         *(self.read()) == *(other.read())
     }
 }
+
+impl Eq for PyHeaders {}
 
 impl From<HeaderMap> for PyHeaders {
     fn from(hm: HeaderMap) -> Self {
@@ -435,5 +442,28 @@ impl PyHeaders {
         Err(::ryo3_core::FeatureNotEnabledError::new_err(
             "ryo3-http: `json` feature not enabled",
         ))
+    }
+}
+
+impl std::hash::Hash for PyHeaders {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let inner = self.read();
+        HeaderMapRef(&inner).hash(state);
+    }
+}
+
+struct HeaderMapRef<'a>(&'a HeaderMap);
+impl std::hash::Hash for HeaderMapRef<'_> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // sorted keys
+        let mut keys: Vec<_> = self.0.keys().collect();
+        keys.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
+        for key in keys {
+            key.hash(state);
+            let values: Vec<_> = self.0.get_all(key).iter().collect();
+            for value in values {
+                value.as_bytes().hash(state);
+            }
+        }
     }
 }
