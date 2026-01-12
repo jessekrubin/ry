@@ -164,6 +164,7 @@ from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
 from ry.ryo3._reqwest import Identity as Identity
+from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
@@ -4243,6 +4244,7 @@ class Regex:
 
 ```python
 import typing as t
+from typing import TypeVar
 
 import ry
 from ry._types import Buffer, Unpack
@@ -4258,6 +4260,7 @@ _Body: t.TypeAlias = (
     | t.Iterable[Buffer]
     | t.AsyncIterable[Buffer]
 )
+_ProxyKw: t.TypeAlias = t.Sequence[Proxy | URL | str] | Proxy | URL | str
 _ResolveMapLike: t.TypeAlias = dict[str, t.Sequence[SocketAddr]]
 
 
@@ -4275,26 +4278,31 @@ class RequestKwargs(t.TypedDict, total=False):
 
 
 class ClientConfig(t.TypedDict):
-    headers: Headers | None
+    headers: Headers | None  # default: None
     cookies: bool
-    user_agent: str | None
-    timeout: Duration | None
-    connect_timeout: Duration | None
-    read_timeout: Duration | None
+    user_agent: str | None  # default: "ry/{ry.__version__}"
     redirect: int | None
-    resolve: _ResolveMapLike | None
+    resolve: _ResolveMapLike | None  # default: None
     referer: bool
+    proxy: list[Proxy] | Proxy | None  # default: None
+    hickory_dns: bool
+    # ____ TIMEOUT ____
+    timeout: Duration | None  # default: None
+    connect_timeout: Duration | None  # default: None
+    read_timeout: Duration | None  # default: None
+    # ____ COMPRESSION / CONTENT-ENCODING ____
     gzip: bool
     brotli: bool
     deflate: bool
     zstd: bool
-    hickory_dns: bool
+    # ____ HTTP1 ____
     http1_only: bool
     https_only: bool
     http1_title_case_headers: bool
     http1_allow_obsolete_multiline_headers_in_responses: bool
     http1_allow_spaces_after_header_name_in_responses: bool
     http1_ignore_invalid_headers_in_responses: bool
+    # ____ HTTP2 ____
     http2_prior_knowledge: bool
     http2_initial_stream_window_size: int | None
     http2_initial_connection_window_size: int | None
@@ -4304,22 +4312,29 @@ class ClientConfig(t.TypedDict):
     http2_keep_alive_interval: Duration | None
     http2_keep_alive_timeout: Duration | None
     http2_keep_alive_while_idle: bool
+    # ____ POOL ____
     pool_idle_timeout: Duration | None
     pool_max_idle_per_host: int | None
+    # ____ TCP ____
     tcp_keepalive: Duration | None
     tcp_keepalive_interval: Duration | None
     tcp_keepalive_retries: int | None
     tcp_nodelay: bool
+    # ____ TLS ____
     identity: Identity | None
     tls_certs_merge: list[Certificate] | None
     tls_certs_only: list[Certificate] | None
     tls_crls_only: list[CertificateRevocationList] | None
     tls_info: bool
     tls_sni: bool
-    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    tls_danger_accept_invalid_certs: bool
-    tls_danger_accept_invalid_hostnames: bool
+    tls_version_max: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
+    tls_version_min: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
+    tls_danger_accept_invalid_certs: bool  # default: False
+    tls_danger_accept_invalid_hostnames: bool  # default: False
 
 
 @t.final
@@ -4371,60 +4386,61 @@ class HttpClient:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def post(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def put(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def delete(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def patch(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def options(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def head(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     def fetch_sync(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     async def __call__(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
@@ -4482,60 +4498,59 @@ class Client:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+    ) -> AsyncResponse: ...
     async def post(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+    ) -> AsyncResponse: ...
     async def put(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+    ) -> AsyncResponse: ...
     async def delete(
-        self,
-        url: str | URL,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
+        self, url: URL | str, **kwargs: Unpack[RequestKwargs]
+    ) -> AsyncResponse: ...
     async def patch(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def options(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def head(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def fetch(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     def fetch_sync(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     async def __call__(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
@@ -4591,51 +4606,52 @@ class BlockingClient:
         tls_sni: bool = True,
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
+        proxy: _ProxyKw | None = None,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     def get(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def post(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def put(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def delete(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def patch(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def options(
-        self, url: str | URL, **kwargs: Unpack[RequestKwargs]
+        self, url: URL | str, **kwargs: Unpack[RequestKwargs]
     ) -> BlockingResponse: ...
     def head(
         self,
-        url: str | URL,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def fetch(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def __call__(
         self,
-        url: str | URL,
+        url: URL | str,
         *,
         method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
@@ -4662,6 +4678,75 @@ class ReqwestError(Exception):
 
 @t.final
 class Response:
+    def __init__(self) -> t.NoReturn: ...
+    @property
+    def headers(self) -> Headers: ...
+    async def text(self) -> str: ...
+    async def json(
+        self,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> t.Any: ...
+    async def bytes(self) -> ry.Bytes: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -> ResponseStream: ...  # min_read_size=0 -> None
+    def stream(
+        self, min_read_size: int = 0, /
+    ) -> ResponseStream: ...  # min_read_size=0 -> None
+    @property
+    def url(self) -> URL: ...
+    @property
+    def version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def http_version(
+        self,
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
+    @property
+    def redirected(self) -> bool: ...
+    @property
+    def content_length(self) -> int | None: ...
+    @property
+    def content_encoding(self) -> str | None: ...
+    @property
+    def cookies(self) -> list[Cookie] | None: ...
+    @property
+    def set_cookies(self) -> list[Cookie] | None: ...
+    @property
+    def body_used(self) -> bool:
+        """True if the body has been consumed"""
+
+    @property
+    def ok(self) -> bool:
+        """True if the status is a success (2xx)"""
+
+    @property
+    def remote_addr(self) -> SocketAddr | None: ...
+    @property
+    def status(self) -> int: ...
+    @property
+    def status_text(self) -> str: ...
+    @property
+    def status_code(self) -> HttpStatus: ...
+    def __bool__(self) -> bool:
+        """True if the status is a success (2xx)"""
+
+
+@t.final
+class AsyncResponse:
+    """'experimental-async' response type"""
+
     def __init__(self) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
@@ -4806,6 +4891,14 @@ class ResponseStream:
 
 
 @t.final
+class _AsyncResponseStream:
+    def __aiter__(self) -> ResponseStream: ...
+    async def __anext__(self) -> ry.Bytes: ...
+    async def take(self, n: int = 1) -> list[ry.Bytes]: ...
+    async def collect(self) -> list[ry.Bytes]: ...
+
+
+@t.final
 class BlockingResponseStream:
     def __iter__(self) -> BlockingResponseStream: ...
     def __next__(self) -> ry.Bytes: ...
@@ -4817,7 +4910,7 @@ class BlockingResponseStream:
 
 
 async def fetch(
-    url: str | URL,
+    url: URL | str,
     *,
     method: str = "GET",
     body: _Body | None = None,
@@ -4832,7 +4925,7 @@ async def fetch(
     version: HttpVersionLike | None = None,
 ) -> Response: ...
 def fetch_sync(
-    url: str | URL,
+    url: URL | str,
     *,
     method: str = "GET",
     body: _Body | None = None,
@@ -4949,6 +5042,66 @@ class Identity:
     def __ne__(self, other: object) -> bool: ...
     @classmethod
     def from_pem(cls, pem: Buffer) -> t.Self: ...
+
+
+class ProxyKwargs(t.TypedDict, total=False):
+    basic_auth: tuple[str, str] | None
+    no_proxy: str | None
+    headers: Headers | dict[str, str] | None
+
+
+_HttpProxy: t.TypeAlias = t.Literal["http"]
+_HttpsProxy: t.TypeAlias = t.Literal["https"]
+_AllProxy: t.TypeAlias = t.Literal["all"]
+_TProxy = t.TypeVar("_TProxy", bound=_HttpProxy | _HttpsProxy | _AllProxy)
+
+
+@t.final
+class Proxy(t.Generic[_TProxy]):
+    def __init__(
+        self,
+        url: URL | str,
+        ptype: _TProxy = "all",
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> None: ...
+    @staticmethod
+    def all(
+        url: URL | str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy[_AllProxy]: ...
+    @staticmethod
+    def http(
+        url: URL | str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy[_HttpProxy]: ...
+    @staticmethod
+    def https(
+        url: URL | str,
+        *,
+        basic_auth: tuple[str, str] | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        no_proxy: str | None = None,
+    ) -> Proxy[_HttpsProxy]: ...
+    # -------------------------------------------------------------------------
+    # BUILDERS
+    # -------------------------------------------------------------------------
+    def basic_auth(self, username: str, password: str) -> Proxy: ...
+    def no_proxy(self, url: str) -> Proxy: ...
+    def headers(self, headers: Headers | dict[str, str]) -> Proxy: ...
+    # -------------------------------------------------------------------------
+    # DUNDERS
+    # -------------------------------------------------------------------------
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
 ```
 
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
@@ -6344,7 +6497,7 @@ import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
-from ry.protocols import FromStr, _Parse
+from ry.protocols import FromStr, ToString, _Parse
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
 
 if sys.version_info >= (3, 13):
@@ -6354,7 +6507,7 @@ else:
 
 
 @t.final
-class URL(FromStr, _Parse):
+class URL(FromStr, ToString, _Parse):
     def __init__(
         self, url: str | bytes | URL, *, params: dict[str, str] | None = None
     ) -> None: ...
@@ -6376,6 +6529,7 @@ class URL(FromStr, _Parse):
     # =========================================================================
     # STRING
     # =========================================================================
+    def to_string(self) -> str: ...
     def __fspath__(self) -> str: ...
 
     # =========================================================================
