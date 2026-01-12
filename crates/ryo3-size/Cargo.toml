@@ -14,7 +14,7 @@ description = "python + size crate (https://crates.io/crates/size)"
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-core.workspace = true
-size.workspace = true
+size = { workspace = true, features = ["std"] }
 
 [features]
 ry = []

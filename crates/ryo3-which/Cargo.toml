@@ -14,7 +14,7 @@ description = "python + which-rs (https://github.com/harryfei/which-rs)"
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-regex = { workspace = true, optional = true }
-which = { workspace = true }
+which = { workspace = true, features = ["real-sys"] }
 
 [lints]
 workspace = true

@@ -14,7 +14,7 @@ description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.ht
 [dependencies]
 bytes.workspace = true
 cookie.workspace = true
-futures-channel = { version = "0.3.31", features = ["sink"] }
+futures-channel = { workspace = true, features = ["sink"] }
 futures-core.workspace = true
 futures-util = { workspace = true, features = ["sink"] }
 jiter.workspace = true
@@ -22,7 +22,7 @@ parking_lot.workspace = true
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes = { workspace = true, features = ["unstable-streams"] }
 reqwest.workspace = true
-rustls = { version = "0.23.36", default-features = false, features = [
+rustls = { workspace = true, features = [
   "logging",
   "prefer-post-quantum",
   "std",
@@ -38,9 +38,9 @@ ryo3-serde.workspace = true
 ryo3-std = { workspace = true, features = ["time"] }
 ryo3-url.workspace = true
 serde.workspace = true
-serde_urlencoded = "0.7.1"
+serde_urlencoded.workspace =true
 tokio.workspace = true
-tokio-stream = "0.1.18"
+tokio-stream.workspace = true
 tracing.workspace = true
 
 [lints]

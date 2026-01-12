@@ -211,7 +211,17 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3a53fac24f34a81bc9954b5d6cfce0c21e18ec6959f44f56e8e90e4bb7c346c"
 dependencies = [
- "libbz2-rs-sys",
+ "bzip2-sys",
+]
+
+[[package]]
+name = "bzip2-sys"
+version = "0.1.13+1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "225bff33b2141874fe80d71e07d6eec4f85c5c216453dd96388240f96e1acc14"
+dependencies = [
+ "cc",
+ "pkg-config",
 ]
 
 [[package]]
@@ -1118,7 +1128,6 @@ dependencies = [
  "ahash",
  "bitvec",
  "lexical-parse-float",
- "num-bigint",
  "num-traits",
  "pyo3",
  "pyo3-build-config",
@@ -1197,12 +1206,6 @@ name = "lexical-util"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2604dd126bb14f13fb5d1bd6a66155079cb9fa655b37f875b3a742c705dbed17"
-
-[[package]]
-name = "libbz2-rs-sys"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c4a545a15244c7d945065b5d392b2d2d7f21526fba56ce51467b06ed445e8f7"
 
 [[package]]
 name = "libc"
@@ -1361,29 +1364,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-bigint"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5e44f723f1133c9deac646763579fdb3ac745e418f2a7af9cd0c431da1f20b9"
-dependencies = [
- "num-integer",
- "num-traits",
-]
-
-[[package]]
 name = "num-conv"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51d515d32fb182ee37cda2ccdcb92950d6a3c2893aa280e540671c2cd0f3b1d9"
-
-[[package]]
-name = "num-integer"
-version = "0.1.46"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7969661fd2958a5cb096e56c8e1ad0444ac2bbcd0061bd28660485a44879858f"
-dependencies = [
- "num-traits",
-]
 
 [[package]]
 name = "num-traits"
@@ -1544,8 +1528,6 @@ dependencies = [
  "jiff",
  "libc",
  "memoffset",
- "num-bigint",
- "num-traits",
  "once_cell",
  "portable-atomic",
  "pyo3-build-config",
@@ -1877,7 +1859,7 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "ry"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "jiff",
  "mimalloc",
@@ -1891,7 +1873,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1936,7 +1918,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "brotli",
  "pyo3",
@@ -1945,7 +1927,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bytes"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "ahash",
  "bytes",
@@ -1954,7 +1936,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -1963,7 +1945,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-core"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -1972,7 +1954,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "serde",
@@ -1983,7 +1965,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dirs"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "dirs",
  "pyo3",
@@ -1991,7 +1973,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "flate2",
  "pyo3",
@@ -2000,7 +1982,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "fnv",
  "pyo3",
@@ -2010,7 +1992,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fspath"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2024,7 +2006,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-glob"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "glob",
  "pyo3",
@@ -2035,7 +2017,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "globset",
  "pyo3",
@@ -2044,7 +2026,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "heck",
  "pyo3",
@@ -2052,7 +2034,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-http"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "http",
  "parking_lot",
@@ -2065,7 +2047,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ignore"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "ignore",
  "pyo3",
@@ -2073,7 +2055,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2088,7 +2070,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "jiter",
  "pyo3",
@@ -2097,7 +2079,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2109,14 +2091,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macro-rules"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-memchr"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "memchr",
  "pyo3",
@@ -2126,21 +2108,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-pydantic"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "regex",
@@ -2149,7 +2131,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-reqwest"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "bytes",
  "cookie",
@@ -2180,7 +2162,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-same-file"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2189,7 +2171,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-serde"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2206,7 +2188,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "shlex",
@@ -2214,7 +2196,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-size"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2223,7 +2205,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -2231,7 +2213,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "bytes",
  "jiff",
@@ -2245,7 +2227,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "bytes",
  "futures",
@@ -2261,7 +2243,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-websockets"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "tokio-websockets",
@@ -2269,7 +2251,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-twox-hash"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2279,7 +2261,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ulid"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-pydantic",
@@ -2291,7 +2273,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-unindent"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "unindent",
@@ -2299,7 +2281,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2312,7 +2294,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-uuid"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2326,7 +2308,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2337,7 +2319,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-regex",
@@ -2346,7 +2328,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.78"
+version = "0.0.79"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2804,9 +2786,9 @@ dependencies = [
 
 [[package]]
 name = "tower"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d039ad9159c98b70ecfd540b2573b97f7f52c3e8d9f8ad57a24b916a536975f9"
+checksum = "ebe5ef63511595f1344e2d5cfa636d973292adc0eec1f0ad45fae9f0851ab1d4"
 dependencies = [
  "futures-core",
  "futures-util",
@@ -2859,19 +2841,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63e71662fa4b2a2c3a26f570f037eb95bb1f85397f3cd8076caed2f026a6d100"
 dependencies = [
  "pin-project-lite",
- "tracing-attributes",
  "tracing-core",
-]
-
-[[package]]
-name = "tracing-attributes"
-version = "0.1.31"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7490cfa5ec963746568740651ac6781f701c9c5ea257c58e057f3ba8cf69e8da"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
