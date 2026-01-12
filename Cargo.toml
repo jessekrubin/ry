@@ -319,10 +319,10 @@ use_self = "warn"
 # cognitive_complexity = "allow" # f-off clippy
 
 [patch.crates-io]
-pyo3 = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-build-config = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-ffi = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-macros = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-macros-backend = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3 = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-build-config = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-ffi = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-macros = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-macros-backend = { git = "https://github.com/pyo3/pyo3.git" }
 # jiter = { git = "https://github.com/jessekrubin/jiter.git", branch = "pyo3-v0.27.x" }
 jiter = { git = "https://github.com/pydantic/jiter.git" }
