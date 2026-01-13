@@ -19,9 +19,10 @@ use crate::ser::safe_impl::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
     PyDateTimeSerializer, PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer,
     PyListSerializer, PyMappingKeySerializer, PyNoneSerializer, PySetSerializer, PyStrSerializer,
-    PyTimeDeltaSerializer, PyTimeSerializer, PyTupleSerializer, PyUuidSerializer,
+    PyTimeDeltaSerializer, PyTimeSerializer, PyTupleSerializer, PyUnknownSerializer,
+    PyUuidSerializer,
 };
-use crate::{PyAnySerializer, serde_err_recursion};
+use crate::serde_err_recursion;
 use pyo3::types::{PyDict, PyMapping};
 
 pub(crate) struct PyDictSerializer<'a, 'py> {
@@ -190,7 +191,7 @@ macro_rules! serialize_map_value {
             // UNKNOWN
             // ------------------------------------------------------------
             PyObType::Unknown => {
-                $map.serialize_value(&PyAnySerializer::new_with_depth(
+                $map.serialize_value(&PyUnknownSerializer::new(
                     $value,
                     $self.ctx,
                     $self.depth + 1,

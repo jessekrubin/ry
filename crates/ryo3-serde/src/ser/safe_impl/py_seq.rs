@@ -15,7 +15,8 @@ use crate::ser::rytypes;
 use crate::ser::safe_impl::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
     PyDateTimeSerializer, PyDictSerializer, PyFloatSerializer, PyIntSerializer, PyNoneSerializer,
-    PyStrSerializer, PyTimeDeltaSerializer, PyTimeSerializer, PyUuidSerializer,
+    PyStrSerializer, PyTimeDeltaSerializer, PyTimeSerializer, PyUnknownSerializer,
+    PyUuidSerializer,
 };
 use crate::serde_err_recursion;
 use pyo3::prelude::*;
@@ -187,7 +188,7 @@ macro_rules! serialize_seq_element {
             // UNKNOWN
             // ------------------------------------------------------------
             PyObType::Unknown => {
-                $seq.serialize_element(&PyAnySerializer::new_with_depth(
+                $seq.serialize_element(&PyUnknownSerializer::new(
                     $element,
                     $self.ctx,
                     $self.depth + 1,
