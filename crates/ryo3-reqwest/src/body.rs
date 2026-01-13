@@ -27,6 +27,7 @@ pub(crate) enum PyBodyStream {
 }
 
 impl PyBodyStream {
+    #[inline]
     pub(crate) fn is_async(&self) -> bool {
         matches!(self, Self::Async(_))
     }
@@ -39,6 +40,7 @@ pub(crate) enum PyBody {
 }
 
 impl std::fmt::Debug for PyBodyStream {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Sync(_) => f.debug_struct("PyBodyStream::Sync").finish(),
@@ -50,6 +52,7 @@ impl std::fmt::Debug for PyBodyStream {
 impl Iterator for PyBodySyncStream {
     type Item = Result<RyBytes, PyErr>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         Python::attach(|py| {
             let result = self.0.call_method0(py, pyo3::intern!(py, "__next__"));
@@ -70,6 +73,7 @@ impl Iterator for PyBodySyncStream {
 impl futures_util::stream::Stream for PyBodySyncStream {
     type Item = PyResult<RyBytes>;
 
+    #[inline]
     fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         Python::attach(
             |py| match self.0.call_method0(py, pyo3::intern!(py, "__next__")) {
@@ -89,6 +93,7 @@ impl futures_util::stream::Stream for PyBodySyncStream {
 impl futures_util::stream::Stream for PyBodyAsyncStream {
     type Item = PyResult<RyBytes>;
 
+    #[inline]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // this ready macro is pretty swag
         match ready!(self.0.as_mut().poll_next(cx)) {
@@ -114,6 +119,7 @@ impl futures_util::stream::Stream for PyBodyAsyncStream {
 impl<'py> FromPyObject<'_, 'py> for PyBody {
     type Error = PyErr;
 
+    #[inline]
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         let py = obj.py();
         // TODO: dedupe these interned strings
@@ -149,18 +155,21 @@ impl<'py> FromPyObject<'_, 'py> for PyBody {
 // INTO-BODY
 // ----------------------------------------------------------------------------
 impl From<PyBodyAsyncStream> for reqwest::Body {
+    #[inline]
     fn from(val: PyBodyAsyncStream) -> Self {
         Self::wrap_stream(val)
     }
 }
 
 impl From<PyBodySyncStream> for reqwest::Body {
+    #[inline]
     fn from(val: PyBodySyncStream) -> Self {
         Self::wrap_stream(val)
     }
 }
 
 impl From<PyBodyStream> for reqwest::Body {
+    #[inline]
     fn from(val: PyBodyStream) -> Self {
         match val {
             PyBodyStream::Sync(s) => s.into(),
@@ -170,6 +179,7 @@ impl From<PyBodyStream> for reqwest::Body {
 }
 
 impl From<PyBody> for reqwest::Body {
+    #[inline]
     fn from(val: PyBody) -> Self {
         match val {
             PyBody::Bytes(b) => Self::from(b.into_inner()),

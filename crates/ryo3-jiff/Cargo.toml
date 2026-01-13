@@ -12,7 +12,7 @@ repository.workspace = true
 description = "ryo3 + jiff https://github.com/BurntSushi/jiff"
 
 [dependencies]
-jiff.workspace = true
+jiff = {workspace =true, features = ["default", "perf-inline"] }
 pyo3 = { workspace = true, features = ["jiff-02"] }
 ryo3-core.workspace = true
 ryo3-macro-rules.workspace = true

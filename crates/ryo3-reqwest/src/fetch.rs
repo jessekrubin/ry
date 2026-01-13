@@ -30,7 +30,49 @@ pub(crate) fn fetch_client() -> &'static RyClient {
     })
 }
 
-// TODO move to using the new client dersion...
+#[cfg(not(feature = "experimental-async"))]
+#[pyfunction(
+    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
+)]
+pub(crate) fn fetch(
+    py: Python<'_>,
+    url: ryo3_url::UrlLike,
+    method: PyHttpMethod,
+    kwargs: Option<crate::client::ReqwestKwargs>,
+) -> PyResult<Bound<'_, PyAny>> {
+    fetch_client().fetch(py, url, method, kwargs)
+}
+
+#[cfg(feature = "experimental-async")]
+#[pyfunction(
+    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
+)]
+pub(crate) async fn fetch(
+    url: ryo3_url::UrlLike,
+    method: PyHttpMethod,
+    kwargs: Option<crate::client::ReqwestKwargs>,
+) -> PyResult<RyAsyncResponse> {
+    fetch_client().fetch(url, method, kwargs).await
+}
+
+#[pyfunction(
+    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
+)]
+pub(crate) fn fetch_sync(
+    py: Python<'_>,
+    url: ryo3_url::UrlLike,
+    method: PyHttpMethod,
+    kwargs: Option<crate::client::ReqwestKwargs<true>>,
+) -> PyResult<RyBlockingResponse> {
+    fetch_client().fetch_sync(py, url, method, kwargs)
+}
+
+// =========================================================================
+// LEGACY FETCHING FUNCTIONS - TO BE REMOVED SOON - STILL HERE FOR REFERENCE
+// =========================================================================
 
 // // global fetch
 // #[cfg(not(feature = "experimental-async"))]
@@ -93,33 +135,6 @@ pub(crate) fn fetch_client() -> &'static RyClient {
 //     Ok(obj.into_bound(py))
 // }
 
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction(
-    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
-    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
-)]
-pub(crate) fn fetch<'py>(
-    py: Python<'py>,
-    url: ryo3_url::UrlLike,
-    method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs>,
-) -> PyResult<Bound<'_, PyAny>> {
-    fetch_client().fetch(py, url, method, kwargs)
-}
-
-#[cfg(feature = "experimental-async")]
-#[pyfunction(
-    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
-    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
-)]
-pub(crate) async fn fetch(
-    url: ryo3_url::UrlLike,
-    method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs>,
-) -> PyResult<RyAsyncResponse> {
-    fetch_client().fetch(url, method, kwargs).await
-}
-
 // #[cfg(not(feature = "experimental-async"))]
 // #[pyfunction(
 //     signature = (
@@ -174,16 +189,3 @@ pub(crate) async fn fetch(
 //         version,
 //     )
 // }
-
-#[pyfunction(
-    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
-    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
-)]
-pub(crate) fn fetch_sync(
-    py: Python<'_>,
-    url: ryo3_url::UrlLike,
-    method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs<true>>,
-) -> PyResult<RyBlockingResponse> {
-    fetch_client().fetch_sync(py, url, method, kwargs)
-}

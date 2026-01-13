@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.0.79 [unreleased]
+
+- `default-features = false` everywere and manually fine-grain control feats
+
+---
+
 ## v0.0.78 [2026-01-12]
 
 - internal
