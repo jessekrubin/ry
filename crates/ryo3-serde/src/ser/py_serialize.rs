@@ -5,8 +5,6 @@
 use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
-use crate::any_repr::any_repr;
-use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ob_type_cache::PyTypeCache;
 use crate::ser::PySerializeContext;
@@ -15,13 +13,12 @@ use crate::ser::rytypes;
 use crate::ser::safe_impl::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
     PyDateTimeSerializer, PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer,
-    PyIntSerializer, PyListSerializer, PyMappingSerializer, PyNoneSerializer, PySequenceSerializer,
-    PySetSerializer, PyStrSerializer, PyStrSubclassSerializer, PyTimeDeltaSerializer,
-    PyTimeSerializer, PyTupleSerializer, PyUuidSerializer,
+    PyIntSerializer, PyListSerializer, PyNoneSerializer, PySetSerializer, PyStrSerializer,
+    PyTimeDeltaSerializer, PyTimeSerializer, PyTupleSerializer, PyUnknownSerializer,
+    PyUuidSerializer,
 };
-use crate::{Depth, MAX_DEPTH, serde_err, serde_err_recursion};
+use crate::{Depth, MAX_DEPTH, serde_err_recursion};
 use pyo3::Bound;
-use pyo3::types::{PyAnyMethods, PyMapping, PySequence, PyString};
 
 pub struct PyAnySerializer<'a, 'py> {
     pub(crate) obj: Borrowed<'a, 'py, PyAny>,
@@ -47,13 +44,13 @@ impl<'a, 'py> PyAnySerializer<'a, 'py> {
         Self { obj, ctx, depth }
     }
 
-    pub(crate) fn with_obj(&self, obj: Borrowed<'a, 'py, PyAny>) -> Self {
-        Self {
-            obj,
-            ctx: self.ctx,
-            depth: self.depth + 1,
-        }
-    }
+    // pub(crate) fn with_obj(&self, obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    //     Self {
+    //         obj,
+    //         ctx: self.ctx,
+    //         depth: self.depth + 1,
+    //     }
+    // }
 }
 
 impl Serialize for PyAnySerializer<'_, '_> {
@@ -176,21 +173,7 @@ impl Serialize for PyAnySerializer<'_, '_> {
             // UNKNOWN
             // ------------------------------------------------------------
             PyObType::Unknown => {
-                if let Ok(pystr_subclass) = self.obj.cast::<PyString>() {
-                    PyStrSubclassSerializer::new(pystr_subclass).serialize(serializer)
-                } else if let Ok(py_map) = self.obj.cast::<PyMapping>() {
-                    PyMappingSerializer::new_with_depth(py_map, self.ctx, self.depth)
-                        .serialize(serializer)
-                } else if let Ok(py_seq) = self.obj.cast::<PySequence>() {
-                    PySequenceSerializer::new_with_depth(py_seq, self.ctx, self.depth)
-                        .serialize(serializer)
-                } else if let Some(default) = self.ctx.default {
-                    // call the default transformer fn and attempt to then serialize the result
-                    let r = default.call1((&self.obj,)).map_err(pyerr2sererr)?;
-                    self.with_obj(r.as_borrowed()).serialize(serializer)
-                } else {
-                    serde_err!("{} is not json-serializable", any_repr(self.obj))
-                }
+                PyUnknownSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
         }
     }

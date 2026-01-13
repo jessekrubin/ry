@@ -9,6 +9,7 @@ mod py_mapping_key;
 mod py_none;
 mod py_seq;
 mod py_str;
+mod py_unknown;
 mod py_uuid;
 
 pub(crate) use py_bool::PyBoolSerializer;
@@ -27,4 +28,5 @@ pub(crate) use py_seq::{
     PyTupleSerializer,
 };
 pub(crate) use py_str::{PyStrSerializer, PyStrSubclassSerializer};
+pub(crate) use py_unknown::PyUnknownSerializer;
 pub(crate) use py_uuid::PyUuidSerializer;

@@ -1,5 +1,4 @@
 use crate::ob_type::PyObType;
-use crate::ser::dataclass::is_dataclass;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{
@@ -191,7 +190,7 @@ impl PyTypeCache {
     #[must_use]
     #[inline]
     pub(crate) fn obtype(&self, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
-        self.ptr2type(ob.get_type_ptr() as usize, ob)
+        self.ptr2type(ob.get_type_ptr() as usize)
     }
 
     #[must_use]
@@ -231,7 +230,7 @@ macro_rules! py_obj_ptr_feat {
 
 impl PyTypeCache {
     #[inline]
-    pub(crate) fn ptr2type(&self, ptr: usize, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
+    pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
         // --- das builtins ---
         py_obj_ptr!(self, ptr, string, String);
         py_obj_ptr!(self, ptr, int, Int);
@@ -279,11 +278,6 @@ impl PyTypeCache {
 
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_http_status, RyHttpStatus);
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_headers, RyHeaders);
-
-        // structural check last
-        if is_dataclass(ob) {
-            return PyObType::Dataclass;
-        }
         PyObType::Unknown
     }
 
