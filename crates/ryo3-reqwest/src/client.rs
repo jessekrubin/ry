@@ -258,6 +258,7 @@ impl Default for ClientConfig {
 // }
 
 impl RyHttpClient {
+    #[inline]
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
         let client_builder = cfg.client_builder();
@@ -265,6 +266,7 @@ impl RyHttpClient {
         Ok(Self { client, cfg })
     }
 
+    #[inline]
     fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
         pyo3_async_runtimes::tokio::get_runtime().block_on(async {
             req.send()
@@ -281,6 +283,7 @@ impl RyHttpClient {
     //     client_request_builder(&self.client, options)
     // }
 
+    #[inline]
     fn request_builder(
         &self,
         url: UrlLike,
@@ -302,6 +305,7 @@ impl RyHttpClient {
         }
     }
 
+    #[inline]
     fn blocking_request_builder(
         &self,
         url: UrlLike,
@@ -323,6 +327,7 @@ impl RyHttpClient {
         }
     }
 
+    #[inline]
     fn request<'py>(
         &self,
         py: Python<'py>,
@@ -339,6 +344,7 @@ impl RyHttpClient {
         })
     }
 
+    #[inline]
     fn request_sync(
         &self,
         url: UrlLike,
@@ -352,6 +358,7 @@ impl RyHttpClient {
 
 #[cfg(feature = "experimental-async")]
 impl RyClient {
+    #[inline]
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
         let client_builder = cfg.client_builder();
@@ -359,6 +366,7 @@ impl RyClient {
         Ok(Self { client, cfg })
     }
 
+    #[inline]
     fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
         pyo3_async_runtimes::tokio::get_runtime().block_on(async {
             req.send()
@@ -369,6 +377,7 @@ impl RyClient {
     }
 
     /// Return the reqwest builder instance...
+    #[inline]
     fn request_builder(
         &self,
         url: UrlLike,
@@ -390,6 +399,7 @@ impl RyClient {
         }
     }
 
+    #[inline]
     fn request_builder_sync(
         &self,
         url: UrlLike,
@@ -404,6 +414,7 @@ impl RyClient {
         }
     }
 
+    #[inline]
     async fn request(
         &self,
         url: UrlLike,
@@ -424,6 +435,7 @@ impl RyClient {
         Ok(r)
     }
 
+    #[inline]
     fn request_sync(
         &self,
         url: UrlLike,
@@ -436,6 +448,7 @@ impl RyClient {
 }
 
 impl RyBlockingClient {
+    #[inline]
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
         let client_builder = cfg.client_builder();
@@ -443,11 +456,13 @@ impl RyBlockingClient {
         Ok(Self { client, cfg })
     }
 
+    #[inline]
     fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
         let a = pyo3_async_runtimes::tokio::get_runtime().block_on(async { req.send().await });
         a.map(RyBlockingResponse::from).map_err(map_reqwest_err)
     }
 
+    #[inline]
     fn request_builder_sync(
         &self,
         url: UrlLike,
@@ -462,6 +477,7 @@ impl RyBlockingClient {
         }
     }
 
+    #[inline]
     fn request_sync(
         &self,
         url: UrlLike,
@@ -791,62 +807,6 @@ impl RyHttpClient {
     ) -> PyResult<RyBlockingResponse> {
         py.detach(|| self.request_sync(url, method.0, kwargs))
     }
-
-    //         url,
-    //         *,
-    //         method = PyHttpMethod::GET,
-    //         body = None,
-    //         headers = None,
-    //         query = None,
-    //         json = None,
-    //         form = None,
-    //         multipart = None,
-    //         timeout = None,
-    //         basic_auth = None,
-    //         bearer_auth = None,
-    //         version = None,
-    //     )
-    // )]
-    // #[expect(clippy::too_many_arguments)]
-    // pub(crate) fn fetch<'py>(
-    //     &'py self,
-    //     py: Python<'py>,
-    //     url: &Bound<'py, PyAny>,
-    //     method: PyHttpMethod,
-    //     body: Option<&Bound<'py, PyAny>>,
-    //     headers: Option<PyHeadersLike>,
-    //     query: Option<&Bound<'py, PyAny>>,
-    //     json: Option<&Bound<'py, PyAny>>,
-    //     form: Option<&Bound<'py, PyAny>>,
-    //     multipart: Option<&Bound<'py, PyAny>>,
-    //     timeout: Option<&PyDuration>,
-    //     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-    //     bearer_auth: Option<PyBackedStr>,
-    //     version: Option<PyHttpVersion>,
-    // ) -> PyResult<Bound<'py, PyAny>> {
-    //     let opts = RequestKwargs {
-    //         url,
-    //         method: method.0,
-    //         body,
-    //         headers,
-    //         query,
-    //         json,
-    //         multipart,
-    //         form,
-    //         timeout,
-    //         basic_auth,
-    //         bearer_auth,
-    //         version,
-    //     };
-
-    //     let req = self.build_request(opts)?;
-    //     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-    //         req.send()
-    //             .await
-    //             .map(RyResponse::from)
-    //             .map_err(map_reqwest_err)
-    //     })
-    // }
 }
 
 #[cfg(feature = "experimental-async")]
@@ -1453,6 +1413,7 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
 }
 
 impl ClientConfig {
+    #[inline]
     fn apply_http2_opts(
         &self,
         mut client_builder: reqwest::ClientBuilder,
@@ -1491,6 +1452,7 @@ impl ClientConfig {
         client_builder
     }
 
+    #[inline]
     fn apply_tls_opts(&self, mut client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         if let Some(tls_certs_only) = &self.tls_certs_only {
             client_builder = client_builder
@@ -1514,6 +1476,7 @@ impl ClientConfig {
         client_builder
     }
 
+    #[inline]
     fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         let mut client_builder = client_builder
             .gzip(self.gzip)
@@ -1664,6 +1627,7 @@ impl ClientConfig {
         Ok(dict)
     }
 
+    #[inline]
     fn client_builder(&self) -> reqwest::ClientBuilder {
         let client_builder = reqwest::Client::builder();
         self.apply(client_builder)
@@ -1697,6 +1661,7 @@ pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 
 impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     /// Apply the kwargs to the `reqwest::RequestBuilder`
+    #[inline]
     fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
         let mut req = req;
 

@@ -124,6 +124,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ProxyKwargs {
 }
 
 impl PyProxy {
+    #[inline]
     fn apply_kwargs(mut self, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
         if let Some(kwds) = kwds {
             if let Some((u, p)) = kwds.basic_auth {
@@ -141,6 +142,7 @@ impl PyProxy {
 }
 
 impl std::hash::Hash for PyProxy {
+    #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.inner.hash(state);
     }
