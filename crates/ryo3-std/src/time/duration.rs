@@ -57,6 +57,13 @@ const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
 pub struct PyDuration(pub Duration);
 
 impl PyDuration {
+    #[inline]
+    pub const fn from_secs(secs: u64) -> Self {
+        Self(Duration::from_secs(secs))
+    }
+}
+
+impl PyDuration {
     fn new(secs: u64, nanos: u32) -> PyResult<Self> {
         if nanos < NANOS_PER_SEC {
             Ok(Self(Duration::new(secs, nanos)))
@@ -477,9 +484,10 @@ impl PyDuration {
     // ========================================================================
 
     /// Create a new `Duration` from the specified number of seconds.
+    #[pyo3(name = "from_secs")]
     #[staticmethod]
-    const fn from_secs(secs: u64) -> Self {
-        Self(Duration::from_secs(secs))
+    const fn py_from_secs(secs: u64) -> Self {
+        Self::from_secs(secs)
     }
 
     #[staticmethod]

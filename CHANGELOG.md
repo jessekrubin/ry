@@ -3,6 +3,12 @@
 ## v0.0.79 [unreleased]
 
 - `default-features = false` everywere and manually fine-grain control feats
+- `ryo3-serde`
+  - internal refactoring and some unsafe-ness where it is straight-forward
+  - removed `Dataclass` from pointer lookup table and put dataclass serialzation
+    under the new `PyUnknownSerializer`
+- `type-annotations`
+  - removed generic `ry.Proxy` as it was more confusing than helpful
 
 ---
 

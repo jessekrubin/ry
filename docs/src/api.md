@@ -4244,7 +4244,6 @@ class Regex:
 
 ```python
 import typing as t
-from typing import TypeVar
 
 import ry
 from ry._types import Buffer, Unpack
@@ -4261,13 +4260,7 @@ _Body: t.TypeAlias = (
     | t.AsyncIterable[Buffer]
 )
 # proxy
-_HttpProxy: t.TypeAlias = t.Literal["http"]
-_HttpsProxy: t.TypeAlias = t.Literal["https"]
-_AllProxy: t.TypeAlias = t.Literal["all"]
-_AnyProxy: t.TypeAlias = _HttpProxy | _HttpsProxy | _AllProxy
-_ProxyKw: t.TypeAlias = (
-    t.Sequence[Proxy[_AnyProxy] | URL | str] | Proxy[_AnyProxy] | URL | str
-)
+_ProxyKw: t.TypeAlias = t.Sequence[Proxy | URL | str] | Proxy | URL | str
 # resolve
 _ResolveMapLike: t.TypeAlias = dict[str, t.Sequence[SocketAddr]]
 
@@ -4292,7 +4285,7 @@ class ClientConfig(t.TypedDict):
     redirect: int | None
     resolve: _ResolveMapLike | None  # default: None
     referer: bool
-    proxy: list[Proxy[_AnyProxy]] | Proxy[_AnyProxy] | None  # default: None
+    proxy: list[Proxy] | Proxy | None  # default: None
     hickory_dns: bool
     # ____ TIMEOUT ____
     timeout: Duration | None  # default: None
@@ -5058,36 +5051,12 @@ class ProxyKwargs(t.TypedDict, total=False):
     headers: Headers | dict[str, str] | None
 
 
-_TProxy = t.TypeVar("_TProxy", bound=_AnyProxy)
-
-
 @t.final
-class Proxy(t.Generic[_TProxy]):
-    @t.overload
+class Proxy:
     def __init__(
         self,
         url: URL | str,
-        ptype: _HttpProxy = "http",
-        *,
-        basic_auth: tuple[str, str] | None = None,
-        headers: Headers | dict[str, str] | None = None,
-        no_proxy: str | None = None,
-    ) -> None: ...
-    @t.overload
-    def __init__(
-        self,
-        url: URL | str,
-        ptype: _HttpsProxy = "https",
-        *,
-        basic_auth: tuple[str, str] | None = None,
-        headers: Headers | dict[str, str] | None = None,
-        no_proxy: str | None = None,
-    ) -> None: ...
-    @t.overload
-    def __init__(
-        self,
-        url: URL | str,
-        ptype: _AllProxy = "all",
+        ptype: t.Literal["http", "https", "all"] = "http",
         *,
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
@@ -5100,7 +5069,7 @@ class Proxy(t.Generic[_TProxy]):
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -> Proxy[_AllProxy]: ...
+    ) -> Proxy: ...
     @staticmethod
     def http(
         url: URL | str,
@@ -5108,7 +5077,7 @@ class Proxy(t.Generic[_TProxy]):
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -> Proxy[_HttpProxy]: ...
+    ) -> Proxy: ...
     @staticmethod
     def https(
         url: URL | str,
@@ -5116,13 +5085,13 @@ class Proxy(t.Generic[_TProxy]):
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -> Proxy[_HttpsProxy]: ...
+    ) -> Proxy: ...
     # -------------------------------------------------------------------------
     # BUILDERS
     # -------------------------------------------------------------------------
-    def basic_auth(self, username: str, password: str) -> Proxy[_TProxy]: ...
-    def no_proxy(self, url: str) -> Proxy[_TProxy]: ...
-    def headers(self, headers: Headers | dict[str, str]) -> Proxy[_TProxy]: ...
+    def basic_auth(self, username: str, password: str) -> Proxy: ...
+    def no_proxy(self, url: str) -> Proxy: ...
+    def headers(self, headers: Headers | dict[str, str]) -> Proxy: ...
     # -------------------------------------------------------------------------
     # DUNDERS
     # -------------------------------------------------------------------------

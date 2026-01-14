@@ -161,10 +161,10 @@ impl Default for ClientConfig {
             connect_timeout: None,
             // pool
             pool_max_idle_per_host: usize::MAX,
-            pool_idle_timeout: Some(PyDuration::from(std::time::Duration::from_secs(90))),
+            pool_idle_timeout: Some(PyDuration::from_secs(90)),
             // tcp
-            tcp_keepalive: Some(PyDuration::from(std::time::Duration::from_secs(15))),
-            tcp_keepalive_interval: Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive: Some(PyDuration::from_secs(15)),
+            tcp_keepalive_interval: Some(PyDuration::from_secs(15)),
             tcp_keepalive_retries: Some(3),
             tcp_nodelay: true,
             // tls
@@ -535,11 +535,11 @@ impl RyHttpClient {
             http2_keep_alive_timeout = None,
             http2_keep_alive_while_idle = false,
 
-            pool_idle_timeout = Some(PyDuration::from(std::time::Duration::from_secs(90))),
+            pool_idle_timeout = Some(PyDuration::from_secs(90)),
             pool_max_idle_per_host = usize::MAX,
 
-            tcp_keepalive = Some(PyDuration::from(std::time::Duration::from_secs(15))),
-            tcp_keepalive_interval = Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive = Some(PyDuration::from_secs(15)),
+            tcp_keepalive_interval = Some(PyDuration::from_secs(15)),
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
@@ -856,11 +856,11 @@ impl RyClient {
             http2_keep_alive_timeout = None,
             http2_keep_alive_while_idle = false,
 
-            pool_idle_timeout = Some(PyDuration::from(std::time::Duration::from_secs(90))),
+            pool_idle_timeout = Some(PyDuration::from_secs(90)),
             pool_max_idle_per_host = usize::MAX,
 
-            tcp_keepalive = Some(PyDuration::from(std::time::Duration::from_secs(15))),
-            tcp_keepalive_interval = Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive = Some(PyDuration::from_secs(15)),
+            tcp_keepalive_interval = Some(PyDuration::from_secs(15)),
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
@@ -1145,11 +1145,11 @@ impl RyBlockingClient {
             http2_keep_alive_timeout = None,
             http2_keep_alive_while_idle = false,
 
-            pool_idle_timeout = Some(PyDuration::from(std::time::Duration::from_secs(90))),
+            pool_idle_timeout = Some(PyDuration::from_secs(90)),
             pool_max_idle_per_host = usize::MAX,
 
-            tcp_keepalive = Some(PyDuration::from(std::time::Duration::from_secs(15))),
-            tcp_keepalive_interval = Some(PyDuration::from(std::time::Duration::from_secs(15))),
+            tcp_keepalive = Some(PyDuration::from_secs(15)),
+            tcp_keepalive_interval = Some(PyDuration::from_secs(15)),
             tcp_keepalive_retries = Some(3),
             tcp_nodelay = true,
 
