@@ -58,6 +58,7 @@ pub struct PyDuration(pub Duration);
 
 impl PyDuration {
     #[inline]
+    #[must_use]
     pub const fn from_secs(secs: u64) -> Self {
         Self(Duration::from_secs(secs))
     }

@@ -1,6 +1,8 @@
 //! http python conversions
 use crate::HttpHeaderNameRef;
-use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpMethod, HttpVersion};
+use crate::http_types::{
+    HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef, HttpMethod, HttpVersion,
+};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
@@ -322,6 +324,25 @@ pub(crate) fn header_value_to_pystring<'py>(
         .to_str()
         .map_err(|e| PyValueError::new_err(format!("{e}")))?;
     Ok(PyString::new(py, s))
+}
+
+impl<'py> IntoPyObject<'py> for &HttpHeaderValueRef<'_> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        header_value_to_pystring(py, self.0)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for HttpHeaderValueRef<'_> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py)
+    }
 }
 
 impl<'py> IntoPyObject<'py> for &HttpHeaderValue {

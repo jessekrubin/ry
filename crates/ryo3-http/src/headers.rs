@@ -1,5 +1,5 @@
 use crate::PyHeadersLike;
-use crate::http_types::{HttpHeaderName, HttpHeaderValue};
+use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
 use http::header::HeaderMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -27,12 +27,8 @@ impl PyHeaders {
     fn extract_kwargs(kwargs: &Bound<'_, PyDict>) -> PyResult<HeaderMap> {
         let mut hm = HeaderMap::new();
         for (key, value) in kwargs.iter() {
-            let key = key
-                .extract::<HttpHeaderName>()
-                .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-            let value = value
-                .extract::<HttpHeaderValue>()
-                .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
+            let key = key.extract::<HttpHeaderName>()?;
+            let value = value.extract::<HttpHeaderValue>()?;
             hm.insert(key.0, value.0);
         }
         Ok(hm)
@@ -257,19 +253,14 @@ impl PyHeaders {
         self.read().get(key).map(HttpHeaderValue::from)
     }
 
-    fn get_all(&self, key: &str) -> PyResult<Vec<String>> {
+    fn get_all<'py>(&'py self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyAny>> {
         // iterate and collect but filter out errors...
-        let mut hvalues = vec![];
-        for v in self.read().get_all(key) {
-            match v.to_str() {
-                Ok(s) => hvalues.push(s.to_string()),
-                Err(e) => {
-                    let emsg = format!("header-value-error: {e} (key={key})");
-                    return Err(PyErr::new::<PyValueError, _>(emsg));
-                }
-            }
-        }
-        Ok(hvalues)
+        self.read()
+            .get_all(key)
+            .iter()
+            .map(HttpHeaderValueRef::from)
+            .collect::<Vec<_>>()
+            .into_pyobject(py)
     }
 
     fn insert(
