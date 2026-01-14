@@ -7,10 +7,10 @@ pub(crate) fn dataclass_fields<'a, 'py>(obj: Borrowed<'a, 'py, PyAny>) -> Option
 where
     'py: 'a,
 {
-    obj.getattr(intern!(obj.py(), "__dataclass_fields__")) // PyResult<Bound<PyAny>>
-        .ok()? // Option<Bound<PyAny>>
-        .cast_into::<PyDict>() // PyResult<Bound<PyDict>>
-        .ok() // Option<Bound<PyDict>>
+    obj.getattr(intern!(obj.py(), "__dataclass_fields__"))
+        .ok()?
+        .cast_into::<PyDict>()
+        .ok()
 }
 
 // Modified from pydantic's `is_dataclass` function

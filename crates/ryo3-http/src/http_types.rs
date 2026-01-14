@@ -30,6 +30,8 @@ pub struct HttpHeaderNameRef<'a>(pub &'a http::HeaderName);
 pub struct HttpStatusCode(pub http::StatusCode);
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpHeaderValue(pub HeaderValue);
+#[derive(Debug, Clone, PartialEq)]
+pub struct HttpHeaderValueRef<'a>(pub &'a HeaderValue);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HttpVersion(pub http::Version);
 
@@ -102,6 +104,12 @@ impl From<&HeaderValue> for HttpHeaderValue {
     // clone should be totally fine bc the http lib uses the `Bytes` crate
     fn from(h: &HeaderValue) -> Self {
         Self(h.clone())
+    }
+}
+
+impl<'a> From<&'a HeaderValue> for HttpHeaderValueRef<'a> {
+    fn from(h: &'a HeaderValue) -> Self {
+        Self(h)
     }
 }
 

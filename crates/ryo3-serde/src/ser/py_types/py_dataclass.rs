@@ -4,7 +4,7 @@ use pyo3::{intern, prelude::*};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::safe_impl::PyDictSerializer;
+use crate::ser::py_types::PyDictSerializer;
 use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
 
 use crate::ser::PySerializeContext;
@@ -74,15 +74,15 @@ impl Serialize for PyDataclassSerializer<'_, '_> {
                     );
 
                     // actual string
-                    let s = field_name_py_str
-                        .to_str()
-                        .map_err(|_| SerError::custom("field name is not a valid UTF-8 string"))?;
+                    let s = field_name_py_str.to_str().map_err(|_| {
+                        SerError::custom("dataclass field name is not a valid UTF-8 string")
+                    })?;
                     map.serialize_entry(s, &field_ser)?;
                 }
             }
             map.end()
         } else {
-            serde_err!("object is not a dataclass instance")
+            serde_err!("object is not a serializable-dataclass (missing __dict__ or fields)")
         }
     }
 }

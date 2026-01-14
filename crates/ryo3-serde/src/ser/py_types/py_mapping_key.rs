@@ -3,7 +3,7 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
-use crate::ser::safe_impl::{PyBoolSerializer, PyStrSerializer};
+use crate::ser::py_types::{PyBoolSerializer, PyStrSerializer};
 use crate::serde_err;
 
 use crate::any_repr::any_repr;
@@ -28,8 +28,8 @@ impl Serialize for PyMappingKeySerializer<'_, '_> {
     {
         let obtype = self.ctx.typeref.obtype_key(self.obj);
         match obtype {
-            PyObType::Bool => PyBoolSerializer::new(self.obj).serialize(serializer),
             PyObType::String => PyStrSerializer::new(self.obj).serialize(serializer),
+            PyObType::Bool => PyBoolSerializer::new(self.obj).serialize(serializer),
             _ => {
                 let key_repr = any_repr(self.obj);
                 serde_err!("{} is not serializable as map-key", key_repr)

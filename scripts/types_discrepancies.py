@@ -106,6 +106,7 @@ IGNORED_MEMBERS = {
     "__get_pydantic_core_schema__",
     "__get_pydantic_json_schema__",
     "_pydantic_validate",
+    "_pydantic_validate_strict",
     "from_any",  # have not settled on this one yet...
     # MAYBE IGNORE
     "__eq__",
