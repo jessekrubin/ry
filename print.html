@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-2135cff0.js";
+            window.path_to_searchindex_js = "searchindex-5f9ee751.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2026-01-12T17:00:48.022440758-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2026-01-14T13:16:26.83657966-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -498,6 +498,18 @@ dumping, and async file I/O tools.</p>
 <h2 id="v0079-unreleased"><a class="header" href="#v0079-unreleased">v0.0.79 [unreleased]</a></h2>
 <ul>
 <li><code>default-features = false</code> everywere and manually fine-grain control feats</li>
+<li><code>ryo3-serde</code>
+<ul>
+<li>internal refactoring and some unsafe-ness where it is straight-forward</li>
+<li>removed <code>Dataclass</code> from pointer lookup table and put dataclass serialzation
+under the new <code>PyUnknownSerializer</code></li>
+</ul>
+</li>
+<li><code>type-annotations</code>
+<ul>
+<li>removed generic <code>ry.Proxy</code> as it was more confusing than helpful</li>
+</ul>
+</li>
 </ul>
 <hr>
 <h2 id="v0078-2026-01-12"><a class="header" href="#v0078-2026-01-12">v0.0.78 [2026-01-12]</a></h2>
@@ -7131,7 +7143,6 @@ class Regex:
 <h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
 
 <pre><code class="language-python">import typing as t
-from typing import TypeVar
 
 import ry
 from ry._types import Buffer, Unpack
@@ -7148,13 +7159,7 @@ _Body: t.TypeAlias = (
     | t.AsyncIterable[Buffer]
 )
 # proxy
-_HttpProxy: t.TypeAlias = t.Literal["http"]
-_HttpsProxy: t.TypeAlias = t.Literal["https"]
-_AllProxy: t.TypeAlias = t.Literal["all"]
-_AnyProxy: t.TypeAlias = _HttpProxy | _HttpsProxy | _AllProxy
-_ProxyKw: t.TypeAlias = (
-    t.Sequence[Proxy[_AnyProxy] | URL | str] | Proxy[_AnyProxy] | URL | str
-)
+_ProxyKw: t.TypeAlias = t.Sequence[Proxy | URL | str] | Proxy | URL | str
 # resolve
 _ResolveMapLike: t.TypeAlias = dict[str, t.Sequence[SocketAddr]]
 
@@ -7179,7 +7184,7 @@ class ClientConfig(t.TypedDict):
     redirect: int | None
     resolve: _ResolveMapLike | None  # default: None
     referer: bool
-    proxy: list[Proxy[_AnyProxy]] | Proxy[_AnyProxy] | None  # default: None
+    proxy: list[Proxy] | Proxy | None  # default: None
     hickory_dns: bool
     # ____ TIMEOUT ____
     timeout: Duration | None  # default: None
@@ -7945,36 +7950,12 @@ class ProxyKwargs(t.TypedDict, total=False):
     headers: Headers | dict[str, str] | None
 
 
-_TProxy = t.TypeVar("_TProxy", bound=_AnyProxy)
-
-
 @t.final
-class Proxy(t.Generic[_TProxy]):
-    @t.overload
+class Proxy:
     def __init__(
         self,
         url: URL | str,
-        ptype: _HttpProxy = "http",
-        *,
-        basic_auth: tuple[str, str] | None = None,
-        headers: Headers | dict[str, str] | None = None,
-        no_proxy: str | None = None,
-    ) -&gt; None: ...
-    @t.overload
-    def __init__(
-        self,
-        url: URL | str,
-        ptype: _HttpsProxy = "https",
-        *,
-        basic_auth: tuple[str, str] | None = None,
-        headers: Headers | dict[str, str] | None = None,
-        no_proxy: str | None = None,
-    ) -&gt; None: ...
-    @t.overload
-    def __init__(
-        self,
-        url: URL | str,
-        ptype: _AllProxy = "all",
+        ptype: t.Literal["http", "https", "all"] = "http",
         *,
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
@@ -7987,7 +7968,7 @@ class Proxy(t.Generic[_TProxy]):
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -&gt; Proxy[_AllProxy]: ...
+    ) -&gt; Proxy: ...
     @staticmethod
     def http(
         url: URL | str,
@@ -7995,7 +7976,7 @@ class Proxy(t.Generic[_TProxy]):
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -&gt; Proxy[_HttpProxy]: ...
+    ) -&gt; Proxy: ...
     @staticmethod
     def https(
         url: URL | str,
@@ -8003,13 +7984,13 @@ class Proxy(t.Generic[_TProxy]):
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -&gt; Proxy[_HttpsProxy]: ...
+    ) -&gt; Proxy: ...
     # -------------------------------------------------------------------------
     # BUILDERS
     # -------------------------------------------------------------------------
-    def basic_auth(self, username: str, password: str) -&gt; Proxy[_TProxy]: ...
-    def no_proxy(self, url: str) -&gt; Proxy[_TProxy]: ...
-    def headers(self, headers: Headers | dict[str, str]) -&gt; Proxy[_TProxy]: ...
+    def basic_auth(self, username: str, password: str) -&gt; Proxy: ...
+    def no_proxy(self, url: str) -&gt; Proxy: ...
+    def headers(self, headers: Headers | dict[str, str]) -&gt; Proxy: ...
     # -------------------------------------------------------------------------
     # DUNDERS
     # -------------------------------------------------------------------------
