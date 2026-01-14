@@ -2,6 +2,11 @@ use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
+use crate::ser::py_types::{
+    PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
+    PyDictSerializer, PyFloatSerializer, PyIntSerializer, PyNoneSerializer, PyStrSerializer,
+    PyTimeDeltaSerializer, PyTimeSerializer, PyUnknownSerializer, PyUuidSerializer,
+};
 #[cfg(any(
     feature = "ryo3-http",
     feature = "ryo3-jiff",
@@ -10,12 +15,7 @@ use crate::ser::PySerializeContext;
     feature = "ryo3-uuid",
     feature = "ryo3-std"
 ))]
-use crate::ser::rytypes;
-use crate::ser::safe_impl::{
-    PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
-    PyDictSerializer, PyFloatSerializer, PyIntSerializer, PyNoneSerializer, PyStrSerializer,
-    PyTimeDeltaSerializer, PyTimeSerializer, PyUnknownSerializer, PyUuidSerializer,
-};
+use crate::ser::ry_types;
 use crate::serde_err_recursion;
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyFrozenSet, PyList, PySequence, PySet, PyTuple};
@@ -97,90 +97,90 @@ macro_rules! serialize_seq_element {
             // __STD__
             #[cfg(feature = "ryo3-std")]
             PyObType::PyDuration => {
-                $seq.serialize_element(&rytypes::PyDurationSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyDurationSerializer::new($element))?;
             }
 
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpAddr => {
-                $seq.serialize_element(&rytypes::PyIpAddrSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyIpAddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv4Addr => {
-                $seq.serialize_element(&rytypes::PyIpv4AddrSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyIpv4AddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv6Addr => {
-                $seq.serialize_element(&rytypes::PyIpv6AddrSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyIpv6AddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddr => {
-                $seq.serialize_element(&rytypes::PySocketAddrSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PySocketAddrSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV4 => {
-                $seq.serialize_element(&rytypes::PySocketAddrV4Serializer::new($element))?;
+                $seq.serialize_element(&ry_types::PySocketAddrV4Serializer::new($element))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV6 => {
-                $seq.serialize_element(&rytypes::PySocketAddrV6Serializer::new($element))?;
+                $seq.serialize_element(&ry_types::PySocketAddrV6Serializer::new($element))?;
             }
 
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                $seq.serialize_element(&rytypes::PyHeadersSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyHeadersSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                $seq.serialize_element(&rytypes::PyHttpStatusSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyHttpStatusSerializer::new($element))?;
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDate => {
-                $seq.serialize_element(&rytypes::RyDateSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RyDateSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDateTime => {
-                $seq.serialize_element(&rytypes::RyDateTimeSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RyDateTimeSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RySignedDuration => {
-                $seq.serialize_element(&rytypes::RySignedDurationSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RySignedDurationSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTime => {
-                $seq.serialize_element(&rytypes::RyTimeSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RyTimeSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeSpan => {
-                $seq.serialize_element(&rytypes::RySpanSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RySpanSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimestamp => {
-                $seq.serialize_element(&rytypes::RyTimestampSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RyTimestampSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeZone => {
-                $seq.serialize_element(&rytypes::RyTimeZoneSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RyTimeZoneSerializer::new($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyZoned => {
-                $seq.serialize_element(&rytypes::RyZonedSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::RyZonedSerializer::new($element))?;
             }
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
             PyObType::RyUlid => {
-                $seq.serialize_element(&rytypes::PyUlidSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyUlidSerializer::new($element))?;
             }
             // __URL__
             #[cfg(feature = "ryo3-url")]
             PyObType::RyUrl => {
-                $seq.serialize_element(&rytypes::PyUrlSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyUrlSerializer::new($element))?;
             }
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]
             PyObType::RyUuid => {
-                $seq.serialize_element(&rytypes::PyUuidSerializer::new($element))?;
+                $seq.serialize_element(&ry_types::PyUuidSerializer::new($element))?;
             }
             // ------------------------------------------------------------
             // UNKNOWN

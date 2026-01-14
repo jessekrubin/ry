@@ -4,7 +4,7 @@ use pyo3::{intern, prelude::*};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::safe_impl::PyDictSerializer;
+use crate::ser::py_types::PyDictSerializer;
 use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
 
 use crate::ser::PySerializeContext;

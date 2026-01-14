@@ -8,14 +8,14 @@ use serde::ser::{Serialize, Serializer};
 use crate::ob_type::PyObType;
 use crate::ob_type_cache::PyTypeCache;
 use crate::ser::PySerializeContext;
-#[cfg(feature = "ry")]
-use crate::ser::rytypes;
-use crate::ser::safe_impl::{
+use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
     PyNoneSerializer, PySetSerializer, PyStrSerializer, PyTimeDeltaSerializer, PyTimeSerializer,
     PyTupleSerializer, PyUnknownSerializer, PyUuidSerializer,
 };
+#[cfg(feature = "ry")]
+use crate::ser::ry_types;
 use crate::{Depth, MAX_DEPTH, serde_err_recursion};
 use pyo3::Bound;
 
@@ -91,75 +91,75 @@ impl Serialize for PyAnySerializer<'_, '_> {
             // __STD__
             #[cfg(feature = "ryo3-std")]
             PyObType::PyDuration => {
-                rytypes::PyDurationSerializer::new(self.obj).serialize(serializer)
+                ry_types::PyDurationSerializer::new(self.obj).serialize(serializer)
             }
 
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyIpAddr => rytypes::PyIpAddrSerializer::new(self.obj).serialize(serializer),
+            PyObType::PyIpAddr => ry_types::PyIpAddrSerializer::new(self.obj).serialize(serializer),
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv4Addr => {
-                rytypes::PyIpv4AddrSerializer::new(self.obj).serialize(serializer)
+                ry_types::PyIpv4AddrSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv6Addr => {
-                rytypes::PyIpv6AddrSerializer::new(self.obj).serialize(serializer)
+                ry_types::PyIpv6AddrSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddr => {
-                rytypes::PySocketAddrSerializer::new(self.obj).serialize(serializer)
+                ry_types::PySocketAddrSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV4 => {
-                rytypes::PySocketAddrV4Serializer::new(self.obj).serialize(serializer)
+                ry_types::PySocketAddrV4Serializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV6 => {
-                rytypes::PySocketAddrV6Serializer::new(self.obj).serialize(serializer)
+                ry_types::PySocketAddrV6Serializer::new(self.obj).serialize(serializer)
             }
 
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                rytypes::PyHeadersSerializer::new(self.obj).serialize(serializer)
+                ry_types::PyHeadersSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                rytypes::PyHttpStatusSerializer::new(self.obj).serialize(serializer)
+                ry_types::PyHttpStatusSerializer::new(self.obj).serialize(serializer)
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyDate => rytypes::RyDateSerializer::new(self.obj).serialize(serializer),
+            PyObType::RyDate => ry_types::RyDateSerializer::new(self.obj).serialize(serializer),
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDateTime => {
-                rytypes::RyDateTimeSerializer::new(self.obj).serialize(serializer)
+                ry_types::RyDateTimeSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RySignedDuration => {
-                rytypes::RySignedDurationSerializer::new(self.obj).serialize(serializer)
+                ry_types::RySignedDurationSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTime => rytypes::RyTimeSerializer::new(self.obj).serialize(serializer),
+            PyObType::RyTime => ry_types::RyTimeSerializer::new(self.obj).serialize(serializer),
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyTimeSpan => rytypes::RySpanSerializer::new(self.obj).serialize(serializer),
+            PyObType::RyTimeSpan => ry_types::RySpanSerializer::new(self.obj).serialize(serializer),
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimestamp => {
-                rytypes::RyTimestampSerializer::new(self.obj).serialize(serializer)
+                ry_types::RyTimestampSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeZone => {
-                rytypes::RyTimeZoneSerializer::new(self.obj).serialize(serializer)
+                ry_types::RyTimeZoneSerializer::new(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyZoned => rytypes::RyZonedSerializer::new(self.obj).serialize(serializer),
+            PyObType::RyZoned => ry_types::RyZonedSerializer::new(self.obj).serialize(serializer),
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
-            PyObType::RyUlid => rytypes::PyUlidSerializer::new(self.obj).serialize(serializer),
+            PyObType::RyUlid => ry_types::PyUlidSerializer::new(self.obj).serialize(serializer),
             // __URL__
             #[cfg(feature = "ryo3-url")]
-            PyObType::RyUrl => rytypes::PyUrlSerializer::new(self.obj).serialize(serializer),
+            PyObType::RyUrl => ry_types::PyUrlSerializer::new(self.obj).serialize(serializer),
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]
-            PyObType::RyUuid => rytypes::PyUuidSerializer::new(self.obj).serialize(serializer),
+            PyObType::RyUuid => ry_types::PyUuidSerializer::new(self.obj).serialize(serializer),
             // ------------------------------------------------------------
             // UNKNOWN
             // ------------------------------------------------------------

@@ -3,7 +3,7 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
-use crate::ser::safe_impl::{PyBoolSerializer, PyStrSerializer};
+use crate::ser::py_types::{PyBoolSerializer, PyStrSerializer};
 use crate::serde_err;
 
 use crate::any_repr::any_repr;

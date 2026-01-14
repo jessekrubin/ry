@@ -11,7 +11,7 @@ use crate::{
     ser::{
         PySerializeContext,
         dataclass::is_dataclass,
-        safe_impl::{
+        py_types::{
             PyDataclassSerializer, PyMappingSerializer, PySequenceSerializer,
             PyStrSubclassSerializer,
         },
