@@ -3,7 +3,7 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 
-use pyo3::types::{PyDate, PyDateTime, PyTime};
+use pyo3::types::{PyDate, PyDateTime};
 
 // ---------------------------------------------------------------------------
 // python stdlib `datetime.date`
@@ -18,6 +18,20 @@ impl<'a, 'py> PyDateSerializer<'a, 'py> {
     }
 }
 
+#[cfg(feature = "jiff")]
+impl Serialize for PyDateSerializer<'_, '_> {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let py_date = self.obj.cast_exact::<PyDate>().map_err(pyerr2sererr)?;
+        let date_jiff: jiff::civil::Date = py_date.extract().map_err(pyerr2sererr)?;
+        date_jiff.serialize(serializer)
+    }
+}
+
+#[cfg(not(feature = "jiff"))]
 impl Serialize for PyDateSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -32,7 +46,7 @@ impl Serialize for PyDateSerializer<'_, '_> {
 }
 
 // ---------------------------------------------------------------------------
-// python stdlib `datetime.date`
+// python stdlib `datetime.time`
 // ---------------------------------------------------------------------------
 pub(crate) struct PyTimeSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
@@ -45,6 +59,19 @@ impl<'a, 'py> PyTimeSerializer<'a, 'py> {
     }
 }
 
+#[cfg(feature = "jiff")]
+impl Serialize for PyTimeSerializer<'_, '_> {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let time_jiff: jiff::civil::Time = self.obj.extract().map_err(pyerr2sererr)?;
+        time_jiff.serialize(serializer)
+    }
+}
+
+#[cfg(not(feature = "jiff"))]
 impl Serialize for PyTimeSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -71,6 +98,7 @@ impl<'a, 'py> PyDateTimeSerializer<'a, 'py> {
         Self { obj }
     }
 }
+
 #[cfg(feature = "jiff")]
 impl Serialize for PyDateTimeSerializer<'_, '_> {
     #[inline]

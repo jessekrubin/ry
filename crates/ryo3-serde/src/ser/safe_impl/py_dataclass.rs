@@ -74,9 +74,9 @@ impl Serialize for PyDataclassSerializer<'_, '_> {
                     );
 
                     // actual string
-                    let s = field_name_py_str
-                        .to_str()
-                        .map_err(|_| SerError::custom("field name is not a valid UTF-8 string"))?;
+                    let s = field_name_py_str.to_str().map_err(|_| {
+                        SerError::custom("dataclass field name is not a valid UTF-8 string")
+                    })?;
                     map.serialize_entry(s, &field_ser)?;
                 }
             }
