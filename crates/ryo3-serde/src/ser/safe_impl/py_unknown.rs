@@ -32,7 +32,7 @@ impl<'a, 'py> PyUnknownSerializer<'a, 'py> {
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
-        Self { obj, ctx, depth }
+        Self { ctx, obj, depth }
     }
 }
 

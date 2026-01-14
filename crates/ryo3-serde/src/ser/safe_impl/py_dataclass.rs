@@ -82,7 +82,7 @@ impl Serialize for PyDataclassSerializer<'_, '_> {
             }
             map.end()
         } else {
-            serde_err!("object is not a dataclass instance")
+            serde_err!("object is not a serializable-dataclass (missing __dict__ or fields)")
         }
     }
 }

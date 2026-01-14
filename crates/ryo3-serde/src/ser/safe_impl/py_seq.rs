@@ -1,4 +1,3 @@
-use crate::PyAnySerializer;
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
@@ -13,10 +12,9 @@ use crate::ser::PySerializeContext;
 ))]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
-    PyDateTimeSerializer, PyDictSerializer, PyFloatSerializer, PyIntSerializer, PyNoneSerializer,
-    PyStrSerializer, PyTimeDeltaSerializer, PyTimeSerializer, PyUnknownSerializer,
-    PyUuidSerializer,
+    PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
+    PyDictSerializer, PyFloatSerializer, PyIntSerializer, PyNoneSerializer, PyStrSerializer,
+    PyTimeDeltaSerializer, PyTimeSerializer, PyUnknownSerializer, PyUuidSerializer,
 };
 use crate::serde_err_recursion;
 use pyo3::prelude::*;
@@ -86,13 +84,13 @@ macro_rules! serialize_seq_element {
             PyObType::PyUuid => {
                 $seq.serialize_element(&PyUuidSerializer::new($element))?;
             }
-            PyObType::Dataclass => {
-                $seq.serialize_element(&PyDataclassSerializer::new(
-                    $element,
-                    $self.ctx,
-                    $self.depth,
-                ))?;
-            }
+            // PyObType::Dataclass => {
+            //     $seq.serialize_element(&PyDataclassSerializer::new(
+            //         $element,
+            //         $self.ctx,
+            //         $self.depth,
+            //     ))?;
+            // }
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------

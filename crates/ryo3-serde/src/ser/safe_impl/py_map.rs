@@ -16,9 +16,9 @@ use crate::ser::PySerializeContext;
 ))]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
-    PyDateTimeSerializer, PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer,
-    PyListSerializer, PyMappingKeySerializer, PyNoneSerializer, PySetSerializer, PyStrSerializer,
+    PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
+    PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
+    PyMappingKeySerializer, PyNoneSerializer, PySetSerializer, PyStrSerializer,
     PyTimeDeltaSerializer, PyTimeSerializer, PyTupleSerializer, PyUnknownSerializer,
     PyUuidSerializer,
 };
@@ -93,9 +93,9 @@ macro_rules! serialize_map_value {
             PyObType::PyUuid => {
                 $map.serialize_value(&PyUuidSerializer::new($value))?;
             }
-            PyObType::Dataclass => {
-                $map.serialize_value(&PyDataclassSerializer::new($value, $self.ctx, $self.depth))?;
-            }
+            // PyObType::Dataclass => {
+            //     $map.serialize_value(&PyDataclassSerializer::new($value, $self.ctx, $self.depth))?;
+            // }
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------
@@ -219,7 +219,6 @@ impl Serialize for PyDictSerializer<'_, '_> {
             let map_key = map_key.as_borrowed();
             let map_val = map_val.as_borrowed();
             let sk = PyMappingKeySerializer::new(self.ctx, map_key);
-            // let sv = PyAnySerializer::new_with_depth(&v, self.ctx, self.depth + 1);
             let ob_type = self.ctx.typeref.obtype(map_val);
             m.serialize_key(&sk)?;
             serialize_map_value!(ob_type, m, self, map_val);

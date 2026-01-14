@@ -1,6 +1,4 @@
 //! Serialize python objects
-//!
-//! Currently pre-reorg
 mod context;
 pub(crate) mod dataclass;
 pub(crate) mod py_serialize;

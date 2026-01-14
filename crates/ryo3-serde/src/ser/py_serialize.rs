@@ -11,11 +11,10 @@ use crate::ser::PySerializeContext;
 #[cfg(feature = "ry")]
 use crate::ser::rytypes;
 use crate::ser::safe_impl::{
-    PyBoolSerializer, PyBytesLikeSerializer, PyDataclassSerializer, PyDateSerializer,
-    PyDateTimeSerializer, PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer,
-    PyIntSerializer, PyListSerializer, PyNoneSerializer, PySetSerializer, PyStrSerializer,
-    PyTimeDeltaSerializer, PyTimeSerializer, PyTupleSerializer, PyUnknownSerializer,
-    PyUuidSerializer,
+    PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
+    PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
+    PyNoneSerializer, PySetSerializer, PyStrSerializer, PyTimeDeltaSerializer, PyTimeSerializer,
+    PyTupleSerializer, PyUnknownSerializer, PyUuidSerializer,
 };
 use crate::{Depth, MAX_DEPTH, serde_err_recursion};
 use pyo3::Bound;
@@ -43,18 +42,9 @@ impl<'a, 'py> PyAnySerializer<'a, 'py> {
     ) -> Self {
         Self { obj, ctx, depth }
     }
-
-    // pub(crate) fn with_obj(&self, obj: Borrowed<'a, 'py, PyAny>) -> Self {
-    //     Self {
-    //         obj,
-    //         ctx: self.ctx,
-    //         depth: self.depth + 1,
-    //     }
-    // }
 }
 
 impl Serialize for PyAnySerializer<'_, '_> {
-    #[expect(clippy::too_many_lines)]
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -91,9 +81,10 @@ impl Serialize for PyAnySerializer<'_, '_> {
                 PyBytesLikeSerializer::new(self.obj).serialize(serializer)
             }
             PyObType::PyUuid => PyUuidSerializer::new(self.obj).serialize(serializer),
-            PyObType::Dataclass => {
-                PyDataclassSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
-            }
+            // now handled in Unknown
+            // PyObType::Dataclass => {
+            //     PyDataclassSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
+            // }
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------
