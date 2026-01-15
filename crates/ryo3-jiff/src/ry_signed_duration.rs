@@ -253,6 +253,7 @@ impl RySignedDuration {
         hasher.finish()
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __add__<'py>(
         &self,
         py: Python<'py>,
@@ -269,6 +270,7 @@ impl RySignedDuration {
         self.__add__(py, other)
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __sub__<'py>(
         &self,
         py: Python<'py>,
@@ -277,6 +279,7 @@ impl RySignedDuration {
         other.sub_signed_duration(py, self)
     }
 
+    #[expect(clippy::needless_pass_by_value)]
     fn __rsub__<'py>(
         &self,
         py: Python<'py>,
@@ -757,14 +760,12 @@ impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, RyDate> {
         py: Python<'py>,
         sd: &RySignedDuration,
     ) -> PyResult<Self::Output> {
-        let a = self
-            .get()
+        self.get()
             .0
             .checked_add(sd.0)
             .map(RyDate::from)
             .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?;
-        a
+            .map(|r| r.into_pyobject(py))?
     }
 }
 
@@ -868,13 +869,13 @@ impl<'a, 'py> PySignedDurationAdd<'a, 'py> for SignedDurationAddTarget<'a, 'py> 
         match self {
             Self::SignedDuration(rhs) => lhs
                 .0
-                .checked_add(rhs.get().0.into())
+                .checked_add(rhs.get().0)
                 .map(RySignedDuration::from)
                 .ok_or_else(|| py_overflow_error!())
                 .map(|e| e.into_bound_py_any(py))?,
             Self::Delta(rhs) => lhs
                 .0
-                .checked_add(rhs.clone().into())
+                .checked_add(*rhs)
                 .map(RySignedDuration::from)
                 .ok_or_else(|| py_overflow_error!())
                 .map(|e| e.into_bound_py_any(py))?,
@@ -900,7 +901,6 @@ trait PySignedDurationSub<'a, 'py> {
 pub(crate) enum SignedDurationSubTarget<'a, 'py> {
     SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
     Delta(SignedDuration),
-    // NotImpl,
 }
 
 impl<'a, 'py> FromPyObject<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
@@ -932,19 +932,16 @@ impl<'a, 'py> PySignedDurationSub<'a, 'py> for SignedDurationSubTarget<'a, 'py> 
         match self {
             Self::SignedDuration(rhs) => lhs
                 .0
-                .checked_sub(rhs.get().0.into())
+                .checked_sub(rhs.get().0)
                 .map(RySignedDuration::from)
                 .ok_or_else(|| py_overflow_error!())
                 .map(|e| e.into_pyobject(py))?,
             Self::Delta(rhs) => lhs
                 .0
-                .checked_sub(rhs.clone().into())
+                .checked_sub(*rhs)
                 .map(RySignedDuration::from)
                 .ok_or_else(|| py_overflow_error!())
                 .map(|e| e.into_pyobject(py))?,
-            // Self::NotImpl => {
-            // py_type_err!("unsupported operand type(s) for -: 'SignedDuration' and given type",)
-            // }
         }
     }
 
@@ -957,16 +954,15 @@ impl<'a, 'py> PySignedDurationSub<'a, 'py> for SignedDurationSubTarget<'a, 'py> 
             Self::SignedDuration(lhs) => lhs
                 .get()
                 .0
-                .checked_sub(rhs.0.into())
+                .checked_sub(rhs.0)
                 .map(RySignedDuration::from)
                 .ok_or_else(|| py_overflow_error!())
                 .map(|e| e.into_pyobject(py))?,
             Self::Delta(lhs) => (*lhs)
-                .checked_sub(rhs.0.into())
+                .checked_sub(rhs.0)
                 .map(RySignedDuration::from)
                 .ok_or_else(|| py_overflow_error!())
                 .map(|e| e.into_pyobject(py))?,
-            // Self::NotImpl => py_type_err!("unsupported operand type(s) for -: 'SignedDuration' and given type",),
         }
     }
 }

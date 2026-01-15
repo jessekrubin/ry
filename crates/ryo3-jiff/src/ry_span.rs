@@ -976,14 +976,12 @@ impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyDate> {
     type Target = RyDate;
     type Output = Bound<'py, Self::Target>;
     fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        let a = self
-            .get()
+        self.get()
             .0
             .checked_add(DateArithmetic::from(span.0))
             .map(RyDate::from)
             .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?;
-        a
+            .map(|r| r.into_pyobject(py))?
     }
 }
 
@@ -1074,14 +1072,12 @@ impl<'a, 'py> SpanAdd<'a, 'py> for SpanAddTarget<'a, 'py> {
         match self {
             Self::Span(span_arithmetic) => {
                 let span_arithmetic: SpanArithmetic = span_arithmetic.into();
-                let a = span
-                    .0
+                span.0
                     .checked_add(span_arithmetic)
                     .map(RySpan::from)
                     .map_err(map_py_overflow_err)?
                     .into_pyobject(py)
-                    .map(Bound::into_any);
-                a
+                    .map(Bound::into_any)
             }
             Self::TemporalType(temporal_type) => temporal_type.add_span(py, span),
         }
