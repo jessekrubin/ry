@@ -47,9 +47,9 @@ if sys.version_info >= (3, 13):
     from warnings import deprecated
 else:
     from typing_extensions import deprecated
+
 _T = t.TypeVar("_T")
 _TDict = t.TypeVar("_TDict")
-
 TimezoneName: t.TypeAlias = TimezoneDbName | str
 JiffUnit: t.TypeAlias = t.Literal[
     "year",
@@ -1025,10 +1025,16 @@ class TimeSpan(
     # =========================================================================
     # OPERATORS
     # =========================================================================
+    @t.overload
     def __add__(
         self,
         val: TimeSpanArithmetic,
     ) -> t.Self: ...
+    @t.overload
+    def __add__(
+        self,
+        val: _T,
+    ) -> _T: ...
     def __sub__(
         self,
         val: TimeSpanArithmetic,

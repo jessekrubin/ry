@@ -680,8 +680,21 @@ class TestDurationArithmetic:
         self, opperator: str, value: complex | list[int] | str
     ) -> None:
         dur = ry.SignedDuration(1, 0)
-        with pytest.raises(TypeError):
-            _ = getattr(dur, opperator)(value)
+        if opperator in ["__add__", "__radd__", "__sub__", "__rsub__"]:
+            _res = getattr(dur, opperator)(value)
+            assert _res is NotImplemented
+            with pytest.raises(TypeError):
+                if opperator == "__add__":
+                    _ = dur + value  # type: ignore[operator]
+                elif opperator == "__sub__":
+                    _ = dur - value  # type: ignore[operator]
+                elif opperator == "__rsub__":
+                    _ = value - dur  # type: ignore[operator]
+                else:  # opperator == "__radd__":
+                    _ = value + dur  # type: ignore[operator]
+        else:
+            with pytest.raises(TypeError):
+                _res = getattr(dur, opperator)(value)
 
 
 class TestSignedDurationCheckedArithmetic:

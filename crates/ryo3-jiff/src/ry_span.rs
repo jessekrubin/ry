@@ -1,7 +1,14 @@
 use crate::constants::SPAN_PARSER;
+use crate::py_temporal_like::PyTermporalTypes;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::{JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyZoned, timespan};
-use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
+use crate::{
+    JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, timespan,
+};
+use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
+use jiff::{
+    SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound, TimestampArithmetic,
+    ZonedArithmetic,
+};
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -381,22 +388,21 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn __add__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = (&other).into();
-        self.0
-            .checked_add(span_arithmetic)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    fn __add__<'py>(
+        &self,
+        py: Python<'py>,
+        other: SpanAddTarget<'_, 'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        other.add_span(py, self)
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn add(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = (&other).into();
-
-        self.0
-            .checked_add(span_arithmetic)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    fn add<'py>(
+        &self,
+        py: Python<'py>,
+        other: SpanAddTarget<'_, 'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        other.add_span(py, self)
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -934,6 +940,150 @@ impl<'a, 'py> From<&'a IntoSpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
                     }
                 },
             },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum SpanAddTarget<'a, 'py> {
+    Span(IntoSpanArithmetic<'a, 'py>),
+    TemporalType(PyTermporalTypes<'a, 'py>),
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(date_time_type) = obj.extract::<PyTermporalTypes<'a, 'py>>() {
+            Ok(Self::TemporalType(date_time_type))
+        } else if let Ok(o) = obj.extract::<IntoSpanArithmetic<'a, 'py>>() {
+            Ok(Self::Span(o))
+        } else {
+            py_type_err!(
+                "Expected TimeSpan, SignedDuration, datetime.timedelta, a tuple of length 2 for Span arithmetic with relative, or a date/time type",
+            )
+        }
+    }
+}
+
+trait SpanAdd<'a, 'py> {
+    type Target;
+    type Output;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output>;
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyDate> {
+    type Target = RyDate;
+    type Output = Bound<'py, Self::Target>;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        let a = self
+            .get()
+            .0
+            .checked_add(DateArithmetic::from(span.0))
+            .map(RyDate::from)
+            .map_err(map_py_overflow_err)
+            .map(|r| r.into_pyobject(py))?;
+        a
+    }
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyDateTime> {
+    type Target = RyDateTime;
+    type Output = Bound<'py, Self::Target>;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        self.get()
+            .0
+            .checked_add(DateTimeArithmetic::from(span.0))
+            .map(RyDateTime::from)
+            .map_err(map_py_overflow_err)
+            .map(|r| r.into_pyobject(py))?
+    }
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyTime> {
+    type Target = RyTime;
+    type Output = Bound<'py, Self::Target>;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        self.get()
+            .0
+            .checked_add(TimeArithmetic::from(span.0))
+            .map(RyTime::from)
+            .map_err(map_py_overflow_err)
+            .map(|r| r.into_pyobject(py))?
+    }
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyZoned> {
+    type Target = RyZoned;
+    type Output = Bound<'py, Self::Target>;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        self.get()
+            .0
+            .checked_add(ZonedArithmetic::from(span.0))
+            .map(RyZoned::from)
+            .map_err(map_py_overflow_err)
+            .map(|r| r.into_pyobject(py))?
+    }
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyTimestamp> {
+    type Target = RyTimestamp;
+    type Output = Bound<'py, Self::Target>;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        self.get()
+            .0
+            .checked_add(TimestampArithmetic::from(span.0))
+            .map(RyTimestamp::from)
+            .map_err(map_py_overflow_err)
+            .map(|r| r.into_pyobject(py))?
+    }
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for PyTermporalTypes<'a, 'py> {
+    type Target = PyAny;
+    type Output = Bound<'py, PyAny>;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        match self {
+            Self::Date(date) => date.add_span(py, span).map(Bound::into_any),
+            Self::DateTime(datetime) => datetime.add_span(py, span).map(Bound::into_any),
+            Self::Time(time) => time.add_span(py, span).map(Bound::into_any),
+            Self::Zoned(zoned) => zoned.add_span(py, span).map(Bound::into_any),
+            Self::Timestamp(timestamp) => timestamp.add_span(py, span).map(Bound::into_any),
+        }
+    }
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for IntoSpanArithmetic<'a, 'py> {
+    type Target = RySpan;
+    type Output = Bound<'py, Self::Target>;
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        let span_arithmetic: SpanArithmetic = self.into();
+        span.0
+            .checked_add(span_arithmetic)
+            .map(RySpan::from)
+            .map_err(map_py_overflow_err)?
+            .into_pyobject(py)
+    }
+}
+
+impl<'a, 'py> SpanAdd<'a, 'py> for SpanAddTarget<'a, 'py> {
+    type Target = PyAny;
+    type Output = Bound<'py, PyAny>;
+
+    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        match self {
+            Self::Span(span_arithmetic) => {
+                let span_arithmetic: SpanArithmetic = span_arithmetic.into();
+                let a = span
+                    .0
+                    .checked_add(span_arithmetic)
+                    .map(RySpan::from)
+                    .map_err(map_py_overflow_err)?
+                    .into_pyobject(py)
+                    .map(Bound::into_any);
+                a
+            }
+            Self::TemporalType(temporal_type) => temporal_type.add_span(py, span),
         }
     }
 }

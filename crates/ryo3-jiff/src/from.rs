@@ -194,6 +194,22 @@ impl TryFrom<SignedDuration> for RySpan {
     }
 }
 
+impl From<RySignedDuration> for SignedDuration {
+    fn from(value: RySignedDuration) -> Self {
+        value.0
+    }
+}
+
+impl TryFrom<&ryo3_std::time::PyDuration> for RySignedDuration {
+    type Error = pyo3::PyErr;
+
+    fn try_from(value: &ryo3_std::time::PyDuration) -> Result<Self, Self::Error> {
+        SignedDuration::try_from(*(value.inner()))
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
+    }
+}
+
 impl From<TimeZoneDatabase> for RyTimeZoneDatabase {
     fn from(db: TimeZoneDatabase) -> Self {
         Self { inner: Some(db) }
