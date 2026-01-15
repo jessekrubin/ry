@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - Wheel](https://img.shields.io/pypi/wheel/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/ry?style=flat-square&cacheSeconds=600)](https://pypistats.org/packages/ry)
 [![PyPI - Status](https://img.shields.io/pypi/status/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 [![PyPI - License](https://img.shields.io/pypi/l/ry?style=flat-square&cacheSeconds=600)](https://pypi.org/project/ry/)
 
@@ -18,21 +18,24 @@ ergonomic.
 
 ## Highlights
 
-- **Async-first client and blocking/sync client:** Built on `reqwest`, with a `fetch`-like API.
-  Supports streaming, zero-copy IO via the buffer protocol, timeouts,
-  redirect-following, and native JSON parsing via `jiter`.
+- **Async-first client and blocking/sync client:** Built on `reqwest`, with a
+  `fetch`-like API. Supports streaming, zero-copy IO via the buffer protocol,
+  timeouts, redirect-following, and native JSON (de)serialization via
+  `serde`/`jiter`.
+- **`jiff` based datetime library:** comprehensive datetime library based on
+  `jiff` (pydantic-compatible).
 - **Async file I/O:** Built on `tokio`, with an `AsyncFile` API similar to
   `aiofiles` and `anyio`'s async-file api. Supports buffered reads/writes,
   truncation, streaming reads, and `anyio` compatibility.
 - **(de)compression:** (de)compression tools for `zstd`, `brotli`, `gzip`, and
   `bzip2`.
-- **`jiff` based datetime library:** Fast, accurate, timezone-aware datetime parsing and formatting, with `datetime` interop.
 - **Miscellaneous bindings:** Includes crates like `globset`, `walkdir`,
   `sqlformat`, `unindent`, `twox-hash`, and more.
 - **Designed for ergonomics:** Async where it matters. Simple where possible.
   Python-native behavior with minimal friction.
 - **Type Annotated:** All public APIs are (painstakingly) type annotated.
 - **Performant:** Speed without the words "blazingly fast." [^1]
+- **Pydantic Integration:** ry data types (mostly) work good w/ pydantic.
 - **Not slop:** written by a human [^2]
 - **No emojis**
 
@@ -88,10 +91,13 @@ _(aka: questions that I have been asking myself)_
 | `bytes`         | [`ryo3-bytes`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bytes)         |
 | `bzip2`         | [`ryo3-bzip2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bzip2)         |
 | `dirs`          | [`ryo3-dirs`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-dirs)           |
+| `fspath`        | [`ryo3-fspath`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-fspath)       |
 | `glob`          | [`ryo3-glob`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-glob)           |
 | `heck`          | [`ryo3-heck`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-heck)           |
 | `http`          | [`ryo3-http`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-http)           |
 | `jiter`         | [`ryo3-jiter`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-jiter)         |
+| `json`          | [`ryo3-json`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-json)           |
+| `pydantic`      | [`ryo3-pydantic`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-pydantic)   |
 | `reqwest`       | [`ryo3-reqwest`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-reqwest)     |
 | `serde`         | [`ryo3-serde`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-serde)         |
 | `shlex`         | [`ryo3-shlex`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-shlex)         |
@@ -138,5 +144,5 @@ _(aka: questions that I have been asking myself)_
     Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
     performance variance, regardless of whether "blazingly fast" appeared in the
     README or docs.
-[^2]:
-    Artisanal, hand-crafted, small-batch software.
+
+[^2]: Artisanal, hand-crafted, small-batch software.
