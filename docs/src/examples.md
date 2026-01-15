@@ -12,10 +12,11 @@ Demos:
 """
 
 import asyncio
+
 import ry
 
 
-async def main():
+async def main() -> None:
     # write
     async with ry.aopen("stuff-async.txt", mode="wb") as f:
         await f.write(b"hello\n")
