@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-5f9ee751.js";
+            window.path_to_searchindex_js = "searchindex-10f2eb24.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -180,14 +180,14 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2026-01-14T13:16:26.83657966-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2026-01-14T21:23:23.251812625-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
 <p><a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/v/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI"></a>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/pyversions/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Python Version"></a>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/wheel/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Wheel"></a>
-<a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/dm/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Downloads"></a>
+<a href="https://pypistats.org/packages/ry"><img src="https://img.shields.io/pypi/dm/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Downloads"></a>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/status/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - Status"></a>
 <a href="https://pypi.org/project/ry/"><img src="https://img.shields.io/pypi/l/ry?style=flat-square&amp;cacheSeconds=600" alt="PyPI - License"></a></p>
 <p>A growing collection of Python shims around Rust crates; fast, async-first, and
@@ -197,21 +197,24 @@ ergonomic.</p>
 <p><strong>This is a work in progress ~ feedback and PRs are welcome.</strong></p>
 <h2 id="highlights"><a class="header" href="#highlights">Highlights</a></h2>
 <ul>
-<li><strong>Async-first client and blocking/sync client:</strong> Built on <code>reqwest</code>, with a <code>fetch</code>-like API.
-Supports streaming, zero-copy IO via the buffer protocol, timeouts,
-redirect-following, and native JSON parsing via <code>jiter</code>.</li>
+<li><strong>Async-first client and blocking/sync client:</strong> Built on <code>reqwest</code>, with a
+<code>fetch</code>-like API. Supports streaming, zero-copy IO via the buffer protocol,
+timeouts, redirect-following, and native JSON (de)serialization via
+<code>serde</code>/<code>jiter</code>.</li>
+<li><strong><code>jiff</code> based datetime library:</strong> comprehensive datetime library based on
+<code>jiff</code> (pydantic-compatible).</li>
 <li><strong>Async file I/O:</strong> Built on <code>tokio</code>, with an <code>AsyncFile</code> API similar to
 <code>aiofiles</code> and <code>anyio</code>’s async-file api. Supports buffered reads/writes,
 truncation, streaming reads, and <code>anyio</code> compatibility.</li>
 <li><strong>(de)compression:</strong> (de)compression tools for <code>zstd</code>, <code>brotli</code>, <code>gzip</code>, and
 <code>bzip2</code>.</li>
-<li><strong><code>jiff</code> based datetime library:</strong> Fast, accurate, timezone-aware datetime parsing and formatting, with <code>datetime</code> interop.</li>
 <li><strong>Miscellaneous bindings:</strong> Includes crates like <code>globset</code>, <code>walkdir</code>,
 <code>sqlformat</code>, <code>unindent</code>, <code>twox-hash</code>, and more.</li>
 <li><strong>Designed for ergonomics:</strong> Async where it matters. Simple where possible.
 Python-native behavior with minimal friction.</li>
 <li><strong>Type Annotated:</strong> All public APIs are (painstakingly) type annotated.</li>
 <li><strong>Performant:</strong> Speed without the words “blazingly fast.” <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></li>
+<li><strong>Pydantic Integration:</strong> ry data types (mostly) work good w/ pydantic.</li>
 <li><strong>Not slop:</strong> written by a human <sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup></li>
 <li><strong>No emojis</strong></li>
 </ul>
@@ -272,10 +275,13 @@ into separate packages</li>
 <tr><td><code>bytes</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bytes"><code>ryo3-bytes</code></a></td></tr>
 <tr><td><code>bzip2</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bzip2"><code>ryo3-bzip2</code></a></td></tr>
 <tr><td><code>dirs</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-dirs"><code>ryo3-dirs</code></a></td></tr>
+<tr><td><code>fspath</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-fspath"><code>ryo3-fspath</code></a></td></tr>
 <tr><td><code>glob</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-glob"><code>ryo3-glob</code></a></td></tr>
 <tr><td><code>heck</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-heck"><code>ryo3-heck</code></a></td></tr>
 <tr><td><code>http</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-http"><code>ryo3-http</code></a></td></tr>
 <tr><td><code>jiter</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-jiter"><code>ryo3-jiter</code></a></td></tr>
+<tr><td><code>json</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-json"><code>ryo3-json</code></a></td></tr>
+<tr><td><code>pydantic</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-pydantic"><code>ryo3-pydantic</code></a></td></tr>
 <tr><td><code>reqwest</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-reqwest"><code>ryo3-reqwest</code></a></td></tr>
 <tr><td><code>serde</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-serde"><code>ryo3-serde</code></a></td></tr>
 <tr><td><code>shlex</code></td><td><a href="https://github.com/jessekrubin/ry/tree/main/crates/ryo3-shlex"><code>ryo3-shlex</code></a></td></tr>

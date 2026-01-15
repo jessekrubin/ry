@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-5f9ee751.js";
+            window.path_to_searchindex_js = "searchindex-10f2eb24.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -180,7 +180,67 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="fspath"><a class="header" href="#fspath">fspath</a></h1>
+                        <h1 id="async_open"><a class="header" href="#async_open">async_open</a></h1>
+<pre><code class="language-python">"""Async-file ops.
+
+Demos:
+- async file write/read
+- async iteration o-lines
+- async chunked reading (via read_stream_async)
+- seeking/truncating
+
+"""
+
+import asyncio
+
+import ry
+
+
+async def main() -&gt; None:
+    # write
+    async with ry.aopen("stuff-async.txt", mode="wb") as f:
+        await f.write(b"hello\n")
+        await f.write(b"world\n")
+
+    # read
+    async with ry.aopen("stuff-async.txt", mode="rb") as f:
+        content = await f.read()
+        print(f"data: {content!r}")
+
+    # reading lines
+    print("Iterating over lines:")
+    async with ry.aopen("stuff-async.txt", mode="rb") as f:
+        async for line in f:
+            print(f"&gt;&gt;&gt; line: {line!r}")
+
+    # reading chunks (w/ chunk_size of 4 (bytes))
+    stream = await ry.read_stream_async("stuff-async.txt", chunk_size=4)
+    async for chunk in stream:
+        print(f"&gt;&gt;&gt; chunk: {chunk!r}")
+
+    # seeking/truncating
+    async with ry.aopen("stuff-async.txt", mode="rb+") as f:
+        await f.seek(6)
+        word = await f.read(5)
+        print(f"read (seek-6): {word!r}")
+
+        # truncate
+        await f.truncate(6)
+
+    # we good?
+    async with ry.aopen("stuff-async.txt", mode="rb") as f:
+        final_content = await f.read()
+        assert final_content == b"hello\n"
+        print(f"final content after truncate: {final_content!r}")
+
+    # housekeeping
+    await ry.remove_file_async("stuff-async.txt")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+</code></pre>
+<h1 id="fspath"><a class="header" href="#fspath">fspath</a></h1>
 <pre><code class="language-python">import ry
 
 # get current directory
