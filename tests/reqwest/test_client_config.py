@@ -230,9 +230,7 @@ class TestProxy:
     def test_client_with_proxy(
         self,
         client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
-        proxy: list[ry.Proxy[t.Literal["http", "https", "all"]] | ry.URL | str]
-        | ry.URL
-        | str,
+        proxy: list[ry.Proxy | ry.URL | str] | ry.URL | str,
     ) -> None:
         """Test that those things ^ can be splooped into a client
 
