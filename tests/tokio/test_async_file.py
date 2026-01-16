@@ -444,3 +444,18 @@ async def test_filetask_async_context_aexit(
         assert task.cancelled  # type: ignore[truthy-function]
     assert file_ref is not None
     assert file_ref.closed
+
+
+@pytest.mark.anyio
+async def test_async_file_flushes_on_drop(tmp_path: Path) -> None:
+    """Test that the file is flushed when the object is dropped."""
+    temp_file_path = tmp_path / "test_file_drop.txt"
+    f = AsyncFile(temp_file_path, "wb")
+    await f
+    await f.write(b"some data")
+    del f
+    await asyncio.sleep(0.1)
+    # Now, read the file with a standard reader and check the contents.
+    with open(temp_file_path, "rb") as std_f:
+        contents = std_f.read()
+        assert contents == b"some data"
