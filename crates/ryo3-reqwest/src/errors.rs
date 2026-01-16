@@ -53,63 +53,56 @@ impl RyReqwestError {
     // - without_url
 
     fn is_body(&self) -> bool {
-        self.0.lock().as_ref().map(|e| e.is_body()).unwrap_or(false)
+        self.0.lock().as_ref().is_some_and(reqwest::Error::is_body)
     }
 
     fn is_builder(&self) -> bool {
         self.0
             .lock()
             .as_ref()
-            .map(|e| e.is_builder())
-            .unwrap_or(false)
+            .is_some_and(reqwest::Error::is_builder)
     }
 
     fn is_connect(&self) -> bool {
         self.0
             .lock()
             .as_ref()
-            .map(|e| e.is_connect())
-            .unwrap_or(false)
+            .is_some_and(reqwest::Error::is_connect)
     }
 
     fn is_decode(&self) -> bool {
         self.0
             .lock()
             .as_ref()
-            .map(|e| e.is_decode())
-            .unwrap_or(false)
+            .is_some_and(reqwest::Error::is_decode)
     }
 
     fn is_redirect(&self) -> bool {
         self.0
             .lock()
             .as_ref()
-            .map(|e| e.is_redirect())
-            .unwrap_or(false)
+            .is_some_and(reqwest::Error::is_redirect)
     }
 
     fn is_request(&self) -> bool {
         self.0
             .lock()
             .as_ref()
-            .map(|e| e.is_request())
-            .unwrap_or(false)
+            .is_some_and(reqwest::Error::is_request)
     }
 
     fn is_status(&self) -> bool {
         self.0
             .lock()
             .as_ref()
-            .map(|e| e.is_status())
-            .unwrap_or(false)
+            .is_some_and(reqwest::Error::is_status)
     }
 
     fn is_timeout(&self) -> bool {
         self.0
             .lock()
             .as_ref()
-            .map(|e| e.is_timeout())
-            .unwrap_or(false)
+            .is_some_and(reqwest::Error::is_timeout)
     }
 
     #[getter]
