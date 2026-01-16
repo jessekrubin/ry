@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.80 [unreleased]
+
+- `ryo3-http`
+  - cache status `ry.HttpStatus` code struct instances
+
+---
+
 ## v0.0.79 [2026-01-15]
 
 - `ryo3-jiff`
