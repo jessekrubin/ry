@@ -951,6 +951,8 @@ impl<'a, 'py> PySignedDurationSub<'a, 'py> for SignedDurationSubTarget<'a, 'py> 
         rhs: &RySignedDuration,
     ) -> PyResult<Self::Output> {
         match self {
+            // I dont think this shit is possible bc the sub-would have
+            // already taken care of it?
             Self::SignedDuration(lhs) => lhs
                 .get()
                 .0
