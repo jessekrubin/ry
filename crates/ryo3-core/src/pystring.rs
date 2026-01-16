@@ -39,14 +39,6 @@ impl<'s> From<&'s str> for PyAsciiStr<'s> {
     }
 }
 
-impl From<&str> for PyAsciiString {
-    #[inline]
-    fn from(s: &str) -> Self {
-        debug_assert!(s.is_ascii(), "PyAsciiString must be ascii only: {s:?}");
-        Self(s.to_owned())
-    }
-}
-
 impl From<String> for PyAsciiString {
     #[inline]
     fn from(s: String) -> Self {

@@ -4,10 +4,11 @@ import pytest
 
 import ry
 
-REASONS_MAP = {
+_REASONS_MAP = {
     100: "Continue",
     101: "Switching Protocols",
     102: "Processing",
+    103: "Early Hints",
     200: "OK",
     201: "Created",
     202: "Accepted",
@@ -71,7 +72,7 @@ REASONS_MAP = {
 
 @pytest.mark.parametrize(
     "code, reason",
-    list(REASONS_MAP.items()),
+    list(_REASONS_MAP.items()),
 )
 def test_http_status_code(
     code: int,
@@ -130,3 +131,34 @@ def test_status_200() -> None:
     s = ry.HttpStatus(200)
     assert str(s) == "200"
     assert int(s) == 200
+    assert repr(s) == "HttpStatus(200)"
+    assert hash(s) == hash(200)
+    assert s == ry.HttpStatus.OK
+    assert s is ry.HttpStatus.OK
+
+
+def get_all_status_code_class_attrs() -> set[int]:
+    attrs = set()
+    for attr_name in dir(ry.HttpStatus):
+        attr_value = getattr(ry.HttpStatus, attr_name)
+        if isinstance(attr_value, ry.HttpStatus):
+            attrs.add(attr_value.to_py())
+    return attrs
+
+
+def test_reason_map_is_up_to_date() -> None:
+    for code in range(100, 1000):
+        s = ry.HttpStatus(code)
+        expected_reason = _REASONS_MAP.get(code)
+        assert s.canonical_reason == expected_reason, f"Mismatch for code {code}"
+        assert s.reason == expected_reason, f"Mismatch for code {code}"
+
+
+def test_reprs() -> None:
+    for i in range(100, 1000):
+        s = ry.HttpStatus(i)
+        assert repr(s) == f"HttpStatus({i})"
+        evaluated = eval(repr(s), {"HttpStatus": ry.HttpStatus})
+        assert evaluated == s
+        if i < 600:
+            assert evaluated is s

@@ -12,7 +12,7 @@ use ryo3_core::{PyAsciiString, py_value_error};
 
 // is the plural of status "stati" or "statuses"? who knows. literally nothing
 // I can do to find that answer online.
-/// cache with pyoncelocks of PyHttpStatus for statuses/stati(?) 100-599
+/// cache with pyoncelocks of `PyHttpStatus` for statuses/stati(?) 100-599
 static STATUS_CACHE: [PyOnceLock<Py<PyHttpStatus>>; 500] = [const { PyOnceLock::new() }; 500];
 
 fn py_cached_http_status(py: Python<'_>, status: http::StatusCode) -> PyResult<Py<PyHttpStatus>> {
@@ -720,6 +720,6 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
 
 impl std::fmt::Debug for PyHttpStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PyHttpStatus({})", self.0.as_u16())
+        write!(f, "HttpStatus({})", self.0.as_str())
     }
 }
