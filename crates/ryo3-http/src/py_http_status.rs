@@ -8,25 +8,22 @@ use pyo3::pyclass::CompareOp;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyString, PyTuple};
 use ryo3_core::PyAsciiStr;
-use ryo3_core::{PyAsciiString, RyMutex, py_value_error};
-use std::collections::HashMap;
+use ryo3_core::{PyAsciiString, py_value_error};
 
-static STATUS_CACHE: PyOnceLock<RyMutex<HashMap<http::StatusCode, Py<PyHttpStatus>>>> =
-    PyOnceLock::new();
+// is the plural of status "stati" or "statuses"? who knows. literally nothing
+// I can do to find that answer online.
+/// cache with pyoncelocks of PyHttpStatus for statuses/stati(?) 100-599
+static STATUS_CACHE: [PyOnceLock<Py<PyHttpStatus>>; 500] = [const { PyOnceLock::new() }; 500];
 
 fn py_cached_http_status(py: Python<'_>, status: http::StatusCode) -> PyResult<Py<PyHttpStatus>> {
-    let cache = STATUS_CACHE.get_or_init(py, || RyMutex::new(HashMap::new()));
-    let mut guard = cache.py_lock()?;
-    if let Some(obj) = guard.get(&status) {
-        Ok(obj.clone_ref(py))
+    let code = status.as_u16() as usize;
+    if (100..=599).contains(&code) {
+        let cell = &STATUS_CACHE[code - 100];
+        cell.get_or_try_init(py, || Py::new(py, PyHttpStatus(status)))
+            .map(|obj| obj.clone_ref(py))
     } else {
-        let obj = Py::new(py, PyHttpStatus(status))?;
-        if let Some(existing) = guard.get(&status) {
-            Ok(existing.clone_ref(py))
-        } else {
-            guard.insert(status, obj.clone_ref(py));
-            Ok(obj)
-        }
+        // fuckit no cache
+        Py::new(py, PyHttpStatus(status))
     }
 }
 
