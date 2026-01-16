@@ -455,7 +455,6 @@ async def test_async_file_flushes_on_drop(tmp_path: Path) -> None:
     await f.write(b"some data")
     del f
     await asyncio.sleep(0.1)
-    # Now, read the file with a standard reader and check the contents.
-    with open(temp_file_path, "rb") as std_f:
-        contents = std_f.read()
-        assert contents == b"some data"
+    # check that got flusshed
+    contents = ry.read_bytes(temp_file_path)
+    assert contents == b"some data"
