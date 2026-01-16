@@ -808,7 +808,7 @@ impl<'a, 'py> PySignedDurationAdd<'a, 'py> for SignedDurationAddTarget<'a, 'py> 
     fn add_signed_duration(
         &self,
         py: Python<'py>,
-        lhs: &RySignedDuration, // rename
+        lhs: &RySignedDuration,
     ) -> PyResult<Self::Output> {
         match self {
             Self::SignedDuration(rhs) => lhs
