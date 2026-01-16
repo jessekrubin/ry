@@ -2,6 +2,8 @@
 
 ## v0.0.79 [unreleased]
 
+- `ryo3-jiff`
+  - rejigger `__add__` to be commutative for span/signed_duration
 - `default-features = false` everywere and manually fine-grain control feats
 - `ryo3-serde`
   - internal refactoring and some unsafe-ness where it is straight-forward
