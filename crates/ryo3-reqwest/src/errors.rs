@@ -53,74 +53,73 @@ impl RyReqwestError {
     // - without_url
 
     fn is_body(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_body()
-        } else {
-            false
-        }
+        self.0.lock().as_ref().map(|e| e.is_body()).unwrap_or(false)
     }
 
     fn is_builder(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_builder()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .map(|e| e.is_builder())
+            .unwrap_or(false)
     }
 
     fn is_connect(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_connect()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .map(|e| e.is_connect())
+            .unwrap_or(false)
     }
 
     fn is_decode(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_decode()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .map(|e| e.is_decode())
+            .unwrap_or(false)
     }
 
     fn is_redirect(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_redirect()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .map(|e| e.is_redirect())
+            .unwrap_or(false)
     }
 
     fn is_request(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_request()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .map(|e| e.is_request())
+            .unwrap_or(false)
     }
 
     fn is_status(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_status()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .map(|e| e.is_status())
+            .unwrap_or(false)
     }
 
     fn is_timeout(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_timeout()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .map(|e| e.is_timeout())
+            .unwrap_or(false)
     }
 
-    fn status(&self) -> Option<PyHttpStatus> {
+    #[getter]
+    fn status(&self, py: Python<'_>) -> PyResult<Option<Py<PyHttpStatus>>> {
         if let Some(e) = &(*self.0.lock()) {
-            e.status().map(PyHttpStatus)
+            e.status()
+                .map(|status| PyHttpStatus::from_status_code_cached(py, status))
+                .transpose()
         } else {
-            None
+            Ok(None)
         }
     }
 

@@ -80,8 +80,40 @@ def test_http_status_code(
     s = ry.HttpStatus(code)
     assert s == code
     assert s == ry.HttpStatus(code)
+    assert s is ry.HttpStatus(code)
     assert s.canonical_reason == reason
     assert s.reason == reason
+    assert isinstance(s.is_informational, bool)
+    assert isinstance(s.is_success, bool)
+    assert isinstance(s.is_redirect, bool)
+    assert isinstance(s.is_redirection, bool)
+    assert isinstance(s.is_client_error, bool)
+    assert isinstance(s.is_server_error, bool)
+    assert isinstance(s.is_error, bool)
+    assert isinstance(s.ok, bool)
+    assert isinstance(s.is_ok, bool)
+    assert isinstance(s.to_py(), int)
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        199,
+        299,
+        399,
+        499,
+        599,
+        600,
+        700,
+        800,
+        999,
+    ],
+)
+def test_http_status_non_existing_reason(code: int) -> None:
+    s = ry.HttpStatus(code)
+    assert s == code
+    assert s.canonical_reason is None
+    assert s.reason is None
     assert isinstance(s.is_informational, bool)
     assert isinstance(s.is_success, bool)
     assert isinstance(s.is_redirect, bool)

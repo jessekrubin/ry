@@ -11,7 +11,9 @@ impl<'de> serde::Deserialize<'de> for PyHttpStatus {
         D: serde::Deserializer<'de>,
     {
         let code = u16::deserialize(deserializer)?;
-        Self::py_new(code).map_err(serde::de::Error::custom)
+        http::StatusCode::from_u16(code)
+            .map(Self)
+            .map_err(|e| serde::de::Error::custom(format!("{e} (code={code})")))
     }
 }
 
