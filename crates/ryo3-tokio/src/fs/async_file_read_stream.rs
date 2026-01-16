@@ -2,6 +2,8 @@
 //! `FileReadStream` in ryo3-std and the `ryo3-reqwest` response stream.
 //!
 //! Kinda a fucking nightmare.
+#[cfg(feature = "experimental-async")]
+use crate::rt::get_ry_tokio_runtime;
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3_async_runtimes::tokio::future_into_py;
@@ -142,6 +144,7 @@ fn map_open_error(e: &std::io::Error) -> PyErr {
     }
 }
 
+#[cfg(not(feature = "experimental-async"))]
 #[pymethods]
 impl PyAsyncFileReadStream {
     #[new]
@@ -236,6 +239,115 @@ impl PyAsyncFileReadStream {
             }
             Ok(result)
         })
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
+    }
+}
+
+#[cfg(feature = "experimental-async")]
+#[pymethods]
+impl PyAsyncFileReadStream {
+    #[new]
+    #[pyo3(signature = (path, *, chunk_size = 65536, offset = 0, buffered = true, strict = true))]
+    pub fn py_new(
+        path: PathBuf,
+        chunk_size: usize,
+        offset: u64,
+        buffered: bool,
+        strict: bool,
+    ) -> PyResult<Self> {
+        if chunk_size == 0 {
+            return py_value_err!("chunk_size must be greater than 0");
+        }
+        let options = PyFileReadStreamOptions {
+            strict,
+            path,
+            chunk_size,
+            offset,
+            buffered,
+        };
+        let arc_options = Arc::new(options);
+
+        let inner = Arc::new(Mutex::new(AsyncFileReadStreamWrapper::Closed(
+            arc_options.clone(),
+        )));
+        Ok(Self {
+            options: arc_options,
+            inner,
+        })
+    }
+
+    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
+        let inner = slf.borrow(py).inner.clone();
+
+        let fut = future_into_py(py, async move {
+            let mut guard = inner.lock().await;
+            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            Ok(slf)
+        })?;
+        fut.getattr(pyo3::intern!(py, "__await__"))?.call0()
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+
+    fn __aiter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+
+        future_into_py(py, async move {
+            let mut guard = inner.lock().await;
+            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            match guard.next_chunk().await {
+                Ok(Some(bytes)) => Ok(Some(ryo3_bytes::PyBytes::from(bytes))),
+                Ok(None) => py_stop_async_iteration_err!("stream exhausted"),
+                Err(e) => Err(e.into()),
+            }
+        })
+    }
+
+    #[pyo3(signature = (n = 1))]
+    async fn take(&self, n: usize) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
+        let inner = self.inner.clone();
+        let vbytes = get_ry_tokio_runtime()
+            .py_spawn(async move {
+                let mut guard = inner.lock().await;
+                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+                let mut result = Vec::with_capacity(n);
+                for _ in 0..n {
+                    match guard.next_chunk().await {
+                        Ok(Some(b)) => result.push(ryo3_bytes::PyBytes::from(b)),
+                        Ok(None) => break,
+                        Err(e) => return Err(e),
+                    }
+                }
+                Ok(result)
+            })
+            .await??;
+        Ok(vbytes)
+    }
+
+    async fn collect(&self) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
+        let inner = self.inner.clone();
+        let vbytes = get_ry_tokio_runtime()
+            .py_spawn(async move {
+                let mut guard = inner.lock().await;
+                // guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+                let mut result = Vec::new();
+                while let Ok(Some(b)) = guard.next_chunk().await {
+                    result.push(ryo3_bytes::PyBytes::from(b));
+                }
+                Ok::<_, PyErr>(result)
+            })
+            .await??;
+        Ok(vbytes)
     }
 
     fn __repr__(&self) -> String {

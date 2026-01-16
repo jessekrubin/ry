@@ -1,18 +1,16 @@
 //! tokio-runtime + python
+use ryo3_macro_rules::py_runtime_err;
 use tokio::runtime::Runtime;
 
-use std::fmt;
 use std::future::Future;
-use std::marker::PhantomData;
-use std::panic::{RefUnwindSafe, UnwindSafe};
 use std::pin::Pin;
-use std::task::{Context, Poll, Waker, ready};
-pub struct RyRuntime<'r>(pub &'r Runtime);
+use std::task::{Context, Poll, ready};
+pub(crate) struct RyRuntime<'r>(pub &'r Runtime);
 
-pub struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
+pub(crate) struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
 
 impl RyRuntime<'_> {
-    pub fn spawn<F, T>(&self, fut: F) -> tokio::task::JoinHandle<T>
+    pub(crate) fn spawn<F, T>(&self, fut: F) -> tokio::task::JoinHandle<T>
     where
         F: std::future::Future<Output = T> + Send + 'static,
         T: Send + 'static,
@@ -22,7 +20,7 @@ impl RyRuntime<'_> {
 
     // version of spwan that returns a wrapped JoinHandle that can be polled
     // and ensures the join error is py-err-able
-    pub fn py_spawn<F, T>(&self, fut: F) -> RyJoinHandle<T>
+    pub(crate) fn py_spawn<F, T>(&self, fut: F) -> RyJoinHandle<T>
     where
         F: std::future::Future<Output = T> + Send + 'static,
         T: Send + 'static,
@@ -40,31 +38,18 @@ impl<T> Future for RyJoinHandle<T> {
         let this = self.get_mut();
         match ready!(Pin::new(&mut this.0).poll(cx)) {
             Ok(v) => Poll::Ready(Ok(v)),
-            Err(e) if e.is_panic() => Poll::Ready(Err(pyo3::exceptions::PyRuntimeError::new_err(
-                "Task panicked",
-            ))),
-            Err(e) => Poll::Ready(Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
-                "Task cancelled: {}",
-                e
-            )))),
+            Err(e) if e.is_panic() => Poll::Ready(py_runtime_err!("Task panicked: {e}")),
+            Err(e) => Poll::Ready(py_runtime_err!("Task cancelled: {e}")),
         }
     }
 }
 
-pub fn get_tokio_runtime<'r>() -> &'r Runtime {
+pub(crate) fn get_tokio_runtime<'r>() -> &'r Runtime {
     pyo3_async_runtimes::tokio::get_runtime()
 }
 
-pub fn get_ry_tokio_runtime<'r>() -> RyRuntime<'r> {
+pub(crate) fn get_ry_tokio_runtime<'r>() -> RyRuntime<'r> {
     RyRuntime(get_tokio_runtime())
-}
-
-pub fn with_tokio_runtime<F, R>(f: F) -> R
-where
-    F: for<'r> FnOnce(&'r Runtime) -> R,
-{
-    let rt = get_tokio_runtime();
-    f(rt)
 }
 
 // ==========================================================================
@@ -79,6 +64,6 @@ impl<T> From<RyJoinHandle<T>> for tokio::task::JoinHandle<T> {
 
 impl<T> From<tokio::task::JoinHandle<T>> for RyJoinHandle<T> {
     fn from(handle: tokio::task::JoinHandle<T>) -> Self {
-        RyJoinHandle(handle)
+        Self(handle)
     }
 }
