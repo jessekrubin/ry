@@ -12,8 +12,6 @@
 #![expect(clippy::missing_errors_doc)]
 extern crate core;
 
-pub mod pydatetime_conversions;
-
 mod api;
 mod civil;
 mod constants;
@@ -26,8 +24,10 @@ mod functions;
 mod interns;
 mod isoformat;
 mod jiff_types;
+mod py_temporal_like;
 #[cfg(feature = "pydantic")]
 mod pydantic;
+pub mod pydatetime_conversions;
 mod round;
 mod ry_date;
 mod ry_datetime;

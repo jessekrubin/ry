@@ -661,6 +661,30 @@ class TestDurationArithmetic:
         except OverflowError:
             ...
 
+    @given(
+        st.timedeltas(),
+        st.timedeltas(),
+    )
+    def test_sub_and_rsub(self, left: pydt.timedelta, right: pydt.timedelta) -> None:
+        dur_left = ry.SignedDuration.from_pytimedelta(left)
+        dur_right = ry.SignedDuration.from_pytimedelta(right)
+
+        if dur_left.checked_sub(dur_right) is None:
+            with pytest.raises(OverflowError):
+                _res = left - right
+            return
+
+        try:
+            result = left - right
+        except OverflowError:
+            return
+
+        assert isinstance(result, pydt.timedelta)
+        # do sub and rsub
+        signed_duration = left - dur_right
+        assert isinstance(signed_duration, ry.SignedDuration)
+        assert signed_duration == dur_left - dur_right
+
     @pytest.mark.parametrize(
         "opperator,value",
         [
@@ -680,8 +704,21 @@ class TestDurationArithmetic:
         self, opperator: str, value: complex | list[int] | str
     ) -> None:
         dur = ry.SignedDuration(1, 0)
-        with pytest.raises(TypeError):
-            _ = getattr(dur, opperator)(value)
+        if opperator in ["__add__", "__radd__", "__sub__", "__rsub__"]:
+            _res = getattr(dur, opperator)(value)
+            assert _res is NotImplemented
+            with pytest.raises(TypeError):
+                if opperator == "__add__":
+                    _ = dur + value  # type: ignore[operator]
+                elif opperator == "__sub__":
+                    _ = dur - value  # type: ignore[operator]
+                elif opperator == "__rsub__":
+                    _ = value - dur  # type: ignore[operator]
+                else:  # opperator == "__radd__":
+                    _ = value + dur  # type: ignore[operator]
+        else:
+            with pytest.raises(TypeError):
+                _res = getattr(dur, opperator)(value)
 
 
 class TestSignedDurationCheckedArithmetic:

@@ -154,6 +154,7 @@ _TIMEZONE_PROBLEM_CHILDREN = {
     "America/Halifax",  # Not sure why this one causes issues
     "Africa/Accra",
     "Africa/Addis_Ababa",
+    "Antarctica/Vostok",
 }
 
 
@@ -166,6 +167,7 @@ def _ok_timezone_names() -> set[str]:
         el
         for el in zoneinfo.available_timezones()
         if el not in _TIMEZONE_PROBLEM_CHILDREN
+        and not el.startswith("Antarctica/")  # antarctica can fuck off
     }
 
 
