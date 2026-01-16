@@ -4,11 +4,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::{
     JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, timespan,
 };
-use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
-use jiff::{
-    SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound, TimestampArithmetic,
-    ZonedArithmetic,
-};
+use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -954,10 +950,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(date_time_type) = obj.extract::<PyTermporalTypes<'a, 'py>>() {
-            Ok(Self::TemporalType(date_time_type))
-        } else if let Ok(o) = obj.extract::<IntoSpanArithmetic<'a, 'py>>() {
-            Ok(Self::Span(o))
+        if let Ok(temporal_ish) = obj.extract::<PyTermporalTypes<'a, 'py>>() {
+            Ok(Self::TemporalType(temporal_ish))
+        } else if let Ok(span_arith) = obj.extract::<IntoSpanArithmetic<'a, 'py>>() {
+            Ok(Self::Span(span_arith))
         } else {
             py_type_err!(
                 "Expected TimeSpan, SignedDuration, datetime.timedelta, a tuple of length 2 for Span arithmetic with relative, or a date/time type",
@@ -972,70 +968,93 @@ trait SpanAdd<'a, 'py> {
     fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output>;
 }
 
-impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyDate> {
-    type Target = RyDate;
-    type Output = Bound<'py, Self::Target>;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(DateArithmetic::from(span.0))
-            .map(RyDate::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
+macro_rules! impl_span_add_for_borrowed {
+    ($ty:ty) => {
+        impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, $ty> {
+            type Target = $ty;
+            type Output = Bound<'py, Self::Target>;
+            fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+                self.get()
+                    .0
+                    .checked_add(span.0)
+                    .map(Self::Target::from)
+                    .map_err(map_py_overflow_err)
+                    .map(|r| r.into_pyobject(py))?
+            }
+        }
+    };
 }
 
-impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyDateTime> {
-    type Target = RyDateTime;
-    type Output = Bound<'py, Self::Target>;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(DateTimeArithmetic::from(span.0))
-            .map(RyDateTime::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
+impl_span_add_for_borrowed!(RyDate);
+impl_span_add_for_borrowed!(RyDateTime);
+impl_span_add_for_borrowed!(RyTime);
+impl_span_add_for_borrowed!(RyZoned);
+impl_span_add_for_borrowed!(RyTimestamp);
 
-impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyTime> {
-    type Target = RyTime;
-    type Output = Bound<'py, Self::Target>;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(TimeArithmetic::from(span.0))
-            .map(RyTime::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
+// impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyDate> {
+//     type Target = RyDate;
+//     type Output = Bound<'py, Self::Target>;
+//     fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+//         self.get()
+//             .0
+//             .checked_add(span.0)
+//             .map(Self::Target::from)
+//             .map_err(map_py_overflow_err)
+//             .map(|r| r.into_pyobject(py))?
+//     }
+// }
 
-impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyZoned> {
-    type Target = RyZoned;
-    type Output = Bound<'py, Self::Target>;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(ZonedArithmetic::from(span.0))
-            .map(RyZoned::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
+// impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyDateTime> {
+//     type Target = RyDateTime;
+//     type Output = Bound<'py, Self::Target>;
+//     fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+//         self.get()
+//             .0
+//             .checked_add(span.0)
+//             .map(Self::Target::from)
+//             .map_err(map_py_overflow_err)
+//             .map(|r| r.into_pyobject(py))?
+//     }
+// }
 
-impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyTimestamp> {
-    type Target = RyTimestamp;
-    type Output = Bound<'py, Self::Target>;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(TimestampArithmetic::from(span.0))
-            .map(RyTimestamp::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
+// impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyTime> {
+//     type Target = RyTime;
+//     type Output = Bound<'py, Self::Target>;
+//     fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+//         self.get()
+//             .0
+//             .checked_add(span.0)
+//             .map(Self::Target::from)
+//             .map_err(map_py_overflow_err)
+//             .map(|r| r.into_pyobject(py))?
+//     }
+// }
+
+// impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyZoned> {
+//     type Target = RyZoned;
+//     type Output = Bound<'py, Self::Target>;
+//     fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+//         self.get()
+//             .0
+//             .checked_add(span.0)
+//             .map(Self::Target::from)
+//             .map_err(map_py_overflow_err)
+//             .map(|r| r.into_pyobject(py))?
+//     }
+// }
+
+// impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, RyTimestamp> {
+//     type Target = RyTimestamp;
+//     type Output = Bound<'py, Self::Target>;
+//     fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+//         self.get()
+//             .0
+//             .checked_add(span.0)
+//             .map(Self::Target::from)
+//             .map_err(map_py_overflow_err)
+//             .map(|r| r.into_pyobject(py))?
+//     }
+// }
 
 impl<'a, 'py> SpanAdd<'a, 'py> for PyTermporalTypes<'a, 'py> {
     type Target = PyAny;

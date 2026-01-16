@@ -752,90 +752,34 @@ trait PySignedDurationAdd<'a, 'py> {
     -> PyResult<Self::Output>;
 }
 
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, RyDate> {
-    type Target = RyDate;
-    type Output = Bound<'py, Self::Target>;
-    fn add_signed_duration(
-        &self,
-        py: Python<'py>,
-        sd: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(sd.0)
-            .map(RyDate::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
+// this is some fugue-state-jesse shit from last week -- idk wtf I was dgoing,
+// but I was absolutley in that insane macro-flow state
+macro_rules! impl_signed_duration_add_for_borrowed_temporal {
+    ($ty:ty) => {
+        impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, $ty> {
+            type Target = $ty;
+            type Output = Bound<'py, Self::Target>;
+            fn add_signed_duration(
+                &self,
+                py: Python<'py>,
+                sd: &RySignedDuration,
+            ) -> PyResult<Self::Output> {
+                self.get()
+                    .0
+                    .checked_add(sd.0)
+                    .map(Self::Target::from)
+                    .map_err(map_py_overflow_err)
+                    .map(|r| r.into_pyobject(py))?
+            }
+        }
+    };
 }
 
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, RyDateTime> {
-    type Target = RyDateTime;
-    type Output = Bound<'py, Self::Target>;
-    fn add_signed_duration(
-        &self,
-        py: Python<'py>,
-        sd: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(sd.0)
-            .map(RyDateTime::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
-
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, RyTime> {
-    type Target = RyTime;
-    type Output = Bound<'py, Self::Target>;
-    fn add_signed_duration(
-        &self,
-        py: Python<'py>,
-        sd: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(sd.0)
-            .map(RyTime::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
-
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, RyZoned> {
-    type Target = RyZoned;
-    type Output = Bound<'py, Self::Target>;
-    fn add_signed_duration(
-        &self,
-        py: Python<'py>,
-        sd: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(sd.0)
-            .map(RyZoned::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
-
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, RyTimestamp> {
-    type Target = RyTimestamp;
-    type Output = Bound<'py, Self::Target>;
-    fn add_signed_duration(
-        &self,
-        py: Python<'py>,
-        sd: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        self.get()
-            .0
-            .checked_add(sd.0)
-            .map(RyTimestamp::from)
-            .map_err(map_py_overflow_err)
-            .map(|r| r.into_pyobject(py))?
-    }
-}
+impl_signed_duration_add_for_borrowed_temporal!(RyDate);
+impl_signed_duration_add_for_borrowed_temporal!(RyDateTime);
+impl_signed_duration_add_for_borrowed_temporal!(RyTime);
+impl_signed_duration_add_for_borrowed_temporal!(RyZoned);
+impl_signed_duration_add_for_borrowed_temporal!(RyTimestamp);
 
 impl<'a, 'py> PySignedDurationAdd<'a, 'py> for PyTermporalTypes<'a, 'py> {
     type Target = PyAny;
