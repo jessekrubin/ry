@@ -53,74 +53,66 @@ impl RyReqwestError {
     // - without_url
 
     fn is_body(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_body()
-        } else {
-            false
-        }
+        self.0.lock().as_ref().is_some_and(reqwest::Error::is_body)
     }
 
     fn is_builder(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_builder()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_builder)
     }
 
     fn is_connect(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_connect()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_connect)
     }
 
     fn is_decode(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_decode()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_decode)
     }
 
     fn is_redirect(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_redirect()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_redirect)
     }
 
     fn is_request(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_request()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_request)
     }
 
     fn is_status(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_status()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_status)
     }
 
     fn is_timeout(&self) -> bool {
-        if let Some(e) = &(*self.0.lock()) {
-            e.is_timeout()
-        } else {
-            false
-        }
+        self.0
+            .lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_timeout)
     }
 
-    fn status(&self) -> Option<PyHttpStatus> {
+    #[getter]
+    fn status(&self, py: Python<'_>) -> PyResult<Option<Py<PyHttpStatus>>> {
         if let Some(e) = &(*self.0.lock()) {
-            e.status().map(PyHttpStatus)
+            e.status()
+                .map(|status| PyHttpStatus::from_status_code_cached(py, status))
+                .transpose()
         } else {
-            None
+            Ok(None)
         }
     }
 

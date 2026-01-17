@@ -26,8 +26,10 @@ struct PyAsyncFileInner {
 impl Drop for PyAsyncFileInner {
     fn drop(&mut self) {
         if let FileState::Open(ref mut b) = self.state {
-            // best‑effort, ignore errors on shutdown
-            let _ = futures::executor::block_on(b.flush());
+            // revisit? currently ignores errors on shutdown
+            let future = b.flush();
+            let rt = pyo3_async_runtimes::tokio::get_runtime();
+            let _ = rt.block_on(future);
         }
     }
 }

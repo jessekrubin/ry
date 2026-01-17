@@ -99,7 +99,8 @@ class TestDifferenceUnitsDefaults:
         )
 
     def test_time_difference(self) -> None:
-        t1 = ry.Time.now()
+        # middle of day to avoid overflow errors
+        t1 = ry.time(hour=12, minute=34, second=56)
         t2 = t1 + ry.timespan(minutes=2, seconds=1)
         time_difference_units = []
         for unit in _JIFF_UNITS:
@@ -113,7 +114,7 @@ class TestDifferenceUnitsDefaults:
         )
 
     def test_date_difference(self) -> None:
-        d1 = ry.Date.today()
+        d1 = ry.date(2026, 3, 15)
         d2 = d1 + ry.timespan(days=5)
         date_difference_units = []
         for unit in _JIFF_UNITS:
@@ -127,7 +128,7 @@ class TestDifferenceUnitsDefaults:
         )
 
     def test_datetime_difference(self) -> None:
-        dt1 = ry.ZonedDateTime.now().datetime()
+        dt1 = ry.date(2026, 3, 15).at(12, 34, 56)
         dt2 = dt1 - ry.timespan(days=5, hours=2, minutes=3)
         datetime_difference_units = []
         for unit in _JIFF_UNITS:
@@ -141,7 +142,7 @@ class TestDifferenceUnitsDefaults:
         )
 
     def test_zoned_datetime_difference(self) -> None:
-        zdt1 = ry.ZonedDateTime.now()
+        zdt1 = ry.date(2026, 3, 15).at(12, 34, 56).in_tz("America/Los_Angeles")
         zdt2 = zdt1 - ry.timespan(days=5, hours=2, minutes=3)
         zoned_datetime_difference_units = []
         for unit in _JIFF_UNITS:

@@ -144,8 +144,8 @@ impl RyResponse {
     }
 
     #[getter]
-    fn status_code(&self) -> PyHttpStatus {
-        PyHttpStatus(self.head.status)
+    fn status_code(&self, py: Python<'_>) -> PyResult<Py<PyHttpStatus>> {
+        PyHttpStatus::from_status_code_cached(py, self.head.status)
     }
 
     /// Returns true if the response was redirected
@@ -329,8 +329,8 @@ impl RyAsyncResponse {
     }
 
     #[getter]
-    fn status_code(&self) -> PyHttpStatus {
-        PyHttpStatus(self.head.status)
+    fn status_code(&self, py: Python<'_>) -> PyResult<Py<PyHttpStatus>> {
+        PyHttpStatus::from_status_code_cached(py, self.head.status)
     }
 
     /// Returns true if the response was redirected
@@ -541,8 +541,8 @@ impl RyBlockingResponse {
     }
 
     #[getter]
-    fn status_code(&self) -> PyHttpStatus {
-        PyHttpStatus(self.head.status)
+    fn status_code(&self, py: Python<'_>) -> PyResult<Py<PyHttpStatus>> {
+        PyHttpStatus::from_status_code_cached(py, self.head.status)
     }
 
     /// Returns true if the response was redirected
