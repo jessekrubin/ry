@@ -6,12 +6,12 @@ use crate::response_stream::RyAsyncResponseStream;
 use crate::response_stream::RyBlockingResponseStream;
 use crate::{PyCookie, RyResponseStream, pyerr_response_already_consumed};
 use cookie::Cookie;
-use parking_lot::Mutex;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
 use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_core::RyMutex;
 use ryo3_http::{HttpVersion, PyHeaders, PyHttpStatus, status_code_pystring};
 #[cfg(feature = "experimental-async")]
 use ryo3_macro_rules::py_runtime_error;
@@ -25,7 +25,7 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct RyResponse {
     /// The actual response which will be consumed when read
-    res: Arc<Mutex<Option<reqwest::Response>>>,
+    res: Arc<RyMutex<Option<reqwest::Response>>>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -37,7 +37,7 @@ pub struct RyResponse {
 #[derive(Debug)]
 pub struct RyAsyncResponse {
     /// The actual response which will be consumed when read
-    res: Arc<Mutex<Option<reqwest::Response>>>,
+    res: Arc<RyMutex<Option<reqwest::Response>>>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -48,7 +48,7 @@ pub struct RyAsyncResponse {
 #[derive(Debug)]
 pub struct RyBlockingResponse {
     /// The actual response which will be consumed when read
-    res: Arc<Mutex<Option<reqwest::Response>>>,
+    res: Arc<RyMutex<Option<reqwest::Response>>>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -60,12 +60,12 @@ impl RyResponse {
     pub fn new(res: reqwest::Response) -> Self {
         Self {
             head: RyResponseHead::from(&res),
-            res: Arc::new(Mutex::new(Some(res))),
+            res: Arc::new(RyMutex::new(Some(res))),
         }
     }
 
     fn take_response(&self) -> PyResult<reqwest::Response> {
-        let mut opt = self.res.lock();
+        let mut opt = self.res.py_lock()?;
         opt.take().ok_or_else(|| pyerr_response_already_consumed!())
     }
 }
@@ -77,12 +77,12 @@ impl RyAsyncResponse {
     pub fn new(res: reqwest::Response) -> Self {
         Self {
             head: RyResponseHead::from(&res),
-            res: Arc::new(Mutex::new(Some(res))),
+            res: Arc::new(RyMutex::new(Some(res))),
         }
     }
 
     fn take_response(&self) -> PyResult<reqwest::Response> {
-        let mut opt = self.res.lock();
+        let mut opt = self.res.py_lock()?;
         opt.take().ok_or_else(|| pyerr_response_already_consumed!())
     }
 }
@@ -93,12 +93,12 @@ impl RyBlockingResponse {
     pub fn new(res: reqwest::Response) -> Self {
         Self {
             head: RyResponseHead::from(&res),
-            res: Arc::new(Mutex::new(Some(res))),
+            res: Arc::new(RyMutex::new(Some(res))),
         }
     }
 
     fn take_response(&self) -> PyResult<reqwest::Response> {
-        let mut opt = self.res.lock();
+        let mut opt = self.res.py_lock()?;
         opt.take().ok_or_else(|| pyerr_response_already_consumed!())
     }
 }
@@ -202,8 +202,8 @@ impl RyResponse {
     ///
     /// named after jawascript fetch
     #[getter]
-    fn body_used(&self) -> bool {
-        self.res.lock().is_none()
+    fn body_used(&self) -> PyResult<bool> {
+        Ok(self.res.py_lock()?.is_none())
     }
 
     /// Return the response body as bytes (consumes the response)
@@ -373,11 +373,6 @@ impl RyAsyncResponse {
     }
 
     /// Return true if the status code is a success code (200-299)
-    #[getter]
-    fn ok(&self) -> bool {
-        self.head.status.is_success()
-    }
-
     /// __bool__ dunder method returns true if `ok` is true
     fn __bool__(&self) -> bool {
         self.head.status.is_success()
@@ -387,8 +382,8 @@ impl RyAsyncResponse {
     ///
     /// named after jawascript fetch
     #[getter]
-    fn body_used(&self) -> bool {
-        self.res.lock().is_none()
+    fn body_used(&self) -> PyResult<bool> {
+        Ok(self.res.py_lock()?.is_none())
     }
 
     /// Return the response body as bytes (consumes the response)
@@ -599,8 +594,8 @@ impl RyBlockingResponse {
     ///
     /// named after jawascript fetch
     #[getter]
-    fn body_used(&self) -> bool {
-        self.res.lock().is_none()
+    fn body_used(&self) -> PyResult<bool> {
+        Ok(self.res.py_lock()?.is_none())
     }
 
     /// Return the response body as bytes (consumes the response)

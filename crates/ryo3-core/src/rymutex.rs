@@ -16,6 +16,7 @@ impl<T> PyLock<T> for Mutex<T> {
     }
 }
 
+#[derive(Debug)]
 pub struct RyMutex<T, const THROW: bool = true>(pub Mutex<T>);
 
 impl<T, const THROW: bool> RyMutex<T, THROW> {
