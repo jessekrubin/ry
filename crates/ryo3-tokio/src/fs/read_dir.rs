@@ -10,7 +10,7 @@ use tokio::fs::ReadDir;
 use tokio::sync::Mutex;
 
 #[cfg(feature = "experimental-async")]
-use crate::rt::get_ry_tokio_runtime;
+use crate::rt::on_tokio_py;
 
 type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 
@@ -109,38 +109,36 @@ impl PyAsyncReadDir {
 
     async fn collect(&self) -> PyResult<Vec<PyAsyncDirEntry>> {
         let stream = self.stream.clone();
-        get_ry_tokio_runtime()
-            .py_spawn(async move {
-                let mut guard = stream.lock().await;
-                let mut entries = Vec::new();
-                while let Some(entry) = guard.as_mut().next_entry().await? {
-                    let pde = PyAsyncDirEntry::from(entry);
-                    entries.push(pde);
-                }
-                Ok(entries)
-            })
-            .await?
+        on_tokio_py(async move {
+            let mut guard = stream.lock().await;
+            let mut entries = Vec::new();
+            while let Some(entry) = guard.as_mut().next_entry().await? {
+                let pde = PyAsyncDirEntry::from(entry);
+                entries.push(pde);
+            }
+            Ok(entries)
+        })
+        .await
     }
 
     async fn take(&self, n: u32) -> PyResult<Vec<PyAsyncDirEntry>> {
         let stream = self.stream.clone();
-        get_ry_tokio_runtime()
-            .py_spawn(async move {
-                let mut guard = stream.lock().await;
-                let mut entries = Vec::new();
-                for _ in 0..n {
-                    match guard.as_mut().next_entry().await {
-                        Ok(Some(entry)) => {
-                            let pde = PyAsyncDirEntry::from(entry);
-                            entries.push(pde);
-                        }
-                        Ok(None) => break,
-                        Err(e) => return Err(PyErr::from(e)),
+        on_tokio_py(async move {
+            let mut guard = stream.lock().await;
+            let mut entries = Vec::new();
+            for _ in 0..n {
+                match guard.as_mut().next_entry().await {
+                    Ok(Some(entry)) => {
+                        let pde = PyAsyncDirEntry::from(entry);
+                        entries.push(pde);
                     }
+                    Ok(None) => break,
+                    Err(e) => return Err(PyErr::from(e)),
                 }
-                Ok(entries)
-            })
-            .await?
+            }
+            Ok(entries)
+        })
+        .await
     }
 }
 #[pyclass(name = "AsyncDirEntry", frozen, immutable_type, skip_from_py_object)]
@@ -228,22 +226,20 @@ impl PyAsyncDirEntry {
 
     async fn file_type(&self) -> PyResult<ryo3_std::fs::PyFileType> {
         let inner = self.0.clone();
-        get_ry_tokio_runtime()
-            .py_spawn(async move {
-                let file_type = inner.file_type().await?;
-                Ok(ryo3_std::fs::PyFileType::new(file_type))
-            })
-            .await?
+        on_tokio_py(async move {
+            let file_type = inner.file_type().await?;
+            Ok(ryo3_std::fs::PyFileType::new(file_type))
+        })
+        .await
     }
 
     async fn metadata(&self) -> PyResult<PyMetadata> {
         let inner = self.0.clone();
-        get_ry_tokio_runtime()
-            .py_spawn(async move {
-                let metadata = inner.metadata().await?;
-                Ok(PyMetadata::from(metadata))
-            })
-            .await?
+        on_tokio_py(async move {
+            let metadata = inner.metadata().await?;
+            Ok(PyMetadata::from(metadata))
+        })
+        .await
     }
 
     #[getter]

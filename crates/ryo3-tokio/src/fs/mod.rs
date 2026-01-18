@@ -15,7 +15,7 @@ pub use file::PyAsyncFile;
 mod read_dir;
 
 #[cfg(feature = "experimental-async")]
-use crate::rt::get_ry_tokio_runtime;
+use crate::rt::on_tokio_py;
 
 #[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
@@ -31,14 +31,13 @@ pub fn canonicalize_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, P
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
 pub async fn canonicalize_async(path: PathBuf) -> PyResult<String> {
-    get_ry_tokio_runtime()
-        .py_spawn(async move {
-            tokio::fs::canonicalize(path)
-                .await
-                .map(|p| p.to_string_lossy().to_string())
-                .map_err(PyErr::from)
-        })
-        .await?
+    on_tokio_py(async move {
+        tokio::fs::canonicalize(path)
+            .await
+            .map(|p| p.to_string_lossy().to_string())
+            .map_err(PyErr::from)
+    })
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -52,9 +51,7 @@ pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
 pub async fn copy_async(from: PathBuf, to: PathBuf) -> PyResult<u64> {
-    get_ry_tokio_runtime()
-        .py_spawn(async move { tokio::fs::copy(from, to).await.map_err(PyErr::from) })
-        .await?
+    on_tokio_py(async move { tokio::fs::copy(from, to).await.map_err(PyErr::from) }).await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -68,9 +65,7 @@ pub fn create_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyA
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
 pub async fn create_dir_async(path: PathBuf) -> PyResult<()> {
-    get_ry_tokio_runtime()
-        .py_spawn(async move { tokio::fs::create_dir(path).await.map_err(PyErr::from) })
-        .await?
+    on_tokio_py(async move { tokio::fs::create_dir(path).await.map_err(PyErr::from) }).await
 }
 
 #[pyfunction]

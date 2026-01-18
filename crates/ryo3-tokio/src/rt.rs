@@ -52,6 +52,32 @@ pub(crate) fn get_ry_tokio_runtime<'r>() -> RyRuntime<'r> {
     RyRuntime(get_tokio_runtime())
 }
 
+// possible future helper functions? (on_tokio/on_tokio_py)
+//
+/// Executes the given future on the tokio runtime
+///
+/// **Note**: This ONLY maps the tokio join errors to `pyo3::PyErr`
+pub(crate) async fn on_tokio<F, T>(fut: F) -> pyo3::PyResult<T>
+where
+    F: Future<Output = T> + Send + 'static,
+    T: Send + 'static,
+{
+    get_ry_tokio_runtime().py_spawn(fut).await
+}
+
+/// Executes the given future on the tokio runtime (which returns a PyResult)
+///
+/// **Note**: This maps the tokio join errors to `pyo3::PyErr` and also the
+///           inner errors to `pyo3::PyErr` as well (afaict (jesse))
+pub(crate) async fn on_tokio_py<F, T>(fut: F) -> pyo3::PyResult<T>
+where
+    F: Future<Output = pyo3::PyResult<T>> + Send + 'static,
+    T: Send + 'static,
+{
+    let res = get_ry_tokio_runtime().py_spawn(fut).await?;
+    res
+}
+
 // ==========================================================================
 // FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ==========================================================================

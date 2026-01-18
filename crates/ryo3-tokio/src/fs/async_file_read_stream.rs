@@ -3,7 +3,7 @@
 //!
 //! Kinda a fucking nightmare.
 #[cfg(feature = "experimental-async")]
-use crate::rt::get_ry_tokio_runtime;
+use crate::rt::{on_tokio, on_tokio_py};
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3_async_runtimes::tokio::future_into_py;
@@ -315,39 +315,35 @@ impl PyAsyncFileReadStream {
     #[pyo3(signature = (n = 1))]
     async fn take(&self, n: usize) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
         let inner = self.inner.clone();
-        let vbytes = get_ry_tokio_runtime()
-            .py_spawn(async move {
-                let mut guard = inner.lock().await;
-                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-                let mut result = Vec::with_capacity(n);
-                for _ in 0..n {
-                    match guard.next_chunk().await {
-                        Ok(Some(b)) => result.push(ryo3_bytes::PyBytes::from(b)),
-                        Ok(None) => break,
-                        Err(e) => return Err(e),
-                    }
+        let vbytes = on_tokio(async move {
+            let mut guard = inner.lock().await;
+            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            let mut result = Vec::with_capacity(n);
+            for _ in 0..n {
+                match guard.next_chunk().await {
+                    Ok(Some(b)) => result.push(ryo3_bytes::PyBytes::from(b)),
+                    Ok(None) => break,
+                    Err(e) => return Err(e),
                 }
-                Ok(result)
-            })
-            .await??;
+            }
+            Ok(result)
+        })
+        .await??;
         Ok(vbytes)
     }
 
     async fn collect(&self) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
         let inner = self.inner.clone();
-        let vbytes = get_ry_tokio_runtime()
-            .py_spawn(async move {
-                let mut guard = inner.lock().await;
-                // guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-                let mut result = Vec::new();
-                while let Ok(Some(b)) = guard.next_chunk().await {
-                    result.push(ryo3_bytes::PyBytes::from(b));
-                }
-                Ok::<_, PyErr>(result)
-            })
-            .await??;
-        Ok(vbytes)
+        on_tokio_py(async move {
+            let mut guard = inner.lock().await;
+            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            let mut result = Vec::new();
+            while let Ok(Some(b)) = guard.next_chunk().await {
+                result.push(ryo3_bytes::PyBytes::from(b));
+            }
+            Ok::<_, PyErr>(result)
+        })
+        .await
     }
 
     fn __repr__(&self) -> String {
