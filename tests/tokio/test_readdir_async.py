@@ -13,9 +13,9 @@ async def test_read_dir() -> None:
     async for direntry in await ry.read_dir_async(PWD):
         basename = os.path.basename(direntry)
         assert basename in items
-        metadata = await direntry.metadata
+        metadata = await direntry.metadata()
         assert isinstance(metadata, ry.Metadata)
-        ftype = await direntry.file_type
+        ftype = await direntry.file_type()
         assert isinstance(ftype, ry.FileType)
         assert isinstance(direntry.basename, str)
 

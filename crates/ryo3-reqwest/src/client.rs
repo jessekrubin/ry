@@ -4,8 +4,8 @@ use crate::RyResponse;
 use crate::errors::map_reqwest_err;
 use crate::proxy::PyProxies;
 #[cfg(feature = "experimental-async")]
-use crate::response_parking_lot::RyAsyncResponse;
-use crate::response_parking_lot::RyBlockingResponse;
+use crate::response::RyAsyncResponse;
+use crate::response::RyBlockingResponse;
 use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
 use crate::tls_version::TlsVersion;
 use crate::user_agent::{DEFAULT_USER_AGENT, parse_user_agent};

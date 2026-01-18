@@ -25,9 +25,10 @@ bytes.workspace = true
 
 [features]
 default = []
-ry = ["fs", "time"]
+ry = ["fs", "time", "experimental-async"]
 fs = ["tokio/fs", "ryo3-std/fs"]
 time = ["tokio/time", "ryo3-std/time"]
+experimental-async = ["pyo3/experimental-async"]
 
 
 [lints]
