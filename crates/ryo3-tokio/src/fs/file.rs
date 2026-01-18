@@ -674,48 +674,52 @@ impl PyAsyncFile {
     #[pyo3(
         signature = (size = None, /),
     )]
-    fn read<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    async fn read(&self, size: Option<usize>) -> PyResult<ryo3_bytes::PyBytes> {
         let inner = Arc::clone(&self.inner);
-
-        future_into_py(py, async move {
-            let mut file = inner.lock().await;
-            if let Some(s) = size {
-                let mut buf = vec![0u8; s];
-                let n = file.read(&mut buf).await?;
-                buf.truncate(n);
-                Ok(ryo3_bytes::PyBytes::from(buf))
-            } else {
-                let r = file.read_all().await?;
-                Ok(ryo3_bytes::PyBytes::from(r))
-            }
-        })
+        get_ry_tokio_runtime()
+            .py_spawn(async move {
+                let mut file = inner.lock().await;
+                if let Some(s) = size {
+                    let mut buf = vec![0u8; s];
+                    let n = file.read(&mut buf).await?;
+                    buf.truncate(n);
+                    Ok(ryo3_bytes::PyBytes::from(buf))
+                } else {
+                    let r = file.read_all().await?;
+                    Ok(ryo3_bytes::PyBytes::from(r))
+                }
+            })
+            .await?
     }
 
     fn readable(&self) -> bool {
         self.props.readable
     }
 
-    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    async fn readall(&self) -> PyResult<ryo3_bytes::PyBytes> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut file = inner.lock().await;
-            let r = file.read_all().await?;
-            let rybytes = ryo3_bytes::PyBytes::from(r);
-            Ok(rybytes)
-        })
+        get_ry_tokio_runtime()
+            .py_spawn(async move {
+                let mut file = inner.lock().await;
+                let r = file.read_all().await?;
+                Ok(ryo3_bytes::PyBytes::from(r))
+            })
+            .await?
     }
 
     #[pyo3(signature = (size = None, /))]
-    fn readline<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    async fn readline(&self, size: Option<usize>) -> PyResult<Option<ryo3_bytes::PyBytes>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let line = locked.readline(size).await?;
-            match line {
-                Some(line) => Ok(Some(ryo3_bytes::PyBytes::from(line))),
-                None => Ok(None),
-            }
-        })
+        get_ry_tokio_runtime()
+            .py_spawn(async move {
+                let mut locked = inner.lock().await;
+                let line = locked.readline(size).await?;
+                match line {
+                    Some(line) => Ok(Some(ryo3_bytes::PyBytes::from(line))),
+                    None => Ok(None),
+                }
+            })
+            .await?
     }
 
     /// Return a list of lines from the stream.
@@ -724,31 +728,35 @@ impl PyAsyncFile {
     /// lines will be read if the total size (in bytes/characters) of all
     /// lines so far exceeds hint.
     #[pyo3(signature = (hint = None, /))]
-    fn readlines<'py>(&self, py: Python<'py>, hint: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    async fn readlines(&self, hint: Option<usize>) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
         let inner = Arc::clone(&self.inner);
         if let Some(hint) = hint {
-            future_into_py(py, async move {
-                let mut locked = inner.lock().await;
-                let mut lines = Vec::new();
-                let mut total_size = 0;
-                while let Ok(Some(line)) = locked.readline(None).await {
-                    total_size += line.len();
-                    lines.push(line);
-                    if total_size > hint {
-                        break;
+            get_ry_tokio_runtime()
+                .py_spawn(async move {
+                    let mut locked = inner.lock().await;
+                    let mut lines = Vec::new();
+                    let mut total_size = 0;
+                    while let Ok(Some(line)) = locked.readline(None).await {
+                        total_size += line.len();
+                        lines.push(ryo3_bytes::PyBytes::from(line));
+                        if total_size > hint {
+                            break;
+                        }
                     }
-                }
-                Ok(lines)
-            })
+                    Ok(lines)
+                })
+                .await?
         } else {
-            future_into_py(py, async move {
-                let mut locked = inner.lock().await;
-                let mut lines = Vec::new();
-                while let Ok(Some(line)) = locked.readline(None).await {
-                    lines.push(line);
-                }
-                Ok(lines)
-            })
+            get_ry_tokio_runtime()
+                .py_spawn(async move {
+                    let mut locked = inner.lock().await;
+                    let mut lines = Vec::new();
+                    while let Ok(Some(line)) = locked.readline(None).await {
+                        lines.push(ryo3_bytes::PyBytes::from(line));
+                    }
+                    Ok(lines)
+                })
+                .await?
         }
     }
 

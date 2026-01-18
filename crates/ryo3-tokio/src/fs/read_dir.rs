@@ -176,7 +176,6 @@ impl PyAsyncDirEntry {
         self.0.file_name()
     }
 
-    #[getter]
     fn file_type<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = self.0.clone();
 
@@ -186,7 +185,6 @@ impl PyAsyncDirEntry {
         })
     }
 
-    #[getter]
     fn metadata<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = self.0.clone();
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
