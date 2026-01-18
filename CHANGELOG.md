@@ -3,7 +3,11 @@
 ## v0.0.80 [unreleased]
 
 - `ryo3-http`
-  - cache status `ry.HttpStatus` code struct instances
+  - cache status `ry.HttpStatus` code struct instances. the classattrs go through the same mechanism so `ry.HttpStatus.OK is ry.HttpStatus(200)` is `True`. Statuses are only cached for codes in the 100-599 range even tho `::http::StatusCode` allows `u16` from `100..=999` (which idk why they did that)
+- `ryo3-std`
+  - the internal `DirEntry` struct getters were changed to be methods instead of properties to match the `async` version in `ryo3-tokio`
+- `ryo3-tokio`
+  - Experiments with using tokio runtime to spawn instead of pyo3-async-runtimes + py-futures
 
 ---
 
