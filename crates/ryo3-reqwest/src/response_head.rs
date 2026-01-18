@@ -5,16 +5,16 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub(crate) struct RyResponseHead {
-    /// das status code
+    /// Response http status code
     pub(crate) status: StatusCode,
-    /// das headers
+    /// Response headers
     pub(crate) headers: Arc<RwLock<reqwest::header::HeaderMap>>,
-    /// das url
+    /// Response url
     pub(crate) url: reqwest::Url,
-    /// das content length -- if it exists (tho it might not and/or be
-    /// different if the response is compressed)
+    /// Response 'content-length' header value if it exists (tho it might not
+    /// and/or be different if the response is compressed)
     pub(crate) content_length: Option<u64>,
-    /// version of http spec
+    /// Http spec version
     pub(crate) version: reqwest::Version,
     /// Remote address
     pub(crate) remote_addr: Option<SocketAddr>,

@@ -1,7 +1,7 @@
-use parking_lot::Mutex;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
+use ryo3_core::RyMutex;
 use ryo3_http::PyHttpStatus;
 use ryo3_url::PyUrl;
 use std::sync::Arc;
@@ -16,11 +16,11 @@ macro_rules! pyerr_response_already_consumed {
 
 #[derive(Debug)]
 #[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError", frozen, immutable_type, skip_from_py_object)]
-pub struct RyReqwestError(pub Arc<Mutex<Option<reqwest::Error>>>);
+pub struct RyReqwestError(pub Arc<RyMutex<Option<reqwest::Error>, false>>);
 
 impl From<reqwest::Error> for RyReqwestError {
     fn from(e: reqwest::Error) -> Self {
-        Self(Arc::new(Mutex::new(Some(e))))
+        Self(Arc::new(RyMutex::new(Some(e))))
     }
 }
 
@@ -30,7 +30,7 @@ impl RyReqwestError {
     #[new]
     #[pyo3(signature = (*args, **kwargs))]
     fn py_new<'py>(args: &Bound<'py, PyTuple>, kwargs: Option<&Bound<'py, PyDict>>) -> Self {
-        Self(Arc::new(Mutex::new(None)))
+        Self(Arc::new(RyMutex::new(None)))
     }
 
     fn __dbg__(&self) -> String {
@@ -53,61 +53,64 @@ impl RyReqwestError {
     // - without_url
 
     fn is_body(&self) -> bool {
-        self.0.lock().as_ref().is_some_and(reqwest::Error::is_body)
+        self.0
+            .py_lock()
+            .as_ref()
+            .is_some_and(reqwest::Error::is_body)
     }
 
     fn is_builder(&self) -> bool {
         self.0
-            .lock()
+            .py_lock()
             .as_ref()
             .is_some_and(reqwest::Error::is_builder)
     }
 
     fn is_connect(&self) -> bool {
         self.0
-            .lock()
+            .py_lock()
             .as_ref()
             .is_some_and(reqwest::Error::is_connect)
     }
 
     fn is_decode(&self) -> bool {
         self.0
-            .lock()
+            .py_lock()
             .as_ref()
             .is_some_and(reqwest::Error::is_decode)
     }
 
     fn is_redirect(&self) -> bool {
         self.0
-            .lock()
+            .py_lock()
             .as_ref()
             .is_some_and(reqwest::Error::is_redirect)
     }
 
     fn is_request(&self) -> bool {
         self.0
-            .lock()
+            .py_lock()
             .as_ref()
             .is_some_and(reqwest::Error::is_request)
     }
 
     fn is_status(&self) -> bool {
         self.0
-            .lock()
+            .py_lock()
             .as_ref()
             .is_some_and(reqwest::Error::is_status)
     }
 
     fn is_timeout(&self) -> bool {
         self.0
-            .lock()
+            .py_lock()
             .as_ref()
             .is_some_and(reqwest::Error::is_timeout)
     }
 
     #[getter]
     fn status(&self, py: Python<'_>) -> PyResult<Option<Py<PyHttpStatus>>> {
-        if let Some(e) = &(*self.0.lock()) {
+        if let Some(e) = &(*self.0.py_lock()) {
             e.status()
                 .map(|status| PyHttpStatus::from_status_code_cached(py, status))
                 .transpose()
@@ -117,7 +120,7 @@ impl RyReqwestError {
     }
 
     fn url(&self) -> Option<PyUrl> {
-        if let Some(e) = &(*self.0.lock()) {
+        if let Some(e) = &(*self.0.py_lock()) {
             e.url().map(|url| PyUrl::new(url.clone()))
         } else {
             None
@@ -126,20 +129,20 @@ impl RyReqwestError {
 
     fn with_url<'py>(slf: PyRef<'py, Self>, url: &PyUrl) -> PyRef<'py, Self> {
         // take the error
-        let err = slf.0.lock().take();
+        let err = slf.0.py_lock().take();
         if let Some(e) = err {
             // baboom put it back
-            slf.0.lock().replace(e.with_url(url.as_ref().clone()));
+            slf.0.py_lock().replace(e.with_url(url.as_ref().clone()));
         }
         slf
     }
 
     fn without_url(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         // take the error
-        let err = slf.0.lock().take();
+        let err = slf.0.py_lock().take();
         if let Some(e) = err {
             // baboom put it back sans url
-            slf.0.lock().replace(e.without_url());
+            slf.0.py_lock().replace(e.without_url());
         }
         slf
     }
@@ -147,7 +150,7 @@ impl RyReqwestError {
 
 impl From<RyReqwestError> for pyo3::PyErr {
     fn from(e: RyReqwestError) -> Self {
-        let value = e.0.lock().take();
+        let value = e.0.py_lock().take();
         if let Some(e) = value {
             Self::new::<RyReqwestError, _>(format!("{e} ~ {e:?}"))
         } else {
