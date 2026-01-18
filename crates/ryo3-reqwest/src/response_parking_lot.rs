@@ -373,6 +373,12 @@ impl RyAsyncResponse {
     }
 
     /// Return true if the status code is a success code (200-299)
+    #[getter]
+    fn ok(&self) -> bool {
+        self.head.status.is_success()
+    }
+
+    /// Return true if the status code is a success code (200-299)
     /// __bool__ dunder method returns true if `ok` is true
     fn __bool__(&self) -> bool {
         self.head.status.is_success()
