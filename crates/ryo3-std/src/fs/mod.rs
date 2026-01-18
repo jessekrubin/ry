@@ -198,24 +198,20 @@ impl PyDirEntry {
         self.0.path().into_os_string()
     }
 
-    #[getter]
     fn path(&self) -> PathBuf {
         self.0.path()
     }
 
-    #[getter]
     fn file_type(&self) -> PyResult<PyFileType> {
         let file_type = self.0.file_type()?;
         Ok(PyFileType::new(file_type))
     }
 
-    #[getter]
     fn metadata(&self) -> PyResult<PyMetadata> {
         let metadata = self.0.metadata()?;
         Ok(PyMetadata::new(metadata))
     }
 
-    #[getter]
     fn basename(&self) -> PyResult<OsString> {
         let path = self.0.path();
         let name = path.file_name().ok_or_else(|| {

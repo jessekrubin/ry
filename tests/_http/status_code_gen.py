@@ -148,20 +148,32 @@ def test_class_attr_const(status_meta: HttpStatusMetadata) -> None:
 
 class CODEGEN:
     @staticmethod
-    def gen_status_code_rust_code() -> str:
+    def gen_status_code_rust_code(*, cached: bool = True) -> str:
         class_attrs = _class_attr_names()
 
         assert len(class_attrs) == len({m.const_name for m in class_attrs})
         parts = []
         for status_meta in class_attrs:
             name = status_meta.const_name
-            string = "\n".join((
-                "    #[allow(non_snake_case)]",
-                "    #[classattr]",
-                f"    fn {name}() -> PyHttpStatus {{",
-                f"        PyHttpStatus(ryo3-http::StatusCode::{name})",
-                "    }\n",
-            ))
+            doc_string = f"    /// {status_meta.code} ~ {status_meta.reason}"
+            if cached:
+                string = "\n".join((
+                    doc_string,
+                    "    #[expect(non_snake_case)]",
+                    "    #[classattr]",
+                    f"    fn {name}(py: Python<'_>) -> PyResult<Py<Self>> {{",
+                    f"        py_cached_http_status(py, ::http::StatusCode::{name})",
+                    "    }\n",
+                ))
+            else:
+                string = "\n".join((
+                    doc_string,
+                    "    #[expect(non_snake_case)]",
+                    "    #[classattr]",
+                    f"    fn {name}() -> Self {{",
+                    f"        Self(::http::StatusCode::{name})",
+                    "    }\n",
+                ))
             parts.append(string)
         return "\n".join(parts)
 
@@ -174,8 +186,26 @@ class CODEGEN:
         return "\n".join(parts)
 
 
+def _update_rust_src(rust_src_filepath: str) -> None:
+    with open(rust_src_filepath, encoding="utf-8") as f:
+        src = f.read()
+
+    start_pat = "    // <CLASS-ATTRS>"
+    end_pat = "    // </CLASS-ATTRS>"
+
+    start_idx = src.index(start_pat) + len(start_pat)
+    end_idx = src.index(end_pat)
+    new_code = CODEGEN.gen_status_code_rust_code(cached=True)
+
+    new_src = src[:start_idx] + "\n" + new_code + src[end_idx:]
+
+    with open(rust_src_filepath, "w", encoding="utf-8") as f:
+        f.write(new_src)
+
+
 if __name__ == "__main__":
     import sys
 
-    s = CODEGEN.gen_status_code_rust_code()
+    s = CODEGEN.gen_status_code_rust_code(cached=True)
     sys.stdout.write(s)
+    _update_rust_src("crates/ryo3-http/src/py_http_status.rs")

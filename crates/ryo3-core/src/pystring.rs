@@ -31,6 +31,14 @@ impl<'py> IntoPyObject<'py> for PyAsciiStr<'_> {
     }
 }
 
+impl<'s> From<&'s str> for PyAsciiStr<'s> {
+    #[inline]
+    fn from(s: &'s str) -> Self {
+        debug_assert!(s.is_ascii(), "PyAsciiStr(ing) must be ascii only: {s:?}");
+        Self(s)
+    }
+}
+
 impl From<String> for PyAsciiString {
     #[inline]
     fn from(s: String) -> Self {
