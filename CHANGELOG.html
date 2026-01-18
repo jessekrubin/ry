@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-935debe6.js";
+            window.path_to_searchindex_js = "searchindex-59f95a2e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -181,6 +181,25 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0080-unreleased"><a class="header" href="#v0080-unreleased">v0.0.80 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-http</code>
+<ul>
+<li>cache status <code>ry.HttpStatus</code> code struct instances. the classattrs go through the same mechanism so <code>ry.HttpStatus.OK is ry.HttpStatus(200)</code> is <code>True</code>. Statuses are only cached for codes in the 100-599 range even tho <code>::http::StatusCode</code> allows <code>u16</code> from <code>100..=999</code> (which idk why they did that)</li>
+</ul>
+</li>
+<li><code>ryo3-std</code>
+<ul>
+<li>the internal <code>DirEntry</code> struct getters were changed to be methods instead of properties to match the <code>async</code> version in <code>ryo3-tokio</code></li>
+</ul>
+</li>
+<li><code>ryo3-tokio</code>
+<ul>
+<li>Experiments with using tokio runtime to spawn instead of pyo3-async-runtimes + py-futures</li>
+</ul>
+</li>
+</ul>
+<hr>
 <h2 id="v0079-2026-01-15"><a class="header" href="#v0079-2026-01-15">v0.0.79 [2026-01-15]</a></h2>
 <ul>
 <li><code>ryo3-jiff</code>
