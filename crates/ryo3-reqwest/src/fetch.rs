@@ -7,7 +7,7 @@ use crate::RyClient;
 #[cfg(not(feature = "experimental-async"))]
 use crate::RyHttpClient;
 #[cfg(feature = "experimental-async")]
-use crate::response_parking_lot::RyAsyncResponse;
+use crate::response::RyAsyncResponse;
 use pyo3::prelude::*;
 use std::sync::OnceLock;
 

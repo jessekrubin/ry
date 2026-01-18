@@ -10,6 +10,7 @@ pub(crate) struct RyRuntime<'r>(pub &'r Runtime);
 pub(crate) struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
 
 impl RyRuntime<'_> {
+    #[inline]
     pub(crate) fn spawn<F, T>(&self, fut: F) -> tokio::task::JoinHandle<T>
     where
         F: std::future::Future<Output = T> + Send + 'static,
@@ -20,6 +21,7 @@ impl RyRuntime<'_> {
 
     // version of spwan that returns a wrapped JoinHandle that can be polled
     // and ensures the join error is py-err-able
+    #[inline]
     pub(crate) fn py_spawn<F, T>(&self, fut: F) -> RyJoinHandle<T>
     where
         F: std::future::Future<Output = T> + Send + 'static,
@@ -44,10 +46,12 @@ impl<T> Future for RyJoinHandle<T> {
     }
 }
 
+#[inline]
 pub(crate) fn get_tokio_runtime<'r>() -> &'r Runtime {
     pyo3_async_runtimes::tokio::get_runtime()
 }
 
+#[inline]
 pub(crate) fn get_ry_tokio_runtime<'r>() -> RyRuntime<'r> {
     RyRuntime(get_tokio_runtime())
 }
@@ -57,6 +61,7 @@ pub(crate) fn get_ry_tokio_runtime<'r>() -> RyRuntime<'r> {
 /// Executes the given future on the tokio runtime
 ///
 /// **Note**: This ONLY maps the tokio join errors to `pyo3::PyErr`
+#[inline]
 pub(crate) async fn on_tokio<F, T>(fut: F) -> pyo3::PyResult<T>
 where
     F: Future<Output = T> + Send + 'static,
@@ -65,17 +70,17 @@ where
     get_ry_tokio_runtime().py_spawn(fut).await
 }
 
-/// Executes the given future on the tokio runtime (which returns a PyResult)
+/// Executes the given future on the tokio runtime (which returns a `pyo3::PyResult`)
 ///
 /// **Note**: This maps the tokio join errors to `pyo3::PyErr` and also the
 ///           inner errors to `pyo3::PyErr` as well (afaict (jesse))
+#[inline]
 pub(crate) async fn on_tokio_py<F, T>(fut: F) -> pyo3::PyResult<T>
 where
     F: Future<Output = pyo3::PyResult<T>> + Send + 'static,
     T: Send + 'static,
 {
-    let res = get_ry_tokio_runtime().py_spawn(fut).await?;
-    res
+    get_ry_tokio_runtime().py_spawn(fut).await?
 }
 
 // ==========================================================================
