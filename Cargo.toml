@@ -28,8 +28,9 @@ tracing-log = { workspace = true }
 tracing-subscriber.workspace = true
 
 [features]
-default = ["aws-lc-rs"]
+default = ["aws-lc-rs", "experimental-async", "mimalloc"]
 mimalloc = ["dep:mimalloc"]
+experimental-async = ["pyo3/experimental-async", "ryo3/experimental-async"]
 ring = ["ryo3/ring"]
 aws-lc-rs = ["ryo3/aws-lc-rs"]
 
