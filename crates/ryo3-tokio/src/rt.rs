@@ -2,9 +2,11 @@
 use ryo3_macro_rules::py_runtime_err;
 use tokio::runtime::Runtime;
 
+pub use pyo3_async_runtimes::tokio::future_into_py;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, ready};
+
 pub(crate) struct RyRuntime<'r>(pub &'r Runtime);
 
 pub(crate) struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
