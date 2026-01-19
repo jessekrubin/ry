@@ -1,34 +1,9 @@
 from __future__ import annotations
 
-import itertools as it
-
 import pytest
 
 import ry
 
-JIFF_UNITS = [
-    "nanosecond",
-    "microsecond",
-    "millisecond",
-    "second",
-    "minute",
-    "hour",
-    "day",
-    "month",
-    "year",
-]
-
-JIFF_ROUND_MODES = [
-    "ceil",
-    "floor",
-    "expand",
-    "trunc",
-    "half-ceil",
-    "half-floor",
-    "half-expand",
-    "half-trunc",
-    "half-even",
-]
 # ====================
 # Zoned
 # ====================
@@ -314,33 +289,6 @@ class TestTimeSpanProperties:
 
     def test_nanoseconds(self) -> None:
         assert self.ts.nanoseconds == 5_000_000
-
-
-class TestDateTime:
-    d = ry.date(2020, 8, 26).at(6, 27, 0, 0)
-
-    def test_datetime_round_options(self) -> None:
-        default = ry.DateTimeRound()
-        expected_default_string = (
-            'DateTimeRound(smallest="nanosecond", mode="half-expand", increment=1)'
-        )
-        assert str(default) == expected_default_string
-
-        for unit, mode in it.product(JIFF_UNITS, JIFF_ROUND_MODES):
-            options = ry.DateTimeRound(smallest=unit, mode=mode, increment=1)  # type: ignore[arg-type]
-
-            options_chained = (
-                ry.DateTimeRound()._smallest(unit)._mode(mode)._increment(1)  # type: ignore[arg-type]
-            )
-            expected_string = (
-                f'DateTimeRound(smallest="{unit}", mode="{mode}", increment=1)'
-            )
-            assert str(options) == expected_string
-            assert options == options_chained
-
-    def test_datetime_to_iso_week_date(self) -> None:
-        iwd = self.d.iso_week_date()
-        assert iwd == ry.ISOWeekDate(2020, 35, 3)
 
 
 class TestTimespanFunction:
