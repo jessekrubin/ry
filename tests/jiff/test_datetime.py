@@ -8,7 +8,7 @@ import pytest
 
 import ry
 
-JIFF_UNITS = [
+_JIFF_UNITS = [
     "nanosecond",
     "microsecond",
     "millisecond",
@@ -20,7 +20,7 @@ JIFF_UNITS = [
     "year",
 ]
 
-JIFF_ROUND_MODES = [
+_JIFF_ROUND_MODES = [
     "ceil",
     "floor",
     "expand",
@@ -47,7 +47,7 @@ class TestDateTime:
         )
         assert str(default) == expected_default_string
 
-        for unit, mode in it.product(JIFF_UNITS, JIFF_ROUND_MODES):
+        for unit, mode in it.product(_JIFF_UNITS, _JIFF_ROUND_MODES):
             options = ry.DateTimeRound(smallest=unit, mode=mode, increment=1)  # type: ignore[arg-type]
 
             options_chained = (
