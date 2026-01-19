@@ -586,6 +586,23 @@ impl RyDateTime {
         self.0.yesterday().map(Self::from).map_err(map_py_value_err)
     }
 
+    // #[pyo3(signature = (nth, weekday, *, err = true))]
+    // fn nth_weekday(&self, nth: i32, weekday: JiffWeekday, err: bool) -> PyResult<Option<Self>> {
+    //     if err {
+    //         self.0
+    //             .nth_weekday(nth, weekday.0)
+    //             .map(Self::from)
+    //             .map(Some)
+    //             .map_err(map_py_value_err)
+    //     } else {
+    //         match self.0.nth_weekday(nth, weekday.0) {
+    //             Ok(dt) => Ok(Some(Self::from(dt))),
+    //             Err(_) => Ok(None),
+    //         }
+    //     }
+    // }
+
+    #[pyo3(signature = (nth, weekday))]
     fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
         self.0
             .nth_weekday(nth, weekday.0)
