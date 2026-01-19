@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-59f95a2e.js";
+            window.path_to_searchindex_js = "searchindex-c65e238b.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2026-01-18T13:48:49.787440899-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2026-01-18T17:03:28.634445349-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -505,17 +505,23 @@ dumping, and async file I/O tools.</p>
 <ul>
 <li><code>ryo3-http</code>
 <ul>
-<li>cache status <code>ry.HttpStatus</code> code struct instances. the classattrs go through the same mechanism so <code>ry.HttpStatus.OK is ry.HttpStatus(200)</code> is <code>True</code>. Statuses are only cached for codes in the 100-599 range even tho <code>::http::StatusCode</code> allows <code>u16</code> from <code>100..=999</code> (which idk why they did that)</li>
+<li>cache status <code>ry.HttpStatus</code> code struct instances. the classattrs go
+through the same mechanism so <code>ry.HttpStatus.OK is ry.HttpStatus(200)</code> is
+<code>True</code>. Statuses are only cached for codes in the 100-599 range even tho
+<code>::http::StatusCode</code> allows <code>u16</code> from <code>100..=999</code> (which idk why they did
+that)</li>
 </ul>
 </li>
 <li><code>ryo3-std</code>
 <ul>
-<li>the internal <code>DirEntry</code> struct getters were changed to be methods instead of properties to match the <code>async</code> version in <code>ryo3-tokio</code></li>
+<li>the internal <code>DirEntry</code> struct getters were changed to be methods instead of
+properties to match the <code>async</code> version in <code>ryo3-tokio</code></li>
 </ul>
 </li>
 <li><code>ryo3-tokio</code>
 <ul>
-<li>Experiments with using tokio runtime to spawn instead of pyo3-async-runtimes + py-futures</li>
+<li>Experiments with using tokio runtime to spawn instead of
+pyo3-async-runtimes + py-futures</li>
 </ul>
 </li>
 </ul>
