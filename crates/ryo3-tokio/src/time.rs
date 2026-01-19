@@ -1,3 +1,5 @@
+#[cfg(not(feature = "experimental-async"))]
+use crate::rt::future_into_py;
 #[cfg(feature = "experimental-async")]
 use crate::rt::on_tokio_py;
 use pyo3::prelude::*;
@@ -10,7 +12,7 @@ async fn sleep_impl(secs: f64) {
 #[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
 pub fn asleep(py: Python, secs: f64) -> PyResult<Bound<PyAny>> {
-    pyo3_async_runtimes::tokio::future_into_py(py, async move {
+    future_into_py(py, async move {
         sleep_impl(secs).await;
         Ok(secs)
     })
@@ -19,7 +21,7 @@ pub fn asleep(py: Python, secs: f64) -> PyResult<Bound<PyAny>> {
 #[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
 pub fn sleep_async(py: Python, secs: f64) -> PyResult<Bound<PyAny>> {
-    pyo3_async_runtimes::tokio::future_into_py(py, async move {
+    future_into_py(py, async move {
         sleep_impl(secs).await;
         Ok(secs)
     })

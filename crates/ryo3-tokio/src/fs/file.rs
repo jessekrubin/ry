@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
+use crate::rt::future_into_py;
 use pyo3::intern;
-use pyo3_async_runtimes::tokio::future_into_py;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
 use ryo3_macro_rules::{py_io_error, py_runtime_err, py_stop_async_iteration_err, pytodo};
 use std::io::SeekFrom;

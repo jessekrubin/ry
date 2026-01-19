@@ -14,7 +14,6 @@ description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.ht
 [dependencies]
 bytes.workspace = true
 cookie.workspace = true
-futures-channel = { workspace = true, features = ["sink"] }
 futures-core.workspace = true
 futures-util = { workspace = true, features = ["sink"] }
 jiter.workspace = true
@@ -40,7 +39,6 @@ ryo3-url.workspace = true
 serde.workspace = true
 serde_urlencoded.workspace =true
 tokio.workspace = true
-tokio-stream.workspace = true
 tracing.workspace = true
 
 [lints]
@@ -51,4 +49,4 @@ default = []
 experimental-async = ["pyo3/experimental-async"]
 ring = ["rustls/ring"]
 aws-lc-rs = ["rustls/aws-lc-rs"]
-ry = ["experimental-async"]
+ry = []

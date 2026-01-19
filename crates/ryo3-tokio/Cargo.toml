@@ -12,7 +12,6 @@ repository.workspace = true
 description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
 
 [dependencies]
-futures.workspace = true
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 ryo3-bytes.workspace = true
@@ -25,7 +24,7 @@ bytes.workspace = true
 
 [features]
 default = []
-ry = ["fs", "time", "experimental-async"]
+ry = ["fs", "time"]
 fs = ["tokio/fs", "ryo3-std/fs"]
 time = ["tokio/time", "ryo3-std/time"]
 experimental-async = ["pyo3/experimental-async"]

@@ -100,9 +100,15 @@ all = [
   "zstd",
 ]
 # ry
+experimental-async = [
+  "pyo3/experimental-async",
+  "ryo3-tokio?/experimental-async",
+  "ryo3-reqwest?/experimental-async",
+]
 dev = ["dep:ryo3-dev"]
 ry = [
   "all",
+  # "experimental-async",
   "dev",
   "ryo3-bytes/ry",
   "ryo3-fnv/ry",

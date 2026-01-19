@@ -1,3 +1,6 @@
+use crate::rt::future_into_py;
+#[cfg(feature = "experimental-async")]
+use crate::rt::on_tokio_py;
 use pyo3::prelude::*;
 use ryo3_macro_rules::{py_stop_async_iteration_err, py_value_error};
 use ryo3_std::fs::PyMetadata;
@@ -8,9 +11,6 @@ use std::pin::Pin;
 use std::sync::Arc;
 use tokio::fs::ReadDir;
 use tokio::sync::Mutex;
-
-#[cfg(feature = "experimental-async")]
-use crate::rt::on_tokio_py;
 
 type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 
@@ -37,7 +37,7 @@ impl PyAsyncReadDir {
 
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.stream.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let mut guard = stream.lock().await;
             let nextentry = guard.as_mut().next_entry().await;
             match nextentry {
@@ -53,7 +53,7 @@ impl PyAsyncReadDir {
 
     fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.stream.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let mut guard = stream.lock().await;
             let mut entries = Vec::new();
             while let Some(entry) = guard.as_mut().next_entry().await? {
@@ -66,7 +66,7 @@ impl PyAsyncReadDir {
 
     fn take<'py>(&self, py: Python<'py>, n: u32) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.stream.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let mut guard = stream.lock().await;
             let mut entries = Vec::new();
             for _ in 0..n {
@@ -93,7 +93,7 @@ impl PyAsyncReadDir {
 
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.stream.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let mut guard = stream.lock().await;
             let nextentry = guard.as_mut().next_entry().await;
             match nextentry {
@@ -177,7 +177,7 @@ impl PyAsyncDirEntry {
     fn file_type<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = self.0.clone();
 
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let file_type = inner.file_type().await.map_err(PyErr::from)?;
             Ok(ryo3_std::fs::PyFileType::new(file_type))
         })
@@ -185,7 +185,7 @@ impl PyAsyncDirEntry {
 
     fn metadata<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = self.0.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let metadata = inner.metadata().await.map_err(PyErr::from)?;
             Ok(PyMetadata::from(metadata))
         })
@@ -210,8 +210,7 @@ impl PyAsyncDirEntry {
 
     #[must_use]
     fn __fspath__(&self) -> OsString {
-        let p = self.0.path();
-        p.into_os_string()
+        self.0.path().into_os_string()
     }
 
     #[getter]
