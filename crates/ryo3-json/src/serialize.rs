@@ -83,17 +83,6 @@ impl<'py> JsonSerializer<'py> {
         }
         Ok(bytes)
     }
-
-    #[expect(clippy::unused_self)]
-    fn serialize_unsafe(
-        &self,
-        _py: Python<'py>,
-        _obj: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Unsafe serialization is not implemented yet",
-        ))
-    }
 }
 
 // **retired**
@@ -197,36 +186,4 @@ pub fn dumps<'py>(
     pybytes: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
     stringify(py, obj, default, fmt, sort_keys, append_newline, pybytes)
-}
-
-#[pyfunction(
-    signature=(
-        obj,
-        *,
-        default = None,
-        fmt = false,
-        sort_keys = false,
-        append_newline = false,
-        pybytes = false
-    )
-)]
-#[expect(unused_variables, clippy::fn_params_excessive_bools)]
-pub(crate) fn stringify_unsafe<'py>(
-    py: Python<'py>,
-    obj: &Bound<'py, PyAny>,
-    default: Option<&'py Bound<'py, PyAny>>,
-    fmt: bool,
-    sort_keys: bool,
-    append_newline: bool,
-    pybytes: bool,
-) -> PyResult<Bound<'py, PyAny>> {
-    let serializer = JsonSerializer::new(
-        default,
-        JsonOptions {
-            fmt,
-            sort_keys,
-            append_newline,
-        },
-    )?;
-    serializer.serialize_unsafe(py, obj)
 }
