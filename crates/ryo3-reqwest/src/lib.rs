@@ -21,9 +21,11 @@ pub use cookie::PyCookie;
 pub use errors::RyReqwestError;
 pub use proxy::PyProxy;
 use pyo3::prelude::*;
+#[cfg(feature = "experimental-async")]
 pub use response::RyAsyncResponse;
 pub use response::RyBlockingResponse;
 pub use response::RyResponse;
+#[cfg(feature = "experimental-async")]
 pub use response_stream::RyAsyncResponseStream;
 pub use response_stream::RyBlockingResponseStream;
 pub use response_stream::RyResponseStream;
