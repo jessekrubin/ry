@@ -1,4 +1,5 @@
 import typing as t
+from os import PathLike
 
 import ry
 from ry._types import Buffer, Unpack
@@ -25,7 +26,7 @@ class RequestKwargs(t.TypedDict, total=False):
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
     json: t.Any
     form: t.Any
-    multipart: t.Any
+    multipart: FormData | None
     timeout: Duration | None
     basic_auth: tuple[str, str | None] | None
     bearer_auth: str | None
@@ -651,7 +652,7 @@ def fetch_sync(
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
     form: t.Any = None,
-    multipart: t.Any | None = None,
+    multipart: FormData | None = None,
     timeout: Duration | None = None,
     basic_auth: tuple[str, str | None] | None = None,
     bearer_auth: str | None = None,
@@ -808,3 +809,22 @@ class Proxy:
     # -------------------------------------------------------------------------
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self) -> int: ...
+
+class FormPart:
+    def __init__(
+        self,
+        name: str,
+        body: str | Buffer | PathLike[str],
+        *,
+        filename: str | None = None,
+        headers: Headers | dict[str, str] | None = None,
+        length: int | None = None,
+        mime: str | None = None,
+    ) -> None: ...
+
+class FormData:
+    def __init__(
+        self,
+        *parts: FormPart,
+        percent_encode: t.Literal["path-segment", "attr-chars", "noop"] | None = None,
+    ) -> None: ...

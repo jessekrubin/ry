@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::RyResponse;
 use crate::errors::map_reqwest_err;
+use crate::form_data::PyFormData;
 use crate::proxy::PyProxies;
 #[cfg(feature = "experimental-async")]
 use crate::response::RyAsyncResponse;
@@ -19,7 +20,7 @@ use ryo3_http::{
     HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
 };
 use ryo3_macro_rules::py_value_error;
-use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
+use ryo3_macro_rules::{py_type_err, py_value_err};
 use ryo3_std::time::PyDuration;
 use ryo3_url::UrlLike;
 
@@ -1645,9 +1646,7 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
                 reqwest::header::CONTENT_TYPE,
                 HeaderValue::from_static("application/x-www-form-urlencoded"),
             ),
-            PyReqwestBody::Multipart(_m) => {
-                pytodo!("multipart not implemented (yet)");
-            }
+            PyReqwestBody::Multipart(form) => req.multipart(form),
             PyReqwestBody::None => req,
         };
 
@@ -1681,8 +1680,7 @@ enum PyReqwestBody {
     Stream(crate::body::PyBodyStream),
     Json(Vec<u8>),
     Form(String),
-    #[allow(dead_code)]
-    Multipart(bool), // placeholder
+    Multipart(reqwest::multipart::Form),
     None,
 }
 
@@ -1752,10 +1750,10 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
                     .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
                 PyReqwestBody::Form(url_encoded_form)
             }
-            (None, None, None, Some(_multipart)) => {
-                pytodo!("multipart not implemented (yet)");
-
-                // (None, None, None, Some(true))
+            (None, None, None, Some(multipart)) => {
+                let form_data = multipart.cast_exact::<PyFormData>()?;
+                let form = form_data.get().try_into()?;
+                PyReqwestBody::Multipart(form)
             }
             (None, None, None, None) => PyReqwestBody::None,
         };

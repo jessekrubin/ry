@@ -105,6 +105,8 @@ from ry.ryo3._reqwest import CertificateRevocationList as CertificateRevocationL
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import Cookie as Cookie
+from ry.ryo3._reqwest import FormData as FormData
+from ry.ryo3._reqwest import FormPart as FormPart
 from ry.ryo3._reqwest import HttpClient as HttpClient
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy

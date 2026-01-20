@@ -41,6 +41,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     rustls_provider::rustls_provider_install_default();
 
     m.add_class::<PyCookie>()?;
+    m.add_class::<form_data::PyFormData>()?;
+    m.add_class::<form_data::PyFormPart>()?;
     m.add_class::<PyCertificate>()?;
     m.add_class::<PyCertificateRevocationList>()?;
     m.add_class::<PyIdentity>()?;

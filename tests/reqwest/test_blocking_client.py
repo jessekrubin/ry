@@ -426,22 +426,36 @@ class TestTodo:
         with pytest.raises(NotImplementedError):
             _res = ry.Response()  # type: ignore[var-annotated]
 
-    def test_post_multipart_not_impl(
-        self,
-    ) -> None:
-        c = ry.BlockingClient()
-        with pytest.raises(NotImplementedError):
-            _r = c.post("http://example.com", multipart={"a": 1})
 
-    def test_client_fetch_multipart_not_impl(
-        self,
-    ) -> None:
+class TestMultipart:
+    def test_post_multipart(self, server: ReqtestServer) -> None:
+        url = server.url / "upload"
         c = ry.BlockingClient()
-        with pytest.raises(NotImplementedError):
-            _r = c.fetch("http://example.com", method="POST", multipart={"a": 1})
+        multipart = ry.FormData(
+            ry.FormPart("field", "value"),
+            ry.FormPart("file", b"hello", filename="hello.txt", mime="text/plain"),
+        )
+        res = c.post(url, multipart=multipart)
+        assert res.status_code == 200
+        payload = res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")
 
-    def test_fetch_multipart_not_impl(
-        self,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = ry.fetch("http://example.com", method="POST", multipart={"a": 1})
+    def test_client_fetch_multipart(self, server: ReqtestServer) -> None:
+        url = server.url / "upload"
+        c = ry.BlockingClient()
+        multipart = ry.FormData(ry.FormPart("field", "value"))
+        res = c.fetch(url, method="POST", multipart=multipart)
+        assert res.status_code == 200
+        payload = res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")
+
+    def test_fetch_multipart(self, server: ReqtestServer) -> None:
+        url = server.url / "upload"
+        multipart = ry.FormData(ry.FormPart("field", "value"))
+        res = ry.fetch_sync(url, method="POST", multipart=multipart)
+        assert res.status_code == 200
+        payload = res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")

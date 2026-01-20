@@ -23,11 +23,14 @@ class TestFetch:
             _text = await res.text()
 
     @pytest.mark.anyio
-    async def test_fetch_multipart_not_impl(
-        self,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await ry.fetch("http://example.com", method="POST", multipart={"a": 1})
+    async def test_fetch_multipart(self, server: ReqtestServer) -> None:
+        url = server.url / "upload"
+        multipart = ry.FormData(ry.FormPart("field", "value"))
+        res = await ry.fetch(url, method="POST", multipart=multipart)
+        assert res.status_code == 200
+        payload = await res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")
 
 
 class TestFetchSync:
@@ -41,8 +44,11 @@ class TestFetchSync:
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
             _text = res.text()
 
-    def test_fetch_multipart_not_impl_sync(
-        self,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = ry.fetch_sync("http://example.com", method="POST", multipart={"a": 1})
+    def test_fetch_multipart_sync(self, server: ReqtestServer) -> None:
+        url = server.url / "upload"
+        multipart = ry.FormData(ry.FormPart("field", "value"))
+        res = ry.fetch_sync(url, method="POST", multipart=multipart)
+        assert res.status_code == 200
+        payload = res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")

@@ -632,27 +632,48 @@ class TestTodo:
         with pytest.raises(NotImplementedError):
             _res = ry.Response()  # type: ignore[var-annotated]
 
+
+class TestMultipart:
     @pytest.mark.anyio
-    async def test_post_multipart_not_impl(
+    async def test_post_multipart(
         self,
         client: TClient,
+        server: ReqtestServer,
     ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await client.post("http://example.com", multipart={"a": 1})
+        url = server.url / "upload"
+        multipart = ry.FormData(
+            ry.FormPart("field", "value"),
+            ry.FormPart("file", b"hello", filename="hello.txt", mime="text/plain"),
+        )
+        res = await client.post(url, multipart=multipart)
+        assert res.status_code == 200
+        payload = await res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")
 
     @pytest.mark.anyio
-    async def test_client_fetch_multipart_not_impl(
+    async def test_client_fetch_multipart(
         self,
         client: TClient,
+        server: ReqtestServer,
     ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await client.fetch(
-                "http://example.com", method="POST", multipart={"a": 1}
-            )
+        url = server.url / "upload"
+        multipart = ry.FormData(ry.FormPart("field", "value"))
+        res = await client.fetch(url, method="POST", multipart=multipart)
+        assert res.status_code == 200
+        payload = await res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")
 
     @pytest.mark.anyio
-    async def test_fetch_multipart_not_impl(
+    async def test_fetch_multipart(
         self,
+        server: ReqtestServer,
     ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await ry.fetch("http://example.com", method="POST", multipart={"a": 1})
+        url = server.url / "upload"
+        multipart = ry.FormData(ry.FormPart("field", "value"))
+        res = await ry.fetch(url, method="POST", multipart=multipart)
+        assert res.status_code == 200
+        payload = await res.json()
+        assert payload["received_bytes"] > 0
+        assert payload["content_type"].startswith("multipart/form-data")
