@@ -5,10 +5,10 @@ use ryo3_macro_rules::py_value_err;
 
 #[pyclass(name = "FileType", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Hash)]
 pub struct PyFileType(FileTypeInner);
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Hash)]
 enum FileTypeInner {
     FileType(std::fs::FileType),
     FauxFileType(FauxFileType),
@@ -53,7 +53,7 @@ impl FileTypeMethods for FileTypeInner {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, PartialEq, Hash)]
 pub(crate) enum FauxFileType {
     Dir,
     File,
@@ -63,7 +63,7 @@ pub(crate) enum FauxFileType {
 impl PyFileType {
     #[must_use]
     pub fn new(ft: std::fs::FileType) -> Self {
-        Self(FileTypeInner::FileType(ft))
+        Self::from(ft)
     }
 }
 
@@ -99,6 +99,12 @@ impl PyFileType {
         } else {
             pyo3::intern!(py, "FileType(\"symlink\")")
         }
+    }
+
+    fn __eq__(&self, other: &PyFileType) -> bool {
+        self.0.is_dir() == other.0.is_dir()
+            && self.0.is_file() == other.0.is_file()
+            && self.0.is_symlink() == other.0.is_symlink()
     }
 
     #[getter]

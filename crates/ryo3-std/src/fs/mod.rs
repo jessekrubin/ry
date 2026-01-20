@@ -204,12 +204,12 @@ impl PyDirEntry {
 
     fn file_type(&self) -> PyResult<PyFileType> {
         let file_type = self.0.file_type()?;
-        Ok(PyFileType::new(file_type))
+        Ok(PyFileType::from(file_type))
     }
 
     fn metadata(&self) -> PyResult<PyMetadata> {
         let metadata = self.0.metadata()?;
-        Ok(PyMetadata::new(metadata))
+        Ok(PyMetadata::from(metadata))
     }
 
     fn basename(&self) -> PyResult<OsString> {
