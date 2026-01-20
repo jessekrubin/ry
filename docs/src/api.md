@@ -5423,7 +5423,6 @@ import typing as t
 from ry._types import (
     Buffer,
     DurationDict,
-    FileTypeDict,
     FsPathLike,
     MetadataDict,
 )
@@ -5643,12 +5642,43 @@ def sleep(secs: float) -> float:
 # =============================================================================
 # STD::FS
 # =============================================================================
+FileTypeStr: t.TypeAlias = t.Literal[
+    "file",
+    "dir",
+    "symlink",
+    # unix
+    "block-device",
+    "char-device",
+    "fifo",
+    "socket",
+    # windows
+    "symlink-dir",
+    "symlink-file",
+    # unknown
+    "unknown",
+]
+
+
 @t.final
-class FileType(ToPy[t.Literal["file", "dir", "symlink"]]):
+class FileType(ToPy[FileTypeStr]):
     def __init__(
         self,
         t: t.Literal[
-            "f", "file", "d", "dir", "directory", "l", "symlink", "link"
+            "f",
+            "file",
+            "d",
+            "dir",
+            "directory",
+            "l",
+            "symlink",
+            "link",
+            "block-device",
+            "char-device",
+            "fifo",
+            "socket",
+            "symlink-dir",
+            "symlink-file",
+            "unknown",
         ],
     ) -> None: ...
     @property
@@ -5657,8 +5687,21 @@ class FileType(ToPy[t.Literal["file", "dir", "symlink"]]):
     def is_file(self) -> bool: ...
     @property
     def is_symlink(self) -> bool: ...
-    def to_dict(self) -> FileTypeDict: ...
-    def to_py(self) -> t.Literal["file", "dir", "symlink"]: ...
+    @property
+    def is_block_device(self) -> bool: ...
+    @property
+    def is_unknown(self) -> bool: ...
+    @property
+    def is_char_device(self) -> bool: ...
+    @property
+    def is_fifo(self) -> bool: ...
+    @property
+    def is_socket(self) -> bool: ...
+    @property
+    def is_symlink_dir(self) -> bool: ...
+    @property
+    def is_symlink_file(self) -> bool: ...
+    def to_py(self) -> FileTypeStr: ...
 
 
 @t.final
@@ -5703,11 +5746,8 @@ class DirEntry:
     def __fspath__(self) -> str: ...
     @property
     def path(self) -> pathlib.Path: ...
-    @property
     def basename(self) -> str: ...
-    @property
     def metadata(self) -> Metadata: ...
-    @property
     def file_type(self) -> FileType: ...
 
 
@@ -6347,11 +6387,8 @@ class AsyncDirEntry:
     def __fspath__(self) -> str: ...
     @property
     def path(self) -> pathlib.Path: ...
-    @property
     def basename(self) -> str: ...
-    @property
     async def metadata(self) -> Metadata: ...
-    @property
     async def file_type(self) -> FileType: ...
 
 
@@ -7534,7 +7571,6 @@ __all__ = (
     "DateTypedDict",
     "DateTypedDict",
     "DurationDict",
-    "FileTypeDict",
     "FsPathLike",
     "ISOWeekDateTypedDict",
     "JiffRoundMode",
@@ -7564,12 +7600,6 @@ FsPathLike = str | PathLike[str]
 class DurationDict(TypedDict):
     secs: int
     nanos: int
-
-
-class FileTypeDict(TypedDict):
-    is_dir: bool
-    is_file: bool
-    is_symlink: bool
 
 
 class MetadataDict(TypedDict):

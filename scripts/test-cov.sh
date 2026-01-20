@@ -6,14 +6,12 @@
 # cargo install cargo-llvm-cov
 # ```
 
-source <(cargo llvm-cov show-env --export-prefix)
-
-export CARGO_TARGET_DIR=$CARGO_LLVM_COV_TARGET_DIR
+eval "$(cargo llvm-cov show-env --export-prefix)"
 export CARGO_INCREMENTAL=1
 
 rm -rfv ./target/llvm-cov/html
 
-cargo llvm-cov clean --workspace
+cargo llvm-cov clean --workspace --profraw-only
 # cargo test
 uv run -- maturin develop --uv
 uv run -- pytest tests python/ry --doctest-modules --cov=ry --cov-report xml
