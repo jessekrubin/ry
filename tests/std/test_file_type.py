@@ -6,30 +6,48 @@ import ry
 
 
 @pytest.mark.parametrize(
-    "t",
+    ("input_str", "expected"),
     [
-        "file",
-        "dir",
-        "symlink",
+        # file
+        ("file", "file"),
+        ("f", "file"),
+        # dir
+        ("dir", "dir"),
+        ("d", "dir"),
+        ("directory", "dir"),
+        # symlink
+        ("symlink", "symlink"),
+        ("link", "symlink"),
+        ("s", "symlink"),
+        # unix
+        ("block-device", "block-device"),
+        ("char-device", "char-device"),
+        ("fifo", "fifo"),
+        ("socket", "socket"),
+        # windows
+        ("symlink-dir", "symlink-dir"),
+        ("symlink-file", "symlink-file"),
+        # unknown
+        ("unknown", "unknown"),
     ],
 )
-def test_file_type(t: t.Literal["file", "dir", "symlink"]) -> None:
-    ob = ry.FileType(t)
+def test_file_type(
+    input_str: t.Literal["file", "dir", "symlink"], expected: str
+) -> None:
+    ob = ry.FileType(input_str)
     assert isinstance(ob, ry.FileType)
-    assert str(ob) == t
-    assert ob.is_dir == (t == "dir")
-    assert ob.is_file == (t == "file")
-    assert ob.is_symlink == (t == "symlink")
+    assert str(ob) == expected
+    assert ob.is_dir == (expected == "dir")
+    assert ob.is_file == (expected == "file")
+    assert ob.is_symlink == (expected == "symlink")
+    assert ob.is_block_device == (expected == "block-device")
+    assert ob.is_char_device == (expected == "char-device")
+    assert ob.is_fifo == (expected == "fifo")
+    assert ob.is_socket == (expected == "socket")
+    assert ob.is_symlink_dir == (expected == "symlink-dir")
+    assert ob.is_symlink_file == (expected == "symlink-file")
+    assert ob.is_unknown == (expected == "unknown")
     assert eval(repr(ob), {"FileType": ry.FileType}) == ob
-
-    # probably gonna kill the to_dict for filetype...
-    # but here test
-    d = ob.to_dict()
-    assert isinstance(d, dict)
-    assert d["is_dir"] == ob.is_dir
-    assert d["is_file"] == ob.is_file
-    assert d["is_symlink"] == ob.is_symlink
-    assert set(d.keys()) == {"is_dir", "is_file", "is_symlink"}
 
 
 def test_file_type_invalid() -> None:

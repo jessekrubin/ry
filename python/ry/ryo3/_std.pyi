@@ -8,7 +8,6 @@ import typing as t
 from ry._types import (
     Buffer,
     DurationDict,
-    FileTypeDict,
     FsPathLike,
     MetadataDict,
 )
@@ -213,10 +212,43 @@ def sleep(secs: float) -> float:
 # =============================================================================
 # STD::FS
 # =============================================================================
+FileTypeStr: t.TypeAlias = t.Literal[
+    "file",
+    "dir",
+    "symlink",
+    # unix
+    "block-device",
+    "char-device",
+    "fifo",
+    "socket",
+    # windows
+    "symlink-dir",
+    "symlink-file",
+    # unknown
+    "unknown",
+]
+
 @t.final
-class FileType(ToPy[t.Literal["file", "dir", "symlink"]]):
+class FileType(ToPy[FileTypeStr]):
     def __init__(
-        self, t: t.Literal["f", "file", "d", "dir", "directory", "l", "symlink", "link"]
+        self,
+        t: t.Literal[
+            "f",
+            "file",
+            "d",
+            "dir",
+            "directory",
+            "l",
+            "symlink",
+            "link",
+            "block-device",
+            "char-device",
+            "fifo",
+            "socket",
+            "symlink-dir",
+            "symlink-file",
+            "unknown",
+        ],
     ) -> None: ...
     @property
     def is_dir(self) -> bool: ...
@@ -224,8 +256,21 @@ class FileType(ToPy[t.Literal["file", "dir", "symlink"]]):
     def is_file(self) -> bool: ...
     @property
     def is_symlink(self) -> bool: ...
-    def to_dict(self) -> FileTypeDict: ...
-    def to_py(self) -> t.Literal["file", "dir", "symlink"]: ...
+    @property
+    def is_block_device(self) -> bool: ...
+    @property
+    def is_unknown(self) -> bool: ...
+    @property
+    def is_char_device(self) -> bool: ...
+    @property
+    def is_fifo(self) -> bool: ...
+    @property
+    def is_socket(self) -> bool: ...
+    @property
+    def is_symlink_dir(self) -> bool: ...
+    @property
+    def is_symlink_file(self) -> bool: ...
+    def to_py(self) -> FileTypeStr: ...
 
 @t.final
 class Permissions:

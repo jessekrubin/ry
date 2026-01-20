@@ -11,6 +11,8 @@
 - `ryo3-std`
   - the internal `DirEntry` struct getters were changed to be methods instead of
     properties to match the `async` version in `ryo3-tokio`
+  - `FileType` finally supporting `FileTypeExt` and internally reworked
+  - removed `FileType.to_dict()` and associated `FileTypeDict` typed-dict
 - `ryo3-tokio`
   - Experiments with using tokio runtime to spawn instead of
     pyo3-async-runtimes + py-futures

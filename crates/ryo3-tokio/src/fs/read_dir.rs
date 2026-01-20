@@ -179,7 +179,7 @@ impl PyAsyncDirEntry {
 
         future_into_py(py, async move {
             let file_type = inner.file_type().await.map_err(PyErr::from)?;
-            Ok(ryo3_std::fs::PyFileType::new(file_type))
+            Ok(ryo3_std::fs::PyFileType::from(file_type))
         })
     }
 
@@ -227,7 +227,7 @@ impl PyAsyncDirEntry {
         let inner = self.0.clone();
         on_tokio_py(async move {
             let file_type = inner.file_type().await?;
-            Ok(ryo3_std::fs::PyFileType::new(file_type))
+            Ok(ryo3_std::fs::PyFileType::from(file_type))
         })
         .await
     }

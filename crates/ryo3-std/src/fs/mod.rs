@@ -79,7 +79,7 @@ impl PyMetadata {
     #[getter]
     #[must_use]
     fn file_type(&self) -> PyFileType {
-        PyFileType::new(self.0.file_type())
+        PyFileType::from(self.0.file_type())
     }
 
     #[getter]
