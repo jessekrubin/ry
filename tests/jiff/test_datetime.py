@@ -34,11 +34,11 @@ _JIFF_ROUND_MODES = [
 
 
 class TestDateTime:
-    d = ry.date(2020, 8, 26).at(6, 27, 0, 0)
+    dt = ry.date(2020, 8, 26).at(6, 27, 0, 0)
 
     def test_from_parts(self) -> None:
         dt = ry.DateTime.from_parts(ry.date(2020, 8, 26), ry.time(6, 27, 0, 0))
-        assert dt == self.d
+        assert dt == self.dt
 
     def test_datetime_round_options(self) -> None:
         default = ry.DateTimeRound()
@@ -60,56 +60,56 @@ class TestDateTime:
             assert options == options_chained
 
     def test_tomorrow(self) -> None:
-        tomorrow = self.d.tomorrow()
+        tomorrow = self.dt.tomorrow()
         assert isinstance(tomorrow, ry.DateTime)
         assert tomorrow == ry.date(2020, 8, 27).at(6, 27, 0, 0)
 
     def test_yesterday(self) -> None:
-        yesterday = self.d.yesterday()
+        yesterday = self.dt.yesterday()
         assert isinstance(yesterday, ry.DateTime)
         assert yesterday == ry.date(2020, 8, 25).at(6, 27, 0, 0)
 
     def test_datetime_to_iso_week_date(self) -> None:
-        iwd = self.d.iso_week_date()
+        iwd = self.dt.iso_week_date()
         assert isinstance(iwd, ry.ISOWeekDate)
         assert iwd == ry.ISOWeekDate(2020, 35, 3)
 
     def test_to_date(self) -> None:
-        d = self.d.date()
+        d = self.dt.date()
         assert isinstance(d, ry.Date)
         assert d == ry.date(2020, 8, 26)
 
     def test_to_time(self) -> None:
-        t = self.d.time()
+        t = self.dt.time()
         assert isinstance(t, ry.Time)
         assert t == ry.time(6, 27, 0, 0)
 
     def test_to_pydate(self) -> None:
-        dt = self.d.to_pydate()
+        dt = self.dt.to_pydate()
         assert isinstance(dt, pydt.date)
         assert dt == pydt.date(2020, 8, 26)
 
     def test_to_pytime(self) -> None:
-        t = self.d.to_pytime()
+        t = self.dt.to_pytime()
         assert isinstance(t, pydt.time)
         assert t == pydt.time(6, 27, 0, 0)
 
     def test_start_of_day(self) -> None:
-        sod = self.d.start_of_day()
+        sod = self.dt.start_of_day()
         assert isinstance(sod, ry.DateTime)
         assert sod == ry.date(2020, 8, 26).at(0, 0, 0, 0)
 
     def test_end_of_day(self) -> None:
-        eod = self.d.end_of_day()
+        eod = self.dt.end_of_day()
         assert isinstance(eod, ry.DateTime)
         assert eod == ry.date(2020, 8, 26).at(23, 59, 59, 999_999_999)
 
     def test_weekday(self) -> None:
-        weekday = self.d.weekday
+        weekday = self.dt.weekday
         assert isinstance(weekday, int)
         assert weekday == 3
 
-        cur = self.d
+        cur = self.dt
         days = [cur]
         for _ in range(7):
             cur = cur.tomorrow()
@@ -193,7 +193,7 @@ class TestDateTime:
         assert dt.last_of_month() == ry.date(2024, 2, 29).at(7, 30, 0, 0)
 
 
-class TestDatetimeSinceUntil:
+class TestDateTimeSinceUntil:
     def test_until(self) -> None:
         earlier = ry.date(2006, 8, 24).at(22, 30, 0, 0)
         later = ry.date(2019, 1, 31).at(21, 0, 0, 0)

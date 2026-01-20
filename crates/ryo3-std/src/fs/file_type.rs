@@ -120,7 +120,7 @@ impl FileTypeKind {
 
     #[cfg(windows)]
     fn from_std(ft: std::fs::FileType) -> Self {
-        use std::os::unix::fs::FileTypeExt;
+        use std::os::windows::fs::FileTypeExt;
         if ft.is_dir() {
             Self::Dir
         } else if ft.is_file() {
@@ -230,14 +230,12 @@ impl PyFileType {
         self.0.is_block_device()
     }
 
-    #[cfg(unix)]
     #[getter]
     #[must_use]
     fn is_char_device(&self) -> bool {
         self.0.is_char_device()
     }
 
-    #[cfg(unix)]
     #[getter]
     #[must_use]
     fn is_fifo(&self) -> bool {
