@@ -10,13 +10,13 @@ coverage==7.13.1
     # via pytest-cov
 h11==0.16.0
     # via uvicorn
-hypothesis==6.150.0
+hypothesis==6.150.2
     # via -r requirements.dev.in
 idna==3.11
     # via anyio
 iniconfig==2.3.0
     # via pytest
-maturin==1.11.4
+maturin==1.11.5
     # via -r requirements.dev.in
 orjson==3.11.4
     # via -r requirements.dev.in
@@ -46,7 +46,7 @@ pytest-benchmark==5.2.3
     # via -r requirements.dev.in
 pytest-cov==7.0.0
     # via -r requirements.dev.in
-ruff==0.14.10
+ruff==0.14.13
     # via -r requirements.dev.in
 sortedcontainers==2.4.0
     # via hypothesis

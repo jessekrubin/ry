@@ -1,5 +1,6 @@
 //! ry = rust + python
-use pyo3::{IntoPyObjectExt, prelude::*};
+use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
 mod lager;
 
 const PACKAGE: &str = env!("CARGO_PKG_NAME");
@@ -35,7 +36,9 @@ const CRYPTO_PROVIDER: &str = "ring";
 #[cfg(debug_assertions)]
 #[pyfunction]
 fn warn_debug_build(py: Python) -> PyResult<()> {
-    use pyo3::{exceptions::PyRuntimeWarning, intern, types::PyTuple};
+    use pyo3::exceptions::PyRuntimeWarning;
+    use pyo3::intern;
+    use pyo3::types::PyTuple;
     let warnings_mod = py.import(intern!(py, "warnings"))?;
     let warning = PyRuntimeWarning::new_err("ry not compiled in release mode");
     let args = PyTuple::new(py, vec![warning])?;
