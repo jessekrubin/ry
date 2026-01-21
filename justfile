@@ -232,3 +232,16 @@ cargo-doc:
 # generate depgraph for docs
 depgraph-svg:
     python scripts/dep-graph-mmd.py | mmdc -i - -o docs/src/assets/dep-graph.svg -t dark -b transparent
+
+# =====================================================================
+# CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN
+# =====================================================================
+
+# clean out local caches/artifacts/stuff
+clean:
+    cargo clean
+    rm -rfv .mypy_cache .venv .pytest_cache
+    find . -name "__pycache__" | xargs -n1 -t rm -frv
+    find . -name '*.py[co]' | xargs -n1 -t rm -fv
+    find . -name '*~' | xargs -n1 -t rm -fv
+    find . -name '.*~' | xargs -n1 -t rm -fv
