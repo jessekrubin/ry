@@ -125,7 +125,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ProxyKwargs {
 
 impl PyProxy {
     #[inline]
-    fn apply_kwargs(mut self, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
+    fn apply_kwargs(mut self, kwds: Option<ProxyKwargs>) -> Self {
         if let Some(kwds) = kwds {
             if let Some((u, p)) = kwds.basic_auth {
                 self = self.basic_auth(u, p);
@@ -137,7 +137,7 @@ impl PyProxy {
                 self = self.headers(ryo3_http::PyHeadersLike::Headers(h));
             }
         }
-        Ok(self)
+        self
     }
 }
 
@@ -172,7 +172,7 @@ impl PyProxy {
         let inner = PyProxyInner::new(ProxyScheme::Http(url.to_string()));
         let proxy = ::reqwest::Proxy::http(url.0).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
-        p.apply_kwargs(kwds)
+        Ok(p.apply_kwargs(kwds))
     }
 
     #[staticmethod]
@@ -181,7 +181,7 @@ impl PyProxy {
         let inner = PyProxyInner::new(ProxyScheme::Https(url.to_string()));
         let proxy = ::reqwest::Proxy::https(url.0).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
-        p.apply_kwargs(kwds)
+        Ok(p.apply_kwargs(kwds))
     }
 
     #[staticmethod]
@@ -190,7 +190,7 @@ impl PyProxy {
         let inner = PyProxyInner::new(ProxyScheme::All(url.to_string()));
         let proxy = ::reqwest::Proxy::all(url.0).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
-        p.apply_kwargs(kwds)
+        Ok(p.apply_kwargs(kwds))
     }
 
     fn basic_auth(&self, username: String, password: String) -> Self {

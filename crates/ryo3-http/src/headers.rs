@@ -24,16 +24,6 @@ impl Deref for PyHeaders {
 }
 
 impl PyHeaders {
-    fn extract_kwargs(kwargs: &Bound<'_, PyDict>) -> PyResult<HeaderMap> {
-        let mut hm = HeaderMap::new();
-        for (key, value) in kwargs.iter() {
-            let key = key.extract::<HttpHeaderName>()?;
-            let value = value.extract::<HttpHeaderValue>()?;
-            hm.insert(key.0, value.0);
-        }
-        Ok(hm)
-    }
-
     #[inline]
     pub(crate) fn read(&self) -> RwLockReadGuard<'_, HeaderMap> {
         self.0.py_read()
@@ -325,7 +315,7 @@ impl PyHeaders {
     }
 
     #[pyo3(signature = (headers, *, append = false))]
-    fn update(&self, headers: PyHeadersLike, append: bool) -> PyResult<()> {
+    fn update(&self, headers: PyHeadersLike, append: bool) {
         match headers {
             PyHeadersLike::Headers(other) => {
                 let other_inner = other.read();
@@ -359,7 +349,6 @@ impl PyHeaders {
                 }
             }
         }
-        Ok(())
     }
 
     fn __or__(&self, other: PyHeadersLike) -> Self {
