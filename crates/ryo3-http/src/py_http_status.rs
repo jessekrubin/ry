@@ -8,6 +8,7 @@ use pyo3::pyclass::CompareOp;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyString, PyTuple};
 use ryo3_core::PyAsciiStr;
+use ryo3_core::py_type_err;
 use ryo3_core::{PyAsciiString, py_value_error};
 
 // is the plural of status "stati" or "statuses"? who knows. literally nothing
@@ -162,10 +163,9 @@ impl PyHttpStatus {
                 CompareOp::Gt => Ok(self.0 > status.0),
                 CompareOp::Ge => Ok(self.0 >= status.0),
             }
-        } else {
-            let status_extract_res = other.extract::<u16>();
-            match status_extract_res {
-                Ok(status) => match op {
+        } else if let Ok(i) = other.extract::<u16>() {
+            match i {
+                status => match op {
                     CompareOp::Eq => Ok(self.0.as_u16() == status),
                     CompareOp::Ne => Ok(self.0.as_u16() != status),
                     CompareOp::Lt => Ok(self.0.as_u16() < status),
@@ -173,13 +173,12 @@ impl PyHttpStatus {
                     CompareOp::Gt => Ok(self.0.as_u16() > status),
                     CompareOp::Ge => Ok(self.0.as_u16() >= status),
                 },
-                Err(_) => match op {
-                    CompareOp::Eq => Ok(false),
-                    CompareOp::Ne => Ok(true),
-                    _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                        "http-status-code-invalid-comparison".to_string(),
-                    )),
-                },
+            }
+        } else {
+            match op {
+                CompareOp::Eq => Ok(false),
+                CompareOp::Ne => Ok(true),
+                _ => py_type_err!("http-status-code-invalid-comparison"),
             }
         }
     }

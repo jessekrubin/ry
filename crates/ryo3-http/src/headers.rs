@@ -2,10 +2,9 @@ use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
 use crate::{HttpHeaderMap, PyHeadersLike};
 use http::header::HeaderMap;
-use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
-use ryo3_core::RyRwLock;
+use ryo3_core::{RyRwLock, py_runtime_error, py_value_error};
 use std::fmt::Display;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -238,7 +237,7 @@ impl PyHeaders {
     fn append(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<bool> {
         self.write()
             .try_append(key.0, value.0)
-            .map_err(|e| PyRuntimeError::new_err(format!("header-append-error: {e}")))
+            .map_err(|e| py_runtime_error!("header-append-error: {e}"))
     }
 
     #[getter]
@@ -277,7 +276,7 @@ impl PyHeaders {
     ) -> PyResult<Option<HttpHeaderValue>> {
         self.write()
             .try_insert(key.0, value.0)
-            .map_err(|e| PyRuntimeError::new_err(format!("header-insert-error: {e}")))
+            .map_err(|e| py_runtime_error!("header-insert-error: {e}"))
             .map(|v| v.map(HttpHeaderValue::from))
     }
 
@@ -320,8 +319,7 @@ impl PyHeaders {
     fn values<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyString>>> {
         let mut vals = vec![];
         for v in self.read().values() {
-            let pystr = header_value_to_pystring(py, v)
-                .map_err(|e| PyErr::new::<PyValueError, _>(format!("header-value-error: {e}")))?;
+            let pystr = header_value_to_pystring(py, v)?;
             vals.push(pystr);
         }
         Ok(vals)
@@ -335,11 +333,11 @@ impl PyHeaders {
                 let mut inner = self.write();
                 if append {
                     for (k, v) in other_inner.iter() {
-                        inner.append(k, v.clone());
+                        inner.append(k, v.into());
                     }
                 } else {
                     for (k, v) in other_inner.iter() {
-                        inner.insert(k, v.clone());
+                        inner.insert(k, v.into());
                     }
                 }
             }
@@ -349,14 +347,14 @@ impl PyHeaders {
                     let mut inner = self.write();
                     for (k, v) in hm {
                         if let Some(k) = k {
-                            inner.append(k, v);
+                            inner.append(k, v.into());
                         }
                     }
                 } else {
                     let mut inner = self.write();
                     for (k, v) in hm {
                         if let Some(k) = k {
-                            inner.insert(k, v);
+                            inner.insert(k, v.into());
                         }
                     }
                 }
@@ -378,7 +376,7 @@ impl PyHeaders {
                 let h = HeaderMap::from(other);
                 for (k, v) in h {
                     if let Some(k) = k {
-                        headers.insert(k, v);
+                        headers.insert(k, v.into());
                     }
                 }
             }
@@ -400,13 +398,11 @@ impl PyHeaders {
         {
             let inner = self.read();
             if fmt {
-                let a = serde_json::to_string_pretty(&crate::http_serde::HttpHeaderMapRef(&inner))
-                    .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-                Ok(a)
+                serde_json::to_string_pretty(&crate::http_serde::HttpHeaderMapRef(&inner))
+                    .map_err(|e| py_value_error!("{e}"))
             } else {
-                let a = serde_json::to_string(&crate::http_serde::HttpHeaderMapRef(&inner))
-                    .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-                Ok(a)
+                serde_json::to_string(&crate::http_serde::HttpHeaderMapRef(&inner))
+                    .map_err(|e| py_value_error!("{e}"))
             }
         }
     }
@@ -430,7 +426,7 @@ impl PyHeaders {
     fn from_json(data: &str) -> PyResult<Self> {
         serde_json::from_str::<crate::HttpHeaderMap>(data)
             .map(|e| Self::from(e.0))
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))
+            .map_err(|e| py_value_error!("{e}"))
     }
 
     #[cfg(not(feature = "json"))]
