@@ -156,7 +156,7 @@ ruffix:
 
 # run clippy
 clippy:
-    cargo clippy
+    cargo clippy --all-targets --features mimalloc -- -W warnings
 
 # run clippy with feature-powerset via cargo-hack
 clippy-features:

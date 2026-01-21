@@ -1,11 +1,10 @@
-use crate::PyHeadersLike;
 use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
+use crate::{HttpHeaderMap, PyHeadersLike};
 use http::header::HeaderMap;
-use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
-use ryo3_core::RyRwLock;
+use ryo3_core::{RyRwLock, py_runtime_error};
 use std::fmt::Display;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -25,16 +24,6 @@ impl Deref for PyHeaders {
 }
 
 impl PyHeaders {
-    fn extract_kwargs(kwargs: &Bound<'_, PyDict>) -> PyResult<HeaderMap> {
-        let mut hm = HeaderMap::new();
-        for (key, value) in kwargs.iter() {
-            let key = key.extract::<HttpHeaderName>()?;
-            let value = value.extract::<HttpHeaderValue>()?;
-            hm.insert(key.0, value.0);
-        }
-        Ok(hm)
-    }
-
     #[inline]
     pub(crate) fn read(&self) -> RwLockReadGuard<'_, HeaderMap> {
         self.0.py_read()
@@ -115,6 +104,12 @@ impl From<HeaderMap> for PyHeaders {
     }
 }
 
+impl From<HttpHeaderMap> for PyHeaders {
+    fn from(hm: HttpHeaderMap) -> Self {
+        Self::from(HeaderMap::from(hm))
+    }
+}
+
 impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
     fn from(hm: Arc<RyRwLock<HeaderMap, false>>) -> Self {
         Self(hm)
@@ -125,23 +120,22 @@ impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
 impl PyHeaders {
     #[new]
     #[pyo3(signature = (d = None, **kwargs))]
-    fn py_new(d: Option<PyHeadersLike>, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+    fn py_new(d: Option<PyHeadersLike>, kwargs: Option<PyHeadersLike>) -> Self {
         match (d, kwargs) {
             (Some(d), Some(kwargs)) => {
-                let mut headers_map = HeaderMap::try_from(d)?;
-                let kw_headers = Self::extract_kwargs(kwargs)?;
-                headers_map.extend(kw_headers);
-                Ok(Self::from(headers_map))
+                let mut headers_map = HeaderMap::from(d);
+                headers_map.extend(HeaderMap::from(kwargs));
+                Self::from(headers_map)
             }
             (Some(d), None) => {
-                let headers_map = HeaderMap::try_from(d)?;
-                Ok(Self::from(headers_map))
+                let headers_map = HeaderMap::from(d);
+                Self::from(headers_map)
             }
             (None, Some(kwargs)) => {
-                let kw_headers = Self::extract_kwargs(kwargs)?;
-                Ok(Self::from(kw_headers))
+                let kw_headers = HeaderMap::from(kwargs);
+                Self::from(kw_headers)
             }
-            (None, None) => Ok(Self::from(HeaderMap::new())),
+            (None, None) => Self::from(HeaderMap::new()),
         }
     }
 
@@ -232,7 +226,7 @@ impl PyHeaders {
     fn append(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<bool> {
         self.write()
             .try_append(key.0, value.0)
-            .map_err(|e| PyRuntimeError::new_err(format!("header-append-error: {e}")))
+            .map_err(|e| py_runtime_error!("header-append-error: {e}"))
     }
 
     #[getter]
@@ -271,7 +265,7 @@ impl PyHeaders {
     ) -> PyResult<Option<HttpHeaderValue>> {
         self.write()
             .try_insert(key.0, value.0)
-            .map_err(|e| PyRuntimeError::new_err(format!("header-insert-error: {e}")))
+            .map_err(|e| py_runtime_error!("header-insert-error: {e}"))
             .map(|v| v.map(HttpHeaderValue::from))
     }
 
@@ -314,32 +308,30 @@ impl PyHeaders {
     fn values<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyString>>> {
         let mut vals = vec![];
         for v in self.read().values() {
-            let pystr = header_value_to_pystring(py, v)
-                .map_err(|e| PyErr::new::<PyValueError, _>(format!("header-value-error: {e}")))?;
+            let pystr = header_value_to_pystring(py, v)?;
             vals.push(pystr);
         }
         Ok(vals)
     }
 
     #[pyo3(signature = (headers, *, append = false))]
-    fn update(&self, headers: PyHeadersLike, append: bool) -> PyResult<()> {
+    fn update(&self, headers: PyHeadersLike, append: bool) {
         match headers {
             PyHeadersLike::Headers(other) => {
                 let other_inner = other.read();
                 let mut inner = self.write();
                 if append {
                     for (k, v) in other_inner.iter() {
-                        inner.append(k, v.clone());
+                        inner.append(k, v.into());
                     }
                 } else {
                     for (k, v) in other_inner.iter() {
-                        inner.insert(k, v.clone());
+                        inner.insert(k, v.into());
                     }
                 }
             }
             PyHeadersLike::Map(other) => {
-                let hm = PyHeadersLike::map2headers(&other)?;
-
+                let hm = HeaderMap::from(other);
                 if append {
                     let mut inner = self.write();
                     for (k, v) in hm {
@@ -357,10 +349,9 @@ impl PyHeaders {
                 }
             }
         }
-        Ok(())
     }
 
-    fn __or__(&self, other: PyHeadersLike) -> PyResult<Self> {
+    fn __or__(&self, other: PyHeadersLike) -> Self {
         let mut headers = self.read().clone();
         match other {
             PyHeadersLike::Headers(other) => {
@@ -370,7 +361,7 @@ impl PyHeaders {
                 }
             }
             PyHeadersLike::Map(other) => {
-                let h = PyHeadersLike::map2headers(&other)?;
+                let h = HeaderMap::from(other);
                 for (k, v) in h {
                     if let Some(k) = k {
                         headers.insert(k, v);
@@ -378,7 +369,7 @@ impl PyHeaders {
                 }
             }
         }
-        Ok(Self::from(headers))
+        Self::from(headers)
     }
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
@@ -392,17 +383,14 @@ impl PyHeaders {
     #[cfg(feature = "json")]
     #[pyo3(signature = (*, fmt=false))]
     fn stringify(&self, fmt: bool) -> PyResult<String> {
-        {
-            let inner = self.read();
-            if fmt {
-                let a = serde_json::to_string_pretty(&crate::http_serde::HttpHeaderMapRef(&inner))
-                    .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-                Ok(a)
-            } else {
-                let a = serde_json::to_string(&crate::http_serde::HttpHeaderMapRef(&inner))
-                    .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))?;
-                Ok(a)
-            }
+        use ryo3_core::py_value_error;
+        let inner = self.read();
+        if fmt {
+            serde_json::to_string_pretty(&crate::http_serde::HttpHeaderMapRef(&inner))
+                .map_err(|e| py_value_error!("{e}"))
+        } else {
+            serde_json::to_string(&crate::http_serde::HttpHeaderMapRef(&inner))
+                .map_err(|e| py_value_error!("{e}"))
         }
     }
 
@@ -423,9 +411,11 @@ impl PyHeaders {
     #[cfg(feature = "json")]
     #[staticmethod]
     fn from_json(data: &str) -> PyResult<Self> {
+        use ryo3_core::py_value_error;
+
         serde_json::from_str::<crate::HttpHeaderMap>(data)
             .map(|e| Self::from(e.0))
-            .map_err(|e| PyErr::new::<PyValueError, _>(format!("{e}")))
+            .map_err(|e| py_value_error!("{e}"))
     }
 
     #[cfg(not(feature = "json"))]
