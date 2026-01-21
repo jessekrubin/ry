@@ -1,6 +1,6 @@
-use crate::PyHeadersLike;
 use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
+use crate::{HttpHeaderMap, PyHeadersLike};
 use http::header::HeaderMap;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
@@ -112,6 +112,12 @@ impl Eq for PyHeaders {}
 impl From<HeaderMap> for PyHeaders {
     fn from(hm: HeaderMap) -> Self {
         Self(Arc::new(RyRwLock::new(hm)))
+    }
+}
+
+impl From<HttpHeaderMap> for PyHeaders {
+    fn from(hm: HttpHeaderMap) -> Self {
+        Self::from(HeaderMap::from(hm))
     }
 }
 
@@ -338,8 +344,7 @@ impl PyHeaders {
                 }
             }
             PyHeadersLike::Map(other) => {
-                let hm = PyHeadersLike::map2headers(&other)?;
-
+                let hm = HeaderMap::from(other);
                 if append {
                     let mut inner = self.write();
                     for (k, v) in hm {
@@ -370,7 +375,7 @@ impl PyHeaders {
                 }
             }
             PyHeadersLike::Map(other) => {
-                let h = PyHeadersLike::map2headers(&other)?;
+                let h = HeaderMap::from(other);
                 for (k, v) in h {
                     if let Some(k) = k {
                         headers.insert(k, v);

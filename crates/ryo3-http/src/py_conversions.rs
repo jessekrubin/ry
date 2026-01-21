@@ -1,5 +1,5 @@
 //! http python conversions
-use crate::HttpHeaderNameRef;
+use crate::{HttpHeaderMap, HttpHeaderNameRef};
 use crate::http_types::{
     HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef, HttpMethod, HttpVersion,
 };
@@ -7,6 +7,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_core::{py_type_err, py_value_err};
 
 impl<'py> IntoPyObject<'py> for &HttpMethod {
     type Target = PyString;
@@ -24,9 +25,7 @@ impl<'py> IntoPyObject<'py> for &HttpMethod {
             http::Method::CONNECT => Ok(intern!(py, "CONNECT")),
             http::Method::PATCH => Ok(intern!(py, "PATCH")),
             http::Method::TRACE => Ok(intern!(py, "TRACE")),
-            _ => Err(PyErr::new::<PyValueError, _>(
-                "UNSUPPORTED HTTP METHOD".to_string(),
-            )),
+            _ =>  py_value_err!("UNSUPPORTED HTTP METHOD"),
         }?;
         let b = s.as_borrowed();
         Ok(b)
@@ -60,14 +59,13 @@ impl<'py> FromPyObject<'_, 'py> for HttpMethod {
                 "CONNECT" | "connect" => Ok(Self(http::Method::CONNECT)),
                 "PATCH" | "patch" => Ok(Self(http::Method::PATCH)),
                 "TRACE" | "trace" => Ok(Self(http::Method::TRACE)),
-                _ => Err(PyErr::new::<PyValueError, _>(format!(
-                    "Invalid HTTP method: {s} (options: {HTTP_METHOD_STRINGS})"
-                ))),
+                _ => py_value_err!("Invalid HTTP method: {s} (options: {HTTP_METHOD_STRINGS})"),
             }
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            py_type_err!(
+
                 "Invalid method: (options: {HTTP_METHOD_STRINGS})"
-            )))
+            )
         }
     }
 }

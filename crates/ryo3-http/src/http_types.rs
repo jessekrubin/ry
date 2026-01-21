@@ -44,6 +44,11 @@ impl From<HeaderMap> for HttpHeaderMap {
         Self(h)
     }
 }
+impl From<HttpHeaderMap> for HeaderMap {
+    fn from(h: HttpHeaderMap) -> Self {
+        h.0
+    }
+}
 
 impl From<HttpHeaderName> for http::HeaderName {
     fn from(h: HttpHeaderName) -> Self {

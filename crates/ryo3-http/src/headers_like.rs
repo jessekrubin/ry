@@ -1,14 +1,60 @@
-use crate::PyHeaders;
+use crate::{HttpHeaderMap, PyHeaders};
 use http::HeaderMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use ryo3_core::types::StringOrStrings;
+use ryo3_core::py_type_err;
 use std::collections::HashMap;
+#[derive(Debug, FromPyObject)]
+pub(crate) enum StringOrStrings {
+    String(pyo3::pybacked::PyBackedStr),
+    Strings(Vec<pyo3::pybacked::PyBackedStr>),
+}
 
 #[derive(Debug, Clone, FromPyObject)]
 pub enum PyHeadersLike {
     Headers(PyHeaders),
-    Map(HashMap<String, StringOrStrings>),
+    Map(HttpHeaderMap),
+}
+
+impl<'py> FromPyObject<'_, 'py> for HttpHeaderMap {
+    type Error = PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = ob.cast_exact::<pyo3::types::PyDict>() {
+            let extracted = d.extract::<HashMap<String, StringOrStrings>>()?;
+            let mut hm: http::HeaderMap = HeaderMap::new();
+            for (k, v) in extracted {
+                match v {
+                    StringOrStrings::String(s) => {
+                        let header_name = http::header::HeaderName::from_bytes(k.as_bytes())
+                            .map_err(|e| {
+                                PyValueError::new_err(format!("header-name-error: {e}"))
+                            })?;
+                        let header_value = http::header::HeaderValue::from_bytes(s.as_bytes())
+                            .map_err(|e| {
+                                PyValueError::new_err(format!("header-value-error: {e}"))
+                            })?;
+                        hm.insert(header_name, header_value);
+                    }
+                    StringOrStrings::Strings(v) => {
+                        let header_name = http::header::HeaderName::from_bytes(k.as_bytes())
+                            .map_err(|e| {
+                                PyValueError::new_err(format!("header-name-error: {e}"))
+                            })?;
+                        for s in v {
+                            let header_value = http::header::HeaderValue::from_bytes(s.as_bytes())
+                                .map_err(|e| {
+                                    PyValueError::new_err(format!("header-value-error: {e}"))
+                                })?;
+                            hm.append(&header_name, header_value);
+                        }
+                    }
+                }
+            }
+            Ok(HttpHeaderMap::from(hm))
+        } else {
+            py_type_err!("Expected a dict for HttpHeaderMap")
+        }
+    }
 }
 
 impl PyHeadersLike {
@@ -39,25 +85,22 @@ impl PyHeadersLike {
     }
 }
 
-impl TryFrom<PyHeadersLike> for HeaderMap {
-    type Error = PyErr;
-    fn try_from(h: PyHeadersLike) -> Result<Self, Self::Error> {
+impl From<PyHeadersLike> for HeaderMap {
+    // type Error = PyErr;
+    fn from(h: PyHeadersLike) -> Self {
         match h {
-            PyHeadersLike::Headers(h) => Ok(h.read().clone()),
-            PyHeadersLike::Map(d) => PyHeadersLike::map2headers(&d)
-                .map_err(|e| PyValueError::new_err(format!("header-map-error: {e}"))),
+            PyHeadersLike::Headers(h) => h.read().clone(),
+            PyHeadersLike::Map(d) =>  d.into()
         }
     }
 }
 
-impl TryFrom<PyHeadersLike> for PyHeaders {
-    type Error = PyErr;
-    fn try_from(h: PyHeadersLike) -> Result<Self, Self::Error> {
+impl From<PyHeadersLike> for PyHeaders {
+    fn from(h: PyHeadersLike) -> Self {
         match h {
-            PyHeadersLike::Headers(h) => Ok(h),
+            PyHeadersLike::Headers(h) => h,
             PyHeadersLike::Map(d) => {
-                let headers = PyHeadersLike::map2headers(&d)?;
-                Ok(Self::from(headers))
+                Self::from(d)
             }
         }
     }
