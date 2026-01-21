@@ -1,6 +1,15 @@
+# ==== local-dev ====
+*.diff.txt
+*.patch.txt
+test-cov.sh
+/*.py
+/*.txt
+
+# ===================
 /target
 node_modules/
 /pnpm-lock.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .pytest_cache/
@@ -70,6 +79,7 @@ docs/_build/
 
 # VSCode
 .vscode/
+*.code-workspace
 
 # Pyenv
 .python-version
