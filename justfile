@@ -85,6 +85,7 @@ ci:
     cargo clippy --all-targets --features mimalloc -- -D warnings
     cargo test
 
+
 # ===========================================================================
 # FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT
 # ===========================================================================
@@ -156,7 +157,7 @@ ruffix:
 
 # run clippy
 clippy:
-    cargo clippy
+    cargo clippy --all-targets --features mimalloc -- -W warnings
 
 # run clippy with feature-powerset via cargo-hack
 clippy-features:
