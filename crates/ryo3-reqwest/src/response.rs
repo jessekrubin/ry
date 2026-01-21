@@ -275,7 +275,7 @@ impl RyResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.read())
+        (*self.head.headers.py_read())
             .get(CONTENT_ENCODING)
             .map(|en| en.to_str().expect("wildly unlikely").to_string())
     }
@@ -283,7 +283,7 @@ impl RyResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.read();
+        let headers = self.head.headers.py_read();
         let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
             .get_all(SET_COOKIE)
             .iter()
@@ -464,16 +464,18 @@ impl RyAsyncResponse {
     /// Return the `content-encoding` header value of the response or `None`
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.read()).get(CONTENT_ENCODING).map(|en| {
-            let s = en.to_str().expect("Invalid content encoding");
-            s.to_string()
-        })
+        (*self.head.headers.py_read())
+            .get(CONTENT_ENCODING)
+            .map(|en| {
+                let s = en.to_str().expect("Invalid content encoding");
+                s.to_string()
+            })
     }
 
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.read();
+        let headers = self.head.headers.py_read();
         let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
             .get_all(SET_COOKIE)
             .iter()
@@ -680,16 +682,18 @@ impl RyBlockingResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.read()).get(CONTENT_ENCODING).map(|en| {
-            let s = en.to_str().expect("Invalid content encoding");
-            s.to_string()
-        })
+        (*self.head.headers.py_read())
+            .get(CONTENT_ENCODING)
+            .map(|en| {
+                let s = en.to_str().expect("Invalid content encoding");
+                s.to_string()
+            })
     }
 
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.read();
+        let headers = self.head.headers.py_read();
         let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
             .get_all(SET_COOKIE)
             .iter()

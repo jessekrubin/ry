@@ -2,21 +2,23 @@ use crate::PyHeadersLike;
 use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
 use http::header::HeaderMap;
-use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+// use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
+use ryo3_core::RyRwLock;
 use std::fmt::Display;
 use std::ops::Deref;
 use std::sync::Arc;
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[pyclass(name = "Headers", frozen, immutable_type, mapping, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyHeaders(pub Arc<RwLock<HeaderMap>>);
+pub struct PyHeaders(pub Arc<RyRwLock<HeaderMap, false>>);
 
 impl Deref for PyHeaders {
-    type Target = Arc<RwLock<HeaderMap>>;
+    type Target = Arc<RyRwLock<HeaderMap, false>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -36,12 +38,12 @@ impl PyHeaders {
 
     #[inline]
     pub(crate) fn read(&self) -> RwLockReadGuard<'_, HeaderMap> {
-        self.0.read()
+        self.0.py_read()
     }
 
     #[inline]
     fn write(&self) -> RwLockWriteGuard<'_, HeaderMap> {
-        self.0.write()
+        self.0.py_write()
     }
 
     fn py_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
@@ -110,12 +112,12 @@ impl Eq for PyHeaders {}
 
 impl From<HeaderMap> for PyHeaders {
     fn from(hm: HeaderMap) -> Self {
-        Self(Arc::new(RwLock::new(hm)))
+        Self(Arc::new(RyRwLock::new(hm)))
     }
 }
 
-impl From<Arc<RwLock<HeaderMap>>> for PyHeaders {
-    fn from(hm: Arc<RwLock<HeaderMap>>) -> Self {
+impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
+    fn from(hm: Arc<RyRwLock<HeaderMap, false>>) -> Self {
         Self(hm)
     }
 }
