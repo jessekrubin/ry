@@ -2005,7 +2005,6 @@ name = "ryo3-http"
 version = "0.0.80"
 dependencies = [
  "http",
- "parking_lot",
  "pyo3",
  "pyo3-build-config",
  "ryo3-core",

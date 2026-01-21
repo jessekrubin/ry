@@ -19,21 +19,21 @@ pub trait PyWrite<T> {
 impl<T> PyLock<T> for Mutex<T> {
     #[inline]
     fn py_lock(&self) -> PyResult<MutexGuard<'_, T>> {
-        self.lock().map_err(|e| map_mutex_poison_error(e))
+        self.lock().map_err(|e| map_mutex_poison_error(&e))
     }
 }
 
 impl<T> PyRead<T> for RwLock<T> {
     #[inline]
     fn py_read(&self) -> PyResult<RwLockReadGuard<'_, T>> {
-        self.read().map_err(|e| map_rwlock_read_poison_error(e))
+        self.read().map_err(|e| map_rwlock_read_poison_error(&e))
     }
 }
 
 impl<T> PyWrite<T> for RwLock<T> {
     #[inline]
     fn py_write(&self) -> PyResult<RwLockWriteGuard<'_, T>> {
-        self.write().map_err(|e| map_rwlock_write_poison_error(e))
+        self.write().map_err(|e| map_rwlock_write_poison_error(&e))
     }
 }
 
@@ -43,18 +43,18 @@ impl<T> PyWrite<T> for RwLock<T> {
 
 /// Maps a poisoned `Mutex` error to a Python `RuntimeError`.
 #[must_use]
-fn map_mutex_poison_error<T>(e: PoisonError<T>) -> PyErr {
+fn map_mutex_poison_error<T>(e: &PoisonError<T>) -> PyErr {
     py_runtime_error!("Mutex poisoned: {e:?}")
 }
 
 /// Maps a poisoned `RwLock` error to a Python `RuntimeError`.
 #[must_use]
-fn map_rwlock_read_poison_error<T>(e: PoisonError<RwLockReadGuard<'_, T>>) -> PyErr {
+fn map_rwlock_read_poison_error<T>(e: &PoisonError<RwLockReadGuard<'_, T>>) -> PyErr {
     py_runtime_error!("RwLock<Read> poisoned: {e:?}")
 }
 
 #[must_use]
-fn map_rwlock_write_poison_error<T>(e: PoisonError<RwLockWriteGuard<'_, T>>) -> PyErr {
+fn map_rwlock_write_poison_error<T>(e: &PoisonError<RwLockWriteGuard<'_, T>>) -> PyErr {
     py_runtime_error!("RwLock<Write> poisoned: {e:?}")
 }
 
@@ -62,7 +62,7 @@ fn map_rwlock_write_poison_error<T>(e: PoisonError<RwLockWriteGuard<'_, T>>) -> 
 // Mutex wrapper that optionally throws on poisoning
 // ==========================================================================
 
-/// Python friendly Mutex wrapper that optionally throws on poisoning
+/// Python friendly `std::sync::Mutex` wrapper that optionally throws on poisoning
 // if debug
 #[derive(Debug)]
 pub struct RyMutex<T, const THROW: bool = true>(pub Mutex<T>);
@@ -90,7 +90,7 @@ impl<T> RyMutex<T, false> {
 // RwLock wrapper that optionally throws on poisoning
 // ==========================================================================
 
-/// Python friendly RwLock wrapper that optionally throws on poisoning
+/// Python friendly `std::sync::RwLock` wrapper that optionally throws on poisoning
 #[derive(Debug)]
 pub struct RyRwLock<T, const THROW: bool = true>(pub RwLock<T>);
 
