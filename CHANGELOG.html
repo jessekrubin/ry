@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-9ed6fcf0.js";
+            window.path_to_searchindex_js = "searchindex-e338d685.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -185,6 +185,7 @@
 <ul>
 <li><code>ryo3-http</code>
 <ul>
+<li>remove <code>parking_lot</code> from http</li>
 <li>cache status <code>ry.HttpStatus</code> code struct instances. the classattrs go
 through the same mechanism so <code>ry.HttpStatus.OK is ry.HttpStatus(200)</code> is
 <code>True</code>. Statuses are only cached for codes in the 100-599 range even tho
