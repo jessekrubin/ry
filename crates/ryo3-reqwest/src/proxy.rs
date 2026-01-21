@@ -212,7 +212,7 @@ impl PyProxy {
 
     fn headers(&self, headers: ryo3_http::PyHeadersLike) -> PyResult<Self> {
         let headers = PyHeaders::try_from(headers)?;
-        let proxy = self.proxy.clone().headers(headers.read().clone());
+        let proxy = self.proxy.clone().headers(headers.py_read().clone());
         let mut inner = self.inner.clone();
         inner.headers = Some(headers);
         Ok(Self { proxy, inner })

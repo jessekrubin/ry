@@ -3,6 +3,7 @@
 ## v0.0.80 [unreleased]
 
 - `ryo3-http`
+  - remove `parking_lot` from http
   - cache status `ry.HttpStatus` code struct instances. the classattrs go
     through the same mechanism so `ry.HttpStatus.OK is ry.HttpStatus(200)` is
     `True`. Statuses are only cached for codes in the 100-599 range even tho

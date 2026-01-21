@@ -20,7 +20,23 @@ jiter.workspace = true
 parking_lot.workspace = true
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes = { workspace = true, features = ["unstable-streams"] }
-reqwest.workspace = true
+reqwest = { workspace = true, default-features = false, features = [
+  "brotli",
+  "charset",
+  "cookies",
+  "deflate",
+  "form",
+  "gzip",
+  "hickory-dns",
+  "http2",
+  "json",
+  "multipart",
+  "query",
+  "rustls-no-provider",
+  "socks",
+  "stream",
+  "zstd",
+] }
 rustls = { workspace = true, features = [
   "logging",
   "prefer-post-quantum",
@@ -37,7 +53,7 @@ ryo3-serde.workspace = true
 ryo3-std = { workspace = true, features = ["time"] }
 ryo3-url.workspace = true
 serde.workspace = true
-serde_urlencoded.workspace =true
+serde_urlencoded.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 
