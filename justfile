@@ -85,7 +85,6 @@ ci:
     cargo clippy --all-targets --features mimalloc -- -D warnings
     cargo test
 
-
 # ===========================================================================
 # FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT
 # ===========================================================================

@@ -134,7 +134,7 @@ impl PyProxy {
                 self = self.no_proxy(np);
             }
             if let Some(h) = kwds.headers {
-                self = self.headers(ryo3_http::PyHeadersLike::Headers(h))?;
+                self = self.headers(ryo3_http::PyHeadersLike::Headers(h));
             }
         }
         Ok(self)
@@ -210,12 +210,12 @@ impl PyProxy {
         Self { proxy, inner }
     }
 
-    fn headers(&self, headers: ryo3_http::PyHeadersLike) -> PyResult<Self> {
-        let headers = PyHeaders::try_from(headers)?;
+    fn headers(&self, headers: ryo3_http::PyHeadersLike) -> Self {
+        let headers = PyHeaders::from(headers);
         let proxy = self.proxy.clone().headers(headers.py_read().clone());
         let mut inner = self.inner.clone();
         inner.headers = Some(headers);
-        Ok(Self { proxy, inner })
+        Self { proxy, inner }
     }
 
     fn __repr__(&self) -> String {

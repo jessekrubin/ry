@@ -163,16 +163,14 @@ impl PyHttpStatus {
                 CompareOp::Gt => Ok(self.0 > status.0),
                 CompareOp::Ge => Ok(self.0 >= status.0),
             }
-        } else if let Ok(i) = other.extract::<u16>() {
-            match i {
-                status => match op {
-                    CompareOp::Eq => Ok(self.0.as_u16() == status),
-                    CompareOp::Ne => Ok(self.0.as_u16() != status),
-                    CompareOp::Lt => Ok(self.0.as_u16() < status),
-                    CompareOp::Le => Ok(self.0.as_u16() <= status),
-                    CompareOp::Gt => Ok(self.0.as_u16() > status),
-                    CompareOp::Ge => Ok(self.0.as_u16() >= status),
-                },
+        } else if let Ok(status) = other.extract::<u16>() {
+            match op {
+                CompareOp::Eq => Ok(self.0.as_u16() == status),
+                CompareOp::Ne => Ok(self.0.as_u16() != status),
+                CompareOp::Lt => Ok(self.0.as_u16() < status),
+                CompareOp::Le => Ok(self.0.as_u16() <= status),
+                CompareOp::Gt => Ok(self.0.as_u16() > status),
+                CompareOp::Ge => Ok(self.0.as_u16() >= status),
             }
         } else {
             match op {

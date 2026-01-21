@@ -42,7 +42,7 @@ impl<'py> FromPyObject<'_, 'py> for HttpHeaderMap {
                     }
                 }
             }
-            Ok(HttpHeaderMap::from(hm))
+            Ok(Self::from(hm))
         } else {
             py_type_err!("Expected a dict for HttpHeaderMap")
         }
