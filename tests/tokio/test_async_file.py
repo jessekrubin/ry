@@ -91,7 +91,7 @@ class FileFixtures:
     test_file_path: Path
 
 
-@pytest.fixture()
+@pytest.fixture
 def aopen_fixtures(tmp_path: Path) -> FileFixtures:
     """Fixture to create a temporary file and return its path and an AsyncFile object."""
     ry.mkdir(tmp_path / "resources")

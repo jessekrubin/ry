@@ -42,11 +42,11 @@ def jiff_round_mode(request: pytest.FixtureRequest) -> JiffRoundMode:
     return cast("JiffRoundMode", request.param)
 
 
-@pytest.fixture()
+@pytest.fixture
 def jiff_units() -> tuple[JiffUnit, ...]:
     return _JIFF_UNITS
 
 
-@pytest.fixture()
+@pytest.fixture
 def jiff_round_modes() -> tuple[JiffRoundMode, ...]:
     return _JIFF_ROUND_MODES
