@@ -173,7 +173,7 @@ impl Default for ClientConfig {
             identity: None,
             tls_certs_merge: None,
             tls_certs_only: None,
-            tls_cached_native_certs: true,
+            tls_cached_native_certs: false,
             tls_crls_only: None,
             tls_info: false,
             tls_sni: true,
@@ -548,7 +548,7 @@ impl RyHttpClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
-            tls_cached_native_certs = true,
+            tls_cached_native_certs = false,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -872,7 +872,7 @@ impl RyClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
-            tls_cached_native_certs = true,
+            tls_cached_native_certs = false,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -1164,7 +1164,7 @@ impl RyBlockingClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
-            tls_cached_native_certs = true,
+            tls_cached_native_certs = false,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
