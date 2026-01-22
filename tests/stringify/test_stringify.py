@@ -41,9 +41,7 @@ class TestStringifyRecursion:
     def _depth(self, d: dict[str, t.Any] | tuple[t.Any, ...] | list[t.Any]) -> int:
         if isinstance(d, dict) and d:
             return 1 + self._depth(next(iter(d.values())))
-        elif isinstance(d, list) and d:
-            return 1 + self._depth(d[0])
-        elif isinstance(d, tuple) and d:
+        elif (isinstance(d, list) and d) or (isinstance(d, tuple) and d):
             return 1 + self._depth(d[0])
         return 0
 
@@ -111,7 +109,6 @@ def test_stringify_pybytes_output() -> None:
 
 def _test_stringify_json(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings."""
-
     json_bytes = ry.stringify(data)
     assert isinstance(json_bytes, ry.Bytes), "Result should be a `ry.Bytes`"
 
@@ -131,7 +128,6 @@ def _test_stringify_json(data: t.Any) -> None:
 
 def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
-
     json_bytes = ry.stringify(data)
     try:
         oj_res = oj_stringify(data)
@@ -282,7 +278,7 @@ PYTYPES_JSON_SER = [
         "datetime": pydt.datetime(2023, 10, 1, 12, 0, 0),
         "time": pydt.time(12, 0, 0),
         "timedelta": pydt.timedelta(days=1, seconds=3600),
-        # TODO: add tzinfo/timezone? "tzinfo": pydt.datetime.now(pydt.timezone.utc).tzinfo,
+        # TODO: add tzinfo/timezone? "tzinfo": pydt.datetime.now(pydt.timezone.utc).tzinfo
     },
 ]
 
@@ -428,7 +424,6 @@ class TestStringifyDefault:
 
     def test_stringify_custom_type_no_default_throws_err(self) -> None:
         """Test that stringify raises an error for custom types without a default."""
-
         with pytest.raises(TypeError, match="Failed to serialize"):
             ry.stringify(self.SomeSTupidCustomType("test"))
 

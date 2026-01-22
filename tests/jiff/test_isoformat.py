@@ -16,7 +16,6 @@ from ..strategies import st_timezones
 @given(st.datetimes(timezones=st.none()))
 def test_datetime_isoformat(dt: pydt.datetime) -> None:
     """Test that datetime.isoformat() produces the expected string."""
-
     py_isoformat = dt.isoformat()
     ry_dt = ry.DateTime.from_pydatetime(dt)
     ry_isoformat = ry_dt.isoformat()
@@ -114,7 +113,6 @@ def datetime_does_not_exist(value: pydt.datetime) -> bool:
 )
 def test_zoned_datetime_isoformat(dt: pydt.datetime) -> None:
     """Test that ZondedDateTime.isoformat() produces the expected string."""
-
     assume(dt.tzinfo is not None)  # Ensure the datetime is timezone-aware
 
     py_isoformat = dt.isoformat()

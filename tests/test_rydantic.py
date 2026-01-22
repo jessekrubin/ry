@@ -1021,7 +1021,7 @@ class FutureThingsMaybe:
             "ser_json_timedelta": ["iso8601", "float"],
         }
 
-        _CONFIG_COMBOS = [  # noqa: N806
+        return [  # noqa: N806
             {},
             *({"ser_json_temporal": v} for v in _KWARG_OPTIONS["ser_json_temporal"]),
             *({"ser_json_timedelta": v} for v in _KWARG_OPTIONS["ser_json_timedelta"]),
@@ -1031,7 +1031,6 @@ class FutureThingsMaybe:
                 for vd in _KWARG_OPTIONS["ser_json_timedelta"]
             ),
         ]
-        return _CONFIG_COMBOS
 
 
 # ============================================================================

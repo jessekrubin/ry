@@ -57,9 +57,9 @@ async def test_async_iteration(tmp_path: Path) -> None:
     f = AsyncFile(temp_file_path, "rb")
     await f.open()
 
-    collected = []
-    async for line in f:
-        collected.append(line)
+    collected = [
+        line async for line in f
+    ]
     assert collected == [b"line1\n", b"line2\n", b"line3\n"]
 
 
@@ -121,7 +121,6 @@ class TestAsyncFileAiopen:
         self, aopen_fixtures: FileFixtures, mode: str, buffering: int
     ) -> None:
         """Test iterating over lines from a file."""
-
         async with aopen(
             aopen_fixtures.multiline_file_path, mode=mode, buffering=buffering
         ) as file:
@@ -232,7 +231,9 @@ async def test_simple_read(
         actual = await file.read()
 
         assert (await file.read()) == b""
-    assert actual == open(filename, mode="rb").read()
+    with open(filename, mode="rb") as f:
+        data = f.read()
+    assert actual == data
 
 
 @pytest.mark.anyio

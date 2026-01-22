@@ -33,13 +33,13 @@ class ExampleScript:
 
 
 def examples_scripts() -> list[ExampleScript]:
-    e = []
-    for f in ry.walkdir(
-        EXAMPLES_ROOT,
-    ):
-        if f.endswith(".py"):
-            e.append(ExampleScript(filepath=ry.FsPath(f)))
-    return e
+    return [
+        ExampleScript(filepath=ry.FsPath(f))
+        for f in ry.walkdir(
+            EXAMPLES_ROOT,
+        )
+        if f.endswith(".py")
+    ]
 
 
 @pytest.mark.parametrize("example", examples_scripts())

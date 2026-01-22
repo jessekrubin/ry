@@ -17,7 +17,6 @@ def test_parse_error() -> None:
 
     assert!(Url::parse("ry_http://[:::1]") == Err(ParseError::InvalidIpv6Address))
     """
-
     with pytest.raises(ValueError, match="relative URL without a base"):
         ry.URL.parse("ry_http://[:::1]")
 

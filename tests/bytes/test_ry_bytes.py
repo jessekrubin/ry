@@ -293,7 +293,6 @@ def test_bytes_strip_with_arg(
     bytes2strip_from: bytes,
 ) -> None:
     """Test Bytes.strip() works like python bytes with an argument"""
-
     # .strip()
     ry_bytes = ry.Bytes(bytes2strip_from)
     py_res = bytes2strip_from.strip(bytes2strip)

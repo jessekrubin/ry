@@ -371,7 +371,6 @@ class TestCookies:
 
         Should not be set in the echo response, as cookies are not enabled
         """
-
         url = server.url
         client = ry.BlockingClient()
         response = client.get(str(url) + "cookies")

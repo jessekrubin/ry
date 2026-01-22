@@ -62,7 +62,6 @@ def test_datetime_add_subtract_signed_duration(
         dt_minus = dt_plus - duration
         assert dt == dt_minus
     except OverflowError as _oe:
-        ...
         with pytest.raises(OverflowError):
             _ = dt + duration
 
@@ -105,7 +104,7 @@ def test_datetime_rounding(
             options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]
             rounded_dt = dt._round(options)
             assert isinstance(rounded_dt, ry.DateTime)
-        except ValueError:  # todo: fix this
+        except ValueError:  # TODO: fix this
             options = ry.DateTimeRound(
                 smallest=unit,  # type: ignore[arg-type]
                 mode=mode,
@@ -222,7 +221,7 @@ def test_zoned_datetime_add_duration(
         zdt = dt.in_tz(tz)
         new_zdt = zdt + duration
         assert isinstance(new_zdt, ry.ZonedDateTime)
-    except Exception:
+    except OverflowError:
         # Handle invalid combinations
         assume(False)
 

@@ -84,7 +84,6 @@ def test_rounding_a_span() -> None:
     assert_eq!(1.hour().minutes(59).round(options)?, 1.hour());
     ```
     """
-
     span = ry.TimeSpan(
         hours=1,
         minutes=59,
@@ -108,7 +107,6 @@ def test_rounding_a_zoned_datetime() -> None:
     );
     ```
     """
-
     zdt = ry.ZonedDateTime.parse("2024-07-06 17:44:22.158-04[America/New_York]")
     nearest_minute = zdt.round("minute")
     assert str(nearest_minute) == "2024-07-06T17:44:00-04:00[America/New_York]"

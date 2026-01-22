@@ -218,10 +218,7 @@ def test_sql_formatter_default() -> None:
     ["\t", "tabs", 4, 2, None],
 )
 def test_repr_indent(indent: int | str | None) -> None:
-    if indent is None:
-        fmt = ry.SqlFormatter()
-    else:
-        fmt = ry.SqlFormatter(indent=indent)  # type: ignore[arg-type]
+    fmt = ry.SqlFormatter(indent=indent)  # type: ignore[arg-type]
     repr_str = repr(fmt)
 
     assert "SqlFormatter(" in repr_str
@@ -247,16 +244,7 @@ def test_sql_formatter_uppercase() -> None:
 def test_sql_formatter_default_repr() -> None:
     fmt = ry.SqlFormatter()
     repr_str = repr(fmt)
-    expected = "".join((
-        "SqlFormatter(",
-        "indent=2, ",
-        "lines_between_statements=1, ",
-        "inline=False, ",
-        "max_inline_block=50, ",
-        "joins_as_top_level=False, ",
-        'dialect="generic"',
-        ")",
-    ))
+    expected = 'SqlFormatter(indent=2, lines_between_statements=1, inline=False, max_inline_block=50, joins_as_top_level=False, dialect="generic")'
     expected = 'SqlFormatter(indent=2, lines_between_queries=1, inline=False, max_inline_block=50, joins_as_top_level=False, dialect="generic")'
     assert repr_str == expected
 

@@ -52,10 +52,7 @@ def _mk_test_bin_dirs(tmp_path: Path) -> list[str]:
             str(tmppath_bin2),
         ]
     else:
-        script_str = "\n".join([
-            "#!/usr/bin/env bash",
-            "echo $PATH",
-        ])
+        script_str = "#!/usr/bin/env bash\necho $PATH"
         # make exes
         for exe in exe_names:
             with open(tmp_path / exe, "w") as f:

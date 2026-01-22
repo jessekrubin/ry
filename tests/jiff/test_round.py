@@ -44,7 +44,6 @@ class TestZonedRound:
         """
         REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#example-rounding-to-the-nearest-5-minute-increment
         """
-
         zdt = ry.date(2024, 6, 19).at(15, 27, 29, 999_999_999).in_tz("America/New_York")
         assert zdt._round(
             ry.ZonedDateTimeRound()._smallest("minute")._increment(5)

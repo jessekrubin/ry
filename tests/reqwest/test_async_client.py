@@ -576,7 +576,6 @@ class TestCookies:
 
         Should not be set in the echo response, as cookies are not enabled
         """
-
         url = server.url
         response = await client.get(str(url) + "cookies")
         assert response.status_code == 200, f"response: {response}"

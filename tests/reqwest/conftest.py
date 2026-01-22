@@ -306,7 +306,7 @@ class ReqtestServer(Server):
         # any asyncio-specific operations.
         self.started = False
         self.restart_requested.set()
-        while not self.started:
+        while not self.started:  # noqa: ASYNC110
             await aiosleep(0.2)
 
     async def watch_restarts(self) -> None:  # pragma: no cover

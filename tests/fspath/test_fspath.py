@@ -154,9 +154,8 @@ class TestFsPath:
         pypath = Path("/some/path/file.txt")
         rypath = path_cls("/some/path/file.txt")
         if path_cls is ry.FsPath:
-            relative_resolved = rypath.relative_to("/some")
             with pytest.raises(NotImplementedError):
-                assert relative_resolved == pypath.relative_to("/some")
+                _relative_resolved = rypath.relative_to("/some")
         else:
             relative_resolved = rypath.relative_to("/some")
             assert relative_resolved == pypath.relative_to("/some")
@@ -198,7 +197,7 @@ class TestFsPath:
         pathbytes_fslash = bytes(rypath).replace(b"\\", b"/")
         assert pathbytes_fslash == bytes(pypath).replace(
             b"\\", b"/"
-        )  # todo: reevaluate
+        )  # TODO: reevaluate
 
     def test_parts(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")

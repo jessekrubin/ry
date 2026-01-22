@@ -40,7 +40,7 @@ def test_invalid_decompress() -> None:
         ry.brotli_decode(invalid_data)
 
 
-@pytest.mark.parametrize("quality", list(range(0, 12)))
+@pytest.mark.parametrize("quality", list(range(12)))
 def test_quality(quality: int) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     output_data = ry.brotli_encode(input_data, quality=quality)  # type: ignore[arg-type]
