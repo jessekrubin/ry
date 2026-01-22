@@ -107,8 +107,8 @@ pub struct ClientConfig {
     tls_sni: bool,  // default: true
     tls_version_max: Option<TlsVersion>,
     tls_version_min: Option<TlsVersion>,
-    /// use cached native system certs
-    tls_cached_native_certs: bool,
+    /// (unstable) use cached native system certs
+    _tls_cached_native_certs: bool,
     // -- tls danger zone --
     tls_danger_accept_invalid_certs: bool,
     tls_danger_accept_invalid_hostnames: bool,
@@ -173,7 +173,7 @@ impl Default for ClientConfig {
             identity: None,
             tls_certs_merge: None,
             tls_certs_only: None,
-            tls_cached_native_certs: false,
+            _tls_cached_native_certs: false,
             tls_crls_only: None,
             tls_info: false,
             tls_sni: true,
@@ -548,7 +548,6 @@ impl RyHttpClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
-            tls_cached_native_certs = false,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -557,6 +556,7 @@ impl RyHttpClient {
             tls_danger_accept_invalid_certs = false,
             tls_danger_accept_invalid_hostnames = false,
             proxy = None,
+            _tls_cached_native_certs = false,
         )
     )]
     fn py_new(
@@ -609,7 +609,6 @@ impl RyHttpClient {
         // -- tls --
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
-        tls_cached_native_certs: bool,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
@@ -618,6 +617,7 @@ impl RyHttpClient {
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
         proxy: Option<PyProxies>,
+        _tls_cached_native_certs: bool,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -665,7 +665,6 @@ impl RyHttpClient {
             identity,
             tls_certs_merge,
             tls_certs_only,
-            tls_cached_native_certs,
             tls_crls_only,
             tls_info,
             tls_sni,
@@ -674,6 +673,7 @@ impl RyHttpClient {
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
             proxy,
+            _tls_cached_native_certs,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -872,7 +872,6 @@ impl RyClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
-            tls_cached_native_certs = false,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -881,6 +880,7 @@ impl RyClient {
             tls_danger_accept_invalid_certs = false,
             tls_danger_accept_invalid_hostnames = false,
             proxy = None,
+            _tls_cached_native_certs = false,
         )
     )]
     fn py_new(
@@ -933,7 +933,6 @@ impl RyClient {
         // -- tls --
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
-        tls_cached_native_certs: bool,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
@@ -942,6 +941,7 @@ impl RyClient {
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
         proxy: Option<PyProxies>,
+        _tls_cached_native_certs: bool,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -989,7 +989,6 @@ impl RyClient {
             identity,
             tls_certs_merge,
             tls_certs_only,
-            tls_cached_native_certs,
             tls_crls_only,
             tls_info,
             tls_sni,
@@ -998,6 +997,7 @@ impl RyClient {
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
             proxy,
+            _tls_cached_native_certs,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1164,7 +1164,6 @@ impl RyBlockingClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
-            tls_cached_native_certs = false,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -1173,6 +1172,7 @@ impl RyBlockingClient {
             tls_danger_accept_invalid_certs = false,
             tls_danger_accept_invalid_hostnames = false,
             proxy = None,
+            _tls_cached_native_certs = false,
         )
     )]
     fn py_new(
@@ -1225,7 +1225,6 @@ impl RyBlockingClient {
         // -- tls --
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
-        tls_cached_native_certs: bool,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
@@ -1234,6 +1233,7 @@ impl RyBlockingClient {
         tls_danger_accept_invalid_certs: bool,
         tls_danger_accept_invalid_hostnames: bool,
         proxy: Option<PyProxies>,
+        _tls_cached_native_certs: bool,
     ) -> PyResult<Self> {
         let user_agent = parse_user_agent(user_agent)?;
         let headers = headers.map(PyHeaders::try_from).transpose()?;
@@ -1281,7 +1281,7 @@ impl RyBlockingClient {
             identity,
             tls_certs_merge,
             tls_certs_only,
-            tls_cached_native_certs,
+            _tls_cached_native_certs,
             tls_crls_only,
             tls_info,
             tls_sni,
@@ -1471,7 +1471,7 @@ impl ClientConfig {
         if let Some(tls_certs_only) = &self.tls_certs_only {
             client_builder = client_builder
                 .tls_certs_only(tls_certs_only.iter().map(|py_cert| py_cert.cert.clone()));
-        } else if self.tls_cached_native_certs && self.tls_certs_merge.is_none() {
+        } else if self._tls_cached_native_certs && self.tls_certs_merge.is_none() {
             let cached = crate::tls::py_load_native_certs();
             if !cached.is_empty() {
                 client_builder = client_builder.tls_certs_only(cached.iter().cloned());
@@ -1637,14 +1637,15 @@ impl ClientConfig {
             "tls_crls_only" => self.tls_crls_only.clone(),
             "tls_certs_merge" => self.tls_certs_merge.clone(),
             "tls_certs_only" => self.tls_certs_only.clone(),
-            "tls_cached_native_certs" => self.tls_cached_native_certs,
             "tls_info" => self.tls_info,
             "tls_sni" => self.tls_sni,
             "tls_version_max" => self.tls_version_max,
             "tls_version_min" => self.tls_version_min,
             "tls_danger_accept_invalid_certs" => self.tls_danger_accept_invalid_certs,
             "tls_danger_accept_invalid_hostnames" => self.tls_danger_accept_invalid_hostnames,
-            "proxy" => &self.proxy
+            "proxy" => &self.proxy,
+            // unstable
+            "_tls_cached_native_certs" => self._tls_cached_native_certs
         }
         Ok(dict)
     }
