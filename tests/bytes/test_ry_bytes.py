@@ -374,8 +374,9 @@ def test_bytes_not_impl(fn_name: str) -> None:
     method = getattr(rust_bytes, fn_name, None)
     if method is None:
         return
-    with pytest.raises(NotImplementedError):
-        if fn_name in ["__mod__", "__rmod__"]:
+    if fn_name in ["__mod__", "__rmod__"]:
+        with pytest.raises(NotImplementedError):
             method(1)  # provide an argument
-        else:
+    else:
+        with pytest.raises(NotImplementedError):
             method()

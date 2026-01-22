@@ -707,14 +707,17 @@ class TestDurationArithmetic:
         if opperator in ["__add__", "__radd__", "__sub__", "__rsub__"]:
             _res = getattr(dur, opperator)(value)
             assert _res is NotImplemented
-            with pytest.raises(TypeError):
-                if opperator == "__add__":
+            if opperator == "__add__":
+                with pytest.raises(TypeError):
                     _ = dur + value  # type: ignore[operator]
-                elif opperator == "__sub__":
+            elif opperator == "__sub__":
+                with pytest.raises(TypeError):
                     _ = dur - value  # type: ignore[operator]
-                elif opperator == "__rsub__":
+            elif opperator == "__rsub__":
+                with pytest.raises(TypeError):
                     _ = value - dur  # type: ignore[operator]
-                else:  # opperator == "__radd__":
+            else:  # opperator == "__radd__":
+                with pytest.raises(TypeError):
                     _ = value + dur  # type: ignore[operator]
         else:
             with pytest.raises(TypeError):

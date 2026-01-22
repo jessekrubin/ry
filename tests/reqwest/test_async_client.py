@@ -528,8 +528,8 @@ class TestTimeout:
     ) -> None:
         url = server.url
         client = client_cls(timeout=ry.Duration.from_secs_f64(0.1))
+        res = await client.get(str(url) + "slow")
         with pytest.raises(ry.ReqwestError):
-            res = await client.get(str(url) + "slow")
             _text = await res.text()
 
     async def test_client_timeout_get_both_same_time_http_client(

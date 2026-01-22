@@ -360,8 +360,8 @@ class TestTimeout:
     def test_client_timeout(self, server: ReqtestServer) -> None:
         url = server.url
         client = ry.BlockingClient(timeout=ry.Duration.from_secs_f64(0.1))
+        res = client.get(str(url) + "slow")
         with pytest.raises(ry.ReqwestError):
-            res = client.get(str(url) + "slow")
             _text = res.text()
 
 

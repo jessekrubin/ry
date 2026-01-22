@@ -246,13 +246,13 @@ class TestDateReplace:
         assert d2.year == 2007
 
     def test_replace_year_err(self) -> None:
+        d1 = ry.date(2024, 2, 29)
         with pytest.raises(
             ValueError,
             match=re.escape(
                 "parameter 'day' with value 29 is not in the required range of 1..=28"
             ),
         ):
-            d1 = ry.date(2024, 2, 29)
             d1.replace(year=2023)
 
     # ==== ERA YEAR ====

@@ -131,17 +131,15 @@ def test_quality_gzip_string(quality: t.Literal["best", "fast"]) -> None:
 def test_gzip_quality_value_error(
     quality: str | float | None,
 ) -> None:
-    with pytest.raises(ValueError) as e:
-        ry.gzip_encode(b"data", quality=quality)  # type: ignore[arg-type]
-        s = str(e.value)
-        assert (
-            "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'"
-            in s
-        )
-    with pytest.raises(ValueError) as e:
-        ry.gzip(b"data", quality=quality)  # type: ignore[arg-type]
-        s = str(e.value)
-        assert (
-            "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'"
-            in s
-        )
+    with pytest.raises(
+        ValueError,
+        match="Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
+    ) :
+        _r = ry.gzip_encode(b"data", quality=quality)  # type: ignore[arg-type]
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
+    ) :
+        _r = ry.gzip(b"data", quality=quality)  # type: ignore[arg-type]
+

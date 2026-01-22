@@ -302,22 +302,22 @@ class TestDateTimeReplace:
         assert dt2 == ry.date(2024, 7, 31).at(0, 0, 0, 0)
 
     def test_replace_invalid_datetime(self) -> None:
+        dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
         with pytest.raises(
             ValueError,
             match=re.escape(
                 "parameter 'day' with value 31 is not in the required range of 1..=29"
             ),
         ):
-            dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
             dt1.replace(day=31)
 
+        dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
         with pytest.raises(
             ValueError,
             match=re.escape(
                 "parameter 'day' with value 29 is not in the required range of 1..=28"
             ),
         ):
-            dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
             dt1.replace(year=2023)
 
     # ==== DATE ====
@@ -348,13 +348,13 @@ class TestDateTimeReplace:
         assert dt2.year == 2007
 
     def test_replace_year_err(self) -> None:
+        dt1 = ry.date(2024, 2, 29).at(1, 30, 0, 0)
         with pytest.raises(
             ValueError,
             match=re.escape(
                 "parameter 'day' with value 29 is not in the required range of 1..=28"
             ),
         ):
-            dt1 = ry.date(2024, 2, 29).at(1, 30, 0, 0)
             dt1.replace(year=2023)
 
     # ==== ERA YEAR ====

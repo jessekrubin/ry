@@ -154,8 +154,8 @@ class TestFsPath:
         pypath = Path("/some/path/file.txt")
         rypath = path_cls("/some/path/file.txt")
         if path_cls is ry.FsPath:
+            relative_resolved = rypath.relative_to("/some")
             with pytest.raises(NotImplementedError):
-                relative_resolved = rypath.relative_to("/some")
                 assert relative_resolved == pypath.relative_to("/some")
         else:
             relative_resolved = rypath.relative_to("/some")
@@ -484,8 +484,5 @@ def test_read_text_unidecode_err(tmp_path: Path) -> None:
     b = rypath.read_bytes()
     assert b == bad_bytes
 
-    with pytest.raises(UnicodeDecodeError) as e:
+    with pytest.raises(UnicodeDecodeError, check=lambda e: e.start == 26):
         _t = rypath.read_text()
-        err = e.value
-        assert err.start == 24
-        # now test that the err is shit

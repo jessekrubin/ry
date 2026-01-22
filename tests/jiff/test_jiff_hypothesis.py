@@ -62,10 +62,9 @@ def test_datetime_add_subtract_signed_duration(
         dt_minus = dt_plus - duration
         assert dt == dt_minus
     except OverflowError as _oe:
+        ...
         with pytest.raises(OverflowError):
-            dt_plus = dt + duration
-            dt_minus = dt_plus - duration
-            assert dt == dt_minus
+            _ = dt + duration
 
 
 @given(datetime_strategy, datetime_strategy)
@@ -98,8 +97,8 @@ def test_datetime_rounding(
 ) -> None:
     """Test that rounding a datetime with various options works correctly"""
     if unit in ("year", "month", "week"):
+        options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]
         with pytest.raises(ValueError):
-            options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]
             rounded_dt = dt._round(options)
     else:
         try:
@@ -107,12 +106,12 @@ def test_datetime_rounding(
             rounded_dt = dt._round(options)
             assert isinstance(rounded_dt, ry.DateTime)
         except ValueError:  # todo: fix this
+            options = ry.DateTimeRound(
+                smallest=unit,  # type: ignore[arg-type]
+                mode=mode,
+                increment=increment,
+            )
             with pytest.raises(ValueError):
-                options = ry.DateTimeRound(
-                    smallest=unit,  # type: ignore[arg-type]
-                    mode=mode,
-                    increment=increment,
-                )
                 _rounded_dt = dt._round(options)
 
 
