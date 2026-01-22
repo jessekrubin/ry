@@ -323,7 +323,7 @@ def test_sql_formatter_to_dict(options: _SqlFormatOptions) -> None:
     d = sf.to_dict()
     assert isinstance(d, dict)
     assert d == _canonicalize_options(options)
-    assert all(key in d for key in _SQL_FORMAT_DEFAULTS.keys())
+    assert all(key in d for key in _SQL_FORMAT_DEFAULTS)
 
 
 @given(options=st_sqlformat_options())

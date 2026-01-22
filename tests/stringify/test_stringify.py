@@ -597,7 +597,7 @@ def test_stringify_string_subclass() -> None:
     """Test that `stringify` handles string subclasses correctly."""
 
     class MyStr(str):
-        pass
+        __slots__ = ()
 
     data = {
         "key1": MyStr("value1"),

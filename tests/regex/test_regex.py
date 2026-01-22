@@ -60,7 +60,8 @@ _DEFAULT_OPTIONS = {
 
 
 def _options_is_default(opts: dict[str, t.Any]) -> bool:
-    return all(not(k in opts and opts[k] != v) for k, v in _DEFAULT_OPTIONS.items())
+    return all(not (k in opts and opts[k] != v) for k, v in _DEFAULT_OPTIONS.items())
+
 
 @pytest.mark.parametrize("kwargs", _gen_kwargs_options())
 def test_regex_repr_with_options(kwargs: dict[str, t.Any]) -> None:

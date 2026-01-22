@@ -15,7 +15,7 @@ def test_to_string() -> None:
 def test_permanent() -> None:
     c = ry.Cookie("name", "value", permanent=False)
     assert c.max_age is None
-    # TODO expires tests
+    # TODO: expires tests
 
     c = ry.Cookie("name", "value", permanent=True)
     assert c.max_age is not None
@@ -26,7 +26,7 @@ def test_removal() -> None:
     assert c.max_age is not None
     assert c.max_age is not None
     assert c.max_age == ry.Duration.ZERO
-    # TODO expires tests
+    # TODO: expires tests
 
 
 def test_not_eq() -> None:

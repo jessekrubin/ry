@@ -104,7 +104,8 @@ def test_inheritance() -> None:
 
 
 def test_str_subclass() -> None:
-    class S(str): ...
+    class S(str):
+        __slots__ = ()
 
     assert str(ry.URL(S("http://example.com"))) == "http://example.com/"
 

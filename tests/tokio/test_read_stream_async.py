@@ -28,7 +28,8 @@ async def test_async_read_stream(tmp_path: Path, *, buffered: bool) -> None:
     assert len(chunks) == len(string_bytes) // 10 + 1
 
     chunks_built = [
-        chunk async for chunk in ry.read_stream_async(
+        chunk
+        async for chunk in ry.read_stream_async(
             "test.txt", chunk_size=10, buffered=buffered
         )
     ]

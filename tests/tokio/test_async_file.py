@@ -57,9 +57,7 @@ async def test_async_iteration(tmp_path: Path) -> None:
     f = AsyncFile(temp_file_path, "rb")
     await f.open()
 
-    collected = [
-        line async for line in f
-    ]
+    collected = [line async for line in f]
     assert collected == [b"line1\n", b"line2\n", b"line3\n"]
 
 

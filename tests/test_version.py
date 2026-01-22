@@ -28,7 +28,7 @@ def _version_from_workspace_package() -> str:
     version = tomllib.loads(s)["workspace"]["package"]["version"]
     if not isinstance(version, str):
         msg = f"Cargo version is not a string: {version}"
-        raise RuntimeError(msg)
+        raise TypeError(msg)
     return version
 
 

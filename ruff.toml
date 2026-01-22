@@ -30,7 +30,7 @@ select = [
   "DTZ",
   "E",
   "ERA001",
-  "PT", # pytest
+  "PT",      # pytest
   "PYI",
   "EM",
   "F",
@@ -39,6 +39,7 @@ select = [
   "I",
   "ICN",
   "N",
+  "PIE",
   "PLC",
   "PLC2801",
   "PLE",
@@ -102,6 +103,45 @@ flake8-boolean-trap.extend-allowed-calls = [
 ]
 
 [lint.per-file-ignores]
+"python/ry/**/*.pyi" = [
+  "COM",
+  "D",
+  "PYI021",
+  "ANN401",
+  "E501",
+  "FIX002",
+  "ASYNC109",
+  "TD",
+]
+"python/ry/**/*.py" = [
+  "COM812", # missing-trailing-comma
+  "E501",   # line-too-long
+  "D100",   # undocumented-public-module
+  "D101",   # undocumented-public-class
+  "D102",   # undocumented-public-method
+  "D104",   # undocumented-public-package
+  "D105",   # undocumented-magic-method
+  "D106",   # undocumented-public-nested-class
+  "D107",   # undocumented-public-init
+  "D200",   # unnecessary-multiline-docstring
+  "D205",   # missing-blank-line-after-summary
+  "D212",   # multi-line-summary-first-line
+  "D301",   # escape-sequence-in-docstring
+  "D403",   # first-word-uncapitalized
+  "D415",   # missing-terminal-punctuation
+  "D417",   # undocumented-param
+  "D418",   # overload-with-docstring
+  "TRY",
+  "SLF",
+  "PTH",
+  # "PYI021",
+  # "ANN401",
+  # "E501",
+  # "FIX",
+  # "ASYNC109",
+  # "TD",
+  # "D102",
+]
 "python/ry/JSON.pyi" = ["N999"]
 # Tests can use magic values, assertions, and relative imports
 "bench/**/*.py" = [
@@ -116,6 +156,9 @@ flake8-boolean-trap.extend-allowed-calls = [
   "TID252",
 ]
 "tests/**/*.py" = [
+  "PTH",     # pathlib (im an old dog and like my os.path)
+  "D102",    # undocumented-public-method
+  "D103",    # undocumented-public-function
   "DTZ001",  # call-datetime-without-tzinfo
   "PLC0415", # import-outside-top-level
   "PLR0124", # comparison-with-itself
@@ -127,8 +170,63 @@ flake8-boolean-trap.extend-allowed-calls = [
   "S307",    # suspicious-eval-usage
   "S603",    # subprocess-without-shell-equals-true
   "TID252",  # relative-imports
+  # --- with `--select ALL` ---
+  "ANN401",   # any-type
+  "ASYNC230", # blocking-open-call-in-async-function
+  "COM812",   # missing-trailing-comma
+  "D100",     # undocumented-public-module
+  "D101",     # undocumented-public-class
+  "D104",     # undocumented-public-package
+  "D105",     # undocumented-magic-method
+  "D106",     # undocumented-public-nested-class
+  "D107",     # undocumented-public-init
+  "D200",     # unnecessary-multiline-docstring
+  "D205",     # missing-blank-line-after-summary
+  "D212",     # multi-line-summary-first-line
+  "D301",     # escape-sequence-in-docstring
+  "D403",     # first-word-uncapitalized
+  "D415",     # missing-terminal-punctuation
+  "D417",     # undocumented-param
+  "D418",     # overload-with-docstring
+  "E501",     # line-too-long
+  "FIX002",   # line-contains-todo
+  "PGH003",   # blanket-type-ignore
+  "PLR2004",  # magic-value-comparison
+  "PT007",    # pytest-parametrize-values-wrong-type
+  "PT011",    # pytest-raises-too-broad
+  "RET505",   # superfluous-else-return
+  "RUF100",   # unused-noqa
+  "SIM105",   # suppressible-exception
+  "SIM117",   # multiple-with-statements
+  # "SIM118",  # in-dict-keys
+  "SIM201", # negate-equal-op
+  "SIM202", # negate-not-equal-op
+  "SIM300", # yoda-conditions
+  "SLF001", # private-member-access
+  "TD002",  # missing-todo-author
+  "TD003",  # missing-todo-link
+  # "TRY004",  # type-check-without-type-error
+  # "TRY300",  # try-consider-else
 ]
 "tests/reqwest/conftest.py" = ["ARG001"]
 "python/ry/dev/*.py" = ["PLC0415"]
 "python/ry/ryo3/*.pyi" = ["F401", "F821"]
-"scripts/**" = ["S101", "S603", "T201"]
+"scripts/**" = [
+  "S101",
+  "S603",
+  "T201",
+  # groups
+  "D",
+  "PTH",
+  "RET",
+  "COM",
+  "PERF",
+  "PLR",
+  "INP",
+  "ANN",
+  "FIX",
+  "TD",
+  "PGH",
+  "SIM",
+  "TRY",
+]
