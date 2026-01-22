@@ -608,7 +608,8 @@ class TestCookies:
         _res_json = await response.json()
 
         c = response.cookies
-        assert isinstance(c, list) and len(c) == 1
+        assert isinstance(c, list)
+        assert len(c) == 1
 
         assert isinstance(c[0], ry.Cookie)
         assert c[0].name == "ryo3"

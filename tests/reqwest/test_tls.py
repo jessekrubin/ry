@@ -54,7 +54,8 @@ class TestCertificate:
 
     def test_from_pem_bundle(self) -> None:
         certs = ry.Certificate.from_pem_bundle(_PEM_BUNDLE.encode())
-        assert isinstance(certs, list) and all(
+        assert isinstance(certs, list)
+        assert all(
             isinstance(c, ry.Certificate) for c in certs
         )
 
@@ -71,6 +72,7 @@ class TestCertificateRevocationList:
 
     def test_from_pem_bundle(self) -> None:
         crls = ry.CertificateRevocationList.from_pem_bundle(_PEM_BUNDLE.encode())
-        assert isinstance(crls, list) and all(
+        assert isinstance(crls, list)
+        assert all(
             isinstance(c, ry.CertificateRevocationList) for c in crls
         )

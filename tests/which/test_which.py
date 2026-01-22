@@ -59,7 +59,8 @@ def test_which_nada() -> None:
     ry_which = ry.which(exe)
     ry_which_all = ry.which_all(exe)
     assert py_which == ry_which  # type: ignore[comparison-overlap]
-    assert len(ry_which_all) == 0 and isinstance(ry_which_all, list)
+    assert len(ry_which_all) == 0
+    assert isinstance(ry_which_all, list)
 
 
 class TestWhichFsPath:
@@ -114,4 +115,5 @@ class TestWhichFsPath:
         ry_which_all = ry.FsPath.which_all(exe)
         assert py_which == ry_which
         assert ry_which is None
-        assert len(ry_which_all) == 0 and isinstance(ry_which_all, list)
+        assert len(ry_which_all) == 0
+        assert isinstance(ry_which_all, list)

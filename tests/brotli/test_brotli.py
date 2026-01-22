@@ -20,7 +20,8 @@ def test_10x10y_round_trip_magic_number() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     output_data_magic_true = ry.brotli_encode(input_data, magic_number=True)
     output_data_magic_false = ry.brotli_encode(input_data, magic_number=False)
-    assert output_data_magic_false is not None and output_data_magic_true is not None
+    assert output_data_magic_false is not None
+    assert output_data_magic_true is not None
     assert output_data_magic_false != output_data_magic_true
     assert output_data_magic_true is not None
     decoded = ry.brotli_decode(output_data_magic_true)

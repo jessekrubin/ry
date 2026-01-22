@@ -28,7 +28,8 @@ class TestInstant:
         inst = ry.Instant().now()
         repr_str = repr(inst)
         assert isinstance(repr_str, str)
-        assert repr_str.startswith("Instant<{") and repr_str.endswith("}>")
+        assert repr_str.startswith("Instant<{")
+        assert repr_str.endswith("}>")
 
     def test_hash(self) -> None:
         inst1 = ry.Instant().now()

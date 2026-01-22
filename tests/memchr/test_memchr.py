@@ -45,8 +45,10 @@ def _memch1_test_cases(
     needle: bytes,
     haystack: bytes,
 ) -> Generator[Memchr1TestCase, None, None]:
-    assert isinstance(needle, bytes) and len(needle) == 1
-    assert isinstance(haystack, bytes) and len(haystack) > 0
+    assert isinstance(needle, bytes)
+    assert len(needle) == 1
+    assert isinstance(haystack, bytes)
+    assert len(haystack) > 0
 
     _forward_ix = haystack.find(needle)
     forward = _forward_ix if _forward_ix != -1 else None

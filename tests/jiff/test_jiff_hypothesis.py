@@ -171,7 +171,8 @@ def test_duration_addition_cancellation(duration: ry.SignedDuration) -> None:
     """Test that adding a duration and its negation results in zero"""
     neg_duration = -duration
     zero_duration = duration + neg_duration
-    assert zero_duration.secs == 0 and zero_duration.nanos == 0
+    assert zero_duration.secs == 0
+    assert zero_duration.nanos == 0
 
 
 @given(st.integers(), st.integers(), st.integers())

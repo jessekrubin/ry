@@ -62,7 +62,10 @@ def test_print_todays_date_at_specific_time() -> None:
     ```
     """
     zdt = ry.ZonedDateTime.now().replace(hour=14, minute=0, second=0, nanosecond=0)
-    assert zdt.hour == 14 and zdt.minute == 0 and zdt.second == 0
+    assert isinstance(zdt, ry.ZonedDateTime)
+    assert zdt.hour == 14
+    assert zdt.minute == 0
+    assert zdt.second == 0
     assert zdt.nanosecond == 0
 
 
@@ -82,7 +85,8 @@ def test_print_current_unix_timestamp() -> None:
     ts = ry.Timestamp.now()
     sec = ts.as_second()
     ns = ts.as_nanosecond()
-    assert isinstance(sec, int) and sec > 1_600_000_000
+    assert isinstance(sec, int)
+    assert sec > 1_600_000_000
     # nanosecond count divided by 1e9 should equal seconds
     assert ns // 1_000_000_000 == sec
 
