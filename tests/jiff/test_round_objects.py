@@ -10,7 +10,6 @@ import ry
 if TYPE_CHECKING:
     from ry.ryo3 import JiffRoundMode, JiffUnit
 
-
 _ROUND_CLASSES = (
     ry.DateTimeRound,
     ry.OffsetRound,

@@ -104,6 +104,7 @@ def test_inheritance() -> None:
 
 
 def test_str_subclass() -> None:
+
     class S(str):
         __slots__ = ()
 

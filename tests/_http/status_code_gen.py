@@ -120,6 +120,7 @@ def _reason2const_name(reason: str) -> str:
 
 
 def _class_attr_names() -> list[HttpStatusMetadata]:
+
     def _int2metadata(i: int) -> HttpStatusMetadata | None:
         try:
             status = ry.HttpStatus(i)

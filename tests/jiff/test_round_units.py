@@ -31,7 +31,6 @@ _JIFF_ROUND_MODES: tuple[JiffRoundMode, ...] = (
     "half-even",
 )
 
-
 _TIMESTAMP_DIFFERENCE_UNITS = [
     "nanosecond",
     "microsecond",

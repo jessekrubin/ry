@@ -11,7 +11,6 @@ _AnyIpAddr: TypeAlias = ry.Ipv4Addr | ry.Ipv6Addr | ry.IpAddr
 _AnySocketAddr: TypeAlias = ry.SocketAddrV4 | ry.SocketAddrV6 | ry.SocketAddr
 _StdNetAddrLike: TypeAlias = _AnyIpAddr | _AnySocketAddr
 
-
 _IP_ADDR_OBJECTS: list[_AnyIpAddr] = [
     ry.Ipv4Addr(192, 168, 0, 1),
     ry.Ipv6Addr("::1"),

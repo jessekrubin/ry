@@ -61,6 +61,7 @@ def test_ulid_repr() -> None:
 
 @pytest.mark.parametrize("tick", [1, 60, 3600, 86400])
 def test_ulid_monotonic_sorting(tick: int) -> None:
+
     def _gen() -> t.Generator[ULID, None, None]:
         initial_time = utcnow()
         for i in range(1, 11):

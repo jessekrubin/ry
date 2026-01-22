@@ -50,7 +50,6 @@ timedelta_out_of_range_strategy = st.one_of(
     st.timedeltas(min_value=pydt.timedelta(days=7304484)),
 )
 
-
 # Define strategies for generating test data
 date_tuple_strategy = st.builds(
     # make build tuple
@@ -95,7 +94,6 @@ duration_strategy = st.builds(
     secs=st.integers(min_value=-(10**15), max_value=10**15),
     nanos=st.integers(min_value=-999_999_999, max_value=999_999_999),
 )
-
 
 # unsigned ────────────────────────────────────────────────────────────
 

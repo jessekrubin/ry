@@ -29,7 +29,6 @@ def test_memchr_byte() -> None:
 
 thing = (b"k", b"the quick brown fox", 8)
 
-
 Needle: TypeAlias = bytes | int
 
 
