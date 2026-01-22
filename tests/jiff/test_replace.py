@@ -137,5 +137,6 @@ class TestZonedDateTimeReplace:
         zdt = ry.ZonedDateTime.now()
         with pytest.raises(
             ValueError,
+            match="cannot set both `TimeWith::millisecond` and `TimeWith::subsec_nanosecond`",
         ):
             zdt.replace(subsec_nanosecond=1, millisecond=1)
