@@ -181,12 +181,12 @@ class TestDurationArithmetic:
 
     def test_div_f32_nan_raises_value_error(self) -> None:
         dur = ry.Duration(1, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="invalid value: nan"):
             _r = dur.div_f32(float("nan"))
 
     def test_div_f64_nan_raises_value_error(self) -> None:
         dur = ry.Duration(1, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="invalid value: nan"):
             _r = dur.div_f64(float("nan"))
 
     def test_div_f32_inf_raises_overflow_error(self) -> None:
@@ -221,7 +221,7 @@ class TestDurationArithmetic:
                 _dur = dur.div_f32(divisor)
             return
         if isnan(divisor):
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid value: nan"):
                 dur.div_f32(divisor)
             return
         if divisor == float("inf") or divisor == float("-inf"):
@@ -252,7 +252,7 @@ class TestDurationArithmetic:
                 _dur = dur.div_f64(divisor)
             return
         if isnan(divisor):
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid value: nan"):
                 dur.div_f64(divisor)
             return
         if divisor == float("inf") or divisor == float("-inf"):
@@ -341,7 +341,7 @@ class TestDurationArithmetic:
             return
 
         if isnan(factor):
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid value: nan"):
                 dur.mul_f32(factor)
             return
         if factor == float("inf") or factor == float("-inf"):
@@ -369,7 +369,7 @@ class TestDurationArithmetic:
             return
 
         if isnan(factor):
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid value: nan"):
                 dur.mul_f64(factor)
             return
         if factor == float("inf") or factor == float("-inf"):
@@ -388,12 +388,12 @@ class TestDurationArithmetic:
 
     def test_mul_f32_nan_raises_value_error(self) -> None:
         dur = ry.Duration(1, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="invalid value: nan"):
             _r = dur.mul_f32(float("nan"))
 
     def test_mul_f64_nan_raises_value_error(self) -> None:
         dur = ry.Duration(1, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="invalid value: nan"):
             _r = dur.mul_f64(float("nan"))
 
     def test_mul_f32_inf_raises_overflow_error(self) -> None:
@@ -426,7 +426,9 @@ class TestDurationArithmetic:
         self, left: ry.Duration, right: pydt.timedelta
     ) -> None:
         if right.total_seconds() < 0:
-            with pytest.raises(ValueError):
+            with pytest.raises(
+                ValueError, match="cannot compare with negative timedelta"
+            ):
                 _ = ry.Duration.abs_diff(left, right)
         else:
             result = ry.Duration.abs_diff(left, right)
@@ -480,7 +482,10 @@ class TestDurationPydeltaConversion:
     def test_negative_signed_duration_round_trip(self, tdelta: pydt.timedelta) -> None:
         # assume the duration is negative
         assume(tdelta.days < 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="It is not possible to convert a negative timedelta to a Rust Duration",
+        ):
             _ry_signed_duration = ry.Duration.from_pytimedelta(tdelta)
 
 
@@ -670,7 +675,7 @@ class TestDurationFromIntegers:
     @given(st.floats(width=32))
     def test_from_secs_f32(self, secs: float) -> None:
         if isnan(secs):
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid value: nan"):
                 _dur = ry.Duration.from_secs_f32(secs)
         elif secs < 0.0:
             with pytest.raises((TypeError, OverflowError)):
@@ -688,7 +693,7 @@ class TestDurationFromIntegers:
     @given(st.floats())
     def test_from_secs_f64(self, secs: float) -> None:
         if isnan(secs):
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid value: nan"):
                 _dur = ry.Duration.from_secs_f64(secs)
         elif secs < 0.0:
             with pytest.raises((TypeError, OverflowError)):

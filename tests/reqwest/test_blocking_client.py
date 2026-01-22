@@ -184,7 +184,9 @@ class TestResponseJson:
         url = server.url / "broken-json"
         client = ry.BlockingClient()
         response = client.get(url)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="EOF while parsing a string at line 1 column 153"
+        ):
             _data = response.json()
 
     def test_get_json_broken_is_broken_allow_partial(
@@ -350,7 +352,7 @@ class TestTimeout:
         client = ry.BlockingClient()
         res = client.get(str(url) + "slow")
         text_future = res.text()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Response already consumed"):
             _bytes_future = res.bytes()
         text = text_future
         assert text == "".join([f"howdy partner {i}\n" for i in range(10)])

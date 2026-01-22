@@ -629,10 +629,8 @@ impl PyDuration {
     #[pyo3(signature = (*, interval = 10))]
     /// Sleep for the duration
     pub(crate) fn sleep(&self, py: Python<'_>, interval: u64) -> PyResult<()> {
-        if interval > 1000 {
-            return py_value_err!("interval must be less than or equal to 1000");
-        } else if interval == 0 {
-            return py_value_err!("interval must be greater than 0");
+        if !(1..=1000).contains(&interval) {
+            return py_value_err!("interval must be in the range 1..=1000 milliseconds");
         }
         let sleep_duration = self.0;
         let check_interval = Duration::from_millis(interval);
@@ -682,6 +680,7 @@ impl PyDuration {
             if let Ok(dur) = d.extract::<Duration>() {
                 Ok(Self(self.0.abs_diff(dur)))
             } else {
+                // TODO: allow negative timedelta if non-overflowing?
                 py_value_err!("cannot compare with negative timedelta")
             }
         } else {

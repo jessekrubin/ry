@@ -31,7 +31,10 @@ def test_compression_level_range() -> None:
         decoded = ry.zstd_decode(output_data)
         assert decoded == input_data
     for bad_level in (-1, 0, 23, 24):
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="zstd-compression-level must be an integer between 1 and 22",
+        ):
             ry.zstd_encode(input_data, bad_level)  # type: ignore[arg-type]
 
 
@@ -41,7 +44,10 @@ def test_compression_level_invalid(
 ) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     if isinstance(level, int):
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="zstd-compression-level must be an integer between 1 and 22",
+        ):
             ry.zstd_encode(input_data, level)  # type: ignore[arg-type]
     else:
         with pytest.raises(TypeError):
@@ -50,7 +56,7 @@ def test_compression_level_invalid(
 
 def test_zstd_decode_error() -> None:
     d = b"this is not zstd compressed data"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown frame descriptor"):
         ry.zstd_decode(d)
 
 

@@ -207,7 +207,9 @@ class TestResponseJson:
     ) -> None:
         url = server.url / "broken-json"
         response = await client.get(url)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="EOF while parsing a string at line 1 column 153"
+        ):
             _data = await response.json()
 
     @pytest.mark.anyio
@@ -541,7 +543,7 @@ class TestTimeout:
         client = ry.HttpClient()
         res = await client.get(str(url) + "slow")
         text_future = res.text()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Response already consumed"):
             _bytes_future = await res.bytes()
         text = await text_future
         assert text == "".join([f"howdy partner {i}\n" for i in range(10)])

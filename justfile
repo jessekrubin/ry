@@ -152,7 +152,7 @@ ruff:
 
 # run ruff + fix
 ruffix:
-    uv run ruff --fix --show-fixes
+    uv run ruff check . --fix --show-fixes
 
 # run clippy
 clippy:

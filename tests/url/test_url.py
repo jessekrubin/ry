@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ipaddress as pyip
+import re
 from pathlib import Path
 
 import pytest
@@ -17,7 +18,7 @@ def test_parse_error() -> None:
     assert!(Url::parse("ry_http://[:::1]") == Err(ParseError::InvalidIpv6Address))
     """
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="relative URL without a base"):
         ry.URL.parse("ry_http://[:::1]")
 
 
@@ -110,7 +111,7 @@ def test_str_subclass() -> None:
 
 
 def test_absolute_url_without_host() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=re.escape("empty host (url=http://:8080/")):
         ry.URL("http://:8080/")
 
 

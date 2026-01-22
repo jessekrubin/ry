@@ -302,7 +302,7 @@ class TestFsPathStringMethods:
         fsp = ry.FsPath("some/path/file.tar.gz")
         stripped = fsp.strip_prefix("some/path")
         assert stripped == ry.FsPath("file.tar.gz")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="prefix not found"):
             _ = fsp.strip_prefix("other/path")
 
     def test_with_extension(self) -> None:

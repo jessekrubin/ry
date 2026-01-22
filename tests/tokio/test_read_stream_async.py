@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import typing as t
 from pathlib import Path
 
@@ -91,7 +92,9 @@ async def test_read_offset_greater_than_file_size(
     ry.cd(tmp_path)
     read_offset = size + 1
     if strict:
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match=re.escape(f"offset ({read_offset}) > len ({size})")
+        ):
             _ = await ry.read_stream_async(
                 "test.txt", offset=read_offset, strict=strict
             )
@@ -241,5 +244,5 @@ class TestAsyncFileReadStream:
 class TestAsyncFileReadStreamErrors:
     def test_chunk_size_zero_raises(self) -> None:
         """Test that chunk_size of zero raises ValueError."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="chunk_size must be greater than 0"):
             _rs = ry.read_stream_async(_THIS_FILEPATH_ABOSLUTE, chunk_size=0)

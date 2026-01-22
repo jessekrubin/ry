@@ -710,19 +710,19 @@ impl PyFsPath {
     fn metadata(&self, py: Python<'_>) -> PyResult<ryo3_std::fs::PyMetadata> {
         py.detach(|| self.path().metadata())
             .map(ryo3_std::fs::PyMetadata::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
+            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.metadata: {e}")))
     }
 
     fn read_dir(&self, py: Python<'_>) -> PyResult<PyFsPathReadDir> {
         py.detach(|| std::fs::read_dir(self.path()))
             .map(PyFsPathReadDir::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("read_dir: {e}")))
+            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_dir: {e}")))
     }
 
     fn read_link(&self, py: Python<'_>) -> PyResult<Self> {
         py.detach(|| self.path().read_link())
             .map(Self::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("read_link: {e}")))
+            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_link: {e}")))
     }
 
     fn starts_with(&self, base: PathLike) -> bool {
@@ -733,13 +733,13 @@ impl PyFsPath {
         self.path()
             .strip_prefix(base.as_ref())
             .map(Self::from)
-            .map_err(|e| PyValueError::new_err(format!("strip_prefix: {e}")))
+            .map_err(|e| PyValueError::new_err(format!("FsPath.strip_prefix: {e}")))
     }
 
     fn symlink_metadata(&self, py: Python<'_>) -> PyResult<ryo3_std::fs::PyMetadata> {
         py.detach(|| self.path().symlink_metadata())
             .map(ryo3_std::fs::PyMetadata::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("metadata: {e}")))
+            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.symlink_metadata: {e}")))
     }
 
     fn with_extension(&self, extension: String) -> Self {
@@ -761,7 +761,7 @@ impl PyFsPath {
     #[cfg(feature = "same-file")]
     fn samefile(&self, py: Python<'_>, other: PathBuf) -> PyResult<bool> {
         py.detach(|| same_file::is_same_file(self.path(), &other))
-            .map_err(|e| PyFileNotFoundError::new_err(format!("samefile: {e}")))
+            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.samefile: {e}")))
     }
 
     #[cfg(not(feature = "same-file"))]

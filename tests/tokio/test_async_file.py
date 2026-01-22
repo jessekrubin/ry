@@ -114,7 +114,7 @@ def _mode_permutations(modes: list[str]) -> list[str]:
 
 
 class TestAsyncFileAiopen:
-    @pytest.mark.anyio()
+    @pytest.mark.anyio
     @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
     @pytest.mark.parametrize("buffering", [-1, 0])
     async def test_simple_iteration(
@@ -146,7 +146,7 @@ class TestAsyncFileAiopen:
 
         assert file.closed
 
-    @pytest.mark.anyio()
+    @pytest.mark.anyio
     @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
     @pytest.mark.parametrize("buffering", [-1, 0])
     async def test_simple_readlines(
@@ -167,7 +167,7 @@ class TestAsyncFileAiopen:
         assert actual == expected
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize("mode", _mode_permutations(["rb+", "wb", "ab"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_flush(mode: str, buffering: int, tmp_path: Path) -> None:
@@ -194,7 +194,7 @@ async def test_simple_flush(mode: str, buffering: int, tmp_path: Path) -> None:
         assert full_file.read_bytes() == b"0"
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize("mode", _mode_permutations(["rb+", "wb+", "ab+"]))
 async def test_simple_peek(mode: str, tmp_path: Path) -> None:
     """Test flushing to a file."""
@@ -218,7 +218,7 @@ async def test_simple_peek(mode: str, tmp_path: Path) -> None:
             assert peeked.startswith(read)
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_read(
@@ -235,7 +235,7 @@ async def test_simple_read(
     assert actual == open(filename, mode="rb").read()
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_staggered_read(
@@ -268,7 +268,7 @@ async def test_staggered_read(
     assert actual == expected
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_seek(mode: str, buffering: int, tmp_path: Path) -> None:
@@ -285,7 +285,7 @@ async def test_simple_seek(mode: str, buffering: int, tmp_path: Path) -> None:
         assert (await file.read(1)) == b"4"
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     "mode", _mode_permutations(["wb", "rb", "rb+", "wb+", "ab", "ab+"])
 )
@@ -304,7 +304,7 @@ async def test_simple_close_ctx_mgr(mode: str, buffering: int, tmp_path: Path) -
     assert file.closed
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     "mode", _mode_permutations(["wb", "rb", "rb+", "wb+", "ab", "ab+"])
 )
@@ -328,7 +328,7 @@ async def test_simple_close_no_ctx_mgr(
 
 
 # TODO: FIGURE OUT WHY "ab+" DONT WORK ON WINDOWS
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     "mode",
     [
@@ -360,7 +360,7 @@ async def test_simple_truncate(mode: str, buffering: int, tmp_path: Path) -> Non
     assert full_file.read_bytes() == b""
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 @pytest.mark.parametrize("mode", _mode_permutations(["wb", "rb+", "wb+", "ab", "ab+"]))
 @pytest.mark.parametrize("buffering", [-1, 0])
 async def test_simple_write(mode: str, buffering: int, tmp_path: Path) -> None:
@@ -380,7 +380,7 @@ async def test_simple_write(mode: str, buffering: int, tmp_path: Path) -> None:
     assert content == full_file.read_bytes()
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 async def test_simple_readall(tmp_path: Path) -> None:
     """Test the readall function by reading a large file in.
 
@@ -402,7 +402,7 @@ async def test_simple_readall(tmp_path: Path) -> None:
     assert file.closed
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 async def test_file_async_context_aexit(aopen_fixtures: FileFixtures) -> None:
     test_file = aopen_fixtures.test_file_path
     async with aopen(test_file) as fp:
@@ -416,7 +416,7 @@ async def test_file_async_context_aexit(aopen_fixtures: FileFixtures) -> None:
         assert line.decode() == "0123456789"
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 async def test_filetask_async_context_aexit(
     aopen_fixtures: FileFixtures,
 ) -> None:
