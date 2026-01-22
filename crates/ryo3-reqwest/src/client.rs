@@ -107,6 +107,8 @@ pub struct ClientConfig {
     tls_sni: bool,  // default: true
     tls_version_max: Option<TlsVersion>,
     tls_version_min: Option<TlsVersion>,
+    /// use cached native system certs
+    tls_cached_native_certs: bool,
     // -- tls danger zone --
     tls_danger_accept_invalid_certs: bool,
     tls_danger_accept_invalid_hostnames: bool,
@@ -171,6 +173,7 @@ impl Default for ClientConfig {
             identity: None,
             tls_certs_merge: None,
             tls_certs_only: None,
+            tls_cached_native_certs: true,
             tls_crls_only: None,
             tls_info: false,
             tls_sni: true,
@@ -545,6 +548,7 @@ impl RyHttpClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
+            tls_cached_native_certs = true,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -605,6 +609,7 @@ impl RyHttpClient {
         // -- tls --
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
+        tls_cached_native_certs: bool,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
@@ -660,6 +665,7 @@ impl RyHttpClient {
             identity,
             tls_certs_merge,
             tls_certs_only,
+            tls_cached_native_certs,
             tls_crls_only,
             tls_info,
             tls_sni,
@@ -866,6 +872,7 @@ impl RyClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
+            tls_cached_native_certs = true,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -926,6 +933,7 @@ impl RyClient {
         // -- tls --
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
+        tls_cached_native_certs: bool,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
@@ -981,6 +989,7 @@ impl RyClient {
             identity,
             tls_certs_merge,
             tls_certs_only,
+            tls_cached_native_certs,
             tls_crls_only,
             tls_info,
             tls_sni,
@@ -1155,6 +1164,7 @@ impl RyBlockingClient {
 
             tls_certs_merge = None,
             tls_certs_only = None,
+            tls_cached_native_certs = true,
             tls_crls_only = None,
             tls_info = false,
             tls_sni = true,
@@ -1215,6 +1225,7 @@ impl RyBlockingClient {
         // -- tls --
         tls_certs_merge: Option<Vec<PyCertificate>>,
         tls_certs_only: Option<Vec<PyCertificate>>,
+        tls_cached_native_certs: bool,
         tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
         tls_info: bool,
         tls_sni: bool,
@@ -1270,6 +1281,7 @@ impl RyBlockingClient {
             identity,
             tls_certs_merge,
             tls_certs_only,
+            tls_cached_native_certs,
             tls_crls_only,
             tls_info,
             tls_sni,
@@ -1454,14 +1466,24 @@ impl ClientConfig {
 
     #[inline]
     fn apply_tls_opts(&self, mut client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
-        if self.tls_certs_only.is_none() {
-            client_builder =
-                client_builder.tls_certs_only(crate::tls::py_load_native_certs().iter().cloned());
+        // based on the reqwest logic for system cert loading, but adapted to allow for
+        // caching the system certs once per process instead of loading them every time a client is built
+        if let Some(tls_certs_only) = &self.tls_certs_only {
+            client_builder = client_builder
+                .tls_certs_only(tls_certs_only.iter().map(|py_cert| py_cert.cert.clone()));
+        } else if self.tls_cached_native_certs && self.tls_certs_merge.is_none() {
+            let cached = crate::tls::py_load_native_certs();
+            if !cached.is_empty() {
+                client_builder = client_builder.tls_certs_only(cached.iter().cloned());
+            }
         }
+
         if let Some(tls_certs_merge) = &self.tls_certs_merge {
             client_builder = client_builder
                 .tls_certs_merge(tls_certs_merge.iter().map(|py_cert| py_cert.cert.clone()));
         }
+
+        // CRL
         if let Some(tls_crls_only) = &self.tls_crls_only {
             client_builder = client_builder
                 .tls_crls_only(tls_crls_only.clone().into_iter().map(|py_crl| py_crl.crl));
@@ -1615,6 +1637,7 @@ impl ClientConfig {
             "tls_crls_only" => self.tls_crls_only.clone(),
             "tls_certs_merge" => self.tls_certs_merge.clone(),
             "tls_certs_only" => self.tls_certs_only.clone(),
+            "tls_cached_native_certs" => self.tls_cached_native_certs,
             "tls_info" => self.tls_info,
             "tls_sni" => self.tls_sni,
             "tls_version_max" => self.tls_version_max,
