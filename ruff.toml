@@ -30,6 +30,7 @@ select = [
   "DTZ",
   "E",
   "ERA001",
+  "PT", # pytest
   "PYI",
   "EM",
   "F",
@@ -45,7 +46,6 @@ select = [
   "PLW",
   "Q",
   "RUF",
-  # "RUF022", # unsorted-dunder-all
   "S",
   "T",
   "TC",
@@ -55,11 +55,15 @@ select = [
   "YTT",
 ]
 ignore = [
-  "E501",    # line length
+  "E501", # line length
   # "FBT003",  # boolean-positional-value-in-call
   "PLR2004", # magic values (super dumb rule)
-  "PYI053", #
+  "PYI053",  #
   "PYI021",  # docstring-in-stub
+
+  # pytest rules to ignore (tmp)
+  "PT007", # pytest-parametrize-values-wrong-type
+  "PT011", # pytest-raises-too-broad
 ]
 preview = true
 pydocstyle.convention = "google"
@@ -112,17 +116,17 @@ flake8-boolean-trap.extend-allowed-calls = [
   "TID252",
 ]
 "tests/**/*.py" = [
-  "DTZ001",   # call-datetime-without-tzinfo
-  "PLC0415",  # import-outside-top-level
-  "PLR0124",  # comparison-with-itself
-  "PLR0911",  # too-many-return-statements
-  "PLW1510",  # subprocess-run-without-check
-  "S101",     # assert
-  "S103",     # bad-file-permissions
-  "S301",     # suspicious-pickle-usage
-  "S307",     # suspicious-eval-usage
-  "S603",     # subprocess-without-shell-equals-true
-  "TID252",   # relative-imports
+  "DTZ001",  # call-datetime-without-tzinfo
+  "PLC0415", # import-outside-top-level
+  "PLR0124", # comparison-with-itself
+  "PLR0911", # too-many-return-statements
+  "PLW1510", # subprocess-run-without-check
+  "S101",    # assert
+  "S103",    # bad-file-permissions
+  "S301",    # suspicious-pickle-usage
+  "S307",    # suspicious-eval-usage
+  "S603",    # subprocess-without-shell-equals-true
+  "TID252",  # relative-imports
 ]
 "tests/reqwest/conftest.py" = ["ARG001"]
 "python/ry/dev/*.py" = ["PLC0415"]

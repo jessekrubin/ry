@@ -55,9 +55,7 @@ class TestCertificate:
     def test_from_pem_bundle(self) -> None:
         certs = ry.Certificate.from_pem_bundle(_PEM_BUNDLE.encode())
         assert isinstance(certs, list)
-        assert all(
-            isinstance(c, ry.Certificate) for c in certs
-        )
+        assert all(isinstance(c, ry.Certificate) for c in certs)
 
     def test_not_constructible(self) -> None:
         with pytest.raises(ValueError):
@@ -73,6 +71,4 @@ class TestCertificateRevocationList:
     def test_from_pem_bundle(self) -> None:
         crls = ry.CertificateRevocationList.from_pem_bundle(_PEM_BUNDLE.encode())
         assert isinstance(crls, list)
-        assert all(
-            isinstance(c, ry.CertificateRevocationList) for c in crls
-        )
+        assert all(isinstance(c, ry.CertificateRevocationList) for c in crls)
