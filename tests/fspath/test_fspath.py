@@ -155,8 +155,7 @@ class TestFsPath:
         rypath = path_cls("/some/path/file.txt")
         if path_cls is ry.FsPath:
             with pytest.raises(NotImplementedError):
-                relative_resolved = rypath.relative_to("/some")
-                assert relative_resolved == pypath.relative_to("/some")
+                _relative_resolved = rypath.relative_to("/some")
         else:
             relative_resolved = rypath.relative_to("/some")
             assert relative_resolved == pypath.relative_to("/some")
@@ -198,7 +197,7 @@ class TestFsPath:
         pathbytes_fslash = bytes(rypath).replace(b"\\", b"/")
         assert pathbytes_fslash == bytes(pypath).replace(
             b"\\", b"/"
-        )  # todo: reevaluate
+        )  # TODO: reevaluate
 
     def test_parts(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")
@@ -302,7 +301,7 @@ class TestFsPathStringMethods:
         fsp = ry.FsPath("some/path/file.tar.gz")
         stripped = fsp.strip_prefix("some/path")
         assert stripped == ry.FsPath("file.tar.gz")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="prefix not found"):
             _ = fsp.strip_prefix("other/path")
 
     def test_with_extension(self) -> None:
@@ -332,10 +331,7 @@ class TestFsPathPosix:
         assert str(rypath.root) == pypath.root
 
 
-@pytest.fixture(
-    name="tmp_fspath",
-    scope="function",
-)
+@pytest.fixture(name="tmp_fspath")
 def tmp_fspath(tmp_path: Path) -> ry.FsPath:
     return ry.FsPath(tmp_path)
 
@@ -487,8 +483,5 @@ def test_read_text_unidecode_err(tmp_path: Path) -> None:
     b = rypath.read_bytes()
     assert b == bad_bytes
 
-    with pytest.raises(UnicodeDecodeError) as e:
+    with pytest.raises(UnicodeDecodeError, check=lambda e: e.start == 26):
         _t = rypath.read_text()
-        err = e.value
-        assert err.start == 24
-        # now test that the err is shit

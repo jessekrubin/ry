@@ -184,7 +184,9 @@ class TestResponseJson:
         url = server.url / "broken-json"
         client = ry.BlockingClient()
         response = client.get(url)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="EOF while parsing a string at line 1 column 153"
+        ):
             _data = response.json()
 
     def test_get_json_broken_is_broken_allow_partial(
@@ -350,7 +352,7 @@ class TestTimeout:
         client = ry.BlockingClient()
         res = client.get(str(url) + "slow")
         text_future = res.text()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Response already consumed"):
             _bytes_future = res.bytes()
         text = text_future
         assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
@@ -358,8 +360,8 @@ class TestTimeout:
     def test_client_timeout(self, server: ReqtestServer) -> None:
         url = server.url
         client = ry.BlockingClient(timeout=ry.Duration.from_secs_f64(0.1))
+        res = client.get(str(url) + "slow")
         with pytest.raises(ry.ReqwestError):
-            res = client.get(str(url) + "slow")
             _text = res.text()
 
 
@@ -369,7 +371,6 @@ class TestCookies:
 
         Should not be set in the echo response, as cookies are not enabled
         """
-
         url = server.url
         client = ry.BlockingClient()
         response = client.get(str(url) + "cookies")
@@ -400,7 +401,8 @@ class TestCookies:
         _res_json = response.json()
 
         c = response.cookies
-        assert isinstance(c, list) and len(c) == 1
+        assert isinstance(c, list)
+        assert len(c) == 1
 
         assert isinstance(c[0], ry.Cookie)
         assert c[0].name == "ryo3"

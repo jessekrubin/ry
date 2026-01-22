@@ -7,36 +7,36 @@ use std::fs::File;
 use std::io::{self, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
-pub(crate) const DEFAULT_CHUNK_SIZE: usize = 65536;
+pub(crate) const DEFAULT_READ_SIZE: usize = 65536;
 
 pub(crate) struct FileReadStream<T: Read + Seek> {
     file: T,
-    chunk_size: usize,
+    read_size: usize,
     buffer: BytesMut,
 }
 
 impl<T: Read + Seek> FileReadStream<T> {
-    pub(crate) fn new(file: T, chunk_size: usize) -> Self {
+    pub(crate) fn new(file: T, read_size: usize) -> Self {
         Self {
             file,
-            chunk_size,
-            buffer: BytesMut::with_capacity(chunk_size),
+            read_size,
+            buffer: BytesMut::with_capacity(read_size),
         }
     }
 }
 
 impl FileReadStream<File> {
-    fn from_path<P: AsRef<Path>>(path: P, chunk_size: usize) -> io::Result<Self> {
+    fn from_path<P: AsRef<Path>>(path: P, read_size: usize) -> io::Result<Self> {
         let file = File::open(path)?;
-        Ok(Self::new(file, chunk_size))
+        Ok(Self::new(file, read_size))
     }
 }
 
 impl FileReadStream<BufReader<File>> {
-    fn from_path_buffered<P: AsRef<Path>>(path: P, chunk_size: usize) -> io::Result<Self> {
+    fn from_path_buffered<P: AsRef<Path>>(path: P, read_size: usize) -> io::Result<Self> {
         let file = File::open(path)?;
-        let reader = BufReader::with_capacity(chunk_size * 2, file);
-        Ok(Self::new(reader, chunk_size))
+        let reader = BufReader::with_capacity(read_size * 2, file);
+        Ok(Self::new(reader, read_size))
     }
 }
 
@@ -51,7 +51,7 @@ impl<T: Read + Seek> Iterator for FileReadStream<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         // can resize buffer without reallocating (I think)
-        self.buffer.resize(self.chunk_size, 0);
+        self.buffer.resize(self.read_size, 0);
         match self.file.read(&mut self.buffer) {
             Ok(0) => None,
             Ok(n) => Some(Ok(self.buffer.split_to(n).freeze())),
@@ -92,7 +92,7 @@ pub(crate) struct PyFileReadStreamOptions {
     /// Path to the file to read
     pub(crate) path: PathBuf,
     /// Size of each chunk to read
-    pub(crate) chunk_size: usize,
+    pub(crate) read_size: usize,
     /// Offset to start reading from
     pub(crate) offset: u64,
     /// Whether to use buffered reading
@@ -108,8 +108,8 @@ pub struct PyFileReadStream {
 
 impl PyFileReadStream {
     pub(crate) fn new(options: PyFileReadStreamOptions) -> PyResult<Self> {
-        if options.chunk_size == 0 {
-            return py_value_err!("chunk_size must be greater than 0");
+        if options.read_size == 0 {
+            return py_value_err!("read_size must be greater than 0");
         }
 
         // Open once so we can check length
@@ -128,12 +128,12 @@ impl PyFileReadStream {
         let mut stream = if options.buffered {
             FileReadStreamWrapper::Buffered(FileReadStream::from_path_buffered(
                 &options.path,
-                options.chunk_size,
+                options.read_size,
             )?)
         } else {
             FileReadStreamWrapper::Unbuffered(FileReadStream::from_path(
                 &options.path,
-                options.chunk_size,
+                options.read_size,
             )?)
         };
 
@@ -150,10 +150,10 @@ impl PyFileReadStream {
 #[pymethods]
 impl PyFileReadStream {
     #[new]
-    #[pyo3(signature = (path, *, chunk_size = DEFAULT_CHUNK_SIZE, offset = 0, buffered = true, strict = true))]
+    #[pyo3(signature = (path, *, read_size = DEFAULT_READ_SIZE, offset = 0, buffered = true, strict = true))]
     pub fn py_new(
         path: PathBuf,
-        chunk_size: usize,
+        read_size: usize,
         offset: u64,
         buffered: bool,
         strict: bool,
@@ -161,7 +161,7 @@ impl PyFileReadStream {
         let options = PyFileReadStreamOptions {
             strict,
             path,
-            chunk_size,
+            read_size,
             offset,
             buffered,
         };
@@ -219,7 +219,7 @@ impl PyFileReadStream {
 impl std::fmt::Debug for PyFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "FileReadStream(path='{}'", self.options.path.display(),)?;
-        write!(f, ", chunk_size={}", self.options.chunk_size)?;
+        write!(f, ", read_size={}", self.options.read_size)?;
         if self.options.offset != 0 {
             write!(f, ", offset={}", self.options.offset)?;
         }

@@ -30,8 +30,8 @@ async def main() -> None:
         async for line in f:
             print(f">>> line: {line!r}")
 
-    # reading chunks (w/ chunk_size of 4 (bytes))
-    stream = await ry.read_stream_async("stuff-async.txt", chunk_size=4)
+    # reading chunks (w/ read_size of 4 (bytes))
+    stream = await ry.read_stream_async("stuff-async.txt", read_size=4)
     async for chunk in stream:
         print(f">>> chunk: {chunk!r}")
 

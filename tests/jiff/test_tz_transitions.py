@@ -28,13 +28,14 @@ class TestTimeZoneTransitions:
             "2024-12-31 18:25-05[US/Eastern]"
         )
         transitions = now.timezone.preceding(now.timestamp(), 5)
-        result = []
-        for t in transitions:
-            result.append((
+        result = [
+            (
                 t["timestamp"].to_zoned(now.timezone),
                 t["offset"],
                 t["abbreviation"],
-            ))
+            )
+            for t in transitions
+        ]
         # fmt: off
         expected = [
             (ry.ZonedDateTime.parse("2024-11-03 01:00-05[US/Eastern]"), ry.Offset(-5), "EST"),
@@ -61,7 +62,6 @@ class TestTimeZoneTransitions:
 
     def test_show_5_next_tz_transitions(self) -> None:
         """REF: https://docs.rs/jiff/latest/jiff/tz/struct.TimeZone.html#example-show-the-5-next-time-zone-transitions"""
-
         now: ry.ZonedDateTime = ry.ZonedDateTime.parse(
             "2024-12-31 18:25-05[US/Eastern]"
         )

@@ -250,22 +250,21 @@ def router(
 ) -> Callable[[uvt.HTTPScope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]]:
     if scope["path"].startswith("/echo"):
         return echo
-    elif scope["path"].startswith("/howdy"):
+    if scope["path"].startswith("/howdy"):
         return howdy
-    elif scope["path"].startswith("/500") or scope["path"].startswith("/five-hundred"):
+    if scope["path"].startswith("/500") or scope["path"].startswith("/five-hundred"):
         return five_hundred
-    elif scope["path"].startswith("/long"):
+    if scope["path"].startswith("/long"):
         return loooooooong_response
-    elif scope["path"].startswith("/slow"):
+    if scope["path"].startswith("/slow"):
         return slow_response
-    elif scope["path"].startswith("/upload"):
+    if scope["path"].startswith("/upload"):
         return upload_file
-    elif scope["path"].startswith("/cookie"):
+    if scope["path"].startswith("/cookie"):
         return cookie_monster
-    elif scope["path"].startswith("/broken-json"):
+    if scope["path"].startswith("/broken-json"):
         return broken_json
-    else:
-        return four_oh_four
+    return four_oh_four
 
 
 async def reqtest_server(scope: uvt.HTTPScope, receive: Receive, send: Send) -> None:
@@ -306,7 +305,7 @@ class ReqtestServer(Server):
         # any asyncio-specific operations.
         self.started = False
         self.restart_requested.set()
-        while not self.started:
+        while not self.started:  # noqa: ASYNC110
             await aiosleep(0.2)
 
     async def watch_restarts(self) -> None:  # pragma: no cover

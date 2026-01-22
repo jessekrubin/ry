@@ -112,7 +112,6 @@ SHPLITESTS = [
     Shplitest(string="áéíóú", expected=["áéíóú"]),
 ]
 
-
 # typos:on
 
 

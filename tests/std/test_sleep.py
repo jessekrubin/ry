@@ -17,7 +17,7 @@ def test_sleep() -> None:
 
 
 def test_sleep_value_error_negative_number() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="sleep ~ secs must be >= 0"):
         ry.sleep(-1)
 
 

@@ -207,7 +207,9 @@ class TestResponseJson:
     ) -> None:
         url = server.url / "broken-json"
         response = await client.get(url)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="EOF while parsing a string at line 1 column 153"
+        ):
             _data = await response.json()
 
     @pytest.mark.anyio
@@ -526,8 +528,8 @@ class TestTimeout:
     ) -> None:
         url = server.url
         client = client_cls(timeout=ry.Duration.from_secs_f64(0.1))
+        res = await client.get(str(url) + "slow")
         with pytest.raises(ry.ReqwestError):
-            res = await client.get(str(url) + "slow")
             _text = await res.text()
 
     async def test_client_timeout_get_both_same_time_http_client(
@@ -541,7 +543,7 @@ class TestTimeout:
         client = ry.HttpClient()
         res = await client.get(str(url) + "slow")
         text_future = res.text()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Response already consumed"):
             _bytes_future = await res.bytes()
         text = await text_future
         assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
@@ -574,7 +576,6 @@ class TestCookies:
 
         Should not be set in the echo response, as cookies are not enabled
         """
-
         url = server.url
         response = await client.get(str(url) + "cookies")
         assert response.status_code == 200, f"response: {response}"
@@ -606,7 +607,8 @@ class TestCookies:
         _res_json = await response.json()
 
         c = response.cookies
-        assert isinstance(c, list) and len(c) == 1
+        assert isinstance(c, list)
+        assert len(c) == 1
 
         assert isinstance(c[0], ry.Cookie)
         assert c[0].name == "ryo3"

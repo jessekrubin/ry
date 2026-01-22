@@ -52,9 +52,8 @@ def test_ry_vs_stdlib_compress() -> None:
     assert ry_compressed is not None
 
     # Decompress with stdlib gzip
-    with io.BytesIO(ry_compressed) as f:
-        with gzip.GzipFile(fileobj=f, mode="rb") as gzf:
-            stdlib_decompressed = gzf.read()
+    with io.BytesIO(ry_compressed) as f, gzip.GzipFile(fileobj=f, mode="rb") as gzf:
+        stdlib_decompressed = gzf.read()
     assert stdlib_decompressed == input_data
 
 
@@ -81,9 +80,8 @@ def test_cross_compatibility() -> None:
     assert ry_compressed is not None
 
     # Decompress with stdlib gzip
-    with io.BytesIO(ry_compressed) as f:
-        with gzip.GzipFile(fileobj=f, mode="rb") as gzf:
-            stdlib_decompressed = gzf.read()
+    with io.BytesIO(ry_compressed) as f, gzip.GzipFile(fileobj=f, mode="rb") as gzf:
+        stdlib_decompressed = gzf.read()
     assert stdlib_decompressed == input_data
 
     # stdlib gzip
@@ -131,17 +129,14 @@ def test_quality_gzip_string(quality: t.Literal["best", "fast"]) -> None:
 def test_gzip_quality_value_error(
     quality: str | float | None,
 ) -> None:
-    with pytest.raises(ValueError) as e:
-        ry.gzip_encode(b"data", quality=quality)  # type: ignore[arg-type]
-        s = str(e.value)
-        assert (
-            "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'"
-            in s
-        )
-    with pytest.raises(ValueError) as e:
-        ry.gzip(b"data", quality=quality)  # type: ignore[arg-type]
-        s = str(e.value)
-        assert (
-            "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'"
-            in s
-        )
+    with pytest.raises(
+        ValueError,
+        match="Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
+    ):
+        _r = ry.gzip_encode(b"data", quality=quality)  # type: ignore[arg-type]
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
+    ):
+        _r = ry.gzip(b"data", quality=quality)  # type: ignore[arg-type]

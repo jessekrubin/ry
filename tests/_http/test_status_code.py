@@ -71,7 +71,7 @@ _REASONS_MAP = {
 
 
 @pytest.mark.parametrize(
-    "code, reason",
+    ("code", "reason"),
     list(_REASONS_MAP.items()),
 )
 def test_http_status_code(

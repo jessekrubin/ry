@@ -53,7 +53,7 @@ class TestJsonSchemas:
         self._diff_schemas(py_model, ry_model)
 
 
-@pytest.mark.parametrize("value,expected", _TEST_CASES)
+@pytest.mark.parametrize(("value", "expected"), _TEST_CASES)
 def test_uuid_model(
     value: str | bytes | pyuuid.UUID,
     expected: pyuuid.UUID | type[pydantic.ValidationError],

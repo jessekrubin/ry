@@ -95,7 +95,7 @@ def jiff_unit_largest(request: pytest.FixtureRequest) -> JiffUnit | None:
     return t.cast("JiffUnit | None", request.param)
 
 
-@pytest.fixture()
+@pytest.fixture
 def diff_opts(
     jiff_unit_smallest: JiffUnit | None,
     jiff_unit_largest: JiffUnit | None,

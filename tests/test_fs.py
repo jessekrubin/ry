@@ -24,12 +24,14 @@ def test_read_string_invalid_utf8(tmp_path: Path) -> None:
     with open("test.txt", "rb") as f:
         assert f.read() == b"\x80"
     # with python open and get error type
-    with pytest.raises(
-        UnicodeDecodeError,
-        match="'utf-8' codec can't decode byte 0x80 in position 0: invalid start byte",
+    with (
+        pytest.raises(
+            UnicodeDecodeError,
+            match="'utf-8' codec can't decode byte 0x80 in position 0: invalid start byte",
+        ),
+        open("test.txt", encoding="utf-8") as f,
     ):
-        with open("test.txt", encoding="utf-8") as f:
-            f.read()
+        f.read()
 
     with pytest.raises(UnicodeDecodeError):
         ry.read_text("test.txt")

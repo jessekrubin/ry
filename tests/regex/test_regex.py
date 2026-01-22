@@ -60,10 +60,7 @@ _DEFAULT_OPTIONS = {
 
 
 def _options_is_default(opts: dict[str, t.Any]) -> bool:
-    for k, v in _DEFAULT_OPTIONS.items():
-        if k in opts and opts[k] != v:
-            return False
-    return True
+    return all(not (k in opts and opts[k] != v) for k, v in _DEFAULT_OPTIONS.items())
 
 
 @pytest.mark.parametrize("kwargs", _gen_kwargs_options())

@@ -293,7 +293,6 @@ def test_bytes_strip_with_arg(
     bytes2strip_from: bytes,
 ) -> None:
     """Test Bytes.strip() works like python bytes with an argument"""
-
     # .strip()
     ry_bytes = ry.Bytes(bytes2strip_from)
     py_res = bytes2strip_from.strip(bytes2strip)
@@ -374,8 +373,9 @@ def test_bytes_not_impl(fn_name: str) -> None:
     method = getattr(rust_bytes, fn_name, None)
     if method is None:
         return
-    with pytest.raises(NotImplementedError):
-        if fn_name in ["__mod__", "__rmod__"]:
+    if fn_name in ["__mod__", "__rmod__"]:
+        with pytest.raises(NotImplementedError):
             method(1)  # provide an argument
-        else:
+    else:
+        with pytest.raises(NotImplementedError):
             method()

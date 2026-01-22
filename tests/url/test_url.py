@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ipaddress as pyip
+import re
 from pathlib import Path
 
 import pytest
@@ -16,8 +17,7 @@ def test_parse_error() -> None:
 
     assert!(Url::parse("ry_http://[:::1]") == Err(ParseError::InvalidIpv6Address))
     """
-
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="relative URL without a base"):
         ry.URL.parse("ry_http://[:::1]")
 
 
@@ -78,7 +78,7 @@ def test_parse_url_readme() -> None:
 
 
 @pytest.mark.parametrize(
-    "url_str, expected_type, expected_host_str",
+    ("url_str", "expected_type", "expected_host_str"),
     [
         ("https://127.0.0.1/", ry.Ipv4Addr.parse("127.0.0.1"), "127.0.0.1"),
         ("https://[::1]/", ry.Ipv6Addr.parse("::1"), "[::1]"),
@@ -104,13 +104,15 @@ def test_inheritance() -> None:
 
 
 def test_str_subclass() -> None:
-    class S(str): ...
+
+    class S(str):
+        __slots__ = ()
 
     assert str(ry.URL(S("http://example.com"))) == "http://example.com/"
 
 
 def test_absolute_url_without_host() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=re.escape("empty host (url=http://:8080/")):
         ry.URL("http://:8080/")
 
 
@@ -130,7 +132,7 @@ def test_repr() -> None:
 
 
 @pytest.mark.parametrize(
-    "url_str, expected",
+    ("url_str", "expected"),
     [
         ("https://127.0.0.1/", None),
         ("https://[::1]/", None),
@@ -254,7 +256,7 @@ class TestUrlReplace:
         )
 
     @pytest.mark.parametrize(
-        "ip_addr, expected_url",
+        ("ip_addr", "expected_url"),
         [
             (
                 pyip.ip_interface("2001:db8:85a3::8a2e:370:7334"),

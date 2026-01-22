@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import typing as t
 
 import pytest
@@ -50,7 +51,7 @@ class TestDurationFriendlyStr:
         assert parsed_max_dur == max_dur
 
     @pytest.mark.parametrize(
-        "designator, expected",
+        ("designator", "expected"),
         [
             ("human", "5124095576030431h 15s 999ms 999us 999ns"),
             ("human-time", "5124095576030431h 15s 999ms 999us 999ns"),
@@ -77,7 +78,12 @@ class TestDurationFriendlyStr:
         self,
     ) -> None:
         max_dur = ry.Duration.MAX
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "invalid designator: dingo (expected 'human'/'human-time', 'short', or 'compact')"
+            ),
+        ):
             _s = max_dur.friendly("dingo")  # type: ignore[arg-type]
         with pytest.raises(TypeError):
             _s = f"{max_dur:herm}"

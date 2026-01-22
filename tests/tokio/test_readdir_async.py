@@ -36,8 +36,7 @@ async def test_read_dir_take() -> None:
         if not taken:
             break
 
-        else:
-            take_two.extend(taken)
+        take_two.extend(taken)
 
     take_two_paths = {os.path.basename(direntry) for direntry in take_two}
     assert take_two_paths == set(items)

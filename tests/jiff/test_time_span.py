@@ -287,7 +287,6 @@ class TestSpanCompare:
         );
         ```
         """
-
         span1 = ry.timespan(hours=79, minutes=10)
         span2 = ry.timespan(days=3, hours=7, seconds=630)
         span3 = ry.timespan(days=3, hours=6, minutes=50)

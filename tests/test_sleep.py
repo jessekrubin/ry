@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 
 import pytest
@@ -18,7 +19,10 @@ def test_sleep() -> None:
 
 @pytest.mark.parametrize("interval", [0, 1001])
 def test_sleep_check_interval_err(interval: int) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=re.escape("interval must be in the range 1..=1000 milliseconds"),
+    ):
         ry.Duration(1, 1).sleep(interval=interval)
 
 

@@ -19,10 +19,9 @@ from ry.ulid import ULID
 def _pydantic_installed() -> bool:
     try:
         import pydantic  # noqa: F401
-
-        return True
     except ImportError:
         return False
+    return True
 
 
 @pytest.mark.skipif(not _pydantic_installed(), reason="pydantic is not installed")

@@ -27,7 +27,6 @@ class TestDateDifference:
         assert_eq!(span, 7.years());
 
         """
-
         d1 = ry.date(2024, 3, 15)
         d2 = ry.date(2030, 9, 13)
         diff = ry.DateDifference(d2)._smallest("year")._mode("half-expand")
@@ -506,7 +505,6 @@ class TestTimestampDifference:
         assert_eq!(span, 275.minutes());
         ```
         """
-
         ts1 = ry.Timestamp.parse("2024-03-15 08:19Z")
         ts2 = ry.Timestamp.parse("2024-03-15 12:52Z")
         span = ts1._until(

@@ -37,7 +37,6 @@ def oj_stringify(data: t.Any) -> bytes:
 
 def _test_stringify_json(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings."""
-
     json_bytes = ry.stringify(data)
     assert isinstance(json_bytes, ry.Bytes), "Result should be a `ry.Bytes`"
 
@@ -63,7 +62,6 @@ def test_stringify_json(data: t.Any) -> None:
 
 def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
-
     json_bytes = ry.stringify(data)
     assert isinstance(json_bytes, ry.Bytes), "Result should be a `ry.Bytes`"
     oj_res = oj_stringify(data)

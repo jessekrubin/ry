@@ -38,14 +38,14 @@ _CONSTANTS = [
 ]
 
 
-@pytest.mark.parametrize("name,value", _CONSTANTS)
+@pytest.mark.parametrize(("name", "value"), _CONSTANTS)
 def test_constants(name: str, value: int) -> None:
     assert getattr(ry, name) == value
     assert isinstance(getattr(ry, name), int)
 
 
 @pytest.mark.parametrize(
-    "name,value",
+    ("name", "value"),
     [
         ("USIZE_BITS", (32, 64)[sys.maxsize > 2**32]),
         ("USIZE_MAX", (4_294_967_295, 18_446_744_073_709_551_615)[sys.maxsize > 2**32]),

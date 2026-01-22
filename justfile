@@ -8,10 +8,6 @@
 
 # run ry.dev python repl
 repl:
-    python -m ry.dev
-
-# run ry.dev python repl (if using uv)
-repl-uv:
     uv run python -m ry.dev
 
 # dev run build + tests
@@ -152,7 +148,7 @@ ruff:
 
 # run ruff + fix
 ruffix:
-    uv run ruff --fix --show-fixes
+    uv run ruff check . --fix --show-fixes
 
 # run clippy
 clippy:

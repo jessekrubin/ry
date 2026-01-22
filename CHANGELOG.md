@@ -14,7 +14,9 @@
     properties to match the `async` version in `ryo3-tokio`
   - `FileType` finally supporting `FileTypeExt` and internally reworked
   - removed `FileType.to_dict()` and associated `FileTypeDict` typed-dict
+  - sync-file-stream kwarg `chunk_size` renamed to `read_size` to be more clear
 - `ryo3-tokio`
+  - async-file-stream kwarg `chunk_size` renamed to `read_size` to be more clear
   - Experiments with using tokio runtime to spawn instead of
     pyo3-async-runtimes + py-futures
 

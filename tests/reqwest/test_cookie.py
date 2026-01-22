@@ -15,7 +15,7 @@ def test_to_string() -> None:
 def test_permanent() -> None:
     c = ry.Cookie("name", "value", permanent=False)
     assert c.max_age is None
-    # TODO expires tests
+    # TODO: expires tests
 
     c = ry.Cookie("name", "value", permanent=True)
     assert c.max_age is not None
@@ -26,7 +26,7 @@ def test_removal() -> None:
     assert c.max_age is not None
     assert c.max_age is not None
     assert c.max_age == ry.Duration.ZERO
-    # TODO expires tests
+    # TODO: expires tests
 
 
 def test_not_eq() -> None:
@@ -59,19 +59,22 @@ def test_stripped() -> None:
 
 
 @pytest.mark.parametrize(
-    "string",
+    ("string", "err"),
     [
-        "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
-        "=value",
+        (
+            "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
+            "the cookie is missing a name/value pair",
+        ),
+        ("=value", "the cookie's name is empty"),
     ],
 )
-def test_parse_fails(string: str) -> None:
-    with pytest.raises(ValueError):
+def test_parse_fails(string: str, err: str) -> None:
+    with pytest.raises(ValueError, match=err):
         ry.Cookie.parse(string)
 
 
 @pytest.mark.parametrize(
-    "string,name,value",
+    ("string", "name", "value"),
     [
         ("name=value", "name", "value"),
         ("name=value; Path=/", "name", "value"),
@@ -85,14 +88,17 @@ def test_parse_encoded(string: str, name: str, value: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "string",
+    ("string", "err"),
     [
-        "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
-        "=value",
+        (
+            "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
+            "the cookie is missing a name/value pair",
+        ),
+        ("=value", "the cookie's name is empty"),
     ],
 )
-def test_parse_encoded_fails(string: str) -> None:
-    with pytest.raises(ValueError):
+def test_parse_encoded_fails(string: str, err: str) -> None:
+    with pytest.raises(ValueError, match=err):
         ry.Cookie.parse_encoded(string)
 
 
@@ -104,7 +110,7 @@ class TestCookieProperties:
         assert c.domain == "example.com"
 
     @pytest.mark.parametrize(
-        "string,domain",
+        ("string", "domain"),
         [
             ("name=value", None),
             ("name=value; Domain=crates.io", "crates.io"),
@@ -151,7 +157,7 @@ class TestCookieProperties:
         assert c.name_value_trimmed == ("name", "value")
 
     @pytest.mark.parametrize(
-        "string,same_site",
+        ("string", "same_site"),
         [
             ("name=value; SameSite=Lax", "Lax"),
             ("name=value; SameSite=Strict", "Strict"),
@@ -174,9 +180,8 @@ class TestCookieProperties:
         assert c.secure is True
 
     @pytest.mark.parametrize(
-        "string,secure",
+        ("string", "secure"),
         [
-            ("name=value; Secure", True),
             ("name=value; Secure", True),
             ("name=value", None),
         ],
@@ -192,7 +197,7 @@ class TestCookieProperties:
         assert c.partitioned is True
 
     @pytest.mark.parametrize(
-        "string,partitioned",
+        ("string", "partitioned"),
         [
             ("name=value; Partitioned", True),
             ("name=value", None),
@@ -209,9 +214,8 @@ class TestCookieProperties:
         assert c.http_only is True
 
     @pytest.mark.parametrize(
-        "string,http_only",
+        ("string", "http_only"),
         [
-            ("name=value; HttpOnly", True),
             ("name=value; HttpOnly", True),
             ("name=value", None),
         ],

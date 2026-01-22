@@ -174,7 +174,6 @@ def test_pattern_kwargs(pattern_kwargs: _MatchKwargs | None) -> None:
 )
 def test_pattern_pickle(pattern_kwargs: _MatchKwargs | None) -> None:
     """Test glob pattern with various kwargs"""
-
     p = ry.Pattern("*.py", **(pattern_kwargs or {}))
 
     pickled = pickle.dumps(p)

@@ -12,12 +12,7 @@ from ry.dev import *  # noqa: F403
 
 def _banner() -> str:
     json_info = ry.stringify(_lib_info(), fmt=True).decode("utf-8")
-    return "\n".join((
-        "~~~~~~~~~~~~~",
-        "ry.dev ~ repl",
-        "~~~~~~~~~~~~~",
-        json_info,
-    ))
+    return f"~~~~~~~~~~~~~\nry.dev ~ repl\n~~~~~~~~~~~~~\n{json_info}"
 
 
 def _main() -> None:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 
 import ry
@@ -44,7 +46,6 @@ class TestZonedRound:
         """
         REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#example-rounding-to-the-nearest-5-minute-increment
         """
-
         zdt = ry.date(2024, 6, 19).at(15, 27, 29, 999_999_999).in_tz("America/New_York")
         assert zdt._round(
             ry.ZonedDateTimeRound()._smallest("minute")._increment(5)
@@ -61,7 +62,10 @@ class TestZonedRound:
         """
         zdt = ry.Timestamp.MAX.in_tz("America/New_York")
         with pytest.raises(
-            ValueError
+            ValueError,
+            match=re.escape(
+                "failed to add 1 day to zoned datetime to find length of day: failed to convert civil datetime to timestamp: converting datetime with time zone offset `-05` to timestamp overflowed: parameter 'unix-seconds' with value 253402232400 is not in the required range of -377705023201..=253402207200"
+            ),
         ):  # TODO: figure out how to change to OverflowError
             zdt.round("day")
 

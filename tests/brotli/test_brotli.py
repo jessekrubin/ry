@@ -20,7 +20,8 @@ def test_10x10y_round_trip_magic_number() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     output_data_magic_true = ry.brotli_encode(input_data, magic_number=True)
     output_data_magic_false = ry.brotli_encode(input_data, magic_number=False)
-    assert output_data_magic_false is not None and output_data_magic_true is not None
+    assert output_data_magic_false is not None
+    assert output_data_magic_true is not None
     assert output_data_magic_false != output_data_magic_true
     assert output_data_magic_true is not None
     decoded = ry.brotli_decode(output_data_magic_true)
@@ -35,11 +36,11 @@ def test_decompress() -> None:
 
 def test_invalid_decompress() -> None:
     invalid_data = b"\x00\x01\x02\x03\x04\x05"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid Data"):
         ry.brotli_decode(invalid_data)
 
 
-@pytest.mark.parametrize("quality", list(range(0, 12)))
+@pytest.mark.parametrize("quality", list(range(12)))
 def test_quality(quality: int) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     output_data = ry.brotli_encode(input_data, quality=quality)  # type: ignore[arg-type]
@@ -54,5 +55,5 @@ def test_quality(quality: int) -> None:
 @pytest.mark.parametrize("quality", [-1, 12, 20])
 def test_quality_out_of_range(quality: int) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Compression level must be an integer 0-11"):
         ry.brotli_encode(input_data, quality=quality)  # type: ignore[arg-type]

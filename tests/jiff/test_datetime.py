@@ -302,22 +302,22 @@ class TestDateTimeReplace:
         assert dt2 == ry.date(2024, 7, 31).at(0, 0, 0, 0)
 
     def test_replace_invalid_datetime(self) -> None:
+        dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
         with pytest.raises(
             ValueError,
             match=re.escape(
                 "parameter 'day' with value 31 is not in the required range of 1..=29"
             ),
         ):
-            dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
             dt1.replace(day=31)
 
+        dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
         with pytest.raises(
             ValueError,
             match=re.escape(
                 "parameter 'day' with value 29 is not in the required range of 1..=28"
             ),
         ):
-            dt1 = ry.date(2024, 2, 29).at(0, 0, 0, 0)
             dt1.replace(year=2023)
 
     # ==== DATE ====
@@ -348,13 +348,13 @@ class TestDateTimeReplace:
         assert dt2.year == 2007
 
     def test_replace_year_err(self) -> None:
+        dt1 = ry.date(2024, 2, 29).at(1, 30, 0, 0)
         with pytest.raises(
             ValueError,
             match=re.escape(
                 "parameter 'day' with value 29 is not in the required range of 1..=28"
             ),
         ):
-            dt1 = ry.date(2024, 2, 29).at(1, 30, 0, 0)
             dt1.replace(year=2023)
 
     # ==== ERA YEAR ====
@@ -409,7 +409,10 @@ class TestDateTimeReplace:
 
     def test_replace_month_err(self) -> None:
         dt1 = ry.date(2024, 10, 31).at(0, 0, 0, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="parameter 'day' with value 31 is not in the required range of 1\\.\\.=30",
+        ):
             dt1.replace(month=11)
 
     # ==== DAY ====
@@ -457,10 +460,13 @@ class TestDateTimeReplace:
 
     def test_replace_day_of_year_err(self) -> None:
         dt1 = ry.date(2023, 1, 1).at(0, 0, 0, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="number of days for `2023` is invalid, must be in range `1\\.\\.=365`",
+        ):
             dt1.replace(day_of_year=366)
         dt1 = ry.date(9999, 1, 1).at(0, 0, 0, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="day of year is invalid"):
             dt1.replace(day_of_year=366)
 
     # ==== DAY OF YEAR NO LEAP ====

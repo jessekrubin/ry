@@ -13,7 +13,6 @@ def test_strptime() -> None:
     assert_eq!(time.to_string(), "16:30:00");
     ```
     """
-
     t = ry.Time.strptime(
         "4:30pm",
         "%I:%M%P",

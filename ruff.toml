@@ -30,6 +30,7 @@ select = [
   "DTZ",
   "E",
   "ERA001",
+  "PT",      # pytest
   "PYI",
   "EM",
   "F",
@@ -38,6 +39,7 @@ select = [
   "I",
   "ICN",
   "N",
+  "PIE",
   "PLC",
   "PLC2801",
   "PLE",
@@ -45,21 +47,25 @@ select = [
   "PLW",
   "Q",
   "RUF",
-  # "RUF022", # unsorted-dunder-all
   "S",
+  "SIM",
   "T",
   "TC",
   "TID",
+  "RET",
   "UP",
   "W",
   "YTT",
 ]
 ignore = [
-  "E501",    # line length
+  "E501", # line length
   # "FBT003",  # boolean-positional-value-in-call
   "PLR2004", # magic values (super dumb rule)
-  "PYI053", #
+  "PYI053",  #
   "PYI021",  # docstring-in-stub
+  "SIM105",  # suppressible-exception
+  # pytest rules to ignore (tmp)
+  # "PT007", # pytest-parametrize-values-wrong-type
 ]
 preview = true
 pydocstyle.convention = "google"
@@ -98,6 +104,45 @@ flake8-boolean-trap.extend-allowed-calls = [
 ]
 
 [lint.per-file-ignores]
+"python/ry/**/*.pyi" = [
+  "COM",
+  "D",
+  "PYI021",
+  "ANN401",
+  "E501",
+  "FIX002",
+  "ASYNC109",
+  "TD",
+]
+"python/ry/**/*.py" = [
+  "COM812", # missing-trailing-comma
+  "E501",   # line-too-long
+  "D100",   # undocumented-public-module
+  "D101",   # undocumented-public-class
+  "D102",   # undocumented-public-method
+  "D104",   # undocumented-public-package
+  "D105",   # undocumented-magic-method
+  "D106",   # undocumented-public-nested-class
+  "D107",   # undocumented-public-init
+  "D200",   # unnecessary-multiline-docstring
+  "D205",   # missing-blank-line-after-summary
+  "D212",   # multi-line-summary-first-line
+  "D301",   # escape-sequence-in-docstring
+  "D403",   # first-word-uncapitalized
+  "D415",   # missing-terminal-punctuation
+  "D417",   # undocumented-param
+  "D418",   # overload-with-docstring
+  "TRY",
+  "SLF",
+  "PTH",
+  # "PYI021",
+  # "ANN401",
+  # "E501",
+  # "FIX",
+  # "ASYNC109",
+  # "TD",
+  # "D102",
+]
 "python/ry/JSON.pyi" = ["N999"]
 # Tests can use magic values, assertions, and relative imports
 "bench/**/*.py" = [
@@ -112,19 +157,70 @@ flake8-boolean-trap.extend-allowed-calls = [
   "TID252",
 ]
 "tests/**/*.py" = [
-  "DTZ001",   # call-datetime-without-tzinfo
-  "PLC0415",  # import-outside-top-level
-  "PLR0124",  # comparison-with-itself
-  "PLR0911",  # too-many-return-statements
-  "PLW1510",  # subprocess-run-without-check
-  "S101",     # assert
-  "S103",     # bad-file-permissions
-  "S301",     # suspicious-pickle-usage
-  "S307",     # suspicious-eval-usage
-  "S603",     # subprocess-without-shell-equals-true
-  "TID252",   # relative-imports
+  "PTH",     # pathlib (im an old dog and like my os.path)
+  "D102",    # undocumented-public-method
+  "D103",    # undocumented-public-function
+  "DTZ001",  # call-datetime-without-tzinfo
+  "PLC0415", # import-outside-top-level
+  "PLR0124", # comparison-with-itself
+  "PLR0911", # too-many-return-statements
+  "PLW1510", # subprocess-run-without-check
+  "S101",    # assert
+  "S103",    # bad-file-permissions
+  "S301",    # suspicious-pickle-usage
+  "S307",    # suspicious-eval-usage
+  "S603",    # subprocess-without-shell-equals-true
+  "TID252",  # relative-imports
+  # --- with `--select ALL` ---
+  "ANN401",   # any-type
+  "ASYNC230", # blocking-open-call-in-async-function
+  "COM812",   # missing-trailing-comma
+  "D100",     # undocumented-public-module
+  "D101",     # undocumented-public-class
+  "D104",     # undocumented-public-package
+  "D105",     # undocumented-magic-method
+  "D106",     # undocumented-public-nested-class
+  "D107",     # undocumented-public-init
+  "D200",     # unnecessary-multiline-docstring
+  "D205",     # missing-blank-line-after-summary
+  "D212",     # multi-line-summary-first-line
+  "D301",     # escape-sequence-in-docstring
+  "D403",     # first-word-uncapitalized
+  "D415",     # missing-terminal-punctuation
+  "D417",     # undocumented-param
+  "D418",     # overload-with-docstring
+  "E501",     # line-too-long
+  "FIX002",   # line-contains-todo
+  "PGH003",   # blanket-type-ignore
+  "PLR2004",  # magic-value-comparison
+  # "RET505",   # superfluous-else-return
+  "RUF100",   # unused-noqa
+  "SIM201",   # negate-equal-op
+  "SIM202",   # negate-not-equal-op
+  "SIM300",   # yoda-conditions
+  "SLF001",   # private-member-access
+  "TD002",    # missing-todo-author
+  "TD003",    # missing-todo-link
 ]
 "tests/reqwest/conftest.py" = ["ARG001"]
 "python/ry/dev/*.py" = ["PLC0415"]
 "python/ry/ryo3/*.pyi" = ["F401", "F821"]
-"scripts/**" = ["S101", "S603", "T201"]
+"scripts/**" = [
+  "S101",
+  "S603",
+  "T201",
+  # groups
+  "D",
+  "PTH",
+  "RET",
+  "COM",
+  "PERF",
+  "PLR",
+  "INP",
+  "ANN",
+  "FIX",
+  "TD",
+  "PGH",
+  "SIM",
+  "TRY",
+]
