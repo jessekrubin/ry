@@ -41,7 +41,7 @@ class TestStringifyRecursion:
     def _depth(self, d: dict[str, t.Any] | tuple[t.Any, ...] | list[t.Any]) -> int:
         if isinstance(d, dict) and d:
             return 1 + self._depth(next(iter(d.values())))
-        elif (isinstance(d, list) and d) or (isinstance(d, tuple) and d):
+        if (isinstance(d, list) and d) or (isinstance(d, tuple) and d):
             return 1 + self._depth(d[0])
         return 0
 

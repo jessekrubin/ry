@@ -51,29 +51,28 @@ def _mk_test_bin_dirs(tmp_path: Path) -> list[str]:
             str(tmppath_bin),
             str(tmppath_bin2),
         ]
-    else:
-        script_str = "#!/usr/bin/env bash\necho $PATH"
-        # make exes
-        for exe in exe_names:
-            with open(tmp_path / exe, "w") as f:
-                f.write("echo $PATH")
-            # make executable
-            os.chmod(tmp_path / exe, 0o777)
-        tmppath_bin = tmp_path / "bin"
-        tmppath_bin.mkdir()
-        for exe in exe_names:
-            with open(tmppath_bin / exe, "w") as f:
-                f.write(script_str)
-            # make executable
-            os.chmod(tmppath_bin / exe, 0o777)
-        tmppath_bin2 = tmp_path / "bin2"
-        tmppath_bin2.mkdir()
-        for exe in exe_names:
-            with open(tmppath_bin2 / exe, "w") as f:
-                f.write(script_str)
-            # make executable
-            os.chmod(tmppath_bin2 / exe, 0o777)
-        return [
-            str(tmppath_bin),
-            str(tmppath_bin2),
-        ]
+    script_str = "#!/usr/bin/env bash\necho $PATH"
+    # make exes
+    for exe in exe_names:
+        with open(tmp_path / exe, "w") as f:
+            f.write("echo $PATH")
+        # make executable
+        os.chmod(tmp_path / exe, 0o777)
+    tmppath_bin = tmp_path / "bin"
+    tmppath_bin.mkdir()
+    for exe in exe_names:
+        with open(tmppath_bin / exe, "w") as f:
+            f.write(script_str)
+        # make executable
+        os.chmod(tmppath_bin / exe, 0o777)
+    tmppath_bin2 = tmp_path / "bin2"
+    tmppath_bin2.mkdir()
+    for exe in exe_names:
+        with open(tmppath_bin2 / exe, "w") as f:
+            f.write(script_str)
+        # make executable
+        os.chmod(tmppath_bin2 / exe, 0o777)
+    return [
+        str(tmppath_bin),
+        str(tmppath_bin2),
+    ]

@@ -90,7 +90,7 @@ _python_xxhash_exports: tuple[str, ...] = (
 
 @pytest.mark.parametrize(
     "attr_name",
-    (
+    [
         "xxh128",
         "xxh128_digest",
         "xxh128_hexdigest",
@@ -111,7 +111,7 @@ _python_xxhash_exports: tuple[str, ...] = (
         "xxh64_digest",
         "xxh64_hexdigest",
         "xxh64_intdigest",
-    ),
+    ],
 )
 def test_all_xxhash_attributes(attr_name: str) -> None:
     """Test that all expected attributes exist in ry.xxhash"""

@@ -206,11 +206,11 @@ def test_equiv(
 
 @pytest.mark.parametrize(
     "obj",
-    (
+    [
         complex(1, 2),
         1234,
         [1, 2, 3],
-    ),
+    ],
 )
 def test_equiv_invalid_type(obj: complex | list[int]) -> None:
     with pytest.raises(TypeError):

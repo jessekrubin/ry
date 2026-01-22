@@ -52,9 +52,8 @@ def test_ry_vs_stdlib_compress() -> None:
     assert ry_compressed is not None
 
     # Decompress with stdlib gzip
-    with io.BytesIO(ry_compressed) as f:
-        with gzip.GzipFile(fileobj=f, mode="rb") as gzf:
-            stdlib_decompressed = gzf.read()
+    with io.BytesIO(ry_compressed) as f, gzip.GzipFile(fileobj=f, mode="rb") as gzf:
+        stdlib_decompressed = gzf.read()
     assert stdlib_decompressed == input_data
 
 
@@ -81,9 +80,8 @@ def test_cross_compatibility() -> None:
     assert ry_compressed is not None
 
     # Decompress with stdlib gzip
-    with io.BytesIO(ry_compressed) as f:
-        with gzip.GzipFile(fileobj=f, mode="rb") as gzf:
-            stdlib_decompressed = gzf.read()
+    with io.BytesIO(ry_compressed) as f, gzip.GzipFile(fileobj=f, mode="rb") as gzf:
+        stdlib_decompressed = gzf.read()
     assert stdlib_decompressed == input_data
 
     # stdlib gzip

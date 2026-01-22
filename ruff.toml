@@ -48,9 +48,11 @@ select = [
   "Q",
   "RUF",
   "S",
+  "SIM",
   "T",
   "TC",
   "TID",
+  "RET",
   "UP",
   "W",
   "YTT",
@@ -61,9 +63,9 @@ ignore = [
   "PLR2004", # magic values (super dumb rule)
   "PYI053",  #
   "PYI021",  # docstring-in-stub
-
+  "SIM105",  # suppressible-exception
   # pytest rules to ignore (tmp)
-  "PT007", # pytest-parametrize-values-wrong-type
+  # "PT007", # pytest-parametrize-values-wrong-type
 ]
 preview = true
 pydocstyle.convention = "google"
@@ -191,18 +193,14 @@ flake8-boolean-trap.extend-allowed-calls = [
   "FIX002",   # line-contains-todo
   "PGH003",   # blanket-type-ignore
   "PLR2004",  # magic-value-comparison
-  "PT007",    # pytest-parametrize-values-wrong-type
-  # "PT011",    # pytest-raises-too-broad
-  "RET505",   # superfluous-else-return
+  # "RET505",   # superfluous-else-return
   "RUF100",   # unused-noqa
-  "SIM105",   # suppressible-exception
-  "SIM117",   # multiple-with-statements
-  "SIM201", # negate-equal-op
-  "SIM202", # negate-not-equal-op
-  "SIM300", # yoda-conditions
-  "SLF001", # private-member-access
-  "TD002",  # missing-todo-author
-  "TD003",  # missing-todo-link
+  "SIM201",   # negate-equal-op
+  "SIM202",   # negate-not-equal-op
+  "SIM300",   # yoda-conditions
+  "SLF001",   # private-member-access
+  "TD002",    # missing-todo-author
+  "TD003",    # missing-todo-link
 ]
 "tests/reqwest/conftest.py" = ["ARG001"]
 "python/ry/dev/*.py" = ["PLC0415"]
