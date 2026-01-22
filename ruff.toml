@@ -198,15 +198,12 @@ flake8-boolean-trap.extend-allowed-calls = [
   "RUF100",   # unused-noqa
   "SIM105",   # suppressible-exception
   "SIM117",   # multiple-with-statements
-  # "SIM118",  # in-dict-keys
   "SIM201", # negate-equal-op
   "SIM202", # negate-not-equal-op
   "SIM300", # yoda-conditions
   "SLF001", # private-member-access
   "TD002",  # missing-todo-author
   "TD003",  # missing-todo-link
-  # "TRY004",  # type-check-without-type-error
-  # "TRY300",  # try-consider-else
 ]
 "tests/reqwest/conftest.py" = ["ARG001"]
 "python/ry/dev/*.py" = ["PLC0415"]
