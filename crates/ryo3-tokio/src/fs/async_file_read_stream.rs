@@ -21,7 +21,7 @@ use tokio::sync::Mutex;
 pub(crate) struct PyFileReadStreamOptions {
     pub(crate) strict: bool,
     pub(crate) path: PathBuf,
-    pub(crate) chunk_size: usize,
+    pub(crate) read_size: usize,
     pub(crate) offset: u64,
     pub(crate) buffered: bool,
 }
@@ -29,15 +29,15 @@ pub(crate) struct PyFileReadStreamOptions {
 struct AsyncFileReadStream<T> {
     file: T,
     buffer: BytesMut,
-    chunk_size: usize,
+    read_size: usize,
 }
 
 impl<T: AsyncRead + AsyncSeek + Unpin> AsyncFileReadStream<T> {
-    fn new(file: T, chunk_size: usize) -> Self {
+    fn new(file: T, read_size: usize) -> Self {
         Self {
             file,
-            buffer: BytesMut::with_capacity(chunk_size),
-            chunk_size,
+            buffer: BytesMut::with_capacity(read_size),
+            read_size,
         }
     }
 
@@ -46,9 +46,9 @@ impl<T: AsyncRead + AsyncSeek + Unpin> AsyncFileReadStream<T> {
     }
 
     async fn next_chunk(&mut self) -> io::Result<Option<Bytes>> {
-        if self.buffer.capacity() < self.chunk_size {
+        if self.buffer.capacity() < self.read_size {
             self.buffer
-                .reserve(self.chunk_size.saturating_sub(self.buffer.len()));
+                .reserve(self.read_size.saturating_sub(self.buffer.len()));
         }
         let bytes_read = self.file.read_buf(&mut self.buffer).await?;
         if bytes_read == 0 {
@@ -78,7 +78,10 @@ impl AsyncFileReadStreamWrapper {
                     if options.offset > len {
                         return Err(io::Error::new(
                             io::ErrorKind::InvalidInput,
-                            format!("offset ({}) > len ({})", options.offset, len),
+                            format!(
+                                "offset ({}) is beyond end of file (len = {})",
+                                options.offset, len
+                            ),
                         ));
                     }
                 }
@@ -86,10 +89,10 @@ impl AsyncFileReadStreamWrapper {
                 let mut stream = if options.buffered {
                     Self::Buffered(AsyncFileReadStream::new(
                         BufReader::new(file),
-                        options.chunk_size,
+                        options.read_size,
                     ))
                 } else {
-                    Self::Unbuffered(AsyncFileReadStream::new(file, options.chunk_size))
+                    Self::Unbuffered(AsyncFileReadStream::new(file, options.read_size))
                 };
 
                 if options.offset > 0 {
@@ -148,21 +151,21 @@ fn map_open_error(e: &std::io::Error) -> PyErr {
 #[pymethods]
 impl PyAsyncFileReadStream {
     #[new]
-    #[pyo3(signature = (path, *, chunk_size = 65536, offset = 0, buffered = true, strict = true))]
+    #[pyo3(signature = (path, *, read_size = 65536, offset = 0, buffered = true, strict = true))]
     pub fn py_new(
         path: PathBuf,
-        chunk_size: usize,
+        read_size: usize,
         offset: u64,
         buffered: bool,
         strict: bool,
     ) -> PyResult<Self> {
-        if chunk_size == 0 {
-            return py_value_err!("chunk_size must be greater than 0");
+        if read_size == 0 {
+            return py_value_err!("read_size must be greater than 0");
         }
         let options = PyFileReadStreamOptions {
             strict,
             path,
-            chunk_size,
+            read_size,
             offset,
             buffered,
         };
@@ -250,21 +253,21 @@ impl PyAsyncFileReadStream {
 #[pymethods]
 impl PyAsyncFileReadStream {
     #[new]
-    #[pyo3(signature = (path, *, chunk_size = 65536, offset = 0, buffered = true, strict = true))]
+    #[pyo3(signature = (path, *, read_size = 65536, offset = 0, buffered = true, strict = true))]
     pub fn py_new(
         path: PathBuf,
-        chunk_size: usize,
+        read_size: usize,
         offset: u64,
         buffered: bool,
         strict: bool,
     ) -> PyResult<Self> {
-        if chunk_size == 0 {
-            return py_value_err!("chunk_size must be greater than 0");
+        if read_size == 0 {
+            return py_value_err!("read_size must be greater than 0");
         }
         let options = PyFileReadStreamOptions {
             strict,
             path,
-            chunk_size,
+            read_size,
             offset,
             buffered,
         };
@@ -355,7 +358,7 @@ impl std::fmt::Debug for PyAsyncFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "AsyncFileReadStream(")?;
         write!(f, "path='{}'", self.options.path.display(),)?;
-        write!(f, ", chunk_size={}", self.options.chunk_size)?;
+        write!(f, ", read_size={}", self.options.read_size)?;
         if self.options.offset != 0 {
             write!(f, ", offset={}", self.options.offset)?;
         }

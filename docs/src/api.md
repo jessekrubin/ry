@@ -5766,7 +5766,7 @@ class FileReadStream(RyIterator[Bytes]):
         self,
         path: FsPathLike,
         *,
-        chunk_size: int = 65536,
+        read_size: int = 65536,
         offset: int = 0,
         buffered: bool = True,
         strict: bool = True,
@@ -5775,7 +5775,7 @@ class FileReadStream(RyIterator[Bytes]):
 
         Args:
             path: path-like object
-            chunk_size: chunk size. Defaults to 65536.
+            read_size: number of bytes to read at a time. Defaults to 65536.
             offset: offset to start reading from. Defaults to 0.
             buffered: whether the stream is buffered. Defaults to True.
             strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
@@ -5815,7 +5815,7 @@ def read_dir(path: FsPathLike) -> ReadDir: ...
 def read_link(path: FsPathLike) -> pathlib.Path: ...
 def read_stream(
     path: FsPathLike,
-    chunk_size: int = 65536,
+    read_size: int = 65536,
     *,
     offset: int = 0,
     buffered: bool = True,
@@ -5825,7 +5825,7 @@ def read_stream(
 
     Args:
         path: path-like object
-        chunk_size: chunk size. Defaults to 65536.
+        read_size: number of bytes to read at a time. Defaults to 65536.
         offset: offset to start reading from. Defaults to 0.
         buffered: whether the stream is buffered. Defaults to True.
         strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
@@ -6466,7 +6466,7 @@ class AsyncFileReadStream(RyAsyncIterator[Bytes]):
         self,
         path: FsPathLike,
         *,
-        chunk_size: int = 65536,
+        read_size: int = 65536,
         offset: int = 0,
         buffered: bool = True,
         strict: bool = True,
@@ -6475,7 +6475,7 @@ class AsyncFileReadStream(RyAsyncIterator[Bytes]):
 
         Args:
             path: path-like object
-            chunk_size: chunk size. Defaults to 65536.
+            read_size: number of bytes to read at a time. Defaults to 65536.
             offset: offset to start reading from. Defaults to 0.
             buffered: whether the stream is buffered. Defaults to True.
             strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
@@ -6496,7 +6496,7 @@ class AsyncFileReadStream(RyAsyncIterator[Bytes]):
 
 def read_stream_async(
     path: FsPathLike,
-    chunk_size: int = 65536,
+    read_size: int = 65536,
     *,
     offset: int = 0,
     buffered: bool = True,
@@ -6506,7 +6506,7 @@ def read_stream_async(
 
     Args:
         path: path-like object
-        chunk_size: chunk size. Defaults to 65536.
+        read_size: number of bytes to read at a time. Defaults to 65536.
         offset: offset to start reading from. Defaults to 0.
         buffered: whether the stream is buffered. Defaults to True.
         strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.

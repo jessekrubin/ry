@@ -127,7 +127,7 @@ class TestSizeObj:
         size = Size.parse("1KB")
         assert int(size) == 1000
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Error parsing Size"):
             Size.parse("invalid")
 
     def test_size_from_methods(self) -> None:

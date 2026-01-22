@@ -58,7 +58,10 @@ class TestCertificate:
         assert all(isinstance(c, ry.Certificate) for c in certs)
 
     def test_not_constructible(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="Cannot create Certificate directly; use from_der or from_pem",
+        ):
             _c = ry.Certificate()
 
 

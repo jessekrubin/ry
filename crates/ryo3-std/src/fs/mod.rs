@@ -229,15 +229,15 @@ impl PyDirEntry {
 // ============================================================================
 
 #[pyfunction]
-#[pyo3(signature = (path, chunk_size = 65536, *, offset = 0, buffered = true, strict = true))]
+#[pyo3(signature = (path, read_size = 65536, *, offset = 0, buffered = true, strict = true))]
 pub fn read_stream(
     path: PathBuf,
-    chunk_size: usize,
+    read_size: usize,
     offset: u64,
     buffered: bool,
     strict: bool,
 ) -> PyResult<PyFileReadStream> {
-    PyFileReadStream::py_new(path, chunk_size, offset, buffered, strict)
+    PyFileReadStream::py_new(path, read_size, offset, buffered, strict)
 }
 
 #[pyfunction]

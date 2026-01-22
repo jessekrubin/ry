@@ -59,14 +59,17 @@ def test_stripped() -> None:
 
 
 @pytest.mark.parametrize(
-    "string",
+    ("string", "err"),
     [
-        "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
-        "=value",
+        (
+            "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
+            "the cookie is missing a name/value pair",
+        ),
+        ("=value", "the cookie's name is empty"),
     ],
 )
-def test_parse_fails(string: str) -> None:
-    with pytest.raises(ValueError):
+def test_parse_fails(string: str, err: str) -> None:
+    with pytest.raises(ValueError, match=err):
         ry.Cookie.parse(string)
 
 
@@ -85,14 +88,17 @@ def test_parse_encoded(string: str, name: str, value: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "string",
+    ("string", "err"),
     [
-        "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
-        "=value",
+        (
+            "asd;lfkjas;dlfkjas;dlfkjas;ldfkjasd;lfkj",
+            "the cookie is missing a name/value pair",
+        ),
+        ("=value", "the cookie's name is empty"),
     ],
 )
-def test_parse_encoded_fails(string: str) -> None:
-    with pytest.raises(ValueError):
+def test_parse_encoded_fails(string: str, err: str) -> None:
+    with pytest.raises(ValueError, match=err):
         ry.Cookie.parse_encoded(string)
 
 

@@ -64,7 +64,6 @@ ignore = [
 
   # pytest rules to ignore (tmp)
   "PT007", # pytest-parametrize-values-wrong-type
-  "PT011", # pytest-raises-too-broad
 ]
 preview = true
 pydocstyle.convention = "google"
@@ -193,7 +192,7 @@ flake8-boolean-trap.extend-allowed-calls = [
   "PGH003",   # blanket-type-ignore
   "PLR2004",  # magic-value-comparison
   "PT007",    # pytest-parametrize-values-wrong-type
-  "PT011",    # pytest-raises-too-broad
+  # "PT011",    # pytest-raises-too-broad
   "RET505",   # superfluous-else-return
   "RUF100",   # unused-noqa
   "SIM105",   # suppressible-exception
