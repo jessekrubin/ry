@@ -50,7 +50,7 @@ class TestDurationFriendlyStr:
         assert parsed_max_dur == max_dur
 
     @pytest.mark.parametrize(
-        "designator, expected",
+        ("designator", "expected"),
         [
             ("human", "5124095576030431h 15s 999ms 999us 999ns"),
             ("human-time", "5124095576030431h 15s 999ms 999us 999ns"),

@@ -228,7 +228,7 @@ def _object_properties(cls: type) -> list[str]:
 
 
 @pytest.mark.parametrize(
-    "cls,expected_props",
+    ("cls", "expected_props"),
     [
         (ry.Ipv4Addr, _IPV4_PROPERTIES),
         (ry.Ipv6Addr, _IPV6_PROPERTIES),

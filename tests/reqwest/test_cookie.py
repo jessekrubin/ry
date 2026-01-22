@@ -71,7 +71,7 @@ def test_parse_fails(string: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "string,name,value",
+    ("string", "name", "value"),
     [
         ("name=value", "name", "value"),
         ("name=value; Path=/", "name", "value"),
@@ -104,7 +104,7 @@ class TestCookieProperties:
         assert c.domain == "example.com"
 
     @pytest.mark.parametrize(
-        "string,domain",
+        ("string", "domain"),
         [
             ("name=value", None),
             ("name=value; Domain=crates.io", "crates.io"),
@@ -151,7 +151,7 @@ class TestCookieProperties:
         assert c.name_value_trimmed == ("name", "value")
 
     @pytest.mark.parametrize(
-        "string,same_site",
+        ("string", "same_site"),
         [
             ("name=value; SameSite=Lax", "Lax"),
             ("name=value; SameSite=Strict", "Strict"),
@@ -174,7 +174,7 @@ class TestCookieProperties:
         assert c.secure is True
 
     @pytest.mark.parametrize(
-        "string,secure",
+        ("string", "secure"),
         [
             ("name=value; Secure", True),
             ("name=value; Secure", True),
@@ -192,7 +192,7 @@ class TestCookieProperties:
         assert c.partitioned is True
 
     @pytest.mark.parametrize(
-        "string,partitioned",
+        ("string", "partitioned"),
         [
             ("name=value; Partitioned", True),
             ("name=value", None),
@@ -209,7 +209,7 @@ class TestCookieProperties:
         assert c.http_only is True
 
     @pytest.mark.parametrize(
-        "string,http_only",
+        ("string", "http_only"),
         [
             ("name=value; HttpOnly", True),
             ("name=value; HttpOnly", True),

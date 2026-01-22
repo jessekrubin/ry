@@ -158,7 +158,7 @@ def _create_tz(minutes: int) -> pydt.tzinfo:
 
 class TestDuration:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             # seconds
             (ry.Duration.MAX, None),
@@ -217,7 +217,7 @@ class TestDuration:
             assert tm_json == ry_json
 
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             (-172800, pydt.timedelta(days=-2)),
             ("-00:15:30", pydt.timedelta(minutes=-15, seconds=-30)),
@@ -290,7 +290,7 @@ class TestDate:
         assert from_json.date == ry_model.date
 
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             ("2012-04-23", pydt.date(2012, 4, 23)),
             (b"2012-04-23", pydt.date(2012, 4, 23)),
@@ -365,7 +365,7 @@ class TestISOWeekdateDate:
         assert from_json.iwd == ry_model.iwd
 
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             ("2012-04-23", pydt.date(2012, 4, 23)),
             (b"2012-04-23", pydt.date(2012, 4, 23)),
@@ -419,7 +419,7 @@ class TestISOWeekdateDate:
 
 class TestTime:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             # Valid inputs
             ("09:15:00", pydt.time(9, 15)),
@@ -487,7 +487,7 @@ class TestTime:
             _d = RyTimeModel(d=value)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             # NOT IMPLEMENTED
             (3610, pydt.time(1, 0, 10, tzinfo=pydt.UTC)),
@@ -507,7 +507,7 @@ class TestTime:
 
 class TestDatetime:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             ("2012-04-23T09:15:00", pydt.datetime(2012, 4, 23, 9, 15)),
             (
@@ -593,7 +593,7 @@ class TestDatetime:
 
 class TestZonedDatetime:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             (
                 "2012-04-23T09:15:00+00:00[UTC]",
@@ -660,7 +660,7 @@ class TestZonedDatetime:
 
 class TestSignedDuration:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             # self
             (ry.SignedDuration(secs=30), pydt.timedelta(seconds=30)),
@@ -737,7 +737,7 @@ class TestSignedDuration:
 
 class TestTimeSpan:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             # seconds
             (pydt.timedelta(seconds=30), pydt.timedelta(seconds=30)),
@@ -979,7 +979,7 @@ def test_url_parsing_ok(val: str | bytes) -> None:
 
 
 @pytest.mark.parametrize(
-    "value,err_msg",
+    ("value", "err_msg"),
     [
         ("http:///", "empty host"),
         ("http://??", "empty host"),
@@ -1129,7 +1129,7 @@ def test_ipaddr_schemas() -> None:
 
 
 @pytest.mark.parametrize(
-    "value,cls",
+    ("value", "cls"),
     [
         ("0.0.0.0", IPv4Address),  # noqa: S104
         ("1.1.1.1", IPv4Address),
@@ -1289,7 +1289,7 @@ def test_socketaddr_schemas() -> None:
 
 class TestSocketAddr:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             ("192.168.0.1:8080", "192.168.0.1:8080"),
             (b"192.168.0.1:8080", "192.168.0.1:8080"),
@@ -1324,7 +1324,7 @@ class TestSocketAddr:
 
 class TestSocketAddrV4:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             ("192.168.0.1:8080", "192.168.0.1:8080"),
             (b"192.168.0.1:8080", "192.168.0.1:8080"),
@@ -1363,7 +1363,7 @@ class TestSocketAddrV4:
 
 class TestSocketAddrV6:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             (ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080), "[::1]:8080"),
             (ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080).to_socketaddr(), "[::1]:8080"),
@@ -1400,7 +1400,7 @@ class TestSocketAddrV6:
 
 class TestOffset:
     @pytest.mark.parametrize(
-        "value,result",
+        ("value", "result"),
         [
             # self
             (ry.Offset.UTC, pydt.timedelta(0)),

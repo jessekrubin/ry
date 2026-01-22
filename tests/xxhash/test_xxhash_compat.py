@@ -127,7 +127,7 @@ def test_attributes_set() -> None:
 
 @pytest_skip_xxhash
 @pytest.mark.parametrize(
-    "ryxx,pyxx",
+    ("ryxx", "pyxx"),
     [
         (ry.xxhash.xxh32_digest, xxhash.xxh32_digest),
         (ry.xxhash.xxh32_hexdigest, xxhash.xxh32_hexdigest),
@@ -147,7 +147,7 @@ def test_xxhash_matches_ry_xxh32(
 
 @pytest_skip_xxhash
 @pytest.mark.parametrize(
-    "ryxx,pyxx",
+    ("ryxx", "pyxx"),
     [
         (ry.xxhash.xxh64_digest, xxhash.xxh64_digest),
         (ry.xxhash.xxh64_hexdigest, xxhash.xxh64_hexdigest),
@@ -167,7 +167,7 @@ def test_xxhash_matches_ry_xxh64(
 
 @pytest_skip_xxhash
 @pytest.mark.parametrize(
-    "ryxx,pyxx",
+    ("ryxx", "pyxx"),
     [
         (ry.xxhash.xxh3_64_digest, xxhash.xxh3_64_digest),
         (ry.xxhash.xxh3_64_hexdigest, xxhash.xxh3_64_hexdigest),
@@ -187,7 +187,7 @@ def test_xxhash_matches_ry_xxh3_64(
 
 @pytest_skip_xxhash
 @pytest.mark.parametrize(
-    "ryxx,pyxx",
+    ("ryxx", "pyxx"),
     [
         (ry.xxhash.xxh3_128_digest, xxhash.xxh3_128_digest),
         (ry.xxhash.xxh3_128_hexdigest, xxhash.xxh3_128_hexdigest),
@@ -207,7 +207,7 @@ def test_xxhash_matches_ry_xxh3_128(
 
 @pytest_skip_xxhash
 @pytest.mark.parametrize(
-    "ryhasher,pyhasher,seeds",
+    ("ryhasher", "pyhasher", "seeds"),
     [
         (ry.xxhash.xxh32, xxhash.xxh32, XX32_SEEDS),
         (ry.xxhash.xxh64, xxhash.xxh64, XX64_SEEDS),
@@ -236,7 +236,7 @@ def test_xxhash_hashers_starting_data(
 
 @pytest_skip_xxhash
 @pytest.mark.parametrize(
-    "ryhasher,pyhasher,seeds",
+    ("ryhasher", "pyhasher", "seeds"),
     [
         (ry.xxhash.xxh32, xxhash.xxh32, XX32_SEEDS),
         (ry.xxhash.xxh64, xxhash.xxh64, XX64_SEEDS),

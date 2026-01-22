@@ -55,7 +55,7 @@ def test_fnv_key_parse_err(bad_key: bytes | float | str) -> None:
         ry.fnv1a(key=bad_key)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("data,expected", FNV_TEST_DATA)
+@pytest.mark.parametrize(("data", "expected"), FNV_TEST_DATA)
 class TestFnv1a:
     def test_fnv1a(self, data: bytes, expected: int) -> None:
         fnvhash = ry.fnv1a(data)
@@ -73,7 +73,7 @@ class TestFnv1a:
         assert int_digest == expected
 
 
-@pytest.mark.parametrize("data,expected", FNV_TEST_DATA)
+@pytest.mark.parametrize(("data", "expected"), FNV_TEST_DATA)
 def test_fnv1a_hasher(data: bytes, expected: int) -> None:
     thingy = ry.fnv1a()
     thingy.update(data)

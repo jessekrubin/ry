@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "method,options",
+    ("method", "options"),
     [
         ("get", {}),
         ("post", {}),
@@ -53,7 +53,7 @@ async def test_client_methods(
 
 
 @pytest.mark.parametrize(
-    "method,options",
+    ("method", "options"),
     [
         ("get", {}),
         ("post", {}),

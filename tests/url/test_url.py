@@ -78,7 +78,7 @@ def test_parse_url_readme() -> None:
 
 
 @pytest.mark.parametrize(
-    "url_str, expected_type, expected_host_str",
+    ("url_str", "expected_type", "expected_host_str"),
     [
         ("https://127.0.0.1/", ry.Ipv4Addr.parse("127.0.0.1"), "127.0.0.1"),
         ("https://[::1]/", ry.Ipv6Addr.parse("::1"), "[::1]"),
@@ -130,7 +130,7 @@ def test_repr() -> None:
 
 
 @pytest.mark.parametrize(
-    "url_str, expected",
+    ("url_str", "expected"),
     [
         ("https://127.0.0.1/", None),
         ("https://[::1]/", None),
@@ -254,7 +254,7 @@ class TestUrlReplace:
         )
 
     @pytest.mark.parametrize(
-        "ip_addr, expected_url",
+        ("ip_addr", "expected_url"),
         [
             (
                 pyip.ip_interface("2001:db8:85a3::8a2e:370:7334"),

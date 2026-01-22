@@ -22,7 +22,7 @@ def test_every_url_replace_method_has_with_counterpart(
 
 
 @pytest.mark.parametrize(
-    "deprecated_method,new_method,args,kwargs",
+    ("deprecated_method", "new_method", "args", "kwargs"),
     [
         ("replace_path", "with_path", ("/new/path",), {}),
         ("replace_port", "with_port", (), {"port": 8080}),

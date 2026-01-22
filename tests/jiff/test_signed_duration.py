@@ -183,7 +183,7 @@ def test_equality() -> None:
 
 
 @pytest.mark.parametrize(
-    "left,right,is_equiv",
+    ("left", "right", "is_equiv"),
     [
         # equiv
         (ry.SignedDuration(1, 0), ry.SignedDuration(1, 0), True),
@@ -686,7 +686,7 @@ class TestDurationArithmetic:
         assert signed_duration == dur_left - dur_right
 
     @pytest.mark.parametrize(
-        "opperator,value",
+        ("opperator", "value"),
         [
             (op, value)
             for op in [
