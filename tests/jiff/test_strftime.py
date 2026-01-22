@@ -1,3 +1,4 @@
+import re
 import typing as t
 
 import pytest
@@ -204,9 +205,9 @@ def test_strftime(obj: _FmtOb, spec: _Specifier, flag: str | None) -> None:
     specifier = spec["specifier"] if flag is None else f"%{flag}{spec['specifier'][1:]}"
 
     if should_error:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="strftime formatting failed: "):
             _ = obj["ob"].strftime(specifier)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="strftime formatting failed: "):
             _ = f"{obj['ob']:{specifier}}"
     else:
         fmt_res = obj["ob"].strftime(specifier)

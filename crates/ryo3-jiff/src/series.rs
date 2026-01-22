@@ -16,7 +16,9 @@ impl TryFrom<(&RyDate, &RySpan)> for RyDateSeries {
 
     fn try_from(value: (&RyDate, &RySpan)) -> Result<Self, Self::Error> {
         let (start, period) = value;
-        period.assert_non_zero()?;
+        if period.0.is_zero() {
+            return py_value_err!("period cannot be zero");
+        }
         let s = start.0.series(period.0);
         Ok(Self {
             start: start.0,
@@ -49,7 +51,9 @@ impl TryFrom<(&RyDateTime, &RySpan)> for RyDateTimeSeries {
 
     fn try_from(value: (&RyDateTime, &RySpan)) -> Result<Self, Self::Error> {
         let (start, period) = value;
-        period.assert_non_zero()?;
+        if period.0.is_zero() {
+            return py_value_err!("period cannot be zero");
+        }
         let s = start.0.series(period.0);
         Ok(Self {
             start: start.0,
@@ -83,7 +87,9 @@ impl TryFrom<(&RyTime, &RySpan)> for RyTimeSeries {
 
     fn try_from(value: (&RyTime, &RySpan)) -> Result<Self, Self::Error> {
         let (start, period) = value;
-        period.assert_non_zero()?;
+        if period.0.is_zero() {
+            return py_value_err!("period cannot be zero");
+        }
         let s = start.0.series(period.0);
         Ok(Self {
             start: start.0,
@@ -117,7 +123,9 @@ impl TryFrom<(&RyTimestamp, &RySpan)> for RyTimestampSeries {
 
     fn try_from(value: (&RyTimestamp, &RySpan)) -> Result<Self, Self::Error> {
         let (start, period) = value;
-        period.assert_non_zero()?;
+        if period.0.is_zero() {
+            return py_value_err!("period cannot be zero");
+        }
         let s = start.0.series(period.0);
         Ok(Self {
             start: start.0,
@@ -151,7 +159,9 @@ impl TryFrom<(&RyZoned, &RySpan)> for RyZonedSeries {
 
     fn try_from(value: (&RyZoned, &RySpan)) -> Result<Self, Self::Error> {
         let (start, period) = value;
-        period.assert_non_zero()?;
+        if period.0.is_zero() {
+            return py_value_err!("period cannot be zero");
+        }
         let s = start.0.series(period.0);
         Ok(Self {
             start: start.0.clone(),

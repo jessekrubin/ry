@@ -114,7 +114,13 @@ class TestZonedDateTimeReplace:
         assert str(replaced) == "2024-11-03T01:30:00-05:00[America/New_York]"
         replaced_invalid = zdt.replace(offset=ry.Offset.from_hours(-12))
         assert str(replaced_invalid) == "2024-11-03T01:30:00-04:00[America/New_York]"
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=(
+                "error converting datetime to instant in time zone America/New_York: "
+                "datetime is ambiguous since it falls into a fold between offsets -04 and -05"
+            ),
+        ):
             zdt.replace(
                 offset=ry.Offset.from_hours(-12),
                 disambiguation="reject",

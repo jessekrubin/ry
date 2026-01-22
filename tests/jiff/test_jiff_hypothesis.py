@@ -38,7 +38,7 @@ def test_date_fields(date_tuple: tuple[int, int, int]) -> None:
 
         assert date.to_pydate() == pydate
     except ValueError:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=" is not in the required range of "):
             ry.date(date_tuple[0], date_tuple[1], date_tuple[2])
 
 
@@ -97,7 +97,7 @@ def test_datetime_rounding(
     """Test that rounding a datetime with various options works correctly"""
     if unit in ("year", "month", "week"):
         options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="failed rounding datetime:"):
             rounded_dt = dt._round(options)
     else:
         try:
@@ -110,7 +110,7 @@ def test_datetime_rounding(
                 mode=mode,
                 increment=increment,
             )
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="failed rounding datetime:"):
                 _rounded_dt = dt._round(options)
 
 
@@ -188,7 +188,7 @@ def test_invalid_date_creation(year: int, month: int, day: int) -> None:
         with pytest.raises(OverflowError):
             _d = ry.date(year, month, day)
     else:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=" is not in the required range of "):
             _d = ry.date(year, month, day)
 
 
@@ -252,7 +252,7 @@ def test_datetime_round_increment(dt: ry.DateTime, increment: int) -> None:
         )
         assert rounded_dt == rounded_via_kwargs
     except ValueError as _ve:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="failed rounding datetime:"):
             dt._round(options)
 
 
@@ -329,5 +329,5 @@ class TestTimeSpanConversion:
     def test_span_from_timedelta_to_many_days(self, tdelta: pydt.timedelta) -> None:
         # to span
         assume(-7304484 > tdelta.days or tdelta.days > 7304484)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=" is not in the required range of "):
             ry.TimeSpan.from_pytimedelta(tdelta)

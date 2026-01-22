@@ -56,7 +56,7 @@ def test_series_collect(
 
 @pytest.mark.parametrize("obj", [obj for obj, _ in _SUPPORTS_SERIES])
 def test_series_errors(obj: ry.Date | ry.DateTime | ry.Timestamp) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="period cannot be zero"):
         obj.series(ry.timespan())
 
 

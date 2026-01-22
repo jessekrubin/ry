@@ -21,16 +21,6 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySpan(pub(crate) Span);
 
-impl RySpan {
-    pub(crate) fn assert_non_zero(&self) -> PyResult<()> {
-        if self.0.is_zero() {
-            Err(py_value_error!("Span cannot be zero",))
-        } else {
-            Ok(())
-        }
-    }
-}
-
 impl PartialEq for RySpan {
     fn eq(&self, other: &Self) -> bool {
         let self_fieldwise = self.0.fieldwise();

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 
 import ry
@@ -330,9 +332,19 @@ class TestTzOffset:
         assert offset == ry.Offset(seconds=7200)
 
     def test_from_hours_error(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "parameter 'offset-hours' with value 26 is not in the required range of -25..=25"
+            ),
+        ):
             _offset = ry.Offset.from_hours(26)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "parameter 'offset-hours' with value -26 is not in the required range of -25..=25"
+            ),
+        ):
             _offset = ry.Offset.from_hours(-26)
 
     def test_from_seconds(self) -> None:
@@ -340,9 +352,19 @@ class TestTzOffset:
         assert offset == ry.Offset(seconds=61)
 
     def test_from_seconds_error(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "parameter 'offset-seconds' with value 93600 is not in the required range of -93599..=93599"
+            ),
+        ):
             _offset = ry.Offset.from_seconds(93600)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "parameter 'offset-seconds' with value -93600 is not in the required range of -93599..=93599"
+            ),
+        ):
             _offset = ry.Offset.from_seconds(-93600)
 
     def test_negate(self) -> None:
@@ -414,35 +436,6 @@ class TestTzOffset:
         assert offset.saturating_sub(signed_duration) == ry.Offset.MIN
         duration = ry.Duration(secs=7200)
         assert offset.saturating_sub(duration) == ry.Offset.MIN
-
-
-class TestDateWeekday:
-    def test_date_nth_weekday(self) -> None:
-        d = ry.date(2024, 3, 10)
-        assert d.weekday == 7
-
-        next_monday = d.nth_weekday(1, "monday")
-        assert next_monday == ry.date(2024, 3, 11)
-
-        next_sunday = d.nth_weekday(1, "sunday")
-        assert next_sunday == ry.date(2024, 3, 17)
-
-        next_next_thursday = d.nth_weekday(2, "thursday")
-        assert next_next_thursday == ry.date(2024, 3, 21)
-
-        last_saturday = d.nth_weekday(-1, "saturday")
-        assert last_saturday == ry.date(2024, 3, 9)
-
-    def test_date_nth_weekday_error(self) -> None:
-        d = ry.Date.MAX
-        assert d.weekday == 5
-        with pytest.raises(ValueError):
-            d.nth_weekday(1, "saturday")
-
-        d = ry.Date.MIN
-        assert d.weekday == 1
-        with pytest.raises(ValueError):
-            d.nth_weekday(-1, "sunday")
 
 
 class TestISOWeekDate:

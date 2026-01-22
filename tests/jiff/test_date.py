@@ -235,7 +235,10 @@ class TestDateReplace:
         ):
             _r = d.replace(day=31)
         d = ry.date(2024, 2, 29)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="parameter 'day' with value 29 is not in the required range of 1\\.\\.=28",
+        ):
             _r = d.replace(year=2023)
 
     # ==== YEAR ====
@@ -307,7 +310,10 @@ class TestDateReplace:
 
     def test_replace_month_err(self) -> None:
         d1 = ry.date(2024, 10, 31)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="parameter 'day' with value 31 is not in the required range of 1\\.\\.=30",
+        ):
             d1.replace(month=11)
 
     # ==== DAY ====
@@ -355,10 +361,13 @@ class TestDateReplace:
 
     def test_replace_day_of_year_err(self) -> None:
         d1 = ry.date(2023, 1, 1)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="number of days for `2023` is invalid, must be in range `1\\.\\.=365`",
+        ):
             d1.replace(day_of_year=366)
         d1 = ry.date(9999, 1, 1)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="day of year is invalid"):
             d1.replace(day_of_year=366)
 
     # ==== DAY OF YEAR NO LEAP ====
