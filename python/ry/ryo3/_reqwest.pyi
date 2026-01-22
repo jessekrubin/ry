@@ -85,6 +85,8 @@ class ClientConfig(t.TypedDict):
     tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
+    # __ UNSTABLE __
+    _tls_cached_native_certs: bool  # default: False
 
 @t.final
 class HttpClient:

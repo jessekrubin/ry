@@ -107,8 +107,6 @@ pub struct ClientConfig {
     tls_sni: bool,  // default: true
     tls_version_max: Option<TlsVersion>,
     tls_version_min: Option<TlsVersion>,
-    /// (unstable) use cached native system certs
-    _tls_cached_native_certs: bool,
     // -- tls danger zone --
     tls_danger_accept_invalid_certs: bool,
     tls_danger_accept_invalid_hostnames: bool,
@@ -122,6 +120,10 @@ pub struct ClientConfig {
     // http09_responses
     // interface
     // local_address
+
+    // -- UNSTABLE ~ RY ONLY) -
+    /// (unstable) use cached native system certs
+    _tls_cached_native_certs: bool,
 }
 
 impl Default for ClientConfig {
@@ -173,7 +175,6 @@ impl Default for ClientConfig {
             identity: None,
             tls_certs_merge: None,
             tls_certs_only: None,
-            _tls_cached_native_certs: false,
             tls_crls_only: None,
             tls_info: false,
             tls_sni: true,
@@ -183,82 +184,11 @@ impl Default for ClientConfig {
             tls_danger_accept_invalid_certs: false,
             tls_danger_accept_invalid_hostnames: false,
             proxy: None,
+            // (UNSTABLE)
+            _tls_cached_native_certs: false,
         }
     }
 }
-
-// struct RequestKwargs<'py> {
-//     url: &'py Bound<'py, PyAny>,
-//     method: Method,
-//     body: Option<&'py Bound<'py, PyAny>>,
-//     headers: Option<PyHeadersLike>,
-//     query: Option<&'py Bound<'py, PyAny>>,
-//     json: Option<&'py Bound<'py, PyAny>>,
-//     multipart: Option<&'py Bound<'py, PyAny>>,
-//     form: Option<&'py Bound<'py, PyAny>>,
-//     timeout: Option<&'py PyDuration>,
-//     basic_auth: Option<(PyBackedStr, Option<PyBackedStr>)>,
-//     bearer_auth: Option<PyBackedStr>,
-//     version: Option<PyHttpVersion>,
-// }
-
-// fn client_request_builder(
-//     client: &reqwest::Client,
-//     options: RequestKwargs,
-// ) -> PyResult<RequestBuilder> {
-//     let url = options.url.extract::<UrlLike>()?.0;
-//     let mut req = client.request(options.method, url);
-//     if let Some((username, password)) = options.basic_auth {
-//         req = req.basic_auth(username, password);
-//     }
-//     if let Some(token) = options.bearer_auth {
-//         req = req.bearer_auth(token);
-//     }
-//     if let Some(ref version) = options.version {
-//         req = req.version(version.0);
-//     }
-//     if let Some(headers) = options.headers {
-//         let headers = HeaderMap::try_from(headers)?;
-//         req = req.headers(headers);
-//     }
-//     if let Some(timeout) = options.timeout {
-//         req = req.timeout(timeout.0);
-//     }
-//     if let Some(query) = options.query {
-//         let pyser = ryo3_serde::PyAnySerializer::new(query.into(), None);
-//         req = req.query(&pyser);
-//     }
-
-//     // version 2
-//     match (options.body, options.json, options.form, options.multipart) {
-//         (Some(_), Some(_), _, _)
-//         | (Some(_), _, Some(_), _)
-//         | (Some(_), _, _, Some(_))
-//         | (_, Some(_), Some(_), _)
-//         | (_, Some(_), _, Some(_))
-//         | (_, _, Some(_), Some(_)) => {
-//             return py_value_err!("body, json, form, multipart are mutually exclusive");
-//         }
-//         (Some(body), None, None, None) => {
-//             use crate::body::PyBody;
-//             let bod = body.extract::<PyBody>()?;
-//             req = req.body(bod);
-//         }
-//         (None, Some(json), None, None) => {
-//             let wrapped = ryo3_serde::PyAnySerializer::new(json.into(), None);
-//             req = req.json(&wrapped);
-//         }
-//         (None, None, Some(form), None) => {
-//             let pyser = ryo3_serde::PyAnySerializer::new(form.into(), None);
-//             req = req.form(&pyser);
-//         }
-//         (None, None, None, Some(_multipart)) => {
-//             pytodo!("multipart not implemented (yet)");
-//         }
-//         (None, None, None, None) => {}
-//     }
-//     Ok(req)
-// }
 
 impl RyHttpClient {
     #[inline]
@@ -278,13 +208,6 @@ impl RyHttpClient {
                 .map_err(map_reqwest_err)
         })
     }
-
-    // TODO: replace this with custom python-y builder pattern that does not
-    //       crudely wrap the reqwest::RequestBuilder
-    // #[inline]
-    // fn build_request<'py>(&'py self, options: RequestKwargs<'py>) -> PyResult<RequestBuilder> {
-    //     client_request_builder(&self.client, options)
-    // }
 
     #[inline]
     fn request_builder(
@@ -673,6 +596,7 @@ impl RyHttpClient {
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
             proxy,
+            #[expect(clippy::used_underscore_binding)]
             _tls_cached_native_certs,
         };
         let client_builder = client_cfg.client_builder();
@@ -997,6 +921,7 @@ impl RyClient {
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
             proxy,
+            #[expect(clippy::used_underscore_binding)]
             _tls_cached_native_certs,
         };
         let client_builder = client_cfg.client_builder();
@@ -1281,7 +1206,6 @@ impl RyBlockingClient {
             identity,
             tls_certs_merge,
             tls_certs_only,
-            _tls_cached_native_certs,
             tls_crls_only,
             tls_info,
             tls_sni,
@@ -1290,6 +1214,8 @@ impl RyBlockingClient {
             tls_danger_accept_invalid_certs,
             tls_danger_accept_invalid_hostnames,
             proxy,
+            #[expect(clippy::used_underscore_binding)]
+            _tls_cached_native_certs,
         };
         let client_builder = client_cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
@@ -1465,6 +1391,7 @@ impl ClientConfig {
     }
 
     #[inline]
+    #[expect(clippy::used_underscore_binding)]
     fn apply_tls_opts(&self, mut client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         // based on the reqwest logic for system cert loading, but adapted to allow for
         // caching the system certs once per process instead of loading them every time a client is built
@@ -1643,10 +1570,14 @@ impl ClientConfig {
             "tls_version_min" => self.tls_version_min,
             "tls_danger_accept_invalid_certs" => self.tls_danger_accept_invalid_certs,
             "tls_danger_accept_invalid_hostnames" => self.tls_danger_accept_invalid_hostnames,
-            "proxy" => &self.proxy,
-            // unstable
-            "_tls_cached_native_certs" => self._tls_cached_native_certs
+            "proxy" => &self.proxy
         }
+        // unstable
+        #[expect(clippy::used_underscore_binding)]
+        {
+            set_item!("_tls_cached_native_certs", self._tls_cached_native_certs);
+        }
+
         Ok(dict)
     }
 

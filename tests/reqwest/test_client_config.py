@@ -57,6 +57,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "tls_sni": True,
     "tls_danger_accept_invalid_certs": False,
     "tls_danger_accept_invalid_hostnames": False,
+    "_tls_cached_native_certs": False,
 }
 
 
