@@ -332,10 +332,7 @@ class TestFsPathPosix:
         assert str(rypath.root) == pypath.root
 
 
-@pytest.fixture(
-    name="tmp_fspath",
-    scope="function",
-)
+@pytest.fixture(name="tmp_fspath")
 def tmp_fspath(tmp_path: Path) -> ry.FsPath:
     return ry.FsPath(tmp_path)
 
