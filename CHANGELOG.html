@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-3c5321a0.js";
+            window.path_to_searchindex_js = "searchindex-8ca880af.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -199,10 +199,12 @@ that)</li>
 properties to match the <code>async</code> version in <code>ryo3-tokio</code></li>
 <li><code>FileType</code> finally supporting <code>FileTypeExt</code> and internally reworked</li>
 <li>removed <code>FileType.to_dict()</code> and associated <code>FileTypeDict</code> typed-dict</li>
+<li>sync-file-stream kwarg <code>chunk_size</code> renamed to <code>read_size</code> to be more clear</li>
 </ul>
 </li>
 <li><code>ryo3-tokio</code>
 <ul>
+<li>async-file-stream kwarg <code>chunk_size</code> renamed to <code>read_size</code> to be more clear</li>
 <li>Experiments with using tokio runtime to spawn instead of
 pyo3-async-runtimes + py-futures</li>
 </ul>
