@@ -2110,6 +2110,7 @@ dependencies = [
  "pyo3-async-runtimes",
  "reqwest",
  "rustls",
+ "rustls-native-certs",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-http",

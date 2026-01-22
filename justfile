@@ -42,11 +42,11 @@ build: cargo-test
 
 # build release
 build-release:
-    maturin build --release
+    uv run maturin build --release --features "mimalloc" --uv
 
 # maturin develop release
-dev-rel:
-    maturin develop --release
+devrel:
+    uv run maturin develop --release --features "mimalloc" --uv
 
 # run pytest
 doctest:

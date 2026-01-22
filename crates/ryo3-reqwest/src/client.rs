@@ -15,6 +15,9 @@ use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Method, RequestBuilder};
+use rustls::ClientConfig as RustlsClientConfig;
+use rustls::client::WebPkiServerVerifier;
+use rustls::pki_types::CertificateDer;
 use ryo3_http::{
     HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
 };
@@ -22,6 +25,7 @@ use ryo3_macro_rules::py_value_error;
 use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 use ryo3_url::UrlLike;
+use std::sync::Arc;
 
 //============================================================================
 
@@ -261,7 +265,7 @@ impl RyHttpClient {
     #[inline]
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
-        let client_builder = cfg.client_builder();
+        let client_builder = cfg.client_builder()?;
         let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self { client, cfg })
     }
@@ -361,7 +365,7 @@ impl RyClient {
     #[inline]
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
-        let client_builder = cfg.client_builder();
+        let client_builder = cfg.client_builder()?;
         let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self { client, cfg })
     }
@@ -451,7 +455,7 @@ impl RyBlockingClient {
     #[inline]
     pub fn new(cfg: Option<ClientConfig>) -> PyResult<Self> {
         let cfg = cfg.unwrap_or_default();
-        let client_builder = cfg.client_builder();
+        let client_builder = cfg.client_builder()?;
         let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self { client, cfg })
     }
@@ -669,7 +673,7 @@ impl RyHttpClient {
             tls_danger_accept_invalid_hostnames,
             proxy,
         };
-        let client_builder = client_cfg.client_builder();
+        let client_builder = client_cfg.client_builder()?;
         let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self {
             client,
@@ -990,7 +994,7 @@ impl RyClient {
             tls_danger_accept_invalid_hostnames,
             proxy,
         };
-        let client_builder = client_cfg.client_builder();
+        let client_builder = client_cfg.client_builder()?;
         let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self {
             client,
@@ -1279,7 +1283,7 @@ impl RyBlockingClient {
             tls_danger_accept_invalid_hostnames,
             proxy,
         };
-        let client_builder = client_cfg.client_builder();
+        let client_builder = client_cfg.client_builder()?;
         let client = client_builder.build().map_err(map_reqwest_err)?;
         Ok(Self {
             client,
@@ -1414,49 +1418,13 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
 
 impl ClientConfig {
     #[inline]
-    fn apply_http2_opts(
+    fn apply_tls_opts(
         &self,
         mut client_builder: reqwest::ClientBuilder,
-    ) -> reqwest::ClientBuilder {
-        if self.http2_prior_knowledge {
-            client_builder = client_builder.http2_prior_knowledge();
-        }
-        if let Some(http2_initial_stream_window_size) = self.http2_initial_stream_window_size {
-            client_builder =
-                client_builder.http2_initial_stream_window_size(http2_initial_stream_window_size);
-        }
-        if let Some(http2_initial_connection_window_size) =
-            self.http2_initial_connection_window_size
-        {
+    ) -> PyResult<reqwest::ClientBuilder> {
+        if self.tls_certs_only.is_none() {
             client_builder = client_builder
-                .http2_initial_connection_window_size(http2_initial_connection_window_size);
-        }
-        if self.http2_adaptive_window {
-            client_builder = client_builder.http2_adaptive_window(true);
-        }
-        if let Some(http2_max_frame_size) = self.http2_max_frame_size {
-            client_builder = client_builder.http2_max_frame_size(http2_max_frame_size);
-        }
-        if let Some(http2_max_header_list_size) = self.http2_max_header_list_size {
-            client_builder = client_builder.http2_max_header_list_size(http2_max_header_list_size);
-        }
-        if let Some(http2_keep_alive_interval) = &self.http2_keep_alive_interval {
-            client_builder = client_builder.http2_keep_alive_interval(http2_keep_alive_interval.0);
-        }
-        if let Some(http2_keep_alive_timeout) = &self.http2_keep_alive_timeout {
-            client_builder = client_builder.http2_keep_alive_timeout(http2_keep_alive_timeout.0);
-        }
-        if self.http2_keep_alive_while_idle {
-            client_builder = client_builder.http2_keep_alive_while_idle(true);
-        }
-        client_builder
-    }
-
-    #[inline]
-    fn apply_tls_opts(&self, mut client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
-        if let Some(tls_certs_only) = &self.tls_certs_only {
-            client_builder = client_builder
-                .tls_certs_only(tls_certs_only.iter().map(|py_cert| py_cert.cert.clone()));
+                .tls_certs_only(crate::tls::py_load_native_certs().into_iter().cloned());
         }
         if let Some(tls_certs_merge) = &self.tls_certs_merge {
             client_builder = client_builder
@@ -1473,11 +1441,11 @@ impl ClientConfig {
         if let Some(tls_version_max) = &self.tls_version_max {
             client_builder = client_builder.tls_version_max(tls_version_max.into());
         }
-        client_builder
+        Ok(client_builder)
     }
 
     #[inline]
-    fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
+    fn apply(&self, client_builder: reqwest::ClientBuilder) -> PyResult<reqwest::ClientBuilder> {
         let mut client_builder = client_builder
             .gzip(self.gzip)
             .brotli(self.brotli)
@@ -1550,9 +1518,9 @@ impl ClientConfig {
         // http2
         client_builder = self.apply_http2_opts(client_builder);
         // apply_tls
-        client_builder = self.apply_tls_opts(client_builder);
+        client_builder = self.apply_tls_opts(client_builder)?;
 
-        client_builder
+        Ok(client_builder)
     }
 
     fn as_pydict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
@@ -1628,7 +1596,7 @@ impl ClientConfig {
     }
 
     #[inline]
-    fn client_builder(&self) -> reqwest::ClientBuilder {
+    fn client_builder(&self) -> PyResult<reqwest::ClientBuilder> {
         let client_builder = reqwest::Client::builder();
         self.apply(client_builder)
     }

@@ -1,6 +1,33 @@
 use pyo3::prelude::*;
 use reqwest::tls::CertificateRevocationList;
 use ryo3_macro_rules::py_value_error;
+use std::sync::OnceLock;
+
+static SYSTEM_CERTS: OnceLock<Vec<reqwest::Certificate>> = OnceLock::new();
+
+/// Load the system root certificates as `reqwest::Certificate`s.
+///
+/// This is makes client generation much faster.
+pub(crate) fn py_load_native_certs() -> &'static [reqwest::Certificate] {
+    SYSTEM_CERTS.get_or_init(|| {
+        let mut roots = Vec::new();
+        let result = rustls_native_certs::load_native_certs();
+
+        if !result.errors.is_empty() {
+            for err in result.errors {
+                tracing::warn!("failed to load a native cert: {err}");
+            }
+        }
+        for cert in result.certs {
+            if let Ok(req_cert) = reqwest::Certificate::from_der(cert.as_ref()) {
+                roots.push(req_cert);
+            } else {
+                tracing::debug!("failed to parse a native cert");
+            }
+        }
+        roots
+    })
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum CertificateKind {
