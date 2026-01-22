@@ -177,7 +177,7 @@ class TestCookieProperties:
         ("string", "secure"),
         [
             ("name=value; Secure", True),
-            ("name=value; Secure", True),
+            ("name=value; Secure", False),
             ("name=value", None),
         ],
     )
@@ -212,7 +212,7 @@ class TestCookieProperties:
         ("string", "http_only"),
         [
             ("name=value; HttpOnly", True),
-            ("name=value; HttpOnly", True),
+            ("name=value; HttpOnly", False),
             ("name=value", None),
         ],
     )
