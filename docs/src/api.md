@@ -4343,6 +4343,8 @@ class ClientConfig(t.TypedDict):
     )  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
+    # __ UNSTABLE __
+    _tls_cached_native_certs: bool  # default: False
 
 
 @t.final
@@ -5746,7 +5748,8 @@ class DirEntry:
     def __fspath__(self) -> str: ...
     @property
     def path(self) -> pathlib.Path: ...
-    def basename(self) -> str: ...
+    @property
+    def filename(self) -> str: ...
     def metadata(self) -> Metadata: ...
     def file_type(self) -> FileType: ...
 
@@ -6352,8 +6355,8 @@ from types import TracebackType
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
-from ry.protocols import RyAsyncIterator, RyIterator
-from ry.ryo3._std import FileReadStream, FileType, Metadata
+from ry.protocols import RyAsyncIterator
+from ry.ryo3._std import FileType, Metadata
 
 if sys.version_info >= (3, 13):
     from warnings import deprecated
@@ -6387,7 +6390,8 @@ class AsyncDirEntry:
     def __fspath__(self) -> str: ...
     @property
     def path(self) -> pathlib.Path: ...
-    def basename(self) -> str: ...
+    @property
+    def filename(self) -> str: ...
     async def metadata(self) -> Metadata: ...
     async def file_type(self) -> FileType: ...
 

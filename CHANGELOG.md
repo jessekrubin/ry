@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.80 [unreleased]
+## v0.0.80 [2026-01-22] ~ the wild 80's
 
 - `ryo3-http`
   - remove `parking_lot` from http

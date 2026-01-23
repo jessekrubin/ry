@@ -4,7 +4,6 @@ use crate::fs::file_read_stream::PyFileReadStream;
 pub use file_type::PyFileType;
 use pyo3::exceptions::{
     PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError,
-    PyValueError,
 };
 use pyo3::types::{PyBytes, PyDict};
 use pyo3::{IntoPyObjectExt, intern, prelude::*};
@@ -198,8 +197,14 @@ impl PyDirEntry {
         self.0.path().into_os_string()
     }
 
+    #[getter]
     fn path(&self) -> PathBuf {
         self.0.path()
+    }
+
+    #[getter]
+    fn filename(&self) -> OsString {
+        self.0.file_name()
     }
 
     fn file_type(&self) -> PyResult<PyFileType> {
@@ -210,17 +215,6 @@ impl PyDirEntry {
     fn metadata(&self) -> PyResult<PyMetadata> {
         let metadata = self.0.metadata()?;
         Ok(PyMetadata::from(metadata))
-    }
-
-    fn basename(&self) -> PyResult<OsString> {
-        let path = self.0.path();
-        let name = path.file_name().ok_or_else(|| {
-            PyValueError::new_err(format!(
-                "basename - path: {} - no file name",
-                path.to_string_lossy()
-            ))
-        })?;
-        Ok(name.to_os_string())
     }
 }
 
