@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.81 [unreleased]
+
+- `ryo3-jiter`
+  - restore big-int json parsing support. jiter `feature: num-bigint` was
+    removed when I turned off all default features :/
+
+---
+
 ## v0.0.80 [2026-01-22] ~ the wild 80's
 
 - `ryo3-http`

@@ -12,7 +12,7 @@ repository.workspace = true
 description = "ry + pydantic-jiter (https://github.com/pydantic/jiter)"
 
 [dependencies]
-jiter = { workspace = true, features = ["python"] }
+jiter = { workspace = true, features = ["python", "num-bigint"] }
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 

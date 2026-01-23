@@ -118,3 +118,13 @@ def test_parse_bytes_in_numpy_u8_arr() -> None:
     parsed_arr = ry.parse_json(arr)  # type: ignore[arg-type,unused-ignore]
     assert isinstance(parsed_arr, list), "Parsed result should be a list"
     assert parsed_arr == [1, 2, 3], "Parsed array does not match original"
+
+
+def test_parse_massive_ints() -> None:
+    expected = [
+        1134_771_341_237_886_746_928_399_281_379_818_916_646_777_378_528_823_008_040_502,
+        1075_006_011_535_502_328_635_476_185_316_520_074_006_917_254_747_885_836_283_199,
+    ]
+    b = b"[1134771341237886746928399281379818916646777378528823008040502, 1075006011535502328635476185316520074006917254747885836283199]"
+    result = ry.parse_json(b)
+    assert result == expected
