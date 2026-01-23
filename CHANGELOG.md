@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.82 [unreleased]
+
+- `ryo3-reqwest`
+  - `connection_verbose` kwarg for `ry.HttpClient`, `ry.Client` and
+    `ry.BlockingClient` for debugging
+
+---
+
 ## v0.0.81 [2026-01-23]
 
 - `ryo3-jiter`

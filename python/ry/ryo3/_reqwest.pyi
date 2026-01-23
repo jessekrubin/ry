@@ -40,6 +40,7 @@ class ClientConfig(t.TypedDict):
     referer: bool
     proxy: list[Proxy] | Proxy | None  # default: None
     hickory_dns: bool
+    connection_verbose: bool  # default: False
     # ____ TIMEOUT ____
     timeout: Duration | None  # default: None
     connect_timeout: Duration | None  # default: None

@@ -61,6 +61,7 @@ pub struct ClientConfig {
     hickory_dns: bool,
     redirect: Option<usize>,
     resolve: Option<PyResolveMap>,
+    connection_verbose: bool,
     // misspelled of course :/
     referer: bool,
     // -- http preferences --
@@ -135,6 +136,7 @@ impl Default for ClientConfig {
             hickory_dns: true,
             redirect: Some(10),
             resolve: None,
+            connection_verbose: false,
             referer: true,
             // compression
             gzip: true,
@@ -436,6 +438,7 @@ impl RyHttpClient {
             resolve = None,
             referer = true,
             identity = None,
+            connection_verbose = false,
 
             gzip = true,
             brotli = true,
@@ -493,6 +496,7 @@ impl RyHttpClient {
         resolve: Option<PyResolveMap>,
         referer: bool,
         identity: Option<PyIdentity>,
+        connection_verbose: bool,
 
         gzip: bool,
         brotli: bool,
@@ -554,6 +558,7 @@ impl RyHttpClient {
             redirect,
             resolve,
             referer,
+            connection_verbose,
             gzip,
             brotli,
             deflate,
@@ -761,6 +766,7 @@ impl RyClient {
             resolve = None,
             referer = true,
             identity = None,
+            connection_verbose = false,
 
             gzip = true,
             brotli = true,
@@ -818,6 +824,7 @@ impl RyClient {
         resolve: Option<PyResolveMap>,
         referer: bool,
         identity: Option<PyIdentity>,
+        connection_verbose: bool,
 
         gzip: bool,
         brotli: bool,
@@ -879,6 +886,7 @@ impl RyClient {
             redirect,
             resolve,
             referer,
+            connection_verbose,
             gzip,
             brotli,
             deflate,
@@ -1054,6 +1062,7 @@ impl RyBlockingClient {
             resolve = None,
             referer = true,
             identity = None,
+            connection_verbose = false,
 
             gzip = true,
             brotli = true,
@@ -1111,6 +1120,7 @@ impl RyBlockingClient {
         resolve: Option<PyResolveMap>,
         referer: bool,
         identity: Option<PyIdentity>,
+        connection_verbose: bool,
 
         gzip: bool,
         brotli: bool,
@@ -1176,6 +1186,7 @@ impl RyBlockingClient {
             brotli,
             deflate,
             zstd,
+            connection_verbose,
             hickory_dns,
             http1_only,
             https_only,
@@ -1428,6 +1439,7 @@ impl ClientConfig {
     #[inline]
     fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         let mut client_builder = client_builder
+            .connection_verbose(self.connection_verbose)
             .gzip(self.gzip)
             .brotli(self.brotli)
             .deflate(self.deflate)
@@ -1526,6 +1538,7 @@ impl ClientConfig {
             "timeout" => self.timeout,
             "read_timeout" => self.read_timeout,
             "connect_timeout" => self.connect_timeout,
+            "connection_verbose" => self.connection_verbose,
             "redirect" => self.redirect,
             "resolve" => resolve,
             "referer" => self.referer,
