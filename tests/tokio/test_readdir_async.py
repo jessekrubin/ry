@@ -17,7 +17,7 @@ async def test_read_dir() -> None:
         assert isinstance(metadata, ry.Metadata)
         ftype = await direntry.file_type()
         assert isinstance(ftype, ry.FileType)
-        assert isinstance(direntry.basename, str)
+        assert isinstance(direntry.filename, str)
 
     collected_dir_entries = await (await ry.read_dir_async(PWD)).collect()
     collected_paths = {os.path.basename(direntry) for direntry in collected_dir_entries}

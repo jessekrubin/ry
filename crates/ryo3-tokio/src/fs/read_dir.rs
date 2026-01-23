@@ -2,7 +2,7 @@ use crate::rt::future_into_py;
 #[cfg(feature = "experimental-async")]
 use crate::rt::on_tokio_py;
 use pyo3::prelude::*;
-use ryo3_macro_rules::{py_stop_async_iteration_err, py_value_error};
+use ryo3_macro_rules::py_stop_async_iteration_err;
 use ryo3_std::fs::PyMetadata;
 use std::ffi::OsString;
 use std::format;
@@ -190,15 +190,6 @@ impl PyAsyncDirEntry {
             Ok(PyMetadata::from(metadata))
         })
     }
-
-    #[getter]
-    fn basename(&self) -> PyResult<OsString> {
-        let path = self.0.path();
-        let name = path.file_name().ok_or_else(|| {
-            py_value_error!("basename - path: {} - no file name", path.to_string_lossy())
-        })?;
-        Ok(name.to_os_string())
-    }
 }
 
 #[cfg(feature = "experimental-async")]
@@ -239,15 +230,6 @@ impl PyAsyncDirEntry {
             Ok(PyMetadata::from(metadata))
         })
         .await
-    }
-
-    #[getter]
-    fn basename(&self) -> PyResult<OsString> {
-        let path = self.0.path();
-        let name = path.file_name().ok_or_else(|| {
-            py_value_error!("basename - path: {} - no file name", path.to_string_lossy())
-        })?;
-        Ok(name.to_os_string())
     }
 }
 

@@ -21,7 +21,7 @@ def test_read_dir() -> None:
         assert basename in items
         assert isinstance(direntry.metadata(), ry.Metadata)
         assert isinstance(direntry.file_type(), ry.FileType)
-        assert isinstance(direntry.basename(), str)
+        assert isinstance(direntry.filename, str)
 
 
 def test_read_dir_concurrent() -> None:

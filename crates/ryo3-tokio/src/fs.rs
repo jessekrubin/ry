@@ -395,30 +395,30 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAsyncFile>()?;
     m.add_class::<PyAsyncFileReadStream>()?;
     //fns
-    m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(aiopen, m)?)?;
+    m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;
-    m.add_function(wrap_pyfunction!(read_stream_async, m)?)?;
     m.add_function(wrap_pyfunction!(copy_async, m)?)?;
-    m.add_function(wrap_pyfunction!(create_dir_async, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir_all_async, m)?)?;
+    m.add_function(wrap_pyfunction!(create_dir_async, m)?)?;
+    m.add_function(wrap_pyfunction!(exists_async, m)?)?;
     m.add_function(wrap_pyfunction!(hard_link_async, m)?)?;
     m.add_function(wrap_pyfunction!(metadata_async, m)?)?;
     m.add_function(wrap_pyfunction!(read_async, m)?)?;
     m.add_function(wrap_pyfunction!(read_dir_async, m)?)?;
     m.add_function(wrap_pyfunction!(read_link_async, m)?)?;
+    m.add_function(wrap_pyfunction!(read_stream_async, m)?)?;
     m.add_function(wrap_pyfunction!(read_to_string_async, m)?)?;
-    m.add_function(wrap_pyfunction!(remove_dir_async, m)?)?;
     m.add_function(wrap_pyfunction!(remove_dir_all_async, m)?)?;
+    m.add_function(wrap_pyfunction!(remove_dir_async, m)?)?;
     m.add_function(wrap_pyfunction!(remove_file_async, m)?)?;
     m.add_function(wrap_pyfunction!(rename_async, m)?)?;
+    m.add_function(wrap_pyfunction!(try_exists_async, m)?)?;
+    m.add_function(wrap_pyfunction!(write_async, m)?)?;
     // m.add_function(wrap_pyfunction!(set_permissions_async, m)?)?;
     // m.add_function(wrap_pyfunction!(symlink_dir_async, m)?)?;
     // m.add_function(wrap_pyfunction!(symlink_file_async, m)?)?;
     // m.add_function(wrap_pyfunction!(symlink_metadata_async, m)?)?;
-    m.add_function(wrap_pyfunction!(try_exists_async, m)?)?;
-    m.add_function(wrap_pyfunction!(exists_async, m)?)?;
-    m.add_function(wrap_pyfunction!(write_async, m)?)?;
 
     Ok(())
 }
