@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.81 [unreleased]
+## v0.0.81 [2026-01-23]
 
 - `ryo3-jiter`
   - restore big-int json parsing support. jiter `feature: num-bigint` was
