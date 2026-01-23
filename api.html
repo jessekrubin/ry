@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-8ca880af.js";
+            window.path_to_searchindex_js = "searchindex-5fc6e6a7.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -4487,6 +4487,8 @@ class ClientConfig(t.TypedDict):
     )  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
+    # __ UNSTABLE __
+    _tls_cached_native_certs: bool  # default: False
 
 
 @t.final
@@ -5880,7 +5882,8 @@ class DirEntry:
     def __fspath__(self) -&gt; str: ...
     @property
     def path(self) -&gt; pathlib.Path: ...
-    def basename(self) -&gt; str: ...
+    @property
+    def filename(self) -&gt; str: ...
     def metadata(self) -&gt; Metadata: ...
     def file_type(self) -&gt; FileType: ...
 
@@ -6482,8 +6485,8 @@ from types import TracebackType
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
-from ry.protocols import RyAsyncIterator, RyIterator
-from ry.ryo3._std import FileReadStream, FileType, Metadata
+from ry.protocols import RyAsyncIterator
+from ry.ryo3._std import FileType, Metadata
 
 if sys.version_info &gt;= (3, 13):
     from warnings import deprecated
@@ -6517,7 +6520,8 @@ class AsyncDirEntry:
     def __fspath__(self) -&gt; str: ...
     @property
     def path(self) -&gt; pathlib.Path: ...
-    def basename(self) -&gt; str: ...
+    @property
+    def filename(self) -&gt; str: ...
     async def metadata(self) -&gt; Metadata: ...
     async def file_type(self) -&gt; FileType: ...
 

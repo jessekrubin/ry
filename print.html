@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-8ca880af.js";
+            window.path_to_searchindex_js = "searchindex-5fc6e6a7.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2026-01-22T01:35:17.936033922-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2026-01-22T19:46:13.162020475-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -501,7 +501,7 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
-<h2 id="v0080-unreleased"><a class="header" href="#v0080-unreleased">v0.0.80 [unreleased]</a></h2>
+<h2 id="v0080-2026-01-22--the-wild-80s"><a class="header" href="#v0080-2026-01-22--the-wild-80s">v0.0.80 [2026-01-22] ~ the wild 80’s</a></h2>
 <ul>
 <li><code>ryo3-http</code>
 <ul>
@@ -7343,6 +7343,8 @@ class ClientConfig(t.TypedDict):
     )  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
+    # __ UNSTABLE __
+    _tls_cached_native_certs: bool  # default: False
 
 
 @t.final
@@ -8736,7 +8738,8 @@ class DirEntry:
     def __fspath__(self) -&gt; str: ...
     @property
     def path(self) -&gt; pathlib.Path: ...
-    def basename(self) -&gt; str: ...
+    @property
+    def filename(self) -&gt; str: ...
     def metadata(self) -&gt; Metadata: ...
     def file_type(self) -&gt; FileType: ...
 
@@ -9338,8 +9341,8 @@ from types import TracebackType
 
 from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
-from ry.protocols import RyAsyncIterator, RyIterator
-from ry.ryo3._std import FileReadStream, FileType, Metadata
+from ry.protocols import RyAsyncIterator
+from ry.ryo3._std import FileType, Metadata
 
 if sys.version_info &gt;= (3, 13):
     from warnings import deprecated
@@ -9373,7 +9376,8 @@ class AsyncDirEntry:
     def __fspath__(self) -&gt; str: ...
     @property
     def path(self) -&gt; pathlib.Path: ...
-    def basename(self) -&gt; str: ...
+    @property
+    def filename(self) -&gt; str: ...
     async def metadata(self) -&gt; Metadata: ...
     async def file_type(self) -&gt; FileType: ...
 
