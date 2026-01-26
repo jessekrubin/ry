@@ -1,18 +1,16 @@
 use pyo3::prelude::*;
-use std::time::Duration;
 
 use crate::proxy::PyProxies;
 use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
 use crate::tls_version::TlsVersion;
 use crate::types::Timeout;
 use crate::user_agent::DEFAULT_USER_AGENT;
-use pyo3::types::{PyDict, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{Client, Method, RequestBuilder};
+use pyo3::intern;
+use pyo3::types::PyDict;
+use reqwest::header::HeaderValue;
 use ryo3_http::{PyHeaders, PyHeadersLike};
+use ryo3_macro_rules::py_type_err;
 use ryo3_macro_rules::py_value_error;
-use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
 use ryo3_std::time::PyDuration;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -168,12 +166,10 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.headers = v.extract::<Option<PyHeadersLike>>()?.map(PyHeaders::from);
                 }
                 "cookies" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.cookies = v;
+                    cfg.cookies = v.extract::<bool>()?;
                 }
                 "user_agent" => {
-                    let v = v.extract::<ryo3_http::HttpHeaderValue>()?;
-                    cfg.user_agent = Some(v);
+                    cfg.user_agent = v.extract::<Option<ryo3_http::HttpHeaderValue>>()?;
                 }
                 "timeout" => {
                     cfg.timeout = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
@@ -185,89 +181,70 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.connect_timeout = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
                 }
                 "redirect" => {
-                    let v = v.extract::<Option<usize>>()?;
-                    cfg.redirect = v;
+                    cfg.redirect = v.extract::<Option<usize>>()?;
                 }
                 "resolve" => {
                     cfg.resolve = v.extract::<Option<PyResolveMap>>()?;
                 }
                 "referer" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.referer = v;
+                    cfg.referer = v.extract::<bool>()?;
                 }
                 "gzip" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.gzip = v;
+                    cfg.gzip = v.extract::<bool>()?;
                 }
                 "brotli" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.brotli = v;
+                    cfg.brotli = v.extract::<bool>()?;
                 }
                 "deflate" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.deflate = v;
+                    cfg.deflate = v.extract::<bool>()?;
                 }
                 "zstd" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.zstd = v;
+                    cfg.zstd = v.extract::<bool>()?;
                 }
                 "connection_verbose" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.connection_verbose = v;
+                    cfg.connection_verbose = v.extract::<bool>()?;
                 }
                 "hickory_dns" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.hickory_dns = v;
+                    cfg.hickory_dns = v.extract::<bool>()?;
                 }
                 "http1_only" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.http1_only = v;
+                    cfg.http1_only = v.extract::<bool>()?;
                 }
                 "https_only" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.https_only = v;
+                    cfg.https_only = v.extract::<bool>()?;
                 }
                 // -- http1 --
                 "http1_title_case_headers" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.http1_title_case_headers = v;
+                    cfg.http1_title_case_headers = v.extract::<bool>()?;
                 }
                 "http1_allow_obsolete_multiline_headers_in_responses" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.http1_allow_obsolete_multiline_headers_in_responses = v;
+                    cfg.http1_allow_obsolete_multiline_headers_in_responses =
+                        v.extract::<bool>()?;
                 }
                 "http1_allow_spaces_after_header_name_in_responses" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.http1_allow_spaces_after_header_name_in_responses = v;
+                    cfg.http1_allow_spaces_after_header_name_in_responses = v.extract::<bool>()?;
                 }
                 "http1_ignore_invalid_headers_in_responses" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.http1_ignore_invalid_headers_in_responses = v;
+                    cfg.http1_ignore_invalid_headers_in_responses = v.extract::<bool>()?;
                 }
                 // -- http2 --
                 "http2_prior_knowledge" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.http2_prior_knowledge = v;
+                    cfg.http2_prior_knowledge = v.extract::<bool>()?;
                 }
                 "http2_initial_stream_window_size" => {
-                    let v = v.extract::<Option<u32>>()?;
-                    cfg.http2_initial_stream_window_size = v;
+                    cfg.http2_initial_stream_window_size = v.extract::<Option<u32>>()?;
                 }
                 "http2_initial_connection_window_size" => {
-                    let v = v.extract::<Option<u32>>()?;
-                    cfg.http2_initial_connection_window_size = v;
+                    cfg.http2_initial_connection_window_size = v.extract::<Option<u32>>()?;
                 }
                 "http2_adaptive_window" => {
-                    let v = v.extract::<bool>()?;
-                    cfg.http2_adaptive_window = v;
+                    cfg.http2_adaptive_window = v.extract::<bool>()?;
                 }
                 "http2_max_frame_size" => {
-                    let v = v.extract::<Option<u32>>()?;
-                    cfg.http2_max_frame_size = v;
+                    cfg.http2_max_frame_size = v.extract::<Option<u32>>()?;
                 }
                 "http2_max_header_list_size" => {
-                    let v = v.extract::<Option<u32>>()?;
-                    cfg.http2_max_header_list_size = v;
+                    cfg.http2_max_header_list_size = v.extract::<Option<u32>>()?;
                 }
                 "http2_keep_alive_interval" => {
                     cfg.http2_keep_alive_interval =
@@ -309,36 +286,35 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.tls_certs_merge = v.extract::<Option<Vec<PyCertificate>>>()?;
                 }
                 "tls_certs_only" => {
-                    cfg.tls_certs_only = v.extract::<Option<Vec<PyCertificate>>>()?;
+                    cfg.tls_certs_only = v.extract::<_>()?;
                 }
                 "tls_crls_only" => {
-                    cfg.tls_crls_only = v.extract::<Option<Vec<PyCertificateRevocationList>>>()?;
+                    cfg.tls_crls_only = v.extract::<_>()?;
                 }
                 "tls_info" => {
-                    cfg.tls_info = v.extract::<bool>()?;
+                    cfg.tls_info = v.extract::<_>()?;
                 }
                 "tls_sni" => {
-                    cfg.tls_sni = v.extract::<bool>()?;
+                    cfg.tls_sni = v.extract::<_>()?;
                 }
                 "tls_version_max" => {
-                    cfg.tls_version_max = v.extract::<Option<TlsVersion>>()?;
+                    cfg.tls_version_max = v.extract::<_>()?;
                 }
                 "tls_version_min" => {
-                    cfg.tls_version_min = v.extract::<Option<TlsVersion>>()?;
+                    cfg.tls_version_min = v.extract::<_>()?;
                 }
                 "tls_danger_accept_invalid_certs" => {
-                    cfg.tls_danger_accept_invalid_certs = v.extract::<bool>()?;
+                    cfg.tls_danger_accept_invalid_certs = v.extract::<_>()?;
                 }
                 "tls_danger_accept_invalid_hostnames" => {
-                    cfg.tls_danger_accept_invalid_hostnames = v.extract::<bool>()?;
+                    cfg.tls_danger_accept_invalid_hostnames = v.extract::<_>()?;
                 }
                 "proxy" => {
-                    cfg.proxy = v.extract::<Option<PyProxies>>()?;
+                    cfg.proxy = v.extract::<_>()?;
                 }
                 "_tls_cached_native_certs" => {
-                    cfg._tls_cached_native_certs = v.extract::<bool>()?;
+                    cfg._tls_cached_native_certs = v.extract::<_>()?;
                 }
-
                 _ => {
                     return py_type_err!("unknown ClientConfig option: {}", key_str);
                 }
