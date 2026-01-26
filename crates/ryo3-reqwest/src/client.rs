@@ -14,7 +14,7 @@ use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{Client, Method, RequestBuilder};
+use reqwest::{Method, RequestBuilder};
 use ryo3_http::{
     HttpMethod as PyHttpMethod, HttpVersion as PyHttpVersion, PyHeaders, PyHeadersLike,
 };
@@ -904,11 +904,6 @@ impl RyClient {
 
 #[pymethods]
 impl RyBlockingClient {
-    #[expect(
-        clippy::fn_params_excessive_bools,
-        clippy::similar_names,
-        clippy::too_many_arguments
-    )]
     #[new]
     #[pyo3(signature = (**kwargs))]
     fn py_new(kwargs: Option<ClientConfig>) -> PyResult<Self> {

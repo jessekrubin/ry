@@ -16,7 +16,7 @@ impl From<Timeout> for Duration {
 
 impl From<Timeout> for PyDuration {
     fn from(t: Timeout) -> Self {
-        PyDuration::from(t.0)
+        Self::from(t.0)
     }
 }
 

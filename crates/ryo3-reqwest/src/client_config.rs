@@ -155,9 +155,10 @@ impl Default for ClientConfig {
 
 impl<'py> FromPyObject<'_, 'py> for ClientConfig {
     type Error = PyErr;
+    #[expect(clippy::too_many_lines)]
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let dict = obj.cast_exact::<PyDict>()?;
-        let mut cfg = ClientConfig::default();
+        let mut cfg = Self::default();
 
         for (k, v) in dict.iter() {
             let key_str = k.extract::<&str>()?;
@@ -313,7 +314,10 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.proxy = v.extract::<_>()?;
                 }
                 "_tls_cached_native_certs" => {
-                    cfg._tls_cached_native_certs = v.extract::<_>()?;
+                    #[expect(clippy::used_underscore_binding)]
+                    {
+                        cfg._tls_cached_native_certs = v.extract::<_>()?;
+                    }
                 }
                 _ => {
                     return py_type_err!("unknown ClientConfig option: {}", key_str);
