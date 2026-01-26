@@ -94,6 +94,9 @@ def test_client_config_pickle(
     import pickle
 
     client = client_cls()
+    from pprint import pprint
+
+    pprint(client.config())
     pickled = pickle.dumps(client)
     unpickled = pickle.loads(pickled)
     assert isinstance(unpickled, client_cls)

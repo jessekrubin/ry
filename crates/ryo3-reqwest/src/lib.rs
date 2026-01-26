@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 mod body;
 mod client;
+mod client_config;
 mod cookie;
 mod errors;
 mod fetch;
@@ -13,10 +14,11 @@ mod response_stream;
 mod rustls_provider;
 mod tls;
 mod tls_version;
+mod types;
 mod user_agent;
-
 pub use client::RyBlockingClient;
 pub use client::RyHttpClient;
+pub use client_config::ClientConfig;
 pub use cookie::PyCookie;
 pub use errors::RyReqwestError;
 pub use proxy::PyProxy;
