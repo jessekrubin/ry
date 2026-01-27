@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 use reqwest::header::HeaderValue;
-use ryo3_core::py_type_err;
+use ryo3_core::{py_type_err, py_value_error};
 use ryo3_http::PyHttpHeaderValue;
 use ryo3_std::time::PyDuration;
 use std::time::Duration;
@@ -70,13 +70,27 @@ impl<'py> FromPyObject<'_, 'py> for PyUserAgent {
         if obj.is_none() {
             return Ok(Self::Default);
         }
-
-        if let Ok(flag) = obj.extract::<bool>() {
-            return Ok(if flag { Self::Default } else { Self::Disabled });
+        if let Ok(flag) = obj.cast_exact::<pyo3::types::PyBool>() {
+            return Ok(if flag.is_true() {
+                Self::Default
+            } else {
+                Self::Disabled
+            });
         }
-
-        if let Ok(value) = obj.extract::<PyHttpHeaderValue>() {
-            return Ok(Self::Value(value));
+        if let Ok(s) = obj.cast_exact::<pyo3::types::PyString>() {
+            let s_str = s.to_str()?;
+            return Ok(Self::Value(
+                HeaderValue::from_str(s_str)
+                    .map_err(|e| py_value_error!("{e}"))?
+                    .into(),
+            ));
+        }
+        if let Ok(value) = obj.extract::<&[u8]>() {
+            return Ok(Self::Value(
+                HeaderValue::from_bytes(value)
+                    .map_err(|e| py_value_error!("{e}"))?
+                    .into(),
+            ));
         }
 
         py_type_err!("user_agent must be str | http.HeaderValue | bool | None")
