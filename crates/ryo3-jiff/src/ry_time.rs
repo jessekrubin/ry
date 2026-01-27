@@ -3,7 +3,6 @@ use crate::RyTimeRound;
 use crate::difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::series::RyTimeSeries;
 use crate::spanish::Spanish;
-use crate::spanish::Spanish2;
 use crate::{JiffRoundMode, JiffTime, JiffUnit};
 use crate::{RyDate, RyDateTime};
 use crate::{RySignedDuration, RyTimestamp, RyZoned};
@@ -153,20 +152,20 @@ impl RyTime {
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)
         } else {
-            let spanish = other.extract::<Spanish2>()?;
+            let spanish = other.extract::<Spanish>()?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
             Self::from(z).into_bound_py_any(py)
         }
     }
 
-    fn __add__<'py>(&self, other: Spanish2) -> PyResult<Self> {
+    fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add(&self, other: Spanish2) -> PyResult<Self> {
+    fn add(&self, other: Spanish) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -342,20 +341,20 @@ impl RyTime {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
-    fn saturating_add(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(Self::from(self.0.saturating_add(other)))
+    fn saturating_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_add(other))
     }
 
-    fn saturating_sub(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(Self::from(self.0.saturating_sub(other)))
+    fn saturating_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_sub(other))
     }
 
-    fn wrapping_add(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(Self::from(self.0.wrapping_add(other)))
+    fn wrapping_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.wrapping_add(other))
     }
 
-    fn wrapping_sub(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(Self::from(self.0.wrapping_sub(other)))
+    fn wrapping_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.wrapping_sub(other))
     }
 
     #[expect(clippy::wrong_self_convention)]

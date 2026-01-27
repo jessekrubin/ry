@@ -4,10 +4,10 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::spanish::Spanish2;
+use crate::spanish::Spanish;
 use crate::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
+use jiff::SignedDuration;
 use jiff::tz::{Offset, OffsetRound};
-use jiff::{SignedDuration, Span};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
@@ -259,25 +259,25 @@ impl RyOffset {
         }
     }
 
-    fn __add__<'py>(&self, other: Spanish2) -> PyResult<Self> {
+    fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn __sub__<'py>(&self, other: Spanish2) -> PyResult<Self> {
+    fn __sub__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_sub(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: Spanish2) -> PyResult<Self> {
+    fn add(&self, other: Spanish) -> PyResult<Self> {
         self.__add__(other)
     }
 
-    fn sub<'py>(&self, other: Spanish2) -> PyResult<Self> {
+    fn sub(&self, other: Spanish) -> PyResult<Self> {
         self.__sub__(other)
     }
 
@@ -285,12 +285,12 @@ impl RyOffset {
         RyTimeZone::from(self.0.to_time_zone())
     }
 
-    fn saturating_add<'py>(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(self.0.saturating_add(other).into())
+    fn saturating_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_add(other))
     }
 
-    fn saturating_sub<'py>(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(self.0.saturating_sub(other).into())
+    fn saturating_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_sub(other))
     }
 
     #[staticmethod]

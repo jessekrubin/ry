@@ -9,7 +9,7 @@ use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::series::RyZonedSeries;
-use crate::spanish::{Spanish, Spanish2};
+use crate::spanish::Spanish;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
     JiffWeekday, JiffZoned, RyDate,
@@ -281,21 +281,21 @@ impl RyZoned {
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)
         } else {
-            let spanish = other.extract::<Spanish2>()?;
+            let spanish = other.extract::<Spanish>()?;
             // Spanish2::try_from(other)?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
             Self::from(z).into_bound_py_any(py)
         }
     }
 
-    fn __add__<'py>(&self, other: Spanish2) -> PyResult<Self> {
+    fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: Spanish2) -> PyResult<Self> {
+    fn add(&self, other: Spanish) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -303,12 +303,12 @@ impl RyZoned {
         self.__sub__(py, other)
     }
 
-    fn saturating_add(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(Self::from(self.0.saturating_add(other)))
+    fn saturating_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_add(other))
     }
 
-    fn saturating_sub(&self, other: Spanish2) -> PyResult<Self> {
-        Ok(Self::from(self.0.saturating_sub(other)))
+    fn saturating_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_sub(other))
     }
 
     #[pyo3(
