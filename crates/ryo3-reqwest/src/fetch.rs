@@ -1,6 +1,6 @@
 //! ry `reqwest` based global `fetch` and `fetch_sync` functions
 use crate::RyBlockingResponse;
-use ryo3_http::HttpMethod as PyHttpMethod;
+use ryo3_http::PyHttpMethod;
 
 #[cfg(feature = "experimental-async")]
 use crate::RyClient;

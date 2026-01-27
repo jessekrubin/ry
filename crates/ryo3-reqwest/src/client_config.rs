@@ -18,7 +18,7 @@ use ryo3_std::time::PyDuration;
 pub struct ClientConfig {
     headers: Option<PyHeaders>,
     cookies: bool,
-    user_agent: Option<ryo3_http::HttpHeaderValue>,
+    user_agent: Option<ryo3_http::PyHttpHeaderValue>,
     hickory_dns: bool,
     redirect: Option<usize>,
     resolve: Option<PyResolveMap>,

@@ -6,11 +6,11 @@ use http::{HeaderMap, HeaderValue};
 use std::ops::Deref;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct HttpHeaderMap(pub HeaderMap<HeaderValue>);
+pub struct PyHttpHeaderMap(pub(crate) HeaderMap<HeaderValue>);
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct HttpMethod(pub http::Method);
+pub struct PyHttpMethod(pub(crate) http::Method);
 
-impl HttpMethod {
+impl PyHttpMethod {
     pub const GET: Self = Self(http::Method::GET);
     pub const POST: Self = Self(http::Method::POST);
     pub const PUT: Self = Self(http::Method::PUT);
@@ -23,96 +23,108 @@ impl HttpMethod {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct HttpHeaderName(pub http::HeaderName);
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub struct HttpHeaderNameRef<'a>(pub &'a http::HeaderName);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HttpStatusCode(pub http::StatusCode);
-#[derive(Debug, Clone, PartialEq)]
-pub struct HttpHeaderValue(pub HeaderValue);
-#[derive(Debug, Clone, PartialEq)]
-pub struct HttpHeaderValueRef<'a>(pub &'a HeaderValue);
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct HttpVersion(pub http::Version);
+pub struct PyHttpHeaderName(pub(crate) http::HeaderName);
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct PyHttpHeaderNameRef<'a>(pub(crate) &'a http::HeaderName);
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PyHttpHeaderValue(pub(crate) HeaderValue);
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PyHttpHeaderValueRef<'a>(pub(crate) &'a HeaderValue);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PyHttpVersion(pub(crate) http::Version);
+
+impl PyHttpVersion {
+    /// `HTTP/0.9`
+    pub const HTTP_09: Self = Self(http::Version::HTTP_09);
+
+    /// `HTTP/1.0`
+    pub const HTTP_10: Self = Self(http::Version::HTTP_10);
+
+    /// `HTTP/1.1`
+    pub const HTTP_11: Self = Self(http::Version::HTTP_11);
+
+    /// `HTTP/2.0`
+    pub const HTTP_2: Self = Self(http::Version::HTTP_2);
+
+    /// `HTTP/3.0`
+    pub const HTTP_3: Self = Self(http::Version::HTTP_3);
+}
 // ============================================================================
 //  FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ============================================================================
 
-impl From<HeaderMap> for HttpHeaderMap {
+impl From<HeaderMap> for PyHttpHeaderMap {
     fn from(h: HeaderMap) -> Self {
         Self(h)
     }
 }
-impl From<HttpHeaderMap> for HeaderMap {
-    fn from(h: HttpHeaderMap) -> Self {
+impl From<PyHttpHeaderMap> for HeaderMap {
+    fn from(h: PyHttpHeaderMap) -> Self {
         h.0
     }
 }
 
-impl From<HttpHeaderName> for http::HeaderName {
-    fn from(h: HttpHeaderName) -> Self {
+impl From<PyHttpHeaderName> for http::HeaderName {
+    fn from(h: PyHttpHeaderName) -> Self {
         h.0
     }
 }
 
-impl From<HttpHeaderValue> for HeaderValue {
-    fn from(h: HttpHeaderValue) -> Self {
+impl From<PyHttpHeaderValue> for HeaderValue {
+    fn from(h: PyHttpHeaderValue) -> Self {
         h.0
     }
 }
 
-impl From<HttpMethod> for http::Method {
-    fn from(h: HttpMethod) -> Self {
+impl From<PyHttpMethod> for http::Method {
+    fn from(h: PyHttpMethod) -> Self {
         h.0
     }
 }
 
-impl From<http::HeaderName> for HttpHeaderName {
+impl From<http::HeaderName> for PyHttpHeaderName {
     fn from(h: http::HeaderName) -> Self {
         Self(h)
     }
 }
 
-impl From<HeaderValue> for HttpHeaderValue {
+impl From<HeaderValue> for PyHttpHeaderValue {
     fn from(h: HeaderValue) -> Self {
         Self(h)
     }
 }
 
-impl From<http::Method> for HttpMethod {
+impl From<http::Method> for PyHttpMethod {
     fn from(h: http::Method) -> Self {
         Self(h)
     }
 }
 
-impl From<http::StatusCode> for HttpStatusCode {
-    fn from(h: http::StatusCode) -> Self {
-        Self(h)
-    }
-}
-
-impl From<http::Version> for HttpVersion {
+impl From<http::Version> for PyHttpVersion {
     fn from(h: http::Version) -> Self {
         Self(h)
     }
 }
 
-impl From<HttpVersion> for http::Version {
-    fn from(h: HttpVersion) -> Self {
+impl From<PyHttpVersion> for http::Version {
+    fn from(h: PyHttpVersion) -> Self {
         h.0
     }
 }
 
 // impl from ref
-impl From<&HeaderValue> for HttpHeaderValue {
+impl From<&HeaderValue> for PyHttpHeaderValue {
     // clone should be totally fine bc the http lib uses the `Bytes` crate
     fn from(h: &HeaderValue) -> Self {
         Self(h.clone())
     }
 }
 
-impl<'a> From<&'a HeaderValue> for HttpHeaderValueRef<'a> {
+impl<'a> From<&'a HeaderValue> for PyHttpHeaderValueRef<'a> {
     fn from(h: &'a HeaderValue) -> Self {
         Self(h)
     }
@@ -121,25 +133,23 @@ impl<'a> From<&'a HeaderValue> for HttpHeaderValueRef<'a> {
 // ============================================================================
 // DEREF
 // ============================================================================
-impl Deref for HttpHeaderName {
+impl Deref for PyHttpHeaderName {
     type Target = http::HeaderName;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl Deref for HttpHeaderValue {
+impl Deref for PyHttpHeaderValue {
     type Target = HeaderValue;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl Deref for HttpMethod {
+impl Deref for PyHttpMethod {
     type Target = http::Method;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-
-// ============================================================================

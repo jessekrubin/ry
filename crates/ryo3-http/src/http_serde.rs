@@ -1,4 +1,4 @@
-use crate::http_types::{HttpHeaderMap, HttpHeaderNameRef};
+use crate::http_types::{PyHttpHeaderMap, PyHttpHeaderNameRef};
 use crate::{PyHeaders, PyHttpStatus};
 use http::{HeaderMap, HeaderValue};
 use serde::ser::SerializeSeq;
@@ -72,7 +72,7 @@ impl serde::Serialize for HeaderValuesRef<'_> {
     }
 }
 
-impl serde::Serialize for HttpHeaderNameRef<'_> {
+impl serde::Serialize for PyHttpHeaderNameRef<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -93,7 +93,7 @@ impl serde::Serialize for HttpHeaderMapRef<'_> {
 
         serializer.collect_map(
             keys.into_iter()
-                .map(|k| (HttpHeaderNameRef(k), HeaderValuesRef(self.0.get_all(k)))),
+                .map(|k| (PyHttpHeaderNameRef(k), HeaderValuesRef(self.0.get_all(k)))),
         )
     }
 }
@@ -145,7 +145,7 @@ impl<'de> de::Visitor<'de> for HeaderMapVisitor {
     }
 }
 
-impl<'de> serde::Deserialize<'de> for HttpHeaderMap {
+impl<'de> serde::Deserialize<'de> for PyHttpHeaderMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,

@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use reqwest::header::HeaderValue;
 use ryo3_core::py_type_err;
-use ryo3_http::HttpHeaderValue;
+use ryo3_http::PyHttpHeaderValue;
 use ryo3_std::time::PyDuration;
 use std::time::Duration;
 
@@ -43,17 +43,17 @@ impl<'py> FromPyObject<'_, 'py> for Timeout {
 pub(crate) enum PyUserAgent {
     Default,
     Disabled,
-    Value(HttpHeaderValue),
+    Value(PyHttpHeaderValue),
 }
 
 impl PyUserAgent {
     #[inline]
-    pub(crate) fn default_value() -> HttpHeaderValue {
+    pub(crate) fn default_value() -> PyHttpHeaderValue {
         HeaderValue::from_static(DEFAULT_USER_AGENT).into()
     }
 }
 
-impl From<PyUserAgent> for Option<HttpHeaderValue> {
+impl From<PyUserAgent> for Option<PyHttpHeaderValue> {
     fn from(value: PyUserAgent) -> Self {
         match value {
             PyUserAgent::Default => Some(PyUserAgent::default_value()),
@@ -75,7 +75,7 @@ impl<'py> FromPyObject<'_, 'py> for PyUserAgent {
             return Ok(if flag { Self::Default } else { Self::Disabled });
         }
 
-        if let Ok(value) = obj.extract::<HttpHeaderValue>() {
+        if let Ok(value) = obj.extract::<PyHttpHeaderValue>() {
             return Ok(Self::Value(value));
         }
 
