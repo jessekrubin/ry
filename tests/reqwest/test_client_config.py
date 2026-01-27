@@ -94,13 +94,19 @@ def test_client_config_pickle(
     import pickle
 
     client = client_cls()
-    from pprint import pprint
-
-    pprint(client.config())
     pickled = pickle.dumps(client)
     unpickled = pickle.loads(pickled)
     assert isinstance(unpickled, client_cls)
     assert unpickled.config() == client.config()
+
+
+def test_user_agent_bool_options(
+    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+) -> None:
+    default_ua = client_cls().config()["user_agent"]
+    assert client_cls(user_agent=None).config()["user_agent"] == default_ua
+    assert client_cls(user_agent=True).config()["user_agent"] == default_ua
+    assert client_cls(user_agent=False).config()["user_agent"] is None
 
 
 class TestTlsVersions:

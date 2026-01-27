@@ -34,7 +34,9 @@ class RequestKwargs(t.TypedDict, total=False):
 class ClientConfig(t.TypedDict):
     headers: Headers | None  # default: None
     cookies: bool
-    user_agent: str | None  # default: "ry/{ry.__version__}"
+    user_agent: (
+        str | bool | None
+    )  # None/True => default ("ry/{ry.__version__}"), False => disabled
     redirect: int | None
     resolve: _ResolveMapLike | None  # default: None
     referer: bool
@@ -96,7 +98,7 @@ class HttpClient:
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
-        user_agent: str | None = None,
+        user_agent: str | bool | None = None,
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
@@ -209,7 +211,7 @@ class Client:
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
-        user_agent: str | None = None,
+        user_agent: str | bool | None = None,
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
@@ -319,7 +321,7 @@ class BlockingClient:
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
-        user_agent: str | None = None,
+        user_agent: str | bool | None = None,
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,

@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 use crate::proxy::PyProxies;
 use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
 use crate::tls_version::TlsVersion;
-use crate::types::Timeout;
+use crate::types::{PyUserAgent, Timeout};
 use crate::user_agent::DEFAULT_USER_AGENT;
 use pyo3::intern;
 use pyo3::types::PyDict;
@@ -170,7 +170,7 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.cookies = v.extract::<bool>()?;
                 }
                 "user_agent" => {
-                    cfg.user_agent = v.extract::<Option<ryo3_http::HttpHeaderValue>>()?;
+                    cfg.user_agent = v.extract::<PyUserAgent>()?.into();
                 }
                 "timeout" => {
                     cfg.timeout = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
