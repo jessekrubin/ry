@@ -28,7 +28,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-#[pyclass(name = "DateTime", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "DateTime", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTime(pub(crate) DateTime);
 
@@ -328,8 +328,8 @@ impl RyDateTime {
     fn replace(
         &self,
         obj: Option<Bound<'_, PyAny>>,
-        date: Option<RyDate>,
-        time: Option<RyTime>,
+        date: Option<&RyDate>,
+        time: Option<&RyTime>,
         year: Option<i16>,
         era_year: Option<(i16, JiffEra)>,
         month: Option<i8>,
@@ -348,14 +348,11 @@ impl RyDateTime {
         let mut builder = self.0.with();
         if let Some(obj) = obj {
             // if obj is a Zoned, use it as the base
-            if let Ok(zoned) = obj.cast::<RyDate>() {
-                // if obj is a Zoned, use it as the base
-                let date = zoned.extract::<RyDate>()?;
-                builder = builder.date(date.0);
-            } else if let Ok(time) = obj.cast::<RyTime>() {
+            if let Ok(d) = obj.cast_exact::<RyDate>() {
+                builder = builder.date(d.get().0);
+            } else if let Ok(time) = obj.cast_exact::<RyTime>() {
                 // if obj is a Time, use it as the base
-                let time = time.extract::<RyTime>()?;
-                builder = builder.time(time.0);
+                builder = builder.time(time.get().0);
             } else {
                 return Err(py_type_error!("obj must be a Date or Time; given: {obj}"));
             }

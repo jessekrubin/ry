@@ -29,7 +29,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, PartialEq)]
-#[pyclass(name = "ZonedDateTime", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "ZonedDateTime", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZoned(pub(crate) Zoned);
 

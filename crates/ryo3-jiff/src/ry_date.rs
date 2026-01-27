@@ -26,7 +26,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-#[pyclass(name = "Date", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "Date", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDate(pub(crate) Date);
 
@@ -99,7 +99,7 @@ impl RyDate {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_zoned(&self, tz: RyTimeZone) -> PyResult<RyZoned> {
+    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
         self.0
             .to_zoned(tz.into())
             .map(RyZoned::from)

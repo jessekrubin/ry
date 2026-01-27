@@ -20,6 +20,34 @@ pub(crate) struct Spanish<'py> {
     inner: RySpanishObject<'py>,
 }
 
+pub(crate) enum Spanish2<'a, 'py> {
+    Duration(Borrowed<'a, 'py, PyDuration>),
+    SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
+    Span(Borrowed<'a, 'py, RySpan>),
+    PyTimeDelta(SignedDuration),
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for Spanish2<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(span) = ob.cast_exact::<RySpan>() {
+            Ok(Self::Span(span))
+        } else if let Ok(duration) = ob.cast::<PyDuration>() {
+            Ok(Self::Duration(duration))
+        } else if let Ok(signed_duration) = ob.cast::<RySignedDuration>() {
+            Ok(Self::SignedDuration(signed_duration))
+        } else if let Ok(signed_duration) = ob.cast::<PyDelta>() {
+            let signed_duration = signed_duration.extract::<SignedDuration>()?;
+            Ok(Self::PyTimeDelta(signed_duration))
+        } else {
+            py_type_err!(
+                "Expected a Timespan, Duration, SignedDuration, or datetime.timedelta object"
+            )
+        }
+    }
+}
+
 impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
     type Error = PyErr;
 
