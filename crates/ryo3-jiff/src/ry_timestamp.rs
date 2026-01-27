@@ -5,7 +5,7 @@ use crate::ry_span::RySpan;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyTimestampSeries;
-use crate::spanish::Spanish;
+use crate::spanish::{Spanish, Spanish2};
 use crate::{JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RyTime};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
@@ -172,21 +172,20 @@ impl RyTimestamp {
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)
         } else {
-            let spanish = Spanish::try_from(other)?;
+            let spanish = other.extract::<Spanish2>()?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
             Self::from(z).into_bound_py_any(py)
         }
     }
 
-    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __add__<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.0
-            .checked_add(spanish)
+            .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -403,16 +402,12 @@ impl RyTimestamp {
         options.round(self)
     }
 
-    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        let t = self.0.saturating_add(spanish).map_err(map_py_value_err)?;
-        Ok(Self::from(t))
+    fn saturating_add(&self, other: Spanish2) -> PyResult<Self> {
+        self.0.saturating_add(other).map(Self::from).map_err(map_py_value_err)
     }
 
-    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        let t = self.0.saturating_sub(spanish).map_err(map_py_value_err)?;
-        Ok(Self::from(t))
+    fn saturating_sub(&self, other: Spanish2) -> PyResult<Self> {
+        self.0.saturating_sub(other).map(Self::from).map_err(map_py_value_err)
     }
 
     #[staticmethod]

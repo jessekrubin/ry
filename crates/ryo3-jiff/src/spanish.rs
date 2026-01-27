@@ -132,24 +132,70 @@ impl From<Spanish<'_>> for DateTimeArithmetic {
     }
 }
 
-impl From<Spanish<'_>> for TimeArithmetic {
-    fn from(val: Spanish<'_>) -> Self {
-        match val.inner {
-            RySpanishObject::Span(span) => Self::from(span.get().0),
-            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
-            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
-            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+// ==
+
+impl From<Spanish2<'_, '_>> for DateArithmetic {
+    fn from(value: Spanish2<'_, '_>) -> Self {
+        match value {
+            Spanish2::Span(span) => Self::from(span.get().0),
+            Spanish2::Duration(duration) => Self::from(duration.get().0),
+            Spanish2::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            Spanish2::PyTimeDelta(signed_duration) => Self::from(signed_duration),
         }
     }
 }
 
-impl From<Spanish<'_>> for OffsetArithmetic {
-    fn from(val: Spanish<'_>) -> Self {
-        match val.inner {
-            RySpanishObject::Span(span) => Self::from(span.get().0),
-            RySpanishObject::Duration(duration) => Self::from(duration.get().0),
-            RySpanishObject::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
-            RySpanishObject::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+impl From<Spanish2<'_, '_>> for DateTimeArithmetic {
+    fn from(value: Spanish2<'_, '_>) -> Self {
+        match value {
+            Spanish2::Span(span) => Self::from(span.get().0),
+            Spanish2::Duration(duration) => Self::from(duration.get().0),
+            Spanish2::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            Spanish2::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+        }
+    }
+}
+
+impl From<Spanish2<'_, '_>> for OffsetArithmetic {
+    fn from(value: Spanish2<'_, '_>) -> Self {
+        match value {
+            Spanish2::Span(span) => Self::from(span.get().0),
+            Spanish2::Duration(duration) => Self::from(duration.get().0),
+            Spanish2::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            Spanish2::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+        }
+    }
+}
+
+impl From<Spanish2<'_, '_>> for TimeArithmetic {
+    fn from(value: Spanish2<'_, '_>) -> Self {
+        match value {
+            Spanish2::Span(span) => Self::from(span.get().0),
+            Spanish2::Duration(duration) => Self::from(duration.get().0),
+            Spanish2::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            Spanish2::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+        }
+    }
+}
+
+impl From<Spanish2<'_, '_>> for TimestampArithmetic {
+    fn from(value: Spanish2<'_, '_>) -> Self {
+        match value {
+            Spanish2::Span(span) => Self::from(span.get().0),
+            Spanish2::Duration(duration) => Self::from(duration.get().0),
+            Spanish2::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            Spanish2::PyTimeDelta(signed_duration) => Self::from(signed_duration),
+        }
+    }
+}
+
+impl From<Spanish2<'_, '_>> for ZonedArithmetic {
+    fn from(value: Spanish2<'_, '_>) -> Self {
+        match value {
+            Spanish2::Span(span) => Self::from(span.get().0),
+            Spanish2::Duration(duration) => Self::from(duration.get().0),
+            Spanish2::SignedDuration(signed_duration) => Self::from(signed_duration.get().0),
+            Spanish2::PyTimeDelta(signed_duration) => Self::from(signed_duration),
         }
     }
 }

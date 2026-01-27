@@ -4,9 +4,9 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::spanish::Spanish;
+use crate::spanish::{Spanish2};
 use crate::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
-use jiff::SignedDuration;
+use jiff::{SignedDuration, Span};
 use jiff::tz::{Offset, OffsetRound};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
@@ -259,27 +259,25 @@ impl RyOffset {
         }
     }
 
-    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __add__<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.0
-            .checked_add(spanish)
+            .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn __sub__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __sub__<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.0
-            .checked_sub(spanish)
+            .checked_sub(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.__add__(other)
     }
 
-    fn sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn sub<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.__sub__(other)
     }
 
@@ -287,14 +285,12 @@ impl RyOffset {
         RyTimeZone::from(self.0.to_time_zone())
     }
 
-    fn saturating_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(self.0.saturating_add(spanish).into())
+    fn saturating_add<'py>(&self, other: Spanish2) -> PyResult<Self> {
+        Ok(self.0.saturating_add(other).into())
     }
 
-    fn saturating_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(self.0.saturating_sub(spanish).into())
+    fn saturating_sub<'py>(&self, other: Spanish2) -> PyResult<Self> {
+        Ok(self.0.saturating_sub(other).into())
     }
 
     #[staticmethod]

@@ -6,7 +6,7 @@ use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateTimeSeries;
-use crate::spanish::Spanish;
+use crate::spanish::{Spanish, Spanish2};
 use crate::{
     JiffDateTime, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate,
     RyDateTimeRound, RyTimestamp,
@@ -173,10 +173,9 @@ impl RyDateTime {
         hasher.finish()
     }
 
-    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __add__<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.0
-            .checked_add(spanish)
+            .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
@@ -191,13 +190,13 @@ impl RyDateTime {
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)
         } else {
-            let spanish = Spanish::try_from(other)?;
+            let spanish = other.extract::<Spanish2>()?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
             Self::from(z).into_bound_py_any(py)
         }
     }
 
-    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add<'py>(&self, other: Spanish2) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -205,14 +204,12 @@ impl RyDateTime {
         self.__sub__(py, other)
     }
 
-    fn saturating_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.saturating_add(spanish)))
+    fn saturating_add<'py>(&self, other: Spanish2) -> PyResult<Self> {
+        Ok(Self::from(self.0.saturating_add(other)))
     }
 
-    fn saturating_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.saturating_sub(spanish)))
+    fn saturating_sub<'py>(&self, other: Spanish2) -> PyResult<Self> {
+        Ok(Self::from(self.0.saturating_sub(other)))
     }
 
     fn time(&self) -> RyTime {
