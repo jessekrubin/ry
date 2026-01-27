@@ -29,7 +29,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, PartialEq)]
-#[pyclass(name = "ZonedDateTime", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "ZonedDateTime", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZoned(pub(crate) Zoned);
 
@@ -281,21 +281,21 @@ impl RyZoned {
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)
         } else {
-            let spanish = Spanish::try_from(other)?;
+            let spanish = other.extract::<Spanish>()?;
+            // Spanish2::try_from(other)?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
             Self::from(z).into_bound_py_any(py)
         }
     }
 
-    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
-            .checked_add(spanish)
+            .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add(&self, other: Spanish) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -303,14 +303,12 @@ impl RyZoned {
         self.__sub__(py, other)
     }
 
-    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.saturating_add(spanish)))
+    fn saturating_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_add(other))
     }
 
-    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.saturating_sub(spanish)))
+    fn saturating_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_sub(other))
     }
 
     #[pyo3(

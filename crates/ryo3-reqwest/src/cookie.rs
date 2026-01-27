@@ -42,7 +42,7 @@ impl PyCookie {
         domain: Option<String>,
         expires: Option<i64>,
         http_only: Option<bool>,
-        max_age: Option<PyDuration>,
+        max_age: Option<&PyDuration>,
         partitioned: Option<bool>,
         path: Option<String>,
         permanent: bool,

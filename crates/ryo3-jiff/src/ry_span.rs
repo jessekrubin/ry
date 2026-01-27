@@ -1,6 +1,7 @@
 use crate::constants::SPAN_PARSER;
 use crate::py_temporal_like::PyTermporalTypes;
 use crate::ry_signed_duration::RySignedDuration;
+use crate::spanish::Spanish;
 use crate::{
     JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, timespan,
 };
@@ -10,14 +11,13 @@ use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
-use ryo3_std::time::PyDuration;
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeSpan", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "TimeSpan", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySpan(pub(crate) Span);
 
@@ -840,32 +840,9 @@ impl<'a, 'py> From<&'a RySpanRelativeTo<'a, 'py>> for jiff::SpanRelativeTo<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum SpanLike<'a, 'py> {
-    Duration(Borrowed<'a, 'py, PyDuration>),
-    SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
-    Span(Borrowed<'a, 'py, RySpan>),
-}
-
-impl<'a, 'py> FromPyObject<'a, 'py> for SpanLike<'a, 'py> {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(span) = obj.cast_exact::<RySpan>() {
-            Ok(Self::Span(span))
-        } else if let Ok(sdur) = obj.cast_exact::<RySignedDuration>() {
-            Ok(Self::SignedDuration(sdur))
-        } else if let Ok(dur) = obj.cast_exact::<PyDuration>() {
-            Ok(Self::Duration(dur))
-        } else {
-            py_type_err!("Expected TimeSpan, SignedDuration or Duration")
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
 pub(crate) enum IntoSpanArithmetic<'a, 'py> {
-    Uno(SpanLike<'a, 'py>),
-    Dos((SpanLike<'a, 'py>, RySpanRelativeTo<'a, 'py>)),
+    Uno(Spanish<'a, 'py>),
+    Dos((Spanish<'a, 'py>, RySpanRelativeTo<'a, 'py>)),
 }
 
 impl<'a, 'py> FromPyObject<'a, 'py> for IntoSpanArithmetic<'a, 'py> {
@@ -874,16 +851,16 @@ impl<'a, 'py> FromPyObject<'a, 'py> for IntoSpanArithmetic<'a, 'py> {
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(tup) = obj.cast_exact::<PyTuple>() {
             if tup.len() == 2 {
-                let both = tup.extract::<(SpanLike<'a, 'py>, RySpanRelativeTo<'a, 'py>)>()?;
+                let both = tup.extract::<(Spanish<'a, 'py>, RySpanRelativeTo<'a, 'py>)>()?;
                 Ok(IntoSpanArithmetic::Dos(both))
             } else {
                 py_type_err!("Expected a tuple of length 2 for Span arithmetic with relative")
             }
-        } else if let Ok(fromthing) = obj.extract::<SpanLike<'a, 'py>>() {
-            Ok(IntoSpanArithmetic::Uno(fromthing))
+        } else if let Ok(spanish) = obj.extract::<Spanish<'a, 'py>>() {
+            Ok(IntoSpanArithmetic::Uno(spanish))
         } else {
             py_type_err!(
-                "Expected TimeSpan, SignedDuration, datetime.timedelta, or a tuple of length 2 for Span arithmetic with relative",
+                "Expected TimeSpan, SignedDuration, Duration, datetime.timedelta, or a tuple of length 2 for Span arithmetic with relative",
             )
         }
     }
@@ -897,33 +874,41 @@ impl<'a, 'py> From<&'a IntoSpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
         // SO this is A BIT LESS of a clusterfuck but still pretty cluster-fucky
         match value {
             IntoSpanArithmetic::Uno(s) => match s {
-                SpanLike::Span(sp) => SpanArithmetic::from(sp.get().0).days_are_24_hours(),
-                SpanLike::Duration(dur) => SpanArithmetic::from(dur.get().0).days_are_24_hours(),
-                SpanLike::SignedDuration(dur) => {
+                Spanish::Span(sp) => SpanArithmetic::from(sp.get().0).days_are_24_hours(),
+                Spanish::Duration(dur) => SpanArithmetic::from(dur.get().0).days_are_24_hours(),
+                Spanish::SignedDuration(dur) => {
                     SpanArithmetic::from(dur.get().0).days_are_24_hours()
                 }
+                // delta
+                Spanish::PyTimeDelta(sd) => SpanArithmetic::from(*sd).days_are_24_hours(),
             },
             IntoSpanArithmetic::Dos((s, r)) => match s {
-                SpanLike::Span(sp) => match r {
+                Spanish::Span(sp) => match r {
                     RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((sp.get().0, &z.get().0)),
                     RySpanRelativeTo::Date(d) => SpanArithmetic::from((sp.get().0, d.get().0)),
                     RySpanRelativeTo::DateTime(dt) => {
                         SpanArithmetic::from((sp.get().0, dt.get().0))
                     }
                 },
-                SpanLike::Duration(dur) => match r {
+                Spanish::Duration(dur) => match r {
                     RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((dur.get().0, &z.get().0)),
                     RySpanRelativeTo::Date(d) => SpanArithmetic::from((dur.get().0, d.get().0)),
                     RySpanRelativeTo::DateTime(dt) => {
                         SpanArithmetic::from((dur.get().0, dt.get().0))
                     }
                 },
-                SpanLike::SignedDuration(dur) => match r {
+                Spanish::SignedDuration(dur) => match r {
                     RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((dur.get().0, &z.get().0)),
                     RySpanRelativeTo::Date(d) => SpanArithmetic::from((dur.get().0, d.get().0)),
                     RySpanRelativeTo::DateTime(dt) => {
                         SpanArithmetic::from((dur.get().0, dt.get().0))
                     }
+                },
+                // delta
+                Spanish::PyTimeDelta(sd) => match r {
+                    RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((*sd, &z.get().0)),
+                    RySpanRelativeTo::Date(d) => SpanArithmetic::from((*sd, d.get().0)),
+                    RySpanRelativeTo::DateTime(dt) => SpanArithmetic::from((*sd, dt.get().0)),
                 },
             },
         }

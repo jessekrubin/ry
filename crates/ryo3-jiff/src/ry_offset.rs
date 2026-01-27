@@ -19,7 +19,7 @@ use ryo3_macro_rules::{any_repr, py_type_err};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::vec;
 
-#[pyclass(name = "Offset", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "Offset", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);
@@ -259,27 +259,25 @@ impl RyOffset {
         }
     }
 
-    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
-            .checked_add(spanish)
+            .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn __sub__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __sub__(&self, other: Spanish) -> PyResult<Self> {
         self.0
-            .checked_sub(spanish)
+            .checked_sub(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add(&self, other: Spanish) -> PyResult<Self> {
         self.__add__(other)
     }
 
-    fn sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn sub(&self, other: Spanish) -> PyResult<Self> {
         self.__sub__(other)
     }
 
@@ -287,14 +285,12 @@ impl RyOffset {
         RyTimeZone::from(self.0.to_time_zone())
     }
 
-    fn saturating_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(self.0.saturating_add(spanish).into())
+    fn saturating_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_add(other))
     }
 
-    fn saturating_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(self.0.saturating_sub(spanish).into())
+    fn saturating_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_sub(other))
     }
 
     #[staticmethod]

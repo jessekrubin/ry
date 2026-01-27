@@ -21,7 +21,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-#[pyclass(name = "Timestamp", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "Timestamp", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestamp(pub(crate) Timestamp);
 
@@ -172,21 +172,20 @@ impl RyTimestamp {
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)
         } else {
-            let spanish = Spanish::try_from(other)?;
+            let spanish = other.extract::<Spanish>()?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
             Self::from(z).into_bound_py_any(py)
         }
     }
 
-    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
-            .checked_add(spanish)
+            .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
+    fn add(&self, other: Spanish) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -403,16 +402,18 @@ impl RyTimestamp {
         options.round(self)
     }
 
-    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        let t = self.0.saturating_add(spanish).map_err(map_py_value_err)?;
-        Ok(Self::from(t))
+    fn saturating_add(&self, other: Spanish) -> PyResult<Self> {
+        self.0
+            .saturating_add(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
-    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        let t = self.0.saturating_sub(spanish).map_err(map_py_value_err)?;
-        Ok(Self::from(t))
+    fn saturating_sub(&self, other: Spanish) -> PyResult<Self> {
+        self.0
+            .saturating_sub(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]

@@ -23,7 +23,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[pyclass(name = "Time", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "Time", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTime(pub(crate) Time);
 
@@ -152,21 +152,20 @@ impl RyTime {
             let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
             Ok(obj)
         } else {
-            let spanish = Spanish::try_from(other)?;
+            let spanish = other.extract::<Spanish>()?;
             let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
             Self::from(z).into_bound_py_any(py)
         }
     }
 
-    fn __add__<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
+    fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
-            .checked_add(spanish)
+            .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
     }
 
-    fn add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn add(&self, other: Spanish) -> PyResult<Self> {
         self.__add__(other)
     }
 
@@ -342,24 +341,20 @@ impl RyTime {
         RySignedDuration::from(self.0.duration_until(other.0))
     }
 
-    fn saturating_add(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.saturating_add(spanish)))
+    fn saturating_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_add(other))
     }
 
-    fn saturating_sub(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.saturating_sub(spanish)))
+    fn saturating_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.saturating_sub(other))
     }
 
-    fn wrapping_add<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.wrapping_add(spanish)))
+    fn wrapping_add(&self, other: Spanish) -> Self {
+        Self::from(self.0.wrapping_add(other))
     }
 
-    fn wrapping_sub<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<Self> {
-        let spanish = Spanish::try_from(other)?;
-        Ok(Self::from(self.0.wrapping_sub(spanish)))
+    fn wrapping_sub(&self, other: Spanish) -> Self {
+        Self::from(self.0.wrapping_sub(other))
     }
 
     #[expect(clippy::wrong_self_convention)]

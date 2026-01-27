@@ -42,7 +42,7 @@ const MINS_PER_HOUR: i64 = 60;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[pyclass(name = "SignedDuration", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "SignedDuration", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
