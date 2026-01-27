@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-
 use crate::proxy::PyProxies;
 use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
 use crate::tls_version::TlsVersion;
@@ -161,6 +160,7 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
         let mut cfg = Self::default();
 
         for (k, v) in dict.iter() {
+            // TODO: move the fast_pystr_read from ryo3-serde to `ryo3-core` and use that here
             let key_str = k.extract::<&str>()?;
             match key_str {
                 "headers" => {
