@@ -16,63 +16,63 @@ use ryo3_std::time::PyDuration;
 #[derive(Debug, Clone, PartialEq)]
 #[expect(clippy::struct_excessive_bools)]
 pub struct ClientConfig {
-    pub(crate) headers: Option<PyHeaders>,
-    pub(crate) cookies: bool,
-    pub(crate) user_agent: Option<ryo3_http::HttpHeaderValue>,
-    pub(crate) hickory_dns: bool,
-    pub(crate) redirect: Option<usize>,
-    pub(crate) resolve: Option<PyResolveMap>,
-    pub(crate) connection_verbose: bool,
+    headers: Option<PyHeaders>,
+    cookies: bool,
+    user_agent: Option<ryo3_http::HttpHeaderValue>,
+    hickory_dns: bool,
+    redirect: Option<usize>,
+    resolve: Option<PyResolveMap>,
+    connection_verbose: bool,
     // misspelled of course :/
-    pub(crate) referer: bool,
+    referer: bool,
     // -- http preferences --
-    pub(crate) http1_only: bool,
-    pub(crate) https_only: bool,
+    http1_only: bool,
+    https_only: bool,
     // -- http1 --
-    pub(crate) http1_title_case_headers: bool,
-    pub(crate) http1_allow_obsolete_multiline_headers_in_responses: bool,
-    pub(crate) http1_allow_spaces_after_header_name_in_responses: bool,
-    pub(crate) http1_ignore_invalid_headers_in_responses: bool,
+    http1_title_case_headers: bool,
+    http1_allow_obsolete_multiline_headers_in_responses: bool,
+    http1_allow_spaces_after_header_name_in_responses: bool,
+    http1_ignore_invalid_headers_in_responses: bool,
     // -- http2 --
-    pub(crate) http2_prior_knowledge: bool,
-    pub(crate) http2_initial_stream_window_size: Option<u32>,
-    pub(crate) http2_initial_connection_window_size: Option<u32>,
-    pub(crate) http2_adaptive_window: bool,
-    pub(crate) http2_max_frame_size: Option<u32>,
-    pub(crate) http2_max_header_list_size: Option<u32>,
-    pub(crate) http2_keep_alive_interval: Option<PyDuration>,
-    pub(crate) http2_keep_alive_timeout: Option<PyDuration>,
-    pub(crate) http2_keep_alive_while_idle: bool,
+    http2_prior_knowledge: bool,
+    http2_initial_stream_window_size: Option<u32>,
+    http2_initial_connection_window_size: Option<u32>,
+    http2_adaptive_window: bool,
+    http2_max_frame_size: Option<u32>,
+    http2_max_header_list_size: Option<u32>,
+    http2_keep_alive_interval: Option<PyDuration>,
+    http2_keep_alive_timeout: Option<PyDuration>,
+    http2_keep_alive_while_idle: bool,
     // -- timeout(s) --
-    pub(crate) timeout: Option<PyDuration>,
-    pub(crate) read_timeout: Option<PyDuration>,
-    pub(crate) connect_timeout: Option<PyDuration>,
+    timeout: Option<PyDuration>,
+    read_timeout: Option<PyDuration>,
+    connect_timeout: Option<PyDuration>,
     // -- compression --
-    pub(crate) gzip: bool,
-    pub(crate) brotli: bool,
-    pub(crate) deflate: bool,
-    pub(crate) zstd: bool,
+    gzip: bool,
+    brotli: bool,
+    deflate: bool,
+    zstd: bool,
     // -- pool --
-    pub(crate) pool_max_idle_per_host: usize,
-    pub(crate) pool_idle_timeout: Option<PyDuration>,
+    pool_max_idle_per_host: usize,
+    pool_idle_timeout: Option<PyDuration>,
     // -- tcp --
-    pub(crate) tcp_keepalive: Option<PyDuration>, // default: 15 seconds
-    pub(crate) tcp_keepalive_interval: Option<PyDuration>, // default: 15 seconds
-    pub(crate) tcp_keepalive_retries: Option<u32>, // default: 3
-    pub(crate) tcp_nodelay: bool,                 // default: true
+    tcp_keepalive: Option<PyDuration>, // default: 15 seconds
+    tcp_keepalive_interval: Option<PyDuration>, // default: 15 seconds
+    tcp_keepalive_retries: Option<u32>, // default: 3
+    tcp_nodelay: bool,                 // default: true
     // -- tls --
-    pub(crate) identity: Option<PyIdentity>,
-    pub(crate) tls_certs_merge: Option<Vec<PyCertificate>>,
-    pub(crate) tls_certs_only: Option<Vec<PyCertificate>>,
-    pub(crate) tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
-    pub(crate) tls_info: bool, // default: false
-    pub(crate) tls_sni: bool,  // default: true
-    pub(crate) tls_version_max: Option<TlsVersion>,
-    pub(crate) tls_version_min: Option<TlsVersion>,
+    identity: Option<PyIdentity>,
+    tls_certs_merge: Option<Vec<PyCertificate>>,
+    tls_certs_only: Option<Vec<PyCertificate>>,
+    tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
+    tls_info: bool, // default: false
+    tls_sni: bool,  // default: true
+    tls_version_max: Option<TlsVersion>,
+    tls_version_min: Option<TlsVersion>,
     // -- tls danger zone --
-    pub(crate) tls_danger_accept_invalid_certs: bool,
-    pub(crate) tls_danger_accept_invalid_hostnames: bool,
-    pub(crate) proxy: Option<PyProxies>,
+    tls_danger_accept_invalid_certs: bool,
+    tls_danger_accept_invalid_hostnames: bool,
+    proxy: Option<PyProxies>,
     // == CLIENT BUILDER OPTIONS TODO ==
     // connector_layer
     // cookie_provider
@@ -85,7 +85,7 @@ pub struct ClientConfig {
 
     // -- UNSTABLE ~ RY ONLY) -
     /// (unstable) use cached native system certs
-    pub(crate) _tls_cached_native_certs: bool,
+    _tls_cached_native_certs: bool,
 }
 
 impl Default for ClientConfig {
