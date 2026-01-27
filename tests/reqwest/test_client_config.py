@@ -25,6 +25,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "deflate": True,
     "zstd": True,
     "hickory_dns": True,
+    "connection_verbose": False,
     "proxy": None,
     "http1_only": False,
     "https_only": False,
@@ -97,6 +98,15 @@ def test_client_config_pickle(
     unpickled = pickle.loads(pickled)
     assert isinstance(unpickled, client_cls)
     assert unpickled.config() == client.config()
+
+
+def test_user_agent_bool_options(
+    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+) -> None:
+    default_ua = client_cls().config()["user_agent"]
+    assert client_cls(user_agent=None).config()["user_agent"] == default_ua
+    assert client_cls(user_agent=True).config()["user_agent"] == default_ua
+    assert client_cls(user_agent=False).config()["user_agent"] is None
 
 
 class TestTlsVersions:

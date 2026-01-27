@@ -12,7 +12,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_http::{HttpVersion, PyHeaders, PyHttpStatus, status_code_pystring};
+use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};
 #[cfg(feature = "experimental-async")]
 use ryo3_macro_rules::py_runtime_error;
 use ryo3_macro_rules::pytodo;
@@ -155,13 +155,13 @@ impl RyResponse {
     }
 
     #[getter]
-    fn version(&self) -> HttpVersion {
-        HttpVersion(self.head.version)
+    fn version(&self) -> PyHttpVersion {
+        PyHttpVersion::from(self.head.version)
     }
 
     #[getter]
-    fn http_version(&self) -> HttpVersion {
-        HttpVersion(self.head.version)
+    fn http_version(&self) -> PyHttpVersion {
+        PyHttpVersion::from(self.head.version)
     }
 
     #[getter]
@@ -340,13 +340,13 @@ impl RyAsyncResponse {
     }
 
     #[getter]
-    fn version(&self) -> HttpVersion {
-        HttpVersion(self.head.version)
+    fn version(&self) -> PyHttpVersion {
+        PyHttpVersion::from(self.head.version)
     }
 
     #[getter]
-    fn http_version(&self) -> HttpVersion {
-        HttpVersion(self.head.version)
+    fn http_version(&self) -> PyHttpVersion {
+        PyHttpVersion::from(self.head.version)
     }
 
     #[getter]
@@ -554,13 +554,13 @@ impl RyBlockingResponse {
     }
 
     #[getter]
-    fn version(&self) -> HttpVersion {
-        HttpVersion(self.head.version)
+    fn version(&self) -> PyHttpVersion {
+        PyHttpVersion::from(self.head.version)
     }
 
     #[getter]
-    fn http_version(&self) -> HttpVersion {
-        HttpVersion(self.head.version)
+    fn http_version(&self) -> PyHttpVersion {
+        PyHttpVersion::from(self.head.version)
     }
 
     #[getter]

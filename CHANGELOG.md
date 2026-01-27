@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## v0.0.82 [unreleased]
+
+- `ryo3-http`
+  - renamed several http types to have `Py` prefix to avoid confusion with
+    `http` crate types and be clear that they are wrapper types for
+    extracting/into-ing w/ `pyo3`:
+    - `HttpMethod` -> `PyHttpMethod`
+    - `HttpVersion` -> `PyHttpVersion`
+    - `HttpHeaderName` -> `PyHttpHeaderName`
+    - `HttpHeaderNameRef` -> `PyHttpHeaderNameRef`
+    - `HttpHeaderValue` -> `PyHttpHeaderValue`
+    - `HttpHeaderMap` -> `PyHttpHeaderMap`
+- `ryo3-reqwest`
+  - `connection_verbose` kwarg for `ry.HttpClient`, `ry.Client` and
+    `ry.BlockingClient` for debugging
+  - internal refactoring of client kwargs extraction
+
+---
+
 ## v0.0.81 [2026-01-23]
 
 - `ryo3-jiter`

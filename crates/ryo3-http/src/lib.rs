@@ -12,8 +12,8 @@ mod http_serde;
 pub use headers::PyHeaders;
 pub use headers_like::PyHeadersLike;
 pub use http_types::{
-    HttpHeaderMap, HttpHeaderName, HttpHeaderNameRef, HttpHeaderValue, HttpMethod, HttpStatusCode,
-    HttpVersion,
+    PyHttpHeaderMap, PyHttpHeaderName, PyHttpHeaderNameRef, PyHttpHeaderValue, PyHttpMethod,
+    PyHttpVersion,
 };
 pub use py_http_status::{PyHttpStatus, status_code_pystring};
 

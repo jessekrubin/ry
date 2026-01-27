@@ -1,4 +1,4 @@
-use crate::{HttpHeaderMap, PyHeaders};
+use crate::{PyHeaders, PyHttpHeaderMap};
 use http::HeaderMap;
 use pyo3::prelude::*;
 use ryo3_core::{py_type_err, py_value_error};
@@ -12,11 +12,11 @@ pub(crate) enum StringOrStrings {
 #[derive(Debug, Clone, FromPyObject)]
 pub enum PyHeadersLike {
     Headers(PyHeaders),
-    Map(HttpHeaderMap),
+    Map(PyHttpHeaderMap),
 }
 
 // TODO: move this to conversions module
-impl<'py> FromPyObject<'_, 'py> for HttpHeaderMap {
+impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderMap {
     type Error = PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(d) = ob.cast_exact::<pyo3::types::PyDict>() {
@@ -50,7 +50,6 @@ impl<'py> FromPyObject<'_, 'py> for HttpHeaderMap {
 }
 
 impl From<PyHeadersLike> for HeaderMap {
-    // type Error = PyErr;
     fn from(h: PyHeadersLike) -> Self {
         match h {
             PyHeadersLike::Headers(h) => h.read().clone(),

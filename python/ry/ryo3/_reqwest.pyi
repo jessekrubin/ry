@@ -34,12 +34,15 @@ class RequestKwargs(t.TypedDict, total=False):
 class ClientConfig(t.TypedDict):
     headers: Headers | None  # default: None
     cookies: bool
-    user_agent: str | None  # default: "ry/{ry.__version__}"
+    user_agent: (
+        str | bool | None
+    )  # None/True => default ("ry/{ry.__version__}"), False => disabled
     redirect: int | None
     resolve: _ResolveMapLike | None  # default: None
     referer: bool
     proxy: list[Proxy] | Proxy | None  # default: None
     hickory_dns: bool
+    connection_verbose: bool  # default: False
     # ____ TIMEOUT ____
     timeout: Duration | None  # default: None
     connect_timeout: Duration | None  # default: None
@@ -95,13 +98,14 @@ class HttpClient:
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
-        user_agent: str | None = None,
+        user_agent: str | bool | None = None,
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
         resolve: _ResolveMapLike | None = None,
         referer: bool = True,
+        connection_verbose: bool = False,
         gzip: bool = True,
         brotli: bool = True,
         deflate: bool = True,
@@ -128,6 +132,7 @@ class HttpClient:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
+        identity: Identity | None = None,
         tls_certs_only: list[Certificate] | None = None,
         tls_certs_merge: list[Certificate] | None = None,
         tls_crls_only: list[CertificateRevocationList] | None = None,
@@ -138,6 +143,7 @@ class HttpClient:
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
+        _tls_cached_native_certs: bool = False,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -205,13 +211,14 @@ class Client:
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
-        user_agent: str | None = None,
+        user_agent: str | bool | None = None,
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
         resolve: _ResolveMapLike | None = None,
         referer: bool = True,
+        connection_verbose: bool = False,
         gzip: bool = True,
         brotli: bool = True,
         deflate: bool = True,
@@ -238,6 +245,7 @@ class Client:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
+        identity: Identity | None = None,
         tls_certs_only: list[Certificate] | None = None,
         tls_certs_merge: list[Certificate] | None = None,
         tls_crls_only: list[CertificateRevocationList] | None = None,
@@ -248,6 +256,7 @@ class Client:
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
+        _tls_cached_native_certs: bool = False,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     async def get(
@@ -312,13 +321,14 @@ class BlockingClient:
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
-        user_agent: str | None = None,
+        user_agent: str | bool | None = None,
         timeout: Duration | None = None,
         connect_timeout: Duration | None = None,
         read_timeout: Duration | None = None,
         redirect: int | None = 10,
         resolve: _ResolveMapLike | None = None,
         referer: bool = True,
+        connection_verbose: bool = False,
         gzip: bool = True,
         brotli: bool = True,
         deflate: bool = True,
@@ -345,6 +355,7 @@ class BlockingClient:
         tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
         tcp_keepalive_retries: int | None = 3,
         tcp_nodelay: bool = True,
+        identity: Identity | None = None,
         tls_certs_only: list[Certificate] | None = None,
         tls_certs_merge: list[Certificate] | None = None,
         tls_crls_only: list[CertificateRevocationList] | None = None,
@@ -355,6 +366,7 @@ class BlockingClient:
         tls_danger_accept_invalid_certs: bool = False,
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
+        _tls_cached_native_certs: bool = False,
     ) -> None: ...
     def config(self) -> ClientConfig: ...
     def get(

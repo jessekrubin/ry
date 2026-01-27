@@ -1,6 +1,6 @@
-use crate::http_types::{HttpHeaderName, HttpHeaderValue, HttpHeaderValueRef};
+use crate::http_types::{PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
-use crate::{HttpHeaderMap, PyHeadersLike};
+use crate::{PyHeadersLike, PyHttpHeaderMap};
 use http::header::HeaderMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
@@ -104,8 +104,8 @@ impl From<HeaderMap> for PyHeaders {
     }
 }
 
-impl From<HttpHeaderMap> for PyHeaders {
-    fn from(hm: HttpHeaderMap) -> Self {
+impl From<PyHttpHeaderMap> for PyHeaders {
+    fn from(hm: PyHttpHeaderMap) -> Self {
         Self::from(HeaderMap::from(hm))
     }
 }
@@ -175,16 +175,16 @@ impl PyHeaders {
         self.contains_key(key)
     }
 
-    fn __getitem__(&self, key: &str) -> Option<HttpHeaderValue> {
-        self.read().get(key).map(HttpHeaderValue::from)
+    fn __getitem__(&self, key: &str) -> Option<PyHttpHeaderValue> {
+        self.read().get(key).map(PyHttpHeaderValue::from)
     }
 
-    fn __setitem__(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<()> {
+    fn __setitem__(&self, key: PyHttpHeaderName, value: PyHttpHeaderValue) -> PyResult<()> {
         self.insert(key, value)?;
         Ok(())
     }
 
-    fn __delitem__(&self, key: HttpHeaderName) {
+    fn __delitem__(&self, key: PyHttpHeaderName) {
         self.remove(key);
     }
 
@@ -223,7 +223,7 @@ impl PyHeaders {
     //     - `values_mut`
     //     - `with_capacity`
 
-    fn append(&self, key: HttpHeaderName, value: HttpHeaderValue) -> PyResult<bool> {
+    fn append(&self, key: PyHttpHeaderName, value: PyHttpHeaderValue) -> PyResult<bool> {
         self.write()
             .try_append(key.0, value.0)
             .map_err(|e| py_runtime_error!("header-append-error: {e}"))
@@ -244,8 +244,8 @@ impl PyHeaders {
         self.read().contains_key(key)
     }
 
-    fn get(&self, key: &str) -> Option<HttpHeaderValue> {
-        self.read().get(key).map(HttpHeaderValue::from)
+    fn get(&self, key: &str) -> Option<PyHttpHeaderValue> {
+        self.read().get(key).map(PyHttpHeaderValue::from)
     }
 
     fn get_all<'py>(&'py self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyAny>> {
@@ -253,20 +253,20 @@ impl PyHeaders {
         self.read()
             .get_all(key)
             .iter()
-            .map(HttpHeaderValueRef::from)
+            .map(PyHttpHeaderValueRef::from)
             .collect::<Vec<_>>()
             .into_pyobject(py)
     }
 
     fn insert(
         &self,
-        key: HttpHeaderName,
-        value: HttpHeaderValue,
-    ) -> PyResult<Option<HttpHeaderValue>> {
+        key: PyHttpHeaderName,
+        value: PyHttpHeaderValue,
+    ) -> PyResult<Option<PyHttpHeaderValue>> {
         self.write()
             .try_insert(key.0, value.0)
             .map_err(|e| py_runtime_error!("header-insert-error: {e}"))
-            .map(|v| v.map(HttpHeaderValue::from))
+            .map(|v| v.map(PyHttpHeaderValue::from))
     }
 
     #[must_use]
@@ -297,11 +297,11 @@ impl PyHeaders {
         self.read().len()
     }
 
-    fn remove(&self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
-        self.write().remove(key.0).map(HttpHeaderValue::from)
+    fn remove(&self, key: PyHttpHeaderName) -> Option<PyHttpHeaderValue> {
+        self.write().remove(key.0).map(PyHttpHeaderValue::from)
     }
 
-    fn pop(&self, key: HttpHeaderName) -> Option<HttpHeaderValue> {
+    fn pop(&self, key: PyHttpHeaderName) -> Option<PyHttpHeaderValue> {
         self.remove(key)
     }
 
@@ -413,7 +413,7 @@ impl PyHeaders {
     fn from_json(data: &str) -> PyResult<Self> {
         use ryo3_core::py_value_error;
 
-        serde_json::from_str::<crate::HttpHeaderMap>(data)
+        serde_json::from_str::<crate::PyHttpHeaderMap>(data)
             .map(|e| Self::from(e.0))
             .map_err(|e| py_value_error!("{e}"))
     }
