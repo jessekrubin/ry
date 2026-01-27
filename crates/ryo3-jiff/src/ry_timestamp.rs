@@ -403,11 +403,17 @@ impl RyTimestamp {
     }
 
     fn saturating_add(&self, other: Spanish2) -> PyResult<Self> {
-        self.0.saturating_add(other).map(Self::from).map_err(map_py_value_err)
+        self.0
+            .saturating_add(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     fn saturating_sub(&self, other: Spanish2) -> PyResult<Self> {
-        self.0.saturating_sub(other).map(Self::from).map_err(map_py_value_err)
+        self.0
+            .saturating_sub(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]

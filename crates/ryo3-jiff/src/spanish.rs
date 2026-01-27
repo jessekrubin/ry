@@ -33,11 +33,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for Spanish2<'a, 'py> {
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(span) = ob.cast_exact::<RySpan>() {
             Ok(Self::Span(span))
-        } else if let Ok(duration) = ob.cast::<PyDuration>() {
+        } else if let Ok(duration) = ob.cast_exact::<PyDuration>() {
             Ok(Self::Duration(duration))
-        } else if let Ok(signed_duration) = ob.cast::<RySignedDuration>() {
+        } else if let Ok(signed_duration) = ob.cast_exact::<RySignedDuration>() {
             Ok(Self::SignedDuration(signed_duration))
-        } else if let Ok(signed_duration) = ob.cast::<PyDelta>() {
+        } else if let Ok(signed_duration) = ob.cast_exact::<PyDelta>() {
             let signed_duration = signed_duration.extract::<SignedDuration>()?;
             Ok(Self::PyTimeDelta(signed_duration))
         } else {
@@ -52,11 +52,11 @@ impl<'py> TryFrom<&'py Bound<'py, PyAny>> for Spanish<'py> {
     type Error = PyErr;
 
     fn try_from(ob: &'py Bound<'py, PyAny>) -> Result<Self, Self::Error> {
-        let inner = if let Ok(span) = ob.cast::<RySpan>() {
+        let inner = if let Ok(span) = ob.cast_exact::<RySpan>() {
             RySpanishObject::Span(span)
-        } else if let Ok(duration) = ob.cast::<PyDuration>() {
+        } else if let Ok(duration) = ob.cast_exact::<PyDuration>() {
             RySpanishObject::Duration(duration)
-        } else if let Ok(signed_duration) = ob.cast::<RySignedDuration>() {
+        } else if let Ok(signed_duration) = ob.cast_exact::<RySignedDuration>() {
             RySpanishObject::SignedDuration(signed_duration)
         } else if let Ok(signed_duration) = ob.cast::<PyDelta>() {
             let signed_duration = signed_duration.extract::<SignedDuration>()?;
