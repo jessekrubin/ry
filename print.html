@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b3ae36df.js";
+            window.path_to_searchindex_js = "searchindex-a7be455e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1ed5fffe.js"></script>
@@ -178,7 +178,7 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <p><strong>updated:</strong> <code>2026-01-26T11:30:28.581159965-08:00[America/Los_Angeles]</code></p>
+                        <p><strong>updated:</strong> <code>2026-01-27T11:25:04.976650909-08:00[America/Los_Angeles]</code></p>
 <hr>
 <h1 id="readme"><a class="header" href="#readme">README</a></h1>
 <h1 id="ry"><a class="header" href="#ry">ry</a></h1>
@@ -501,6 +501,33 @@ It serves as a good example of how to use <code>ry</code>’s HTTP client, JSON 
 dumping, and async file I/O tools.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="changelog"><a class="header" href="#changelog">CHANGELOG</a></h1>
+<h2 id="v0082-unreleased"><a class="header" href="#v0082-unreleased">v0.0.82 [unreleased]</a></h2>
+<ul>
+<li><code>ryo3-http</code>
+<ul>
+<li>renamed several http types to have <code>Py</code> prefix to avoid confusion with
+<code>http</code> crate types and be clear that they are wrapper types for
+extracting/into-ing w/ <code>pyo3</code>:
+<ul>
+<li><code>HttpMethod</code> -&gt; <code>PyHttpMethod</code></li>
+<li><code>HttpVersion</code> -&gt; <code>PyHttpVersion</code></li>
+<li><code>HttpHeaderName</code> -&gt; <code>PyHttpHeaderName</code></li>
+<li><code>HttpHeaderNameRef</code> -&gt; <code>PyHttpHeaderNameRef</code></li>
+<li><code>HttpHeaderValue</code> -&gt; <code>PyHttpHeaderValue</code></li>
+<li><code>HttpHeaderMap</code> -&gt; <code>PyHttpHeaderMap</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>ryo3-reqwest</code>
+<ul>
+<li><code>connection_verbose</code> kwarg for <code>ry.HttpClient</code>, <code>ry.Client</code> and
+<code>ry.BlockingClient</code> for debugging</li>
+<li>internal refactoring of client kwargs extraction</li>
+</ul>
+</li>
+</ul>
+<hr>
 <h2 id="v0081-2026-01-23"><a class="header" href="#v0081-2026-01-23">v0.0.81 [2026-01-23]</a></h2>
 <ul>
 <li><code>ryo3-jiter</code>
