@@ -2,6 +2,9 @@
 
 ## v0.0.83 [unreleased]
 
+- `ryo3-jiff`
+  - more timestamp testing
+
 ---
 
 ## v0.0.82 [2026-01-27]
