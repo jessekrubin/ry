@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.83 [unreleased]
+
+---
+
 ## v0.0.82 [2026-01-27]
 
 - `ryo3-http`
