@@ -43,6 +43,7 @@ def test_span_addition_commutative(
     val, span = val_spanish
 
     assert val + span == span + val
+    assert val.add(span) == span + val
 
 
 def test_time_sub() -> None:
@@ -172,6 +173,8 @@ def test_timestamp_sub() -> None:
         second=1609459201,
     )
     span = t1 - t2
+    span_via_sub = t1.sub(t2)
+    assert span == span_via_sub
     assert str(span) == "-PT1S"
     assert isinstance(span, ry.TimeSpan)
 
@@ -197,6 +200,7 @@ def test_timestamp_add() -> None:
         second=1609459201,
     )
     span = t2 - t1
+
     assert str(span) == "PT1S"
     assert isinstance(span, ry.TimeSpan)
 
@@ -208,9 +212,13 @@ def test_timestamp_add() -> None:
     assert inplace_span == t2
     assert isinstance(inplace_span, ry.Timestamp)
 
-    time_add_span = t1 + span
-    assert time_add_span == t2
-    assert isinstance(time_add_span, ry.Timestamp)
+    timestamp_add_span = t1 + span
+    assert timestamp_add_span == t2
+    assert isinstance(timestamp_add_span, ry.Timestamp)
+
+    timestamp_add_span_fn = t1.add(span)
+    assert timestamp_add_span_fn == t2
+    assert isinstance(timestamp_add_span_fn, ry.Timestamp)
 
 
 def test_timestamp_add_commutative() -> None:
