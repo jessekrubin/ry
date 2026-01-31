@@ -2,15 +2,12 @@ use crate::RySignedDuration;
 use crate::RySpan;
 use crate::RyTimeZone;
 use crate::RyZoned;
-use crate::util::add_or_kw;
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
 use crate::round::RyTimestampRound;
-use crate::ry_span::SpanKwargs;
 use crate::series::RyTimestampSeries;
 use crate::spanish::Spanish;
-use crate::{
-    JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RyTime, timespan,
-};
+use crate::util::SpanKwargs;
+use crate::{JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RyTime};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
@@ -189,14 +186,11 @@ impl RyTimestamp {
             .map_err(map_py_overflow_err)
     }
 
+    #[expect(clippy::too_many_arguments)]
     #[pyo3(
         signature=(
             other=None,
             *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
             hours=0,
             minutes=0,
             seconds=0,
@@ -208,10 +202,6 @@ impl RyTimestamp {
     fn add(
         &self,
         other: Option<Spanish>,
-        years: i64,
-        months: i64,
-        weeks: i64,
-        days: i64,
         hours: i64,
         minutes: i64,
         seconds: i64,
@@ -220,37 +210,34 @@ impl RyTimestamp {
         nanoseconds: i64,
     ) -> PyResult<Self> {
         let spkw = SpanKwargs::new()
-            .years(years)
-            .months(months)
-            .weeks(weeks)
-            .days(days)
             .hours(hours)
             .minutes(minutes)
             .seconds(seconds)
             .milliseconds(milliseconds)
             .microseconds(microseconds)
             .nanoseconds(nanoseconds);
-        add_or_kw(
-            other,
-            spkw,
-            |o| self.__add__(o),
-            |sp| {
+
+        match (other, !spkw.is_zero()) {
+            (Some(o), false) => self.__add__(o),
+            (None, true) => {
+                let span = spkw.build()?;
                 self.0
-                    .checked_add(sp)
+                    .checked_add(span)
                     .map(Self::from)
                     .map_err(map_py_overflow_err)
-            },
-            || Ok(*self),
-        )
+            }
+            (Some(_), true) => {
+                py_type_err!("add accepts either a span-like object or keyword units, not both")
+            }
+            (None, false) => Ok(self.clone()),
+        }
     }
 
+    #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature = (
+        signature=(
+            other=None,
             *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
             hours=0,
             minutes=0,
             seconds=0,
@@ -259,35 +246,40 @@ impl RyTimestamp {
             nanoseconds=0
         )
     )]
-    fn sub(
+    fn sub<'py>(
         &self,
-        years: i64,
-        months: i64,
-        weeks: i64,
-        days: i64,
+        py: Python<'py>,
+        other: Option<&Bound<'py, PyAny>>,
         hours: i64,
         minutes: i64,
         seconds: i64,
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-    ) -> PyResult<Self> {
-        let span = timespan(
-            years,
-            months,
-            weeks,
-            days,
-            hours,
-            minutes,
-            seconds,
-            milliseconds,
-            microseconds,
-            nanoseconds,
-        )?;
-        self.0
-            .checked_sub(span.0)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let spkw = SpanKwargs::new()
+            .hours(hours)
+            .minutes(minutes)
+            .seconds(seconds)
+            .milliseconds(milliseconds)
+            .microseconds(microseconds)
+            .nanoseconds(nanoseconds);
+
+        match (other, !spkw.is_zero()) {
+            (Some(o), false) => self.__sub__(py, o),
+            (None, true) => {
+                let span = spkw.build()?;
+                self.0
+                    .checked_sub(span)
+                    .map(Self::from)
+                    .map_err(map_py_overflow_err)
+                    .and_then(|dt| dt.into_pyobject(py).map(Bound::into_any))
+            }
+            (Some(_), true) => {
+                py_type_err!("add accepts either a span-like object or keyword units, not both")
+            }
+            (None, false) => Ok(self.clone().into_pyobject(py).map(Bound::into_any)?),
+        }
     }
 
     fn as_second(&self) -> i64 {

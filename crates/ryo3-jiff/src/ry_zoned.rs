@@ -10,6 +10,7 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::series::RyZonedSeries;
 use crate::spanish::Spanish;
+use crate::util::SpanKwargs;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
     JiffWeekday, JiffZoned, RyDate, span, timespan,
@@ -295,8 +296,10 @@ impl RyZoned {
             .map_err(map_py_overflow_err)
     }
 
+    #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature = (
+        signature=(
+            other=None,
             *,
             years=0,
             months=0,
@@ -307,12 +310,12 @@ impl RyZoned {
             seconds=0,
             milliseconds=0,
             microseconds=0,
-            nanoseconds=0,
-            saturating=false
+            nanoseconds=0
         )
     )]
     fn add(
         &self,
+        other: Option<Spanish>,
         years: i64,
         months: i64,
         weeks: i64,
@@ -323,32 +326,39 @@ impl RyZoned {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-        saturating: bool,
     ) -> PyResult<Self> {
-        let span = span(
-            years,
-            months,
-            weeks,
-            days,
-            hours,
-            minutes,
-            seconds,
-            milliseconds,
-            microseconds,
-            nanoseconds,
-        )?;
-        if saturating {
-            Ok(Self::from(self.0.saturating_add(span)))
-        } else {
-            self.0
-                .checked_add(span)
-                .map(Self::from)
-                .map_err(map_py_overflow_err)
+        let spkw = SpanKwargs::new()
+            .years(years)
+            .months(months)
+            .weeks(weeks)
+            .days(days)
+            .hours(hours)
+            .minutes(minutes)
+            .seconds(seconds)
+            .milliseconds(milliseconds)
+            .microseconds(microseconds)
+            .nanoseconds(nanoseconds);
+
+        match (other, !spkw.is_zero()) {
+            (Some(o), false) => self.__add__(o),
+            (None, true) => {
+                let span = spkw.build()?;
+                self.0
+                    .checked_add(span)
+                    .map(Self::from)
+                    .map_err(map_py_overflow_err)
+            }
+            (Some(_), true) => {
+                py_type_err!("add accepts either a span-like object or keyword units, not both")
+            }
+            (None, false) => Ok(self.clone()),
         }
     }
 
+    #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature = (
+        signature=(
+            other=None,
             *,
             years=0,
             months=0,
@@ -359,12 +369,13 @@ impl RyZoned {
             seconds=0,
             milliseconds=0,
             microseconds=0,
-            nanoseconds=0,
-            saturating=false
+            nanoseconds=0
         )
     )]
-    fn sub(
+    fn sub<'py>(
         &self,
+        py: Python<'py>,
+        other: Option<&Bound<'py, PyAny>>,
         years: i64,
         months: i64,
         weeks: i64,
@@ -375,27 +386,33 @@ impl RyZoned {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-        saturating: bool,
-    ) -> PyResult<Self> {
-        let span = span(
-            years,
-            months,
-            weeks,
-            days,
-            hours,
-            minutes,
-            seconds,
-            milliseconds,
-            microseconds,
-            nanoseconds,
-        )?;
-        if saturating {
-            Ok(Self::from(self.0.saturating_sub(span)))
-        } else {
-            self.0
-                .checked_sub(span)
-                .map(Self::from)
-                .map_err(map_py_overflow_err)
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let spkw = SpanKwargs::new()
+            .years(years)
+            .months(months)
+            .weeks(weeks)
+            .days(days)
+            .hours(hours)
+            .minutes(minutes)
+            .seconds(seconds)
+            .milliseconds(milliseconds)
+            .microseconds(microseconds)
+            .nanoseconds(nanoseconds);
+
+        match (other, !spkw.is_zero()) {
+            (Some(o), false) => self.__sub__(py, o),
+            (None, true) => {
+                let span = spkw.build()?;
+                self.0
+                    .checked_sub(span)
+                    .map(Self::from)
+                    .map_err(map_py_overflow_err)
+                    .and_then(|dt| dt.into_pyobject(py).map(Bound::into_any))
+            }
+            (Some(_), true) => {
+                py_type_err!("add accepts either a span-like object or keyword units, not both")
+            }
+            (None, false) => Ok(self.clone().into_pyobject(py).map(Bound::into_any)?),
         }
     }
 

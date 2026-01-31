@@ -13,7 +13,6 @@
 extern crate core;
 
 mod api;
-mod util;
 mod civil;
 mod constants;
 mod deprecations;
@@ -48,6 +47,7 @@ mod series;
 mod spanish;
 mod test;
 mod tz;
+mod util;
 
 pub use api::*;
 pub use jiff_types::*;

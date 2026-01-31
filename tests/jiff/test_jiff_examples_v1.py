@@ -39,7 +39,7 @@ def test_find_duration_between_datetimes() -> None:
 def test_add_duration_to_a_zoned_datetime() -> None:
     zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     span = ry.TimeSpan()._years(3)._months(4)._days(5)._hours(12)._minutes(3)
-    zdt2 = zdt1 + span
+    zdt2 = zdt1.add(span)
     assert str(zdt2) == "2023-12-31T18:30:00-05:00[America/New_York]"
 
 
