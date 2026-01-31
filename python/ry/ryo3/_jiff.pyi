@@ -1943,6 +1943,9 @@ class Offset(
         hours: int = 0,
         minutes: int = 0,
         seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
     def sub(
@@ -1955,6 +1958,9 @@ class Offset(
         hours: int = 0,
         minutes: int = 0,
         seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
