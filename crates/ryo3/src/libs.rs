@@ -2,6 +2,8 @@ use pyo3::prelude::*;
 
 #[allow(unused_variables)]
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    #[cfg(feature = "aws-lc")]
+    ryo3_aws_lc::pymod_add(m)?;
     #[cfg(feature = "brotli")]
     ryo3_brotli::pymod_add(m)?;
     #[cfg(feature = "bzip2")]

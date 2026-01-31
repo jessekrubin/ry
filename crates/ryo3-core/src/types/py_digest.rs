@@ -6,6 +6,7 @@ use crate::pystring::pystring_fast_new_ascii;
 
 const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 
+const HEX: &[u8; 16] = b"0123456789abcdef";
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyDigest<T>(pub T);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -58,6 +59,64 @@ fn encode_hex<const N: usize, const S: usize>(bytes: [u8; N]) -> [u8; S] {
     out
 }
 
+// bytes
+
+impl<'py> IntoPyObject<'py> for PyDigest<&[u8; 32]> {
+    type Target = PyBytes;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let i = self.0;
+        let bytes: [u8; 32] = *i;
+        Ok(PyBytes::new(py, &bytes))
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyHexDigest<String> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        Ok(pystring_fast_new(py, &self.0, true))
+    }
+}
+
+impl From<&[u8; 32]> for PyHexDigest<String> {
+    fn from(b: &[u8; 32]) -> Self {
+        let s = {
+            let mut s = String::with_capacity(64);
+            for byte in b {
+                s.push(HEX[(byte >> 4) as usize] as char);
+                s.push(HEX[(byte & 0x0f) as usize] as char);
+            }
+            s
+        };
+        Self(s)
+    }
+}
+
+macro_rules! impl_from_bytes_py_hex_digest_string {
+    ($size:expr) => {
+        impl From<&[u8; $size]> for PyHexDigest<String> {
+            fn from(b: &[u8; $size]) -> Self {
+                const STR_LEN: usize = $size * 2;
+                let mut s = String::with_capacity(STR_LEN);
+                for byte in b {
+                    s.push(HEX[(byte >> 4) as usize] as char);
+                    s.push(HEX[(byte & 0x0f) as usize] as char);
+                }
+                Self(s)
+            }
+        }
+    };
+}
+
+impl_from_bytes_py_hex_digest_string!(64); // 8 * 64 = 512
+
 impl<'py> IntoPyObject<'py> for PyHexDigest<u32> {
     type Target = PyString;
     type Output = Bound<'py, Self::Target>;
@@ -97,5 +156,30 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
         #[expect(unsafe_code)]
         let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
         Ok(pystring_fast_new_ascii(py, s))
+    }
+}
+
+////////////
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PyDigestBytes<'a, const SIZE: usize>(pub &'a [u8; SIZE]);
+
+impl<'py, const SIZE: usize> IntoPyObject<'py> for PyDigestBytes<'_, SIZE> {
+    type Target = PyBytes;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let i = self.0;
+        // let bytes: [u8; SIZE] = *i;
+        Ok(PyBytes::new(py, self.0))
+    }
+}
+
+impl<'a, const SIZE: usize> From<&'a [u8; SIZE]> for PyDigestBytes<'a, SIZE> {
+    #[inline]
+    fn from(b: &'a [u8; SIZE]) -> Self {
+        Self(b)
     }
 }

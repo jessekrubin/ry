@@ -92,6 +92,7 @@ members = [
   "crates/_future/ryo3-ignore",
   "crates/_future/ryo3-tokio-websockets",
   # external wrappers
+  "crates/ryo3-aws-lc",
   "crates/ryo3-brotli",
   "crates/ryo3-bytes",
   "crates/ryo3-bzip2",
@@ -139,6 +140,7 @@ ryo3 = { path = "./crates/ryo3", features = [] }
 ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
 ryo3-tokio-websockets = { path = "./crates/_future/ryo3-tokio-websockets" }
 # wrappers
+ryo3-aws-lc = { path = "./crates/ryo3-aws-lc" }
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bytes = { path = "./crates/ryo3-bytes" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
