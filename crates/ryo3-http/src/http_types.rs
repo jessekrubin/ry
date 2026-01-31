@@ -5,7 +5,7 @@
 use http::{HeaderMap, HeaderValue};
 use std::ops::Deref;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyHttpHeaderMap(pub(crate) HeaderMap<HeaderValue>);
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyHttpMethod(pub(crate) http::Method);
@@ -22,19 +22,19 @@ impl PyHttpMethod {
     pub const CONNECT: Self = Self(http::Method::CONNECT);
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyHttpHeaderName(pub(crate) http::HeaderName);
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct PyHttpHeaderNameRef<'a>(pub(crate) &'a http::HeaderName);
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyHttpHeaderValue(pub(crate) HeaderValue);
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyHttpHeaderValueRef<'a>(pub(crate) &'a HeaderValue);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PyHttpVersion(pub(crate) http::Version);
 
 impl PyHttpVersion {
