@@ -1012,3 +1012,209 @@ impl<'a, 'py> SpanAdd<'a, 'py> for SpanAddTarget<'a, 'py> {
         }
     }
 }
+
+pub(crate) struct SpanKwargs2 {
+    pub(crate) inner: jiff::Span, // years: Option<i64>,
+                                  // months: Option<i64>,
+                                  // weeks: Option<i64>,
+                                  // days: Option<i64>,
+                                  // hours: Option<i64>,
+                                  // minutes: Option<i64>,
+                                  // seconds: Option<i64>,
+                                  // milliseconds: Option<i64>,
+                                  // microseconds: Option<i64>,
+                                  // nanoseconds: Option<i64>,
+}
+
+// impl TryFrom<SpanKwargs> for RySpan {
+//     type Error = pyo3::PyErr;
+
+//     fn try_from(value: SpanKwargs) -> Result<Self, Self::Error> {
+//         timespan(
+//             value.years.unwrap_or(0),
+//             value.months.unwrap_or(0),
+//             value.weeks.unwrap_or(0),
+//             value.days.unwrap_or(0),
+//             value.hours.unwrap_or(0),
+//             value.minutes.unwrap_or(0),
+//             value.seconds.unwrap_or(0),
+//             value.milliseconds.unwrap_or(0),
+//             value.microseconds.unwrap_or(0),
+//             value.nanoseconds.unwrap_or(0),
+//         )
+//     }
+// }
+
+impl<'py> FromPyObject<'_, 'py> for SpanKwargs {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        let py = obj.py();
+        let dict = obj.cast_exact::<PyDict>()?;
+        let years = dict
+            .get_item(pyo3::intern!(py, "years"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let months = dict
+            .get_item(pyo3::intern!(py, "months"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let weeks = dict
+            .get_item(pyo3::intern!(py, "weeks"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let days = dict
+            .get_item(pyo3::intern!(py, "days"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let hours = dict
+            .get_item(pyo3::intern!(py, "hours"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let minutes = dict
+            .get_item(pyo3::intern!(py, "minutes"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let seconds = dict
+            .get_item(pyo3::intern!(py, "seconds"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let milliseconds = dict
+            .get_item(pyo3::intern!(py, "milliseconds"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let microseconds = dict
+            .get_item(pyo3::intern!(py, "microseconds"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        let nanoseconds = dict
+            .get_item(pyo3::intern!(py, "nanoseconds"))?
+            .map(|v| v.extract::<_>())
+            .transpose()?;
+        Ok(SpanKwargs {
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        })
+    }
+}
+
+pub(crate) struct SpanKwargs {
+    years: Option<i64>,
+    months: Option<i64>,
+    weeks: Option<i64>,
+    days: Option<i64>,
+    hours: Option<i64>,
+    minutes: Option<i64>,
+    seconds: Option<i64>,
+    milliseconds: Option<i64>,
+    microseconds: Option<i64>,
+    nanoseconds: Option<i64>,
+}
+
+impl TryFrom<SpanKwargs> for RySpan {
+    type Error = pyo3::PyErr;
+
+    fn try_from(value: SpanKwargs) -> Result<Self, Self::Error> {
+        timespan(
+            value.years.unwrap_or(0),
+            value.months.unwrap_or(0),
+            value.weeks.unwrap_or(0),
+            value.days.unwrap_or(0),
+            value.hours.unwrap_or(0),
+            value.minutes.unwrap_or(0),
+            value.seconds.unwrap_or(0),
+            value.milliseconds.unwrap_or(0),
+            value.microseconds.unwrap_or(0),
+            value.nanoseconds.unwrap_or(0),
+        )
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for SpanKwargs2 {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        // let py = obj.py();
+        let dict = obj.cast_exact::<PyDict>()?;
+        let mut sp = jiff::Span::new();
+        for (k, v) in dict.iter() {
+            let key_str: &str = k.extract::<&str>()?;
+            match key_str {
+                "years" => {
+                    let y = v.extract::<i64>()?;
+                    if y != 0 {
+                        sp = sp.try_years(y).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "months" => {
+                    let m = v.extract::<i64>()?;
+                    if m != 0 {
+                        sp = sp.try_months(m).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "weeks" => {
+                    let w = v.extract::<i64>()?;
+                    if w != 0 {
+                        sp = sp.try_weeks(w).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "days" => {
+                    let d = v.extract::<i64>()?;
+                    if d != 0 {
+                        sp = sp.try_days(d).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "hours" => {
+                    let h = v.extract::<i64>()?;
+                    if h != 0 {
+                        sp = sp.try_hours(h).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "minutes" => {
+                    let min = v.extract::<i64>()?;
+                    if min != 0 {
+                        sp = sp.try_minutes(min).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "seconds" => {
+                    let s = v.extract::<i64>()?;
+                    if s != 0 {
+                        sp = sp.try_seconds(s).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "milliseconds" => {
+                    let ms = v.extract::<i64>()?;
+                    if ms != 0 {
+                        sp = sp.try_milliseconds(ms).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "microseconds" => {
+                    let us = v.extract::<i64>()?;
+
+                    if us != 0 {
+                        sp = sp.try_microseconds(us).map_err(map_py_overflow_err)?;
+                    }
+                }
+                "nanoseconds" => {
+                    let ns = v.extract::<i64>()?;
+                    if ns != 0 {
+                        sp = sp.try_nanoseconds(ns).map_err(map_py_overflow_err)?;
+                    }
+                }
+
+                _ => {
+                    return py_type_err!("Invalid keyword argument for TimeSpan: `{}`", key_str,);
+                }
+            }
+        }
+        Ok(SpanKwargs2 { inner: sp })
+    }
+}

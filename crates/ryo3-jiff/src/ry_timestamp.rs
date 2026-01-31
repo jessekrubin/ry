@@ -1,12 +1,14 @@
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
 use crate::round::RyTimestampRound;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::ry_span::RySpan;
+use crate::ry_span::{RySpan, SpanKwargs, SpanKwargs2};
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyTimestampSeries;
 use crate::spanish::Spanish;
-use crate::{JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RyTime};
+use crate::{
+    JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RyTime, timespan,
+};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
@@ -185,16 +187,96 @@ impl RyTimestamp {
             .map_err(map_py_overflow_err)
     }
 
-    fn add(&self, other: Spanish) -> PyResult<Self> {
-        self.__add__(other)
+    #[pyo3(
+        signature = (
+            *,
+            years=0,
+            months=0,
+            weeks=0,
+            days=0,
+            hours=0,
+            minutes=0,
+            seconds=0,
+            milliseconds=0,
+            microseconds=0,
+            nanoseconds=0
+        )
+    )]
+    fn add(
+        &self,
+        years: i64,
+        months: i64,
+        weeks: i64,
+        days: i64,
+        hours: i64,
+        minutes: i64,
+        seconds: i64,
+        milliseconds: i64,
+        microseconds: i64,
+        nanoseconds: i64,
+    ) -> PyResult<Self> {
+        let span = timespan(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )?;
+        self.0
+            .checked_add(span.0)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 
-    fn sub<'py>(
+    #[pyo3(
+        signature = (
+            *,
+            years=0,
+            months=0,
+            weeks=0,
+            days=0,
+            hours=0,
+            minutes=0,
+            seconds=0,
+            milliseconds=0,
+            microseconds=0,
+            nanoseconds=0
+        )
+    )]
+    fn sub(
         &self,
-        py: Python<'py>,
-        other: &'py Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.__sub__(py, other)
+        years: i64,
+        months: i64,
+        weeks: i64,
+        days: i64,
+        hours: i64,
+        minutes: i64,
+        seconds: i64,
+        milliseconds: i64,
+        microseconds: i64,
+        nanoseconds: i64,
+    ) -> PyResult<Self> {
+        let span = timespan(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )?;
+        self.0
+            .checked_sub(span.0)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 
     fn as_second(&self) -> i64 {

@@ -12,7 +12,7 @@ use crate::series::RyZonedSeries;
 use crate::spanish::Spanish;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
-    JiffWeekday, JiffZoned, RyDate,
+    JiffWeekday, JiffZoned, RyDate, span, timespan,
 };
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;
@@ -295,12 +295,108 @@ impl RyZoned {
             .map_err(map_py_overflow_err)
     }
 
-    fn add(&self, other: Spanish) -> PyResult<Self> {
-        self.__add__(other)
+    #[pyo3(
+        signature = (
+            *,
+            years=0,
+            months=0,
+            weeks=0,
+            days=0,
+            hours=0,
+            minutes=0,
+            seconds=0,
+            milliseconds=0,
+            microseconds=0,
+            nanoseconds=0,
+            saturating=false
+        )
+    )]
+    fn add(
+        &self,
+        years: i64,
+        months: i64,
+        weeks: i64,
+        days: i64,
+        hours: i64,
+        minutes: i64,
+        seconds: i64,
+        milliseconds: i64,
+        microseconds: i64,
+        nanoseconds: i64,
+        saturating: bool,
+    ) -> PyResult<Self> {
+        let span = span(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )?;
+        if saturating {
+            Ok(Self::from(self.0.saturating_add(span)))
+        } else {
+            self.0
+                .checked_add(span)
+                .map(Self::from)
+                .map_err(map_py_overflow_err)
+        }
     }
 
-    fn sub<'py>(&self, py: Python<'py>, other: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
-        self.__sub__(py, other)
+    #[pyo3(
+        signature = (
+            *,
+            years=0,
+            months=0,
+            weeks=0,
+            days=0,
+            hours=0,
+            minutes=0,
+            seconds=0,
+            milliseconds=0,
+            microseconds=0,
+            nanoseconds=0,
+            saturating=false
+        )
+    )]
+    fn sub(
+        &self,
+        years: i64,
+        months: i64,
+        weeks: i64,
+        days: i64,
+        hours: i64,
+        minutes: i64,
+        seconds: i64,
+        milliseconds: i64,
+        microseconds: i64,
+        nanoseconds: i64,
+        saturating: bool,
+    ) -> PyResult<Self> {
+        let span = span(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )?;
+        if saturating {
+            Ok(Self::from(self.0.saturating_sub(span)))
+        } else {
+            self.0
+                .checked_sub(span)
+                .map(Self::from)
+                .map_err(map_py_overflow_err)
+        }
     }
 
     fn saturating_add(&self, other: Spanish) -> Self {
