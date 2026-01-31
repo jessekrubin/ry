@@ -1,9 +1,11 @@
+use crate::RySignedDuration;
+use crate::RySpan;
+use crate::RyTimeZone;
+use crate::RyZoned;
+use crate::util::add_or_kw;
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
 use crate::round::RyTimestampRound;
-use crate::ry_signed_duration::RySignedDuration;
-use crate::ry_span::{RySpan, SpanKwargs, SpanKwargs2};
-use crate::ry_timezone::RyTimeZone;
-use crate::ry_zoned::RyZoned;
+use crate::ry_span::SpanKwargs;
 use crate::series::RyTimestampSeries;
 use crate::spanish::Spanish;
 use crate::{
@@ -188,7 +190,8 @@ impl RyTimestamp {
     }
 
     #[pyo3(
-        signature = (
+        signature=(
+            other=None,
             *,
             years=0,
             months=0,
@@ -204,6 +207,7 @@ impl RyTimestamp {
     )]
     fn add(
         &self,
+        other: Option<Spanish>,
         years: i64,
         months: i64,
         weeks: i64,
@@ -215,22 +219,29 @@ impl RyTimestamp {
         microseconds: i64,
         nanoseconds: i64,
     ) -> PyResult<Self> {
-        let span = timespan(
-            years,
-            months,
-            weeks,
-            days,
-            hours,
-            minutes,
-            seconds,
-            milliseconds,
-            microseconds,
-            nanoseconds,
-        )?;
-        self.0
-            .checked_add(span.0)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+        let spkw = SpanKwargs::new()
+            .years(years)
+            .months(months)
+            .weeks(weeks)
+            .days(days)
+            .hours(hours)
+            .minutes(minutes)
+            .seconds(seconds)
+            .milliseconds(milliseconds)
+            .microseconds(microseconds)
+            .nanoseconds(nanoseconds);
+        add_or_kw(
+            other,
+            spkw,
+            |o| self.__add__(o),
+            |sp| {
+                self.0
+                    .checked_add(sp)
+                    .map(Self::from)
+                    .map_err(map_py_overflow_err)
+            },
+            || Ok(*self),
+        )
     }
 
     #[pyo3(

@@ -400,8 +400,24 @@ class Time(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
     def sub(self, other: Time) -> TimeSpan: ...
