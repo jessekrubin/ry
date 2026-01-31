@@ -228,14 +228,45 @@ class Date(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> Date: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> Date: ...
     @t.overload
     def sub(self, other: Date) -> TimeSpan: ...
     @t.overload
     def sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> Date: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> Date: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
@@ -408,10 +439,6 @@ class Time(
     def add(
         self,
         *,
-        years: int = 0,
-        months: int = 0,
-        weeks: int = 0,
-        days: int = 0,
         hours: int = 0,
         minutes: int = 0,
         seconds: int = 0,
@@ -424,6 +451,17 @@ class Time(
     @t.overload
     def sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
@@ -578,8 +616,24 @@ class DateTime(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
     def sub(self, other: t.Self) -> TimeSpan: ...
@@ -588,8 +642,20 @@ class DateTime(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
     @t.overload
-    def saturating_sub(self, other: t.Self) -> TimeSpan: ...
-    @t.overload
+    def sub(
+        self,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
@@ -1221,14 +1287,37 @@ class Timestamp(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
     def sub(self, other: t.Self) -> TimeSpan: ...
     @t.overload
     def sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
@@ -1555,8 +1644,24 @@ class ZonedDateTime(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+    ) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
     def sub(self, other: t.Self) -> TimeSpan: ...
@@ -1564,12 +1669,24 @@ class ZonedDateTime(
     def sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
-    @t.overload
-    def saturating_sub(self, other: t.Self) -> TimeSpan: ...
-    @t.overload
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
@@ -1815,11 +1932,29 @@ class Offset(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
         self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
     ) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+    ) -> t.Self: ...
+    @t.overload
     def sub(
         self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
+    ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
