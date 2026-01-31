@@ -3,8 +3,7 @@ use crate::py_temporal_like::PyTermporalTypes;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::spanish::Spanish;
 use crate::{
-    JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, span,
-    timespan,
+    JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, timespan,
 };
 use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;

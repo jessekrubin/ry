@@ -13,7 +13,7 @@ use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
-    JiffWeekday, JiffZoned, RyDate, span, timespan,
+    JiffWeekday, JiffZoned, RyDate,
 };
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;

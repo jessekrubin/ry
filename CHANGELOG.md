@@ -4,6 +4,7 @@
 
 - `ryo3-jiff`
   - more timestamp testing
+  - pendulum/whenever/arrow style `add` and `sub` apis for jiff types
 
 ---
 

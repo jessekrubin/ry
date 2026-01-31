@@ -274,6 +274,7 @@ impl RyOffset {
             .map_err(map_py_overflow_err)
     }
 
+    #[expect(clippy::too_many_arguments)]
     #[pyo3(
         signature=(
             other=None,
@@ -316,10 +317,11 @@ impl RyOffset {
             (Some(_), true) => {
                 py_type_err!("add accepts either a span-like object or keyword units, not both")
             }
-            (None, false) => Ok(self.clone()),
+            (None, false) => Ok(*self),
         }
     }
 
+    #[expect(clippy::too_many_arguments)]
     #[pyo3(
         signature=(
             other=None,
@@ -362,7 +364,7 @@ impl RyOffset {
             (Some(_), true) => {
                 py_type_err!("add accepts either a span-like object or keyword units, not both")
             }
-            (None, false) => Ok(self.clone()),
+            (None, false) => Ok(*self),
         }
     }
 
