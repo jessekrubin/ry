@@ -401,7 +401,7 @@ pub fn sqlfmt(
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PyDialect(sqlformat::Dialect);
 
 impl Default for PyDialect {

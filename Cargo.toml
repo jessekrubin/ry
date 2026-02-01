@@ -281,6 +281,7 @@ explicit_auto_deref = "warn"
 
 # nursery always on
 use_self = "warn"
+derive_partial_eq_without_eq = "warn"
 
 # =======
 # nursery

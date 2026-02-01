@@ -51,7 +51,7 @@ const FRIENDLY_SPAN_PARSER: jiff::fmt::friendly::SpanParser =
 const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
     jiff::fmt::friendly::SpanPrinter::new();
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 #[pyclass(name = "Duration", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDuration(pub Duration);
