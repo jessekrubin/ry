@@ -1094,7 +1094,7 @@ dependencies = [
  "num-bigint",
  "num-traits",
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.27.2",
  "smallvec",
 ]
 
@@ -1521,7 +1521,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "portable-atomic",
- "pyo3-build-config",
+ "pyo3-build-config 0.27.2",
  "pyo3-ffi",
  "pyo3-macros",
  "serde",
@@ -1553,13 +1553,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyo3-build-config"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "972720a441c91fd9c49f212a1d2d74c6e3803b231ebc8d66c51efbd7ccab11c8"
+dependencies = [
+ "target-lexicon",
+]
+
+[[package]]
 name = "pyo3-ffi"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c85c9cbfaddf651b1221594209aed57e9e5cff63c4d11d1feead529b872a089"
 dependencies = [
  "libc",
- "pyo3-build-config",
+ "pyo3-build-config 0.27.2",
 ]
 
 [[package]]
@@ -1582,7 +1591,7 @@ checksum = "03b51720d314836e53327f5871d4c0cfb4fb37cc2c4a11cc71907a86342c40f9"
 dependencies = [
  "heck",
  "proc-macro2",
- "pyo3-build-config",
+ "pyo3-build-config 0.27.2",
  "quote",
  "syn",
 ]
@@ -1856,7 +1865,7 @@ dependencies = [
  "jiff",
  "mimalloc",
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.28.0",
  "ryo3",
  "tracing",
  "tracing-log",
@@ -1869,7 +1878,7 @@ version = "0.0.83"
 dependencies = [
  "jiff",
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.28.0",
  "ryo3-brotli",
  "ryo3-bytes",
  "ryo3-bzip2",
@@ -1938,7 +1947,7 @@ name = "ryo3-core"
 version = "0.0.83"
 dependencies = [
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.28.0",
  "ryo3-macro-rules",
 ]
 
@@ -2028,7 +2037,7 @@ version = "0.0.83"
 dependencies = [
  "http",
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.28.0",
  "ryo3-core",
  "serde",
  "serde_json",
@@ -2048,7 +2057,7 @@ version = "0.0.83"
 dependencies = [
  "jiff",
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.28.0",
  "ryo3-core",
  "ryo3-macro-rules",
  "ryo3-pydantic",
@@ -2163,7 +2172,7 @@ version = "0.0.83"
 dependencies = [
  "jiff",
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.28.0",
  "ryo3-http",
  "ryo3-jiff",
  "ryo3-std",
@@ -2284,7 +2293,7 @@ name = "ryo3-uuid"
 version = "0.0.83"
 dependencies = [
  "pyo3",
- "pyo3-build-config",
+ "pyo3-build-config 0.28.0",
  "rand",
  "ryo3-bytes",
  "ryo3-macro-rules",

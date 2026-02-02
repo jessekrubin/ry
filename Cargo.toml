@@ -184,7 +184,7 @@ pyo3 = { version = "0.27", features = ["macros", "serde"] }
 pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", default-features = false, features = [
   "tokio-runtime",
 ]}
-pyo3-build-config = { version = "0.27" , default-features = false, features = [] }
+pyo3-build-config = { version = "0.28" , default-features = false, features = [] }
 # allocator(s)
 mimalloc = { version = "0.1.48", default-features = false, features = [] }
 # future
