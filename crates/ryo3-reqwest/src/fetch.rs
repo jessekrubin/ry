@@ -46,15 +46,18 @@ pub(crate) fn fetch(
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction(
-    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+    signature = (url, *, method = PyHttpMethod::GET),
     text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
 )]
 pub(crate) async fn fetch(
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs>,
+    // kwargs: Option<crate::client::ReqwestKwargs>,
 ) -> PyResult<RyAsyncResponse> {
-    fetch_client().fetch(url, method, kwargs).await
+    use ryo3_macro_rules::pytodo;
+//
+    // fetch_client().fetch(url, method, kwargs).await
+    pytodo!("Implement async global fetch function")
 }
 
 #[pyfunction(

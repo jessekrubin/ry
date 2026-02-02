@@ -96,3 +96,45 @@ impl<'py> FromPyObject<'_, 'py> for PyUserAgent {
         py_type_err!("user_agent must be str | http.HeaderValue | bool | None")
     }
 }
+
+// ============================================================================
+// QUERY EXTRACT
+// ============================================================================
+pub(crate) struct PyQuery(String);
+
+impl From<PyQuery> for String {
+    fn from(query: PyQuery) -> Self {
+        query.0
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyQuery {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let py_any_serializer = ryo3_serde::PyAnySerializer::new(obj, None);
+        let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
+            .map_err(|err| py_value_error!("failed to serialize query params: {err}"))?;
+        Ok(Self(url_encoded_query))
+    }
+}
+
+// ============================================================================
+// JSON REQUEST EXTRACT
+// ============================================================================
+pub(crate) struct PyRequestJson(Vec<u8>);
+
+impl From<PyRequestJson> for Vec<u8> {
+    fn from(value: PyRequestJson) -> Self {
+        value.0
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyRequestJson {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let b = ryo3_json::to_vec(&obj)?;
+        Ok(Self(b))
+    }
+}

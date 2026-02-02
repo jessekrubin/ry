@@ -1,8 +1,12 @@
+#[cfg(feature = "experimental-async")]
+use crate::body::PyBody;
 use crate::errors::map_reqwest_err;
 #[cfg(feature = "experimental-async")]
 use crate::response::RyAsyncResponse;
 use crate::response::RyBlockingResponse;
 use crate::types::Timeout;
+#[cfg(feature = "experimental-async")]
+use crate::types::{PyQuery, PyRequestJson};
 use crate::{ClientConfig, RyResponse};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
@@ -17,7 +21,26 @@ use ryo3_url::UrlLike;
 use std::time::Duration;
 
 //============================================================================
+use std::{
+    future::Future,
+    pin::{Pin, pin},
+    task::{Context, Poll},
+};
 
+struct AllowThreads<F>(F);
+
+impl<F> Future for AllowThreads<F>
+where
+    F: Future + Unpin + Send,
+    F::Output: Send,
+{
+    type Output = F::Output;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let waker = cx.waker();
+        Python::attach(|py| py.detach(|| pin!(&mut self.0).poll(&mut Context::from_waker(waker))))
+    }
+}
 //============================================================================
 
 #[derive(Debug, Clone)]
@@ -455,72 +478,129 @@ impl RyClient {
         self.cfg != other.cfg
     }
 
-    #[pyo3(signature = (url, **kwargs))]
-    async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
-        self.request(url, Method::GET, kwargs).await
-    }
+    // #[pyo3(signature = (url, **kwargs))]
+    // async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
+    //     self.request(url, Method::GET, kwargs).await
+    // }
+
+    // #[pyo3(signature = (url, **kwargs))]
+    // async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
+    //     self.request(url, Method::POST, kwargs).await
+    // }
+
+    // #[pyo3(signature = (url, **kwargs))]
+    // async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
+    //     self.request(url, Method::PUT, kwargs).await
+    // }
+
+    // #[pyo3(signature = (url, **kwargs))]
+    // async fn patch(
+    //     &self,
+    //     url: UrlLike,
+    //     kwargs: Option<ReqwestKwargs>,
+    // ) -> PyResult<RyAsyncResponse> {
+    //     self.request(url, Method::PATCH, kwargs).await
+    // }
+
+    // #[pyo3(signature = (url, **kwargs))]
+    // async fn delete(
+    //     &self,
+    //     url: UrlLike,
+    //     kwargs: Option<ReqwestKwargs>,
+    // ) -> PyResult<RyAsyncResponse> {
+    //     self.request(url, Method::DELETE, kwargs).await
+    // }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
-        self.request(url, Method::POST, kwargs).await
+    async fn head(&self, url: UrlLike, kwargs: Option<Py<PyDict>>) -> PyResult<RyAsyncResponse> {
+        let extracted = {
+            Python::attach(|py| {
+                if let Some(kwargs) = kwargs {
+                    Some(kwargs.extract::<ReqwestKwargs>(py).unwrap())
+                } else {
+                    None
+                }
+            })
+        };
+        self.request(url, Method::HEAD, extracted).await
     }
 
-    #[pyo3(signature = (url, **kwargs))]
-    async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
-        self.request(url, Method::PUT, kwargs).await
-    }
+    // #[pyo3(signature = (url, **kwargs))]
+    // async fn options(&self, url: UrlLike, kwargs: Option<Py<PyDict>>) -> PyResult<RyAsyncResponse> {
+    //     let kwargs2: Option<ReqwestKwargs> = Python::attach(|py| {
+    //         let t = kwargs.map(|k| {
+    //             // let b = k.bind(py);
+    //             let b = k.bind(py);
+    //             let rk = b.extract::<ReqwestKwargs>().unwrap();
+    //             rk
+    //         });
+    //         t
+    //     });
+    //     // let kwargs = kwargs.map(|k| k.as_ref(py).extract::<ReqwestKwargs>().unwrap());
+    //     self.request(url, Method::OPTIONS, kwargs2).await
+    // }
 
-    #[pyo3(signature = (url, **kwargs))]
-    async fn patch(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<RyAsyncResponse> {
-        self.request(url, Method::PATCH, kwargs).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn delete(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<RyAsyncResponse> {
-        self.request(url, Method::DELETE, kwargs).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn head(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyAsyncResponse> {
-        self.request(url, Method::HEAD, kwargs).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn options(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<RyAsyncResponse> {
-        self.request(url, Method::OPTIONS, kwargs).await
-    }
-
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            method = PyHttpMethod::GET,
+            headers = None,
+            query = None,
+            body = None,
+            json = None,
+            form = None,
+            multipart = None,
+            timeout = None,
+            basic_auth = None,
+            bearer_auth = None,
+            version = None
+        )
+    )]
     pub(crate) async fn fetch(
         &self,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
+        headers: Option<PyHeadersLike>,
+        query: Option<PyQuery>,
+        body: Option<PyBody>,
+        json: Option<PyRequestJson>,
+        form: Option<String>,
+        multipart: Option<Py<PyAny>>,
+        timeout: Option<Timeout>,
+        basic_auth: Option<BasicAuth>,
+        bearer_auth: Option<PyBackedStr>,
+        version: Option<PyHttpVersion>,
     ) -> PyResult<RyAsyncResponse> {
-        self.request(url, method.into(), kwargs).await
+        let kw = ReqwestKwargs {
+            headers: headers.map(Into::into),
+            query: query.map(String::from),
+            body: match (body, json, form) {
+                (Some(b), _, _) => match b {
+                    PyBody::Bytes(b) => PyReqwestBody::Bytes(b.into()),
+                    PyBody::Stream(s) => PyReqwestBody::Stream(s),
+                },
+                (_, Some(j), _) => PyReqwestBody::Json(j.into()),
+                (_, _, Some(f)) => PyReqwestBody::Form(f),
+                _ => PyReqwestBody::None,
+            },
+            timeout: timeout.map(Duration::from),
+            basic_auth,
+            bearer_auth,
+            version,
+        };
+        self.request(url, method.into(), Some(kw)).await
     }
 
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
-    async fn __call__(
-        &self,
-        url: UrlLike,
-        method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<RyAsyncResponse> {
-        self.request(url, method.into(), kwargs).await
-    }
+    // #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    // async fn __call__(
+    //     &self,
+    //     url: UrlLike,
+    //     method: PyHttpMethod,
+    //     kwargs: Option<ReqwestKwargs>,
+    // ) -> PyResult<RyAsyncResponse> {
+    //     self.request(url, method.into(), kwargs).await
+    // }
 
     #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     pub(crate) fn fetch_sync(
@@ -770,6 +850,7 @@ enum PyReqwestBody {
     Multipart(bool), // placeholder
     None,
 }
+
 
 impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
@@ -1077,3 +1158,7 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
 //        })
 //    }
 // ```
+
+fn extract_request_kwargs<'py>(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<ReqwestKwargs> {
+    obj.extract::<ReqwestKwargs>()
+}
