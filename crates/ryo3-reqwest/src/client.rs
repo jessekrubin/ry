@@ -8,6 +8,7 @@ use crate::types::Timeout;
 #[cfg(feature = "experimental-async")]
 use crate::types::{PyQuery, PyRequestJson};
 use crate::{ClientConfig, RyResponse};
+use cookie::time::Time;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
@@ -27,6 +28,23 @@ use std::{
     task::{Context, Poll},
 };
 
+macro_rules! reqwest_kwargs {
+    () => {
+        let opts = ReqwestKwargsBuilder::new()
+            .headers(headers)
+            .query(query)
+            .body(body)
+            .json(json)
+            .form(form)
+            .multipart(multipart.map(|m| m.to_string()))
+            .timeout(timeout.map(|t| t.into()))
+            .basic_auth(basic_auth)
+            .bearer_auth(bearer_auth)
+            .version(version)
+            .build();
+        self.request(url, method.into(), Some(opts)).await
+    };
+}
 struct AllowThreads<F>(F);
 
 impl<F> Future for AllowThreads<F>
@@ -511,20 +529,6 @@ impl RyClient {
     //     self.request(url, Method::DELETE, kwargs).await
     // }
 
-    #[pyo3(signature = (url, **kwargs))]
-    async fn head(&self, url: UrlLike, kwargs: Option<Py<PyDict>>) -> PyResult<RyAsyncResponse> {
-        let extracted = {
-            Python::attach(|py| {
-                if let Some(kwargs) = kwargs {
-                    Some(kwargs.extract::<ReqwestKwargs>(py).unwrap())
-                } else {
-                    None
-                }
-            })
-        };
-        self.request(url, Method::HEAD, extracted).await
-    }
-
     // #[pyo3(signature = (url, **kwargs))]
     // async fn options(&self, url: UrlLike, kwargs: Option<Py<PyDict>>) -> PyResult<RyAsyncResponse> {
     //     let kwargs2: Option<ReqwestKwargs> = Python::attach(|py| {
@@ -539,6 +543,50 @@ impl RyClient {
     //     // let kwargs = kwargs.map(|k| k.as_ref(py).extract::<ReqwestKwargs>().unwrap());
     //     self.request(url, Method::OPTIONS, kwargs2).await
     // }
+    #[pyo3(
+        signature = (
+            url,
+            *,
+            headers = None,
+            query = None,
+            body = None,
+            json = None,
+            form = None,
+            multipart = None,
+            timeout = None,
+            basic_auth = None,
+            bearer_auth = None,
+            version = None
+        )
+    )]
+    pub(crate) async fn get(
+        &self,
+        url: UrlLike,
+        headers: Option<PyHeadersLike>,
+        query: Option<PyQuery>,
+        body: Option<PyBody>,
+        json: Option<PyRequestJson>,
+        form: Option<String>,
+        multipart: Option<String>,
+        timeout: Option<Timeout>,
+        basic_auth: Option<BasicAuth>,
+        bearer_auth: Option<PyBackedStr>,
+        version: Option<PyHttpVersion>,
+    ) -> PyResult<RyAsyncResponse> {
+        let kw = reqwest_kwargs_from_parts(
+            headers,
+            query,
+            body,
+            json,
+            form,
+            multipart.is_some(),
+            timeout,
+            basic_auth,
+            bearer_auth,
+            version,
+        )?;
+        self.request(url, Method::GET, Some(kw)).await
+    }
 
     #[pyo3(
         signature = (
@@ -572,24 +620,20 @@ impl RyClient {
         bearer_auth: Option<PyBackedStr>,
         version: Option<PyHttpVersion>,
     ) -> PyResult<RyAsyncResponse> {
-        let kw = ReqwestKwargs {
-            headers: headers.map(Into::into),
-            query: query.map(String::from),
-            body: match (body, json, form) {
-                (Some(b), _, _) => match b {
-                    PyBody::Bytes(b) => PyReqwestBody::Bytes(b.into()),
-                    PyBody::Stream(s) => PyReqwestBody::Stream(s),
-                },
-                (_, Some(j), _) => PyReqwestBody::Json(j.into()),
-                (_, _, Some(f)) => PyReqwestBody::Form(f),
-                _ => PyReqwestBody::None,
-            },
-            timeout: timeout.map(Duration::from),
-            basic_auth,
-            bearer_auth,
-            version,
-        };
-        self.request(url, method.into(), Some(kw)).await
+        // macro that does all the below...
+        let opts = ReqwestKwargsBuilder::new()
+            .headers(headers)
+            .query(query)
+            .body(body)
+            .json(json)
+            .form(form)
+            .multipart(multipart.map(|m| m.to_string()))
+            .timeout(timeout.map(|t| t.into()))
+            .basic_auth(basic_auth)
+            .bearer_auth(bearer_auth)
+            .version(version)
+            .build();
+        self.request(url, method.into(), Some(opts)).await
     }
 
     // #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
@@ -755,7 +799,7 @@ impl<'py> IntoPyObject<'py> for &ClientConfig {
 }
 // maybe dont actually need this?
 
-struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+pub(crate) struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
 
 impl<'py> FromPyObject<'_, 'py> for BasicAuth {
     type Error = PyErr;
@@ -763,6 +807,72 @@ impl<'py> FromPyObject<'_, 'py> for BasicAuth {
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
         Ok(Self(tuple.0, tuple.1))
+    }
+}
+
+pub(crate) struct ReqwestKwargsBuilder<const BLOCKING: bool = false> {
+    headers: Option<PyHeadersLike>,
+    query: Option<PyQuery>,
+    body: Option<PyBody>,
+    json: Option<PyRequestJson>,
+    form: Option<String>,
+    multipart: Option<String>,
+    timeout: Option<Timeout>,
+    basic_auth: Option<BasicAuth>,
+    bearer_auth: Option<PyBackedStr>,
+    version: Option<PyHttpVersion>,
+}
+
+macro_rules! impl_reqwest_kwargs_builder_field {
+    ($field:ident, $ty:ty) => {
+        fn $field(self, $field: Option<$ty>) -> Self {
+            Self { $field, ..self }
+        }
+    };
+}
+impl<const BLOCKING: bool> ReqwestKwargsBuilder<BLOCKING> {
+    fn new() -> Self {
+        Self {
+            headers: None,
+            query: None,
+            body: None,
+            json: None,
+            form: None,
+            multipart: None,
+            timeout: None,
+            basic_auth: None,
+            bearer_auth: None,
+            version: None,
+        }
+    }
+    impl_reqwest_kwargs_builder_field!(headers, PyHeadersLike);
+    impl_reqwest_kwargs_builder_field!(query, PyQuery);
+    impl_reqwest_kwargs_builder_field!(body, PyBody);
+    impl_reqwest_kwargs_builder_field!(json, PyRequestJson);
+    impl_reqwest_kwargs_builder_field!(form, String);
+    impl_reqwest_kwargs_builder_field!(multipart, String);
+    impl_reqwest_kwargs_builder_field!(timeout, Timeout);
+    impl_reqwest_kwargs_builder_field!(basic_auth, BasicAuth);
+    impl_reqwest_kwargs_builder_field!(bearer_auth, PyBackedStr);
+    impl_reqwest_kwargs_builder_field!(version, PyHttpVersion);
+
+    fn build(self) -> ReqwestKwargs<BLOCKING> {
+        let body = reqwest_body_from_parts::<BLOCKING>(
+            self.body,
+            self.json,
+            self.form,
+            self.multipart.is_some(),
+        )
+        .unwrap_or(PyReqwestBody::None);
+        ReqwestKwargs {
+            headers: self.headers.map(|h| h.into()),
+            query: self.query.map(|q| q.into()),
+            body,
+            timeout: self.timeout.map(|t| t.into()),
+            basic_auth: self.basic_auth,
+            bearer_auth: self.bearer_auth,
+            version: self.version,
+        }
     }
 }
 
@@ -851,6 +961,62 @@ enum PyReqwestBody {
     None,
 }
 
+fn reqwest_body_from_parts<const BLOCKING: bool>(
+    body: Option<PyBody>,
+    json: Option<PyRequestJson>,
+    form: Option<String>,
+    multipart_present: bool,
+) -> PyResult<PyReqwestBody> {
+    match (body, json, form, multipart_present) {
+        (Some(_), Some(_), _, _)
+        | (Some(_), _, Some(_), _)
+        | (Some(_), _, _, true)
+        | (_, Some(_), Some(_), _)
+        | (_, Some(_), _, true)
+        | (_, _, Some(_), true) => {
+            return py_value_err!("body, json, form, multipart are mutually exclusive");
+        }
+        (Some(body), None, None, false) => match body {
+            PyBody::Bytes(b) => Ok(PyReqwestBody::Bytes(b.into())),
+            PyBody::Stream(s) => {
+                if BLOCKING && s.is_async() {
+                    return py_type_err!("cannot use async stream body with blocking client");
+                }
+                Ok(PyReqwestBody::Stream(s))
+            }
+        },
+        (None, Some(json), None, false) => Ok(PyReqwestBody::Json(json.into())),
+        (None, None, Some(form), false) => Ok(PyReqwestBody::Form(form)),
+        (None, None, None, true) => {
+            pytodo!("multipart not implemented (yet)");
+        }
+        (None, None, None, false) => Ok(PyReqwestBody::None),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn reqwest_kwargs_from_parts<const BLOCKING: bool>(
+    headers: Option<PyHeadersLike>,
+    query: Option<PyQuery>,
+    body: Option<PyBody>,
+    json: Option<PyRequestJson>,
+    form: Option<String>,
+    multipart_present: bool,
+    timeout: Option<Timeout>,
+    basic_auth: Option<BasicAuth>,
+    bearer_auth: Option<PyBackedStr>,
+    version: Option<PyHttpVersion>,
+) -> PyResult<ReqwestKwargs<BLOCKING>> {
+    Ok(ReqwestKwargs {
+        headers: headers.map(Into::into),
+        query: query.map(String::from),
+        body: reqwest_body_from_parts::<BLOCKING>(body, json, form, multipart_present)?,
+        timeout: timeout.map(Duration::from),
+        basic_auth,
+        bearer_auth,
+        version,
+    })
+}
 
 impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;

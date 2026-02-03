@@ -55,7 +55,7 @@ pub(crate) async fn fetch(
     // kwargs: Option<crate::client::ReqwestKwargs>,
 ) -> PyResult<RyAsyncResponse> {
     use ryo3_macro_rules::pytodo;
-//
+    //
     // fetch_client().fetch(url, method, kwargs).await
     pytodo!("Implement async global fetch function")
 }
