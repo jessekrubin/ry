@@ -176,7 +176,7 @@ impl RyTime {
             seconds=0,
             milliseconds=0,
             microseconds=0,
-            nanoseconds=0
+            nanoseconds=0,
         )
     )]
     fn add(
@@ -188,7 +188,13 @@ impl RyTime {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
+        // TODO: wrapping and saturating kwargs
+        // saturating : bool,
+        // wrapping: bool,
     ) -> PyResult<Self> {
+        // if saturating && wrapping {
+        // return py_type_err!("saturating and wrapping are mutually exclusive");
+        // }
         let spkw = SpanKwargs::new()
             .hours(hours)
             .minutes(minutes)
@@ -256,7 +262,7 @@ impl RyTime {
                     .and_then(|dt| dt.into_pyobject(py).map(Bound::into_any))
             }
             (Some(_), true) => {
-                py_type_err!("add accepts either a span-like object or keyword units, not both")
+                py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
             (None, false) => Ok((*self).into_pyobject(py).map(Bound::into_any)?),
         }

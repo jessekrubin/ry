@@ -279,7 +279,7 @@ impl RyDate {
                     .and_then(|dt| dt.into_pyobject(py).map(Bound::into_any))
             }
             (Some(_), true) => {
-                py_type_err!("add accepts either a span-like object or keyword units, not both")
+                py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
             (None, false) => Ok((*self).into_pyobject(py).map(Bound::into_any)?),
         }

@@ -10,6 +10,13 @@ import ry
 class TestZonedDateTime:
     zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/Los_Angeles")
 
+    def test_new_with_no_tz(self) -> None:
+        zdt = ry.ZonedDateTime(2020, 8, 26, 6, 27, 0)
+        tz = zdt.timezone
+        assert isinstance(tz, ry.TimeZone)
+        s = ry.TimeZone.system()
+        assert tz == s
+
     def test_from_parts(self) -> None:
         ts = ry.Timestamp(second=1598448420, nanosecond=0)
         tz = ry.TimeZone("America/Los_Angeles")

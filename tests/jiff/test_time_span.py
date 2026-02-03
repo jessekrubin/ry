@@ -41,6 +41,7 @@ def test_span_dict() -> None:
         "microseconds": 1,
         "nanoseconds": 1,
     }
+    assert s.to_dict() == s.fieldwise()
 
 
 def test_builder_pattern() -> None:
@@ -311,6 +312,15 @@ class TestSpanCompare:
         )
         assert spans_sorted_no_dst == [span3, span1, span2]
 
+    def test_compare_errs(self) -> None:
+        span1 = ry.timespan(months=1)
+        span2 = ry.timespan(days=30)
+        relative = ry.Date(2024, 1, 1).at(1, 2, 3).in_tz("America/New_York")
+        with pytest.raises(
+            ValueError, match="Cannot provide relative with days_are_24_hours=True"
+        ):
+            span1.compare(span2, relative=relative, days_are_24_hours=True)
+
 
 class TestSpanTotal:
     def test_example(self) -> None:
@@ -352,6 +362,14 @@ class TestSpanTotal:
         span = ry.timespan(hours=744)
         relative = ry.Date(2024, 3, 1).in_tz("America/New_York")
         assert span.total("month", relative) == 1.0013888888888889
+
+    def test_cannot_provide_relative_and_days_are_24_hours(self) -> None:  # noqa: N802
+        span = ry.timespan(hours=744)
+        relative = ry.Date(2024, 3, 1).in_tz("America/New_York")
+        with pytest.raises(
+            ValueError, match="Cannot provide relative with days_are_24_hours=True"
+        ):
+            span.total("month", relative, days_are_24_hours=True)
 
     def test_example_infallible_sorting(self) -> None:
         span1 = ry.timespan(hours=79, minutes=10)
@@ -405,3 +423,47 @@ class TestSpanReplace:
             expected = {**s.to_dict(), **{k: replacements[k] for k in keys}}
             assert r.to_dict() == expected
             assert s != r
+
+
+class TestSpanArithmetic:
+    # ==== ABS ====
+    def test_abs_positive(self) -> None:
+        s = ry.timespan(days=5)
+        assert abs(s) == s
+        assert s.abs() == s
+
+    def test_abs_negative(self) -> None:
+        s = ry.timespan(days=-5)
+        assert abs(s) == ry.timespan(days=5)
+        assert s.abs() == ry.timespan(days=5)
+
+    def test_abs_zero(self) -> None:
+        s = ry.timespan()
+        assert abs(s) == s
+        assert s.abs() == s
+
+    # ==== SIGNUM ====
+    @pytest.mark.parametrize(
+        ("span", "expected"),
+        [
+            (ry.timespan(days=5), 1),
+            (ry.timespan(days=-5), -1),
+            (ry.timespan(), 0),
+        ],
+    )
+    def test_signum(self, span: ry.TimeSpan, expected: int) -> None:
+        assert span.signum() == expected
+
+    # ==== ADD ====
+    def test_add(self) -> None:
+        s1 = ry.timespan(days=1, hours=12)
+        s2 = ry.timespan(hours=13, minutes=30)
+        s3 = s1 + s2
+        assert s3 == ry.timespan(days=2, hours=1, minutes=30)
+
+    # ==== SUB ====
+    def test_sub(self) -> None:
+        s1 = ry.timespan(days=2, hours=1, minutes=30)
+        s2 = ry.timespan(hours=13, minutes=30)
+        s3 = s1 - s2
+        assert s3 == ry.timespan(days=1, hours=12)

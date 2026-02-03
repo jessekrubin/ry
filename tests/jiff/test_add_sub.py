@@ -51,5 +51,19 @@ def test_add_sub(
         with pytest.raises(TypeError, match="got an unexpected keyword argument"):
             _ = value.sub(**kw)
         return
+
     assert isinstance(value.add(**kw), type(value))
     assert isinstance(value.sub(**kw), type(value))
+
+    # test that cannot give both a duration and keywords
+    timespan = ry.timespan(**kw)
+    with pytest.raises(
+        TypeError,
+        match="add accepts either a span-like object or keyword units, not both",
+    ):
+        _ = value.add(timespan, **kw)
+    with pytest.raises(
+        TypeError,
+        match="sub accepts either a span-like object or keyword units, not both",
+    ):
+        _ = value.sub(timespan, **kw)
