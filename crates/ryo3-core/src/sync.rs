@@ -43,19 +43,19 @@ impl<T> PyWrite<T> for RwLock<T> {
 
 /// Maps a poisoned `Mutex` error to a Python `RuntimeError`.
 #[must_use]
-fn map_mutex_poison_error<T>(e: &PoisonError<T>) -> PyErr {
-    py_runtime_error!("Mutex poisoned: {e:?}")
+fn map_mutex_poison_error<T>(e: &PoisonError<MutexGuard<'_, T>>) -> PyErr {
+    py_runtime_error!("Mutex poisoned: {e}")
 }
 
 /// Maps a poisoned `RwLock` error to a Python `RuntimeError`.
 #[must_use]
 fn map_rwlock_read_poison_error<T>(e: &PoisonError<RwLockReadGuard<'_, T>>) -> PyErr {
-    py_runtime_error!("RwLock<Read> poisoned: {e:?}")
+    py_runtime_error!("RwLock<Read> poisoned: {e}")
 }
 
 #[must_use]
 fn map_rwlock_write_poison_error<T>(e: &PoisonError<RwLockWriteGuard<'_, T>>) -> PyErr {
-    py_runtime_error!("RwLock<Write> poisoned: {e:?}")
+    py_runtime_error!("RwLock<Write> poisoned: {e}")
 }
 
 // ==========================================================================

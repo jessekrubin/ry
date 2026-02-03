@@ -43,7 +43,13 @@ trait PyGlobPatternsString: PyGlobPatterns {
 impl PyGlob {
     #[new]
     #[pyo3(
-        signature = (pattern, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
+        signature = (
+            pattern,
+            /, *,
+            case_insensitive=false,
+            literal_separator=false,
+            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+        )
     )]
     fn py_new(
         pattern: String,
@@ -141,7 +147,13 @@ pub struct PyGlobSet {
 impl PyGlobSet {
     #[new]
     #[pyo3(
-        signature = (patterns, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
+        signature = (
+            patterns,
+            /, *,
+            case_insensitive=false,
+            literal_separator=false,
+            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+        )
     )]
     fn py_new(
         patterns: StringOrStrings,

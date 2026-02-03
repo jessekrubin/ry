@@ -2,7 +2,9 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 use pyo3::{IntoPyObject, Python};
 
-use crate::pystring_fast_new;
+use crate::pystring::pystring_fast_new_ascii;
+
+const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyDigest<T>(pub T);
@@ -23,7 +25,7 @@ impl<T> From<T> for PyHexDigest<T> {
     }
 }
 
-macro_rules! impl_into_py_object_py_digest {
+macro_rules! impl_into_py_object_py_digest_uint {
     ($t:ty, $size:expr) => {
         impl<'py> IntoPyObject<'py> for PyDigest<$t> {
             type Target = PyBytes;
@@ -40,9 +42,21 @@ macro_rules! impl_into_py_object_py_digest {
     };
 }
 
-impl_into_py_object_py_digest!(u32, 4);
-impl_into_py_object_py_digest!(u64, 8);
-impl_into_py_object_py_digest!(u128, 16);
+impl_into_py_object_py_digest_uint!(u32, 4);
+impl_into_py_object_py_digest_uint!(u64, 8);
+impl_into_py_object_py_digest_uint!(u128, 16);
+
+#[inline]
+fn encode_hex<const N: usize, const S: usize>(bytes: [u8; N]) -> [u8; S] {
+    debug_assert!(S == N * 2, "S != N * 2");
+    let mut out = [0u8; S];
+    for i in 0..N {
+        let b = bytes[i];
+        out[i * 2] = HEX_CHARS_LOWER[(b >> 4) as usize];
+        out[i * 2 + 1] = HEX_CHARS_LOWER[(b & 0x0f) as usize];
+    }
+    out
+}
 
 impl<'py> IntoPyObject<'py> for PyHexDigest<u32> {
     type Target = PyString;
@@ -51,8 +65,10 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u32> {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = format!("{:08x}", self.0);
-        Ok(pystring_fast_new(py, &s, true))
+        let bytes = encode_hex::<4, 8>(self.0.to_be_bytes());
+        #[expect(unsafe_code)]
+        let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
+        Ok(pystring_fast_new_ascii(py, s))
     }
 }
 
@@ -63,8 +79,10 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u64> {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = format!("{:016x}", self.0);
-        Ok(pystring_fast_new(py, &s, true))
+        let bytes = encode_hex::<8, 16>(self.0.to_be_bytes());
+        #[expect(unsafe_code)]
+        let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
+        Ok(pystring_fast_new_ascii(py, s))
     }
 }
 
@@ -75,7 +93,9 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = format!("{:032x}", self.0);
-        Ok(pystring_fast_new(py, &s, true))
+        let bytes = encode_hex::<16, 32>(self.0.to_be_bytes());
+        #[expect(unsafe_code)]
+        let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
+        Ok(pystring_fast_new_ascii(py, s))
     }
 }
