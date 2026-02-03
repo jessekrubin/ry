@@ -739,6 +739,8 @@ class TestTimeSpan:
     @pytest.mark.parametrize(
         ("value", "result"),
         [
+            # self
+            (ry.TimeSpan(seconds=30), pydt.timedelta(seconds=30)),
             # seconds
             (pydt.timedelta(seconds=30), pydt.timedelta(seconds=30)),
             (30, pydt.timedelta(seconds=30)),
@@ -799,6 +801,7 @@ class TestTimeSpan:
             "-4d,00:15:30",
             "30",
             "P0.5D",
+            complex(1, 2),
         ],
     )
     def test_parse_timespan_err(self, value: str) -> None:

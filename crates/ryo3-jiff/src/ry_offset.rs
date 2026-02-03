@@ -362,7 +362,7 @@ impl RyOffset {
                     .map_err(map_py_overflow_err)
             }
             (Some(_), true) => {
-                py_type_err!("add accepts either a span-like object or keyword units, not both")
+                py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
             (None, false) => Ok(*self),
         }

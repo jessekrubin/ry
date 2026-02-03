@@ -9,7 +9,7 @@ use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err, py_value_err};
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -428,9 +428,7 @@ impl RySpan {
         days_are_24_hours: bool,
     ) -> PyResult<i8> {
         if days_are_24_hours && relative.is_some() {
-            return Err(py_value_error!(
-                "Cannot provide relative with days_are_24_hours=True",
-            ));
+            return py_value_err!("Cannot provide relative with days_are_24_hours=True",);
         }
         if let Some(r) = relative {
             let relative_to: jiff::SpanRelativeTo = (&r).into();

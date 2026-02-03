@@ -1,4 +1,5 @@
-use pyo3::{PyErr, PyResult};
+use pyo3::sync::{MutexExt, RwLockExt};
+use pyo3::{PyErr, PyResult, Python};
 use ryo3_macro_rules::py_runtime_error;
 use std::sync::{Mutex, MutexGuard, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
@@ -12,6 +13,18 @@ pub trait PyRead<T> {
 
 pub trait PyWrite<T> {
     fn py_write(&self) -> PyResult<RwLockWriteGuard<'_, T>>;
+}
+
+pub trait PyLockAttached<T> {
+    fn py_lock_attached(&self, py: Python<'_>) -> PyResult<MutexGuard<'_, T>>;
+}
+
+pub trait PyReadAttached<T> {
+    fn py_read_attached(&self, py: Python<'_>) -> PyResult<RwLockReadGuard<'_, T>>;
+}
+
+pub trait PyWriteAttached<T> {
+    fn py_write_attached(&self, py: Python<'_>) -> PyResult<RwLockWriteGuard<'_, T>>;
 }
 
 // ===========================================================================
@@ -37,25 +50,49 @@ impl<T> PyWrite<T> for RwLock<T> {
     }
 }
 
+impl<T> PyLockAttached<T> for Mutex<T> {
+    #[inline]
+    fn py_lock_attached(&self, py: Python<'_>) -> PyResult<MutexGuard<'_, T>> {
+        self.lock_py_attached(py)
+            .map_err(|e| map_mutex_poison_error(&e))
+    }
+}
+
+impl<T> PyReadAttached<T> for RwLock<T> {
+    #[inline]
+    fn py_read_attached(&self, py: Python<'_>) -> PyResult<RwLockReadGuard<'_, T>> {
+        self.read_py_attached(py)
+            .map_err(|e| map_rwlock_read_poison_error(&e))
+    }
+}
+
+impl<T> PyWriteAttached<T> for RwLock<T> {
+    #[inline]
+    fn py_write_attached(&self, py: Python<'_>) -> PyResult<RwLockWriteGuard<'_, T>> {
+        self.write_py_attached(py)
+            .map_err(|e| map_rwlock_write_poison_error(&e))
+    }
+}
+
 // ==========================================================================
 // MAPERR
 // ==========================================================================
 
 /// Maps a poisoned `Mutex` error to a Python `RuntimeError`.
 #[must_use]
-fn map_mutex_poison_error<T>(e: &PoisonError<T>) -> PyErr {
-    py_runtime_error!("Mutex poisoned: {e:?}")
+fn map_mutex_poison_error<T>(e: &PoisonError<MutexGuard<'_, T>>) -> PyErr {
+    py_runtime_error!("Mutex poisoned: {e}")
 }
 
 /// Maps a poisoned `RwLock` error to a Python `RuntimeError`.
 #[must_use]
 fn map_rwlock_read_poison_error<T>(e: &PoisonError<RwLockReadGuard<'_, T>>) -> PyErr {
-    py_runtime_error!("RwLock<Read> poisoned: {e:?}")
+    py_runtime_error!("RwLock<Read> poisoned: {e}")
 }
 
 #[must_use]
 fn map_rwlock_write_poison_error<T>(e: &PoisonError<RwLockWriteGuard<'_, T>>) -> PyErr {
-    py_runtime_error!("RwLock<Write> poisoned: {e:?}")
+    py_runtime_error!("RwLock<Write> poisoned: {e}")
 }
 
 // ==========================================================================
@@ -76,6 +113,10 @@ impl<T, const THROW: bool> RyMutex<T, THROW> {
 impl<T> RyMutex<T, true> {
     pub fn py_lock(&self) -> PyResult<MutexGuard<'_, T>> {
         self.0.py_lock()
+    }
+
+    pub fn py_lock_attached(&self, py: Python<'_>) -> PyResult<MutexGuard<'_, T>> {
+        self.0.py_lock_attached(py)
     }
 }
 
@@ -107,6 +148,14 @@ impl<T> RyRwLock<T, true> {
 
     pub fn py_write(&self) -> PyResult<RwLockWriteGuard<'_, T>> {
         self.0.py_write()
+    }
+
+    pub fn py_read_attached(&self, py: Python<'_>) -> PyResult<RwLockReadGuard<'_, T>> {
+        self.0.py_read_attached(py)
+    }
+
+    pub fn py_write_attached(&self, py: Python<'_>) -> PyResult<RwLockWriteGuard<'_, T>> {
+        self.0.py_write_attached(py)
     }
 }
 
