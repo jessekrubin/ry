@@ -1,5 +1,6 @@
 //! ry `reqwest` based global `fetch` and `fetch_sync` functions
 use crate::RyBlockingResponse;
+use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
 use ryo3_http::PyHttpMethod;
 
 #[cfg(feature = "experimental-async")]
@@ -39,25 +40,22 @@ pub(crate) fn fetch(
     py: Python<'_>,
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs>,
+    kwargs: Option<ReqwestKwargs>,
 ) -> PyResult<Bound<'_, PyAny>> {
     fetch_client().fetch(py, url, method, kwargs)
 }
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction(
-    signature = (url, *, method = PyHttpMethod::GET),
+    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
     text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
 )]
 pub(crate) async fn fetch(
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
-    // kwargs: Option<crate::client::ReqwestKwargs>,
+    kwargs: Option<ReqwestKwargs>,
 ) -> PyResult<RyAsyncResponse> {
-    use ryo3_macro_rules::pytodo;
-    //
-    // fetch_client().fetch(url, method, kwargs).await
-    pytodo!("Implement async global fetch function")
+    fetch_client().fetch(url, method, kwargs).await
 }
 
 #[pyfunction(
@@ -68,7 +66,7 @@ pub(crate) fn fetch_sync(
     py: Python<'_>,
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
-    kwargs: Option<crate::client::ReqwestKwargs<true>>,
+    kwargs: Option<BlockingReqwestKwargs>,
 ) -> PyResult<RyBlockingResponse> {
     fetch_client().fetch_sync(py, url, method, kwargs)
 }

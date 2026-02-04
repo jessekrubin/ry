@@ -569,6 +569,15 @@ impl ClientConfig {
     }
 }
 
+impl<'py> IntoPyObject<'py> for &ClientConfig {
+    type Target = PyDict;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        self.as_pydict(py)
+    }
+}
 // ============================================================================
 // RESOLVE EXTRACT
 // ============================================================================

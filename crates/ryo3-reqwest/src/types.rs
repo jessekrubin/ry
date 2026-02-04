@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use pyo3::pybacked::PyBackedStr;
 use reqwest::header::HeaderValue;
 use ryo3_core::{py_type_err, py_value_error};
 use ryo3_http::PyHttpHeaderValue;
@@ -38,7 +39,31 @@ impl<'py> FromPyObject<'_, 'py> for Timeout {
 }
 
 // ============================================================================
-// USER AGENT EXTRACT
+// BASIC AUTH
+// ============================================================================
+pub(crate) struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+
+impl BasicAuth {
+    pub(crate) fn username(&self) -> &str {
+        &self.0
+    }
+
+    pub(crate) fn password(&self) -> Option<&str> {
+        self.1.as_deref()
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for BasicAuth {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
+        Ok(Self(tuple.0, tuple.1))
+    }
+}
+
+// ============================================================================
+// USER AGENT
 // ============================================================================
 pub(crate) enum PyUserAgent {
     Default,
@@ -98,9 +123,16 @@ impl<'py> FromPyObject<'_, 'py> for PyUserAgent {
 }
 
 // ============================================================================
-// QUERY EXTRACT
+// QUERY
 // ============================================================================
 pub(crate) struct PyQuery(String);
+
+// impl as ref str for PyQuery
+impl AsRef<str> for PyQuery {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
 
 impl From<PyQuery> for String {
     fn from(query: PyQuery) -> Self {
@@ -120,7 +152,7 @@ impl<'py> FromPyObject<'_, 'py> for PyQuery {
 }
 
 // ============================================================================
-// JSON REQUEST EXTRACT
+// JSON REQUEST
 // ============================================================================
 pub(crate) struct PyRequestJson(Vec<u8>);
 

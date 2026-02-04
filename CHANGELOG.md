@@ -7,6 +7,7 @@
   - pendulum/whenever/arrow style `add` and `sub` apis for jiff types
 - misc
   - add clippy `derive_partial_eq_without_eq` lint
+- `pyo3-v0.28.x`
 
 ---
 

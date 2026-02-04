@@ -1,20 +1,15 @@
 use crate::errors::map_reqwest_err;
+use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
 #[cfg(feature = "experimental-async")]
 use crate::response::RyAsyncResponse;
 use crate::response::RyBlockingResponse;
-use crate::types::Timeout;
 use crate::{ClientConfig, RyResponse};
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
-use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
-use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Method, RequestBuilder};
-use ryo3_http::{PyHeadersLike, PyHttpMethod, PyHttpVersion};
-use ryo3_macro_rules::py_value_error;
-use ryo3_macro_rules::{py_type_err, py_value_err, pytodo};
+use ryo3_http::PyHttpMethod;
 use ryo3_url::UrlLike;
-use std::time::Duration;
 
 //============================================================================
 
@@ -664,220 +659,197 @@ impl RyBlockingClient {
     }
 }
 
-impl<'py> IntoPyObject<'py> for &ClientConfig {
-    type Target = PyDict;
-    type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+// pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
+//     headers: Option<HeaderMap>,
+//     query: Option<String>,
+//     body: PyReqwestBody,
+//     timeout: Option<Duration>,
+//     basic_auth: Option<BasicAuth>,
+//     bearer_auth: Option<PyBackedStr>,
+//     version: Option<PyHttpVersion>,
+// }
 
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        self.as_pydict(py)
-    }
-}
-// maybe dont actually need this?
+// pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 
-struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+// impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
+//     /// Apply the kwargs to the `reqwest::RequestBuilder`
+//     #[inline]
+//     fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
+//         let mut req = req;
 
-impl<'py> FromPyObject<'_, 'py> for BasicAuth {
-    type Error = PyErr;
+//         // headers
+//         if let Some(headers) = self.headers {
+//             req = req.headers(headers);
+//         }
 
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
-        Ok(Self(tuple.0, tuple.1))
-    }
-}
+//         // query
+//         if let Some(query) = self.query {
+//             // temp hack we know that the query is already url-encoded so we
+//             // decode it and then re-encode it...
+//             let decoded: Vec<(&str, &str)> = serde_urlencoded::from_str(&query)
+//                 .map_err(|err| py_value_error!("failed to decode query params: {err}"))?;
+//             req = req.query(&decoded);
+//         }
 
-pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
-    headers: Option<HeaderMap>,
-    query: Option<String>,
-    body: PyReqwestBody,
-    timeout: Option<Duration>,
-    basic_auth: Option<BasicAuth>,
-    bearer_auth: Option<PyBackedStr>,
-    version: Option<PyHttpVersion>,
-}
+//         // body
+//         req = match self.body {
+//             PyReqwestBody::Bytes(b) => req.body(b),
+//             PyReqwestBody::Stream(s) => req.body(s),
+//             PyReqwestBody::Json(j) => req.body(j).header(
+//                 reqwest::header::CONTENT_TYPE,
+//                 HeaderValue::from_static("application/json"),
+//             ),
+//             PyReqwestBody::Form(f) => req.body(f).header(
+//                 reqwest::header::CONTENT_TYPE,
+//                 HeaderValue::from_static("application/x-www-form-urlencoded"),
+//             ),
+//             PyReqwestBody::Multipart(_m) => {
+//                 pytodo!("multipart not implemented (yet)");
+//             }
+//             PyReqwestBody::None => req,
+//         };
 
-pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
+//         // timeout
+//         if let Some(timeout) = self.timeout {
+//             req = req.timeout(timeout);
+//         }
 
-impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
-    /// Apply the kwargs to the `reqwest::RequestBuilder`
-    #[inline]
-    fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
-        let mut req = req;
+//         // basic auth
+//         if let Some(BasicAuth(username, password)) = self.basic_auth {
+//             req = req.basic_auth(username, password);
+//         }
 
-        // headers
-        if let Some(headers) = self.headers {
-            req = req.headers(headers);
-        }
+//         // bearer auth
+//         if let Some(token) = self.bearer_auth {
+//             req = req.bearer_auth(token);
+//         }
 
-        // query
-        if let Some(query) = self.query {
-            // temp hack we know that the query is already url-encoded so we
-            // decode it and then re-encode it...
-            let decoded: Vec<(&str, &str)> = serde_urlencoded::from_str(&query)
-                .map_err(|err| py_value_error!("failed to decode query params: {err}"))?;
-            req = req.query(&decoded);
-        }
+//         // version
+//         if let Some(version) = self.version {
+//             req = req.version(version.into());
+//         }
 
-        // body
-        req = match self.body {
-            PyReqwestBody::Bytes(b) => req.body(b),
-            PyReqwestBody::Stream(s) => req.body(s),
-            PyReqwestBody::Json(j) => req.body(j).header(
-                reqwest::header::CONTENT_TYPE,
-                HeaderValue::from_static("application/json"),
-            ),
-            PyReqwestBody::Form(f) => req.body(f).header(
-                reqwest::header::CONTENT_TYPE,
-                HeaderValue::from_static("application/x-www-form-urlencoded"),
-            ),
-            PyReqwestBody::Multipart(_m) => {
-                pytodo!("multipart not implemented (yet)");
-            }
-            PyReqwestBody::None => req,
-        };
+//         Ok(req)
+//     }
+// }
 
-        // timeout
-        if let Some(timeout) = self.timeout {
-            req = req.timeout(timeout);
-        }
+// #[derive(Debug)]
+// enum PyReqwestBody {
+//     Bytes(bytes::Bytes),
+//     Stream(crate::body::PyBodyStream),
+//     Json(Vec<u8>),
+//     Form(String),
+//     #[allow(dead_code)]
+//     Multipart(bool), // placeholder
+//     None,
+// }
 
-        // basic auth
-        if let Some(BasicAuth(username, password)) = self.basic_auth {
-            req = req.basic_auth(username, password);
-        }
+// impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
+//     type Error = PyErr;
 
-        // bearer auth
-        if let Some(token) = self.bearer_auth {
-            req = req.bearer_auth(token);
-        }
+//     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+//         let py = obj.py();
+//         let dict = obj.cast_exact::<PyDict>()?;
 
-        // version
-        if let Some(version) = self.version {
-            req = req.version(version.into());
-        }
+//         // body parts...
+//         let body = dict.get_item(intern!(py, "body"))?;
+//         let json = dict.get_item(intern!(py, "json"))?;
+//         let form = dict.get_item(intern!(py, "form"))?;
+//         let multipart = dict.get_item(intern!(py, "multipart"))?;
 
-        Ok(req)
-    }
-}
+//         // let query: PyResult<Option<String>> =
+//         let query: Option<String> = dict.get_item(intern!(py, "query")).map(|e| {
+//             if let Some(q) = e {
+//                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(q.as_borrowed(), None);
+//                 let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
+//                     .map_err(|err| py_value_error!("failed to serialize query params: {err}"))?;
+//                 // have to annotate the err type...
+//                 Ok::<_, PyErr>(Some(url_encoded_query))
+//             } else {
+//                 Ok(None)
+//             }
+//         })??;
 
-#[derive(Debug)]
-enum PyReqwestBody {
-    Bytes(bytes::Bytes),
-    Stream(crate::body::PyBodyStream),
-    Json(Vec<u8>),
-    Form(String),
-    #[allow(dead_code)]
-    Multipart(bool), // placeholder
-    None,
-}
+//         let body: PyReqwestBody = match (body, json, form, multipart) {
+//             (Some(_), Some(_), _, _)
+//             | (Some(_), _, Some(_), _)
+//             | (Some(_), _, _, Some(_))
+//             | (_, Some(_), Some(_), _)
+//             | (_, Some(_), _, Some(_))
+//             | (_, _, Some(_), Some(_)) => {
+//                 return py_value_err!("body, json, form, multipart are mutually exclusive");
+//             }
+//             (Some(body), None, None, None) => {
+//                 let py_body = body.extract::<crate::body::PyBody>()?;
+//                 match py_body {
+//                     crate::body::PyBody::Bytes(bs) => PyReqwestBody::Bytes(bs.into_inner()),
+//                     crate::body::PyBody::Stream(s) => {
+//                         // using an async stream with blocking client is a no-go (yo)
+//                         if BLOCKING {
+//                             if s.is_async() {
+//                                 return py_type_err!(
+//                                     "cannot use async stream body with blocking client"
+//                                 );
+//                             }
+//                             PyReqwestBody::Stream(s)
+//                         } else {
+//                             PyReqwestBody::Stream(s)
+//                         }
+//                     }
+//                 }
+//             }
+//             (None, Some(json), None, None) => {
+//                 let b = ryo3_json::to_vec(&json)?;
+//                 PyReqwestBody::Json(b)
+//             }
+//             (None, None, Some(form), None) => {
+//                 use ryo3_macro_rules::py_value_error;
 
-impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
-    type Error = PyErr;
+//                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
+//                 let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
+//                     .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
+//                 PyReqwestBody::Form(url_encoded_form)
+//             }
+//             (None, None, None, Some(_multipart)) => {
+//                 pytodo!("multipart not implemented (yet)")
+//                 // (None, None, None, Some(true))
+//             }
+//             (None, None, None, None) => PyReqwestBody::None,
+//         };
 
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let py = obj.py();
-        let dict = obj.cast_exact::<PyDict>()?;
-
-        // body parts...
-        let body = dict.get_item(intern!(py, "body"))?;
-        let json = dict.get_item(intern!(py, "json"))?;
-        let form = dict.get_item(intern!(py, "form"))?;
-        let multipart = dict.get_item(intern!(py, "multipart"))?;
-
-        // let query: PyResult<Option<String>> =
-        let query: Option<String> = dict.get_item(intern!(py, "query")).map(|e| {
-            if let Some(q) = e {
-                let py_any_serializer = ryo3_serde::PyAnySerializer::new(q.as_borrowed(), None);
-                let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
-                    .map_err(|err| py_value_error!("failed to serialize query params: {err}"))?;
-                // have to annotate the err type...
-                Ok::<_, PyErr>(Some(url_encoded_query))
-            } else {
-                Ok(None)
-            }
-        })??;
-
-        let body: PyReqwestBody = match (body, json, form, multipart) {
-            (Some(_), Some(_), _, _)
-            | (Some(_), _, Some(_), _)
-            | (Some(_), _, _, Some(_))
-            | (_, Some(_), Some(_), _)
-            | (_, Some(_), _, Some(_))
-            | (_, _, Some(_), Some(_)) => {
-                return py_value_err!("body, json, form, multipart are mutually exclusive");
-            }
-            (Some(body), None, None, None) => {
-                let py_body = body.extract::<crate::body::PyBody>()?;
-                match py_body {
-                    crate::body::PyBody::Bytes(bs) => PyReqwestBody::Bytes(bs.into_inner()),
-                    crate::body::PyBody::Stream(s) => {
-                        // using an async stream with blocking client is a no-go (yo)
-                        if BLOCKING {
-                            if s.is_async() {
-                                return py_type_err!(
-                                    "cannot use async stream body with blocking client"
-                                );
-                            }
-                            PyReqwestBody::Stream(s)
-                        } else {
-                            PyReqwestBody::Stream(s)
-                        }
-                    }
-                }
-            }
-            (None, Some(json), None, None) => {
-                let b = ryo3_json::to_vec(&json)?;
-                PyReqwestBody::Json(b)
-            }
-            (None, None, Some(form), None) => {
-                use ryo3_macro_rules::py_value_error;
-
-                let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
-                let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
-                    .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
-                PyReqwestBody::Form(url_encoded_form)
-            }
-            (None, None, None, Some(_multipart)) => {
-                pytodo!("multipart not implemented (yet)");
-
-                // (None, None, None, Some(true))
-            }
-            (None, None, None, None) => PyReqwestBody::None,
-        };
-
-        let timeout = dict
-            .get_item(intern!(py, "timeout"))?
-            .map(|t| t.extract::<Timeout>())
-            .transpose()?
-            .map(Duration::from);
-        let headers = dict
-            .get_item(intern!(py, "headers"))?
-            .map(|h| h.extract::<PyHeadersLike>())
-            .transpose()?
-            .map(HeaderMap::try_from)
-            .transpose()?;
-        let bearer_auth: Option<PyBackedStr> = dict
-            .get_item(intern!(py, "bearer_auth"))?
-            .map(|b| b.extract())
-            .transpose()?;
-        let version: Option<PyHttpVersion> = dict
-            .get_item(intern!(py, "version"))?
-            .map(|v| v.extract())
-            .transpose()?;
-        Ok(Self {
-            body,
-            headers,
-            query,
-            timeout,
-            basic_auth: dict
-                .get_item(intern!(obj.py(), "basic_auth"))?
-                .map(|b| b.extract())
-                .transpose()?,
-            bearer_auth,
-            version,
-        })
-    }
-}
+//         let timeout = dict
+//             .get_item(intern!(py, "timeout"))?
+//             .map(|t| t.extract::<Timeout>())
+//             .transpose()?
+//             .map(Duration::from);
+//         let headers = dict
+//             .get_item(intern!(py, "headers"))?
+//             .map(|h| h.extract::<PyHeadersLike>())
+//             .transpose()?
+//             .map(HeaderMap::try_from)
+//             .transpose()?;
+//         let bearer_auth: Option<PyBackedStr> = dict
+//             .get_item(intern!(py, "bearer_auth"))?
+//             .map(|b| b.extract())
+//             .transpose()?;
+//         let version: Option<PyHttpVersion> = dict
+//             .get_item(intern!(py, "version"))?
+//             .map(|v| v.extract())
+//             .transpose()?;
+//         Ok(Self {
+//             body,
+//             headers,
+//             query,
+//             timeout,
+//             basic_auth: dict
+//                 .get_item(intern!(obj.py(), "basic_auth"))?
+//                 .map(|b| b.extract())
+//                 .transpose()?,
+//             bearer_auth,
+//             version,
+//         })
+//     }
+// }
 
 // ============================================================================
 // PURGATORY
