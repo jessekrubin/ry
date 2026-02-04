@@ -1490,7 +1490,7 @@ dependencies = [
 [[package]]
 name = "pyo3"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#f0c1523b69fd86f2a0e263d1b5830335912f574a"
+source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
 dependencies = [
  "inventory",
  "jiff",
@@ -1523,7 +1523,7 @@ dependencies = [
 [[package]]
 name = "pyo3-build-config"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#f0c1523b69fd86f2a0e263d1b5830335912f574a"
+source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
 dependencies = [
  "target-lexicon",
 ]
@@ -1531,7 +1531,7 @@ dependencies = [
 [[package]]
 name = "pyo3-ffi"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#f0c1523b69fd86f2a0e263d1b5830335912f574a"
+source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
 dependencies = [
  "libc",
  "pyo3-build-config",
@@ -1540,7 +1540,7 @@ dependencies = [
 [[package]]
 name = "pyo3-macros"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#f0c1523b69fd86f2a0e263d1b5830335912f574a"
+source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
 dependencies = [
  "proc-macro2",
  "pyo3-macros-backend",
@@ -1551,7 +1551,7 @@ dependencies = [
 [[package]]
 name = "pyo3-macros-backend"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#f0c1523b69fd86f2a0e263d1b5830335912f574a"
+source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
 dependencies = [
  "heck",
  "proc-macro2",
