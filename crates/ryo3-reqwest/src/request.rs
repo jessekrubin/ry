@@ -113,18 +113,6 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
             .get_item(intern!(py, "query"))?
             .map(|q| q.extract::<PyQuery>())
             .transpose()?;
-        // .map(|e| {
-        //     if let Some(q) = e {
-        //         let py_any_serializer = ryo3_serde::PyAnySerializer::new(q.as_borrowed(), None);
-        //         let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
-        //             .map_err(|err| py_value_error!("failed to serialize query params: {err}"))?;
-        //         // have to annotate the err type...
-        //         Ok::<_, PyErr>(Some(url_encoded_query))
-        //     } else {
-        //         Ok(None)
-        //     }
-        // })??;
-
         let body: PyReqwestBody = match (body, json, form, multipart) {
             (Some(_), Some(_), _, _)
             | (Some(_), _, Some(_), _)
@@ -158,8 +146,6 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
                 PyReqwestBody::Json(b)
             }
             (None, None, Some(form), None) => {
-                use ryo3_macro_rules::py_value_error;
-
                 let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
                 let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
                     .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
@@ -167,7 +153,6 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
             }
             (None, None, None, Some(_multipart)) => {
                 pytodo!("multipart not implemented (yet)")
-                // (None, None, None, Some(true))
             }
             (None, None, None, None) => PyReqwestBody::None,
         };

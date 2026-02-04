@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use reqwest::header::HeaderValue;
-use ryo3_core::{py_type_err, py_value_error};
+use ryo3_core::{py_type_err, py_type_error, py_value_error};
 use ryo3_http::PyHttpHeaderValue;
 use ryo3_std::time::PyDuration;
 use std::time::Duration;
@@ -146,7 +146,7 @@ impl<'py> FromPyObject<'_, 'py> for PyQuery {
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let py_any_serializer = ryo3_serde::PyAnySerializer::new(obj, None);
         let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
-            .map_err(|err| py_value_error!("failed to serialize query params: {err}"))?;
+            .map_err(|err| py_type_error!("failed to serialize query params: {err}"))?;
         Ok(Self(url_encoded_query))
     }
 }
