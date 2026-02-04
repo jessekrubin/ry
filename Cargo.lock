@@ -1490,7 +1490,7 @@ dependencies = [
 [[package]]
 name = "pyo3"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
+source = "git+https://github.com/pyo3/pyo3.git#12d57fe6a3e061b99a7ac46cbc6f4d1f54d32edc"
 dependencies = [
  "inventory",
  "jiff",
@@ -1508,8 +1508,8 @@ dependencies = [
 
 [[package]]
 name = "pyo3-async-runtimes"
-version = "0.27.0"
-source = "git+https://github.com/PyO3/pyo3-async-runtimes?branch=dependabot%2Fcargo%2Fpyo3-0.28#6b560cd6c96c236cd228585fc357b4d6fdc0bc2c"
+version = "0.28.0"
+source = "git+https://github.com/PyO3/pyo3-async-runtimes#6320af5dcb62e5b4d1556fdb5ed81fb06a4fadf0"
 dependencies = [
  "async-channel",
  "futures-channel",
@@ -1523,7 +1523,7 @@ dependencies = [
 [[package]]
 name = "pyo3-build-config"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
+source = "git+https://github.com/pyo3/pyo3.git#12d57fe6a3e061b99a7ac46cbc6f4d1f54d32edc"
 dependencies = [
  "target-lexicon",
 ]
@@ -1531,7 +1531,7 @@ dependencies = [
 [[package]]
 name = "pyo3-ffi"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
+source = "git+https://github.com/pyo3/pyo3.git#12d57fe6a3e061b99a7ac46cbc6f4d1f54d32edc"
 dependencies = [
  "libc",
  "pyo3-build-config",
@@ -1540,7 +1540,7 @@ dependencies = [
 [[package]]
 name = "pyo3-macros"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
+source = "git+https://github.com/pyo3/pyo3.git#12d57fe6a3e061b99a7ac46cbc6f4d1f54d32edc"
 dependencies = [
  "proc-macro2",
  "pyo3-macros-backend",
@@ -1551,7 +1551,7 @@ dependencies = [
 [[package]]
 name = "pyo3-macros-backend"
 version = "0.28.0"
-source = "git+https://github.com/pyo3/pyo3.git#7ebaac6da2759c75c1e573e7beb054275933ef26"
+source = "git+https://github.com/pyo3/pyo3.git#12d57fe6a3e061b99a7ac46cbc6f4d1f54d32edc"
 dependencies = [
  "heck",
  "proc-macro2",
