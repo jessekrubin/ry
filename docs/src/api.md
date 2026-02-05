@@ -84,7 +84,7 @@ from ry.ryo3._flate2 import gzip_encode as gzip_encode
 from ry.ryo3._flate2 import is_gzipped as is_gzipped
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
-from ry.ryo3._glob import Pattern as Pattern
+from ry.ryo3._glob import GlobPattern as GlobPattern
 from ry.ryo3._glob import glob as glob
 from ry.ryo3._globset import Glob as Glob
 from ry.ryo3._globset import GlobSet as GlobSet
@@ -885,7 +885,14 @@ def glob(
 
 
 @t.final
-class Pattern:
+class GlobPattern:
+    """Glob pattern matching ~ `::glob::Pattern`
+
+    [DOCS](https://docs.rs/glob/latest/glob/struct.Pattern.html)
+
+    Prefer the `::globset` wrappers (`Glob` | `Globset` | `Globster`).
+    """
+
     def __init__(
         self,
         pattern: str,
