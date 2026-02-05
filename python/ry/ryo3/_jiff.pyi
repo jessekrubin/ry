@@ -230,11 +230,13 @@ class Date(
     # =========================================================================
     @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> Date: ...
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         years: int = 0,
         months: int = 0,
@@ -248,14 +250,16 @@ class Date(
         nanoseconds: int = 0,
     ) -> Date: ...
     @t.overload
-    def sub(self, other: Date) -> TimeSpan: ...
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> Date: ...
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         years: int = 0,
         months: int = 0,
@@ -269,10 +273,12 @@ class Date(
         nanoseconds: int = 0,
     ) -> Date: ...
     def saturating_add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self,
+        other: TimeSpan | SignedDuration | Duration | pydt.timedelta,
     ) -> Date: ...
     def saturating_sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self,
+        other: TimeSpan | SignedDuration | Duration | pydt.timedelta,
     ) -> Date: ...
 
     # =========================================================================
@@ -433,11 +439,13 @@ class Time(
     # =========================================================================
     @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         hours: int = 0,
         minutes: int = 0,
@@ -447,14 +455,16 @@ class Time(
         nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: Time) -> TimeSpan: ...
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         hours: int = 0,
         minutes: int = 0,
@@ -618,11 +628,13 @@ class DateTime(
     # =========================================================================
     @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         years: int = 0,
         months: int = 0,
@@ -636,14 +648,16 @@ class DateTime(
         nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: t.Self) -> TimeSpan: ...
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         years: int = 0,
         months: int = 0,
@@ -1289,11 +1303,13 @@ class Timestamp(
     # =========================================================================
     @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         hours: int = 0,
         minutes: int = 0,
@@ -1303,14 +1319,16 @@ class Timestamp(
         nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: t.Self) -> TimeSpan: ...
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         hours: int = 0,
         minutes: int = 0,
@@ -1646,11 +1664,13 @@ class ZonedDateTime(
     # =========================================================================
     @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         years: int = 0,
         months: int = 0,
@@ -1664,14 +1684,16 @@ class ZonedDateTime(
         nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: t.Self) -> TimeSpan: ...
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         years: int = 0,
         months: int = 0,
@@ -1934,11 +1956,13 @@ class Offset(
     # =========================================================================
     @t.overload
     def add(
-        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
+        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         hours: int = 0,
         minutes: int = 0,
@@ -1949,11 +1973,13 @@ class Offset(
     ) -> t.Self: ...
     @t.overload
     def sub(
-        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
+        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         hours: int = 0,
         minutes: int = 0,

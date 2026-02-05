@@ -8,6 +8,7 @@ mod fetch;
 mod form_data;
 mod proxy;
 mod pyo3_json_bytes;
+mod request;
 mod response;
 mod response_head;
 mod response_stream;

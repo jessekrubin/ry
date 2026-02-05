@@ -300,7 +300,7 @@ impl RyZoned {
     #[pyo3(
         signature=(
             other=None,
-            *,
+            /, *,
             years=0,
             months=0,
             weeks=0,
@@ -359,7 +359,7 @@ impl RyZoned {
     #[pyo3(
         signature=(
             other=None,
-            *,
+            /, *,
             years=0,
             months=0,
             weeks=0,

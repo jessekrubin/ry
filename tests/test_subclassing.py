@@ -40,7 +40,7 @@ _RY_TYPES: list[type] = [
     ry.Metadata,
     ry.Offset,
     ry.OffsetRound,
-    ry.Pattern,
+    ry.GlobPattern,
     ry.Proxy,
     ry.ReadDir,
     ry.Regex,

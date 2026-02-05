@@ -190,7 +190,7 @@ impl RyTimestamp {
     #[pyo3(
         signature=(
             other=None,
-            *,
+            /, *,
             hours=0,
             minutes=0,
             seconds=0,
@@ -237,7 +237,7 @@ impl RyTimestamp {
     #[pyo3(
         signature=(
             other=None,
-            *,
+            /, *,
             hours=0,
             minutes=0,
             seconds=0,

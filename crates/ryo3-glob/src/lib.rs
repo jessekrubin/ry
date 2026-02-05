@@ -1,14 +1,14 @@
 #![doc = include_str!("../README.md")]
 mod pattern;
 
-use crate::pattern::PyPattern;
+use crate::pattern::PyGlobPattern;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyModule, PyType};
 use ryo3_core::RyMutex;
-use ryo3_macro_rules::py_value_err;
-use ryo3_macro_rules::py_value_error;
+use ryo3_core::py_value_err;
+use ryo3_core::py_value_error;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -285,7 +285,7 @@ fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
     }
 }
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyPattern>()?;
+    m.add_class::<PyGlobPattern>()?;
     m.add_function(wrap_pyfunction!(py_glob, m)?)?;
     Ok(())
 }

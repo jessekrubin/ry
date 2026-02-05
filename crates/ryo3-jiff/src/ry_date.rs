@@ -169,7 +169,7 @@ impl RyDate {
     #[pyo3(
         signature=(
             other=None,
-            *,
+            /, *,
             years=0,
             months=0,
             weeks=0,
@@ -228,7 +228,7 @@ impl RyDate {
     #[pyo3(
         signature=(
             other=None,
-            *,
+            /, *,
             years=0,
             months=0,
             weeks=0,

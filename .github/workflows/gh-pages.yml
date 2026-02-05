@@ -3,8 +3,7 @@ name: gh-pages
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -22,17 +21,22 @@ jobs:
       pull-requests: write # To create a PR from that branch
     steps:
       - uses: actions/checkout@v6
+
       - uses: dtolnay/rust-toolchain@nightly
+
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+
       - name: Setup mdBook
         uses: taiki-e/install-action@v2
         with:
           tool: mdbook,lychee
+
       - name: build-docs
         run: cd docs && mdbook build && lychee book --exclude=http://www.adobe.com/
+
       - name: upload-artifact
         uses: actions/upload-artifact@v6
         with:
@@ -45,3 +49,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/book
+          force_orphan: true

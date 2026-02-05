@@ -12,6 +12,8 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
 use std::time::Duration;
 
+use crate::time::duration::arithmetic::DurationLike;
+
 const NANOS_PER_SEC: u32 = 1_000_000_000;
 const SECS_PER_MINUTE: u64 = 60;
 const MINS_PER_HOUR: u64 = 60;
@@ -239,47 +241,25 @@ impl PyDuration {
         }
     }
 
-    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(d) = other.cast_exact::<Self>() {
-            let rs_dur = d.get();
-            self.0
-                .checked_add(rs_dur.0)
-                .map(Self::from)
-                .ok_or_else(|| py_overflow_error!("overflow in Duration addition"))
-        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
-            let rs_dur: Duration = d.extract()?;
-            self.0
-                .checked_add(rs_dur)
-                .map(Self::from)
-                .ok_or_else(|| py_overflow_error!("overflow in Duration addition"))
-        } else {
-            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
-        }
+    fn __add__(&self, other: DurationLike) -> PyResult<Self> {
+        self.0
+            .checked_add(other.into())
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow in Duration addition"))
     }
 
-    fn __radd__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn __radd__(&self, other: DurationLike) -> PyResult<Self> {
         self.__add__(other)
     }
 
-    fn __sub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(d) = other.cast_exact::<Self>() {
-            let rs_dur = d.get();
-            self.0
-                .checked_sub(rs_dur.0)
-                .map(Self::from)
-                .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
-        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
-            let rs_dur: Duration = d.extract()?;
-            self.0
-                .checked_sub(rs_dur)
-                .map(Self::from)
-                .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
-        } else {
-            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
-        }
+    fn __sub__(&self, other: DurationLike) -> PyResult<Self> {
+        self.0
+            .checked_sub(other.into())
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
     }
 
-    fn __rsub__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn __rsub__(&self, other: DurationLike) -> PyResult<Self> {
         self.__sub__(other)
     }
 
@@ -539,7 +519,6 @@ impl PyDuration {
             .checked_mul(SECS_PER_WEEK)
             .map(|v| Duration::from_secs(v).into())
             .ok_or_else(|| py_overflow_error!("overflow in Duration::from_weeks"))
-        // Ok(Self(Duration::from_secs(total)))
     }
 
     #[staticmethod]
@@ -952,4 +931,40 @@ impl From<PyDuration> for Option<Duration> {
     fn from(d: PyDuration) -> Self {
         Some(d.0)
     }
+}
+
+mod arithmetic {
+    use pyo3::prelude::*;
+    use ryo3_core::py_type_err;
+    use std::time::Duration;
+
+    use crate::time::PyDuration;
+
+    pub(super) struct DurationLike(Duration);
+
+    impl From<DurationLike> for Duration {
+        fn from(d: DurationLike) -> Self {
+            d.0
+        }
+    }
+
+    impl<'py> FromPyObject<'_, 'py> for DurationLike {
+        type Error = PyErr;
+        fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+            if let Ok(inst) = obj.cast_exact::<PyDuration>() {
+                let dur = inst.get();
+                Ok(Self(dur.0))
+            } else if let Ok(inst) = obj.cast::<pyo3::types::PyDelta>() {
+                let dur: Duration = inst.extract()?;
+                Ok(Self(dur))
+            } else {
+                py_type_err!("unsupported operand type(s) for Duration-like object")
+            }
+        }
+    }
+
+    // TODO: do other dunder impls
+    // - __mul__
+    // - __truediv__
+    //
 }

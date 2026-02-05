@@ -1,18 +1,18 @@
 use glob::MatchOptions;
 use pyo3::types::{PyDict, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, prelude::*};
-use ryo3_macro_rules::{py_type_err, py_value_error};
+use ryo3_core::{PyAsciiString, py_type_err, py_value_error};
 use std::path::PathBuf;
 
-#[pyclass(name = "Pattern", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "GlobPattern", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
-pub struct PyPattern {
+pub struct PyGlobPattern {
     pattern: glob::Pattern,
     options: MatchOptions,
 }
 
-impl PyPattern {
+impl PyGlobPattern {
     fn build_options_with_overrides(
         &self,
         case_sensitive: Option<bool>,
@@ -29,7 +29,7 @@ impl PyPattern {
     }
 }
 
-impl From<glob::Pattern> for PyPattern {
+impl From<glob::Pattern> for PyGlobPattern {
     fn from(value: glob::Pattern) -> Self {
         Self {
             pattern: value,
@@ -43,7 +43,7 @@ impl From<glob::Pattern> for PyPattern {
 }
 
 #[pymethods]
-impl PyPattern {
+impl PyGlobPattern {
     #[new]
     #[pyo3(
         signature = (
@@ -109,8 +109,8 @@ impl PyPattern {
         self.pattern.to_string()
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self:?}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self:?}").into()
     }
 
     #[staticmethod]
@@ -216,9 +216,9 @@ impl PyPattern {
     }
 }
 
-impl std::fmt::Debug for PyPattern {
+impl std::fmt::Debug for PyGlobPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Pattern(\"{}\"", self.pattern)?;
+        write!(f, "GlobPattern(\"{}\"", self.pattern)?;
         if !self.options.case_sensitive {
             write!(f, ", case_sensitive=False")?;
         }
