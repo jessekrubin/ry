@@ -79,6 +79,10 @@ impl PyUrl {
         format!("{self}")
     }
 
+    fn __dbg__(&self) -> String {
+        format!("{self:?}")
+    }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = std::hash::DefaultHasher::new();
         self.0.hash(&mut hasher);
