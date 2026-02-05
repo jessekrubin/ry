@@ -2045,6 +2045,7 @@ version = "0.0.83"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
+ "ryo3-core",
  "ryo3-jiter",
  "ryo3-serde",
  "serde-transcode",

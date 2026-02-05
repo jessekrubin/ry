@@ -56,10 +56,74 @@ class URL(FromStr, ToString, _Parse):
     def path(self) -> str: ...
     @property
     def path_segments(self) -> tuple[str, ...]: ...
+
+    # /// Return the port number for this URL, if any.
+    # ///
+    # /// Note that default port numbers are never reflected by the serialization,
+    # /// use the `port_or_known_default()` method if you want a default port number returned.
+    # ///
+    # /// # Examples
+    # ///
+    # /// ```
+    # /// use url::Url;
+    # /// # use url::ParseError;
+    # ///
+    # /// # fn run() -> Result<(), ParseError> {
+    # /// let url = Url::parse("https://example.com")?;
+    # /// assert_eq!(url.port(), None);
+    # ///
+    # /// let url = Url::parse("https://example.com:443/")?;
+    # /// assert_eq!(url.port(), None);
+    # ///
+    # /// let url = Url::parse("ssh://example.com:22")?;
+    # /// assert_eq!(url.port(), Some(22));
+    # /// # Ok(())
+    # /// # }
+    # /// # run().unwrap();
+    # /// ```
     @property
-    def port(self) -> int | None: ...
+    def port(self) -> int | None:
+        """
+        Return the port number for this URL, if any.
+
+        Note: the default port numbers are never reflected by the serialization,
+        use the `port_or_known_default` if you want a default port number returned.
+
+        Default port numbers:
+            "http"  | "ws"  => 80
+            "https" | "wss" => 443,
+            "ftp"           => 21
+
+        Examples:
+            >>> from ry import URL
+            >>> assert URL("https://rotatingsandwiches.com:3000").port == 3000
+            >>> assert URL("https://rotatingsandwiches.com").port is None
+            >>> assert URL("https://rotatingsandwiches.com:443/").port is None
+            >>> assert URL("ssh://rotatingsandwiches.com:22").port == 22
+
+        """
+
     @property
-    def port_or_known_default(self) -> int | None: ...
+    def port_or_known_default(self) -> int | None:
+        """Return the port number, or the default port number if known.
+
+        Default port numbers:
+            "http"  | "ws"  => 80
+            "https" | "wss" => 443,
+            "ftp"           => 21
+
+        Examples:
+            >>> from ry import URL
+            >>> URL("https://rotatingsandwiches.com:3000").port_or_known_default
+            3000
+            >>> URL("https://rotatingsandwiches.com").port_or_known_default
+            443
+            >>> URL("https://rotatingsandwiches.com:443/").port_or_known_default
+            443
+            >>> URL("ssh://rotatingsandwiches.com:22").port_or_known_default
+            22
+
+        """
     @property
     def query(self) -> str | None: ...
     @property
@@ -85,26 +149,6 @@ class URL(FromStr, ToString, _Parse):
     def is_special(self) -> bool: ...
     def join(self, *parts: str) -> URL: ...
     def make_relative(self, other: URL) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_host(self, host: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_ip_host(
-        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
-    ) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_password(self, password: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_path(self, path: str) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_port(self, port: int | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_query(self, query: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_scheme(self, scheme: str) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
-    def replace_username(self, username: str) -> t.Self: ...
     def socket_addrs(
         self, default_port_number: int | None = None
     ) -> list[SocketAddr]: ...
@@ -147,3 +191,27 @@ class URL(FromStr, ToString, _Parse):
     def __gt__(self, other: t.Self) -> bool: ...
     def __ge__(self, other: t.Self) -> bool: ...
     def __hash__(self) -> int: ...
+
+    # =========================================================================
+    # DEPRECATED
+    # =========================================================================
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_host(self, host: str | None = None) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_ip_host(
+        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
+    ) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_password(self, password: str | None = None) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_path(self, path: str) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_port(self, port: int | None = None) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_query(self, query: str | None = None) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_scheme(self, scheme: str) -> t.Self: ...
+    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    def replace_username(self, username: str) -> t.Self: ...

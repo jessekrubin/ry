@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.83 [unreleased]
+## v0.0.83 [2026-02-05]
 
 - pyo3: updated `pyo3` to `0.28.x`
 - `ryo3-jiff`
