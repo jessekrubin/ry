@@ -56,31 +56,6 @@ class URL(FromStr, ToString, _Parse):
     def path(self) -> str: ...
     @property
     def path_segments(self) -> tuple[str, ...]: ...
-
-    # /// Return the port number for this URL, if any.
-    # ///
-    # /// Note that default port numbers are never reflected by the serialization,
-    # /// use the `port_or_known_default()` method if you want a default port number returned.
-    # ///
-    # /// # Examples
-    # ///
-    # /// ```
-    # /// use url::Url;
-    # /// # use url::ParseError;
-    # ///
-    # /// # fn run() -> Result<(), ParseError> {
-    # /// let url = Url::parse("https://example.com")?;
-    # /// assert_eq!(url.port(), None);
-    # ///
-    # /// let url = Url::parse("https://example.com:443/")?;
-    # /// assert_eq!(url.port(), None);
-    # ///
-    # /// let url = Url::parse("ssh://example.com:22")?;
-    # /// assert_eq!(url.port(), Some(22));
-    # /// # Ok(())
-    # /// # }
-    # /// # run().unwrap();
-    # /// ```
     @property
     def port(self) -> int | None:
         """
@@ -90,11 +65,12 @@ class URL(FromStr, ToString, _Parse):
         use the `port_or_known_default` if you want a default port number returned.
 
         Default port numbers:
-            "http"  | "ws"  => 80
-            "https" | "wss" => 443,
-            "ftp"           => 21
+            - `http`  | `ws`  => `80`
+            - `https` | `wss` => `443`
+            - `ftp`           => `21`
 
         Examples:
+
             >>> from ry import URL
             >>> assert URL("https://rotatingsandwiches.com:3000").port == 3000
             >>> assert URL("https://rotatingsandwiches.com").port is None
@@ -108,11 +84,12 @@ class URL(FromStr, ToString, _Parse):
         """Return the port number, or the default port number if known.
 
         Default port numbers:
-            "http"  | "ws"  => 80
-            "https" | "wss" => 443,
-            "ftp"           => 21
+            - `http`  | `ws`  => `80`
+            - `https` | `wss` => `443`
+            - `ftp`           => `21`
 
         Examples:
+
             >>> from ry import URL
             >>> URL("https://rotatingsandwiches.com:3000").port_or_known_default
             3000
