@@ -13,20 +13,13 @@ repl:
 # dev run build + tests
 dev: develop test
 
-# dev run build + tests (with uv)
-dev-uv: develop-uv pytest-uv
-
 # uv sync
 sync:
     uv sync --inexact
 
 # maturin develop
 develop:
-    maturin develop --features "mimalloc"
-
-# maturin develop (with uv)
-develop-uv:
-    uv run maturin develop --features "mimalloc" --uv
+    uv run maturin develop --features "mimalloc"
 
 # maturin develop (shorthand)
 mat *ARGS:
@@ -38,7 +31,7 @@ cargo-test:
 
 # build
 build: cargo-test
-    maturin build
+    uv run maturin build
 
 # build release
 build-release:
@@ -56,10 +49,6 @@ doctest:
 pytest +ARGS='python tests':
     uv run pytest --benchmark-skip --doctest-modules --doctest-glob="*.pyi" {{ ARGS }}
 
-# run pytest
-pytest-uv:
-    uv run pytest --benchmark-skip
-
 # run pytest (printing captured output)
 pytestv:
     uv run pytest --benchmark-skip -rP
@@ -69,11 +58,11 @@ test: pytest
 
 # test ry package
 test-release: build-release
-    pytest
+    uv run pytest
 
 # benchmark ry python package
 bench: build-release
-    pytest -vv
+    uv run pytest -vv
 
 # ci rust checks
 ci:
@@ -210,7 +199,7 @@ pip-compile:
     uv pip compile requirements.dev.in -n > requirements.dev.txt
 
 _gen_init:
-    python scripts/gen.py > python/ry/__init__.py
+    uv run python scripts/gen.py > python/ry/__init__.py
 
 _gen-py: _gen_init fmtpy
 
@@ -227,7 +216,7 @@ cargo-doc:
 
 # generate depgraph for docs
 depgraph-svg:
-    python scripts/dep-graph-mmd.py | mmdc -i - -o docs/src/assets/dep-graph.svg -t dark -b transparent
+    uv run python scripts/dep-graph-mmd.py | mmdc -i - -o docs/src/assets/dep-graph.svg -t dark -b transparent
 
 # =====================================================================
 # CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN ~ CLEAN
