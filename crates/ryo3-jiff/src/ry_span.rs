@@ -373,7 +373,7 @@ impl RySpan {
         }
     }
 
-    #[expect(clippy::needless_pass_by_value)]
+    // #[expect(clippy::needless_pass_by_value)]
     fn __add__<'py>(
         &self,
         py: Python<'py>,
@@ -382,7 +382,7 @@ impl RySpan {
         other.add_span(py, self)
     }
 
-    #[expect(clippy::needless_pass_by_value)]
+    // #[expect(clippy::needless_pass_by_value)]
     fn add<'py>(
         &self,
         py: Python<'py>,
@@ -938,7 +938,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
 trait SpanAdd<'a, 'py> {
     type Target;
     type Output;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output>;
+    fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output>;
 }
 
 macro_rules! impl_span_add_for_borrowed {
@@ -946,7 +946,7 @@ macro_rules! impl_span_add_for_borrowed {
         impl<'a, 'py> SpanAdd<'a, 'py> for Borrowed<'a, 'py, $ty> {
             type Target = $ty;
             type Output = Bound<'py, Self::Target>;
-            fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+            fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
                 self.get()
                     .0
                     .checked_add(span.0)
@@ -967,7 +967,7 @@ impl_span_add_for_borrowed!(RyTimestamp);
 impl<'a, 'py> SpanAdd<'a, 'py> for PyTermporalTypes<'a, 'py> {
     type Target = PyAny;
     type Output = Bound<'py, PyAny>;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+    fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
         match self {
             Self::Date(date) => date.add_span(py, span).map(Bound::into_any),
             Self::DateTime(datetime) => datetime.add_span(py, span).map(Bound::into_any),
@@ -981,8 +981,8 @@ impl<'a, 'py> SpanAdd<'a, 'py> for PyTermporalTypes<'a, 'py> {
 impl<'a, 'py> SpanAdd<'a, 'py> for IntoSpanArithmetic<'a, 'py> {
     type Target = RySpan;
     type Output = Bound<'py, Self::Target>;
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        let span_arithmetic: SpanArithmetic = self.into();
+    fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        let span_arithmetic: SpanArithmetic = (&self).into();
         span.0
             .checked_add(span_arithmetic)
             .map(RySpan::from)
@@ -995,10 +995,10 @@ impl<'a, 'py> SpanAdd<'a, 'py> for SpanAddTarget<'a, 'py> {
     type Target = PyAny;
     type Output = Bound<'py, PyAny>;
 
-    fn add_span(&self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+    fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
         match self {
             Self::Span(span_arithmetic) => {
-                let span_arithmetic: SpanArithmetic = span_arithmetic.into();
+                let span_arithmetic: SpanArithmetic = (&span_arithmetic).into();
                 span.0
                     .checked_add(span_arithmetic)
                     .map(RySpan::from)

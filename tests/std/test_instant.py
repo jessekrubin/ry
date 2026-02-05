@@ -125,3 +125,10 @@ class TestInstantArithmetic:
         inst2 = ry.Instant().now()
         res = inst2.duration_since(inst)
         assert isinstance(res, ry.Duration)
+
+    def test_instant_sub_overflows(self) -> None:
+        uno = ry.Instant().now()
+        ry.Duration.from_millis(100).sleep()
+        dos = ry.Instant().now()
+        with pytest.raises(OverflowError, match="overflow error"):
+            _ = uno - dos
