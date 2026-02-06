@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.0.84 [unreleased]
+
+- bump `jiff` version
+
+---
+
 ## v0.0.83 [2026-02-05]
 
 - pyo3: updated `pyo3` to `0.28.x`
