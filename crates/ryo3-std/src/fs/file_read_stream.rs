@@ -1,6 +1,7 @@
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3::{PyRef, PyResult, pyclass, pymethods};
+use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::RyMutex;
 use ryo3_macro_rules::py_value_err;
 use std::fs::File;
@@ -180,8 +181,8 @@ impl PyFileReadStream {
         slf
     }
 
-    fn __next__(&self) -> PyResult<Option<ryo3_bytes::PyBytes>> {
-        let mut inner = self.file_read_stream.py_lock()?;
+    fn __next__(&self, py: Python<'_>) -> PyResult<Option<RyBytes>> {
+        let mut inner = self.file_read_stream.py_lock_attached(py)?;
         match inner.next() {
             Some(Ok(b)) => Ok(Some(b.into())),
             Some(Err(e)) => Err(e.into()),
@@ -189,9 +190,19 @@ impl PyFileReadStream {
         }
     }
 
+    // NOT GIL RELEASING ? tbd if ought to roll this out everywhere.
+    // fn __next__(&self) -> PyResult<Option<RyBytes>> {
+    //     let mut inner = self.file_read_stream.py_lock()?;
+    //     match inner.next() {
+    //         Some(Ok(b)) => Ok(Some(b.into())),
+    //         Some(Err(e)) => Err(e.into()),
+    //         None => Ok(None),
+    //     }
+    // }
+
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
-        let mut inner = self.file_read_stream.py_lock()?;
+    fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<RyBytes>> {
+        let mut inner = self.file_read_stream.py_lock_attached(py)?;
         let mut result = Vec::with_capacity(n);
         for _ in 0..n {
             match inner.next() {
@@ -199,12 +210,15 @@ impl PyFileReadStream {
                 Some(Err(e)) => return Err(e.into()),
                 None => break,
             }
+            if result.len().is_multiple_of(256) {
+                py.check_signals()?;
+            }
         }
         Ok(result)
     }
 
-    fn collect(&self, py: Python<'_>) -> PyResult<Vec<ryo3_bytes::PyBytes>> {
-        let mut inner = self.file_read_stream.py_lock()?;
+    fn collect(&self, py: Python<'_>) -> PyResult<Vec<RyBytes>> {
+        let mut inner = self.file_read_stream.py_lock_attached(py)?;
         let mut result = Vec::new();
         while let Some(Ok(b)) = inner.next() {
             result.push(b.into());

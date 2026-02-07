@@ -26,16 +26,38 @@ def test_strftime() -> None:
     assert str(string) == "4:30pm"
 
 
-def test_time_until() -> None:
-    t1 = ry.time(22, 35, 1, 0)
-    t2 = ry.time(22, 35, 3, 500_000_000)
-    assert t1.until(t2) == ry.timespan(seconds=2, milliseconds=500)
-    assert t2.until(t1) == ry.timespan(seconds=-2, milliseconds=500)
+class TestTimeSinceUntil:
+    def test_time_until(self) -> None:
+        t1 = ry.time(22, 35, 1, 0)
+        t2 = ry.time(22, 35, 3, 500_000_000)
+        assert t1.until(t2) == ry.timespan(seconds=2, milliseconds=500)
+        assert t2.until(t1) == ry.timespan(seconds=-2, milliseconds=500)
 
-    t1 = ry.time(3, 24, 30, 3500)
-    t2 = ry.time(15, 30, 0, 0)
-    span = t1.until(t2)
-    assert span.to_string() == "PT12H5M29.9999965S"
+        t1 = ry.time(3, 24, 30, 3500)
+        t2 = ry.time(15, 30, 0, 0)
+        span = t1.until(t2)
+        assert span.to_string() == "PT12H5M29.9999965S"
+
+    def test_time_since(self) -> None:
+        t1 = ry.time(22, 35, 1, 0)
+        t2 = ry.time(22, 35, 3, 500_000_000)
+        assert t1.since(t2) == ry.timespan(seconds=-2, milliseconds=500)
+        assert t2.since(t1) == ry.timespan(seconds=2, milliseconds=500)
+
+        t1 = ry.time(3, 24, 30, 3500)
+        t2 = ry.time(15, 30, 0, 0)
+        span = t1.since(t2)
+        assert span.to_string() == "-PT12H5M29.9999965S"
+
+    def test_time_duration_until_since(self) -> None:
+        t1 = ry.time(10, 0, 0, 0)
+        t2 = ry.time(12, 30, 0, 0)
+        span = ry.timespan(hours=2, minutes=30)
+
+        t_until = t1.duration_until(t2)
+        assert t_until == span.to_signed_duration()
+        t_since = t2.duration_since(t1)
+        assert t_since == span.to_signed_duration()
 
 
 class TestTimeSeries:

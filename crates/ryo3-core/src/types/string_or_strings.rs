@@ -1,6 +1,6 @@
 use pyo3::FromPyObject;
 
-#[derive(Debug, Clone, PartialEq, FromPyObject)]
+#[derive(Debug, Clone, PartialEq, Eq, FromPyObject)]
 pub enum StringOrStrings {
     String(String),
     Strings(Vec<String>),

@@ -1,6 +1,7 @@
 use crate::compression_level::PyCompressionLevel;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
+use ryo3_bytes::PyBytes as RyBytes;
 
 fn rs_zstd_compress_oneshot(data: &[u8], level: PyCompressionLevel) -> PyResult<Vec<u8>> {
     ::zstd::stream::encode_all(data, level.into()).map_err(|e| {
@@ -20,7 +21,7 @@ pub(crate) fn py_decode<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     let slice = ryo3_bytes::extract_bytes_ref(data)?;
     let decoded = py.detach(|| rs_zstd_decode_one_shot(slice))?;
-    ryo3_bytes::PyBytes::from(decoded).into_bound_py_any(py)
+    RyBytes::from(decoded).into_bound_py_any(py)
 }
 
 pub(crate) fn py_encode<'py>(
@@ -30,7 +31,7 @@ pub(crate) fn py_encode<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     let slice = ryo3_bytes::extract_bytes_ref(data)?;
     let encoded = py.detach(|| rs_zstd_compress_oneshot(slice, level))?;
-    ryo3_bytes::PyBytes::from(encoded).into_bound_py_any(py)
+    RyBytes::from(encoded).into_bound_py_any(py)
 }
 
 macro_rules! zstd_decode_pyfunction {

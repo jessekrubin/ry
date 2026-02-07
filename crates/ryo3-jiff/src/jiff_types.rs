@@ -60,11 +60,11 @@ impl JiffRoundMode {
     pub const HALF_EVEN: Self = Self(jiff::RoundMode::HalfEven);
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct JiffEra(pub(crate) jiff::civil::Era);
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct JiffEraYear(pub(crate) (i16, jiff::civil::Era));
 #[derive(Debug, Clone, Copy)]
 pub struct JiffTzDisambiguation(pub jiff::tz::Disambiguation);

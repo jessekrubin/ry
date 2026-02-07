@@ -444,4 +444,4 @@ class TestTodo:
         self,
     ) -> None:
         with pytest.raises(NotImplementedError):
-            _r = ry.fetch("http://example.com", method="POST", multipart={"a": 1})
+            _r = ry.fetch_sync("http://example.com", method="POST", multipart={"a": 1})

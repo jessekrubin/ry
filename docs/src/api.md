@@ -84,7 +84,7 @@ from ry.ryo3._flate2 import gzip_encode as gzip_encode
 from ry.ryo3._flate2 import is_gzipped as is_gzipped
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
-from ry.ryo3._glob import Pattern as Pattern
+from ry.ryo3._glob import GlobPattern as GlobPattern
 from ry.ryo3._glob import glob as glob
 from ry.ryo3._globset import Glob as Glob
 from ry.ryo3._globset import GlobSet as GlobSet
@@ -885,7 +885,14 @@ def glob(
 
 
 @t.final
-class Pattern:
+class GlobPattern:
+    """Glob pattern matching ~ `::glob::Pattern`
+
+    [DOCS](https://docs.rs/glob/latest/glob/struct.Pattern.html)
+
+    Prefer the `::globset` wrappers (`Glob` | `Globset` | `Globster`).
+    """
+
     def __init__(
         self,
         pattern: str,
@@ -1540,20 +1547,57 @@ class Date(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> Date: ...
     @t.overload
-    def sub(self, other: Date) -> TimeSpan: ...
+    def add(
+        self,
+        other: None = None,
+        /,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> Date: ...
+    @t.overload
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
+    ) -> Date: ...
+    @t.overload
+    def sub(
+        self,
+        other: None = None,
+        /,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> Date: ...
     def saturating_add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self,
+        other: TimeSpan | SignedDuration | Duration | pydt.timedelta,
     ) -> Date: ...
     def saturating_sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self,
+        other: TimeSpan | SignedDuration | Duration | pydt.timedelta,
     ) -> Date: ...
 
     # =========================================================================
@@ -1713,14 +1757,41 @@ class Time(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: Time) -> TimeSpan: ...
+    def add(
+        self,
+        other: None = None,
+        /,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
+    ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        other: None = None,
+        /,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
@@ -1896,18 +1967,50 @@ class DateTime(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: t.Self) -> TimeSpan: ...
+    def add(
+        self,
+        other: None = None,
+        /,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
-    def saturating_sub(self, other: t.Self) -> TimeSpan: ...
-    @t.overload
+    def sub(
+        self,
+        other: None = None,
+        /,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
@@ -2547,14 +2650,41 @@ class Timestamp(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: t.Self) -> TimeSpan: ...
+    def add(
+        self,
+        other: None = None,
+        /,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
+    ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        other: None = None,
+        /,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
@@ -2908,21 +3038,53 @@ class ZonedDateTime(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: t.Self) -> TimeSpan: ...
+    def add(
+        self,
+        other: None = None,
+        /,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self, /) -> TimeSpan: ...
     @t.overload
     def sub(
-        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
+        self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
+    ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        other: None = None,
+        /,
+        *,
+        years: int = 0,
+        months: int = 0,
+        weeks: int = 0,
+        days: int = 0,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
-    @t.overload
-    def saturating_sub(self, other: t.Self) -> TimeSpan: ...
-    @t.overload
     def saturating_sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta
     ) -> t.Self: ...
@@ -3170,11 +3332,39 @@ class Offset(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
+    @t.overload
     def add(
-        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
+        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta, /
     ) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        other: None = None,
+        /,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
+    ) -> t.Self: ...
+    @t.overload
     def sub(
-        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
+        self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta, /
+    ) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        other: None = None,
+        /,
+        *,
+        hours: int = 0,
+        minutes: int = 0,
+        seconds: int = 0,
+        milliseconds: int = 0,
+        microseconds: int = 0,
+        nanoseconds: int = 0,
     ) -> t.Self: ...
     def saturating_add(
         self, other: Duration | SignedDuration | TimeSpan | pydt.timedelta
@@ -6610,9 +6800,51 @@ class URL(FromStr, ToString, _Parse):
     @property
     def path_segments(self) -> tuple[str, ...]: ...
     @property
-    def port(self) -> int | None: ...
+    def port(self) -> int | None:
+        """
+        Return the port number for this URL, if any.
+
+        Note: the default port numbers are never reflected by the serialization,
+        use the `port_or_known_default` if you want a default port number returned.
+
+        Default port numbers:
+            - `http`  | `ws`  => `80`
+            - `https` | `wss` => `443`
+            - `ftp`           => `21`
+
+        Examples:
+
+            >>> from ry import URL
+            >>> assert URL("https://rotatingsandwiches.com:3000").port == 3000
+            >>> assert URL("https://rotatingsandwiches.com").port is None
+            >>> assert URL("https://rotatingsandwiches.com:443/").port is None
+            >>> assert URL("ssh://rotatingsandwiches.com:22").port == 22
+
+        """
+
     @property
-    def port_or_known_default(self) -> int | None: ...
+    def port_or_known_default(self) -> int | None:
+        """Return the port number, or the default port number if known.
+
+        Default port numbers:
+            - `http`  | `ws`  => `80`
+            - `https` | `wss` => `443`
+            - `ftp`           => `21`
+
+        Examples:
+
+            >>> from ry import URL
+            >>> URL("https://rotatingsandwiches.com:3000").port_or_known_default
+            3000
+            >>> URL("https://rotatingsandwiches.com").port_or_known_default
+            443
+            >>> URL("https://rotatingsandwiches.com:443/").port_or_known_default
+            443
+            >>> URL("ssh://rotatingsandwiches.com:22").port_or_known_default
+            22
+
+        """
+
     @property
     def query(self) -> str | None: ...
     @property
@@ -6639,44 +6871,6 @@ class URL(FromStr, ToString, _Parse):
     def is_special(self) -> bool: ...
     def join(self, *parts: str) -> URL: ...
     def make_relative(self, other: URL) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_host(self, host: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_ip_host(
-        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
-    ) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_password(self, password: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_path(self, path: str) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_port(self, port: int | None = None) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_query(self, query: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_scheme(self, scheme: str) -> t.Self: ...
-    @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
-    )
-    def replace_username(self, username: str) -> t.Self: ...
     def socket_addrs(
         self, default_port_number: int | None = None
     ) -> list[SocketAddr]: ...
@@ -6724,6 +6918,48 @@ class URL(FromStr, ToString, _Parse):
     def __gt__(self, other: t.Self) -> bool: ...
     def __ge__(self, other: t.Self) -> bool: ...
     def __hash__(self) -> int: ...
+
+    # =========================================================================
+    # DEPRECATED
+    # =========================================================================
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_host(self, host: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_ip_host(
+        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
+    ) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_password(self, password: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_path(self, path: str) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_port(self, port: int | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_query(self, query: str | None = None) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_scheme(self, scheme: str) -> t.Self: ...
+    @deprecated(
+        "`replace_*` methods are deprecated, use `with_*` methods instead"
+    )
+    def replace_username(self, username: str) -> t.Self: ...
 ```
 
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>

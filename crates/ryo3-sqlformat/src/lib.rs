@@ -6,7 +6,12 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 
-#[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type, from_py_object)]
+#[pyclass(
+    name = "SqlfmtQueryParams",
+    frozen,
+    immutable_type,
+    skip_from_py_object
+)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct PySqlfmtQueryParams(QueryParams);
@@ -259,6 +264,21 @@ impl<'py> FromPyObject<'_, 'py> for PyIndent {
     }
 }
 
+impl<'py> FromPyObject<'_, 'py> for PySqlfmtQueryParams {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if obj.is_none() {
+            return Ok(Self(QueryParams::None));
+        } else if let Ok(p) = obj.cast_exact::<Self>() {
+            return Ok(p.get().clone());
+        }
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "Invalid type for SqlfmtQueryParams; expected None, dict[str, str], or list[str]",
+        ))
+    }
+}
+
 impl From<PyIndent> for sqlformat::Indent {
     fn from(i: PyIndent) -> Self {
         i.0
@@ -401,7 +421,7 @@ pub fn sqlfmt(
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PyDialect(sqlformat::Dialect);
 
 impl Default for PyDialect {

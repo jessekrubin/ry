@@ -2,6 +2,7 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
+use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
 use std::hash::Hasher;
@@ -18,7 +19,7 @@ pub struct PyXxHash32 {
 impl PyXxHash32 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0))]
-    fn py_new(data: Option<ryo3_bytes::PyBytes>, seed: Option<u32>) -> Self {
+    fn py_new(data: Option<RyBytes>, seed: Option<u32>) -> Self {
         let seed = seed.unwrap_or(0);
         let hasher = XxHash32::with_seed(seed);
         match data {
@@ -79,7 +80,7 @@ impl PyXxHash32 {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&self, py: Python<'_>, data: RyBytes) -> PyResult<()> {
         py.detach(|| {
             let mut hasher = self.hasher.py_lock()?;
             hasher.write(data.as_ref());
@@ -104,7 +105,7 @@ impl PyXxHash32 {
     #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     #[pyo3(signature = (data, *, seed = 0))]
-    fn oneshot(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: u32) -> u32 {
+    fn oneshot(py: Python<'_>, data: RyBytes, seed: u32) -> u32 {
         py.detach(|| XxHash32::oneshot(seed, data.as_ref()))
     }
 }
@@ -115,21 +116,21 @@ impl PyXxHash32 {
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
-pub fn xxh32_digest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: u32) -> PyDigest<u32> {
+pub fn xxh32_digest(py: Python<'_>, data: RyBytes, seed: u32) -> PyDigest<u32> {
     py.detach(|| twox_hash::XxHash32::oneshot(seed, data.as_ref()).into())
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
-pub fn xxh32_intdigest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: u32) -> u32 {
+pub fn xxh32_intdigest(py: Python<'_>, data: RyBytes, seed: u32) -> u32 {
     py.detach(|| twox_hash::XxHash32::oneshot(seed, data.as_ref()))
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
-pub fn xxh32_hexdigest(py: Python<'_>, data: ryo3_bytes::PyBytes, seed: u32) -> PyHexDigest<u32> {
+pub fn xxh32_hexdigest(py: Python<'_>, data: RyBytes, seed: u32) -> PyHexDigest<u32> {
     py.detach(|| twox_hash::XxHash32::oneshot(seed, data.as_ref()).into())
 }
 

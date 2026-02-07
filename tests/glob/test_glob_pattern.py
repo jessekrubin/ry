@@ -13,8 +13,8 @@ import ry
 
 def test_pattern_type() -> None:
     """Test glob pattern type"""
-    pattern = ry.Pattern("*.py")
-    assert isinstance(pattern, ry.Pattern)
+    pattern = ry.GlobPattern("*.py")
+    assert isinstance(pattern, ry.GlobPattern)
 
     python_file = "file.py"
     text_file = "file.txt"
@@ -43,8 +43,8 @@ def test_pattern_type() -> None:
 def test_escape() -> None:
     """Test glob pattern escape"""
     s = "_[_]_?_*_!_"
-    assert ry.Pattern.escape(s) == "_[[]_[]]_[?]_[*]_!_"
-    assert ry.Pattern(ry.Pattern.escape(s)).matches(s)
+    assert ry.GlobPattern.escape(s) == "_[[]_[]]_[?]_[*]_!_"
+    assert ry.GlobPattern(ry.GlobPattern.escape(s)).matches(s)
 
 
 class _MatchKwargs(t.TypedDict, total=False):
@@ -112,7 +112,7 @@ _TEST_CASES = list(it.chain.from_iterable(tc._dtype_cases() for tc in _TEST_CASE
 )
 def test_pattern(case: _PatternTestCaseDict) -> None:
     """Test glob pattern with various dtypes"""
-    pattern = ry.Pattern(case["pattern"])
+    pattern = ry.GlobPattern(case["pattern"])
 
     if case["kwargs"] is None:
         assert pattern(case["ob"]) == case["matches"]
@@ -157,7 +157,7 @@ def _pattern_kwargs_permutations() -> t.Generator[_MatchKwargs | None, None, Non
 )
 def test_pattern_kwargs(pattern_kwargs: _MatchKwargs | None) -> None:
     """Test glob pattern with various kwargs"""
-    p = ry.Pattern("*.py", **(pattern_kwargs or {}))
+    p = ry.GlobPattern("*.py", **(pattern_kwargs or {}))
 
     repr_str = repr(p)
     # evaluta
@@ -174,7 +174,7 @@ def test_pattern_kwargs(pattern_kwargs: _MatchKwargs | None) -> None:
 )
 def test_pattern_pickle(pattern_kwargs: _MatchKwargs | None) -> None:
     """Test glob pattern with various kwargs"""
-    p = ry.Pattern("*.py", **(pattern_kwargs or {}))
+    p = ry.GlobPattern("*.py", **(pattern_kwargs or {}))
 
     pickled = pickle.dumps(p)
     unpickled = pickle.loads(pickled)

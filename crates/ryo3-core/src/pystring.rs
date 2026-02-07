@@ -99,11 +99,31 @@ pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bou
 ///
 /// # Safety
 ///
+/// `s` must be ASCII only (will debug-assert)
+#[inline]
+#[must_use]
+pub fn pystring_fast_new_ascii<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
+    debug_assert!(s.is_ascii(), "pystring_fast_new_ascii expects ASCII");
+    #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
+    #[expect(unsafe_code)]
+    unsafe {
+        pystring_ascii_new(py, s)
+    }
+    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+    {
+        pystring_ascii_new(py, s)
+    }
+}
+
+/// Creates a new `PyString` from an ASCII string.
+///
+/// # Safety
+///
 /// `s` must be ASCII only
 #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
 #[expect(unsafe_code, clippy::cast_possible_wrap)]
-#[must_use]
 #[inline]
+#[must_use]
 pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     unsafe {
         let ptr = pyo3::ffi::PyUnicode_New(s.len() as isize, 127);

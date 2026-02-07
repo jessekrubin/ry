@@ -7,6 +7,7 @@ use pyo3::exceptions::{
 };
 use pyo3::types::{PyBytes, PyDict};
 use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::types::PathLike;
 use ryo3_macro_rules::py_type_err;
 use std::convert::Into;
@@ -235,7 +236,7 @@ pub fn read_stream(
 }
 
 #[pyfunction]
-pub fn read(py: Python<'_>, path: PathLike) -> PyResult<ryo3_bytes::PyBytes> {
+pub fn read(py: Python<'_>, path: PathLike) -> PyResult<RyBytes> {
     let fbytes = py.detach(|| std::fs::read(path))?;
     Ok(fbytes.into())
 }
@@ -294,7 +295,7 @@ pub fn write(py: Python<'_>, path: PathBuf, data: &Bound<'_, PyAny>) -> PyResult
         let s = pystr.extract::<&str>()?;
         let bytes = s.as_bytes();
         py.detach(|| write_impl(path, bytes))
-    } else if let Ok(b) = data.extract::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(b) = data.extract::<RyBytes>() {
         py.detach(|| write_impl(path, b))
     } else {
         py_type_err!("write - expected str, bytes, bytes-like or buffer-protocol object")
@@ -303,7 +304,7 @@ pub fn write(py: Python<'_>, path: PathBuf, data: &Bound<'_, PyAny>) -> PyResult
 
 #[pyfunction]
 pub fn write_bytes(py: Python<'_>, path: PathBuf, buf: &Bound<'_, PyAny>) -> PyResult<usize> {
-    let bref = buf.extract::<ryo3_bytes::PyBytes>()?;
+    let bref = buf.extract::<RyBytes>()?;
     py.detach(|| write_impl(path, bref))
 }
 

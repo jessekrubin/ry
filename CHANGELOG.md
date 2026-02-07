@@ -1,9 +1,23 @@
 # CHANGELOG
 
-## v0.0.83 [unreleased]
+## v0.0.84 [unreleased]
 
+- bump `jiff` version
+
+---
+
+## v0.0.83 [2026-02-05]
+
+- pyo3: updated `pyo3` to `0.28.x`
 - `ryo3-jiff`
   - more timestamp testing
+  - pendulum/whenever/arrow style `add` and `sub` apis for jiff types
+- misc
+  - add clippy `derive_partial_eq_without_eq` lint
+- `ryo3-glob`
+  - Renamed `Pattern` to `GlobPattern` for clarity. People using
+    `ry.GlobPattern` probably prefer using `ry.Glob` over `ry.GlobPattern`
+    (formerly `ry.Pattern`) as it is more performant and more configurable.
 
 ---
 

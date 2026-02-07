@@ -11,6 +11,7 @@ use std::str::FromStr;
 
 /// Default value for the `literal_separator` parameter.
 const DEFAULT_BACKSLASH_ESCAPE: bool = cfg!(windows);
+// TODO: `skip_from_py_object` for these classes...
 
 #[pyclass(name = "Glob", frozen, immutable_type, from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -43,7 +44,13 @@ trait PyGlobPatternsString: PyGlobPatterns {
 impl PyGlob {
     #[new]
     #[pyo3(
-        signature = (pattern, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
+        signature = (
+            pattern,
+            /, *,
+            case_insensitive=false,
+            literal_separator=false,
+            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+        )
     )]
     fn py_new(
         pattern: String,
@@ -141,7 +148,13 @@ pub struct PyGlobSet {
 impl PyGlobSet {
     #[new]
     #[pyo3(
-        signature = (patterns, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
+        signature = (
+            patterns,
+            /, *,
+            case_insensitive=false,
+            literal_separator=false,
+            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+        )
     )]
     fn py_new(
         patterns: StringOrStrings,

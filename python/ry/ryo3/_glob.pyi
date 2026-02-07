@@ -40,7 +40,13 @@ def glob(
 ) -> GlobPaths[_T]: ...
 
 @t.final
-class Pattern:
+class GlobPattern:
+    """Glob pattern matching ~ `::glob::Pattern`
+
+    [DOCS](https://docs.rs/glob/latest/glob/struct.Pattern.html)
+
+    Prefer the `::globset` wrappers (`Glob` | `Globset` | `Globster`).
+    """
     def __init__(
         self,
         pattern: str,

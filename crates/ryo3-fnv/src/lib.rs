@@ -1,10 +1,10 @@
 #![doc = include_str!("../README.md")]
-use ryo3_core::types::{PyDigest, PyHexDigest};
-use std::hash::Hasher;
-
 use pyo3::PyResult;
 use pyo3::types::{PyModule, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_core::types::{PyDigest, PyHexDigest};
+use std::hash::Hasher;
 
 use fnv::FnvHasher;
 use std::sync::Mutex;
@@ -46,7 +46,7 @@ impl PyFnvHasher {
         signature = (data = None, *, key = FnvKey::default()),
         text_signature = "(data=None, *, key=0xcbf29ce484222325)",
     )]
-    fn py_new(py: Python<'_>, data: Option<ryo3_bytes::PyBytes>, key: FnvKey) -> Self {
+    fn py_new(py: Python<'_>, data: Option<RyBytes>, key: FnvKey) -> Self {
         py.detach(|| match data {
             Some(b) => {
                 let mut hasher = FnvHasher::with_key(key.into());
@@ -99,7 +99,7 @@ impl PyFnvHasher {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, py: Python<'_>, data: ryo3_bytes::PyBytes) -> PyResult<()> {
+    fn update(&self, py: Python<'_>, data: RyBytes) -> PyResult<()> {
         py.detach(|| {
             let mut h = self.lock()?;
             h.write(data.as_ref());
@@ -117,7 +117,7 @@ impl PyFnvHasher {
         text_signature = "(data, *, key=0xcbf29ce484222325)",
     )]
     #[staticmethod]
-    fn oneshot(data: ryo3_bytes::PyBytes, key: FnvKey) -> u64 {
+    fn oneshot(data: RyBytes, key: FnvKey) -> u64 {
         fnv1a_oneshot(data.as_ref(), key.into())
     }
 }

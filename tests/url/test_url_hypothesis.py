@@ -9,6 +9,14 @@ from hypothesis.provisional import urls as st_urls
 
 import ry
 
+_DEFAULT_PORTS = {
+    "http": 80,
+    "https": 443,
+    "ftp": 21,
+    "ws": 80,
+    "wss": 443,
+}
+
 
 @given(st_urls())
 def test_parse_url(
@@ -22,7 +30,19 @@ def test_parse_url(
 
     assert u.scheme == pyparsed.scheme
     assert u.host == pyparsed.hostname
-    assert u.port == pyparsed.port
+
+    _port_should_be_none = pyparsed.port is None or (
+        pyparsed.scheme in _DEFAULT_PORTS
+        and pyparsed.port == _DEFAULT_PORTS[pyparsed.scheme]
+    )
+    if _port_should_be_none:
+        assert u.port is None, (
+            f"Expected no port for {u.scheme} but got {u.port} in URL {u}"
+        )
+        assert u.port_or_known_default == _DEFAULT_PORTS[u.scheme]
+    else:
+        assert u.port == pyparsed.port
+
     if pyparsed.username:
         assert u.username == pyparsed.username
     else:

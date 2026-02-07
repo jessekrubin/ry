@@ -53,7 +53,13 @@ impl PyGlobster {
 impl PyGlobster {
     #[new]
     #[pyo3(
-        signature = (patterns, /, *, case_insensitive=false, literal_separator=false, backslash_escape= DEFAULT_BACKSLASH_ESCAPE)
+        signature = (
+            patterns,
+            /, *,
+            case_insensitive=false,
+            literal_separator=false,
+            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+        )
     )]
     pub(crate) fn py_new(
         patterns: Vec<String>,

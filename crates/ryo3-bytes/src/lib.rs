@@ -7,7 +7,6 @@
 #![expect(clippy::needless_pass_by_value)]
 #![expect(clippy::similar_names)]
 #![expect(clippy::cast_possible_wrap)]
-// #![expect(clippy::use_self)]
 use pyo3::intern;
 use pyo3::prelude::*;
 mod anybytes;
@@ -20,6 +19,7 @@ mod pyo3_bytes;
 mod python_bytes_methods;
 mod ryo3_bytes;
 pub use crate::bytes::PyBytes;
+
 pub use bytes_like::{extract_bytes_ref, extract_bytes_ref_str};
 
 /// ryo3-bytes python module registration

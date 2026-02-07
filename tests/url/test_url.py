@@ -362,3 +362,20 @@ def test_is_special(
     url_str, is_special = tdata
     url = ry.URL(url_str)
     assert url.is_special() is is_special
+
+
+@pytest.mark.parametrize(
+    ("url_str", "port"),
+    [
+        ("https://example.com", None),
+        ("https://example.com:443", None),
+        ("http://example.com", None),
+        ("http://example.com:80", None),
+        ("ftp://example.com", None),
+        ("ftp://example.com:21", None),
+        ("http://A.Ag:80/", None),
+    ],
+)
+def test_url_port(url_str: str, port: int | None) -> None:
+    url = ry.URL(url_str)
+    assert url.port == port

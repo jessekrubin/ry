@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
+use pyo3::pybacked::PyBackedStr;
 use reqwest::header::HeaderValue;
-use ryo3_core::{py_type_err, py_value_error};
+use ryo3_core::{py_type_err, py_type_error, py_value_error};
 use ryo3_http::PyHttpHeaderValue;
 use ryo3_std::time::PyDuration;
 use std::time::Duration;
@@ -38,7 +39,31 @@ impl<'py> FromPyObject<'_, 'py> for Timeout {
 }
 
 // ============================================================================
-// USER AGENT EXTRACT
+// BASIC AUTH
+// ============================================================================
+pub(crate) struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+
+impl BasicAuth {
+    pub(crate) fn username(&self) -> &str {
+        &self.0
+    }
+
+    pub(crate) fn password(&self) -> Option<&str> {
+        self.1.as_deref()
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for BasicAuth {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
+        Ok(Self(tuple.0, tuple.1))
+    }
+}
+
+// ============================================================================
+// USER AGENT
 // ============================================================================
 pub(crate) enum PyUserAgent {
     Default,
@@ -94,5 +119,54 @@ impl<'py> FromPyObject<'_, 'py> for PyUserAgent {
         }
 
         py_type_err!("user_agent must be str | http.HeaderValue | bool | None")
+    }
+}
+
+// ============================================================================
+// QUERY
+// ============================================================================
+pub(crate) struct PyQuery(String);
+
+// impl as ref str for PyQuery
+impl AsRef<str> for PyQuery {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<PyQuery> for String {
+    fn from(query: PyQuery) -> Self {
+        query.0
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyQuery {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let py_any_serializer = ryo3_serde::PyAnySerializer::new(obj, None);
+        let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
+            .map_err(|err| py_type_error!("failed to serialize query params: {err}"))?;
+        Ok(Self(url_encoded_query))
+    }
+}
+
+// ============================================================================
+// JSON REQUEST
+// ============================================================================
+pub(crate) struct PyRequestJson(Vec<u8>);
+
+impl From<PyRequestJson> for Vec<u8> {
+    fn from(value: PyRequestJson) -> Self {
+        value.0
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyRequestJson {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let b = ryo3_json::to_vec(&obj)?;
+        Ok(Self(b))
     }
 }

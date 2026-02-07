@@ -85,9 +85,7 @@ pub fn utcnow() -> RyZoned {
 }
 
 #[expect(clippy::too_many_arguments)]
-#[pyfunction]
-#[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0))]
-pub fn timespan(
+pub(crate) fn span(
     years: i64,
     months: i64,
     weeks: i64,
@@ -98,7 +96,7 @@ pub fn timespan(
     milliseconds: i64,
     microseconds: i64,
     nanoseconds: i64,
-) -> PyResult<RySpan> {
+) -> PyResult<jiff::Span> {
     fn apply_if_nonzero(
         span: Span,
         value: i64,
@@ -123,6 +121,35 @@ pub fn timespan(
     let span = apply_if_nonzero(span, milliseconds, Span::try_milliseconds, "milliseconds")?;
     let span = apply_if_nonzero(span, microseconds, Span::try_microseconds, "microseconds")?;
     let span = apply_if_nonzero(span, nanoseconds, Span::try_nanoseconds, "nanoseconds")?;
+    Ok(span)
+}
 
-    Ok(RySpan::from(span))
+#[expect(clippy::too_many_arguments)]
+#[pyfunction]
+#[pyo3(signature = (*, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0, nanoseconds=0))]
+pub fn timespan(
+    years: i64,
+    months: i64,
+    weeks: i64,
+    days: i64,
+    hours: i64,
+    minutes: i64,
+    seconds: i64,
+    milliseconds: i64,
+    microseconds: i64,
+    nanoseconds: i64,
+) -> PyResult<RySpan> {
+    span(
+        years,
+        months,
+        weeks,
+        days,
+        hours,
+        minutes,
+        seconds,
+        milliseconds,
+        microseconds,
+        nanoseconds,
+    )
+    .map(RySpan::from)
 }
