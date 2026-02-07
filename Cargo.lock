@@ -1979,7 +1979,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-aws-lc"
-version = "0.0.83"
+version = "0.0.84"
 dependencies = [
  "aws-lc-rs",
  "pyo3",
