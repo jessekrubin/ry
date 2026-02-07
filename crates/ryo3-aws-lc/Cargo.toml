@@ -18,5 +18,8 @@ ryo3-bytes.workspace = true
 ryo3-core.workspace = true
 # aws-lc-rs.workspace = true
 
+[features]
+ry = []
+
 [lints]
 workspace = true
