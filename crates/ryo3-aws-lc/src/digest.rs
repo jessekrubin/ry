@@ -1,3 +1,24 @@
+//! `aws_lc_rs::digest` bindings
+//!
+//! This was mostly written by `fugue-state-jesse` a few weeks ago; it was then
+//! cleaned up by me (`normal-jesse`) on 2026-02-07.
+//!
+//! ## REF
+//!
+//! ### Algorithms & lengths
+//!
+//! | name       | output_len | block_len |
+//! |------------|-----------:|----------:|
+//! | sha1       |         20 |        64 |
+//! | sha224     |         28 |        64 |
+//! | sha256     |         32 |        64 |
+//! | sha384     |         48 |       128 |
+//! | sha3_256   |         32 |       136 |
+//! | sha3_384   |         48 |       104 |
+//! | sha3_512   |         64 |        72 |
+//! | sha512     |         64 |       128 |
+//! | sha512_256 |         32 |       128 |
+
 use aws_lc_rs::digest::{Context, Digest};
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyString};
@@ -5,51 +26,11 @@ use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::types::PyHexDigest;
 use ryo3_core::{PyAsciiString, RyMutex};
 
-// SHA1,
-// SHA224,
-// SHA256,
-// SHA384,
-// SHA512,
-// SHA512_256,
-// SHA3_256,
-// SHA3_384,
-// SHA3_512,
-
-// struct PyHexDigest<const N: usize>([u8; N]);
-// const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
-
-// #[inline]
-// fn encode_hex_ref<const N: usize, const S: usize>(bytes: &[u8; N]) -> [u8; S] {
-//     debug_assert!(S == N * 2, "S != N * 2");
-//     let mut out = [0u8; S];
-//     for i in 0..N {
-//         let b = bytes[i];
-//         out[i * 2] = HEX_CHARS_LOWER[(b >> 4) as usize];
-//         out[i * 2 + 1] = HEX_CHARS_LOWER[(b & 0x0f) as usize];
-//     }
-//     out
-// }
-
-// impl<'py> IntoPyObject<'py> for PyHexDigest< { aws_lc_rs::digest::SHA256_OUTPUT_LEN * 2 }> {
-//     type Target = PyString;
-//     type Output = Bound<'py, Self::Target>;
-//     type Error = std::convert::Infallible;
-
-//     #[inline]
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         Ok(PyString::new(py, core::str::from_utf8(&self.0).unwrap()))
-//     }
-// }
-
-////////////////////
-
 trait PyAlgorithm {
     /// digest size in bytes
     const OUTPUT_LEN: usize;
     /// block size in bytes
     const BLOCK_LEN: usize;
-    /// hex digest size in characters (2 chars per byte)
-    const HEX_DIGEST_LEN: usize = Self::OUTPUT_LEN * 2;
     /// the name of the digest algorithm
     const NAME: &'static str;
     fn algorithm() -> &'static aws_lc_rs::digest::Algorithm;
@@ -147,7 +128,6 @@ macro_rules! define_py_algorithm {
         impl PyAlgorithm for $py_algorithm {
             const OUTPUT_LEN: usize = $output_len;
             const BLOCK_LEN: usize = $block_len;
-            const HEX_DIGEST_LEN: usize = Self::OUTPUT_LEN * 2;
             const NAME: &'static str = $name;
             fn algorithm() -> &'static aws_lc_rs::digest::Algorithm {
                 &$algorithm
@@ -155,53 +135,6 @@ macro_rules! define_py_algorithm {
         }
     };
 }
-// [
-//   {
-//     "name": "sha1",
-//     "output_len": 20,
-//     "block_len": 64
-//   },
-//   {
-//     "name": "sha224",
-//     "output_len": 28,
-//     "block_len": 64
-//   },
-//   {
-//     "name": "sha256",
-//     "output_len": 32,
-//     "block_len": 64
-//   },
-//   {
-//     "name": "sha384",
-//     "output_len": 48,
-//     "block_len": 128
-//   },
-//   {
-//     "name": "sha3_256",
-//     "output_len": 32,
-//     "block_len": 136
-//   },
-//   {
-//     "name": "sha3_384",
-//     "output_len": 48,
-//     "block_len": 104
-//   },
-//   {
-//     "name": "sha3_512",
-//     "output_len": 64,
-//     "block_len": 72
-//   },
-//   {
-//     "name": "sha512",
-//     "output_len": 64,
-//     "block_len": 128
-//   },
-//   {
-//     "name": "sha512_256",
-//     "output_len": 32,
-//     "block_len": 128
-//   }
-// ]
 
 pub(crate) const SHA1_OUTPUT_LEN: usize = 20;
 pub(crate) const SHA1_OUTPUT_LEN_HEX: usize = SHA1_OUTPUT_LEN * 2;
@@ -247,6 +180,7 @@ define_py_algorithm!(
     block_len = SHA1_BLOCK_LEN,   // 64
     name = "sha1"
 );
+
 // SHA224
 define_py_algorithm!(
     py_algorithm = PySha224Algorithm,
@@ -255,6 +189,7 @@ define_py_algorithm!(
     block_len = SHA224_BLOCK_LEN,   // 64
     name = "sha224"
 );
+
 // SHA256
 define_py_algorithm!(
     py_algorithm = PySha256Algorithm,
@@ -263,6 +198,7 @@ define_py_algorithm!(
     block_len = SHA256_BLOCK_LEN, // 64
     name = "sha256"
 );
+
 // SHA384
 define_py_algorithm!(
     py_algorithm = PySha384Algorithm,
@@ -271,6 +207,7 @@ define_py_algorithm!(
     block_len = SHA384_BLOCK_LEN, // 128
     name = "sha384"
 );
+
 // SHA512
 define_py_algorithm!(
     py_algorithm = PySha512Algorithm,
@@ -306,6 +243,7 @@ define_py_algorithm!(
     block_len = SHA3_384_BLOCK_LEN, // 104
     name = "sha3_384"
 );
+
 // SHA3_512,
 define_py_algorithm!(
     py_algorithm = PySha3_512Algorithm,
@@ -321,6 +259,96 @@ define_py_algorithm!(
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySha256(PyMutexContext<PySha256Algorithm>);
 
+// ============================================================================
+// SHA256 -- implementaiton that is NOT macrod for testing and being able to
+//           edit the macro
+// ============================================================================
+impl PySha256 {
+    fn digest_bytes(&self) -> PyResult<[u8; SHA256_OUTPUT_LEN]> {
+        let ctx = self.0.py_lock()?;
+        let digest = ctx.finish();
+        Ok(digest.as_ref().try_into().expect("sha256 digest size"))
+    }
+}
+
+#[pymethods]
+impl PySha256 {
+    // TODO: make signature match hashlib?
+    // hashlib signature is:
+    // >>> hashlib.sha256?
+    // Signature: hashlib.sha256(data=b'', *, usedforsecurity=True, string=None)
+    // Docstring: Returns a sha256 hash object; optionally initialized with a string
+    // Type:      builtin_function_or_method
+    #[new]
+    #[pyo3(
+        signature = (data = None, *),
+        text_signature = "(data=None, /)",
+    )]
+    fn py_new(py: Python<'_>, data: Option<RyBytes>) -> Self {
+        py.detach(|| match data {
+            Some(b) => Self(PyMutexContext::new_with_data(b.as_ref())),
+            None => Self(PyMutexContext::new()),
+        })
+    }
+
+    #[classattr]
+    fn digest_size() -> usize {
+        <PySha256Algorithm as PyAlgorithm>::OUTPUT_LEN
+    }
+
+    #[classattr]
+    fn block_size() -> usize {
+        <PySha256Algorithm as PyAlgorithm>::BLOCK_LEN
+    }
+
+    #[classattr]
+    fn name(py: Python<'_>) -> &Bound<'_, PyString> {
+        pyo3::intern!(py, <PySha256Algorithm as PyAlgorithm>::NAME)
+    }
+
+    fn digest(&self) -> PyResult<PyAwsLcRsDigest<SHA256_OUTPUT_LEN>> {
+        let ctx = self.0.py_lock()?;
+        let digest = ctx.finish();
+        Ok(PyAwsLcRsDigest(digest))
+    }
+
+    fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; SHA256_OUTPUT_LEN_HEX]>> {
+        let bytes = self.digest_bytes()?;
+        Ok(PyHexDigest::from(&bytes))
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[pyo3(signature = (data, /), text_signature = "(data, /)")]
+    fn update(&self, data: RyBytes) -> PyResult<()> {
+        let mut ctx = self.0.py_lock()?;
+        ctx.update(data.as_ref());
+        Ok(())
+    }
+
+    fn copy(&self) -> PyResult<Self> {
+        let ctx = self.0.py_lock()?;
+        Ok(Self(PyMutexContext(RyMutex::new(PyContext::from_context(
+            ctx.ctx.clone(),
+        )))))
+    }
+
+    #[staticmethod]
+    #[expect(clippy::needless_pass_by_value)]
+    #[pyo3(signature = (data, /), text_signature = "(data, /)")]
+    fn oneshot(data: RyBytes) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
+        let mut ctx = Context::new(PySha256Algorithm::algorithm());
+        ctx.update(data.as_ref());
+        let digest = ctx.finish();
+        PyAwsLcRsDigest(digest)
+    }
+}
+
+impl std::fmt::Display for PySha256 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let selfptr = std::ptr::from_ref(self);
+        f.write_fmt(core::format_args!("{}<{}>", "sha256", selfptr as usize))
+    }
+}
 macro_rules! define_py_hasher {
     (
         py_struct = $py_struct:ident,
@@ -394,6 +422,7 @@ macro_rules! define_py_hasher {
             }
 
             // #[expect(clippy::needless_pass_by_value)]
+            #[pyo3(signature = (data, /), text_signature = "(data, /)")]
             fn update(&self, data: RyBytes) -> PyResult<()> {
                 let mut ctx = self.0.py_lock()?;
                 ctx.update(data.as_ref());
@@ -409,6 +438,7 @@ macro_rules! define_py_hasher {
 
             #[staticmethod]
             #[allow(clippy::needless_pass_by_value)]
+            #[pyo3(signature = (data, /), text_signature = "(data, /)")]
             fn oneshot(data: RyBytes) -> PyResult<PyAwsLcRsDigest<$output_len>> {
                 // weird <> syntax works...
                 let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
@@ -503,89 +533,6 @@ define_py_hasher!(
     output_len_hex = SHA3_512_OUTPUT_LEN_HEX,
     block_len = SHA3_512_BLOCK_LEN
 );
-
-// ============================================================================
-// SHA256 -- implementaiton that is NOT macrod for testing and being able to
-//           edit the macro
-// ============================================================================
-impl PySha256 {
-    fn digest_bytes(&self) -> PyResult<[u8; SHA256_OUTPUT_LEN]> {
-        let ctx = self.0.py_lock()?;
-        let digest = ctx.finish();
-        Ok(digest.as_ref().try_into().expect("sha256 digest size"))
-    }
-}
-
-#[pymethods]
-impl PySha256 {
-    #[new]
-    #[pyo3(
-        signature = (data = None, *),
-        text_signature = "(data=None, /)",
-    )]
-    fn py_new(py: Python<'_>, data: Option<RyBytes>) -> Self {
-        py.detach(|| match data {
-            Some(b) => Self(PyMutexContext::new_with_data(b.as_ref())),
-            None => Self(PyMutexContext::new()),
-        })
-    }
-
-    #[classattr]
-    fn digest_size() -> usize {
-        <PySha256Algorithm as PyAlgorithm>::OUTPUT_LEN
-    }
-
-    #[classattr]
-    fn block_size() -> usize {
-        <PySha256Algorithm as PyAlgorithm>::BLOCK_LEN
-    }
-
-    #[classattr]
-    fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        pyo3::intern!(py, <PySha256Algorithm as PyAlgorithm>::NAME)
-    }
-
-    fn digest(&self) -> PyResult<PyAwsLcRsDigest<SHA256_OUTPUT_LEN>> {
-        let ctx = self.0.py_lock()?;
-        let digest = ctx.finish();
-        Ok(PyAwsLcRsDigest(digest))
-    }
-
-    fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; SHA256_OUTPUT_LEN_HEX]>> {
-        let bytes = self.digest_bytes()?;
-        Ok(PyHexDigest::from(&bytes))
-    }
-
-    #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, data: RyBytes) -> PyResult<()> {
-        let mut ctx = self.0.py_lock()?;
-        ctx.update(data.as_ref());
-        Ok(())
-    }
-
-    fn copy(&self) -> PyResult<Self> {
-        let ctx = self.0.py_lock()?;
-        Ok(Self(PyMutexContext(RyMutex::new(PyContext::from_context(
-            ctx.ctx.clone(),
-        )))))
-    }
-
-    #[staticmethod]
-    #[expect(clippy::needless_pass_by_value)]
-    fn oneshot(data: RyBytes) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
-        let mut ctx = Context::new(PySha256Algorithm::algorithm());
-        ctx.update(data.as_ref());
-        let digest = ctx.finish();
-        PyAwsLcRsDigest(digest)
-    }
-}
-
-impl std::fmt::Display for PySha256 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let selfptr = std::ptr::from_ref(self);
-        f.write_fmt(core::format_args!("{}<{}>", "sha256", selfptr as usize))
-    }
-}
 
 // ============================================================================
 struct PyAwsLcRsDigest<const SIZE: usize>(Digest);

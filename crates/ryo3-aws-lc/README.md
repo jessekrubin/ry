@@ -1,8 +1,8 @@
-# `ryo3-unindent`
+# `ryo3-aws-lc`
 
-python + `unindent` crate.
+python bindies for `aws-lc-rs`
 
-`unindent`:
+`aws-lc-rs`:
 
-- [crates.io](https://crates.io/crates/unindent)
-- [docs.rs](https://docs.rs/unindent)
+- [crates.io](https://crates.io/crates/aws-lc-rs)
+- [docs.rs](https://docs.rs/aws-lc-rs/latest/aws_lc_rs/)
