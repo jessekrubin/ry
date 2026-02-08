@@ -87,12 +87,6 @@ impl<C: PyAlgorithm> PyContext<C> {
         self.ctx.clone().finish()
     }
 
-    #[inline]
-    #[must_use]
-    fn algorithm(&self) -> &'static aws_lc_rs::digest::Algorithm {
-        self.ctx.algorithm()
-    }
-
     fn from_context(ctx: Context) -> Self {
         // this was weird to figure out but I guess I have to cmp the pointers
         debug_assert!(
@@ -141,7 +135,6 @@ impl<A: PyAlgorithm> PyMutexContext<A> {
 ///     }
 /// }
 /// ```
-
 macro_rules! define_py_algorithm {
     (
         py_algorithm = $py_algorithm:ident,
