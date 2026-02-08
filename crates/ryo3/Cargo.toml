@@ -112,6 +112,7 @@ ry = [
   "all",
   # "experimental-async",
   "dev",
+  "ryo3-aws-lc/ry",
   "ryo3-bytes/ry",
   "ryo3-fnv/ry",
   "ryo3-fspath/ry",
