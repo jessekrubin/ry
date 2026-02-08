@@ -15,6 +15,15 @@ from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
+from ry.ryo3._aws_lc import sha1 as sha1
+from ry.ryo3._aws_lc import sha3_256 as sha3_256
+from ry.ryo3._aws_lc import sha3_384 as sha3_384
+from ry.ryo3._aws_lc import sha3_512 as sha3_512
+from ry.ryo3._aws_lc import sha224 as sha224
+from ry.ryo3._aws_lc import sha256 as sha256
+from ry.ryo3._aws_lc import sha384 as sha384
+from ry.ryo3._aws_lc import sha512 as sha512
+from ry.ryo3._aws_lc import sha512_256 as sha512_256
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
