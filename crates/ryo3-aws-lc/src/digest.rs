@@ -96,7 +96,7 @@ impl<C: PyAlgorithm> PyContext<C> {
     fn from_context(ctx: Context) -> Self {
         // this was weird to figure out but I guess I have to cmp the pointers
         debug_assert!(
-            ctx.algorithm() as *const _ == C::algorithm() as *const _,
+            std::ptr::from_ref(ctx.algorithm()) == std::ptr::from_ref(C::algorithm()),
             "Context algorithm does not match PyAlgorithm"
         );
         Self {
@@ -578,17 +578,18 @@ impl PySha256 {
     }
 
     #[staticmethod]
-    fn oneshot(data: RyBytes) -> PyResult<PyAwsLcRsDigest<SHA256_OUTPUT_LEN>> {
+    #[expect(clippy::needless_pass_by_value)]
+    fn oneshot(data: RyBytes) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
         let mut ctx = Context::new(PySha256Algorithm::algorithm());
         ctx.update(data.as_ref());
         let digest = ctx.finish();
-        Ok(PyAwsLcRsDigest(digest))
+        PyAwsLcRsDigest(digest)
     }
 }
 
 impl std::fmt::Display for PySha256 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let selfptr = self as *const _;
+        let selfptr = std::ptr::from_ref(self);
         f.write_fmt(core::format_args!("{}<{}>", "sha256", selfptr as usize))
     }
 }
