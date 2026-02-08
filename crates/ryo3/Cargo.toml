@@ -34,6 +34,7 @@ ryo3-std = { workspace = true, optional = false }
 #ryo3-tokio-websockets = { workspace = true, optional = true }
 #ryo3-ignore = { workspace = true, optional = true }
 # optional ryo3-* dependencies
+ryo3-aws-lc = { workspace = true, optional = true }
 ryo3-brotli = { workspace = true, optional = true }
 ryo3-bytes = { workspace = true, optional = true }
 ryo3-bzip2 = { workspace = true, optional = true }
@@ -68,6 +69,7 @@ ryo3-zstd = { workspace = true, optional = true }
 [features]
 default = []
 all = [
+  "aws-lc",
   "brotli",
   "bytes",
   "bzip2",
@@ -110,6 +112,7 @@ ry = [
   "all",
   # "experimental-async",
   "dev",
+  "ryo3-aws-lc/ry",
   "ryo3-bytes/ry",
   "ryo3-fnv/ry",
   "ryo3-fspath/ry",
@@ -135,6 +138,7 @@ ring = ["ryo3-reqwest/ring"]
 aws-lc-rs = ["ryo3-reqwest/aws-lc-rs"]
 
 # wrappers
+aws-lc = ["dep:ryo3-aws-lc"]
 brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:ryo3-bzip2"]
 bytes = ["dep:ryo3-bytes"]
