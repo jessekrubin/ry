@@ -577,7 +577,6 @@ pub fn uuid8(
     c: Option<u64>,
     buf: Option<PyBytes>,
 ) -> PyResult<PyUuid> {
-    // use rand::{Rng, RngExt};
     use rand::prelude::*;
 
     if let Some(bts) = buf {
