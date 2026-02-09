@@ -341,14 +341,14 @@ impl PySha256 {
         let digest = ctx.finish();
         PyAwsLcRsDigest(digest)
     }
-}
 
-impl std::fmt::Display for PySha256 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let selfptr = std::ptr::from_ref(self);
-        f.write_fmt(core::format_args!("{}<{}>", "sha256", selfptr as usize))
+    #[expect(clippy::needless_pass_by_value)]
+    fn __repr__(slf: PyRef<'_, Self>) -> PyAsciiString {
+        let p = slf.as_ptr();
+        format!("sha256<{p:p}>").into()
     }
 }
+
 macro_rules! define_py_hasher {
     (
         py_struct = $py_struct:ident,
@@ -370,13 +370,6 @@ macro_rules! define_py_hasher {
                     .as_ref()
                     .try_into()
                     .expect(concat!($name, " digest size mismatch")))
-            }
-        }
-
-        impl std::fmt::Display for $py_struct {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                let selfptr = std::ptr::from_ref(self);
-                write!(f, "{}<{}>", $name, selfptr as usize)
             }
         }
 
@@ -406,8 +399,9 @@ macro_rules! define_py_hasher {
                 pyo3::intern!(py, <$algorithm as PyAlgorithm>::NAME)
             }
 
-            fn __repr__(&self) -> PyAsciiString {
-                format!("{self}").into()
+            fn __repr__(slf: PyRef<'_, Self>) -> PyAsciiString {
+                let p = slf.as_ptr();
+                format!("{}<{p:p}>", <$algorithm as PyAlgorithm>::NAME).into()
             }
 
             fn digest(&self) -> PyResult<PyAwsLcRsDigest<$output_len>> {

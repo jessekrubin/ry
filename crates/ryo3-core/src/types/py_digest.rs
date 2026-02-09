@@ -25,6 +25,13 @@ impl<T> From<T> for PyHexDigest<T> {
     }
 }
 
+impl<T> PyHexDigest<T> {
+    #[inline]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+
 macro_rules! impl_into_py_object_py_digest_uint {
     ($t:ty, $size:expr) => {
         impl<'py> IntoPyObject<'py> for PyDigest<$t> {
