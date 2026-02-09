@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import sys
 import typing as t
 
 import pytest
@@ -100,7 +101,9 @@ def test_sha_hasher_repr(info: _HasherInfo) -> None:
     id_ptr = hex(id(hasher))
     assert repr_str.startswith(f"{info['name']}<")
     assert repr_str.endswith(f"{id_ptr}>")
-    assert repr_str[len(info["name"]) + 1 : -1] == id_ptr
+    # pypy prt don't work good?
+    if sys.implementation.name == "cpython":
+        assert repr_str[len(info["name"]) + 1 : -1] == id_ptr
 
 
 @pytest.mark.parametrize("info", _HASHERS)
