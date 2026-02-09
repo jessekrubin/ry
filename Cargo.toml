@@ -242,7 +242,7 @@ tracing-subscriber = { version = "0.3.20", default-features = false, features = 
   "serde_json",
 ] }
 twox-hash = { version = "2.1.2", default-features = false, features = [] }
-rand = { version = "0.9.2", default-features = false, features = [] }
+rand = { version = "0.10.0", default-features = false, features = [] }
 ulid = { version = "1.2.1", default-features = false, features = ["std"] }
 unindent = { version = "0.2.4", default-features = false, features = [] }
 url = { version = "2.5.4", default-features = false, features = ["std"] }
