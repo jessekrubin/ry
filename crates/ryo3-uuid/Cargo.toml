@@ -17,7 +17,7 @@ ryo3-bytes.workspace = true
 ryo3-macro-rules.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
-rand = { workspace = true, optional = false }
+rand = { workspace = true, optional = false, features = ["std", "std_rng", "sys_rng", "thread_rng"] }
 uuid = { workspace = true, features = [
   "v1",
   "v3",
