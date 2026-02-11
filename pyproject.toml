@@ -115,12 +115,8 @@ markers = [
   "bench",
 ]
 
-[tool.coverage.run]
-source = [ "python/ry" ]
-omit = [ "python/ry/dev/__main__.py" ]
-branch = true
-relative_files = true
-context = '${CONTEXT}'
+[tool.coverage.paths]
+source = [ 'python/ry/' ]
 
 [tool.coverage.report]
 precision = 2
@@ -138,8 +134,12 @@ exclude_lines = [
   # 'assert_never',
 ]
 
-[tool.coverage.paths]
-source = [ 'python/ry/' ]
+[tool.coverage.run]
+source = [ "python/ry" ]
+omit = [ "python/ry/dev/__main__.py" ]
+branch = true
+relative_files = true
+context = '${CONTEXT}'
 
 [tool.mypy]
 strict = true

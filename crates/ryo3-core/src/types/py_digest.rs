@@ -25,6 +25,13 @@ impl<T> From<T> for PyHexDigest<T> {
     }
 }
 
+impl<T> PyHexDigest<T> {
+    #[inline]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+
 macro_rules! impl_into_py_object_py_digest_uint {
     ($t:ty, $size:expr) => {
         impl<'py> IntoPyObject<'py> for PyDigest<$t> {
@@ -48,6 +55,18 @@ impl_into_py_object_py_digest_uint!(u128, 16);
 
 #[inline]
 fn encode_hex<const N: usize, const S: usize>(bytes: [u8; N]) -> [u8; S] {
+    debug_assert!(S == N * 2, "S != N * 2");
+    let mut out = [0u8; S];
+    for i in 0..N {
+        let b = bytes[i];
+        out[i * 2] = HEX_CHARS_LOWER[(b >> 4) as usize];
+        out[i * 2 + 1] = HEX_CHARS_LOWER[(b & 0x0f) as usize];
+    }
+    out
+}
+
+#[inline]
+fn encode_hex_ref<const N: usize, const S: usize>(bytes: &[u8; N]) -> [u8; S] {
     debug_assert!(S == N * 2, "S != N * 2");
     let mut out = [0u8; S];
     for i in 0..N {
@@ -99,3 +118,46 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
         Ok(pystring_fast_new_ascii(py, s))
     }
 }
+
+// impl<'py, const N: usize> IntoPyObject<'py> for PyHexDigest<[u8; N]> {
+//     type Target = PyString;
+//     type Output = Bound<'py, Self::Target>;
+//     type Error = std::convert::Infallible;
+
+//     #[inline]
+//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+//         const S: usize = N + N;
+//         #[expect(unsafe_code)]
+//         let s = unsafe { std::str::from_utf8_unchecked(&self.0) };
+//         Ok(pystring_fast_new_ascii(py, s))
+//     }
+// }
+
+macro_rules! impl_into_py_object_for_bytes_digest {
+    (
+        bin_size = $size:expr,
+        hex_size = $hex_size:expr
+    ) => {
+        impl<'py> IntoPyObject<'py> for PyHexDigest<[u8; $size]> {
+            type Target = PyString;
+            type Output = Bound<'py, Self::Target>;
+            type Error = std::convert::Infallible;
+
+            #[inline]
+            fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+                let bytes = encode_hex_ref::<$size, $hex_size>(&self.0);
+                #[expect(unsafe_code)]
+                let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
+                Ok(pystring_fast_new_ascii(py, s))
+            }
+        }
+    };
+}
+
+impl_into_py_object_for_bytes_digest!(bin_size = 20, hex_size = 40);
+impl_into_py_object_for_bytes_digest!(bin_size = 28, hex_size = 56);
+
+impl_into_py_object_for_bytes_digest!(bin_size = 32, hex_size = 64);
+impl_into_py_object_for_bytes_digest!(bin_size = 48, hex_size = 96);
+impl_into_py_object_for_bytes_digest!(bin_size = 64, hex_size = 128);
+impl_into_py_object_for_bytes_digest!(bin_size = 128, hex_size = 256);
