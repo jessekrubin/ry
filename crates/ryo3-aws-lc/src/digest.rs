@@ -137,39 +137,39 @@ macro_rules! define_py_algorithm {
 }
 
 pub(crate) const SHA1_OUTPUT_LEN: usize = 20;
-pub(crate) const SHA1_OUTPUT_LEN_HEX: usize = SHA1_OUTPUT_LEN * 2;
+// pub(crate) const SHA1_OUTPUT_LEN_HEX: usize = SHA1_OUTPUT_LEN * 2;
 pub(crate) const SHA1_BLOCK_LEN: usize = 64;
 
 pub(crate) const SHA224_OUTPUT_LEN: usize = 28;
-pub(crate) const SHA224_OUTPUT_LEN_HEX: usize = SHA224_OUTPUT_LEN * 2;
+// pub(crate) const SHA224_OUTPUT_LEN_HEX: usize = SHA224_OUTPUT_LEN * 2;
 pub(crate) const SHA224_BLOCK_LEN: usize = 64;
 
 pub(crate) const SHA256_OUTPUT_LEN: usize = 32;
-pub(crate) const SHA256_OUTPUT_LEN_HEX: usize = SHA256_OUTPUT_LEN * 2;
+// pub(crate) const SHA256_OUTPUT_LEN_HEX: usize = SHA256_OUTPUT_LEN * 2;
 pub(crate) const SHA256_BLOCK_LEN: usize = 64;
 
 pub(crate) const SHA384_OUTPUT_LEN: usize = 48;
-pub(crate) const SHA384_OUTPUT_LEN_HEX: usize = SHA384_OUTPUT_LEN * 2;
+// pub(crate) const SHA384_OUTPUT_LEN_HEX: usize = SHA384_OUTPUT_LEN * 2;
 pub(crate) const SHA384_BLOCK_LEN: usize = 128;
 
 pub(crate) const SHA3_256_OUTPUT_LEN: usize = 32;
-pub(crate) const SHA3_256_OUTPUT_LEN_HEX: usize = SHA3_256_OUTPUT_LEN * 2;
+// pub(crate) const SHA3_256_OUTPUT_LEN_HEX: usize = SHA3_256_OUTPUT_LEN * 2;
 pub(crate) const SHA3_256_BLOCK_LEN: usize = 136;
 
 pub(crate) const SHA3_384_OUTPUT_LEN: usize = 48;
-pub(crate) const SHA3_384_OUTPUT_LEN_HEX: usize = SHA3_384_OUTPUT_LEN * 2;
+// pub(crate) const SHA3_384_OUTPUT_LEN_HEX: usize = SHA3_384_OUTPUT_LEN * 2;
 pub(crate) const SHA3_384_BLOCK_LEN: usize = 104;
 
 pub(crate) const SHA3_512_OUTPUT_LEN: usize = 64;
-pub(crate) const SHA3_512_OUTPUT_LEN_HEX: usize = SHA3_512_OUTPUT_LEN * 2;
+// pub(crate) const SHA3_512_OUTPUT_LEN_HEX: usize = SHA3_512_OUTPUT_LEN * 2;
 pub(crate) const SHA3_512_BLOCK_LEN: usize = 72;
 
 pub(crate) const SHA512_OUTPUT_LEN: usize = 64;
-pub(crate) const SHA512_OUTPUT_LEN_HEX: usize = SHA512_OUTPUT_LEN * 2;
+// pub(crate) const SHA512_OUTPUT_LEN_HEX: usize = SHA512_OUTPUT_LEN * 2;
 pub(crate) const SHA512_BLOCK_LEN: usize = 128;
 
 pub(crate) const SHA512_256_OUTPUT_LEN: usize = 32;
-pub(crate) const SHA512_256_OUTPUT_LEN_HEX: usize = SHA512_256_OUTPUT_LEN * 2;
+// pub(crate) const SHA512_256_OUTPUT_LEN_HEX: usize = SHA512_256_OUTPUT_LEN * 2;
 pub(crate) const SHA512_256_BLOCK_LEN: usize = 128;
 
 // SHA1
@@ -312,9 +312,10 @@ impl PySha256 {
         Ok(PyAwsLcRsDigest(digest))
     }
 
-    fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; SHA256_OUTPUT_LEN_HEX]>> {
+    fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; SHA256_OUTPUT_LEN]>> {
         let bytes = self.digest_bytes()?;
-        Ok(PyHexDigest::from(&bytes))
+        let a = PyHexDigest::from(bytes);
+        Ok(a)
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -345,7 +346,7 @@ impl PySha256 {
     #[expect(clippy::needless_pass_by_value)]
     fn __repr__(slf: PyRef<'_, Self>) -> PyAsciiString {
         let p = slf.as_ptr();
-        format!("sha256<{p:p}>").into()
+        format!("<{} @ {p:p}>", <PySha256Algorithm as PyAlgorithm>::NAME).into()
     }
 }
 
@@ -401,7 +402,7 @@ macro_rules! define_py_hasher {
 
             fn __repr__(slf: PyRef<'_, Self>) -> PyAsciiString {
                 let p = slf.as_ptr();
-                format!("{}<{p:p}>", <$algorithm as PyAlgorithm>::NAME).into()
+                format!("<{} @ {p:p}>", <$algorithm as PyAlgorithm>::NAME).into()
             }
 
             fn digest(&self) -> PyResult<PyAwsLcRsDigest<$output_len>> {
@@ -410,9 +411,9 @@ macro_rules! define_py_hasher {
                 Ok(PyAwsLcRsDigest(digest))
             }
 
-            fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; $output_len_hex]>> {
+            fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; $output_len]>> {
                 let bytes = self.digest_bytes()?;
-                Ok(PyHexDigest::from(&bytes))
+                Ok(PyHexDigest::from(bytes))
             }
 
             // #[expect(clippy::needless_pass_by_value)]

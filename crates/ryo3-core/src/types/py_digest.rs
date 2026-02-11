@@ -119,23 +119,45 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
     }
 }
 
-// array
-impl<const N: usize, const S: usize> From<&[u8; N]> for PyHexDigest<[u8; S]> {
-    #[inline]
-    fn from(bytes: &[u8; N]) -> Self {
-        Self(encode_hex_ref(bytes))
-    }
+// impl<'py, const N: usize> IntoPyObject<'py> for PyHexDigest<[u8; N]> {
+//     type Target = PyString;
+//     type Output = Bound<'py, Self::Target>;
+//     type Error = std::convert::Infallible;
+
+//     #[inline]
+//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+//         const S: usize = N + N;
+//         #[expect(unsafe_code)]
+//         let s = unsafe { std::str::from_utf8_unchecked(&self.0) };
+//         Ok(pystring_fast_new_ascii(py, s))
+//     }
+// }
+
+macro_rules! impl_into_py_object_for_bytes_digest {
+    (
+        bin_size = $size:expr,
+        hex_size = $hex_size:expr
+    ) => {
+        impl<'py> IntoPyObject<'py> for PyHexDigest<[u8; $size]> {
+            type Target = PyString;
+            type Output = Bound<'py, Self::Target>;
+            type Error = std::convert::Infallible;
+
+            #[inline]
+            fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+                let bytes = encode_hex_ref::<$size, $hex_size>(&self.0);
+                #[expect(unsafe_code)]
+                let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
+                Ok(pystring_fast_new_ascii(py, s))
+            }
+        }
+    };
 }
 
-impl<'py, const S: usize> IntoPyObject<'py> for PyHexDigest<[u8; S]> {
-    type Target = PyString;
-    type Output = Bound<'py, Self::Target>;
-    type Error = std::convert::Infallible;
+impl_into_py_object_for_bytes_digest!(bin_size = 20, hex_size = 40);
+impl_into_py_object_for_bytes_digest!(bin_size = 28, hex_size = 56);
 
-    #[inline]
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        #[expect(unsafe_code)]
-        let s = unsafe { std::str::from_utf8_unchecked(&self.0) };
-        Ok(pystring_fast_new_ascii(py, s))
-    }
-}
+impl_into_py_object_for_bytes_digest!(bin_size = 32, hex_size = 64);
+impl_into_py_object_for_bytes_digest!(bin_size = 48, hex_size = 96);
+impl_into_py_object_for_bytes_digest!(bin_size = 64, hex_size = 128);
+impl_into_py_object_for_bytes_digest!(bin_size = 128, hex_size = 256);

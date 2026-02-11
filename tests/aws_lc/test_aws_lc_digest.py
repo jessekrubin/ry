@@ -96,14 +96,19 @@ def test_hashers_info(info: _HasherInfo) -> None:
 
 @pytest.mark.parametrize("info", _HASHERS)
 def test_sha_hasher_repr(info: _HasherInfo) -> None:
+    """Test the repr of the hashers
+
+    SHould look like `<sha256 @ 0x12345678>` tho this prolly is stupid and
+    should change
+    """
     hasher = info["ry_hasher"]()
     repr_str = repr(hasher)
     id_ptr = hex(id(hasher))
-    assert repr_str.startswith(f"{info['name']}<")
-    assert repr_str.endswith(f"{id_ptr}>")
+    assert repr_str.startswith(f"<{info['name']} @ ")
+    assert repr_str.endswith(">")
     # pypy prt don't work good?
     if sys.implementation.name == "cpython":
-        assert repr_str[len(info["name"]) + 1 : -1] == id_ptr
+        assert repr_str[len(f"<{info['name']} @ ") : -1] == id_ptr
 
 
 @pytest.mark.parametrize("info", _HASHERS)

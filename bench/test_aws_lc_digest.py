@@ -42,7 +42,7 @@ _PY_HASHERS = [(name, "py", cls) for name, _, cls in _HASHERS]
 @pytest.mark.parametrize(
     "impl", [*_RY_HASHERS, *_PY_HASHERS], ids=lambda t: f"{t[0]}-{t[1]}"
 )
-def test_bench_aws_lc_digest_sha256(
+def test_bench_aws_lc_digest_sha(
     benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, type]
 ) -> None:
     size, data = id_data
