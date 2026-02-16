@@ -27,14 +27,14 @@ class TestDateTimeNthWeekdayOfMonth:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "number of days for `2024-03` is invalid, must be in range `1..=31`"
+                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
             ),
         ):
             _r = dt.nth_weekday_of_month(5, "monday")
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "number of days for `2024-03` is invalid, must be in range `1..=31`"
+                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
             ),
         ):
             _r = dt.nth_weekday_of_month(-5, "monday")
@@ -69,14 +69,14 @@ class TestDateTimeNthWeekday:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'year' with value 1 is not in the required range of -9999..=9999"
+                "parameter 'year' is not in the required range of -9999..=9999"
             ),
         ):
             _r = ry.DateTime.MAX.nth_weekday(1, "saturday")
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'year' with value 1 is not in the required range of -9999..=9999"
+                "parameter 'year' is not in the required range of -9999..=9999"
             ),
         ):
             _r = ry.DateTime.MIN.nth_weekday(-1, "monday")
@@ -97,14 +97,14 @@ class TestDateNthWeekdayOfMonth:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "number of days for `2024-03` is invalid, must be in range `1..=31`"
+                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
             ),
         ):
             _r = dt.nth_weekday_of_month(5, "monday")
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "number of days for `2024-03` is invalid, must be in range `1..=31`"
+                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
             ),
         ):
             _r = dt.nth_weekday_of_month(-5, "monday")
@@ -139,14 +139,14 @@ class TestDateNthWeekday:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'year' with value 1 is not in the required range of -9999..=9999",
+                "parameter 'year' is not in the required range of -9999..=9999",
             ),
         ):
             _r = ry.Date.MAX.nth_weekday(1, "saturday")
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'year' with value 1 is not in the required range of -9999..=9999"
+                "parameter 'year' is not in the required range of -9999..=9999"
             ),
         ):
             _r = ry.Date.MIN.nth_weekday(-1, "monday")
@@ -170,14 +170,14 @@ class TestZonedDateTimeNthWeekdayOfMonth:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "number of days for `2024-03` is invalid, must be in range `1..=31`"
+                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
             ),
         ):
             _r = zdt.nth_weekday_of_month(5, "monday")
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "number of days for `2024-03` is invalid, must be in range `1..=31`"
+                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
             ),
         ):
             _r = zdt.nth_weekday_of_month(-5, "monday")
@@ -224,14 +224,14 @@ class TestZonedDateTimeNthWeekday:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "converting datetime with time zone offset `-05` to timestamp overflowed: parameter 'unix-seconds' with value 253402318799 is not in the required range of -377705023201..=253402207200"
+                "converting datetime with time zone offset `-05` to timestamp overflowed: parameter 'Unix timestamp seconds' is not in the required range of -377705023201..=253402207200"
             ),
         ):
             _r = ry.DateTime.MAX.in_tz("America/New_York").nth_weekday(1, "saturday")
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "converting datetime with time zone offset `-04:56:02` to timestamp overflowed: parameter 'unix-seconds' with value -377705099038 is not in the required range of -377705023201..=253402207200"
+                "converting datetime with time zone offset `-04:56:02` to timestamp overflowed: parameter 'Unix timestamp seconds' is not in the required range of -377705023201..=253402207200"
             ),
         ):
             _r = ry.DateTime.MIN.in_tz("America/New_York").nth_weekday(-1, "monday")

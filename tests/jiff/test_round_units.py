@@ -48,12 +48,6 @@ _TIME_DIFFERENCE_UNITS = [
     "hour",
 ]
 _DATE_DIFFERENCE_UNITS = [
-    "nanosecond",
-    "microsecond",
-    "millisecond",
-    "second",
-    "minute",
-    "hour",
     "day",
     "month",
     "year",

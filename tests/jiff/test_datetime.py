@@ -306,7 +306,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 31 is not in the required range of 1..=29"
+                "parameter 'day' for `2024-02` is invalid, must be in range `1..=29`"
             ),
         ):
             dt1.replace(day=31)
@@ -315,7 +315,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 29 is not in the required range of 1..=28"
+                "parameter 'day' for `2023-02` is invalid, must be in range `1..=28`"
             ),
         ):
             dt1.replace(year=2023)
@@ -352,7 +352,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 29 is not in the required range of 1..=28"
+                "parameter 'day' for `2023-02` is invalid, must be in range `1..=28`"
             ),
         ):
             dt1.replace(year=2023)
@@ -367,14 +367,14 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'CE year' with value -5 is not in the required range of 1..=9999"
+                "parameter 'CE year' is not in the required range of 1..=9999"
             ),
         ):
             dt1.replace(era_year=(-5, "CE"))
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'CE year' with value 10000 is not in the required range of 1..=9999"
+                "parameter 'CE year' is not in the required range of 1..=9999"
             ),
         ):
             dt1.replace(era_year=(10_000, "CE"))
@@ -389,14 +389,14 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'BCE year' with value -5 is not in the required range of 1..=10000"
+                "parameter 'BCE year' is not in the required range of 1..=10000"
             ),
         ):
             dt1.replace(era_year=(-5, "BCE"))
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'BCE year' with value 10001 is not in the required range of 1..=10000"
+                "parameter 'BCE year' is not in the required range of 1..=10000"
             ),
         ):
             dt1.replace(era_year=(10_001, "BCE"))
@@ -411,7 +411,9 @@ class TestDateTimeReplace:
         dt1 = ry.date(2024, 10, 31).at(0, 0, 0, 0)
         with pytest.raises(
             ValueError,
-            match="parameter 'day' with value 31 is not in the required range of 1\\.\\.=30",
+            match=re.escape(
+                "parameter 'day' for `2024-11` is invalid, must be in range `1..=30`"
+            ),
         ):
             dt1.replace(month=11)
 
@@ -434,7 +436,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 29 is not in the required range of 1..=28"
+                "parameter 'day' for `2023-02` is invalid, must be in range `1..=28`"
             ),
         ):
             dt1.replace(day=29)
@@ -442,7 +444,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 31 is not in the required range of 1..=30"
+                "parameter 'day' for `2023-09` is invalid, must be in range `1..=30`"
             ),
         ):
             dt1.replace(day=31)
@@ -503,9 +505,7 @@ class TestDateTimeReplace:
         dt1 = ry.date(2023, 1, 1).at(0, 0, 0, 0)
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'hour' with value 24 is not in the required range of 0..=23"
-            ),
+            match=re.escape("parameter 'hour' is not in the required range of 0..=23"),
         ):
             dt1.replace(hour=24)
 
@@ -523,7 +523,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'minute' with value 60 is not in the required range of 0..=59"
+                "parameter 'minute' is not in the required range of 0..=59"
             ),
         ):
             dt1.replace(minute=60)
@@ -542,7 +542,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'second' with value 60 is not in the required range of 0..=59"
+                "parameter 'second' is not in the required range of 0..=59"
             ),
         ):
             dt1.replace(second=60)
@@ -563,7 +563,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'millisecond' with value 1000 is not in the required range of 0..=999"
+                "parameter 'millisecond' is not in the required range of 0..=999"
             ),
         ):
             dt1.replace(millisecond=1000)
@@ -590,7 +590,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'nanosecond' with value 1000 is not in the required range of 0..=999"
+                "parameter 'nanosecond' is not in the required range of 0..=999"
             ),
         ):
             dt1.replace(nanosecond=1_000)

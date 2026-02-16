@@ -90,9 +90,7 @@ class TestOffsetHypothesis:
             total_seconds > self._MAX_OFFSET_SECONDS
             or total_seconds < self._MIN_OFFSET_SECONDS
         ):
-            # msg will look like
-            # parameter 'offset-seconds' with value 93600 is not in the required range of -93599..=93599
-            match_str = f"parameter 'offset-seconds' with value {total_seconds} is not in the required range of {self._MIN_OFFSET_SECONDS}..={self._MAX_OFFSET_SECONDS}"
+            match_str = f"parameter 'time zone offset total seconds' is not in the required range of {self._MIN_OFFSET_SECONDS}..={self._MAX_OFFSET_SECONDS}"
             with pytest.raises(ValueError, match=match_str):
                 _off = ry.Offset(hours=hours, minutes=minutes, seconds=seconds)
         else:
