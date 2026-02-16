@@ -155,7 +155,7 @@ jobs:
 
       - name: pytest
         if: ${{ startsWith(matrix.platform.target, 'x86_64') }}
-        uses: addnab/docker-run-action@v3
+        uses: maus007/docker-run-action-fork@v1
         with:
           image: alpine:latest
           options: -v ${{ github.workspace }}:/io -w /io -e TZ=America/Los_Angeles
