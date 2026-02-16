@@ -13,6 +13,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl RyISOWeekDate {
     #[new]

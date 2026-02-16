@@ -27,6 +27,7 @@ use std::ops::Sub;
 pub struct RyTimestamp(pub(crate) Timestamp);
 
 #[pymethods]
+#[expect(clippy::trivially_copy_pass_by_ref)]
 impl RyTimestamp {
     #[new]
     #[pyo3(signature = (second = 0, nanosecond = 0))]

@@ -413,6 +413,7 @@ impl RyTimeRound {
         self.options.increment
     }
 
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     pub(crate) fn round(&self, ob: &RyTime) -> PyResult<RyTime> {
         ob.0.round(self.jiff_round)
             .map(RyTime::from)
@@ -736,6 +737,7 @@ impl RyOffsetRound {
         self.options.increment
     }
 
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     pub(crate) fn round(&self, ob: &RyOffset) -> PyResult<RyOffset> {
         ob.0.round(self.jiff_round)
             .map(RyOffset::from)

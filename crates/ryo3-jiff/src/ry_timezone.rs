@@ -127,7 +127,7 @@ impl RyTimeZone {
     // =====================================================================
     // CLASS METHODS
     // =====================================================================
-
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     #[staticmethod]
     fn fixed(offset: &RyOffset) -> Self {
         Self::from(TimeZone::fixed(offset.0))

@@ -118,6 +118,7 @@ impl RyDateDifference {
         ),
     )]
     #[must_use]
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     fn py_new(
         date: &RyDate,
         smallest: JiffUnit,
@@ -587,6 +588,7 @@ impl RyTimeDifference {
         ),
     )]
     #[must_use]
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     fn py_new(
         time: &RyTime,
         smallest: JiffUnit,

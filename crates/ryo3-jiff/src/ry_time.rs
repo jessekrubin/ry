@@ -29,6 +29,7 @@ use std::ops::Sub;
 pub struct RyTime(pub(crate) Time);
 
 #[pymethods]
+#[expect(clippy::trivially_copy_pass_by_ref)]
 impl RyTime {
     #[new]
     #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
