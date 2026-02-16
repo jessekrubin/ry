@@ -180,12 +180,12 @@ ryo3-which = { path = "./crates/ryo3-which" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
-pyo3 = { version = "0.28", features = ["macros", "serde"] }
+pyo3 = { version = "0.28.1", features = ["macros", "serde"] }
 # pyo3 async runtimes
 pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", default-features = false, features = [
   "tokio-runtime",
 ]}
-pyo3-build-config = { version = "0.28" , default-features = false, features = [
+pyo3-build-config = { version = "0.28.1" , default-features = false, features = [
   "resolve-config"
 ] }
 # allocator(s)
@@ -202,15 +202,15 @@ cookie = { version = "0.18.1", default-features = false, features = ["percent-en
 dirs = { version = "6.0.0", default-features = false, features = [] }
 flate2 = { version = "1.1.8", default-features = false , features = ["miniz_oxide"] }
 fnv = { version = "1.0.7", default-features = false }
-futures = { version = "0.3.31", default-features = false }
-futures-channel = { version = "0.3.31", default-features = false, features = [] }
-futures-core = { version = "0.3.31", default-features = false }
-futures-util = { version = "0.3.31", default-features = false }
+futures = { version = "0.3.32", default-features = false }
+futures-channel = { version = "0.3.32", default-features = false, features = [] }
+futures-core = { version = "0.3.32", default-features = false }
+futures-util = { version = "0.3.32", default-features = false }
 glob = { version = "0.3", default-features = false, features = [] }
 globset = { version = "0.4.17", default-features = false, features = ["serde"] }
 heck = { version = "0.5.0" , default-features = false}
 http = { version = "1.4", default-features = false, features = ["std"] }
-jiff = { version = "0.2.19", default-features = false, features = ["default", "perf-inline"] }
+jiff = { version = "0.2.20", default-features = false, features = ["default", "perf-inline"] }
 jiter = { version = "0.13", default-features = false, features = ["python"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
 parking_lot = { version = "0.12.5", default-features = false, features = [] }
@@ -248,7 +248,7 @@ rand = { version = "0.10.0", default-features = false, features = [] }
 ulid = { version = "1.2.1", default-features = false, features = ["std"] }
 unindent = { version = "0.2.4", default-features = false, features = [] }
 url = { version = "2.5.4", default-features = false, features = ["std"] }
-uuid = { version = "1.20.0", default-features = false, features = [] }
+uuid = { version = "1.21.0", default-features = false, features = [] }
 walkdir = { version = "2.5.0", default-features = false, features = [] }
 which = { version = "8.0.0", default-features = false, features = [] }
 zstd = { version = "0.13.3", default-features = false, features = [] }
@@ -304,10 +304,10 @@ literal_string_with_formatting_args = "warn"
 # cognitive_complexity = "allow" # f-off clippy
 
 [patch.crates-io]
-pyo3 = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-build-config = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-ffi = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-macros = { git = "https://github.com/pyo3/pyo3.git" }
-pyo3-macros-backend = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3 = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-build-config = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-ffi = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-macros = { git = "https://github.com/pyo3/pyo3.git" }
+# pyo3-macros-backend = { git = "https://github.com/pyo3/pyo3.git" }
 # jiter = { git = "https://github.com/jessekrubin/jiter.git", branch = "pyo3-v0.27.x" }
 jiter = { git = "https://github.com/pydantic/jiter.git" }

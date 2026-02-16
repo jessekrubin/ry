@@ -230,14 +230,16 @@ class TestDateReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 31 is not in the required range of 1..=30"
+                "parameter 'day' for `2024-11` is invalid, must be in range `1..=30`"
             ),
         ):
             _r = d.replace(day=31)
         d = ry.date(2024, 2, 29)
         with pytest.raises(
             ValueError,
-            match="parameter 'day' with value 29 is not in the required range of 1\\.\\.=28",
+            match=re.escape(
+                "parameter 'day' for `2023-02` is invalid, must be in range `1..=28`"
+            ),
         ):
             _r = d.replace(year=2023)
 
@@ -253,7 +255,7 @@ class TestDateReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 29 is not in the required range of 1..=28"
+                "parameter 'day' for `2023-02` is invalid, must be in range `1..=28`"
             ),
         ):
             d1.replace(year=2023)
@@ -268,14 +270,14 @@ class TestDateReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'CE year' with value -5 is not in the required range of 1..=9999"
+                "parameter 'CE year' is not in the required range of 1..=9999"
             ),
         ):
             d1.replace(era_year=(-5, "CE"))
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'CE year' with value 10000 is not in the required range of 1..=9999"
+                "parameter 'CE year' is not in the required range of 1..=9999"
             ),
         ):
             d1.replace(era_year=(10_000, "CE"))
@@ -290,14 +292,14 @@ class TestDateReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'BCE year' with value -5 is not in the required range of 1..=10000"
+                "parameter 'BCE year' is not in the required range of 1..=10000"
             ),
         ):
             d1.replace(era_year=(-5, "BCE"))
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'BCE year' with value 10001 is not in the required range of 1..=10000"
+                "parameter 'BCE year' is not in the required range of 1..=10000"
             ),
         ):
             d1.replace(era_year=(10_001, "BCE"))
@@ -312,7 +314,9 @@ class TestDateReplace:
         d1 = ry.date(2024, 10, 31)
         with pytest.raises(
             ValueError,
-            match="parameter 'day' with value 31 is not in the required range of 1\\.\\.=30",
+            match=re.escape(
+                "parameter 'day' for `2024-11` is invalid, must be in range `1..=30`"
+            ),
         ):
             d1.replace(month=11)
 
@@ -335,7 +339,7 @@ class TestDateReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 29 is not in the required range of 1..=28"
+                "parameter 'day' for `2023-02` is invalid, must be in range `1..=28`"
             ),
         ):
             d1.replace(day=29)
@@ -343,7 +347,7 @@ class TestDateReplace:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'day' with value 31 is not in the required range of 1..=30"
+                "parameter 'day' for `2023-09` is invalid, must be in range `1..=30`"
             ),
         ):
             d1.replace(day=31)

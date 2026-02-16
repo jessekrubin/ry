@@ -31,6 +31,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDate(pub(crate) Date);
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl RyDate {
     #[new]

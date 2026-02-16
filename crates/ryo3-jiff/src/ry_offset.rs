@@ -35,7 +35,7 @@ impl RyOffset {
     }
 
     #[expect(clippy::cast_possible_truncation)]
-    fn hms(&self) -> (i8, i16, i32) {
+    fn hms(self) -> (i8, i16, i32) {
         let total_seconds = self.0.seconds();
         let hours = total_seconds / 3600;
         let minutes = (total_seconds % 3600) / 60;
@@ -45,6 +45,7 @@ impl RyOffset {
 }
 
 #[expect(clippy::wrong_self_convention)]
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl RyOffset {
     #[new]

@@ -2,7 +2,7 @@
 
 ## v0.0.84 [unreleased]
 
-- bump `jiff` version
+- bump `jiff` version to `0.2.20`
 - `ryo3-aws-lc`
   - new crate! yay
   - implemented digest wrappers!

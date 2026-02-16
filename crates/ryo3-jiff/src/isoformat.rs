@@ -19,7 +19,7 @@ pub(crate) const ISOFORMAT_PRINTER: DateTimePrinter =
     DateTimePrinter::new().separator(b'T').precision(Some(6));
 
 pub(crate) fn print_iso_week_date<W: jiff::fmt::Write>(
-    iso_week_date: &jiff::civil::ISOWeekDate,
+    iso_week_date: jiff::civil::ISOWeekDate,
     w: &mut W,
 ) -> Result<(), jiff::Error> {
     let year = iso_week_date.year();
@@ -33,7 +33,7 @@ pub(crate) fn print_iso_week_date<W: jiff::fmt::Write>(
 /// # Panics
 ///
 /// If writing to the string fails.
-fn iso_weekdate_to_string(iso_week_date: &jiff::civil::ISOWeekDate) -> String {
+fn iso_weekdate_to_string(iso_week_date: jiff::civil::ISOWeekDate) -> String {
     let mut s = String::with_capacity(10);
     print_iso_week_date(iso_week_date, &mut s).expect("will not fail bc we're writing to a string");
     s
@@ -75,12 +75,12 @@ impl PyIsoFormat for RyDateTime {
 
 impl PyIsoFormat for RyISOWeekDate {
     fn isoformat(&self) -> PyAsciiString {
-        iso_weekdate_to_string(&self.0).into()
+        iso_weekdate_to_string(self.0).into()
     }
 }
 
 pub(crate) fn print_isoformat_offset<W: jiff::fmt::Write>(
-    offset: &Offset,
+    offset: Offset,
     w: &mut W,
 ) -> Result<(), jiff::Error> {
     if offset.is_zero() {
@@ -107,8 +107,7 @@ impl PyIsoFormat for RyOffset {
     fn isoformat(&self) -> PyAsciiString {
         let offset: Offset = self.0;
         let mut s = String::with_capacity(6);
-        print_isoformat_offset(&offset, &mut s)
-            .expect("will not fail bc we're writing to a string");
+        print_isoformat_offset(offset, &mut s).expect("will not fail bc we're writing to a string");
         s.into()
     }
 }
@@ -166,8 +165,7 @@ impl PyIsoFormat for RyZoned {
                 .print_datetime(&dattie, &mut s)
                 .expect("will not fail bc we're writing to a string");
         }
-        print_isoformat_offset(&offset, &mut s)
-            .expect("will not fail bc we're writing to a string");
+        print_isoformat_offset(offset, &mut s).expect("will not fail bc we're writing to a string");
         s.into()
     }
 }

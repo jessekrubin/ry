@@ -33,6 +33,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTime(pub(crate) DateTime);
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
 impl RyDateTime {
     #[new]

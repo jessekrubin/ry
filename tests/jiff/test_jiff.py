@@ -335,14 +335,14 @@ class TestTzOffset:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'offset-hours' with value 26 is not in the required range of -25..=25"
+                "parameter 'time zone offset total seconds' is not in the required range of -93599..=93599"
             ),
         ):
             _offset = ry.Offset.from_hours(26)
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'offset-hours' with value -26 is not in the required range of -25..=25"
+                "parameter 'time zone offset total seconds' is not in the required range of -93599..=93599"
             ),
         ):
             _offset = ry.Offset.from_hours(-26)
@@ -355,14 +355,14 @@ class TestTzOffset:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'offset-seconds' with value 93600 is not in the required range of -93599..=93599"
+                "parameter 'time zone offset total seconds' is not in the required range of -93599..=93599"
             ),
         ):
             _offset = ry.Offset.from_seconds(93600)
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "parameter 'offset-seconds' with value -93600 is not in the required range of -93599..=93599"
+                "parameter 'time zone offset total seconds' is not in the required range of -93599..=93599"
             ),
         ):
             _offset = ry.Offset.from_seconds(-93600)

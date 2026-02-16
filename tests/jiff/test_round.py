@@ -64,7 +64,7 @@ class TestZonedRound:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "failed to add 1 day to zoned datetime to find length of day: failed to convert civil datetime to timestamp: converting datetime with time zone offset `-05` to timestamp overflowed: parameter 'unix-seconds' with value 253402232400 is not in the required range of -377705023201..=253402207200"
+                "failed to add 1 day to zoned datetime to find length of day: converting datetime with time zone offset `-05` to timestamp overflowed: parameter 'Unix timestamp seconds' is not in the required range of -377705023201..=253402207200"
             ),
         ):  # TODO: figure out how to change to OverflowError
             zdt.round("day")

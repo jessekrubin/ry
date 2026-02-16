@@ -126,6 +126,12 @@ _OffsetRoundSmallest: t.TypeAlias = t.Literal[
     "minute",
     "second",
 ]
+_DateDifferenceUnit: t.TypeAlias = t.Literal[
+    "year",
+    "month",
+    "week",
+    "day",
+]
 
 WeekdayStr: t.TypeAlias = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
@@ -332,8 +338,8 @@ class Date(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: t.Literal["year", "month", "week", "day"] = "day",
-        largest: t.Literal["year", "month", "week", "day"] | None = None,
+        smallest: _DateDifferenceUnit = "day",
+        largest: _DateDifferenceUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
@@ -341,8 +347,8 @@ class Date(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: t.Literal["year", "month", "week", "day"] = "day",
-        largest: t.Literal["year", "month", "week", "day"] | None = None,
+        smallest: _DateDifferenceUnit = "day",
+        largest: _DateDifferenceUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
