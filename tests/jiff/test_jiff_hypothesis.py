@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as pydt
-import re
 import typing as t
 
 import pytest
@@ -41,7 +40,7 @@ def test_date_fields(date_tuple: tuple[int, int, int]) -> None:
     except ValueError:
         with pytest.raises(
             ValueError,
-            match=re.escape("is invalid, must be in range"),
+            match="is invalid, must be in range",
         ):
             ry.date(date_tuple[0], date_tuple[1], date_tuple[2])
 
