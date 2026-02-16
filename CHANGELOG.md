@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.84 [unreleased]
+## v0.0.84 [2026-02-16]
 
 - bump `jiff` version to `0.2.20`
 - `ryo3-aws-lc`
