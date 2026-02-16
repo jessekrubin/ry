@@ -204,7 +204,7 @@ flate2 = { version = "1.1.8", default-features = false , features = ["miniz_oxid
 fnv = { version = "1.0.7", default-features = false }
 futures = { version = "0.3.31", default-features = false }
 futures-channel = { version = "0.3.31", default-features = false, features = [] }
-futures-core = { version = "0.3.31", default-features = false }
+futures-core = { version = "0.3.32", default-features = false }
 futures-util = { version = "0.3.31", default-features = false }
 glob = { version = "0.3", default-features = false, features = [] }
 globset = { version = "0.4.17", default-features = false, features = ["serde"] }
