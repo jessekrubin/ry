@@ -80,10 +80,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
-      - name: setup-rust-cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: "v0-rust-test-python-cov-${{ matrix.python-version }}"
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: install uv
         uses: astral-sh/setup-uv@v7
@@ -97,7 +93,8 @@ jobs:
       - name: Run coverage
         run: |
           source <(cargo llvm-cov show-env --export-prefix)
-          cargo llvm-cov clean --workspace --profraw-only
+          export CARGO_INCREMENTAL=1
+          cargo llvm-cov clean --workspace
           uv run -- maturin develop --uv
           uv run -- pytest tests --cov=ry --cov-report xml:coverage.xml
           cargo llvm-cov report --remap-path-prefix --lcov --output-path coverage.lcov
