@@ -104,7 +104,7 @@ impl<A: PyAlgorithm> PyMutexContext<A> {
 /// Macro for defining the `PyAlgorithm` structs
 ///
 /// This is the outbout I worked back from:
-/// ```rust
+/// ```ignore
 /// struct PySha256Algorithm;
 /// impl PyAlgorithm for PySha256Algorithm {
 ///     const OUTPUT_LEN: usize = (aws_lc_rs::digest::SHA256_OUTPUT_LEN);
