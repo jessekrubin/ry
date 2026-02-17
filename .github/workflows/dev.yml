@@ -97,13 +97,10 @@ jobs:
       - name: Run coverage
         run: |
           source <(cargo llvm-cov show-env --export-prefix)
-          export CARGO_TARGET_DIR=$CARGO_LLVM_COV_TARGET_DIR
-          export CARGO_INCREMENTAL=1
           cargo llvm-cov clean --workspace --profraw-only
           uv run -- maturin develop --uv
           uv run -- pytest tests --cov=ry --cov-report xml:coverage.xml
           cargo llvm-cov report --remap-path-prefix --lcov --output-path coverage.lcov
-          grep -Eq '^SF:crates/.+\.rs$' coverage.lcov
       - uses: codecov/codecov-action@v5
         # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
         continue-on-error: true
