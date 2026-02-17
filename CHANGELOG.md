@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.85 [unreleased]
+
+- `ryo3-fnv`
+  - drop `fnv` crate dependency
+  - internal refactoring and cleanup to use `ryo3-core` utils
+
+---
+
 ## v0.0.84 [2026-02-16]
 
 - bump `jiff` version to `0.2.20`
