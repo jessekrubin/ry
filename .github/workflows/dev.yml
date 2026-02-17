@@ -102,7 +102,7 @@ jobs:
           cargo llvm-cov clean --workspace --profraw-only
           uv run -- maturin develop --uv
           uv run -- pytest tests --cov=ry --cov-report xml
-          cargo llvm-cov report --lcov --output-path coverage.lcov
+          cargo llvm-cov report --workspace --lcov --output-path coverage.lcov
       - uses: codecov/codecov-action@v5
         # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
         continue-on-error: true
