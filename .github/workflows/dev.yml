@@ -101,13 +101,16 @@ jobs:
           export CARGO_INCREMENTAL=1
           cargo llvm-cov clean --workspace --profraw-only
           uv run -- maturin develop --uv
-          uv run -- pytest tests --cov=ry --cov-report xml
-          cargo llvm-cov report --workspace --lcov --output-path coverage.lcov
+          uv run -- pytest tests --cov=ry --cov-report xml:coverage.xml
+          cargo llvm-cov report --remap-path-prefix --lcov --output-path coverage.lcov
+          grep -Eq '^SF:crates/.+\.rs$' coverage.lcov
       - uses: codecov/codecov-action@v5
         # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
         continue-on-error: true
         with:
           files: coverage.lcov,coverage.xml
+          disable_search: true
+          verbose: true
           name: cov-python-${{ matrix.python-version }}
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: jessekrubin/ry
