@@ -101,7 +101,51 @@ jobs:
           cargo test --workspace
           uv run -- maturin develop --uv
           uv run -- pytest tests --cov=ry --cov-report xml:coverage.xml
-          cargo llvm-cov report --lcov --output-path coverage.lcov
+          COV_PACKAGES=(
+            -p ry
+            -p ryo3
+            -p ryo3-aws-lc
+            -p ryo3-brotli
+            -p ryo3-bytes
+            -p ryo3-bzip2
+            -p ryo3-core
+            -p ryo3-dev
+            -p ryo3-dirs
+            -p ryo3-flate2
+            -p ryo3-fnv
+            -p ryo3-fspath
+            -p ryo3-glob
+            -p ryo3-globset
+            -p ryo3-heck
+            -p ryo3-http
+            -p ryo3-ignore
+            -p ryo3-jiff
+            -p ryo3-jiter
+            -p ryo3-json
+            -p ryo3-macro-rules
+            -p ryo3-memchr
+            -p ryo3-pydantic
+            -p ryo3-quick-maths
+            -p ryo3-regex
+            -p ryo3-reqwest
+            -p ryo3-same-file
+            -p ryo3-serde
+            -p ryo3-shlex
+            -p ryo3-size
+            -p ryo3-sqlformat
+            -p ryo3-std
+            -p ryo3-tokio
+            -p ryo3-tokio-websockets
+            -p ryo3-twox-hash
+            -p ryo3-ulid
+            -p ryo3-unindent
+            -p ryo3-url
+            -p ryo3-uuid
+            -p ryo3-walkdir
+            -p ryo3-which
+            -p ryo3-zstd
+          )
+          cargo llvm-cov report "${COV_PACKAGES[@]}" --lcov --output-path coverage.lcov
       - uses: codecov/codecov-action@v5
         # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
         continue-on-error: true
