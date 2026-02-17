@@ -97,12 +97,13 @@ jobs:
           cargo llvm-cov clean --workspace
           uv run -- maturin develop --uv
           uv run -- pytest tests --cov=ry --cov-report xml:coverage.xml
-          cargo llvm-cov report --remap-path-prefix --lcov --output-path coverage.lcov
+          cargo llvm-cov report --lcov --output-path coverage.lcov
       - uses: codecov/codecov-action@v5
         # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
         continue-on-error: true
         with:
-          files: coverage.lcov,coverage.xml
+          # files: coverage.lcov,coverage.xml
+          files: coverage.lcov
           disable_search: true
           verbose: true
           name: cov-python-${{ matrix.python-version }}
