@@ -80,6 +80,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: llvm-tools-preview
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: install uv
         uses: astral-sh/setup-uv@v7
@@ -92,9 +94,11 @@ jobs:
       - run: uv pip freeze
       - name: Run coverage
         run: |
-          source <(cargo llvm-cov show-env --export-prefix)
+          source <(cargo llvm-cov show-env --sh)
+          export CARGO_TARGET_DIR=$CARGO_LLVM_COV_TARGET_DIR
           export CARGO_INCREMENTAL=1
           cargo llvm-cov clean --workspace
+          cargo test --workspace
           uv run -- maturin develop --uv
           uv run -- pytest tests --cov=ry --cov-report xml:coverage.xml
           cargo llvm-cov report --lcov --output-path coverage.lcov
