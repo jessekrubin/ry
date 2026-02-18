@@ -1927,6 +1927,7 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 name = "ry"
 version = "0.0.85"
 dependencies = [
+ "encoding_rs",
  "jiff",
  "mimalloc",
  "pyo3",
@@ -2209,6 +2210,7 @@ version = "0.0.85"
 dependencies = [
  "bytes",
  "cookie",
+ "encoding_rs",
  "futures-core",
  "futures-util",
  "jiter",

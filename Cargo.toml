@@ -20,6 +20,7 @@ name = "ry"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+encoding_rs = "0.8.35"
 mimalloc = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }

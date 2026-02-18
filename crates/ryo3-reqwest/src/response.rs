@@ -1,3 +1,4 @@
+use crate::charset::PyEncodingName;
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_head::RyResponseHead;
@@ -219,10 +220,30 @@ impl RyResponse {
     }
 
     /// Return the response body as text/string (consumes the response)
-    fn text<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(
+        signature = (*, encoding=PyEncodingName::UTF_8),
+        text_signature = "(self, *, encoding=\"utf-8\")"
+    )]
+    fn text<'py>(
+        &'py self,
+        py: Python<'py>,
+        encoding: PyEncodingName,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.text_with_charset(py, encoding)
+    }
+
+    /// Return the response body as text/string (consumes the response) with default-encoding
+    fn text_with_charset<'py>(
+        &'py self,
+        py: Python<'py>,
+        encoding: PyEncodingName,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let response = self.take_response()?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            response.text().await.map_err(map_reqwest_err)
+            response
+                .text_with_charset(encoding.as_ref())
+                .await
+                .map_err(map_reqwest_err)
         })
     }
 
@@ -403,10 +424,24 @@ impl RyAsyncResponse {
     }
 
     /// Return the response body as text/string (consumes the response)
-    async fn text(&self) -> PyResult<String> {
+    #[pyo3(
+        signature = (*, encoding=PyEncodingName::UTF_8),
+        text_signature = "(self, *, encoding=\"utf-8\")"
+    )]
+    async fn text(&self, encoding: PyEncodingName) -> PyResult<String> {
         let response = self.take_response()?;
         let rt = pyo3_async_runtimes::tokio::get_runtime();
-        rt.spawn(async move { response.text().await })
+        rt.spawn(async move { response.text_with_charset(encoding.as_ref()).await })
+            .await
+            .map_err(|e| py_runtime_error!("{e}"))?
+            .map_err(map_reqwest_err)
+    }
+
+    /// Return the response body as text/string (consumes the response) with default-encoding
+    async fn text_with_charset(&self, encoding: PyEncodingName) -> PyResult<String> {
+        let response = self.take_response()?;
+        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        rt.spawn(async move { response.text_with_charset(encoding.as_ref()).await })
             .await
             .map_err(|e| py_runtime_error!("{e}"))?
             .map_err(map_reqwest_err)
@@ -618,11 +653,29 @@ impl RyBlockingResponse {
     }
 
     /// Return the response body as text/string (consumes the response)
-    fn text<'py>(&'py self, py: Python<'py>) -> PyResult<String> {
+    #[pyo3(
+        signature = (*, encoding=PyEncodingName::UTF_8),
+        text_signature = "(self, *, encoding=\"utf-8\")"
+    )]
+    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncodingName) -> PyResult<String> {
         let response = self.take_response()?;
         py.detach(|| {
             pyo3_async_runtimes::tokio::get_runtime()
-                .block_on(async { response.text().await })
+                .block_on(async { response.text_with_charset(encoding.as_ref()).await })
+                .map_err(map_reqwest_err)
+        })
+    }
+
+    /// Return the response body as text/string (consumes the response) with default-encoding
+    fn text_with_charset<'py>(
+        &'py self,
+        py: Python<'py>,
+        encoding: PyEncodingName,
+    ) -> PyResult<String> {
+        let response = self.take_response()?;
+        py.detach(|| {
+            pyo3_async_runtimes::tokio::get_runtime()
+                .block_on(async { response.text_with_charset(encoding.as_ref()).await })
                 .map_err(map_reqwest_err)
         })
     }
