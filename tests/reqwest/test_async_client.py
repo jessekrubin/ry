@@ -325,15 +325,16 @@ class TestStream:
         server: ReqtestServer, client: TClient
     ) -> None:
         url = server.url
-        response = await client.get(str(url) + "long")
 
         if isinstance(client, ry.Client):
             # the new experimental client does not support collect join
-            response_stream = response.bytes_stream()
+            aio_response = await client.get(str(url) + "long")
+            response_stream = aio_response.bytes_stream()
             with pytest.raises(TypeError):
                 _collected = await response_stream.collect(join=True)  # type: ignore[call-arg]
 
         else:
+            response = await client.get(str(url) + "long")
             expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
             collected = await response.bytes_stream().collect(join=True)
             assert isinstance(collected, ry.Bytes)
