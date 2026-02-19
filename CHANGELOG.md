@@ -5,6 +5,9 @@
 - `ryo3-fnv`
   - drop `fnv` crate dependency
   - internal refactoring and cleanup to use `ryo3-core` utils
+- `ryo3-reqwest`
+  - `text_with_charset` response methods
+  - `text` now takes `encoding="utf-8"` kw-only-arg
 
 ---
 

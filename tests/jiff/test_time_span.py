@@ -81,6 +81,108 @@ def test_span_to_py_timedelta() -> None:
     assert py_timedelta == pydt.timedelta(hours=1)
 
 
+class TestTimeSpan:
+    """General tests for `ry.TimeSpan`"""
+
+    def test_span_negate(self) -> None:
+        zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+        zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
+        span = zdt2 - zdt1
+        assert str(span) == "PT29341H3M"
+        span_negated = -span
+        assert str(span_negated) == "-PT29341H3M"
+
+        span_inverted = ~span
+        assert str(span_inverted) == "-PT29341H3M"
+
+    def test_span_2_duration(self) -> None:
+        zdt1 = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
+        zdt2 = ry.date(2023, 12, 31).at(18, 30, 0, 0).in_tz("America/New_York")
+        span = zdt2 - zdt1
+        duration = span.to_signed_duration(zdt2)
+        assert duration == ry.SignedDuration(secs=105627780, nanos=0)
+
+
+class TestTimespanFunction:
+    def test_timespan_fn(self) -> None:
+        ts = ry.timespan(weeks=1)
+        assert str(ts) == "P1W"
+
+    def test_timespan_overflow(self) -> None:
+        max_i64 = 9_223_372_036_854_775_807
+        with pytest.raises(OverflowError):
+            ry.timespan(years=100, days=max_i64)
+
+
+class TestTimeSpanProperties:
+    """Test all the properties of the TimeSpan class
+
+    properties:
+        - is_positive
+        - is_negative
+        - is_zero
+        - years
+        - months
+        - weeks
+        - days
+        - hours
+        - minutes
+        - seconds
+        - milliseconds
+        - microseconds
+        - nanoseconds
+    """
+
+    ts = ry.TimeSpan(
+        days=1,
+        hours=2,
+        minutes=3,
+        seconds=4,
+        milliseconds=5,
+        microseconds=5_000,
+        nanoseconds=5_000_000,
+    )
+
+    def test_is_positive(self) -> None:
+        assert self.ts.is_positive
+
+    def test_is_negative(self) -> None:
+        assert not self.ts.is_negative
+
+    def test_is_zero(self) -> None:
+        assert not self.ts.is_zero
+
+    def test_years(self) -> None:
+        assert self.ts.years == 0
+
+    def test_months(self) -> None:
+        assert self.ts.months == 0
+
+    def test_weeks(self) -> None:
+        assert self.ts.weeks == 0
+
+    def test_days(self) -> None:
+        assert self.ts.days == 1
+
+    def test_hours(self) -> None:
+        assert self.ts.hours == 2
+
+    def test_minutes(self) -> None:
+        assert self.ts.minutes == 3
+
+    def test_seconds(self) -> None:
+        assert self.ts.seconds == 4
+
+    def test_milliseconds(self) -> None:
+        assert self.ts.milliseconds == 5
+
+    def test_microseconds(self) -> None:
+        assert self.ts.microseconds == 5_000
+
+    def test_nanoseconds(self) -> None:
+        assert self.ts.nanoseconds == 5_000_000
+
+
 class TestTimeSpanStrings:
     def test_span_repr(self) -> None:
         s = ry.timespan(years=1)
