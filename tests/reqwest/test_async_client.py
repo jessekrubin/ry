@@ -331,7 +331,7 @@ class TestStream:
             # the new experimental client does not support collect join
             response_stream = response.bytes_stream()
             with pytest.raises(TypeError):
-                _collected = await response_stream.collect(join=True)
+                _collected = await response_stream.collect(join=True)  # type: ignore[call-arg]
 
         else:
             expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()

@@ -3,10 +3,12 @@
 ## Table of Contents
 - [`ry.ryo3.__init__`](#ry.ryo3.__init__)
 - [`ry.ryo3.__about__`](#ry.ryo3.__about__)
+- [`ry.ryo3._aws_lc`](#ry.ryo3._aws_lc)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
 - [`ry.ryo3._dev`](#ry.ryo3._dev)
+- [`ry.ryo3._encoding_rs`](#ry.ryo3._encoding_rs)
 - [`ry.ryo3._flate2`](#ry.ryo3._flate2)
 - [`ry.ryo3._fnv`](#ry.ryo3._fnv)
 - [`ry.ryo3._fspath`](#ry.ryo3._fspath)
@@ -70,6 +72,15 @@ from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
+from ry.ryo3._aws_lc import sha1 as sha1
+from ry.ryo3._aws_lc import sha3_256 as sha3_256
+from ry.ryo3._aws_lc import sha3_384 as sha3_384
+from ry.ryo3._aws_lc import sha3_512 as sha3_512
+from ry.ryo3._aws_lc import sha224 as sha224
+from ry.ryo3._aws_lc import sha256 as sha256
+from ry.ryo3._aws_lc import sha384 as sha384
+from ry.ryo3._aws_lc import sha512 as sha512
+from ry.ryo3._aws_lc import sha512_256 as sha512_256
 from ry.ryo3._brotli import brotli as brotli
 from ry.ryo3._brotli import brotli_decode as brotli_decode
 from ry.ryo3._brotli import brotli_encode as brotli_encode
@@ -328,6 +339,72 @@ __target__: str
 __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
+```
+
+<h2 id="ry.ryo3._aws_lc"><code>ry.ryo3._aws_lc</code></h2>
+
+```python
+import typing as t
+
+from ry._types import Buffer
+
+SHA1_BLOCK_SIZE: t.TypeAlias = t.Literal[64]
+SHA1_DIGEST_SIZE: t.TypeAlias = t.Literal[20]
+
+SHA224_BLOCK_SIZE: t.TypeAlias = t.Literal[64]
+SHA224_DIGEST_SIZE: t.TypeAlias = t.Literal[28]
+
+SHA256_BLOCK_SIZE: t.TypeAlias = t.Literal[64]
+SHA256_DIGEST_SIZE: t.TypeAlias = t.Literal[32]
+
+SHA384_BLOCK_SIZE: t.TypeAlias = t.Literal[128]
+SHA384_DIGEST_SIZE: t.TypeAlias = t.Literal[48]
+
+SHA3_256_BLOCK_SIZE: t.TypeAlias = t.Literal[136]
+SHA3_256_DIGEST_SIZE: t.TypeAlias = t.Literal[32]
+
+SHA3_384_BLOCK_SIZE: t.TypeAlias = t.Literal[104]
+SHA3_384_DIGEST_SIZE: t.TypeAlias = t.Literal[48]
+
+SHA3_512_BLOCK_SIZE: t.TypeAlias = t.Literal[72]
+SHA3_512_DIGEST_SIZE: t.TypeAlias = t.Literal[64]
+
+SHA512_BLOCK_SIZE: t.TypeAlias = t.Literal[128]
+SHA512_DIGEST_SIZE: t.TypeAlias = t.Literal[64]
+
+SHA512_256_BLOCK_SIZE: t.TypeAlias = t.Literal[128]
+SHA512_256_DIGEST_SIZE: t.TypeAlias = t.Literal[32]
+
+_TName = t.TypeVar("_TName", bound=str)
+_TBlockSize = t.TypeVar("_TBlockSize", bound=int)
+_TDigestSize = t.TypeVar("_TDigestSize", bound=int)
+
+
+@t.type_check_only
+class _Sha(t.Generic[_TName, _TBlockSize, _TDigestSize]):
+    name: _TName
+    digest_size: _TDigestSize
+    block_size: _TBlockSize
+
+    def copy(self) -> t.Self: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def update(self, obj: Buffer, /) -> None: ...
+    @staticmethod
+    def oneshot(data: Buffer) -> bytes: ...
+
+
+# fmt: off
+sha1: type[_Sha[t.Literal["sha1"], SHA1_BLOCK_SIZE, SHA1_DIGEST_SIZE]]
+sha224: type[_Sha[t.Literal["sha224"], SHA224_BLOCK_SIZE, SHA224_DIGEST_SIZE]]
+sha256: type[_Sha[t.Literal["sha256"], SHA256_BLOCK_SIZE, SHA256_DIGEST_SIZE]]
+sha384: type[_Sha[t.Literal["sha384"], SHA384_BLOCK_SIZE, SHA384_DIGEST_SIZE]]
+sha3_256: type[_Sha[t.Literal["sha3_256"], SHA3_256_BLOCK_SIZE, SHA3_256_DIGEST_SIZE]]
+sha3_384: type[_Sha[t.Literal["sha3_384"], SHA3_384_BLOCK_SIZE, SHA3_384_DIGEST_SIZE]]
+sha3_512: type[_Sha[t.Literal["sha3_512"], SHA3_512_BLOCK_SIZE, SHA3_512_DIGEST_SIZE]]
+sha512: type[_Sha[t.Literal["sha512"], SHA512_BLOCK_SIZE, SHA512_DIGEST_SIZE]]
+sha512_256: type[_Sha[t.Literal["sha512_256"], SHA512_256_BLOCK_SIZE, SHA512_256_DIGEST_SIZE]]
+# fmt: on
 ```
 
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
@@ -606,6 +683,283 @@ def run(
 def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
 def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
+```
+
+<h2 id="ry.ryo3._encoding_rs"><code>ry.ryo3._encoding_rs</code></h2>
+
+```python
+import typing as t
+
+Encoding: t.TypeAlias = t.Literal[
+    # UTF-8
+    "utf8",
+    "utf-8",
+    "unicode20utf8",
+    "unicode11utf8",
+    "x-unicode20utf8",
+    "unicode-1-1-utf-8",
+    # UTF-16LE
+    "ucs-2",
+    "utf-16",
+    "unicode",
+    "utf-16le",
+    "csunicode",
+    "unicodefeff",
+    "iso-10646-ucs-2",
+    # UTF-16BE
+    "utf-16be",
+    "unicodefffe",
+    # Big5
+    "big5",
+    "csbig5",
+    "cn-big5",
+    "x-x-big5",
+    "big5-hkscs",
+    # EUC-JP
+    "euc-jp",
+    "x-euc-jp",
+    "cseucpkdfmtjapanese",
+    # EUC-KR
+    "korean",
+    "euc-kr",
+    "ksc5601",
+    "cseuckr",
+    "ksc_5601",
+    "iso-ir-149",
+    "windows-949",
+    "csksc56011987",
+    "ks_c_5601-1987",
+    "ks_c_5601-1989",
+    # GBK
+    "gbk",
+    "x-gbk",
+    "gb2312",
+    "gb_2312",
+    "chinese",
+    "csgb2312",
+    "iso-ir-58",
+    "gb_2312-80",
+    "csiso58gb231280",
+    # IBM866
+    "866",
+    "cp866",
+    "ibm866",
+    "csibm866",
+    # ISO-2022-JP
+    "iso-2022-jp",
+    "csiso2022jp",
+    # ISO-8859-10
+    "l6",
+    "latin6",
+    "iso885910",
+    "iso8859-10",
+    "iso-ir-157",
+    "iso-8859-10",
+    "csisolatin6",
+    # ISO-8859-13
+    "iso885913",
+    "iso8859-13",
+    "iso-8859-13",
+    # ISO-8859-14
+    "iso885914",
+    "iso8859-14",
+    "iso-8859-14",
+    # ISO-8859-15
+    "l9",
+    "iso885915",
+    "iso8859-15",
+    "iso-8859-15",
+    "iso_8859-15",
+    "csisolatin9",
+    # ISO-8859-16
+    "iso-8859-16",
+    # ISO-8859-2
+    "l2",
+    "latin2",
+    "iso88592",
+    "iso8859-2",
+    "iso-ir-101",
+    "iso-8859-2",
+    "iso_8859-2",
+    "csisolatin2",
+    "iso_8859-2:1987",
+    # ISO-8859-3
+    "l3",
+    "latin3",
+    "iso88593",
+    "iso8859-3",
+    "iso-8859-3",
+    "iso_8859-3",
+    "iso-ir-109",
+    "csisolatin3",
+    "iso_8859-3:1988",
+    # ISO-8859-4
+    "l4",
+    "latin4",
+    "iso88594",
+    "iso8859-4",
+    "iso-ir-110",
+    "iso-8859-4",
+    "iso_8859-4",
+    "csisolatin4",
+    "iso_8859-4:1988",
+    # ISO-8859-5
+    "iso88595",
+    "cyrillic",
+    "iso8859-5",
+    "iso-ir-144",
+    "iso-8859-5",
+    "iso_8859-5",
+    "iso_8859-5:1988",
+    "csisolatincyrillic",
+    # ISO-8859-6
+    "arabic",
+    "ecma-114",
+    "iso88596",
+    "asmo-708",
+    "iso8859-6",
+    "iso-8859-6",
+    "iso_8859-6",
+    "iso-ir-127",
+    "csiso88596e",
+    "csiso88596i",
+    "iso-8859-6-e",
+    "iso-8859-6-i",
+    "iso_8859-6:1987",
+    "csisolatinarabic",
+    # ISO-8859-7
+    "greek",
+    "greek8",
+    "iso88597",
+    "ecma-118",
+    "elot_928",
+    "iso8859-7",
+    "iso-ir-126",
+    "iso-8859-7",
+    "iso_8859-7",
+    "sun_eu_greek",
+    "iso_8859-7:1987",
+    "csisolatingreek",
+    # ISO-8859-8
+    "visual",
+    "hebrew",
+    "iso88598",
+    "iso8859-8",
+    "iso-8859-8",
+    "iso_8859-8",
+    "iso-ir-138",
+    "csiso88598e",
+    "iso-8859-8-e",
+    "iso_8859-8:1988",
+    "csisolatinhebrew",
+    # ISO-8859-8-I
+    "logical",
+    "csiso88598i",
+    "iso-8859-8-i",
+    # KOI8-R
+    "koi",
+    "koi8",
+    "koi8-r",
+    "koi8_r",
+    "cskoi8r",
+    # KOI8-U
+    "koi8-u",
+    "koi8-ru",
+    # Shift_JIS
+    "sjis",
+    "ms932",
+    "x-sjis",
+    "ms_kanji",
+    "shift-jis",
+    "shift_jis",
+    "csshiftjis",
+    "windows-31j",
+    # gb18030
+    "gb18030",
+    # macintosh
+    "mac",
+    "macintosh",
+    "csmacintosh",
+    "x-mac-roman",
+    # replacement
+    "hz-gb-2312",
+    "iso-2022-cn",
+    "iso-2022-kr",
+    "csiso2022kr",
+    "replacement",
+    "iso-2022-cn-ext",
+    # windows-1250
+    "cp1250",
+    "x-cp1250",
+    "windows-1250",
+    # windows-1251
+    "cp1251",
+    "x-cp1251",
+    "windows-1251",
+    # windows-1252
+    "l1",
+    "cp819",
+    "ascii",
+    "latin1",
+    "cp1252",
+    "ibm819",
+    "iso88591",
+    "x-cp1252",
+    "us-ascii",
+    "iso8859-1",
+    "iso-ir-100",
+    "iso-8859-1",
+    "iso_8859-1",
+    "csisolatin1",
+    "windows-1252",
+    "ansi_x3.4-1968",
+    "iso_8859-1:1987",
+    # windows-1253
+    "cp1253",
+    "x-cp1253",
+    "windows-1253",
+    # windows-1254
+    "l5",
+    "cp1254",
+    "latin5",
+    "x-cp1254",
+    "iso88599",
+    "iso8859-9",
+    "iso-ir-148",
+    "iso-8859-9",
+    "iso_8859-9",
+    "csisolatin5",
+    "windows-1254",
+    "iso_8859-9:1989",
+    # windows-1255
+    "cp1255",
+    "x-cp1255",
+    "windows-1255",
+    # windows-1256
+    "cp1256",
+    "x-cp1256",
+    "windows-1256",
+    # windows-1257
+    "cp1257",
+    "x-cp1257",
+    "windows-1257",
+    # windows-1258
+    "cp1258",
+    "x-cp1258",
+    "windows-1258",
+    # windows-874
+    "tis-620",
+    "dos-874",
+    "iso885911",
+    "iso8859-11",
+    "iso-8859-11",
+    "windows-874",
+    # x-mac-cyrillic
+    "x-mac-cyrillic",
+    "x-mac-ukrainian",
+    # x-user-defined
+    "x-user-defined",
+]
 ```
 
 <h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
@@ -1444,6 +1798,12 @@ _OffsetRoundSmallest: t.TypeAlias = t.Literal[
     "minute",
     "second",
 ]
+_DateDifferenceUnit: t.TypeAlias = t.Literal[
+    "year",
+    "month",
+    "week",
+    "day",
+]
 
 WeekdayStr: t.TypeAlias = t.Literal[
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
@@ -1651,8 +2011,8 @@ class Date(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: t.Literal["year", "month", "week", "day"] = "day",
-        largest: t.Literal["year", "month", "week", "day"] | None = None,
+        smallest: _DateDifferenceUnit = "day",
+        largest: _DateDifferenceUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
@@ -1660,8 +2020,8 @@ class Date(
         self,
         other: Date | DateTime | ZonedDateTime,
         *,
-        smallest: t.Literal["year", "month", "week", "day"] = "day",
-        largest: t.Literal["year", "month", "week", "day"] | None = None,
+        smallest: _DateDifferenceUnit = "day",
+        largest: _DateDifferenceUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
@@ -4445,6 +4805,7 @@ import typing as t
 import ry
 from ry._types import Buffer, Unpack
 from ry.protocols import FromStr, _Parse
+from ry.ryo3._encoding_rs import Encoding
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
@@ -4894,7 +5255,8 @@ class Response:
     def __init__(self) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
-    async def text(self) -> str: ...
+    async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
+    async def text_with_charset(self, encoding: Encoding) -> str: ...
     async def json(
         self,
         *,
@@ -4963,7 +5325,8 @@ class AsyncResponse:
     def __init__(self) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
-    async def text(self) -> str: ...
+    async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
+    async def text_with_charset(self, encoding: Encoding) -> str: ...
     async def json(
         self,
         *,
@@ -4977,10 +5340,10 @@ class AsyncResponse:
     async def bytes(self) -> ry.Bytes: ...
     def bytes_stream(
         self, min_read_size: int = 0, /
-    ) -> ResponseStream: ...  # min_read_size=0 -> None
+    ) -> _AsyncResponseStream: ...  # min_read_size=0 -> None
     def stream(
         self, min_read_size: int = 0, /
-    ) -> ResponseStream: ...  # min_read_size=0 -> None
+    ) -> _AsyncResponseStream: ...  # min_read_size=0 -> None
     @property
     def url(self) -> URL: ...
     @property
@@ -5030,7 +5393,8 @@ class BlockingResponse:
     def __init__(self) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
-    def text(self) -> str: ...
+    def text(self, *, encoding: Encoding = "utf-8") -> str: ...
+    def text_with_charset(self, encoding: Encoding) -> str: ...
     def json(
         self,
         *,
@@ -5105,7 +5469,7 @@ class ResponseStream:
 
 @t.final
 class _AsyncResponseStream:
-    def __aiter__(self) -> ResponseStream: ...
+    def __aiter__(self) -> _AsyncResponseStream: ...
     async def __anext__(self) -> ry.Bytes: ...
     async def take(self, n: int = 1) -> list[ry.Bytes]: ...
     async def collect(self) -> list[ry.Bytes]: ...
