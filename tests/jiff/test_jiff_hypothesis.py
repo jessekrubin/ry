@@ -191,7 +191,10 @@ def test_invalid_date_creation(year: int, month: int, day: int) -> None:
         with pytest.raises(OverflowError):
             _d = ry.date(year, month, day)
     else:
-        with pytest.raises(ValueError, match=" is not in the required range of "):
+        with pytest.raises(
+            ValueError,
+            match=r"( is not in the required range of | is invalid, must be in range )",
+        ):
             _d = ry.date(year, month, day)
 
 
