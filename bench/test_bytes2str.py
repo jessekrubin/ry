@@ -16,7 +16,7 @@ ALL_BYTES_10X = ALL_BYTES * 10
 class TestBytes2String:
     @pytest.mark.benchmark(group="bytes2str")
     def test_python_bytes_string(self, benchmark: BenchmarkFixture) -> None:
-        def bytes2str(b):
+        def bytes2str(b: bytes) -> int:
             return len(b.__repr__())
 
         benchmark(bytes2str, ALL_BYTES_10X)
@@ -25,7 +25,7 @@ class TestBytes2String:
     def test_ry_bytes_string(self, benchmark: BenchmarkFixture) -> None:
         ry_b = ry.Bytes(ALL_BYTES_10X)
 
-        def bytes2str(b):
+        def bytes2str(b: ry.Bytes) -> int:
             return len(b.__repr__())
 
         benchmark(bytes2str, ry_b)

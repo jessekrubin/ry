@@ -15,10 +15,10 @@ SHPLIT_STRINGS = [e.string for e in SHPLITESTS]
 
 
 @pytest.mark.benchmark(group="shplit")
-def test_benchmark_py_shplit(benchmark: BenchmarkFixture):
+def test_benchmark_py_shplit(benchmark: BenchmarkFixture) -> None:
     benchmark(lambda: [py_shplit(e) for e in SHPLIT_STRINGS])
 
 
 @pytest.mark.benchmark(group="shplit")
-def test_benchmark_ry_shplit(benchmark: BenchmarkFixture):
+def test_benchmark_ry_shplit(benchmark: BenchmarkFixture) -> None:
     benchmark(lambda: [ry_shplit(e) for e in SHPLIT_STRINGS])

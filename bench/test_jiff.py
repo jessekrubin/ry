@@ -11,15 +11,15 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.benchmark(group="jiff-constructors")
-def test_fn_datetime(benchmark: BenchmarkFixture):
+def test_fn_datetime(benchmark: BenchmarkFixture) -> None:
     benchmark(lambda: ry.datetime(2020, 2, 29, 12, 30, 45))
 
 
 @pytest.mark.benchmark(group="jiff-constructors")
-def test_fn_zoned_no_tz(benchmark: BenchmarkFixture):
+def test_fn_zoned_no_tz(benchmark: BenchmarkFixture) -> None:
     benchmark(lambda: ry.zoned(2020, 2, 29, 12, 30, 45))
 
 
 @pytest.mark.benchmark(group="jiff-constructors")
-def test_fn_zoned_la(benchmark: BenchmarkFixture):
+def test_fn_zoned_la(benchmark: BenchmarkFixture) -> None:
     benchmark(lambda: ry.zoned(2020, 2, 29, 12, 30, 45, tz="America/Los_Angeles"))

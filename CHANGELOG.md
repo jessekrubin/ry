@@ -1,13 +1,16 @@
 # CHANGELOG
 
-## v0.0.85 [unreleased]
+## v0.0.85 [2026-03-04]
 
 - `ryo3-fnv`
   - drop `fnv` crate dependency
   - internal refactoring and cleanup to use `ryo3-core` utils
 - `ryo3-reqwest`
   - `text_with_charset` response methods
-  - `text` now takes `encoding="utf-8"` kw-only-arg
+  - `text` now takes `encoding="utf-8"` kw-only-arg (looks like rnet guy copied
+    this... nice)
+- `ryo3-aws-lc`
+  - dep updates to resolve depbot security issues
 
 ---
 

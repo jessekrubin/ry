@@ -147,6 +147,13 @@ flake8-boolean-trap.extend-allowed-calls = [
 # Tests can use magic values, assertions, and relative imports
 "bench/**/*.py" = [
   "B011",
+  "COM",
+  "D100",    # undocumented-public-module
+  "D101",    # undocumented-public-class
+  "D102",    # undocumented-public-method
+  "D103",    # undocumented-public-function
+  "D104",    # undocumented-public-package
+  "D415",    # missing-terminal-punctuation
   "DTZ001",
   "PL",
   "S101",
