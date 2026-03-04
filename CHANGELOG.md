@@ -7,7 +7,8 @@
   - internal refactoring and cleanup to use `ryo3-core` utils
 - `ryo3-reqwest`
   - `text_with_charset` response methods
-  - `text` now takes `encoding="utf-8"` kw-only-arg
+  - `text` now takes `encoding="utf-8"` kw-only-arg (looks like rnet guy copied
+    this... nice)
 
 ---
 
