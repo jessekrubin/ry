@@ -24,37 +24,37 @@ JSON_STRING = (REPO_ROOT / "package.json").read_text(encoding="utf-8")
 JSON_BYTES = JSON_STRING.encode()
 
 
-def test_parse_bytes_orjson(benchmark: BenchmarkFixture):
+def test_parse_bytes_orjson(benchmark: BenchmarkFixture) -> None:
     if not ORJSON_AVAILABLE:
         pytest.skip("orjson is not available")
     benchmark(orjson.loads, JSON_BYTES)
 
 
-def test_parse_str(benchmark: BenchmarkFixture):
+def test_parse_str(benchmark: BenchmarkFixture) -> None:
     benchmark(ry.parse_json, JSON_STRING)
 
 
-def test_parse_bytes(benchmark: BenchmarkFixture):
+def test_parse_bytes(benchmark: BenchmarkFixture) -> None:
     benchmark(ry.parse_json, JSON_BYTES)
 
 
-def test_parse_str_orjson(benchmark: BenchmarkFixture):
+def test_parse_str_orjson(benchmark: BenchmarkFixture) -> None:
     if not ORJSON_AVAILABLE:
         pytest.skip("orjson is not available")
     benchmark(orjson.loads, JSON_STRING)
 
 
-def test_parse_str_or_bytes(benchmark: BenchmarkFixture):
+def test_parse_str_or_bytes(benchmark: BenchmarkFixture) -> None:
     benchmark(ry.parse_json, JSON_STRING)
 
 
-def test_parse_str_stdlib(benchmark: BenchmarkFixture):
+def test_parse_str_stdlib(benchmark: BenchmarkFixture) -> None:
     benchmark(json.loads, JSON_STRING)
 
 
-def test_parse_bytes_stdlib(benchmark: BenchmarkFixture):
+def test_parse_bytes_stdlib(benchmark: BenchmarkFixture) -> None:
     benchmark(json.loads, JSON_BYTES)
 
 
-def test_parse_str_or_bytes_stdlib(benchmark: BenchmarkFixture):
+def test_parse_str_or_bytes_stdlib(benchmark: BenchmarkFixture) -> None:
     benchmark(json.loads, JSON_STRING)
