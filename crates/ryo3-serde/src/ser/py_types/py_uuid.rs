@@ -21,6 +21,6 @@ impl Serialize for PyUuidSerializer<'_, '_> {
         S: Serializer,
     {
         let uu: uuid::Uuid = self.obj.extract().map_err(pyerr2sererr)?;
-        serializer.serialize_str(&uu.hyphenated().to_string())
+        uu.serialize(serializer)
     }
 }

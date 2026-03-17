@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.0.86 [unreleased]
+
+- `ryo3-serde`
+  - refactor py-uuid serializer
+  - refactor py-float serializer
+  - clean up dead code
+
+---
+
 ## v0.0.85 [2026-03-04]
 
 - `ryo3-fnv`
