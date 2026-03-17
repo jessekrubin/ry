@@ -6,6 +6,12 @@ pub(crate) struct PyFloatSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
+impl<'a, 'py> PyFloatSerializer<'a, 'py> {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        Self { obj }
+    }
+}
+
 #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
 impl Serialize for PyFloatSerializer<'_, '_> {
     #[inline]
