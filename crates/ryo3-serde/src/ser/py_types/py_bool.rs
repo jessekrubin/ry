@@ -1,8 +1,7 @@
 use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
-use std::ptr;
 
-use pyo3::{Borrowed, ffi};
+use pyo3::Borrowed;
 
 pub(crate) struct PyBoolSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,
@@ -24,7 +23,7 @@ impl Serialize for PyBoolSerializer<'_, '_> {
     {
         #[expect(unsafe_code)]
         unsafe {
-            let istrue = ptr::eq(self.obj.as_ptr(), ffi::Py_True());
+            let istrue = std::ptr::eq(self.obj.as_ptr(), pyo3::ffi::Py_True());
             serializer.serialize_bool(istrue)
         }
     }
