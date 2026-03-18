@@ -14,9 +14,9 @@ def test_canonicalize_str(
 
     _uncannonical_path = "a/../a/b/../b/c/./file.txt"
     _expected_trailer = str(pathlib.Path("a/b/c/file.txt"))
-    cannonical_path = ry.canonicalize(_uncannonical_path)
-    assert str(cannonical_path).endswith(_expected_trailer)
+    canonical_path = ry.canonicalize(_uncannonical_path)
+    assert str(canonical_path).endswith(_expected_trailer)
 
     # test pathlib
-    cannonical_path_pathlib = ry.canonicalize(pathlib.Path(_uncannonical_path))
-    assert str(cannonical_path_pathlib).endswith(_expected_trailer)
+    canonical_path_pathlib = ry.canonicalize(pathlib.Path(_uncannonical_path))
+    assert str(canonical_path_pathlib).endswith(_expected_trailer)

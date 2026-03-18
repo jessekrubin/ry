@@ -116,7 +116,7 @@ macro_rules! py_stop_async_iteration_err {
 }
 
 #[macro_export]
-macro_rules! py_stop_async_iteration_erorr {
+macro_rules! py_stop_async_iteration_error {
     () => {
         ::pyo3::exceptions::PyStopAsyncIteration::new_err("stop async iteration")
     };

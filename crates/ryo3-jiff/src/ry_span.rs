@@ -1,5 +1,5 @@
 use crate::constants::SPAN_PARSER;
-use crate::py_temporal_like::PyTermporalTypes;
+use crate::py_temporal_like::PyTemporalTypes;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::spanish::Spanish;
 use crate::{
@@ -916,14 +916,14 @@ impl<'a, 'py> From<&'a IntoSpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
 #[derive(Debug, Clone)]
 pub(crate) enum SpanAddTarget<'a, 'py> {
     Span(IntoSpanArithmetic<'a, 'py>),
-    TemporalType(PyTermporalTypes<'a, 'py>),
+    TemporalType(PyTemporalTypes<'a, 'py>),
 }
 
 impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(temporal_ish) = obj.extract::<PyTermporalTypes<'a, 'py>>() {
+        if let Ok(temporal_ish) = obj.extract::<PyTemporalTypes<'a, 'py>>() {
             Ok(Self::TemporalType(temporal_ish))
         } else if let Ok(span_arith) = obj.extract::<IntoSpanArithmetic<'a, 'py>>() {
             Ok(Self::Span(span_arith))
@@ -964,7 +964,7 @@ impl_span_add_for_borrowed!(RyTime);
 impl_span_add_for_borrowed!(RyZoned);
 impl_span_add_for_borrowed!(RyTimestamp);
 
-impl<'a, 'py> SpanAdd<'a, 'py> for PyTermporalTypes<'a, 'py> {
+impl<'a, 'py> SpanAdd<'a, 'py> for PyTemporalTypes<'a, 'py> {
     type Target = PyAny;
     type Output = Bound<'py, PyAny>;
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {

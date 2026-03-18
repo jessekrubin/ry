@@ -10,7 +10,7 @@ use jiff::{
 };
 use ryo3_core::map_py_overflow_err;
 
-// ~ ~ ~ internal crate converstions ~ ~ ~
+// ~ ~ ~ internal crate conversions ~ ~ ~
 impl From<&RyDateTime> for RyDate {
     #[inline]
     fn from(value: &RyDateTime) -> Self {

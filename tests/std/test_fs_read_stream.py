@@ -7,7 +7,7 @@ import pytest
 
 import ry
 
-_THIS_FILEPATH_ABOSLUTE = Path(__file__).resolve()
+_THIS_FILEPATH_ABSOLUTE = Path(__file__).resolve()
 _DEFAULT_read_size = 65_536
 
 
@@ -225,4 +225,4 @@ class TestFileReadStreamErrors:
     def test_read_size_zero_raises(self) -> None:
         """Test that read_size of zero raises ValueError."""
         with pytest.raises(ValueError, match="read_size must be greater than 0"):
-            _rs = ry.read_stream(_THIS_FILEPATH_ABOSLUTE, read_size=0)
+            _rs = ry.read_stream(_THIS_FILEPATH_ABSOLUTE, read_size=0)

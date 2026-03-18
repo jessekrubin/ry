@@ -1,8 +1,6 @@
 # `ryo3-quick-maths`
 
-**THIS IS A TEMPLATE LIBRARY**
-
-copy this crate to create a new `ryo3-*` crate
+**THIS IS A TEMPLATE LIBRARY:** copy this crate to create a new `ryo3-*` crate
 
 ---
 

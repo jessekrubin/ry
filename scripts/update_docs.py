@@ -115,6 +115,7 @@ def _gen_api_content_readme(
     yield "# API"
     yield ""
     yield "## Table of Contents"
+    yield ""
 
     yield from (f"- [`{mod_name}`](#{mod_name})" for mod_name, _ in parts)
 

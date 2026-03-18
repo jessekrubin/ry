@@ -296,12 +296,12 @@ class TestProxy:
     ) -> None:
         builder_fn = getattr(ry.Proxy, proxy_type)
         p = builder_fn(u, **kw)
-        expeted_url_str = ry.URL(u).to_string()
+        expected_url_str = ry.URL(u).to_string()
         assert isinstance(p, ry.Proxy)
         expected_start = (
-            f'Proxy("{expeted_url_str}")'
+            f'Proxy("{expected_url_str}")'
             if proxy_type == "all"
-            else f'Proxy("{expeted_url_str}", "{proxy_type}")'
+            else f'Proxy("{expected_url_str}", "{proxy_type}")'
         )
         assert str(p).startswith(expected_start)
         p2 = eval(repr(p), {"Proxy": ry.Proxy, "Headers": ry.Headers})
