@@ -1,5 +1,4 @@
-use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::{prelude::*, types::PyBytes};
 
 use crate::sp::done::Done;
 
