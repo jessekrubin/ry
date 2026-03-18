@@ -155,3 +155,14 @@ check_untyped_defs = true
 [tool.pyright]
 include = [ 'ry', 'tests' ]
 reportUnnecessaryTypeIgnoreComment = true
+
+[tool.rumdl]
+disable = [ "MD033" ]
+exclude = [  ]
+
+[tool.rumdl.per-file-ignores]
+"README.md" = [ "MD036" ]
+"docs/src/index.md" = [ "MD041" ]
+
+[tool.rumdl.MD013]
+code_blocks = false

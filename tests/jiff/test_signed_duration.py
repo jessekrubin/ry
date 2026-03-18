@@ -46,7 +46,7 @@ def test_signed_duration_new(secs: int, nanos: int) -> None:
         assert isinstance(dur, ry.SignedDuration)
         expected_float = secs + (nanos / _NANOS_PER_SEC)
         if abs(expected_float) < 2**53:
-            # check close enough if stupid fucking floating pooint numbers
+            # check close enough if stupid fucking floating point numbers
             # aren't being a totally pain in the ass (as they almost
             # always are....). Idk what is going on here... this was
             # fugue state jesse yesterday (2025-12-13) and I just want my PR
@@ -686,7 +686,7 @@ class TestDurationArithmetic:
         assert signed_duration == dur_left - dur_right
 
     @pytest.mark.parametrize(
-        ("opperator", "value"),
+        ("operator", "value"),
         [
             (op, value)
             for op in [
@@ -701,27 +701,27 @@ class TestDurationArithmetic:
         ],
     )
     def test_operators_type_errors(
-        self, opperator: str, value: complex | list[int] | str
+        self, operator: str, value: complex | list[int] | str
     ) -> None:
         dur = ry.SignedDuration(1, 0)
-        if opperator in ["__add__", "__radd__", "__sub__", "__rsub__"]:
-            _res = getattr(dur, opperator)(value)
+        if operator in ["__add__", "__radd__", "__sub__", "__rsub__"]:
+            _res = getattr(dur, operator)(value)
             assert _res is NotImplemented
-            if opperator == "__add__":
+            if operator == "__add__":
                 with pytest.raises(TypeError):
                     _ = dur + value  # type: ignore[operator]
-            elif opperator == "__sub__":
+            elif operator == "__sub__":
                 with pytest.raises(TypeError):
                     _ = dur - value  # type: ignore[operator]
-            elif opperator == "__rsub__":
+            elif operator == "__rsub__":
                 with pytest.raises(TypeError):
                     _ = value - dur  # type: ignore[operator]
-            else:  # opperator == "__radd__":
+            else:  # operator == "__radd__":
                 with pytest.raises(TypeError):
                     _ = value + dur  # type: ignore[operator]
         else:
             with pytest.raises(TypeError):
-                _res = getattr(dur, opperator)(value)
+                _res = getattr(dur, operator)(value)
 
 
 class TestSignedDurationCheckedArithmetic:

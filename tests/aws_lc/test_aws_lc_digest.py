@@ -98,7 +98,7 @@ def test_hashers_info(info: _HasherInfo) -> None:
 def test_sha_hasher_repr(info: _HasherInfo) -> None:
     """Test the repr of the hashers
 
-    SHould look like `<sha256 @ 0x12345678>` tho this prolly is stupid and
+    Should look like `<sha256 @ 0x12345678>` tho this prolly is stupid and
     should change
     """
     hasher = info["ry_hasher"]()

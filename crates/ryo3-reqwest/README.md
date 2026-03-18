@@ -1,7 +1,12 @@
 # `ryo3-reqwest`
 
-Wrapper around the `reqwest` crate for Python.
+ryo3-wrapper for `reqwest`
 
-**NOT YET IMPLEMENTED**
+[//]: # "<GENERATED>"
 
-REF: <https://docs.rs/reqwest/latest/reqwest>/
+## Ref
+
+- docs.rs: [https://docs.rs/reqwest](https://docs.rs/reqwest)
+- crates: [https://crates.io/crates/reqwest](https://crates.io/crates/reqwest)
+
+[//]: # "</GENERATED>"

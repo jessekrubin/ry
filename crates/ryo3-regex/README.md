@@ -2,7 +2,7 @@
 
 Wrapper around the `regex` crate for Python.
 
-**NOT FULLY IMPLEMENTED ~ currently crude**
+**NOT FULLY IMPLEMENTED:** crudely implemented (as of 2026-03-18)
 
 - [crates.io](https://crates.io/crates/regex)
 - [docs.rs](https://docs.rs/regex)

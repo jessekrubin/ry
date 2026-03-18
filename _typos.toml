@@ -13,6 +13,7 @@ extend-ignore-identifiers-re = [
   "NdArray",
   "SER",
   "wee", # as in a "wee bit"
+  "ser",
 ]
 extend-ignore-re = [
   # disable line with `# spellchecker:disable-line` or `// spellchecker:disable-line`

@@ -4,7 +4,7 @@ use ryo3_macro_rules::py_type_err;
 use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
 
 #[derive(Debug, Clone)]
-pub(crate) enum PyTermporalTypes<'a, 'py> {
+pub(crate) enum PyTemporalTypes<'a, 'py> {
     Date(Borrowed<'a, 'py, RyDate>),
     DateTime(Borrowed<'a, 'py, RyDateTime>),
     Time(Borrowed<'a, 'py, RyTime>),
@@ -12,7 +12,7 @@ pub(crate) enum PyTermporalTypes<'a, 'py> {
     Timestamp(Borrowed<'a, 'py, RyTimestamp>),
 }
 
-impl<'a, 'py> FromPyObject<'a, 'py> for PyTermporalTypes<'a, 'py> {
+impl<'a, 'py> FromPyObject<'a, 'py> for PyTemporalTypes<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {

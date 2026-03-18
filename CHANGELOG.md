@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.87 [unreleased]
+
+---
+
 ## v0.0.86 [2026-03-18]
 
 - `ryo3-serde`
@@ -208,7 +212,7 @@
     - Changed signature of constructor to be
       `ry.Offset(hours=0, minutes=0, seconds=0)`
   - use defaults for all round/difference objects/function calls
-  - fixed f-str formatting when emptry fmt string given
+  - fixed f-str formatting when empty fmt string given
 
 ---
 
@@ -219,7 +223,7 @@
     deprecated in favor of `with_*` methods. The `ry.URL.replace` still exists
     as a way to replace multiple parts at once.
   - `ry.aiopen` -> `ry.aopen`: it was supposed to be "asyncio-open", but it
-    could be easily confused with "artificial-intellegence-open"/"llm-open"
+    could be easily confused with "artificial-intelligence-open"/"llm-open"
   - `ryo3-fnv`
     - `FnvHasher` -> `fnv1a`
     - `fnv1a` function removed as it was just a stupid proxy for `fnv1a` class

@@ -6,7 +6,7 @@ use crate::RyDateTime;
 use crate::RyTime;
 use crate::RyTimestamp;
 use crate::RyZoned;
-use crate::py_temporal_like::PyTermporalTypes;
+use crate::py_temporal_like::PyTemporalTypes;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
@@ -721,7 +721,7 @@ impl Display for RySignedDuration {
 pub(crate) enum SignedDurationAddTarget<'a, 'py> {
     SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
     Delta(SignedDuration),
-    TemporalType(PyTermporalTypes<'a, 'py>),
+    TemporalType(PyTemporalTypes<'a, 'py>),
 }
 
 impl<'a, 'py> FromPyObject<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
@@ -735,7 +735,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
         } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
             let rs_dur: SignedDuration = d.extract()?;
             Ok(Self::Delta(rs_dur))
-        } else if let Ok(date_time_type) = obj.extract::<PyTermporalTypes<'a, 'py>>() {
+        } else if let Ok(date_time_type) = obj.extract::<PyTemporalTypes<'a, 'py>>() {
             Ok(Self::TemporalType(date_time_type))
         } else {
             py_type_err!(
@@ -753,7 +753,7 @@ trait PySignedDurationAdd<'a, 'py> {
 }
 
 // this is some fugue-state-jesse shit from last week -- idk wtf I was dgoing,
-// but I was absolutley in that insane macro-flow state
+// but I was absolutely in that insane macro-flow state
 macro_rules! impl_signed_duration_add_for_borrowed_temporal {
     ($ty:ty) => {
         impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, $ty> {
@@ -781,7 +781,7 @@ impl_signed_duration_add_for_borrowed_temporal!(RyTime);
 impl_signed_duration_add_for_borrowed_temporal!(RyZoned);
 impl_signed_duration_add_for_borrowed_temporal!(RyTimestamp);
 
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for PyTermporalTypes<'a, 'py> {
+impl<'a, 'py> PySignedDurationAdd<'a, 'py> for PyTemporalTypes<'a, 'py> {
     type Target = PyAny;
     type Output = Bound<'py, PyAny>;
     fn add_signed_duration(

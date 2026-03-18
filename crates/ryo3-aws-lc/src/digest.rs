@@ -251,7 +251,7 @@ define_py_algorithm!(
 pub struct PySha256(PyMutexContext<PySha256Algorithm>);
 
 // ============================================================================
-// SHA256 -- implementaiton that is NOT macrod for testing and being able to
+// SHA256 -- implementation that is NOT macrod for testing and being able to
 //           edit the macro
 // ============================================================================
 impl PySha256 {

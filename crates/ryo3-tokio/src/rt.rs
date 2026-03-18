@@ -21,7 +21,7 @@ impl RyRuntime<'_> {
         self.0.spawn(fut)
     }
 
-    // version of spwan that returns a wrapped JoinHandle that can be polled
+    // version of spawn that returns a wrapped JoinHandle that can be polled
     // and ensures the join error is py-err-able
     #[inline]
     pub(crate) fn py_spawn<F, T>(&self, fut: F) -> RyJoinHandle<T>
