@@ -4,7 +4,7 @@ ryo3-wrapper for `same-file` crate
 
 [//]: # "<GENERATED>"
 
-## Ref:
+## Ref
 
 - docs.rs: [https://docs.rs/same-file](https://docs.rs/same-file)
 - crates:

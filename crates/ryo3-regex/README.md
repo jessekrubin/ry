@@ -9,7 +9,7 @@ Wrapper around the `regex` crate for Python.
 
 ---
 
-# TODO
+## TODO
 
 - [ ] match the `regex` crate examples
 - [ ] figure out how to support bytes/string maybe generics?

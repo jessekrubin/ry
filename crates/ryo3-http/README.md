@@ -4,7 +4,7 @@ ryo3-wrapper for `http` crate
 
 [//]: # "<GENERATED>"
 
-## Ref:
+## Ref
 
 - docs.rs: [https://docs.rs/http](https://docs.rs/http)
 - crates: [https://crates.io/crates/http](https://crates.io/crates/http)
