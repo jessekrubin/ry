@@ -90,7 +90,7 @@ enum PyReqwestBody {
     Stream(crate::body::PyBodyStream),
     Json(Vec<u8>),
     Form(String),
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     Multipart(bool), // placeholder
     None,
 }

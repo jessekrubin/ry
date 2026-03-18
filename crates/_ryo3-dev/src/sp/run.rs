@@ -111,7 +111,6 @@ pub fn run(
         thread::spawn(move || communicate(child_out, &tx_out, 4096, collect).unwrap())
     };
 
-    // let thread_out = thread::spawn(move || communicate(child_out, tx_out).unwrap());
     let thread_err = if tee.unwrap_or(false) {
         thread::spawn(move || communicate_tee(child_err, &tx_err, stderr(), 4096, collect).unwrap())
     } else {

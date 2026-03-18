@@ -311,7 +311,6 @@ impl Serialize for PySetSerializer<'_, '_> {
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
-        // let py_iter = PyIterator::from_object(py_set).expect("set is always iterable");
         let mut seq = serializer.serialize_seq(Some(len))?;
         for element in py_set.iter() {
             let element = element.as_borrowed();
@@ -351,7 +350,6 @@ impl Serialize for PyFrozenSetSerializer<'_, '_> {
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
-        // let py_iter = PyIterator::from_object(py_frozenset).expect("frozenset is always iterable");
         let mut seq = serializer.serialize_seq(Some(len))?;
         for element in py_frozenset.iter() {
             let element = element.as_borrowed();

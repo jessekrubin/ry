@@ -187,9 +187,8 @@ impl PyGlobPaths {
 ///
 /// - `*` matches any (possibly empty) sequence of characters.
 ///
-/// - `**` matches the current directory and arbitrary
-///   subdirectories. To match files in arbitrary subdirectories, use
-///   `**/*`.
+/// - `**` matches the current directory and arbitrary subdirectories. To match
+///   files in arbitrary subdirectories, use `**/*`.
 ///
 ///   This sequence **must** form a single path component, so both
 ///   `**a` and `b**` are invalid and will result in an error.  A

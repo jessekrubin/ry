@@ -15,7 +15,6 @@ extern crate core;
 mod api;
 mod civil;
 mod constants;
-mod deprecations;
 mod dev;
 mod difference;
 mod from;

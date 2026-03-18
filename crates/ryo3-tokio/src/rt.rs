@@ -72,7 +72,8 @@ where
     get_ry_tokio_runtime().py_spawn(fut).await
 }
 
-/// Executes the given future on the tokio runtime (which returns a `pyo3::PyResult`)
+/// Executes the given future on the tokio runtime (which returns a
+/// `pyo3::PyResult`)
 ///
 /// **Note**: This maps the tokio join errors to `pyo3::PyErr` and also the
 ///           inner errors to `pyo3::PyErr` as well (afaict (jesse))

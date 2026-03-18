@@ -160,7 +160,8 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
         let mut cfg = Self::default();
 
         for (k, v) in dict.iter() {
-            // TODO: move the fast_pystr_read from ryo3-serde to `ryo3-core` and use that here
+            // TODO: move the fast_pystr_read from ryo3-serde to `ryo3-core` and use that
+            // here
             let key_str = k.extract::<&str>()?;
             match key_str {
                 "headers" => {
@@ -373,7 +374,8 @@ impl ClientConfig {
     #[expect(clippy::used_underscore_binding)]
     fn apply_tls_opts(&self, mut client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         // based on the reqwest logic for system cert loading, but adapted to allow for
-        // caching the system certs once per process instead of loading them every time a client is built
+        // caching the system certs once per process instead of loading them every time
+        // a client is built
         if let Some(tls_certs_only) = &self.tls_certs_only {
             client_builder = client_builder
                 .tls_certs_only(tls_certs_only.iter().map(|py_cert| py_cert.cert.clone()));

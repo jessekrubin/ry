@@ -29,7 +29,8 @@ impl<'a, 'py> PyDataclassSerializer<'a, 'py> {
 
 // as done in pydantic-core: https://github.com/pydantic/pydantic-core/blob/5f0b5a8b26691b7a1e3de07cb409b21bb174929c/src/serializers/shared.rs#L591
 static DC_FIELD_MARKER: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
-/// needed to match the logic from dataclasses.fields `tuple(f for f in fields.values() if f._field_type is _FIELD)`
+/// needed to match the logic from dataclasses.fields...
+/// python: `tuple(f for f in fields.values() if f._field_type is _FIELD)`
 fn get_field_marker(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
     DC_FIELD_MARKER.import(py, "dataclasses", "_FIELD")
 }

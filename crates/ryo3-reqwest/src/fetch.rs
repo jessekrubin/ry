@@ -75,7 +75,8 @@ pub(crate) fn fetch_sync(
 // LEGACY FETCHING FUNCTIONS - TO BE REMOVED SOON - STILL HERE FOR REFERENCE
 // =========================================================================
 
-// // global fetch
+// global fetch
+// ```rust
 // #[cfg(not(feature = "experimental-async"))]
 // #[pyfunction(
 //     signature = (
@@ -135,7 +136,7 @@ pub(crate) fn fetch_sync(
 //     };
 //     Ok(obj.into_bound(py))
 // }
-
+//
 // #[cfg(not(feature = "experimental-async"))]
 // #[pyfunction(
 //     signature = (
@@ -190,3 +191,4 @@ pub(crate) fn fetch_sync(
 //         version,
 //     )
 // }
+// ```

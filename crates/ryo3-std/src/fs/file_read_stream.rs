@@ -232,7 +232,7 @@ impl PyFileReadStream {
 
 impl std::fmt::Debug for PyFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FileReadStream(path='{}'", self.options.path.display(),)?;
+        write!(f, "FileReadStream(path='{}'", self.options.path.display())?;
         write!(f, ", read_size={}", self.options.read_size)?;
         if self.options.offset != 0 {
             write!(f, ", offset={}", self.options.offset)?;

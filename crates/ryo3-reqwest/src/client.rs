@@ -69,9 +69,12 @@ impl RyHttpClient {
         // we can avoid the weird little hackyh query serde song and dance
         // TODO: FIX THIS?
         // Cases are:
-        //    - query for the url is set from the UrlLike and query in kwargs is None -- we are done
-        //    - query in kwargs is Some -- and the url already has a query -- here we do the song and dance
-        //    - query in kwargs is Some -- and the url has NO query so we can just set the string I think
+        //    - query for the url is set from the UrlLike and query in kwargs is None --
+        //      we are done
+        //    - query in kwargs is Some -- and the url already has a query -- here we do
+        //      the song and dance
+        //    - query in kwargs is Some -- and the url has NO query so we can just set
+        //      the string I think
         // url is empty and the kwargs do not contain a
         let url = url.0;
         if let Some(kwargs) = kwargs {
@@ -91,9 +94,12 @@ impl RyHttpClient {
         // we can avoid the weird little hackyh query serde song and dance
         // TODO: FIX THIS?
         // Cases are:
-        //    - query for the url is set from the UrlLike and query in kwargs is None -- we are done
-        //    - query in kwargs is Some -- and the url already has a query -- here we do the song and dance
-        //    - query in kwargs is Some -- and the url has NO query so we can just set the string I think
+        //    - query for the url is set from the UrlLike and query in kwargs is None --
+        //      we are done
+        //    - query in kwargs is Some -- and the url already has a query -- here we do
+        //      the song and dance
+        //    - query in kwargs is Some -- and the url has NO query so we can just set
+        //      the string I think
         // url is empty and the kwargs do not contain a
         let url = url.0;
         if let Some(kwargs) = kwargs {
@@ -163,9 +169,12 @@ impl RyClient {
         // we can avoid the weird little hackyh query serde song and dance
         // TODO: FIX THIS?
         // Cases are:
-        //    - query for the url is set from the UrlLike and query in kwargs is None -- we are done
-        //    - query in kwargs is Some -- and the url already has a query -- here we do the song and dance
-        //    - query in kwargs is Some -- and the url has NO query so we can just set the string I think
+        //    - query for the url is set from the UrlLike and query in kwargs is None --
+        //      we are done
+        //    - query in kwargs is Some -- and the url already has a query -- here we do
+        //      the song and dance
+        //    - query in kwargs is Some -- and the url has NO query so we can just set
+        //      the string I think
         // url is empty and the kwargs do not contain a
         let url = url.0;
         if let Some(kwargs) = kwargs {

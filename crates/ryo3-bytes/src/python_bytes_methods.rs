@@ -304,6 +304,7 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
     // ======================
     // CPYTHON IMPLEMENTATION
     // ======================
+    // ```c
     // static PyObject *
     // stringlib_expandtabs_impl(PyObject *self, int tabsize)
     // /*[clinic end generated code: output=069cb7fae72e4c2b input=3c6d3b12aa3ccbea]*/
@@ -366,6 +367,7 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
     //     PyErr_SetString(PyExc_OverflowError, "result too long");
     //     return NULL;
     // }
+    // ```
     fn py_expandtabs(&self, tabsize: usize) -> Self {
         let b = self.as_ref();
         if b.is_empty() || tabsize == 0 {

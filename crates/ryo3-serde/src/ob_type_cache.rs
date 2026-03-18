@@ -104,7 +104,7 @@ impl PyTypeCache {
             // bytes types
             bytes: PyBytes::type_object_raw(py) as usize,
             bytearray: PyByteArray::type_object_raw(py) as usize,
-            memoryview: PyMemoryView::type_object_raw(py) as usize, // memoryview is a generic type, not a specific one
+            memoryview: PyMemoryView::type_object_raw(py) as usize, /* memoryview is a generic type, not a specific one */
             // sequence types
             list: PyList::type_object_raw(py) as usize,
             tuple: PyTuple::type_object_raw(py) as usize,

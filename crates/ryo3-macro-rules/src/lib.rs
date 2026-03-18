@@ -26,8 +26,8 @@ macro_rules! any_repr {
     }};
 }
 
-/// Macro that mimics ye-old rust `todo!()` macro producing a `PyNotImplementedError`
-/// as opposed to panic-ing (at the disco).
+/// Macro that mimics ye-old rust `todo!()` macro producing a
+/// `PyNotImplementedError` as opposed to panic-ing (at the disco).
 #[macro_export]
 macro_rules! pytodo_pyerr {
     () => {
@@ -40,8 +40,8 @@ macro_rules! pytodo_pyerr {
     };
 }
 
-/// Macro that mimics ye-old rust `todo!()` macro producing a `PyNotImplementedError`
-/// wrapped in `Err(...)`
+/// Macro that mimics ye-old rust `todo!()` macro producing a
+/// `PyNotImplementedError` wrapped in `Err(...)`
 #[macro_export]
 macro_rules! pytodo_err {
     () => {
