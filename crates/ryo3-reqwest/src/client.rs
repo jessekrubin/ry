@@ -4,12 +4,15 @@ use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
 use crate::response::RyAsyncResponse;
 use crate::response::RyBlockingResponse;
 use crate::{ClientConfig, RyResponse};
+use parking_lot::Mutex;
 use pyo3::IntoPyObjectExt;
+use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::PyHttpMethod;
 use ryo3_url::UrlLike;
+use std::sync::Arc;
 
 //============================================================================
 
@@ -19,7 +22,7 @@ use ryo3_url::UrlLike;
 #[pyclass(name = "HttpClient", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyHttpClient {
-    client: reqwest::Client,
+    client: Arc<Mutex<Option<reqwest::Client>>>,
     cfg: ClientConfig,
 }
 
@@ -28,7 +31,7 @@ pub struct RyHttpClient {
 #[pyclass(name = "Client", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyClient {
-    client: reqwest::Client,
+    client: Arc<Mutex<Option<reqwest::Client>>>,
     cfg: ClientConfig,
 }
 
@@ -36,7 +39,7 @@ pub struct RyClient {
 #[pyclass(name = "BlockingClient", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingClient {
-    client: reqwest::Client,
+    client: Arc<Mutex<Option<reqwest::Client>>>,
     cfg: ClientConfig,
 }
 
@@ -46,7 +49,19 @@ impl RyHttpClient {
         let cfg = cfg.unwrap_or_default();
         let client_builder = cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
-        Ok(Self { client, cfg })
+        Ok(Self {
+            client: Arc::new(Mutex::new(Some(client))),
+            cfg,
+        })
+    }
+
+    #[inline]
+    fn client(&self) -> PyResult<reqwest::Client> {
+        self.client
+            .lock()
+            .as_ref()
+            .cloned()
+            .ok_or_else(|| PyRuntimeError::new_err("Client is closed"))
     }
 
     #[inline]
@@ -74,10 +89,11 @@ impl RyHttpClient {
         //    - query in kwargs is Some -- and the url has NO query so we can just set the string I think
         // url is empty and the kwargs do not contain a
         let url = url.0;
+        let client = self.client()?;
         if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
+            kwargs.apply(client.request(method, url))
         } else {
-            Ok(self.client.request(method, url))
+            Ok(client.request(method, url))
         }
     }
 
@@ -96,10 +112,11 @@ impl RyHttpClient {
         //    - query in kwargs is Some -- and the url has NO query so we can just set the string I think
         // url is empty and the kwargs do not contain a
         let url = url.0;
+        let client = self.client()?;
         if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
+            kwargs.apply(client.request(method, url))
         } else {
-            Ok(self.client.request(method, url))
+            Ok(client.request(method, url))
         }
     }
 
@@ -139,7 +156,19 @@ impl RyClient {
         let cfg = cfg.unwrap_or_default();
         let client_builder = cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
-        Ok(Self { client, cfg })
+        Ok(Self {
+            client: Arc::new(Mutex::new(Some(client))),
+            cfg,
+        })
+    }
+
+    #[inline]
+    fn client(&self) -> PyResult<reqwest::Client> {
+        self.client
+            .lock()
+            .as_ref()
+            .cloned()
+            .ok_or_else(|| PyRuntimeError::new_err("Client is closed"))
     }
 
     #[inline]
@@ -168,10 +197,11 @@ impl RyClient {
         //    - query in kwargs is Some -- and the url has NO query so we can just set the string I think
         // url is empty and the kwargs do not contain a
         let url = url.0;
+        let client = self.client()?;
         if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
+            kwargs.apply(client.request(method, url))
         } else {
-            Ok(self.client.request(method, url))
+            Ok(client.request(method, url))
         }
     }
 
@@ -183,10 +213,11 @@ impl RyClient {
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RequestBuilder> {
         let url = url.0;
+        let client = self.client()?;
         if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
+            kwargs.apply(client.request(method, url))
         } else {
-            Ok(self.client.request(method, url))
+            Ok(client.request(method, url))
         }
     }
 
@@ -229,7 +260,19 @@ impl RyBlockingClient {
         let cfg = cfg.unwrap_or_default();
         let client_builder = cfg.client_builder();
         let client = client_builder.build().map_err(map_reqwest_err)?;
-        Ok(Self { client, cfg })
+        Ok(Self {
+            client: Arc::new(Mutex::new(Some(client))),
+            cfg,
+        })
+    }
+
+    #[inline]
+    fn client(&self) -> PyResult<reqwest::Client> {
+        self.client
+            .lock()
+            .as_ref()
+            .cloned()
+            .ok_or_else(|| PyRuntimeError::new_err("Client is closed"))
     }
 
     #[inline]
@@ -246,10 +289,11 @@ impl RyBlockingClient {
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RequestBuilder> {
         let url = url.0;
+        let client = self.client()?;
         if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
+            kwargs.apply(client.request(method, url))
         } else {
-            Ok(self.client.request(method, url))
+            Ok(client.request(method, url))
         }
     }
 
@@ -275,7 +319,7 @@ impl RyHttpClient {
             .detach(|| client_cfg.client_builder().build())
             .map_err(map_reqwest_err)?;
         Ok(Self {
-            client,
+            client: Arc::new(Mutex::new(Some(client))),
             cfg: client_cfg,
         })
     }
@@ -300,6 +344,25 @@ impl RyHttpClient {
 
     fn __ne__(&self, other: &Self) -> bool {
         self.cfg != other.cfg
+    }
+
+    fn __enter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    #[allow(clippy::unused_self)]
+    fn __exit__(
+        &self,
+        _exc_type: Option<Bound<'_, PyAny>>,
+        _exc: Option<Bound<'_, PyAny>>,
+        _tb: Option<Bound<'_, PyAny>>,
+    ) -> bool {
+        self.close();
+        false
+    }
+
+    fn close(&self) {
+        self.client.lock().take();
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -423,7 +486,7 @@ impl RyClient {
             .detach(|| client_cfg.client_builder().build())
             .map_err(map_reqwest_err)?;
         Ok(Self {
-            client,
+            client: Arc::new(Mutex::new(Some(client))),
             cfg: client_cfg,
         })
     }
@@ -448,6 +511,27 @@ impl RyClient {
 
     fn __ne__(&self, other: &Self) -> bool {
         self.cfg != other.cfg
+    }
+
+    // async fn __aenter__(&self) -> Self {
+    //     self.clone()
+    // }
+    #[expect(clippy::unused_async)]
+    async fn __aenter__(slf: Py<Self>) -> PyResult<Py<Self>> {
+        Ok(slf)
+    }
+
+    async fn __aexit__(&self, _exc_type: Py<PyAny>, _exc_val: Py<PyAny>, _traceback: Py<PyAny>) {
+        self.aclose().await;
+    }
+
+    fn close(&self) {
+        self.client.lock().take();
+    }
+
+    #[expect(clippy::unused_async)]
+    async fn aclose(&self) {
+        self.close();
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -539,7 +623,7 @@ impl RyBlockingClient {
             .detach(|| client_cfg.client_builder().build())
             .map_err(map_reqwest_err)?;
         Ok(Self {
-            client,
+            client: Arc::new(Mutex::new(Some(client))),
             cfg: client_cfg,
         })
     }
@@ -564,6 +648,25 @@ impl RyBlockingClient {
 
     fn __ne__(&self, other: &Self) -> bool {
         self.cfg != other.cfg
+    }
+
+    fn __enter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    #[allow(clippy::unused_self)]
+    fn __exit__(
+        &self,
+        _exc_type: Option<Bound<'_, PyAny>>,
+        _exc: Option<Bound<'_, PyAny>>,
+        _tb: Option<Bound<'_, PyAny>>,
+    ) -> bool {
+        self.close();
+        false
+    }
+
+    fn close(&self) {
+        self.client.lock().take();
     }
 
     #[pyo3(signature = (url, **kwargs))]
