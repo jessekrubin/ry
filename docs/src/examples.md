@@ -1,4 +1,15 @@
-# async_open
+# Examples
+
+- [async_open](#async_open)
+- [fspath](#fspath)
+- [get](#get)
+- [http_fetch](#http_fetch)
+- [jiff_examples](#jiff_examples)
+- [sqlformat](#sqlformat)
+- [walking](#walking)
+- [xxhashing](#xxhashing)
+
+## async_open
 
 ```python
 """Async-file ops.
@@ -61,7 +72,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-# fspath
+## fspath
 
 ```python
 import ry
@@ -77,7 +88,7 @@ data = (current_dir / "test.txt").read_text()
 print(data)
 ```
 
-# get
+## get
 
 ```python
 """Example of `ry.fetch` (async) and `ry.fetch_sync` (blocking)"""
@@ -129,7 +140,7 @@ if __name__ == "__main__":
     main_sync()
 ```
 
-# http_fetch
+## http_fetch
 
 ```python
 """Example of using the `ry.fetch` function to make http requests
@@ -264,7 +275,7 @@ if __name__ == "__main__":
         server.shutdown()
 ```
 
-# jiff_examples
+## jiff_examples
 
 ```python
 """Jiff examples (v2)
@@ -434,7 +445,7 @@ if __name__ == "__main__":
     main()
 ```
 
-# sqlformat
+## sqlformat
 
 ```python
 import ry
@@ -482,7 +493,7 @@ HAVING
 )
 ```
 
-# walking
+## walking
 
 ```python
 """
@@ -542,7 +553,7 @@ if __name__ == "__main__":
     main()
 ```
 
-# xxhashing
+## xxhashing
 
 ```python
 """Example o' xxhash-ing files in this directory both async/sync

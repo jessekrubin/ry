@@ -187,6 +187,7 @@ def update_docs_examples(*, check: bool = False) -> None:
         return formatted_content
 
     # format the files
+
     toc = []
 
     parts = []
@@ -200,12 +201,22 @@ def update_docs_examples(*, check: bool = False) -> None:
         toc.append(f"- [{p.stem}](#{p.stem})")
 
         formatted_content = ruff_format_pyi(content, line_length=80, indent_width=4)
-        parts.append(f"# {p.stem}\n\n```python\n{formatted_content}\n```\n")
+        parts.append(f"## {p.stem}\n\n```python\n{formatted_content}\n```\n")
 
     # write the file
     filepath = REPO_ROOT / "docs" / "src" / "examples.md"
     assert filepath.exists(), f"examples.md does not exist: {filepath}"
-    write_text(filepath, "\n".join(parts), check=check)
+    write_text(
+        filepath,
+        "\n".join([
+            "# Examples",
+            "",
+            *toc,
+            "",
+            *parts,
+        ]),
+        check=check,
+    )
 
 
 def update_docs(*, check: bool = False) -> None:
