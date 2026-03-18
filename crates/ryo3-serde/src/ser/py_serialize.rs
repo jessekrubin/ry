@@ -2,7 +2,7 @@
 //!
 //! Based on a combination of `orjson`, `pythonize` and `rtoml`.
 
-use pyo3::{prelude::*};
+use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
 use crate::ob_type::PyObType;
