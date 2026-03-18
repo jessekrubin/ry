@@ -2,8 +2,8 @@
 //!
 //!
 //!
-//! `SpanRound` is used internally by several of the underlying difference structs
-//! so for ref, here are the span-round defaults:
+//! `SpanRound` is used internally by several of the underlying difference
+//! structs so for ref, here are the span-round defaults:
 //!
 //! - `SpanRound`
 //!   - smallest-max: None

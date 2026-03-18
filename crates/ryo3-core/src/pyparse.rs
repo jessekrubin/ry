@@ -36,7 +36,8 @@ where
 {
     #[inline]
     fn py_parse(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
-        // TODO (non-fugue-state-jesse): add support for bytearray/memview/buffer protocol?
+        // TODO (non-fugue-state-jesse): add support for bytearray/memview/buffer
+        // protocol?
         if let Ok(s) = ob.cast_exact::<pyo3::types::PyString>() {
             let s = s.to_str()?;
             T::py_from_str(s).map_err(map_py_value_err)

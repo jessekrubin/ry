@@ -392,8 +392,9 @@ impl PyUlid {
         self.0.timestamp_ms() as f64 / 1000.0
     }
 
-    /// This is a hideous function but I struggled through this to try to figure out how to
-    /// do pydantic schema validators which I hope to do for jiff soon... (as-of: 2025-05-29)
+    /// This is a hideous function but I struggled through this to try to figure
+    /// out how to do pydantic schema validators which I hope to do for jiff
+    /// soon... (as-of: 2025-05-29)
     #[classmethod]
     fn __get_pydantic_core_schema__<'py>(
         cls: &Bound<'py, PyType>,

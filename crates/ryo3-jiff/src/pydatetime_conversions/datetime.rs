@@ -53,8 +53,9 @@ impl<'py> FromPyObject<'_, 'py> for JiffDateTime {
         let dt = ob.cast::<PyDateTime>()?;
 
         // If the user tries to convert a timezone aware datetime into a naive one,
-        // we return a hard error. We could silently remove tzinfo, or assume local timezone
-        // and do a conversion, but better leave this decision to the user of the library.
+        // we return a hard error. We could silently remove tzinfo, or assume local
+        // timezone and do a conversion, but better leave this decision to the
+        // user of the library.
         #[cfg(not(Py_LIMITED_API))]
         let has_tzinfo = dt.get_tzinfo().is_some();
         #[cfg(Py_LIMITED_API)]

@@ -33,8 +33,8 @@ const TEMPORAL_SPAN_PRINTER: jiff::fmt::temporal::SpanPrinter =
 const FRIENDLY_SPAN_PARSER: jiff::fmt::friendly::SpanParser =
     jiff::fmt::friendly::SpanParser::new();
 
-// Maybe use?`HumanTime` designator for friendly parser/printer to avoid ambiguous `µ`:w
-// REF: https://github.com/jessekrubin/ry/discussions/229#discussioncomment-14928815
+// Maybe use?`HumanTime` designator for friendly parser/printer to avoid
+// ambiguous `µ`:w REF: https://github.com/jessekrubin/ry/discussions/229#discussioncomment-14928815
 // ```txt
 // RUF001 String contains ambiguous `µ` (MICRO SIGN). Did you mean `μ` (GREEK SMALL LETTER MU)?
 //   --> tests\std\test_duration_str.py:45:59

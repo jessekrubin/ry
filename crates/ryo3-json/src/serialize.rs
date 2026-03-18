@@ -87,7 +87,9 @@ impl<'py> JsonSerializer<'py> {
 }
 
 // **retired**
-// MACRO TO CREATE THE STRINGIFY FUNCTION (USED TO CREATE "ALIASES" eg `stringify`/`dumps`)
+// MACRO TO CREATE THE STRINGIFY FUNCTION (USED TO CREATE "ALIASES" eg
+// `stringify`/`dumps`)
+// ```rust
 // macro_rules! stringify_fn {
 //     ($name:ident) => {
 //         #[pyfunction(
@@ -117,6 +119,7 @@ impl<'py> JsonSerializer<'py> {
 // }
 // stringify_fn!(stringify);
 // stringify_fn!(dumps);
+// ```
 
 #[expect(clippy::fn_params_excessive_bools)]
 #[pyfunction(

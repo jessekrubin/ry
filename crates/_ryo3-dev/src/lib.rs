@@ -12,9 +12,7 @@
 #![expect(clippy::module_name_repetitions)]
 #![expect(clippy::unwrap_used)]
 
-use pyo3::PyResult;
 use pyo3::prelude::*;
-use pyo3::types::PyModule;
 
 pub mod anystr;
 pub mod sp;

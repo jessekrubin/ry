@@ -99,7 +99,8 @@ fn map_rwlock_write_poison_error<T>(e: &PoisonError<RwLockWriteGuard<'_, T>>) ->
 // Mutex wrapper that optionally throws on poisoning
 // ==========================================================================
 
-/// Python friendly `std::sync::Mutex` wrapper that optionally throws on poisoning
+/// Python friendly `std::sync::Mutex` wrapper that optionally throws on
+/// poisoning
 // if debug
 #[derive(Debug)]
 pub struct RyMutex<T, const THROW: bool = true>(pub Mutex<T>);
@@ -131,7 +132,8 @@ impl<T> RyMutex<T, false> {
 // RwLock wrapper that optionally throws on poisoning
 // ==========================================================================
 
-/// Python friendly `std::sync::RwLock` wrapper that optionally throws on poisoning
+/// Python friendly `std::sync::RwLock` wrapper that optionally throws on
+/// poisoning
 #[derive(Debug)]
 pub struct RyRwLock<T, const THROW: bool = true>(pub RwLock<T>);
 

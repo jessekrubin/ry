@@ -93,9 +93,6 @@ macro_rules! serialize_map_value {
             PyObType::PyUuid => {
                 $map.serialize_value(&PyUuidSerializer::new($value))?;
             }
-            // PyObType::Dataclass => {
-            //     $map.serialize_value(&PyDataclassSerializer::new($value, $self.ctx, $self.depth))?;
-            // }
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------

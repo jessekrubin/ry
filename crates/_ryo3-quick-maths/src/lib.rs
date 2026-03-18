@@ -18,7 +18,6 @@ use pyo3::{PyResult, wrap_pyfunction};
 /// let result = ryo3_quick_maths::quick_maths();
 /// assert_eq!(result, 3);
 /// ```
-///
 #[pyfunction]
 #[must_use]
 pub fn quick_maths() -> i32 {

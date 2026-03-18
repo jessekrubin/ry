@@ -119,20 +119,6 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
     }
 }
 
-// impl<'py, const N: usize> IntoPyObject<'py> for PyHexDigest<[u8; N]> {
-//     type Target = PyString;
-//     type Output = Bound<'py, Self::Target>;
-//     type Error = std::convert::Infallible;
-
-//     #[inline]
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         const S: usize = N + N;
-//         #[expect(unsafe_code)]
-//         let s = unsafe { std::str::from_utf8_unchecked(&self.0) };
-//         Ok(pystring_fast_new_ascii(py, s))
-//     }
-// }
-
 macro_rules! impl_into_py_object_for_bytes_digest {
     (
         bin_size = $size:expr,

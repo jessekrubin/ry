@@ -10,7 +10,8 @@ macro_rules! err_py_not_impl {
     };
 }
 
-/// Return a `PyResult` with a `PyNotImplementedError` with the message "Not implemented (yet)".
+/// Return a `PyResult` with a `PyNotImplementedError` with the message "Not
+/// implemented (yet)".
 ///
 /// Marker for functions that are not implemented yet.
 #[macro_export]

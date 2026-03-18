@@ -522,7 +522,7 @@ pub fn uuid5(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
     }
 }
 
-/// Generate a UUID from a sequence number and the current time according to RFC 9562, §5.6.
+/// Generate a UUID (RFC 9562, 5.6) from a sequence number and the current time.
 ///
 /// This is an alternative to `uuid1()` to improve database locality.
 ///

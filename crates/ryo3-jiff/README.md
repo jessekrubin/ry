@@ -4,7 +4,7 @@ ryo3-wrapper for `jiff` crate
 
 [//]: # "<GENERATED>"
 
-## Ref:
+## Ref
 
 - docs.rs: [https://docs.rs/jiff](https://docs.rs/jiff)
 - crates: [https://crates.io/crates/jiff](https://crates.io/crates/jiff)
@@ -62,7 +62,7 @@ ryo3-wrapper for `jiff` crate
 | `%C`             | `20`                         | The century of the year. No padding.                                            |
 | `%c`             | `2024 M07 14, Sun 17:31:59`  | The date and clock time via [`Custom`]. Supported when formatting only.         |
 | `%D`             | `7/14/24`                    | Equivalent to `%m/%d/%y`.                                                       |
-| `%d`, `%e`       | `25`, ` 5`                   | The day of the month. `%d` is zero-padded, `%e` is space padded.                |
+| `%d`, `%e`       | `25`, `5`                   | The day of the month. `%d` is zero-padded, `%e` is space padded.                |
 | `%F`             | `2024-07-14`                 | Equivalent to `%Y-%m-%d`.                                                       |
 | `%f`             | `000456`                     | Fractional seconds, up to nanosecond precision.                                 |
 | `%.f`            | `.000456`                    | Optional fractional seconds, with dot, up to nanosecond precision.              |
@@ -72,7 +72,7 @@ ryo3-wrapper for `jiff` crate
 | `%I`             | `11`                         | The hour in a 12 hour clock. Zero padded.                                       |
 | `%j`             | `060`                        | The day of the year. Range is `1..=366`. Zero padded to 3 digits.               |
 | `%k`             | `15`                         | The hour in a 24 hour clock. Space padded.                                      |
-| `%l`             | ` 3`                         | The hour in a 12 hour clock. Space padded.                                      |
+| `%l`             | `3`                         | The hour in a 12 hour clock. Space padded.                                      |
 | `%M`             | `04`                         | The minute. Zero padded.                                                        |
 | `%m`             | `01`                         | The month. Zero padded.                                                         |
 | `%N`             | `123456000`                  | Fractional seconds, up to nanosecond precision. Alias for `%9f`.                |

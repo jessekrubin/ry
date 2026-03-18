@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
-use pyo3::prelude::*;
-use pyo3::types::PyModule;
+use pyo3::{prelude::*, types::PyModule};
 
 #[pyfunction]
 pub fn _tokio_ws<'py>() -> bool {

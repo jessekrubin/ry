@@ -8,7 +8,7 @@ for parsing json from bytes or str (which jiter-python does not as of
 
 [//]: # "<GENERATED>"
 
-## Ref:
+## Ref
 
 - docs.rs: [https://docs.rs/jiter](https://docs.rs/jiter)
 - crates: [https://crates.io/crates/jiter](https://crates.io/crates/jiter)

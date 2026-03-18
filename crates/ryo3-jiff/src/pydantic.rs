@@ -84,8 +84,8 @@ impl GetPydanticCoreSchemaCls for RyTimestamp {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
 
-        // Maybe it should be a not str_schema? idk? really not sure if it should be str or datetime
-        // let str_schema = core_schema.call_method(intern!(py, "str_schema"), (), None)?;
+        // Maybe it should be a not str_schema? idk? really not sure if it should be str
+        // or datetime
         let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;

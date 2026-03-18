@@ -3,7 +3,6 @@
 //! Based on the `regex::RegexBuilder` options.
 //!
 //! REF: <https://docs.rs/regex/latest/regex/struct.RegexBuilder.html>
-//!
 use pyo3::{IntoPyObjectExt, prelude::*};
 
 #[expect(clippy::struct_excessive_bools)]

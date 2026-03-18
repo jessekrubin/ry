@@ -338,8 +338,8 @@ impl PyUrl {
         })
     }
 
-    // TODO: figure out if this is problematic... it could be a problem w/ how some of the
-    //       underlying set methods take `Option` values...
+    // TODO: figure out if this is problematic... it could be a problem w/ how some
+    //       of the underlying set methods take `Option` values...
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
         signature = (

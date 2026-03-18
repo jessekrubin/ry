@@ -232,7 +232,7 @@ impl RyResponse {
         self.text_with_charset(py, encoding)
     }
 
-    /// Return the response body as text/string (consumes the response) with default-encoding
+    /// Return the response body as text with encoding (consumes the response)
     fn text_with_charset<'py>(
         &'py self,
         py: Python<'py>,
@@ -437,7 +437,7 @@ impl RyAsyncResponse {
             .map_err(map_reqwest_err)
     }
 
-    /// Return the response body as text/string (consumes the response) with default-encoding
+    /// Return the response body as text with encoding (consumes the response)
     async fn text_with_charset(&self, encoding: PyEncodingName) -> PyResult<String> {
         let response = self.take_response()?;
         let rt = pyo3_async_runtimes::tokio::get_runtime();
@@ -666,7 +666,7 @@ impl RyBlockingResponse {
         })
     }
 
-    /// Return the response body as text/string (consumes the response) with default-encoding
+    /// Return the response body as text with encoding (consumes the response)
     fn text_with_charset<'py>(
         &'py self,
         py: Python<'py>,

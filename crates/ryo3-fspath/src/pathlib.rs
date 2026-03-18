@@ -1,5 +1,4 @@
 //! Pathlib utilities
-//!
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyType;

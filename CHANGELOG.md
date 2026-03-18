@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.86 [unreleased]
+## v0.0.86 [2026-03-18]
 
 - `ryo3-serde`
   - refactor py-uuid serializer

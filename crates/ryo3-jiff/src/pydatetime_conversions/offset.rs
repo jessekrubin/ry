@@ -31,8 +31,8 @@ impl<'py> FromPyObject<'_, 'py> for JiffOffset {
     type Error = PyErr;
     /// Convert python tzinfo to rust [`FixedOffset`].
     ///
-    /// Note that the conversion will result in precision lost in microseconds as chrono offset
-    /// does not supports microseconds.
+    /// Note that the conversion will result in precision lost in microseconds
+    /// as chrono offset does not supports microseconds.
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let ob = obj.cast::<PyTzInfo>()?;
 

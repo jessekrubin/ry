@@ -20,7 +20,6 @@
 //!
 //! Regards,
 //! fugue-state-jesse
-//!
 #[cfg(any(
     feature = "ryo3-http",
     feature = "ryo3-jiff",
@@ -189,7 +188,8 @@ ry_type_serializer_struct! (
 // STD
 // ===========================================================================
 
-// TODO: flag for duration/timespan/signed_duration serialization format ("iso8601" | "friendly" | "obj")
+// TODO: flag for duration/timespan/signed_duration serialization format
+// ("iso8601" | "friendly" | "obj")
 #[cfg(feature = "ryo3-std")]
 pub(crate) struct PyDurationSerializer<'a, 'py> {
     ob: Borrowed<'a, 'py, PyAny>,

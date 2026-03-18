@@ -14,7 +14,8 @@ fn env_var_str_is_truthy(s: &str) -> bool {
     !env_var_is_falsey(s)
 }
 
-/// Return the `LevelFilter` directive to use for initializing the tracing subscriber,
+/// Return the `LevelFilter` directive to use for initializing the tracing
+/// subscriber,
 ///
 /// Looks for the following environment variables, in order:
 ///   "RYTRACE" - truthy value enables trace logging
