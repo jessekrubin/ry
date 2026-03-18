@@ -1,9 +1,8 @@
 //! Response stream impls for ryo3-reqwest
 //!
-//! TODO: deduplicate logic and code to reduce copy-paste between different versions
-//! TODO: consider making a common trait for the different response stream types
 //! TODO:
-//!
+//! - deduplicate logic and code to reduce copy-paste between different versions
+//! - consider making a common trait for the different response stream types
 use crate::errors::map_reqwest_err;
 use bytes::{Bytes, BytesMut};
 use futures_util::StreamExt;
@@ -31,9 +30,13 @@ use tokio::sync::Mutex;
 //    REF: https://github.com/developmentseed/obstore/blob/50782ed782a15185a936d435d13ca0a7969154ae/obstore/src/get.rs#L219
 //
 // The inner stream type changes from:
+// ```rust
 // type OldStreamType = `Arc<Mutex<Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send>>>>`
+// ```
 // to:
+// ```rust
 // type NewStreamType = `Arc<Mutex<Fuse<BoxStream<'static, Result<Bytes, reqwest::Error>>>>>`
+// ```
 
 type AsyncResponseStreamInner = Arc<Mutex<Fuse<BoxStream<'static, Result<Bytes, reqwest::Error>>>>>;
 
@@ -91,7 +94,8 @@ impl ResponseStreamInner {
                         .next()
                         .expect("wenodis: just checked len>0")
                 } else {
-                    // TODO: possibly just take the first chunk and then extend_from_slice the rest o the chunks
+                    // TODO: possibly just take the first chunk and then extend_from_slice the rest
+                    // o the chunks
                     let mut bytes_mut = BytesMut::with_capacity(total_size);
                     for chunk in chunks {
                         bytes_mut.extend_from_slice(&chunk);
