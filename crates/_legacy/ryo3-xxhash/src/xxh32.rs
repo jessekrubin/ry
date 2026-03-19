@@ -1,9 +1,7 @@
 #![expect(clippy::needless_pass_by_value)]
-use pyo3::types::{PyBytes, PyModule, PyModuleMethods};
-use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
-
 use pyo3::intern;
 use pyo3::prelude::*;
+use pyo3::types::PyBytes;
 use pyo3::types::PyString;
 use ryo3_core::PyLock;
 use std::sync::Mutex;

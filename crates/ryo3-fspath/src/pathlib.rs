@@ -2,7 +2,6 @@
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyType;
-use pyo3::{PyAny, PyResult};
 use std::path::Path;
 
 /// Deprecated

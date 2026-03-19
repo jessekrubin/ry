@@ -1,6 +1,5 @@
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
-use pyo3::{PyRef, PyResult, pyclass, pymethods};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::RyMutex;
 use ryo3_macro_rules::py_value_err;

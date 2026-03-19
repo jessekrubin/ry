@@ -172,7 +172,6 @@ impl Display for QueryParamsFormatter<'_> {
                 f.write_str("]")
             }
 
-            // ─────────────────────────────────────────────────────────────
             QueryParams::None => f.write_str("None"),
         }
     }

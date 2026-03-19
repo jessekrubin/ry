@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 use pyo3::prelude::*;
-use pyo3::types::PyModule;
 mod py_memchr;
 
 pub use crate::py_memchr::{memchr, memchr2, memchr3, memrchr, memrchr2, memrchr3};

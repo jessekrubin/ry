@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
-use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyModule};
+use pyo3::{prelude::*, types::PyBytes};
 
 /// Unindent a string removing the maximum common leading whitespace
 #[pyfunction(signature = (s, /))]

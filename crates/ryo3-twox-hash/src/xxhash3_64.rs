@@ -1,9 +1,6 @@
 use ryo3_core::types::{PyDigest, PyHexDigest};
 
-use pyo3::exceptions::PyValueError;
-use pyo3::prelude::*;
-use pyo3::types::PyString;
-use pyo3::{Bound, PyResult, intern};
+use pyo3::{exceptions::PyValueError, intern, prelude::*, types::PyString};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::RyMutex;
 use std::hash::Hasher;

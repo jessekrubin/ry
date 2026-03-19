@@ -1,9 +1,6 @@
 use ryo3_core::types::{PyDigest, PyHexDigest};
 
-use pyo3::exceptions::PyValueError;
-use pyo3::prelude::*;
-use pyo3::types::{PyModule, PyModuleMethods, PyString};
-use pyo3::{Bound, PyResult, Python, intern, pyclass, pyfunction, pymethods, wrap_pyfunction};
+use pyo3::{exceptions::PyValueError, intern, prelude::*, types::PyString};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::RyMutex;
 use twox_hash::XxHash3_128;
