@@ -378,7 +378,7 @@ impl PyFsPath {
     }
     // Path.touch(mode=0o666, exist_ok=True)
     // Create a file at this given path. If mode is given, it is combined with the
-    // process’s umask value to determine the file mode and access flags. If the
+    // process's umask value to determine the file mode and access flags. If the
     // file already exists, the function succeeds when exist_ok is true (and its
     // modification time is updated to the current time), otherwise FileExistsError
     // is raised.
