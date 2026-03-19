@@ -5,7 +5,7 @@ use crate::pattern::PyGlobPattern;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::{PyModule, PyType};
+use pyo3::types::PyType;
 use ryo3_core::RyMutex;
 use ryo3_core::py_value_err;
 use ryo3_core::py_value_error;

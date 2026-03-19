@@ -2,6 +2,9 @@
 
 ## v0.0.87 [unreleased]
 
+- internal
+  - remove imports from `pyo3` where covered by `pyo3::prelude::*`
+
 ---
 
 ## v0.0.86 [2026-03-18]

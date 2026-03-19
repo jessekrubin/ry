@@ -5,15 +5,13 @@ mod which_regex;
 #[cfg(feature = "regex")]
 pub use which_regex::which_re;
 
-use pyo3::types::{PyModule, PyModuleMethods};
-use pyo3::{Bound, PyResult, pyfunction, wrap_pyfunction};
+use pyo3::prelude::*;
 
 use std::env;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
 use ::which as which_rs;
-use pyo3::prelude::*;
 
 #[pyfunction]
 #[pyo3(signature= (cmd, path=None))]

@@ -1,6 +1,5 @@
 use crate::{constants, oneshot};
 use pyo3::prelude::*;
-use pyo3::{Bound, PyResult};
 
 pub fn pysubmod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     constants::pymod_add(m)?;

@@ -1,10 +1,9 @@
 // #![expect(clippy::trivially_copy_pass_by_ref)]
 use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
-use pyo3::exceptions::PyTypeError;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, prelude::*};
 use ryo3_core::{PyAsciiString, PyFromStr, PyParse};
-use ryo3_macro_rules::{any_repr, py_type_err};
+use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 
@@ -470,9 +469,7 @@ impl PyIpv6Addr {
         if let Some(addr) = self.0.to_ipv4() {
             Ok(PySocketAddrV4::from(SocketAddrV4::new(addr, port)))
         } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "Cannot convert IPv6 address to IPv4; address is not IPv4-mapped",
-            ))
+            py_type_err!("Cannot convert IPv6 address to IPv4; address is not IPv4-mapped")
         }
     }
 
@@ -560,9 +557,7 @@ impl PyIpAddr {
             return Ok(Self(IpAddr::V6(ipv6)));
         }
 
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid IP address",
-        ))
+        py_type_err!("Invalid IP address")
     }
 
     #[must_use]
@@ -783,9 +778,7 @@ impl PyIpAddr {
                 if let Some(addr) = addr.to_ipv4() {
                     Ok(PyIpv4Addr::from(addr))
                 } else {
-                    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                        "Cannot convert IPv6 address to IPv4; address is not IPv4-mapped",
-                    ))
+                    py_type_err!("Cannot convert IPv6 address to IPv4; address is not IPv4-mapped")
                 }
             }
         }
@@ -879,9 +872,8 @@ impl<'py> FromPyObject<'_, 'py> for IpAddrLike {
             Ok(Self::Str(s))
         } else {
             let valtype = any_repr!(obj);
-            Err(PyTypeError::new_err(format!(
-                "IpAddrLike conversion error: {valtype}"
-            )))
+
+            py_type_err!("IpAddrLike conversion error: {valtype}")
         }
     }
 }
@@ -929,9 +921,7 @@ impl IpAddrLike {
             Self::Str(s) => s.parse().map_err(|_| {
                 pyo3::exceptions::PyTypeError::new_err("Expected a valid IPv6 address string")
             }),
-            Self::Ryv4(_) => Err(pyo3::exceptions::PyTypeError::new_err(
-                "Expected an IPv6 address",
-            )),
+            Self::Ryv4(_) => py_type_err!("Expected an IPv6 address"),
         }
     }
 
@@ -941,9 +931,9 @@ impl IpAddrLike {
             Self::Ryv6(addr) => Ok(IpAddr::V6(addr.0)),
             Self::Ry(addr) => Ok(addr.0),
             Self::Py(addr) => Ok(*addr),
-            Self::Str(s) => s.parse().map_err(|_| {
-                pyo3::exceptions::PyTypeError::new_err("Expected a valid IP address string")
-            }),
+            Self::Str(s) => s
+                .parse()
+                .map_err(|_| py_type_error!("Expected a valid IP address string")),
         }
     }
 }
@@ -1037,9 +1027,7 @@ fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
     }
 
     // error
-    Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-        IPV6_ADDR_ERROR,
-    ))
+    py_type_err!("{IPV6_ADDR_ERROR}")
 }
 
 #[cfg(feature = "pydantic")]

@@ -21,7 +21,7 @@
 
 use aws_lc_rs::digest::{Context, Digest};
 use pyo3::prelude::*;
-use pyo3::types::{PyModule, PyString};
+use pyo3::types::PyString;
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::types::PyHexDigest;
 use ryo3_core::{PyAsciiString, RyMutex};
