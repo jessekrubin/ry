@@ -36,7 +36,7 @@ ergonomic.
 - **Type Annotated:** All public APIs are (painstakingly) type annotated.
 - **Performant:** Speed without the words "blazingly fast." [^1]
 - **Pydantic Integration:** ry data types (mostly) work good w/ pydantic.
-- **Not slop:** written by a human [^2]
+- **Not slop:** Artisanal, hand-crafted, fair-trade, small-batch software.
 - **No emojis**
 
 ## Install
@@ -114,6 +114,7 @@ _(aka: questions that I have been asking myself)_
 | `flate2`        | [`ryo3-flate2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-flate2)       |
 | `zstd`          | [`ryo3-zstd`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-zstd)           |
 | **Hashing**     | **~**                                                                                 |
+| `aws-lc-rs`     | [`ryo3-aws-lc`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-aws-lc)       |
 | `fnv`           | [`ryo3-fnv`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-fnv)             |
 | `twox-hash`     | [`ryo3-twox-hash`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-twox-hash) |
 | **@BurntSushi** | **~**                                                                                 |
@@ -144,5 +145,3 @@ _(aka: questions that I have been asking myself)_
     Release‑version benchmarks of `ry` (via `pytest-benchmark`) showed no real
     performance variance, regardless of whether "blazingly fast" appeared in the
     README or docs.
-
-[^2]: Artisanal, hand-crafted, small-batch software.
