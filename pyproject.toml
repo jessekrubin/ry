@@ -71,7 +71,7 @@ misc = [ "griffe>=1.12.1" ]
 
 [tool.maturin]
 python-source = "python"
-strip = true
+# strip = true
 features = [ "pyo3/extension-module" ]
 module-name = "ry.ryo3"
 bindings = "pyo3"

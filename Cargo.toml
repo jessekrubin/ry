@@ -41,6 +41,7 @@ jiff.workspace = true
 
 [profile.dev]
 opt-level = 0
+strip = true
 
 [profile.release]
 opt-level = 3
