@@ -234,8 +234,9 @@ class TestResponseJson:
 
 class TestStream:
     @pytest.mark.anyio
-    @staticmethod
-    async def test_get_bytes_stream(server: ReqtestServer, client: TClient) -> None:
+    async def test_get_bytes_stream(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
         url = server.url
         response = await client.get(str(url) + "long")
 
@@ -246,8 +247,9 @@ class TestStream:
         assert parts == expected
 
     @pytest.mark.anyio
-    @staticmethod
-    async def test_stream_min_read_size(server: ReqtestServer, client: TClient) -> None:
+    async def test_stream_min_read_size(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
         url = server.url
 
         response = await client.get(str(url) + "long")
@@ -264,9 +266,8 @@ class TestStream:
         assert parts == expected
 
     @pytest.mark.anyio
-    @staticmethod
     async def test_stream_min_read_size_one_chunk(
-        server: ReqtestServer, client: TClient
+        self, server: ReqtestServer, client: TClient
     ) -> None:
         url = server.url
 
@@ -284,8 +285,7 @@ class TestStream:
         assert parts == expected
 
     @pytest.mark.anyio
-    @staticmethod
-    async def test_get_stream(server: ReqtestServer, client: TClient) -> None:
+    async def test_get_stream(self, server: ReqtestServer, client: TClient) -> None:
         url = server.url
         response = await client.get(str(url) + "long")
 
@@ -296,9 +296,8 @@ class TestStream:
         assert parts == expected
 
     @pytest.mark.anyio
-    @staticmethod
     async def test_get_stream_take_collect(
-        server: ReqtestServer, client: TClient
+        self, server: ReqtestServer, client: TClient
     ) -> None:
         url = server.url
         response = await client.get(str(url) + "long")
@@ -320,9 +319,8 @@ class TestStream:
         assert rest_total_inner_len == expected_len
 
     @pytest.mark.anyio
-    @staticmethod
     async def test_get_stream_collect_join(
-        server: ReqtestServer, client: TClient
+        self, server: ReqtestServer, client: TClient
     ) -> None:
         url = server.url
 
