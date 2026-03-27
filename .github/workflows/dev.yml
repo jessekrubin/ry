@@ -146,7 +146,7 @@ jobs:
             -p ryo3-zstd
           )
           cargo llvm-cov report "${COV_PACKAGES[@]}" --lcov --output-path coverage.lcov
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v6
         # allow the action to fail bc idgaf about codecov but its nice to see (yolo)
         continue-on-error: true
         with:
