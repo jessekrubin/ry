@@ -21,6 +21,7 @@ pyo3-async-runtimes.workspace = true
 pyo3 = { workspace = true, features = [] }
 futures-util = { workspace = true, features = ["sink"] }
 http.workspace = true
+parking_lot.workspace = true
 ryo3-core.workspace = true
 ryo3-bytes.workspace = true
 ryo3-http.workspace = true

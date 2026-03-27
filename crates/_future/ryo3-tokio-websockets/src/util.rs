@@ -15,6 +15,7 @@ pub(crate) fn parse_uri(url: UrlLike) -> PyResult<Uri> {
         .map_err(|err| PyValueError::new_err(format!("invalid websocket uri: {err}")))
 }
 
+// TODO nuke this shit and have custom thing
 pub(crate) fn validate_close_reason(
     code: Option<u16>,
     reason: &str,
@@ -34,14 +35,4 @@ pub(crate) fn validate_close_reason(
             .map_err(|_| PyValueError::new_err(format!("invalid websocket close code: {code}")))
     })
     .transpose()
-}
-
-pub(crate) fn validate_control_payload_len(payload: &RyBytes, kind: &str) -> PyResult<()> {
-    if payload.as_slice().len() > 125 {
-        Err(PyValueError::new_err(format!(
-            "{kind} payload exceeds the websocket limit of 125 bytes"
-        )))
-    } else {
-        Ok(())
-    }
 }
