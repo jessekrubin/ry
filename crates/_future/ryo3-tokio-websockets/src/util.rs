@@ -1,7 +1,6 @@
 use http::Uri;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_url::UrlLike;
 use tokio_websockets::{CloseCode, Error};
 pub(crate) fn map_ws_err(err: Error) -> PyErr {

@@ -1,14 +1,15 @@
 use crate::constants::{DEFAULT_FLUSH_THRESHOLD, DEFAULT_FRAME_SIZE, DEFAULT_MAX_PAYLOAD_LEN};
-use crate::py_message::{PyMessageLike, PyPingPayload, PyPongPayload, PyWebSocketMessage};
-use crate::util::{map_ws_err, parse_uri, validate_close_reason};
+use crate::py_message::{
+    PyMessageLike, PyPingPayload, PyPongPayload, PyWsCloseCode, PyWsCloseReason, PyWsMessage,
+};
+use crate::util::{map_ws_err, parse_uri};
 use futures_util::{
     SinkExt, StreamExt,
     stream::{SplitSink, SplitStream},
 };
 use parking_lot::Mutex as ParkingLotMutex;
 use pyo3::exceptions::{PyEOFError, PyRuntimeError, PyStopAsyncIteration};
-use pyo3::{prelude::*, pybacked::PyBackedStr};
-use ryo3_bytes::PyBytes as RyBytes;
+use pyo3::prelude::*;
 use ryo3_core::py_value_err;
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_url::UrlLike;
@@ -31,10 +32,10 @@ struct WebSocketConnected {
 
 impl WebSocketConnected {
     #[inline]
-    async fn recv_next(&self) -> PyResult<Option<PyWebSocketMessage>> {
+    async fn recv_next(&self) -> PyResult<Option<PyWsMessage>> {
         let mut reader = self.reader.lock().await;
         match reader.next().await {
-            Some(Ok(msg)) => Ok(Some(PyWebSocketMessage::from(msg))),
+            Some(Ok(msg)) => Ok(Some(PyWsMessage::from(msg))),
             Some(Err(err)) => Err(map_ws_err(err)),
             None => Ok(None),
         }
@@ -155,7 +156,7 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn recv_next_msg(&self) -> PyResult<PyWebSocketMessage> {
+    async fn recv_next_msg(&self) -> PyResult<PyWsMessage> {
         let conn = self.get_connected().await?;
         conn.recv_next()
             .await?
@@ -163,12 +164,20 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn iter_next_msg(&self) -> PyResult<PyWebSocketMessage> {
+    async fn iter_next_msg(&self) -> PyResult<PyWsMessage> {
         let conn = self.get_connected().await?;
         match conn.recv_next().await? {
             Some(msg) => Ok(msg),
             None => Err(PyStopAsyncIteration::new_err("websocket closed")),
         }
+    }
+
+    #[inline]
+    async fn send(&self, message: Message) -> PyResult<()> {
+        let conn = self.get_connected().await?;
+        let mut writer = conn.writer.lock().await;
+        writer.send(message).await.map_err(map_ws_err)?;
+        Ok(())
     }
 
     #[inline]
@@ -342,7 +351,8 @@ impl PyWebSocket {
         self.recv(py)
     }
 
-    fn send<'py>(&self, py: Python<'py>, message: PyMessageLike) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(name = "send")]
+    fn py_send<'py>(&self, py: Python<'py>, message: PyMessageLike) -> PyResult<Bound<'py, PyAny>> {
         let this = self.clone();
         let message = Message::from(message);
         pyo3_async_runtimes::tokio::future_into_py(
@@ -351,26 +361,25 @@ impl PyWebSocket {
         )
     }
 
-    fn send_text<'py>(&self, py: Python<'py>, text: PyBackedStr) -> PyResult<Bound<'py, PyAny>> {
-        self.send(py, PyMessageLike::Text(text))
-    }
+    // fn send_text<'py>(&self, py: Python<'py>, text: PyBackedStr) -> PyResult<Bound<'py, PyAny>> {
 
-    fn send_bytes<'py>(&self, py: Python<'py>, data: RyBytes) -> PyResult<Bound<'py, PyAny>> {
-        self.send(py, PyMessageLike::Bytes(data))
-    }
+    // }
 
-    #[pyo3(signature = (*, code = None, reason = ""))]
+    // fn send_bytes<'py>(&self, py: Python<'py>, data: RyBytes) -> PyResult<Bound<'py, PyAny>> {
+    //     self.send(py, PyMessageLike::Bytes(data))
+    // }
+    // fn close(code: Option<PyWsCloseCode>, reason: Option<PyWsCloseReason>) -> PyResult<Self> {
+    #[pyo3(signature = (*, code = None, reason = None))]
     fn close<'py>(
         &self,
         py: Python<'py>,
-        code: Option<u16>,
-        reason: &str,
+        code: Option<PyWsCloseCode>,
+        reason: Option<PyWsCloseReason>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let code = validate_close_reason(code, reason)?;
-        let reason = reason.to_owned();
         let this = self.clone();
+        let pymsg = PyWsMessage::close(code, reason)?;
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            this.send_close(code, &reason).await
+            this.send_message(pymsg.into()).await
         })
     }
 
