@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 mod enums;
+mod errors;
 mod from;
 mod py_client;
 mod py_message;

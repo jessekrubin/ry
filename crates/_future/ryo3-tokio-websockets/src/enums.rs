@@ -11,7 +11,7 @@ pub(crate) enum PyWebSocketMessageKind {
 }
 
 impl PyWebSocketMessageKind {
-    pub(crate) fn as_str(&self) -> &'static str {
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             Self::Text => "text",
             Self::Binary => "binary",

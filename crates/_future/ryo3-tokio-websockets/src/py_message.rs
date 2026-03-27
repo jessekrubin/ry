@@ -53,13 +53,13 @@ impl PyWsMessage {
         reason: Option<PyWsCloseReason>,
     ) -> PyResult<Self> {
         // check for reserved codes
-        if let Some(code) = &code {
-            if code.is_reserved() {
-                return py_value_err!(
-                    "close code {} is reserved and cannot be sent",
-                    u16::from(code.0)
-                )?;
-            }
+        if let Some(code) = &code
+            && code.is_reserved()
+        {
+            return py_value_err!(
+                "close code {} is reserved and cannot be sent",
+                u16::from(code.0)
+            )?;
         }
         // check that if reason is present/non-empty, code is also present
         let code = code.map(|c| c.0);
@@ -250,19 +250,14 @@ impl<'py> FromPyObject<'_, 'py> for PyWsCloseCode {
     }
 }
 
+#[derive(Default)]
 pub(crate) struct PyWsCloseReason(String);
 
-impl PyWsCloseReason {
-    pub(crate) fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl std::default::Default for PyWsCloseReason {
-    fn default() -> Self {
-        Self(String::new())
-    }
-}
+// impl PyWsCloseReason {
+//     pub(crate) fn as_ref(&self) -> &str {
+//         &self.0
+//     }
+// }
 
 impl<'py> FromPyObject<'_, 'py> for PyWsCloseReason {
     type Error = PyErr;

@@ -19,8 +19,8 @@ impl From<PyMessageLike> for Message {
     fn from(value: PyMessageLike) -> Self {
         match value {
             PyMessageLike::Message(msg) => msg.0,
-            PyMessageLike::Text(text) => Message::text(text.to_string()),
-            PyMessageLike::Bytes(bytes) => Message::binary(bytes.into_inner()),
+            PyMessageLike::Text(text) => Self::text(text.to_string()),
+            PyMessageLike::Bytes(bytes) => Self::binary(bytes.into_inner()),
         }
     }
 }
