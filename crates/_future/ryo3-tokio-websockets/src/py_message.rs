@@ -1,48 +1,31 @@
+use crate::util::{validate_close_reason, validate_control_payload_len};
 use bytes::Bytes;
-use futures_util::{
-    stream::{SplitSink, SplitStream},
-};
-use http::Uri;
-use pyo3::exceptions::{PyEOFError, PyStopAsyncIteration, PyValueError};
-use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr, types::PyModule};
+use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_http::{PyHeaders, PyHeadersLike};
-use ryo3_url::UrlLike;
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
-use tokio::net::TcpStream;
-use tokio::sync::Mutex;
-use tokio_websockets::{
-    ClientBuilder, CloseCode, Config, Error, Limits, MaybeTlsStream, Message, WebSocketStream,
-};
-use crate::util::{map_ws_err, parse_uri, validate_close_reason, validate_control_payload_len};
-
-type TokioWs = WebSocketStream<MaybeTlsStream<TcpStream>>;
-type TokioWsWrite = SplitSink<TokioWs, Message>;
-type TokioWsRead = SplitStream<TokioWs>;
+use tokio_websockets::Message;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "Message", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyWebSocketMessage {
-    pub(crate) inner: Message,
-}
+pub struct PyWebSocketMessage(pub(crate) Message);
 
 impl PyWebSocketMessage {
     fn payload_bytes(&self) -> Bytes {
-        self.inner.clone().into_payload().into()
+        self.0.clone().into_payload().into()
+    }
+
+    fn inner(&self) -> &Message {
+        &self.0
     }
 
     fn type_name(&self) -> &'static str {
-        if self.inner.is_text() {
+        if self.0.is_text() {
             "text"
-        } else if self.inner.is_binary() {
+        } else if self.0.is_binary() {
             "binary"
-        } else if self.inner.is_close() {
+        } else if self.0.is_close() {
             "close"
-        } else if self.inner.is_ping() {
+        } else if self.0.is_ping() {
             "ping"
         } else {
             "pong"
@@ -64,16 +47,14 @@ impl PyWebSocketMessage {
 
     #[staticmethod]
     #[pyo3(signature = (payload = RyBytes::new(Bytes::new())))]
-    fn ping(payload: RyBytes) -> PyResult<Self> {
-        validate_control_payload_len(&payload, "ping")?;
-        Ok(Self::from(Message::ping(payload.into_inner())))
+    fn ping(payload: PyPingPongPayload) -> Self {
+        payload.into_ping_message().into()
     }
 
     #[staticmethod]
     #[pyo3(signature = (payload = RyBytes::new(Bytes::new())))]
-    fn pong(payload: RyBytes) -> PyResult<Self> {
-        validate_control_payload_len(&payload, "pong")?;
-        Ok(Self::from(Message::pong(payload.into_inner())))
+    fn pong(payload: PyPingPongPayload) -> Self {
+        payload.into_pong_message().into()
     }
 
     #[staticmethod]
@@ -84,9 +65,9 @@ impl PyWebSocketMessage {
     }
 
     fn __repr__(&self) -> String {
-        if let Some(text) = self.inner.as_text() {
+        if let Some(text) = self.0.as_text() {
             format!("Message(type='text', data={text:?})")
-        } else if let Some((code, reason)) = self.inner.as_close() {
+        } else if let Some((code, reason)) = self.0.as_close() {
             format!(
                 "Message(type='close', code={}, reason={reason:?})",
                 u16::from(code)
@@ -112,37 +93,37 @@ impl PyWebSocketMessage {
 
     #[getter]
     fn is_text(&self) -> bool {
-        self.inner.is_text()
+        self.0.is_text()
     }
 
     #[getter]
     fn is_binary(&self) -> bool {
-        self.inner.is_binary()
+        self.0.is_binary()
     }
 
     #[getter]
     fn is_close(&self) -> bool {
-        self.inner.is_close()
+        self.0.is_close()
     }
 
     #[getter]
     fn is_ping(&self) -> bool {
-        self.inner.is_ping()
+        self.0.is_ping()
     }
 
     #[getter]
     fn is_pong(&self) -> bool {
-        self.inner.is_pong()
+        self.0.is_pong()
     }
 
     #[getter]
     fn text_data(&self) -> Option<String> {
-        self.inner.as_text().map(ToOwned::to_owned)
+        self.0.as_text().map(ToOwned::to_owned)
     }
 
     #[getter]
     fn data<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        if let Some(text) = self.inner.as_text() {
+        if let Some(text) = self.0.as_text() {
             text.into_bound_py_any(py)
         } else {
             RyBytes::from(self.payload_bytes()).into_bound_py_any(py)
@@ -156,11 +137,60 @@ impl PyWebSocketMessage {
 
     #[getter]
     fn close_code(&self) -> Option<u16> {
-        self.inner.as_close().map(|(code, _)| u16::from(code))
+        self.0.as_close().map(|(code, _)| u16::from(code))
     }
 
     #[getter]
     fn close_reason(&self) -> Option<String> {
-        self.inner.as_close().map(|(_, reason)| reason.to_owned())
+        self.0.as_close().map(|(_, reason)| reason.to_owned())
+    }
+}
+pub(crate) enum PyMessageLike {
+    Message(PyWebSocketMessage),
+    Text(PyBackedStr),
+    Bytes(RyBytes),
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(msg) = obj.cast::<PyWebSocketMessage>() {
+            Ok(Self::Message(msg.get().clone()))
+        } else if let Ok(text) = obj.extract::<PyBackedStr>() {
+            Ok(Self::Text(text))
+        } else if let Ok(bytes) = obj.extract::<RyBytes>() {
+            Ok(Self::Bytes(bytes))
+        } else {
+            Err(pyo3::exceptions::PyTypeError::new_err(
+                "expected Message, str, or bytes-like object",
+            ))
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct PyPingPongPayload(RyBytes);
+
+impl PyPingPongPayload {
+    fn into_ping_message(self) -> Message{
+        Message::ping(self.0.into_inner())
+    }
+
+    fn into_pong_message(self) -> Message {
+        Message::pong(self.0.into_inner())
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyPingPongPayload {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let bytes = obj.extract::<RyBytes>()?;
+        if bytes.as_slice().len() > 125 {
+            py_value_err("ping/pong payload exceeds the websocket limit of 125 bytes")
+        } else {
+            Ok(Self(bytes))
+        }
     }
 }

@@ -1,34 +1,23 @@
-use bytes::Bytes;
-use futures_util::{
-    SinkExt, StreamExt,
-    stream::{SplitSink, SplitStream},
-};
-use crate::PyWebSocketMessage;
-use http::Uri;
-use pyo3::exceptions::{PyEOFError, PyStopAsyncIteration, PyValueError};
-use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr, types::PyModule};
-use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_http::{PyHeaders, PyHeadersLike};
-use ryo3_url::UrlLike;
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
-use tokio::net::TcpStream;
-use tokio::sync::Mutex;
-use tokio_websockets::{
-    ClientBuilder, CloseCode, Config, Error, Limits, MaybeTlsStream, Message, WebSocketStream,
-};
-
+use crate::{PyMessageLike, PyWebSocketMessage};
+use tokio_websockets::Message;
 
 impl From<Message> for PyWebSocketMessage {
     fn from(value: Message) -> Self {
-        Self { inner: value }
+        Self(value)
     }
 }
 
 impl From<PyWebSocketMessage> for Message {
     fn from(value: PyWebSocketMessage) -> Self {
-        value.inner
+        value.0
+    }
+}
+impl From<PyMessageLike> for Message {
+    fn from(value: PyMessageLike) -> Self {
+        match value {
+            PyMessageLike::Message(msg) => msg.0,
+            PyMessageLike::Text(text) => Message::text(text.to_string()),
+            PyMessageLike::Bytes(bytes) => Message::binary(bytes.into_inner()),
+        }
     }
 }

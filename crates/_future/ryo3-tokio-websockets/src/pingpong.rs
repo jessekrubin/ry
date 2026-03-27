@@ -1,5 +1,0 @@
-
-pub(crate) struct PingPongPayload{
-
-
-}

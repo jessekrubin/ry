@@ -1,19 +1,9 @@
-use crate::py_message::PyWebSocketMessage;
 use http::Uri;
-use pyo3::exceptions::{PyEOFError, PyStopAsyncIteration, PyValueError};
-use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr, types::PyModule};
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_url::UrlLike;
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
-use tokio::net::TcpStream;
-use tokio::sync::Mutex;
-use tokio_websockets::{
-    ClientBuilder, CloseCode, Config, Error, Limits, MaybeTlsStream, Message, WebSocketStream,
-};
+use tokio_websockets::{CloseCode, Error};
 pub(crate) fn map_ws_err(err: Error) -> PyErr {
     PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(err.to_string())
 }
@@ -25,7 +15,10 @@ pub(crate) fn parse_uri(url: UrlLike) -> PyResult<Uri> {
         .map_err(|err| PyValueError::new_err(format!("invalid websocket uri: {err}")))
 }
 
-pub(crate) fn validate_close_reason(code: Option<u16>, reason: &str) -> PyResult<Option<CloseCode>> {
+pub(crate) fn validate_close_reason(
+    code: Option<u16>,
+    reason: &str,
+) -> PyResult<Option<CloseCode>> {
     if reason.len() > 123 {
         return Err(PyValueError::new_err(
             "close reason exceeds the websocket limit of 123 bytes",
