@@ -1,7 +1,8 @@
-use crate::util::{validate_close_reason, validate_control_payload_len};
+use crate::util::validate_close_reason;
 use bytes::Bytes;
 use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
 use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_core::{py_type_err, py_value_err};
 use tokio_websockets::Message;
 
 #[derive(Debug, Clone)]
@@ -46,15 +47,17 @@ impl PyWebSocketMessage {
     }
 
     #[staticmethod]
-    #[pyo3(signature = (payload = RyBytes::new(Bytes::new())))]
-    fn ping(payload: PyPingPongPayload) -> Self {
-        payload.into_ping_message().into()
+    #[pyo3(signature = (payload = None))]
+    fn ping(payload: Option<PyPingPayload>) -> Self {
+        let payload = payload.unwrap_or_else(|| PyPingPayload(Message::ping(Bytes::new())));
+        payload.into()
     }
 
     #[staticmethod]
-    #[pyo3(signature = (payload = RyBytes::new(Bytes::new())))]
-    fn pong(payload: PyPingPongPayload) -> Self {
-        payload.into_pong_message().into()
+    #[pyo3(signature = (payload = None))]
+    fn pong(payload: Option<PyPongPayload>) -> Self {
+        let payload = payload.unwrap_or_else(|| PyPongPayload(Message::pong(Bytes::new())));
+        payload.into()
     }
 
     #[staticmethod]
@@ -162,35 +165,71 @@ impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
         } else if let Ok(bytes) = obj.extract::<RyBytes>() {
             Ok(Self::Bytes(bytes))
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(
-                "expected Message, str, or bytes-like object",
-            ))
+            py_type_err!("expected Message, str, or bytes-like object")
         }
     }
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct PyPingPongPayload(RyBytes);
+#[derive(Debug)]
+pub(crate) struct PyPingPayload(pub(crate) Message);
 
-impl PyPingPongPayload {
-    fn into_ping_message(self) -> Message{
-        Message::ping(self.0.into_inner())
+impl PyPingPayload {
+    pub(crate) fn into_inner(self) -> Message {
+        self.0
     }
-
-    fn into_pong_message(self) -> Message {
-        Message::pong(self.0.into_inner())
+}
+impl std::default::Default for PyPingPayload {
+    fn default() -> Self {
+        Self(Message::ping(Bytes::new()))
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for PyPingPongPayload {
+// impl PyPingPayload {
+//     pub(crate) fn into_ping_message(self) -> Message {
+//         Message::ping(self.0.into_inner())
+//     }
+
+//     pub(crate) fn into_pong_message(self) -> Message {
+//         Message::pong(self.0.into_inner())
+//     }
+// }
+
+impl<'py> FromPyObject<'_, 'py> for PyPingPayload {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let bytes = obj.extract::<RyBytes>()?;
         if bytes.as_slice().len() > 125 {
-            py_value_err("ping/pong payload exceeds the websocket limit of 125 bytes")
+            py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(bytes))
+            Ok(Self(Message::ping(bytes.into_inner())))
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct PyPongPayload(pub(crate) Message);
+
+impl PyPongPayload {
+    pub(crate) fn into_inner(self) -> Message {
+        self.0
+    }
+}
+impl std::default::Default for PyPongPayload {
+    fn default() -> Self {
+        Self(Message::pong(Bytes::new()))
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyPongPayload {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let bytes = obj.extract::<RyBytes>()?;
+        if bytes.as_slice().len() > 125 {
+            py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
+        } else {
+            Ok(Self(Message::pong(bytes.into_inner())))
         }
     }
 }

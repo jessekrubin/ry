@@ -2319,6 +2319,7 @@ dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
  "ryo3-bytes",
+ "ryo3-core",
  "ryo3-http",
  "ryo3-url",
  "tokio",
