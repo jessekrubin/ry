@@ -11,9 +11,21 @@ license.workspace = true
 repository.workspace = true
 description = "python + tokio-websockets crate (https://crates.io/crates/tokio-websockets)"
 
+[features]
+default = []
+ry = []
+
 [dependencies]
+bytes.workspace = true
+pyo3-async-runtimes.workspace = true
 pyo3 = { workspace = true, features = [] }
-tokio-websockets = { workspace = true }
+futures-util = { workspace = true, features = ["sink"] }
+http.workspace = true
+ryo3-bytes.workspace = true
+ryo3-http.workspace = true
+ryo3-url.workspace = true
+tokio.workspace = true
+tokio-websockets = { workspace = true, features = ["client", "rand", "aws_lc_rs"] }
 
 [lints]
 workspace = true

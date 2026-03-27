@@ -1965,6 +1965,7 @@ dependencies = [
  "ryo3-sqlformat",
  "ryo3-std",
  "ryo3-tokio",
+ "ryo3-tokio-websockets",
  "ryo3-twox-hash",
  "ryo3-ulid",
  "ryo3-unindent",
@@ -2312,7 +2313,15 @@ dependencies = [
 name = "ryo3-tokio-websockets"
 version = "0.0.87"
 dependencies = [
+ "bytes",
+ "futures-util",
+ "http",
  "pyo3",
+ "pyo3-async-runtimes",
+ "ryo3-bytes",
+ "ryo3-http",
+ "ryo3-url",
+ "tokio",
  "tokio-websockets",
 ]
 
@@ -2828,9 +2837,14 @@ version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dad543404f98bfc969aeb71994105c592acfc6c43323fddcd016bb208d1c65cb"
 dependencies = [
+ "aws-lc-rs",
+ "base64",
  "bytes",
  "futures-core",
  "futures-sink",
+ "http",
+ "httparse",
+ "rand 0.10.0",
  "simdutf8",
  "tokio",
  "tokio-util",
