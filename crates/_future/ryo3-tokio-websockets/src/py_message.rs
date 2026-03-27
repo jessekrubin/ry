@@ -263,23 +263,22 @@ impl<'py> FromPyObject<'_, 'py> for PyWsCloseReason {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        const CLOSE_REASON_MAX_LEN: usize = 125;
-        // allow bytes or str...
+        const CLOSE_REASON_MAX_LEN: usize = 123;
         if let Ok(s) = obj.extract::<PyBackedStr>() {
             let s = s.to_string();
             if s.len() > CLOSE_REASON_MAX_LEN {
-                py_value_err!("close reason exceeds the websocket limit of 125 bytes")
+                py_value_err!("close reason exceeds the websocket limit of 123 bytes")
             } else {
                 Ok(Self(s))
             }
         } else if let Ok(bytes) = obj.extract::<RyBytes>() {
             let bytes = bytes.as_slice();
             if bytes.len() > CLOSE_REASON_MAX_LEN {
-                py_value_err!("close reason exceeds the websocket limit of 125 bytes")
+                py_value_err!("close reason exceeds the websocket limit of 123 bytes")
             } else {
-                // interpret as utf-8, replacing invalid sequences with the replacement character
-                let s = String::from_utf8_lossy(bytes).to_string();
-                Ok(Self(s))
+                let s = std::str::from_utf8(bytes)
+                    .map_err(|_| py_value_error!("close reason must be valid UTF-8"))?;
+                Ok(Self(s.to_owned()))
             }
         } else {
             py_type_err!("close reason must be a string or bytes-like object")
