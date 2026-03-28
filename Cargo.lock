@@ -2222,6 +2222,7 @@ dependencies = [
  "ryo3-macro-rules",
  "ryo3-serde",
  "ryo3-std",
+ "ryo3-tokio-rt",
  "ryo3-url",
  "serde",
  "serde_urlencoded",
@@ -2300,13 +2301,22 @@ version = "0.0.87"
 dependencies = [
  "bytes",
  "pyo3",
- "pyo3-async-runtimes",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-macro-rules",
  "ryo3-std",
+ "ryo3-tokio-rt",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "ryo3-tokio-rt"
+version = "0.0.87"
+dependencies = [
+ "pyo3",
+ "pyo3-async-runtimes",
+ "tokio",
 ]
 
 [[package]]
@@ -2318,10 +2328,11 @@ dependencies = [
  "http",
  "parking_lot",
  "pyo3",
- "pyo3-async-runtimes",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-http",
+ "ryo3-macro-rules",
+ "ryo3-tokio-rt",
  "ryo3-url",
  "tokio",
  "tokio-websockets",

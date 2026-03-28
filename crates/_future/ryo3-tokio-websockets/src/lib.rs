@@ -4,6 +4,7 @@ mod errors;
 mod from;
 mod py_client;
 mod py_message;
+mod types;
 mod util;
 use crate::enums::PyWebSocketMessageKind;
 use crate::py_client::{PyWebSocket, websocket};

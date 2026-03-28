@@ -2,7 +2,6 @@
 
 #[cfg(feature = "fs")]
 pub mod fs;
-mod rt;
 #[cfg(feature = "time")]
 pub mod time;
 

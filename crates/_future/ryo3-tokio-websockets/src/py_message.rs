@@ -1,8 +1,9 @@
 use crate::PyWebSocketMessageKind;
+use crate::types::{PyWsCloseCode, PyWsCloseReason};
 use bytes::Bytes;
 use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_core::{py_type_err, py_value_err, py_value_error};
+use ryo3_core::{py_type_err, py_value_err};
 use tokio_websockets::Message;
 
 #[derive(Debug, Clone)]
@@ -227,61 +228,6 @@ impl<'py> FromPyObject<'_, 'py> for PyPongPayload {
             py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
         } else {
             Ok(Self(Message::pong(bytes.into_inner())))
-        }
-    }
-}
-
-pub(crate) struct PyWsCloseCode(pub(crate) tokio_websockets::CloseCode);
-
-impl PyWsCloseCode {
-    pub(crate) fn is_reserved(&self) -> bool {
-        self.0.is_reserved()
-    }
-}
-
-impl<'py> FromPyObject<'_, 'py> for PyWsCloseCode {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let code = obj.extract::<u16>()?;
-        tokio_websockets::CloseCode::try_from(code)
-            .map(Self::from)
-            .map_err(|_| py_value_error!("invalid websocket close code: {code}"))
-    }
-}
-
-#[derive(Default)]
-pub(crate) struct PyWsCloseReason(String);
-
-// impl PyWsCloseReason {
-//     pub(crate) fn as_ref(&self) -> &str {
-//         &self.0
-//     }
-// }
-
-impl<'py> FromPyObject<'_, 'py> for PyWsCloseReason {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        const CLOSE_REASON_MAX_LEN: usize = 123;
-        if let Ok(s) = obj.extract::<PyBackedStr>() {
-            let s = s.to_string();
-            if s.len() > CLOSE_REASON_MAX_LEN {
-                py_value_err!("close reason exceeds the websocket limit of 123 bytes")
-            } else {
-                Ok(Self(s))
-            }
-        } else if let Ok(bytes) = obj.extract::<RyBytes>() {
-            let bytes = bytes.as_slice();
-            if bytes.len() > CLOSE_REASON_MAX_LEN {
-                py_value_err!("close reason exceeds the websocket limit of 123 bytes")
-            } else {
-                let s = std::str::from_utf8(bytes)
-                    .map_err(|_| py_value_error!("close reason must be valid UTF-8"))?;
-                Ok(Self(s.to_owned()))
-            }
-        } else {
-            py_type_err!("close reason must be a string or bytes-like object")
         }
     }
 }

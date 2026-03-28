@@ -1,4 +1,4 @@
-"""ryo4-tokio types"""
+"""ryo3-tokio types"""
 
 import pathlib
 import sys

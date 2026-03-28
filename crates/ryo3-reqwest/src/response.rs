@@ -18,6 +18,7 @@ use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};
 use ryo3_macro_rules::py_runtime_error;
 use ryo3_macro_rules::pytodo;
 use ryo3_std::net::PySocketAddr;
+use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
 use ryo3_url::PyUrl;
 use std::sync::Arc;
 
@@ -210,7 +211,7 @@ impl RyResponse {
     /// Return the response body as bytes (consumes the response)
     fn bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let response = self.take_response()?;
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             response
                 .bytes()
                 .await
@@ -239,7 +240,7 @@ impl RyResponse {
         encoding: PyEncodingName,
     ) -> PyResult<Bound<'py, PyAny>> {
         let response = self.take_response()?;
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             response
                 .text_with_charset(encoding.as_ref())
                 .await
@@ -272,7 +273,7 @@ impl RyResponse {
             partial_mode,
             catch_duplicate_keys,
         };
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             response
                 .bytes()
                 .await
@@ -414,7 +415,7 @@ impl RyAsyncResponse {
 
     /// Return the response body as bytes (consumes the response)
     async fn bytes(&self) -> PyResult<RyBytes> {
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         let response = self.take_response()?;
         rt.spawn(async move { response.bytes().await })
             .await
@@ -430,7 +431,7 @@ impl RyAsyncResponse {
     )]
     async fn text(&self, encoding: PyEncodingName) -> PyResult<String> {
         let response = self.take_response()?;
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         rt.spawn(async move { response.text_with_charset(encoding.as_ref()).await })
             .await
             .map_err(|e| py_runtime_error!("{e}"))?
@@ -440,7 +441,7 @@ impl RyAsyncResponse {
     /// Return the response body as text with encoding (consumes the response)
     async fn text_with_charset(&self, encoding: PyEncodingName) -> PyResult<String> {
         let response = self.take_response()?;
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         rt.spawn(async move { response.text_with_charset(encoding.as_ref()).await })
             .await
             .map_err(|e| py_runtime_error!("{e}"))?
@@ -471,7 +472,7 @@ impl RyAsyncResponse {
             partial_mode,
             catch_duplicate_keys,
         };
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         let j = rt
             .spawn(async move { response.bytes().await })
             .await
@@ -645,7 +646,7 @@ impl RyBlockingResponse {
         let response = self.take_response()?;
 
         py.detach(|| {
-            pyo3_async_runtimes::tokio::get_runtime()
+            get_tokio_runtime()
                 .block_on(async { response.bytes().await })
                 .map(RyBytes::from)
                 .map_err(map_reqwest_err)
@@ -660,7 +661,7 @@ impl RyBlockingResponse {
     fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncodingName) -> PyResult<String> {
         let response = self.take_response()?;
         py.detach(|| {
-            pyo3_async_runtimes::tokio::get_runtime()
+            get_tokio_runtime()
                 .block_on(async { response.text_with_charset(encoding.as_ref()).await })
                 .map_err(map_reqwest_err)
         })
@@ -674,7 +675,7 @@ impl RyBlockingResponse {
     ) -> PyResult<String> {
         let response = self.take_response()?;
         py.detach(|| {
-            pyo3_async_runtimes::tokio::get_runtime()
+            get_tokio_runtime()
                 .block_on(async { response.text_with_charset(encoding.as_ref()).await })
                 .map_err(map_reqwest_err)
         })
@@ -707,7 +708,7 @@ impl RyBlockingResponse {
         };
 
         py.detach(|| {
-            pyo3_async_runtimes::tokio::get_runtime().block_on(async {
+            get_tokio_runtime().block_on(async {
                 response
                     .bytes()
                     .await

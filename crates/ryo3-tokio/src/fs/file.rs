@@ -1,9 +1,9 @@
 use pyo3::prelude::*;
 
-use crate::rt::future_into_py;
 use pyo3::intern;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
 use ryo3_macro_rules::{py_io_error, py_runtime_err, py_stop_async_iteration_err, pytodo};
+use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
 use std::io::SeekFrom;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -12,7 +12,7 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncSeekExt, AsyncWriteExt, BufS
 use tokio::sync::Mutex;
 
 #[cfg(feature = "experimental-async")]
-use crate::rt::on_tokio_py;
+use ryo3_tokio_rt::on_tokio_py;
 
 enum FileState {
     Closed,
@@ -31,7 +31,7 @@ impl Drop for PyAsyncFileInner {
         if let FileState::Open(ref mut b) = self.state {
             // revisit? currently ignores errors on shutdown
             let future = b.flush();
-            let rt = pyo3_async_runtimes::tokio::get_runtime();
+            let rt = get_tokio_runtime();
             let _ = rt.block_on(future);
         }
     }

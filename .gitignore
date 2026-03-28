@@ -97,3 +97,6 @@ _scratch/
 
 # misc hidden dirs - .<DIR>/ (`.venv/` | `.ruff_cache/` | `.mypy_whatever/`)
 .*/
+*.diff
+*.diff.txt
+*.pdb

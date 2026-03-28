@@ -123,6 +123,7 @@ members = [
   "crates/ryo3-sqlformat",
   "crates/ryo3-std",
   "crates/ryo3-tokio",
+  "crates/ryo3-tokio-rt",
   "crates/ryo3-twox-hash",
   "crates/ryo3-ulid",
   "crates/ryo3-unindent",
@@ -173,6 +174,7 @@ ryo3-size = { path = "./crates/ryo3-size" }
 ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-std = { path = "./crates/ryo3-std" }
 ryo3-tokio = { path = "./crates/ryo3-tokio" }
+ryo3-tokio-rt = { path = "./crates/ryo3-tokio-rt" }
 ryo3-twox-hash = { path = "./crates/ryo3-twox-hash" }
 ryo3-ulid = { path = "./crates/ryo3-ulid" }
 ryo3-unindent = { path = "./crates/ryo3-unindent" }

@@ -1,7 +1,6 @@
-use crate::{
-    PyMessageLike, PyPingPayload, PyPongPayload, PyWebSocketMessageKind, PyWsMessage,
-    py_message::PyWsCloseCode,
-};
+use crate::py_client::WebSocketReadyState;
+use crate::types::PyWsCloseCode;
+use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWebSocketMessageKind, PyWsMessage};
 use tokio_websockets::{CloseCode, Message};
 
 impl From<Message> for PyWsMessage {
@@ -76,5 +75,17 @@ impl From<&PyWsMessage> for PyWebSocketMessageKind {
 impl From<CloseCode> for PyWsCloseCode {
     fn from(value: CloseCode) -> Self {
         Self(value)
+    }
+}
+
+impl From<WebSocketReadyState> for u8 {
+    #[inline]
+    fn from(state: WebSocketReadyState) -> Self {
+        match state {
+            WebSocketReadyState::Connecting => 0,
+            WebSocketReadyState::Open => 1,
+            WebSocketReadyState::Closing => 2,
+            WebSocketReadyState::Closed => 3,
+        }
     }
 }
