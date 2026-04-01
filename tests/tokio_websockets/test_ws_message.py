@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import pickle
 
 import pytest
 
@@ -52,6 +53,23 @@ _WS_MSG_TEST_CASES: list[_WsMessageReprTestCase] = [
 @pytest.mark.parametrize("data", _WS_MSG_TEST_CASES)
 def test_ws_message_repr(data: _WsMessageReprTestCase) -> None:
     assert repr(data.message) == data.expected_repr
+    # also test that eval(repr(msg)) == msg for good measure
+    assert (
+        eval(
+            repr(data.message),
+            {
+                "WsMessage": ry.WsMessage,
+            },
+        )
+        == data.message
+    )
+
+
+@pytest.mark.parametrize("data", _WS_MSG_TEST_CASES)
+def test_ws_message_pickle(data: _WsMessageReprTestCase) -> None:
+    pickled = pickle.dumps(data.message)
+    unpickled = pickle.loads(pickled)
+    assert unpickled == data.message
 
 
 class TestWsMessageClose:

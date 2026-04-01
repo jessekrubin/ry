@@ -20,6 +20,21 @@ class WebSocketKwargs(t.TypedDict, total=False):
 
 @t.final
 class WsMessage:
+    @t.overload
+    def __init__(self, kind: t.Literal["text"], data: str) -> None: ...
+    @t.overload
+    def __init__(self, kind: t.Literal["binary"], data: Buffer) -> None: ...
+    @t.overload
+    def __init__(
+        self, kind: t.Literal["ping", "pong"], data: Buffer | None = None
+    ) -> None: ...
+    @t.overload
+    def __init__(
+        self, kind: t.Literal["close"], code: int = 1000, reason: str | Buffer = ""
+    ) -> None: ...
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
+
+    # "constructors"
     @staticmethod
     def text(text: str) -> WsMessage: ...
     @staticmethod

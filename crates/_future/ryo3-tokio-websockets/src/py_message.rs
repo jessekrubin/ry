@@ -4,9 +4,14 @@ use std::os::raw::c_int;
 use crate::PyWebSocketMessageKind;
 use crate::types::{PyWsCloseCode, PyWsCloseReason};
 use bytes::Bytes;
-use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
+use pyo3::{
+    IntoPyObjectExt,
+    prelude::*,
+    pybacked::PyBackedStr,
+    types::{PyDict, PyTuple},
+};
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_core::{py_type_err, py_value_err};
+use ryo3_core::{PyTryFrom, py_type_err, py_value_err, py_value_error};
 use tokio_websockets::Message;
 
 #[derive(Debug, Clone)]
@@ -28,6 +33,61 @@ impl PartialEq for PyWsMessage {
 
 #[pymethods]
 impl PyWsMessage {
+    #[new]
+    #[pyo3(signature = (kind, data = None, *, code= None, reason = None))]
+    fn new<'py>(
+        _py: Python<'py>,
+        kind: PyWebSocketMessageKind,
+        data: Option<Bound<'py, PyAny>>,
+        code: Option<u16>,
+        reason: Option<&str>,
+    ) -> PyResult<Self> {
+        if matches!(kind, PyWebSocketMessageKind::Close) && data.is_some() {
+            return py_value_err!("data not valid for close message")?;
+        }
+        if !matches!(kind, PyWebSocketMessageKind::Close) && (code.is_some() || reason.is_some()) {
+            return py_value_err!("code/reason not valid for non-close message")?;
+        }
+        match kind {
+            PyWebSocketMessageKind::Text => {
+                let data = data.ok_or_else(|| py_value_error!("data required for message w/ kind='text'"))?;
+                let s = data.extract::<PyBackedStr>()?;
+                Ok(Self::from(Message::text(s.to_string())))
+            }
+            PyWebSocketMessageKind::Binary => {
+                let data = data.ok_or_else(|| py_value_error!("data required for message w/ kind='binary'"))?;
+                let bytes = data.extract::<RyBytes>()?;
+                Ok(Self::from(Message::binary(bytes.into_inner())))
+            }
+            PyWebSocketMessageKind::Ping => {
+                let pl = data
+                    .map(|d| d.extract::<RyBytes>().and_then(PyPingPayload::py_try_from))
+                    .transpose()?
+                    .unwrap_or_default();
+                Ok(Self::from(pl.into_inner()))
+            }
+            PyWebSocketMessageKind::Pong => {
+                let pl = data
+                    .map(|d| d.extract::<RyBytes>().and_then(PyPongPayload::py_try_from))
+                    .transpose()?
+                    .unwrap_or_default();
+                Ok(Self::from(pl.into_inner()))
+            }
+            PyWebSocketMessageKind::Close => {
+                let code = code
+                    .map(|c| {
+                        tokio_websockets::CloseCode::try_from(c)
+                            .map(PyWsCloseCode::from)
+                            .map_err(|_| py_value_error!("invalid close code: {c}"))
+                    })
+                    .transpose()?
+                    .unwrap_or(PyWsCloseCode::NORMAL_CLOSURE);
+                let reason = reason.map(|r| PyWsCloseReason(r.to_owned()));
+                Self::close(code, reason)
+            }
+        }
+    }
+
     #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn text(text: PyBackedStr) -> Self {
@@ -80,16 +140,29 @@ impl PyWsMessage {
         self == other
     }
 
-    /// This is taken from opendal:
-    /// <https://github.com/apache/opendal/blob/d001321b0f9834bc1e2e7d463bcfdc3683e968c9/bindings/python/src/utils.rs#L51-L72>
-    #[expect(unsafe_code)]
+    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        let kwargs = PyDict::new(py);
+        let args = if let Some(text) = self.0.as_text() {
+            PyTuple::new(py, [PyWebSocketMessageKind::Text.into_bound_py_any(py)?, text.into_bound_py_any(py)?])?
+        } else if let Some((code, reason)) = self.0.as_close() {
+            kwargs.set_item(pyo3::intern!(py, "code"), u16::from(code))?;
+            kwargs.set_item(pyo3::intern!(py, "reason"), reason)?;
+            PyTuple::new(py, [PyWebSocketMessageKind::Close.into_bound_py_any(py)?])?
+        } else {
+            let kind = self.kind();
+            PyTuple::new(py, [kind.into_bound_py_any(py)?, self.payload_bytes().as_ref().into_bound_py_any(py)?])?
+        };
+        PyTuple::new(py, [args.into_bound_py_any(py)?, kwargs.into_bound_py_any(py)?])
+    }
+
+    #[expect(unsafe_code, clippy::needless_pass_by_value, clippy::ptr_as_ptr)]
     unsafe fn __getbuffer__(
         slf: PyRef<Self>,
         view: *mut pyo3::ffi::Py_buffer,
         flags: c_int,
     ) -> PyResult<()> {
         unsafe {
-            let bytes = slf.0.as_payload().deref().as_ref();
+            let bytes = slf.0.as_payload().deref();
             let ret = pyo3::ffi::PyBuffer_FillInfo(
                 view,
                 slf.as_ptr() as *mut _,
@@ -105,7 +178,7 @@ impl PyWsMessage {
         }
     }
 
-    #[expect(unsafe_code)]
+    #[expect(unsafe_code, clippy::unused_self)]
     unsafe fn __releasebuffer__(&self, _view: *mut pyo3::ffi::Py_buffer) {}
 
     #[getter]
@@ -221,6 +294,16 @@ impl PyPingPayload {
     }
 }
 
+impl PyTryFrom<RyBytes> for PyPingPayload {
+    fn py_try_from(value: RyBytes) -> PyResult<Self> {
+        if value.as_slice().len() > 125 {
+            py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
+        } else {
+            Ok(Self(Message::ping(value.into_inner())))
+        }
+    }
+}
+
 impl std::default::Default for PyPingPayload {
     fn default() -> Self {
         Self(Message::ping(Bytes::new()))
@@ -231,12 +314,7 @@ impl<'py> FromPyObject<'_, 'py> for PyPingPayload {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let bytes = obj.extract::<RyBytes>()?;
-        if bytes.as_slice().len() > 125 {
-            py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
-        } else {
-            Ok(Self(Message::ping(bytes.into_inner())))
-        }
+        obj.extract::<RyBytes>().map(Self::py_try_from)?
     }
 }
 
@@ -248,9 +326,20 @@ impl PyPongPayload {
         self.0
     }
 }
+
 impl std::default::Default for PyPongPayload {
     fn default() -> Self {
         Self(Message::pong(Bytes::new()))
+    }
+}
+
+impl PyTryFrom<RyBytes> for PyPongPayload {
+    fn py_try_from(value: RyBytes) -> PyResult<Self> {
+        if value.as_slice().len() > 125 {
+            py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
+        } else {
+            Ok(Self(Message::pong(value.into_inner())))
+        }
     }
 }
 
@@ -258,11 +347,6 @@ impl<'py> FromPyObject<'_, 'py> for PyPongPayload {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let bytes = obj.extract::<RyBytes>()?;
-        if bytes.as_slice().len() > 125 {
-            py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
-        } else {
-            Ok(Self(Message::pong(bytes.into_inner())))
-        }
+        obj.extract::<RyBytes>().map(Self::py_try_from)?
     }
 }
