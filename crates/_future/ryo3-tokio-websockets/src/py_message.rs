@@ -50,12 +50,14 @@ impl PyWsMessage {
         }
         match kind {
             PyWebSocketMessageKind::Text => {
-                let data = data.ok_or_else(|| py_value_error!("data required for message w/ kind='text'"))?;
+                let data = data
+                    .ok_or_else(|| py_value_error!("data required for message w/ kind='text'"))?;
                 let s = data.extract::<PyBackedStr>()?;
                 Ok(Self::from(Message::text(s.to_string())))
             }
             PyWebSocketMessageKind::Binary => {
-                let data = data.ok_or_else(|| py_value_error!("data required for message w/ kind='binary'"))?;
+                let data = data
+                    .ok_or_else(|| py_value_error!("data required for message w/ kind='binary'"))?;
                 let bytes = data.extract::<RyBytes>()?;
                 Ok(Self::from(Message::binary(bytes.into_inner())))
             }
@@ -143,16 +145,31 @@ impl PyWsMessage {
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let kwargs = PyDict::new(py);
         let args = if let Some(text) = self.0.as_text() {
-            PyTuple::new(py, [PyWebSocketMessageKind::Text.into_bound_py_any(py)?, text.into_bound_py_any(py)?])?
+            PyTuple::new(
+                py,
+                [
+                    PyWebSocketMessageKind::Text.into_bound_py_any(py)?,
+                    text.into_bound_py_any(py)?,
+                ],
+            )?
         } else if let Some((code, reason)) = self.0.as_close() {
             kwargs.set_item(pyo3::intern!(py, "code"), u16::from(code))?;
             kwargs.set_item(pyo3::intern!(py, "reason"), reason)?;
             PyTuple::new(py, [PyWebSocketMessageKind::Close.into_bound_py_any(py)?])?
         } else {
             let kind = self.kind();
-            PyTuple::new(py, [kind.into_bound_py_any(py)?, self.payload_bytes().as_ref().into_bound_py_any(py)?])?
+            PyTuple::new(
+                py,
+                [
+                    kind.into_bound_py_any(py)?,
+                    self.payload_bytes().as_ref().into_bound_py_any(py)?,
+                ],
+            )?
         };
-        PyTuple::new(py, [args.into_bound_py_any(py)?, kwargs.into_bound_py_any(py)?])
+        PyTuple::new(
+            py,
+            [args.into_bound_py_any(py)?, kwargs.into_bound_py_any(py)?],
+        )
     }
 
     #[expect(unsafe_code, clippy::needless_pass_by_value, clippy::ptr_as_ptr)]
