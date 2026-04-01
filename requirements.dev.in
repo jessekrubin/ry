@@ -3,10 +3,11 @@ hypothesis
 maturin>=1.11.4
 orjson==3.11.4
 pydantic
-pytest>=9.0.1
-pytest-cov
 pytest-asyncio
 pytest-benchmark
+pytest-cov
+pytest>=9.0.1
 ruff
 tzdata
 uvicorn
+websockets

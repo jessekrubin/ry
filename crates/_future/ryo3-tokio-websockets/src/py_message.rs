@@ -110,6 +110,10 @@ impl PyWsMessage {
         self.0.as_text().map(ToOwned::to_owned)
     }
 
+    fn __bytes__<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        pyo3::types::PyBytes::new(py, &self.payload_bytes())
+    }
+
     #[getter]
     fn data<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         if let Some(text) = self.0.as_text() {

@@ -14,7 +14,7 @@ coverage==7.13.5
     # via pytest-cov
 h11==0.16.0
     # via uvicorn
-hypothesis==6.151.9
+hypothesis==6.151.10
     # via -r requirements.dev.in
 idna==3.11
     # via anyio
@@ -36,7 +36,7 @@ pydantic==2.12.5
     # via -r requirements.dev.in
 pydantic-core==2.41.5
     # via pydantic
-pygments==2.19.2
+pygments==2.20.0
     # via pytest
 pytest==9.0.2
     # via
@@ -64,4 +64,6 @@ typing-inspection==0.4.2
 tzdata==2025.3
     # via -r requirements.dev.in
 uvicorn==0.42.0
+    # via -r requirements.dev.in
+websockets==16.0
     # via -r requirements.dev.in

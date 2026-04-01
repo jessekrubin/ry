@@ -110,10 +110,7 @@ struct WebSocketInner {
 #[derive(Debug, Clone)]
 #[pyclass(name = "WebSocket", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyWebSocket {
-    uri_string: String,
-    inner: Arc<WebSocketInner>,
-}
+pub struct PyWebSocket(Arc<WebSocketInner>);
 
 impl PyWebSocket {
     fn parse_close_timeout(close_timeout: Option<f64>) -> PyResult<Option<Duration>> {
@@ -129,7 +126,6 @@ impl PyWebSocket {
 
     fn new_closed(
         uri: http::Uri,
-        uri_string: String,
         headers: Option<http::HeaderMap>,
         max_payload_len: usize,
         frame_size: usize,
@@ -148,16 +144,13 @@ impl PyWebSocket {
             cfg,
             state: Mutex::new(WebSocketState::Closed(None)),
         };
-        Self {
-            uri_string,
-            inner: Arc::new(inner),
-        }
+        Self(Arc::new(inner))
     }
 
     #[inline]
     async fn connect(&self) -> PyResult<()> {
         let previous_state = {
-            let mut state = self.inner.state.lock().await;
+            let mut state = self.0.state.lock().await;
             match &*state {
                 WebSocketState::Closed(_) => {
                     std::mem::replace(&mut *state, WebSocketState::Connecting)
@@ -174,7 +167,7 @@ impl PyWebSocket {
             }
         };
 
-        let cfg = self.inner.cfg.clone();
+        let cfg = self.0.cfg.clone();
         let connect_result = async move {
             let mut builder = ClientBuilder::from_uri(cfg.uri.clone());
 
@@ -213,7 +206,7 @@ impl PyWebSocket {
         }
         .await;
 
-        let mut state = self.inner.state.lock().await;
+        let mut state = self.0.state.lock().await;
         match connect_result {
             Ok(connected) => {
                 *state = WebSocketState::Open(connected);
@@ -228,7 +221,7 @@ impl PyWebSocket {
 
     #[inline]
     async fn get_connected(&self) -> PyResult<WebSocketConnected> {
-        let state = self.inner.state.lock().await;
+        let state = self.0.state.lock().await;
         match &*state {
             WebSocketState::Open(conn) => Ok(conn.clone()),
             WebSocketState::Closing(_) => py_runtime_err!("WebSocket is closing"),
@@ -245,7 +238,7 @@ impl PyWebSocket {
 
     #[inline]
     async fn get_connected_for_recv(&self) -> PyResult<WebSocketConnected> {
-        let state = self.inner.state.lock().await;
+        let state = self.0.state.lock().await;
         match &*state {
             WebSocketState::Open(conn) | WebSocketState::Closing(conn) => Ok(conn.clone()),
             WebSocketState::Connecting => {
@@ -261,7 +254,7 @@ impl PyWebSocket {
 
     #[inline]
     async fn close_current_connection(&self, current: &WebSocketConnected) {
-        let mut state = self.inner.state.lock().await;
+        let mut state = self.0.state.lock().await;
         match &*state {
             WebSocketState::Open(open_conn) | WebSocketState::Closing(open_conn)
                 if Arc::ptr_eq(&open_conn.writer, &current.writer)
@@ -288,7 +281,7 @@ impl PyWebSocket {
             Ok(())
         };
 
-        let result = match self.inner.cfg.close_timeout {
+        let result = match self.0.cfg.close_timeout {
             Some(close_timeout) => {
                 if let Ok(result) = time::timeout(close_timeout, close_future).await {
                     result
@@ -333,7 +326,7 @@ impl PyWebSocket {
     #[inline]
     async fn close_with(&self, message: Message) -> PyResult<()> {
         let close_state = {
-            let mut state = self.inner.state.lock().await;
+            let mut state = self.0.state.lock().await;
             match &*state {
                 WebSocketState::Open(conn) => {
                     let conn = conn.clone();
@@ -395,12 +388,10 @@ impl PyWebSocket {
         close_timeout: Option<f64>,
     ) -> PyResult<Self> {
         let uri = parse_uri(&uri)?;
-        let uri_string = uri.to_string();
         let headers = headers.map(http::HeaderMap::from);
         let close_timeout = Self::parse_close_timeout(close_timeout)?;
         Ok(Self::new_closed(
             uri,
-            uri_string,
             headers,
             max_payload_len,
             frame_size,
@@ -410,25 +401,21 @@ impl PyWebSocket {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "WebSocket(uri={:?}, open={})",
-            self.uri_string,
-            self.inner.state.blocking_lock().is_open()
-        )
+        format!("{self}")
     }
 
     fn __bool__(&self) -> bool {
-        self.inner.state.blocking_lock().is_open()
+        self.0.state.blocking_lock().is_open()
     }
 
     #[getter]
-    fn uri(&self) -> &str {
-        &self.uri_string
+    fn uri(&self) -> String {
+        self.0.cfg.uri.to_string()
     }
 
     #[getter]
     fn status(&self, py: Python<'_>) -> PyResult<Option<Py<PyHttpStatus>>> {
-        self.inner
+        self.0
             .state
             .blocking_lock()
             .handshake()
@@ -438,7 +425,7 @@ impl PyWebSocket {
 
     #[getter]
     fn headers(&self) -> Option<PyHeaders> {
-        self.inner
+        self.0
             .state
             .blocking_lock()
             .handshake()
@@ -447,15 +434,12 @@ impl PyWebSocket {
 
     #[getter]
     fn closed(&self) -> bool {
-        matches!(
-            &*self.inner.state.blocking_lock(),
-            WebSocketState::Closed(_)
-        )
+        matches!(&*self.0.state.blocking_lock(), WebSocketState::Closed(_))
     }
 
     #[getter]
     fn open(&self) -> bool {
-        self.inner.state.blocking_lock().is_open()
+        self.0.state.blocking_lock().is_open()
     }
 
     /// Return the ready state of the `WebSocket` (`0`=CONNECTING, `1`=OPEN, `2`=CLOSING, `3`=CLOSED).
@@ -464,7 +448,7 @@ impl PyWebSocket {
     /// <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState>
     #[getter]
     fn read_state(&self) -> u8 {
-        self.inner.state.blocking_lock().ready_state().into()
+        self.0.state.blocking_lock().ready_state().into()
     }
 
     #[getter]
@@ -570,6 +554,16 @@ impl PyWebSocket {
         future_into_py(py, async move { this.send(payload).await })
     }
 }
+impl std::fmt::Display for PyWebSocket {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "WebSocket(uri={:?}, open={})",
+            self.0.cfg.uri,
+            self.0.state.blocking_lock().is_open()
+        )
+    }
+}
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
@@ -591,12 +585,10 @@ pub(crate) fn websocket(
     max_payload_len: usize,
 ) -> PyResult<PyWebSocket> {
     let uri = parse_uri(&uri)?;
-    let uri_string = uri.to_string();
     let headers = headers.map(http::HeaderMap::from);
     let close_timeout = PyWebSocket::parse_close_timeout(close_timeout)?;
     Ok(PyWebSocket::new_closed(
         uri,
-        uri_string,
         headers,
         max_payload_len,
         frame_size,

@@ -368,6 +368,7 @@ def _main() -> None:
         port=8000,
         lifespan="off",
         loop="asyncio",
+        ws="none",
     )
     srv = ReqtestServer(config=cfg)
     sys.stdout.write(f"Server running at {srv.url}")

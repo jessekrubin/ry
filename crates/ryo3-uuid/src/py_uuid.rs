@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::intern;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
@@ -98,10 +97,10 @@ impl PyUuid {
             (None, None, Some(bytes_le), None, None) => Self::from_bytes_le(bytes_le),
             (None, None, None, Some(fields), None) => Self::from_fields(fields),
             (None, None, None, None, Some(int)) => Ok(Self::from_int(int)),
-            _ => Err(PyTypeError::new_err(
-                // taken from the python itself
+            // emsg taken from the python itself
+            _ => py_type_err!(
                 "one of the hex, bytes, bytes_le, fields, or int arguments must be given",
-            )),
+            ),
         }?;
 
         if let Some(v) = version {
@@ -232,7 +231,7 @@ impl PyUuid {
     fn from_str(s: &str) -> PyResult<Self> {
         uuid::Uuid::parse_str(s)
             .map(PyUuid)
-            .map_err(|e| PyValueError::new_err(e.to_string()))
+            .map_err(|e| py_value_error!("invalid UUID string: {}", e))
     }
 
     #[staticmethod]
@@ -246,7 +245,7 @@ impl PyUuid {
     fn from_pybytes(b: PyBytes) -> PyResult<Self> {
         uuid::Uuid::from_slice(b.as_ref())
             .map(PyUuid)
-            .map_err(|e| PyValueError::new_err(e.to_string()))
+            .map_err(|e| py_value_error!("invalid UUID bytes: {}", e))
     }
 
     #[staticmethod]
@@ -254,7 +253,7 @@ impl PyUuid {
     fn from_bytes_le(b: PyBytes) -> PyResult<Self> {
         uuid::Uuid::from_slice_le(b.as_ref())
             .map(PyUuid)
-            .map_err(|e| PyValueError::new_err(e.to_string()))
+            .map_err(|e| py_value_error!("invalid UUID bytes_le: {}", e))
     }
 
     // | Field                      | Meaning                          |

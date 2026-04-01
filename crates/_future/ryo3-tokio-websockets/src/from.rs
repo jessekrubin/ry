@@ -18,7 +18,9 @@ impl From<PyMessageLike> for Message {
     fn from(value: PyMessageLike) -> Self {
         match value {
             PyMessageLike::Message(msg) => msg.0,
-            PyMessageLike::Text(text) => Self::text(text.to_string()),
+            // boom opt trick use `bytes::Bytes::from_owner` to avoid copy
+            // TODO: bypass the internal message utf8 check bc python should guarantee the text is valid utf8
+            PyMessageLike::Text(text) => Self::text(bytes::Bytes::from_owner(text)),
             PyMessageLike::Bytes(bytes) => Self::binary(bytes.into_inner()),
         }
     }
