@@ -99,6 +99,7 @@ class TestWsMessageTextBinary:
         assert msg.is_text is True
         assert bytes(msg) == b"hello"
         assert msg.payload == b"hello"
+        assert msg.data == "hello"
 
     def test_binary_msg(self) -> None:
         msg = ry.WsMessage.binary(b"\x00\x01\x02")
@@ -106,6 +107,7 @@ class TestWsMessageTextBinary:
         assert msg.is_binary is True
         assert bytes(msg) == b"\x00\x01\x02"
         assert msg.payload == b"\x00\x01\x02"
+        assert msg.data == b"\x00\x01\x02"
 
 
 class TestWsMessagePingPong:
