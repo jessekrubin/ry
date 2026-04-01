@@ -19,6 +19,8 @@ pub(crate) type TokioWsRead = SplitStream<TokioWs>;
 pub(crate) struct PyWsCloseCode(pub(crate) tokio_websockets::CloseCode);
 
 impl PyWsCloseCode {
+    pub(crate) const NORMAL_CLOSURE: Self = Self(tokio_websockets::CloseCode::NORMAL_CLOSURE);
+
     pub(crate) fn is_reserved(&self) -> bool {
         self.0.is_reserved()
     }

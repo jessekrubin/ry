@@ -520,11 +520,11 @@ impl PyWebSocket {
         future_into_py(py, async move { this.send(message).await })
     }
 
-    #[pyo3(signature = (*, code = None, reason = None))]
+    #[pyo3(signature = (*, code = PyWsCloseCode::NORMAL_CLOSURE, reason = None))]
     fn close<'py>(
         &self,
         py: Python<'py>,
-        code: Option<PyWsCloseCode>,
+        code: PyWsCloseCode,
         reason: Option<PyWsCloseReason>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let this = self.clone();

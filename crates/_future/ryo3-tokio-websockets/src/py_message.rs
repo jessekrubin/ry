@@ -48,27 +48,18 @@ impl PyWsMessage {
     /// - If `code` is present and the `reason` exceeds 123 bytes, the
     ///   protocol-imposed limit.
     #[staticmethod]
-    #[pyo3(signature = (*, code = None, reason = None))]
-    pub(crate) fn close(
-        code: Option<PyWsCloseCode>,
-        reason: Option<PyWsCloseReason>,
-    ) -> PyResult<Self> {
+    #[pyo3(signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None))]
+    pub(crate) fn close(code: PyWsCloseCode, reason: Option<PyWsCloseReason>) -> PyResult<Self> {
         // check for reserved codes
-        if let Some(code) = &code
-            && code.is_reserved()
-        {
+        if code.is_reserved() {
             return py_value_err!(
                 "close code {} is reserved and cannot be sent",
                 u16::from(code.0)
             )?;
         }
         // check that if reason is present/non-empty, code is also present
-        let code = code.map(|c| c.0);
         let reason = reason.map(|r| r.0).unwrap_or_default();
-        if !reason.is_empty() && code.is_none() {
-            return py_value_err!("a close reason requires a close code");
-        }
-        Ok(Self::from(Message::close(code, reason.as_ref())))
+        Ok(Self::from(Message::close(Some(code.0), reason.as_ref())))
     }
 
     fn __repr__(&self) -> String {
@@ -105,11 +96,6 @@ impl PyWsMessage {
         self.0.is_pong()
     }
 
-    #[getter]
-    fn text_data(&self) -> Option<String> {
-        self.0.as_text().map(ToOwned::to_owned)
-    }
-
     fn __bytes__<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
         pyo3::types::PyBytes::new(py, &self.payload_bytes())
     }
@@ -142,20 +128,21 @@ impl PyWsMessage {
 impl std::fmt::Display for PyWsMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(text) = self.0.as_text() {
-            write!(f, "Message(type='text', data={text:?})")
+            write!(f, "WsMessage.text({text:?})")
         } else if let Some((code, reason)) = self.0.as_close() {
             write!(
                 f,
-                "Message(type=\"close\", code={}, reason={reason:?})",
+                "WsMessage.close(code={}, reason={reason:?})",
                 u16::from(code)
             )
+        } else if self.0.is_binary() {
+            write!(f, "WsMessage.binary({:?})", self.payload_bytes())
+        } else if self.0.is_ping() {
+            write!(f, "WsMessage.ping({:?})", self.payload_bytes())
+        } else if self.0.is_pong() {
+            write!(f, "WsMessage.pong({:?})", self.payload_bytes())
         } else {
-            write!(
-                f,
-                "Message(type='{}', data={:?})",
-                self.kind().as_str(),
-                self.payload_bytes()
-            )
+            write!(f, "WsMessage(unknown)")
         }
     }
 }
