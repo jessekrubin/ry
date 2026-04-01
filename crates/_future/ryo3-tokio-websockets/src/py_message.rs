@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::os::raw::c_int;
 
 use crate::PyWebSocketMessageKind;
 use crate::types::{PyWsCloseCode, PyWsCloseReason};
@@ -78,6 +79,34 @@ impl PyWsMessage {
     fn __eq__(&self, other: &Self) -> bool {
         self == other
     }
+
+    /// This is taken from opendal:
+    /// <https://github.com/apache/opendal/blob/d001321b0f9834bc1e2e7d463bcfdc3683e968c9/bindings/python/src/utils.rs#L51-L72>
+    #[expect(unsafe_code)]
+    unsafe fn __getbuffer__(
+        slf: PyRef<Self>,
+        view: *mut pyo3::ffi::Py_buffer,
+        flags: c_int,
+    ) -> PyResult<()> {
+        unsafe {
+            let bytes = slf.0.as_payload().deref().as_ref();
+            let ret = pyo3::ffi::PyBuffer_FillInfo(
+                view,
+                slf.as_ptr() as *mut _,
+                bytes.as_ptr() as *mut _,
+                bytes.len().try_into()?,
+                1, // read only
+                flags,
+            );
+            if ret == -1 {
+                return Err(PyErr::fetch(slf.py()));
+            }
+            Ok(())
+        }
+    }
+
+    #[expect(unsafe_code)]
+    unsafe fn __releasebuffer__(&self, _view: *mut pyo3::ffi::Py_buffer) {}
 
     #[getter]
     fn kind(&self) -> PyWebSocketMessageKind {
@@ -170,7 +199,8 @@ impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(msg) = obj.cast::<PyWsMessage>() {
+        // TODO: remove clones and stuff here
+        if let Ok(msg) = obj.cast_exact::<PyWsMessage>() {
             Ok(Self::Message(msg.get().clone()))
         } else if let Ok(text) = obj.extract::<PyBackedStr>() {
             Ok(Self::Text(text))
