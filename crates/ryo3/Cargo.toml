@@ -127,6 +127,7 @@ ry = [
   "ryo3-sqlformat/ry",
   "ryo3-std/ry",
   "ryo3-tokio/ry",
+  "ryo3-tokio-websockets/ry",
   "ryo3-twox-hash/ry",
   "ryo3-ulid/ry",
   "ryo3-url/ry",

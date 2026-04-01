@@ -66,6 +66,8 @@ _RY_TYPES: list[type] = [
     ry.TimestampRound,
     ry.URL,
     ry.WalkdirGen,
+    ry.WebSocket,
+    ry.WsMessage,
     ry.ZonedDateTime,
     ry.ZonedDateTimeDifference,
     ry.ZonedDateTimeRound,
