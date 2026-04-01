@@ -10,17 +10,17 @@ pub(crate) enum PyWebSocketMessageKind {
     Pong,
 }
 
-impl PyWebSocketMessageKind {
-    pub(crate) fn as_str(self) -> &'static str {
-        match self {
-            Self::Text => "text",
-            Self::Binary => "binary",
-            Self::Close => "close",
-            Self::Ping => "ping",
-            Self::Pong => "pong",
-        }
-    }
-}
+// impl PyWebSocketMessageKind {
+//     pub(crate) fn as_str(self) -> &'static str {
+//         match self {
+//             Self::Text => "text",
+//             Self::Binary => "binary",
+//             Self::Close => "close",
+//             Self::Ping => "ping",
+//             Self::Pong => "pong",
+//         }
+//     }
+// }
 
 const WS_MESSAGE_KIND_TYPE_ERR_MSG: &str =
     "Expected a string for message kind (options: 'text', 'binary', 'close', 'ping', 'pong')";

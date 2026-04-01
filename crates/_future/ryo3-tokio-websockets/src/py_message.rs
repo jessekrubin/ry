@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::PyWebSocketMessageKind;
 use crate::types::{PyWsCloseCode, PyWsCloseReason};
 use bytes::Bytes;
@@ -14,6 +16,12 @@ pub struct PyWsMessage(pub(crate) Message);
 impl PyWsMessage {
     fn payload_bytes(&self) -> Bytes {
         self.0.clone().into_payload().into()
+    }
+}
+
+impl PartialEq for PyWsMessage {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind() == other.kind() && self.0.as_payload().deref() == other.0.as_payload().deref()
     }
 }
 
@@ -47,6 +55,7 @@ impl PyWsMessage {
     /// - If the `code` is reserved so it cannot be sent.
     /// - If `code` is present and the `reason` exceeds 123 bytes, the
     ///   protocol-imposed limit.
+    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     #[pyo3(signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None))]
     pub(crate) fn close(code: PyWsCloseCode, reason: Option<PyWsCloseReason>) -> PyResult<Self> {
@@ -64,6 +73,10 @@ impl PyWsMessage {
 
     fn __repr__(&self) -> String {
         format!("{self}")
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self == other
     }
 
     #[getter]
@@ -177,6 +190,7 @@ impl PyPingPayload {
         self.0
     }
 }
+
 impl std::default::Default for PyPingPayload {
     fn default() -> Self {
         Self(Message::ping(Bytes::new()))
