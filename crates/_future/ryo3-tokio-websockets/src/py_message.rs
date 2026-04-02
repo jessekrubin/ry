@@ -1,9 +1,5 @@
-use std::ops::Deref;
-use std::os::raw::c_int;
+use std::{ops::Deref, os::raw::c_int};
 
-use crate::PyWebSocketMessageKind;
-use crate::constants::WS_MSG_PINGPONG_PAYLOAD_MAX_LEN;
-use crate::types::{PyWsCloseCode, PyWsCloseReason};
 use bytes::Bytes;
 use pyo3::{
     IntoPyObjectExt,
@@ -14,6 +10,12 @@ use pyo3::{
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::{PyTryFrom, py_type_err, py_value_err, py_value_error};
 use tokio_websockets::Message;
+
+use crate::{
+    PyWebSocketMessageKind,
+    constants::WS_MSG_PINGPONG_PAYLOAD_MAX_LEN,
+    types::{PyWsCloseCode, PyWsCloseReason},
+};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "WsMessage", frozen, immutable_type, skip_from_py_object)]

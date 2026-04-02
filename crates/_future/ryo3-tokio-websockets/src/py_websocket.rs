@@ -1,21 +1,22 @@
-use crate::constants::{
-    DEFAULT_CLOSE_TIMEOUT, DEFAULT_FLUSH_THRESHOLD, DEFAULT_FRAME_SIZE, DEFAULT_MAX_PAYLOAD_LEN,
-};
-use crate::errors::map_ws_err;
-use crate::types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite, UriLike};
-use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
+use std::{num::NonZeroUsize, sync::Arc, time::Duration};
+
 use futures_util::{SinkExt, StreamExt};
-use pyo3::exceptions::PyStopAsyncIteration;
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyStopAsyncIteration, prelude::*};
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
 use ryo3_std::time::PyTimeout;
 use ryo3_tokio_rt::future_into_py;
-use std::num::NonZeroUsize;
-use std::sync::Arc;
-use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio_websockets::{ClientBuilder, Config, Limits, Message};
+
+use crate::{
+    PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage,
+    constants::{
+        DEFAULT_CLOSE_TIMEOUT, DEFAULT_FLUSH_THRESHOLD, DEFAULT_FRAME_SIZE, DEFAULT_MAX_PAYLOAD_LEN,
+    },
+    errors::map_ws_err,
+    types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite, UriLike},
+};
 
 #[derive(Debug, Clone)]
 struct WebSocketHandshake {

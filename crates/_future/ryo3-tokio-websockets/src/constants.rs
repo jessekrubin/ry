@@ -1,6 +1,7 @@
 //! constants/defaults
-use ryo3_std::time::PyTimeout;
 use std::num::NonZeroUsize;
+
+use ryo3_std::time::PyTimeout;
 
 /// default max payload length 64MiB (`67_108_864b`) (defined by tokio-websockets)
 pub(crate) const DEFAULT_MAX_PAYLOAD_LEN: NonZeroUsize =

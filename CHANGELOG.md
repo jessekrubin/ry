@@ -7,6 +7,8 @@
 - `ryo3-tokio-rt`
   - moved the `ryo3-tokio` runtime tools/utils into own crate `ryo3-tokio-rt`
   - Use crate in `ryo3-reqwest`, `ryo3-tokio` and future `ryo3-tokio-websockets`
+- `ryo3-tokio-websockets`
+  - Workin progress websocket client using `tokio-websockets` crate
 
 ---
 
