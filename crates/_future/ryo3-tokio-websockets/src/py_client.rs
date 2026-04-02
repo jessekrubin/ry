@@ -13,6 +13,7 @@ use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
 use ryo3_tokio_rt::future_into_py;
 use ryo3_url::UrlLike;
+use std::num::NonZeroUsize;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -96,7 +97,7 @@ struct WebSocketConfig {
     uri: http::Uri,
     headers: Option<http::HeaderMap>,
     max_payload_len: usize,
-    frame_size: usize,
+    frame_size: NonZeroUsize,
     flush_threshold: usize,
     close_timeout: Option<Duration>,
 }
@@ -128,7 +129,7 @@ impl PyWebSocket {
         uri: http::Uri,
         headers: Option<http::HeaderMap>,
         max_payload_len: usize,
-        frame_size: usize,
+        frame_size: NonZeroUsize,
         flush_threshold: usize,
         close_timeout: Option<Duration>,
     ) -> Self {
@@ -179,12 +180,12 @@ impl PyWebSocket {
                 }
             }
 
-            if cfg.frame_size == 0 {
-                return py_value_err!("frame_size must be non-zero");
-            }
+            // if cfg.frame_size == 0 {
+            //     return py_value_err!("frame_size must be non-zero");
+            // }
 
             let config = Config::default()
-                .frame_size(cfg.frame_size)
+                .frame_size(cfg.frame_size.get())
                 .flush_threshold(cfg.flush_threshold);
             builder = builder.config(config);
 
@@ -232,22 +233,6 @@ impl PyWebSocket {
             }
             WebSocketState::Connecting => {
                 py_runtime_err!("WebSocket connection is still in progress")
-            }
-        }
-    }
-
-    #[inline]
-    async fn get_connected_for_recv(&self) -> PyResult<WebSocketConnected> {
-        let state = self.0.state.lock().await;
-        match &*state {
-            WebSocketState::Open(conn) | WebSocketState::Closing(conn) => Ok(conn.clone()),
-            WebSocketState::Connecting => {
-                py_runtime_err!("WebSocket connection is still in progress")
-            }
-            WebSocketState::Closed(_) => {
-                py_runtime_err!(
-                    "WebSocket not connected; use `await ws` or `async with ws:` to connect"
-                )
             }
         }
     }
@@ -302,7 +287,21 @@ impl PyWebSocket {
 
     #[inline]
     async fn recv_msg(&self) -> PyResult<Option<PyWsMessage>> {
-        let conn = self.get_connected_for_recv().await?;
+        let conn = async {
+            let state = self.0.state.lock().await;
+            match &*state {
+                WebSocketState::Open(conn) | WebSocketState::Closing(conn) => Ok(conn.clone()),
+                WebSocketState::Connecting => {
+                    py_runtime_err!("WebSocket connection is still in progress")
+                }
+                WebSocketState::Closed(_) => {
+                    py_runtime_err!(
+                        "WebSocket not connected; use `await ws` or `async with ws:` to connect"
+                    )
+                }
+            }
+        }
+        .await?;
 
         if let Some(msg) = conn.recv_next().await? {
             if msg.is_close() {
@@ -375,7 +374,7 @@ impl PyWebSocket {
         *,
         headers = None,
         max_payload_len = DEFAULT_MAX_PAYLOAD_LEN,
-        frame_size = DEFAULT_FRAME_SIZE,
+        frame_size = NonZeroUsize::new(DEFAULT_FRAME_SIZE).expect("wenodis: default frame size > 0"),
         flush_threshold = DEFAULT_FLUSH_THRESHOLD,
         close_timeout = Some(DEFAULT_CLOSE_TIMEOUT),
     ))]
@@ -383,7 +382,7 @@ impl PyWebSocket {
         uri: UrlLike,
         headers: Option<PyHeadersLike>,
         max_payload_len: usize,
-        frame_size: usize,
+        frame_size: NonZeroUsize,
         flush_threshold: usize,
         close_timeout: Option<f64>,
     ) -> PyResult<Self> {
@@ -572,7 +571,7 @@ impl std::fmt::Display for PyWebSocket {
         headers = None,
         close_timeout = Some(DEFAULT_CLOSE_TIMEOUT),
         flush_threshold = DEFAULT_FLUSH_THRESHOLD,
-        frame_size = DEFAULT_FRAME_SIZE,
+        frame_size = NonZeroUsize::new(DEFAULT_FRAME_SIZE).expect("wenodis: default frame size > 0"),
         max_payload_len = DEFAULT_MAX_PAYLOAD_LEN,
     ),
     text_signature = "(uri, *, headers=None, close_timeout=10, flush_threshold=8_192, frame_size=4_194_304, max_payload_len=67_108_864)"
@@ -582,7 +581,7 @@ pub(crate) fn websocket(
     headers: Option<PyHeadersLike>,
     close_timeout: Option<f64>,
     flush_threshold: usize,
-    frame_size: usize,
+    frame_size: NonZeroUsize,
     max_payload_len: usize,
 ) -> PyResult<PyWebSocket> {
     let uri = parse_uri(&uri)?;
