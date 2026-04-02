@@ -21,14 +21,15 @@ pyo3 = { workspace = true, features = [] }
 futures-util = { workspace = true, features = ["sink"] }
 http.workspace = true
 parking_lot.workspace = true
-ryo3-core.workspace = true
 ryo3-bytes.workspace = true
+ryo3-core.workspace = true
 ryo3-http.workspace = true
 ryo3-macro-rules.workspace = true
+ryo3-std = { workspace = true, features = ["time"] }
 ryo3-tokio-rt.workspace = true
 ryo3-url.workspace = true
-tokio.workspace = true
 tokio-websockets = { workspace = true, features = ["client", "rand", "aws_lc_rs"] }
+tokio.workspace = true
 
 [lints]
 workspace = true

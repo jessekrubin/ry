@@ -2332,6 +2332,7 @@ dependencies = [
  "ryo3-core",
  "ryo3-http",
  "ryo3-macro-rules",
+ "ryo3-std",
  "ryo3-tokio-rt",
  "ryo3-url",
  "tokio",

@@ -2,6 +2,7 @@ use std::ops::Deref;
 use std::os::raw::c_int;
 
 use crate::PyWebSocketMessageKind;
+use crate::constants::WS_MSG_PINGPONG_PAYLOAD_MAX_LEN;
 use crate::types::{PyWsCloseCode, PyWsCloseReason};
 use bytes::Bytes;
 use pyo3::{
@@ -34,7 +35,7 @@ impl PartialEq for PyWsMessage {
 #[pymethods]
 impl PyWsMessage {
     #[new]
-    #[pyo3(signature = (kind, data = None, *, code= None, reason = None))]
+    #[pyo3(signature = (kind, data = None, *, code = None, reason = None))]
     fn py_new<'py>(
         _py: Python<'py>,
         kind: PyWebSocketMessageKind,
@@ -320,7 +321,7 @@ impl PyPingPayload {
 
 impl PyTryFrom<RyBytes> for PyPingPayload {
     fn py_try_from(value: RyBytes) -> PyResult<Self> {
-        if value.as_slice().len() > 125 {
+        if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
         } else {
             Ok(Self(Message::ping(value.into_inner())))
@@ -359,7 +360,7 @@ impl std::default::Default for PyPongPayload {
 
 impl PyTryFrom<RyBytes> for PyPongPayload {
     fn py_try_from(value: RyBytes) -> PyResult<Self> {
-        if value.as_slice().len() > 125 {
+        if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
         } else {
             Ok(Self(Message::pong(value.into_inner())))

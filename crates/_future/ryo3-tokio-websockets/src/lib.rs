@@ -2,13 +2,12 @@
 mod enums;
 mod errors;
 mod from;
-mod py_client;
 mod py_message;
+mod py_websocket;
 mod types;
-mod util;
 use crate::enums::PyWebSocketMessageKind;
-use crate::py_client::{PyWebSocket, websocket};
 use crate::py_message::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
+use crate::py_websocket::{PyWebSocket, websocket};
 use pyo3::prelude::*;
 mod constants;
 

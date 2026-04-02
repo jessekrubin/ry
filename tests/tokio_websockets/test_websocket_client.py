@@ -24,7 +24,6 @@ async def test_ws_ctx_manager_handshake_stuff(websocket_server: WsTestServer) ->
     assert ws.closed is True
     assert ws.open is False
     assert ws.ready_state == 3
-    assert ws.read_state == 3
     assert ws.status is None
     assert ws.headers is None
 
@@ -33,7 +32,6 @@ async def test_ws_ctx_manager_handshake_stuff(websocket_server: WsTestServer) ->
         assert ws.open is True
         assert ws.closed is False
         assert ws.ready_state == 1
-        assert ws.read_state == 1
         assert ws.status == ry.HttpStatus(101)
         assert ws.headers is not None
         assert ws.headers["x-ws-path"] == "/echo"
@@ -121,12 +119,20 @@ async def test_websocket_async_iteration_stops_cleanly_after_close(
 @pytest.mark.parametrize(
     ("close_timeout", "err_type", "err_match"),
     [
-        (-1.0, ValueError, "close_timeout must be non-negative"),
-        (float("inf"), ValueError, "close_timeout must be finite or None"),
+        (
+            -1.0,
+            ValueError,
+            "timeout must be a positive-finite-number of seconds",
+        ),
+        (
+            float("inf"),
+            ValueError,
+            "timeout must be a positive-finite-number of seconds",
+        ),
         (
             "invalid-str",
             TypeError,
-            "argument 'close_timeout': must be real number, not str",
+            "argument 'close_timeout': timeout must be a Duration | datetime.timedelta | positive number of seconds",
         ),
     ],
 )

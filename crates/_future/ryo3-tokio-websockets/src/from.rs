@@ -1,4 +1,4 @@
-use crate::py_client::WebSocketReadyState;
+use crate::py_websocket::WebSocketReadyState;
 use crate::types::PyWsCloseCode;
 use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWebSocketMessageKind, PyWsMessage};
 use tokio_websockets::{CloseCode, Message};

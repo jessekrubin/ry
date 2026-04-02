@@ -2,22 +2,19 @@ use crate::constants::{
     DEFAULT_CLOSE_TIMEOUT, DEFAULT_FLUSH_THRESHOLD, DEFAULT_FRAME_SIZE, DEFAULT_MAX_PAYLOAD_LEN,
 };
 use crate::errors::map_ws_err;
-use crate::types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite};
-use crate::util::parse_uri;
+use crate::types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite, UriLike};
 use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
 use futures_util::{SinkExt, StreamExt};
 use pyo3::exceptions::PyStopAsyncIteration;
 use pyo3::prelude::*;
-use ryo3_core::py_value_err;
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
+use ryo3_std::time::PyTimeout;
 use ryo3_tokio_rt::future_into_py;
-use ryo3_url::UrlLike;
 use std::num::NonZeroUsize;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
-use tokio::time;
 use tokio_websockets::{ClientBuilder, Config, Limits, Message};
 
 #[derive(Debug, Clone)]
@@ -114,54 +111,17 @@ struct WebSocketInner {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWebSocket(Arc<WebSocketInner>);
 
-impl PyWebSocket {
-    fn parse_close_timeout(close_timeout: Option<f64>) -> PyResult<Option<Duration>> {
-        match close_timeout {
-            Some(seconds) if !seconds.is_finite() => {
-                py_value_err!("close_timeout must be finite or None")
-            }
-            Some(seconds) if seconds < 0.0 => py_value_err!("close_timeout must be non-negative"),
-            Some(seconds) => Ok(Some(Duration::from_secs_f64(seconds))),
-            None => Ok(None),
-        }
-    }
-
-    fn parse_recv_timeout(recv_timeout: Option<f64>) -> PyResult<Option<Duration>> {
-        match recv_timeout {
-            Some(seconds) if !seconds.is_finite() => {
-                py_value_err!("recv_timeout must be finite or None")
-            }
-            Some(seconds) if seconds < 0.0 => py_value_err!("recv_timeout must be non-negative"),
-            Some(seconds) => Ok(Some(Duration::from_secs_f64(seconds))),
-            None => Ok(None),
-        }
-    }
-
-    fn new_closed(
-        uri: http::Uri,
-        headers: Option<http::HeaderMap>,
-        max_payload_len: NonZeroUsize,
-        frame_size: NonZeroUsize,
-        flush_threshold: NonZeroUsize,
-        close_timeout: Option<Duration>,
-        recv_timeout: Option<Duration>,
-    ) -> Self {
-        let cfg = WebSocketConfig {
-            uri,
-            headers,
-            max_payload_len,
-            frame_size,
-            flush_threshold,
-            close_timeout,
-            recv_timeout,
-        };
+impl From<WebSocketConfig> for PyWebSocket {
+    fn from(cfg: WebSocketConfig) -> Self {
         let inner = WebSocketInner {
             cfg,
             state: Mutex::new(WebSocketState::Closed(None)),
         };
         Self(Arc::new(inner))
     }
+}
 
+impl PyWebSocket {
     #[inline]
     async fn connect(&self) -> PyResult<()> {
         let previous_state = {
@@ -282,7 +242,7 @@ impl PyWebSocket {
 
         let result = match self.0.cfg.close_timeout {
             Some(close_timeout) => {
-                if let Ok(result) = time::timeout(close_timeout, close_future).await {
+                if let Ok(result) = tokio::time::timeout(close_timeout, close_future).await {
                     result
                 } else {
                     self.close_current_connection(conn).await;
@@ -319,7 +279,7 @@ impl PyWebSocket {
 
         let timeout = timeout.or(self.0.cfg.recv_timeout);
         let msg_result = if let Some(dur) = timeout {
-            match time::timeout(dur, conn.recv_next()).await {
+            match tokio::time::timeout(dur, conn.recv_next()).await {
                 Ok(result) => result,
                 Err(_) => return py_runtime_err!("recv timeout"),
             }
@@ -391,43 +351,41 @@ impl PyWebSocket {
 
 #[pymethods]
 impl PyWebSocket {
-    #[expect(clippy::needless_pass_by_value)]
     #[new]
     #[pyo3(
         signature = (
             uri,
             *,
             headers = None,
-            max_payload_len = NonZeroUsize::new(DEFAULT_MAX_PAYLOAD_LEN).expect("wenodis: default max payload len > 0"),
-            frame_size = NonZeroUsize::new(DEFAULT_FRAME_SIZE).expect("wenodis: default frame size > 0"),
-            flush_threshold = NonZeroUsize::new(DEFAULT_FLUSH_THRESHOLD).expect("wenodis: default flush threshold > 0"),
+            max_payload_len = DEFAULT_MAX_PAYLOAD_LEN,
+            frame_size = DEFAULT_FRAME_SIZE,
+            flush_threshold = DEFAULT_FLUSH_THRESHOLD,
             close_timeout = Some(DEFAULT_CLOSE_TIMEOUT),
             recv_timeout = None,
         ),
         text_signature = "(uri, *, headers=None, max_payload_len=67_108_864, frame_size=4_194_304, flush_threshold=8_192, close_timeout=10, recv_timeout=None)"
     )]
     fn py_new(
-        uri: UrlLike,
+        uri: UriLike,
         headers: Option<PyHeadersLike>,
         max_payload_len: NonZeroUsize,
         frame_size: NonZeroUsize,
         flush_threshold: NonZeroUsize,
-        close_timeout: Option<f64>,
-        recv_timeout: Option<f64>,
-    ) -> PyResult<Self> {
-        let uri = parse_uri(&uri)?;
+        close_timeout: Option<PyTimeout>,
+        recv_timeout: Option<PyTimeout>,
+    ) -> Self {
+        let uri = uri.into();
         let headers = headers.map(http::HeaderMap::from);
-        let close_timeout = Self::parse_close_timeout(close_timeout)?;
-        let recv_timeout = Self::parse_recv_timeout(recv_timeout)?;
-        Ok(Self::new_closed(
+        let cfg = WebSocketConfig {
             uri,
             headers,
             max_payload_len,
             frame_size,
             flush_threshold,
-            close_timeout,
-            recv_timeout,
-        ))
+            close_timeout: close_timeout.map(Into::into),
+            recv_timeout: recv_timeout.map(Into::into),
+        };
+        Self::from(cfg)
     }
 
     fn __repr__(&self) -> String {
@@ -524,11 +482,14 @@ impl PyWebSocket {
     }
 
     #[pyo3(signature = (timeout = None))]
-    fn recv<'py>(&self, py: Python<'py>, timeout: Option<f64>) -> PyResult<Bound<'py, PyAny>> {
-        let timeout = Self::parse_recv_timeout(timeout)?;
+    fn recv<'py>(
+        &self,
+        py: Python<'py>,
+        timeout: Option<PyTimeout>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let this = self.clone();
         future_into_py(py, async move {
-            if let Some(msg) = this.recv_msg(timeout).await? {
+            if let Some(msg) = this.recv_msg(timeout.map(Into::into)).await? {
                 Ok(msg)
             } else {
                 py_runtime_err!("websocket closed")
@@ -537,7 +498,11 @@ impl PyWebSocket {
     }
 
     #[pyo3(signature = (timeout = None))]
-    fn receive<'py>(&self, py: Python<'py>, timeout: Option<f64>) -> PyResult<Bound<'py, PyAny>> {
+    fn receive<'py>(
+        &self,
+        py: Python<'py>,
+        timeout: Option<PyTimeout>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         self.recv(py, timeout)
     }
 
@@ -596,35 +561,30 @@ impl std::fmt::Display for PyWebSocket {
     }
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(
     signature = (
         uri,
         *,
         headers = None,
+        flush_threshold = DEFAULT_FLUSH_THRESHOLD,
+        frame_size = DEFAULT_FRAME_SIZE,
+        max_payload_len = DEFAULT_MAX_PAYLOAD_LEN,
         close_timeout = Some(DEFAULT_CLOSE_TIMEOUT),
-        flush_threshold = NonZeroUsize::new(DEFAULT_FLUSH_THRESHOLD).expect("wenodis: default flush threshold > 0"),
-        frame_size = NonZeroUsize::new(DEFAULT_FRAME_SIZE).expect("wenodis: default frame size > 0"),
-        max_payload_len = NonZeroUsize::new(DEFAULT_MAX_PAYLOAD_LEN).expect("wenodis: default max payload len > 0"),
         recv_timeout = None,
     ),
     text_signature = "(uri, *, headers=None, close_timeout=10, flush_threshold=8_192, frame_size=4_194_304, max_payload_len=67_108_864, recv_timeout=None)"
 )]
 pub(crate) fn websocket(
-    uri: UrlLike,
+    uri: UriLike,
     headers: Option<PyHeadersLike>,
-    close_timeout: Option<f64>,
     flush_threshold: NonZeroUsize,
     frame_size: NonZeroUsize,
     max_payload_len: NonZeroUsize,
-    recv_timeout: Option<f64>,
-) -> PyResult<PyWebSocket> {
-    let uri = parse_uri(&uri)?;
-    let headers = headers.map(http::HeaderMap::from);
-    let close_timeout = PyWebSocket::parse_close_timeout(close_timeout)?;
-    let recv_timeout = PyWebSocket::parse_recv_timeout(recv_timeout)?;
-    Ok(PyWebSocket::new_closed(
+    close_timeout: Option<PyTimeout>,
+    recv_timeout: Option<PyTimeout>,
+) -> PyWebSocket {
+    PyWebSocket::py_new(
         uri,
         headers,
         max_payload_len,
@@ -632,5 +592,5 @@ pub(crate) fn websocket(
         flush_threshold,
         close_timeout,
         recv_timeout,
-    ))
+    )
 }
