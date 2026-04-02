@@ -236,7 +236,7 @@ impl PyWsMessage {
     }
 
     fn __bytes__<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
-        pyo3::types::PyBytes::new(py, &self.0.as_payload())
+        pyo3::types::PyBytes::new(py, self.0.as_payload())
     }
 
     #[getter]
