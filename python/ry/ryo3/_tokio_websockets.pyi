@@ -15,14 +15,12 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import Buffer as Buffer
 
-ReadyState: t.TypeAlias = t.Literal[0, 1, 2, 3]
-
-class WebSocketKwargs(t.TypedDict, total=False):
-    headers: Headers | dict[str, str] | None
-    max_payload_len: int
-    frame_size: int
-    flush_threshold: int
-    close_timeout: float | None
+_ReadyState: t.TypeAlias = t.Literal[
+    0,  # CONNECTING
+    1,  # OPEN
+    2,  # CLOSING
+    3,  # CLOSED
+]
 
 @t.final
 class WsMessage(Buffer):
@@ -44,7 +42,7 @@ class WsMessage(Buffer):
     ) -> None: ...
     @staticmethod
     def text(text: str) -> WsMessage:
-        """Construct a new text message with the given text data.
+        """Construct a new text message with the given text data
 
         Args:
             text: the text data for the message
@@ -64,14 +62,14 @@ class WsMessage(Buffer):
         """
     @staticmethod
     def ping(payload: Buffer | None = None) -> WsMessage:
-        """Construct a new ping message with the given optional payload.
+        """Construct a new ping message with the given optional payload
 
         Returns:
             ping `WsMessage`
         """
     @staticmethod
     def pong(payload: Buffer | None = None) -> WsMessage:
-        """Construct a new pong message with the given optional payload.
+        """Construct a new pong message with the given optional payload
 
         Returns:
             pong `WsMessage`
@@ -129,25 +127,47 @@ class WebSocket:
     @property
     def uri(self) -> str: ...
     @property
-    def status(self) -> HttpStatus | None: ...
+    def status(self) -> HttpStatus | None:
+        """Return the HTTP status of the websocket handshake if connected"""
+
     @property
-    def headers(self) -> Headers | None: ...
+    def headers(self) -> Headers | None:
+        """Return the HTTP headers of the websocket handshake if connected"""
     @property
-    def closed(self) -> bool: ...
+    def closed(self) -> bool:
+        """Return `True` if the WebSocket is closed, `False` otherwise"""
     @property
-    def open(self) -> bool: ...
+    def open(self) -> bool:
+        """Return `True` if the WebSocket is open, `False` otherwise"""
     @property
-    def read_state(self) -> ReadyState:
-        """Return `WebSocket` ready-state (`0`=CONNECTING, `1`=OPEN, `2`=CLOSING, `3`=CLOSED).
+    def ready_state(self) -> _ReadyState:
+        """Return `WebSocket` ready-state (`0`=CONNECTING, `1`=OPEN, `2`=CLOSING, `3`=CLOSED)
 
         Based on the `WebSocket.readyState` property from the Web API:
         <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState>
         """
-    @property
-    def ready_state(self) -> ReadyState:
-        """Alias for `read_state`."""
     def __bool__(self) -> bool:
-        """Return `True` if the WebSocket is open, `False` otherwise."""
+        """Return `True` if the WebSocket is open, `False` otherwise"""
+
+    async def recv(self) -> WsMessage:
+        """Receive the next message from the WebSocket connection"""
+    async def receive(self) -> WsMessage:
+        """Receive the next message from the WebSocket connection"""
+    async def send(self, message: WsMessage | str | Buffer) -> None:
+        """Send a message over the WebSocket connection"""
+    async def close(
+        self, code: int = 1_000, reason: str | Buffer | None = None
+    ) -> None:
+        """Close the WebSocket connection.
+
+        Args:
+            code: Optional close code (default: `1000`=NORMAL_CLOSURE)
+            reason: Optional close reason (max length: 123 bytes)
+        """
+    async def ping(self, payload: Buffer | None = None) -> None:
+        """Send a ping frame over the WebSocket connection"""
+    async def pong(self, payload: Buffer | None = None) -> None:
+        """Send a pong frame over the WebSocket connection"""
     def __await__(self) -> Generator[t.Any, t.Any, t.Self]: ...
     def __aiter__(self) -> t.Self: ...
     async def __anext__(self) -> WsMessage: ...
@@ -158,20 +178,6 @@ class WebSocket:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None: ...
-    async def recv(self) -> WsMessage: ...
-    async def receive(self) -> WsMessage: ...
-    async def send(self, message: WsMessage | str | Buffer) -> None: ...
-    async def close(
-        self, code: int = 1_000, reason: str | Buffer | None = None
-    ) -> None:
-        """Close the WebSocket connection.
-
-        Args:
-            code: Optional close code (default: `1000`=NORMAL_CLOSURE)
-            reason: Optional close reason (max length: 123 bytes)
-        """
-    async def ping(self, payload: Buffer | None = None) -> None: ...
-    async def pong(self, payload: Buffer | None = None) -> None: ...
 
 def websocket(
     uri: URL | str,

@@ -447,13 +447,8 @@ impl PyWebSocket {
     /// Based on the `WebSocket.readyState` property from the Web API:
     /// <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState>
     #[getter]
-    fn read_state(&self) -> u8 {
-        self.0.state.blocking_lock().ready_state().into()
-    }
-
-    #[getter]
     fn ready_state(&self) -> u8 {
-        self.read_state()
+        self.0.state.blocking_lock().ready_state().into()
     }
 
     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
