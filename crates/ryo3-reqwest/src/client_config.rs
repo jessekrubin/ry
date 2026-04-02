@@ -1,7 +1,7 @@
 use crate::proxy::PyProxies;
 use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
 use crate::tls_version::TlsVersion;
-use crate::types::{PyUserAgent, Timeout};
+use crate::types::PyUserAgent;
 use crate::user_agent::DEFAULT_USER_AGENT;
 use pyo3::intern;
 use pyo3::prelude::*;
@@ -11,6 +11,7 @@ use ryo3_http::{PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::py_type_err;
 use ryo3_macro_rules::py_value_error;
 use ryo3_std::time::PyDuration;
+use ryo3_std::time::PyTimeout;
 
 #[derive(Debug, Clone, PartialEq)]
 #[expect(clippy::struct_excessive_bools)]
@@ -174,13 +175,13 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.user_agent = v.extract::<PyUserAgent>()?.into();
                 }
                 "timeout" => {
-                    cfg.timeout = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                    cfg.timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "read_timeout" => {
-                    cfg.read_timeout = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                    cfg.read_timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "connect_timeout" => {
-                    cfg.connect_timeout = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                    cfg.connect_timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "redirect" => {
                     cfg.redirect = v.extract::<Option<usize>>()?;
@@ -250,29 +251,29 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                 }
                 "http2_keep_alive_interval" => {
                     cfg.http2_keep_alive_interval =
-                        v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                        v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "http2_keep_alive_timeout" => {
                     cfg.http2_keep_alive_timeout =
-                        v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                        v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "http2_keep_alive_while_idle" => {
                     cfg.http2_keep_alive_while_idle = v.extract::<bool>()?;
                 }
                 // --- pool ---
                 "pool_idle_timeout" => {
-                    cfg.pool_idle_timeout = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                    cfg.pool_idle_timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "pool_max_idle_per_host" => {
                     cfg.pool_max_idle_per_host = v.extract::<usize>()?;
                 }
                 // --- tcp ---
                 "tcp_keepalive" => {
-                    cfg.tcp_keepalive = v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                    cfg.tcp_keepalive = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "tcp_keepalive_interval" => {
                     cfg.tcp_keepalive_interval =
-                        v.extract::<Option<Timeout>>()?.map(PyDuration::from);
+                        v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
                 }
                 "tcp_keepalive_retries" => {
                     cfg.tcp_keepalive_retries = v.extract::<Option<u32>>()?;
