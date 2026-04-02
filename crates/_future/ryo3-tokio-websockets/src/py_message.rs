@@ -145,6 +145,10 @@ impl PyWsMessage {
         self == other
     }
 
+    fn __len__(&self) -> usize {
+        self.payload_bytes().len()
+    }
+
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let kwargs = PyDict::new(py);
         let args = if let Some(text) = self.0.as_text() {
@@ -232,7 +236,7 @@ impl PyWsMessage {
     }
 
     fn __bytes__<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
-        pyo3::types::PyBytes::new(py, &self.payload_bytes())
+        pyo3::types::PyBytes::new(py, &self.0.as_payload())
     }
 
     #[getter]

@@ -111,6 +111,8 @@ class WsMessage(Buffer):
         """Returns the close reason as a string if the close message"""
     def __bytes__(self) -> bytes:
         """Return message payload as `builtins.bytes`"""
+    def __len__(self) -> int:
+        """Return the length of the message payload in bytes"""
 
 @t.final
 class WebSocket:
