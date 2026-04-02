@@ -14,9 +14,9 @@ pub use async_file_read_stream::PyAsyncFileReadStream;
 pub use file::PyAsyncFile;
 mod read_dir;
 #[cfg(not(feature = "experimental-async"))]
-use crate::rt::future_into_py;
+use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]
-use crate::rt::on_tokio_py;
+use ryo3_tokio_rt::on_tokio_py;
 
 #[cfg(not(feature = "experimental-async"))]
 #[pyfunction]

@@ -45,6 +45,8 @@ cargo llvm-cov report \
   --package ryo3-sqlformat \
   --package ryo3-std \
   --package ryo3-tokio \
+  --package ryo3-tokio-rt \
+  --package ryo3-tokio-websockets \
   --package ryo3-twox-hash \
   --package ryo3-ulid \
   --package ryo3-unindent \
@@ -85,6 +87,8 @@ cargo llvm-cov report \
   --package ryo3-sqlformat \
   --package ryo3-std \
   --package ryo3-tokio \
+  --package ryo3-tokio-rt \
+  --package ryo3-tokio-websockets \
   --package ryo3-twox-hash \
   --package ryo3-ulid \
   --package ryo3-unindent \

@@ -2,14 +2,14 @@
 //! `FileReadStream` in ryo3-std and the `ryo3-reqwest` response stream.
 //!
 //! Kinda a fucking nightmare.
-use crate::rt::future_into_py;
-#[cfg(feature = "experimental-async")]
-use crate::rt::{on_tokio, on_tokio_py};
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use ryo3_macro_rules::py_io_error;
 use ryo3_macro_rules::py_stop_async_iteration_err;
 use ryo3_macro_rules::py_value_err;
+use ryo3_tokio_rt::future_into_py;
+#[cfg(feature = "experimental-async")]
+use ryo3_tokio_rt::{on_tokio, on_tokio_py};
 use std::io;
 use std::path::PathBuf;
 use std::sync::Arc;

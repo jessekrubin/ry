@@ -66,6 +66,7 @@ dev = [
   "ruff>=0.11.12",
   "tzdata>=2025.2",
   "uvicorn>=0.34",
+  "websockets>=16.0",
 ]
 misc = [ "griffe>=1.12.1" ]
 

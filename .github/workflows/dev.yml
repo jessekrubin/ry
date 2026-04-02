@@ -135,6 +135,7 @@ jobs:
             -p ryo3-sqlformat
             -p ryo3-std
             -p ryo3-tokio
+            -p ryo3-tokio-rt
             -p ryo3-tokio-websockets
             -p ryo3-twox-hash
             -p ryo3-ulid

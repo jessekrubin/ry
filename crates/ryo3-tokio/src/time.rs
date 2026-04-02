@@ -1,8 +1,8 @@
-#[cfg(not(feature = "experimental-async"))]
-use crate::rt::future_into_py;
-#[cfg(feature = "experimental-async")]
-use crate::rt::on_tokio_py;
 use pyo3::prelude::*;
+#[cfg(not(feature = "experimental-async"))]
+use ryo3_tokio_rt::future_into_py;
+#[cfg(feature = "experimental-async")]
+use ryo3_tokio_rt::on_tokio_py;
 
 async fn sleep_impl(secs: f64) {
     let dur = std::time::Duration::from_secs_f64(secs);

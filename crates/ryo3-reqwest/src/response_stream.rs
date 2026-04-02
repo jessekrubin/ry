@@ -11,6 +11,7 @@ use pyo3::exceptions::{PyStopAsyncIteration, PyStopIteration};
 use pyo3::{IntoPyObjectExt, prelude::*};
 use reqwest::StatusCode;
 use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -144,13 +145,13 @@ impl RyResponseStream {
 
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = self.inner.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move { inner.py_anext().await })
+        future_into_py(py, async move { inner.py_anext().await })
     }
 
     #[pyo3(signature = (n=1))]
     fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             let mut guard = stream.lock().await;
             let mut items = Vec::with_capacity(n);
             for _ in 0..n {
@@ -168,7 +169,7 @@ impl RyResponseStream {
     fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
         if join {
-            pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            future_into_py(py, async move {
                 let mut guard = stream.lock().await;
                 let mut bytes_mut = BytesMut::new();
                 while let Some(item) = guard.next().await {
@@ -182,7 +183,7 @@ impl RyResponseStream {
                 Ok(py_bytes)
             })
         } else {
-            pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            future_into_py(py, async move {
                 let mut guard = stream.lock().await;
                 let mut items = Vec::new();
                 while let Some(item) = guard.next().await {
@@ -238,7 +239,7 @@ impl RyAsyncResponseStream {
     // CURRENTLY USING OLD VERSION TO AVOID LIFETIME ISSUES
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = self.inner.clone();
-        pyo3_async_runtimes::tokio::future_into_py(py, async move { inner.py_anext().await })
+        future_into_py(py, async move { inner.py_anext().await })
     }
 
     // async fn _anext( &self) -> PyResult<RyBytes> {
@@ -253,7 +254,7 @@ impl RyAsyncResponseStream {
     #[pyo3(signature = (n=1))]
     async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
         use ryo3_macro_rules::py_runtime_error;
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         let stream = self.inner.stream.clone();
         rt.spawn(async move {
             let mut guard = stream.lock().await;
@@ -273,7 +274,7 @@ impl RyAsyncResponseStream {
 
     async fn collect(&self) -> PyResult<Vec<RyBytes>> {
         use ryo3_macro_rules::py_runtime_error;
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         let stream = self.inner.stream.clone();
         let py_bytes_vec = rt
             .spawn(async move {
@@ -326,7 +327,7 @@ impl RyBlockingResponseStream {
     fn __next__(&self, py: Python<'_>) -> PyResult<RyBytes> {
         let stream = self.inner.stream.clone();
         let a = py.detach(|| {
-            pyo3_async_runtimes::tokio::get_runtime()
+            get_tokio_runtime()
                 .block_on(next_bytes(&stream))
                 .map_err(map_reqwest_err)
         })?;
@@ -341,7 +342,7 @@ impl RyBlockingResponseStream {
         let stream = self.inner.stream.clone();
         let items = py
             .detach(|| {
-                pyo3_async_runtimes::tokio::get_runtime()
+                get_tokio_runtime()
                     .block_on(take_bytes(&stream, n))
                     .map_err(map_reqwest_err)
             })
@@ -352,7 +353,7 @@ impl RyBlockingResponseStream {
     #[pyo3(signature = (*, join=false))]
     fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         if join {
             let py_bytes = py.detach(|| {
                 rt.block_on(collect_bytes_join(&stream))

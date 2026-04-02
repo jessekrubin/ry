@@ -9,6 +9,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::PyHttpMethod;
+use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
 use ryo3_url::UrlLike;
 
 //============================================================================
@@ -51,7 +52,7 @@ impl RyHttpClient {
 
     #[inline]
     fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
-        pyo3_async_runtimes::tokio::get_runtime().block_on(async {
+        get_tokio_runtime().block_on(async {
             req.send()
                 .await
                 .map(RyBlockingResponse::from)
@@ -118,7 +119,7 @@ impl RyHttpClient {
         kwargs: Option<ReqwestKwargs>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let rb = self.request_builder(url, method, kwargs)?;
-        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        future_into_py(py, async move {
             rb.send()
                 .await
                 .map(RyResponse::from)
@@ -150,7 +151,7 @@ impl RyClient {
 
     #[inline]
     fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
-        pyo3_async_runtimes::tokio::get_runtime().block_on(async {
+        get_tokio_runtime().block_on(async {
             req.send()
                 .await
                 .map(RyBlockingResponse::from)
@@ -210,7 +211,7 @@ impl RyClient {
 
         let req = self.request_builder(url, method, kwargs)?;
 
-        let rt = pyo3_async_runtimes::tokio::get_runtime();
+        let rt = get_tokio_runtime();
         let r = rt
             .spawn(async move { req.send().await })
             .await
@@ -243,7 +244,7 @@ impl RyBlockingClient {
 
     #[inline]
     fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
-        let a = pyo3_async_runtimes::tokio::get_runtime().block_on(async { req.send().await });
+        let a = get_tokio_runtime().block_on(async { req.send().await });
         a.map(RyBlockingResponse::from).map_err(map_reqwest_err)
     }
 

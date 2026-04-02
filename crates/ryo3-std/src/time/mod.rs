@@ -1,10 +1,12 @@
 pub(crate) mod duration;
 pub(crate) mod functions;
 pub(crate) mod instant;
+pub(crate) mod timeout;
 pub use duration::PyDuration;
 pub use functions::{py_duration, py_instant, sleep};
 pub use instant::PyInstant;
 use pyo3::prelude::*;
+pub use timeout::PyTimeout;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyDuration>()?;

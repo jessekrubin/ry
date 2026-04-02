@@ -31,7 +31,7 @@ ryo3-fspath = { workspace = true, optional = false }
 ryo3-std = { workspace = true, optional = false }
 
 # FUTURE
-#ryo3-tokio-websockets = { workspace = true, optional = true }
+ryo3-tokio-websockets = { workspace = true, optional = true }
 #ryo3-ignore = { workspace = true, optional = true }
 # optional ryo3-* dependencies
 ryo3-aws-lc = { workspace = true, optional = true }
@@ -91,6 +91,7 @@ all = [
   "size",
   "sqlformat",
   "tokio",
+  "tokio-websockets",
   "twox-hash",
   "ulid",
   "unindent",
@@ -126,6 +127,7 @@ ry = [
   "ryo3-sqlformat/ry",
   "ryo3-std/ry",
   "ryo3-tokio/ry",
+  "ryo3-tokio-websockets/ry",
   "ryo3-twox-hash/ry",
   "ryo3-ulid/ry",
   "ryo3-url/ry",
@@ -174,4 +176,4 @@ xxhash = ["twox-hash"]
 
 # FUTURE
 # ignore = ["dep:ryo3-ignore"]
-# tokio-websockets = ["dep:ryo3-tokio-websockets"]
+tokio-websockets = ["dep:ryo3-tokio-websockets"]

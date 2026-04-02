@@ -53,6 +53,7 @@ ryo3-json.workspace = true
 ryo3-macro-rules.workspace = true
 ryo3-serde.workspace = true
 ryo3-std = { workspace = true, features = ["time"] }
+ryo3-tokio-rt.workspace = true
 ryo3-url.workspace = true
 serde.workspace = true
 serde_urlencoded.workspace = true

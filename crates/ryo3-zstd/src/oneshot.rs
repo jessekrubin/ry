@@ -72,8 +72,8 @@ zstd_decode_pyfunction!(unzstd);
 zstd_decode_pyfunction!(zstd_decode);
 zstd_decode_pyfunction!(zstd_decompress);
 
+#[expect(clippy::needless_pass_by_value, reason = "pyo3-extraction")]
 #[pyfunction]
-pub fn is_zstd(data: &Bound<'_, PyAny>) -> PyResult<bool> {
-    let slice = ryo3_bytes::extract_bytes_ref(data)?;
-    Ok(slice.starts_with(b"\x28\xB5\x2F\xFD"))
+pub fn is_zstd(data: ryo3_bytes::PyBytes) -> PyResult<bool> {
+    Ok(data.as_slice().starts_with(b"\x28\xB5\x2F\xFD"))
 }

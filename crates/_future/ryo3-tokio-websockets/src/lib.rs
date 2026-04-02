@@ -1,12 +1,22 @@
 #![doc = include_str!("../README.md")]
-use pyo3::{prelude::*, types::PyModule};
+mod enums;
+mod errors;
+mod from;
+mod py_message;
+mod py_websocket;
+mod types;
+use pyo3::prelude::*;
 
-#[pyfunction]
-pub fn _tokio_ws<'py>() -> bool {
-    false
-}
+use crate::{
+    enums::PyWebSocketMessageKind,
+    py_message::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage},
+    py_websocket::{PyWebSocket, websocket},
+};
+mod constants;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(_tokio_ws, m)?)?;
+    m.add_class::<PyWsMessage>()?;
+    m.add_class::<PyWebSocket>()?;
+    m.add_function(wrap_pyfunction!(websocket, m)?)?;
     Ok(())
 }

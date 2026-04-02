@@ -1,21 +1,22 @@
 //! tokio-runtime + python
-use ryo3_macro_rules::py_runtime_err;
-use tokio::runtime::Runtime;
 
-pub(crate) use pyo3_async_runtimes::tokio::future_into_py;
+use pyo3::exceptions::PyRuntimeError;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, ready};
+use tokio::runtime::Runtime;
 
-pub(crate) struct RyRuntime<'r>(pub &'r Runtime);
+pub use pyo3_async_runtimes::tokio::future_into_py;
 
-pub(crate) struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
+pub struct RyRuntime<'r>(pub &'r Runtime);
+
+pub struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
 
 impl RyRuntime<'_> {
     #[inline]
-    pub(crate) fn spawn<F, T>(&self, fut: F) -> tokio::task::JoinHandle<T>
+    pub fn spawn<F, T>(&self, fut: F) -> tokio::task::JoinHandle<T>
     where
-        F: std::future::Future<Output = T> + Send + 'static,
+        F: Future<Output = T> + Send + 'static,
         T: Send + 'static,
     {
         self.0.spawn(fut)
@@ -24,14 +25,15 @@ impl RyRuntime<'_> {
     // version of spawn that returns a wrapped JoinHandle that can be polled
     // and ensures the join error is py-err-able
     #[inline]
-    pub(crate) fn py_spawn<F, T>(&self, fut: F) -> RyJoinHandle<T>
+    pub fn py_spawn<F, T>(&self, fut: F) -> RyJoinHandle<T>
     where
-        F: std::future::Future<Output = T> + Send + 'static,
+        F: Future<Output = T> + Send + 'static,
         T: Send + 'static,
     {
         RyJoinHandle(self.spawn(fut))
     }
 }
+
 impl<T> Unpin for RyJoinHandle<T> {}
 
 impl<T> Future for RyJoinHandle<T> {
@@ -42,29 +44,33 @@ impl<T> Future for RyJoinHandle<T> {
         let this = self.get_mut();
         match ready!(Pin::new(&mut this.0).poll(cx)) {
             Ok(v) => Poll::Ready(Ok(v)),
-            Err(e) if e.is_panic() => Poll::Ready(py_runtime_err!("Task panicked: {e}")),
-            Err(e) => Poll::Ready(py_runtime_err!("Task cancelled: {e}")),
+            Err(e) if e.is_panic() => {
+                Poll::Ready(Err(PyRuntimeError::new_err(format!("Task panicked: {e}"))))
+            }
+            Err(e) => Poll::Ready(Err(PyRuntimeError::new_err(format!("Task cancelled: {e}")))),
         }
     }
 }
 
 #[inline]
-pub(crate) fn get_tokio_runtime<'r>() -> &'r Runtime {
+#[must_use]
+pub fn get_tokio_runtime<'r>() -> &'r Runtime {
     pyo3_async_runtimes::tokio::get_runtime()
 }
 
 #[inline]
-pub(crate) fn get_ry_tokio_runtime<'r>() -> RyRuntime<'r> {
+#[must_use]
+pub fn get_ry_tokio_runtime<'r>() -> RyRuntime<'r> {
     RyRuntime(get_tokio_runtime())
 }
 
-// possible future helper functions? (on_tokio/on_tokio_py)
-//
+/// possible future helper functions? (`on_tokio`/`on_tokio_py`)
+///
 /// Executes the given future on the tokio runtime
 ///
 /// **Note**: This ONLY maps the tokio join errors to `pyo3::PyErr`
 #[inline]
-pub(crate) async fn on_tokio<F, T>(fut: F) -> pyo3::PyResult<T>
+pub async fn on_tokio<F, T>(fut: F) -> pyo3::PyResult<T>
 where
     F: Future<Output = T> + Send + 'static,
     T: Send + 'static,
@@ -78,7 +84,7 @@ where
 /// **Note**: This maps the tokio join errors to `pyo3::PyErr` and also the
 ///           inner errors to `pyo3::PyErr` as well (afaict (jesse))
 #[inline]
-pub(crate) async fn on_tokio_py<F, T>(fut: F) -> pyo3::PyResult<T>
+pub async fn on_tokio_py<F, T>(fut: F) -> pyo3::PyResult<T>
 where
     F: Future<Output = pyo3::PyResult<T>> + Send + 'static,
     T: Send + 'static,
@@ -89,7 +95,6 @@ where
 // ==========================================================================
 // FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ==========================================================================
-
 impl<T> From<RyJoinHandle<T>> for tokio::task::JoinHandle<T> {
     fn from(handle: RyJoinHandle<T>) -> Self {
         handle.0

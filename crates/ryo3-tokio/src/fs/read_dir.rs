@@ -1,9 +1,10 @@
-use crate::rt::future_into_py;
 #[cfg(feature = "experimental-async")]
-use crate::rt::on_tokio_py;
 use pyo3::prelude::*;
 use ryo3_macro_rules::py_stop_async_iteration_err;
 use ryo3_std::fs::PyMetadata;
+use ryo3_tokio_rt::future_into_py;
+#[cfg(feature = "experimental-async")]
+use ryo3_tokio_rt::on_tokio_py;
 use std::ffi::OsString;
 use std::format;
 use std::path::PathBuf;

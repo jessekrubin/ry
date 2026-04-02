@@ -108,7 +108,7 @@ jobs:
             apt-get update
             apt-get install -y --no-install-recommends python3.11 python3.11-venv python3.11-distutils
             curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
-            python3.11 -m pip install -U pip pytest pytest-asyncio pytest-benchmark hypothesis uvicorn anyio orjson==3.10.18 pydantic
+            python3.11 -m pip install -U pip pytest pytest-asyncio pytest-benchmark hypothesis uvicorn anyio orjson==3.10.18 pydantic websockets
           run: |
             set -e
             ls -l /workspace/dist

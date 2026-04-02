@@ -1,5 +1,5 @@
+use crate::types::BasicAuth;
 use crate::types::PyQuery;
-use crate::types::{BasicAuth, Timeout};
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
@@ -7,6 +7,7 @@ use pyo3::types::PyDict;
 use reqwest::header::{HeaderMap, HeaderValue};
 use ryo3_http::{PyHeadersLike, PyHttpVersion};
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error, pytodo};
+use ryo3_std::time::PyTimeout;
 use std::convert::Into;
 use std::time::Duration;
 
@@ -159,7 +160,7 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
 
         let timeout = dict
             .get_item(intern!(py, "timeout"))?
-            .map(|t| t.extract::<Timeout>())
+            .map(|t| t.extract::<PyTimeout>())
             .transpose()?
             .map(Duration::from);
         let headers = dict
