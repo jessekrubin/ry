@@ -35,7 +35,7 @@ impl PartialEq for PyWsMessage {
 impl PyWsMessage {
     #[new]
     #[pyo3(signature = (kind, data = None, *, code= None, reason = None))]
-    fn new<'py>(
+    fn py_new<'py>(
         _py: Python<'py>,
         kind: PyWebSocketMessageKind,
         data: Option<Bound<'py, PyAny>>,
@@ -120,7 +120,10 @@ impl PyWsMessage {
     ///   protocol-imposed limit.
     #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
-    #[pyo3(signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None))]
+    #[pyo3(
+        signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
+        text_signature = "(code=1_000, reason=None)"
+    )]
     pub(crate) fn close(code: PyWsCloseCode, reason: Option<PyWsCloseReason>) -> PyResult<Self> {
         // check for reserved codes
         if code.is_reserved() {
@@ -247,12 +250,12 @@ impl PyWsMessage {
     }
 
     #[getter]
-    fn close_code(&self) -> Option<u16> {
+    fn code(&self) -> Option<u16> {
         self.0.as_close().map(|(code, _)| u16::from(code))
     }
 
     #[getter]
-    fn close_reason(&self) -> Option<String> {
+    fn reason(&self) -> Option<String> {
         self.0.as_close().map(|(_, reason)| reason.to_owned())
     }
 }

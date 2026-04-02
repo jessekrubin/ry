@@ -86,8 +86,8 @@ async def test_websocket_recv_reports_server_messages_and_close_frame(
     assert binary_msg.kind == "binary"
     assert bytes(binary_msg) == b"\x00\x01\x02"
     assert close_msg.kind == "close"
-    assert close_msg.close_code == 1000
-    assert close_msg.close_reason == "done"
+    assert close_msg.code == 1000
+    assert close_msg.reason == "done"
 
     assert ws.closed is True
     assert ws.open is False

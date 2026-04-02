@@ -520,7 +520,10 @@ impl PyWebSocket {
         future_into_py(py, async move { this.send(message).await })
     }
 
-    #[pyo3(signature = (*, code = PyWsCloseCode::NORMAL_CLOSURE, reason = None))]
+    #[pyo3(
+        signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
+        text_signature = "(self, code=1_000, reason=None)"
+    )]
     fn close<'py>(
         &self,
         py: Python<'py>,
@@ -567,15 +570,18 @@ impl std::fmt::Display for PyWebSocket {
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
-#[pyo3(signature = (
-    uri,
-    *,
-    headers = None,
-    close_timeout = Some(DEFAULT_CLOSE_TIMEOUT),
-    flush_threshold = DEFAULT_FLUSH_THRESHOLD,
-    frame_size = DEFAULT_FRAME_SIZE,
-    max_payload_len = DEFAULT_MAX_PAYLOAD_LEN,
-))]
+#[pyo3(
+    signature = (
+        uri,
+        *,
+        headers = None,
+        close_timeout = Some(DEFAULT_CLOSE_TIMEOUT),
+        flush_threshold = DEFAULT_FLUSH_THRESHOLD,
+        frame_size = DEFAULT_FRAME_SIZE,
+        max_payload_len = DEFAULT_MAX_PAYLOAD_LEN,
+    ),
+    text_signature = "(uri, *, headers=None, close_timeout=10, flush_threshold=8_192, frame_size=4_194_304, max_payload_len=67_108_864)"
+)]
 pub(crate) fn websocket(
     uri: UrlLike,
     headers: Option<PyHeadersLike>,

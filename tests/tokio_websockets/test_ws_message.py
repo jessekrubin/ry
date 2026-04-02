@@ -77,24 +77,24 @@ class TestWsMessageClose:
         m = ry.WsMessage.close()
         assert m.kind == "close"
         assert m.is_close is True
-        assert m.close_code == 1000
-        assert m.close_reason == ""
+        assert m.code == 1000
+        assert m.reason == ""
         assert bytes(m) == b"\x03\xe8"
 
     def test_close_msg(self) -> None:
         m1 = ry.WsMessage.close(1000, "normal closure")
         assert m1.kind == "close"
         assert m1.is_close is True
-        assert m1.close_code == 1000
-        assert m1.close_reason == "normal closure"
+        assert m1.code == 1000
+        assert m1.reason == "normal closure"
         assert bytes(m1) == b"\x03\xe8normal closure"
 
     def test_close_msg_no_reason(self) -> None:
         m2 = ry.WsMessage.close(1001)
         assert m2.kind == "close"
         assert m2.is_close is True
-        assert m2.close_code == 1001
-        assert m2.close_reason == ""
+        assert m2.code == 1001
+        assert m2.reason == ""
         assert bytes(m2) == b"\x03\xe9"
 
     def test_close_msg_too_long_reason(self) -> None:
@@ -110,15 +110,7 @@ class TestWsMessageClose:
             ry.WsMessage.close(1005, "reserved code")
 
 
-class TestWsMessageTextBinary:
-    def test_text_msg(self) -> None:
-        msg = ry.WsMessage.text("hello")
-        assert msg.kind == "text"
-        assert msg.is_text is True
-        assert bytes(msg) == b"hello"
-        assert msg.payload == b"hello"
-        assert msg.data == "hello"
-
+class TestWsMessageBinary:
     def test_binary_msg(self) -> None:
         msg = ry.WsMessage.binary(b"\x00\x01\x02")
         assert msg.kind == "binary"
@@ -126,6 +118,26 @@ class TestWsMessageTextBinary:
         assert bytes(msg) == b"\x00\x01\x02"
         assert msg.payload == b"\x00\x01\x02"
         assert msg.data == b"\x00\x01\x02"
+
+    def test_binary_msg_buffer_protocol_read(self) -> None:
+        msg = ry.WsMessage.binary(b"das-bytes")
+        assert msg.kind == "binary"
+        assert msg.is_binary is True
+        assert bytes(msg) == b"das-bytes"
+        assert msg.payload == b"das-bytes"
+        assert msg.data == b"das-bytes"
+        memview = memoryview(b"das-bytes")
+        assert memview.tobytes() == b"das-bytes"
+
+
+class TestWsMessageText:
+    def test_text_msg(self) -> None:
+        msg = ry.WsMessage.text("hello")
+        assert msg.kind == "text"
+        assert msg.is_text is True
+        assert bytes(msg) == b"hello"
+        assert msg.payload == b"hello"
+        assert msg.data == "hello"
 
 
 class TestWsMessagePingPong:
