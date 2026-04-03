@@ -2018,6 +2018,7 @@ dependencies = [
  "pyo3",
  "ryo3-core",
  "ryo3-jiff",
+ "ryo3-pydantic",
  "ryo3-std",
 ]
 

@@ -1,4 +1,4 @@
-use pyo3::prelude::*;
+use pyo3::{BoundObject, prelude::*};
 use ryo3_core::{py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyDuration;
 
@@ -116,6 +116,16 @@ impl PyCookie {
         match cookie::Cookie::parse_encoded(s) {
             Ok(c) => Ok(Self(c.into_owned())),
             Err(e) => py_value_err!("failed to parse cookie: {e}"),
+        }
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(cookie) = value.cast_exact::<Self>() {
+            Ok(cookie.as_borrowed().into_bound())
+        } else {
+            Self::parse(value).map(|cookie| cookie.into_pyobject(py))?
         }
     }
 
@@ -256,6 +266,29 @@ impl PyCookie {
     fn secure(&self) -> Option<bool> {
         self.0.secure()
     }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        Self::from_any(value).map_err(|e| py_value_error!("Cookie validation error: {e}"))
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl std::fmt::Debug for PyCookie {
@@ -329,5 +362,32 @@ impl std::str::FromStr for PyCookie {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let c = cookie::Cookie::parse(s)?;
         Ok(Self(c.into_owned()))
+    }
+}
+
+#[cfg(feature = "pydantic")]
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyCookie {
+    fn get_pydantic_core_schema<'py>(
+        cls: &Bound<'py, pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use pyo3::types::{PyDict, PyTuple};
+        use ryo3_pydantic::interns;
+
+        let py = source.py();
+        let core_schema = ryo3_pydantic::core_schema(py)?;
+        let schema = core_schema.call_method(interns::str_schema(py), (), None)?;
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+        let args = PyTuple::new(py, vec![&validation_fn, &schema])?;
+        let string_serialization_schema =
+            core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
+        let serialization_kwargs = PyDict::new(py);
+        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        core_schema.call_method(
+            interns::no_info_wrap_validator_function(py),
+            args,
+            Some(&serialization_kwargs),
+        )
     }
 }

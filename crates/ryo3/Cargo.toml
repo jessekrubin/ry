@@ -116,6 +116,7 @@ ry = [
   "dev",
   "ryo3-aws-lc/ry",
   "ryo3-bytes/ry",
+  "ryo3-cookie/ry",
   "ryo3-fnv/ry",
   "ryo3-fspath/ry",
   "ryo3-glob/ry",
