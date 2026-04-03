@@ -26,15 +26,19 @@ use std::ops::Sub;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestamp(pub(crate) Timestamp);
 
+impl RyTimestamp {
+    pub fn new(second: i64, nanosecond: i32) -> Result<Self, jiff::Error> {
+        Timestamp::new(second, nanosecond).map(Self)
+    }
+}
+
 #[pymethods]
 #[expect(clippy::trivially_copy_pass_by_ref)]
 impl RyTimestamp {
     #[new]
     #[pyo3(signature = (second = 0, nanosecond = 0))]
-    pub fn py_new(second: i64, nanosecond: i32) -> PyResult<Self> {
-        Timestamp::new(second, nanosecond)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+    fn py_new(second: i64, nanosecond: i32) -> PyResult<Self> {
+        Self::new(second, nanosecond).map_err(map_py_value_err)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

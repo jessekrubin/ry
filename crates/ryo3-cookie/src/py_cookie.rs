@@ -1,10 +1,6 @@
-use std::str::FromStr;
-
-use pyo3::intern;
+use crate::{PyCookieSameSite, types::PyCookieExpiration};
 use pyo3::prelude::*;
-use pyo3::types::PyString;
-use ryo3_macro_rules::py_value_error;
-use ryo3_macro_rules::{py_value_err, pytodo};
+use ryo3_core::{py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyDuration;
 
 #[pyclass(name = "Cookie", frozen, immutable_type, skip_from_py_object)]
@@ -47,7 +43,7 @@ impl PyCookie {
         path: Option<String>,
         permanent: bool,
         removal: bool,
-        same_site: Option<PySameSite>,
+        same_site: Option<PyCookieSameSite>,
         secure: Option<bool>,
     ) -> PyResult<Self> {
         let mut cb = cookie::Cookie::build((name, value));
@@ -56,7 +52,7 @@ impl PyCookie {
             cb = cb.domain(domain);
         }
         if let Some(_expires) = expires {
-            pytodo!("handle expires");
+            pytodo!("handle expires input");
         }
 
         if let Some(http_only) = http_only {
@@ -89,7 +85,7 @@ impl PyCookie {
         }
 
         if let Some(same_site) = same_site {
-            cb = cb.same_site(same_site.0);
+            cb = cb.same_site(same_site.into());
         }
 
         if let Some(secure) = secure {
@@ -100,16 +96,8 @@ impl PyCookie {
     }
 
     // ------------------------------------------------------------------------
-    // STATIC/"CLASS" METHODS
+    // STATIC "CLASS" METHODS (aka "constructors")
     // ------------------------------------------------------------------------
-
-    // #[staticmethod]
-    // fn parse(s: &str) -> PyResult<Self> {
-    //     match cookie::Cookie::parse(s) {
-    //         Ok(c) => Ok(Self(c.into_owned())),
-    //         Err(e) => py_value_err!("failed to parse cookie: {e}"),
-    //     }
-    // }
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
         use ryo3_core::PyFromStr;
@@ -121,6 +109,7 @@ impl PyCookie {
         use ryo3_core::PyParse;
         Self::py_parse(s)
     }
+
     #[staticmethod]
     fn parse_encoded(s: &str) -> PyResult<Self> {
         match cookie::Cookie::parse_encoded(s) {
@@ -128,10 +117,10 @@ impl PyCookie {
             Err(e) => py_value_err!("failed to parse cookie: {e}"),
         }
     }
+
     // ------------------------------------------------------------------------
     // STR/REPR/FORMAT
     // ------------------------------------------------------------------------
-
     fn __str__(&self) -> String {
         self.0.to_string()
     }
@@ -213,10 +202,20 @@ impl PyCookie {
 
     /// Return the expires of the cookie | None
     #[getter]
-    #[expect(clippy::unused_self)]
-    fn expires(&self) -> PyResult<()> {
-        pytodo!("handle expires getter");
+    fn expires(&self) -> PyResult<Option<PyCookieExpiration>> {
+        Ok(self.0.expires().map(PyCookieExpiration::from))
     }
+
+    // #[getter]
+    // fn expires_pydatetime(&self, py: Python<'_>) -> PyResult<Option<PyCookieExpiration>> {
+    //     let expires = self.0.expires();
+    //     if let Some(expires) = expires {
+    //         let py_dt = PyCookieExpiration::offsetdatetime2pydatetime(self, py, expires)?;
+    //         Ok(Some(PyCookieExpiration::from(expires)))
+    //     } else {
+    //         Ok(None)
+    //     }
+    // }
 
     /// Return the `http_only` of the cookie | None
     #[getter]
@@ -244,8 +243,8 @@ impl PyCookie {
 
     /// Return the `same_site` of the cookie 'Lax' | 'Strict' | 'None' | None
     #[getter]
-    fn same_site(&self) -> Option<PySameSite> {
-        self.0.same_site().map(PySameSite)
+    fn same_site(&self) -> Option<PyCookieSameSite> {
+        self.0.same_site().map(PyCookieSameSite::from)
     }
 
     /// Return the secure of the cookie | None
@@ -319,58 +318,7 @@ impl std::fmt::Debug for PyCookie {
     }
 }
 
-// ------------------------------------------------------------------------
-// same site
-// ------------------------------------------------------------------------
-struct PySameSite(cookie::SameSite);
-
-impl<'py> IntoPyObject<'py> for &PySameSite {
-    type Target = PyString;
-    type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
-    #[inline]
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = match self.0 {
-            cookie::SameSite::Lax => intern!(py, "Lax"),
-            cookie::SameSite::Strict => intern!(py, "Strict"),
-            cookie::SameSite::None => intern!(py, "None"),
-        };
-        let b = s.as_borrowed();
-        Ok(b)
-    }
-}
-
-impl<'py> IntoPyObject<'py> for PySameSite {
-    type Target = PyString;
-    type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
-
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        (&self).into_pyobject(py)
-    }
-}
-
-impl<'py> FromPyObject<'_, 'py> for PySameSite {
-    type Error = pyo3::PyErr;
-    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.extract::<&str>() {
-            match s {
-                "Lax" | "lax" => Ok(Self(cookie::SameSite::Lax)),
-                "Strict" | "strict" => Ok(Self(cookie::SameSite::Strict)),
-                "None" | "none" => Ok(Self(cookie::SameSite::None)),
-                _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid SameSite value: {s} (options: 'Lax', 'Strict', 'None')"
-                ))),
-            }
-        } else {
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-                "Invalid SameSite value (options: 'Lax', 'Strict', 'None')",
-            ))
-        }
-    }
-}
-
-impl FromStr for PyCookie {
+impl std::str::FromStr for PyCookie {
     type Err = cookie::ParseError;
 
     #[inline]

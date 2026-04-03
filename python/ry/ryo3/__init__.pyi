@@ -31,6 +31,7 @@ from ry.ryo3._bytes import Bytes as Bytes
 from ry.ryo3._bzip2 import bzip2 as bzip2
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
 from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
+from ry.ryo3._cookie import Cookie as Cookie
 from ry.ryo3._flate2 import gunzip as gunzip
 from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
@@ -113,7 +114,6 @@ from ry.ryo3._reqwest import Certificate as Certificate
 from ry.ryo3._reqwest import CertificateRevocationList as CertificateRevocationList
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
-from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy

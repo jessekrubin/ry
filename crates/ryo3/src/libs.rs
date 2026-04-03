@@ -10,6 +10,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_bzip2::pymod_add(m)?;
     #[cfg(feature = "bytes")]
     ryo3_bytes::pymod_add(m)?;
+    #[cfg(feature = "cookie")]
+    ryo3_cookie::pymod_add(m)?;
     #[cfg(feature = "flate2")]
     ryo3_flate2::pymod_add(m)?;
     #[cfg(feature = "fnv")]
@@ -34,7 +36,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_reqwest::pymod_add(m)?;
     #[cfg(feature = "tokio")]
     ryo3_tokio::pymod_add(m)?;
-
     #[cfg(feature = "same-file")]
     ryo3_same_file::pymod_add(m)?;
     #[cfg(feature = "shlex")]

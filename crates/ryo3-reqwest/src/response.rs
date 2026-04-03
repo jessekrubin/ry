@@ -5,7 +5,7 @@ use crate::response_head::RyResponseHead;
 #[cfg(feature = "experimental-async")]
 use crate::response_stream::RyAsyncResponseStream;
 use crate::response_stream::RyBlockingResponseStream;
-use crate::{PyCookie, RyResponseStream, pyerr_response_already_consumed};
+use crate::{RyResponseStream, pyerr_response_already_consumed};
 use cookie::Cookie;
 use parking_lot::Mutex;
 use pyo3::exceptions::PyValueError;
@@ -13,6 +13,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
 use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_cookie::PyCookie;
 use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};
 #[cfg(feature = "experimental-async")]
 use ryo3_macro_rules::py_runtime_error;
