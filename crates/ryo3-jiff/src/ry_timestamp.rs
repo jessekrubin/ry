@@ -37,7 +37,7 @@ impl RyTimestamp {
 impl RyTimestamp {
     #[new]
     #[pyo3(signature = (second = 0, nanosecond = 0))]
-    fn py_new(second: i64, nanosecond: i32) -> PyResult<Self> {
+    pub(crate) fn py_new(second: i64, nanosecond: i32) -> PyResult<Self> {
         Self::new(second, nanosecond).map_err(map_py_value_err)
     }
 
