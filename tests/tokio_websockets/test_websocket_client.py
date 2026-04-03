@@ -109,7 +109,7 @@ async def test_websocket_send_parse_json(websocket_server: WsTestServer) -> None
     msg1 = await ws.recv()
     assert msg1.is_text
     assert msg1.data == '{"data":123}'
-    assert msg1.parse_json() == {"data": 123}
+    assert msg1.json() == {"data": 123}
 
 
 @pytest.mark.xfail(
