@@ -238,6 +238,13 @@ impl PyWsMessage {
         self.0.is_pong()
     }
 
+    // TODO: possibly add the other kwargs to this that jiter provides
+    /// Parse the message payload as JSON
+    #[cfg(feature = "json")]
+    fn json<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        ryo3_jiter::JiterParseOptions::default().parse(py, self.0.as_payload())
+    }
+
     fn __bytes__<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
         pyo3::types::PyBytes::new(py, self.0.as_payload())
     }

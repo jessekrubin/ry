@@ -101,6 +101,17 @@ async def test_websocket_send_requires_an_open_connection(
         await ws.send("before-connect")
 
 
+async def test_websocket_send_parse_json(websocket_server: WsTestServer) -> None:
+    ws = ry.websocket(websocket_server.url("/echo?mode=roundtrip"))
+    await ws
+
+    await ws.send(ry.stringify({"data": 123}).decode())
+    msg1 = await ws.recv()
+    assert msg1.is_text
+    assert msg1.data == '{"data":123}'
+    assert msg1.json() == {"data": 123}
+
+
 @pytest.mark.xfail(
     raises=RuntimeError,
     reason="__anext__ currently raises RuntimeError after the close frame instead of stopping iteration",
