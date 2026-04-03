@@ -1,7 +1,8 @@
-use crate::{PyCookieSameSite, types::PyCookieExpiration};
 use pyo3::prelude::*;
 use ryo3_core::{py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyDuration;
+
+use crate::{PyCookieSameSite, types::PyCookieExpiration};
 
 #[pyclass(name = "Cookie", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -202,10 +203,12 @@ impl PyCookie {
 
     /// Return the expires of the cookie | None
     #[getter]
-    fn expires(&self) -> PyResult<Option<PyCookieExpiration>> {
-        Ok(self.0.expires().map(PyCookieExpiration::from))
+    fn expires(&self) -> Option<PyCookieExpiration> {
+        self.0.expires().map(PyCookieExpiration::from)
     }
 
+    // TODO pydatetime conversion?
+    // ```rust
     // #[getter]
     // fn expires_pydatetime(&self, py: Python<'_>) -> PyResult<Option<PyCookieExpiration>> {
     //     let expires = self.0.expires();
@@ -216,6 +219,7 @@ impl PyCookie {
     //         Ok(None)
     //     }
     // }
+    // ```
 
     /// Return the `http_only` of the cookie | None
     #[getter]

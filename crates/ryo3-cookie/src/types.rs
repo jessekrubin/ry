@@ -84,6 +84,24 @@ impl From<PyCookieSameSite> for cookie::SameSite {
 pub struct PyCookieExpiration(cookie::Expiration);
 
 impl PyCookieExpiration {
+    pub(crate) fn as_timestamp(&self) -> Option<RyTimestamp> {
+        match self.0 {
+            cookie::Expiration::Session => None,
+            cookie::Expiration::DateTime(dt) => {
+                let seconds = dt.unix_timestamp();
+                let nanos = i32::try_from(dt.nanosecond()).expect(
+                    "wenodis: jiff::Timestamp nanoseconds always -999_999_999..=999_999_999 & time::OffsetDateTime nanoseconds always 0..=999_999_999 => infallible"
+                );
+                Some(
+                    RyTimestamp::new(seconds, nanos)
+                        .expect("wenodis: this is infallible (i think)"),
+                )
+            }
+        }
+    }
+
+    // TODO: pydatetime conversion
+    // ```rust
     // pub(crate) fn to_pydatetime<'py>(
     //     &self,
     //     py: Python<'py>,
@@ -115,6 +133,7 @@ impl PyCookieExpiration {
     //         }
     //     }
     // }
+    // ```
 }
 
 impl From<cookie::Expiration> for PyCookieExpiration {
@@ -137,17 +156,6 @@ impl<'py> IntoPyObject<'py> for PyCookieExpiration {
     type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        match self.0 {
-            cookie::Expiration::Session => Ok(py.None().into_pyobject(py)?),
-            cookie::Expiration::DateTime(dt) => {
-                let seconds = dt.unix_timestamp();
-                let nanos = i32::try_from(dt.nanosecond()).expect(
-                    "wenodis: jiff::Timestamp nanoseconds always -999_999_999..=999_999_999 & time::OffsetDateTime nanoseconds always 0..=999_999_999 => infallible"
-                );
-                RyTimestamp::new(seconds, nanos)
-                    .expect("wenodis: this is infallible (i think)")
-                    .into_bound_py_any(py)
-            }
-        }
+        self.as_timestamp().into_bound_py_any(py)
     }
 }
