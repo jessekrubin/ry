@@ -47,13 +47,13 @@ impl JiterParseOptions {
         PythonParse::from(&self)
     }
 
-    fn parse<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
+    pub fn parse<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
         self.parser()
             .python_parse(py, data)
             .map_err(|e| map_json_error(data, &e))
     }
 
-    fn parse_lines<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
+    pub fn parse_lines<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
         let lines_iter = data.split(|b| *b == b'\n').filter(|line| !line.is_empty());
         let parser = self.parser();
         // parse each line and collect into a Vec

@@ -40,6 +40,9 @@ class WsMessage(Buffer):
         code: int = 1_000,
         reason: str | Buffer = "",
     ) -> None: ...
+    # -------------------------------------------------------------------------
+    # "CLASSMETHODS" (STATIC FACTORY FNS)
+    # -------------------------------------------------------------------------
     @staticmethod
     def text(text: str) -> WsMessage:
         """Construct a new text message with the given text data
@@ -77,6 +80,11 @@ class WsMessage(Buffer):
     @staticmethod
     def close(code: int = 1_000, reason: str | Buffer | None = None) -> WsMessage:
         """Construct a new close message with the given close-code and reason"""
+
+    # -------------------------------------------------------------------------
+    # PROPERTIES
+    # -------------------------------------------------------------------------
+
     @property
     def kind(self) -> t.Literal["text", "binary", "close", "ping", "pong"]:
         """Return the message kind as a string literal."""
@@ -107,6 +115,11 @@ class WsMessage(Buffer):
     @property
     def reason(self) -> str | None:
         """Returns the close reason as a string if the close message"""
+    # -------------------------------------------------------------------------
+    # INSTANCE METHODS
+    # -------------------------------------------------------------------------
+    def json(self) -> t.Any:
+        """Parse the message payload as JSON"""
     def __bytes__(self) -> bytes:
         """Return message payload as `builtins.bytes`"""
     def __len__(self) -> int:
