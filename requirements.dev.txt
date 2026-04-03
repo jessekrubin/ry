@@ -6,10 +6,6 @@ anyio==4.13.0
     # via -r requirements.dev.in
 click==8.3.1
     # via uvicorn
-colorama==0.4.6
-    # via
-    #   click
-    #   pytest
 coverage==7.13.5
     # via pytest-cov
 h11==0.16.0
@@ -56,8 +52,10 @@ sortedcontainers==2.4.0
     # via hypothesis
 typing-extensions==4.15.0
     # via
+    #   anyio
     #   pydantic
     #   pydantic-core
+    #   pytest-asyncio
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
