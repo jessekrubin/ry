@@ -1938,6 +1938,7 @@ dependencies = [
  "ryo3-brotli",
  "ryo3-bytes",
  "ryo3-bzip2",
+ "ryo3-cookie",
  "ryo3-core",
  "ryo3-dev",
  "ryo3-dirs",
@@ -2007,6 +2008,18 @@ dependencies = [
  "bzip2",
  "pyo3",
  "ryo3-bytes",
+]
+
+[[package]]
+name = "ryo3-cookie"
+version = "0.0.87"
+dependencies = [
+ "cookie",
+ "pyo3",
+ "ryo3-core",
+ "ryo3-jiff",
+ "ryo3-pydantic",
+ "ryo3-std",
 ]
 
 [[package]]
@@ -2211,6 +2224,7 @@ dependencies = [
  "rustls",
  "rustls-native-certs",
  "ryo3-bytes",
+ "ryo3-cookie",
  "ryo3-core",
  "ryo3-http",
  "ryo3-jiter",

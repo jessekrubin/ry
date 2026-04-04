@@ -1,0 +1,28 @@
+[package]
+name = "ryo3-cookie"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "python cookie library"
+
+[dependencies]
+cookie.workspace = true
+pyo3 = { workspace = true, features = [] }
+ryo3-core.workspace = true
+ryo3-jiff.workspace = true
+ryo3-pydantic = { workspace = true, optional = true }
+ryo3-std = { workspace = true, features = ["time"] }
+
+[features]
+default = []
+ry = ["pydantic"]
+pydantic = ["ryo3-pydantic"]
+
+[lints]
+workspace = true

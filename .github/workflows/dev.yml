@@ -108,6 +108,7 @@ jobs:
             -p ryo3-brotli
             -p ryo3-bytes
             -p ryo3-bzip2
+            -p ryo3-cookie
             -p ryo3-core
             -p ryo3-dev
             -p ryo3-dirs

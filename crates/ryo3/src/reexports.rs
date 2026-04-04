@@ -19,6 +19,7 @@ ryo3_features_reexport! {
     "brotli", ryo3_brotli,
     "bytes", ryo3_bytes,
     "bzip2", ryo3_bzip2,
+    "cookie", ryo3_cookie,
     "dirs", ryo3_dirs,
     "flate2", ryo3_flate2,
     "fnv", ryo3_fnv,
@@ -34,6 +35,7 @@ ryo3_features_reexport! {
     "size", ryo3_size,
     "sqlformat", ryo3_sqlformat,
     "tokio", ryo3_tokio,
+    "tokio-websockets", ryo3_tokio_websockets,
     "unindent", ryo3_unindent,
     "url", ryo3_url,
     "walkdir", ryo3_walkdir,
@@ -44,4 +46,3 @@ ryo3_features_reexport! {
 
 // -- FUTURE --
 // "ignore", ryo3_ignore,
-// "tokio-websockets", ryo3_tokio_websockets,
