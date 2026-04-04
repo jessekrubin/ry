@@ -283,10 +283,6 @@ impl PySha256 {
             }
             None => Self(PyMutexContext::new()),
         }
-        // py.detach(|| match data {
-        // Some(b) => Self(PyMutexContext::new_with_data(b.as_ref())),
-        // None => Self(PyMutexContext::new()),
-        // })
     }
 
     #[classattr]
@@ -420,7 +416,6 @@ macro_rules! define_py_hasher {
                 Ok(PyHexDigest::from(bytes))
             }
 
-            // #[expect(clippy::needless_pass_by_value)]
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
             fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
                 let s = data.as_ref();
