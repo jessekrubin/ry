@@ -92,7 +92,6 @@ members = [
   "crates/_ryo3-quick-maths",
   "crates/ryo3",
   "crates/_future/ryo3-ignore",
-  "crates/_future/ryo3-tokio-websockets",
   # external wrappers
   "crates/ryo3-aws-lc",
   "crates/ryo3-brotli",
@@ -124,6 +123,7 @@ members = [
   "crates/ryo3-std",
   "crates/ryo3-tokio",
   "crates/ryo3-tokio-rt",
+  "crates/ryo3-tokio-websockets",
   "crates/ryo3-twox-hash",
   "crates/ryo3-ulid",
   "crates/ryo3-unindent",
@@ -142,7 +142,6 @@ members = [
 ryo3 = { path = "./crates/ryo3", features = [] }
 # dev/future
 ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
-ryo3-tokio-websockets = { path = "./crates/_future/ryo3-tokio-websockets" }
 # wrappers
 ryo3-aws-lc = { path = "./crates/ryo3-aws-lc" }
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
@@ -176,6 +175,7 @@ ryo3-sqlformat = { path = "./crates/ryo3-sqlformat" }
 ryo3-std = { path = "./crates/ryo3-std" }
 ryo3-tokio = { path = "./crates/ryo3-tokio" }
 ryo3-tokio-rt = { path = "./crates/ryo3-tokio-rt" }
+ryo3-tokio-websockets = { path = "./crates/ryo3-tokio-websockets" }
 ryo3-twox-hash = { path = "./crates/ryo3-twox-hash" }
 ryo3-ulid = { path = "./crates/ryo3-ulid" }
 ryo3-unindent = { path = "./crates/ryo3-unindent" }

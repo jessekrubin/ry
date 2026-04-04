@@ -9,6 +9,9 @@
   - Use crate in `ryo3-reqwest`, `ryo3-tokio` and future `ryo3-tokio-websockets`
 - `ryo3-tokio-websockets`
   - Workin progress websocket client using `tokio-websockets` crate
+  - add `json()` fn to `ry.WsMessage` to parse message payload as JSON
+- `ryo3-cookie`
+  - Move `PyCookie` out from under `ryo3-reqwest` and into its own happy home
 
 ---
 
