@@ -578,7 +578,7 @@ impl<'py> FromPyObject<'_, 'py> for PyBytes {
 ///
 /// This also implements `AsRef`<[u8]> because that is required for `Bytes::from_owner`
 #[derive(Debug)]
-struct PyBytesWrapper(PyBuffer<u8>);
+pub(crate) struct PyBytesWrapper(PyBuffer<u8>);
 
 impl AsRef<[u8]> for PyBytesWrapper {
     #[allow(unsafe_code)]
@@ -593,6 +593,12 @@ impl AsRef<[u8]> for PyBytesWrapper {
         // does not uphold this invariant always for us, and the Python user must take care not to
         // mutate the provided buffer.
         unsafe { std::slice::from_raw_parts(ptr.as_ptr() as *const u8, len) }
+    }
+}
+
+impl From<PyBuffer<u8>> for PyBytesWrapper {
+    fn from(value: PyBuffer<u8>) -> Self {
+        Self(value)
     }
 }
 
@@ -614,6 +620,8 @@ fn validate_buffer(buf: &PyBuffer<u8>) -> PyResult<()> {
 impl<'py> FromPyObject<'_, 'py> for PyBytesWrapper {
     type Error = pyo3::PyErr;
     fn extract(ob: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> PyResult<Self> {
+        // TODO: maybe remove this if branch bc it is already caught above...?
+        // or change it to check is bytesarray or something like that?
         if ob.is_instance_of::<pyo3::types::PyBytes>() {
             let buffer = ob.extract::<PyBuffer<u8>>()?;
             Ok(Self(buffer))

@@ -184,4 +184,6 @@ class Bytes(Buffer):
         their corresponding lowercase counterpart and vice versa.
         """
 
-BytesLike: typing_extensions.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
+ReadableBuffer: typing_extensions.TypeAlias = (
+    Buffer | bytes | bytearray | memoryview | Bytes
+)

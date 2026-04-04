@@ -11,7 +11,7 @@ use pyo3::intern;
 use pyo3::prelude::*;
 mod anybytes;
 pub mod bytes;
-mod bytes_like;
+mod readable_buffer;
 
 #[cfg(feature = "multiple-pymethods")]
 mod pyo3_bytes;
@@ -20,7 +20,7 @@ mod python_bytes_methods;
 mod ryo3_bytes;
 pub use crate::bytes::PyBytes;
 
-pub use bytes_like::BytesLike;
+pub use readable_buffer::ReadableBuffer;
 
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
