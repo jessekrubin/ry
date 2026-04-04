@@ -20,7 +20,7 @@ mod python_bytes_methods;
 mod ryo3_bytes;
 pub use crate::bytes::PyBytes;
 
-pub use bytes_like::{extract_bytes_ref, extract_bytes_ref_str};
+pub use bytes_like::BytesLike;
 
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

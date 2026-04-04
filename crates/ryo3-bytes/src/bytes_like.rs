@@ -1,38 +1,41 @@
 use crate::PyBytes;
 use pyo3::prelude::*;
-use pyo3::{Bound, PyAny, PyResult};
 
-/// Extract a `&[u8]` from a `PyAny` object.
-///
-/// This is useful for when you have either a `bytes` or a `PyBytes` object
-/// as defined in this crate, but you only need a reference to the bytes.
-/// It is considerably faster than just using `PyBytes` as the param for a
-/// function as it avoids the overhead of creating a new `PyBytes` object.
-pub fn extract_bytes_ref<'py>(obj: &'py Bound<'py, PyAny>) -> PyResult<&'py [u8]> {
-    if let Ok(bytes) = obj.extract::<&[u8]>() {
-        Ok(bytes)
-    } else if let Ok(custom) = obj.cast::<PyBytes>() {
-        let a = custom.get();
-        Ok(a.as_ref())
-    } else {
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "Expected bytes, bytearray, or buffer object",
-        ))
+/// Custom zero-copy bytes-like for extracting `&[u8]`
+#[derive(Debug)]
+pub enum BytesLike<'a, 'py> {
+    /// python `builtins.bytes`
+    PyBytes(Borrowed<'a, 'py, pyo3::types::PyBytes>),
+    /// Reference to a `ryo3-bytes::PyBytes` object
+    RyBytes(Borrowed<'a, 'py, PyBytes>),
+    /// Any object that supports the buffer protocol
+    Buffer(PyBytes),
+}
+
+impl AsRef<[u8]> for BytesLike<'_, '_> {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            BytesLike::PyBytes(pybytes) => pybytes.as_bytes(),
+            BytesLike::RyBytes(rybytes) => rybytes.get().as_slice(),
+            BytesLike::Buffer(buffer) => buffer.as_slice(),
+        }
     }
 }
 
-/// Extract a `&[u8]` from a `PyAny` object w/ a string as an acceptable input.
-pub fn extract_bytes_ref_str<'py>(obj: &'py Bound<'py, PyAny>) -> PyResult<&'py [u8]> {
-    if let Ok(bytes) = obj.extract::<&[u8]>() {
-        Ok(bytes)
-    } else if let Ok(custom) = obj.cast::<PyBytes>() {
-        let a = custom.get();
-        Ok(a.as_ref())
-    } else if let Ok(s) = obj.extract::<&str>() {
-        Ok(s.as_bytes())
-    } else {
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "Expected bytes, bytearray, buffer object, or string",
-        ))
+impl<'a, 'py> FromPyObject<'a, 'py> for BytesLike<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(pybytes) = ob.cast_exact::<pyo3::types::PyBytes>() {
+            Ok(Self::PyBytes(pybytes))
+        } else if let Ok(rybytes) = ob.cast_exact::<PyBytes>() {
+            Ok(Self::RyBytes(rybytes))
+        } else if let Ok(buffer) = ob.extract::<PyBytes>() {
+            Ok(Self::Buffer(buffer))
+        } else {
+            Err(pyo3::exceptions::PyTypeError::new_err(
+                "Expected bytes, bytearray, or buffer object",
+            ))
+        }
     }
 }

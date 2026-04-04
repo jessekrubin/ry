@@ -1,5 +1,4 @@
 use crate::compression_level::PyCompressionLevel;
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use ryo3_bytes::PyBytes as RyBytes;
 
@@ -15,33 +14,25 @@ fn rs_zstd_decode_one_shot(data: &[u8]) -> PyResult<Vec<u8>> {
     })
 }
 
-pub(crate) fn py_decode<'py>(
-    py: Python<'py>,
-    data: &Bound<'py, PyAny>,
-) -> PyResult<Bound<'py, PyAny>> {
-    let slice = ryo3_bytes::extract_bytes_ref(data)?;
-    let decoded = py.detach(|| rs_zstd_decode_one_shot(slice))?;
-    RyBytes::from(decoded).into_bound_py_any(py)
+pub(crate) fn py_decode(py: Python<'_>, data: &RyBytes) -> PyResult<RyBytes> {
+    py.detach(|| rs_zstd_decode_one_shot(data.as_slice()))
+        .map(Into::into)
 }
 
-pub(crate) fn py_encode<'py>(
-    py: Python<'py>,
-    data: &Bound<'py, PyAny>,
+pub(crate) fn py_encode(
+    py: Python<'_>,
+    data: &RyBytes,
     level: PyCompressionLevel,
-) -> PyResult<Bound<'py, PyAny>> {
-    let slice = ryo3_bytes::extract_bytes_ref(data)?;
-    let encoded = py.detach(|| rs_zstd_compress_oneshot(slice, level))?;
-    RyBytes::from(encoded).into_bound_py_any(py)
+) -> PyResult<RyBytes> {
+    let encoded = py.detach(|| rs_zstd_compress_oneshot(data.as_slice(), level))?;
+    Ok(encoded.into())
 }
 
 macro_rules! zstd_decode_pyfunction {
     ($func_name:ident) => {
         #[pyfunction(signature = (data))]
-        pub fn $func_name<'py>(
-            py: Python<'py>,
-            data: &Bound<'py, PyAny>,
-        ) -> PyResult<Bound<'py, PyAny>> {
-            py_decode(py, data)
+        pub fn $func_name(py: Python<'_>, data: RyBytes) -> PyResult<RyBytes> {
+            py_decode(py, &data)
         }
     };
 }
@@ -49,12 +40,10 @@ macro_rules! zstd_decode_pyfunction {
 macro_rules! zstd_encode_pyfunction {
     ($func_name:ident) => {
         #[pyfunction(signature = (data, level = PyCompressionLevel::default()), text_signature = "(data, level=3)")]
-        pub fn $func_name<'py>(
-            py: Python<'py>,
-            data: &Bound<'py, PyAny>,
-            level: PyCompressionLevel,
-        ) -> PyResult<Bound<'py, PyAny>> {
-            py_encode(py, data, level)
+        pub fn $func_name(
+            py: Python<'_>, data: RyBytes, level: PyCompressionLevel
+        ) -> PyResult<RyBytes> {
+            py_encode(py, &data, level)
         }
     };
 }

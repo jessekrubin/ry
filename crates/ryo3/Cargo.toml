@@ -31,7 +31,6 @@ ryo3-fspath = { workspace = true, optional = false }
 ryo3-std = { workspace = true, optional = false }
 
 # FUTURE
-ryo3-tokio-websockets = { workspace = true, optional = true }
 #ryo3-ignore = { workspace = true, optional = true }
 # optional ryo3-* dependencies
 ryo3-aws-lc = { workspace = true, optional = true }
@@ -57,6 +56,7 @@ ryo3-shlex = { workspace = true, optional = true }
 ryo3-size = { workspace = true, optional = true }
 ryo3-sqlformat = { workspace = true, optional = true }
 ryo3-tokio = { workspace = true, optional = true }
+ryo3-tokio-websockets = { workspace = true, optional = true }
 ryo3-twox-hash = { workspace = true, optional = true }
 ryo3-ulid = { workspace = true, optional = true }
 ryo3-unindent = { workspace = true, optional = true }
@@ -107,6 +107,7 @@ all = [
 experimental-async = [
   "pyo3/experimental-async",
   "ryo3-tokio?/experimental-async",
+  "ryo3-tokio-websockets?/experimental-async",
   "ryo3-reqwest?/experimental-async",
 ]
 dev = ["dep:ryo3-dev"]
@@ -165,6 +166,7 @@ shlex = ["dep:ryo3-shlex"]
 size = ["dep:ryo3-size"]
 sqlformat = ["dep:ryo3-sqlformat"]
 tokio = ["dep:ryo3-tokio"]
+tokio-websockets = ["dep:ryo3-tokio-websockets"]
 ulid = ["dep:ryo3-ulid"]
 unindent = ["dep:ryo3-unindent"]
 url = ["dep:ryo3-url"]
@@ -179,4 +181,3 @@ xxhash = ["twox-hash"]
 
 # FUTURE
 # ignore = ["dep:ryo3-ignore"]
-tokio-websockets = ["dep:ryo3-tokio-websockets"]
