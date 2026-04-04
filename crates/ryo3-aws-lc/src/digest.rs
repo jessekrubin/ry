@@ -22,7 +22,7 @@
 use aws_lc_rs::digest::{Context, Digest};
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::ReadableBuffer;
 use ryo3_core::types::PyHexDigest;
 use ryo3_core::{PyAsciiString, RyMutex};
 
@@ -275,11 +275,14 @@ impl PySha256 {
         signature = (data = None, *),
         text_signature = "(data=None, /)",
     )]
-    fn py_new(py: Python<'_>, data: Option<RyBytes>) -> Self {
-        py.detach(|| match data {
-            Some(b) => Self(PyMutexContext::new_with_data(b.as_ref())),
+    fn py_new(py: Python<'_>, data: Option<ReadableBuffer>) -> Self {
+        match data {
+            Some(b) => {
+                let bytes = b.as_ref();
+                py.detach(|| Self(PyMutexContext::new_with_data(bytes)))
+            }
             None => Self(PyMutexContext::new()),
-        })
+        }
     }
 
     #[classattr]
@@ -311,10 +314,13 @@ impl PySha256 {
 
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(signature = (data, /), text_signature = "(data, /)")]
-    fn update(&self, data: RyBytes) -> PyResult<()> {
-        let mut ctx = self.0.py_lock()?;
-        ctx.update(data.as_ref());
-        Ok(())
+    fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
+        let s = data.as_ref();
+        py.detach(|| {
+            let mut ctx = self.0.py_lock()?;
+            ctx.update(s);
+            Ok(())
+        })
     }
 
     fn copy(&self) -> PyResult<Self> {
@@ -327,7 +333,7 @@ impl PySha256 {
     #[staticmethod]
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(signature = (data, /), text_signature = "(data, /)")]
-    fn oneshot(data: RyBytes) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
+    fn oneshot(data: ReadableBuffer) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
         let mut ctx = Context::new(PySha256Algorithm::algorithm());
         ctx.update(data.as_ref());
         let digest = ctx.finish();
@@ -369,11 +375,14 @@ macro_rules! define_py_hasher {
         impl $py_struct {
             #[new]
             #[pyo3(signature = (data = None, *), text_signature = "(data=None, /)")]
-            fn py_new(py: Python<'_>, data: Option<RyBytes>) -> Self {
-                py.detach(|| match data {
-                    Some(b) => Self(PyMutexContext::new_with_data(b.as_ref())),
+            fn py_new(py: Python<'_>, data: Option<ReadableBuffer>) -> Self {
+                match data {
+                    Some(b) => {
+                        let bytes = b.as_ref();
+                        py.detach(|| Self(PyMutexContext::new_with_data(bytes)))
+                    }
                     None => Self(PyMutexContext::new()),
-                })
+                }
             }
 
             #[classattr]
@@ -407,12 +416,14 @@ macro_rules! define_py_hasher {
                 Ok(PyHexDigest::from(bytes))
             }
 
-            // #[expect(clippy::needless_pass_by_value)]
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
-            fn update(&self, data: RyBytes) -> PyResult<()> {
-                let mut ctx = self.0.py_lock()?;
-                ctx.update(data.as_ref());
-                Ok(())
+            fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
+                let s = data.as_ref();
+                py.detach(|| {
+                    let mut ctx = self.0.py_lock()?;
+                    ctx.update(s);
+                    Ok(())
+                })
             }
 
             fn copy(&self) -> PyResult<Self> {
@@ -425,7 +436,7 @@ macro_rules! define_py_hasher {
             #[staticmethod]
             #[allow(clippy::needless_pass_by_value)]
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
-            fn oneshot(data: RyBytes) -> PyResult<PyAwsLcRsDigest<$output_len>> {
+            fn oneshot(data: ReadableBuffer) -> PyResult<PyAwsLcRsDigest<$output_len>> {
                 // weird <> syntax works...
                 let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
                 ctx.update(data.as_ref());

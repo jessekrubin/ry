@@ -350,6 +350,17 @@ impl PyWebSocket {
     }
 }
 
+impl std::fmt::Display for PyWebSocket {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "WebSocket(uri={:?}, open={})",
+            self.0.cfg.uri,
+            self.0.state.blocking_lock().is_open()
+        )
+    }
+}
+
 #[pymethods]
 impl PyWebSocket {
     #[new]
@@ -482,6 +493,7 @@ impl PyWebSocket {
         future_into_py(py, async move { this.disconnect().await })
     }
 
+    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(signature = (timeout = None))]
     fn recv<'py>(
         &self,
@@ -498,6 +510,17 @@ impl PyWebSocket {
         })
     }
 
+    #[cfg(feature = "experimental-async")]
+    #[pyo3(signature = (timeout = None))]
+    async fn recv(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
+        if let Some(msg) = self.recv_msg(timeout.map(Into::into)).await? {
+            Ok(msg)
+        } else {
+            py_runtime_err!("websocket closed")
+        }
+    }
+
+    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(signature = (timeout = None))]
     fn receive<'py>(
         &self,
@@ -507,6 +530,13 @@ impl PyWebSocket {
         self.recv(py, timeout)
     }
 
+    #[cfg(feature = "experimental-async")]
+    #[pyo3(signature = (timeout = None))]
+    async fn receive(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
+        self.recv(timeout).await
+    }
+
+    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(name = "send")]
     fn py_send<'py>(&self, py: Python<'py>, message: PyMessageLike) -> PyResult<Bound<'py, PyAny>> {
         let this = self.clone();
@@ -514,6 +544,14 @@ impl PyWebSocket {
         future_into_py(py, async move { this.send(message).await })
     }
 
+    #[cfg(feature = "experimental-async")]
+    #[pyo3(name = "send")]
+    async fn py_send(&self, message: PyMessageLike) -> PyResult<()> {
+        let message = Message::from(message);
+        self.send(message).await
+    }
+
+    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(
         signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
         text_signature = "(self, code=1_000, reason=None)"
@@ -529,6 +567,17 @@ impl PyWebSocket {
         future_into_py(py, async move { this.close_with(pymsg.into()).await })
     }
 
+    #[cfg(feature = "experimental-async")]
+    #[pyo3(
+        signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
+        text_signature = "(self, code=1_000, reason=None)"
+    )]
+    async fn close(&self, code: PyWsCloseCode, reason: Option<PyWsCloseReason>) -> PyResult<()> {
+        let pymsg = PyWsMessage::close(code, reason)?;
+        self.close_with(pymsg.into()).await
+    }
+
+    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(signature = (payload = None))]
     fn ping<'py>(
         &self,
@@ -540,6 +589,14 @@ impl PyWebSocket {
         future_into_py(py, async move { this.send(payload).await })
     }
 
+    #[cfg(feature = "experimental-async")]
+    #[pyo3(signature = (payload = None))]
+    async fn ping(&self, payload: Option<PyPingPayload>) -> PyResult<()> {
+        let payload = payload.unwrap_or_default().into();
+        self.send(payload).await
+    }
+
+    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(signature = (payload = None))]
     fn pong<'py>(
         &self,
@@ -550,15 +607,12 @@ impl PyWebSocket {
         let payload = payload.unwrap_or_default().into();
         future_into_py(py, async move { this.send(payload).await })
     }
-}
-impl std::fmt::Display for PyWebSocket {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "WebSocket(uri={:?}, open={})",
-            self.0.cfg.uri,
-            self.0.state.blocking_lock().is_open()
-        )
+
+    #[cfg(feature = "experimental-async")]
+    #[pyo3(signature = (payload = None))]
+    async fn pong(&self, payload: Option<PyPongPayload>) -> PyResult<()> {
+        let payload = payload.unwrap_or_default().into();
+        self.send(payload).await
     }
 }
 

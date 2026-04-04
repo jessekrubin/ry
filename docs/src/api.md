@@ -8,6 +8,7 @@
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
+- [`ry.ryo3._cookie`](#ry.ryo3._cookie)
 - [`ry.ryo3._dev`](#ry.ryo3._dev)
 - [`ry.ryo3._encoding_rs`](#ry.ryo3._encoding_rs)
 - [`ry.ryo3._flate2`](#ry.ryo3._flate2)
@@ -31,6 +32,7 @@
 - [`ry.ryo3._std`](#ry.ryo3._std)
 - [`ry.ryo3._std_constants`](#ry.ryo3._std_constants)
 - [`ry.ryo3._tokio`](#ry.ryo3._tokio)
+- [`ry.ryo3._tokio_websockets`](#ry.ryo3._tokio_websockets)
 - [`ry.ryo3._unindent`](#ry.ryo3._unindent)
 - [`ry.ryo3._url`](#ry.ryo3._url)
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
@@ -89,6 +91,7 @@ from ry.ryo3._bytes import Bytes as Bytes
 from ry.ryo3._bzip2 import bzip2 as bzip2
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
 from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
+from ry.ryo3._cookie import Cookie as Cookie
 from ry.ryo3._flate2 import gunzip as gunzip
 from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
@@ -173,7 +176,6 @@ from ry.ryo3._reqwest import (
 )
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
-from ry.ryo3._reqwest import Cookie as Cookie
 from ry.ryo3._reqwest import HttpClient as HttpClient
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
@@ -299,6 +301,9 @@ from ry.ryo3._tokio import rename_async as rename_async
 from ry.ryo3._tokio import sleep_async as sleep_async
 from ry.ryo3._tokio import try_exists_async as try_exists_async
 from ry.ryo3._tokio import write_async as write_async
+from ry.ryo3._tokio_websockets import WebSocket as WebSocket
+from ry.ryo3._tokio_websockets import WsMessage as WsMessage
+from ry.ryo3._tokio_websockets import websocket as websocket
 from ry.ryo3._unindent import unindent as unindent
 from ry.ryo3._unindent import unindent_bytes as unindent_bytes
 from ry.ryo3._url import URL as URL
@@ -634,7 +639,7 @@ class Bytes(Buffer):
         """
 
 
-BytesLike: typing_extensions.TypeAlias = (
+ReadableBuffer: typing_extensions.TypeAlias = (
     Buffer | bytes | bytearray | memoryview | Bytes
 )
 ```
@@ -656,6 +661,111 @@ def bzip2_decode(data: Buffer) -> Bytes: ...
 def bzip2_encode(data: Buffer, quality: _Quality = 6) -> Bytes: ...
 def bzip2(data: Buffer, quality: _Quality = 6) -> Bytes:
     """Alias for bzip2_encode"""
+```
+
+<h2 id="ry.ryo3._cookie"><code>ry.ryo3._cookie</code></h2>
+
+```python
+import typing as t
+
+from ry.protocols import FromStr, _Parse
+from ry.ryo3._std import Duration
+
+_SameSiteKw: t.TypeAlias = t.Literal[
+    "Lax", "lax", "Strict", "strict", "None", "none"
+]
+"""same-site kwarg allows title-case and lower-case values"""
+
+
+@t.final
+class Cookie(FromStr, _Parse):
+    def __init__(
+        self,
+        name: str,
+        value: str,
+        *,
+        domain: str | None = None,
+        expires: int | None = None,
+        http_only: bool | None = None,
+        max_age: Duration | None = None,
+        partitioned: bool | None = None,
+        path: str | None = None,
+        permanent: bool = False,
+        removal: bool = False,
+        same_site: _SameSiteKw | None = None,
+        secure: bool | None = None,
+    ) -> None:
+        """Create a new cookie with the given name and value, and optional attributes
+
+        Args:
+            name: The name of the cookie
+            value: The value of the cookie
+            domain: The domain of the cookie (optional)
+            expires: The expiration time of the cookie as a UNIX timestamp (optional)
+            http_only: Whether the cookie is HTTP-only (optional)
+            max_age: The maximum age of the cookie as a Duration (optional)
+            partitioned: Whether the cookie is partitioned (optional)
+            path: The path of the cookie (optional)
+            permanent: Whether the cookie is permanent (optional)
+            removal: Whether the cookie is marked for removal (optional)
+            same_site: The same-site attribute of the cookie (optional)
+            secure: Whether the cookie is secure (optional)
+
+        Examples:
+            >>> from ry import Cookie
+            >>> c = Cookie("id", "cookie-monster")
+            >>> c
+            Cookie("id", "cookie-monster")
+            >>> str(c)
+            'id=cookie-monster'
+
+        """
+
+    @classmethod
+    def from_str(cls, s: str) -> t.Self: ...
+    @classmethod
+    def parse(cls, s: str | bytes) -> t.Self: ...
+    @staticmethod
+    def parse_encoded(s: str) -> Cookie: ...
+
+    # -------------------------------------------------------------------------
+    # METHODS
+    # -------------------------------------------------------------------------
+    # -- STRING --
+    def encoded(self) -> str: ...
+    def stripped(self) -> str: ...
+    def encoded_stripped(self) -> str: ...
+    def stripped_encoded(self) -> str: ...
+
+    # -------------------------------------------------------------------------
+    # PROPERTIES
+    # -------------------------------------------------------------------------
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> str: ...
+    @property
+    def value_trimmed(self) -> str: ...
+    @property
+    def name_value(self) -> tuple[str, str]: ...
+    @property
+    def name_value_trimmed(self) -> tuple[str, str]: ...
+    @property
+    def domain(self) -> str | None: ...
+    @property
+    def expires(self) -> int | None: ...
+    @property
+    def http_only(self) -> bool | None: ...
+    @property
+    def max_age(self) -> Duration | None: ...
+    @property
+    def partitioned(self) -> bool | None: ...
+    @property
+    def path(self) -> str | None: ...
+    @property
+    def same_site(self) -> t.Literal["Lax", "Strict", "None"] | None: ...
+    @property
+    def secure(self) -> bool | None: ...
 ```
 
 <h2 id="ry.ryo3._dev"><code>ry.ryo3._dev</code></h2>
@@ -4805,7 +4915,7 @@ import typing as t
 
 import ry
 from ry._types import Buffer, Unpack
-from ry.protocols import FromStr, _Parse
+from ry.ryo3._cookie import Cookie
 from ry.ryo3._encoding_rs import Encoding
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
@@ -5517,71 +5627,6 @@ def fetch_sync(
     bearer_auth: str | None = None,
     version: HttpVersionLike | None = None,
 ) -> BlockingResponse: ...
-
-
-@t.final
-class Cookie(FromStr, _Parse):
-    def __init__(
-        self,
-        name: str,
-        value: str,
-        *,
-        domain: str | None = None,
-        expires: int | None = None,
-        http_only: bool | None = None,
-        max_age: Duration | None = None,
-        partitioned: bool | None = None,
-        path: str | None = None,
-        permanent: bool = False,
-        removal: bool = False,
-        same_site: t.Literal["Lax", "Strict", "None"] | None = None,
-        secure: bool | None = None,
-    ) -> None: ...
-    @classmethod
-    def from_str(cls, s: str) -> Cookie: ...
-    @classmethod
-    def parse(cls, s: str | bytes) -> Cookie: ...
-    @staticmethod
-    def parse_encoded(s: str) -> Cookie: ...
-
-    # -------------------------------------------------------------------------
-    # METHODS
-    # -------------------------------------------------------------------------
-    # -- STRING --
-    def encoded(self) -> str: ...
-    def stripped(self) -> str: ...
-    def encoded_stripped(self) -> str: ...
-    def stripped_encoded(self) -> str: ...
-
-    # -------------------------------------------------------------------------
-    # PROPERTIES
-    # -------------------------------------------------------------------------
-    @property
-    def name(self) -> str: ...
-    @property
-    def value(self) -> str: ...
-    @property
-    def value_trimmed(self) -> str: ...
-    @property
-    def name_value(self) -> tuple[str, str]: ...
-    @property
-    def name_value_trimmed(self) -> tuple[str, str]: ...
-    @property
-    def domain(self) -> str | None: ...
-    @property
-    def expires(self) -> int | None: ...
-    @property
-    def http_only(self) -> bool | None: ...
-    @property
-    def max_age(self) -> Duration | None: ...
-    @property
-    def partitioned(self) -> bool | None: ...
-    @property
-    def path(self) -> str | None: ...
-    @property
-    def same_site(self) -> t.Literal["Lax", "Strict", "None"] | None: ...
-    @property
-    def secure(self) -> bool | None: ...
 
 
 @t.final
@@ -6912,7 +6957,7 @@ ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
 
 ```python
-"""ryo4-tokio types"""
+"""ryo3-tokio types"""
 
 import pathlib
 import sys
@@ -7088,6 +7133,245 @@ def read_stream_async(
         ValueError: If offset is beyond EOF and strict is True.
 
     """
+```
+
+<h2 id="ry.ryo3._tokio_websockets"><code>ry.ryo3._tokio_websockets</code></h2>
+
+```python
+"""ryo3-tokio-websockets types"""
+
+import sys
+import typing as t
+from collections.abc import Generator
+from types import TracebackType
+
+from ry import Bytes
+from ry._types import Buffer
+from ry.ryo3._http import Headers, HttpStatus
+from ry.ryo3._url import URL
+
+if sys.version_info >= (3, 12):
+    from collections.abc import Buffer as Buffer
+else:
+    from typing_extensions import Buffer as Buffer
+
+_ReadyState: t.TypeAlias = t.Literal[
+    0,  # CONNECTING
+    1,  # OPEN
+    2,  # CLOSING
+    3,  # CLOSED
+]
+
+
+@t.final
+class WsMessage(Buffer):
+    @t.overload
+    def __init__(self, kind: t.Literal["text"], data: str) -> None: ...
+    @t.overload
+    def __init__(self, kind: t.Literal["binary"], data: Buffer) -> None: ...
+    @t.overload
+    def __init__(
+        self, kind: t.Literal["ping", "pong"], data: Buffer | None = None
+    ) -> None: ...
+    @t.overload
+    def __init__(
+        self,
+        kind: t.Literal["close"],
+        data: None = None,
+        code: int = 1_000,
+        reason: str | Buffer = "",
+    ) -> None: ...
+    # -------------------------------------------------------------------------
+    # "CLASSMETHODS" (STATIC FACTORY FNS)
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def text(text: str) -> WsMessage:
+        """Construct a new text message with the given text data
+
+        Args:
+            text: the text data for the message
+
+        Returns:
+            text `WsMessage`
+        """
+
+    @staticmethod
+    def binary(data: Buffer) -> WsMessage:
+        """Construct a new binary message with the given data.
+
+        Args:
+            data: readable-buffer data for the message
+
+        Returns:
+            binary `WsMessage`
+        """
+
+    @staticmethod
+    def ping(payload: Buffer | None = None) -> WsMessage:
+        """Construct a new ping message with the given optional payload
+
+        Returns:
+            ping `WsMessage`
+        """
+
+    @staticmethod
+    def pong(payload: Buffer | None = None) -> WsMessage:
+        """Construct a new pong message with the given optional payload
+
+        Returns:
+            pong `WsMessage`
+        """
+
+    @staticmethod
+    def close(
+        code: int = 1_000, reason: str | Buffer | None = None
+    ) -> WsMessage:
+        """Construct a new close message with the given close-code and reason"""
+
+    # -------------------------------------------------------------------------
+    # PROPERTIES
+    # -------------------------------------------------------------------------
+
+    @property
+    def kind(self) -> t.Literal["text", "binary", "close", "ping", "pong"]:
+        """Return the message kind as a string literal."""
+
+    @property
+    def is_text(self) -> bool:
+        """Return `True` if this is a text message, `False` otherwise"""
+
+    @property
+    def is_binary(self) -> bool:
+        """Return `True` if this is a binary message, `False` otherwise"""
+
+    @property
+    def is_close(self) -> bool:
+        """Return `True` if this is a close message, `False` otherwise"""
+
+    @property
+    def is_ping(self) -> bool:
+        """Return `True` if this is a ping message, `False` otherwise"""
+
+    @property
+    def is_pong(self) -> bool:
+        """Return `True` if this is a pong message, `False` otherwise"""
+
+    @property
+    def data(self) -> str | Bytes:
+        """Return the message data as a `str` for text messages or `Bytes` for binary messages"""
+
+    @property
+    def payload(self) -> Bytes:
+        """Return the message payload as a `Bytes` object for any message kind"""
+
+    @property
+    def code(self) -> int | None:
+        """Returns the close code as an integer if the close message"""
+
+    @property
+    def reason(self) -> str | None:
+        """Returns the close reason as a string if the close message"""
+
+    # -------------------------------------------------------------------------
+    # INSTANCE METHODS
+    # -------------------------------------------------------------------------
+    def json(self) -> t.Any:
+        """Parse the message payload as JSON"""
+
+    def __bytes__(self) -> bytes:
+        """Return message payload as `builtins.bytes`"""
+
+    def __len__(self) -> int:
+        """Return the length of the message payload in bytes"""
+
+
+@t.final
+class WebSocket:
+    def __init__(
+        self,
+        uri: URL | str,
+        *,
+        headers: Headers | dict[str, str] | None = None,
+        max_payload_len: int = 67_108_864,
+        frame_size: int = 4_194_304,
+        flush_threshold: int = 8_192,
+        close_timeout: float | None = 10.0,
+    ) -> None: ...
+    @property
+    def uri(self) -> str: ...
+    @property
+    def status(self) -> HttpStatus | None:
+        """Return the HTTP status of the websocket handshake if connected"""
+
+    @property
+    def headers(self) -> Headers | None:
+        """Return the HTTP headers of the websocket handshake if connected"""
+
+    @property
+    def closed(self) -> bool:
+        """Return `True` if the WebSocket is closed, `False` otherwise"""
+
+    @property
+    def open(self) -> bool:
+        """Return `True` if the WebSocket is open, `False` otherwise"""
+
+    @property
+    def ready_state(self) -> _ReadyState:
+        """Return `WebSocket` ready-state (`0`=CONNECTING, `1`=OPEN, `2`=CLOSING, `3`=CLOSED)
+
+        Based on the `WebSocket.readyState` property from the Web API:
+        <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState>
+        """
+
+    def __bool__(self) -> bool:
+        """Return `True` if the WebSocket is open, `False` otherwise"""
+
+    async def recv(self) -> WsMessage:
+        """Receive the next message from the WebSocket connection"""
+
+    async def receive(self) -> WsMessage:
+        """Receive the next message from the WebSocket connection"""
+
+    async def send(self, message: WsMessage | str | Buffer) -> None:
+        """Send a message over the WebSocket connection"""
+
+    async def close(
+        self, code: int = 1_000, reason: str | Buffer | None = None
+    ) -> None:
+        """Close the WebSocket connection.
+
+        Args:
+            code: Optional close code (default: `1000`=NORMAL_CLOSURE)
+            reason: Optional close reason (max length: 123 bytes)
+        """
+
+    async def ping(self, payload: Buffer | None = None) -> None:
+        """Send a ping frame over the WebSocket connection"""
+
+    async def pong(self, payload: Buffer | None = None) -> None:
+        """Send a pong frame over the WebSocket connection"""
+
+    def __await__(self) -> Generator[t.Any, t.Any, t.Self]: ...
+    def __aiter__(self) -> t.Self: ...
+    async def __anext__(self) -> WsMessage: ...
+    async def __aenter__(self) -> t.Self: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
+
+
+def websocket(
+    uri: URL | str,
+    *,
+    headers: Headers | dict[str, str] | None = None,
+    close_timeout: float | None = 10,
+    flush_threshold: int = 8_192,
+    frame_size: int = 4_194_304,
+    max_payload_len: int = 67_108_864,
+) -> WebSocket: ...
 ```
 
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>

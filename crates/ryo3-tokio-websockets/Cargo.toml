@@ -13,6 +13,7 @@ description = "python + tokio-websockets crate (https://crates.io/crates/tokio-w
 
 [features]
 default = []
+experimental-async = ["pyo3/experimental-async"]
 json = ["ryo3-jiter"]
 ry = ["json"]
 

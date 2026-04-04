@@ -112,7 +112,6 @@ impl PyFileReadStream {
             return py_value_err!("read_size must be greater than 0");
         }
 
-        // Open once so we can check length
         let file = File::open(&options.path)?;
         let len = file.metadata()?.len();
 
