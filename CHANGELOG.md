@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.87 [unreleased]
+## v0.0.87 [2026-04-03]
 
 - internal
   - remove imports from `pyo3` where covered by `pyo3::prelude::*`
@@ -8,6 +8,8 @@
   - moved the `ryo3-tokio` runtime tools/utils into own crate `ryo3-tokio-rt`
   - Use crate in `ryo3-reqwest`, `ryo3-tokio` and future `ryo3-tokio-websockets`
 - `ryo3-tokio-websockets`
+  - finally implemented (over about a week) bc I am working on a ws server at
+    work and gonna use this to test it
   - Workin progress websocket client using `tokio-websockets` crate
   - add `json()` fn to `ry.WsMessage` to parse message payload as JSON
 - `ryo3-cookie`
