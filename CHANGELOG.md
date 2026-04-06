@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.88 [unreleased]
+
+- expanding usage of `ReadableBuffer` for (every-so-slightly) perf gains when
+  reading bytes
+- `ryo3-tokio-websockets`
+  - `config()` function on `ry.WebSocket` to return a typed dict with the config
+    values
+
+---
+
 ## v0.0.87 [2026-04-03]
 
 - internal

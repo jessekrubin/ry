@@ -78,7 +78,10 @@ impl Serialize for PyTimeSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let py_time = self.obj.cast_exact::<PyTime>().map_err(pyerr2sererr)?;
+        let py_time = self
+            .obj
+            .cast_exact::<pyo3::types::PyTime>()
+            .map_err(pyerr2sererr)?;
         let time_pystr = py_time.str().map_err(pyerr2sererr)?;
         let time_str = time_pystr.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(time_str)

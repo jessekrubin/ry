@@ -151,6 +151,7 @@ clippy-features:
     cargo hack --feature-powerset clippy --package ryo3-jiff
     cargo hack --feature-powerset clippy --package ryo3-std
     cargo hack --feature-powerset clippy --package ryo3-tokio
+    cargo hack --feature-powerset clippy --exclude-no-default-features --package ryo3-tokio-websockets
     cargo hack --feature-powerset clippy --package ryo3-twox-hash
     cargo hack --feature-powerset clippy --package ryo3-ulid
     cargo hack --feature-powerset clippy --package ryo3-url
@@ -167,6 +168,7 @@ check-features:
     cargo hack --feature-powerset check --package ryo3-jiff
     cargo hack --feature-powerset check --package ryo3-std
     cargo hack --feature-powerset check --package ryo3-tokio
+    cargo hack --feature-powerset check --package ryo3-tokio-websockets
     cargo hack --feature-powerset check --package ryo3-twox-hash
     cargo hack --feature-powerset check --package ryo3-ulid
     cargo hack --feature-powerset check --package ryo3-url
