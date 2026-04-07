@@ -2,9 +2,9 @@
 //!
 //! `ry` does all registration of pyo3 types/fns/classes/mods here
 
-use crate::libs;
 use pyo3::prelude::*;
-use pyo3::{Bound, PyResult};
+
+use crate::libs;
 
 #[cfg(feature = "dev")]
 pub mod dev;

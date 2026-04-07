@@ -1,19 +1,24 @@
 //! `FsPath` struct python module
-use pyo3::basic::CompareOp;
-use pyo3::exceptions::{
-    PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
-    PyValueError,
+use std::{
+    ffi::OsStr,
+    hash::{Hash, Hasher},
+    path::{Path, PathBuf},
 };
 
-use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use pyo3::{
+    IntoPyObjectExt,
+    basic::CompareOp,
+    exceptions::{
+        PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
+        PyValueError,
+    },
+    intern,
+    prelude::*,
+    types::{PyBytes, PyTuple},
+};
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_core::RyMutex;
-use ryo3_core::types::PathLike;
+use ryo3_core::{RyMutex, types::PathLike};
 use ryo3_macro_rules::pytodo;
-use std::ffi::OsStr;
-use std::hash::{Hash, Hasher};
-use std::path::{Path, PathBuf};
 
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;

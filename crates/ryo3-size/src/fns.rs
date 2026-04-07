@@ -1,5 +1,6 @@
-use crate::types::{Base, Style};
 use pyo3::prelude::*;
+
+use crate::types::{Base, Style};
 
 #[pyfunction]
 pub fn parse_size(s: &str) -> PyResult<i64> {

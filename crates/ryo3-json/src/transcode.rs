@@ -1,10 +1,9 @@
-use pyo3::prelude::*;
-use pyo3::types::PyString;
+use std::io;
+
+use pyo3::{prelude::*, types::PyString};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::{py_type_err, py_value_error};
-use serde_json::Deserializer;
-use serde_json::Serializer;
-use std::io;
+use serde_json::{Deserializer, Serializer};
 
 fn minify_json<R: io::Read, W: io::Write>(input: R, output: W) -> Result<(), serde_json::Error> {
     let mut de = Deserializer::from_reader(input);

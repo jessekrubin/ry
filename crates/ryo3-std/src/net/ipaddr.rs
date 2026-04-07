@@ -1,11 +1,14 @@
 // #![expect(clippy::trivially_copy_pass_by_ref)]
-use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
-use pyo3::types::PyTuple;
-use pyo3::{BoundObject, prelude::*};
+use std::{
+    hash::{Hash, Hasher},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6},
+};
+
+use pyo3::{BoundObject, prelude::*, types::PyTuple};
 use ryo3_core::{PyAsciiString, PyFromStr, PyParse};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
-use std::hash::{Hash, Hasher};
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
+
+use crate::net::{PySocketAddrV4, PySocketAddrV6, ipaddr_props::IpAddrProps};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -1032,8 +1035,10 @@ fn extract_ipv6_from_single_ob(ob: &Bound<'_, PyAny>) -> PyResult<Ipv6Addr> {
 
 #[cfg(feature = "pydantic")]
 mod pydantic {
-    use pyo3::prelude::*;
-    use pyo3::types::{PyAny, PyDict, PyTuple, PyType};
+    use pyo3::{
+        prelude::*,
+        types::{PyAny, PyDict, PyTuple, PyType},
+    };
     use ryo3_pydantic::{GetPydanticCoreSchemaCls, GetPydanticJsonSchemaCls, interns};
 
     use super::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};

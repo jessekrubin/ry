@@ -1,17 +1,12 @@
 #![doc = include_str!("../README.md")]
 mod pattern;
 
+use std::{ffi::OsString, path::PathBuf, sync::Arc};
+
+use pyo3::{IntoPyObjectExt, prelude::*, sync::PyOnceLock, types::PyType};
+use ryo3_core::{RyMutex, py_value_err, py_value_error};
+
 use crate::pattern::PyGlobPattern;
-use pyo3::IntoPyObjectExt;
-use pyo3::prelude::*;
-use pyo3::sync::PyOnceLock;
-use pyo3::types::PyType;
-use ryo3_core::RyMutex;
-use ryo3_core::py_value_err;
-use ryo3_core::py_value_error;
-use std::ffi::OsString;
-use std::path::PathBuf;
-use std::sync::Arc;
 
 #[derive(Clone, Copy)]
 enum GlobDType {

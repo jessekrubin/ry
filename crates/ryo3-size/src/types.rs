@@ -1,6 +1,9 @@
-use pyo3::prelude::*;
-use pyo3::types::{PyInt, PyString};
 use std::fmt::Display;
+
+use pyo3::{
+    prelude::*,
+    types::{PyInt, PyString},
+};
 
 #[derive(Clone, Copy)]
 pub struct Base(pub size::fmt::Base);

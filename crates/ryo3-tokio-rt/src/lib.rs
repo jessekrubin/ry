@@ -1,12 +1,14 @@
 //! tokio-runtime + python
 
-use pyo3::exceptions::PyRuntimeError;
-use std::future::Future;
-use std::pin::Pin;
-use std::task::{Context, Poll, ready};
-use tokio::runtime::Runtime;
+use std::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll, ready},
+};
 
+use pyo3::exceptions::PyRuntimeError;
 pub use pyo3_async_runtimes::tokio::future_into_py;
+use tokio::runtime::Runtime;
 
 pub struct RyRuntime<'r>(pub &'r Runtime);
 

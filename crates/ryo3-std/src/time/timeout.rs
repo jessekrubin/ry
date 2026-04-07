@@ -1,7 +1,9 @@
-use super::PyDuration;
+use std::time::Duration;
+
 use pyo3::prelude::*;
 use ryo3_core::{py_type_err, py_value_err};
-use std::time::Duration;
+
+use super::PyDuration;
 
 #[derive(Clone, Copy)]
 pub struct PyTimeout(Duration);

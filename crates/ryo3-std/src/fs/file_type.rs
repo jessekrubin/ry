@@ -1,5 +1,4 @@
-use pyo3::prelude::*;
-use pyo3::sync::PyOnceLock;
+use pyo3::{prelude::*, sync::PyOnceLock};
 use ryo3_core::PyFromStr;
 use ryo3_macro_rules::py_value_err;
 

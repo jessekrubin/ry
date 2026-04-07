@@ -1,21 +1,28 @@
 mod file_read_stream;
 mod file_type;
-use crate::fs::file_read_stream::PyFileReadStream;
-pub use file_type::PyFileType;
-use pyo3::exceptions::{
-    PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError,
+use std::{
+    convert::Into,
+    ffi::OsString,
+    path::{Path, PathBuf},
+    sync::Mutex,
+    time::SystemTime,
 };
-use pyo3::types::{PyBytes, PyDict};
-use pyo3::{IntoPyObjectExt, intern, prelude::*};
+
+pub use file_type::PyFileType;
+use pyo3::{
+    IntoPyObjectExt,
+    exceptions::{
+        PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError,
+    },
+    intern,
+    prelude::*,
+    types::{PyBytes, PyDict},
+};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::types::PathLike;
 use ryo3_macro_rules::py_type_err;
-use std::convert::Into;
 
-use std::ffi::OsString;
-use std::path::{Path, PathBuf};
-use std::sync::Mutex;
-use std::time::SystemTime;
+use crate::fs::file_read_stream::PyFileReadStream;
 
 #[pyclass(name = "Metadata", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -224,7 +231,16 @@ impl PyDirEntry {
 // ============================================================================
 
 #[pyfunction]
-#[pyo3(signature = (path, read_size = 65536, *, offset = 0, buffered = true, strict = true))]
+#[pyo3(
+    signature = (
+        path,
+        read_size = 65_536,
+        *,
+        offset = 0,
+        buffered = true,
+        strict = true
+    )
+)]
 pub fn read_stream(
     path: PathBuf,
     read_size: usize,

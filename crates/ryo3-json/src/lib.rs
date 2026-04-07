@@ -4,9 +4,8 @@ pub mod orjson;
 mod serialize;
 mod transcode;
 
-pub use serialize::{dumps, stringify, to_vec};
-
 use pyo3::prelude::*;
+pub use serialize::{dumps, stringify, to_vec};
 
 pub fn py_submod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(serialize::stringify, m)?)?;

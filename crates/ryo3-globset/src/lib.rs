@@ -1,13 +1,14 @@
 #![doc = include_str!("../README.md")]
 mod globster;
 
-pub use crate::globster::PyGlobster;
+use std::str::FromStr;
+
 use ::globset::{Glob, GlobBuilder, GlobSetBuilder};
 use globster::Globster;
-use pyo3::exceptions::PyValueError;
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*};
 use ryo3_core::types::{PathLike, StringOrStrings};
-use std::str::FromStr;
+
+pub use crate::globster::PyGlobster;
 
 /// Default value for the `literal_separator` parameter.
 const DEFAULT_BACKSLASH_ESCAPE: bool = cfg!(windows);

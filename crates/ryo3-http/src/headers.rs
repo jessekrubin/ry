@@ -1,14 +1,21 @@
-use crate::http_types::{PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef};
-use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
-use crate::{PyHeadersLike, PyHttpHeaderMap};
+use std::{
+    fmt::Display,
+    ops::Deref,
+    sync::{Arc, RwLockReadGuard, RwLockWriteGuard},
+};
+
 use http::header::HeaderMap;
-use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
+use pyo3::{
+    prelude::*,
+    types::{PyBytes, PyDict, PyList, PyString, PyTuple},
+};
 use ryo3_core::{RyRwLock, py_runtime_error};
-use std::fmt::Display;
-use std::ops::Deref;
-use std::sync::Arc;
-use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+
+use crate::{
+    PyHeadersLike, PyHttpHeaderMap,
+    http_types::{PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef},
+    py_conversions::{header_name_to_pystring, header_value_to_pystring},
+};
 
 #[pyclass(name = "Headers", frozen, immutable_type, mapping, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]

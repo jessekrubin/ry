@@ -2,16 +2,12 @@
 
 #[cfg(feature = "regex")]
 mod which_regex;
-#[cfg(feature = "regex")]
-pub use which_regex::which_re;
-
-use pyo3::prelude::*;
-
-use std::env;
-use std::ffi::OsString;
-use std::path::PathBuf;
+use std::{env, ffi::OsString, path::PathBuf};
 
 use ::which as which_rs;
+use pyo3::prelude::*;
+#[cfg(feature = "regex")]
+pub use which_regex::which_re;
 
 #[pyfunction]
 #[pyo3(signature= (cmd, path=None))]

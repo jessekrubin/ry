@@ -1,8 +1,10 @@
-use crate::{PyHeaders, PyHttpHeaderMap};
+use std::collections::HashMap;
+
 use http::HeaderMap;
 use pyo3::prelude::*;
 use ryo3_core::{py_type_err, py_value_error};
-use std::collections::HashMap;
+
+use crate::{PyHeaders, PyHttpHeaderMap};
 #[derive(Debug, FromPyObject)]
 pub(crate) enum StringOrStrings {
     String(pyo3::pybacked::PyBackedStr),

@@ -2,14 +2,14 @@
 //!
 //! Caches instances to avoid duplicating them when you are say scraping the
 //! web and getting a ton of 200s or 404s or whatever...
-use pyo3::intern;
-use pyo3::prelude::*;
-use pyo3::pyclass::CompareOp;
-use pyo3::sync::PyOnceLock;
-use pyo3::types::{PyString, PyTuple};
-use ryo3_core::PyAsciiStr;
-use ryo3_core::py_type_err;
-use ryo3_core::{PyAsciiString, py_value_error};
+use pyo3::{
+    intern,
+    prelude::*,
+    pyclass::CompareOp,
+    sync::PyOnceLock,
+    types::{PyString, PyTuple},
+};
+use ryo3_core::{PyAsciiStr, PyAsciiString, py_type_err, py_value_error};
 
 // is the plural of status "stati" or "statuses"? who knows. literally nothing
 // I can do to find that answer online.

@@ -1,7 +1,10 @@
-use super::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};
-use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::{
+    prelude::*,
+    types::{PyDict, PyTuple},
+};
 use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
+
+use super::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};
 
 macro_rules! impl_get_pydantic_core_schema_cls_for_type {
     ($rytype:ty) => {

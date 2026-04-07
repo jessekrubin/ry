@@ -1,16 +1,21 @@
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    ops::{Div, Mul},
+    time::Duration,
+};
+
 #[cfg(feature = "jiff")]
 use jiff::fmt::friendly::Designator;
-use pyo3::basic::CompareOp;
-use pyo3::prelude::*;
-use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyInt, PyTuple};
-use pyo3::{BoundObject, IntoPyObjectExt};
+use pyo3::{
+    BoundObject, IntoPyObjectExt,
+    basic::CompareOp,
+    prelude::*,
+    types::{PyAnyMethods, PyDict, PyDictMethods, PyInt, PyTuple},
+};
 use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
-use std::hash::{DefaultHasher, Hash, Hasher};
-use std::ops::{Div, Mul};
-use std::time::Duration;
 
 use crate::time::duration::arithmetic::DurationLike;
 
@@ -878,10 +883,10 @@ mod interns {
 
 #[cfg(feature = "pydantic")]
 mod pydantic {
-    use super::PyDuration;
-    use pyo3::prelude::*;
-    use pyo3::types::PyType;
+    use pyo3::{prelude::*, types::PyType};
     use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
+
+    use super::PyDuration;
 
     impl GetPydanticCoreSchemaCls for PyDuration {
         fn get_pydantic_core_schema<'py>(
@@ -934,9 +939,10 @@ impl From<PyDuration> for Option<Duration> {
 }
 
 mod arithmetic {
+    use std::time::Duration;
+
     use pyo3::prelude::*;
     use ryo3_core::py_type_err;
-    use std::time::Duration;
 
     use crate::time::PyDuration;
 

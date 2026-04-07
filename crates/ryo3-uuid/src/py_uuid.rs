@@ -1,11 +1,9 @@
 #![doc = include_str!("../README.md")]
-use pyo3::intern;
-use pyo3::sync::PyOnceLock;
-use pyo3::types::PyTuple;
-use pyo3::{BoundObject, prelude::*};
+use std::sync::OnceLock;
+
+use pyo3::{BoundObject, intern, prelude::*, sync::PyOnceLock, types::PyTuple};
 use ryo3_bytes::PyBytes;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
-use std::sync::OnceLock;
 
 static NODE_CACHE: OnceLock<u64> = OnceLock::new();
 

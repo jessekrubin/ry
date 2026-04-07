@@ -1,8 +1,5 @@
 #![doc = include_str!("../README.md")]
-use pyo3::prelude::*;
-use pyo3::sync::PyOnceLock;
-use pyo3::types::PyType;
-use pyo3::{PyAny, PyResult};
+use pyo3::{prelude::*, sync::PyOnceLock, types::PyType};
 
 static CORE_SCHEMA: PyOnceLock<Py<PyModule>> = PyOnceLock::new();
 pub fn core_schema(py: Python<'_>) -> PyResult<&Bound<'_, PyModule>> {
