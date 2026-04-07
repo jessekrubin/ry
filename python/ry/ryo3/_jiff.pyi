@@ -1179,6 +1179,7 @@ class TimeSpan(
     def negate(self) -> t.Self: ...
     def replace(
         self,
+        *,
         years: int | None = None,
         months: int | None = None,
         weeks: int | None = None,

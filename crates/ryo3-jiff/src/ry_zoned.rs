@@ -37,7 +37,18 @@ pub struct RyZoned(pub(crate) Zoned);
 #[pymethods]
 impl RyZoned {
     #[new]
-    #[pyo3(signature = (year, month, day, hour=0, minute=0, second=0, nanosecond=0, tz=None))]
+    #[pyo3(
+        signature = (
+            year,
+            month,
+            day,
+            hour = 0,
+            minute = 0,
+            second = 0,
+            nanosecond = 0,
+            tz = None
+        )
+    )]
     #[expect(clippy::too_many_arguments)]
     fn py_new(
         year: i16,
@@ -84,7 +95,7 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    #[pyo3(signature = (tz=None))]
+    #[pyo3(signature = (tz = None))]
     fn now(tz: Option<&str>) -> PyResult<Self> {
         if let Some(tz) = tz {
             Zoned::now()
@@ -298,19 +309,19 @@ impl RyZoned {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            years = 0,
+            months = 0,
+            weeks = 0,
+            days = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn add(
@@ -357,19 +368,19 @@ impl RyZoned {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            years = 0,
+            months = 0,
+            weeks = 0,
+            days = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn sub<'py>(
@@ -426,10 +437,10 @@ impl RyZoned {
 
     #[pyo3(
         signature = (
-            smallest=JiffUnit::NANOSECOND,
+            smallest = JiffUnit::NANOSECOND,
             *,
-            mode=JiffRoundMode(jiff::RoundMode::HalfExpand),
-            increment=1
+            mode = JiffRoundMode(jiff::RoundMode::HalfExpand),
+            increment = 1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
@@ -551,13 +562,13 @@ impl RyZoned {
     }
 
     #[pyo3(
-        signature=(
+        signature = (
             other,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
@@ -583,13 +594,13 @@ impl RyZoned {
     }
 
     #[pyo3(
-        signature=(
+        signature = (
             other,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
@@ -625,26 +636,26 @@ impl RyZoned {
 
     #[pyo3(
         signature = (
-            obj=None,
+            obj = None,
             *,
-            date=None,
-            time=None,
-            year=None,
-            era_year=None,
-            month=None,
-            day=None,
-            day_of_year=None,
-            day_of_year_no_leap=None,
-            hour=None,
-            minute=None,
-            second=None,
-            millisecond=None,
-            microsecond=None,
-            nanosecond=None,
-            subsec_nanosecond=None,
-            offset=None,
-            offset_conflict=None,
-            disambiguation=None,
+            date = None,
+            time = None,
+            year = None,
+            era_year = None,
+            month = None,
+            day = None,
+            day_of_year = None,
+            day_of_year_no_leap = None,
+            hour = None,
+            minute = None,
+            second = None,
+            millisecond = None,
+            microsecond = None,
+            nanosecond = None,
+            subsec_nanosecond = None,
+            offset = None,
+            offset_conflict = None,
+            disambiguation = None,
         )
     )]
     #[expect(clippy::too_many_arguments)]

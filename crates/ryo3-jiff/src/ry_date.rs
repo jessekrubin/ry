@@ -227,7 +227,7 @@ impl RyDate {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
+        signature = (
             other = None,
             /, *,
             years = 0,
@@ -489,9 +489,9 @@ impl RyDate {
         signature = (
             other,
             *,
-            smallest=JiffUnit::DAY,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
+            smallest = JiffUnit::DAY,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
@@ -515,9 +515,9 @@ impl RyDate {
         signature = (
             other,
             *,
-            smallest=JiffUnit::DAY,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
+            smallest = JiffUnit::DAY,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"

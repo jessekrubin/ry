@@ -177,9 +177,9 @@ class WebSocket:
     def __bool__(self) -> bool:
         """Return `True` if the WebSocket is open, `False` otherwise"""
 
-    async def recv(self) -> WsMessage:
+    async def recv(self, timeout: _TimeoutLike | None = None) -> WsMessage:
         """Receive the next message from the WebSocket connection"""
-    async def receive(self) -> WsMessage:
+    async def receive(self, timeout: _TimeoutLike | None = None) -> WsMessage:
         """Receive the next message from the WebSocket connection"""
     async def send(self, message: WsMessage | str | Buffer) -> None:
         """Send a message over the WebSocket connection"""
@@ -212,7 +212,7 @@ def websocket(
     *,
     headers: Headers | dict[str, str] | None = None,
     close_timeout: _TimeoutLike = 10,
-    recv_timeout: _TimeoutLike = 10,
+    recv_timeout: _TimeoutLike | None = None,
     flush_threshold: int = 8_192,
     frame_size: int = 4_194_304,
     max_payload_len: int = 67_108_864,

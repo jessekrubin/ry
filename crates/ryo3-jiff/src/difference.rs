@@ -112,8 +112,8 @@ impl RyDateDifference {
             date,
             *,
             smallest = JiffUnit::DAY,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
     )]
@@ -352,9 +352,9 @@ impl RyDateTimeDifference {
         signature = (
             datetime,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
     )]
@@ -581,10 +581,10 @@ impl RyTimeDifference {
         signature = (
             time,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
     )]
     #[must_use]
@@ -827,10 +827,10 @@ impl RyTimestampDifference {
         signature = (
             timestamp,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
     )]
     #[must_use]
@@ -1064,10 +1064,10 @@ impl RyZonedDifference {
         signature = (
             zoned,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
     )]
     #[must_use]

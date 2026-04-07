@@ -193,15 +193,15 @@ impl RyTimestamp {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn add(
@@ -240,15 +240,15 @@ impl RyTimestamp {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn sub<'py>(
@@ -404,7 +404,14 @@ impl RyTimestamp {
     }
 
     #[pyo3(
-        signature = (ts, *, smallest=JiffUnit::NANOSECOND, largest=None, mode=JiffRoundMode::TRUNC, increment=1),
+        signature = (
+            ts,
+            *,
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
+        ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn since(
@@ -423,7 +430,14 @@ impl RyTimestamp {
     }
 
     #[pyo3(
-        signature = (ts, *, smallest=JiffUnit::NANOSECOND, largest=None, mode=JiffRoundMode::TRUNC, increment=1),
+        signature = (
+            ts,
+            *,
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
+        ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     fn until(
@@ -470,10 +484,10 @@ impl RyTimestamp {
 
     #[pyo3(
         signature = (
-            smallest=JiffUnit::NANOSECOND,
+            smallest = JiffUnit::NANOSECOND,
             *,
-            mode=JiffRoundMode::HALF_EXPAND,
-            increment=1
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]

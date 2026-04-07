@@ -398,7 +398,7 @@ impl PyBytes {
     /// ```python
     /// (encoding='utf-8', errors='strict')
     /// ```
-    #[pyo3(signature = (encoding="utf-8", errors="strict"))]
+    #[pyo3(signature = (encoding = "utf-8", errors = "strict"))]
     fn decode<'py>(
         slf: PyRef<'py, Self>,
         py: Python<'py>,
@@ -426,7 +426,7 @@ impl PyBytes {
     /// 'b9:01ef'
     /// >>> value.hex(':', -2)
     /// 'b901:ef'
-    #[pyo3(signature = (sep=None, bytes_per_sep=None))]
+    #[pyo3(signature = (sep = None, bytes_per_sep = None))]
     fn hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
         self.py_hex(sep, bytes_per_sep)
     }
@@ -527,7 +527,7 @@ impl PyBytes {
         self.py_expandtabs(tabsize)
     }
 
-    #[pyo3(signature = (chars=None, /))]
+    #[pyo3(signature = (chars = None, /))]
     fn strip(&self, chars: Option<Self>) -> Self {
         if let Some(chars) = chars {
             self.py_strip(Some(chars.as_ref()))
@@ -536,7 +536,7 @@ impl PyBytes {
         }
     }
 
-    #[pyo3(signature = (chars=None, /))]
+    #[pyo3(signature = (chars = None, /))]
     fn lstrip(&self, chars: Option<Self>) -> Self {
         if let Some(chars) = chars {
             self.py_lstrip(Some(chars.as_ref()))
@@ -545,7 +545,7 @@ impl PyBytes {
         }
     }
 
-    #[pyo3(signature = (chars=None, /))]
+    #[pyo3(signature = (chars = None, /))]
     fn rstrip(&self, chars: Option<Self>) -> Self {
         if let Some(chars) = chars {
             self.py_rstrip(Some(chars.as_ref()))
