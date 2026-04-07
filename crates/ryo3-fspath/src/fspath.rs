@@ -1,19 +1,24 @@
 //! `FsPath` struct python module
-use pyo3::basic::CompareOp;
-use pyo3::exceptions::{
-    PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
-    PyValueError,
+use std::{
+    ffi::OsStr,
+    hash::{Hash, Hasher},
+    path::{Path, PathBuf},
 };
 
-use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use pyo3::{
+    IntoPyObjectExt,
+    basic::CompareOp,
+    exceptions::{
+        PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
+        PyValueError,
+    },
+    intern,
+    prelude::*,
+    types::{PyBytes, PyTuple},
+};
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_core::RyMutex;
-use ryo3_core::types::PathLike;
+use ryo3_core::{RyMutex, types::PathLike};
 use ryo3_macro_rules::pytodo;
-use std::ffi::OsStr;
-use std::hash::{Hash, Hasher};
-use std::path::{Path, PathBuf};
 
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
@@ -61,7 +66,7 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 #[pymethods]
 impl PyFsPath {
     #[new]
-    #[pyo3(signature = (p=None))]
+    #[pyo3(signature = (p = None))]
     fn py_new(p: Option<PathBuf>) -> Self {
         match p {
             Some(p) => Self::from(p),
@@ -569,10 +574,7 @@ impl PyFsPath {
         self.read_dir(py)
     }
 
-    #[pyo3(signature = (
-        *args,
-        **kwargs
-    ))]
+    #[pyo3(signature = (*args, **kwargs))]
     fn open<'py>(
         &self,
         py: Python<'py>,
@@ -781,14 +783,14 @@ impl PyFsPath {
     // -------------------------------------------------------------------------
     #[cfg(feature = "which")]
     #[staticmethod]
-    #[pyo3(signature = (cmd, path=None))]
+    #[pyo3(signature = (cmd, path = None))]
     fn which(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Option<Self>> {
         ryo3_which::which(py, cmd, path).map(|opt| opt.map(Self::from))
     }
 
     #[cfg(not(feature = "which"))]
     #[staticmethod]
-    #[pyo3(signature = (_cmd, _path=None))]
+    #[pyo3(signature = (_cmd, _path = None))]
     fn which(_cmd: &str, _path: Option<&str>) -> PyResult<Option<Self>> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`which` feature not enabled",
@@ -797,7 +799,7 @@ impl PyFsPath {
 
     #[cfg(feature = "which")]
     #[staticmethod]
-    #[pyo3(signature = (cmd, path=None))]
+    #[pyo3(signature = (cmd, path = None))]
     fn which_all(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Vec<Self>> {
         ryo3_which::which_all(py, cmd, path)
             .map(|opt| opt.into_iter().map(Self::from).collect::<Vec<_>>())
@@ -805,7 +807,7 @@ impl PyFsPath {
 
     #[cfg(not(feature = "which"))]
     #[staticmethod]
-    #[pyo3(signature = (_cmd, _path=None))]
+    #[pyo3(signature = (_cmd, _path = None))]
     fn which_all(_cmd: &str, _path: Option<&str>) -> PyResult<Vec<Self>> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`which` feature not enabled",
@@ -814,7 +816,7 @@ impl PyFsPath {
 
     #[cfg(feature = "which-regex")]
     #[staticmethod]
-    #[pyo3(signature = (regex, path=None))]
+    #[pyo3(signature = (regex, path = None))]
     fn which_re(
         py: Python<'_>,
         regex: &Bound<'_, PyAny>,
@@ -826,7 +828,7 @@ impl PyFsPath {
 
     #[cfg(not(feature = "which-regex"))]
     #[staticmethod]
-    #[pyo3(signature = (_regex, _path=None))]
+    #[pyo3(signature = (_regex, _path = None))]
     fn which_re(_regex: &Bound<'_, PyAny>, _path: Option<&str>) -> PyResult<Vec<Self>> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`which` feature not enabled",

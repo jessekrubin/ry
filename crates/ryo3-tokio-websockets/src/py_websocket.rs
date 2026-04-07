@@ -4,7 +4,7 @@ use futures_util::{SinkExt, StreamExt};
 use pyo3::{exceptions::PyStopAsyncIteration, prelude::*};
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
-use ryo3_std::time::PyTimeout;
+use ryo3_std::time::{PyDuration, PyTimeout};
 use ryo3_tokio_rt::future_into_py;
 use tokio::sync::Mutex;
 use tokio_websockets::{ClientBuilder, Config, Limits, Message};
@@ -99,6 +99,49 @@ struct WebSocketConfig {
     flush_threshold: NonZeroUsize,
     close_timeout: Option<Duration>,
     recv_timeout: Option<Duration>,
+}
+
+impl<'py> IntoPyObject<'py> for WebSocketConfig {
+    type Target = pyo3::types::PyDict;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let d = pyo3::types::PyDict::new(py);
+        // py-str-keys
+        let headers_pystr = pyo3::intern!(py, "headers");
+        let close_timeout_pystr = pyo3::intern!(py, "close_timeout");
+        let recv_timeout_pystr = pyo3::intern!(py, "recv_timeout");
+
+        d.set_item(pyo3::intern!(py, "uri"), self.uri.to_string())?;
+        if let Some(headers) = self.headers {
+            let py_headers = PyHeaders::from(headers);
+            d.set_item(headers_pystr, py_headers)?;
+        } else {
+            d.set_item(headers_pystr, py.None())?;
+        }
+        d.set_item(
+            pyo3::intern!(py, "max_payload_len"),
+            self.max_payload_len.get(),
+        )?;
+        d.set_item(pyo3::intern!(py, "frame_size"), self.frame_size.get())?;
+        d.set_item(
+            pyo3::intern!(py, "flush_threshold"),
+            self.flush_threshold.get(),
+        )?;
+        if let Some(close_timeout) = self.close_timeout {
+            d.set_item(close_timeout_pystr, PyDuration::from(close_timeout))?;
+        } else {
+            d.set_item(close_timeout_pystr, py.None())?;
+        }
+        if let Some(recv_timeout) = self.recv_timeout {
+            d.set_item(recv_timeout_pystr, PyDuration::from(recv_timeout))?;
+        } else {
+            d.set_item(recv_timeout_pystr, py.None())?;
+        }
+        Ok(d)
+    }
 }
 
 #[derive(Debug)]
@@ -361,6 +404,7 @@ impl std::fmt::Display for PyWebSocket {
     }
 }
 
+#[cfg(feature = "experimental-async")]
 #[pymethods]
 impl PyWebSocket {
     #[new]
@@ -398,6 +442,10 @@ impl PyWebSocket {
             recv_timeout: recv_timeout.map(Into::into),
         };
         Self::from(cfg)
+    }
+
+    fn config(&self) -> WebSocketConfig {
+        self.0.cfg.clone()
     }
 
     fn __repr__(&self) -> String {
@@ -493,7 +541,185 @@ impl PyWebSocket {
         future_into_py(py, async move { this.disconnect().await })
     }
 
-    #[cfg(not(feature = "experimental-async"))]
+    #[pyo3(signature = (timeout = None))]
+    async fn recv(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
+        if let Some(msg) = self.recv_msg(timeout.map(Into::into)).await? {
+            Ok(msg)
+        } else {
+            py_runtime_err!("websocket closed")
+        }
+    }
+
+    #[pyo3(signature = (timeout = None))]
+    async fn receive(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
+        self.recv(timeout).await
+    }
+
+    #[pyo3(name = "send")]
+    async fn py_send(&self, message: PyMessageLike) -> PyResult<()> {
+        let message = Message::from(message);
+        self.send(message).await
+    }
+
+    #[pyo3(
+        signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
+        text_signature = "(self, code=1_000, reason=None)"
+    )]
+    async fn close(&self, code: PyWsCloseCode, reason: Option<PyWsCloseReason>) -> PyResult<()> {
+        let pymsg = PyWsMessage::close(code, reason)?;
+        self.close_with(pymsg.into()).await
+    }
+
+    #[pyo3(signature = (payload = None))]
+    async fn ping(&self, payload: Option<PyPingPayload>) -> PyResult<()> {
+        let payload = payload.unwrap_or_default().into();
+        self.send(payload).await
+    }
+
+    #[pyo3(signature = (payload = None))]
+    async fn pong(&self, payload: Option<PyPongPayload>) -> PyResult<()> {
+        let payload = payload.unwrap_or_default().into();
+        self.send(payload).await
+    }
+}
+
+#[cfg(not(feature = "experimental-async"))]
+#[pymethods]
+impl PyWebSocket {
+    #[new]
+    #[pyo3(
+        signature = (
+            uri,
+            *,
+            headers = None,
+            max_payload_len = DEFAULT_MAX_PAYLOAD_LEN,
+            frame_size = DEFAULT_FRAME_SIZE,
+            flush_threshold = DEFAULT_FLUSH_THRESHOLD,
+            close_timeout = Some(DEFAULT_CLOSE_TIMEOUT),
+            recv_timeout = None,
+        ),
+        text_signature = "(uri, *, headers=None, max_payload_len=67_108_864, frame_size=4_194_304, flush_threshold=8_192, close_timeout=10, recv_timeout=None)"
+    )]
+    fn py_new(
+        uri: UriLike,
+        headers: Option<PyHeadersLike>,
+        max_payload_len: NonZeroUsize,
+        frame_size: NonZeroUsize,
+        flush_threshold: NonZeroUsize,
+        close_timeout: Option<PyTimeout>,
+        recv_timeout: Option<PyTimeout>,
+    ) -> Self {
+        let uri = uri.into();
+        let headers = headers.map(http::HeaderMap::from);
+        let cfg = WebSocketConfig {
+            uri,
+            headers,
+            max_payload_len,
+            frame_size,
+            flush_threshold,
+            close_timeout: close_timeout.map(Into::into),
+            recv_timeout: recv_timeout.map(Into::into),
+        };
+        Self::from(cfg)
+    }
+
+    fn config(&self) -> WebSocketConfig {
+        self.0.cfg.clone()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+
+    fn __bool__(&self) -> bool {
+        self.0.state.blocking_lock().is_open()
+    }
+
+    #[getter]
+    fn uri(&self) -> String {
+        self.0.cfg.uri.to_string()
+    }
+
+    #[getter]
+    fn status(&self, py: Python<'_>) -> PyResult<Option<Py<PyHttpStatus>>> {
+        self.0
+            .state
+            .blocking_lock()
+            .handshake()
+            .map(|handshake| PyHttpStatus::from_status_code_cached(py, handshake.status))
+            .transpose()
+    }
+
+    #[getter]
+    fn headers(&self) -> Option<PyHeaders> {
+        self.0
+            .state
+            .blocking_lock()
+            .handshake()
+            .map(|handshake| PyHeaders::from(handshake.response_headers.clone()))
+    }
+
+    #[getter]
+    fn closed(&self) -> bool {
+        matches!(&*self.0.state.blocking_lock(), WebSocketState::Closed(_))
+    }
+
+    #[getter]
+    fn open(&self) -> bool {
+        self.0.state.blocking_lock().is_open()
+    }
+
+    /// Return the ready state of the `WebSocket` (`0`=CONNECTING, `1`=OPEN, `2`=CLOSING, `3`=CLOSED).
+    ///
+    /// Based on the `WebSocket.readyState` property from the Web API:
+    /// <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState>
+    #[getter]
+    fn ready_state(&self) -> u8 {
+        self.0.state.blocking_lock().ready_state().into()
+    }
+
+    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
+        this
+    }
+
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let this = self.clone();
+        future_into_py(py, async move {
+            if let Some(msg) = this.recv_msg(None).await? {
+                Ok(msg)
+            } else {
+                Err(PyStopAsyncIteration::new_err("websocket closed"))
+            }
+        })
+    }
+
+    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
+        let coro = future_into_py(py, async move {
+            slf.get().connect().await?;
+            Ok(slf)
+        })?;
+        coro.getattr(pyo3::intern!(py, "__await__"))?.call0()
+    }
+
+    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
+        future_into_py(py, async move {
+            slf.get().connect().await?;
+            Ok(slf)
+        })
+    }
+
+    #[pyo3(name = "__aexit__")]
+    fn __aexit__<'py>(
+        &self,
+        py: Python<'py>,
+        _exc_type: Py<PyAny>,
+        _exc_value: Py<PyAny>,
+        _traceback: Py<PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let this = self.clone();
+        future_into_py(py, async move { this.disconnect().await })
+    }
+
     #[pyo3(signature = (timeout = None))]
     fn recv<'py>(
         &self,
@@ -510,17 +736,6 @@ impl PyWebSocket {
         })
     }
 
-    #[cfg(feature = "experimental-async")]
-    #[pyo3(signature = (timeout = None))]
-    async fn recv(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
-        if let Some(msg) = self.recv_msg(timeout.map(Into::into)).await? {
-            Ok(msg)
-        } else {
-            py_runtime_err!("websocket closed")
-        }
-    }
-
-    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(signature = (timeout = None))]
     fn receive<'py>(
         &self,
@@ -530,13 +745,6 @@ impl PyWebSocket {
         self.recv(py, timeout)
     }
 
-    #[cfg(feature = "experimental-async")]
-    #[pyo3(signature = (timeout = None))]
-    async fn receive(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
-        self.recv(timeout).await
-    }
-
-    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(name = "send")]
     fn py_send<'py>(&self, py: Python<'py>, message: PyMessageLike) -> PyResult<Bound<'py, PyAny>> {
         let this = self.clone();
@@ -544,14 +752,6 @@ impl PyWebSocket {
         future_into_py(py, async move { this.send(message).await })
     }
 
-    #[cfg(feature = "experimental-async")]
-    #[pyo3(name = "send")]
-    async fn py_send(&self, message: PyMessageLike) -> PyResult<()> {
-        let message = Message::from(message);
-        self.send(message).await
-    }
-
-    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(
         signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
         text_signature = "(self, code=1_000, reason=None)"
@@ -567,17 +767,6 @@ impl PyWebSocket {
         future_into_py(py, async move { this.close_with(pymsg.into()).await })
     }
 
-    #[cfg(feature = "experimental-async")]
-    #[pyo3(
-        signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
-        text_signature = "(self, code=1_000, reason=None)"
-    )]
-    async fn close(&self, code: PyWsCloseCode, reason: Option<PyWsCloseReason>) -> PyResult<()> {
-        let pymsg = PyWsMessage::close(code, reason)?;
-        self.close_with(pymsg.into()).await
-    }
-
-    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(signature = (payload = None))]
     fn ping<'py>(
         &self,
@@ -589,14 +778,6 @@ impl PyWebSocket {
         future_into_py(py, async move { this.send(payload).await })
     }
 
-    #[cfg(feature = "experimental-async")]
-    #[pyo3(signature = (payload = None))]
-    async fn ping(&self, payload: Option<PyPingPayload>) -> PyResult<()> {
-        let payload = payload.unwrap_or_default().into();
-        self.send(payload).await
-    }
-
-    #[cfg(not(feature = "experimental-async"))]
     #[pyo3(signature = (payload = None))]
     fn pong<'py>(
         &self,
@@ -606,13 +787,6 @@ impl PyWebSocket {
         let this = self.clone();
         let payload = payload.unwrap_or_default().into();
         future_into_py(py, async move { this.send(payload).await })
-    }
-
-    #[cfg(feature = "experimental-async")]
-    #[pyo3(signature = (payload = None))]
-    async fn pong(&self, payload: Option<PyPongPayload>) -> PyResult<()> {
-        let payload = payload.unwrap_or_default().into();
-        self.send(payload).await
     }
 }
 

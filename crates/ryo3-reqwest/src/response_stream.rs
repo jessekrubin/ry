@@ -148,7 +148,7 @@ impl RyResponseStream {
         future_into_py(py, async move { inner.py_anext().await })
     }
 
-    #[pyo3(signature = (n=1))]
+    #[pyo3(signature = (n = 1))]
     fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
         future_into_py(py, async move {
@@ -165,7 +165,7 @@ impl RyResponseStream {
         })
     }
 
-    #[pyo3(signature = (*, join=false))]
+    #[pyo3(signature = (*, join = false))]
     fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
         if join {
@@ -251,7 +251,7 @@ impl RyAsyncResponseStream {
     //     }
     // }
 
-    #[pyo3(signature = (n=1))]
+    #[pyo3(signature = (n = 1))]
     async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
         use ryo3_macro_rules::py_runtime_error;
         let rt = get_tokio_runtime();
@@ -337,7 +337,7 @@ impl RyBlockingResponseStream {
         }
     }
 
-    #[pyo3(signature = (n=1))]
+    #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<RyBytes>> {
         let stream = self.inner.stream.clone();
         let items = py
@@ -350,7 +350,7 @@ impl RyBlockingResponseStream {
         Ok(items)
     }
 
-    #[pyo3(signature = (*, join=false))]
+    #[pyo3(signature = (*, join = false))]
     fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
         let rt = get_tokio_runtime();

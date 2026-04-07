@@ -36,7 +36,7 @@ impl PyBytes {
     /// ```python
     /// (encoding='utf-8', errors='strict')
     /// ```
-    #[pyo3(signature = (encoding="utf-8", errors="strict"))]
+    #[pyo3(signature = (encoding = "utf-8", errors = "strict"))]
     fn decode<'py>(
         slf: PyRef<'py, Self>,
         py: Python<'py>,
@@ -64,7 +64,7 @@ impl PyBytes {
     /// 'b9:01ef'
     /// >>> value.hex(':', -2)
     /// 'b901:ef'
-    #[pyo3(signature = (sep=None, bytes_per_sep=None))]
+    #[pyo3(signature = (sep = None, bytes_per_sep = None))]
     fn hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
         self.py_hex(sep, bytes_per_sep)
     }
@@ -142,12 +142,12 @@ impl PyBytes {
         self.py_title()
     }
 
-    #[pyo3(signature = (prefix, /))]
+    #[pyo3(signature = (prefix = None, /))]
     fn startswith(&self, prefix: PyBytes) -> bool {
         self.as_slice().starts_with(prefix.as_ref())
     }
 
-    #[pyo3(signature = (suffix, /))]
+    #[pyo3(signature = (suffix = None, /))]
     fn endswith(&self, suffix: PyBytes) -> bool {
         self.as_slice().ends_with(suffix.as_ref())
     }
@@ -165,7 +165,7 @@ impl PyBytes {
         self.py_expandtabs(tabsize)
     }
 
-    #[pyo3(signature = (bin=None))]
+    #[pyo3(signature = (bin = None))]
     fn strip(&self, bin: Option<PyBytes>) -> Self {
         if let Some(bin) = bin {
             self.py_strip(Some(bin.as_ref()))
@@ -174,7 +174,7 @@ impl PyBytes {
         }
     }
 
-    #[pyo3(signature = (bin=None))]
+    #[pyo3(signature = (bin = None))]
     fn lstrip(&self, bin: Option<Self>) -> Self {
         if let Some(bin) = bin {
             self.py_lstrip(Some(bin.as_ref()))
@@ -183,7 +183,7 @@ impl PyBytes {
         }
     }
 
-    #[pyo3(signature = (bin=None))]
+    #[pyo3(signature = (bin = None))]
     fn rstrip(&self, bin: Option<Self>) -> Self {
         if let Some(bin) = bin {
             self.py_rstrip(Some(bin.as_ref()))

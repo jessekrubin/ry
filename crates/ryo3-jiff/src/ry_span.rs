@@ -36,16 +36,16 @@ impl RySpan {
     #[pyo3(
         signature = (
             *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            years = 0,
+            months = 0,
+            weeks = 0,
+            days = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn py_new(
@@ -102,7 +102,7 @@ impl RySpan {
         }
     }
 
-    #[pyo3(signature = (*, friendly=false), name = "to_string")]
+    #[pyo3(signature = (*, friendly = false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
             format!("{:#}", self.0)
@@ -191,7 +191,21 @@ impl RySpan {
     // </UNIFORM>
 
     #[expect(clippy::too_many_arguments)]
-    #[pyo3(signature = (years=None, months=None, weeks=None, days=None, hours=None, minutes=None, seconds=None, milliseconds=None, microseconds=None, nanoseconds=None))]
+    #[pyo3(
+        signature = (
+            *,
+            years = None,
+            months = None,
+            weeks = None,
+            days = None,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
     fn replace(
         &self,
         years: Option<i64>,
@@ -420,7 +434,7 @@ impl RySpan {
         self.__mul__(other)
     }
 
-    #[pyo3(signature = (other, relative=None, *, days_are_24_hours=false))]
+    #[pyo3(signature = (other, relative = None, *, days_are_24_hours = false))]
     fn compare(
         &self,
         other: &Self,
@@ -535,13 +549,13 @@ impl RySpan {
     // ========================================================================
     #[pyo3(
         signature = (
-            smallest=JiffUnit::NANOSECOND,
-            increment=1,
+            smallest = JiffUnit::NANOSECOND,
+            increment = 1,
             *,
-            relative=None,
-            largest=None,
-            mode=JiffRoundMode::HALF_EXPAND,
-            days_are_24_hours=false
+            relative = None,
+            largest = None,
+            mode = JiffRoundMode::HALF_EXPAND,
+            days_are_24_hours = false
         ),
         text_signature = "(self, smallest=\"nanosecond\", increment=1, *, relative=None, largest=None, mode=\"half-expand\", days_are_24_hours=False)"
     )]
@@ -607,7 +621,7 @@ impl RySpan {
         self.0.signum()
     }
 
-    #[pyo3(signature = (relative=None, *, days_are_24_hours=false))]
+    #[pyo3(signature = (relative = None, *, days_are_24_hours = false))]
     fn total_seconds(
         &self,
         relative: Option<RySpanRelativeTo>,
@@ -616,7 +630,7 @@ impl RySpan {
         self.total(JiffUnit::SECOND, relative, days_are_24_hours)
     }
 
-    #[pyo3(signature = (unit, relative=None, *, days_are_24_hours=false))]
+    #[pyo3(signature = (unit, relative = None, *, days_are_24_hours = false))]
     fn total(
         &self,
         unit: JiffUnit,

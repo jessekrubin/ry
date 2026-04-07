@@ -2,8 +2,7 @@
 //!
 //! REF(s):
 //! - <https://github.com/pydantic/jiter/blob/main/crates/jiter/src/py_string_cache.rs>
-use pyo3::prelude::*;
-use pyo3::types::PyString;
+use pyo3::{prelude::*, types::PyString};
 
 pub struct PyAsciiStr<'s>(&'s str);
 

@@ -39,6 +39,9 @@
   - wrapper library names should be of the form `ryo3-<LIB_NAME>` where
     `<LIB_NAME>` is the name of the wrapped library
   - library directories should be `kebab-case` and should be `ryo3-<LIB_NAME>`
+- pyo3-signature-formatting; put spaces around `=`:
+  - ok: `#[pyo3(signature = (data = None, *, mode = Foo::BAR, _check = false))]`
+  - bad: `#[pyo3(signature=(data=None, *, mode=Foo::BAR, _check=false))]`
 
 ## Creating a new library/wrapper-thing
 

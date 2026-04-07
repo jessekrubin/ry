@@ -32,7 +32,7 @@ pub struct RyTime(pub(crate) Time);
 #[expect(clippy::trivially_copy_pass_by_ref)]
 impl RyTime {
     #[new]
-    #[pyo3(signature = (hour=0, minute=0, second=0, nanosecond=0))]
+    #[pyo3(signature = (hour = 0, minute = 0, second = 0, nanosecond = 0))]
     pub(crate) fn py_new(hour: i8, minute: i8, second: i8, nanosecond: i32) -> PyResult<Self> {
         Time::new(hour, minute, second, nanosecond)
             .map(Self::from)
@@ -169,15 +169,15 @@ impl RyTime {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0,
         )
     )]
     fn add(
@@ -222,15 +222,15 @@ impl RyTime {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn sub<'py>(
@@ -336,13 +336,13 @@ impl RyTime {
     #[pyo3(
         signature = (
             *,
-            hour=None,
-            minute=None,
-            second=None,
-            millisecond=None,
-            microsecond=None,
-            nanosecond=None,
-            subsec_nanosecond=None,
+            hour = None,
+            minute = None,
+            second = None,
+            millisecond = None,
+            microsecond = None,
+            nanosecond = None,
+            subsec_nanosecond = None,
         )
     )]
     #[expect(clippy::too_many_arguments)]
@@ -460,9 +460,9 @@ impl RyTime {
 
     #[pyo3(
         signature = (
-            smallest=JiffUnit::NANOSECOND,
+            smallest = JiffUnit::NANOSECOND,
             *,
-            mode=JiffRoundMode::HALF_EXPAND,
+            mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
@@ -485,13 +485,13 @@ impl RyTime {
     // SINCE/UNTIL
     // ------------------------------------------------------------------------
     #[pyo3(
-        signature=(
+        signature = (
             t,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
        text_signature = "(self, t, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
@@ -511,13 +511,13 @@ impl RyTime {
     }
 
     #[pyo3(
-        signature=(
+        signature = (
             t,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
        text_signature = "(self, t, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]

@@ -1,9 +1,12 @@
-use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::{PyFileNotFoundError, PyOSError};
-use pyo3::prelude::*;
+use std::fs::read_dir;
+
+use pyo3::{
+    IntoPyObjectExt,
+    exceptions::{PyFileNotFoundError, PyOSError},
+    prelude::*,
+};
 use ryo3_core::types::PathLike;
 use ryo3_fspath::PyFsPath;
-use std::fs::read_dir;
 
 // TODO: revisit needless pass by value
 /// Change the current working directory to the specified path

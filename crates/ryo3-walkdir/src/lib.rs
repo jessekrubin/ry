@@ -1,11 +1,11 @@
 #![doc = include_str!("../README.md")]
 
 mod walkdir_entry;
-use pyo3::{IntoPyObjectExt, prelude::*};
-use ryo3_core::RyMutex;
-use ryo3_core::types::PathLike;
-use ryo3_globset::{GlobsterLike, PyGlobster};
 use std::path::Path;
+
+use pyo3::{IntoPyObjectExt, prelude::*};
+use ryo3_core::{RyMutex, types::PathLike};
+use ryo3_globset::{GlobsterLike, PyGlobster};
 
 pub use crate::walkdir_entry::PyWalkDirEntry;
 

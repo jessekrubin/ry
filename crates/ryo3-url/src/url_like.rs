@@ -1,5 +1,6 @@
-use crate::PyUrl;
 use pyo3::prelude::*;
+
+use crate::PyUrl;
 pub struct UrlLike(pub url::Url);
 
 impl From<UrlLike> for url::Url {

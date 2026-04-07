@@ -2,19 +2,15 @@
 
 #[cfg(feature = "regex")]
 mod which_regex;
+use std::{env, ffi::OsString, path::PathBuf};
+
+use ::which as which_rs;
+use pyo3::prelude::*;
 #[cfg(feature = "regex")]
 pub use which_regex::which_re;
 
-use pyo3::prelude::*;
-
-use std::env;
-use std::ffi::OsString;
-use std::path::PathBuf;
-
-use ::which as which_rs;
-
 #[pyfunction]
-#[pyo3(signature= (cmd, path=None))]
+#[pyo3(signature = (cmd, path = None))]
 pub fn which(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Option<PathBuf>> {
     if let Some(p) = path {
         // get current directory w/o unwrapping
@@ -40,7 +36,7 @@ pub fn which(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Option<P
 }
 
 #[pyfunction]
-#[pyo3(signature= (cmd, path=None))]
+#[pyo3(signature = (cmd, path = None))]
 pub fn which_all(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Vec<PathBuf>> {
     let search_path: Option<OsString> = match path {
         Some(p) => Some(OsString::from(p)),

@@ -20,7 +20,7 @@ mod python_bytes_methods;
 mod ryo3_bytes;
 pub use crate::bytes::PyBytes;
 
-pub use readable_buffer::ReadableBuffer;
+pub use readable_buffer::{ExactReadableBuffer, ReadableBuffer};
 
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -2,8 +2,9 @@
 //!
 //! Used for the py-conversions mod
 
-use http::{HeaderMap, HeaderValue};
 use std::ops::Deref;
+
+use http::{HeaderMap, HeaderValue};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyHttpHeaderMap(pub(crate) HeaderMap<HeaderValue>);

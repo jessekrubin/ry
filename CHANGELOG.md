@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v0.0.88 [unreleased]
+
+- expanding usage of `ReadableBuffer` for (every-so-slightly) perf gains when
+  reading bytes
+  - use in `memchr`
+- `ryo3-memchr`
+  - use `ReadableBuffer` for bytes extraction
+- `ryo3-aws-lc`
+  - Use release GIL if length of bytes to digest is `>2047` similar to how
+    python's `hashlib` does it
+- `ryo3-tokio-websockets`
+  - `config()` function on `ry.WebSocket` to return a typed dict with the config
+    values
+
+---
+
 ## v0.0.87 [2026-04-03]
 
 - internal

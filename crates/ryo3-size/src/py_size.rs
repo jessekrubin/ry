@@ -1,10 +1,16 @@
+use std::{
+    ops::{Neg, Not},
+    str::FromStr,
+};
+
+use pyo3::{
+    exceptions::{PyOverflowError, PyTypeError, PyValueError},
+    prelude::*,
+    pyclass::CompareOp,
+    types::PyTuple,
+};
+
 use crate::types::{Base, Style};
-use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError};
-use pyo3::prelude::*;
-use pyo3::pyclass::CompareOp;
-use pyo3::types::PyTuple;
-use std::ops::{Neg, Not};
-use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy)]
 #[pyclass(name = "Size", frozen, immutable_type, skip_from_py_object)]

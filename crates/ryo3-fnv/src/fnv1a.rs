@@ -2,14 +2,18 @@
 //!
 //! Formerly used the `fnv` crate but it is such a simple crate re-implementing
 //! the core logic outweighs pulling in another dep.
-use pyo3::types::{PyString, PyTuple};
-use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use std::hash::Hasher;
+
+use pyo3::{
+    IntoPyObjectExt, intern,
+    prelude::*,
+    types::{PyString, PyTuple},
+};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::{
     PyAsciiString, RyMutex, py_type_err,
     types::{PyDigest, PyHexDigest},
 };
-use std::hash::Hasher;
 
 const FNV1A_64_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
 const FNV1A_64_PRIME: u64 = 0x0100_0000_01b3;

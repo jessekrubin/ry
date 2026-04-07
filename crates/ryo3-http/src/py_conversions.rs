@@ -1,12 +1,17 @@
 //! http python conversions
-use crate::PyHttpHeaderNameRef;
-use crate::http_types::{
-    PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef, PyHttpMethod, PyHttpVersion,
+use pyo3::{
+    IntoPyObjectExt, intern,
+    prelude::*,
+    types::{PyBytes, PyString},
 };
-use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyString};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_core::{py_type_err, py_value_err, py_value_error};
+
+use crate::{
+    PyHttpHeaderNameRef,
+    http_types::{
+        PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef, PyHttpMethod, PyHttpVersion,
+    },
+};
 
 impl<'py> IntoPyObject<'py> for &PyHttpMethod {
     type Target = PyString;

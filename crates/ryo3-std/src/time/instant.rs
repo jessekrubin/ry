@@ -1,9 +1,12 @@
-use crate::time::PyDuration;
-use pyo3::prelude::*;
-use pyo3::pyclass::CompareOp;
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    time::Instant,
+};
+
+use pyo3::{prelude::*, pyclass::CompareOp};
 use ryo3_macro_rules::py_overflow_error;
-use std::hash::{DefaultHasher, Hash, Hasher};
-use std::time::Instant;
+
+use crate::time::PyDuration;
 
 #[pyclass(name = "Instant", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -106,10 +109,11 @@ impl PyInstant {
 }
 
 mod arithmetic {
+    use std::time::{Duration, Instant};
+
     use pyo3::{IntoPyObjectExt, prelude::*};
     use ryo3_core::py_type_err;
     use ryo3_macro_rules::py_overflow_err;
-    use std::time::{Duration, Instant};
 
     use crate::time::{PyDuration, PyInstant};
 

@@ -221,11 +221,11 @@ impl RyOffset {
     }
 
     #[pyo3(
-        signature=(
-            smallest=JiffUnit::SECOND,
+        signature = (
+            smallest = JiffUnit::SECOND,
             *,
-            mode=JiffRoundMode::HALF_EXPAND,
-            increment=1
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
         ),
         text_signature = "($self, smallest=\"second\", *, mode=\"half-expand\", increment=1)"
     )]
@@ -278,14 +278,14 @@ impl RyOffset {
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
         signature=(
-            other=None,
+            other = None,
             /, *,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn add(
@@ -324,15 +324,15 @@ impl RyOffset {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn sub(

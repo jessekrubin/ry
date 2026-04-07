@@ -133,7 +133,15 @@ impl From<RoundOptions> for RyDateTimeRound {
 #[pymethods]
 impl RyDateTimeRound {
     #[new]
-    #[pyo3(signature = (smallest=JiffUnit::NANOSECOND, *, mode=JiffRoundMode::HALF_EXPAND, increment=1, _check=false))]
+    #[pyo3(
+        signature = (
+            smallest = JiffUnit::NANOSECOND,
+            *,
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1,
+            _check = false
+        )
+    )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64, _check: bool) -> Self {
         let opts = RoundOptions::new(smallest, mode, increment);
         Self::from(opts)
@@ -158,7 +166,7 @@ impl RyDateTimeRound {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (smallest=None, mode=None, increment=None))]
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
     fn replace(
         &self,
         smallest: Option<JiffUnit>,
@@ -236,7 +244,14 @@ pub struct RySignedDurationRound {
 #[pymethods]
 impl RySignedDurationRound {
     #[new]
-    #[pyo3(signature = (smallest=JiffUnit::NANOSECOND, *, mode=JiffRoundMode::HALF_EXPAND, increment=1))]
+    #[pyo3(
+        signature = (
+            smallest = JiffUnit::NANOSECOND,
+            *,
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
+        )
+    )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         let options = RoundOptions::new(smallest, mode, increment);
         Self {
@@ -264,7 +279,7 @@ impl RySignedDurationRound {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (smallest=None, mode=None, increment=None))]
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
     fn replace(
         &self,
         smallest: Option<JiffUnit>,
@@ -340,7 +355,14 @@ pub struct RyTimeRound {
 #[pymethods]
 impl RyTimeRound {
     #[new]
-    #[pyo3(signature = (smallest=JiffUnit::NANOSECOND, *, mode=JiffRoundMode::HALF_EXPAND, increment=1))]
+    #[pyo3(
+        signature = (
+            smallest = JiffUnit::NANOSECOND,
+            *,
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
+        )
+    )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         let options = RoundOptions::new(smallest, mode, increment);
         Self {
@@ -368,7 +390,7 @@ impl RyTimeRound {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (smallest=None, mode=None, increment=None))]
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
     fn replace(
         &self,
         smallest: Option<JiffUnit>,
@@ -454,7 +476,14 @@ impl From<RoundOptions> for RyTimestampRound {
 #[pymethods]
 impl RyTimestampRound {
     #[new]
-    #[pyo3(signature = (smallest=JiffUnit::NANOSECOND, *, mode=JiffRoundMode::HALF_EXPAND, increment=1))]
+    #[pyo3(
+        signature = (
+            smallest = JiffUnit::NANOSECOND,
+            *,
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
+        )
+    )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         Self::from(RoundOptions::new(smallest, mode, increment))
     }
@@ -477,7 +506,7 @@ impl RyTimestampRound {
         let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
     }
-    #[pyo3(signature = (smallest=None, mode=None, increment=None))]
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
     fn replace(
         &self,
         smallest: Option<JiffUnit>,
@@ -564,7 +593,14 @@ impl From<RoundOptions> for RyZonedDateTimeRound {
 #[pymethods]
 impl RyZonedDateTimeRound {
     #[new]
-    #[pyo3(signature = (smallest=JiffUnit::NANOSECOND, *, mode=JiffRoundMode::HALF_EXPAND, increment=1))]
+    #[pyo3(
+        signature = (
+            smallest = JiffUnit::NANOSECOND,
+            *,
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
+        )
+    )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         Self::from(RoundOptions::new(smallest, mode, increment))
     }
@@ -588,7 +624,7 @@ impl RyZonedDateTimeRound {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (smallest=None, mode=None, increment=None))]
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
     fn replace(
         &self,
         smallest: Option<JiffUnit>,
@@ -662,7 +698,12 @@ pub struct RyOffsetRound {
 impl RyOffsetRound {
     #[new]
     #[pyo3(
-        signature = (smallest=JiffUnit::SECOND, *, mode=JiffRoundMode::HALF_EXPAND, increment=1),
+        signature = (
+            smallest = JiffUnit::SECOND,
+            *,
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
+        ),
         text_signature = "($self, smallest=\"second\", *, mode=\"half-expand\", increment=1)"
     )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
@@ -692,7 +733,7 @@ impl RyOffsetRound {
         PyTuple::new(py, vec![args, kwargs])
     }
 
-    #[pyo3(signature = (smallest=None, mode=None, increment=None))]
+    #[pyo3(signature = (smallest = None, mode = None, increment = None))]
     fn replace(
         &self,
         smallest: Option<JiffUnit>,

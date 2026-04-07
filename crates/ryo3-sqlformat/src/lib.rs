@@ -1,10 +1,16 @@
 #![doc = include_str!("../README.md")]
-use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
-use pyo3::{IntoPyObjectExt, intern, prelude::*};
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter, Result as FmtResult},
+    hash::{Hash, Hasher},
+};
+
+use pyo3::{
+    IntoPyObjectExt, intern,
+    prelude::*,
+    types::{PyDict, PyInt, PyString, PyTuple},
+};
 use sqlformat::{self, QueryParams};
-use std::collections::HashMap;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::hash::{Hash, Hasher};
 
 #[pyclass(
     name = "SqlfmtQueryParams",
@@ -19,7 +25,7 @@ pub struct PySqlfmtQueryParams(QueryParams);
 #[pymethods]
 impl PySqlfmtQueryParams {
     #[new]
-    #[pyo3(signature = (params=None))]
+    #[pyo3(signature = (params = None))]
     fn py_new(params: Option<PyQueryParamsLike>) -> PyResult<Self> {
         sqlfmt_params(params)
     }
@@ -300,7 +306,7 @@ pub enum PyQueryParamsLike {
 }
 
 #[pyfunction]
-#[pyo3(signature = (params=None))]
+#[pyo3(signature = (params = None))]
 pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQueryParams> {
     match params {
         Some(params) => match params {
@@ -361,18 +367,18 @@ pub fn sqlfmt_params(params: Option<PyQueryParamsLike>) -> PyResult<PySqlfmtQuer
 #[pyo3(
     signature = (
         sql,
-        params=None,
+        params = None,
         *,
-        indent=PyIndent::default(),
-        uppercase=None,
-        lines_between_queries=1,
-        ignore_case_convert=None,
-        inline=false,
-        max_inline_block=50,
-        max_inline_arguments=None,
-        max_inline_top_level=None,
-        joins_as_top_level=false,
-        dialect=PyDialect::default()
+        indent = PyIndent::default(),
+        uppercase = None,
+        lines_between_queries = 1,
+        ignore_case_convert = None,
+        inline = false,
+        max_inline_block = 50,
+        max_inline_arguments = None,
+        max_inline_top_level = None,
+        joins_as_top_level = false,
+        dialect = PyDialect::default()
     ),
     text_signature = "(sql, params=None, *, indent=2, uppercase=None, lines_between_queries=1, ignore_case_convert=None, inline=False, max_inline_block=50, max_inline_arguments=None, max_inline_top_level=None, joins_as_top_level=False, dialect='generic')"
 )]
@@ -529,16 +535,16 @@ impl PySqlFormatter {
     #[pyo3(
         signature = (
             *,
-            indent=PyIndent::default(),
-            uppercase=None,
-            lines_between_queries=1,
-            ignore_case_convert=None,
-            inline=false,
-            max_inline_block=50,
-            max_inline_arguments=None,
-            max_inline_top_level=None,
-            joins_as_top_level=false,
-            dialect=PyDialect::default()
+            indent = PyIndent::default(),
+            uppercase = None,
+            lines_between_queries = 1,
+            ignore_case_convert = None,
+            inline = false,
+            max_inline_block = 50,
+            max_inline_arguments = None,
+            max_inline_top_level = None,
+            joins_as_top_level = false,
+            dialect = PyDialect::default()
         )
     )]
     #[expect(clippy::too_many_arguments)]
@@ -616,7 +622,7 @@ impl PySqlFormatter {
         Ok(dict)
     }
 
-    #[pyo3(signature = (sql, params=None))]
+    #[pyo3(signature = (sql, params = None))]
     fn fmt(&self, sql: &str, params: Option<PyQueryParamsLike>) -> PyResult<String> {
         let opts = sqlformat::FormatOptions {
             indent: self.0.indent.into(),
@@ -643,7 +649,7 @@ impl PySqlFormatter {
         }
     }
 
-    #[pyo3(signature = (sql, params=None))]
+    #[pyo3(signature = (sql, params = None))]
     fn __call__(&self, sql: &str, params: Option<PyQueryParamsLike>) -> PyResult<String> {
         self.fmt(sql, params)
     }

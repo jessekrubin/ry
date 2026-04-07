@@ -1,17 +1,12 @@
 #![doc = include_str!("../README.md")]
 mod pattern;
 
+use std::{ffi::OsString, path::PathBuf, sync::Arc};
+
+use pyo3::{IntoPyObjectExt, prelude::*, sync::PyOnceLock, types::PyType};
+use ryo3_core::{RyMutex, py_value_err, py_value_error};
+
 use crate::pattern::PyGlobPattern;
-use pyo3::IntoPyObjectExt;
-use pyo3::prelude::*;
-use pyo3::sync::PyOnceLock;
-use pyo3::types::PyType;
-use ryo3_core::RyMutex;
-use ryo3_core::py_value_err;
-use ryo3_core::py_value_error;
-use std::ffi::OsString;
-use std::path::PathBuf;
-use std::sync::Arc;
 
 #[derive(Clone, Copy)]
 enum GlobDType {
@@ -144,7 +139,7 @@ impl PyGlobPaths {
     }
 
     /// Take `n` items from the iterator or 1 if `n` is not specified.
-    #[pyo3(signature = (n=1))]
+    #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<GlobPathsVec> {
         let paths: Vec<PathBuf> = py
             .detach(|| {
@@ -216,11 +211,11 @@ impl PyGlobPaths {
     signature = (
         pattern,
         *,
-        case_sensitive=true,
-        require_literal_separator=false,
-        require_literal_leading_dot=false,
-        strict=true,
-        dtype=None,
+        case_sensitive = true,
+        require_literal_separator = false,
+        require_literal_leading_dot = false,
+        strict = true,
+        dtype = None,
     )
 )]
 pub fn py_glob(

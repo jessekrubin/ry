@@ -1,6 +1,6 @@
-use pyo3::PyErr;
-
 use std::fmt;
+
+use pyo3::PyErr;
 
 pub fn map_py_value_err<E>(e: E) -> PyErr
 where

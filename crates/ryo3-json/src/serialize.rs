@@ -1,6 +1,8 @@
-use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::{PyRecursionError, PyTypeError};
-use pyo3::prelude::*;
+use pyo3::{
+    IntoPyObjectExt,
+    exceptions::{PyRecursionError, PyTypeError},
+    prelude::*,
+};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_serde::PyAnySerializer;
 

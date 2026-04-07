@@ -69,7 +69,7 @@ impl RyDate {
         Self::from(Zoned::now().date())
     }
 
-    #[pyo3(signature = (hour, minute, second, nanosecond=0))]
+    #[pyo3(signature = (hour, minute, second, nanosecond = 0))]
     pub(crate) fn at(&self, hour: i8, minute: i8, second: i8, nanosecond: i32) -> RyDateTime {
         RyDateTime::from(self.0.at(hour, minute, second, nanosecond))
     }
@@ -168,19 +168,19 @@ impl RyDate {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            years = 0,
+            months = 0,
+            weeks = 0,
+            days = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn add(
@@ -227,19 +227,19 @@ impl RyDate {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            years = 0,
+            months = 0,
+            weeks = 0,
+            days = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn sub<'py>(
@@ -297,12 +297,12 @@ impl RyDate {
     #[pyo3(
         signature = (
             *,
-            year=None,
-            era_year=None,
-            month=None,
-            day=None,
-            day_of_year=None,
-            day_of_year_no_leap=None,
+            year = None,
+            era_year = None,
+            month = None,
+            day = None,
+            day_of_year = None,
+            day_of_year_no_leap = None,
         )
     )]
     fn replace(
@@ -489,9 +489,9 @@ impl RyDate {
         signature = (
             other,
             *,
-            smallest=JiffUnit::DAY,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
+            smallest = JiffUnit::DAY,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
@@ -515,9 +515,9 @@ impl RyDate {
         signature = (
             other,
             *,
-            smallest=JiffUnit::DAY,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
+            smallest = JiffUnit::DAY,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"

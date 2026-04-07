@@ -20,11 +20,11 @@
 //! | sha512_256 |         32 |       128 |
 
 use aws_lc_rs::digest::{Context, Digest};
-use pyo3::prelude::*;
-use pyo3::types::PyString;
+use pyo3::{prelude::*, types::PyString};
 use ryo3_bytes::ReadableBuffer;
-use ryo3_core::types::PyHexDigest;
-use ryo3_core::{PyAsciiString, RyMutex};
+use ryo3_core::{PyAsciiString, RyMutex, types::PyHexDigest};
+
+const HASHLIB_GIL_MINSIZE: usize = 2048;
 
 trait PyAlgorithm {
     /// digest size in bytes
@@ -278,8 +278,12 @@ impl PySha256 {
     fn py_new(py: Python<'_>, data: Option<ReadableBuffer>) -> Self {
         match data {
             Some(b) => {
-                let bytes = b.as_ref();
-                py.detach(|| Self(PyMutexContext::new_with_data(bytes)))
+                if b.len() >= HASHLIB_GIL_MINSIZE {
+                    let slice = b.as_ref();
+                    py.detach(|| Self(PyMutexContext::new_with_data(slice)))
+                } else {
+                    Self(PyMutexContext::new_with_data(b.as_ref()))
+                }
             }
             None => Self(PyMutexContext::new()),
         }
@@ -315,12 +319,18 @@ impl PySha256 {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(signature = (data, /), text_signature = "(data, /)")]
     fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
-        let s = data.as_ref();
-        py.detach(|| {
+        if data.len() >= HASHLIB_GIL_MINSIZE {
+            let slice = data.as_ref();
+            py.detach(|| {
+                let mut ctx = self.0.py_lock()?;
+                ctx.update(slice);
+                Ok(())
+            })
+        } else {
             let mut ctx = self.0.py_lock()?;
-            ctx.update(s);
+            ctx.update(data.as_ref());
             Ok(())
-        })
+        }
     }
 
     fn copy(&self) -> PyResult<Self> {
@@ -333,11 +343,21 @@ impl PySha256 {
     #[staticmethod]
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(signature = (data, /), text_signature = "(data, /)")]
-    fn oneshot(data: ReadableBuffer) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
-        let mut ctx = Context::new(PySha256Algorithm::algorithm());
-        ctx.update(data.as_ref());
-        let digest = ctx.finish();
-        PyAwsLcRsDigest(digest)
+    fn oneshot(py: Python<'_>, data: ReadableBuffer) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
+        if data.len() >= HASHLIB_GIL_MINSIZE {
+            let slice = data.as_ref();
+            py.detach(|| {
+                let mut ctx = Context::new(PySha256Algorithm::algorithm());
+                ctx.update(slice);
+                let digest = ctx.finish();
+                PyAwsLcRsDigest(digest)
+            })
+        } else {
+            let mut ctx = Context::new(PySha256Algorithm::algorithm());
+            ctx.update(data.as_ref());
+            let digest = ctx.finish();
+            PyAwsLcRsDigest(digest)
+        }
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -378,8 +398,12 @@ macro_rules! define_py_hasher {
             fn py_new(py: Python<'_>, data: Option<ReadableBuffer>) -> Self {
                 match data {
                     Some(b) => {
-                        let bytes = b.as_ref();
-                        py.detach(|| Self(PyMutexContext::new_with_data(bytes)))
+                        if b.len() >= HASHLIB_GIL_MINSIZE {
+                            let slice = b.as_ref();
+                            py.detach(|| Self(PyMutexContext::new_with_data(slice)))
+                        } else {
+                            Self(PyMutexContext::new_with_data(b.as_ref()))
+                        }
                     }
                     None => Self(PyMutexContext::new()),
                 }
@@ -418,12 +442,18 @@ macro_rules! define_py_hasher {
 
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
             fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
-                let s = data.as_ref();
-                py.detach(|| {
+                if data.len() >= HASHLIB_GIL_MINSIZE {
+                    let slice = data.as_ref();
+                    py.detach(|| {
+                        let mut ctx = self.0.py_lock()?;
+                        ctx.update(slice);
+                        Ok(())
+                    })
+                } else {
                     let mut ctx = self.0.py_lock()?;
-                    ctx.update(s);
+                    ctx.update(data.as_ref());
                     Ok(())
-                })
+                }
             }
 
             fn copy(&self) -> PyResult<Self> {
@@ -436,12 +466,24 @@ macro_rules! define_py_hasher {
             #[staticmethod]
             #[allow(clippy::needless_pass_by_value)]
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
-            fn oneshot(data: ReadableBuffer) -> PyResult<PyAwsLcRsDigest<$output_len>> {
-                // weird <> syntax works...
-                let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
-                ctx.update(data.as_ref());
-                let digest = ctx.finish();
-                Ok(PyAwsLcRsDigest(digest))
+            fn oneshot(
+                py: Python<'_>,
+                data: ReadableBuffer,
+            ) -> PyResult<PyAwsLcRsDigest<$output_len>> {
+                if data.len() >= HASHLIB_GIL_MINSIZE {
+                    let bytes = data.as_ref();
+                    Ok(py.detach(|| {
+                        let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
+                        ctx.update(&bytes);
+                        let digest = ctx.finish();
+                        PyAwsLcRsDigest(digest)
+                    }))
+                } else {
+                    let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
+                    ctx.update(data.as_ref());
+                    let digest = ctx.finish();
+                    Ok(PyAwsLcRsDigest(digest))
+                }
             }
         }
     };

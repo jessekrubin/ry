@@ -1,7 +1,8 @@
 //! traits for IP address like thing properties
-use crate::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr, PySocketAddr, PySocketAddrV4, PySocketAddrV6};
 use pyo3::prelude::*;
 use ryo3_macro_rules::pytodo;
+
+use crate::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr, PySocketAddr, PySocketAddrV4, PySocketAddrV6};
 
 pub(crate) trait AsIpAddr {
     fn as_ipaddr(&self) -> std::net::IpAddr;

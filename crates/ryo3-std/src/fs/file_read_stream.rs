@@ -1,11 +1,14 @@
+use std::{
+    fs::File,
+    io::{self, BufReader, Read, Seek, SeekFrom},
+    path::{Path, PathBuf},
+};
+
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::RyMutex;
 use ryo3_macro_rules::py_value_err;
-use std::fs::File;
-use std::io::{self, BufReader, Read, Seek, SeekFrom};
-use std::path::{Path, PathBuf};
 
 pub(crate) const DEFAULT_READ_SIZE: usize = 65536;
 

@@ -1,7 +1,10 @@
-use pyo3::sync::{MutexExt, RwLockExt};
-use pyo3::{PyErr, PyResult, Python};
-use ryo3_macro_rules::py_runtime_error;
 use std::sync::{Mutex, MutexGuard, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard};
+
+use pyo3::{
+    PyErr, PyResult, Python,
+    sync::{MutexExt, RwLockExt},
+};
+use ryo3_macro_rules::py_runtime_error;
 
 pub trait PyLock<T> {
     fn py_lock(&self) -> PyResult<MutexGuard<'_, T>>;

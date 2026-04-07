@@ -1,5 +1,6 @@
 """ryo3-tokio-websockets types"""
 
+import datetime as pydt
 import sys
 import typing as t
 from collections.abc import Generator
@@ -8,12 +9,23 @@ from types import TracebackType
 from ry import Bytes
 from ry._types import Buffer
 from ry.ryo3._http import Headers, HttpStatus
+from ry.ryo3._std import Duration
 from ry.ryo3._url import URL
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
 else:
     from typing_extensions import Buffer as Buffer
+
+_TimeoutLike: t.TypeAlias = Duration | pydt.timedelta | float | None
+
+class WebSocketConfig(t.TypedDict):
+    headers: Headers
+    max_payload_len: int
+    frame_size: int
+    flush_threshold: int
+    close_timeout: Duration | None
+    recv_timeout: Duration | None
 
 _ReadyState: t.TypeAlias = t.Literal[
     0,  # CONNECTING
@@ -135,8 +147,11 @@ class WebSocket:
         max_payload_len: int = 67_108_864,
         frame_size: int = 4_194_304,
         flush_threshold: int = 8_192,
-        close_timeout: float | None = 10.0,
+        close_timeout: _TimeoutLike = 10.0,
+        recv_timeout: _TimeoutLike = 10.0,
     ) -> None: ...
+    def config(self) -> WebSocketConfig:
+        """Return the `WebSocketConfig` as a dict"""
     @property
     def uri(self) -> str: ...
     @property
@@ -162,9 +177,9 @@ class WebSocket:
     def __bool__(self) -> bool:
         """Return `True` if the WebSocket is open, `False` otherwise"""
 
-    async def recv(self) -> WsMessage:
+    async def recv(self, timeout: _TimeoutLike | None = None) -> WsMessage:
         """Receive the next message from the WebSocket connection"""
-    async def receive(self) -> WsMessage:
+    async def receive(self, timeout: _TimeoutLike | None = None) -> WsMessage:
         """Receive the next message from the WebSocket connection"""
     async def send(self, message: WsMessage | str | Buffer) -> None:
         """Send a message over the WebSocket connection"""
@@ -196,7 +211,8 @@ def websocket(
     uri: URL | str,
     *,
     headers: Headers | dict[str, str] | None = None,
-    close_timeout: float | None = 10,
+    close_timeout: _TimeoutLike = 10,
+    recv_timeout: _TimeoutLike | None = None,
     flush_threshold: int = 8_192,
     frame_size: int = 4_194_304,
     max_payload_len: int = 67_108_864,

@@ -37,7 +37,7 @@ pub struct RyDateTime(pub(crate) DateTime);
 #[pymethods]
 impl RyDateTime {
     #[new]
-    #[pyo3(signature = (year, month, day, hour=0, minute=0, second=0, subsec_nanosecond=0))]
+    #[pyo3(signature = (year, month, day, hour = 0, minute = 0, second = 0, subsec_nanosecond = 0))]
     pub(crate) fn py_new(
         year: i16,
         month: i8,
@@ -200,19 +200,19 @@ impl RyDateTime {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            years = 0,
+            months = 0,
+            weeks = 0,
+            days = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn add(
@@ -259,19 +259,19 @@ impl RyDateTime {
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
-        signature=(
-            other=None,
+        signature = (
+            other = None,
             /, *,
-            years=0,
-            months=0,
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=0,
-            milliseconds=0,
-            microseconds=0,
-            nanoseconds=0
+            years = 0,
+            months = 0,
+            weeks = 0,
+            days = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0,
+            milliseconds = 0,
+            microseconds = 0,
+            nanoseconds = 0
         )
     )]
     fn sub<'py>(
@@ -416,23 +416,23 @@ impl RyDateTime {
 
     #[pyo3(
         signature = (
-            obj=None,
+            obj = None,
             *,
-            date=None,
-            time=None,
-            year=None,
-            era_year=None,
-            month=None,
-            day=None,
-            day_of_year=None,
-            day_of_year_no_leap=None,
-            hour=None,
-            minute=None,
-            second=None,
-            millisecond=None,
-            microsecond=None,
-            nanosecond=None,
-            subsec_nanosecond=None,
+            date = None,
+            time = None,
+            year = None,
+            era_year = None,
+            month = None,
+            day = None,
+            day_of_year = None,
+            day_of_year_no_leap = None,
+            hour = None,
+            minute = None,
+            second = None,
+            millisecond = None,
+            microsecond = None,
+            nanosecond = None,
+            subsec_nanosecond = None,
         )
     )]
     #[expect(clippy::too_many_arguments)]
@@ -519,10 +519,10 @@ impl RyDateTime {
 
     #[pyo3(
         signature = (
-            smallest=JiffUnit::NANOSECOND,
+            smallest = JiffUnit::NANOSECOND,
             *,
-            mode=JiffRoundMode::HALF_EXPAND,
-            increment=1
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
@@ -624,10 +624,10 @@ impl RyDateTime {
         signature = (
             other,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
@@ -650,10 +650,10 @@ impl RyDateTime {
         signature = (
             other,
             *,
-            smallest=JiffUnit::NANOSECOND,
-            largest=None,
-            mode=JiffRoundMode::TRUNC,
-            increment=1
+            smallest = JiffUnit::NANOSECOND,
+            largest = None,
+            mode = JiffRoundMode::TRUNC,
+            increment = 1
         ),
         text_signature = "(self, other, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
