@@ -388,7 +388,7 @@ impl PyHeaders {
     }
 
     #[cfg(feature = "json")]
-    #[pyo3(signature = (*, fmt=false))]
+    #[pyo3(signature = (*, fmt = false))]
     fn stringify(&self, fmt: bool) -> PyResult<String> {
         use ryo3_core::py_value_error;
         let inner = self.read();

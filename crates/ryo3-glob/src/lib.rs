@@ -139,7 +139,7 @@ impl PyGlobPaths {
     }
 
     /// Take `n` items from the iterator or 1 if `n` is not specified.
-    #[pyo3(signature = (n=1))]
+    #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<GlobPathsVec> {
         let paths: Vec<PathBuf> = py
             .detach(|| {
@@ -211,11 +211,11 @@ impl PyGlobPaths {
     signature = (
         pattern,
         *,
-        case_sensitive=true,
-        require_literal_separator=false,
-        require_literal_leading_dot=false,
-        strict=true,
-        dtype=None,
+        case_sensitive = true,
+        require_literal_separator = false,
+        require_literal_leading_dot = false,
+        strict = true,
+        dtype = None,
     )
 )]
 pub fn py_glob(

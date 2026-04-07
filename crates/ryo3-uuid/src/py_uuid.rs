@@ -67,12 +67,12 @@ impl PyUuid {
     #[new]
     #[pyo3(
         signature = (
-            hex=None,
-            bytes=None,
-            bytes_le=None,
-            fields=None,
-            int=None,
-            version=None
+            hex = None,
+            bytes = None,
+            bytes_le = None,
+            fields = None,
+            int = None,
+            version = None
         )
     )]
     fn py_new(
@@ -486,7 +486,7 @@ pub fn getnode(py: Python<'_>) -> PyResult<u64> {
 /// If node is not given, `getnode()` is used to obtain the hardware address.
 /// If `clock_seq` is given, it is used as the sequence number; otherwise a
 /// random 14-bit sequence number is chosen.
-#[pyfunction(signature = (node=None, clock_seq=None))]
+#[pyfunction(signature = (node = None, clock_seq = None))]
 #[expect(unused_variables)]
 pub fn uuid1(node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
     pytodo!("UUID1 is not implemented yet")
@@ -534,7 +534,7 @@ pub fn uuid5(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
 ///
 /// This function will panic if it fails to convert the node ID to a 6-byte, but
 /// there is no-way-jose that could happen AFAICT.
-#[pyfunction(signature = (node=None, clock_seq=None))]
+#[pyfunction(signature = (node = None, clock_seq = None))]
 pub fn uuid6(py: Python<'_>, node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
     let node = node.map_or_else(|| getnode(py), |n| Ok(n & 0xFFFF_FFFF_FFFF))?;
     let node_arr = node.to_be_bytes();
@@ -545,7 +545,7 @@ pub fn uuid6(py: Python<'_>, node: Option<u64>, clock_seq: Option<u16>) -> PyRes
     Ok(uuid::Uuid::now_v6(node_id).into())
 }
 
-#[pyfunction(signature = (timestamp=None))]
+#[pyfunction(signature = (timestamp = None))]
 pub fn uuid7(timestamp: Option<u64>) -> PyResult<PyUuid> {
     match timestamp {
         Some(ms) => {

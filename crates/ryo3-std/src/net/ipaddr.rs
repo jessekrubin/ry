@@ -35,9 +35,7 @@ pub struct PyIpAddr(pub IpAddr);
 #[pymethods]
 impl PyIpv4Addr {
     #[new]
-    #[pyo3(
-        signature = (a, b=None, c=None, d=None),
-    )]
+    #[pyo3(signature = (a, b = None, c = None, d = None))]
     fn py_new(a: &Bound<'_, PyAny>, b: Option<u8>, c: Option<u8>, d: Option<u8>) -> PyResult<Self> {
         extract_ipv4(a, b, c, d).map(Self)
     }

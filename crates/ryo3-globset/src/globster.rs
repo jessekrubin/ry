@@ -57,9 +57,9 @@ impl PyGlobster {
         signature = (
             patterns,
             /, *,
-            case_insensitive=false,
-            literal_separator=false,
-            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+            case_insensitive = false,
+            literal_separator = false,
+            backslash_escape = DEFAULT_BACKSLASH_ESCAPE
         )
     )]
     pub(crate) fn py_new(

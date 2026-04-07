@@ -66,7 +66,7 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 #[pymethods]
 impl PyFsPath {
     #[new]
-    #[pyo3(signature = (p=None))]
+    #[pyo3(signature = (p = None))]
     fn py_new(p: Option<PathBuf>) -> Self {
         match p {
             Some(p) => Self::from(p),
@@ -574,10 +574,7 @@ impl PyFsPath {
         self.read_dir(py)
     }
 
-    #[pyo3(signature = (
-        *args,
-        **kwargs
-    ))]
+    #[pyo3(signature = (*args, **kwargs))]
     fn open<'py>(
         &self,
         py: Python<'py>,
@@ -786,14 +783,14 @@ impl PyFsPath {
     // -------------------------------------------------------------------------
     #[cfg(feature = "which")]
     #[staticmethod]
-    #[pyo3(signature = (cmd, path=None))]
+    #[pyo3(signature = (cmd, path = None))]
     fn which(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Option<Self>> {
         ryo3_which::which(py, cmd, path).map(|opt| opt.map(Self::from))
     }
 
     #[cfg(not(feature = "which"))]
     #[staticmethod]
-    #[pyo3(signature = (_cmd, _path=None))]
+    #[pyo3(signature = (_cmd, _path = None))]
     fn which(_cmd: &str, _path: Option<&str>) -> PyResult<Option<Self>> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`which` feature not enabled",
@@ -802,7 +799,7 @@ impl PyFsPath {
 
     #[cfg(feature = "which")]
     #[staticmethod]
-    #[pyo3(signature = (cmd, path=None))]
+    #[pyo3(signature = (cmd, path = None))]
     fn which_all(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Vec<Self>> {
         ryo3_which::which_all(py, cmd, path)
             .map(|opt| opt.into_iter().map(Self::from).collect::<Vec<_>>())
@@ -810,7 +807,7 @@ impl PyFsPath {
 
     #[cfg(not(feature = "which"))]
     #[staticmethod]
-    #[pyo3(signature = (_cmd, _path=None))]
+    #[pyo3(signature = (_cmd, _path = None))]
     fn which_all(_cmd: &str, _path: Option<&str>) -> PyResult<Vec<Self>> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`which` feature not enabled",
@@ -819,7 +816,7 @@ impl PyFsPath {
 
     #[cfg(feature = "which-regex")]
     #[staticmethod]
-    #[pyo3(signature = (regex, path=None))]
+    #[pyo3(signature = (regex, path = None))]
     fn which_re(
         py: Python<'_>,
         regex: &Bound<'_, PyAny>,
@@ -831,7 +828,7 @@ impl PyFsPath {
 
     #[cfg(not(feature = "which-regex"))]
     #[staticmethod]
-    #[pyo3(signature = (_regex, _path=None))]
+    #[pyo3(signature = (_regex, _path = None))]
     fn which_re(_regex: &Bound<'_, PyAny>, _path: Option<&str>) -> PyResult<Vec<Self>> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`which` feature not enabled",

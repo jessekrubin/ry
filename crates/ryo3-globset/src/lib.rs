@@ -48,9 +48,9 @@ impl PyGlob {
         signature = (
             pattern,
             /, *,
-            case_insensitive=false,
-            literal_separator=false,
-            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+            case_insensitive = false,
+            literal_separator = false,
+            backslash_escape = DEFAULT_BACKSLASH_ESCAPE
         )
     )]
     fn py_new(
@@ -152,9 +152,9 @@ impl PyGlobSet {
         signature = (
             patterns,
             /, *,
-            case_insensitive=false,
-            literal_separator=false,
-            backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+            case_insensitive = false,
+            literal_separator = false,
+            backslash_escape = DEFAULT_BACKSLASH_ESCAPE
         )
     )]
     fn py_new(
@@ -295,9 +295,9 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
     signature = (
         patterns,
         /, *,
-        case_insensitive=false,
-        literal_separator=false,
-        backslash_escape=DEFAULT_BACKSLASH_ESCAPE
+        case_insensitive = false,
+        literal_separator = false,
+        backslash_escape = DEFAULT_BACKSLASH_ESCAPE
     )
 )]
 fn py_globster(

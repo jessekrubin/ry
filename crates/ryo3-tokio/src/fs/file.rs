@@ -249,7 +249,7 @@ impl PyAsyncFile {
 impl PyAsyncFile {
     #[new]
     #[pyo3(
-        signature = (p, mode=PyOpenMode::default()),
+        signature = (p, mode = PyOpenMode::default()),
         text_signature = "(path, mode='rb')"
     )]
     fn py_new(p: PathBuf, mode: PyOpenMode) -> PyResult<Self> {
@@ -459,7 +459,7 @@ impl PyAsyncFile {
     }
 
     #[pyo3(
-        signature = (offset, whence=0, /),
+        signature = (offset, whence = 0, /),
         text_signature = "(self, offset, whence=os.SEEK_SET, /)")
     ]
     fn seek<'py>(
@@ -537,7 +537,7 @@ impl PyAsyncFile {
 impl PyAsyncFile {
     #[new]
     #[pyo3(
-        signature = (p, mode=PyOpenMode::default()),
+        signature = (p, mode = PyOpenMode::default()),
         text_signature = "(path, mode='rb')"
     )]
     fn py_new(p: PathBuf, mode: PyOpenMode) -> PyResult<Self> {
@@ -665,9 +665,7 @@ impl PyAsyncFile {
         Ok(ryo3_bytes::PyBytes::from(bvec))
     }
 
-    #[pyo3(
-        signature = (size = None, /),
-    )]
+    #[pyo3(signature = (size = None, /))]
     async fn read(&self, size: Option<usize>) -> PyResult<ryo3_bytes::PyBytes> {
         let inner = Arc::clone(&self.inner);
         on_tokio_py(async move {
@@ -750,7 +748,7 @@ impl PyAsyncFile {
     }
 
     #[pyo3(
-        signature = (offset, whence=0, /),
+        signature = (offset, whence = 0, /),
         text_signature = "(self, offset, whence=os.SEEK_SET, /)")
     ]
     async fn seek(&self, offset: i64, whence: usize) -> PyResult<u64> {

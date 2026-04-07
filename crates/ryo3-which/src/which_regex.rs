@@ -18,7 +18,7 @@ fn extract_regex(regex: &Bound<PyAny>) -> PyResult<PyRegex> {
 }
 
 #[pyfunction]
-#[pyo3(signature= (regex, path=None))]
+#[pyo3(signature = (regex, path = None))]
 pub fn which_re(
     py: Python<'_>,
     regex: &Bound<'_, PyAny>,

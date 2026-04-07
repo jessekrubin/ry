@@ -382,9 +382,7 @@ impl RyHttpClient {
         self.request(py, url, Method::PATCH, kwargs)
     }
 
-    #[pyo3(
-        signature = (url, *, method=PyHttpMethod::GET, **kwargs)
-    )]
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     pub(crate) fn fetch<'py>(
         &'py self,
         py: Python<'py>,
@@ -395,9 +393,7 @@ impl RyHttpClient {
         self.request(py, url, method.into(), kwargs)
     }
 
-    #[pyo3(
-        signature = (url, *, method=PyHttpMethod::GET, **kwargs)
-    )]
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     fn __call__<'py>(
         &'py self,
         py: Python<'py>,
@@ -408,9 +404,7 @@ impl RyHttpClient {
         self.request(py, url, method.into(), kwargs)
     }
 
-    #[pyo3(
-        signature = (url, *, method=PyHttpMethod::GET, **kwargs)
-    )]
+    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     pub(crate) fn fetch_sync(
         &self,
         py: Python<'_>,
