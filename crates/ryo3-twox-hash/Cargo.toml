@@ -15,19 +15,18 @@ description = "python + twox-hash (https://docs.rs/twox-hash/latest/twox_hash/)"
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 ryo3-core.workspace = true
-twox-hash.workspace = true
+twox-hash = { workspace = true, features = ["alloc", "std"] }
 
 [lints]
 workspace = true
 
 [features]
-default = ["random", "xxhash32", "xxhash64", "xxhash3_64", "xxhash3_128", "std"]
+default = ["random", "xxhash32", "xxhash64", "xxhash3_64", "xxhash3_128"]
 ry = ["default"]
 # =============================================================================
 # 'twox-hash' feats (tho I guess the actual singular would be 'twox-hash feet')
 # =============================================================================
 random = ["twox-hash/random"]
-std = ["twox-hash/std"]
 xxhash32 = ["twox-hash/xxhash32"]
 xxhash3_128 = [ "twox-hash/xxhash3_128" ]
 xxhash3_64 = [ "twox-hash/xxhash3_64" ]

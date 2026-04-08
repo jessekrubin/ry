@@ -17,7 +17,7 @@ pub mod xxhash64;
         feature = "xxhash3_64",
         feature = "xxhash3_128"
     )),
-    allow(unused_variables)
+    expect(unused_variables)
 )]
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "xxhash32")]

@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 
-#[cfg(feature = "experimental-async")]
 use pyo3::prelude::*;
 use ryo3_macro_rules::py_stop_async_iteration_err;
 use ryo3_std::fs::PyMetadata;
