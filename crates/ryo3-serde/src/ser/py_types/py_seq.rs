@@ -41,51 +41,51 @@ macro_rules! serialize_seq_element {
                 $seq.serialize_element(&PyStrSerializer::new_unchecked($element))?;
             }
             PyObType::List => {
-                $seq.serialize_element(&PyListSerializer::new(
+                $seq.serialize_element(&PyListSerializer::new_unchecked(
                     $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Tuple => {
-                $seq.serialize_element(&PyTupleSerializer::new(
+                $seq.serialize_element(&PyTupleSerializer::new_unchecked(
                     $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Dict => {
-                $seq.serialize_element(&PyDictSerializer::new(
+                $seq.serialize_element(&PyDictSerializer::new_unchecked(
                     $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::Set => {
-                $seq.serialize_element(&PySetSerializer::new(
+                $seq.serialize_element(&PySetSerializer::new_unchecked(
                     $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::FrozenSet => {
-                $seq.serialize_element(&PyFrozenSetSerializer::new(
+                $seq.serialize_element(&PyFrozenSetSerializer::new_unchecked(
                     $element,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::DateTime => {
-                $seq.serialize_element(&PyDateTimeSerializer::new($element))?;
+                $seq.serialize_element(&PyDateTimeSerializer::new_unchecked($element))?;
             }
             PyObType::Date => {
-                $seq.serialize_element(&PyDateSerializer::new($element))?;
+                $seq.serialize_element(&PyDateSerializer::new_unchecked($element))?;
             }
             PyObType::Time => {
-                $seq.serialize_element(&PyTimeSerializer::new($element))?;
+                $seq.serialize_element(&PyTimeSerializer::new_unchecked($element))?;
             }
             PyObType::Timedelta => {
-                $seq.serialize_element(&PyTimeDeltaSerializer::new($element))?;
+                $seq.serialize_element(&PyTimeDeltaSerializer::new_unchecked($element))?;
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
                 $seq.serialize_element(&PyBytesLikeSerializer::new($element))?;
@@ -209,17 +209,29 @@ macro_rules! serialize_seq_element {
 // ----------------------------------------------------------------------------
 pub(crate) struct PyListSerializer<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyList>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> PyListSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(
-        obj: Borrowed<'a, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyList>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyList>() };
+        Self::new(obj, ctx, depth)
     }
 }
 impl Serialize for PyListSerializer<'_, '_> {
@@ -231,13 +243,12 @@ impl Serialize for PyListSerializer<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_list = self.obj.cast_exact::<PyList>().map_err(pyerr2sererr)?;
-        let len = py_list.len();
+        let len = self.obj.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
         } else {
             let mut seq = serializer.serialize_seq(Some(len))?;
-            for element in py_list.iter() {
+            for element in self.obj.iter() {
                 let element = element.as_borrowed();
                 let ob_type = self.ctx.typeref.obtype(element);
                 serialize_seq_element!(ob_type, seq, self, element);
@@ -251,18 +262,30 @@ impl Serialize for PyListSerializer<'_, '_> {
 // PyTuple
 // ----------------------------------------------------------------------------
 pub(crate) struct PyTupleSerializer<'a, 'py> {
-    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyTuple>,
     pub(crate) ctx: PySerializeContext<'py>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> PyTupleSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(
-        obj: Borrowed<'a, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyTuple>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { obj, ctx, depth }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyTuple>() };
+        Self::new(obj, ctx, depth)
     }
 }
 impl Serialize for PyTupleSerializer<'_, '_> {
@@ -274,13 +297,12 @@ impl Serialize for PyTupleSerializer<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_tuple = self.obj.cast_exact::<PyTuple>().map_err(pyerr2sererr)?;
-        let len = py_tuple.len();
+        let len = self.obj.len();
         if len == 0 {
             serializer.serialize_seq(Some(0))?.end()
         } else {
             let mut tup = serializer.serialize_tuple(len)?;
-            for element in py_tuple.iter() {
+            for element in self.obj.iter() {
                 let element = element.as_borrowed();
                 let ob_type = self.ctx.typeref.obtype(element);
                 serialize_seq_element!(ob_type, tup, self, element);
@@ -295,17 +317,29 @@ impl Serialize for PyTupleSerializer<'_, '_> {
 // ----------------------------------------------------------------------------
 pub(crate) struct PySetSerializer<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PySet>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> PySetSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(
-        obj: Borrowed<'a, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PySet>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PySet>() };
+        Self::new(obj, ctx, depth)
     }
 }
 
@@ -314,13 +348,12 @@ impl Serialize for PySetSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let py_set = self.obj.cast_exact::<PySet>().map_err(pyerr2sererr)?;
-        let len = py_set.len();
+        let len = self.obj.len();
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
         let mut seq = serializer.serialize_seq(Some(len))?;
-        for element in py_set.iter() {
+        for element in self.obj.iter() {
             let element = element.as_borrowed();
             let ob_type = self.ctx.typeref.obtype(element);
             serialize_seq_element!(ob_type, seq, self, element);
@@ -334,17 +367,29 @@ impl Serialize for PySetSerializer<'_, '_> {
 // ----------------------------------------------------------------------------
 pub(crate) struct PyFrozenSetSerializer<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
-    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyFrozenSet>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> PyFrozenSetSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(
-        obj: Borrowed<'a, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyFrozenSet>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyFrozenSet>() };
+        Self::new(obj, ctx, depth)
     }
 }
 
@@ -353,13 +398,12 @@ impl Serialize for PyFrozenSetSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let py_frozenset = self.obj.cast_exact::<PyFrozenSet>().map_err(pyerr2sererr)?;
-        let len = py_frozenset.len();
+        let len = self.obj.len();
         if len == 0 {
             return serializer.serialize_seq(Some(0))?.end();
         }
         let mut seq = serializer.serialize_seq(Some(len))?;
-        for element in py_frozenset.iter() {
+        for element in self.obj.iter() {
             let element = element.as_borrowed();
             let ob_type = self.ctx.typeref.obtype(element);
             serialize_seq_element!(ob_type, seq, self, element);

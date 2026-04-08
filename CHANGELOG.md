@@ -5,6 +5,7 @@
 - `ryo3-serde`
   - python `enum` serialization support
   - fix issue with depth in `set`/`frozenset`
+  - serializers no longer redundantly cast/check types
 - expanding usage of `ReadableBuffer` for (every-so-slightly) perf gains when
   reading bytes
   - use in `memchr`

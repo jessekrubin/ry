@@ -22,16 +22,6 @@ impl<'a, 'py> PyIntSerializer<'a, 'py> {
     }
 }
 
-impl<'a, 'py> TryFrom<Borrowed<'a, 'py, PyAny>> for PyIntSerializer<'a, 'py> {
-    type Error = pyo3::CastError<'a, 'py>;
-
-    #[inline]
-    fn try_from(value: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        let obj = value.cast_exact::<PyInt>()?;
-        Ok(Self::new(obj))
-    }
-}
-
 impl Serialize for PyIntSerializer<'_, '_> {
     #[inline(always)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

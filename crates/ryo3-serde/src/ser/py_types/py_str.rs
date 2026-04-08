@@ -49,8 +49,7 @@ impl Serialize for PyStrSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let pystr = self.obj.cast_exact::<PyString>().map_err(pyerr2sererr)?;
-        let s = pystr.to_str().map_err(pyerr2sererr)?;
+        let s = self.obj.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(s)
     }
 }

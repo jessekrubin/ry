@@ -26,17 +26,29 @@ use crate::serde_err_recursion;
 
 pub(crate) struct PyDictSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,
-    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyDict>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> PyDictSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(
-        obj: Borrowed<'a, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyDict>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyDict>() };
+        Self::new(obj, ctx, depth)
     }
 }
 
@@ -60,35 +72,51 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyStrSerializer::new_unchecked($value))?;
             }
             PyObType::List => {
-                $map.serialize_value(&PyListSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyListSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Tuple => {
-                $map.serialize_value(&PyTupleSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyTupleSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Dict => {
-                $map.serialize_value(&PyDictSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyDictSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Set => {
-                $map.serialize_value(&PySetSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PySetSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::FrozenSet => {
-                $map.serialize_value(&PyFrozenSetSerializer::new(
+                $map.serialize_value(&PyFrozenSetSerializer::new_unchecked(
                     $value,
                     $self.ctx,
                     $self.depth + 1,
                 ))?;
             }
             PyObType::DateTime => {
-                $map.serialize_value(&PyDateTimeSerializer::new($value))?;
+                $map.serialize_value(&PyDateTimeSerializer::new_unchecked($value))?;
             }
             PyObType::Date => {
-                $map.serialize_value(&PyDateSerializer::new($value))?;
+                $map.serialize_value(&PyDateSerializer::new_unchecked($value))?;
             }
             PyObType::Time => {
-                $map.serialize_value(&PyTimeSerializer::new($value))?;
+                $map.serialize_value(&PyTimeSerializer::new_unchecked($value))?;
             }
             PyObType::Timedelta => {
-                $map.serialize_value(&PyTimeDeltaSerializer::new($value))?;
+                $map.serialize_value(&PyTimeDeltaSerializer::new_unchecked($value))?;
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
                 $map.serialize_value(&PyBytesLikeSerializer::new($value))?;
@@ -209,13 +237,12 @@ impl Serialize for PyDictSerializer<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_dict = self.obj.cast_exact::<PyDict>().map_err(pyerr2sererr)?;
-        let len = py_dict.len();
+        let len = self.obj.len();
         if len == 0 {
             return serializer.serialize_map(Some(0))?.end();
         }
         let mut m = serializer.serialize_map(None)?;
-        for (map_key, map_val) in py_dict.iter() {
+        for (map_key, map_val) in self.obj.iter() {
             let map_key = map_key.as_borrowed();
             let map_val = map_val.as_borrowed();
             let sk = PyMappingKeySerializer::new(self.ctx, map_key);

@@ -48,8 +48,7 @@ impl Serialize for PyDataclassSerializer<'_, '_> {
         if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
             if let Ok(dict) = dunder_dict.cast::<PyDict>() {
                 // serialize the __dict__ as a dict
-                // revisit the as any?
-                PyDictSerializer::new(dict.as_any().as_borrowed(), self.ctx, self.depth + 1)
+                PyDictSerializer::new(dict.as_borrowed(), self.ctx, self.depth + 1)
                     .serialize(serializer)
             } else {
                 serde_err!("dataclass::__dict__ is not a dict")

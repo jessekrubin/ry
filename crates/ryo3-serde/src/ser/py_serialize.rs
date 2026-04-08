@@ -61,25 +61,27 @@ impl Serialize for PyAnySerializer<'_, '_> {
             PyObType::Int => PyIntSerializer::new_unchecked(self.obj).serialize(serializer),
             PyObType::Float => PyFloatSerializer::new_unchecked(self.obj).serialize(serializer),
             PyObType::String => PyStrSerializer::new_unchecked(self.obj).serialize(serializer),
-            PyObType::List => {
-                PyListSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
-            }
-            PyObType::Tuple => {
-                PyTupleSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
-            }
-            PyObType::Dict => {
-                PyDictSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
-            }
+            PyObType::List => PyListSerializer::new_unchecked(self.obj, self.ctx, self.depth)
+                .serialize(serializer),
+            PyObType::Tuple => PyTupleSerializer::new_unchecked(self.obj, self.ctx, self.depth)
+                .serialize(serializer),
+            PyObType::Dict => PyDictSerializer::new_unchecked(self.obj, self.ctx, self.depth)
+                .serialize(serializer),
             PyObType::Set => {
-                PySetSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
+                PySetSerializer::new_unchecked(self.obj, self.ctx, self.depth).serialize(serializer)
             }
             PyObType::FrozenSet => {
-                PyFrozenSetSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
+                PyFrozenSetSerializer::new_unchecked(self.obj, self.ctx, self.depth)
+                    .serialize(serializer)
             }
-            PyObType::DateTime => PyDateTimeSerializer::new(self.obj).serialize(serializer),
-            PyObType::Date => PyDateSerializer::new(self.obj).serialize(serializer),
-            PyObType::Time => PyTimeSerializer::new(self.obj).serialize(serializer),
-            PyObType::Timedelta => PyTimeDeltaSerializer::new(self.obj).serialize(serializer),
+            PyObType::DateTime => {
+                PyDateTimeSerializer::new_unchecked(self.obj).serialize(serializer)
+            }
+            PyObType::Date => PyDateSerializer::new_unchecked(self.obj).serialize(serializer),
+            PyObType::Time => PyTimeSerializer::new_unchecked(self.obj).serialize(serializer),
+            PyObType::Timedelta => {
+                PyTimeDeltaSerializer::new_unchecked(self.obj).serialize(serializer)
+            }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
                 PyBytesLikeSerializer::new(self.obj).serialize(serializer)
             }
