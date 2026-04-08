@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
-use pyo3::{PyResult, prelude::*, types::PyModule, wrap_pyfunction};
+use pyo3::prelude::*;
+use pyo3::types::PyModule;
+use pyo3::{PyResult, wrap_pyfunction};
 
 #[pyfunction]
 pub fn _ignore<'py>() -> bool {

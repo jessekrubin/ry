@@ -1,8 +1,10 @@
-use pyo3::{BoundObject, prelude::*};
+use pyo3::BoundObject;
+use pyo3::prelude::*;
 use ryo3_core::{py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyDuration;
 
-use crate::{PyCookieSameSite, types::PyCookieExpiration};
+use crate::PyCookieSameSite;
+use crate::types::PyCookieExpiration;
 
 #[pyclass(name = "Cookie", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]

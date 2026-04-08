@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
-use pyo3::{prelude::*, types::PyMapping};
+use pyo3::prelude::*;
+use pyo3::types::PyMapping;
 mod headers;
 mod headers_like;
 mod http_types;

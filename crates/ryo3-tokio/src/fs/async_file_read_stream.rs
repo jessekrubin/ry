@@ -2,7 +2,9 @@
 //! `FileReadStream` in ryo3-std and the `ryo3-reqwest` response stream.
 //!
 //! Kinda a fucking nightmare.
-use std::{io, path::PathBuf, sync::Arc};
+use std::io;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
@@ -10,11 +12,9 @@ use ryo3_macro_rules::{py_io_error, py_stop_async_iteration_err, py_value_err};
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]
 use ryo3_tokio_rt::{on_tokio, on_tokio_py};
-use tokio::{
-    fs::File,
-    io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, BufReader, SeekFrom},
-    sync::Mutex,
-};
+use tokio::fs::File;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, BufReader, SeekFrom};
+use tokio::sync::Mutex;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub(crate) struct PyFileReadStreamOptions {

@@ -1,5 +1,6 @@
-use crate::types::BasicAuth;
-use crate::types::PyQuery;
+use std::convert::Into;
+use std::time::Duration;
+
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
@@ -8,8 +9,8 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use ryo3_http::{PyHeadersLike, PyHttpVersion};
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyTimeout;
-use std::convert::Into;
-use std::time::Duration;
+
+use crate::types::{BasicAuth, PyQuery};
 
 pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     headers: Option<HeaderMap>,

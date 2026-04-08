@@ -2,7 +2,9 @@
 
 #[cfg(feature = "regex")]
 mod which_regex;
-use std::{env, ffi::OsString, path::PathBuf};
+use std::env;
+use std::ffi::OsString;
+use std::path::PathBuf;
 
 use ::which as which_rs;
 use pyo3::prelude::*;

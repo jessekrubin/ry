@@ -1,5 +1,6 @@
 use flate2::Compression;
-use pyo3::{exceptions::PyValueError, prelude::*};
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 pub struct PyCompression(pub(crate) Compression);

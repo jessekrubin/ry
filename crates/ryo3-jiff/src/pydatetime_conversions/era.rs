@@ -1,8 +1,9 @@
-use crate::jiff_types::JiffEra;
 use jiff::civil::Era;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_macro_rules::{py_type_err, py_value_err};
+
+use crate::jiff_types::JiffEra;
 
 const JIFF_ERA_STRINGS: &str = "'BCE'/'BC', 'CE'/'AD' (case insensitive)";
 

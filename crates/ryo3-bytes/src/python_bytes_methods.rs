@@ -1,10 +1,11 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
-use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::PyValueError;
-use pyo3::types::PyString;
-use pyo3::{PyClass, prelude::*};
 use std::fmt::Write;
 use std::hash::Hash;
+
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
+use pyo3::types::PyString;
+use pyo3::{IntoPyObjectExt, PyClass};
 
 pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyClass {
     /// Hash bytes
@@ -14,8 +15,9 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         // let bref: &[u8] = self.as_ref();
         // bref.hash(&mut hasher);
         // hasher.finish()
-        use ahash::AHasher;
         use std::hash::Hasher;
+
+        use ahash::AHasher;
         let mut hasher = AHasher::default();
         let bref: &[u8] = self.as_ref();
         bref.hash(&mut hasher);

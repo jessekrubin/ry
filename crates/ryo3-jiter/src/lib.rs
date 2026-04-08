@@ -7,7 +7,9 @@
 use std::path::PathBuf;
 
 use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_error};
-use pyo3::{IntoPyObjectExt, prelude::*, types::PyList};
+use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
+use pyo3::types::PyList;
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiterParseOptions {

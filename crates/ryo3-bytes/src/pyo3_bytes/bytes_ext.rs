@@ -1,9 +1,10 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
-use crate::bytes::PyBytes;
-use crate::python_bytes_methods::PythonBytesMethods;
 use bytes::BytesMut;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
+
+use crate::bytes::PyBytes;
+use crate::python_bytes_methods::PythonBytesMethods;
 
 impl PythonBytesMethods for PyBytes {}
 

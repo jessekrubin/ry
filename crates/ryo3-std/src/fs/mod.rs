@@ -1,23 +1,18 @@
 mod file_read_stream;
 mod file_type;
-use std::{
-    convert::Into,
-    ffi::OsString,
-    path::{Path, PathBuf},
-    sync::Mutex,
-    time::SystemTime,
-};
+use std::convert::Into;
+use std::ffi::OsString;
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+use std::time::SystemTime;
 
 pub use file_type::PyFileType;
-use pyo3::{
-    IntoPyObjectExt,
-    exceptions::{
-        PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError,
-    },
-    intern,
-    prelude::*,
-    types::{PyBytes, PyDict},
+use pyo3::exceptions::{
+    PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError,
 };
+use pyo3::prelude::*;
+use pyo3::types::{PyBytes, PyDict};
+use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::types::PathLike;
 use ryo3_macro_rules::py_type_err;

@@ -1,9 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
-use crate::net::{
-    ipaddr::{PyIpAddr, PyIpv4Addr, PyIpv6Addr},
-    socketaddr::{PySocketAddr, PySocketAddrV4, PySocketAddrV6},
-};
+use crate::net::ipaddr::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
+use crate::net::socketaddr::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};
 
 // ==========================================================================
 // PyIpv4Addr

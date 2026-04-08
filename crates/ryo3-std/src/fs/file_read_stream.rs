@@ -1,8 +1,6 @@
-use std::{
-    fs::File,
-    io::{self, BufReader, Read, Seek, SeekFrom},
-    path::{Path, PathBuf},
-};
+use std::fs::File;
+use std::io::{self, BufReader, Read, Seek, SeekFrom};
+use std::path::{Path, PathBuf};
 
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;

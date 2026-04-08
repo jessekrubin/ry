@@ -1,15 +1,11 @@
 #![doc = include_str!("../README.md")]
-use std::{
-    collections::HashMap,
-    fmt::{Display, Formatter, Result as FmtResult},
-    hash::{Hash, Hasher},
-};
+use std::collections::HashMap;
+use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::hash::{Hash, Hasher};
 
-use pyo3::{
-    IntoPyObjectExt, intern,
-    prelude::*,
-    types::{PyDict, PyInt, PyString, PyTuple},
-};
+use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
+use pyo3::{IntoPyObjectExt, intern};
 use sqlformat::{self, QueryParams};
 
 #[pyclass(

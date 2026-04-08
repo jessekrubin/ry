@@ -1,3 +1,5 @@
+use pyo3::prelude::*;
+
 pub use crate::difference::{
     RyDateDifference, RyDateTimeDifference, RyTimeDifference, RyTimestampDifference,
     RyZonedDifference,
@@ -21,7 +23,6 @@ pub use crate::ry_zoned::RyZoned;
 pub use crate::series::{
     RyDateSeries, RyDateTimeSeries, RyTimeSeries, RyTimestampSeries, RyZonedSeries,
 };
-use pyo3::prelude::*;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes

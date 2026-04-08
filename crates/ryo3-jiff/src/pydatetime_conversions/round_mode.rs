@@ -1,8 +1,9 @@
-use crate::JiffRoundMode;
 use jiff::RoundMode;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_macro_rules::{py_type_err, py_value_err};
+
+use crate::JiffRoundMode;
 
 impl<'py> IntoPyObject<'py> for JiffRoundMode {
     type Target = PyString;

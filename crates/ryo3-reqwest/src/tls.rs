@@ -1,7 +1,8 @@
+use std::sync::OnceLock;
+
 use pyo3::prelude::*;
 use reqwest::tls::CertificateRevocationList;
 use ryo3_macro_rules::py_value_error;
-use std::sync::OnceLock;
 
 static SYSTEM_CERTS: OnceLock<Vec<reqwest::Certificate>> = OnceLock::new();
 

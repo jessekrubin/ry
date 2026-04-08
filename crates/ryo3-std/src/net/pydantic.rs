@@ -1,7 +1,5 @@
-use pyo3::{
-    prelude::*,
-    types::{PyDict, PyTuple},
-};
+use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyTuple};
 use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
 
 use super::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};

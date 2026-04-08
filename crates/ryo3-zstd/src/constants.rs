@@ -1,4 +1,5 @@
-use pyo3::{intern, prelude::*};
+use pyo3::intern;
+use pyo3::prelude::*;
 
 /// Macro to generate constant bindings for Python
 macro_rules! zstd_pymod_register_constants {

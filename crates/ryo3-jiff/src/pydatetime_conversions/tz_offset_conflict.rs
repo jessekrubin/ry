@@ -1,6 +1,7 @@
-use crate::jiff_types::JiffTzOffsetConflict;
 use pyo3::prelude::*;
 use ryo3_macro_rules::{py_type_err, py_value_err};
+
+use crate::jiff_types::JiffTzOffsetConflict;
 
 const JIFF_TZ_OFFSET_CONFLICTS: &str = "'always-offset', 'always-timezone', 'prefer-offset', 'reject' (underscores and hyphens are interchangeable)";
 impl<'py> FromPyObject<'_, 'py> for JiffTzOffsetConflict {

@@ -1,4 +1,6 @@
-use pyo3::{intern, prelude::*, types::PyDict};
+use pyo3::intern;
+use pyo3::prelude::*;
+use pyo3::types::PyDict;
 
 #[cfg(feature = "dirs")]
 #[pymodule(gil_used = false, submodule, name = "dirs")]

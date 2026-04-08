@@ -1,4 +1,5 @@
-use std::{fmt::Display, ops::Deref};
+use std::fmt::Display;
+use std::ops::Deref;
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffDate(pub jiff::civil::Date);

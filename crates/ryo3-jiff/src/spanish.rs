@@ -1,6 +1,5 @@
 //! Span-ish ry/python object(s)
 
-use crate::{RySignedDuration, RySpan};
 use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
 use jiff::tz::OffsetArithmetic;
 use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
@@ -8,6 +7,8 @@ use pyo3::prelude::*;
 use pyo3::types::PyDelta;
 use ryo3_macro_rules::py_type_err;
 use ryo3_std::time::PyDuration;
+
+use crate::{RySignedDuration, RySpan};
 
 #[derive(Debug, Clone)]
 pub(crate) enum Spanish<'a, 'py> {

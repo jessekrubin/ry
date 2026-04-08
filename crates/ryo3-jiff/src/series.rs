@@ -1,7 +1,8 @@
-use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
 use pyo3::prelude::*;
 use ryo3_core::RyMutex;
 use ryo3_macro_rules::py_value_err;
+
+use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
 
 #[pyclass(name = "DateSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]

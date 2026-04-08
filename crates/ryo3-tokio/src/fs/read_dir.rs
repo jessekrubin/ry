@@ -1,4 +1,8 @@
-use std::{ffi::OsString, format, path::PathBuf, pin::Pin, sync::Arc};
+use std::ffi::OsString;
+use std::format;
+use std::path::PathBuf;
+use std::pin::Pin;
+use std::sync::Arc;
 
 #[cfg(feature = "experimental-async")]
 use pyo3::prelude::*;
@@ -7,7 +11,8 @@ use ryo3_std::fs::PyMetadata;
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]
 use ryo3_tokio_rt::on_tokio_py;
-use tokio::{fs::ReadDir, sync::Mutex};
+use tokio::fs::ReadDir;
+use tokio::sync::Mutex;
 
 type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 

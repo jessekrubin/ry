@@ -1,11 +1,13 @@
-use crate::jiff_types::JiffDateTime;
-use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time};
 use jiff::civil::DateTime;
+use pyo3::BoundObject;
 use pyo3::exceptions::PyTypeError;
+use pyo3::prelude::*;
 use pyo3::types::PyDateTime;
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyTzInfoAccess;
-use pyo3::{BoundObject, prelude::*};
+
+use crate::jiff_types::JiffDateTime;
+use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time};
 
 fn datetime_to_pydatetime<'py>(
     py: Python<'py>,

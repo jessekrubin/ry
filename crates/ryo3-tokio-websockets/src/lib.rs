@@ -7,11 +7,9 @@ mod py_websocket;
 mod types;
 use pyo3::prelude::*;
 
-use crate::{
-    enums::PyWebSocketMessageKind,
-    py_message::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage},
-    py_websocket::{PyWebSocket, websocket},
-};
+use crate::enums::PyWebSocketMessageKind;
+use crate::py_message::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
+use crate::py_websocket::{PyWebSocket, websocket};
 mod constants;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
