@@ -1,9 +1,10 @@
 //! python shim for `TimeZoneDatabase`
-use crate::RyTimeZone;
 use jiff::tz::TimeZoneDatabase;
 use pyo3::prelude::*;
 use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::{py_key_error, py_value_err};
+
+use crate::RyTimeZone;
 #[pyclass(name = "TimeZoneDatabase", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]

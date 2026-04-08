@@ -1,12 +1,11 @@
-use crate::JiffSignedDuration;
 use jiff::SignedDuration;
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
-
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyDeltaAccess;
-
 use ryo3_macro_rules::py_overflow_error;
+
+use crate::JiffSignedDuration;
 const SECONDS_PER_DAY: i64 = 86_400;
 
 pub fn signed_duration_to_pyobject<'py>(

@@ -1,9 +1,14 @@
 #![doc = include_str!("../README.md")]
 mod pattern;
 
-use std::{ffi::OsString, path::PathBuf, sync::Arc};
+use std::ffi::OsString;
+use std::path::PathBuf;
+use std::sync::Arc;
 
-use pyo3::{IntoPyObjectExt, prelude::*, sync::PyOnceLock, types::PyType};
+use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
+use pyo3::types::PyType;
 use ryo3_core::{RyMutex, py_value_err, py_value_error};
 
 use crate::pattern::PyGlobPattern;

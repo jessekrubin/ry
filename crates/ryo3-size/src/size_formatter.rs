@@ -1,4 +1,6 @@
-use pyo3::{IntoPyObjectExt, intern, prelude::*, types::PyTuple};
+use pyo3::prelude::*;
+use pyo3::types::PyTuple;
+use pyo3::{IntoPyObjectExt, intern};
 
 use crate::types::{Base, Style};
 

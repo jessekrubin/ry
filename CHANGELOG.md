@@ -2,6 +2,8 @@
 
 ## v0.0.88 [unreleased]
 
+- repo
+  - use import granularity `Module`
 - `ryo3-serde`
   - python `enum` serialization support
   - fix issue with depth in `set`/`frozenset`

@@ -1,7 +1,8 @@
+use serde::Serialize;
+
 use crate::{
     RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimeZone, RyTimestamp, RyZoned,
 };
-use serde::Serialize;
 
 impl Serialize for RyTimeZone {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

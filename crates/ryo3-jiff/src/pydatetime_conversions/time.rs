@@ -1,8 +1,9 @@
-use crate::JiffTime;
 #[cfg(not(Py_LIMITED_API))]
 use jiff::civil::Time;
 use pyo3::prelude::*;
 use pyo3::types::PyTime;
+
+use crate::JiffTime;
 
 pub fn time_to_pyobject<'py>(
     py: Python<'py>,

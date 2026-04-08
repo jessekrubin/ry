@@ -1,8 +1,9 @@
-use crate::JiffUnit;
 use jiff::Unit;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_macro_rules::py_value_err;
+
+use crate::JiffUnit;
 
 impl<'py> IntoPyObject<'py> for &JiffUnit {
     type Target = PyString;

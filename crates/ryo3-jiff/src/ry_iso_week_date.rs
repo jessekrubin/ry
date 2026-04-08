@@ -1,12 +1,15 @@
-use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use jiff::Zoned;
 use jiff::civil::ISOWeekDate;
+use pyo3::BoundObject;
 use pyo3::basic::CompareOp;
+use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{BoundObject, prelude::*};
 use ryo3_core::{PyAsciiString, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
-use std::hash::{DefaultHasher, Hash, Hasher};
+
+use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
 
 #[derive(Debug, Clone, Copy)]
 #[pyclass(name = "ISOWeekDate", frozen, immutable_type, skip_from_py_object)]

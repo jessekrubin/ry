@@ -1,7 +1,8 @@
-use crate::JiffWeekday;
 use pyo3::prelude::*;
 use pyo3::types::PyInt;
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
+
+use crate::JiffWeekday;
 
 impl<'py> IntoPyObject<'py> for JiffWeekday {
     type Target = PyInt;

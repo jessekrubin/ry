@@ -1,7 +1,10 @@
 #![doc = include_str!("../README.md")]
 use std::sync::OnceLock;
 
-use pyo3::{BoundObject, intern, prelude::*, sync::PyOnceLock, types::PyTuple};
+use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
+use pyo3::types::PyTuple;
+use pyo3::{BoundObject, intern};
 use ryo3_bytes::PyBytes;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
 

@@ -1,9 +1,10 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
-use crate::bytes::PyBytes;
-use crate::python_bytes_methods::PythonBytesMethods;
 use bytes::BytesMut;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
+
+use crate::bytes::PyBytes;
+use crate::python_bytes_methods::PythonBytesMethods;
 
 impl PythonBytesMethods for PyBytes {}
 
@@ -142,12 +143,12 @@ impl PyBytes {
         self.py_title()
     }
 
-    #[pyo3(signature = (prefix = None, /))]
+    #[pyo3(signature = (prefix, /))]
     fn startswith(&self, prefix: PyBytes) -> bool {
         self.as_slice().starts_with(prefix.as_ref())
     }
 
-    #[pyo3(signature = (suffix = None, /))]
+    #[pyo3(signature = (suffix, /))]
     fn endswith(&self, suffix: PyBytes) -> bool {
         self.as_slice().ends_with(suffix.as_ref())
     }

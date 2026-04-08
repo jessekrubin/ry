@@ -1,11 +1,9 @@
 use std::path::PathBuf;
 
 use glob::MatchOptions;
-use pyo3::{
-    IntoPyObjectExt,
-    prelude::*,
-    types::{PyDict, PyString, PyTuple},
-};
+use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyString, PyTuple};
 use ryo3_core::{PyAsciiString, py_type_err, py_value_error};
 
 #[pyclass(name = "GlobPattern", frozen, immutable_type, skip_from_py_object)]

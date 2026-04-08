@@ -1,8 +1,9 @@
 #![cfg(test)]
 
-use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned};
 use jiff::Span;
 use serde::{Deserialize, Serialize};
+
+use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Stuff {

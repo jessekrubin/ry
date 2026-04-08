@@ -3,7 +3,8 @@
 //! Based on the `regex::RegexBuilder` options.
 //!
 //! REF: <https://docs.rs/regex/latest/regex/struct.RegexBuilder.html>
-use pyo3::{IntoPyObjectExt, prelude::*};
+use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
 
 #[expect(clippy::struct_excessive_bools)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

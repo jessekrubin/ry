@@ -1,5 +1,6 @@
-use crate::{JiffTimestamp, JiffZoned};
 use pyo3::prelude::*;
+
+use crate::{JiffTimestamp, JiffZoned};
 
 impl<'py> IntoPyObject<'py> for JiffTimestamp {
     type Target = pyo3::types::PyDateTime;

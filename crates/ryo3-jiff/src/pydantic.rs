@@ -1,11 +1,12 @@
-use crate::{
-    RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimestamp,
-    RyZoned,
-};
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDict, PyTuple, PyType};
 use pyo3::{Bound, PyAny, PyResult};
 use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
+
+use crate::{
+    RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimestamp,
+    RyZoned,
+};
 
 impl GetPydanticCoreSchemaCls for RyDate {
     fn get_pydantic_core_schema<'py>(

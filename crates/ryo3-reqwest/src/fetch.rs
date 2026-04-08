@@ -1,16 +1,17 @@
 //! ry `reqwest` based global `fetch` and `fetch_sync` functions
-use crate::RyBlockingResponse;
-use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
+use std::sync::OnceLock;
+
+use pyo3::prelude::*;
 use ryo3_http::PyHttpMethod;
 
+use crate::RyBlockingResponse;
 #[cfg(feature = "experimental-async")]
 use crate::RyClient;
 #[cfg(not(feature = "experimental-async"))]
 use crate::RyHttpClient;
+use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
 #[cfg(feature = "experimental-async")]
 use crate::response::RyAsyncResponse;
-use pyo3::prelude::*;
-use std::sync::OnceLock;
 
 #[cfg(not(feature = "experimental-async"))]
 static FETCH_CLIENT: OnceLock<RyHttpClient> = OnceLock::new();

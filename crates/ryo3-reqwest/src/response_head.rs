@@ -1,8 +1,9 @@
 // use parking_lot::RwLock;
-use reqwest::StatusCode;
-use ryo3_core::RyRwLock;
 use std::net::SocketAddr;
 use std::sync::Arc;
+
+use reqwest::StatusCode;
+use ryo3_core::RyRwLock;
 
 #[derive(Debug, Clone)]
 pub(crate) struct RyResponseHead {

@@ -1,9 +1,8 @@
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    time::Instant,
-};
+use std::hash::{DefaultHasher, Hash, Hasher};
+use std::time::Instant;
 
-use pyo3::{prelude::*, pyclass::CompareOp};
+use pyo3::prelude::*;
+use pyo3::pyclass::CompareOp;
 use ryo3_macro_rules::py_overflow_error;
 
 use crate::time::PyDuration;
@@ -111,7 +110,8 @@ impl PyInstant {
 mod arithmetic {
     use std::time::{Duration, Instant};
 
-    use pyo3::{IntoPyObjectExt, prelude::*};
+    use pyo3::IntoPyObjectExt;
+    use pyo3::prelude::*;
     use ryo3_core::py_type_err;
     use ryo3_macro_rules::py_overflow_err;
 

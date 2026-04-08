@@ -1,11 +1,12 @@
 use std::hash::Hasher;
 
-use pyo3::{exceptions::PyValueError, intern, prelude::*, types::PyString};
+use pyo3::exceptions::PyValueError;
+use pyo3::intern;
+use pyo3::prelude::*;
+use pyo3::types::PyString;
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_core::{
-    RyMutex,
-    types::{PyDigest, PyHexDigest},
-};
+use ryo3_core::RyMutex;
+use ryo3_core::types::{PyDigest, PyHexDigest};
 use twox_hash::XxHash3_64;
 
 #[pyclass(name = "xxh3_64", frozen, immutable_type, skip_from_py_object)]

@@ -1,4 +1,7 @@
-use pyo3::{exceptions::PyImportError, prelude::*, sync::PyOnceLock, types::PyDict};
+use pyo3::exceptions::PyImportError;
+use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
+use pyo3::types::PyDict;
 
 static ORJSON_DUMPS: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
 static ORJSON_FRAGMENT: PyOnceLock<Py<PyAny>> = PyOnceLock::new();

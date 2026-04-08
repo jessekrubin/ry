@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
+use pyo3::IntoPyObjectExt;
+use pyo3::prelude::*;
+use pyo3::pybacked::PyBackedStr;
 
 #[derive(Debug)]
 pub enum PathLike {

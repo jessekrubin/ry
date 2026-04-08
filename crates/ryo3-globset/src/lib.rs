@@ -5,7 +5,8 @@ use std::str::FromStr;
 
 use ::globset::{Glob, GlobBuilder, GlobSetBuilder};
 use globster::Globster;
-use pyo3::{exceptions::PyValueError, prelude::*};
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use ryo3_core::types::{PathLike, StringOrStrings};
 
 pub use crate::globster::PyGlobster;

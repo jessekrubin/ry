@@ -1,5 +1,6 @@
-use crate::functions::span;
 use pyo3::prelude::*;
+
+use crate::functions::span;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub(crate) struct SpanKwargs {

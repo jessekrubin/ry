@@ -1,17 +1,16 @@
-use crate::proxy::PyProxies;
-use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
-use crate::tls_version::TlsVersion;
-use crate::types::PyUserAgent;
-use crate::user_agent::DEFAULT_USER_AGENT;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use reqwest::header::HeaderValue;
 use ryo3_http::{PyHeaders, PyHeadersLike};
-use ryo3_macro_rules::py_type_err;
-use ryo3_macro_rules::py_value_error;
-use ryo3_std::time::PyDuration;
-use ryo3_std::time::PyTimeout;
+use ryo3_macro_rules::{py_type_err, py_value_error};
+use ryo3_std::time::{PyDuration, PyTimeout};
+
+use crate::proxy::PyProxies;
+use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
+use crate::tls_version::TlsVersion;
+use crate::types::PyUserAgent;
+use crate::user_agent::DEFAULT_USER_AGENT;
 
 #[derive(Debug, Clone, PartialEq)]
 #[expect(clippy::struct_excessive_bools)]

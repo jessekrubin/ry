@@ -1,5 +1,6 @@
+use jiff::civil::Weekday;
 use jiff::fmt::temporal::DateTimePrinter;
-use jiff::{civil::Weekday, tz::Offset};
+use jiff::tz::Offset;
 use pyo3::PyResult;
 use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::py_value_error;

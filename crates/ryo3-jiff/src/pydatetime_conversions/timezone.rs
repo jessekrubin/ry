@@ -1,11 +1,11 @@
-use crate::{JiffOffset, JiffTimeZone};
-use crate::{JiffSignedDuration, JiffTimeZoneRef};
 use jiff::tz::TimeZone;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyTzInfo;
 use ryo3_core::map_py_value_err;
+
+use crate::{JiffOffset, JiffSignedDuration, JiffTimeZone, JiffTimeZoneRef};
 
 pub fn timezone2pyobject<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyTzInfo>> {
     if tz == &TimeZone::UTC {

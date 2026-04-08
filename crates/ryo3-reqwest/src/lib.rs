@@ -18,26 +18,20 @@ mod tls;
 mod tls_version;
 mod types;
 mod user_agent;
-pub use client::RyBlockingClient;
-pub use client::RyHttpClient;
+#[cfg(feature = "experimental-async")]
+pub use client::RyClient;
+pub use client::{RyBlockingClient, RyHttpClient};
 pub use client_config::ClientConfig;
 pub use errors::RyReqwestError;
 pub use proxy::PyProxy;
 use pyo3::prelude::*;
 #[cfg(feature = "experimental-async")]
 pub use response::RyAsyncResponse;
-pub use response::RyBlockingResponse;
-pub use response::RyResponse;
+pub use response::{RyBlockingResponse, RyResponse};
 #[cfg(feature = "experimental-async")]
 pub use response_stream::RyAsyncResponseStream;
-pub use response_stream::RyBlockingResponseStream;
-pub use response_stream::RyResponseStream;
-pub use tls::PyCertificate;
-pub use tls::PyCertificateRevocationList;
-pub use tls::PyIdentity;
-
-#[cfg(feature = "experimental-async")]
-pub use client::RyClient;
+pub use response_stream::{RyBlockingResponseStream, RyResponseStream};
+pub use tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // setup tls provider

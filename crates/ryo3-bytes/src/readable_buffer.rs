@@ -1,5 +1,6 @@
-use crate::PyBytes;
 use pyo3::prelude::*;
+
+use crate::PyBytes;
 
 /// Custom zero-copy bytes-like for extracting `&[u8]`
 #[derive(Debug)]

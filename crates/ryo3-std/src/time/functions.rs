@@ -1,9 +1,7 @@
 use std::time::{Duration, Instant};
 
-use pyo3::{
-    exceptions::{PyOverflowError, PyValueError},
-    prelude::*,
-};
+use pyo3::exceptions::{PyOverflowError, PyValueError};
+use pyo3::prelude::*;
 
 use super::{PyDuration, PyInstant};
 

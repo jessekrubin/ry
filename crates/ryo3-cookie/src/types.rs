@@ -1,6 +1,8 @@
 //! py-types/extractors/converters
 
-use pyo3::{IntoPyObjectExt, intern, prelude::*, types::PyString};
+use pyo3::prelude::*;
+use pyo3::types::PyString;
+use pyo3::{IntoPyObjectExt, intern};
 use ryo3_core::{py_type_err, py_value_err};
 use ryo3_jiff::RyTimestamp;
 

@@ -1,10 +1,11 @@
+use std::sync::Arc;
+
 use parking_lot::Mutex;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_http::PyHttpStatus;
 use ryo3_url::PyUrl;
-use std::sync::Arc;
 
 /// macro for crate use only to return `Response already consumed` error
 #[macro_export]

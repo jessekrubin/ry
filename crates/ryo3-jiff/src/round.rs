@@ -47,9 +47,8 @@
 //!     - mode:      `HalfExpand`
 //!     - increment: 1
 //!     - relative:  None
-use crate::{
-    JiffRoundMode, JiffUnit, RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZoned,
-};
+use std::fmt::Display;
+
 use jiff::civil::{DateTimeRound, TimeRound};
 use jiff::tz::OffsetRound;
 use jiff::{SignedDurationRound, TimestampRound, ZonedRound};
@@ -58,7 +57,10 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::py_value_error;
-use std::fmt::Display;
+
+use crate::{
+    JiffRoundMode, JiffUnit, RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZoned,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct RoundOptions {

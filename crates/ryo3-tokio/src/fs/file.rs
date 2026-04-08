@@ -1,16 +1,17 @@
-use std::{io::SeekFrom, path::PathBuf, sync::Arc};
+use std::io::SeekFrom;
+use std::path::PathBuf;
+use std::sync::Arc;
 
-use pyo3::{intern, prelude::*};
+use pyo3::intern;
+use pyo3::prelude::*;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
 use ryo3_macro_rules::{py_io_error, py_runtime_err, py_stop_async_iteration_err, pytodo};
 #[cfg(feature = "experimental-async")]
 use ryo3_tokio_rt::on_tokio_py;
 use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
-use tokio::{
-    fs::File,
-    io::{AsyncBufReadExt, AsyncReadExt, AsyncSeekExt, AsyncWriteExt, BufStream},
-    sync::Mutex,
-};
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncSeekExt, AsyncWriteExt, BufStream};
+use tokio::sync::Mutex;
 
 enum FileState {
     Closed,

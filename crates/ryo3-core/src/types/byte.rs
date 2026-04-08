@@ -1,10 +1,8 @@
 use std::ops::Deref;
 
-use pyo3::{
-    exceptions::PyTypeError,
-    prelude::*,
-    types::{PyBytes, PyInt},
-};
+use pyo3::exceptions::PyTypeError;
+use pyo3::prelude::*;
+use pyo3::types::{PyBytes, PyInt};
 
 #[derive(Clone, Copy)]
 pub struct Byte(u8);

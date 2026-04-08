@@ -1,8 +1,11 @@
 #![doc = include_str!("../README.md")]
 use std::io::{Read, Write};
 
-use ::bzip2::{Compression, read::BzDecoder, write::BzEncoder};
-use pyo3::{exceptions::PyValueError, prelude::*};
+use ::bzip2::Compression;
+use ::bzip2::read::BzDecoder;
+use ::bzip2::write::BzEncoder;
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use ryo3_bytes::PyBytes as RyBytes;
 
 fn rs_bzip2_encode(data: &[u8], quality: Compression) -> PyResult<RyBytes> {

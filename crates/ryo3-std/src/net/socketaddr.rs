@@ -1,17 +1,14 @@
-use std::{
-    hash::{Hash, Hasher},
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
-};
+use std::hash::{Hash, Hasher};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
-use pyo3::{BoundObject, prelude::*};
+use pyo3::BoundObject;
+use pyo3::prelude::*;
 use ryo3_core::{PyAsciiString, PyFromStr, PyParse};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error, py_value_err};
 
-use crate::net::{
-    PyIpv6Addr,
-    ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr},
-    ipaddr_props::IpAddrProps,
-};
+use crate::net::PyIpv6Addr;
+use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
+use crate::net::ipaddr_props::IpAddrProps;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]

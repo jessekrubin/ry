@@ -1,9 +1,10 @@
-use std::{path::Path, str::FromStr};
+use std::path::Path;
+use std::str::FromStr;
 
 use globset::{GlobBuilder, GlobSetBuilder};
-use pyo3::{
-    Bound, PyErr, PyResult, Python, exceptions::PyValueError, pyclass, pymethods, types::PyTuple,
-};
+use pyo3::exceptions::PyValueError;
+use pyo3::types::PyTuple;
+use pyo3::{Bound, PyErr, PyResult, Python, pyclass, pymethods};
 use ryo3_core::types::PathLike;
 
 use crate::{DEFAULT_BACKSLASH_ESCAPE, PyGlobPatternsString};
