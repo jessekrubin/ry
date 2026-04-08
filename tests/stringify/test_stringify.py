@@ -649,3 +649,29 @@ def test_stringify_enums() -> None:
         "int_flag": 3,
         "enum_list": ["green", 0, "beta"],
     }
+
+
+def test_stringify_set() -> None:
+    """Test that `ry.stringify` handles sets by converting them to lists."""
+    data = {
+        "set": {1, 2, 3},
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    parsed["set"] = set(parsed["set"])  # type: ignore
+    assert parsed == {  # type: ignore[comparison-overlap]
+        "set": {1, 2, 3},
+    }
+
+
+def test_stringify_frozenset() -> None:
+    """Test that `ry.stringify` handles frozensets by converting them to lists."""
+    data = {
+        "frozenset": frozenset({"a", "b", "c"}),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    parsed["frozenset"] = frozenset(parsed["frozenset"])  # type: ignore
+    assert parsed == {  # type: ignore[comparison-overlap]
+        "frozenset": frozenset({"a", "b", "c"}),
+    }
