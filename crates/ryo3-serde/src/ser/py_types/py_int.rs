@@ -1,18 +1,24 @@
 use pyo3::prelude::*;
+use pyo3::types::PyInt;
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
 
-use pyo3::types::PyInt;
-
 pub(crate) struct PyIntSerializer<'a, 'py> {
-    obj: Borrowed<'a, 'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyInt>,
 }
 
 impl<'a, 'py> PyIntSerializer<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyInt>) -> Self {
         Self { obj }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyInt>() };
+        Self::new(obj)
     }
 }
 
@@ -22,12 +28,7 @@ impl Serialize for PyIntSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let v: i64 = self
-            .obj
-            .cast_exact::<PyInt>()
-            .map_err(pyerr2sererr)?
-            .extract()
-            .map_err(pyerr2sererr)?;
+        let v: i64 = self.obj.extract().map_err(pyerr2sererr)?;
         serializer.serialize_i64(v)
     }
 }

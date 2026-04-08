@@ -2,6 +2,7 @@ mod py_bool;
 mod py_byteslike;
 mod py_dataclass;
 mod py_datetime;
+mod py_enum;
 mod py_float;
 mod py_int;
 mod py_map;
@@ -18,6 +19,7 @@ pub(crate) use py_dataclass::PyDataclassSerializer;
 pub(crate) use py_datetime::{
     PyDateSerializer, PyDateTimeSerializer, PyTimeDeltaSerializer, PyTimeSerializer,
 };
+pub(crate) use py_enum::PyEnumSerializer;
 pub(crate) use py_float::PyFloatSerializer;
 pub(crate) use py_int::PyIntSerializer;
 pub(crate) use py_map::{PyDictSerializer, PyMappingSerializer};

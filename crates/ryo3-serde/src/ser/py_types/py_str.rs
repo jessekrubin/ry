@@ -1,17 +1,24 @@
 use pyo3::prelude::*;
+use pyo3::types::PyString;
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
-use pyo3::types::PyString;
 
 pub(crate) struct PyStrSerializer<'a, 'py> {
-    obj: Borrowed<'a, 'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyString>,
 }
 
 impl<'a, 'py> PyStrSerializer<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyString>) -> Self {
         Self { obj }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyString>() };
+        Self::new(obj)
     }
 }
 
@@ -42,8 +49,7 @@ impl Serialize for PyStrSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let pystr = self.obj.cast_exact::<PyString>().map_err(pyerr2sererr)?;
-        let s = pystr.to_str().map_err(pyerr2sererr)?;
+        let s = self.obj.to_str().map_err(pyerr2sererr)?;
         serializer.serialize_str(s)
     }
 }

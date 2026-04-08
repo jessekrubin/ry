@@ -1,15 +1,14 @@
+use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::PyString;
-use pyo3::{intern, prelude::*};
+use pyo3::types::{PyDict, PyString};
+use pyo3::{Bound, intern};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::py_types::PyDictSerializer;
-use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
-
 use crate::ser::PySerializeContext;
 use crate::ser::dataclass::dataclass_fields;
-use pyo3::{Bound, types::PyDict};
+use crate::ser::py_types::PyDictSerializer;
+use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
 
 pub(crate) struct PyDataclassSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,
@@ -49,8 +48,7 @@ impl Serialize for PyDataclassSerializer<'_, '_> {
         if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
             if let Ok(dict) = dunder_dict.cast::<PyDict>() {
                 // serialize the __dict__ as a dict
-                // revisit the as any?
-                PyDictSerializer::new(dict.as_any().as_borrowed(), self.ctx, self.depth + 1)
+                PyDictSerializer::new(dict.as_borrowed(), self.ctx, self.depth + 1)
                     .serialize(serializer)
             } else {
                 serde_err!("dataclass::__dict__ is not a dict")

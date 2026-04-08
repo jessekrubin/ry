@@ -609,3 +609,69 @@ def test_stringify_string_subclass() -> None:
         "key1": "value1",
         "key2": "value2",
     }
+
+
+def test_stringify_enums() -> None:
+    """Test that `ry.stringify` handles Python enums by serializing `.value`."""
+    from enum import Enum, IntEnum, IntFlag, StrEnum
+
+    class Color(Enum):
+        RED = "red"
+        GREEN = "green"
+        BLUE = "blue"
+
+    class ExitCode(IntEnum):
+        OK = 0
+        FAIL = 1
+
+    class Labels(StrEnum):
+        jb = "jellybean"
+        bobo = "beta"
+
+    class Perm(IntFlag):
+        READ = 1
+        WRITE = 2
+
+    data = {
+        "enum": Color.RED,
+        "int_enum": ExitCode.FAIL,
+        "str_enum": Labels.jb,
+        "int_flag": Perm.READ | Perm.WRITE,
+        "enum_list": [Color.GREEN, ExitCode.OK, Labels.bobo],
+        # TODO: support enums as keys? "enum_keyed": {Labels.jb: "x", Color.GREEN: "ok"},
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    assert parsed == {
+        "enum": "red",
+        "int_enum": 1,
+        "str_enum": "jellybean",
+        "int_flag": 3,
+        "enum_list": ["green", 0, "beta"],
+    }
+
+
+def test_stringify_set() -> None:
+    """Test that `ry.stringify` handles sets by converting them to lists."""
+    data = {
+        "set": {1, 2, 3},
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    parsed["set"] = set(parsed["set"])  # type: ignore
+    assert parsed == {  # type: ignore[comparison-overlap]
+        "set": {1, 2, 3},
+    }
+
+
+def test_stringify_frozenset() -> None:
+    """Test that `ry.stringify` handles frozensets by converting them to lists."""
+    data = {
+        "frozenset": frozenset({"a", "b", "c"}),
+    }
+    res = ry.stringify(data, fmt=True)
+    parsed = ry.parse_json(res)
+    parsed["frozenset"] = frozenset(parsed["frozenset"])  # type: ignore
+    assert parsed == {  # type: ignore[comparison-overlap]
+        "frozenset": frozenset({"a", "b", "c"}),
+    }

@@ -1,5 +1,6 @@
-use crate::ob_type_cache::PyTypeCache;
 use pyo3::{Bound, PyAny};
+
+use crate::ob_type_cache::PyTypeCache;
 
 #[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]

@@ -1,9 +1,9 @@
 use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyMapping};
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
-use crate::errors::pyerr2sererr;
-
 use crate::constants::{Depth, MAX_DEPTH};
+use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
 use crate::ser::py_types::{
@@ -23,21 +23,32 @@ use crate::ser::py_types::{
 ))]
 use crate::ser::ry_types;
 use crate::serde_err_recursion;
-use pyo3::types::{PyDict, PyMapping};
 
 pub(crate) struct PyDictSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,
-    pub(crate) obj: Borrowed<'a, 'py, PyAny>,
+    pub(crate) obj: Borrowed<'a, 'py, PyDict>,
     pub(crate) depth: Depth,
 }
 
 impl<'a, 'py> PyDictSerializer<'a, 'py> {
+    #[inline]
     pub(crate) fn new(
-        obj: Borrowed<'a, 'py, PyAny>,
+        obj: Borrowed<'a, 'py, PyDict>,
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyDict>() };
+        Self::new(obj, ctx, depth)
     }
 }
 
@@ -49,43 +60,63 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyNoneSerializer::new())?;
             }
             PyObType::Bool => {
-                $map.serialize_value(&PyBoolSerializer::new($value))?;
+                $map.serialize_value(&PyBoolSerializer::new_unchecked($value))?;
             }
             PyObType::Int => {
-                $map.serialize_value(&PyIntSerializer::new($value))?;
+                $map.serialize_value(&PyIntSerializer::new_unchecked($value))?;
             }
             PyObType::Float => {
-                $map.serialize_value(&PyFloatSerializer::new($value))?;
+                $map.serialize_value(&PyFloatSerializer::new_unchecked($value))?;
             }
             PyObType::String => {
-                $map.serialize_value(&PyStrSerializer::new($value))?;
+                $map.serialize_value(&PyStrSerializer::new_unchecked($value))?;
             }
             PyObType::List => {
-                $map.serialize_value(&PyListSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyListSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Tuple => {
-                $map.serialize_value(&PyTupleSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyTupleSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Dict => {
-                $map.serialize_value(&PyDictSerializer::new($value, $self.ctx, $self.depth + 1))?;
+                $map.serialize_value(&PyDictSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::Set => {
-                $map.serialize_value(&PySetSerializer::new($value, $self.ctx))?;
+                $map.serialize_value(&PySetSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::FrozenSet => {
-                $map.serialize_value(&PyFrozenSetSerializer::new($value, $self.ctx))?;
+                $map.serialize_value(&PyFrozenSetSerializer::new_unchecked(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::DateTime => {
-                $map.serialize_value(&PyDateTimeSerializer::new($value))?;
+                $map.serialize_value(&PyDateTimeSerializer::new_unchecked($value))?;
             }
             PyObType::Date => {
-                $map.serialize_value(&PyDateSerializer::new($value))?;
+                $map.serialize_value(&PyDateSerializer::new_unchecked($value))?;
             }
             PyObType::Time => {
-                $map.serialize_value(&PyTimeSerializer::new($value))?;
+                $map.serialize_value(&PyTimeSerializer::new_unchecked($value))?;
             }
             PyObType::Timedelta => {
-                $map.serialize_value(&PyTimeDeltaSerializer::new($value))?;
+                $map.serialize_value(&PyTimeDeltaSerializer::new_unchecked($value))?;
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
                 $map.serialize_value(&PyBytesLikeSerializer::new($value))?;
@@ -99,90 +130,90 @@ macro_rules! serialize_map_value {
             // __STD__
             #[cfg(feature = "ryo3-std")]
             PyObType::PyDuration => {
-                $map.serialize_value(&ry_types::PyDurationSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyDurationSerializer::new_unchecked($value))?;
             }
 
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpAddr => {
-                $map.serialize_value(&ry_types::PyIpAddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyIpAddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv4Addr => {
-                $map.serialize_value(&ry_types::PyIpv4AddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyIpv4AddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv6Addr => {
-                $map.serialize_value(&ry_types::PyIpv6AddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyIpv6AddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddr => {
-                $map.serialize_value(&ry_types::PySocketAddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PySocketAddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV4 => {
-                $map.serialize_value(&ry_types::PySocketAddrV4Serializer::new($value))?;
+                $map.serialize_value(&ry_types::PySocketAddrV4Serializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV6 => {
-                $map.serialize_value(&ry_types::PySocketAddrV6Serializer::new($value))?;
+                $map.serialize_value(&ry_types::PySocketAddrV6Serializer::new_unchecked($value))?;
             }
 
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                $map.serialize_value(&ry_types::PyHeadersSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyHeadersSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                $map.serialize_value(&ry_types::PyHttpStatusSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyHttpStatusSerializer::new_unchecked($value))?;
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDate => {
-                $map.serialize_value(&ry_types::RyDateSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyDateSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDateTime => {
-                $map.serialize_value(&ry_types::RyDateTimeSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyDateTimeSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RySignedDuration => {
-                $map.serialize_value(&ry_types::RySignedDurationSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RySignedDurationSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTime => {
-                $map.serialize_value(&ry_types::RyTimeSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyTimeSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeSpan => {
-                $map.serialize_value(&ry_types::RySpanSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RySpanSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimestamp => {
-                $map.serialize_value(&ry_types::RyTimestampSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyTimestampSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeZone => {
-                $map.serialize_value(&ry_types::RyTimeZoneSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyTimeZoneSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyZoned => {
-                $map.serialize_value(&ry_types::RyZonedSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyZonedSerializer::new_unchecked($value))?;
             }
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
             PyObType::RyUlid => {
-                $map.serialize_value(&ry_types::PyUlidSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyUlidSerializer::new_unchecked($value))?;
             }
             // __URL__
             #[cfg(feature = "ryo3-url")]
             PyObType::RyUrl => {
-                $map.serialize_value(&ry_types::PyUrlSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyUrlSerializer::new_unchecked($value))?;
             }
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]
             PyObType::RyUuid => {
-                $map.serialize_value(&ry_types::PyUuidSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyUuidSerializer::new_unchecked($value))?;
             }
             // ------------------------------------------------------------
             // UNKNOWN
@@ -206,13 +237,12 @@ impl Serialize for PyDictSerializer<'_, '_> {
         if self.depth == MAX_DEPTH {
             return serde_err_recursion!();
         }
-        let py_dict = self.obj.cast_exact::<PyDict>().map_err(pyerr2sererr)?;
-        let len = py_dict.len();
+        let len = self.obj.len();
         if len == 0 {
             return serializer.serialize_map(Some(0))?.end();
         }
         let mut m = serializer.serialize_map(None)?;
-        for (map_key, map_val) in py_dict.iter() {
+        for (map_key, map_val) in self.obj.iter() {
             let map_key = map_key.as_borrowed();
             let map_val = map_val.as_borrowed();
             let sk = PyMappingKeySerializer::new(self.ctx, map_key);

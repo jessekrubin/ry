@@ -1,23 +1,16 @@
-use pyo3::{
-    prelude::*,
-    types::{PyMapping, PySequence, PyString},
-};
+use pyo3::prelude::*;
+use pyo3::types::{PyMapping, PySequence, PyString};
 use serde::ser::{Serialize, Serializer};
 
-use crate::{
-    Depth, PyAnySerializer,
-    any_repr::any_repr,
-    errors::pyerr2sererr,
-    ser::{
-        PySerializeContext,
-        dataclass::is_dataclass,
-        py_types::{
-            PyDataclassSerializer, PyMappingSerializer, PySequenceSerializer,
-            PyStrSubclassSerializer,
-        },
-    },
-    serde_err,
+use crate::any_repr::any_repr;
+use crate::errors::pyerr2sererr;
+use crate::ser::PySerializeContext;
+use crate::ser::dataclass::is_dataclass;
+use crate::ser::py_types::{
+    PyDataclassSerializer, PyEnumSerializer, PyMappingSerializer, PySequenceSerializer,
+    PyStrSubclassSerializer,
 };
+use crate::{Depth, PyAnySerializer, serde_err};
 
 pub(crate) struct PyUnknownSerializer<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,
@@ -44,6 +37,8 @@ impl Serialize for PyUnknownSerializer<'_, '_> {
     {
         if let Ok(pystr_subclass) = self.obj.cast::<PyString>() {
             PyStrSubclassSerializer::new(pystr_subclass).serialize(serializer)
+        } else if self.ctx.typeref.is_enum(self.obj) {
+            PyEnumSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
         } else if is_dataclass(self.obj) {
             PyDataclassSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
         } else if let Ok(py_map) = self.obj.cast::<PyMapping>() {
