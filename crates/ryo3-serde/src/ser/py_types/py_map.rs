@@ -51,7 +51,7 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyBoolSerializer::new($value))?;
             }
             PyObType::Int => {
-                $map.serialize_value(&PyIntSerializer::new($value))?;
+                $map.serialize_value(&PyIntSerializer::new_unchecked($value))?;
             }
             PyObType::Float => {
                 $map.serialize_value(&PyFloatSerializer::new($value))?;
@@ -102,90 +102,90 @@ macro_rules! serialize_map_value {
             // __STD__
             #[cfg(feature = "ryo3-std")]
             PyObType::PyDuration => {
-                $map.serialize_value(&ry_types::PyDurationSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyDurationSerializer::new_unchecked($value))?;
             }
 
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpAddr => {
-                $map.serialize_value(&ry_types::PyIpAddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyIpAddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv4Addr => {
-                $map.serialize_value(&ry_types::PyIpv4AddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyIpv4AddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PyIpv6Addr => {
-                $map.serialize_value(&ry_types::PyIpv6AddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyIpv6AddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddr => {
-                $map.serialize_value(&ry_types::PySocketAddrSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PySocketAddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV4 => {
-                $map.serialize_value(&ry_types::PySocketAddrV4Serializer::new($value))?;
+                $map.serialize_value(&ry_types::PySocketAddrV4Serializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
             PyObType::PySocketAddrV6 => {
-                $map.serialize_value(&ry_types::PySocketAddrV6Serializer::new($value))?;
+                $map.serialize_value(&ry_types::PySocketAddrV6Serializer::new_unchecked($value))?;
             }
 
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                $map.serialize_value(&ry_types::PyHeadersSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyHeadersSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                $map.serialize_value(&ry_types::PyHttpStatusSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyHttpStatusSerializer::new_unchecked($value))?;
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDate => {
-                $map.serialize_value(&ry_types::RyDateSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyDateSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyDateTime => {
-                $map.serialize_value(&ry_types::RyDateTimeSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyDateTimeSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RySignedDuration => {
-                $map.serialize_value(&ry_types::RySignedDurationSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RySignedDurationSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTime => {
-                $map.serialize_value(&ry_types::RyTimeSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyTimeSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeSpan => {
-                $map.serialize_value(&ry_types::RySpanSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RySpanSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimestamp => {
-                $map.serialize_value(&ry_types::RyTimestampSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyTimestampSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyTimeZone => {
-                $map.serialize_value(&ry_types::RyTimeZoneSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyTimeZoneSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
             PyObType::RyZoned => {
-                $map.serialize_value(&ry_types::RyZonedSerializer::new($value))?;
+                $map.serialize_value(&ry_types::RyZonedSerializer::new_unchecked($value))?;
             }
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
             PyObType::RyUlid => {
-                $map.serialize_value(&ry_types::PyUlidSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyUlidSerializer::new_unchecked($value))?;
             }
             // __URL__
             #[cfg(feature = "ryo3-url")]
             PyObType::RyUrl => {
-                $map.serialize_value(&ry_types::PyUrlSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyUrlSerializer::new_unchecked($value))?;
             }
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]
             PyObType::RyUuid => {
-                $map.serialize_value(&ry_types::PyUuidSerializer::new($value))?;
+                $map.serialize_value(&ry_types::PyUuidSerializer::new_unchecked($value))?;
             }
             // ------------------------------------------------------------
             // UNKNOWN
