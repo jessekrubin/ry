@@ -61,10 +61,18 @@ macro_rules! serialize_seq_element {
                 ))?;
             }
             PyObType::Set => {
-                $seq.serialize_element(&PySetSerializer::new($element, $self.ctx))?;
+                $seq.serialize_element(&PySetSerializer::new(
+                    $element,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::FrozenSet => {
-                $seq.serialize_element(&PyFrozenSetSerializer::new($element, $self.ctx))?;
+                $seq.serialize_element(&PyFrozenSetSerializer::new(
+                    $element,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::DateTime => {
                 $seq.serialize_element(&PyDateTimeSerializer::new($element))?;
@@ -84,13 +92,6 @@ macro_rules! serialize_seq_element {
             PyObType::PyUuid => {
                 $seq.serialize_element(&PyUuidSerializer::new($element))?;
             }
-            // PyObType::Dataclass => {
-            //     $seq.serialize_element(&PyDataclassSerializer::new(
-            //         $element,
-            //         $self.ctx,
-            //         $self.depth,
-            //     ))?;
-            // }
             // ------------------------------------------------------------
             // RY-TYPES
             // ------------------------------------------------------------
@@ -292,12 +293,12 @@ pub(crate) struct PySetSerializer<'a, 'py> {
 }
 
 impl<'a, 'py> PySetSerializer<'a, 'py> {
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
-        Self {
-            obj,
-            ctx,
-            depth: Depth::default(),
-        }
+    pub(crate) fn new(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        Self { obj, ctx, depth }
     }
 }
 
@@ -331,12 +332,12 @@ pub(crate) struct PyFrozenSetSerializer<'a, 'py> {
 }
 
 impl<'a, 'py> PyFrozenSetSerializer<'a, 'py> {
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>, ctx: PySerializeContext<'py>) -> Self {
-        Self {
-            obj,
-            ctx,
-            depth: Depth::default(),
-        }
+    pub(crate) fn new(
+        obj: Borrowed<'a, 'py, PyAny>,
+        ctx: PySerializeContext<'py>,
+        depth: Depth,
+    ) -> Self {
+        Self { obj, ctx, depth }
     }
 }
 

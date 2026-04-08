@@ -69,9 +69,11 @@ impl Serialize for PyAnySerializer<'_, '_> {
             PyObType::Dict => {
                 PyDictSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
-            PyObType::Set => PySetSerializer::new(self.obj, self.ctx).serialize(serializer),
+            PyObType::Set => {
+                PySetSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
+            }
             PyObType::FrozenSet => {
-                PyFrozenSetSerializer::new(self.obj, self.ctx).serialize(serializer)
+                PyFrozenSetSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }
             PyObType::DateTime => PyDateTimeSerializer::new(self.obj).serialize(serializer),
             PyObType::Date => PyDateSerializer::new(self.obj).serialize(serializer),

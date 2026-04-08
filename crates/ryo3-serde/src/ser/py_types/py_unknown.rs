@@ -12,7 +12,7 @@ use crate::{
         PySerializeContext,
         dataclass::is_dataclass,
         py_types::{
-            PyDataclassSerializer, PyMappingSerializer, PySequenceSerializer,
+            PyDataclassSerializer, PyEnumSerializer, PyMappingSerializer, PySequenceSerializer,
             PyStrSubclassSerializer,
         },
     },
@@ -44,6 +44,8 @@ impl Serialize for PyUnknownSerializer<'_, '_> {
     {
         if let Ok(pystr_subclass) = self.obj.cast::<PyString>() {
             PyStrSubclassSerializer::new(pystr_subclass).serialize(serializer)
+        } else if self.ctx.typeref.is_enum(self.obj) {
+            PyEnumSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
         } else if is_dataclass(self.obj) {
             PyDataclassSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
         } else if let Ok(py_map) = self.obj.cast::<PyMapping>() {

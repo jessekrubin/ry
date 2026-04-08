@@ -37,6 +37,8 @@ pub(crate) struct PyTypeCache {
     pub timedelta: usize,
     // uuid
     pub py_uuid: usize,
+    // enum `enum.EnumMeta`
+    pub enum_meta: usize,
     // ------------------------------------------------------------------------
     // RY-TYPES
     // ------------------------------------------------------------------------
@@ -120,6 +122,8 @@ impl PyTypeCache {
             timedelta: PyDelta::type_object_raw(py) as usize,
             // uuid
             py_uuid: get_uuid_ob_pointer(py), // use uuid.NAMESPACE_DNS as a proxy for the uuid type
+            // enum
+            enum_meta: get_enum_meta_pointer(py),
 
             // ----------------------------------------------------------------
             // RY-TYPES
@@ -198,6 +202,13 @@ impl PyTypeCache {
     pub(crate) fn obtype_key(&self, ob: Borrowed<'_, '_, PyAny>) -> PyObType {
         self.ptr2type_key(ob.get_type_ptr() as usize)
     }
+
+    #[must_use]
+    #[inline]
+    pub(crate) fn is_enum(&self, ob: Borrowed<'_, '_, PyAny>) -> bool {
+        !ob.is_instance_of::<pyo3::types::PyType>()
+            && ob.get_type().get_type_ptr() as usize == self.enum_meta
+    }
 }
 
 fn get_uuid_ob_pointer(py: Python) -> usize {
@@ -209,6 +220,15 @@ fn get_uuid_ob_pointer(py: Python) -> usize {
     let uuid_type = uuid_ob.get_type();
 
     uuid_type.as_type_ptr() as usize
+}
+
+fn get_enum_meta_pointer(py: Python) -> usize {
+    let enum_mod = py.import("enum").expect("enum to be importable");
+    let enum_meta = enum_mod
+        .getattr("EnumMeta")
+        .expect("enum.EnumMeta to be available");
+
+    enum_meta.as_ptr() as usize
 }
 
 macro_rules! py_obj_ptr {
@@ -253,7 +273,19 @@ impl PyTypeCache {
         py_obj_ptr!(self, ptr, set, Set);
 
         // --- ryo3-* features ---
+        // Ordered by how much (i (jesse)) use them
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_duration, PyDuration);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_signed_duration, RySignedDuration);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned, RyZoned);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timespan, RyTimeSpan);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timestamp, RyTimestamp);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_date, RyDate);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_datetime, RyDateTime);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_time, RyTime);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-url", ry_url, RyUrl);
+
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ip_addr, PyIpAddr);
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv4_addr, PyIpv4Addr);
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv6_addr, PyIpv6Addr);
@@ -263,21 +295,12 @@ impl PyTypeCache {
 
         py_obj_ptr_feat!(self, ptr, "ryo3-uuid", ry_uuid, RyUuid);
 
-        py_obj_ptr_feat!(self, ptr, "ryo3-ulid", ry_ulid, RyUlid);
-
-        py_obj_ptr_feat!(self, ptr, "ryo3-url", ry_url, RyUrl);
-
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_date, RyDate);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_datetime, RyDateTime);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_signed_duration, RySignedDuration);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_time, RyTime);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timespan, RyTimeSpan);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timestamp, RyTimestamp);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timezone, RyTimeZone);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned, RyZoned);
-
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_http_status, RyHttpStatus);
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_headers, RyHeaders);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-ulid", ry_ulid, RyUlid);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timezone, RyTimeZone);
         PyObType::Unknown
     }
 

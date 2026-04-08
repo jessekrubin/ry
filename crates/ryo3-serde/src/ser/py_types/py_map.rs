@@ -70,10 +70,14 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyDictSerializer::new($value, $self.ctx, $self.depth + 1))?;
             }
             PyObType::Set => {
-                $map.serialize_value(&PySetSerializer::new($value, $self.ctx))?;
+                $map.serialize_value(&PySetSerializer::new($value, $self.ctx, $self.depth + 1))?;
             }
             PyObType::FrozenSet => {
-                $map.serialize_value(&PyFrozenSetSerializer::new($value, $self.ctx))?;
+                $map.serialize_value(&PyFrozenSetSerializer::new(
+                    $value,
+                    $self.ctx,
+                    $self.depth + 1,
+                ))?;
             }
             PyObType::DateTime => {
                 $map.serialize_value(&PyDateTimeSerializer::new($value))?;

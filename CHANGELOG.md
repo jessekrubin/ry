@@ -2,6 +2,9 @@
 
 ## v0.0.88 [unreleased]
 
+- `ryo3-serde`
+  - python `enum` serialization support
+  - fix issue with depth in `set`/`frozenset`
 - expanding usage of `ReadableBuffer` for (every-so-slightly) perf gains when
   reading bytes
   - use in `memchr`
