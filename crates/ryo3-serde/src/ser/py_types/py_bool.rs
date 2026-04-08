@@ -1,7 +1,6 @@
+use pyo3::Borrowed;
 use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
-
-use pyo3::Borrowed;
 
 pub(crate) struct PyBoolSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,

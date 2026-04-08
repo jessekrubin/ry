@@ -1,15 +1,14 @@
+use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::PyString;
-use pyo3::{intern, prelude::*};
+use pyo3::types::{PyDict, PyString};
+use pyo3::{Bound, intern};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::py_types::PyDictSerializer;
-use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
-
 use crate::ser::PySerializeContext;
 use crate::ser::dataclass::dataclass_fields;
-use pyo3::{Bound, types::PyDict};
+use crate::ser::py_types::PyDictSerializer;
+use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
 
 pub(crate) struct PyDataclassSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,

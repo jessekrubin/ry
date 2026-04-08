@@ -2,6 +2,7 @@
 //!
 //! Based on a combination of `orjson`, `pythonize` and `rtoml`.
 
+use pyo3::Bound;
 use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
@@ -17,7 +18,6 @@ use crate::ser::py_types::{
 #[cfg(feature = "ry")]
 use crate::ser::ry_types;
 use crate::{Depth, MAX_DEPTH, serde_err_recursion};
-use pyo3::Bound;
 
 pub struct PyAnySerializer<'a, 'py> {
     pub(crate) obj: Borrowed<'a, 'py, PyAny>,

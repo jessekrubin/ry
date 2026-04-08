@@ -1,9 +1,8 @@
 use pyo3::prelude::*;
+use pyo3::types::PyInt;
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
-
-use pyo3::types::PyInt;
 
 pub(crate) struct PyIntSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyAny>,

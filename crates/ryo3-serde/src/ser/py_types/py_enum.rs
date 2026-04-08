@@ -1,7 +1,10 @@
-use pyo3::{Borrowed, PyAny, intern, prelude::*};
+use pyo3::prelude::*;
+use pyo3::{Borrowed, PyAny, intern};
 use serde::ser::{Serialize, Serializer};
 
-use crate::{Depth, PyAnySerializer, errors::pyerr2sererr, ser::PySerializeContext};
+use crate::errors::pyerr2sererr;
+use crate::ser::PySerializeContext;
+use crate::{Depth, PyAnySerializer};
 
 pub(crate) struct PyEnumSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,

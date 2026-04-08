@@ -1,9 +1,8 @@
 use pyo3::prelude::*;
+use pyo3::types::{PyDate, PyDateTime};
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
-
-use pyo3::types::{PyDate, PyDateTime};
 
 // ---------------------------------------------------------------------------
 // python stdlib `datetime.date`

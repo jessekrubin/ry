@@ -1,3 +1,7 @@
+use pyo3::prelude::*;
+use pyo3::types::{PyAny, PyFrozenSet, PyList, PySequence, PySet, PyTuple};
+use serde::ser::{Serialize, SerializeSeq, SerializeTuple, Serializer};
+
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
@@ -17,9 +21,6 @@ use crate::ser::py_types::{
 ))]
 use crate::ser::ry_types;
 use crate::serde_err_recursion;
-use pyo3::prelude::*;
-use pyo3::types::{PyAny, PyFrozenSet, PyList, PySequence, PySet, PyTuple};
-use serde::ser::{Serialize, SerializeSeq, SerializeTuple, Serializer};
 
 macro_rules! serialize_seq_element {
     ($ob_type:expr, $seq:expr, $self:expr, $element:expr) => {

@@ -1,4 +1,3 @@
-use crate::ob_type::PyObType;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{
@@ -6,6 +5,8 @@ use pyo3::types::{
     PyFrozenSet, PyInt, PyList, PyMemoryView, PyNone, PySet, PyString, PyTime, PyTuple,
 };
 use pyo3::{Borrowed, PyAny, PyTypeInfo, Python};
+
+use crate::ob_type::PyObType;
 
 #[derive(Copy, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]

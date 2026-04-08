@@ -1,12 +1,11 @@
 use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
+use crate::any_repr::any_repr;
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
 use crate::ser::py_types::{PyBoolSerializer, PyStrSerializer};
 use crate::serde_err;
-
-use crate::any_repr::any_repr;
 
 pub(crate) struct PyMappingKeySerializer<'a, 'py> {
     pub(crate) ctx: PySerializeContext<'py>,

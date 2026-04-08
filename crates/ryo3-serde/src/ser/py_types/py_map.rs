@@ -1,9 +1,9 @@
 use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyMapping};
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
-use crate::errors::pyerr2sererr;
-
 use crate::constants::{Depth, MAX_DEPTH};
+use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
 use crate::ser::py_types::{
@@ -23,7 +23,6 @@ use crate::ser::py_types::{
 ))]
 use crate::ser::ry_types;
 use crate::serde_err_recursion;
-use pyo3::types::{PyDict, PyMapping};
 
 pub(crate) struct PyDictSerializer<'a, 'py> {
     ctx: PySerializeContext<'py>,
