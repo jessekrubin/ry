@@ -143,12 +143,12 @@ impl PyBytes {
         self.py_title()
     }
 
-    #[pyo3(signature = (prefix = None, /))]
+    #[pyo3(signature = (prefix, /))]
     fn startswith(&self, prefix: PyBytes) -> bool {
         self.as_slice().starts_with(prefix.as_ref())
     }
 
-    #[pyo3(signature = (suffix = None, /))]
+    #[pyo3(signature = (suffix, /))]
     fn endswith(&self, suffix: PyBytes) -> bool {
         self.as_slice().ends_with(suffix.as_ref())
     }
