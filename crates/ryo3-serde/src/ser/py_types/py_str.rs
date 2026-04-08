@@ -5,13 +5,20 @@ use serde::ser::{Serialize, Serializer};
 use crate::errors::pyerr2sererr;
 
 pub(crate) struct PyStrSerializer<'a, 'py> {
-    obj: Borrowed<'a, 'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyString>,
 }
 
 impl<'a, 'py> PyStrSerializer<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyString>) -> Self {
         Self { obj }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyString>() };
+        Self::new(obj)
     }
 }
 

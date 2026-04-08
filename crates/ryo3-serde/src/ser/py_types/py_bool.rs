@@ -3,13 +3,20 @@ use pyo3::prelude::*;
 use serde::ser::{Serialize, Serializer};
 
 pub(crate) struct PyBoolSerializer<'a, 'py> {
-    obj: Borrowed<'a, 'py, PyAny>,
+    obj: Borrowed<'a, 'py, pyo3::types::PyBool>,
 }
 
 impl<'a, 'py> PyBoolSerializer<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, pyo3::types::PyBool>) -> Self {
         Self { obj }
+    }
+
+    #[inline]
+    pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<pyo3::types::PyBool>() };
+        Self::new(obj)
     }
 }
 
@@ -35,11 +42,6 @@ impl Serialize for PyBoolSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let tf = self
-            .obj
-            .cast_exact::<pyo3::types::PyBool>()
-            .map_err(crate::errors::pyerr2sererr)?
-            .is_true();
-        serializer.serialize_bool(tf)
+        serializer.serialize_bool(self.obj.is_true())
     }
 }

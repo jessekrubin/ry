@@ -48,16 +48,16 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyNoneSerializer::new())?;
             }
             PyObType::Bool => {
-                $map.serialize_value(&PyBoolSerializer::new($value))?;
+                $map.serialize_value(&PyBoolSerializer::new_unchecked($value))?;
             }
             PyObType::Int => {
                 $map.serialize_value(&PyIntSerializer::new_unchecked($value))?;
             }
             PyObType::Float => {
-                $map.serialize_value(&PyFloatSerializer::new($value))?;
+                $map.serialize_value(&PyFloatSerializer::new_unchecked($value))?;
             }
             PyObType::String => {
-                $map.serialize_value(&PyStrSerializer::new($value))?;
+                $map.serialize_value(&PyStrSerializer::new_unchecked($value))?;
             }
             PyObType::List => {
                 $map.serialize_value(&PyListSerializer::new($value, $self.ctx, $self.depth + 1))?;

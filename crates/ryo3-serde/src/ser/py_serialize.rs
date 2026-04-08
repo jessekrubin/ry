@@ -45,6 +45,7 @@ impl<'a, 'py> PyAnySerializer<'a, 'py> {
 }
 
 impl Serialize for PyAnySerializer<'_, '_> {
+    #[expect(clippy::too_many_lines)]
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -56,10 +57,10 @@ impl Serialize for PyAnySerializer<'_, '_> {
         let ob_type = self.ctx.typeref.obtype(self.obj);
         match ob_type {
             PyObType::None | PyObType::Ellipsis => PyNoneSerializer::new().serialize(serializer),
-            PyObType::Bool => PyBoolSerializer::new(self.obj).serialize(serializer),
+            PyObType::Bool => PyBoolSerializer::new_unchecked(self.obj).serialize(serializer),
             PyObType::Int => PyIntSerializer::new_unchecked(self.obj).serialize(serializer),
-            PyObType::Float => PyFloatSerializer::new(self.obj).serialize(serializer),
-            PyObType::String => PyStrSerializer::new(self.obj).serialize(serializer),
+            PyObType::Float => PyFloatSerializer::new_unchecked(self.obj).serialize(serializer),
+            PyObType::String => PyStrSerializer::new_unchecked(self.obj).serialize(serializer),
             PyObType::List => {
                 PyListSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
             }

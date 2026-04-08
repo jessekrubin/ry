@@ -1,14 +1,21 @@
 use pyo3::Borrowed;
 use pyo3::prelude::*;
+use pyo3::types::PyFloat;
 use serde::ser::{Serialize, Serializer};
 
 pub(crate) struct PyFloatSerializer<'a, 'py> {
-    obj: Borrowed<'a, 'py, PyAny>,
+    obj: Borrowed<'a, 'py, PyFloat>,
 }
 
 impl<'a, 'py> PyFloatSerializer<'a, 'py> {
-    pub(crate) fn new(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, PyFloat>) -> Self {
         Self { obj }
+    }
+
+    pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
+        #[expect(unsafe_code)]
+        let obj = unsafe { obj.cast_unchecked::<PyFloat>() };
+        Self::new(obj)
     }
 }
 
@@ -19,10 +26,10 @@ impl Serialize for PyFloatSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        // WENODIS: this is fo sho a float. checked by the caller
-        #[expect(unsafe_code)]
-        let f = unsafe { self.obj.cast_unchecked::<pyo3::types::PyFloat>() }.value();
-        serializer.serialize_f64(f)
+        // // WENODIS: this is fo sho a float. checked by the caller
+        // #[expect(unsafe_code)]
+        // let f = unsafe { self.obj.cast_unchecked::<pyo3::types::PyFloat>() }.value();
+        serializer.serialize_f64(self.obj.value())
     }
 }
 

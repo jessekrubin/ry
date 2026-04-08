@@ -29,16 +29,16 @@ macro_rules! serialize_seq_element {
                 $seq.serialize_element(&PyNoneSerializer::new())?;
             }
             PyObType::Bool => {
-                $seq.serialize_element(&PyBoolSerializer::new($element))?;
+                $seq.serialize_element(&PyBoolSerializer::new_unchecked($element))?;
             }
             PyObType::Int => {
                 $seq.serialize_element(&PyIntSerializer::new_unchecked($element))?;
             }
             PyObType::Float => {
-                $seq.serialize_element(&PyFloatSerializer::new($element))?;
+                $seq.serialize_element(&PyFloatSerializer::new_unchecked($element))?;
             }
             PyObType::String => {
-                $seq.serialize_element(&PyStrSerializer::new($element))?;
+                $seq.serialize_element(&PyStrSerializer::new_unchecked($element))?;
             }
             PyObType::List => {
                 $seq.serialize_element(&PyListSerializer::new(
@@ -305,7 +305,7 @@ impl<'a, 'py> PySetSerializer<'a, 'py> {
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
-        Self { obj, ctx, depth }
+        Self { ctx, obj, depth }
     }
 }
 
@@ -344,7 +344,7 @@ impl<'a, 'py> PyFrozenSetSerializer<'a, 'py> {
         ctx: PySerializeContext<'py>,
         depth: Depth,
     ) -> Self {
-        Self { obj, ctx, depth }
+        Self { ctx, obj, depth }
     }
 }
 
