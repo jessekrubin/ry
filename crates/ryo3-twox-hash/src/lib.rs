@@ -10,6 +10,10 @@ pub mod xxhash3_64;
 #[cfg(feature = "xxhash64")]
 pub mod xxhash64;
 
+// either xxhash3_128 or xxhash3_64 depending on which is enabled
+#[cfg(any(feature = "xxhash3_128", feature = "xxhash3_64"))]
+pub(crate) mod xxhash3_secret;
+
 #[cfg_attr(
     not(any(
         feature = "xxhash32",

@@ -1,3 +1,4 @@
+use pyo3::BoundObject;
 use pyo3::prelude::*;
 
 use crate::PyBytes;
@@ -34,27 +35,27 @@ impl ReadableBuffer<'_, '_> {
 
     /// Convert to `bytes::Bytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
-    pub fn as_bytes(&self) -> PyResult<bytes::Bytes> {
+    pub fn to_bytes(&self) -> bytes::Bytes {
         match self {
-            ReadableBuffer::PyBytes(pb) => pb
-                .extract::<pyo3::pybacked::PyBackedBytes>()
-                .map(bytes::Bytes::from_owner)
-                .map_err(PyErr::from),
+            ReadableBuffer::PyBytes(pb) => {
+                let pbb = pyo3::pybacked::PyBackedBytes::from(pb.into_bound());
+                bytes::Bytes::from_owner(pbb)
+            }
             ReadableBuffer::RyBytes(rb) => {
                 let rbb: &bytes::Bytes = rb.get().as_ref();
-                Ok(rbb.clone())
+                rbb.clone()
             }
             ReadableBuffer::Buffer(b) => {
                 let rbb: &bytes::Bytes = b.as_ref();
-                Ok(rbb.clone())
+                rbb.clone()
             }
         }
     }
 
     /// Convert to `ryo3-bytes::PyBytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
-    pub fn as_rybytes(&self) -> PyResult<PyBytes> {
-        self.as_bytes().map(PyBytes::from)
+    pub fn to_rybytes(&self) -> PyBytes {
+        PyBytes::from(self.to_bytes())
     }
 }
 

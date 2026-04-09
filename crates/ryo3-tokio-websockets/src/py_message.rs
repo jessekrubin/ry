@@ -308,7 +308,7 @@ impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
         } else if let Ok(text) = obj.extract::<PyBackedStr>() {
             Ok(Self::Text(text))
         } else if let Ok(bytes) = obj.extract::<ReadableBuffer>() {
-            Ok(Self::Bytes(bytes.as_rybytes()?))
+            Ok(Self::Bytes(bytes.to_rybytes()))
         } else {
             py_type_err!("expected Message, str, or bytes-like object")
         }

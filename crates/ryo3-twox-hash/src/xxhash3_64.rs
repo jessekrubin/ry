@@ -1,6 +1,5 @@
 use std::hash::Hasher;
 
-use pyo3::exceptions::PyValueError;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -8,6 +7,8 @@ use ryo3_bytes::PyBytes as RyBytes;
 use ryo3_core::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
 use twox_hash::XxHash3_64;
+
+use crate::xxhash3_secret::{PyXxHash3Secret, XXH3_SECRET_EXPECT_MSG};
 
 #[pyclass(name = "xxh3_64", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
@@ -20,26 +21,25 @@ pub struct PyXxHash3_64 {
 impl PyXxHash3_64 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0, secret = None))]
-    fn py_new(data: Option<RyBytes>, seed: u64, secret: Option<[u8; 192]>) -> PyResult<Self> {
+    fn py_new(data: Option<RyBytes>, seed: u64, secret: Option<PyXxHash3Secret>) -> Self {
         let hasher = if let Some(s) = secret {
-            XxHash3_64::with_seed_and_secret(seed, s)
-                .map_err(|_| PyValueError::new_err("Secret must be exactly 192 bytes long"))
+            XxHash3_64::with_seed_and_secret(seed, s).expect(XXH3_SECRET_EXPECT_MSG)
         } else {
-            Ok(XxHash3_64::with_seed(seed))
-        }?;
+            XxHash3_64::with_seed(seed)
+        };
         match data {
             Some(s) => {
                 let mut hasher = hasher;
                 hasher.write(s.as_ref());
-                Ok(Self {
+                Self {
                     seed,
                     hasher: hasher.into(),
-                })
+                }
             }
-            None => Ok(Self {
+            None => Self {
                 seed,
                 hasher: hasher.into(),
-            }),
+            },
         }
     }
 
@@ -110,7 +110,7 @@ impl PyXxHash3_64 {
     #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     #[pyo3(signature = (data, *, seed = 0, secret = None))]
-    fn oneshot(py: Python<'_>, data: RyBytes, seed: u64, secret: Option<RyBytes>) -> PyResult<u64> {
+    fn oneshot(py: Python<'_>, data: RyBytes, seed: u64, secret: Option<PyXxHash3Secret>) -> u64 {
         py.detach(|| {
             if let Some(secret) = secret {
                 twox_hash::XxHash3_64::oneshot_with_seed_and_secret(
@@ -118,12 +118,9 @@ impl PyXxHash3_64 {
                     secret.as_ref(),
                     data.as_ref(),
                 )
-                .map_err(|e| PyValueError::new_err(format!("invalid secret: {e}")))
+                .expect(XXH3_SECRET_EXPECT_MSG)
             } else {
-                Ok(twox_hash::XxHash3_64::oneshot_with_seed(
-                    seed,
-                    data.as_ref(),
-                ))
+                twox_hash::XxHash3_64::oneshot_with_seed(seed, data.as_ref())
             }
         })
     }
@@ -139,9 +136,9 @@ pub fn xxh3_64_digest(
     py: Python<'_>,
     data: RyBytes,
     seed: u64,
-    secret: Option<RyBytes>,
-) -> PyResult<PyDigest<u64>> {
-    PyXxHash3_64::oneshot(py, data, seed, secret).map(PyDigest::from)
+    secret: Option<PyXxHash3Secret>,
+) -> PyDigest<u64> {
+    PyXxHash3_64::oneshot(py, data, seed, secret).into()
 }
 
 #[pyfunction]
@@ -150,8 +147,8 @@ pub fn xxh3_64_intdigest(
     py: Python<'_>,
     data: RyBytes,
     seed: u64,
-    secret: Option<RyBytes>,
-) -> PyResult<u64> {
+    secret: Option<PyXxHash3Secret>,
+) -> u64 {
     PyXxHash3_64::oneshot(py, data, seed, secret)
 }
 
@@ -161,9 +158,9 @@ pub fn xxh3_64_hexdigest(
     py: Python<'_>,
     data: RyBytes,
     seed: u64,
-    secret: Option<RyBytes>,
-) -> PyResult<PyHexDigest<u64>> {
-    PyXxHash3_64::oneshot(py, data, seed, secret).map(PyHexDigest::from)
+    secret: Option<PyXxHash3Secret>,
+) -> PyHexDigest<u64> {
+    PyXxHash3_64::oneshot(py, data, seed, secret).into()
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

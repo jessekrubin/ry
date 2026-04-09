@@ -18,6 +18,7 @@ mod pyo3_bytes;
 
 mod python_bytes_methods;
 mod ryo3_bytes;
+pub use ::bytes::Bytes;
 pub use readable_buffer::{ExactReadableBuffer, ReadableBuffer};
 
 pub use crate::bytes::PyBytes;

@@ -67,6 +67,13 @@ strip = true
 panic = "abort"
 lto = "thin"
 
+# fast build: skips debug info gen and simple opts (ty uv for idea)
+[profile.fast-build]
+inherits = "dev"
+opt-level = 1
+debug = 0
+strip = "debuginfo"
+
 [profile.bench]
 inherits = "release"
 lto = "fat"
