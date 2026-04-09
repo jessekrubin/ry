@@ -21,6 +21,12 @@ impl ReadableBuffer<'_, '_> {
         self.as_ref()
     }
 
+    /// Return bytes slice (same as `as_slice` but matches `pyo3` naming)
+    #[inline]
+    pub fn as_bytes(&self) -> &[u8] {
+        self.as_ref()
+    }
+
     /// Return buffer length
     #[inline]
     pub fn len(&self) -> usize {
@@ -60,6 +66,7 @@ impl ReadableBuffer<'_, '_> {
 }
 
 impl AsRef<[u8]> for ReadableBuffer<'_, '_> {
+    #[inline]
     fn as_ref(&self) -> &[u8] {
         match self {
             ReadableBuffer::PyBytes(pybytes) => pybytes.as_bytes(),

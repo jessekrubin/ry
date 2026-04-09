@@ -3,7 +3,7 @@ use std::hash::Hasher;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::ReadableBuffer;
 use ryo3_core::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
 use twox_hash::XxHash3_64;
@@ -21,7 +21,7 @@ pub struct PyXxHash3_64 {
 impl PyXxHash3_64 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0, secret = None))]
-    fn py_new(data: Option<RyBytes>, seed: u64, secret: Option<PyXxHash3Secret>) -> Self {
+    fn py_new(data: Option<ReadableBuffer>, seed: u64, secret: Option<PyXxHash3Secret>) -> Self {
         let hasher = if let Some(s) = secret {
             XxHash3_64::with_seed_and_secret(seed, s).expect(XXH3_SECRET_EXPECT_MSG)
         } else {
@@ -84,10 +84,11 @@ impl PyXxHash3_64 {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, py: Python<'_>, data: RyBytes) -> PyResult<()> {
+    fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
+        let slice = data.as_slice();
         py.detach(|| {
             let mut hasher = self.hasher.py_lock()?;
-            hasher.write(data.as_ref());
+            hasher.write(slice);
             Ok(())
         })
     }
@@ -110,17 +111,19 @@ impl PyXxHash3_64 {
     #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     #[pyo3(signature = (data, *, seed = 0, secret = None))]
-    fn oneshot(py: Python<'_>, data: RyBytes, seed: u64, secret: Option<PyXxHash3Secret>) -> u64 {
+    fn oneshot(
+        py: Python<'_>,
+        data: ReadableBuffer,
+        seed: u64,
+        secret: Option<PyXxHash3Secret>,
+    ) -> u64 {
+        let data = data.as_slice();
         py.detach(|| {
             if let Some(secret) = secret {
-                twox_hash::XxHash3_64::oneshot_with_seed_and_secret(
-                    seed,
-                    secret.as_ref(),
-                    data.as_ref(),
-                )
-                .expect(XXH3_SECRET_EXPECT_MSG)
+                twox_hash::XxHash3_64::oneshot_with_seed_and_secret(seed, secret.as_ref(), data)
+                    .expect(XXH3_SECRET_EXPECT_MSG)
             } else {
-                twox_hash::XxHash3_64::oneshot_with_seed(seed, data.as_ref())
+                twox_hash::XxHash3_64::oneshot_with_seed(seed, data)
             }
         })
     }
@@ -134,7 +137,7 @@ impl PyXxHash3_64 {
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh3_64_digest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyDigest<u64> {
@@ -145,7 +148,7 @@ pub fn xxh3_64_digest(
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh3_64_intdigest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> u64 {
@@ -156,7 +159,7 @@ pub fn xxh3_64_intdigest(
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh3_64_hexdigest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyHexDigest<u64> {

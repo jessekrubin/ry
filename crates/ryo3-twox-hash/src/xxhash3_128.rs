@@ -1,12 +1,12 @@
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::ReadableBuffer;
 use ryo3_core::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
 use twox_hash::XxHash3_128;
 
-use crate::xxhash3_secret::PyXxHash3Secret;
+use crate::xxhash3_secret::{PyXxHash3Secret, XXH3_SECRET_EXPECT_MSG};
 
 #[pyclass(name = "xxh3_128", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
@@ -15,14 +15,11 @@ pub struct PyXxHash3_128 {
     hasher: RyMutex<XxHash3_128>,
 }
 
-const XXH3_SECRET_EXPECT_MSG: &str =
-    "wenodis: secret already validated to be at least 136 bytes long";
-
 #[pymethods]
 impl PyXxHash3_128 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0, secret = None))]
-    fn py_new(data: Option<RyBytes>, seed: u64, secret: Option<PyXxHash3Secret>) -> Self {
+    fn py_new(data: Option<ReadableBuffer>, seed: u64, secret: Option<PyXxHash3Secret>) -> Self {
         let hasher = if let Some(s) = secret {
             XxHash3_128::with_seed_and_secret(seed, s).expect(XXH3_SECRET_EXPECT_MSG)
         } else {
@@ -85,10 +82,11 @@ impl PyXxHash3_128 {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, py: Python<'_>, data: RyBytes) -> PyResult<()> {
+    fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
+        let slice = data.as_ref();
         py.detach(|| {
             let mut hasher = self.hasher.py_lock()?;
-            hasher.write(data.as_ref());
+            hasher.write(slice);
             Ok(())
         })
     }
@@ -113,23 +111,21 @@ impl PyXxHash3_128 {
     #[pyo3(signature = (data, *, seed = 0, secret = None))]
     fn oneshot(
         py: Python<'_>,
-        data: RyBytes,
+        data: ReadableBuffer,
         seed: u64,
         secret: Option<PyXxHash3Secret>,
     ) -> PyResult<u128> {
+        let slice = data.as_ref();
         py.detach(|| {
             if let Some(secret) = secret {
                 Ok(twox_hash::XxHash3_128::oneshot_with_seed_and_secret(
                     seed,
                     secret.as_ref(),
-                    data.as_ref(),
+                    slice,
                 )
                 .expect("wenodis: secret already validated to be at least 136 bytes long"))
             } else {
-                Ok(twox_hash::XxHash3_128::oneshot_with_seed(
-                    seed,
-                    data.as_ref(),
-                ))
+                Ok(twox_hash::XxHash3_128::oneshot_with_seed(seed, slice))
             }
         })
     }
@@ -139,7 +135,7 @@ impl PyXxHash3_128 {
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh3_128_digest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyResult<PyDigest<u128>> {
@@ -150,7 +146,7 @@ pub fn xxh3_128_digest(
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh3_128_intdigest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyResult<u128> {
@@ -161,7 +157,7 @@ pub fn xxh3_128_intdigest(
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh3_128_hexdigest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyResult<PyHexDigest<u128>> {
@@ -172,7 +168,7 @@ pub fn xxh3_128_hexdigest(
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh128_digest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyResult<PyDigest<u128>> {
@@ -183,7 +179,7 @@ pub fn xxh128_digest(
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh128_intdigest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyResult<u128> {
@@ -194,7 +190,7 @@ pub fn xxh128_intdigest(
 #[pyo3(signature = (data, *, seed = 0, secret = None))]
 pub fn xxh128_hexdigest(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyResult<PyHexDigest<u128>> {
