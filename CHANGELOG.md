@@ -19,6 +19,10 @@
 - `ryo3-tokio-websockets`
   - `config()` function on `ry.WebSocket` to return a typed dict with the config
     values
+- `ryo3-twox-hash`
+  - fix secret validaion/ extraction for `xxhash3*`: was validating secret to be
+    buf w/ length 192, when in reality an xxhash3-secret is valid so long as it
+    is as least 132 bytes
 
 ---
 
