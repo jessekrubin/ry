@@ -1134,7 +1134,7 @@ class fnv1a:  # noqa: N801
     @staticmethod
     def oneshot(
         data: Buffer, *, key: int | bytes = 0xCBF29CE484222325
-    ) -> int: ...  # noqa: PYI054
+    ) -> bytes: ...  # noqa: PYI054
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -7427,7 +7427,7 @@ class xxh32:  # noqa: N801
         """number of bytes hashed"""
 
     @staticmethod
-    def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
+    def oneshot(data: Buffer, *, seed: int = 0) -> bytes: ...
 
 
 @t.final
@@ -7452,7 +7452,7 @@ class xxh64:  # noqa: N801
         """number of bytes hashed"""
 
     @staticmethod
-    def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
+    def oneshot(data: Buffer, *, seed: int = 0) -> bytes: ...
 
 
 @t.final
@@ -7479,7 +7479,7 @@ class xxh3_64:  # noqa: N801
     @staticmethod
     def oneshot(
         data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-    ) -> int: ...
+    ) -> bytes: ...
 
 
 @t.final
@@ -7506,7 +7506,7 @@ class xxh3_128:  # noqa: N801
     @staticmethod
     def oneshot(
         data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-    ) -> int: ...
+    ) -> bytes: ...
 
 
 xxh128 = xxh3_128
