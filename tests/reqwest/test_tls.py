@@ -2,6 +2,7 @@ import pytest
 
 import ry
 
+# typos:off
 _PEM: str = """
 -----BEGIN CERTIFICATE-----
 MIIBtjCCAVugAwIBAgITBmyf1XSXNmY/Owua2eiedgPySjAKBggqhkjOPQQDAjA5
@@ -44,6 +45,7 @@ CkcO8DdZEv8tmZQoTipPNU0zWgIxAOp1AE47xDqUEpHJWEadIRNyp4iciuRMStuW
 1KyLa2tJElMzrdfkviT8tQp21KW8EA==
 -----END CERTIFICATE-----
 """
+# typos:on
 
 
 class TestCertificate:

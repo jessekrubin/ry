@@ -85,7 +85,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
         } else if let Ok(rybytes) = ob.cast_exact::<PyBytes>() {
             Ok(Self::RyBytes(rybytes))
         } else if let Ok(buffer) = ob.extract::<PyBytes>() {
-            // TODO: possibly short circut here and dont extracct via thingy
+            // TODO: possibly short circuit here and dont extracct via thingy
             // because it does redundant checks...
             Ok(Self::Buffer(buffer))
         } else {
@@ -128,7 +128,7 @@ impl<const N: usize> AsRef<[u8]> for ExactReadableBuffer<'_, '_, N> {
 }
 
 impl<const N: usize> ExactReadableBuffer<'_, '_, N> {
-    /// Return buffer as fixed-size array referenc
+    /// Return buffer as fixed-size array reference
     ///
     /// # Panics
     ///

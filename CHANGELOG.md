@@ -36,7 +36,7 @@
 - `ryo3-tokio-websockets`
   - finally implemented (over about a week) bc I am working on a ws server at
     work and gonna use this to test it
-  - Workin progress websocket client using `tokio-websockets` crate
+  - work in progress websocket client using `tokio-websockets` crate
   - add `json()` fn to `ry.WsMessage` to parse message payload as JSON
 - `ryo3-cookie`
   - Move `PyCookie` out from under `ryo3-reqwest` and into its own happy home

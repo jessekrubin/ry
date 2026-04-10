@@ -132,7 +132,7 @@ class TestTlsVersions:
             and tls_version_max is not None
             and tls_version_min > tls_version_max
         ) or (
-            # problem childs
+            # problem childs # typos:ignore
             (tls_version_min, tls_version_max)
             in {
                 (None, "1.0"),

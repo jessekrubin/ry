@@ -1,11 +1,10 @@
 [build-system]
 build-backend = "maturin"
-
 requires = [ "maturin>=1,<2" ]
 
 [project]
 name = "ry"
-description = "ry = rust + python"
+description = "ry == rust | python"
 keywords = [
   "datetime",
   "http",

@@ -70,52 +70,51 @@
 - to see all tasks run `just` or `just --list` (our default task echos the list
   of tasks)
 
-tasks as of 2025-09-26:
+just-recipes `just -l` (ca. 2026-04-10):
 
 ```txt
 Available recipes:
-    repl            # run ry.dev python repl
-    repl-uv         # run ry.dev python repl (if using uv)
-    dev             # dev run build + tests
-    dev-uv          # dev run build + tests (with uv)
-    sync            # uv sync
-    develop         # maturin develop
-    develop-uv      # maturin develop (with uv)
-    mat             # maturin develop (shorthand)
-    cargo-test      # cargo test
-    build           # build
-    build-release   # build release
-    dev-rel         # maturin develop release
-    doctest         # run pytest
-    pytest          # run pytest
-    pytest-uv       # run pytest
-    pytestv         # run pytest (printing captured output)
-    test            # run all test
-    test-release    # test ry package
-    bench           # benchmark ry python package
-    ci              # ci rust checks
-    cargo-fmt       # cargo format
-    cargo-fmtc      # cargo format check
-    sort-all-check  # ruff check sorting of '__all__'
-    sort-all        # ruff sort '__all__'
-    ruff-fmt        # ruff format
-    ruff-fmtc       # ruff format check
-    fmtpy           # python format
-    fmtcpy          # python format check
-    justfilefmt     # justfile format
-    justfilefmtc    # justfile format check
-    mdfmt           # format markdown
-    pyprojectfmt    # pyproject-fmt
-    fmt             # format
-    fmtc            # format check
-    ruff            # run ruff linter
-    ruffix          # run ruff + fix
-    clippy          # run clippy
-    clippy-features # run clippy with feature-powerset via cargo-hack
-    lint            # lint python and rust
-    mypy            # run mypy type checker
-    pyright         # run pyright
-    pip-compile     # pip compile requirements
-    gen             # generate code tasks
-    cargo-doc       # generate cargo docs for all crates (in workspace)
+    bench                       # benchmark ry python package
+    build                       # build
+    build-release               # build release
+    cargo-doc                   # generate cargo docs for all crates (in workspace)
+    cargo-fmt                   # cargo format
+    cargo-fmtc                  # cargo format check
+    cargo-test                  # cargo test
+    check-features              # run cargo check with feature-powerset via cargo-hack
+    ci                          # ci rust checks
+    clean                       # clean out local caches/artifacts/stuff
+    clippy                      # run clippy
+    clippy-features             # run clippy with feature-powerset via cargo-hack
+    depgraph-svg                # generate depgraph for docs
+    dev                         # dev run build + tests
+    develop                     # maturin develop
+    devrel                      # maturin develop release
+    doctest                     # run pytest
+    fmt                         # format
+    fmtc                        # format check
+    fmtcpy                      # python format check
+    fmtpy                       # python format
+    gen                         # generate code tasks
+    justfilefmt                 # justfile format
+    justfilefmtc                # justfile format check
+    lint                        # lint python and rust
+    mat *ARGS                   # maturin develop (shorthand)
+    mdfmt                       # format markdown
+    mypy                        # run mypy type checker
+    pip-compile                 # pip compile requirements
+    pyprojectfmt                # pyproject-fmt
+    pyright                     # run pyright
+    pytest +ARGS='python tests' # run pytest
+    pytestv                     # run pytest (printing captured output)
+    repl                        # run ry.dev python repl
+    ruff                        # run ruff linter
+    ruff-fmt                    # ruff format
+    ruff-fmtc                   # ruff format check
+    ruffix                      # run ruff + fix
+    sort-all                    # ruff sort '__all__'
+    sort-all-check              # ruff check sorting of '__all__'
+    sync                        # uv sync
+    test                        # run all test
+    test-release                # test ry package
 ```

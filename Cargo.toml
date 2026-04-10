@@ -9,7 +9,7 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "ry = rust + python"
+description = "ry == rust | python"
 
 [lints]
 workspace = true

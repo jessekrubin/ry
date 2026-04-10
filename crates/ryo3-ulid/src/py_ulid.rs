@@ -481,7 +481,7 @@ impl GetPydanticCoreSchemaCls for PyUlid {
 
         // let core_schema = core_schema.getattr(intern!(py, "core_schema"))?;
 
-        // oy vey this is hideous, but it works
+        // oof this is hideous, but it works
         let str_schema_kwargs = PyDict::new(py);
         str_schema_kwargs.set_item(interns::pattern(py), intern!(py, r"[A-Z0-9]{26}"))?;
         str_schema_kwargs.set_item(interns::min_length(py), 26)?;

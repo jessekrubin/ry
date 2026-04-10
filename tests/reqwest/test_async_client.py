@@ -380,18 +380,18 @@ async def test_client_default_headers_get(
 
 
 def _sync_generator_o_bytes() -> t.Generator[bytes, None, None]:
-    yield from (b"BA", b"BY", b"DOG")
+    yield from (b"BABY", b"DOG")
 
 
 async def _async_generator_o_bytes() -> t.AsyncGenerator[bytes, None]:
-    for b in (b"BA", b"BY", b"DOG"):
+    for b in (b"BABY", b"DOG"):
         yield b
         await asyncio.sleep(0)
 
 
 class _SyncIterator:
     def __init__(self) -> None:
-        self._data = (b"BA", b"BY", b"DOG")
+        self._data = (b"BABY", b"DOG")
         self._index = 0
 
     def __iter__(self) -> _SyncIterator:
@@ -407,7 +407,7 @@ class _SyncIterator:
 
 class _SyncIterable:
     def __init__(self) -> None:
-        self._data = (b"BA", b"BY", b"DOG")
+        self._data = (b"BABY", b"DOG")
         self._index = 0
 
     def __iter__(self) -> _SyncIterator:
@@ -416,7 +416,7 @@ class _SyncIterable:
 
 class _AsyncIterator:
     def __init__(self) -> None:
-        self._data = (b"BA", b"BY", b"DOG")
+        self._data = (b"BABY", b"DOG")
         self._index = 0
 
     def __aiter__(self) -> _AsyncIterator:
@@ -433,7 +433,7 @@ class _AsyncIterator:
 
 class _AsyncIterable:
     def __init__(self) -> None:
-        self._data = (b"BA", b"BY", b"DOG")
+        self._data = (b"BABY", b"DOG")
         self._index = 0
 
     def __aiter__(self) -> _AsyncIterator:
