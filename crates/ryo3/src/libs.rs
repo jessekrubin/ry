@@ -36,6 +36,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_reqwest::pymod_add(m)?;
     #[cfg(feature = "tokio")]
     ryo3_tokio::pymod_add(m)?;
+    #[cfg(feature = "tokio-websockets")]
+    ryo3_tokio_websockets::pymod_add(m)?;
     #[cfg(feature = "same-file")]
     ryo3_same_file::pymod_add(m)?;
     #[cfg(feature = "shlex")]
@@ -44,6 +46,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_size::pymod_add(m)?;
     #[cfg(feature = "sqlformat")]
     ryo3_sqlformat::pymod_add(m)?;
+    #[cfg(feature = "twox-hash")]
+    ryo3_twox_hash::pymod_add(m)?;
     #[cfg(feature = "unindent")]
     ryo3_unindent::pymod_add(m)?;
     #[cfg(feature = "url")]
@@ -56,8 +60,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_zstd::pymod_add(m)?;
 
     // -- FUTURE--
-    #[cfg(feature = "tokio-websockets")]
-    ryo3_tokio_websockets::pymod_add(m)?;
     // #[cfg(feature = "ignore")]
     // ryo3_ignore::pymod_add(m)?;
     Ok(())

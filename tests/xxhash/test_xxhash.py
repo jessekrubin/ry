@@ -17,6 +17,9 @@ from ry import xxhash as ry_xxh
 
 from ._xxhash_fixtures import XXHASH_TEST_DATA, XXHashDataRecord, _bytes_from_record
 
+if t.TYPE_CHECKING:
+    from ry._types import Buffer
+
 _TXxHasher = ry_xxh.xxh32 | ry_xxh.xxh64 | ry_xxh.xxh3_64 | ry_xxh.xxh3_128
 
 
@@ -97,7 +100,7 @@ class TestXxHash3Secret:
     )
     def test_xxhash3_secret_ok(
         self,
-        xxh3_fn: t.Callable[[bytes, bytes], _TXxHasher],
+        xxh3_fn: t.Callable[[Buffer, Buffer], _TXxHasher],
         secret_type: type[bytes | memoryview | bytearray | ry.Bytes],
     ) -> None:
         result = xxh3_fn(self._HASH_DATA, secret_type(self._OK_SECRET))

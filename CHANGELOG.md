@@ -23,6 +23,7 @@
   - fix secret validaion/ extraction for `xxhash3*`: was validating secret to be
     buf w/ length 192, when in reality an xxhash3-secret is valid so long as it
     is as least 132 bytes
+  - reexport xxhasher pyclasses at top level of library (stupid submodules)
 
 ---
 
