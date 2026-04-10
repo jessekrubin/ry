@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, intern};
-use ryo3_bytes::PyBytes;
+use ryo3_bytes::ExactReadableBuffer;
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
 
 static NODE_CACHE: OnceLock<u64> = OnceLock::new();
@@ -80,8 +80,8 @@ impl PyUuid {
     )]
     fn py_new(
         hex: Option<&str>,
-        bytes: Option<PyBytes>,
-        bytes_le: Option<PyBytes>,
+        bytes: Option<PyUuidBytes>,
+        bytes_le: Option<PyUuidBytes>,
         fields: Option<&Bound<PyTuple>>,
         int: Option<u128>,
         version: Option<u8>,
@@ -94,8 +94,8 @@ impl PyUuid {
 
         let py_uuid = match (hex, bytes, bytes_le, fields, int) {
             (Some(hex), None, None, None, None) => Self::from_hex(hex),
-            (None, Some(bytes), None, None, None) => Self::from_pybytes(bytes),
-            (None, None, Some(bytes_le), None, None) => Self::from_bytes_le(bytes_le),
+            (None, Some(bytes), None, None, None) => Ok(Self::from_pybytes(bytes)),
+            (None, None, Some(bytes_le), None, None) => Ok(Self::from_bytes_le(bytes_le)),
             (None, None, None, Some(fields), None) => Self::from_fields(fields),
             (None, None, None, None, Some(int)) => Ok(Self::from_int(int)),
             // emsg taken from the python itself
@@ -242,19 +242,13 @@ impl PyUuid {
 
     #[staticmethod]
     #[pyo3(name = "from_bytes")]
-    #[expect(clippy::needless_pass_by_value)]
-    fn from_pybytes(b: PyBytes) -> PyResult<Self> {
-        uuid::Uuid::from_slice(b.as_ref())
-            .map(PyUuid)
-            .map_err(|e| py_value_error!("invalid UUID bytes: {}", e))
+    fn from_pybytes(b: PyUuidBytes) -> Self {
+        Self(uuid::Uuid::from_bytes(b.0))
     }
 
     #[staticmethod]
-    #[expect(clippy::needless_pass_by_value)]
-    fn from_bytes_le(b: PyBytes) -> PyResult<Self> {
-        uuid::Uuid::from_slice_le(b.as_ref())
-            .map(PyUuid)
-            .map_err(|e| py_value_error!("invalid UUID bytes_le: {}", e))
+    fn from_bytes_le(b: PyUuidBytes) -> Self {
+        Self(uuid::Uuid::from_bytes_le(b.0))
     }
 
     // | Field                      | Meaning                          |
@@ -283,8 +277,7 @@ impl PyUuid {
     }
 
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
-        let bytes = self.0.as_bytes().to_vec();
-        pyo3::types::PyBytes::new(py, &bytes)
+        pyo3::types::PyBytes::new(py, self.0.as_bytes())
     }
 
     #[getter]
@@ -294,7 +287,7 @@ impl PyUuid {
 
     #[getter]
     fn bytes_le<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
-        let bytes = self.0.to_bytes_le().to_vec();
+        let bytes = self.0.to_bytes_le();
         pyo3::types::PyBytes::new(py, &bytes)
     }
 
@@ -575,7 +568,7 @@ pub fn uuid8(
     a: Option<u64>,
     b: Option<u16>,
     c: Option<u64>,
-    buf: Option<PyBytes>,
+    buf: Option<PyUuidBytes>,
 ) -> PyResult<PyUuid> {
     use rand::prelude::*;
 
@@ -587,11 +580,11 @@ pub fn uuid8(
             }
         }
         // extract the bytes as [u8; 16]
-        let slice: &[u8; 16] = bts
-            .as_slice()
-            .try_into()
-            .map_err(|_| py_value_error!("uuid8(bytes=...): bytes must be exactly 16 bytes",))?;
-        return Ok(PyUuid::from(uuid::Uuid::new_v8(*slice)));
+        // let slice: &[u8; 16] = bts
+        //     .as_slice()
+        //     .try_into()
+        //     .map_err(|_| py_value_error!("uuid8(bytes=...): bytes must be exactly 16 bytes",))?;
+        return Ok(PyUuid::from(uuid::Uuid::new_v8(bts.0)));
     }
 
     let mut rng = rand::rng();
@@ -710,5 +703,20 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
             args,
             Some(&serialization_kwargs),
         )
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PyUuidBytes([u8; 16]);
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyUuidBytes {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(b) = ob.extract::<ExactReadableBuffer<'a, 'py, 16>>() {
+            Ok(Self(*b.as_array()))
+        } else {
+            py_type_err!("Expected a bytes-like object with length == 16")
+        }
     }
 }
