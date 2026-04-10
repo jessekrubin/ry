@@ -7,37 +7,131 @@ to Chad-Gippity and asked it to re-organize it...
 
 from __future__ import annotations
 
+import dataclasses
 import typing as t
 
 import pytest
 
+import ry
 from ry import xxhash as ry_xxh
 
 from ._xxhash_fixtures import XXHASH_TEST_DATA, XXHashDataRecord, _bytes_from_record
 
-
-def test_xxh32_attributes() -> None:
-    assert ry_xxh.xxh32.name == "xxh32"
-    assert ry_xxh.xxh32.digest_size == 4
-    assert ry_xxh.xxh32.block_size == 16
+_TXxHasher = ry_xxh.xxh32 | ry_xxh.xxh64 | ry_xxh.xxh3_64 | ry_xxh.xxh3_128
 
 
-def test_xxh64_attributes() -> None:
-    assert ry_xxh.xxh64.name == "xxh64"
-    assert ry_xxh.xxh64.digest_size == 8
-    assert ry_xxh.xxh64.block_size == 32
+@dataclasses.dataclass
+class _XxHasher:
+    name: str
+    hasher: type[_TXxHasher]
+    digest_size: int
+    block_size: int
 
 
-def test_xxh3_64_attributes() -> None:
-    assert ry_xxh.xxh3_64.name == "xxh3_64"
-    assert ry_xxh.xxh3_64.digest_size == 8
-    assert ry_xxh.xxh3_64.block_size == 32
+_XXHASHERS = (
+    _XxHasher(
+        name="xxh32",
+        hasher=ry_xxh.xxh32,
+        digest_size=4,
+        block_size=16,
+    ),
+    _XxHasher(
+        name="xxh64",
+        hasher=ry_xxh.xxh64,
+        digest_size=8,
+        block_size=32,
+    ),
+    _XxHasher(
+        name="xxh3_64",
+        hasher=ry_xxh.xxh3_64,
+        digest_size=8,
+        block_size=32,
+    ),
+    _XxHasher(
+        name="xxh3_128",
+        hasher=ry_xxh.xxh3_128,
+        digest_size=16,
+        block_size=64,
+    ),
+)
 
 
-def test_xxh3_128_attributes() -> None:
-    assert ry_xxh.xxh3_128.name == "xxh3_128"
-    assert ry_xxh.xxh3_128.digest_size == 16
-    assert ry_xxh.xxh3_128.block_size == 64
+@pytest.mark.parametrize("xxhasher", _XXHASHERS)
+def test_attributes(xxhasher: _XxHasher) -> None:
+    assert xxhasher.hasher.name == xxhasher.name
+    assert xxhasher.hasher.digest_size == xxhasher.digest_size
+    assert xxhasher.hasher.block_size == xxhasher.block_size
+
+
+@pytest.mark.parametrize("xxhasher", _XXHASHERS)
+def test_repr(xxhasher: _XxHasher) -> None:
+    hasher = xxhasher.hasher(b"dingo")
+    hex_digest = hasher.hexdigest()
+    expected = f"{xxhasher.name}<{hex_digest}>"
+    repr_str = repr(hasher)
+    assert repr_str == expected
+
+
+class TestXxHash3Secret:
+    _OK_SECRET = b"dingo" * 100  # 128 bytes, which is >= 136
+    _HASH_DATA = b"dingo" * 100
+    _XXH3_64_EXPECTED = 2021458189288565107
+    _XXH3_128_EXPECTED = 203810581866337968790239271433929320819
+
+    @pytest.mark.parametrize(
+        "xxh3_fn",
+        [
+            lambda data, secret: ry_xxh.xxh3_64(
+                data, seed=0, secret=secret
+            ).intdigest(),
+            lambda data, secret: ry_xxh.xxh3_128(
+                data, seed=0, secret=secret
+            ).intdigest(),
+            lambda data, secret: ry_xxh.xxh3_64.oneshot(data, seed=0, secret=secret),
+            lambda data, secret: ry_xxh.xxh3_128.oneshot(data, seed=0, secret=secret),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "secret_type",
+        [bytes, memoryview, bytearray, ry.Bytes],
+    )
+    def test_xxhash3_secret_ok(
+        self,
+        xxh3_fn: t.Callable[[bytes, bytes], _TXxHasher],
+        secret_type: type[bytes | memoryview | bytearray | ry.Bytes],
+    ) -> None:
+        result = xxh3_fn(self._HASH_DATA, secret_type(self._OK_SECRET))
+        assert isinstance(result, int)
+        assert result in (self._XXH3_64_EXPECTED, self._XXH3_128_EXPECTED)
+
+    @pytest.mark.parametrize(
+        "xxh3_fn",
+        [
+            lambda data, secret: ry_xxh.xxh3_64(data, seed=0, secret=secret),
+            lambda data, secret: ry_xxh.xxh3_128(data, seed=0, secret=secret),
+        ],
+    )
+    def test_xxh3_secret_too_short(
+        self, xxh3_fn: t.Callable[[bytes, bytes], _TXxHasher]
+    ) -> None:
+        with pytest.raises(ValueError, match="secret must be at least 136 bytes long"):
+            xxh3_fn(b"hello", b"short secret")
+
+    @pytest.mark.parametrize(
+        "xxh3_fn",
+        [
+            lambda data, secret: ry_xxh.xxh3_64(data, seed=0, secret=secret),
+            lambda data, secret: ry_xxh.xxh3_128(data, seed=0, secret=secret),
+        ],
+    )
+    def test_xxh3_secret_type_error(
+        self, xxh3_fn: t.Callable[[bytes, bytes], _TXxHasher]
+    ) -> None:
+        with pytest.raises(
+            TypeError,
+            match="xxhash3-secret must be readable-buffer with of at least 136 bytes",
+        ):
+            xxh3_fn(b"hello", complex(1, 2))  # type: ignore[arg-type]
 
 
 class TestXxh32Hasher:
@@ -106,14 +200,18 @@ class TestXxh32Hasher:
         ry_xxh.xxh3_128(seed=123),
     ],
 )
-def test_hashers_reset(hasher: t.Any) -> None:
+def test_hashers_reset(hasher: _TXxHasher) -> None:
     initial_digest = hasher.digest()
     initial_seed = hasher.seed
     hasher.update(b"hello")
+    if isinstance(hasher, (ry_xxh.xxh32, ry_xxh.xxh64)):
+        assert hasher.length == 5
     hexdig = hasher.hexdigest()
     assert hexdig in str(hexdig)
     assert hexdig in repr(hexdig)
     hasher.reset()
+    if isinstance(hasher, (ry_xxh.xxh32, ry_xxh.xxh64)):
+        assert hasher.length == 0
     assert hasher.seed == initial_seed
     assert hasher.digest() == initial_digest
 
@@ -127,14 +225,20 @@ def test_hashers_reset(hasher: t.Any) -> None:
         ry_xxh.xxh3_128,
     ],
 )
-def test_hashers_copy(hasher: t.Any) -> None:
-    og = hasher(seed=123)
-    og.update(b"hello")
+def test_hashers_copy(
+    hasher: type[_TXxHasher],
+) -> None:
+    og = hasher(b"hello", seed=123)
+    if isinstance(og, (ry_xxh.xxh32, ry_xxh.xxh64)):
+        assert og.length == 5
     copycat = og.copy()
     assert og.digest() == copycat.digest()
     assert og.intdigest() == copycat.intdigest()
     assert og.hexdigest() == copycat.hexdigest()
     copycat.update(b"world")
+    if isinstance(og, (ry_xxh.xxh32, ry_xxh.xxh64)):
+        assert og.length == 5
+        assert copycat.length == 10  # type: ignore[union-attr]
     assert og.digest() != copycat.digest()
     assert og.intdigest() != copycat.intdigest()
     assert og.hexdigest() != copycat.hexdigest()

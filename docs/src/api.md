@@ -8251,7 +8251,7 @@ class xxh32:  # noqa: N801
     digest_size: t.Literal[4]
     block_size: t.Literal[16]
 
-    def __init__(self, data: Buffer = ..., *, seed: int = 0) -> None: ...
+    def __init__(self, data: Buffer | None = None, seed: int = 0) -> None: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -8260,6 +8260,10 @@ class xxh32:  # noqa: N801
     def reset(self, *, seed: int | None = None) -> None: ...
     @property
     def seed(self) -> int: ...
+    @property
+    def length(self) -> int:
+        """number of bytes hashed"""
+
     @staticmethod
     def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
 
@@ -8281,6 +8285,10 @@ class xxh64:  # noqa: N801
     def reset(self, *, seed: int | None = None) -> None: ...
     @property
     def seed(self) -> int: ...
+    @property
+    def length(self) -> int:
+        """number of bytes hashed"""
+
     @staticmethod
     def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
 
@@ -8293,10 +8301,10 @@ class xxh3_64:  # noqa: N801
 
     def __init__(
         self,
-        data: Buffer = ...,
+        data: Buffer | None = None,
         *,
         seed: int = 0,
-        secret: bytes | None = ...,
+        secret: Buffer | None = ...,
     ) -> None: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
@@ -8308,7 +8316,7 @@ class xxh3_64:  # noqa: N801
     def reset(self, *, seed: int | None = None) -> None: ...
     @staticmethod
     def oneshot(
-        data: Buffer, *, seed: int = 0, secret: bytes | None = None
+        data: Buffer, *, seed: int = 0, secret: Buffer | None = None
     ) -> int: ...
 
 
@@ -8320,10 +8328,10 @@ class xxh3_128:  # noqa: N801
 
     def __init__(
         self,
-        data: Buffer = ...,
+        data: Buffer | None = None,
         *,
-        seed: int | None = ...,
-        secret: bytes | None = ...,
+        seed: int = 0,
+        secret: Buffer | None = ...,
     ) -> None: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
@@ -8335,7 +8343,7 @@ class xxh3_128:  # noqa: N801
     def reset(self, *, seed: int | None = None) -> None: ...
     @staticmethod
     def oneshot(
-        data: Buffer, *, seed: int = 0, secret: bytes | None = None
+        data: Buffer, *, seed: int = 0, secret: Buffer | None = None
     ) -> int: ...
 
 
@@ -8360,37 +8368,37 @@ def xxh64_intdigest(data: Buffer, *, seed: int = 0) -> int: ...
 
 # xxh3
 def xxh3_64_digest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> bytes: ...
 def xxh3_64_intdigest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> int: ...
 def xxh3_64_hexdigest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> str: ...
 
 
 # xxh128
 def xxh3_128_digest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> bytes: ...
 def xxh3_128_intdigest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> int: ...
 def xxh3_128_hexdigest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> str: ...
 
 
 # xxh128
 def xxh128_digest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> bytes: ...
 def xxh128_hexdigest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> str: ...
 def xxh128_intdigest(
-    data: Buffer, *, seed: int = 0, secret: bytes | None = None
+    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> int: ...
 ```
 
@@ -8781,61 +8789,37 @@ class TimestampDifferenceTypedDict(_DifferenceTypedDict):
 # =============================================================================
 # ry accepts the non-canonical modes, but they are mapped to the canonical ones]
 
+# fmt: off
 OpenTextModeUpdating: TypeAlias = Literal[
-    "a+", "at+", "r+", "rt+", "w+", "wt+", "x+", "xt+"
+    "a+", "at+",
+    "r+", "rt+",
+    "w+", "wt+",
+    "x+", "xt+"
 ]
 OpenTextModeWriting: TypeAlias = Literal["a", "at", "w", "wt", "x", "xt"]
 OpenTextModeReading: TypeAlias = Literal["r", "rt"]
 OpenTextMode: TypeAlias = Literal[
-    "a",
-    "a+",
-    "at",
-    "at+",
-    "r",
-    "r+",
-    "rt",
-    "rt+",
-    "w",
-    "w+",
-    "wt",
-    "wt+",
-    "x",
-    "x+",
-    "xt",
-    "xt+",
+    "a","a+","at","at+",
+    "r","r+","rt","rt+",
+    "w","w+","wt","wt+",
+    "x","x+","xt","xt+"
 ]
 OpenBinaryModeUpdating: TypeAlias = Literal["ab+", "rb+", "wb+", "xb+"]
 OpenBinaryModeWriting: TypeAlias = Literal["ab", "wb", "xb"]
 OpenBinaryModeReading: TypeAlias = Literal["rb"]
 OpenBinaryMode: TypeAlias = Literal[
-    "ab", "ab+", "rb", "rb+", "wb", "wb+", "xb", "xb+"
+    "ab", "ab+",
+    "rb", "rb+",
+    "wb", "wb+",
+    "xb", "xb+"
 ]
 OpenMode: TypeAlias = Literal[
-    "a",
-    "a+",
-    "ab",
-    "ab+",
-    "at",
-    "at+",
-    "r",
-    "r+",
-    "rb",
-    "rb+",
-    "rt",
-    "rt+",
-    "w",
-    "w+",
-    "wb",
-    "wb+",
-    "wt",
-    "wt+",
-    "x",
-    "x+",
-    "xb",
-    "xb+",
-    "xt",
-    "xt+",
+    "a", "a+", "ab", "ab+", "at", "at+",
+    "r", "r+", "rb", "rb+", "rt", "rt+",
+    "w", "w+", "wb", "wb+", "wt", "wt+",
+    "x", "x+", "xb", "xb+", "xt", "xt+",
 ]
+# fmt: on
 ```
 
 <h2 id="ry.dirs"><code>ry.dirs</code></h2>

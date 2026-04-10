@@ -4,8 +4,8 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::ReadableBuffer;
-use ryo3_core::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
+use ryo3_core::{PyAsciiString, RyMutex};
 use twox_hash::XxHash64 as XxHash3_64;
 
 #[pyclass(name = "xxh64", frozen, immutable_type, skip_from_py_object)]
@@ -37,10 +37,10 @@ impl PyXxHash64 {
         }
     }
 
-    fn __repr__(&self) -> PyResult<String> {
+    fn __repr__(&self) -> PyResult<PyAsciiString> {
         self.hasher
             .py_lock()
-            .map(|hasher| format!("xxh64<{:x}>", hasher.finish()))
+            .map(|hasher| format!("xxh64<{:x}>", hasher.finish()).into())
     }
 
     #[classattr]

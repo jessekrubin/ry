@@ -27,5 +27,5 @@ __all__ = (
     "__version__",
 )
 __title__ = "ry"
-__description__ = "ry = rust + python"
-__pkgroot__ = __file__.replace("__about__.py", "").rstrip("/\\")
+__description__ = "ry == rust | python"
+__pkgroot__ = __file__[:-12]

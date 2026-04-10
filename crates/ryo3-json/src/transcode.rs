@@ -26,7 +26,7 @@ pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
         py_minify_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))
     } else if let Ok(pybytes) = buf.extract::<ReadableBuffer>() {
-        let json_bytes = pybytes.as_bytes();
+        let json_bytes = pybytes.as_ref();
         let mut output = Vec::with_capacity(json_bytes.len() / 8);
         py_minify_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))
@@ -55,7 +55,7 @@ pub(crate) fn fmt<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
         py_indent2_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))
     } else if let Ok(pybytes) = buf.extract::<ReadableBuffer>() {
-        let json_bytes = pybytes.as_bytes();
+        let json_bytes = pybytes.as_ref();
         let mut output = Vec::with_capacity(json_bytes.len());
         py_indent2_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))
