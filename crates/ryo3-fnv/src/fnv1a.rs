@@ -13,6 +13,7 @@ use ryo3_core::{PyAsciiString, RyMutex, py_type_err};
 
 const FNV1A_64_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
 const FNV1A_64_PRIME: u64 = 0x0100_0000_01b3;
+const HASHLIB_GIL_MINSIZE: usize = 2048;
 
 // ============================================================================
 // adapted from the `fnv` crate
@@ -100,7 +101,11 @@ impl PyFnv1a {
     fn py_new(py: Python<'_>, data: Option<ReadableBuffer>, key: Fnv1aKey) -> Self {
         if let Some(b) = data {
             let b = b.as_ref();
-            py.detach(|| Self::from(fnv1a_oneshot(b, key.into())))
+            if b.len() > HASHLIB_GIL_MINSIZE {
+                py.detach(|| Self::from(fnv1a_oneshot(b, key.into())))
+            } else {
+                Self::from(fnv1a_oneshot(b, key.into()))
+            }
         } else {
             Self::from(Fnv1aHasher::from(key))
         }
@@ -150,11 +155,17 @@ impl PyFnv1a {
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
         let slice = data.as_ref();
-        py.detach(|| {
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| {
+                let mut h = self.lock()?;
+                h.write(slice);
+                Ok(())
+            })
+        } else {
             let mut h = self.lock()?;
             h.write(slice);
             Ok(())
-        })
+        }
     }
 
     fn copy(&self) -> PyResult<Self> {

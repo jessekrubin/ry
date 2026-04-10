@@ -8,11 +8,23 @@ use twox_hash::XxHash3_128;
 
 use crate::xxhash3_secret::{PyXxHash3Secret, XXH3_SECRET_EXPECT_MSG};
 
+const HASHLIB_GIL_MINSIZE: usize = 2048;
+
 #[pyclass(name = "xxh3_128", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash3_128 {
     seed: u64,
     hasher: RyMutex<XxHash3_128>,
+}
+
+#[inline]
+fn oneshot_impl(data: &[u8], seed: u64, secret: Option<PyXxHash3Secret>) -> u128 {
+    if let Some(secret) = secret {
+        twox_hash::XxHash3_128::oneshot_with_seed_and_secret(seed, secret.as_ref(), data)
+            .expect("wenodis: secret already validated to be at least 136 bytes long")
+    } else {
+        twox_hash::XxHash3_128::oneshot_with_seed(seed, data)
+    }
 }
 
 #[pymethods]
@@ -84,11 +96,17 @@ impl PyXxHash3_128 {
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
         let slice = data.as_ref();
-        py.detach(|| {
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| {
+                let mut hasher = self.hasher.py_lock()?;
+                hasher.write(slice);
+                Ok(())
+            })
+        } else {
             let mut hasher = self.hasher.py_lock()?;
             hasher.write(slice);
             Ok(())
-        })
+        }
     }
 
     fn copy(&self) -> PyResult<Self> {
@@ -116,15 +134,11 @@ impl PyXxHash3_128 {
         secret: Option<PyXxHash3Secret>,
     ) -> PyDigest<u128> {
         let slice = data.as_ref();
-        py.detach(|| {
-            if let Some(secret) = secret {
-                twox_hash::XxHash3_128::oneshot_with_seed_and_secret(seed, secret.as_ref(), slice)
-                    .expect("wenodis: secret already validated to be at least 136 bytes long")
-                    .into()
-            } else {
-                twox_hash::XxHash3_128::oneshot_with_seed(seed, slice).into()
-            }
-        })
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| oneshot_impl(slice, seed, secret).into())
+        } else {
+            oneshot_impl(slice, seed, secret).into()
+        }
     }
 }
 

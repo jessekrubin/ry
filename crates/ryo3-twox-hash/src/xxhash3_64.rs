@@ -10,11 +10,23 @@ use twox_hash::XxHash3_64;
 
 use crate::xxhash3_secret::{PyXxHash3Secret, XXH3_SECRET_EXPECT_MSG};
 
+const HASHLIB_GIL_MINSIZE: usize = 2048;
+
 #[pyclass(name = "xxh3_64", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash3_64 {
     seed: u64,
     hasher: RyMutex<XxHash3_64, true>,
+}
+
+#[inline]
+fn oneshot_impl(data: &[u8], seed: u64, secret: Option<PyXxHash3Secret>) -> u64 {
+    if let Some(secret) = secret {
+        twox_hash::XxHash3_64::oneshot_with_seed_and_secret(seed, secret.as_ref(), data)
+            .expect(XXH3_SECRET_EXPECT_MSG)
+    } else {
+        twox_hash::XxHash3_64::oneshot_with_seed(seed, data)
+    }
 }
 
 #[pymethods]
@@ -86,11 +98,17 @@ impl PyXxHash3_64 {
     #[expect(clippy::needless_pass_by_value)]
     fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
         let slice = data.as_slice();
-        py.detach(|| {
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| {
+                let mut hasher = self.hasher.py_lock()?;
+                hasher.write(slice);
+                Ok(())
+            })
+        } else {
             let mut hasher = self.hasher.py_lock()?;
             hasher.write(slice);
             Ok(())
-        })
+        }
     }
 
     fn copy(&self) -> PyResult<Self> {
@@ -118,15 +136,11 @@ impl PyXxHash3_64 {
         secret: Option<PyXxHash3Secret>,
     ) -> PyDigest<u64> {
         let data = data.as_slice();
-        py.detach(|| {
-            if let Some(secret) = secret {
-                twox_hash::XxHash3_64::oneshot_with_seed_and_secret(seed, secret.as_ref(), data)
-                    .expect(XXH3_SECRET_EXPECT_MSG)
-                    .into()
-            } else {
-                twox_hash::XxHash3_64::oneshot_with_seed(seed, data).into()
-            }
-        })
+        if data.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| oneshot_impl(data, seed, secret).into())
+        } else {
+            oneshot_impl(data, seed, secret).into()
+        }
     }
 }
 

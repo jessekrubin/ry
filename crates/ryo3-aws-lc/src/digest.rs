@@ -280,7 +280,7 @@ impl PySha256 {
     fn py_new(py: Python<'_>, data: Option<ReadableBuffer>) -> Self {
         match data {
             Some(b) => {
-                if b.len() >= HASHLIB_GIL_MINSIZE {
+                if b.len() > HASHLIB_GIL_MINSIZE {
                     let slice = b.as_ref();
                     py.detach(|| Self(PyMutexContext::new_with_data(slice)))
                 } else {
@@ -321,7 +321,7 @@ impl PySha256 {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(signature = (data, /), text_signature = "(data, /)")]
     fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
-        if data.len() >= HASHLIB_GIL_MINSIZE {
+        if data.len() > HASHLIB_GIL_MINSIZE {
             let slice = data.as_ref();
             py.detach(|| {
                 let mut ctx = self.0.py_lock()?;
@@ -346,7 +346,7 @@ impl PySha256 {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(signature = (data, /), text_signature = "(data, /)")]
     fn oneshot(py: Python<'_>, data: ReadableBuffer) -> PyAwsLcRsDigest<SHA256_OUTPUT_LEN> {
-        if data.len() >= HASHLIB_GIL_MINSIZE {
+        if data.len() > HASHLIB_GIL_MINSIZE {
             let slice = data.as_ref();
             py.detach(|| {
                 let mut ctx = Context::new(PySha256Algorithm::algorithm());
@@ -400,7 +400,7 @@ macro_rules! define_py_hasher {
             fn py_new(py: Python<'_>, data: Option<ReadableBuffer>) -> Self {
                 match data {
                     Some(b) => {
-                        if b.len() >= HASHLIB_GIL_MINSIZE {
+                        if b.len() > HASHLIB_GIL_MINSIZE {
                             let slice = b.as_ref();
                             py.detach(|| Self(PyMutexContext::new_with_data(slice)))
                         } else {
@@ -444,7 +444,7 @@ macro_rules! define_py_hasher {
 
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
             fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
-                if data.len() >= HASHLIB_GIL_MINSIZE {
+                if data.len() > HASHLIB_GIL_MINSIZE {
                     let slice = data.as_ref();
                     py.detach(|| {
                         let mut ctx = self.0.py_lock()?;
@@ -472,7 +472,7 @@ macro_rules! define_py_hasher {
                 py: Python<'_>,
                 data: ReadableBuffer,
             ) -> PyResult<PyAwsLcRsDigest<$output_len>> {
-                if data.len() >= HASHLIB_GIL_MINSIZE {
+                if data.len() > HASHLIB_GIL_MINSIZE {
                     let bytes = data.as_ref();
                     Ok(py.detach(|| {
                         let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
