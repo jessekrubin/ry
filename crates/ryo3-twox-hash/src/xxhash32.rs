@@ -111,9 +111,9 @@ impl PyXxHash32 {
     #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     #[pyo3(signature = (data, *, seed = 0))]
-    fn oneshot(py: Python<'_>, data: ReadableBuffer, seed: u32) -> u32 {
+    fn oneshot(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyDigest<u32> {
         let slice = data.as_ref();
-        py.detach(|| XxHash32::oneshot(seed, slice))
+        py.detach(|| XxHash32::oneshot(seed, slice).into())
     }
 }
 

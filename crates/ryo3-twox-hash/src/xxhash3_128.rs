@@ -114,14 +114,15 @@ impl PyXxHash3_128 {
         data: ReadableBuffer,
         seed: u64,
         secret: Option<PyXxHash3Secret>,
-    ) -> u128 {
+    ) -> PyDigest<u128> {
         let slice = data.as_ref();
         py.detach(|| {
             if let Some(secret) = secret {
                 twox_hash::XxHash3_128::oneshot_with_seed_and_secret(seed, secret.as_ref(), slice)
                     .expect("wenodis: secret already validated to be at least 136 bytes long")
+                    .into()
             } else {
-                twox_hash::XxHash3_128::oneshot_with_seed(seed, slice)
+                twox_hash::XxHash3_128::oneshot_with_seed(seed, slice).into()
             }
         })
     }
@@ -135,7 +136,7 @@ pub fn xxh3_128_digest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyDigest<u128> {
-    PyXxHash3_128::oneshot(py, data, seed, secret).into()
+    PyXxHash3_128::oneshot(py, data, seed, secret)
 }
 
 #[pyfunction]
@@ -146,7 +147,7 @@ pub fn xxh3_128_intdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> u128 {
-    PyXxHash3_128::oneshot(py, data, seed, secret)
+    PyXxHash3_128::oneshot(py, data, seed, secret).0
 }
 
 #[pyfunction]
@@ -157,7 +158,7 @@ pub fn xxh3_128_hexdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyHexDigest<u128> {
-    PyXxHash3_128::oneshot(py, data, seed, secret).into()
+    PyXxHash3_128::oneshot(py, data, seed, secret).0.into()
 }
 
 #[pyfunction]

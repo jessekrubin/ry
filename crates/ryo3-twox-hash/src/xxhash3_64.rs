@@ -116,14 +116,15 @@ impl PyXxHash3_64 {
         data: ReadableBuffer,
         seed: u64,
         secret: Option<PyXxHash3Secret>,
-    ) -> u64 {
+    ) -> PyDigest<u64> {
         let data = data.as_slice();
         py.detach(|| {
             if let Some(secret) = secret {
                 twox_hash::XxHash3_64::oneshot_with_seed_and_secret(seed, secret.as_ref(), data)
                     .expect(XXH3_SECRET_EXPECT_MSG)
+                    .into()
             } else {
-                twox_hash::XxHash3_64::oneshot_with_seed(seed, data)
+                twox_hash::XxHash3_64::oneshot_with_seed(seed, data).into()
             }
         })
     }
@@ -141,7 +142,7 @@ pub fn xxh3_64_digest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyDigest<u64> {
-    PyXxHash3_64::oneshot(py, data, seed, secret).into()
+    PyXxHash3_64::oneshot(py, data, seed, secret)
 }
 
 #[pyfunction]
@@ -152,7 +153,7 @@ pub fn xxh3_64_intdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> u64 {
-    PyXxHash3_64::oneshot(py, data, seed, secret)
+    PyXxHash3_64::oneshot(py, data, seed, secret).0
 }
 
 #[pyfunction]
@@ -163,7 +164,7 @@ pub fn xxh3_64_hexdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyHexDigest<u64> {
-    PyXxHash3_64::oneshot(py, data, seed, secret).into()
+    PyXxHash3_64::oneshot(py, data, seed, secret).0.into()
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -21,7 +21,7 @@ class xxh32:  # noqa: N801
     def length(self) -> int:
         """number of bytes hashed"""
     @staticmethod
-    def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
+    def oneshot(data: Buffer, *, seed: int = 0) -> bytes: ...
 
 @t.final
 class xxh64:  # noqa: N801
@@ -42,7 +42,7 @@ class xxh64:  # noqa: N801
     def length(self) -> int:
         """number of bytes hashed"""
     @staticmethod
-    def oneshot(data: Buffer, *, seed: int = 0) -> int: ...
+    def oneshot(data: Buffer, *, seed: int = 0) -> bytes: ...
 
 @t.final
 class xxh3_64:  # noqa: N801
@@ -68,7 +68,7 @@ class xxh3_64:  # noqa: N801
     @staticmethod
     def oneshot(
         data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-    ) -> int: ...
+    ) -> bytes: ...
 
 @t.final
 class xxh3_128:  # noqa: N801
@@ -94,7 +94,7 @@ class xxh3_128:  # noqa: N801
     @staticmethod
     def oneshot(
         data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-    ) -> int: ...
+    ) -> bytes: ...
 
 xxh128 = xxh3_128
 

@@ -70,7 +70,11 @@ class TestFnv1a:
 
     def test_oneshot(self, data: bytes, expected: int) -> None:
         int_digest = ry.fnv1a.oneshot(data)
-        assert int_digest == expected
+        assert int_digest == expected.to_bytes(8, "big")
+        hex_str_expected = f"{expected:016x}"
+        hex_digest_str = ry.fnv1a.oneshot(data).hex()
+        assert hex_digest_str == hex_str_expected
+        assert hex_digest_str == hex_digest_str.lower()
 
 
 @pytest.mark.parametrize(("data", "expected"), FNV_TEST_DATA)

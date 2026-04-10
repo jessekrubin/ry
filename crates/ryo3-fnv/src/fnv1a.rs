@@ -7,7 +7,7 @@ use std::hash::Hasher;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::ReadableBuffer;
 use ryo3_core::types::{PyDigest, PyHexDigest};
 use ryo3_core::{PyAsciiString, RyMutex, py_type_err};
 
@@ -97,15 +97,13 @@ impl PyFnv1a {
         signature = (data = None, *, key = Fnv1aKey::default()),
         text_signature = "(data=None, *, key=0xcbf29ce484222325)",
     )]
-    fn py_new(py: Python<'_>, data: Option<RyBytes>, key: Fnv1aKey) -> Self {
-        py.detach(|| match data {
-            Some(b) => {
-                let mut hasher = Fnv1aHasher::from(key);
-                hasher.write(b.as_ref());
-                Self::from(hasher)
-            }
-            None => Self::from(Fnv1aHasher::from(key)),
-        })
+    fn py_new(py: Python<'_>, data: Option<ReadableBuffer>, key: Fnv1aKey) -> Self {
+        if let Some(b) = data {
+            let b = b.as_ref();
+            py.detach(|| Self::from(fnv1a_oneshot(b, key.into())))
+        } else {
+            Self::from(Fnv1aHasher::from(key))
+        }
     }
 
     #[classattr]
@@ -150,10 +148,11 @@ impl PyFnv1a {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn update(&self, py: Python<'_>, data: RyBytes) -> PyResult<()> {
+    fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
+        let slice = data.as_ref();
         py.detach(|| {
             let mut h = self.lock()?;
-            h.write(data.as_ref());
+            h.write(slice);
             Ok(())
         })
     }
@@ -168,8 +167,8 @@ impl PyFnv1a {
         text_signature = "(data, *, key=0xcbf29ce484222325)",
     )]
     #[staticmethod]
-    fn oneshot(data: RyBytes, key: Fnv1aKey) -> u64 {
-        fnv1a_oneshot(data.as_ref(), key.into())
+    fn oneshot(data: ReadableBuffer, key: Fnv1aKey) -> PyDigest<u64> {
+        fnv1a_oneshot(data.as_ref(), key.into()).into()
     }
 }
 
