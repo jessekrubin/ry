@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.88 [unreleased]
+## v0.0.88 [2026-04-10] back-to-the-future
 
 - repo
   - use import granularity `Module`
