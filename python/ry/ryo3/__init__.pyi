@@ -242,6 +242,10 @@ from ry.ryo3._tokio import write_async as write_async
 from ry.ryo3._tokio_websockets import WebSocket as WebSocket
 from ry.ryo3._tokio_websockets import WsMessage as WsMessage
 from ry.ryo3._tokio_websockets import websocket as websocket
+from ry.ryo3._twox_hash import xxh3_64 as xxh3_64
+from ry.ryo3._twox_hash import xxh3_128 as xxh3_128
+from ry.ryo3._twox_hash import xxh32 as xxh32
+from ry.ryo3._twox_hash import xxh64 as xxh64
 from ry.ryo3._unindent import unindent as unindent
 from ry.ryo3._unindent import unindent_bytes as unindent_bytes
 from ry.ryo3._url import URL as URL

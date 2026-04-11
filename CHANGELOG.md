@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.88 [unreleased]
+## v0.0.88 [2026-04-10] back-to-the-future
 
 - repo
   - use import granularity `Module`
@@ -19,6 +19,14 @@
 - `ryo3-tokio-websockets`
   - `config()` function on `ry.WebSocket` to return a typed dict with the config
     values
+- `ryo3-twox-hash`
+  - fix secret validaion/ extraction for `xxhash3*`: was validating secret to be
+    buf w/ length 192, when in reality an xxhash3-secret is valid so long as it
+    is as least 132 bytes
+  - reexport xxhasher pyclasses at top level of library (stupid submodules)
+  - `oneshot` methods now return bytes as it is (slightly) faster
+- `ryo3-fnv`
+  - `oneshot` static method now returns bytes not an integer
 
 ---
 
@@ -32,7 +40,7 @@
 - `ryo3-tokio-websockets`
   - finally implemented (over about a week) bc I am working on a ws server at
     work and gonna use this to test it
-  - Workin progress websocket client using `tokio-websockets` crate
+  - work in progress websocket client using `tokio-websockets` crate
   - add `json()` fn to `ry.WsMessage` to parse message payload as JSON
 - `ryo3-cookie`
   - Move `PyCookie` out from under `ryo3-reqwest` and into its own happy home

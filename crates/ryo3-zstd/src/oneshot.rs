@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::{PyBytes as RyBytes, ReadableBuffer};
 
 use crate::compression_level::PyCompressionLevel;
 
@@ -15,24 +15,25 @@ fn rs_zstd_decode_one_shot(data: &[u8]) -> PyResult<Vec<u8>> {
     })
 }
 
-pub(crate) fn py_decode(py: Python<'_>, data: &RyBytes) -> PyResult<RyBytes> {
-    py.detach(|| rs_zstd_decode_one_shot(data.as_slice()))
-        .map(Into::into)
+pub(crate) fn py_decode(py: Python<'_>, data: &ReadableBuffer) -> PyResult<RyBytes> {
+    let slice = data.as_slice();
+    py.detach(|| rs_zstd_decode_one_shot(slice)).map(Into::into)
 }
 
 pub(crate) fn py_encode(
     py: Python<'_>,
-    data: &RyBytes,
+    data: &ReadableBuffer,
     level: PyCompressionLevel,
 ) -> PyResult<RyBytes> {
-    let encoded = py.detach(|| rs_zstd_compress_oneshot(data.as_slice(), level))?;
+    let slice = data.as_slice();
+    let encoded = py.detach(|| rs_zstd_compress_oneshot(slice, level))?;
     Ok(encoded.into())
 }
 
 macro_rules! zstd_decode_pyfunction {
     ($func_name:ident) => {
         #[pyfunction(signature = (data))]
-        pub fn $func_name(py: Python<'_>, data: RyBytes) -> PyResult<RyBytes> {
+        pub fn $func_name(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes> {
             py_decode(py, &data)
         }
     };
@@ -42,7 +43,7 @@ macro_rules! zstd_encode_pyfunction {
     ($func_name:ident) => {
         #[pyfunction(signature = (data, level = PyCompressionLevel::default()), text_signature = "(data, level=3)")]
         pub fn $func_name(
-            py: Python<'_>, data: RyBytes, level: PyCompressionLevel
+            py: Python<'_>, data: ReadableBuffer, level: PyCompressionLevel
         ) -> PyResult<RyBytes> {
             py_encode(py, &data, level)
         }
@@ -64,6 +65,6 @@ zstd_decode_pyfunction!(zstd_decompress);
 
 #[expect(clippy::needless_pass_by_value, reason = "pyo3-extraction")]
 #[pyfunction]
-pub fn is_zstd(data: ryo3_bytes::PyBytes) -> PyResult<bool> {
+pub fn is_zstd(data: ReadableBuffer) -> PyResult<bool> {
     Ok(data.as_slice().starts_with(b"\x28\xB5\x2F\xFD"))
 }

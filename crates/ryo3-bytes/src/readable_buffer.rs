@@ -1,3 +1,4 @@
+use pyo3::BoundObject;
 use pyo3::prelude::*;
 
 use crate::PyBytes;
@@ -34,31 +35,32 @@ impl ReadableBuffer<'_, '_> {
 
     /// Convert to `bytes::Bytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
-    pub fn as_bytes(&self) -> PyResult<bytes::Bytes> {
+    pub fn to_bytes(&self) -> bytes::Bytes {
         match self {
-            ReadableBuffer::PyBytes(pb) => pb
-                .extract::<pyo3::pybacked::PyBackedBytes>()
-                .map(bytes::Bytes::from_owner)
-                .map_err(PyErr::from),
+            ReadableBuffer::PyBytes(pb) => {
+                let pbb = pyo3::pybacked::PyBackedBytes::from(pb.into_bound());
+                bytes::Bytes::from_owner(pbb)
+            }
             ReadableBuffer::RyBytes(rb) => {
                 let rbb: &bytes::Bytes = rb.get().as_ref();
-                Ok(rbb.clone())
+                rbb.clone()
             }
             ReadableBuffer::Buffer(b) => {
                 let rbb: &bytes::Bytes = b.as_ref();
-                Ok(rbb.clone())
+                rbb.clone()
             }
         }
     }
 
     /// Convert to `ryo3-bytes::PyBytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
-    pub fn as_rybytes(&self) -> PyResult<PyBytes> {
-        self.as_bytes().map(PyBytes::from)
+    pub fn to_rybytes(&self) -> PyBytes {
+        PyBytes::from(self.to_bytes())
     }
 }
 
 impl AsRef<[u8]> for ReadableBuffer<'_, '_> {
+    #[inline]
     fn as_ref(&self) -> &[u8] {
         match self {
             ReadableBuffer::PyBytes(pybytes) => pybytes.as_bytes(),
@@ -77,7 +79,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
         } else if let Ok(rybytes) = ob.cast_exact::<PyBytes>() {
             Ok(Self::RyBytes(rybytes))
         } else if let Ok(buffer) = ob.extract::<PyBytes>() {
-            // TODO: possibly short circut here and dont extracct via thingy
+            // TODO: possibly short circuit here and dont extracct via thingy
             // because it does redundant checks...
             Ok(Self::Buffer(buffer))
         } else {
@@ -120,7 +122,7 @@ impl<const N: usize> AsRef<[u8]> for ExactReadableBuffer<'_, '_, N> {
 }
 
 impl<const N: usize> ExactReadableBuffer<'_, '_, N> {
-    /// Return buffer as fixed-size array referenc
+    /// Return buffer as fixed-size array reference
     ///
     /// # Panics
     ///

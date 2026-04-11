@@ -100,7 +100,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ProxyKwargs {
         let py = obj.py();
         let basic_auth = d
             .get_item(pyo3::intern!(py, "basic_auth"))?
-            .map(|ba| ba.extract::<(String, String)>())
+            .map(|ba| ba.extract::<(String, String)>()) // typos:ignore
             .transpose()?;
         let no_proxy = d
             .get_item(pyo3::intern!(py, "no_proxy"))?

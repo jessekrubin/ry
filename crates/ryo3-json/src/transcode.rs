@@ -2,7 +2,7 @@ use std::io;
 
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::{PyBytes as RyBytes, ReadableBuffer};
 use ryo3_core::{py_type_err, py_value_error};
 use serde_json::{Deserializer, Serializer};
 
@@ -22,26 +22,12 @@ pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
         // py-string
         let json_str = s.to_string();
         let json_bytes = json_str.as_bytes();
-        let mut output = Vec::with_capacity(json_bytes.len());
+        let mut output = Vec::with_capacity(json_bytes.len() / 8);
         py_minify_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))
-    } else if let Ok(pybytes) = buf.cast::<pyo3::types::PyBytes>() {
-        // py bytes
-        let json_bytes = pybytes.as_bytes();
-        let mut output = Vec::with_capacity(json_bytes.len());
-        py_minify_json(json_bytes, &mut output)?;
-        Ok(RyBytes::from(output))
-    } else if let Ok(custom) = buf.cast::<RyBytes>() {
-        // rs-bytes instance
-        let borrowed = custom.borrow();
-        let json_bytes = borrowed.as_slice();
-        let mut output = Vec::with_capacity(json_bytes.len());
-        py_minify_json(json_bytes, &mut output)?;
-        Ok(RyBytes::from(output))
-    } else if let Ok(bytes_extracted) = buf.extract::<RyBytes>() {
-        // buffer protocol extract via rs-bytes
-        let json_bytes = bytes_extracted.as_slice();
-        let mut output = Vec::with_capacity(json_bytes.len());
+    } else if let Ok(pybytes) = buf.extract::<ReadableBuffer>() {
+        let json_bytes = pybytes.as_ref();
+        let mut output = Vec::with_capacity(json_bytes.len() / 8);
         py_minify_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))
     } else {
@@ -68,22 +54,8 @@ pub(crate) fn fmt<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
         let mut output = Vec::with_capacity(json_bytes.len());
         py_indent2_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))
-    } else if let Ok(pybytes) = buf.cast::<pyo3::types::PyBytes>() {
-        // py bytes
-        let json_bytes = pybytes.as_bytes();
-        let mut output = Vec::with_capacity(json_bytes.len());
-        py_indent2_json(json_bytes, &mut output)?;
-        Ok(RyBytes::from(output))
-    } else if let Ok(custom) = buf.cast::<RyBytes>() {
-        // rs-bytes instance
-        let borrowed = custom.borrow();
-        let json_bytes = borrowed.as_slice();
-        let mut output = Vec::with_capacity(json_bytes.len());
-        py_indent2_json(json_bytes, &mut output)?;
-        Ok(RyBytes::from(output))
-    } else if let Ok(bytes_extracted) = buf.extract::<RyBytes>() {
-        // buffer protocol extract via rs-bytes
-        let json_bytes = bytes_extracted.as_slice();
+    } else if let Ok(pybytes) = buf.extract::<ReadableBuffer>() {
+        let json_bytes = pybytes.as_ref();
         let mut output = Vec::with_capacity(json_bytes.len());
         py_indent2_json(json_bytes, &mut output)?;
         Ok(RyBytes::from(output))

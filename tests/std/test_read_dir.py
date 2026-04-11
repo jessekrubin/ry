@@ -34,8 +34,8 @@ def test_read_dir_concurrent() -> None:
         assert isinstance(de.__fspath__(), str)  # dummy check thing  # noqa: PLC2801
         return de
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as tpe:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         # Submit the task to the executor
-        futs = [tpe.submit(_process_direntry) for _ in range(total)]
+        futs = [executor.submit(_process_direntry) for _ in range(total)]
         res = [f.result() for f in futs]
         assert len(res) == total

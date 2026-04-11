@@ -49,7 +49,7 @@ def test_fnv_key_parse() -> None:
     assert hasher1.intdigest() == hasher2.intdigest()
 
 
-@pytest.mark.parametrize("bad_key", [b"short", b"way-2-fing-long", 3.14, "string"])
+@pytest.mark.parametrize("bad_key", [b"short", b"way-2-damn-long", 3.14, "string"])
 def test_fnv_key_parse_err(bad_key: bytes | float | str) -> None:
     with pytest.raises(TypeError):
         ry.fnv1a(key=bad_key)  # type: ignore[arg-type]
@@ -70,7 +70,11 @@ class TestFnv1a:
 
     def test_oneshot(self, data: bytes, expected: int) -> None:
         int_digest = ry.fnv1a.oneshot(data)
-        assert int_digest == expected
+        assert int_digest == expected.to_bytes(8, "big")
+        hex_str_expected = f"{expected:016x}"
+        hex_digest_str = ry.fnv1a.oneshot(data).hex()
+        assert hex_digest_str == hex_str_expected
+        assert hex_digest_str == hex_digest_str.lower()
 
 
 @pytest.mark.parametrize(("data", "expected"), FNV_TEST_DATA)

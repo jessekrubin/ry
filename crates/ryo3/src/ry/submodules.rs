@@ -26,7 +26,7 @@ pub fn ulid(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(feature = "twox-hash")]
 #[pymodule(gil_used = false, submodule, name = "xxhash")]
 pub fn twox_hash(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    ryo3_twox_hash::pymod_add(m)?;
+    ryo3_twox_hash::pysubmod_add(m)?;
     Ok(())
 }
 

@@ -315,56 +315,34 @@ class TimestampDifferenceTypedDict(_DifferenceTypedDict):
 # =============================================================================
 # ry accepts the non-canonical modes, but they are mapped to the canonical ones]
 
+# fmt: off
 OpenTextModeUpdating: TypeAlias = Literal[
-    "a+", "at+", "r+", "rt+", "w+", "wt+", "x+", "xt+"
+    "a+", "at+",
+    "r+", "rt+",
+    "w+", "wt+",
+    "x+", "xt+"
 ]
 OpenTextModeWriting: TypeAlias = Literal["a", "at", "w", "wt", "x", "xt"]
 OpenTextModeReading: TypeAlias = Literal["r", "rt"]
 OpenTextMode: TypeAlias = Literal[
-    "a",
-    "a+",
-    "at",
-    "at+",
-    "r",
-    "r+",
-    "rt",
-    "rt+",
-    "w",
-    "w+",
-    "wt",
-    "wt+",
-    "x",
-    "x+",
-    "xt",
-    "xt+",
+    "a","a+","at","at+",
+    "r","r+","rt","rt+",
+    "w","w+","wt","wt+",
+    "x","x+","xt","xt+"
 ]
 OpenBinaryModeUpdating: TypeAlias = Literal["ab+", "rb+", "wb+", "xb+"]
 OpenBinaryModeWriting: TypeAlias = Literal["ab", "wb", "xb"]
 OpenBinaryModeReading: TypeAlias = Literal["rb"]
-OpenBinaryMode: TypeAlias = Literal["ab", "ab+", "rb", "rb+", "wb", "wb+", "xb", "xb+"]
-OpenMode: TypeAlias = Literal[
-    "a",
-    "a+",
-    "ab",
-    "ab+",
-    "at",
-    "at+",
-    "r",
-    "r+",
-    "rb",
-    "rb+",
-    "rt",
-    "rt+",
-    "w",
-    "w+",
-    "wb",
-    "wb+",
-    "wt",
-    "wt+",
-    "x",
-    "x+",
-    "xb",
-    "xb+",
-    "xt",
-    "xt+",
+OpenBinaryMode: TypeAlias = Literal[
+    "ab", "ab+",
+    "rb", "rb+",
+    "wb", "wb+",
+    "xb", "xb+"
 ]
+OpenMode: TypeAlias = Literal[
+    "a", "a+", "ab", "ab+", "at", "at+",
+    "r", "r+", "rb", "rb+", "rt", "rt+",
+    "w", "w+", "wb", "wb+", "wt", "wt+",
+    "x", "x+", "xb", "xb+", "xt", "xt+",
+]
+# fmt: on

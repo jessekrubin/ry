@@ -62,16 +62,19 @@ _DEFAULT_CONFIG: ClientConfig = {
 }
 
 
+_TClient: t.TypeAlias = ry.HttpClient | ry.Client | ry.BlockingClient
+
+
 # param fixture
 @pytest.fixture(params=[ry.HttpClient, ry.Client, ry.BlockingClient])
 def client_cls(
     request: pytest.FixtureRequest,
-) -> type[ry.HttpClient | ry.Client | ry.BlockingClient]:
-    return t.cast("type[ry.HttpClient | ry.Client | ry.BlockingClient]", request.param)
+) -> type[_TClient]:
+    return t.cast("type[_TClient]", request.param)
 
 
 def test_config_equality(
-    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+    client_cls: type[_TClient],
 ) -> None:
     client = client_cls()
     assert isinstance(client.config(), dict)
@@ -79,7 +82,7 @@ def test_config_equality(
 
 
 def test_client_config_headers(
-    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+    client_cls: type[_TClient],
 ) -> None:
     headers = {"user-agent": "ryo3-reqwest-test", "accept": "application/json"}
     client = client_cls(headers=headers)
@@ -89,7 +92,7 @@ def test_client_config_headers(
 
 
 def test_client_config_pickle(
-    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+    client_cls: type[_TClient],
 ) -> None:
     import pickle
 
@@ -101,7 +104,7 @@ def test_client_config_pickle(
 
 
 def test_user_agent_bool_options(
-    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+    client_cls: type[_TClient],
 ) -> None:
     default_ua = client_cls().config()["user_agent"]
     assert client_cls(user_agent=None).config()["user_agent"] == default_ua
@@ -129,7 +132,7 @@ class TestTlsVersions:
             and tls_version_max is not None
             and tls_version_min > tls_version_max
         ) or (
-            # problem childs
+            # problem childs # typos:ignore
             (tls_version_min, tls_version_max)
             in {
                 (None, "1.0"),
@@ -174,9 +177,7 @@ class TestTlsVersions:
     "seq_type",
     [list, tuple, set, frozenset],
 )
-def test_client_config_resolve(
-    client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient], seq_type: t.Any
-) -> None:
+def test_client_config_resolve(client_cls: type[_TClient], seq_type: t.Any) -> None:
     _resolve_map = {
         "uno.com": [
             ry.SocketAddr.parse("127.0.0.1:80"),
@@ -240,7 +241,7 @@ class TestProxy:
     )
     def test_client_with_proxy(
         self,
-        client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],
+        client_cls: type[_TClient],
         proxy: list[ry.Proxy | ry.URL | str] | ry.URL | str,
     ) -> None:
         """Test that those things ^ can be splooped into a client

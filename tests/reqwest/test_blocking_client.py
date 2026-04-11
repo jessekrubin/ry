@@ -305,7 +305,7 @@ def test_client_default_headers_get(server: ReqtestServer) -> None:
 
 
 @pytest.mark.parametrize(
-    "body", [b"BABOOM", ry.Bytes(b"BABOOM"), lambda: [b"BA", b"BOOM"]]
+    "body", [b"BABOOM", ry.Bytes(b"BABOOM"), lambda: [bytes([e]) for e in b"BABOOM"]]
 )
 def test_client_post(
     server: ReqtestServer, body: bytes | ry.Bytes | t.Callable[[], t.Any]

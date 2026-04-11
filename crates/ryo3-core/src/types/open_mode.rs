@@ -199,6 +199,7 @@ impl FromStr for PyOpenMode {
     }
 }
 
+// typos:off
 fn canonical_open_mode(s: &str) -> Option<&'static str> {
     match s {
         "ab" | "ba" => Some("ab"),
@@ -220,6 +221,7 @@ fn canonical_open_mode(s: &str) -> Option<&'static str> {
         _ => None,
     }
 }
+// typos:on
 
 impl<'py> FromPyObject<'_, 'py> for PyOpenMode {
     type Error = PyErr;

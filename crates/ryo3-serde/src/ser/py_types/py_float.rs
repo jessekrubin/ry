@@ -26,9 +26,6 @@ impl Serialize for PyFloatSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        // // WENODIS: this is fo sho a float. checked by the caller
-        // #[expect(unsafe_code)]
-        // let f = unsafe { self.obj.cast_unchecked::<pyo3::types::PyFloat>() }.value();
         serializer.serialize_f64(self.obj.value())
     }
 }

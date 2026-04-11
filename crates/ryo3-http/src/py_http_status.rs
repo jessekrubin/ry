@@ -9,8 +9,10 @@ use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyString, PyTuple};
 use ryo3_core::{PyAsciiStr, PyAsciiString, py_type_err, py_value_error};
 
+// typos:off
 // is the plural of status "stati" or "statuses"? who knows. literally nothing
 // I can do to find that answer online.
+// typos:on
 /// cache with pyoncelocks of `PyHttpStatus` for statuses/stati(?) 100-599
 static STATUS_CACHE: [PyOnceLock<Py<PyHttpStatus>>; 500] = [const { PyOnceLock::new() }; 500];
 
