@@ -138,7 +138,8 @@ impl PyUuid {
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        PyTuple::new(py, vec![self.0.hyphenated().to_string()])
+        let py_ascii_str: PyAsciiString = self.0.hyphenated().to_string().into();
+        PyTuple::new(py, vec![py_ascii_str])
     }
 
     #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
@@ -566,9 +567,7 @@ pub fn uuid7(timestamp: Option<u64>) -> PyResult<PyUuid> {
     }
 }
 
-#[pyfunction(
-    signature = (a = None, b = None, c = None, *, buf = None),
-)]
+#[pyfunction(signature = (a = None, b = None, c = None, *, buf = None))]
 pub fn uuid8(
     a: Option<u64>,
     b: Option<u16>,
@@ -584,11 +583,6 @@ pub fn uuid8(
                 return py_value_err!("uuid8(): pass either bytes=... or a/b/c, not both",);
             }
         }
-        // extract the bytes as [u8; 16]
-        // let slice: &[u8; 16] = bts
-        //     .as_slice()
-        //     .try_into()
-        //     .map_err(|_| py_value_error!("uuid8(bytes=...): bytes must be exactly 16 bytes",))?;
         return Ok(PyUuid::from(uuid::Uuid::new_v8(bts.0)));
     }
 
