@@ -4,6 +4,10 @@
 
 - `ryo3-uuid`
   - use readable-buffer and small adjustments to speed up extraction
+  - use `PyAsciiString` for `__repr__` and `__str__`
+- `ryo3-ulid`
+  - macros for errors
+  - use `PyAsciiString` for `__repr__` and `__str__`
 
 ---
 

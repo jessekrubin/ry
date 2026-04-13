@@ -6,7 +6,7 @@ use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, intern};
 use ryo3_bytes::ExactReadableBuffer;
-use ryo3_macro_rules::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
+use ryo3_core::{PyAsciiString, any_repr, py_type_err, py_value_err, py_value_error, pytodo};
 
 static NODE_CACHE: OnceLock<u64> = OnceLock::new();
 
@@ -161,16 +161,16 @@ impl PyUuid {
     }
 
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> String {
+    fn py_to_string(&self) -> PyAsciiString {
         self.__str__()
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
-    fn __repr__(&self) -> String {
-        format!("UUID('{}')", self.py_to_string())
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __int__(&self) -> u128 {
@@ -316,8 +316,8 @@ impl PyUuid {
     }
 
     #[getter]
-    fn hex(&self) -> String {
-        self.0.simple().to_string()
+    fn hex(&self) -> PyAsciiString {
+        self.0.simple().to_string().into()
     }
 
     #[getter]
@@ -391,7 +391,6 @@ impl PyUuid {
         } else if let Ok(s) = value.extract::<&str>() {
             Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(b) = value.extract::<[u8; 16]>() {
-            // let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_int(u128::from_be_bytes(b)).into_pyobject(py)
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
@@ -413,7 +412,7 @@ impl PyUuid {
         value: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, Self>> {
-        use ryo3_macro_rules::py_value_error;
+        use ryo3_core::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
     }
 
@@ -426,6 +425,12 @@ impl PyUuid {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
+    }
+}
+
+impl std::fmt::Display for PyUuid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "UUID('{}')", self.0)
     }
 }
 

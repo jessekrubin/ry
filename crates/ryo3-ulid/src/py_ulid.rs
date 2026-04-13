@@ -3,10 +3,12 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::{Mutex, OnceLock};
 use std::time::SystemTime;
 
-use pyo3::exceptions::{PyOverflowError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyType};
 use pyo3::{IntoPyObjectExt, intern};
+use ryo3_core::{
+    PyAsciiString, py_overflow_error, py_runtime_error, py_type_err, py_value_err, py_value_error,
+};
 use ryo3_pydantic::GetPydanticCoreSchemaCls;
 use ryo3_uuid::{CPythonUuid, PyUuid};
 use ulid::Ulid;
@@ -21,9 +23,9 @@ fn generator() -> &'static Mutex<ulid::Generator> {
 fn gen_new() -> PyResult<Ulid> {
     generator()
         .lock()
-        .map_err(|_| PyRuntimeError::new_err("ulid-generator-lock-error"))?
+        .map_err(|_| py_runtime_error!("ulid-generator lock-error"))?
         .generate()
-        .map_err(|_| PyOverflowError::new_err("ULID-generator overflow"))
+        .map_err(|_| py_overflow_error!("ulid-generator overflow"))
 }
 
 #[pyclass(name = "ULID", frozen, immutable_type, skip_from_py_object, weakref)]
@@ -50,15 +52,13 @@ impl PyUlid {
 
     fn hex2bytes(hex: &str) -> PyResult<[u8; 16]> {
         if hex.len() != 32 {
-            return Err(PyValueError::new_err(
-                "Hex string must be exactly 32 characters long",
-            ));
+            return py_value_err!("Hex string must be exactly 32 characters long");
         }
         #[expect(clippy::cast_possible_truncation)]
         let char2byte = |c: char| {
             c.to_digit(16)
                 .map(|d| d as u8)
-                .ok_or_else(|| PyValueError::new_err("Invalid hex character"))
+                .ok_or_else(|| py_value_error!("Invalid hex character"))
         };
 
         let mut bytes = [0u8; 16];
@@ -82,15 +82,13 @@ impl PyUlid {
                 let slice = b.as_bytes();
                 let b: [u8; 16] = slice
                     .try_into()
-                    .map_err(|_| PyValueError::new_err("ULID must be exactly 16 bytes long"))?;
+                    .map_err(|_| py_value_error!("ULID must be exactly 16 bytes long"))?;
                 Ok(Self::from_bytes(b))
             } else if let Ok(str) = value.cast::<pyo3::types::PyString>() {
                 let cs = str.to_str()?;
                 Self::from_string(cs)
             } else {
-                Err(PyTypeError::new_err(
-                    "Expected a ULID string (26 or 32 characters) or bytes (16 bytes)",
-                ))
+                py_type_err!("Expected a ULID string (26 or 32 characters) or bytes (16 bytes)")
             }
         } else {
             let ulid = gen_new()?;
@@ -98,12 +96,12 @@ impl PyUlid {
         }
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
-    fn __repr__(&self) -> String {
-        format!("ULID('{}')", self.0.to_string())
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __int__(&self) -> u128 {
@@ -130,7 +128,6 @@ impl PyUlid {
             }
         } else if other.is_instance_of::<pyo3::types::PyString>() {
             let s = other.cast::<pyo3::types::PyString>()?;
-            // visitor.visit_str(&s.to_cow()?)
             let cs = s.to_str()?;
             let this_str = self.0.to_string();
             match op {
@@ -169,15 +166,13 @@ impl PyUlid {
                         pyo3::basic::CompareOp::Ge => Ok(self.0 >= ulid),
                     }
                 }
-                _ => Err(PyValueError::new_err("Bytes must be exactly 16 bytes long")),
+                _ => py_value_err!("Bytes must be exactly 16 bytes long"),
             }
         } else {
             match op {
                 pyo3::basic::CompareOp::Eq => Ok(false),
                 pyo3::basic::CompareOp::Ne => Ok(true),
-                _ => Err(PyTypeError::new_err(
-                    "Cannot compare ULID with the given type",
-                )),
+                _ => py_type_err!("Cannot compare ULID with the given type"),
             }
         }
     }
@@ -219,15 +214,13 @@ impl PyUlid {
     #[staticmethod]
     fn from_str(s: &str) -> PyResult<Self> {
         if s.len() == 26 {
-            let ulid = Ulid::from_string(s)
-                .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
+            let ulid =
+                Ulid::from_string(s).map_err(|e| py_value_error!("Invalid ULID string: {e}"))?;
             Ok(Self(ulid))
         } else if s.len() == 32 {
             Self::from_hex(s)
         } else {
-            Err(PyValueError::new_err(
-                "ULID string must be either 26 or 32 characters long",
-            ))
+            py_value_err!("ULID string must be either 26 or 32 characters long",)
         }
     }
 
@@ -235,7 +228,7 @@ impl PyUlid {
     #[expect(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     fn from_timestamp_seconds(value: f64) -> PyResult<Self> {
         if value < 0.0 {
-            Err(PyValueError::new_err("Timestamp cannot be negative"))
+            py_value_err!("Timestamp cannot be negative")
         } else {
             let millis = (value * 1000.0) as u64;
             let dt = SystemTime::UNIX_EPOCH + std::time::Duration::from_millis(millis);
@@ -247,7 +240,7 @@ impl PyUlid {
     fn from_timestamp_milliseconds(value: u64) -> PyResult<Self> {
         let dt = SystemTime::UNIX_EPOCH.checked_add(std::time::Duration::from_millis(value));
         let dt = dt.ok_or_else(|| {
-            PyOverflowError::new_err("Timestamp exceeds the maximum value for SystemTime")
+            py_overflow_error!("Timestamp exceeds the maximum value for SystemTime")
         })?;
         Ok(Self(Ulid::from_datetime(dt)))
     }
@@ -257,15 +250,13 @@ impl PyUlid {
         if let Ok(pyint) = value.cast::<pyo3::types::PyInt>() {
             let i = pyint
                 .extract::<u64>()
-                .map_err(|_| PyOverflowError::new_err("value gt u64::MAX"))?;
+                .map_err(|_| py_overflow_error!("value exceeds u64::MAX"))?;
             Self::from_timestamp_milliseconds(i)
         } else if let Ok(pyfloat) = value.cast::<pyo3::types::PyFloat>() {
             let f = pyfloat.extract::<f64>()?;
             Self::from_timestamp_seconds(f)
         } else {
-            Err(PyTypeError::new_err(
-                "Expected a float (seconds) or int (ms) for timestamp",
-            ))
+            py_type_err!("Expected a float (seconds) or int (ms) for timestamp")
         }
     }
 
@@ -304,7 +295,7 @@ impl PyUlid {
                 );
                 return Ok(Self(ulid));
             }
-            // If the integer is too large, we treat it as a ULID.
+            // if the integer is too damn big, treat it as a ulid int (u128)
             Ok(Self::from_int(i))
         } else if value.is_instance_of::<pyo3::types::PyString>() {
             let s = value.cast::<pyo3::types::PyString>()?;
@@ -313,20 +304,20 @@ impl PyUlid {
             match cs.len() {
                 36 => {
                     let uu = Uuid::parse_str(cs)
-                        .map_err(|e| PyValueError::new_err(format!("Invalid UUID string: {e}")))?;
+                        .map_err(|e| py_value_error!("Invalid UUID string: {e}"))?;
                     let ul = Ulid::from_bytes(*uu.as_bytes());
                     Ok(Self(ul))
                 }
                 26 => {
                     let ulid = Ulid::from_string(cs)
-                        .map_err(|e| PyValueError::new_err(format!("Invalid ULID string: {e}")))?;
+                        .map_err(|e| py_value_error!("Invalid ULID string: {e}"))?;
                     Ok(Self(ulid))
                 }
                 32 => Self::from_hex(cs),
-                _ => Err(PyValueError::new_err(format!(
-                    "Cannot parse ULID from string of length {}",
+                _ => py_value_err!(
+                    "Cannot parse ULID from string of length {} (expected 26, 32, or 36)",
                     cs.len()
-                ))),
+                ),
             }
         }
         // has to go through `isinstance` apparatus
@@ -351,9 +342,7 @@ impl PyUlid {
             let other_type_name = other_type
                 .name()
                 .map_or_else(|_| String::from("Unknown"), |e| e.as_borrowed().to_string());
-            Err(PyTypeError::new_err(format!(
-                "Cannot parse ULID from type {other_type_name}"
-            )))
+            py_type_err!("Cannot parse ULID from type {other_type_name}")
         }
     }
 
@@ -373,7 +362,7 @@ impl PyUlid {
     }
 
     #[getter]
-    fn hex(&self) -> String {
+    fn hex(&self) -> PyAsciiString {
         self.0
             .to_bytes()
             .into_iter()
@@ -381,6 +370,7 @@ impl PyUlid {
                 let _ = write!(output, "{b:02X}");
                 output
             })
+            .into()
     }
 
     #[getter]
@@ -422,7 +412,7 @@ impl PyUlid {
         } else if let Ok(pybytes) = value.cast::<PyBytes>() {
             cls.call_method1(intern!(py, "from_bytes"), (pybytes,))
         } else {
-            Err(PyTypeError::new_err("Unrecognized format for ULID"))
+            py_type_err!("Unrecognized format for ULID")
         }?;
         handler.call1((ulid,))
     }
@@ -439,9 +429,7 @@ impl PyUlid {
         } else if let Ok(pyulid) = value.cast_exact::<Self>() {
             pyulid.into_bound_py_any(py)
         } else {
-            Err(PyValueError::new_err(
-                "Unrecognized format for ULID (strict)",
-            ))
+            py_value_err!("Unrecognized format for ULID (strict)")
         }?;
         handler.call1((ulid,))
     }
@@ -450,6 +438,13 @@ impl PyUlid {
 impl From<Ulid> for PyUlid {
     fn from(ulid: Ulid) -> Self {
         Self(ulid)
+    }
+}
+
+impl std::fmt::Display for PyUlid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // format!("ULID('{}')", self.0.to_string())
+        write!(f, "ULID('{}')", self.0)
     }
 }
 
@@ -464,7 +459,7 @@ impl<'py> FromPyObject<'_, 'py> for UuidLike {
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
             return Ok(Self(py_uuid.into()));
         }
-        Err(PyTypeError::new_err("Expected a `uuid.UUID` instance."))
+        py_type_err!("Expected a `uuid.UUID` instance.")
     }
 }
 
