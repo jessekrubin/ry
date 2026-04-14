@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.0.89 [unreleased]
+
+- `ryo3-uuid`
+  - use readable-buffer and small adjustments to speed up extraction
+  - use `PyAsciiString` for `__repr__` and `__str__`
+- `ryo3-ulid`
+  - macros for errors
+  - use `PyAsciiString` for `__repr__` and `__str__`
+
+---
+
 ## v0.0.88 [2026-04-10] back-to-the-future
 
 - repo
