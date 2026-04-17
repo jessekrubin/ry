@@ -67,6 +67,27 @@ impl RyDateTime {
         )
     }
 
+    #[classattr]
+    fn __match_args__() -> (
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+    ) {
+        (
+            "year",
+            "month",
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "subsec_nanosecond",
+        )
+    }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {

@@ -19,13 +19,14 @@ from ry.ryo3._bytes import Bytes
 # =============================================================================
 @t.final
 class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
-    ZERO: t.ClassVar[Duration]
-    MIN: t.ClassVar[Duration]
-    MAX: t.ClassVar[Duration]
-    NANOSECOND: t.ClassVar[Duration]
-    MICROSECOND: t.ClassVar[Duration]
-    MILLISECOND: t.ClassVar[Duration]
-    SECOND: t.ClassVar[Duration]
+    ZERO: t.Final[Duration]
+    MIN: t.Final[Duration]
+    MAX: t.Final[Duration]
+    NANOSECOND: t.Final[Duration]
+    MICROSECOND: t.Final[Duration]
+    MILLISECOND: t.Final[Duration]
+    SECOND: t.Final[Duration]
+    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
     def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
     def __eq__(self, other: object) -> bool: ...

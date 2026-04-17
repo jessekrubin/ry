@@ -573,6 +573,7 @@ import ry
 from ry.xxhash import xxh64
 
 _PWD = ry.FsPath(__file__).resolve().parent
+_FILES = ry.glob(str(_PWD / "**" / "*.py"), dtype=ry.FsPath).collect()
 
 
 def hash_file_sync(path: ry.FsPath) -> tuple[str, str]:
@@ -584,9 +585,7 @@ def hash_file_sync(path: ry.FsPath) -> tuple[str, str]:
 
 
 def hash_examples_sync() -> list[tuple[str, str]]:
-    files = ry.glob(str(_PWD / "**" / "*.py"), dtype=ry.FsPath).collect()
-
-    return [hash_file_sync(f) for f in files]
+    return [hash_file_sync(f) for f in _FILES]
 
 
 async def hash_file_async(path: ry.FsPath) -> tuple[str, str]:
@@ -598,9 +597,7 @@ async def hash_file_async(path: ry.FsPath) -> tuple[str, str]:
 
 
 async def hash_examples_async() -> list[tuple[str, str]]:
-    files = ry.glob(str(_PWD / "**" / "*.py"), dtype=ry.FsPath).collect()
-
-    return await asyncio.gather(*(hash_file_async(f) for f in files))
+    return await asyncio.gather(*(hash_file_async(f) for f in _FILES))
 
 
 def main_sync() -> tuple[list[tuple[str, str]], ry.Duration]:
@@ -622,12 +619,13 @@ def main() -> None:
     res_async, dt_async = asyncio.run(main_async())
     print(f"HASHING  (SYNC) TOOK: {dt_sync:#}")
     print(f"HASHING (ASYNC) TOOK: {dt_async:#}")
+
     assert sorted(res_sync) == sorted(res_async)
     print("SYNC/ASYNC RESULTS MATCH!")
 
 
 if __name__ == "__main__":
     main_sync()
-
     asyncio.run(main_async())
+    main()
 ```

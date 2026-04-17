@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import dataclasses
 import pickle
+import typing as t
 from typing import TYPE_CHECKING
 
 import pytest
@@ -11,56 +13,66 @@ from ry import Size
 if TYPE_CHECKING:
     from ry.ryo3._size import FormatSizeBase, FormatSizeStyle
 
-FORMAT_SIZE_BASES = [None, 2, 10]
-FORMAT_SIZE_STYLES = [
-    None,
+_FORMAT_SIZE_BASES: list[FormatSizeBase] = [2, 10]
+_FORMAT_SIZE_STYLES: list[FormatSizeStyle] = [
     "default",
     "abbreviated",
-    "abbreviated_lowercase",
     "abbreviated-lowercase",
     "full",
-    "full_lowercase",
     "full-lowercase",
 ]
 
-POSITIVE_SIZES = [
-    1,
-    10,
-    100,
-    1000,
-    10000,
-    100000,
-    1000000,
-    10000000,
-    100000000,
-    1000000000,
-    10000000000,
-    100000000000,
-    1000000000000,
-    10000000000000,
-    100000000000000,
-    1000000000000000,
-    10000000000000000,
-    100000000000000000,
-    1000000000000000000,
-]
-SIZES = [
+
+class _FmtKwargs(t.TypedDict, total=False):
+    base: FormatSizeBase
+    style: FormatSizeStyle
+
+
+@dataclasses.dataclass(frozen=True)
+class _FmtOptions:
+    base: FormatSizeBase | None = None
+    style: FormatSizeStyle | None = None
+
+    def as_kwargs(self) -> _FmtKwargs:
+        kw: _FmtKwargs = {}
+        if self.base:
+            kw["base"] = self.base
+        if self.style:
+            kw["style"] = self.style
+        return kw
+
+    @property
+    def expected_style(self) -> FormatSizeStyle:
+        return self.style or "default"
+
+    @property
+    def expected_base(self) -> t.Literal[2, 10]:
+        return self.base or 2
+
+
+@pytest.fixture(
+    params=[
+        _FmtOptions(base=base, style=style)
+        for base in [None, *_FORMAT_SIZE_BASES]
+        for style in [None, *_FORMAT_SIZE_STYLES]
+    ]
+)
+def fmt_options(request: pytest.FixtureRequest) -> _FmtOptions:
+    return t.cast("_FmtOptions", request.param)
+
+
+_SIZES = [
     0,
     (2**63) - 1,  # max i64
     (2**63) * -1,  # min i64
-    *POSITIVE_SIZES,
-    *(-s for s in POSITIVE_SIZES),
+    *(10**i for i in range(19)),
+    *(-n for n in (10**i for i in range(19))),
 ]
 
 
-@pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
-@pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
-def test_fmt_parse_roundtrip(
-    base: FormatSizeBase,
-    style: FormatSizeStyle,
-) -> None:
-    for size in SIZES:
-        formatted = ry.fmt_size(size, base=base, style=style)
+def test_fmt_parse_roundtrip(fmt_options: _FmtOptions) -> None:
+    for size in _SIZES:
+        formatted = ry.fmt_size(size, **fmt_options.as_kwargs())
         parsed = ry.parse_size(formatted)
         # parsed won't be EXACTLY the same as size, but it should be close
         # enough for the purposes of this test
@@ -71,21 +83,16 @@ def test_fmt_parse_roundtrip(
             assert abs(parsed - size) / size < 0.01
 
 
-@pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
-@pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
-def test_fmt_parse_formatter(
-    base: FormatSizeBase,
-    style: FormatSizeStyle,
-) -> None:
-    formatter = ry.SizeFormatter(base=base, style=style)
+def test_fmt_parse_formatter(fmt_options: _FmtOptions) -> None:
+    formatter = ry.SizeFormatter(**fmt_options.as_kwargs())
 
-    for size in SIZES:
+    for size in _SIZES:
         formatted = formatter.format(size)
         formatted_via_call = formatter(size)
         assert formatted == formatted_via_call
         parsed = ry.parse_size(formatted)
         size_obj = Size(size)
-        formatted_struct = size_obj.format(base=base, style=style)
+        formatted_struct = size_obj.format(**fmt_options.as_kwargs())
         assert formatted == formatted_struct
         # parsed won't be EXACTLY the same as size, but it should be close
         # enough for the purposes of this test
@@ -179,28 +186,30 @@ def test_weird_off_by_one_multiplication() -> None:
     assert result == expected, f"Expected {expected}, got {result} for si={si}, i={i}"
 
 
-@pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
-@pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
-def test_size_formatter_pickling(
-    base: FormatSizeBase,
-    style: FormatSizeStyle,
-) -> None:
-    formatter = ry.SizeFormatter(base=base, style=style)
+def test_size_formatter_pickling(fmt_options: _FmtOptions) -> None:
+    formatter = ry.SizeFormatter(**fmt_options.as_kwargs())
     unpickled = pickle.loads(pickle.dumps(formatter))
     assert formatter == unpickled
 
 
-@pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
-@pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
-def test_size_formatter_equality(
-    base: FormatSizeBase,
-    style: FormatSizeStyle,
-) -> None:
-    formatter = ry.SizeFormatter(base=base, style=style)
-    _base_str = 10 if base is None else base
-    _style_str = "default" if style is None else style.replace("_", "-")
+def test_size_formatter_equality(fmt_options: _FmtOptions) -> None:
+    formatter = ry.SizeFormatter(**fmt_options.as_kwargs())
 
-    assert repr(formatter) == f"SizeFormatter(base={_base_str!r}, style={_style_str!r})"
-    assert formatter == ry.SizeFormatter(base=base, style=style)
+    _base_expected = fmt_options.expected_base
+    _style_expected = fmt_options.expected_style
+    # _style_expected: t.Literal[
+    #     "default",
+    #     "abbreviated",
+    #     "abbreviated-lowercase",
+    #     "full",
+    #     "full-lowercase",
+    # ] = "default" if style is None or style is Ellipsis else style.replace("_", "-")
+    assert (
+        repr(formatter)
+        == f"SizeFormatter(base={_base_expected!r}, style={_style_expected!r})"
+    )
+    assert formatter == ry.SizeFormatter(base=_base_expected, style=_style_expected)
 
+    assert formatter.base == _base_expected
+    assert formatter.style == _style_expected
     assert formatter == eval(repr(formatter), {"SizeFormatter": ry.SizeFormatter})

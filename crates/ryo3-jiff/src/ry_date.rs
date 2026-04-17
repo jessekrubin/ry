@@ -42,6 +42,11 @@ impl RyDate {
     }
 
     #[classattr]
+    fn __match_args__() -> (&'static str, &'static str, &'static str) {
+        ("year", "month", "day")
+    }
+
+    #[classattr]
     #[expect(non_snake_case)]
     fn MIN() -> Self {
         Self(Date::MIN)

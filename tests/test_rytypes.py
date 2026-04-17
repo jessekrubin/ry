@@ -95,12 +95,20 @@ _SUBCLASSING_OK: set[type] = {
 }
 
 
+def is_exception_subclass(cls: type) -> bool:
+    """Check if a class is a subclass of Exception."""
+    return issubclass(cls, BaseException)
+
+
 def test_no_missing_types_from_ry_init(subtests: pytest.Subtests) -> None:
     """
     Test that all ry types are exported in the ry module.
     """
     ry_types = {
-        getattr(ry, attr) for attr in dir(ry) if isinstance(getattr(ry, attr), type)
+        getattr(ry, attr)
+        for attr in dir(ry)
+        if isinstance(getattr(ry, attr), type)
+        and not is_exception_subclass(getattr(ry, attr))
     }
     for ty in ry_types:
         with subtests.test(msg=f"Checking {ty.__name__}"):
@@ -122,3 +130,23 @@ def test_subclassing_fails(cls: t.Any) -> None:
 
         class _Subclass(cls):  # type: ignore[misc]
             ...
+
+
+@pytest.mark.parametrize(
+    "cls",
+    [
+        pytest.param(cls, id=cls.__name__)
+        for cls in filter(lambda c: hasattr(c, "__match_args__"), _RY_TYPES)
+    ],
+)
+def test_match_args_defined(cls: type) -> None:
+    """
+    Test that all ry types with __match_args__ defined have the correct value.
+    """
+    if hasattr(cls, "__match_args__"):
+        type_match_args = cls.__match_args__
+        assert isinstance(type_match_args, tuple)
+        assert all(isinstance(arg, str) for arg in type_match_args), (
+            f"{cls.__name__}.__match_args__ must be a tuple of strings, "
+            f"got {type_match_args}"
+        )
