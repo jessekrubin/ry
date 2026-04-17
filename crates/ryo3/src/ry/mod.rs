@@ -155,7 +155,7 @@ fn py_constants(m: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    ryo3_core::exceptions::pymod_add(m)?;
+    ryo3_core::errors::pymod_add(m)?;
     py_constants(m)?;
 
     ryo3_std::pymod_add(m)?;

@@ -5,9 +5,9 @@ use pyo3::pybacked::PyBackedStr;
 
 create_exception!(
     ry.ryo3,
-    PanicException,
+    PanicError,
     PyBaseException,
-    "python-side exception for panicing from python"
+    "panic == fatal python error"
 );
 
 create_exception!(
@@ -29,16 +29,16 @@ fn py_unreachable(msg: Option<PyBackedStr>) -> PyResult<()> {
     if let Some(msg) = msg {
         Err(UnreachableError::new_err(msg))
     } else {
-        Err(UnreachableError::new_err("unreachable code path reached"))
+        Err(UnreachableError::new_err("unreachable"))
     }
 }
 
 #[pyfunction(name = "panic")]
 fn py_panic(msg: Option<PyBackedStr>) -> PyResult<()> {
     if let Some(msg) = msg {
-        Err(PanicException::new_err(msg))
+        Err(PanicError::new_err(msg))
     } else {
-        Err(PanicException::new_err("panic"))
+        Err(PanicError::new_err("panic"))
     }
 }
 
@@ -50,7 +50,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     }
     pymod_add_exception!(FeatureNotEnabledError);
     pymod_add_exception!(UnreachableError);
-    pymod_add_exception!(PanicException);
+    pymod_add_exception!(PanicError);
     m.add_function(wrap_pyfunction!(py_unreachable, m)?)?;
     m.add_function(wrap_pyfunction!(py_panic, m)?)?;
     Ok(())
