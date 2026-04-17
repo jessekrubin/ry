@@ -19,6 +19,7 @@ FORMAT_SIZE_STYLES = [
     "abbreviated_lowercase",
     "abbreviated-lowercase",
     "full",
+    "full_lowercase",
     "full-lowercase",
 ]
 
@@ -187,3 +188,19 @@ def test_size_formatter_pickling(
     formatter = ry.SizeFormatter(base=base, style=style)
     unpickled = pickle.loads(pickle.dumps(formatter))
     assert formatter == unpickled
+
+
+@pytest.mark.parametrize("base", FORMAT_SIZE_BASES)
+@pytest.mark.parametrize("style", FORMAT_SIZE_STYLES)
+def test_size_formatter_equality(
+    base: FormatSizeBase,
+    style: FormatSizeStyle,
+) -> None:
+    formatter = ry.SizeFormatter(base=base, style=style)
+    _base_str = 10 if base is None else base
+    _style_str = "default" if style is None else style.replace("_", "-")
+
+    assert repr(formatter) == f"SizeFormatter(base={_base_str!r}, style={_style_str!r})"
+    assert formatter == ry.SizeFormatter(base=base, style=style)
+
+    assert formatter == eval(repr(formatter), {"SizeFormatter": ry.SizeFormatter})

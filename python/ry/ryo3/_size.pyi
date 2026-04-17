@@ -7,11 +7,9 @@ FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
 FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
     "default",
     "abbreviated",
-    "abbreviated_lowercase",
     "abbreviated-lowercase",
     "full",
     "full-lowercase",
-    "full_lowercase",
 ]
 
 def fmt_size(
@@ -45,6 +43,13 @@ class SizeFormatter:
 
     def __call__(self, n: int) -> str:
         """Return human-readable string representation of bytes-size."""
+
+    @property
+    def base(self) -> FormatSizeBase:
+        """Return base used by formatter."""
+    @property
+    def style(self) -> FormatSizeStyle:
+        """Return style used by formatter."""
 
 @t.final
 class Size(FromStr, _Parse):

@@ -8,6 +8,9 @@
 - `ryo3-ulid`
   - macros for errors
   - use `PyAsciiString` for `__repr__` and `__str__`
+- `ryo3-size`
+  - random updates n shit (use `PyAsciiString`, make sure `repr` for formatter
+    evals to same thing still dont love the size wrapper lib)
 
 ---
 

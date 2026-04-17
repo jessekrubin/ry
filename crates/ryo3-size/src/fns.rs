@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
+use ryo3_core::PyAsciiString;
 
-use crate::types::{Base, Style};
+use crate::types::{PyBase, PyStyle};
 
 #[pyfunction]
 pub fn parse_size(s: &str) -> PyResult<i64> {
@@ -13,12 +14,13 @@ pub fn parse_size(s: &str) -> PyResult<i64> {
 #[must_use]
 #[pyfunction]
 #[pyo3(
-    signature = (n, *, base = Base::default(), style = Style::default()),
+    signature = (n, *, base = PyBase::default(), style = PyStyle::default()),
     text_signature = "(n, *, base=2, style='default')"
 )]
-pub fn fmt_size(n: i64, base: Base, style: Style) -> String {
-    let formatter = size::fmt::SizeFormatter::new()
+pub fn fmt_size(n: i64, base: PyBase, style: PyStyle) -> PyAsciiString {
+    size::fmt::SizeFormatter::new()
         .with_base(base.0)
-        .with_style(style.0);
-    formatter.format(n)
+        .with_style(style.0)
+        .format(n)
+        .into()
 }
