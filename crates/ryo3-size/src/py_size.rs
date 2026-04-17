@@ -1,12 +1,12 @@
 use std::ops::{Neg, Not};
 use std::str::FromStr;
 
-use pyo3::exceptions::{PyOverflowError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::PyTuple;
+use ryo3_core::{PyAsciiString, py_overflow_err, py_overflow_error, py_type_err, py_type_error};
 
-use crate::types::{Base, Style};
+use crate::types::{PyBase, PyStyle};
 
 #[derive(Debug, Clone, Copy)]
 #[pyclass(name = "Size", frozen, immutable_type, skip_from_py_object)]
@@ -41,12 +41,12 @@ impl PySize {
         self.0.bytes()
     }
 
-    fn __str__(&self) -> String {
-        format!("{}", self.0)
+    fn __str__(&self) -> PyAsciiString {
+        format!("{}", self.0).into()
     }
 
-    fn __repr__(&self) -> String {
-        format!("Size({})", self.0.bytes())
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __hash__(&self) -> u64 {
@@ -76,15 +76,16 @@ impl PySize {
     }
 
     #[pyo3(
-        signature = (*, base = Base::default(), style = Style::default()),
+        signature = (*, base = PyBase::default(), style = PyStyle::default()),
         text_signature = "(self, *, base=2, style='default')"
     )]
-    fn format(&self, base: Base, style: Style) -> String {
+    fn format(&self, base: PyBase, style: PyStyle) -> PyAsciiString {
         self.0
             .format()
             .with_base(base.0)
             .with_style(style.0)
             .to_string()
+            .into()
     }
 
     #[staticmethod]
@@ -121,7 +122,7 @@ impl PySize {
             .bytes()
             .checked_add(other.0.bytes())
             .map(Self::from)
-            .ok_or_else(|| PyValueError::new_err("Overflow"))
+            .ok_or_else(|| py_overflow_error!("overflow"))
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -130,7 +131,7 @@ impl PySize {
             .bytes()
             .checked_sub(other.0.bytes())
             .map(Self::from)
-            .ok_or_else(|| PyValueError::new_err("Overflow"))
+            .ok_or_else(|| py_overflow_error!("overflow"))
     }
 
     #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
@@ -151,7 +152,7 @@ impl PySize {
 
                 let product = lhs
                     .checked_mul(rhs)
-                    .ok_or_else(|| PyOverflowError::new_err("Overflow in Size * u64"))?;
+                    .ok_or_else(|| py_overflow_error!("overflow (size * u64)"))?;
                 if (i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&product) {
                     product.try_into().ok()
                 } else {
@@ -161,13 +162,11 @@ impl PySize {
 
             PySizeArithmetic::Float64(f) => {
                 if !(f.is_finite()) {
-                    return Err(PyOverflowError::new_err(
-                        "Cannot multiply Size by NaN or infinite float",
-                    ));
+                    return py_overflow_err!("Cannot multiply Size by NaN or infinite float");
                 }
                 let result_f64 = (base as f64) * f;
                 if !result_f64.is_finite() {
-                    return Err(PyOverflowError::new_err("Overflow in Size * float"));
+                    return py_overflow_err!("Overflow in Size * float");
                 }
                 let rounded = result_f64.round();
                 if rounded < i64::MIN as f64 || rounded > i64::MAX as f64 {
@@ -179,7 +178,7 @@ impl PySize {
             }
         };
         result_bytes
-            .ok_or_else(|| PyOverflowError::new_err("Overflow in Size * Size"))
+            .ok_or_else(|| py_overflow_error!("Overflow in Size multiplication"))
             .map(Self::from)
     }
 
@@ -367,15 +366,14 @@ impl PySize {
         Self(size::Size::from_tib(size.float64()))
     }
 }
+
 impl<'py> FromPyObject<'_, 'py> for PySize {
     type Error = pyo3::PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(s) = obj.cast_exact::<Self>() {
-            Ok(Self::from(s))
-        } else {
-            Err(PyTypeError::new_err("Must be Size"))
-        }
+        obj.cast_exact::<Self>()
+            .map(Self::from)
+            .map_err(|_| py_type_error!("expected `Size`"))
     }
 }
 
@@ -392,15 +390,14 @@ impl<'py> FromPyObject<'_, 'py> for SizeWrapper {
     type Error = pyo3::PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(s) = obj.cast::<PySize>() {
-            let pysize = s.extract::<PySize>()?;
-            Ok(Self(pysize.0))
+        if let Ok(s) = obj.cast_exact::<PySize>() {
+            Ok(Self(s.get().0))
         } else if let Ok(i) = obj.extract::<i64>() {
             Ok(Self(size::Size::from_const(i)))
         } else if let Ok(f) = obj.extract::<f64>() {
             Ok(Self(size::Size::from_bytes(f)))
         } else {
-            Err(PyTypeError::new_err("Must be Size or i64"))
+            py_type_err!("expected `Size`, int, or float")
         }
     }
 }
@@ -438,4 +435,10 @@ enum PySizeArithmetic {
     Int64(i64),
     U64(u64),
     Float64(f64), // must make float last
+}
+
+impl std::fmt::Display for PySize {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Size({})", self.0.bytes())
+    }
 }

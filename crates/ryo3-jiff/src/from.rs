@@ -149,25 +149,25 @@ impl From<jiff::civil::Date> for RyISOWeekDate {
 
 impl From<TimeZone> for RyTimeZone {
     fn from(value: TimeZone) -> Self {
-        Self(std::sync::Arc::new(value))
+        Self(value)
     }
 }
 
 impl From<&TimeZone> for RyTimeZone {
     fn from(value: &TimeZone) -> Self {
-        Self(std::sync::Arc::new(value.clone()))
+        Self::from(value.clone())
     }
 }
 
 impl From<RyTimeZone> for TimeZone {
     fn from(value: RyTimeZone) -> Self {
-        (*value.0).clone()
+        value.0.clone()
     }
 }
 
 impl From<&RyTimeZone> for TimeZone {
     fn from(value: &RyTimeZone) -> Self {
-        (*value.0).clone()
+        value.0.clone()
     }
 }
 
