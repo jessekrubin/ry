@@ -11,6 +11,10 @@
 - `ryo3-size`
   - random updates n shit (use `PyAsciiString`, make sure `repr` for formatter
     evals to same thing still dont love the size wrapper lib)
+- `ryo3-jiff`
+  - remove `std::sync::Arc` wrapper around `ry.TimeZone`; idk when/where/why i
+    ever added it
+  - pydantic support for `ry.TimeZone`:wq
 
 ---
 

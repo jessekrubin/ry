@@ -3,9 +3,9 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use jiff::Timestamp;
 use jiff::tz::{Offset, TimeZone, TimeZoneTransition};
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyString, PyTuple, PyTzInfo};
+use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::{py_type_err, pytodo};
 
@@ -18,7 +18,7 @@ use crate::ry_zoned::RyZoned;
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyTimeZone(pub(crate) std::sync::Arc<TimeZone>);
+pub struct RyTimeZone(pub(crate) TimeZone);
 
 #[pymethods]
 impl RyTimeZone {
@@ -92,7 +92,7 @@ impl RyTimeZone {
             Ok(self.0.eq(&other.get().0))
         } else if let Ok(other) = other.cast::<PyTzInfo>() {
             let tz: jiff::tz::TimeZone = other.extract()?;
-            Ok((*self.0).eq(&tz))
+            Ok(self.0.eq(&tz))
         } else if let Ok(other) = other.cast::<PyString>() {
             let other_str = other.extract::<&str>()?;
             Ok(self.0.iana_name() == Some(other_str))
@@ -301,6 +301,48 @@ impl RyTimeZone {
         Self::py_parse(s)
     }
     // </STD-METHODS>
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+            let s = pystr.extract::<&str>()?;
+            Self::from_str(s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+            let s = String::from_utf8_lossy(pybytes.as_bytes());
+            Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
+        } else if let Ok(other) = value.cast::<PyTzInfo>() {
+            let tz: jiff::tz::TimeZone = other.extract()?;
+            Self::from(tz).into_pyobject(py)
+        } else {
+            py_type_err!("expected TimeZone, tzinfo, str or bytes-like object")
+        }
+    }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl std::fmt::Display for RyTimeZone {

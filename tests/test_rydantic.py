@@ -60,9 +60,13 @@ class RyTimestampModel(pydantic.BaseModel):
     ts: ry.Timestamp
 
 
-# TIMESTAMP MODELS
+# TIMEZONE/OFFSET MODELS
 class RyOffsetModel(pydantic.BaseModel):
     off: ry.Offset
+
+
+class RyTimeZoneModel(pydantic.BaseModel):
+    tz: ry.TimeZone
 
 
 # DURATION MODELS
@@ -1445,3 +1449,48 @@ class TestOffset:
     def test_offset_parsing_err(self, value: t.Any) -> None:
         with pytest.raises(pydantic.ValidationError):
             _m = RyOffsetModel(off=value)
+
+
+class TestTimeZone:
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "America/New_York",
+            "America/Los_Angeles",
+            "Europe/London",
+            "Asia/Tokyo",
+            "UTC",
+            # case insensitive
+            "utc",
+            "asia/tokyo",
+            b"America/Chicago",
+            b"Europe/Paris",
+            ry.TimeZone.get("America/Denver"),
+            ry.TimeZone.UTC(),
+            # pydatetime tzinfo objects
+            zoneinfo.ZoneInfo("America/New_York"),
+            zoneinfo.ZoneInfo("America/Los_Angeles"),
+        ],
+    )
+    def test_timezone_parsing_ok(self, value: str | bytes | ry.TimeZone) -> None:
+        m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]
+        assert isinstance(m.tz, ry.TimeZone)
+
+        as_json = m.model_dump_json()
+        from_json = RyTimeZoneModel.model_validate_json(as_json)
+        assert from_json.tz == m.tz
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "Invalid/Timezone",
+            "NotA/Zone",
+            "Nonsense",
+            b"Fake/TimeZone",
+            123,
+            complex(1, 2),
+        ],
+    )
+    def test_timezone_parsing_err(self, value: str | bytes | complex) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            _m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]
