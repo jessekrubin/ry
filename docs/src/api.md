@@ -94,7 +94,7 @@ from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
 from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
 from ry.ryo3._cookie import Cookie as Cookie
 from ry.ryo3._exceptions import FeatureNotEnabledError as FeatureNotEnabledError
-from ry.ryo3._exceptions import PanicException as PanicException
+from ry.ryo3._exceptions import PanicError as PanicError
 from ry.ryo3._exceptions import UnreachableError as UnreachableError
 from ry.ryo3._exceptions import panic as panic
 from ry.ryo3._exceptions import unreachable as unreachable
@@ -285,7 +285,7 @@ from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
+from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated, ty:deprecated]
 from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
@@ -1088,8 +1088,8 @@ Encoding: t.TypeAlias = t.Literal[
 import typing as t
 
 
-class PanicException(BaseException):
-    """python fatal panic"""
+class PanicError(BaseException):
+    """panic == fatal python error"""
 
 
 class FeatureNotEnabledError(RuntimeError):
@@ -1100,8 +1100,20 @@ class UnreachableError(AssertionError):
     """Raised when unreachable code is reached"""
 
 
-def unreachable(msg: str | None = None) -> t.NoReturn: ...
-def panic(msg: str) -> t.NoReturn: ...
+def unreachable(msg: str | None = None) -> t.NoReturn:
+    """raise UnreachableError with the given message
+
+    Raises:
+        UnreachableError: always
+    """
+
+
+def panic(msg: str | None = None) -> t.NoReturn:
+    """panic with the given message
+
+    Raises:
+        PanicException: always
+    """
 ```
 
 <h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
@@ -3111,6 +3123,7 @@ class Timestamp(
     MIN: t.Final[Timestamp]
     MAX: t.Final[Timestamp]
     UNIX_EPOCH: t.Final[Timestamp]
+    __match_args__: t.Final[tuple[str, str]] = ("second", "nanosecond")
 
     def __init__(self, second: int = 0, nanosecond: int = 0) -> None: ...
 
@@ -6119,6 +6132,7 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     MICROSECOND: t.Final[Duration]
     MILLISECOND: t.Final[Duration]
     SECOND: t.Final[Duration]
+    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
     def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
     def __eq__(self, other: object) -> bool: ...
