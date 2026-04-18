@@ -157,9 +157,10 @@ class Date(
     ToString,
     _Parse,
 ):
-    MIN: t.ClassVar[Date]
-    MAX: t.ClassVar[Date]
-    ZERO: t.ClassVar[Date]
+    MIN: t.Final[Date]
+    MAX: t.Final[Date]
+    ZERO: t.Final[Date]
+    __match_args__: t.Final[tuple[str, str, str]] = ("year", "month", "day")
 
     def __init__(self, year: int, month: int, day: int) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -362,8 +363,14 @@ class Time(
     ToPy[pydt.time],
     _Parse,
 ):
-    MIN: t.ClassVar[Time]
-    MAX: t.ClassVar[Time]
+    MIN: t.Final[Time]
+    MAX: t.Final[Time]
+    __match_args__: t.Final[tuple[str, str, str, str]] = (
+        "hour",
+        "minute",
+        "second",
+        "subsec_nanosecond",
+    )
 
     def __init__(
         self,
@@ -567,9 +574,18 @@ class DateTime(
     ToPy[pydt.datetime],
     _Parse,
 ):
-    MIN: t.ClassVar[DateTime]
-    MAX: t.ClassVar[DateTime]
-    ZERO: t.ClassVar[DateTime]
+    MIN: t.Final[DateTime]
+    MAX: t.Final[DateTime]
+    ZERO: t.Final[DateTime]
+    __match_args__: t.Final[tuple[str, str, str, str, str, str, str]] = (
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "subsec_nanosecond",
+    )
 
     def __init__(
         self,
@@ -579,7 +595,7 @@ class DateTime(
         hour: int = 0,
         minute: int = 0,
         second: int = 0,
-        nanosecond: int = 0,
+        subsec_nanosecond: int = 0,
     ) -> None: ...
     def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
@@ -806,7 +822,7 @@ class TimeZone(
     ToPy[pydt.tzinfo],
     _Parse,
 ):
-    UTC: t.ClassVar[TimeZone]
+    UTC: t.Final[TimeZone]
 
     def __init__(self, name: TimezoneName) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -899,9 +915,10 @@ class SignedDuration(
     ToPy[pydt.timedelta],
     _Parse,
 ):
-    MIN: t.ClassVar[SignedDuration]
-    MAX: t.ClassVar[SignedDuration]
-    ZERO: t.ClassVar[SignedDuration]
+    MIN: t.Final[SignedDuration]
+    MAX: t.Final[SignedDuration]
+    ZERO: t.Final[SignedDuration]
+    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
     def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
 
@@ -1246,9 +1263,10 @@ class Timestamp(
     A timestamp is always in the Unix timescale with a UTC offset of zero.
     """
 
-    MIN: t.ClassVar[Timestamp]
-    MAX: t.ClassVar[Timestamp]
-    UNIX_EPOCH: t.ClassVar[Timestamp]
+    MIN: t.Final[Timestamp]
+    MAX: t.Final[Timestamp]
+    UNIX_EPOCH: t.Final[Timestamp]
+    __match_args__: t.Final[tuple[str, str]] = ("second", "nanosecond")
 
     def __init__(self, second: int = 0, nanosecond: int = 0) -> None: ...
 
@@ -1820,10 +1838,10 @@ class ISOWeekDate(
     FromStr,
     _Parse,
 ):
-    MIN: t.ClassVar[ISOWeekDate]
-    MAX: t.ClassVar[ISOWeekDate]
-    ZERO: t.ClassVar[ISOWeekDate]
-
+    MIN: t.Final[ISOWeekDate]
+    MAX: t.Final[ISOWeekDate]
+    ZERO: t.Final[ISOWeekDate]
+    __match_args__: t.Final[tuple[str, str, str]] = ("year", "week", "weekday")
     def __init__(self, year: int, week: int, weekday: Weekday) -> None: ...
 
     # =========================================================================
@@ -1883,10 +1901,10 @@ class Offset(
     FromStr,
     _Parse,
 ):
-    MIN: t.ClassVar[Offset]
-    MAX: t.ClassVar[Offset]
-    UTC: t.ClassVar[Offset]
-    ZERO: t.ClassVar[Offset]
+    MIN: t.Final[Offset]
+    MAX: t.Final[Offset]
+    UTC: t.Final[Offset]
+    ZERO: t.Final[Offset]
 
     def __init__(
         self,

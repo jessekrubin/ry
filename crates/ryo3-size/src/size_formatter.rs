@@ -13,6 +13,19 @@ pub struct PySizeFormatter {
     style: PyStyle,
 }
 
+impl PySizeFormatter {
+    fn new(base: PyBase, style: PyStyle) -> Self {
+        let formatter = size::fmt::SizeFormatter::new()
+            .with_base(base.into())
+            .with_style(style.0);
+        Self {
+            formatter,
+            base,
+            style,
+        }
+    }
+}
+
 #[pymethods]
 impl PySizeFormatter {
     #[new]
@@ -21,14 +34,7 @@ impl PySizeFormatter {
         text_signature = "(base=2, style='default')"
     )]
     fn py_new(base: PyBase, style: PyStyle) -> Self {
-        let formatter = size::fmt::SizeFormatter::new()
-            .with_base(base.0)
-            .with_style(style.0);
-        Self {
-            formatter,
-            base,
-            style,
-        }
+        Self::new(base, style)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -65,6 +71,20 @@ impl PySizeFormatter {
 
     fn __call__(&self, n: i64) -> PyAsciiString {
         self.formatter.format(n).into()
+    }
+
+    fn with_base(&self, base: PyBase) -> Self {
+        Self::from((base, self.style))
+    }
+
+    fn with_style(&self, style: PyStyle) -> Self {
+        Self::from((self.base, style))
+    }
+}
+
+impl From<(PyBase, PyStyle)> for PySizeFormatter {
+    fn from((base, style): (PyBase, PyStyle)) -> Self {
+        Self::py_new(base, style)
     }
 }
 

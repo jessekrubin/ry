@@ -143,6 +143,11 @@ impl PyDuration {
         )
     }
 
+    #[classattr]
+    fn __match_args__() -> (&'static str, &'static str) {
+        ("secs", "nanos")
+    }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn ZERO() -> Self {

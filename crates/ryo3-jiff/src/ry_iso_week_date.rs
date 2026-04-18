@@ -41,6 +41,11 @@ impl RyISOWeekDate {
     // CLASSATTR
     // ========================================================================
 
+    #[classattr]
+    fn __match_args__() -> (&'static str, &'static str, &'static str) {
+        ("year", "week", "weekday")
+    }
+
     /// The minimum representable `ISOWeekDate`.
     #[expect(non_snake_case)]
     #[classattr]

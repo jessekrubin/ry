@@ -19,7 +19,7 @@ pub fn parse_size(s: &str) -> PyResult<i64> {
 )]
 pub fn fmt_size(n: i64, base: PyBase, style: PyStyle) -> PyAsciiString {
     size::fmt::SizeFormatter::new()
-        .with_base(base.0)
+        .with_base(base.into())
         .with_style(style.0)
         .format(n)
         .into()

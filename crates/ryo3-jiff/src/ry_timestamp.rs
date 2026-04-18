@@ -42,6 +42,11 @@ impl RyTimestamp {
         Self::new(second, nanosecond).map_err(map_py_value_err)
     }
 
+    #[classattr]
+    fn __match_args__() -> (&'static str, &'static str) {
+        ("second", "nanosecond")
+    }
+
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,

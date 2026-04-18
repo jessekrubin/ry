@@ -82,7 +82,7 @@ impl PySize {
     fn format(&self, base: PyBase, style: PyStyle) -> PyAsciiString {
         self.0
             .format()
-            .with_base(base.0)
+            .with_base(base.into())
             .with_style(style.0)
             .to_string()
             .into()

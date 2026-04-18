@@ -28,4 +28,4 @@ __all__ = (
 )
 __title__ = "ry"
 __description__ = "ry == rust | python"
-__pkgroot__ = __file__[:-12]
+__pkgroot__ = __file__[:-13]

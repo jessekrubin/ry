@@ -89,6 +89,11 @@ impl RySignedDuration {
         )
     }
 
+    #[classattr]
+    fn __match_args__() -> (&'static str, &'static str) {
+        ("secs", "nanos")
+    }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {

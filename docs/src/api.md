@@ -11,6 +11,7 @@
 - [`ry.ryo3._cookie`](#ry.ryo3._cookie)
 - [`ry.ryo3._dev`](#ry.ryo3._dev)
 - [`ry.ryo3._encoding_rs`](#ry.ryo3._encoding_rs)
+- [`ry.ryo3._exceptions`](#ry.ryo3._exceptions)
 - [`ry.ryo3._flate2`](#ry.ryo3._flate2)
 - [`ry.ryo3._fnv`](#ry.ryo3._fnv)
 - [`ry.ryo3._fspath`](#ry.ryo3._fspath)
@@ -40,7 +41,6 @@
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.ryo3._zstd`](#ry.ryo3._zstd)
 - [`ry.ryo3.dirs`](#ry.ryo3.dirs)
-- [`ry.ryo3.errors`](#ry.ryo3.errors)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
 - [`ry.ryo3.orjson`](#ry.ryo3.orjson)
 - [`ry.ryo3.sh`](#ry.ryo3.sh)
@@ -93,6 +93,11 @@ from ry.ryo3._bzip2 import bzip2 as bzip2
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
 from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
 from ry.ryo3._cookie import Cookie as Cookie
+from ry.ryo3._exceptions import FeatureNotEnabledError as FeatureNotEnabledError
+from ry.ryo3._exceptions import PanicError as PanicError
+from ry.ryo3._exceptions import UnreachableError as UnreachableError
+from ry.ryo3._exceptions import panic as panic
+from ry.ryo3._exceptions import unreachable as unreachable
 from ry.ryo3._flate2 import gunzip as gunzip
 from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
@@ -280,7 +285,7 @@ from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
+from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated, ty:deprecated]
 from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
@@ -323,7 +328,6 @@ from ry.ryo3._zstd import zstd_compress as zstd_compress
 from ry.ryo3._zstd import zstd_decode as zstd_decode
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
-from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
 from ry.ryo3.JSON import stringify as stringify
 from ry.ryo3.JSON import stringify_unsafe as stringify_unsafe
 from ry.ryo3.orjson import orjson_default as orjson_default
@@ -1078,6 +1082,40 @@ Encoding: t.TypeAlias = t.Literal[
 ]
 ```
 
+<h2 id="ry.ryo3._exceptions"><code>ry.ryo3._exceptions</code></h2>
+
+```python
+import typing as t
+
+
+class PanicError(BaseException):
+    """panic == fatal python error"""
+
+
+class FeatureNotEnabledError(RuntimeError):
+    """Raised when a feature is not enabled in the current build"""
+
+
+class UnreachableError(AssertionError):
+    """Raised when unreachable code is reached"""
+
+
+def unreachable(msg: str | None = None) -> t.NoReturn:
+    """raise UnreachableError with the given message
+
+    Raises:
+        UnreachableError: always
+    """
+
+
+def panic(msg: str | None = None) -> t.NoReturn:
+    """panic with the given message
+
+    Raises:
+        PanicException: always
+    """
+```
+
 <h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
 
 ```python
@@ -1714,72 +1752,72 @@ class HttpStatus:
     # =========================================================================
     # fmt: off
     # 1xx: Informational
-    CONTINUE: t.ClassVar[HttpStatus]  # 100 ~ Continue
-    SWITCHING_PROTOCOLS: t.ClassVar[HttpStatus]  # 101 ~ Switching Protocols
-    PROCESSING: t.ClassVar[HttpStatus]  # 102 ~ Processing
-    EARLY_HINTS: t.ClassVar[HttpStatus]  # 103 ~ Early Hints
+    CONTINUE: t.Final[HttpStatus]  # 100 ~ Continue
+    SWITCHING_PROTOCOLS: t.Final[HttpStatus]  # 101 ~ Switching Protocols
+    PROCESSING: t.Final[HttpStatus]  # 102 ~ Processing
+    EARLY_HINTS: t.Final[HttpStatus]  # 103 ~ Early Hints
     # 2xx: Success
-    OK: t.ClassVar[HttpStatus]  # 200 ~ OK
-    CREATED: t.ClassVar[HttpStatus]  # 201 ~ Created
-    ACCEPTED: t.ClassVar[HttpStatus]  # 202 ~ Accepted
-    NON_AUTHORITATIVE_INFORMATION: t.ClassVar[HttpStatus]  # 203 ~ Non Authoritative Information
-    NO_CONTENT: t.ClassVar[HttpStatus]  # 204 ~ No Content
-    RESET_CONTENT: t.ClassVar[HttpStatus]  # 205 ~ Reset Content
-    PARTIAL_CONTENT: t.ClassVar[HttpStatus]  # 206 ~ Partial Content
-    MULTI_STATUS: t.ClassVar[HttpStatus]  # 207 ~ Multi-Status
-    ALREADY_REPORTED: t.ClassVar[HttpStatus]  # 208 ~ Already Reported
-    IM_USED: t.ClassVar[HttpStatus]  # 226 ~ IM Used
+    OK: t.Final[HttpStatus]  # 200 ~ OK
+    CREATED: t.Final[HttpStatus]  # 201 ~ Created
+    ACCEPTED: t.Final[HttpStatus]  # 202 ~ Accepted
+    NON_AUTHORITATIVE_INFORMATION: t.Final[HttpStatus]  # 203 ~ Non Authoritative Information
+    NO_CONTENT: t.Final[HttpStatus]  # 204 ~ No Content
+    RESET_CONTENT: t.Final[HttpStatus]  # 205 ~ Reset Content
+    PARTIAL_CONTENT: t.Final[HttpStatus]  # 206 ~ Partial Content
+    MULTI_STATUS: t.Final[HttpStatus]  # 207 ~ Multi-Status
+    ALREADY_REPORTED: t.Final[HttpStatus]  # 208 ~ Already Reported
+    IM_USED: t.Final[HttpStatus]  # 226 ~ IM Used
     # 3xx: Redirection
-    MULTIPLE_CHOICES: t.ClassVar[HttpStatus]  # 300 ~ Multiple Choices
-    MOVED_PERMANENTLY: t.ClassVar[HttpStatus]  # 301 ~ Moved Permanently
-    FOUND: t.ClassVar[HttpStatus]  # 302 ~ Found
-    SEE_OTHER: t.ClassVar[HttpStatus]  # 303 ~ See Other
-    NOT_MODIFIED: t.ClassVar[HttpStatus]  # 304 ~ Not Modified
-    USE_PROXY: t.ClassVar[HttpStatus]  # 305 ~ Use Proxy
-    TEMPORARY_REDIRECT: t.ClassVar[HttpStatus]  # 307 ~ Temporary Redirect
-    PERMANENT_REDIRECT: t.ClassVar[HttpStatus]  # 308 ~ Permanent Redirect
+    MULTIPLE_CHOICES: t.Final[HttpStatus]  # 300 ~ Multiple Choices
+    MOVED_PERMANENTLY: t.Final[HttpStatus]  # 301 ~ Moved Permanently
+    FOUND: t.Final[HttpStatus]  # 302 ~ Found
+    SEE_OTHER: t.Final[HttpStatus]  # 303 ~ See Other
+    NOT_MODIFIED: t.Final[HttpStatus]  # 304 ~ Not Modified
+    USE_PROXY: t.Final[HttpStatus]  # 305 ~ Use Proxy
+    TEMPORARY_REDIRECT: t.Final[HttpStatus]  # 307 ~ Temporary Redirect
+    PERMANENT_REDIRECT: t.Final[HttpStatus]  # 308 ~ Permanent Redirect
     # 4xx: Client Error
-    BAD_REQUEST: t.ClassVar[HttpStatus]  # 400 ~ Bad Request
-    UNAUTHORIZED: t.ClassVar[HttpStatus]  # 401 ~ Unauthorized
-    PAYMENT_REQUIRED: t.ClassVar[HttpStatus]  # 402 ~ Payment Required
-    FORBIDDEN: t.ClassVar[HttpStatus]  # 403 ~ Forbidden
-    NOT_FOUND: t.ClassVar[HttpStatus]  # 404 ~ Not Found
-    METHOD_NOT_ALLOWED: t.ClassVar[HttpStatus]  # 405 ~ Method Not Allowed
-    NOT_ACCEPTABLE: t.ClassVar[HttpStatus]  # 406 ~ Not Acceptable
-    PROXY_AUTHENTICATION_REQUIRED: t.ClassVar[HttpStatus]  # 407 ~ Proxy Authentication Required
-    REQUEST_TIMEOUT: t.ClassVar[HttpStatus]  # 408 ~ Request Timeout
-    CONFLICT: t.ClassVar[HttpStatus]  # 409 ~ Conflict
-    GONE: t.ClassVar[HttpStatus]  # 410 ~ Gone
-    LENGTH_REQUIRED: t.ClassVar[HttpStatus]  # 411 ~ Length Required
-    PRECONDITION_FAILED: t.ClassVar[HttpStatus]  # 412 ~ Precondition Failed
-    PAYLOAD_TOO_LARGE: t.ClassVar[HttpStatus]  # 413 ~ Payload Too Large
-    URI_TOO_LONG: t.ClassVar[HttpStatus]  # 414 ~ URI Too Long
-    UNSUPPORTED_MEDIA_TYPE: t.ClassVar[HttpStatus]  # 415 ~ Unsupported Media Type
-    RANGE_NOT_SATISFIABLE: t.ClassVar[HttpStatus]  # 416 ~ Range Not Satisfiable
-    EXPECTATION_FAILED: t.ClassVar[HttpStatus]  # 417 ~ Expectation Failed
-    IM_A_TEAPOT: t.ClassVar[HttpStatus]  # 418 ~ I'm a teapot
-    MISDIRECTED_REQUEST: t.ClassVar[HttpStatus]  # 421 ~ Misdirected Request
-    UNPROCESSABLE_ENTITY: t.ClassVar[HttpStatus]  # 422 ~ Unprocessable Entity
-    LOCKED: t.ClassVar[HttpStatus]  # 423 ~ Locked
-    FAILED_DEPENDENCY: t.ClassVar[HttpStatus]  # 424 ~ Failed Dependency
-    TOO_EARLY: t.ClassVar[HttpStatus]  # 425 ~ Too Early
-    UPGRADE_REQUIRED: t.ClassVar[HttpStatus]  # 426 ~ Upgrade Required
-    PRECONDITION_REQUIRED: t.ClassVar[HttpStatus]  # 428 ~ Precondition Required
-    TOO_MANY_REQUESTS: t.ClassVar[HttpStatus]  # 429 ~ Too Many Requests
-    REQUEST_HEADER_FIELDS_TOO_LARGE: t.ClassVar[HttpStatus]  # 431 ~ Request Header Fields Too Large
-    UNAVAILABLE_FOR_LEGAL_REASONS: t.ClassVar[HttpStatus]  # 451 ~ Unavailable For Legal Reasons
+    BAD_REQUEST: t.Final[HttpStatus]  # 400 ~ Bad Request
+    UNAUTHORIZED: t.Final[HttpStatus]  # 401 ~ Unauthorized
+    PAYMENT_REQUIRED: t.Final[HttpStatus]  # 402 ~ Payment Required
+    FORBIDDEN: t.Final[HttpStatus]  # 403 ~ Forbidden
+    NOT_FOUND: t.Final[HttpStatus]  # 404 ~ Not Found
+    METHOD_NOT_ALLOWED: t.Final[HttpStatus]  # 405 ~ Method Not Allowed
+    NOT_ACCEPTABLE: t.Final[HttpStatus]  # 406 ~ Not Acceptable
+    PROXY_AUTHENTICATION_REQUIRED: t.Final[HttpStatus]  # 407 ~ Proxy Authentication Required
+    REQUEST_TIMEOUT: t.Final[HttpStatus]  # 408 ~ Request Timeout
+    CONFLICT: t.Final[HttpStatus]  # 409 ~ Conflict
+    GONE: t.Final[HttpStatus]  # 410 ~ Gone
+    LENGTH_REQUIRED: t.Final[HttpStatus]  # 411 ~ Length Required
+    PRECONDITION_FAILED: t.Final[HttpStatus]  # 412 ~ Precondition Failed
+    PAYLOAD_TOO_LARGE: t.Final[HttpStatus]  # 413 ~ Payload Too Large
+    URI_TOO_LONG: t.Final[HttpStatus]  # 414 ~ URI Too Long
+    UNSUPPORTED_MEDIA_TYPE: t.Final[HttpStatus]  # 415 ~ Unsupported Media Type
+    RANGE_NOT_SATISFIABLE: t.Final[HttpStatus]  # 416 ~ Range Not Satisfiable
+    EXPECTATION_FAILED: t.Final[HttpStatus]  # 417 ~ Expectation Failed
+    IM_A_TEAPOT: t.Final[HttpStatus]  # 418 ~ I'm a teapot
+    MISDIRECTED_REQUEST: t.Final[HttpStatus]  # 421 ~ Misdirected Request
+    UNPROCESSABLE_ENTITY: t.Final[HttpStatus]  # 422 ~ Unprocessable Entity
+    LOCKED: t.Final[HttpStatus]  # 423 ~ Locked
+    FAILED_DEPENDENCY: t.Final[HttpStatus]  # 424 ~ Failed Dependency
+    TOO_EARLY: t.Final[HttpStatus]  # 425 ~ Too Early
+    UPGRADE_REQUIRED: t.Final[HttpStatus]  # 426 ~ Upgrade Required
+    PRECONDITION_REQUIRED: t.Final[HttpStatus]  # 428 ~ Precondition Required
+    TOO_MANY_REQUESTS: t.Final[HttpStatus]  # 429 ~ Too Many Requests
+    REQUEST_HEADER_FIELDS_TOO_LARGE: t.Final[HttpStatus]  # 431 ~ Request Header Fields Too Large
+    UNAVAILABLE_FOR_LEGAL_REASONS: t.Final[HttpStatus]  # 451 ~ Unavailable For Legal Reasons
     # 5xx: Server Error
-    INTERNAL_SERVER_ERROR: t.ClassVar[HttpStatus]  # 500 ~ Internal Server Error
-    NOT_IMPLEMENTED: t.ClassVar[HttpStatus]  # 501 ~ Not Implemented
-    BAD_GATEWAY: t.ClassVar[HttpStatus]  # 502 ~ Bad Gateway
-    SERVICE_UNAVAILABLE: t.ClassVar[HttpStatus]  # 503 ~ Service Unavailable
-    GATEWAY_TIMEOUT: t.ClassVar[HttpStatus]  # 504 ~ Gateway Timeout
-    HTTP_VERSION_NOT_SUPPORTED: t.ClassVar[HttpStatus]  # 505 ~ HTTP Version Not Supported
-    VARIANT_ALSO_NEGOTIATES: t.ClassVar[HttpStatus]  # 506 ~ Variant Also Negotiates
-    INSUFFICIENT_STORAGE: t.ClassVar[HttpStatus]  # 507 ~ Insufficient Storage
-    LOOP_DETECTED: t.ClassVar[HttpStatus]  # 508 ~ Loop Detected
-    NOT_EXTENDED: t.ClassVar[HttpStatus]  # 510 ~ Not Extended
-    NETWORK_AUTHENTICATION_REQUIRED: t.ClassVar[HttpStatus]  # 511 ~ Network Authentication Required
+    INTERNAL_SERVER_ERROR: t.Final[HttpStatus]  # 500 ~ Internal Server Error
+    NOT_IMPLEMENTED: t.Final[HttpStatus]  # 501 ~ Not Implemented
+    BAD_GATEWAY: t.Final[HttpStatus]  # 502 ~ Bad Gateway
+    SERVICE_UNAVAILABLE: t.Final[HttpStatus]  # 503 ~ Service Unavailable
+    GATEWAY_TIMEOUT: t.Final[HttpStatus]  # 504 ~ Gateway Timeout
+    HTTP_VERSION_NOT_SUPPORTED: t.Final[HttpStatus]  # 505 ~ HTTP Version Not Supported
+    VARIANT_ALSO_NEGOTIATES: t.Final[HttpStatus]  # 506 ~ Variant Also Negotiates
+    INSUFFICIENT_STORAGE: t.Final[HttpStatus]  # 507 ~ Insufficient Storage
+    LOOP_DETECTED: t.Final[HttpStatus]  # 508 ~ Loop Detected
+    NOT_EXTENDED: t.Final[HttpStatus]  # 510 ~ Not Extended
+    NETWORK_AUTHENTICATION_REQUIRED: t.Final[HttpStatus]  # 511 ~ Network Authentication Required
     # fmt: on
 ```
 
@@ -1946,9 +1984,10 @@ class Date(
     ToString,
     _Parse,
 ):
-    MIN: t.ClassVar[Date]
-    MAX: t.ClassVar[Date]
-    ZERO: t.ClassVar[Date]
+    MIN: t.Final[Date]
+    MAX: t.Final[Date]
+    ZERO: t.Final[Date]
+    __match_args__: t.Final[tuple[str, str, str]] = ("year", "month", "day")
 
     def __init__(self, year: int, month: int, day: int) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -2152,8 +2191,14 @@ class Time(
     ToPy[pydt.time],
     _Parse,
 ):
-    MIN: t.ClassVar[Time]
-    MAX: t.ClassVar[Time]
+    MIN: t.Final[Time]
+    MAX: t.Final[Time]
+    __match_args__: t.Final[tuple[str, str, str, str]] = (
+        "hour",
+        "minute",
+        "second",
+        "subsec_nanosecond",
+    )
 
     def __init__(
         self,
@@ -2378,9 +2423,18 @@ class DateTime(
     ToPy[pydt.datetime],
     _Parse,
 ):
-    MIN: t.ClassVar[DateTime]
-    MAX: t.ClassVar[DateTime]
-    ZERO: t.ClassVar[DateTime]
+    MIN: t.Final[DateTime]
+    MAX: t.Final[DateTime]
+    ZERO: t.Final[DateTime]
+    __match_args__: t.Final[tuple[str, str, str, str, str, str, str]] = (
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "subsec_nanosecond",
+    )
 
     def __init__(
         self,
@@ -2390,7 +2444,7 @@ class DateTime(
         hour: int = 0,
         minute: int = 0,
         second: int = 0,
-        nanosecond: int = 0,
+        subsec_nanosecond: int = 0,
     ) -> None: ...
     def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
@@ -2619,7 +2673,7 @@ class TimeZone(
     ToPy[pydt.tzinfo],
     _Parse,
 ):
-    UTC: t.ClassVar[TimeZone]
+    UTC: t.Final[TimeZone]
 
     def __init__(self, name: TimezoneName) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -2713,9 +2767,10 @@ class SignedDuration(
     ToPy[pydt.timedelta],
     _Parse,
 ):
-    MIN: t.ClassVar[SignedDuration]
-    MAX: t.ClassVar[SignedDuration]
-    ZERO: t.ClassVar[SignedDuration]
+    MIN: t.Final[SignedDuration]
+    MAX: t.Final[SignedDuration]
+    ZERO: t.Final[SignedDuration]
+    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
     def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
 
@@ -3065,9 +3120,10 @@ class Timestamp(
     A timestamp is always in the Unix timescale with a UTC offset of zero.
     """
 
-    MIN: t.ClassVar[Timestamp]
-    MAX: t.ClassVar[Timestamp]
-    UNIX_EPOCH: t.ClassVar[Timestamp]
+    MIN: t.Final[Timestamp]
+    MAX: t.Final[Timestamp]
+    UNIX_EPOCH: t.Final[Timestamp]
+    __match_args__: t.Final[tuple[str, str]] = ("second", "nanosecond")
 
     def __init__(self, second: int = 0, nanosecond: int = 0) -> None: ...
 
@@ -3667,9 +3723,10 @@ class ISOWeekDate(
     FromStr,
     _Parse,
 ):
-    MIN: t.ClassVar[ISOWeekDate]
-    MAX: t.ClassVar[ISOWeekDate]
-    ZERO: t.ClassVar[ISOWeekDate]
+    MIN: t.Final[ISOWeekDate]
+    MAX: t.Final[ISOWeekDate]
+    ZERO: t.Final[ISOWeekDate]
+    __match_args__: t.Final[tuple[str, str, str]] = ("year", "week", "weekday")
 
     def __init__(self, year: int, week: int, weekday: Weekday) -> None: ...
 
@@ -3731,10 +3788,10 @@ class Offset(
     FromStr,
     _Parse,
 ):
-    MIN: t.ClassVar[Offset]
-    MAX: t.ClassVar[Offset]
-    UTC: t.ClassVar[Offset]
-    ZERO: t.ClassVar[Offset]
+    MIN: t.Final[Offset]
+    MAX: t.Final[Offset]
+    UTC: t.Final[Offset]
+    ZERO: t.Final[Offset]
 
     def __init__(
         self,
@@ -5760,11 +5817,9 @@ FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
 FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
     "default",
     "abbreviated",
-    "abbreviated_lowercase",
     "abbreviated-lowercase",
     "full",
     "full-lowercase",
-    "full_lowercase",
 ]
 
 
@@ -5801,6 +5856,14 @@ class SizeFormatter:
 
     def __call__(self, n: int) -> str:
         """Return human-readable string representation of bytes-size."""
+
+    @property
+    def base(self) -> FormatSizeBase:
+        """Return base used by formatter."""
+
+    @property
+    def style(self) -> FormatSizeStyle:
+        """Return style used by formatter."""
 
 
 @t.final
@@ -6062,13 +6125,14 @@ from ry.ryo3._bytes import Bytes
 # =============================================================================
 @t.final
 class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
-    ZERO: t.ClassVar[Duration]
-    MIN: t.ClassVar[Duration]
-    MAX: t.ClassVar[Duration]
-    NANOSECOND: t.ClassVar[Duration]
-    MICROSECOND: t.ClassVar[Duration]
-    MILLISECOND: t.ClassVar[Duration]
-    SECOND: t.ClassVar[Duration]
+    ZERO: t.Final[Duration]
+    MIN: t.Final[Duration]
+    MAX: t.Final[Duration]
+    NANOSECOND: t.Final[Duration]
+    MICROSECOND: t.Final[Duration]
+    MILLISECOND: t.Final[Duration]
+    SECOND: t.Final[Duration]
+    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
     def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -7965,13 +8029,6 @@ def template() -> str | None: ...
 def template_dir() -> str | None: ...
 def video() -> str | None: ...
 def video_dir() -> str | None: ...
-```
-
-<h2 id="ry.ryo3.errors"><code>ry.ryo3.errors</code></h2>
-
-```python
-class FeatureNotEnabledError(RuntimeError):
-    """Raised when a feature is not enabled in the current build."""
 ```
 
 <h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>

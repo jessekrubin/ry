@@ -66,6 +66,12 @@ impl RyOffset {
         )
     }
 
+    // TODO: figure this out
+    // #[classattr]
+    // fn __match_args__() -> (&'static str, &'static str, &'static str) {
+    //     ("hours", "minutes", "seconds")
+    // }
+
     #[expect(non_snake_case)]
     #[classattr]
     fn MIN() -> Self {

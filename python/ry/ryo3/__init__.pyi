@@ -32,6 +32,11 @@ from ry.ryo3._bzip2 import bzip2 as bzip2
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
 from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
 from ry.ryo3._cookie import Cookie as Cookie
+from ry.ryo3._exceptions import FeatureNotEnabledError as FeatureNotEnabledError
+from ry.ryo3._exceptions import PanicError as PanicError
+from ry.ryo3._exceptions import UnreachableError as UnreachableError
+from ry.ryo3._exceptions import panic as panic
+from ry.ryo3._exceptions import unreachable as unreachable
 from ry.ryo3._flate2 import gunzip as gunzip
 from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
@@ -217,7 +222,7 @@ from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
+from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated, ty:deprecated]
 from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
@@ -260,7 +265,6 @@ from ry.ryo3._zstd import zstd_compress as zstd_compress
 from ry.ryo3._zstd import zstd_decode as zstd_decode
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
-from ry.ryo3.errors import FeatureNotEnabledError as FeatureNotEnabledError
 from ry.ryo3.JSON import stringify as stringify
 from ry.ryo3.JSON import stringify_unsafe as stringify_unsafe
 from ry.ryo3.orjson import orjson_default as orjson_default

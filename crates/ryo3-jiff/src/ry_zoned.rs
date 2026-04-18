@@ -80,6 +80,27 @@ impl RyZoned {
         }
     }
 
+    #[classattr]
+    fn __match_args__() -> (
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+    ) {
+        (
+            "year",
+            "month",
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "subsec_nanosecond",
+        )
+    }
+
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,

@@ -49,6 +49,20 @@ def test_duration_new(duration_args: tuple[int, int]) -> None:
         assert isinstance(dur, ry.Duration)
 
 
+def test_duration_match_args() -> None:
+    assert hasattr(ry.Duration, "__match_args__"), "Duration missing __match_args__"
+    assert ry.Duration.__match_args__ == ("secs", "nanos"), (
+        f"Duration.__match_args__ = {ry.Duration.__match_args__}, "
+        f"expected ('secs', 'nanos')"
+    )
+    match ry.Duration(10, 500_000_000):
+        case ry.Duration(secs, nanos):
+            assert secs == 10
+            assert nanos == 500_000_000
+        case _:
+            ry.unreachable()
+
+
 @given(st_duration_args())
 def test_duration_constructor_safe(args: tuple[int, int]) -> None:
     secs, nanos = args

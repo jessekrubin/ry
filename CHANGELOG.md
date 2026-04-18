@@ -2,19 +2,34 @@
 
 ## v0.0.89 [unreleased]
 
+- `ryo3-core`
+  - added `UnreachableError` and `PanicException` exception types
+  - added `unreachable()` and `panic()` funks (useful for testing)
+- `ryo3-jiff`
+  - pattern matching support via `__match_args__` for:
+    - `ry.Date`: `(year, month, day)`
+    - `ry.DateTime`:
+      `(year, month, day, hour, minute, second, subsec_nanosecond)`
+    - `ry.ISOWeekDate`: `(year, week, weekday)`
+    - `ry.Time`: `(hour, minute, second, subsec_nanosecond)`
+    - `ry.SignedDuration`: `(secs, nanos)`
+    - `ry.Timestamp`: `(secs, nanos)`
+    - `ry.ZonedDateTime`:
+      `(year, month, day, hour, minute, second, subsec_nanosecond)`
+  - remove `std::sync::Arc` wrapper around `ry.TimeZone`
+  - pydantic support for `ry.TimeZone`
+- `ryo3-std`
+  - pattern matching support for `ry.Duration` → `(secs, nanos)`
+- `ryo3-size`
+  - random updates n shit (use `PyAsciiString`, make sure `repr` for formatter
+    evals to same thing still dont love the size wrapper lib)
+  - formatter improvements
 - `ryo3-uuid`
   - use readable-buffer and small adjustments to speed up extraction
   - use `PyAsciiString` for `__repr__` and `__str__`
 - `ryo3-ulid`
   - macros for errors
   - use `PyAsciiString` for `__repr__` and `__str__`
-- `ryo3-size`
-  - random updates n shit (use `PyAsciiString`, make sure `repr` for formatter
-    evals to same thing still dont love the size wrapper lib)
-- `ryo3-jiff`
-  - remove `std::sync::Arc` wrapper around `ry.TimeZone`; idk when/where/why i
-    ever added it
-  - pydantic support for `ry.TimeZone`:wq
 
 ---
 
