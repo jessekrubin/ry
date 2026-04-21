@@ -2,6 +2,10 @@
 
 ## v0.0.89 [unreleased]
 
+- rust-deps
+  - `tokio` -> `1.52.1`
+  - `mimalloc` -> `0.1.49` (changes underlying mimalloc to `v3` AFAICT)
+  - `uuid` -> `1.23.1`
 - `ryo3-core`
   - added `UnreachableError` and `PanicException` exception types
   - added `unreachable()` and `panic()` funks (useful for testing)
