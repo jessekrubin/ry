@@ -1,0 +1,64 @@
+# -----------------------------------------------------------------------------
+# PREK CONFIG
+# -----------------------------------------------------------------------------
+# REFS:
+# - DOCS: https://prek.j178.dev/
+# - REPO: https://github.com/j178/prek
+# - SCHEMA: https://raw.githubusercontent.com/j178/prek/refs/heads/master/prek.schema.json
+# -----------------------------------------------------------------------------
+# OLD CONFIG (`.pre-commit-config.yaml`):
+#
+# ```yaml
+# repos:
+#   - repo: https://github.com/pre-commit/pre-commit-hooks
+#     rev: v6.0.0
+#     hooks:
+#       - id: check-yaml
+#       - id: end-of-file-fixer
+#       - id: trailing-whitespace
+#   - repo: https://github.com/charliermarsh/ruff-pre-commit
+#     rev: v0.15.7
+#     hooks:
+#       - id: ruff-check
+#       - id: ruff-format
+# ```
+# -----------------------------------------------------------------------------
+
+"$schema" = "https://raw.githubusercontent.com/j178/prek/refs/heads/master/prek.schema.json"
+fail_fast = true
+
+# -----------------------------------------------------------------------------
+# BUILTIN ~ BUILTIN ~ BUILTIN ~ BUILTIN ~ BUILTIN ~ BUILTIN ~ BUILTIN ~ BUILTIN
+# -----------------------------------------------------------------------------
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace" },
+  { id = "end-of-file-fixer" },
+  { id = "check-toml" },
+  { id = "check-yaml" },
+]
+
+# -----------------------------------------------------------------------------
+# RUFF ~ RUFF ~ RUFF ~ RUFF ~ RUFF ~ RUFF ~ RUFF ~ RUFF ~ RUFF ~ RUFF ~ RUFF
+# -----------------------------------------------------------------------------
+[[repos]]
+repo = "https://github.com/charliermarsh/ruff-pre-commit"
+rev = "v0.15.11"
+hooks = [{ id = "ruff-format" }, { id = "ruff-check" }]
+
+
+# -----------------------------------------------------------------------------
+# LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL
+# -----------------------------------------------------------------------------
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "cargo-fmt"
+name = "cargo fmt"
+entry = "cargo fmt --all -- --check"
+language = "system"
+types = ["rust"]
+pass_filenames = false
+priority = 0

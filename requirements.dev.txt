@@ -4,7 +4,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.13.0
     # via -r requirements.dev.in
-click==8.3.1
+click==8.3.2
     # via uvicorn
 colorama==0.4.6
     # via
@@ -14,17 +14,17 @@ coverage==7.13.5
     # via pytest-cov
 h11==0.16.0
     # via uvicorn
-hypothesis==6.151.10
+hypothesis==6.152.1
     # via -r requirements.dev.in
-idna==3.11
+idna==3.12
     # via anyio
 iniconfig==2.3.0
     # via pytest
-maturin==1.12.6
+maturin==1.13.1
     # via -r requirements.dev.in
 orjson==3.11.4
     # via -r requirements.dev.in
-packaging==26.0
+packaging==26.1
     # via pytest
 pluggy==1.6.0
     # via
@@ -32,13 +32,13 @@ pluggy==1.6.0
     #   pytest-cov
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pydantic==2.12.5
+pydantic==2.13.3
     # via -r requirements.dev.in
-pydantic-core==2.41.5
+pydantic-core==2.46.3
     # via pydantic
 pygments==2.20.0
     # via pytest
-pytest==9.0.2
+pytest==9.0.3
     # via
     #   -r requirements.dev.in
     #   pytest-asyncio
@@ -50,20 +50,22 @@ pytest-benchmark==5.2.3
     # via -r requirements.dev.in
 pytest-cov==7.1.0
     # via -r requirements.dev.in
-ruff==0.15.8
+ruff==0.15.11
     # via -r requirements.dev.in
 sortedcontainers==2.4.0
     # via hypothesis
 typing-extensions==4.15.0
     # via
+    #   anyio
     #   pydantic
     #   pydantic-core
+    #   pytest-asyncio
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-tzdata==2025.3
+tzdata==2026.1
     # via -r requirements.dev.in
-uvicorn==0.42.0
+uvicorn==0.45.0
     # via -r requirements.dev.in
 websockets==16.0
     # via -r requirements.dev.in
