@@ -2,6 +2,8 @@
 
 ## v0.0.89 [unreleased]
 
+- repo
+  - switch to `prek.toml` from `.pre-commit.yaml`
 - rust-deps
   - `tokio` -> `1.52.1`
   - `mimalloc` -> `0.1.49` (changes underlying mimalloc to `v3` AFAICT)
