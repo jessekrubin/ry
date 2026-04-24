@@ -37,21 +37,21 @@ _ReadyState: t.TypeAlias = t.Literal[
 @t.final
 class WsMessage(Buffer):
     @t.overload
-    def __init__(self, kind: t.Literal["text"], data: str) -> None: ...
+    def __new__(cls, kind: t.Literal["text"], data: str) -> t.Self: ...
     @t.overload
-    def __init__(self, kind: t.Literal["binary"], data: Buffer) -> None: ...
+    def __new__(cls, kind: t.Literal["binary"], data: Buffer) -> t.Self: ...
     @t.overload
-    def __init__(
-        self, kind: t.Literal["ping", "pong"], data: Buffer | None = None
-    ) -> None: ...
+    def __new__(
+        cls, kind: t.Literal["ping", "pong"], data: Buffer | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __init__(
-        self,
+    def __new__(
+        cls,
         kind: t.Literal["close"],
         data: None = None,
         code: int = 1_000,
         reason: str | Buffer = "",
-    ) -> None: ...
+    ) -> t.Self: ...
     # -------------------------------------------------------------------------
     # "CLASSMETHODS" (STATIC FACTORY FNS)
     # -------------------------------------------------------------------------
@@ -139,8 +139,8 @@ class WsMessage(Buffer):
 
 @t.final
 class WebSocket:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         uri: URL | str,
         *,
         headers: Headers | dict[str, str] | None = None,
@@ -149,7 +149,7 @@ class WebSocket:
         flush_threshold: int = 8_192,
         close_timeout: _TimeoutLike = 10.0,
         recv_timeout: _TimeoutLike = 10.0,
-    ) -> None: ...
+    ) -> t.Self: ...
     def config(self) -> WebSocketConfig:
         """Return the `WebSocketConfig` as a dict"""
     @property

@@ -13,9 +13,9 @@ else:
 
 @t.final
 class URL(FromStr, ToString, _Parse):
-    def __init__(
-        self, url: str | bytes | URL, *, params: dict[str, str] | None = None
-    ) -> None: ...
+    def __new__(
+        cls, url: str | bytes | URL, *, params: dict[str, str] | None = None
+    ) -> t.Self: ...
     # =========================================================================
     # CLASSMETHODS
     # =========================================================================

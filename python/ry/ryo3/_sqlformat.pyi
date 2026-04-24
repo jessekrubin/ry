@@ -16,7 +16,7 @@ SqlfmtParamsLike: t.TypeAlias = (
 
 @t.final
 class SqlfmtQueryParams:
-    def __init__(self, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]) -> None: ...
+    def __new__(cls, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]) -> t.Self: ...
     def __len__(self) -> int: ...
 
 def sqlfmt_params(
@@ -52,8 +52,8 @@ class _SqlFormatterDict(t.TypedDict):
 
 @t.final
 class SqlFormatter:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         indent: int | t.Literal["tabs", "\t"] = 2,
         uppercase: bool | None = None,
@@ -65,7 +65,7 @@ class SqlFormatter:
         max_inline_top_level: int | None = None,
         joins_as_top_level: bool = False,
         dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
-    ) -> None: ...
+    ) -> t.Self: ...
     def to_dict(self) -> _SqlFormatterDict: ...
     def fmt(
         self,

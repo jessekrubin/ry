@@ -12,7 +12,7 @@ from ry.protocols import FromStr
 
 @t.final
 class ULID(FromStr):
-    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
+    def __new__(cls, value: builtins.bytes | str | None = None) -> t.Self: ...
 
     # ----------------
     # INSTANCE METHODS

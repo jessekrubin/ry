@@ -7,15 +7,15 @@ from os import PathLike
 class Glob:
     """globset::Glob wrapper"""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         pattern: str,
         /,
         *,
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def regex(self) -> str: ...
     def is_match(self, path: str | PathLike[str]) -> bool: ...
@@ -29,15 +29,15 @@ class Glob:
 class GlobSet:
     """globset::GlobSet wrapper"""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         patterns: list[str],
         /,
         *,
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
-    ) -> None: ...
+    ) -> t.Self: ...
     def is_empty(self) -> bool: ...
     def is_match(self, path: str) -> bool: ...
     def is_match_str(self, path: str) -> bool: ...
@@ -56,15 +56,15 @@ class Globster:
 
     """
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         patterns: list[str],
         /,
         *,
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
-    ) -> None: ...
+    ) -> t.Self: ...
     def is_empty(self) -> bool: ...
     def is_match(self, path: str | PathLike[str]) -> bool: ...
     def is_match_str(self, path: str) -> bool: ...

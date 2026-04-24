@@ -8,8 +8,8 @@ import typing as t
 
 @t.final
 class Regex:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         pattern: str,
         *,
         case_insensitive: bool = False,
@@ -22,7 +22,7 @@ class Regex:
         size_limit: int | None = None,
         swap_greed: bool = False,
         unicode: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def is_match(self, haystack: str) -> bool: ...
     def test(self, haystack: str) -> bool: ...
     def find(self, haystack: str) -> str | None: ...

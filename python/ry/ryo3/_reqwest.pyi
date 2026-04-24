@@ -94,8 +94,8 @@ class ClientConfig(t.TypedDict):
 
 @t.final
 class HttpClient:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
@@ -145,7 +145,7 @@ class HttpClient:
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
         _tls_cached_native_certs: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
@@ -207,8 +207,8 @@ class HttpClient:
 @t.final
 class Client:
     """experimental client using the `pyo3/experimental-async` feature"""
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
@@ -258,7 +258,7 @@ class Client:
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
         _tls_cached_native_certs: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
@@ -317,8 +317,8 @@ class Client:
 
 @t.final
 class BlockingClient:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
@@ -368,7 +368,7 @@ class BlockingClient:
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
         _tls_cached_native_certs: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def config(self) -> ClientConfig: ...
     def get(
         self,
@@ -420,7 +420,7 @@ class BlockingClient:
 
 @t.final
 class ReqwestError(Exception):
-    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
+    def __new__(cls, *args: t.Any, **kwargs: t.Any) -> t.Self: ...
     def __dbg__(self) -> str: ...
     def is_body(self) -> bool: ...
     def is_builder(self) -> bool: ...
@@ -438,7 +438,7 @@ class ReqwestError(Exception):
 
 @t.final
 class Response:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
     async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
@@ -500,7 +500,7 @@ class Response:
 @t.final
 class AsyncResponse:
     """'experimental-async' response type"""
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
     async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
@@ -561,7 +561,7 @@ class AsyncResponse:
 
 @t.final
 class BlockingResponse:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
     def text(self, *, encoding: Encoding = "utf-8") -> str: ...
@@ -689,7 +689,7 @@ class Certificate:
 
 @t.final
 class CertificateRevocationList:
-    def __init__(self, pem: Buffer) -> None: ...
+    def __new__(cls, pem: Buffer) -> t.Self: ...
     def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
@@ -701,7 +701,7 @@ class CertificateRevocationList:
 
 @t.final
 class Identity:
-    def __init__(self, pem: Buffer) -> None: ...
+    def __new__(cls, pem: Buffer) -> t.Self: ...
     def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
@@ -716,15 +716,15 @@ class ProxyKwargs(t.TypedDict, total=False):
 
 @t.final
 class Proxy:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         url: URL | str,
         ptype: t.Literal["http", "https", "all"] = "http",
         *,
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -> None: ...
+    ) -> t.Self: ...
     @staticmethod
     def all(
         url: URL | str,

@@ -102,12 +102,12 @@ _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         headers: Mapping[_HeaderName, _VT] | t.Self | None = None,
         /,
         **kwargs: _VT,
-    ) -> None: ...
+    ) -> t.Self: ...
 
     # =========================================================================
     # STRING
@@ -156,7 +156,7 @@ class Headers:
 
 @t.final
 class HttpStatus:
-    def __init__(self, code: int) -> None: ...
+    def __new__(cls, code: int) -> t.Self: ...
     def __int__(self) -> int: ...
     def __bool__(self) -> bool: ...
     def __hash__(self) -> int: ...

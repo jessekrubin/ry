@@ -1,5 +1,5 @@
 import sys
-from typing import overload
+from typing import Self, overload
 
 import typing_extensions
 
@@ -19,7 +19,7 @@ class Bytes(Buffer):
     Many methods from the Python `bytes` class are implemented on this,
     """
 
-    def __init__(self, buf: Buffer = b"") -> None:
+    def __new__(cls, buf: Buffer = b"") -> Self:
         """Construct a new Bytes object.
 
         This will be a zero-copy view on the Python byte slice.

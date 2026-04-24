@@ -8,8 +8,8 @@ _SameSiteKw: t.TypeAlias = t.Literal["Lax", "lax", "Strict", "strict", "None", "
 
 @t.final
 class Cookie(FromStr, _Parse):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         name: str,
         value: str,
         *,
@@ -23,7 +23,7 @@ class Cookie(FromStr, _Parse):
         removal: bool = False,
         same_site: _SameSiteKw | None = None,
         secure: bool | None = None,
-    ) -> None:
+    ) -> t.Self:
         """Create a new cookie with the given name and value, and optional attributes
 
         Args:

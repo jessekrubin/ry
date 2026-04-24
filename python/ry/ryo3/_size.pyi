@@ -31,11 +31,11 @@ def parse_size(s: str) -> int:
 class SizeFormatter:
     """Human-readable bytes-size formatter."""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         base: FormatSizeBase = 2,
         style: FormatSizeStyle = "default",
-    ) -> None:
+    ) -> t.Self:
         """Initialize human-readable bytes-size formatter."""
 
     def format(self, n: int) -> str:
@@ -55,7 +55,7 @@ class SizeFormatter:
 class Size(FromStr, _Parse):
     """Bytes-size object."""
 
-    def __init__(self, size: int) -> None: ...
+    def __new__(cls, size: int) -> t.Self: ...
     @property
     def bytes(self) -> int: ...
     def format(

@@ -27,8 +27,8 @@ class UUID(FromStr):
     NAMESPACE_OID: UUID
     NAMESPACE_X500: UUID
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         hex: str | None = None,  # noqa: A002
         bytes: builtins.bytes | None = None,  # noqa: A002
         bytes_le: builtins.bytes | None = None,
@@ -37,7 +37,7 @@ class UUID(FromStr):
         version: builtins.int | None = None,
         *,
         is_safe: SafeUUID = ...,
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def is_nil(self) -> bool: ...
     @property
