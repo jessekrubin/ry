@@ -50,8 +50,8 @@ class WsMessage(Buffer):
         kind: t.Literal["close"],
         data: None = None,
         *,
-        code: int = 1_000,
-        reason: str | Buffer = "",
+        code: int | None = None,  # default: 1000
+        reason: str | Buffer | None = None,  # default: ""
     ) -> t.Self: ...
     # -------------------------------------------------------------------------
     # "CLASSMETHODS" (STATIC FACTORY FNS)

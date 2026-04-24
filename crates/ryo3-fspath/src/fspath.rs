@@ -62,12 +62,17 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 #[pymethods]
 impl PyFsPath {
     #[new]
-    #[pyo3(signature = (p = None))]
-    fn py_new(p: Option<PathBuf>) -> Self {
-        match p {
-            Some(p) => Self::from(p),
-            None => Self::from("."),
+    #[pyo3(signature = (*args))]
+    fn py_new(args: &Bound<'_, PyTuple>) -> PyResult<Self> {
+        if args.is_empty() {
+            return Ok(Self::from("."));
         }
+        let mut path = PathBuf::new();
+        for arg in args.iter() {
+            let segment: PathBuf = arg.extract()?;
+            path = path.join(segment);
+        }
+        Ok(Self::from(path))
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -318,10 +323,14 @@ impl PyFsPath {
         self.path().as_posix_str()
     }
 
-    // TODO: allow *args for joinpath
-    fn joinpath(&self, other: PathLike) -> Self {
-        let p = self.path().join(other.as_ref());
-        Self::from(p)
+    #[pyo3(signature = (*args))]
+    fn joinpath(&self, args: &Bound<'_, PyTuple>) -> PyResult<Self> {
+        let mut path = self.path().to_path_buf();
+        for arg in args.iter() {
+            let segment: PathBuf = arg.extract()?;
+            path = path.join(segment);
+        }
+        Ok(Self::from(path))
     }
 
     fn read(&self, py: Python<'_>) -> PyResult<RyBytes> {

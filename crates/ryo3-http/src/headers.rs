@@ -120,7 +120,7 @@ impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
 #[pymethods]
 impl PyHeaders {
     #[new]
-    #[pyo3(signature = (headers = None, **kwargs))]
+    #[pyo3(signature = (headers = None, /, **kwargs))]
     fn py_new(headers: Option<PyHeadersLike>, kwargs: Option<PyHeadersLike>) -> Self {
         match (headers, kwargs) {
             (Some(headers), Some(kwargs)) => {

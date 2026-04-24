@@ -13,6 +13,9 @@
 - `ryo3-core`
   - added `UnreachableError` and `PanicException` exception types
   - added `unreachable()` and `panic()` funks (useful for testing)
+- `ryo3-fspath`
+  - constructor takes `*args` now like `pathlib.Path`
+  - impl joinpath with `*args`
 - `ryo3-jiff`
   - pattern matching support via `__match_args__` for:
     - `ry.Date`: `(year, month, day)`

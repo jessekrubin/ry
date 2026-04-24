@@ -105,6 +105,7 @@ class Headers:
     def __new__(
         cls,
         headers: Mapping[_HeaderName, _VT] | t.Self | None = None,
+        /,
         **kwargs: _VT,
     ) -> t.Self: ...
 

@@ -484,7 +484,8 @@ class Ipv4Addr(
     def __new__(cls, a: int, b: int, c: int, d: int) -> t.Self: ...
     @t.overload
     def __new__(
-        cls, iplike: int | str | bytes | Ipv4Addr | ipaddress.IPv4Address
+        cls,
+        iplike: int | str | bytes | Ipv4Addr | ipaddress.IPv4Address,
     ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
@@ -568,9 +569,7 @@ class Ipv6Addr(
     UNSPECIFIED: Ipv6Addr
 
     @t.overload
-    def __new__(
-        cls, a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int
-    ) -> t.Self: ...
+    def __new__(cls, *args: int) -> t.Self: ...
     @t.overload
     def __new__(
         cls, iplike: int | str | bytes | Ipv6Addr | ipaddress.IPv6Address
@@ -741,6 +740,7 @@ class SocketAddrV6(
         cls,
         ip: IpAddr | Ipv6Addr | ipaddress.IPv4Address | ipaddress.IPv6Address,
         port: int,
+        *,
         flowinfo: int = 0,
         scope_id: int = 0,
     ) -> t.Self: ...
@@ -792,8 +792,8 @@ class SocketAddr(
         cls,
         ip: IpAddr | Ipv6Addr | ipaddress.IPv6Address,
         port: int,
-        flowinfo: int = 0,
-        scope_id: int = 0,
+        flowinfo: int | None = None,
+        scope_id: int | None = None,
     ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...

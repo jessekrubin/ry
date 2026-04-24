@@ -79,7 +79,8 @@ impl JiterParseOptions {
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-    )
+    ),
+    text_signature = "(data, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
 )]
 pub fn parse_json<'py>(
     py: Python<'py>,
@@ -123,7 +124,8 @@ pub fn parse_json<'py>(
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
-    )
+    ),
+    text_signature = "(data, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
 )]
 pub fn parse_jsonl<'py>(
     py: Python<'py>,
@@ -162,7 +164,8 @@ pub fn parse_jsonl<'py>(
 macro_rules! py_parse_fn {
     ($name:ident) => {
         #[pyfunction(
-            signature = (data, /, *, allow_inf_nan = false, cache_mode = StringCacheMode::All, partial_mode = PartialMode::Off, catch_duplicate_keys = false)
+            signature = (data, /, *, allow_inf_nan = false, cache_mode = StringCacheMode::All, partial_mode = PartialMode::Off, catch_duplicate_keys = false),
+            text_signature = "(data, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
         )]
         pub fn $name<'py>(
             py: Python<'py>,
@@ -196,7 +199,8 @@ py_parse_fn!(loads);
         partial_mode = PartialMode::Off,
         catch_duplicate_keys = false,
         lines = false
-    )
+    ),
+    text_signature = "(p, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False, lines=False)"
 )]
 pub fn read_json(
     py: Python<'_>,
