@@ -16,7 +16,9 @@ SqlfmtParamsLike: t.TypeAlias = (
 
 @t.final
 class SqlfmtQueryParams:
-    def __new__(cls, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]) -> t.Self: ...
+    def __new__(
+        cls, params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | None = None
+    ) -> t.Self: ...
     def __len__(self) -> int: ...
 
 def sqlfmt_params(

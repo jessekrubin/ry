@@ -824,7 +824,7 @@ class TimeZone(
 ):
     UTC: t.Final[TimeZone]
 
-    def __new__(cls, name: TimezoneName) -> t.Self: ...
+    def __new__(cls, time_zone_name: TimezoneName) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Self: ...
 
@@ -1572,6 +1572,15 @@ class ZonedDateTime(
     _Parse,
     Strftime,
 ):
+    __match_args__: t.Final[tuple[str, ...]] = (
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "subsec_nanosecond",
+    )
     def __new__(
         cls,
         year: int,

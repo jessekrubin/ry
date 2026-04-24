@@ -1,19 +1,19 @@
 //! python `tokio::fs` module
 use std::path::PathBuf;
 
+pub use async_read_dir::PyAsyncReadDir;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
-pub use read_dir::PyAsyncReadDir;
 use ryo3_bytes::PyBytes;
 use ryo3_core::types::PyOpenMode;
 use ryo3_std::fs::PyMetadata;
 use tracing::warn;
+mod async_file;
 mod async_file_read_stream;
-mod file;
+pub use async_file::PyAsyncFile;
 pub use async_file_read_stream::PyAsyncFileReadStream;
-pub use file::PyAsyncFile;
-mod read_dir;
+mod async_read_dir;
 #[cfg(not(feature = "experimental-async"))]
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]

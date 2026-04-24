@@ -630,7 +630,7 @@ class IpAddr(
 
     def __new__(
         cls,
-        iplike: int
+        ob: int
         | str
         | bytes
         | Ipv4Addr
@@ -741,6 +741,8 @@ class SocketAddrV6(
         cls,
         ip: IpAddr | Ipv6Addr | ipaddress.IPv4Address | ipaddress.IPv6Address,
         port: int,
+        flowinfo: int = 0,
+        scope_id: int = 0,
     ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
@@ -779,14 +781,19 @@ class SocketAddr(
     ToString,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
+    @t.overload
     def __new__(
         cls,
-        ip: IpAddr
-        | Ipv4Addr
-        | Ipv6Addr
-        | ipaddress.IPv4Address
-        | ipaddress.IPv6Address,
+        ip: IpAddr | Ipv4Addr | ipaddress.IPv4Address,
         port: int,
+    ) -> t.Self: ...
+    @t.overload
+    def __new__(
+        cls,
+        ip: IpAddr | Ipv6Addr | ipaddress.IPv6Address,
+        port: int,
+        flowinfo: int = 0,
+        scope_id: int = 0,
     ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...

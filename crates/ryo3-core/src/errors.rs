@@ -24,7 +24,7 @@ create_exception!(
     "unreachable code path reached"
 );
 
-#[pyfunction(name = "unreachable")]
+#[pyfunction(name = "unreachable", signature = (msg = None))]
 fn py_unreachable(msg: Option<PyBackedStr>) -> PyResult<()> {
     if let Some(msg) = msg {
         Err(UnreachableError::new_err(msg))
@@ -33,7 +33,7 @@ fn py_unreachable(msg: Option<PyBackedStr>) -> PyResult<()> {
     }
 }
 
-#[pyfunction(name = "panic")]
+#[pyfunction(name = "panic", signature = (msg = None))]
 fn py_panic(msg: Option<PyBackedStr>) -> PyResult<()> {
     if let Some(msg) = msg {
         Err(PanicError::new_err(msg))

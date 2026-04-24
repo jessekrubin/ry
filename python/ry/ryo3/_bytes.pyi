@@ -1,7 +1,5 @@
 import sys
-from typing import Self, overload
-
-import typing_extensions
+import typing as t
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
@@ -19,7 +17,7 @@ class Bytes(Buffer):
     Many methods from the Python `bytes` class are implemented on this,
     """
 
-    def __new__(cls, buf: Buffer = b"") -> Self:
+    def __new__(cls, buf: Buffer = b"") -> t.Self:
         """Construct a new Bytes object.
 
         This will be a zero-copy view on the Python byte slice.
@@ -29,9 +27,9 @@ class Bytes(Buffer):
     def __buffer__(self, flags: int) -> memoryview: ...
     def __contains__(self, other: Buffer) -> bool: ...
     def __eq__(self, other: object) -> bool: ...
-    @overload
+    @t.overload
     def __getitem__(self, other: int) -> int: ...
-    @overload
+    @t.overload
     def __getitem__(self, other: slice) -> Bytes: ...
     def __mul__(self, other: int) -> Bytes: ...
     def __rmul__(self, other: int) -> Bytes: ...
@@ -184,6 +182,4 @@ class Bytes(Buffer):
         their corresponding lowercase counterpart and vice versa.
         """
 
-ReadableBuffer: typing_extensions.TypeAlias = (
-    Buffer | bytes | bytearray | memoryview | Bytes
-)
+ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes

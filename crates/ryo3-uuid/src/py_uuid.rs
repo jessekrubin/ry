@@ -75,7 +75,7 @@ impl PyUuid {
             bytes_le = None,
             fields = None,
             int = None,
-            version = None
+            version = None,
         )
     )]
     fn py_new(

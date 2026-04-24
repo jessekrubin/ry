@@ -2,6 +2,8 @@
 
 ## v0.0.89 [unreleased]
 
+- tests
+  - tests for `ry.panic()` and `ry.unreachable()`
 - repo
   - switch to `prek.toml` from `.pre-commit.yaml`
 - rust-deps

@@ -51,6 +51,12 @@ class SizeFormatter:
     def style(self) -> FormatSizeStyle:
         """Return style used by formatter."""
 
+    def with_base(self, base: FormatSizeBase) -> SizeFormatter:
+        """Return new `SizeFormatter` with specified base."""
+
+    def with_style(self, style: FormatSizeStyle) -> SizeFormatter:
+        """Return new `SizeFormatter` with specified style."""
+
 @t.final
 class Size(FromStr, _Parse):
     """Bytes-size object."""

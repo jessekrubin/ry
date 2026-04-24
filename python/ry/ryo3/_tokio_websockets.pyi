@@ -17,7 +17,7 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import Buffer as Buffer
 
-_TimeoutLike: t.TypeAlias = Duration | pydt.timedelta | float | None
+_TimeoutLike: t.TypeAlias = Duration | pydt.timedelta | float
 
 class WebSocketConfig(t.TypedDict):
     headers: Headers
@@ -49,6 +49,7 @@ class WsMessage(Buffer):
         cls,
         kind: t.Literal["close"],
         data: None = None,
+        *,
         code: int = 1_000,
         reason: str | Buffer = "",
     ) -> t.Self: ...
@@ -147,8 +148,8 @@ class WebSocket:
         max_payload_len: int = 67_108_864,
         frame_size: int = 4_194_304,
         flush_threshold: int = 8_192,
-        close_timeout: _TimeoutLike = 10.0,
-        recv_timeout: _TimeoutLike = 10.0,
+        close_timeout: _TimeoutLike | None = 10,
+        recv_timeout: _TimeoutLike | None = None,
     ) -> t.Self: ...
     def config(self) -> WebSocketConfig:
         """Return the `WebSocketConfig` as a dict"""
