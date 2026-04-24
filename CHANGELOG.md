@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.89 [unreleased]
+## v0.0.89 [2026-04-24]
 
 - tests
   - tests for `ry.panic()` and `ry.unreachable()`
