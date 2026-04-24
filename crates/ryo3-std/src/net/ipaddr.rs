@@ -37,8 +37,8 @@ pub struct PyIpAddr(pub IpAddr);
 impl PyIpv4Addr {
     #[new]
     #[pyo3(signature = (*args))]
-    fn py_new(args: Ipv4Args) -> PyResult<Self> {
-        Ok(Self(args.0))
+    fn py_new(args: Ipv4Args) -> Self {
+        Self::from(args)
     }
 
     #[must_use]
@@ -303,7 +303,7 @@ impl PyIpv6Addr {
     #[new]
     #[pyo3(signature = (*args))]
     fn py_new(args: Ipv6Args) -> Self {
-        Self(args.0)
+        Self::from(args)
     }
 
     #[must_use]
@@ -975,16 +975,15 @@ impl<'py> FromPyObject<'_, 'py> for Ipv4Like {
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(i) = obj.extract::<u32>() {
-            return Ok(Self(Ipv4Addr::from(i)));
+            Ok(Self(Ipv4Addr::from(i)))
         } else if let Ok(s) = obj.extract::<&str>() {
-            return s
-                .parse()
+            s.parse()
                 .map(Ipv4Like)
-                .map_err(|e| py_value_error!("Invalid IPv4 address string: {e}"));
+                .map_err(|e| py_value_error!("Invalid IPv4 address string: {e}"))
         } else if let Ok(bytes) = obj.extract::<[u8; 4]>() {
-            return Ok(Self(Ipv4Addr::from(bytes)));
+            Ok(Self(Ipv4Addr::from(bytes)))
         } else if let Ok(IpAddr::V4(addr)) = obj.extract::<IpAddr>() {
-            return Ok(Self(addr));
+            Ok(Self(addr))
         } else {
             py_type_err!("{IPV4_ADDR_ERROR}")
         }
@@ -992,6 +991,12 @@ impl<'py> FromPyObject<'_, 'py> for Ipv4Like {
 }
 
 struct Ipv4Args(Ipv4Addr);
+
+impl From<Ipv4Args> for PyIpv4Addr {
+    fn from(args: Ipv4Args) -> Self {
+        Self(args.0)
+    }
+}
 
 impl<'py> FromPyObject<'_, 'py> for Ipv4Args {
     type Error = PyErr;
@@ -1031,16 +1036,15 @@ impl<'py> FromPyObject<'_, 'py> for Ipv6Like {
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(i) = obj.extract::<u128>() {
-            return Ok(Self(Ipv6Addr::from(i)));
+            Ok(Self(Ipv6Addr::from(i)))
         } else if let Ok(s) = obj.extract::<&str>() {
-            return s
-                .parse()
+            s.parse()
                 .map(Ipv6Like)
-                .map_err(|e| py_value_error!("Invalid IPv6 address string: {e}"));
+                .map_err(|e| py_value_error!("Invalid IPv6 address string: {e}"))
         } else if let Ok(bytes) = obj.extract::<[u8; 16]>() {
-            return Ok(Self(Ipv6Addr::from(bytes)));
+            Ok(Self(Ipv6Addr::from(bytes)))
         } else if let Ok(IpAddr::V6(addr)) = obj.extract::<IpAddr>() {
-            return Ok(Self(addr));
+            Ok(Self(addr))
         } else {
             py_type_err!("{IPV6_ADDR_ERROR}")
         }
@@ -1049,9 +1053,16 @@ impl<'py> FromPyObject<'_, 'py> for Ipv6Like {
 
 struct Ipv6Args(Ipv6Addr);
 
+impl From<Ipv6Args> for PyIpv6Addr {
+    fn from(args: Ipv6Args) -> Self {
+        Self(args.0)
+    }
+}
+
 impl<'py> FromPyObject<'_, 'py> for Ipv6Args {
     type Error = PyErr;
 
+    #[expect(clippy::many_single_char_names)]
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(tup) = obj.cast_exact::<PyTuple>() {
             match tup.len() {
@@ -1061,6 +1072,7 @@ impl<'py> FromPyObject<'_, 'py> for Ipv6Args {
                         .map_err(|_| {
                             py_type_error!("Expected eight u16 segments for IPv6 address")
                         })?;
+
                     Ok(Self(Ipv6Addr::new(a, b, c, d, e, f, g, h)))
                 }
                 16 => {

@@ -751,19 +751,21 @@ impl std::fmt::Display for PySocketAddr {
             }
             IpAddr::V6(ipv6) => {
                 let py_ip = PyIpv6Addr::from(ipv6);
+                let flowinfo = match self.0 {
+                    SocketAddr::V6(sa6) => sa6.flowinfo(),
+                    SocketAddr::V4(_) => unreachable!(),
+                };
+                let scope_id = match self.0 {
+                    SocketAddr::V6(sa6) => sa6.scope_id(),
+                    SocketAddr::V4(_) => unreachable!(),
+                };
                 write!(
                     f,
                     "SocketAddr({}, {}, flowinfo={}, scope_id={})",
                     py_ip,
                     self.port(),
-                    match self.0 {
-                        SocketAddr::V6(sa6) => sa6.flowinfo(),
-                        _ => 0,
-                    },
-                    match self.0 {
-                        SocketAddr::V6(sa6) => sa6.scope_id(),
-                        _ => 0,
-                    }
+                    flowinfo,
+                    scope_id
                 )
             }
         }
