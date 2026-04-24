@@ -15,11 +15,6 @@ from ry.protocols import FromStr
 
 _FieldsType: t.TypeAlias = tuple[int, int, int, int, int, int]
 
-class SafeUUID(Enum):
-    safe = 0
-    unsafe = -1
-    unknown = None
-
 @t.final
 class UUID(FromStr):
     NAMESPACE_DNS: UUID
@@ -35,8 +30,6 @@ class UUID(FromStr):
         fields: _FieldsType | None = None,
         int: builtins.int | None = None,  # noqa: A002
         version: builtins.int | None = None,
-        *,
-        is_safe: SafeUUID = ...,
     ) -> t.Self: ...
     @property
     def is_nil(self) -> bool: ...

@@ -141,10 +141,10 @@ impl RyDateTimeRound {
             *,
             mode = JiffRoundMode::HALF_EXPAND,
             increment = 1,
-            _check = false
-        )
+        ),
+        text_signature = "(smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
-    fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64, _check: bool) -> Self {
+    fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         let opts = RoundOptions::new(smallest, mode, increment);
         Self::from(opts)
     }
@@ -252,7 +252,8 @@ impl RySignedDurationRound {
             *,
             mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
-        )
+        ),
+        text_signature = "(smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         let options = RoundOptions::new(smallest, mode, increment);
@@ -363,7 +364,8 @@ impl RyTimeRound {
             *,
             mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
-        )
+        ),
+        text_signature = "(smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         let options = RoundOptions::new(smallest, mode, increment);
@@ -484,7 +486,8 @@ impl RyTimestampRound {
             *,
             mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
-        )
+        ),
+        text_signature = "(smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         Self::from(RoundOptions::new(smallest, mode, increment))
@@ -601,7 +604,8 @@ impl RyZonedDateTimeRound {
             *,
             mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
-        )
+        ),
+        text_signature = "(smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         Self::from(RoundOptions::new(smallest, mode, increment))

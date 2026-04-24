@@ -3968,7 +3968,7 @@ class _Difference(t.Generic[_TObj, _TDict]):
 class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: Date,
+        date: Date,
         *,
         smallest: JiffUnit = "day",
         largest: JiffUnit | None = None,
@@ -3983,7 +3983,7 @@ class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
 class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: DateTime,
+        datetime: DateTime,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
@@ -3998,7 +3998,7 @@ class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
 class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: Time,
+        time: Time,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
@@ -4013,7 +4013,7 @@ class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
 class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: Timestamp,
+        timestamp: Timestamp,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
@@ -4030,7 +4030,7 @@ class ZonedDateTimeDifference(
 ):
     def __new__(
         cls,
-        obj: ZonedDateTime,
+        zoned: ZonedDateTime,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
@@ -8384,12 +8384,6 @@ from ry.protocols import FromStr
 _FieldsType: t.TypeAlias = tuple[int, int, int, int, int, int]
 
 
-class SafeUUID(Enum):
-    safe = 0
-    unsafe = -1
-    unknown = None
-
-
 @t.final
 class UUID(FromStr):
     NAMESPACE_DNS: UUID
@@ -8405,8 +8399,6 @@ class UUID(FromStr):
         fields: _FieldsType | None = None,
         int: builtins.int | None = None,  # noqa: A002
         version: builtins.int | None = None,
-        *,
-        is_safe: SafeUUID = ...,
     ) -> t.Self: ...
     @property
     def is_nil(self) -> bool: ...

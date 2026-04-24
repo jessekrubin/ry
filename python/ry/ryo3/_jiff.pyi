@@ -2083,7 +2083,7 @@ class _Difference(t.Generic[_TObj, _TDict]):
 class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: Date,
+        date: Date,
         *,
         smallest: JiffUnit = "day",
         largest: JiffUnit | None = None,
@@ -2097,7 +2097,7 @@ class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
 class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: DateTime,
+        datetime: DateTime,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
@@ -2111,7 +2111,7 @@ class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
 class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: Time,
+        time: Time,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
@@ -2125,7 +2125,7 @@ class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
 class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
     def __new__(
         cls,
-        obj: Timestamp,
+        timestamp: Timestamp,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
@@ -2141,7 +2141,7 @@ class ZonedDateTimeDifference(
 ):
     def __new__(
         cls,
-        obj: ZonedDateTime,
+        zoned: ZonedDateTime,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
