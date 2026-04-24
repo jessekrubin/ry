@@ -1078,6 +1078,7 @@ class TimeSpan(
 ):
     def __new__(
         cls,
+        *,
         years: int = 0,
         months: int = 0,
         weeks: int = 0,

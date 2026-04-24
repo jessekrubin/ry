@@ -706,7 +706,7 @@ impl RyOffsetRound {
             mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
         ),
-        text_signature = "($self, smallest=\"second\", *, mode=\"half-expand\", increment=1)"
+        text_signature = "(smallest=\"second\", *, mode=\"half-expand\", increment=1)"
     )]
     fn py_new(smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> Self {
         let options = RoundOptions::new(smallest, mode, increment);

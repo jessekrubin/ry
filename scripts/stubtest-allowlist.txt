@@ -1,5 +1,3 @@
-ry.*.__init__
-ry.*.__new__
 ry.*.__richcmp__
 ry.*.__all__
 ry.*.__getnewargs_ex__
@@ -20,7 +18,8 @@ ry.BlockingClient.*
 ry.HttpClient.*
 ry.Client.*
 ry.Response.json
-
+ry.Ipv6Addr.__new__
+ry.Ipv4Addr.__new__
 # ---------------------------
 # --- top level functions ---
 # ---------------------------
