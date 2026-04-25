@@ -51,10 +51,8 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
     p.as_ref().display().to_string()
 }
 
-// Rust's PathBuf preserves forward slashes in stored bytes even on Windows,
-// while Python's pathlib.Path normalizes them. We normalize at construction so
-// str(), __fspath__, hash, and comparisons are all consistent with pathlib.
-// Fast path (no '/') does a single scan with zero allocation.
+// PathBuf preserves forward slashes `/` in windows but afaict python's
+// `pathlib.Path` normalizes them. fucking windows.
 #[cfg(target_os = "windows")]
 fn to_native_pathbuf<P: AsRef<Path>>(p: P) -> PathBuf {
     let s = p.as_ref().to_string_lossy();
