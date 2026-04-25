@@ -489,7 +489,7 @@ impl PyFsPath {
 
     #[pyo3(signature = (recursive = false))]
     fn rmdir(&self, py: Python<'_>, recursive: bool) -> PyResult<()> {
-        if !self.exists(py)? {
+        if !self.exists()? {
             return Err(PyFileNotFoundError::new_err(format!(
                 "rmdir - parent: {} - directory does not exist",
                 self.py_to_string()
@@ -519,7 +519,7 @@ impl PyFsPath {
 
     #[pyo3(signature = (missing_ok = false, recursive = false))]
     fn unlink(&self, py: Python<'_>, missing_ok: bool, recursive: bool) -> PyResult<()> {
-        if !self.exists(py)? {
+        if !self.exists()? {
             if missing_ok {
                 return Ok(());
             }
@@ -545,8 +545,7 @@ impl PyFsPath {
             return Ok(self.clone());
         }
         let new_path = new_path.as_ref();
-        let new_path_exists = py.detach(|| new_path.exists());
-        if new_path_exists {
+        if new_path.exists() {
             return Err(PyFileExistsError::new_err(format!(
                 "rename - parent: {} - destination already exists",
                 self.py_to_string()
@@ -674,8 +673,9 @@ impl PyFsPath {
         self.path().ends_with(child.as_ref())
     }
 
-    fn exists(&self, py: Python<'_>) -> PyResult<bool> {
-        py.detach(|| self.path().try_exists())
+    fn exists(&self) -> PyResult<bool> {
+        self.path()
+            .try_exists()
             .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
     }
 
@@ -731,8 +731,9 @@ impl PyFsPath {
         Self::from(self.path().join(p))
     }
 
-    fn metadata(&self, py: Python<'_>) -> PyResult<ryo3_std::fs::PyMetadata> {
-        py.detach(|| self.path().metadata())
+    fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+        self.path()
+            .metadata()
             .map(ryo3_std::fs::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.metadata: {e}")))
     }
@@ -743,8 +744,9 @@ impl PyFsPath {
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_dir: {e}")))
     }
 
-    fn read_link(&self, py: Python<'_>) -> PyResult<Self> {
-        py.detach(|| self.path().read_link())
+    fn read_link(&self) -> PyResult<Self> {
+        self.path()
+            .read_link()
             .map(Self::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_link: {e}")))
     }
@@ -760,8 +762,9 @@ impl PyFsPath {
             .map_err(|e| PyValueError::new_err(format!("FsPath.strip_prefix: {e}")))
     }
 
-    fn symlink_metadata(&self, py: Python<'_>) -> PyResult<ryo3_std::fs::PyMetadata> {
-        py.detach(|| self.path().symlink_metadata())
+    fn symlink_metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+        self.path()
+            .symlink_metadata()
             .map(ryo3_std::fs::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.symlink_metadata: {e}")))
     }
