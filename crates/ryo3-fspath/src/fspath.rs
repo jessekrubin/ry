@@ -19,25 +19,19 @@ use ryo3_macro_rules::pytodo;
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
-type ArcPathBuf = std::sync::Arc<PathBuf>;
-
 #[pyclass(name = "FsPath", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PyFsPath {
-    pth: ArcPathBuf,
-}
+pub struct PyFsPath(PathBuf);
 
 impl PyFsPath {
     pub fn new<P: AsRef<Path>>(p: P) -> Self {
-        Self {
-            pth: ArcPathBuf::new(p.as_ref().to_path_buf()),
-        }
+        Self(to_native_pathbuf(p))
     }
 
     #[must_use]
     pub fn path(&self) -> &Path {
-        self.pth.as_ref()
+        &self.0
     }
 }
 
@@ -55,6 +49,26 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
 #[cfg(not(target_os = "windows"))]
 fn path2str<P: AsRef<Path>>(p: P) -> String {
     p.as_ref().display().to_string()
+}
+
+// Rust's PathBuf preserves forward slashes in stored bytes even on Windows,
+// while Python's pathlib.Path normalizes them. We normalize at construction so
+// str(), __fspath__, hash, and comparisons are all consistent with pathlib.
+// Fast path (no '/') does a single scan with zero allocation.
+#[cfg(target_os = "windows")]
+fn to_native_pathbuf<P: AsRef<Path>>(p: P) -> PathBuf {
+    let s = p.as_ref().to_string_lossy();
+    if s.contains('/') {
+        PathBuf::from(s.replace('/', "\\"))
+    } else {
+        p.as_ref().to_path_buf()
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+#[inline]
+fn to_native_pathbuf<P: AsRef<Path>>(p: P) -> PathBuf {
+    p.as_ref().to_path_buf()
 }
 
 #[expect(clippy::needless_pass_by_value)]
@@ -139,9 +153,7 @@ impl PyFsPath {
     }
 
     fn clone(&self) -> Self {
-        Self {
-            pth: self.pth.clone(),
-        }
+        Clone::clone(self)
     }
 
     fn __truediv__(&self, other: PathLike) -> Self {
@@ -846,9 +858,7 @@ where
     T: AsRef<Path>,
 {
     fn from(p: T) -> Self {
-        Self {
-            pth: ArcPathBuf::new(p.as_ref().to_path_buf()),
-        }
+        Self::new(p)
     }
 }
 
@@ -910,15 +920,16 @@ impl From<std::fs::ReadDir> for PyFsPathReadDir {
 #[pyclass(name = "FsPathAncestors", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct PyFsPathAncestors {
-    path: ArcPathBuf,
-    current: RyMutex<Option<ArcPathBuf>, false>,
+    path: PathBuf,
+    current: RyMutex<Option<PathBuf>, false>,
 }
 
 impl PyFsPathAncestors {
     fn new<P: AsRef<Path>>(p: P) -> Self {
+        let buf = to_native_pathbuf(p);
         Self {
-            path: ArcPathBuf::new(p.as_ref().to_path_buf()),
-            current: RyMutex::new(Some(ArcPathBuf::new(p.as_ref().to_path_buf()))),
+            current: RyMutex::new(Some(buf.clone())),
+            path: buf,
         }
     }
 }
@@ -936,16 +947,13 @@ impl PyFsPathAncestors {
     fn __next__(&self) -> Option<PyFsPath> {
         let mut current = self.current.py_lock();
 
-        // Take the current path; if we're done, stop.
         let cur = current.take()?;
-        let out = PyFsPath::from(cur.as_ref());
-
-        // Compute the next state.
-        *current = match out.path().parent() {
-            None => None,                                // no parent => done
-            Some(p) if p.as_os_str().is_empty() => None, // "root-ish" sentinel => done
-            Some(p) => Some(ArcPathBuf::new(p.to_path_buf())),
+        *current = match cur.parent() {
+            None => None,
+            Some(p) if p.as_os_str().is_empty() => None,
+            Some(p) => Some(p.to_path_buf()),
         };
+        let out = PyFsPath::new(&cur);
 
         Some(out)
     }
@@ -989,10 +997,7 @@ where
     fn as_posix_str(&self) -> String {
         #[cfg(target_os = "windows")]
         {
-            self.as_ref()
-                .to_string_lossy()
-                .to_string()
-                .replace('\\', "/")
+            self.as_ref().to_string_lossy().replace('\\', "/")
         }
         #[cfg(not(target_os = "windows"))]
         {
