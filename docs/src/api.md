@@ -157,7 +157,6 @@ from ry.ryo3._jiff import time as time
 from ry.ryo3._jiff import timespan as timespan
 from ry.ryo3._jiff import utcnow as utcnow
 from ry.ryo3._jiff import zoned as zoned
-from ry.ryo3._jiter import JsonParseKwargs as JsonParseKwargs
 from ry.ryo3._jiter import JsonPrimitive as JsonPrimitive
 from ry.ryo3._jiter import JsonValue as JsonValue
 from ry.ryo3._jiter import json_cache_clear as json_cache_clear
@@ -285,7 +284,7 @@ from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated, ty:deprecated]
+from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
 from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
@@ -448,9 +447,7 @@ def brotli(
 
 ```python
 import sys
-from typing import overload
-
-import typing_extensions
+import typing as t
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
@@ -469,7 +466,7 @@ class Bytes(Buffer):
     Many methods from the Python `bytes` class are implemented on this,
     """
 
-    def __init__(self, buf: Buffer = b"") -> None:
+    def __new__(cls, buf: Buffer = b"") -> t.Self:
         """Construct a new Bytes object.
 
         This will be a zero-copy view on the Python byte slice.
@@ -479,9 +476,9 @@ class Bytes(Buffer):
     def __buffer__(self, flags: int) -> memoryview: ...
     def __contains__(self, other: Buffer) -> bool: ...
     def __eq__(self, other: object) -> bool: ...
-    @overload
+    @t.overload
     def __getitem__(self, other: int) -> int: ...
-    @overload
+    @t.overload
     def __getitem__(self, other: slice) -> Bytes: ...
     def __mul__(self, other: int) -> Bytes: ...
     def __rmul__(self, other: int) -> Bytes: ...
@@ -648,9 +645,7 @@ class Bytes(Buffer):
         """
 
 
-ReadableBuffer: typing_extensions.TypeAlias = (
-    Buffer | bytes | bytearray | memoryview | Bytes
-)
+ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
 ```
 
 <h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
@@ -688,8 +683,8 @@ _SameSiteKw: t.TypeAlias = t.Literal[
 
 @t.final
 class Cookie(FromStr, _Parse):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         name: str,
         value: str,
         *,
@@ -703,7 +698,7 @@ class Cookie(FromStr, _Parse):
         removal: bool = False,
         same_site: _SameSiteKw | None = None,
         secure: bool | None = None,
-    ) -> None:
+    ) -> t.Self:
         """Create a new cookie with the given name and value, and optional attributes
 
         Args:
@@ -1158,12 +1153,12 @@ class fnv1a:  # noqa: N801
     digest_size: t.Literal[8]
     block_size: t.Literal[1]
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         data: Buffer | None = None,
         *,
         key: int | bytes = 0xCBF29CE484222325,  # noqa: PYI054
-    ) -> None: ...
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def intdigest(self) -> int: ...
@@ -1193,7 +1188,7 @@ from ry.ryo3._std import Metadata
 
 @t.final
 class FsPath(ToPy[Path], ToString):
-    def __init__(self, path: PathLike[str] | str | None = None) -> None: ...
+    def __new__(cls, *args: PathLike[str] | str) -> t.Self: ...
     def __fspath__(self) -> str: ...
     def to_string(self) -> str: ...
     def to_py(self) -> Path: ...
@@ -1230,8 +1225,7 @@ class FsPath(ToPy[Path], ToString):
     def exists(self) -> bool: ...
     def iterdir(self) -> FsPathReaddir: ...
     def join(self, p: PathLike[str] | str | FsPath) -> FsPath: ...
-    # TODO: support *args
-    def joinpath(self, other: str) -> FsPath: ...
+    def joinpath(self, *args: PathLike[str] | str) -> FsPath: ...
     def metadata(self) -> Metadata: ...
     def mkdir(
         self, mode: int = 0o777, parents: bool = False, exist_ok: bool = False
@@ -1338,7 +1332,7 @@ class FsPath(ToPy[Path], ToString):
 
 
 class FsPathReaddir(RyIterator[FsPath]):
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> FsPath: ...
     def collect(self) -> list[FsPath]: ...
@@ -1401,14 +1395,14 @@ class GlobPattern:
     Prefer the `::globset` wrappers (`Glob` | `Globset` | `Globster`).
     """
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         pattern: str,
         *,
         case_sensitive: bool = True,
         require_literal_separator: bool = False,
         require_literal_leading_dot: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def __call__(
         self,
         ob: str | PathLike[str],
@@ -1455,15 +1449,15 @@ from os import PathLike
 class Glob:
     """globset::Glob wrapper"""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         pattern: str,
         /,
         *,
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def regex(self) -> str: ...
     def is_match(self, path: str | PathLike[str]) -> bool: ...
@@ -1478,15 +1472,15 @@ class Glob:
 class GlobSet:
     """globset::GlobSet wrapper"""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         patterns: list[str],
         /,
         *,
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
-    ) -> None: ...
+    ) -> t.Self: ...
     def is_empty(self) -> bool: ...
     def is_match(self, path: str) -> bool: ...
     def is_match_str(self, path: str) -> bool: ...
@@ -1506,15 +1500,15 @@ class Globster:
 
     """
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         patterns: list[str],
         /,
         *,
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
-    ) -> None: ...
+    ) -> t.Self: ...
     def is_empty(self) -> bool: ...
     def is_match(self, path: str | PathLike[str]) -> bool: ...
     def is_match_str(self, path: str) -> bool: ...
@@ -1658,12 +1652,12 @@ _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 class Headers:
     """python-ryo3-http `http::HeadersMap` wrapper"""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         headers: Mapping[_HeaderName, _VT] | t.Self | None = None,
         /,
         **kwargs: _VT,
-    ) -> None: ...
+    ) -> t.Self: ...
 
     # =========================================================================
     # STRING
@@ -1713,7 +1707,7 @@ class Headers:
 
 @t.final
 class HttpStatus:
-    def __init__(self, code: int) -> None: ...
+    def __new__(cls, code: int) -> t.Self: ...
     def __int__(self) -> int: ...
     def __bool__(self) -> bool: ...
     def __hash__(self) -> int: ...
@@ -1989,7 +1983,7 @@ class Date(
     ZERO: t.Final[Date]
     __match_args__: t.Final[tuple[str, str, str]] = ("year", "month", "day")
 
-    def __init__(self, year: int, month: int, day: int) -> None: ...
+    def __new__(cls, year: int, month: int, day: int) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: t.Self) -> bool: ...
@@ -2200,13 +2194,13 @@ class Time(
         "subsec_nanosecond",
     )
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         hour: int = 0,
         minute: int = 0,
         second: int = 0,
         nanosecond: int = 0,
-    ) -> None: ...
+    ) -> t.Self: ...
 
     # =========================================================================
     # STRING
@@ -2436,8 +2430,8 @@ class DateTime(
         "subsec_nanosecond",
     )
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         year: int,
         month: int,
         day: int,
@@ -2445,7 +2439,7 @@ class DateTime(
         minute: int = 0,
         second: int = 0,
         subsec_nanosecond: int = 0,
-    ) -> None: ...
+    ) -> t.Self: ...
     def to_string(self) -> str: ...
     def isoformat(self) -> str: ...
 
@@ -2675,7 +2669,7 @@ class TimeZone(
 ):
     UTC: t.Final[TimeZone]
 
-    def __init__(self, name: TimezoneName) -> None: ...
+    def __new__(cls, time_zone_name: TimezoneName) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Self: ...
 
@@ -2772,7 +2766,7 @@ class SignedDuration(
     ZERO: t.Final[SignedDuration]
     __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
-    def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
+    def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -2932,8 +2926,9 @@ class TimeSpan(
     FromStr,
     _Parse,
 ):
-    def __init__(
-        self,
+    def __new__(
+        cls,
+        *,
         years: int = 0,
         months: int = 0,
         weeks: int = 0,
@@ -2944,7 +2939,7 @@ class TimeSpan(
         milliseconds: int = 0,
         microseconds: int = 0,
         nanoseconds: int = 0,
-    ) -> None: ...
+    ) -> t.Self: ...
 
     # =========================================================================
     # STRING
@@ -3125,7 +3120,7 @@ class Timestamp(
     UNIX_EPOCH: t.Final[Timestamp]
     __match_args__: t.Final[tuple[str, str]] = ("second", "nanosecond")
 
-    def __init__(self, second: int = 0, nanosecond: int = 0) -> None: ...
+    def __new__(cls, second: int = 0, nanosecond: int = 0) -> t.Self: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -3453,8 +3448,18 @@ class ZonedDateTime(
     _Parse,
     Strftime,
 ):
-    def __init__(
-        self,
+    __match_args__: t.Final[tuple[str, ...]] = (
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "subsec_nanosecond",
+    )
+
+    def __new__(
+        cls,
         year: int,
         month: int,
         day: int,
@@ -3463,7 +3468,7 @@ class ZonedDateTime(
         second: int = 0,
         nanosecond: int = 0,
         tz: TimezoneName | None = None,
-    ) -> None: ...
+    ) -> t.Self: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -3728,7 +3733,7 @@ class ISOWeekDate(
     ZERO: t.Final[ISOWeekDate]
     __match_args__: t.Final[tuple[str, str, str]] = ("year", "week", "weekday")
 
-    def __init__(self, year: int, week: int, weekday: Weekday) -> None: ...
+    def __new__(cls, year: int, week: int, weekday: Weekday) -> t.Self: ...
 
     # =========================================================================
     # OPERATORS/DUNDERS
@@ -3793,12 +3798,12 @@ class Offset(
     UTC: t.Final[Offset]
     ZERO: t.Final[Offset]
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         hours: int = 0,
         minutes: int = 0,
         seconds: int = 0,
-    ) -> None: ...
+    ) -> t.Self: ...
 
     # =========================================================================
     # STRING
@@ -3934,15 +3939,15 @@ _TObj = t.TypeVar("_TObj", Date, DateTime, Time, Timestamp, ZonedDateTime)
 
 @t.type_check_only
 class _Difference(t.Generic[_TObj, _TDict]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         obj: _TObj,
         *,
         smallest: JiffUnit,
         largest: JiffUnit | None = None,
         mode: JiffRoundMode | None = None,
         increment: int | None = None,
-    ) -> None: ...
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     @property
     def smallest(self) -> JiffUnit: ...
@@ -3961,60 +3966,60 @@ class _Difference(t.Generic[_TObj, _TDict]):
 
 @t.final
 class DateDifference(_Difference[Date, DateDifferenceTypedDict]):
-    def __init__(
-        self,
-        obj: Date,
+    def __new__(
+        cls,
+        date: Date,
         *,
         smallest: JiffUnit = "day",
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def date(self) -> Date: ...
 
 
 @t.final
 class DateTimeDifference(_Difference[DateTime, DateTimeDifferenceTypedDict]):
-    def __init__(
-        self,
-        obj: DateTime,
+    def __new__(
+        cls,
+        datetime: DateTime,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def datetime(self) -> DateTime: ...
 
 
 @t.final
 class TimeDifference(_Difference[Time, TimeDifferenceTypedDict]):
-    def __init__(
-        self,
-        obj: Time,
+    def __new__(
+        cls,
+        time: Time,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def time(self) -> Time: ...
 
 
 @t.final
 class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
-    def __init__(
-        self,
-        obj: Timestamp,
+    def __new__(
+        cls,
+        timestamp: Timestamp,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def timestamp(self) -> Timestamp: ...
 
@@ -4023,15 +4028,15 @@ class TimestampDifference(_Difference[Timestamp, TimestampDifferenceTypedDict]):
 class ZonedDateTimeDifference(
     _Difference[ZonedDateTime, ZonedDateTimeDifferenceTypedDict]
 ):
-    def __init__(
-        self,
-        obj: ZonedDateTime,
+    def __new__(
+        cls,
+        zoned: ZonedDateTime,
         *,
         smallest: JiffUnit = "nanosecond",
         largest: JiffUnit | None = None,
         mode: JiffRoundMode = "trunc",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def zoned(self) -> ZonedDateTime: ...
 
@@ -4068,13 +4073,13 @@ class _Round(t.Generic[_TSmallest, _TDict]):
 
 @t.final
 class DateTimeRound(_Round[_DateTimeRoundSmallest, DateTimeRoundTypedDict]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         smallest: _DateTimeRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     def round(self, ob: DateTime) -> DateTime: ...
 
 
@@ -4082,37 +4087,37 @@ class DateTimeRound(_Round[_DateTimeRoundSmallest, DateTimeRoundTypedDict]):
 class SignedDurationRound(
     _Round[_SignedDurationRoundSmallest, SignedDurationRoundTypedDict]
 ):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         smallest: _SignedDurationRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     def round(self, ob: SignedDuration) -> SignedDuration: ...
 
 
 @t.final
 class TimeRound(_Round[_TimeRoundSmallest, TimeRoundTypedDict]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         smallest: _TimeRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     def round(self, ob: Time) -> Time: ...
 
 
 @t.final
 class TimestampRound(_Round[_TimestampRoundSmallest, TimestampRoundTypedDict]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         smallest: _TimestampRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     def round(self, ob: Timestamp) -> Timestamp: ...
 
 
@@ -4120,25 +4125,25 @@ class TimestampRound(_Round[_TimestampRoundSmallest, TimestampRoundTypedDict]):
 class ZonedDateTimeRound(
     _Round[_ZonedDateTimeRoundSmallest, ZonedDateTimeRoundTypedDict]
 ):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         smallest: _ZonedDateTimeRoundSmallest = "nanosecond",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     def round(self, ob: ZonedDateTime) -> ZonedDateTime: ...
 
 
 @t.final
 class OffsetRound(_Round[_OffsetRoundSmallest, OffsetRoundTypedDict]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         smallest: _OffsetRoundSmallest = "second",
         *,
         mode: JiffRoundMode = "half-expand",
         increment: int = 1,
-    ) -> None: ...
+    ) -> t.Self: ...
     def round(self, ob: Offset) -> Offset: ...
 
 
@@ -4197,7 +4202,7 @@ def utcnow() -> ZonedDateTime: ...
 # =============================================================================
 @t.final
 class TimeZoneDatabase:
-    def __init__(self) -> None:
+    def __new__(cls) -> t.Self:
         """Defaults to using the `self.from_env`"""
 
     @t.overload
@@ -4848,32 +4853,36 @@ JsonValue: t.TypeAlias = (
 )
 
 
-class JsonParseKwargs(t.TypedDict, total=False):
-    allow_inf_nan: bool
-    """Allow parsing of `Infinity`, `-Infinity`, `NaN` ~ default: False"""
-    cache_mode: t.Literal[True, False, "all", "keys", "none"]
-    """Cache mode for JSON parsing ~ default: `all` """
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"]
-    """Partial mode for JSON parsing ~ default: False"""
-    catch_duplicate_keys: bool
-    """Catch duplicate keys in JSON objects ~ default: False"""
-
-
 def parse_json(
     data: Buffer | bytes | str,
-    /,
-    **kwargs: Unpack[JsonParseKwargs],
+    *,
+    allow_inf_nan: bool = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
+    catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse_jsonl(
     data: Buffer | bytes | str,
-    /,
-    **kwargs: Unpack[JsonParseKwargs],
+    *,
+    allow_inf_nan: bool = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
+    catch_duplicate_keys: bool = False,
 ) -> list[JsonValue]: ...
 def read_json(
     p: str | PathLike[str],
-    /,
+    *,
+    allow_inf_nan: bool = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
+    catch_duplicate_keys: bool = False,
     lines: bool = False,
-    **kwargs: Unpack[JsonParseKwargs],
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
@@ -4945,8 +4954,8 @@ import typing as t
 
 @t.final
 class Regex:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         pattern: str,
         *,
         case_insensitive: bool = False,
@@ -4958,8 +4967,8 @@ class Regex:
         octal: bool = False,
         size_limit: int | None = None,
         swap_greed: bool = False,
-        unicode: bool = False,
-    ) -> None: ...
+        unicode: bool = True,
+    ) -> t.Self: ...
     def is_match(self, haystack: str) -> bool: ...
     def test(self, haystack: str) -> bool: ...
     def find(self, haystack: str) -> str | None: ...
@@ -5077,8 +5086,8 @@ class ClientConfig(t.TypedDict):
 
 @t.final
 class HttpClient:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
@@ -5128,7 +5137,7 @@ class HttpClient:
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
         _tls_cached_native_certs: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
@@ -5192,8 +5201,8 @@ class HttpClient:
 class Client:
     """experimental client using the `pyo3/experimental-async` feature"""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
@@ -5243,7 +5252,7 @@ class Client:
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
         _tls_cached_native_certs: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def config(self) -> ClientConfig: ...
     async def get(
         self,
@@ -5303,8 +5312,8 @@ class Client:
 
 @t.final
 class BlockingClient:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         headers: dict[str, str] | Headers | None = None,
         cookies: bool = False,
@@ -5354,7 +5363,7 @@ class BlockingClient:
         tls_danger_accept_invalid_hostnames: bool = False,
         proxy: _ProxyKw | None = None,
         _tls_cached_native_certs: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def config(self) -> ClientConfig: ...
     def get(
         self,
@@ -5407,7 +5416,7 @@ class BlockingClient:
 
 @t.final
 class ReqwestError(Exception):
-    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
+    def __new__(cls, *args: t.Any, **kwargs: t.Any) -> t.Self: ...
     def __dbg__(self) -> str: ...
     def is_body(self) -> bool: ...
     def is_builder(self) -> bool: ...
@@ -5426,7 +5435,7 @@ class ReqwestError(Exception):
 
 @t.final
 class Response:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
     async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
@@ -5496,7 +5505,7 @@ class Response:
 class AsyncResponse:
     """'experimental-async' response type"""
 
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
     async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
@@ -5564,7 +5573,7 @@ class AsyncResponse:
 
 @t.final
 class BlockingResponse:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def headers(self) -> Headers: ...
     def text(self, *, encoding: Encoding = "utf-8") -> str: ...
@@ -5708,7 +5717,7 @@ class Certificate:
 
 @t.final
 class CertificateRevocationList:
-    def __init__(self, pem: Buffer) -> None: ...
+    def __new__(cls, pem: Buffer) -> t.Self: ...
     def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
@@ -5721,7 +5730,7 @@ class CertificateRevocationList:
 
 @t.final
 class Identity:
-    def __init__(self, pem: Buffer) -> None: ...
+    def __new__(cls, pem: Buffer) -> t.Self: ...
     def __bytes__(self) -> bytes: ...
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
@@ -5738,15 +5747,15 @@ class ProxyKwargs(t.TypedDict, total=False):
 
 @t.final
 class Proxy:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         url: URL | str,
         ptype: t.Literal["http", "https", "all"] = "http",
         *,
         basic_auth: tuple[str, str] | None = None,
         headers: Headers | dict[str, str] | None = None,
         no_proxy: str | None = None,
-    ) -> None: ...
+    ) -> t.Self: ...
     @staticmethod
     def all(
         url: URL | str,
@@ -5844,11 +5853,11 @@ def parse_size(s: str) -> int:
 class SizeFormatter:
     """Human-readable bytes-size formatter."""
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         base: FormatSizeBase = 2,
         style: FormatSizeStyle = "default",
-    ) -> None:
+    ) -> t.Self:
         """Initialize human-readable bytes-size formatter."""
 
     def format(self, n: int) -> str:
@@ -5865,12 +5874,18 @@ class SizeFormatter:
     def style(self) -> FormatSizeStyle:
         """Return style used by formatter."""
 
+    def with_base(self, base: FormatSizeBase) -> SizeFormatter:
+        """Return new `SizeFormatter` with specified base."""
+
+    def with_style(self, style: FormatSizeStyle) -> SizeFormatter:
+        """Return new `SizeFormatter` with specified style."""
+
 
 @t.final
 class Size(FromStr, _Parse):
     """Bytes-size object."""
 
-    def __init__(self, size: int) -> None: ...
+    def __new__(cls, size: int) -> t.Self: ...
     @property
     def bytes(self) -> int: ...
     def format(
@@ -6015,9 +6030,9 @@ SqlfmtParamsLike: t.TypeAlias = (
 
 @t.final
 class SqlfmtQueryParams:
-    def __init__(
-        self, params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
-    ) -> None: ...
+    def __new__(
+        cls, params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | None = None
+    ) -> t.Self: ...
     def __len__(self) -> int: ...
 
 
@@ -6060,8 +6075,8 @@ class _SqlFormatterDict(t.TypedDict):
 
 @t.final
 class SqlFormatter:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         indent: int | t.Literal["tabs", "\t"] = 2,
         uppercase: bool | None = None,
@@ -6073,7 +6088,7 @@ class SqlFormatter:
         max_inline_top_level: int | None = None,
         joins_as_top_level: bool = False,
         dialect: t.Literal["generic", "postgresql", "sqlserver"] = "generic",
-    ) -> None: ...
+    ) -> t.Self: ...
     def to_dict(self) -> _SqlFormatterDict: ...
     def fmt(
         self,
@@ -6134,7 +6149,7 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     SECOND: t.Final[Duration]
     __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
-    def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
+    def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __add__(self, other: t.Self | pydt.timedelta) -> t.Self: ...
@@ -6273,7 +6288,7 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
 
 @t.final
 class Instant:
-    def __init__(self) -> None: ...
+    def __new__(cls) -> t.Self: ...
     @classmethod
     def now(cls) -> Instant: ...
     def __eq__(self, other: object) -> bool: ...
@@ -6345,8 +6360,8 @@ FileTypeStr: t.TypeAlias = t.Literal[
 
 @t.final
 class FileType(ToPy[FileTypeStr]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         t: t.Literal[
             "f",
             "file",
@@ -6364,7 +6379,7 @@ class FileType(ToPy[FileTypeStr]):
             "symlink-file",
             "unknown",
         ],
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def is_dir(self) -> bool: ...
     @property
@@ -6398,7 +6413,7 @@ class Permissions:
 
 @t.final
 class Metadata:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def file_type(self) -> FileType: ...
     @property
@@ -6426,7 +6441,7 @@ class Metadata:
 
 @t.final
 class DirEntry:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     def __fspath__(self) -> str: ...
     @property
     def path(self) -> pathlib.Path: ...
@@ -6438,7 +6453,7 @@ class DirEntry:
 
 @t.final
 class ReadDir(RyIterator[DirEntry]):
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> DirEntry: ...
     def collect(self) -> list[DirEntry]: ...
@@ -6447,15 +6462,15 @@ class ReadDir(RyIterator[DirEntry]):
 
 @t.final
 class FileReadStream(RyIterator[Bytes]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         path: FsPathLike,
         *,
         read_size: int = 65536,
         offset: int = 0,
         buffered: bool = True,
         strict: bool = True,
-    ) -> None:
+    ) -> t.Self:
         """Return a FileReadStream
 
         Args:
@@ -6611,11 +6626,12 @@ class Ipv4Addr(
     UNSPECIFIED: Ipv4Addr
 
     @t.overload
-    def __init__(self, a: int, b: int, c: int, d: int) -> None: ...
+    def __new__(cls, a: int, b: int, c: int, d: int) -> t.Self: ...
     @t.overload
-    def __init__(
-        self, iplike: int | str | bytes | Ipv4Addr | ipaddress.IPv4Address
-    ) -> None: ...
+    def __new__(
+        cls,
+        iplike: int | str | bytes | Ipv4Addr | ipaddress.IPv4Address,
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: Ipv4Addr) -> bool: ...
@@ -6700,13 +6716,11 @@ class Ipv6Addr(
     UNSPECIFIED: Ipv6Addr
 
     @t.overload
-    def __init__(
-        self, a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int
-    ) -> None: ...
+    def __new__(cls, *args: int) -> t.Self: ...
     @t.overload
-    def __init__(
-        self, iplike: int | str | bytes | Ipv6Addr | ipaddress.IPv6Address
-    ) -> None: ...
+    def __new__(
+        cls, iplike: int | str | bytes | Ipv6Addr | ipaddress.IPv6Address
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: Ipv6Addr) -> bool: ...
@@ -6761,16 +6775,16 @@ class IpAddr(
     LOCALHOST_V6: IpAddr
     UNSPECIFIED_V6: IpAddr
 
-    def __init__(
-        self,
-        iplike: int
+    def __new__(
+        cls,
+        ob: int
         | str
         | bytes
         | Ipv4Addr
         | Ipv6Addr
         | ipaddress.IPv4Address
         | ipaddress.IPv6Address,
-    ) -> None: ...
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: IpAddr) -> bool: ...
@@ -6832,11 +6846,11 @@ class SocketAddrV4(
     ToString,
     _Parse,
 ):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         ip: IpAddr | Ipv4Addr | ipaddress.IPv4Address | ipaddress.IPv6Address,
         port: int,
-    ) -> None: ...
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: SocketAddrV4) -> bool: ...
@@ -6872,11 +6886,14 @@ class SocketAddrV6(
     ToString,
     _Parse,
 ):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         ip: IpAddr | Ipv6Addr | ipaddress.IPv4Address | ipaddress.IPv6Address,
         port: int,
-    ) -> None: ...
+        *,
+        flowinfo: int = 0,
+        scope_id: int = 0,
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: SocketAddrV6) -> bool: ...
@@ -6915,15 +6932,20 @@ class SocketAddr(
     ToString,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
-    def __init__(
-        self,
-        ip: IpAddr
-        | Ipv4Addr
-        | Ipv6Addr
-        | ipaddress.IPv4Address
-        | ipaddress.IPv6Address,
+    @t.overload
+    def __new__(
+        cls,
+        ip: IpAddr | Ipv4Addr | ipaddress.IPv4Address,
         port: int,
-    ) -> None: ...
+    ) -> t.Self: ...
+    @t.overload
+    def __new__(
+        cls,
+        ip: IpAddr | Ipv6Addr | ipaddress.IPv6Address,
+        port: int,
+        flowinfo: int | None = None,
+        scope_id: int | None = None,
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: SocketAddr) -> bool: ...
@@ -7079,11 +7101,11 @@ class AsyncDirEntry:
 
 
 @t.final
-class AsyncReadDir:
+class AsyncReadDir(RyAsyncIterator[AsyncDirEntry]):
     """Async iterator for read_dir_async"""
 
     async def collect(self) -> list[AsyncDirEntry]: ...
-    async def take(self, n: int) -> list[AsyncDirEntry]: ...
+    async def take(self, n: int = 1) -> list[AsyncDirEntry]: ...
     def __aiter__(self) -> AsyncReadDir: ...
     async def __anext__(self) -> AsyncDirEntry: ...
 
@@ -7104,9 +7126,9 @@ async def asleep(secs: float) -> float:
 # =============================================================================
 @t.final
 class AsyncFile:
-    def __init__(
-        self, path: FsPathLike, mode: OpenBinaryMode = "rb", buffering: int = -1
-    ) -> None: ...
+    def __new__(
+        cls, path: FsPathLike, mode: OpenBinaryMode = "rb"
+    ) -> t.Self: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
     async def isatty(self) -> t.NoReturn: ...
@@ -7148,15 +7170,15 @@ def aiopen(
 
 @t.final
 class AsyncFileReadStream(RyAsyncIterator[Bytes]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         path: FsPathLike,
         *,
         read_size: int = 65536,
         offset: int = 0,
         buffered: bool = True,
         strict: bool = True,
-    ) -> None:
+    ) -> t.Self:
         """Return an AsyncFileReadStream
 
         Args:
@@ -7227,7 +7249,7 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import Buffer as Buffer
 
-_TimeoutLike: t.TypeAlias = Duration | pydt.timedelta | float | None
+_TimeoutLike: t.TypeAlias = Duration | pydt.timedelta | float
 
 
 class WebSocketConfig(t.TypedDict):
@@ -7250,21 +7272,22 @@ _ReadyState: t.TypeAlias = t.Literal[
 @t.final
 class WsMessage(Buffer):
     @t.overload
-    def __init__(self, kind: t.Literal["text"], data: str) -> None: ...
+    def __new__(cls, kind: t.Literal["text"], data: str) -> t.Self: ...
     @t.overload
-    def __init__(self, kind: t.Literal["binary"], data: Buffer) -> None: ...
+    def __new__(cls, kind: t.Literal["binary"], data: Buffer) -> t.Self: ...
     @t.overload
-    def __init__(
-        self, kind: t.Literal["ping", "pong"], data: Buffer | None = None
-    ) -> None: ...
+    def __new__(
+        cls, kind: t.Literal["ping", "pong"], data: Buffer | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __init__(
-        self,
+    def __new__(
+        cls,
         kind: t.Literal["close"],
         data: None = None,
-        code: int = 1_000,
-        reason: str | Buffer = "",
-    ) -> None: ...
+        *,
+        code: int | None = None,  # default: 1000
+        reason: str | Buffer | None = None,  # default: ""
+    ) -> t.Self: ...
     # -------------------------------------------------------------------------
     # "CLASSMETHODS" (STATIC FACTORY FNS)
     # -------------------------------------------------------------------------
@@ -7371,17 +7394,17 @@ class WsMessage(Buffer):
 
 @t.final
 class WebSocket:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         uri: URL | str,
         *,
         headers: Headers | dict[str, str] | None = None,
         max_payload_len: int = 67_108_864,
         frame_size: int = 4_194_304,
         flush_threshold: int = 8_192,
-        close_timeout: _TimeoutLike = 10.0,
-        recv_timeout: _TimeoutLike = 10.0,
-    ) -> None: ...
+        close_timeout: _TimeoutLike | None = 10,
+        recv_timeout: _TimeoutLike | None = None,
+    ) -> t.Self: ...
     def config(self) -> WebSocketConfig:
         """Return the `WebSocketConfig` as a dict"""
 
@@ -7477,7 +7500,9 @@ class xxh32:  # noqa: N801
     digest_size: t.Literal[4]
     block_size: t.Literal[16]
 
-    def __init__(self, data: Buffer | None = None, seed: int = 0) -> None: ...
+    def __new__(
+        cls, data: Buffer | None = None, *, seed: int = 0
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7500,9 +7525,9 @@ class xxh64:  # noqa: N801
     digest_size: t.Literal[8]
     block_size: t.Literal[32]
 
-    def __init__(
-        self, data: Buffer | None = None, *, seed: int = 0
-    ) -> None: ...
+    def __new__(
+        cls, data: Buffer | None = None, *, seed: int = 0
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7525,13 +7550,13 @@ class xxh3_64:  # noqa: N801
     digest_size: t.Literal[8]
     block_size: t.Literal[32]
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         data: Buffer | None = None,
         *,
         seed: int = 0,
         secret: Buffer | None = ...,
-    ) -> None: ...
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7552,13 +7577,13 @@ class xxh3_128:  # noqa: N801
     digest_size: t.Literal[16]
     block_size: t.Literal[64]
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         data: Buffer | None = None,
         *,
         seed: int = 0,
         secret: Buffer | None = ...,
-    ) -> None: ...
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7657,9 +7682,9 @@ else:
 
 @t.final
 class URL(FromStr, ToString, _Parse):
-    def __init__(
-        self, url: str | bytes | URL, *, params: dict[str, str] | None = None
-    ) -> None: ...
+    def __new__(
+        cls, url: str | bytes | URL, *, params: dict[str, str] | None = None
+    ) -> t.Self: ...
     # =========================================================================
     # CLASSMETHODS
     # =========================================================================
@@ -7910,7 +7935,7 @@ _T_walkdir = t.TypeVar(
 class WalkdirGen(RyIterator[_T_walkdir]):
     """walkdir::Walkdir iterable wrapper"""
 
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> _T_walkdir: ...
     def collect(self) -> list[_T_walkdir]: ...
@@ -8038,9 +8063,9 @@ def video_dir() -> str | None: ...
 
 import typing as t
 
-from ry._types import Buffer, Unpack
+from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import JsonParseKwargs, JsonValue
+from ry.ryo3._jiter import JsonValue
 
 
 def minify(buf: Buffer | str, /) -> Bytes:
@@ -8143,13 +8168,23 @@ def dumps(
 ) -> Bytes: ...
 def loads(
     data: Buffer | bytes | str,
-    /,
-    **kwargs: Unpack[JsonParseKwargs],
+    *,
+    allow_inf_nan: bool = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
+    catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse(
     data: Buffer | bytes | str,
-    /,
-    **kwargs: Unpack[JsonParseKwargs],
+    *,
+    allow_inf_nan: bool = False,
+    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
+    catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
@@ -8256,7 +8291,7 @@ from ry.protocols import FromStr
 
 @t.final
 class ULID(FromStr):
-    def __init__(self, value: builtins.bytes | str | None = None) -> None: ...
+    def __new__(cls, value: builtins.bytes | str | None = None) -> t.Self: ...
 
     # ----------------
     # INSTANCE METHODS
@@ -8349,12 +8384,6 @@ from ry.protocols import FromStr
 _FieldsType: t.TypeAlias = tuple[int, int, int, int, int, int]
 
 
-class SafeUUID(Enum):
-    safe = 0
-    unsafe = -1
-    unknown = None
-
-
 @t.final
 class UUID(FromStr):
     NAMESPACE_DNS: UUID
@@ -8362,17 +8391,15 @@ class UUID(FromStr):
     NAMESPACE_OID: UUID
     NAMESPACE_X500: UUID
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         hex: str | None = None,  # noqa: A002
         bytes: builtins.bytes | None = None,  # noqa: A002
         bytes_le: builtins.bytes | None = None,
         fields: _FieldsType | None = None,
         int: builtins.int | None = None,  # noqa: A002
         version: builtins.int | None = None,
-        *,
-        is_safe: SafeUUID = ...,
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def is_nil(self) -> bool: ...
     @property

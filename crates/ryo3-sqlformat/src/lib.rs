@@ -541,7 +541,8 @@ impl PySqlFormatter {
             max_inline_top_level = None,
             joins_as_top_level = false,
             dialect = PyDialect::default()
-        )
+        ),
+        text_signature = "(*, indent=2, uppercase=None, lines_between_queries=1, ignore_case_convert=None, inline=False, max_inline_block=50, max_inline_arguments=None, max_inline_top_level=None, joins_as_top_level=False, dialect='generic')"
     )]
     #[expect(clippy::too_many_arguments)]
     fn py_new(

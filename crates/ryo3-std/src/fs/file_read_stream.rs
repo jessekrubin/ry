@@ -150,7 +150,7 @@ impl PyFileReadStream {
 #[pymethods]
 impl PyFileReadStream {
     #[new]
-    #[pyo3(signature = (path, *, read_size = DEFAULT_READ_SIZE, offset = 0, buffered = true, strict = true))]
+    #[pyo3(signature = (path, *, read_size = 65536, offset = 0, buffered = true, strict = true))]
     pub fn py_new(
         path: PathBuf,
         read_size: usize,
@@ -232,7 +232,11 @@ impl PyFileReadStream {
 impl std::fmt::Debug for PyFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "FileReadStream(path='{}'", self.options.path.display())?;
-        write!(f, ", read_size={}", self.options.read_size)?;
+        if self.options.read_size == DEFAULT_READ_SIZE {
+            write!(f, ", read_size={DEFAULT_READ_SIZE}")?;
+        } else {
+            write!(f, ", read_size={}", self.options.read_size)?;
+        }
         if self.options.offset != 0 {
             write!(f, ", offset={}", self.options.offset)?;
         }

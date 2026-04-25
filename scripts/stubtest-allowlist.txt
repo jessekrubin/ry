@@ -1,5 +1,3 @@
-ry.*.__init__
-ry.*.__new__
 ry.*.__richcmp__
 ry.*.__all__
 ry.*.__getnewargs_ex__
@@ -12,23 +10,15 @@ ry._types.*
 ry.*.__get_pydantic_core_schema__
 ry.*.__get_pydantic_json_schema__
 ry.__opt_level__
+ry.*.__dbg__
 
 # ---------------
 # --- CLASSES ---
 # ---------------
-ry.BlockingClient.*
-ry.HttpClient.*
-ry.Client.*
-ry.Response.json
 
 # ---------------------------
 # --- top level functions ---
 # ---------------------------
-ry.parse_json
-ry.parse_jsonl
-ry.read_json
-ry.JSON.loads
-ry.JSON.parse
 
 # -----------------------------------------
 # --- classmethod/staticmethod problems ---

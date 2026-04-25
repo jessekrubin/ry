@@ -19,25 +19,19 @@ use ryo3_macro_rules::pytodo;
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
-type ArcPathBuf = std::sync::Arc<PathBuf>;
-
 #[pyclass(name = "FsPath", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PyFsPath {
-    pth: ArcPathBuf,
-}
+pub struct PyFsPath(PathBuf);
 
 impl PyFsPath {
     pub fn new<P: AsRef<Path>>(p: P) -> Self {
-        Self {
-            pth: ArcPathBuf::new(p.as_ref().to_path_buf()),
-        }
+        Self(to_native_pathbuf(p))
     }
 
     #[must_use]
     pub fn path(&self) -> &Path {
-        self.pth.as_ref()
+        &self.0
     }
 }
 
@@ -57,17 +51,40 @@ fn path2str<P: AsRef<Path>>(p: P) -> String {
     p.as_ref().display().to_string()
 }
 
+// PathBuf preserves forward slashes `/` in windows but afaict python's
+// `pathlib.Path` normalizes them. fucking windows.
+#[cfg(target_os = "windows")]
+fn to_native_pathbuf<P: AsRef<Path>>(p: P) -> PathBuf {
+    let s = p.as_ref().to_string_lossy();
+    if s.contains('/') {
+        PathBuf::from(s.replace('/', "\\"))
+    } else {
+        p.as_ref().to_path_buf()
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+#[inline]
+fn to_native_pathbuf<P: AsRef<Path>>(p: P) -> PathBuf {
+    p.as_ref().to_path_buf()
+}
+
 #[expect(clippy::needless_pass_by_value)]
 #[expect(clippy::unused_self)]
 #[pymethods]
 impl PyFsPath {
     #[new]
-    #[pyo3(signature = (p = None))]
-    fn py_new(p: Option<PathBuf>) -> Self {
-        match p {
-            Some(p) => Self::from(p),
-            None => Self::from("."),
+    #[pyo3(signature = (*args))]
+    fn py_new(args: &Bound<'_, PyTuple>) -> PyResult<Self> {
+        if args.is_empty() {
+            return Ok(Self::from("."));
         }
+        let mut path = PathBuf::new();
+        for arg in args.iter() {
+            let segment: PathBuf = arg.extract()?;
+            path = path.join(segment);
+        }
+        Ok(Self::from(path))
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -134,9 +151,7 @@ impl PyFsPath {
     }
 
     fn clone(&self) -> Self {
-        Self {
-            pth: self.pth.clone(),
-        }
+        Clone::clone(self)
     }
 
     fn __truediv__(&self, other: PathLike) -> Self {
@@ -318,10 +333,14 @@ impl PyFsPath {
         self.path().as_posix_str()
     }
 
-    // TODO: allow *args for joinpath
-    fn joinpath(&self, other: PathLike) -> Self {
-        let p = self.path().join(other.as_ref());
-        Self::from(p)
+    #[pyo3(signature = (*args))]
+    fn joinpath(&self, args: &Bound<'_, PyTuple>) -> PyResult<Self> {
+        let mut path = self.path().to_path_buf();
+        for arg in args.iter() {
+            let segment: PathBuf = arg.extract()?;
+            path = path.join(segment);
+        }
+        Ok(Self::from(path))
     }
 
     fn read(&self, py: Python<'_>) -> PyResult<RyBytes> {
@@ -468,7 +487,7 @@ impl PyFsPath {
 
     #[pyo3(signature = (recursive = false))]
     fn rmdir(&self, py: Python<'_>, recursive: bool) -> PyResult<()> {
-        if !self.exists(py)? {
+        if !self.exists()? {
             return Err(PyFileNotFoundError::new_err(format!(
                 "rmdir - parent: {} - directory does not exist",
                 self.py_to_string()
@@ -498,7 +517,7 @@ impl PyFsPath {
 
     #[pyo3(signature = (missing_ok = false, recursive = false))]
     fn unlink(&self, py: Python<'_>, missing_ok: bool, recursive: bool) -> PyResult<()> {
-        if !self.exists(py)? {
+        if !self.exists()? {
             if missing_ok {
                 return Ok(());
             }
@@ -524,8 +543,7 @@ impl PyFsPath {
             return Ok(self.clone());
         }
         let new_path = new_path.as_ref();
-        let new_path_exists = py.detach(|| new_path.exists());
-        if new_path_exists {
+        if new_path.exists() {
             return Err(PyFileExistsError::new_err(format!(
                 "rename - parent: {} - destination already exists",
                 self.py_to_string()
@@ -653,8 +671,9 @@ impl PyFsPath {
         self.path().ends_with(child.as_ref())
     }
 
-    fn exists(&self, py: Python<'_>) -> PyResult<bool> {
-        py.detach(|| self.path().try_exists())
+    fn exists(&self) -> PyResult<bool> {
+        self.path()
+            .try_exists()
             .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
     }
 
@@ -710,8 +729,9 @@ impl PyFsPath {
         Self::from(self.path().join(p))
     }
 
-    fn metadata(&self, py: Python<'_>) -> PyResult<ryo3_std::fs::PyMetadata> {
-        py.detach(|| self.path().metadata())
+    fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+        self.path()
+            .metadata()
             .map(ryo3_std::fs::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.metadata: {e}")))
     }
@@ -722,8 +742,9 @@ impl PyFsPath {
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_dir: {e}")))
     }
 
-    fn read_link(&self, py: Python<'_>) -> PyResult<Self> {
-        py.detach(|| self.path().read_link())
+    fn read_link(&self) -> PyResult<Self> {
+        self.path()
+            .read_link()
             .map(Self::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_link: {e}")))
     }
@@ -739,8 +760,9 @@ impl PyFsPath {
             .map_err(|e| PyValueError::new_err(format!("FsPath.strip_prefix: {e}")))
     }
 
-    fn symlink_metadata(&self, py: Python<'_>) -> PyResult<ryo3_std::fs::PyMetadata> {
-        py.detach(|| self.path().symlink_metadata())
+    fn symlink_metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+        self.path()
+            .symlink_metadata()
             .map(ryo3_std::fs::PyMetadata::from)
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.symlink_metadata: {e}")))
     }
@@ -837,9 +859,7 @@ where
     T: AsRef<Path>,
 {
     fn from(p: T) -> Self {
-        Self {
-            pth: ArcPathBuf::new(p.as_ref().to_path_buf()),
-        }
+        Self::new(p)
     }
 }
 
@@ -901,15 +921,16 @@ impl From<std::fs::ReadDir> for PyFsPathReadDir {
 #[pyclass(name = "FsPathAncestors", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct PyFsPathAncestors {
-    path: ArcPathBuf,
-    current: RyMutex<Option<ArcPathBuf>, false>,
+    path: PathBuf,
+    current: RyMutex<Option<PathBuf>, false>,
 }
 
 impl PyFsPathAncestors {
     fn new<P: AsRef<Path>>(p: P) -> Self {
+        let buf = to_native_pathbuf(p);
         Self {
-            path: ArcPathBuf::new(p.as_ref().to_path_buf()),
-            current: RyMutex::new(Some(ArcPathBuf::new(p.as_ref().to_path_buf()))),
+            current: RyMutex::new(Some(buf.clone())),
+            path: buf,
         }
     }
 }
@@ -927,16 +948,13 @@ impl PyFsPathAncestors {
     fn __next__(&self) -> Option<PyFsPath> {
         let mut current = self.current.py_lock();
 
-        // Take the current path; if we're done, stop.
         let cur = current.take()?;
-        let out = PyFsPath::from(cur.as_ref());
-
-        // Compute the next state.
-        *current = match out.path().parent() {
-            None => None,                                // no parent => done
-            Some(p) if p.as_os_str().is_empty() => None, // "root-ish" sentinel => done
-            Some(p) => Some(ArcPathBuf::new(p.to_path_buf())),
+        *current = match cur.parent() {
+            None => None,
+            Some(p) if p.as_os_str().is_empty() => None,
+            Some(p) => Some(p.to_path_buf()),
         };
+        let out = PyFsPath::new(&cur);
 
         Some(out)
     }
@@ -980,10 +998,7 @@ where
     fn as_posix_str(&self) -> String {
         #[cfg(target_os = "windows")]
         {
-            self.as_ref()
-                .to_string_lossy()
-                .to_string()
-                .replace('\\', "/")
+            self.as_ref().to_string_lossy().replace('\\', "/")
         }
         #[cfg(not(target_os = "windows"))]
         {

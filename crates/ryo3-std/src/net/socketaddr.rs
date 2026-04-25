@@ -51,9 +51,8 @@ impl PySocketAddrV4 {
         self.__str__()
     }
 
-    fn __repr__(&self) -> String {
-        let py_ip = PyIpv4Addr::from(self.0.ip());
-        format!("SocketAddrV4({}, {})", py_ip.__repr__(), self.port())
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __richcmp__(&self, other: Self, op: pyo3::basic::CompareOp) -> bool {
@@ -247,7 +246,7 @@ impl PySocketAddrV4 {
 #[pymethods]
 impl PySocketAddrV6 {
     #[new]
-    #[pyo3(signature = (ip, port, flowinfo = 0, scope_id = 0))]
+    #[pyo3(signature = (ip, port, *, flowinfo = 0, scope_id = 0))]
     #[expect(clippy::needless_pass_by_value)]
     fn py_new(ip: IpAddrLike, port: u16, flowinfo: u32, scope_id: u32) -> PyResult<Self> {
         let ipv6 = ip.get_ipv6()?;
@@ -265,8 +264,7 @@ impl PySocketAddrV6 {
     }
 
     fn __repr__(&self) -> String {
-        let py_ip = PyIpv6Addr::from(self.0.ip());
-        format!("SocketAddrV6({}, {})", py_ip.__repr__(), self.port())
+        format!("{self}")
     }
 
     fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
@@ -501,11 +499,7 @@ impl PySocketAddr {
     }
 
     fn __repr__(&self) -> String {
-        let py_str = match self.0.ip() {
-            IpAddr::V4(ipv4) => PyIpv4Addr::from(ipv4).__repr__(),
-            IpAddr::V6(ipv6) => PyIpv6Addr::from(ipv6).__repr__(),
-        };
-        format!("SocketAddr({}, {})", py_str, self.port())
+        format!("{self}")
     }
 
     fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
@@ -724,6 +718,57 @@ impl PySocketAddr {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
+    }
+}
+
+impl std::fmt::Display for PySocketAddrV4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let py_ip = PyIpv4Addr::from(self.0.ip());
+        write!(f, "SocketAddrV4({}, {})", py_ip, self.port())
+    }
+}
+
+impl std::fmt::Display for PySocketAddrV6 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let py_ip = PyIpv6Addr::from(self.0.ip());
+        write!(
+            f,
+            "SocketAddrV6({}, {}, flowinfo={}, scope_id={})",
+            py_ip,
+            self.port(),
+            self.0.flowinfo(),
+            self.0.scope_id()
+        )
+    }
+}
+
+impl std::fmt::Display for PySocketAddr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0.ip() {
+            IpAddr::V4(ipv4) => {
+                let py_ip = PyIpv4Addr::from(ipv4);
+                write!(f, "SocketAddr({}, {})", py_ip, self.port())
+            }
+            IpAddr::V6(ipv6) => {
+                let py_ip = PyIpv6Addr::from(ipv6);
+                let flowinfo = match self.0 {
+                    SocketAddr::V6(sa6) => sa6.flowinfo(),
+                    SocketAddr::V4(_) => unreachable!(),
+                };
+                let scope_id = match self.0 {
+                    SocketAddr::V6(sa6) => sa6.scope_id(),
+                    SocketAddr::V4(_) => unreachable!(),
+                };
+                write!(
+                    f,
+                    "SocketAddr({}, {}, flowinfo={}, scope_id={})",
+                    py_ip,
+                    self.port(),
+                    flowinfo,
+                    scope_id
+                )
+            }
+        }
     }
 }
 

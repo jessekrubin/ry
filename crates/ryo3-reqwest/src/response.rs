@@ -259,7 +259,8 @@ impl RyResponse {
             cache_mode = jiter::StringCacheMode::All,
             partial_mode = jiter::PartialMode::Off,
             catch_duplicate_keys = false,
-        )
+        ),
+        text_signature = "(self, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
     )]
     fn json<'py>(
         &'py self,

@@ -53,7 +53,7 @@ dev = [
   "hypothesis>=6.124.2",
   "ipython>=9.5.0",
   "maturin>=1.8.6",
-  "mypy>=1.14.1",
+  "mypy==1.19.1",                                   # stubtest messed up on 1.20.x
   "orjson==3.11.4; implementation_name=='cpython'",
   "prek>=0.2.2",
   "pydantic>=2.11.7",

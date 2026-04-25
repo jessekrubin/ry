@@ -17,7 +17,7 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import Buffer as Buffer
 
-_TimeoutLike: t.TypeAlias = Duration | pydt.timedelta | float | None
+_TimeoutLike: t.TypeAlias = Duration | pydt.timedelta | float
 
 class WebSocketConfig(t.TypedDict):
     headers: Headers
@@ -37,21 +37,22 @@ _ReadyState: t.TypeAlias = t.Literal[
 @t.final
 class WsMessage(Buffer):
     @t.overload
-    def __init__(self, kind: t.Literal["text"], data: str) -> None: ...
+    def __new__(cls, kind: t.Literal["text"], data: str) -> t.Self: ...
     @t.overload
-    def __init__(self, kind: t.Literal["binary"], data: Buffer) -> None: ...
+    def __new__(cls, kind: t.Literal["binary"], data: Buffer) -> t.Self: ...
     @t.overload
-    def __init__(
-        self, kind: t.Literal["ping", "pong"], data: Buffer | None = None
-    ) -> None: ...
+    def __new__(
+        cls, kind: t.Literal["ping", "pong"], data: Buffer | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __init__(
-        self,
+    def __new__(
+        cls,
         kind: t.Literal["close"],
         data: None = None,
-        code: int = 1_000,
-        reason: str | Buffer = "",
-    ) -> None: ...
+        *,
+        code: int | None = None,  # default: 1000
+        reason: str | Buffer | None = None,  # default: ""
+    ) -> t.Self: ...
     # -------------------------------------------------------------------------
     # "CLASSMETHODS" (STATIC FACTORY FNS)
     # -------------------------------------------------------------------------
@@ -139,17 +140,17 @@ class WsMessage(Buffer):
 
 @t.final
 class WebSocket:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         uri: URL | str,
         *,
         headers: Headers | dict[str, str] | None = None,
         max_payload_len: int = 67_108_864,
         frame_size: int = 4_194_304,
         flush_threshold: int = 8_192,
-        close_timeout: _TimeoutLike = 10.0,
-        recv_timeout: _TimeoutLike = 10.0,
-    ) -> None: ...
+        close_timeout: _TimeoutLike | None = 10,
+        recv_timeout: _TimeoutLike | None = None,
+    ) -> t.Self: ...
     def config(self) -> WebSocketConfig:
         """Return the `WebSocketConfig` as a dict"""
     @property

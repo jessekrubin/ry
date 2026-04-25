@@ -1,7 +1,9 @@
 # CHANGELOG
 
-## v0.0.89 [unreleased]
+## v0.0.89 [2026-04-24]
 
+- tests
+  - tests for `ry.panic()` and `ry.unreachable()`
 - repo
   - switch to `prek.toml` from `.pre-commit.yaml`
 - rust-deps
@@ -11,6 +13,9 @@
 - `ryo3-core`
   - added `UnreachableError` and `PanicException` exception types
   - added `unreachable()` and `panic()` funks (useful for testing)
+- `ryo3-fspath`
+  - constructor takes `*args` now like `pathlib.Path`
+  - impl joinpath with `*args`
 - `ryo3-jiff`
   - pattern matching support via `__match_args__` for:
     - `ry.Date`: `(year, month, day)`

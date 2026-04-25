@@ -117,6 +117,7 @@ impl RyDateDifference {
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
+        text_signature = "(date, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     #[expect(clippy::trivially_copy_pass_by_ref)]
@@ -358,6 +359,7 @@ impl RyDateTimeDifference {
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
+        text_signature = "(datetime, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(
@@ -587,6 +589,7 @@ impl RyTimeDifference {
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
+        text_signature = "(time, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     #[expect(clippy::trivially_copy_pass_by_ref)]
@@ -833,6 +836,7 @@ impl RyTimestampDifference {
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
+        text_signature = "(timestamp, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(
@@ -1070,6 +1074,7 @@ impl RyZonedDifference {
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
+        text_signature = "(zoned, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(

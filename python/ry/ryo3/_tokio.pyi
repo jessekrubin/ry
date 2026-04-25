@@ -47,11 +47,11 @@ class AsyncDirEntry:
     async def file_type(self) -> FileType: ...
 
 @t.final
-class AsyncReadDir:
+class AsyncReadDir(RyAsyncIterator[AsyncDirEntry]):
     """Async iterator for read_dir_async"""
 
     async def collect(self) -> list[AsyncDirEntry]: ...
-    async def take(self, n: int) -> list[AsyncDirEntry]: ...
+    async def take(self, n: int = 1) -> list[AsyncDirEntry]: ...
     def __aiter__(self) -> AsyncReadDir: ...
     async def __anext__(self) -> AsyncDirEntry: ...
 
@@ -69,9 +69,7 @@ async def asleep(secs: float) -> float:
 # =============================================================================
 @t.final
 class AsyncFile:
-    def __init__(
-        self, path: FsPathLike, mode: OpenBinaryMode = "rb", buffering: int = -1
-    ) -> None: ...
+    def __new__(cls, path: FsPathLike, mode: OpenBinaryMode = "rb") -> t.Self: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
     async def isatty(self) -> t.NoReturn: ...
@@ -111,15 +109,15 @@ def aiopen(
 
 @t.final
 class AsyncFileReadStream(RyAsyncIterator[Bytes]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         path: FsPathLike,
         *,
         read_size: int = 65536,
         offset: int = 0,
         buffered: bool = True,
         strict: bool = True,
-    ) -> None:
+    ) -> t.Self:
         """Return an AsyncFileReadStream
 
         Args:

@@ -120,16 +120,16 @@ impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
 #[pymethods]
 impl PyHeaders {
     #[new]
-    #[pyo3(signature = (d = None, **kwargs))]
-    fn py_new(d: Option<PyHeadersLike>, kwargs: Option<PyHeadersLike>) -> Self {
-        match (d, kwargs) {
-            (Some(d), Some(kwargs)) => {
-                let mut headers_map = HeaderMap::from(d);
+    #[pyo3(signature = (headers = None, /, **kwargs))]
+    fn py_new(headers: Option<PyHeadersLike>, kwargs: Option<PyHeadersLike>) -> Self {
+        match (headers, kwargs) {
+            (Some(headers), Some(kwargs)) => {
+                let mut headers_map = HeaderMap::from(headers);
                 headers_map.extend(HeaderMap::from(kwargs));
                 Self::from(headers_map)
             }
-            (Some(d), None) => {
-                let headers_map = HeaderMap::from(d);
+            (Some(headers), None) => {
+                let headers_map = HeaderMap::from(headers);
                 Self::from(headers_map)
             }
             (None, Some(kwargs)) => {

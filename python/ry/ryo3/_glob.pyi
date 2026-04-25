@@ -47,14 +47,14 @@ class GlobPattern:
 
     Prefer the `::globset` wrappers (`Glob` | `Globset` | `Globster`).
     """
-    def __init__(
-        self,
+    def __new__(
+        cls,
         pattern: str,
         *,
         case_sensitive: bool = True,
         require_literal_separator: bool = False,
         require_literal_leading_dot: bool = False,
-    ) -> None: ...
+    ) -> t.Self: ...
     def __call__(
         self,
         ob: str | PathLike[str],

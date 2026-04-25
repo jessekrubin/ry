@@ -28,7 +28,7 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     SECOND: t.Final[Duration]
     __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
-    def __init__(self, secs: int = 0, nanos: int = 0) -> None: ...
+    def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __add__(self, other: t.Self | pydt.timedelta) -> t.Self: ...
@@ -164,7 +164,7 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
 
 @t.final
 class Instant:
-    def __init__(self) -> None: ...
+    def __new__(cls) -> t.Self: ...
     @classmethod
     def now(cls) -> Instant: ...
     def __eq__(self, other: object) -> bool: ...
@@ -231,8 +231,8 @@ FileTypeStr: t.TypeAlias = t.Literal[
 
 @t.final
 class FileType(ToPy[FileTypeStr]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         t: t.Literal[
             "f",
             "file",
@@ -250,7 +250,7 @@ class FileType(ToPy[FileTypeStr]):
             "symlink-file",
             "unknown",
         ],
-    ) -> None: ...
+    ) -> t.Self: ...
     @property
     def is_dir(self) -> bool: ...
     @property
@@ -282,7 +282,7 @@ class Permissions:
 
 @t.final
 class Metadata:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     @property
     def file_type(self) -> FileType: ...
     @property
@@ -309,7 +309,7 @@ class Metadata:
 
 @t.final
 class DirEntry:
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     def __fspath__(self) -> str: ...
     @property
     def path(self) -> pathlib.Path: ...
@@ -320,7 +320,7 @@ class DirEntry:
 
 @t.final
 class ReadDir(RyIterator[DirEntry]):
-    def __init__(self) -> t.NoReturn: ...
+    def __new__(cls) -> t.NoReturn: ...
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> DirEntry: ...
     def collect(self) -> list[DirEntry]: ...
@@ -328,15 +328,15 @@ class ReadDir(RyIterator[DirEntry]):
 
 @t.final
 class FileReadStream(RyIterator[Bytes]):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         path: FsPathLike,
         *,
         read_size: int = 65536,
         offset: int = 0,
         buffered: bool = True,
         strict: bool = True,
-    ) -> None:
+    ) -> t.Self:
         """Return a FileReadStream
 
         Args:
@@ -481,11 +481,12 @@ class Ipv4Addr(
     UNSPECIFIED: Ipv4Addr
 
     @t.overload
-    def __init__(self, a: int, b: int, c: int, d: int) -> None: ...
+    def __new__(cls, a: int, b: int, c: int, d: int) -> t.Self: ...
     @t.overload
-    def __init__(
-        self, iplike: int | str | bytes | Ipv4Addr | ipaddress.IPv4Address
-    ) -> None: ...
+    def __new__(
+        cls,
+        iplike: int | str | bytes | Ipv4Addr | ipaddress.IPv4Address,
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: Ipv4Addr) -> bool: ...
@@ -568,13 +569,11 @@ class Ipv6Addr(
     UNSPECIFIED: Ipv6Addr
 
     @t.overload
-    def __init__(
-        self, a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int
-    ) -> None: ...
+    def __new__(cls, *args: int) -> t.Self: ...
     @t.overload
-    def __init__(
-        self, iplike: int | str | bytes | Ipv6Addr | ipaddress.IPv6Address
-    ) -> None: ...
+    def __new__(
+        cls, iplike: int | str | bytes | Ipv6Addr | ipaddress.IPv6Address
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: Ipv6Addr) -> bool: ...
@@ -628,16 +627,16 @@ class IpAddr(
     LOCALHOST_V6: IpAddr
     UNSPECIFIED_V6: IpAddr
 
-    def __init__(
-        self,
-        iplike: int
+    def __new__(
+        cls,
+        ob: int
         | str
         | bytes
         | Ipv4Addr
         | Ipv6Addr
         | ipaddress.IPv4Address
         | ipaddress.IPv6Address,
-    ) -> None: ...
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: IpAddr) -> bool: ...
@@ -698,11 +697,11 @@ class SocketAddrV4(
     ToString,
     _Parse,
 ):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         ip: IpAddr | Ipv4Addr | ipaddress.IPv4Address | ipaddress.IPv6Address,
         port: int,
-    ) -> None: ...
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: SocketAddrV4) -> bool: ...
@@ -737,11 +736,14 @@ class SocketAddrV6(
     ToString,
     _Parse,
 ):
-    def __init__(
-        self,
+    def __new__(
+        cls,
         ip: IpAddr | Ipv6Addr | ipaddress.IPv4Address | ipaddress.IPv6Address,
         port: int,
-    ) -> None: ...
+        *,
+        flowinfo: int = 0,
+        scope_id: int = 0,
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: SocketAddrV6) -> bool: ...
@@ -779,15 +781,20 @@ class SocketAddr(
     ToString,
     ToPyIpAddress[ipaddress.IPv4Address | ipaddress.IPv6Address],
 ):
-    def __init__(
-        self,
-        ip: IpAddr
-        | Ipv4Addr
-        | Ipv6Addr
-        | ipaddress.IPv4Address
-        | ipaddress.IPv6Address,
+    @t.overload
+    def __new__(
+        cls,
+        ip: IpAddr | Ipv4Addr | ipaddress.IPv4Address,
         port: int,
-    ) -> None: ...
+    ) -> t.Self: ...
+    @t.overload
+    def __new__(
+        cls,
+        ip: IpAddr | Ipv6Addr | ipaddress.IPv6Address,
+        port: int,
+        flowinfo: int | None = None,
+        scope_id: int | None = None,
+    ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     def __ne__(self, other: object) -> bool: ...
     def __lt__(self, other: SocketAddr) -> bool: ...

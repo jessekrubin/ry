@@ -383,7 +383,10 @@ impl RyHttpClient {
         self.request(py, url, Method::PATCH, kwargs)
     }
 
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(
+        signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+        text_signature = "($self, url, *, method=\"GET\", **kwargs)"
+    )]
     pub(crate) fn fetch<'py>(
         &'py self,
         py: Python<'py>,
@@ -405,7 +408,10 @@ impl RyHttpClient {
         self.request(py, url, method.into(), kwargs)
     }
 
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(
+        signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+        text_signature = "($self, url, *, method=\"GET\", **kwargs)"
+    )]
     pub(crate) fn fetch_sync(
         &self,
         py: Python<'_>,
@@ -502,7 +508,10 @@ impl RyClient {
         self.request(url, Method::OPTIONS, kwargs).await
     }
 
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(
+        signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+        text_signature = "($self, url, *, method=\"GET\", **kwargs)"
+    )]
     pub(crate) async fn fetch(
         &self,
         url: UrlLike,
@@ -522,7 +531,10 @@ impl RyClient {
         self.request(url, method.into(), kwargs).await
     }
 
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(
+        signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+        text_signature = "($self, url, *, method=\"GET\", **kwargs)"
+    )]
     pub(crate) fn fetch_sync(
         &self,
         py: Python<'_>,
@@ -641,7 +653,10 @@ impl RyBlockingClient {
         py.detach(|| self.request_sync(url, Method::OPTIONS, kwargs))
     }
 
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
+    #[pyo3(
+        signature = (url, *, method = PyHttpMethod::GET, **kwargs),
+        text_signature = "($self, url, *, method=\"GET\", **kwargs)"
+    )]
     pub(crate) fn fetch(
         &self,
         py: Python<'_>,

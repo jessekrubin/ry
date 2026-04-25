@@ -474,6 +474,56 @@ def test_ancestors() -> None:
     assert taken_paths == expected_taken_paths
 
 
+class TestFsPathConstructor:
+    def test_no_args(self) -> None:
+        assert str(ry.FsPath()) == str(Path())
+
+    def test_single_arg(self) -> None:
+        assert str(ry.FsPath("foo/bar")) == str(Path("foo/bar"))
+
+    def test_multi_segment(self) -> None:
+        assert str(ry.FsPath("foo", "bar", "baz")) == str(Path("foo", "bar", "baz"))
+
+    def test_absolute_resets(self) -> None:
+        assert str(ry.FsPath("foo", "/abs", "baz")) == str(Path("foo", "/abs", "baz"))
+
+    def test_fspath_arg(self) -> None:
+        p = ry.FsPath("foo/bar")
+        assert str(ry.FsPath(p)) == str(Path("foo/bar"))
+
+    def test_pathlib_arg(self) -> None:
+        p = Path("foo/bar")
+        assert str(ry.FsPath(p)) == str(p)
+
+    def test_mixed_args(self) -> None:
+        assert str(ry.FsPath(Path("foo"), "bar", ry.FsPath("baz"))) == str(
+            Path("foo", "bar", "baz")
+        )
+
+
+class TestJoinpath:
+    def test_single(self) -> None:
+        assert str(ry.FsPath("a").joinpath("b")) == str(Path("a").joinpath("b"))
+
+    def test_multi_segment(self) -> None:
+        assert str(ry.FsPath("a").joinpath("b", "c", "d")) == str(
+            Path("a").joinpath("b", "c", "d")
+        )
+
+    def test_absolute_resets(self) -> None:
+        assert str(ry.FsPath("a").joinpath("b", "/abs")) == str(
+            Path("a").joinpath("b", "/abs")
+        )
+
+    def test_no_args(self) -> None:
+        assert str(ry.FsPath("a").joinpath()) == str(Path("a").joinpath())
+
+    def test_fspath_arg(self) -> None:
+        assert str(ry.FsPath("a").joinpath(ry.FsPath("b/c"))) == str(
+            Path("a").joinpath("b/c")
+        )
+
+
 def test_read_text_unidecode_err(tmp_path: Path) -> None:
     pypath = tmp_path / "test.txt"
     # write bytes that are invalid utf-8
