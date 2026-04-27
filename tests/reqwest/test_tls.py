@@ -45,6 +45,17 @@ CkcO8DdZEv8tmZQoTipPNU0zWgIxAOp1AE47xDqUEpHJWEadIRNyp4iciuRMStuW
 1KyLa2tJElMzrdfkviT8tQp21KW8EA==
 -----END CERTIFICATE-----
 """
+_CRL_PEM: str = """
+-----BEGIN X509 CRL-----
+-----END X509 CRL-----
+"""
+_CRL_PEM_BUNDLE: str = """
+-----BEGIN X509 CRL-----
+-----END X509 CRL-----
+
+-----BEGIN X509 CRL-----
+-----END X509 CRL-----
+"""
 # typos:on
 
 
@@ -69,11 +80,11 @@ class TestCertificate:
 
 class TestCertificateRevocationList:
     def test_from_pem(self) -> None:
-        crl = ry.CertificateRevocationList.from_pem(_PEM.encode())
+        crl = ry.CertificateRevocationList.from_pem(_CRL_PEM.encode())
         assert isinstance(crl, ry.CertificateRevocationList)
         assert hash(crl) != 0
 
     def test_from_pem_bundle(self) -> None:
-        crls = ry.CertificateRevocationList.from_pem_bundle(_PEM_BUNDLE.encode())
+        crls = ry.CertificateRevocationList.from_pem_bundle(_CRL_PEM_BUNDLE.encode())
         assert isinstance(crls, list)
         assert all(isinstance(c, ry.CertificateRevocationList) for c in crls)
