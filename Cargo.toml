@@ -202,7 +202,7 @@ pyo3-build-config = { version = "0.28.1", default-features = false, features = [
   "resolve-config",
 ] }
 # allocator(s)
-mimalloc = { version = "0.1.49", default-features = false, features = [] }
+mimalloc = { version = "0.1.50", default-features = false, features = [] }
 # future
 tokio-websockets = { version = "0.13.1", features = [] }
 ignore = { version = "0.4.24", default-features = false, features = [] }
