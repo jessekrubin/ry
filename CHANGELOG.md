@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.90 [unreleased]
+
+- `ryo3-http`
+  - pydantic support for `ry.Headers` and `ry.HttpStatus`
+
+---
+
 ## v0.0.89 [2026-04-24]
 
 - tests

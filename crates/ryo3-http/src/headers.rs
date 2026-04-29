@@ -5,7 +5,7 @@ use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use http::header::HeaderMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
-use ryo3_core::{RyRwLock, py_runtime_error};
+use ryo3_core::{RyRwLock, py_runtime_error, py_value_error};
 
 use crate::http_types::{PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
@@ -76,6 +76,18 @@ impl PyHeaders {
                 }
             }
             Ok(d)
+        }
+    }
+
+    #[cfg(feature = "pydantic")]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        use pyo3::BoundObject;
+        let py = value.py();
+        if let Ok(headers) = value.cast_exact::<Self>() {
+            Ok(headers.as_borrowed().into_bound())
+        } else {
+            let headers_like = value.extract::<PyHeadersLike>()?;
+            Py::new(py, Self::from(headers_like)).map(|headers| headers.into_bound(py))
         }
     }
 }
@@ -426,6 +438,32 @@ impl PyHeaders {
             "ryo3-http: `json` feature not enabled",
         ))
     }
+
+    // ========================================================================
+    // PYDANTIC
+    // ========================================================================
+
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        Self::from_any(value).map_err(|e| py_value_error!("Headers validation error: {e}"))
+    }
+
+    #[cfg(feature = "pydantic")]
+    fn _pydantic_serialize<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        self.py_dict(py)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
 }
 
 impl std::hash::Hash for PyHeaders {
@@ -448,5 +486,52 @@ impl std::hash::Hash for HeaderMapRef<'_> {
                 value.as_bytes().hash(state);
             }
         }
+    }
+}
+
+#[cfg(feature = "pydantic")]
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
+    fn get_pydantic_core_schema<'py>(
+        cls: &Bound<'py, pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::interns;
+
+        let py = source.py();
+        let core_schema = ryo3_pydantic::core_schema(py)?;
+        let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
+        let list_schema =
+            core_schema.call_method(interns::list_schema(py), (&str_schema,), None)?;
+        let value_schema = core_schema.call_method(
+            interns::union_schema(py),
+            (vec![&str_schema, &list_schema],),
+            None,
+        )?;
+        // should be dict[str, str | list[str]] but fuck is this ugly
+        let dict_schema = core_schema.call_method(
+            interns::dict_schema(py),
+            (&str_schema, &value_schema),
+            None,
+        )?;
+
+        let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
+        let serializer_fn = cls.getattr(interns::_pydantic_serialize(py))?;
+        let serializer_kwargs = PyDict::new(py);
+        serializer_kwargs.set_item(interns::return_schema(py), &dict_schema)?;
+        let serializer_schema = core_schema.call_method(
+            interns::plain_serializer_function_ser_schema(py),
+            (&serializer_fn,),
+            Some(&serializer_kwargs),
+        )?;
+
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item("json_schema_input_schema", &dict_schema)?;
+        plain_validator_kwargs.set_item(interns::serialization(py), &serializer_schema)?;
+        core_schema.call_method(
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
+        )
     }
 }

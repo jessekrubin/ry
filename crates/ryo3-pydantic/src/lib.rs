@@ -52,9 +52,11 @@ pub mod interns {
     unpaid_intern!(_pydantic_validate_strict);
     unpaid_intern!(json_unless_none, "json-unless-none");
     unpaid_intern!(no_info_wrap_validator_function);
+    unpaid_intern!(no_info_after_validator_function);
     unpaid_intern!(no_info_plain_validator_function);
     unpaid_intern!(plain_serializer_function_ser_schema);
     unpaid_intern!(to_string_ser_schema);
+    unpaid_intern!(json_or_python_schema);
     unpaid_intern!(lax_or_strict_schema);
     unpaid_intern!(when_used);
     // JSON schema related
@@ -67,6 +69,7 @@ pub mod interns {
     unpaid_intern!(string);
     // kwargs
     unpaid_intern!(serialization);
+    unpaid_intern!(return_schema);
     unpaid_intern!(min_length);
     unpaid_intern!(max_length);
     unpaid_intern!(pattern);
@@ -74,6 +77,9 @@ pub mod interns {
     // schemas
     unpaid_intern!(str_schema);
     unpaid_intern!(bytes_schema);
+    unpaid_intern!(int_schema);
+    unpaid_intern!(dict_schema);
+    unpaid_intern!(list_schema);
     unpaid_intern!(union_schema);
     unpaid_intern!(is_instance_schema);
     // datetime schemas
