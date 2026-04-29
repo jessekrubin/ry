@@ -67,6 +67,7 @@ pub mod interns {
     unpaid_intern!(string);
     // kwargs
     unpaid_intern!(serialization);
+    unpaid_intern!(return_schema);
     unpaid_intern!(min_length);
     unpaid_intern!(max_length);
     unpaid_intern!(pattern);
@@ -74,6 +75,9 @@ pub mod interns {
     // schemas
     unpaid_intern!(str_schema);
     unpaid_intern!(bytes_schema);
+    unpaid_intern!(int_schema);
+    unpaid_intern!(dict_schema);
+    unpaid_intern!(list_schema);
     unpaid_intern!(union_schema);
     unpaid_intern!(is_instance_schema);
     // datetime schemas
