@@ -1,6 +1,6 @@
 # `ryo3-fnv`
 
-Fowler–Noll–Vo python implementation.
+Fowler-Noll-Vo python implementation.
 
 ---
 

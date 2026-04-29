@@ -10,7 +10,7 @@ from hypothesis.strategies import SearchStrategy
 
 import ry
 
-# unsigned ──────────────────────────────────────────────────────────
+# unsigned --------------------------------------------------------------------
 MIN_U8: Final = 0
 MAX_U8: Final = (1 << 8) - 1  # 255
 
@@ -26,7 +26,7 @@ MAX_U64: Final = (1 << 64) - 1  # 18_446_744_073_709_551_615
 MIN_U128: Final = 0
 MAX_U128: Final = (1 << 128) - 1  # 340_282_366_920_938_463_463_374_607_431_768_211_455
 
-# signed ────────────────────────────────────────────────────────────
+# signed ----------------------------------------------------------------------
 MIN_I8: Final = -(1 << 7)  # -128
 MAX_I8: Final = (1 << 7) - 1  # 127
 
@@ -42,13 +42,13 @@ MAX_I64: Final = (1 << 63) - 1  # 9_223_372_036_854_775_807
 MIN_I128: Final = -(1 << 127)  # -170_141_183_460_469_231_731_687_303_715_884_105_728
 MAX_I128: Final = (1 << 127) - 1  # 170_141_183_460_469_231_731_687_303_715_884_105_727
 
-# unsigned ────────────────────────────────────────────────────────────
+# unsigned --------------------------------------------------------------------
 st_u8 = st.integers(min_value=ry.U8_MIN, max_value=ry.U8_MAX)
 st_u16 = st.integers(min_value=ry.U16_MIN, max_value=ry.U16_MAX)
 st_u32 = st.integers(min_value=ry.U32_MIN, max_value=ry.U32_MAX)
 st_u64 = st.integers(min_value=ry.U64_MIN, max_value=ry.U64_MAX)
 st_u128 = st.integers(min_value=ry.U128_MIN, max_value=ry.U128_MAX)
-# signed ─────────────────────────────────────────────────────────────
+# signed ----------------------------------------------------------------------
 st_i8 = st.integers(min_value=ry.I8_MIN, max_value=ry.I8_MAX)
 st_i16 = st.integers(min_value=ry.I16_MIN, max_value=ry.I16_MAX)
 st_i32 = st.integers(min_value=ry.I32_MIN, max_value=ry.I32_MAX)
