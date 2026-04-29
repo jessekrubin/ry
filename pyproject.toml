@@ -20,7 +20,6 @@ keywords = [
 license = "MIT OR Apache-2.0"
 maintainers = [ { name = "jesse rubin", email = "jessekrubin@gmail.com" } ]
 authors = [ { name = "jesse rubin", email = "jessekrubin@gmail.com" } ]
-
 requires-python = ">=3.11"
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -40,7 +39,6 @@ classifiers = [
   "Typing :: Typed",
 ]
 dynamic = [ "readme", "version" ]
-
 urls.Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/jessekrubin/ry"
 urls.Issues = "https://github.com/jessekrubin/ry/issues"
@@ -77,24 +75,33 @@ module-name = "ry.ryo3"
 bindings = "pyo3"
 
 [tool.uv]
-package = false # don't build package w/ uv
 # UV problemo: https://github.com/astral-sh/setup-uv/issues/489
 # BUG IN UV: https://github.com/astral-sh/setup-uv/issues/489#issuecomment-3085384851
 required-version = ">=0.7.0"
-
-[tool.uv.sources]
-ry = { workspace = true }
+sources.ry = { workspace = true }
+package = false  # don't build package w/ uv
 
 [tool.ruff]
 extend = "./ruff.toml"
 
-[tool.pytest.ini_options]
-testpaths = [ "tests" ]
-filterwarnings = [ "ignore:ry not compiled in release mode:RuntimeWarning" ]
-addopts = [ "--doctest-modules" ]
-asyncio_mode = 'auto'
-asyncio_default_fixture_loop_scope = "function"
-norecursedirs = [
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+python_version = "3.11"
+enable_error_code = [ "deprecated" ]
+overrides = [ { module = "tests.*", ignore_missing_imports = true, check_untyped_defs = true } ]
+
+[tool.pyright]
+include = [ "ry", "tests" ]
+reportUnnecessaryTypeIgnoreComment = true
+
+[tool.pytest]
+ini_options.testpaths = [ "tests" ]
+ini_options.filterwarnings = [ "ignore:ry not compiled in release mode:RuntimeWarning" ]
+ini_options.addopts = [ "--doctest-modules" ]
+ini_options.asyncio_mode = "auto"
+ini_options.asyncio_default_fixture_loop_scope = "function"
+ini_options.norecursedirs = [
   ".git",
   ".nox",
   ".pytest_cache",
@@ -110,59 +117,35 @@ norecursedirs = [
   ".*",
   "target",
 ]
-markers = [
+ini_options.markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
   "bench",
 ]
 
-[tool.coverage.paths]
-source = [ 'python/ry/' ]
-
-[tool.coverage.report]
-precision = 2
-exclude_lines = [
-  "pragma: no cover",
-  "raise NotImplementedError",
-  "if TYPE_CHECKING:",
-  "if typing.TYPE_CHECKING:",
-  "if t.TYPE_CHECKING:",
-  '\(Protocol\):$',
+[tool.coverage]
+run.branch = true
+run.context = "${CONTEXT}"
+run.omit = [ "python/ry/dev/__main__.py" ]
+run.relative_files = true
+run.source = [ "python/ry" ]
+paths.source = [ "python/ry/" ]
+report.exclude_lines = [
+  "\\(Protocol\\):$",
   # any generic protocol from `ry.protocols`
   "^\\s*class\\s+\\w+\\(.*\\b(?:typing\\.|t\\.)?Protocol(?:\\[[^\\]]*\\])?.*\\):\\s*(?:#.*)?$",
-
+  "if t.TYPE_CHECKING:",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING:",
+  "pragma: no cover",
+  "raise NotImplementedError",
   # 'typing.assert_never',
   # 'assert_never',
 ]
-
-[tool.coverage.run]
-source = [ "python/ry" ]
-omit = [ "python/ry/dev/__main__.py" ]
-branch = true
-relative_files = true
-context = '${CONTEXT}'
-
-[tool.mypy]
-strict = true
-ignore_missing_imports = true
-python_version = "3.11"
-enable_error_code = [ "deprecated" ]
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-ignore_missing_imports = true
-check_untyped_defs = true
-
-[tool.pyright]
-include = [ 'ry', 'tests' ]
-reportUnnecessaryTypeIgnoreComment = true
+report.precision = 2
 
 [tool.rumdl]
 disable = [ "MD033" ]
-exclude = [  ]
-
-[tool.rumdl.per-file-ignores]
-"README.md" = [ "MD036" ]
-"docs/src/index.md" = [ "MD041" ]
-
-[tool.rumdl.MD013]
-code_blocks = false
+exclude = []
+MD013.code_blocks = false
+per-file-ignores."README.md" = [ "MD036" ]
+per-file-ignores."docs/src/index.md" = [ "MD041" ]

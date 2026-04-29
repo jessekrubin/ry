@@ -1,5 +1,5 @@
 use pyo3::prelude::PyAnyMethods;
-use pyo3::types::{PyDict, PyTuple, PyType};
+use pyo3::types::{PyDict, PyType};
 use pyo3::{Bound, PyAny, PyResult};
 use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
 
@@ -18,15 +18,16 @@ impl GetPydanticCoreSchemaCls for RyDate {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let date_schema = core_schema.call_method(interns::date_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &date_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &date_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -40,15 +41,16 @@ impl GetPydanticCoreSchemaCls for RyDateTime {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &datetime_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -63,15 +65,16 @@ impl GetPydanticCoreSchemaCls for RyTime {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let time_schema = core_schema.call_method(interns::time_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &time_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &time_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -89,15 +92,16 @@ impl GetPydanticCoreSchemaCls for RyTimestamp {
         // or datetime
         let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &datetime_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -112,15 +116,16 @@ impl GetPydanticCoreSchemaCls for RyZoned {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &datetime_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &datetime_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -135,15 +140,17 @@ impl GetPydanticCoreSchemaCls for RySpan {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let timedelta_schema = core_schema.call_method(interns::timedelta_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs
+            .set_item(interns::json_schema_input_schema(py), &timedelta_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -189,15 +196,17 @@ impl GetPydanticCoreSchemaCls for RySignedDuration {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let timedelta_schema = core_schema.call_method(interns::timedelta_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs
+            .set_item(interns::json_schema_input_schema(py), &timedelta_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -212,15 +221,16 @@ impl GetPydanticCoreSchemaCls for RyISOWeekDate {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item("json_schema_input_schema", &schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -235,15 +245,16 @@ impl GetPydanticCoreSchemaCls for RyOffset {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
@@ -258,15 +269,16 @@ impl GetPydanticCoreSchemaCls for RyTimeZone {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }

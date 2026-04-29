@@ -4,6 +4,10 @@
 
 - `ryo3-http`
   - pydantic support for `ry.Headers` and `ry.HttpStatus`
+- pydantic integration
+  - changed all pydantic stuff to use `no_info_plain_validator_function` instead
+    of `no_info_wrap_validator_function` for all but `ulid` as it is about 2x
+    faster
 
 ---
 
