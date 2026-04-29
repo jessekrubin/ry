@@ -445,10 +445,7 @@ impl PyHeaders {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(|e| py_value_error!("Headers validation error: {e}"))
     }
 
@@ -519,7 +516,6 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
         )?;
 
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &dict_schema])?;
         let serializer_fn = cls.getattr(interns::_pydantic_serialize(py))?;
         let serializer_kwargs = PyDict::new(py);
         serializer_kwargs.set_item(interns::return_schema(py), &dict_schema)?;
@@ -529,12 +525,13 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
             Some(&serializer_kwargs),
         )?;
 
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &serializer_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item("json_schema_input_schema", &dict_schema)?;
+        plain_validator_kwargs.set_item(interns::serialization(py), &serializer_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }

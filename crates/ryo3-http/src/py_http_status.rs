@@ -183,10 +183,7 @@ impl PyHttpStatus {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(status) = value.cast_exact::<Self>() {
             Ok(status.clone().into_any())
@@ -777,7 +774,6 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHttpStatus {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let int_schema = core_schema.call_method(interns::int_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &int_schema])?;
 
         let serializer_fn = cls.getattr(interns::_pydantic_serialize(py))?;
         let serializer_kwargs = PyDict::new(py);
@@ -788,12 +784,13 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHttpStatus {
             Some(&serializer_kwargs),
         )?;
 
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &serializer_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item("json_schema_input_schema", &int_schema)?;
+        plain_validator_kwargs.set_item(interns::serialization(py), &serializer_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }
